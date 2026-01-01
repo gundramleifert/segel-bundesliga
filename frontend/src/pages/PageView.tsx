@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from 'react-oidc-context';
 import { api } from '@/api/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { hasAdminRole } from '@/lib/auth';
 
 interface PageData {
   id: number;
@@ -17,6 +20,8 @@ interface PageData {
 
 export function PageView() {
   const { slug } = useParams<{ slug: string }>();
+  const auth = useAuth();
+  const isAdmin = hasAdminRole(auth.user);
   const [page, setPage] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,12 +78,34 @@ export function PageView() {
     <main className="container mx-auto px-4 py-8 max-w-4xl" data-testid="page-view">
       <article>
         <header className="mb-8">
-          <h1
-            className="text-3xl md:text-4xl font-bold text-primary mb-2"
-            data-testid="page-title"
-          >
-            {page.title}
-          </h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1
+              className="text-3xl md:text-4xl font-bold text-primary mb-2"
+              data-testid="page-title"
+            >
+              {page.title}
+            </h1>
+            {isAdmin && (
+              <Button asChild variant="outline" size="sm" data-testid="page-edit-button">
+                <Link to={`/admin/pages/${page.id}`}>
+                  <svg
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Bearbeiten
+                </Link>
+              </Button>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
             Zuletzt aktualisiert:{' '}
             {new Date(page.updatedAt).toLocaleDateString('de-DE', {

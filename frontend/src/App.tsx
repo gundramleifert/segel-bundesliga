@@ -19,23 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/toaster';
-
-// Helper to check if user has admin role
-function hasAdminRole(user: ReturnType<typeof useAuth>['user']): boolean {
-  if (!user) return false;
-  // Zitadel stores roles in a claim like: urn:zitadel:iam:org:project:{projectId}:roles
-  // We check for any roles claim that contains ADMIN
-  const claims = user.profile as Record<string, unknown>;
-  for (const key of Object.keys(claims)) {
-    if (key.includes(':roles')) {
-      const roles = claims[key] as Record<string, unknown> | undefined;
-      if (roles && typeof roles === 'object' && 'ADMIN' in roles) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
+import { hasAdminRole } from '@/lib/auth';
 
 function Header() {
   const auth = useAuth();
