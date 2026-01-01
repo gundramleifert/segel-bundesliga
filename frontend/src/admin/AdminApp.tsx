@@ -22,6 +22,8 @@ import {
   useRecordContext,
   AuthProvider,
   FunctionField,
+  Toolbar,
+  SaveButton,
 } from 'react-admin';
 // Auth wird ueber den OIDC-Token im localStorage gehandhabt
 import { dataProvider } from './dataProvider';
@@ -102,10 +104,24 @@ const postStatusChoices = [
   { id: 'ARCHIVED', name: 'Archiviert' },
 ];
 
+// Custom Toolbar mit data-testid fuer E2E Tests
+const PageFormToolbar = () => (
+  <Toolbar>
+    <SaveButton data-testid="admin-page-save-button" />
+  </Toolbar>
+);
+
+// Custom Delete Button mit data-testid
+const PageDeleteButton = () => (
+  <DeleteButton mutationMode="pessimistic" data-testid="admin-page-delete-button" />
+);
 
 // Page List
 const PageList = () => (
-  <List sort={{ field: 'sortOrder', order: 'ASC' }}>
+  <List
+    sort={{ field: 'sortOrder', order: 'ASC' }}
+    queryOptions={{ refetchOnMount: 'always', staleTime: 0 }}
+  >
     <Datagrid>
       <TextField source="id" />
       <TextField source="title" label="Titel" />
@@ -114,7 +130,7 @@ const PageList = () => (
       <BooleanField source="showInMenu" label="Im Menu" />
       <NumberField source="sortOrder" label="Sortierung" />
       <EditButton />
-      <DeleteButton />
+      <PageDeleteButton />
     </Datagrid>
   </List>
 );
@@ -127,11 +143,11 @@ const PageTitle = () => {
 
 // Page Edit Form
 const PageEdit = () => (
-  <Edit title={<PageTitle />}>
-    <SimpleForm>
-      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth />
-      <TextInput source="titleEn" label="Titel (EN)" fullWidth />
-      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth />
+  <Edit title={<PageTitle />} mutationMode="pessimistic">
+    <SimpleForm toolbar={<PageFormToolbar />}>
+      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
+      <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
+      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
       <TextInput
         source="content"
         label="Inhalt (DE)"
@@ -139,6 +155,7 @@ const PageEdit = () => (
         rows={10}
         validate={required()}
         fullWidth
+        inputProps={{ 'data-testid': 'admin-page-content-input' }}
       />
       <TextInput
         source="contentEn"
@@ -146,6 +163,7 @@ const PageEdit = () => (
         multiline
         rows={10}
         fullWidth
+        inputProps={{ 'data-testid': 'admin-page-content-en-input' }}
       />
       <SelectInput
         source="visibility"
@@ -154,7 +172,7 @@ const PageEdit = () => (
         defaultValue="PUBLIC"
       />
       <BooleanInput source="showInMenu" label="Im Menu anzeigen" />
-      <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} />
+      <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />
     </SimpleForm>
   </Edit>
 );
@@ -162,10 +180,10 @@ const PageEdit = () => (
 // Page Create Form
 const PageCreate = () => (
   <Create>
-    <SimpleForm>
-      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth />
-      <TextInput source="titleEn" label="Titel (EN)" fullWidth />
-      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth />
+    <SimpleForm toolbar={<PageFormToolbar />}>
+      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
+      <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
+      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
       <TextInput
         source="content"
         label="Inhalt (DE)"
@@ -173,6 +191,7 @@ const PageCreate = () => (
         rows={10}
         validate={required()}
         fullWidth
+        inputProps={{ 'data-testid': 'admin-page-content-input' }}
       />
       <TextInput
         source="contentEn"
@@ -180,6 +199,7 @@ const PageCreate = () => (
         multiline
         rows={10}
         fullWidth
+        inputProps={{ 'data-testid': 'admin-page-content-en-input' }}
       />
       <SelectInput
         source="visibility"
@@ -188,7 +208,7 @@ const PageCreate = () => (
         defaultValue="PUBLIC"
       />
       <BooleanInput source="showInMenu" label="Im Menu anzeigen" defaultValue={false} />
-      <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} />
+      <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />
     </SimpleForm>
   </Create>
 );
@@ -199,7 +219,10 @@ const PageCreate = () => (
 
 // Post List
 const PostList = () => (
-  <List sort={{ field: 'createdAt', order: 'DESC' }}>
+  <List
+    sort={{ field: 'createdAt', order: 'DESC' }}
+    queryOptions={{ refetchOnMount: 'always', staleTime: 0 }}
+  >
     <Datagrid>
       <TextField source="id" />
       <TextField source="title" label="Titel" />

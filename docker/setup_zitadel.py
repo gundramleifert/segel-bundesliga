@@ -491,6 +491,56 @@ VITE_ZITADEL_PROJECT_ID={self.project_id}
         print(f"  Password reset successfully for '{username}'")
         return True
 
+    def run(self) -> bool:
+        """Run full Zitadel setup."""
+        print("=" * 50)
+        print("Zitadel Setup for Segel-Bundesliga")
+        print("=" * 50)
+
+        # 1. Create project
+        self.project_id = self.create_project()
+        if not self.project_id:
+            return False
+
+        # 2. Create roles
+        if not self.create_roles():
+            return False
+
+        # 3. Create frontend app
+        self.frontend_client_id = self.create_frontend_app()
+        if not self.frontend_client_id:
+            return False
+
+        # 4. Simplify password policy
+        if not self.simplify_password_policy():
+            return False
+
+        # 5. Disable email verification
+        if not self.disable_email_verification():
+            return False
+
+        # 6. Create users
+        if not self.create_users():
+            return False
+
+        # 7. Grant admin role
+        if not self.grant_admin_role():
+            return False
+
+        # 8. Save config
+        script_dir = Path(__file__).parent
+        if not self.save_config(script_dir / "zitadel.env"):
+            return False
+
+        # 9. Sync frontend config
+        if not self.sync_frontend_config():
+            return False
+
+        print("\n" + "=" * 50)
+        print("Setup completed successfully!")
+        print("=" * 50)
+        return True
+
     def list_users(self) -> bool:
         """List all users."""
         print("\nListing users...")

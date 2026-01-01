@@ -274,10 +274,26 @@ Admin:      /api/admin/**
 
 ## Test-ID Convention (Playwright)
 
-All interactive UI components use `data-testid`:
+**WICHTIG:** Alle interaktiven UI-Komponenten MÜSSEN `data-testid` Attribute haben. Dies gilt insbesondere für:
+- Formular-Inputs, Buttons, Links
+- Listen-Elemente und Tabellen-Zeilen
+- Modals und Dialoge
+
+### Namenskonvention
 ```
 {bereich}-{element}-{typ}
-Examples: login-email-input, tournament-create-button, optimization-progress-bar
+```
+
+### Beispiele
+```
+login-email-input, tournament-create-button, optimization-progress-bar
+admin-page-title-input, admin-page-save-button
+```
+
+### React-Admin Komponenten
+Bei react-admin's TextInput, NumberInput etc. muss `inputProps` verwendet werden:
+```tsx
+<TextInput source="title" inputProps={{ 'data-testid': 'admin-page-title-input' }} />
 ```
 
 ## Frontend Routen
