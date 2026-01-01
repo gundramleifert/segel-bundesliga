@@ -43,8 +43,9 @@ public class Page extends BaseEntity {
     @Column(name = "show_in_menu")
     private Boolean showInMenu = false;
 
-    @Column(name = "parent_id")
-    private Long parentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Page parent;
 
     @ElementCollection
     @CollectionTable(name = "page_images", joinColumns = @JoinColumn(name = "page_id"))

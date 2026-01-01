@@ -160,7 +160,9 @@ class TournamentServiceTest {
             service.create(dto, "user-123");
 
             Tournament saved = captor.getValue();
-            List<Team> teams = saved.getTeams();
+            List<Team> teams = saved.getTeams().stream()
+                    .sorted((a, b) -> a.getSortOrder().compareTo(b.getSortOrder()))
+                    .toList();
             assertThat(teams.get(0).getSortOrder()).isEqualTo(0);
             assertThat(teams.get(1).getSortOrder()).isEqualTo(1);
             assertThat(teams.get(2).getSortOrder()).isEqualTo(2);

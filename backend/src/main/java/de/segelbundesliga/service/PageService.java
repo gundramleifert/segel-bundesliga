@@ -33,7 +33,11 @@ public class PageService {
         entity.setVisibility(dto.getVisibility());
         entity.setSortOrder(dto.getSortOrder());
         entity.setShowInMenu(dto.getShowInMenu());
-        entity.setParentId(dto.getParentId());
+        if (dto.getParentId() != null) {
+            Page parent = repository.findById(dto.getParentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Parent Page", dto.getParentId()));
+            entity.setParent(parent);
+        }
 
         return toResponse(repository.save(entity));
     }
@@ -90,7 +94,11 @@ public class PageService {
         if (dto.getVisibility() != null) entity.setVisibility(dto.getVisibility());
         if (dto.getSortOrder() != null) entity.setSortOrder(dto.getSortOrder());
         if (dto.getShowInMenu() != null) entity.setShowInMenu(dto.getShowInMenu());
-        if (dto.getParentId() != null) entity.setParentId(dto.getParentId());
+        if (dto.getParentId() != null) {
+            Page parent = repository.findById(dto.getParentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Parent Page", dto.getParentId()));
+            entity.setParent(parent);
+        }
 
         return toResponse(repository.save(entity));
     }
@@ -121,7 +129,7 @@ public class PageService {
         dto.setVisibility(entity.getVisibility());
         dto.setSortOrder(entity.getSortOrder());
         dto.setShowInMenu(entity.getShowInMenu());
-        dto.setParentId(entity.getParentId());
+        dto.setParentId(entity.getParent() != null ? entity.getParent().getId() : null);
         dto.setImages(new ArrayList<>(entity.getImages()));
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
@@ -137,7 +145,7 @@ public class PageService {
         dto.setVisibility(entity.getVisibility());
         dto.setSortOrder(entity.getSortOrder());
         dto.setShowInMenu(entity.getShowInMenu());
-        dto.setParentId(entity.getParentId());
+        dto.setParentId(entity.getParent() != null ? entity.getParent().getId() : null);
         return dto;
     }
 }

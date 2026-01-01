@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="007-1-unique-team-name-per-tournament" author="claude">
+        <addUniqueConstraint
+            tableName="teams"
+            columnNames="tournament_id, name"
+            constraintName="uk_teams_tournament_name"/>
+    </changeSet>
+
+    <changeSet id="007-2-unique-boat-name-per-tournament" author="claude">
+        <addUniqueConstraint
+            tableName="boats"
+            columnNames="tournament_id, name"
+            constraintName="uk_boats_tournament_name"/>
+    </changeSet>
+
+</databaseChangeLog>

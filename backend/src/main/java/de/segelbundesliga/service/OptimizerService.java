@@ -185,14 +185,12 @@ public class OptimizerService {
         config.flights = tournament.getFlights();
 
         // Teams
-        List<Team> teams = tournament.getTeams();
-        config.teams = teams.stream()
+        config.teams = tournament.getTeams().stream()
                 .map(Team::getName)
                 .toArray(String[]::new);
 
         // Boats
-        List<Boat> boats = tournament.getBoats();
-        config.boats = boats.stream()
+        config.boats = tournament.getBoats().stream()
                 .map(b -> {
                     BoatConfig bc = createBoatConfig();
                     bc.name = b.getName();

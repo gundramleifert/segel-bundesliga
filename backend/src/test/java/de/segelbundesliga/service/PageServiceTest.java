@@ -55,7 +55,7 @@ class PageServiceTest {
         page.setVisibility(Visibility.PUBLIC);
         page.setSortOrder(0);
         page.setShowInMenu(true);
-        page.setParentId(null);
+        page.setParent(null);
         page.setImages(new ArrayList<>());
         page.setCreatedAt(Instant.now());
         page.setUpdatedAt(Instant.now());
@@ -80,7 +80,14 @@ class PageServiceTest {
             dto.setShowInMenu(true);
             dto.setParentId(10L);
 
+            Page parentPage = new Page();
+            parentPage.setId(10L);
+            parentPage.setTitle("Parent Page");
+            parentPage.setSlug("parent");
+            parentPage.setContent("Parent content");
+
             when(repository.existsBySlug("new-page")).thenReturn(false);
+            when(repository.findById(10L)).thenReturn(Optional.of(parentPage));
             when(repository.save(any(Page.class))).thenAnswer(invocation -> {
                 Page p = invocation.getArgument(0);
                 p.setId(1L);
@@ -337,7 +344,14 @@ class PageServiceTest {
         @Test
         @DisplayName("updates parentId")
         void update_parentId_success() {
+            Page parentPage = new Page();
+            parentPage.setId(5L);
+            parentPage.setTitle("Parent");
+            parentPage.setSlug("parent");
+            parentPage.setContent("Parent content");
+
             when(repository.findById(1L)).thenReturn(Optional.of(testPage));
+            when(repository.findById(5L)).thenReturn(Optional.of(parentPage));
             when(repository.save(any(Page.class))).thenAnswer(i -> i.getArgument(0));
 
             PageDto.Update dto = new PageDto.Update();
