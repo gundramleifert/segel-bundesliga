@@ -6,6 +6,7 @@ import {
   TextField,
   BooleanField,
   NumberField,
+  DateField,
   Edit,
   Create,
   SimpleForm,
@@ -13,11 +14,14 @@ import {
   BooleanInput,
   NumberInput,
   SelectInput,
+  ArrayInput,
+  SimpleFormIterator,
   EditButton,
   DeleteButton,
   required,
   useRecordContext,
   AuthProvider,
+  FunctionField,
 } from 'react-admin';
 // Auth wird ueber den OIDC-Token im localStorage gehandhabt
 import { dataProvider } from './dataProvider';
@@ -90,6 +94,14 @@ const visibilityChoices = [
   { id: 'PUBLIC', name: 'Oeffentlich' },
   { id: 'INTERNAL', name: 'Intern' },
 ];
+
+// Post Status Optionen
+const postStatusChoices = [
+  { id: 'DRAFT', name: 'Entwurf' },
+  { id: 'PUBLISHED', name: 'Veroeffentlicht' },
+  { id: 'ARCHIVED', name: 'Archiviert' },
+];
+
 
 // Page List
 const PageList = () => (
@@ -181,6 +193,131 @@ const PageCreate = () => (
   </Create>
 );
 
+// ============================================================
+// POST Resource
+// ============================================================
+
+// Post List
+const PostList = () => (
+  <List sort={{ field: 'createdAt', order: 'DESC' }}>
+    <Datagrid>
+      <TextField source="id" />
+      <TextField source="title" label="Titel" />
+      <TextField source="slug" />
+      <FunctionField
+        label="Status"
+        render={(record: { status?: string }) => {
+          const status = record?.status;
+          const colors: Record<string, string> = {
+            DRAFT: '#f59e0b',
+            PUBLISHED: '#10b981',
+            ARCHIVED: '#6b7280',
+          };
+          return (
+            <span style={{ color: colors[status || ''] || '#000' }}>
+              {postStatusChoices.find((c) => c.id === status)?.name || status}
+            </span>
+          );
+        }}
+      />
+      <TextField source="visibility" label="Sichtbarkeit" />
+      <DateField source="publishedAt" label="Veroeffentlicht" showTime />
+      <EditButton />
+      <DeleteButton />
+    </Datagrid>
+  </List>
+);
+
+// Post Title fuer Edit-Ansicht
+const PostTitle = () => {
+  const record = useRecordContext();
+  return <span>Beitrag: {record ? `"${record.title}"` : ''}</span>;
+};
+
+// Post Edit Form
+const PostEdit = () => (
+  <Edit title={<PostTitle />}>
+    <SimpleForm>
+      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth />
+      <TextInput source="titleEn" label="Titel (EN)" fullWidth />
+      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth />
+      <TextInput source="excerpt" label="Auszug (DE)" multiline rows={3} fullWidth />
+      <TextInput source="excerptEn" label="Auszug (EN)" multiline rows={3} fullWidth />
+      <TextInput
+        source="content"
+        label="Inhalt (DE)"
+        multiline
+        rows={10}
+        validate={required()}
+        fullWidth
+      />
+      <TextInput
+        source="contentEn"
+        label="Inhalt (EN)"
+        multiline
+        rows={10}
+        fullWidth
+      />
+      <TextInput source="featuredImage" label="Titelbild (Bild-ID)" fullWidth />
+      <SelectInput
+        source="status"
+        label="Status"
+        choices={postStatusChoices}
+      />
+      <SelectInput
+        source="visibility"
+        label="Sichtbarkeit"
+        choices={visibilityChoices}
+      />
+      <ArrayInput source="tags" label="Tags">
+        <SimpleFormIterator inline>
+          <TextInput source="" label="" helperText={false} />
+        </SimpleFormIterator>
+      </ArrayInput>
+    </SimpleForm>
+  </Edit>
+);
+
+// Post Create Form
+const PostCreate = () => (
+  <Create>
+    <SimpleForm>
+      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth />
+      <TextInput source="titleEn" label="Titel (EN)" fullWidth />
+      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth />
+      <TextInput source="excerpt" label="Auszug (DE)" multiline rows={3} fullWidth />
+      <TextInput source="excerptEn" label="Auszug (EN)" multiline rows={3} fullWidth />
+      <TextInput
+        source="content"
+        label="Inhalt (DE)"
+        multiline
+        rows={10}
+        validate={required()}
+        fullWidth
+      />
+      <TextInput
+        source="contentEn"
+        label="Inhalt (EN)"
+        multiline
+        rows={10}
+        fullWidth
+      />
+      <TextInput source="featuredImage" label="Titelbild (Bild-ID)" fullWidth />
+      <SelectInput
+        source="visibility"
+        label="Sichtbarkeit"
+        choices={visibilityChoices}
+        defaultValue="PUBLIC"
+      />
+      <ArrayInput source="tags" label="Tags">
+        <SimpleFormIterator inline>
+          <TextInput source="" label="" helperText={false} />
+        </SimpleFormIterator>
+      </ArrayInput>
+    </SimpleForm>
+  </Create>
+);
+
 // Admin App
 export function AdminApp() {
   return (
@@ -191,6 +328,13 @@ export function AdminApp() {
         edit={PageEdit}
         create={PageCreate}
         options={{ label: 'Seiten' }}
+      />
+      <Resource
+        name="posts"
+        list={PostList}
+        edit={PostEdit}
+        create={PostCreate}
+        options={{ label: 'Beitraege' }}
       />
     </Admin>
   );
