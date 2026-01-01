@@ -103,15 +103,17 @@ class CmsPageTest extends E2ETestBase {
     void canNavigateToImpressumViaFooter() {
         // Given: User is on homepage
         navigateTo("/");
+        page.waitForTimeout(1000);
 
         // When: User clicks Impressum link in footer
         Locator footer = page.locator("footer");
         footer.waitFor();
 
-        Locator impressumLink = footer.locator("a:has-text('Impressum')");
+        Locator impressumLink = page.getByTestId("footer-impressum-link");
         if (impressumLink.count() > 0) {
             impressumLink.click();
             page.waitForLoadState();
+            page.waitForTimeout(1000);
 
             // Then: User is on Impressum page
             assertThat(page.url()).contains("impressum");
@@ -124,15 +126,17 @@ class CmsPageTest extends E2ETestBase {
     void canNavigateToDatenschutzViaFooter() {
         // Given: User is on homepage
         navigateTo("/");
+        page.waitForTimeout(1000);
 
         // When: User clicks Datenschutz link in footer
         Locator footer = page.locator("footer");
         footer.waitFor();
 
-        Locator datenschutzLink = footer.locator("a:has-text('Datenschutz')");
+        Locator datenschutzLink = page.getByTestId("footer-datenschutz-link");
         if (datenschutzLink.count() > 0) {
             datenschutzLink.click();
             page.waitForLoadState();
+            page.waitForTimeout(1000);
 
             // Then: User is on Datenschutz page
             assertThat(page.url()).contains("datenschutz");

@@ -231,13 +231,19 @@ class OptimizationFlowTest extends E2ETestBase {
     void cleanupDeleteTournament() {
         if (tournamentUrl != null) {
             navigateTo(tournamentUrl.replace(TestFixtures.TEST_TARGET, ""));
+            page.waitForTimeout(2000);
             waitForTestId("tournament-name");
 
-            acceptNextDialog();
+            // Click delete button to open dialog
             clickTestId("tournament-delete-button");
+            page.waitForTimeout(500);
+
+            // Click confirm button in dialog
+            page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
+                    new Page.GetByRoleOptions().setName("Endgültig löschen")).click();
 
             page.waitForURL("**/tournaments",
-                    new Page.WaitForURLOptions().setTimeout(10000));
+                    new Page.WaitForURLOptions().setTimeout(15000));
         }
     }
 }

@@ -82,12 +82,17 @@ public abstract class E2ETestBase {
      */
     protected void performLogin(String username, String password) {
         navigateTo("/");
+        page.waitForTimeout(2000); // Wait for auth state to settle
 
-        // Click login button if visible
-        Locator loginButton = page.getByTestId("login-button");
-        if (loginButton.isVisible()) {
-            loginButton.click();
+        // Check if already logged in
+        if (isLoggedIn()) {
+            return; // Already logged in, nothing to do
         }
+
+        // Click login button
+        Locator loginButton = page.getByTestId("login-button");
+        loginButton.waitFor(new Locator.WaitForOptions().setTimeout(DEFAULT_TIMEOUT_IN_MS));
+        loginButton.click();
 
         // Wait for Zitadel
         page.waitForURL(url -> url.contains("localhost:8081"),
@@ -99,24 +104,23 @@ public abstract class E2ETestBase {
         Locator loginName = page.getByRole(AriaRole.TEXTBOX,
                 new Page.GetByRoleOptions().setName("Loginname"));
         loginName.waitFor(new Locator.WaitForOptions().setTimeout(DEFAULT_TIMEOUT_IN_MS));
-        loginName.dispatchEvent("click");
+        loginName.click();
         loginName.fill(username);
 
         // Click "Weiter" (German for "Next")
-        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Weiter"))
-                .dispatchEvent("click");
-        page.waitForTimeout(1000);
+        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Weiter")).click();
+        page.waitForTimeout(2000);
 
         // Enter password (German: "Passwort")
         Locator loginPassword = page.getByRole(AriaRole.TEXTBOX,
                 new Page.GetByRoleOptions().setName("Passwort"));
-        loginPassword.dispatchEvent("click");
+        loginPassword.waitFor(new Locator.WaitForOptions().setTimeout(DEFAULT_TIMEOUT_IN_MS));
+        loginPassword.click();
         loginPassword.fill(password);
 
         // Submit
-        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Weiter"))
-                .dispatchEvent("click");
-        page.waitForTimeout(2000);
+        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Weiter")).click();
+        page.waitForTimeout(3000);
 
         // Handle 2-Factor Setup if it appears
         String title = page.title();
@@ -135,6 +139,10 @@ public abstract class E2ETestBase {
         // Wait for redirect back to app
         page.waitForURL(url -> url.startsWith(TEST_TARGET),
                 new Page.WaitForURLOptions().setTimeout(DEFAULT_NAVIGATION_TIMEOUT_IN_MS));
+
+        // Wait for page to fully load and auth state to settle
+        page.waitForLoadState();
+        page.waitForTimeout(3000);
 
         // Save storage state for reuse
         PlaywrightThreadFactory.saveStorageState();

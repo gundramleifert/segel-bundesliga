@@ -27,7 +27,19 @@ class AuthTest extends E2ETestBase {
     void userCanLogin() {
         // Given: User is on the homepage, not logged in
         navigateTo("/");
-        assertThat(isVisibleTestId("login-button")).isTrue();
+
+        // Wait for auth state to settle (isLoading -> isAuthenticated/unauthenticated)
+        page.waitForTimeout(2000);
+
+        // If already logged in from previous run, logout first
+        if (isVisibleTestId("user-menu-button")) {
+            performLogout();
+            page.waitForTimeout(1000);
+        }
+
+        assertThat(isVisibleTestId("login-button"))
+                .as("Login button should be visible for unauthenticated users")
+                .isTrue();
 
         // When: User performs login
         performLogin();
@@ -42,10 +54,16 @@ class AuthTest extends E2ETestBase {
     @DisplayName("US-AUTH-02: User can log out")
     void userCanLogout() {
         // Given: User is logged in
+        navigateTo("/");
+        page.waitForTimeout(2000);
+
         if (!isLoggedIn()) {
             performLogin();
+            page.waitForTimeout(1000);
         }
-        assertThat(isLoggedIn()).isTrue();
+        assertThat(isLoggedIn())
+                .as("User should be logged in before testing logout")
+                .isTrue();
 
         // When: User clicks logout
         performLogout();
