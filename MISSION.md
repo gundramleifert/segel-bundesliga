@@ -7,7 +7,6 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League)
 - Usermanagement (User müssen durch Administrator freigegeben werden)
 - Möglichkeit, Posts auf der Webseite zu machen
 - Möglichkeit, interne und öffentliche Seiten zu haben
-- Möglichkeit, Sponsoren oder ähnliches darzustellen
 - Möglichkeit, https://github.com/gundramleifert/PairingList so zu ändern, dass es über eine UI genutzt werden kann (inkl. Persistenz)
 - Backend: Java (Spring Boot 3.2, Java 21)
 
@@ -25,13 +24,12 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League)
 | **Turnier-Verwaltung** | ✅ | CRUD, Teams, Boote, Ownership-Validierung |
 | **Blog-System** | ✅ | Zweisprachig (DE/EN), Publish-Workflow, Bild-Upload |
 | **CMS-Seiten** | ✅ | Menü-Sortierung, Sichtbarkeit, Standard-Seiten |
-| **Sponsoren** | ✅ | CRUD, Logo-Upload, aktiv/inaktiv |
 | **Datei-Storage** | ✅ | MinIO (S3-kompatibel), Presigned URLs |
 | **Optimizer-Integration** | ✅ | SSE-Streaming, 2-Phasen-Optimierung |
-| **Datenbank** | ✅ | PostgreSQL 16, Liquibase Migrations (6 Changesets) |
+| **Datenbank** | ✅ | PostgreSQL 16, Liquibase Migrations (5 Changesets) |
 
-**Entities:** Tournament, Post, Page, Sponsor, Team, Boat, OptimizationSettings
-**API-Endpunkte:** 6 Controller mit vollständiger REST-API
+**Entities:** Tournament, Post, Page, Team, Boat, OptimizationSettings
+**API-Endpunkte:** 5 Controller mit vollständiger REST-API
 
 #### Frontend (React 18 + Vite + TailwindCSS)
 
@@ -72,7 +70,7 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League)
 
 | Bereich | Status | Was fehlt |
 |---------|--------|-----------|
-| **Admin-Panel** | 30% | Posts- und Sponsoren-Verwaltung fehlt |
+| **Admin-Panel** | 60% | Posts-Verwaltung hinzugefügt, Bild-Upload fehlt |
 | **E2E-Tests** | 5% | Nur Smoke-Test vorhanden |
 | **Backend-Tests** | 10% | Nur SecurityConfigTest (45 Tests) |
 | **i18n** | 20% | Infrastruktur vorhanden, Übersetzungen fehlen |
@@ -85,8 +83,7 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League)
 | Bereich | Priorität | Beschreibung |
 |---------|-----------|--------------|
 | **Test-Abdeckung** | HOCH | Service-Layer, Integration, Komponenten |
-| **Admin: Posts** | HOCH | Blog-Verwaltung im Admin-Panel |
-| **Admin: Sponsoren** | HOCH | Sponsoren-Verwaltung im Admin-Panel |
+| **Bild-Upload Admin** | MITTEL | FileInput-Komponente für Bilder im Admin |
 | **API-Dokumentation** | MITTEL | OpenAPI/Swagger |
 | **CI/CD** | MITTEL | GitHub Actions für Tests und Deployment |
 | **E-Mail-Benachrichtigungen** | MITTEL | Mail-Starter vorhanden, nicht integriert |
@@ -98,10 +95,9 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League)
 
 ## Nächste Schritte (Priorisiert)
 
-### Phase 1: Admin-Panel vervollständigen
-1. Posts-Resource in react-admin hinzufügen
-2. Sponsoren-Resource in react-admin hinzufügen
-3. Bild-Upload in Admin-Formularen integrieren
+### Phase 1: Admin-Panel vervollständigen ✅
+1. ~~Posts-Resource in react-admin hinzufügen~~ ✅
+2. Bild-Upload in Admin-Formularen integrieren (optional)
 
 ### Phase 2: Test-Abdeckung erhöhen
 1. Service-Layer Unit-Tests (TournamentService, PostService, etc.)
@@ -180,10 +176,10 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League)
 
 | Metrik | Wert |
 |--------|------|
-| Backend LOC | ~3.500 |
+| Backend LOC | ~3.200 |
 | Frontend LOC | ~4.000 |
 | Optimizer LOC | ~2.000 |
-| API-Endpunkte | 30+ |
-| DB-Tabellen | 6 |
+| API-Endpunkte | 25+ |
+| DB-Tabellen | 5 |
 | UI-Komponenten | 25+ |
 | Test-Coverage | ~15% (geschätzt) |

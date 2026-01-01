@@ -7,7 +7,6 @@ Web-Plattform für die Deutsche Segel-Bundesliga mit PairingList-Optimizer, User
 - **PairingList Optimizer** - Optimierung von Segelregatta-Paarungen mit Echtzeit-Fortschrittsanzeige
 - **User Management** - Über Zitadel (Self-Hosted Identity Provider) mit OAuth2 (Google, GitHub)
 - **Blog/Pages** - Öffentliche und interne Inhalte mit Bild-Upload
-- **Sponsoren-Verwaltung** - Darstellung von Sponsoren auf der Website
 - **i18n** - Deutsch und Englisch
 
 ## Tech Stack
@@ -205,7 +204,6 @@ Konfigurationen:
 - `GET /api/public/**`
 - `GET /api/posts/**`
 - `GET /api/pages/**`
-- `GET /api/sponsors/**`
 
 ### Geschützt (Auth erforderlich)
 - `POST/PUT/DELETE /api/posts/**`

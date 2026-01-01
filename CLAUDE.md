@@ -5,10 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 Web-Plattform für die Segel-Bundesliga (German Sailing Federal League) mit:
-- PairingList Optimizer mit Echtzeit-UI (WebSocket)
+- PairingList Optimizer mit Echtzeit-UI (SSE)
 - User Management via Zitadel (Self-Hosted OIDC)
 - Blog/Pages mit Bild-Upload (MinIO)
-- Sponsoren-Verwaltung
 - i18n: DE + EN
 
 ## Tech Stack
@@ -190,7 +189,6 @@ cd ../frontend && npm run dev
 | ADMIN | Vollzugriff |
 | BLOG_WRITE | Blog-Posts erstellen/bearbeiten |
 | BLOG_PUBLISH | Blog-Posts veröffentlichen |
-| SPONSOR_MANAGE | Sponsoren verwalten |
 | PAIRING_EXECUTE | Optimierungen ausführen |
 | PAIRING_VIEW | Optimierungsergebnisse ansehen |
 | INTERNAL_ACCESS | Interne Inhalte sehen |
@@ -241,7 +239,7 @@ eventSource.addEventListener('progress', (e) => {
 
 ### Security Endpoints
 ```
-Public:     GET /api/public/**, /api/posts/**, /api/pages/**, /api/sponsors/**
+Public:     GET /api/public/**, /api/posts/**, /api/pages/**
 Protected:  POST/PUT/DELETE /api/**, /api/tournaments/**, /api/optimization/**
 Admin:      /api/admin/**
 ```
@@ -252,7 +250,7 @@ Admin:      /api/admin/**
 |------|---------|
 | `backend/src/main/java/.../config/SecurityConfig.java` | OIDC/JWT config |
 | `backend/src/main/java/.../config/MinioConfig.java` | MinIO client bean |
-| `backend/src/main/java/.../domain/*.java` | Entity-Klassen (Tournament, Post, Page, Sponsor) |
+| `backend/src/main/java/.../domain/*.java` | Entity-Klassen (Tournament, Post, Page) |
 | `backend/src/main/java/.../dto/*.java` | DTOs mit Create/Update/Response/ListItem |
 | `backend/src/main/java/.../service/*.java` | Business Logic Services |
 | `backend/src/main/java/.../web/*.java` | REST Controller |
@@ -272,7 +270,6 @@ Admin:      /api/admin/**
 | Tournaments | `GET/POST /api/tournaments`, `GET/PUT/DELETE /api/tournaments/{id}`, `GET /api/tournaments/my` |
 | Posts | `GET /api/posts/public`, `GET /api/posts/public/{slug}`, CRUD `/api/posts`, `PUT /{id}/publish` |
 | Pages | `GET /api/pages/public`, `GET /api/pages/menu`, CRUD `/api/pages` |
-| Sponsors | `GET /api/sponsors/public`, CRUD `/api/sponsors`, `POST /{id}/logo` |
 | Optimization | `POST /{id}/start`, `GET /{id}/progress` (SSE), `POST /{id}/cancel`, `GET /{id}/result`, `GET /{id}/status` |
 
 ## Test-ID Convention (Playwright)
@@ -312,7 +309,7 @@ Das Admin-Panel unter `/admin` nutzt [react-admin](https://marmelab.com/react-ad
 
 ## TODO
 
-- [x] Entity-Klassen (Tournament, Post, Page, Sponsor)
+- [x] Entity-Klassen (Tournament, Post, Page)
 - [x] Liquibase Migrations
 - [x] DTOs, Services, Controller (CRUD)
 - [x] OptimizerService mit SSE für Echtzeit-Fortschritt

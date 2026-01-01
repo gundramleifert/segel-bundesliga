@@ -46,14 +46,6 @@ class SecurityConfigTest {
             mockMvc.perform(get("/api/pages/public"))
                 .andExpect(status().isOk());
         }
-
-        @Test
-        @WithAnonymousUser
-        @DisplayName("GET /api/sponsors/public - accessible without auth")
-        void sponsorsPublic_noAuth_returns200() throws Exception {
-            mockMvc.perform(get("/api/sponsors/public"))
-                .andExpect(status().isOk());
-        }
     }
 
     @Nested

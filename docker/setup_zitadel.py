@@ -149,7 +149,6 @@ class ZitadelSetup:
             ("ADMIN", "Administrator with full access"),
             ("BLOG_WRITE", "Can create and edit blog posts"),
             ("BLOG_PUBLISH", "Can publish blog posts"),
-            ("SPONSOR_MANAGE", "Can manage sponsors"),
             ("PAIRING_EXECUTE", "Can run pairing optimizations"),
             ("PAIRING_VIEW", "Can view pairing results"),
             ("INTERNAL_ACCESS", "Can access internal content"),

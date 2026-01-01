@@ -8,7 +8,6 @@
     <include file="db/changelog/001-create-tournaments.xml"/>
     <include file="db/changelog/002-create-posts.xml"/>
     <include file="db/changelog/003-create-pages.xml"/>
-    <include file="db/changelog/004-create-sponsors.xml"/>
     <include file="db/changelog/005-tournament-restructure.xml"/>
     <include file="db/changelog/006-seed-standard-pages.xml"/>
 
