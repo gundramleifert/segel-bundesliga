@@ -89,7 +89,7 @@ docker compose up -d
 |---------|-----|-------------|
 | Frontend | http://localhost:3000 | - |
 | Backend | http://localhost:8080 | - |
-| Zitadel Console | http://localhost:8081/ui/console | testuser / test1234 |
+| Zitadel Console | http://localhost:8081/ui/console | admin / test1234 |
 | MinIO | http://localhost:9001 | minioadmin / minioadmin |
 | Mailhog | http://localhost:8025 | - |
 
@@ -178,10 +178,10 @@ cd ../frontend && npm run dev
 
 ### Test-Benutzer (nach Setup)
 
-| Username | Password | Beschreibung |
-|----------|----------|--------------|
-| admin | test1234 | Admin-Benutzer |
-| testuser | test1234 | E2E-Test-Benutzer |
+| Username | Password | Rolle | Beschreibung |
+|----------|----------|-------|--------------|
+| admin | test1234 | ADMIN | Admin-Benutzer (sieht Edit-Buttons, Admin-Panel) |
+| testuser | test1234 | INTERNAL_ACCESS | Normaler Benutzer (ohne Admin-Rechte) |
 
 ### Konfigurierte Rollen
 | Rolle | Beschreibung |

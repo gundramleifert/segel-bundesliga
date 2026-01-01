@@ -39,11 +39,11 @@ Output:
     - ../frontend/.env.local: Updated with new Zitadel Client ID
 
 Users (after setup):
-    Admin:
+    Admin (with ADMIN role):
         Username: admin
         Password: test1234
 
-    Test User (for E2E tests):
+    Test User (without ADMIN role, for E2E tests):
         Username: testuser
         Password: test1234
 
@@ -333,8 +333,8 @@ class ZitadelSetup:
         # Create admin user with simple password
         self._create_user_with_role("admin", "test1234", "Admin", "User", "ADMIN")
 
-        # Create test user for E2E tests
-        self._create_user_with_role("testuser", "test1234", "Test", "User", "ADMIN")
+        # Create test user for E2E tests (without admin role)
+        self._create_user_with_role("testuser", "test1234", "Test", "User", "INTERNAL_ACCESS")
 
         return True
 
