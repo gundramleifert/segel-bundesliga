@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Nautical Color Scheme - Sailor inspired */
+    --background: 210 20% 98%;
+    --foreground: 210 50% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 50% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 50% 10%;
+    /* Primary: Dark Navy Blue (#023b6d) */
+    --primary: 210 96% 22%;
+    --primary-foreground: 0 0% 100%;
+    /* Secondary: Cyan/Turquoise (#009bd9) */
+    --secondary: 196 100% 43%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 210 20% 40%;
+    /* Accent: Light Blue */
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 210 96% 22%;
+    /* Chart colors for data visualization */
+    --chart-1: 210 96% 22%;
+    --chart-2: 196 100% 43%;
+    --chart-3: 199 89% 48%;
+    --chart-4: 173 58% 39%;
+    --chart-5: 43 74% 66%;
+    --radius: 0.5rem;
+    /* Custom colors */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+  }
+  .dark {
+    --background: 210 50% 8%;
+    --foreground: 210 20% 98%;
+    --card: 210 50% 12%;
+    --card-foreground: 210 20% 98%;
+    --popover: 210 50% 12%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 196 100% 50%;
+    --primary-foreground: 210 50% 10%;
+    --secondary: 210 96% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 50% 15%;
+    --muted-foreground: 210 20% 65%;
+    --accent: 199 89% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 50% 20%;
+    --input: 210 50% 20%;
+    --ring: 196 100% 50%;
+    --chart-1: 196 100% 50%;
+    --chart-2: 210 96% 40%;
+    --chart-3: 199 89% 48%;
+    --chart-4: 173 58% 45%;
+    --chart-5: 43 74% 66%
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}

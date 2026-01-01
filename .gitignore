@@ -1,0 +1,42 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Node
+node_modules/
+dist/
+
+# Env
+.env
+.env.local
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+/e2e/test-results/
+/e2e/playwright-report/
+
+# Docker generated files (Zitadel)
+/docker/zitadel-data/
+/docker/zitadel.env
+
+# Claude Code
+.claude/
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/

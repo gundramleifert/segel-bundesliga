@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="005-1-add-flights-column" author="claude">
+        <addColumn tableName="tournaments">
+            <column name="flights" type="integer" defaultValueNumeric="3">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="005-2-add-optimization-settings" author="claude">
+        <addColumn tableName="tournaments">
+            <!-- General -->
+            <column name="opt_seed" type="integer" defaultValueNumeric="42"/>
+            <!-- MatchMatrix -->
+            <column name="opt_mm_swap_teams" type="integer" defaultValueNumeric="2"/>
+            <column name="opt_mm_max_branches" type="integer" defaultValueNumeric="1"/>
+            <column name="opt_mm_factor_less_participants" type="double" defaultValueNumeric="3.01"/>
+            <column name="opt_mm_factor_team_missing" type="double" defaultValueNumeric="20.01"/>
+            <column name="opt_mm_loops" type="integer" defaultValueNumeric="10000"/>
+            <column name="opt_mm_individuals" type="integer" defaultValueNumeric="100"/>
+            <column name="opt_mm_early_stopping" type="double" defaultValueNumeric="-1"/>
+            <column name="opt_mm_show_every_n" type="integer" defaultValueNumeric="1000"/>
+            <!-- BoatSchedule -->
+            <column name="opt_bs_swap_boats" type="integer" defaultValueNumeric="2"/>
+            <column name="opt_bs_swap_races" type="integer" defaultValueNumeric="2"/>
+            <column name="opt_bs_weight_stay_on_boat" type="double" defaultValueNumeric="1.0"/>
+            <column name="opt_bs_weight_stay_on_shuttle" type="double" defaultValueNumeric="1.0"/>
+            <column name="opt_bs_weight_change_between_boats" type="double" defaultValueNumeric="1.0"/>
+            <column name="opt_bs_loops" type="integer" defaultValueNumeric="10000"/>
+            <column name="opt_bs_individuals" type="integer" defaultValueNumeric="100"/>
+            <column name="opt_bs_early_stopping" type="double" defaultValueNumeric="-1"/>
+            <column name="opt_bs_show_every_n" type="integer" defaultValueNumeric="1000"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="005-3-create-teams-table" author="claude">
+        <createTable tableName="teams">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="integer" defaultValueNumeric="0"/>
+            <column name="tournament_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(255)"/>
+            <column name="updated_by" type="varchar(255)"/>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="teams"
+            baseColumnNames="tournament_id"
+            constraintName="fk_teams_tournament"
+            referencedTableName="tournaments"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <createIndex tableName="teams" indexName="idx_teams_tournament">
+            <column name="tournament_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-4-create-boats-table" author="claude">
+        <createTable tableName="boats">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="color" type="varchar(7)"/>
+            <column name="sort_order" type="integer" defaultValueNumeric="0"/>
+            <column name="tournament_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(255)"/>
+            <column name="updated_by" type="varchar(255)"/>
+        </createTable>
+        <addForeignKeyConstraint
+            baseTableName="boats"
+            baseColumnNames="tournament_id"
+            constraintName="fk_boats_tournament"
+            referencedTableName="tournaments"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+        <createIndex tableName="boats" indexName="idx_boats_tournament">
+            <column name="tournament_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="005-5-drop-json-columns" author="claude">
+        <dropColumn tableName="tournaments" columnName="schedule_config"/>
+        <dropColumn tableName="tournaments" columnName="optimization_config"/>
+        <dropColumn tableName="tournaments" columnName="display_config"/>
+    </changeSet>
+
+</databaseChangeLog>

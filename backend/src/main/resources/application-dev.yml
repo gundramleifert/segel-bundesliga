@@ -1,0 +1,12 @@
+spring:
+  # Dev profile uses the same PostgreSQL from Docker
+  # Only override logging and debugging settings
+
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    de.segelbundesliga: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG

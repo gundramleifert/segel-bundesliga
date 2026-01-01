@@ -1,0 +1,18 @@
+Log:
+  Level: info
+
+FirstInstance:
+  Org:
+    Machine:
+      Machine:
+        Username: api-service
+        Name: API Service Account
+      MachineKey:
+        Type: 1
+        ExpirationDate: "2030-01-01T00:00:00Z"
+      Pat:
+        ExpirationDate: "2030-01-01T00:00:00Z"
+
+SystemAPIUsers:
+  - api-service:
+      Path: /machinekey/zitadel-admin-sa.json

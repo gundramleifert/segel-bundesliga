@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="006-seed-standard-pages" author="segel-bundesliga">
+        <!-- Impressum -->
+        <insert tableName="pages">
+            <column name="title" value="Impressum"/>
+            <column name="title_en" value="Legal Notice"/>
+            <column name="slug" value="impressum"/>
+            <column name="content"><![CDATA[<h2>Angaben gemaess § 5 TMG</h2>
+<p>Deutsche Segel-Bundesliga e.V.<br/>
+Musterstrasse 123<br/>
+12345 Musterstadt</p>
+
+<h3>Vertreten durch</h3>
+<p>Vorstand: Max Mustermann</p>
+
+<h3>Kontakt</h3>
+<p>Telefon: +49 (0) 123 456789<br/>
+E-Mail: info@segel-bundesliga.de</p>
+
+<h3>Registereintrag</h3>
+<p>Eingetragen im Vereinsregister.<br/>
+Registergericht: Amtsgericht Musterstadt<br/>
+Registernummer: VR 12345</p>]]></column>
+            <column name="content_en"><![CDATA[<h2>Information according to § 5 TMG</h2>
+<p>German Sailing League e.V.<br/>
+Sample Street 123<br/>
+12345 Sample City, Germany</p>
+
+<h3>Contact</h3>
+<p>Phone: +49 (0) 123 456789<br/>
+Email: info@segel-bundesliga.de</p>]]></column>
+            <column name="visibility" value="PUBLIC"/>
+            <column name="sort_order" valueNumeric="100"/>
+            <column name="show_in_menu" valueBoolean="true"/>
+            <column name="created_at" valueDate="now()"/>
+            <column name="updated_at" valueDate="now()"/>
+        </insert>
+
+        <!-- Datenschutz -->
+        <insert tableName="pages">
+            <column name="title" value="Datenschutz"/>
+            <column name="title_en" value="Privacy Policy"/>
+            <column name="slug" value="datenschutz"/>
+            <column name="content"><![CDATA[<h2>Datenschutzerklaerung</h2>
+
+<h3>1. Datenschutz auf einen Blick</h3>
+<p>Die folgenden Hinweise geben einen einfachen Ueberblick darueber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen.</p>
+
+<h3>2. Datenerfassung auf dieser Website</h3>
+<p>Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen Kontaktdaten koennen Sie dem Impressum entnehmen.</p>
+
+<h3>3. Hosting</h3>
+<p>Diese Website wird extern gehostet. Die personenbezogenen Daten, die auf dieser Website erfasst werden, werden auf den Servern des Hosters gespeichert.</p>
+
+<h3>4. Ihre Rechte</h3>
+<p>Sie haben jederzeit das Recht auf unentgeltliche Auskunft ueber Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfaenger und den Zweck der Datenverarbeitung sowie ein Recht auf Berichtigung oder Loeschung dieser Daten.</p>]]></column>
+            <column name="content_en"><![CDATA[<h2>Privacy Policy</h2>
+
+<h3>1. Data Protection at a Glance</h3>
+<p>The following information provides a simple overview of what happens to your personal data when you visit this website.</p>
+
+<h3>2. Your Rights</h3>
+<p>You have the right to receive information about your stored personal data free of charge at any time.</p>]]></column>
+            <column name="visibility" value="PUBLIC"/>
+            <column name="sort_order" valueNumeric="101"/>
+            <column name="show_in_menu" valueBoolean="true"/>
+            <column name="created_at" valueDate="now()"/>
+            <column name="updated_at" valueDate="now()"/>
+        </insert>
+
+        <!-- Kontakt -->
+        <insert tableName="pages">
+            <column name="title" value="Kontakt"/>
+            <column name="title_en" value="Contact"/>
+            <column name="slug" value="kontakt"/>
+            <column name="content"><![CDATA[<h2>Kontaktieren Sie uns</h2>
+
+<p>Haben Sie Fragen zur Segel-Bundesliga? Wir sind gerne fuer Sie da.</p>
+
+<h3>Allgemeine Anfragen</h3>
+<p>E-Mail: info@segel-bundesliga.de<br/>
+Telefon: +49 (0) 123 456789</p>
+
+<h3>Technischer Support</h3>
+<p>Bei technischen Fragen zur Plattform:<br/>
+E-Mail: support@segel-bundesliga.de</p>
+
+<h3>Postadresse</h3>
+<p>Deutsche Segel-Bundesliga e.V.<br/>
+Musterstrasse 123<br/>
+12345 Musterstadt</p>]]></column>
+            <column name="content_en"><![CDATA[<h2>Contact Us</h2>
+
+<p>Have questions about the Segel-Bundesliga? We are happy to help.</p>
+
+<h3>General Inquiries</h3>
+<p>Email: info@segel-bundesliga.de<br/>
+Phone: +49 (0) 123 456789</p>
+
+<h3>Technical Support</h3>
+<p>For technical questions about the platform:<br/>
+Email: support@segel-bundesliga.de</p>]]></column>
+            <column name="visibility" value="PUBLIC"/>
+            <column name="sort_order" valueNumeric="10"/>
+            <column name="show_in_menu" valueBoolean="true"/>
+            <column name="created_at" valueDate="now()"/>
+            <column name="updated_at" valueDate="now()"/>
+        </insert>
+
+        <!-- Ueber uns -->
+        <insert tableName="pages">
+            <column name="title" value="Ueber uns"/>
+            <column name="title_en" value="About Us"/>
+            <column name="slug" value="ueber-uns"/>
+            <column name="content"><![CDATA[<h2>Die Deutsche Segel-Bundesliga</h2>
+
+<p>Die Segel-Bundesliga ist die hoechste deutsche Segelliga und vereint die besten Segelvereine des Landes in einem spannenden Wettkampfformat.</p>
+
+<h3>Unsere Mission</h3>
+<p>Wir foerdern den Segelsport in Deutschland und bieten eine Plattform fuer fairen sportlichen Wettbewerb auf hoechstem Niveau.</p>
+
+<h3>Das Format</h3>
+<p>In der Bundesliga treten Teams in Fleet-Races gegeneinander an. Die optimierte Paarungsliste sorgt fuer faire und spannende Wettkaempfe.</p>
+
+<h3>Diese Plattform</h3>
+<p>Mit unserer Web-Plattform unterstuetzen wir die Organisation und Durchfuehrung von Regatten. Der integrierte Optimizer berechnet optimale Paarungslisten fuer faire Wettkaempfe.</p>]]></column>
+            <column name="content_en"><![CDATA[<h2>The German Sailing League</h2>
+
+<p>The Segel-Bundesliga is Germany's premier sailing league, bringing together the best sailing clubs in an exciting competition format.</p>
+
+<h3>Our Mission</h3>
+<p>We promote sailing in Germany and provide a platform for fair sporting competition at the highest level.</p>
+
+<h3>The Format</h3>
+<p>In the league, teams compete in fleet races. The optimized pairing list ensures fair and exciting competitions.</p>]]></column>
+            <column name="visibility" value="PUBLIC"/>
+            <column name="sort_order" valueNumeric="1"/>
+            <column name="show_in_menu" valueBoolean="true"/>
+            <column name="created_at" valueDate="now()"/>
+            <column name="updated_at" valueDate="now()"/>
+        </insert>
+
+        <!-- AGB -->
+        <insert tableName="pages">
+            <column name="title" value="Allgemeine Geschaeftsbedingungen"/>
+            <column name="title_en" value="Terms and Conditions"/>
+            <column name="slug" value="agb"/>
+            <column name="content"><![CDATA[<h2>Allgemeine Geschaeftsbedingungen</h2>
+
+<h3>§ 1 Geltungsbereich</h3>
+<p>Diese Allgemeinen Geschaeftsbedingungen gelten fuer die Nutzung der Segel-Bundesliga Plattform.</p>
+
+<h3>§ 2 Nutzungsbedingungen</h3>
+<p>Die Nutzung der Plattform setzt eine Registrierung voraus. Der Nutzer verpflichtet sich, wahrheitsgemaesse Angaben zu machen.</p>
+
+<h3>§ 3 Pflichten des Nutzers</h3>
+<p>Der Nutzer verpflichtet sich, die Plattform nur fuer die vorgesehenen Zwecke zu nutzen und keine rechtswidrigen Inhalte zu verbreiten.</p>
+
+<h3>§ 4 Haftung</h3>
+<p>Der Betreiber haftet nicht fuer Schaeden, die durch die Nutzung der Plattform entstehen, es sei denn, diese beruhen auf Vorsatz oder grober Fahrlaessigkeit.</p>
+
+<h3>§ 5 Schlussbestimmungen</h3>
+<p>Es gilt das Recht der Bundesrepublik Deutschland. Gerichtsstand ist der Sitz des Betreibers.</p>]]></column>
+            <column name="content_en"><![CDATA[<h2>Terms and Conditions</h2>
+
+<h3>§ 1 Scope</h3>
+<p>These terms and conditions apply to the use of the Segel-Bundesliga platform.</p>
+
+<h3>§ 2 User Obligations</h3>
+<p>Users must register to use the platform and agree to provide accurate information.</p>
+
+<h3>§ 3 Liability</h3>
+<p>The operator is not liable for damages arising from use of the platform, except in cases of intent or gross negligence.</p>
+
+<h3>§ 4 Governing Law</h3>
+<p>German law applies. The place of jurisdiction is the operator's registered office.</p>]]></column>
+            <column name="visibility" value="PUBLIC"/>
+            <column name="sort_order" valueNumeric="102"/>
+            <column name="show_in_menu" valueBoolean="true"/>
+            <column name="created_at" valueDate="now()"/>
+            <column name="updated_at" valueDate="now()"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

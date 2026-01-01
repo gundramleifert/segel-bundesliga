@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="003-create-pages" author="segel-bundesliga">
+        <createTable tableName="pages">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title_en" type="varchar(255)"/>
+            <column name="slug" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="content" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_en" type="text"/>
+            <column name="featured_image" type="varchar(500)"/>
+            <column name="visibility" type="varchar(50)" defaultValue="PUBLIC">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sort_order" type="integer" defaultValue="0"/>
+            <column name="show_in_menu" type="boolean" defaultValueBoolean="false"/>
+            <column name="parent_id" type="bigint"/>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(255)"/>
+            <column name="updated_by" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="page_images">
+            <column name="page_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_id" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="page_images"
+            baseColumnNames="page_id"
+            referencedTableName="pages"
+            referencedColumnNames="id"
+            constraintName="fk_page_images_page"
+            onDelete="CASCADE"/>
+
+        <createIndex tableName="pages" indexName="idx_pages_slug">
+            <column name="slug"/>
+        </createIndex>
+
+        <createIndex tableName="pages" indexName="idx_pages_visibility">
+            <column name="visibility"/>
+        </createIndex>
+
+        <createIndex tableName="pages" indexName="idx_pages_parent_id">
+            <column name="parent_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

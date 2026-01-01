@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-create-tournaments" author="segel-bundesliga">
+        <createTable tableName="tournaments">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(2000)"/>
+            <column name="event_date" type="date"/>
+            <column name="location" type="varchar(200)"/>
+            <column name="status" type="varchar(50)" defaultValue="DRAFT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="schedule_config" type="jsonb"/>
+            <column name="optimization_config" type="jsonb"/>
+            <column name="display_config" type="jsonb"/>
+            <column name="result_schedule" type="jsonb"/>
+            <column name="computation_time_ms" type="bigint"/>
+            <column name="saved_shuttles" type="integer"/>
+            <column name="boat_changes" type="integer"/>
+            <column name="created_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="varchar(255)"/>
+            <column name="updated_by" type="varchar(255)"/>
+        </createTable>
+
+        <createIndex tableName="tournaments" indexName="idx_tournaments_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+
+        <createIndex tableName="tournaments" indexName="idx_tournaments_status">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
