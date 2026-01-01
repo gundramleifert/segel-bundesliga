@@ -24,7 +24,20 @@ import {
   FunctionField,
   Toolbar,
   SaveButton,
+  useDelete,
+  useRefresh,
+  useNotify,
 } from 'react-admin';
+import { useState } from 'react';
+import {
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 // Auth wird ueber den OIDC-Token im localStorage gehandhabt
 import { dataProvider } from './dataProvider';
 
@@ -111,10 +124,73 @@ const PageFormToolbar = () => (
   </Toolbar>
 );
 
-// Custom Delete Button mit data-testid
-const PageDeleteButton = () => (
-  <DeleteButton mutationMode="pessimistic" data-testid="admin-page-delete-button" />
-);
+// Custom Delete Button mit MUI Dialog fuer data-testid Support
+const PageDeleteButton = () => {
+  const record = useRecordContext();
+  const [open, setOpen] = useState(false);
+  const [deleteOne, { isPending }] = useDelete();
+  const refresh = useRefresh();
+  const notify = useNotify();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    setOpen(true);
+  };
+  const handleDialogClose = () => setOpen(false);
+
+  const handleConfirm = () => {
+    deleteOne(
+      'pages',
+      { id: record?.id, previousData: record },
+      {
+        onSuccess: () => {
+          notify('Element deleted', { type: 'info' });
+          refresh();
+        },
+        onError: () => {
+          notify('Error deleting element', { type: 'error' });
+        },
+      }
+    );
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <Button
+        onClick={handleClick}
+        color="error"
+        size="small"
+        startIcon={<DeleteIcon />}
+        data-testid="admin-page-delete-button"
+        disabled={isPending}
+      >
+        Delete
+      </Button>
+      <Dialog open={open} onClose={handleDialogClose}>
+        <DialogTitle>Delete Page</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this page?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} data-testid="admin-cancel-delete-button">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            color="error"
+            autoFocus
+            data-testid="admin-confirm-delete-button"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
 
 // Page List
 const PageList = () => (

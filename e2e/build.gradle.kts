@@ -16,6 +16,14 @@ dependencies {
     // Jackson YAML for config loading
     testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.16.0")
     testImplementation("com.fasterxml.jackson.core:jackson-databind:2.16.0")
+
+    // Lombok
+    testCompileOnly("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
+
+    // Logging (same versions as Spring Boot)
+    testImplementation("org.slf4j:slf4j-api:2.0.9")
+    testRuntimeOnly("ch.qos.logback:logback-classic:1.4.14")
 }
 
 tasks.test {
