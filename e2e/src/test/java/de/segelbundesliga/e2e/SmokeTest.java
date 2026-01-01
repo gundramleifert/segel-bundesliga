@@ -8,7 +8,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Basic smoke tests to verify the application is running.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class SmokeTest extends BaseE2ETest {
+@DisplayName("Smoke Tests")
+class SmokeTest extends E2ETestBase {
+
+    @Override
+    protected boolean requiresAuthentication() {
+        return false; // Smoke tests don't need login
+    }
 
     @Test
     @Order(1)
