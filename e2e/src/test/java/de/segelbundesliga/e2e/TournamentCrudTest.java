@@ -63,7 +63,7 @@ class TournamentCrudTest extends E2ETestBase {
 
         // When: User fills form
         fillTestId("tournament-name-input", TEST_TOURNAMENT_NAME);
-        page.locator("textarea").fill("Test Beschreibung für E2E");
+        fillTestId("tournament-description-input", "Test Beschreibung für E2E");
         fillTestId("tournament-flights-input", "4");
 
         // Add teams
@@ -125,15 +125,14 @@ class TournamentCrudTest extends E2ETestBase {
         waitForTestId("tournament-name");
 
         // Then: Teams section is visible
-        page.locator("text=Teams").first().waitFor();
-        assertThat(page.locator("text=Team Alpha").isVisible()).isTrue();
+        waitForTestId("teams-section");
+        assertThat(isVisibleTestId("teams-section")).isTrue();
 
         // Then: Boats section is visible
-        assertThat(page.locator("text=Boote").first().isVisible()).isTrue();
-        assertThat(page.locator("text=Boot Rot").isVisible()).isTrue();
+        assertThat(isVisibleTestId("boats-section")).isTrue();
 
         // Then: Optimization section is visible
-        assertThat(page.locator("text=Optimierung").first().isVisible()).isTrue();
+        assertThat(isVisibleTestId("optimization-section")).isTrue();
     }
 
     @Test
@@ -148,9 +147,9 @@ class TournamentCrudTest extends E2ETestBase {
         waitForTestId("tournament-name");
 
         // Then: Configuration values are shown (Flights, Teams count, Boats count)
-        assertThat(page.locator("text=Flights").isVisible()).isTrue();
-        assertThat(page.locator("text=Teams").first().isVisible()).isTrue();
-        assertThat(page.locator("text=Boote").first().isVisible()).isTrue();
+        assertThat(isVisibleTestId("stat-flights")).isTrue();
+        assertThat(isVisibleTestId("stat-teams")).isTrue();
+        assertThat(isVisibleTestId("stat-boats")).isTrue();
     }
 
     @Test
@@ -167,15 +166,16 @@ class TournamentCrudTest extends E2ETestBase {
         clickTestId("team-add-button");
         page.waitForTimeout(500);
 
-        // Verify team was added - look for "Temp Team" in the teams list
-        assertThat(page.locator("text=Temp Team").isVisible()).isTrue();
+        // Verify team was added
+        waitForTestId("team-item-0");
+        assertThat(isVisibleTestId("team-item-0")).isTrue();
 
-        // When: User removes the team (click the X button next to it)
-        page.locator("text=Temp Team").locator("xpath=..").locator("button").click();
+        // When: User removes the team
+        clickTestId("team-remove-0");
         page.waitForTimeout(500);
 
         // Then: Team is removed
-        assertThat(page.locator("text=Temp Team").count()).isEqualTo(0);
+        assertThat(hasTestId("team-item-0")).isFalse();
     }
 
     @Test
@@ -193,15 +193,15 @@ class TournamentCrudTest extends E2ETestBase {
         page.waitForTimeout(500);
 
         // Verify boat was added
-        assertThat(page.locator("text=Temp Boot XYZ").isVisible()).isTrue();
+        waitForTestId("boat-item-0");
+        assertThat(isVisibleTestId("boat-item-0")).isTrue();
 
-        // When: User removes the boat (click the delete button in the boat row)
-        // Structure: div > div > span(text) + button is sibling of parent div
-        page.locator("text=Temp Boot XYZ").locator("xpath=../..").locator("button").click();
+        // When: User removes the boat
+        clickTestId("boat-remove-0");
         page.waitForTimeout(500);
 
         // Then: Boat is removed
-        assertThat(page.locator("text=Temp Boot XYZ").count()).isEqualTo(0);
+        assertThat(hasTestId("boat-item-0")).isFalse();
     }
 
     @Test
@@ -220,8 +220,7 @@ class TournamentCrudTest extends E2ETestBase {
         page.waitForTimeout(500);
 
         // Then: Click the confirm delete button in dialog
-        page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                new Page.GetByRoleOptions().setName("Endgültig löschen")).click();
+        clickTestId("delete-confirm-button");
 
         // Then: Redirected to list
         page.waitForURL("**/tournaments",

@@ -73,7 +73,7 @@ class OptimizationFlowTest extends E2ETestBase {
         assertThat(isVisibleTestId("optimization-start-button")).isTrue();
 
         // And: No warning about missing config
-        assertThat(page.locator("text=Bitte zuerst Teams und Boote hinzufügen").isVisible()).isFalse();
+        assertThat(hasTestId("optimization-warning-text")).isFalse();
     }
 
     @Test
@@ -169,18 +169,18 @@ class OptimizationFlowTest extends E2ETestBase {
         while (System.currentTimeMillis() - startTime < timeout) {
             page.waitForTimeout(2000);
             if (isVisibleTestId("optimization-start-button") ||
-                    page.locator("h3:has-text('Ergebnis')").isVisible()) {
+                    hasTestId("result-section")) {
                 completed = true;
                 break;
             }
         }
 
         // Then: Result section visible (if completed successfully)
-        if (page.locator("h3:has-text('Ergebnis')").isVisible()) {
-            assertThat(page.locator("text=Gesparte Shuttles").isVisible()).isTrue();
-            assertThat(page.locator("text=Boot-Wechsel").isVisible()).isTrue();
-            assertThat(page.locator("text=Rechenzeit").isVisible()).isTrue();
-            assertThat(page.locator("text=JSON-Ergebnis anzeigen").isVisible()).isTrue();
+        if (hasTestId("result-section")) {
+            assertThat(isVisibleTestId("result-saved-shuttles")).isTrue();
+            assertThat(isVisibleTestId("result-boat-changes")).isTrue();
+            assertThat(isVisibleTestId("result-computation-time")).isTrue();
+            assertThat(isVisibleTestId("result-json-toggle")).isTrue();
         }
     }
 
@@ -193,12 +193,12 @@ class OptimizationFlowTest extends E2ETestBase {
         waitForTestId("tournament-name");
 
         // If result exists
-        if (page.locator("text=JSON-Ergebnis anzeigen").isVisible()) {
+        if (isVisibleTestId("result-json-toggle")) {
             // When: User clicks to expand
-            page.locator("text=JSON-Ergebnis anzeigen").click();
+            clickTestId("result-json-toggle");
 
             // Then: JSON is shown
-            assertThat(page.locator("pre").isVisible()).isTrue();
+            assertThat(isVisibleTestId("result-json-content")).isTrue();
         }
     }
 
@@ -220,9 +220,8 @@ class OptimizationFlowTest extends E2ETestBase {
         waitForTestId("tournament-name");
 
         // Then: Warning shown, no start button
-        Locator warning = page.locator("p.text-yellow-600");
-        assertThat(warning.count()).isGreaterThan(0);
-        assertThat(page.getByTestId("optimization-start-button").count()).isEqualTo(0);
+        assertThat(isVisibleTestId("optimization-warning-text")).isTrue();
+        assertThat(hasTestId("optimization-start-button")).isFalse();
     }
 
     @Test
@@ -239,8 +238,7 @@ class OptimizationFlowTest extends E2ETestBase {
             page.waitForTimeout(500);
 
             // Click confirm button in dialog
-            page.getByRole(com.microsoft.playwright.options.AriaRole.BUTTON,
-                    new Page.GetByRoleOptions().setName("Endgültig löschen")).click();
+            clickTestId("delete-confirm-button");
 
             page.waitForURL("**/tournaments",
                     new Page.WaitForURLOptions().setTimeout(15000));

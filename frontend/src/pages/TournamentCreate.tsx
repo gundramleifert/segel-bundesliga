@@ -137,6 +137,7 @@ export function TournamentCreate() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Optionale Beschreibung des Turniers..."
                 rows={2}
+                data-testid="tournament-description-input"
               />
             </div>
 
@@ -219,13 +220,14 @@ export function TournamentCreate() {
             </div>
 
             {teams.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2" data-testid="teams-list">
                 {teams.map((team, i) => (
                   <div
                     key={i}
                     className="flex justify-between items-center bg-muted/50 px-4 py-2.5 rounded-lg border"
+                    data-testid={`team-item-${i}`}
                   >
-                    <span className="font-medium">
+                    <span className="font-medium" data-testid={`team-name-${i}`}>
                       <span className="text-muted-foreground mr-2">{i + 1}.</span>
                       {team.name}
                     </span>
@@ -235,6 +237,7 @@ export function TournamentCreate() {
                       size="sm"
                       onClick={() => removeTeam(i)}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      data-testid={`team-remove-${i}`}
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -302,18 +305,19 @@ export function TournamentCreate() {
             </div>
 
             {boats.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-2" data-testid="boats-list">
                 {boats.map((boat, i) => (
                   <div
                     key={i}
                     className="flex justify-between items-center bg-muted/50 px-4 py-2.5 rounded-lg border"
+                    data-testid={`boat-item-${i}`}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className="w-5 h-5 rounded-full border-2 border-white shadow"
                         style={{ backgroundColor: boat.color }}
                       />
-                      <span className="font-medium">{boat.name}</span>
+                      <span className="font-medium" data-testid={`boat-name-${i}`}>{boat.name}</span>
                     </div>
                     <Button
                       type="button"
@@ -321,6 +325,7 @@ export function TournamentCreate() {
                       size="sm"
                       onClick={() => removeBoat(i)}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      data-testid={`boat-remove-${i}`}
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

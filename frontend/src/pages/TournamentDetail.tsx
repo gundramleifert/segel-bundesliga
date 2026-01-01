@@ -257,10 +257,10 @@ export function TournamentDetail() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} data-testid="delete-cancel-button">
                   Abbrechen
                 </Button>
-                <Button variant="destructive" onClick={deleteTournament}>
+                <Button variant="destructive" onClick={deleteTournament} data-testid="delete-confirm-button">
                   Endgültig löschen
                 </Button>
               </DialogFooter>
@@ -270,7 +270,7 @@ export function TournamentDetail() {
       </div>
 
       {/* Stats Overview */}
-      <Card className="mb-6">
+      <Card className="mb-6" data-testid="tournament-stats">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -281,20 +281,20 @@ export function TournamentDetail() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
+            <div className="text-center" data-testid="stat-flights">
               <p className="text-3xl font-bold text-primary">{tournament.flights}</p>
               <p className="text-sm text-muted-foreground">Flights</p>
             </div>
-            <div className="text-center">
+            <div className="text-center" data-testid="stat-teams">
               <p className="text-3xl font-bold text-primary">{tournament.teams.length}</p>
               <p className="text-sm text-muted-foreground">Teams</p>
             </div>
-            <div className="text-center">
+            <div className="text-center" data-testid="stat-boats">
               <p className="text-3xl font-bold text-primary">{tournament.boats.length}</p>
               <p className="text-sm text-muted-foreground">Boote</p>
             </div>
             {tournament.computationTimeMs && (
-              <div className="text-center">
+              <div className="text-center" data-testid="stat-computation-time">
                 <p className="text-3xl font-bold text-secondary">
                   {(tournament.computationTimeMs / 1000).toFixed(1)}s
                 </p>
@@ -307,7 +307,7 @@ export function TournamentDetail() {
 
       {/* Teams & Boats */}
       <div className="grid md:grid-cols-2 gap-6 mb-6">
-        <Card>
+        <Card data-testid="teams-section">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -342,7 +342,7 @@ export function TournamentDetail() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-testid="boats-section">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -382,7 +382,7 @@ export function TournamentDetail() {
       </div>
 
       {/* Optimization Controls */}
-      <Card className="mb-6">
+      <Card className="mb-6" data-testid="optimization-section">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -396,13 +396,13 @@ export function TournamentDetail() {
         </CardHeader>
         <CardContent>
           {!hasRequiredConfig ? (
-            <Alert>
+            <Alert data-testid="optimization-config-warning">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
               <AlertTitle>Konfiguration unvollständig</AlertTitle>
               <AlertDescription>
-                <p className="text-yellow-600">
+                <p className="text-yellow-600" data-testid="optimization-warning-text">
                   Bitte zuerst Teams und Boote hinzufügen.
                 </p>
               </AlertDescription>
@@ -484,7 +484,7 @@ export function TournamentDetail() {
 
       {/* Result */}
       {tournament.resultSchedule && (
-        <Card>
+        <Card data-testid="result-section">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -498,19 +498,19 @@ export function TournamentDetail() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-6 mb-6">
-              <Card className="bg-primary/5 border-primary/20">
+              <Card className="bg-primary/5 border-primary/20" data-testid="result-saved-shuttles">
                 <CardContent className="pt-4 text-center">
                   <p className="text-3xl font-bold text-primary">{tournament.savedShuttles || 0}</p>
                   <p className="text-sm text-muted-foreground">Gesparte Shuttles</p>
                 </CardContent>
               </Card>
-              <Card className="bg-secondary/5 border-secondary/20">
+              <Card className="bg-secondary/5 border-secondary/20" data-testid="result-boat-changes">
                 <CardContent className="pt-4 text-center">
                   <p className="text-3xl font-bold text-secondary">{tournament.boatChanges || 0}</p>
                   <p className="text-sm text-muted-foreground">Boot-Wechsel</p>
                 </CardContent>
               </Card>
-              <Card className="bg-muted">
+              <Card className="bg-muted" data-testid="result-computation-time">
                 <CardContent className="pt-4 text-center">
                   <p className="text-3xl font-bold">
                     {tournament.computationTimeMs ? (tournament.computationTimeMs / 1000).toFixed(1) + 's' : '-'}
@@ -522,14 +522,14 @@ export function TournamentDetail() {
 
             <Separator className="my-4" />
 
-            <details className="group">
+            <details className="group" data-testid="result-json-toggle">
               <summary className="cursor-pointer text-sm text-primary hover:underline flex items-center gap-2">
                 <svg className="h-4 w-4 transition-transform group-open:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
                 JSON-Ergebnis anzeigen
               </summary>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm mt-4 font-mono">
+              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm mt-4 font-mono" data-testid="result-json-content">
                 {tournament.resultSchedule}
               </pre>
             </details>

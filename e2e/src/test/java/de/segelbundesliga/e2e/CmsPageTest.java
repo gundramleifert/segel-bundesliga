@@ -83,10 +83,8 @@ class CmsPageTest extends E2ETestBase {
         navigateTo("/");
 
         // Then: Footer contains expected links
-        Locator footer = page.locator("footer");
-        footer.waitFor();
-
-        String footerText = footer.textContent().toLowerCase();
+        waitForTestId("footer");
+        String footerText = getTextByTestId("footer").toLowerCase();
 
         assertThat(footerText)
                 .as("Footer should contain Impressum link")
@@ -106,18 +104,13 @@ class CmsPageTest extends E2ETestBase {
         page.waitForTimeout(1000);
 
         // When: User clicks Impressum link in footer
-        Locator footer = page.locator("footer");
-        footer.waitFor();
+        waitForTestId("footer");
+        clickTestId("footer-impressum-link");
+        page.waitForLoadState();
+        page.waitForTimeout(1000);
 
-        Locator impressumLink = page.getByTestId("footer-impressum-link");
-        if (impressumLink.count() > 0) {
-            impressumLink.click();
-            page.waitForLoadState();
-            page.waitForTimeout(1000);
-
-            // Then: User is on Impressum page
-            assertThat(page.url()).contains("impressum");
-        }
+        // Then: User is on Impressum page
+        assertThat(page.url()).contains("impressum");
     }
 
     @Test
@@ -129,18 +122,13 @@ class CmsPageTest extends E2ETestBase {
         page.waitForTimeout(1000);
 
         // When: User clicks Datenschutz link in footer
-        Locator footer = page.locator("footer");
-        footer.waitFor();
+        waitForTestId("footer");
+        clickTestId("footer-datenschutz-link");
+        page.waitForLoadState();
+        page.waitForTimeout(1000);
 
-        Locator datenschutzLink = page.getByTestId("footer-datenschutz-link");
-        if (datenschutzLink.count() > 0) {
-            datenschutzLink.click();
-            page.waitForLoadState();
-            page.waitForTimeout(1000);
-
-            // Then: User is on Datenschutz page
-            assertThat(page.url()).contains("datenschutz");
-        }
+        // Then: User is on Datenschutz page
+        assertThat(page.url()).contains("datenschutz");
     }
 
     @Test
