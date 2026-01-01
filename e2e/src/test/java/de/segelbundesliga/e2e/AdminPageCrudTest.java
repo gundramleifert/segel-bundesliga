@@ -97,8 +97,11 @@ class AdminPageCrudTest extends E2ETestBase {
         Locator slugInput = page.getByTestId("admin-page-slug-input");
         slugInput.fill(TEST_PAGE_SLUG);
 
-        Locator contentInput = page.getByTestId("admin-page-content-input");
-        contentInput.fill(TEST_PAGE_CONTENT);
+        // RichTextInput uses TipTap - need to click into the editor and type
+        Locator contentEditor = page.getByTestId("admin-page-content-input").locator(".ProseMirror");
+        contentEditor.waitFor();
+        contentEditor.click();
+        contentEditor.fill(TEST_PAGE_CONTENT);
 
         page.waitForTimeout(500);
         Locator saveButton = page.getByTestId("admin-page-save-button");

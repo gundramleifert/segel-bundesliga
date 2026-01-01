@@ -52,8 +52,17 @@ public class Page extends BaseEntity {
     @Column(name = "image_id")
     private List<String> images = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "footer_section")
+    private FooterSection footerSection;
+
     public enum Visibility {
         PUBLIC,
         INTERNAL
+    }
+
+    public enum FooterSection {
+        INFO,   // Über uns, Kontakt
+        LEGAL   // Impressum, Datenschutz, AGB
     }
 }

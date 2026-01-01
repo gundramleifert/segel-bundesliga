@@ -1,5 +1,6 @@
 package de.segelbundesliga.dto;
 
+import de.segelbundesliga.domain.Page.FooterSection;
 import de.segelbundesliga.domain.Page.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class PageDto {
         private Integer sortOrder = 0;
         private Boolean showInMenu = false;
         private Long parentId;
+        private FooterSection footerSection;
     }
 
     @Data
@@ -38,6 +40,7 @@ public class PageDto {
         private Integer sortOrder;
         private Boolean showInMenu;
         private Long parentId;
+        private FooterSection footerSection;
     }
 
     @Data
@@ -53,6 +56,7 @@ public class PageDto {
         private Integer sortOrder;
         private Boolean showInMenu;
         private Long parentId;
+        private FooterSection footerSection;
         private List<String> images;
         private Instant createdAt;
         private Instant updatedAt;
@@ -68,5 +72,6 @@ public class PageDto {
         private Integer sortOrder;
         private Boolean showInMenu;
         private Long parentId;
+        private FooterSection footerSection;
     }
 }

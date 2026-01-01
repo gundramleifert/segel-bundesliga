@@ -33,6 +33,7 @@ public class PageService {
         entity.setVisibility(dto.getVisibility());
         entity.setSortOrder(dto.getSortOrder());
         entity.setShowInMenu(dto.getShowInMenu());
+        entity.setFooterSection(dto.getFooterSection());
         if (dto.getParentId() != null) {
             Page parent = repository.findById(dto.getParentId())
                     .orElseThrow(() -> new EntityNotFoundException("Parent Page", dto.getParentId()));
@@ -94,6 +95,7 @@ public class PageService {
         if (dto.getVisibility() != null) entity.setVisibility(dto.getVisibility());
         if (dto.getSortOrder() != null) entity.setSortOrder(dto.getSortOrder());
         if (dto.getShowInMenu() != null) entity.setShowInMenu(dto.getShowInMenu());
+        if (dto.getFooterSection() != null) entity.setFooterSection(dto.getFooterSection());
         if (dto.getParentId() != null) {
             Page parent = repository.findById(dto.getParentId())
                     .orElseThrow(() -> new EntityNotFoundException("Parent Page", dto.getParentId()));
@@ -130,6 +132,7 @@ public class PageService {
         dto.setSortOrder(entity.getSortOrder());
         dto.setShowInMenu(entity.getShowInMenu());
         dto.setParentId(entity.getParent() != null ? entity.getParent().getId() : null);
+        dto.setFooterSection(entity.getFooterSection());
         dto.setImages(new ArrayList<>(entity.getImages()));
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setUpdatedAt(entity.getUpdatedAt());
@@ -146,6 +149,7 @@ public class PageService {
         dto.setSortOrder(entity.getSortOrder());
         dto.setShowInMenu(entity.getShowInMenu());
         dto.setParentId(entity.getParent() != null ? entity.getParent().getId() : null);
+        dto.setFooterSection(entity.getFooterSection());
         return dto;
     }
 }

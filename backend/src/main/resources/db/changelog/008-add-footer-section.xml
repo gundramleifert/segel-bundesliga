@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="008-1" author="claude">
+        <comment>Add footer_section column to pages table</comment>
+        <addColumn tableName="pages">
+            <column name="footer_section" type="varchar(50)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="008-2" author="claude">
+        <comment>Set footer_section for existing pages</comment>
+        <update tableName="pages">
+            <column name="footer_section" value="INFO"/>
+            <where>slug IN ('ueber-uns', 'kontakt')</where>
+        </update>
+        <update tableName="pages">
+            <column name="footer_section" value="LEGAL"/>
+            <where>slug IN ('impressum', 'datenschutz', 'agb')</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

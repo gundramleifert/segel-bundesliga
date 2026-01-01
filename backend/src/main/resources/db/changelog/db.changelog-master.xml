@@ -11,5 +11,6 @@
     <include file="db/changelog/005-tournament-restructure.xml"/>
     <include file="db/changelog/006-seed-standard-pages.xml"/>
     <include file="db/changelog/007-add-unique-constraints.xml"/>
+    <include file="db/changelog/008-add-footer-section.xml"/>
 
 </databaseChangeLog>

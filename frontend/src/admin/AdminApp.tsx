@@ -40,6 +40,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 // Auth wird ueber den OIDC-Token im localStorage gehandhabt
 import { dataProvider } from './dataProvider';
+import { RichTextInput } from './components/RichTextInput';
 
 // Hole OIDC-Token aus dem Storage (react-oidc-context speichert hier)
 function getOidcToken(): string | null {
@@ -115,6 +116,13 @@ const postStatusChoices = [
   { id: 'DRAFT', name: 'Entwurf' },
   { id: 'PUBLISHED', name: 'Veroeffentlicht' },
   { id: 'ARCHIVED', name: 'Archiviert' },
+];
+
+// Footer Section Optionen
+const footerSectionChoices = [
+  { id: '', name: '(Keine)' },
+  { id: 'INFO', name: 'Info-Bereich' },
+  { id: 'LEGAL', name: 'Rechtliches' },
 ];
 
 // Custom Toolbar mit data-testid fuer E2E Tests
@@ -224,28 +232,28 @@ const PageEdit = () => (
       <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
       <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
       <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
-      <TextInput
+      <RichTextInput
         source="content"
         label="Inhalt (DE)"
-        multiline
-        rows={10}
         validate={required()}
-        fullWidth
-        inputProps={{ 'data-testid': 'admin-page-content-input' }}
+        data-testid="admin-page-content-input"
       />
-      <TextInput
+      <RichTextInput
         source="contentEn"
         label="Inhalt (EN)"
-        multiline
-        rows={10}
-        fullWidth
-        inputProps={{ 'data-testid': 'admin-page-content-en-input' }}
+        data-testid="admin-page-content-en-input"
       />
       <SelectInput
         source="visibility"
         label="Sichtbarkeit"
         choices={visibilityChoices}
         defaultValue="PUBLIC"
+      />
+      <SelectInput
+        source="footerSection"
+        label="Footer-Bereich"
+        choices={footerSectionChoices}
+        emptyText="(Keine)"
       />
       <BooleanInput source="showInMenu" label="Im Menu anzeigen" />
       <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />
@@ -260,28 +268,28 @@ const PageCreate = () => (
       <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
       <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
       <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
-      <TextInput
+      <RichTextInput
         source="content"
         label="Inhalt (DE)"
-        multiline
-        rows={10}
         validate={required()}
-        fullWidth
-        inputProps={{ 'data-testid': 'admin-page-content-input' }}
+        data-testid="admin-page-content-input"
       />
-      <TextInput
+      <RichTextInput
         source="contentEn"
         label="Inhalt (EN)"
-        multiline
-        rows={10}
-        fullWidth
-        inputProps={{ 'data-testid': 'admin-page-content-en-input' }}
+        data-testid="admin-page-content-en-input"
       />
       <SelectInput
         source="visibility"
         label="Sichtbarkeit"
         choices={visibilityChoices}
         defaultValue="PUBLIC"
+      />
+      <SelectInput
+        source="footerSection"
+        label="Footer-Bereich"
+        choices={footerSectionChoices}
+        emptyText="(Keine)"
       />
       <BooleanInput source="showInMenu" label="Im Menu anzeigen" defaultValue={false} />
       <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />

@@ -20,8 +20,26 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/toaster';
 
+// Helper to check if user has admin role
+function hasAdminRole(user: ReturnType<typeof useAuth>['user']): boolean {
+  if (!user) return false;
+  // Zitadel stores roles in a claim like: urn:zitadel:iam:org:project:{projectId}:roles
+  // We check for any roles claim that contains ADMIN
+  const claims = user.profile as Record<string, unknown>;
+  for (const key of Object.keys(claims)) {
+    if (key.includes(':roles')) {
+      const roles = claims[key] as Record<string, unknown> | undefined;
+      if (roles && typeof roles === 'object' && 'ADMIN' in roles) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 function Header() {
   const auth = useAuth();
+  const isAdmin = hasAdminRole(auth.user);
 
   const getInitials = (name?: string, email?: string) => {
     if (name) {
@@ -52,6 +70,15 @@ function Header() {
               >
                 Turniere
               </Link>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  className="text-sm font-medium transition-colors hover:text-secondary"
+                  data-testid="admin-link"
+                >
+                  Admin
+                </Link>
+              )}
             </nav>
           )}
         </div>
@@ -90,6 +117,11 @@ function Header() {
                   <DropdownMenuItem asChild>
                     <Link to="/tournaments">Meine Turniere</Link>
                   </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" data-testid="admin-menu-link">Admin-Bereich</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => auth.signoutRedirect()}
