@@ -5,20 +5,29 @@ import de.segelbundesliga.domain.Page.Visibility;
 import de.segelbundesliga.dto.PageDto;
 import de.segelbundesliga.repository.PageRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class PageService {
 
+    private static final Logger log = LoggerFactory.getLogger(PageService.class);
+    private static final Pattern IMAGE_SRC_PATTERN = Pattern.compile("/api/images/([^\"'\\s>]+)");
+
     private final PageRepository repository;
+    private final StorageService storageService;
 
     public PageDto.Response create(PageDto.Create dto) {
         if (repository.existsBySlug(dto.getSlug())) {
@@ -132,10 +141,66 @@ public class PageService {
     }
 
     public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new EntityNotFoundException("Page", id);
-        }
+        Page entity = repository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Page", id));
+
+        // Collect all image objectIds to delete
+        Set<String> imagesToDelete = collectAllImages(entity);
+
+        // Delete the page first
         repository.deleteById(id);
+
+        // Then clean up images from storage
+        for (String objectId : imagesToDelete) {
+            try {
+                storageService.delete(objectId);
+                log.info("Deleted image {} for page {}", objectId, id);
+            } catch (Exception e) {
+                log.warn("Failed to delete image {} for page {}: {}", objectId, id, e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Collects all image objectIds associated with a page:
+     * - Featured image
+     * - Images tracked in the images list
+     * - Images embedded in content HTML (DE and EN)
+     */
+    private Set<String> collectAllImages(Page entity) {
+        Set<String> images = new HashSet<>();
+
+        // Featured image
+        if (entity.getFeaturedImage() != null && !entity.getFeaturedImage().isBlank()) {
+            images.add(entity.getFeaturedImage());
+        }
+
+        // Tracked images
+        if (entity.getImages() != null) {
+            images.addAll(entity.getImages());
+        }
+
+        // Images in content HTML
+        extractImagesFromHtml(entity.getContent(), images);
+        extractImagesFromHtml(entity.getContentEn(), images);
+
+        return images;
+    }
+
+    /**
+     * Extracts image objectIds from HTML content.
+     * Looks for patterns like: /api/images/editor-images/uuid_filename.png
+     */
+    private void extractImagesFromHtml(String html, Set<String> images) {
+        if (html == null || html.isBlank()) {
+            return;
+        }
+
+        Matcher matcher = IMAGE_SRC_PATTERN.matcher(html);
+        while (matcher.find()) {
+            String objectId = matcher.group(1);
+            images.add(objectId);
+        }
     }
 
     public void addImage(Long id, String imageId) {

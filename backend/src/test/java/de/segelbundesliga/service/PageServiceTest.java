@@ -37,6 +37,9 @@ class PageServiceTest {
     @Mock
     private PageRepository repository;
 
+    @Mock
+    private StorageService storageService;
+
     @InjectMocks
     private PageService service;
 
@@ -470,7 +473,7 @@ class PageServiceTest {
         @Test
         @DisplayName("deletes page when exists")
         void delete_exists_deletesPage() {
-            when(repository.existsById(1L)).thenReturn(true);
+            when(repository.findById(1L)).thenReturn(Optional.of(testPage));
 
             service.delete(1L);
 
@@ -480,10 +483,83 @@ class PageServiceTest {
         @Test
         @DisplayName("throws exception when not exists")
         void delete_notExists_throwsException() {
-            when(repository.existsById(999L)).thenReturn(false);
+            when(repository.findById(999L)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.delete(999L))
                     .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("deletes images from content HTML")
+        void delete_withContentImages_deletesImages() throws Exception {
+            testPage.setContent("<p>Text</p><img src=\"/api/images/editor-images/uuid1_test.png\"><p>More</p>");
+            when(repository.findById(1L)).thenReturn(Optional.of(testPage));
+
+            service.delete(1L);
+
+            verify(storageService).delete("editor-images/uuid1_test.png");
+            verify(repository).deleteById(1L);
+        }
+
+        @Test
+        @DisplayName("deletes images from both DE and EN content")
+        void delete_withDeAndEnContent_deletesAllImages() throws Exception {
+            testPage.setContent("<img src=\"/api/images/editor-images/de-image.jpg\">");
+            testPage.setContentEn("<img src=\"/api/images/editor-images/en-image.png\">");
+            when(repository.findById(1L)).thenReturn(Optional.of(testPage));
+
+            service.delete(1L);
+
+            verify(storageService).delete("editor-images/de-image.jpg");
+            verify(storageService).delete("editor-images/en-image.png");
+        }
+
+        @Test
+        @DisplayName("deletes featured image")
+        void delete_withFeaturedImage_deletesFeaturedImage() throws Exception {
+            testPage.setFeaturedImage("pages/1/featured.png");
+            when(repository.findById(1L)).thenReturn(Optional.of(testPage));
+
+            service.delete(1L);
+
+            verify(storageService).delete("pages/1/featured.png");
+        }
+
+        @Test
+        @DisplayName("deletes tracked images from images list")
+        void delete_withTrackedImages_deletesTrackedImages() throws Exception {
+            testPage.getImages().add("tracked/image1.png");
+            testPage.getImages().add("tracked/image2.jpg");
+            when(repository.findById(1L)).thenReturn(Optional.of(testPage));
+
+            service.delete(1L);
+
+            verify(storageService).delete("tracked/image1.png");
+            verify(storageService).delete("tracked/image2.jpg");
+        }
+
+        @Test
+        @DisplayName("does not fail if image deletion fails")
+        void delete_imageDeleteFails_stillDeletesPage() throws Exception {
+            testPage.setContent("<img src=\"/api/images/editor-images/test.png\">");
+            when(repository.findById(1L)).thenReturn(Optional.of(testPage));
+            doThrow(new RuntimeException("MinIO error")).when(storageService).delete(any());
+
+            service.delete(1L);
+
+            verify(repository).deleteById(1L); // Page still deleted
+        }
+
+        @Test
+        @DisplayName("deduplicates images (same image in DE and EN content)")
+        void delete_duplicateImages_deletesOnlyOnce() throws Exception {
+            testPage.setContent("<img src=\"/api/images/editor-images/shared.png\">");
+            testPage.setContentEn("<img src=\"/api/images/editor-images/shared.png\">");
+            when(repository.findById(1L)).thenReturn(Optional.of(testPage));
+
+            service.delete(1L);
+
+            verify(storageService, times(1)).delete("editor-images/shared.png");
         }
     }
 
