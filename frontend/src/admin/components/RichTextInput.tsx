@@ -3,8 +3,16 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { InputLabel, FormControl, FormHelperText } from '@mui/material';
+
+interface ImageUploadConfig {
+  maxFileSize: number;
+  maxWidth: number;
+  maxHeight: number;
+  allowedContentTypes: string[];
+  allowedExtensions: string[];
+}
 
 interface RichTextInputProps extends Omit<InputProps, 'source'> {
   source: string;
@@ -195,6 +203,15 @@ function getOidcToken(): string | null {
   return null;
 }
 
+// Default config (fallback if API fails)
+const DEFAULT_CONFIG: ImageUploadConfig = {
+  maxFileSize: 2 * 1024 * 1024,
+  maxWidth: 1920,
+  maxHeight: 1080,
+  allowedContentTypes: ['image/jpeg', 'image/png'],
+  allowedExtensions: ['.jpg', '.jpeg', '.png'],
+};
+
 export function RichTextInput({ source, label, 'data-testid': testId, ...props }: RichTextInputProps) {
   const {
     field,
@@ -202,6 +219,15 @@ export function RichTextInput({ source, label, 'data-testid': testId, ...props }
   } = useInput({ source, ...props });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadConfig, setUploadConfig] = useState<ImageUploadConfig>(DEFAULT_CONFIG);
+
+  // Fetch upload config from backend
+  useEffect(() => {
+    fetch('/api/storage/config')
+      .then((res) => res.json())
+      .then((config) => setUploadConfig(config))
+      .catch(() => console.warn('Failed to load upload config, using defaults'));
+  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -240,6 +266,48 @@ export function RichTextInput({ source, label, 'data-testid': testId, ...props }
       const file = e.target.files?.[0];
       if (!file || !editor) return;
 
+      // Check file type
+      if (!uploadConfig.allowedContentTypes.includes(file.type)) {
+        alert(`Nur ${uploadConfig.allowedExtensions.join(', ')} Bilder sind erlaubt.`);
+        e.target.value = '';
+        return;
+      }
+
+      // Check file size
+      if (file.size > uploadConfig.maxFileSize) {
+        const maxMB = Math.round(uploadConfig.maxFileSize / (1024 * 1024));
+        alert(`Maximale Dateigröße ist ${maxMB} MB.`);
+        e.target.value = '';
+        return;
+      }
+
+      // Check image dimensions
+      const img = new window.Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      const dimensionCheck = new Promise<boolean>((resolve) => {
+        img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          if (img.width > uploadConfig.maxWidth || img.height > uploadConfig.maxHeight) {
+            alert(`Maximale Bildgröße ist ${uploadConfig.maxWidth}x${uploadConfig.maxHeight} Pixel (hochgeladen: ${img.width}x${img.height}).`);
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          alert('Bild konnte nicht gelesen werden.');
+          resolve(false);
+        };
+        img.src = objectUrl;
+      });
+
+      if (!(await dimensionCheck)) {
+        e.target.value = '';
+        return;
+      }
+
       const token = getOidcToken();
       if (!token) {
         alert('Nicht angemeldet. Bitte erneut einloggen.');
@@ -259,20 +327,22 @@ export function RichTextInput({ source, label, 'data-testid': testId, ...props }
         });
 
         if (!response.ok) {
-          throw new Error('Upload fehlgeschlagen');
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Upload fehlgeschlagen');
         }
 
         const data = await response.json();
-        editor.chain().focus().setImage({ src: data.url }).run();
+        // Use proxy URL instead of presigned URL (presigned URLs expire after 60 minutes)
+        editor.chain().focus().setImage({ src: `/api/images/${data.objectId}` }).run();
       } catch (err) {
         console.error('Image upload error:', err);
-        alert('Bild-Upload fehlgeschlagen. Bitte erneut versuchen.');
+        alert(err instanceof Error ? err.message : 'Bild-Upload fehlgeschlagen. Bitte erneut versuchen.');
       }
 
       // Reset file input
       e.target.value = '';
     },
-    [editor]
+    [editor, uploadConfig]
   );
 
   return (

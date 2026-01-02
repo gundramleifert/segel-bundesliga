@@ -43,6 +43,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/images/**").permitAll()
+                .requestMatchers("/api/storage/config").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/pages/**").permitAll()

@@ -28,6 +28,11 @@ spring:
 server:
   port: 8080
 
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
 # App-specific configuration
 application:
   zitadel:
@@ -40,3 +45,16 @@ minio:
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:segel-bundesliga}
+
+# Image Upload Restrictions
+application.image-upload:
+  max-file-size: ${IMAGE_MAX_FILE_SIZE:2097152}  # 2 MB in bytes
+  max-width: ${IMAGE_MAX_WIDTH:1920}
+  max-height: ${IMAGE_MAX_HEIGHT:1080}
+  allowed-content-types:
+    - image/jpeg
+    - image/png
+  allowed-extensions:
+    - .jpg
+    - .jpeg
+    - .png

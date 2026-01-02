@@ -3,6 +3,7 @@ package de.segelbundesliga.service;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,7 @@ public class StorageService {
     /**
      * Initialisiert den Default-Bucket falls nicht vorhanden
      */
+    @PostConstruct
     public void initBucket() {
         try {
             boolean exists = minioClient.bucketExists(BucketExistsArgs.builder()
