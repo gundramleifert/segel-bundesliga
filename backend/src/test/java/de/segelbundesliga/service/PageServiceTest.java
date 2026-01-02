@@ -19,12 +19,15 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -216,18 +219,18 @@ class PageServiceTest {
         @Test
         @DisplayName("returns only public pages")
         void getPublicPages_returnsPublicPages() {
-            when(repository.findPublicPages()).thenReturn(List.of(testPage));
+            when(repository.findByVisibilityOrderBySortOrderAsc(Visibility.PUBLIC)).thenReturn(List.of(testPage));
 
             List<PageDto.ListItem> result = service.getPublicPages();
 
             assertThat(result).hasSize(1);
-            verify(repository).findPublicPages();
+            verify(repository).findByVisibilityOrderBySortOrderAsc(Visibility.PUBLIC);
         }
 
         @Test
         @DisplayName("returns empty list when no public pages")
         void getPublicPages_noPages_returnsEmptyList() {
-            when(repository.findPublicPages()).thenReturn(List.of());
+            when(repository.findByVisibilityOrderBySortOrderAsc(Visibility.PUBLIC)).thenReturn(List.of());
 
             List<PageDto.ListItem> result = service.getPublicPages();
 
@@ -236,31 +239,116 @@ class PageServiceTest {
     }
 
     @Nested
+    @DisplayName("getVisiblePages()")
+    class GetVisiblePagesTests {
+
+        @Test
+        @DisplayName("returns only PUBLIC pages when user has no internal access")
+        void getVisiblePages_noInternalAccess_returnsOnlyPublic() {
+            when(repository.findByVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC)))
+                    .thenReturn(List.of(testPage));
+
+            List<PageDto.ListItem> result = service.getVisiblePages(false);
+
+            assertThat(result).hasSize(1);
+            verify(repository).findByVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC));
+        }
+
+        @Test
+        @DisplayName("returns PUBLIC and INTERNAL pages when user has internal access")
+        void getVisiblePages_hasInternalAccess_returnsPublicAndInternal() {
+            Page internalPage = createTestPage();
+            internalPage.setId(2L);
+            internalPage.setVisibility(Visibility.INTERNAL);
+            internalPage.setSlug("internal-page");
+
+            when(repository.findByVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC, Visibility.INTERNAL)))
+                    .thenReturn(List.of(testPage, internalPage));
+
+            List<PageDto.ListItem> result = service.getVisiblePages(true);
+
+            assertThat(result).hasSize(2);
+            verify(repository).findByVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC, Visibility.INTERNAL));
+        }
+    }
+
+    @Nested
     @DisplayName("getMenuPages()")
     class GetMenuPagesTests {
 
         @Test
-        @DisplayName("returns public menu pages when publicOnly is true")
-        void getMenuPages_publicOnly_returnsPublicMenuPages() {
-            when(repository.findPublicMenuPages()).thenReturn(List.of(testPage));
-
-            List<PageDto.ListItem> result = service.getMenuPages(true);
-
-            assertThat(result).hasSize(1);
-            verify(repository).findPublicMenuPages();
-            verify(repository, never()).findMenuPages();
-        }
-
-        @Test
-        @DisplayName("returns all menu pages when publicOnly is false")
-        void getMenuPages_notPublicOnly_returnsAllMenuPages() {
-            when(repository.findMenuPages()).thenReturn(List.of(testPage));
+        @DisplayName("returns only PUBLIC menu pages when user has no internal access")
+        void getMenuPages_noInternalAccess_returnsOnlyPublicMenuPages() {
+            when(repository.findByShowInMenuTrueAndVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC)))
+                    .thenReturn(List.of(testPage));
 
             List<PageDto.ListItem> result = service.getMenuPages(false);
 
             assertThat(result).hasSize(1);
-            verify(repository).findMenuPages();
-            verify(repository, never()).findPublicMenuPages();
+            verify(repository).findByShowInMenuTrueAndVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC));
+        }
+
+        @Test
+        @DisplayName("returns PUBLIC and INTERNAL menu pages when user has internal access")
+        void getMenuPages_hasInternalAccess_returnsPublicAndInternalMenuPages() {
+            Page internalPage = createTestPage();
+            internalPage.setId(2L);
+            internalPage.setVisibility(Visibility.INTERNAL);
+            internalPage.setSlug("internal-menu-page");
+
+            when(repository.findByShowInMenuTrueAndVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC, Visibility.INTERNAL)))
+                    .thenReturn(List.of(testPage, internalPage));
+
+            List<PageDto.ListItem> result = service.getMenuPages(true);
+
+            assertThat(result).hasSize(2);
+            verify(repository).findByShowInMenuTrueAndVisibilityInOrderBySortOrderAsc(Set.of(Visibility.PUBLIC, Visibility.INTERNAL));
+        }
+    }
+
+    @Nested
+    @DisplayName("getBySlugWithAccessCheck()")
+    class GetBySlugWithAccessCheckTests {
+
+        @Test
+        @DisplayName("returns PUBLIC page for anonymous user")
+        void getBySlugWithAccessCheck_publicPage_noAccess_returnsPage() {
+            testPage.setVisibility(Visibility.PUBLIC);
+            when(repository.findBySlug("test-page")).thenReturn(Optional.of(testPage));
+
+            PageDto.Response result = service.getBySlugWithAccessCheck("test-page", false);
+
+            assertThat(result.getSlug()).isEqualTo("test-page");
+        }
+
+        @Test
+        @DisplayName("throws exception for INTERNAL page when user has no internal access")
+        void getBySlugWithAccessCheck_internalPage_noAccess_throwsException() {
+            testPage.setVisibility(Visibility.INTERNAL);
+            when(repository.findBySlug("test-page")).thenReturn(Optional.of(testPage));
+
+            assertThatThrownBy(() -> service.getBySlugWithAccessCheck("test-page", false))
+                    .isInstanceOf(EntityNotFoundException.class);
+        }
+
+        @Test
+        @DisplayName("returns INTERNAL page when user has internal access")
+        void getBySlugWithAccessCheck_internalPage_hasAccess_returnsPage() {
+            testPage.setVisibility(Visibility.INTERNAL);
+            when(repository.findBySlug("test-page")).thenReturn(Optional.of(testPage));
+
+            PageDto.Response result = service.getBySlugWithAccessCheck("test-page", true);
+
+            assertThat(result.getSlug()).isEqualTo("test-page");
+        }
+
+        @Test
+        @DisplayName("throws exception when page not found")
+        void getBySlugWithAccessCheck_notFound_throwsException() {
+            when(repository.findBySlug("nonexistent")).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> service.getBySlugWithAccessCheck("nonexistent", true))
+                    .isInstanceOf(EntityNotFoundException.class);
         }
     }
 

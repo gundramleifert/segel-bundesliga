@@ -70,11 +70,13 @@ cd frontend && npm run build    # Frontend
 
 ### Testing
 ```bash
-./gradlew test                                    # Backend + Optimizer
+./gradlew test                                    # Backend + Optimizer (includes integration tests)
 ./gradlew :backend:test --tests "*.SomeTest"     # Single test
-cd frontend && npm test                           # Frontend
-cd e2e && npm test                                # E2E (Playwright)
+./gradlew :backend:test --tests "*ControllerTest" # Controller/integration tests
+cd frontend && npm test                           # Frontend unit tests
 ```
+
+**Note:** E2E/integration tests are Java-based in `backend/src/test/java/` - no Playwright.
 
 ### Docker Production
 ```bash
