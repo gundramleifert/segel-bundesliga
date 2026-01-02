@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { Callback } from './auth/Callback';
@@ -20,6 +21,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/toaster';
 import { hasAdminRole } from '@/lib/auth';
+import { setAuthToken } from '@/api/client';
 
 function Header() {
   const auth = useAuth();
@@ -243,6 +245,17 @@ function Home() {
 }
 
 function App() {
+  const auth = useAuth();
+
+  // Set auth token globally for all API requests
+  useEffect(() => {
+    if (auth.isAuthenticated && auth.user?.access_token) {
+      setAuthToken(auth.user.access_token);
+    } else {
+      setAuthToken(null);
+    }
+  }, [auth.isAuthenticated, auth.user?.access_token]);
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />

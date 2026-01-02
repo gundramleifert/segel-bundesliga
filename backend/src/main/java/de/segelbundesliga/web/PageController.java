@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,19 +27,27 @@ public class PageController {
     // === Public Endpoints ===
 
     @GetMapping("/public")
-    public List<PageDto.ListItem> getPublicPages() {
-        return service.getPublicPages();
+    public List<PageDto.ListItem> getPublicPages(Authentication authentication) {
+        return service.getVisiblePages(hasInternalAccess(authentication));
     }
 
     @GetMapping("/public/{slug}")
-    public PageDto.Response getPublicBySlug(@PathVariable String slug) {
-        return service.getBySlug(slug);
+    public PageDto.Response getPublicBySlug(@PathVariable String slug, Authentication authentication) {
+        return service.getBySlugWithAccessCheck(slug, hasInternalAccess(authentication));
     }
 
     @GetMapping("/menu")
-    public List<PageDto.ListItem> getMenuPages(
-            @RequestParam(defaultValue = "true") boolean publicOnly) {
-        return service.getMenuPages(publicOnly);
+    public List<PageDto.ListItem> getMenuPages(Authentication authentication) {
+        return service.getMenuPages(hasInternalAccess(authentication));
+    }
+
+    private boolean hasInternalAccess(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> role.equals("ROLE_ADMIN") || role.equals("ROLE_INTERNAL_ACCESS"));
     }
 
     // === Protected Endpoints ===

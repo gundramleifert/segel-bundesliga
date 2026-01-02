@@ -3,9 +3,9 @@ package de.segelbundesliga.repository;
 import de.segelbundesliga.domain.Page;
 import de.segelbundesliga.domain.Page.Visibility;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,14 +16,15 @@ public interface PageRepository extends JpaRepository<Page, Long> {
 
     List<Page> findByVisibility(Visibility visibility);
 
-    @Query("SELECT p FROM Page p WHERE p.visibility = 'PUBLIC' ORDER BY p.sortOrder ASC")
-    List<Page> findPublicPages();
+    List<Page> findByVisibilityOrderBySortOrderAsc(Visibility visibility);
 
-    @Query("SELECT p FROM Page p WHERE p.showInMenu = true ORDER BY p.sortOrder ASC")
-    List<Page> findMenuPages();
+    List<Page> findByVisibilityInOrderBySortOrderAsc(Collection<Visibility> visibilities);
 
-    @Query("SELECT p FROM Page p WHERE p.showInMenu = true AND p.visibility = 'PUBLIC' ORDER BY p.sortOrder ASC")
-    List<Page> findPublicMenuPages();
+    List<Page> findByShowInMenuTrueOrderBySortOrderAsc();
+
+    List<Page> findByShowInMenuTrueAndVisibilityOrderBySortOrderAsc(Visibility visibility);
+
+    List<Page> findByShowInMenuTrueAndVisibilityInOrderBySortOrderAsc(Collection<Visibility> visibilities);
 
     List<Page> findByParentIdOrderBySortOrderAsc(Long parentId);
 

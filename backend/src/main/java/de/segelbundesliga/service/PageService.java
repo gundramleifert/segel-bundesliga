@@ -1,6 +1,7 @@
 package de.segelbundesliga.service;
 
 import de.segelbundesliga.domain.Page;
+import de.segelbundesliga.domain.Page.Visibility;
 import de.segelbundesliga.dto.PageDto;
 import de.segelbundesliga.repository.PageRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -58,23 +60,47 @@ public class PageService {
     }
 
     @Transactional(readOnly = true)
+    public PageDto.Response getBySlugWithAccessCheck(String slug, boolean hasInternalAccess) {
+        Page entity = repository.findBySlug(slug)
+                .orElseThrow(() -> new EntityNotFoundException("Page", "slug", slug));
+
+        // Check access: INTERNAL pages require internal access
+        if (entity.getVisibility() == Page.Visibility.INTERNAL && !hasInternalAccess) {
+            throw new EntityNotFoundException("Page", "slug", slug);
+        }
+
+        return toResponse(entity);
+    }
+
+    @Transactional(readOnly = true)
     public org.springframework.data.domain.Page<PageDto.ListItem> getAll(Pageable pageable) {
         return repository.findAll(pageable).map(this::toListItem);
     }
 
+    private static final Set<Visibility> PUBLIC_ONLY = Set.of(Visibility.PUBLIC);
+    private static final Set<Visibility> PUBLIC_AND_INTERNAL = Set.of(Visibility.PUBLIC, Visibility.INTERNAL);
+
     @Transactional(readOnly = true)
     public List<PageDto.ListItem> getPublicPages() {
-        return repository.findPublicPages().stream()
+        return repository.findByVisibilityOrderBySortOrderAsc(Visibility.PUBLIC).stream()
                 .map(this::toListItem)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<PageDto.ListItem> getMenuPages(boolean publicOnly) {
-        List<Page> pages = publicOnly
-                ? repository.findPublicMenuPages()
-                : repository.findMenuPages();
-        return pages.stream().map(this::toListItem).toList();
+    public List<PageDto.ListItem> getVisiblePages(boolean hasInternalAccess) {
+        var visibilities = hasInternalAccess ? PUBLIC_AND_INTERNAL : PUBLIC_ONLY;
+        return repository.findByVisibilityInOrderBySortOrderAsc(visibilities).stream()
+                .map(this::toListItem)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PageDto.ListItem> getMenuPages(boolean hasInternalAccess) {
+        var visibilities = hasInternalAccess ? PUBLIC_AND_INTERNAL : PUBLIC_ONLY;
+        return repository.findByShowInMenuTrueAndVisibilityInOrderBySortOrderAsc(visibilities).stream()
+                .map(this::toListItem)
+                .toList();
     }
 
     public PageDto.Response update(Long id, PageDto.Update dto) {
