@@ -202,9 +202,47 @@ cd ../frontend && npm run dev
 
 ### File Storage (MinIO)
 - `StorageService.java` handles uploads/downloads
-- Files stored in bucket `segel-bundesliga`
-- Presigned URLs for browser access (60 min default)
+- Files stored in bucket `segel-bundesliga` (auto-created on startup)
 - Config in `application.yml` under `minio.*`
+
+### Image Upload & Proxy
+
+Images are served via a proxy endpoint to avoid presigned URL expiration issues.
+
+**Upload Flow:**
+1. Admin uploads image via RichTextInput → `POST /api/storage/upload`
+2. Backend validates (format, size, dimensions) and stores in MinIO
+3. Returns `objectId` (e.g., `editor-images/uuid_filename.png`)
+4. Frontend inserts `<img src="/api/images/{objectId}">` into HTML
+5. Images served via `GET /api/images/**` proxy (public, never expires)
+
+**Configuration** (`application.yml`):
+```yaml
+application.image-upload:
+  max-file-size: ${IMAGE_MAX_FILE_SIZE:2097152}  # 2 MB
+  max-width: ${IMAGE_MAX_WIDTH:1920}
+  max-height: ${IMAGE_MAX_HEIGHT:1080}
+  allowed-content-types:
+    - image/jpeg
+    - image/png
+  allowed-extensions:
+    - .jpg
+    - .jpeg
+    - .png
+```
+
+**Key Files:**
+- `ImageUploadConfig.java` - Configuration properties
+- `ImageController.java` - Public proxy endpoint `/api/images/**`
+- `StorageController.java` - Upload endpoint + config endpoint
+- `RichTextInput.tsx` - TipTap editor with image upload
+
+**Endpoints:**
+| Endpoint | Auth | Description |
+|----------|------|-------------|
+| `GET /api/images/**` | Public | Proxy images from MinIO |
+| `POST /api/storage/upload` | ADMIN | Upload image (returns objectId) |
+| `GET /api/storage/config` | Public | Get upload restrictions for frontend |
 
 ### Optimizer Integration
 - `optimizer` module is pure Java, no Spring dependencies
@@ -238,9 +276,9 @@ eventSource.addEventListener('progress', (e) => {
 
 ### Security Endpoints
 ```
-Public:     GET /api/public/**, /api/posts/**, /api/pages/**
+Public:     GET /api/public/**, /api/posts/**, /api/pages/**, /api/images/**, /api/storage/config
 Protected:  POST/PUT/DELETE /api/**, /api/tournaments/**, /api/optimization/**
-Admin:      /api/admin/**
+Admin:      /api/admin/**, POST /api/storage/upload
 ```
 
 ## Key Files
@@ -249,13 +287,17 @@ Admin:      /api/admin/**
 |------|---------|
 | `backend/src/main/java/.../config/SecurityConfig.java` | OIDC/JWT config |
 | `backend/src/main/java/.../config/MinioConfig.java` | MinIO client bean |
+| `backend/src/main/java/.../config/ImageUploadConfig.java` | Image upload restrictions |
 | `backend/src/main/java/.../domain/*.java` | Entity-Klassen (Tournament, Post, Page) |
 | `backend/src/main/java/.../dto/*.java` | DTOs mit Create/Update/Response/ListItem |
 | `backend/src/main/java/.../service/*.java` | Business Logic Services |
+| `backend/src/main/java/.../service/StorageService.java` | File upload/download to MinIO |
 | `backend/src/main/java/.../web/*.java` | REST Controller |
-| `backend/src/main/java/.../service/StorageService.java` | File upload/download |
+| `backend/src/main/java/.../web/ImageController.java` | Image proxy endpoint |
+| `backend/src/main/java/.../web/StorageController.java` | File upload + config endpoint |
 | `backend/src/main/resources/application.yml` | Main config |
 | `backend/src/main/resources/db/changelog/*.xml` | Liquibase Migrations |
+| `frontend/src/admin/components/RichTextInput.tsx` | TipTap editor with image upload |
 | `optimizer/src/main/java/.../Optimizer.java` | PairingList entry point |
 | `docker/docker-compose.dev.yml` | Dev environment |
 | `docker/docker-compose.yml` | Production setup |
@@ -270,6 +312,7 @@ Admin:      /api/admin/**
 | Posts | `GET /api/posts/public`, `GET /api/posts/public/{slug}`, CRUD `/api/posts`, `PUT /{id}/publish` |
 | Pages | `GET /api/pages/public`, `GET /api/pages/menu`, CRUD `/api/pages` |
 | Optimization | `POST /{id}/start`, `GET /{id}/progress` (SSE), `POST /{id}/cancel`, `GET /{id}/result`, `GET /{id}/status` |
+| Images | `GET /api/images/**` (proxy), `POST /api/storage/upload`, `GET /api/storage/config` |
 
 ## Test-ID Convention
 
@@ -352,3 +395,4 @@ Pages haben zwei Sichtbarkeitsstufen:
 - [x] Standard-Seiten mit Footer und Admin-UI
 - [x] Page Visibility (PUBLIC/INTERNAL) mit rollenbasierter Zugriffskontrolle
 - [x] Edit-Button für Admins auf Public Pages
+- [x] Image Upload mit Proxy (keine ablaufenden URLs) und konfigurierbaren Restriktionen
