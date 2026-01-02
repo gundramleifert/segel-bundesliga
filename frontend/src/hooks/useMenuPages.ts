@@ -22,13 +22,23 @@ export function useMenuPages() {
 
   // Re-fetch when auth state changes (to show/hide INTERNAL pages)
   useEffect(() => {
+    // Wait for auth to finish loading before fetching
+    if (auth.isLoading) return;
+
     setLoading(true);
+
+    // Build headers with token if authenticated
+    const headers: Record<string, string> = {};
+    if (auth.isAuthenticated && auth.user?.access_token) {
+      headers['Authorization'] = `Bearer ${auth.user.access_token}`;
+    }
+
     api
-      .get<MenuPage[]>('/pages/menu')
+      .get<MenuPage[]>('/pages/menu', { headers })
       .then((res) => setPages(res.data))
       .catch(() => setError('Fehler beim Laden der Seiten'))
       .finally(() => setLoading(false));
-  }, [auth.isAuthenticated]);
+  }, [auth.isLoading, auth.isAuthenticated, auth.user?.access_token]);
 
   // Group pages by footer section
   const infoPages = pages.filter((p) => p.footerSection === 'INFO');
