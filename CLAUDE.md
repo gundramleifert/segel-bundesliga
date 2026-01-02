@@ -73,10 +73,9 @@ cd frontend && npm run build    # Frontend
 ./gradlew test                                    # Backend + Optimizer (includes integration tests)
 ./gradlew :backend:test --tests "*.SomeTest"     # Single test
 ./gradlew :backend:test --tests "*ControllerTest" # Controller/integration tests
-cd frontend && npm test                           # Frontend unit tests
 ```
 
-**Note:** E2E/integration tests are Java-based in `backend/src/test/java/` - no Playwright.
+**Note:** All tests (unit + integration) are Java-based in `backend/src/test/java/`.
 
 ### Docker Production
 ```bash
