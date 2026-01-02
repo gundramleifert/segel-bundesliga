@@ -112,6 +112,19 @@ class ZitadelSetup:
         """Create a new project."""
         print(f"\n[1/6] Creating project '{name}'...")
 
+        # Retry logic for initial connection (management API may not be ready)
+        max_retries = 5
+        for attempt in range(max_retries):
+            result = self._request("POST", "/management/v1/projects/_search", {
+                "queries": [{"nameQuery": {"name": name, "method": "TEXT_QUERY_METHOD_EQUALS"}}]
+            })
+            if not result.get("error") or result.get("code") != 503:
+                break
+            if attempt < max_retries - 1:
+                wait_time = 5 * (attempt + 1)
+                print(f"  Management API not ready, retrying in {wait_time}s...")
+                time.sleep(wait_time)
+
         # First, check if project already exists
         result = self._request("POST", "/management/v1/projects/_search", {
             "queries": [{"nameQuery": {"name": name, "method": "TEXT_QUERY_METHOD_EQUALS"}}]
@@ -666,6 +679,10 @@ def reset_zitadel() -> bool:
     if not pat_file.exists():
         print(f"  ERROR: PAT file not found: {pat_file}")
         return False
+
+    # Wait additional time for Zitadel management API to be ready
+    print("  Waiting for management API to be ready...")
+    time.sleep(10)
 
     pat = pat_file.read_text().strip()
     setup = ZitadelSetup(base_url, pat)
