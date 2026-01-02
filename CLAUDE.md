@@ -20,7 +20,7 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League) mit:
 | Auth | Zitadel (OIDC/OAuth2) |
 | Database | PostgreSQL 16 |
 | File Storage | MinIO (S3-kompatibel) |
-| Testing | JUnit 5, Vitest, Playwright |
+| Testing | JUnit 5 (Backend) |
 | Build | Gradle 8.5 (Kotlin DSL) |
 
 ## Project Structure
@@ -35,10 +35,10 @@ Web-Plattform für die Segel-Bundesliga (German Sailing Federal League) mit:
 │       ├── repository/         # JPA Repositories
 │       ├── service/            # Business Logic
 │       └── web/                # REST Controller
+│   └── src/test/java/          # Unit + Integration Tests
 ├── frontend/                   # React + Vite
 ├── optimizer/                  # PairingList Java Library
 │   └── src/main/java/gundramleifert/pairing_list/
-├── e2e/                        # Playwright E2E Tests
 ├── docker/                     # Docker Compose files
 ├── build.gradle.kts            # Root Gradle build
 ├── settings.gradle.kts         # Multi-project config
@@ -169,8 +169,6 @@ cd ../frontend && npm run dev
 | "App not found" Fehler | Frontend hat alte Client-ID | `uv run python setup_zitadel.py --sync-frontend`, dann Frontend neustarten |
 | Passwort-Änderung erforderlich | User hat `passwordChangeRequired` Flag | `uv run python setup_zitadel.py --reset-password USERNAME PASSWORD` |
 | Zitadel komplett kaputt | Datenbank-Probleme | `uv run python setup_zitadel.py --reset` |
-| Zitadel-UI auf Deutsch | Browser-Sprache ist DE | Kein Problem - E2E-Tests verwenden deutsche Labels ("Loginname", "Passwort", "Weiter") |
-| E2E-Test findet Login-Feld nicht | Falscher Selector | Prüfen ob `getByRole` mit deutschem Label verwendet wird |
 
 ### Generierte Dateien
 - `docker/zitadel-data/admin.pat` - Personal Access Token für API-Zugriff
@@ -273,12 +271,9 @@ Admin:      /api/admin/**
 | Pages | `GET /api/pages/public`, `GET /api/pages/menu`, CRUD `/api/pages` |
 | Optimization | `POST /{id}/start`, `GET /{id}/progress` (SSE), `POST /{id}/cancel`, `GET /{id}/result`, `GET /{id}/status` |
 
-## Test-ID Convention (Playwright)
+## Test-ID Convention
 
-**WICHTIG:** Alle interaktiven UI-Komponenten MÜSSEN `data-testid` Attribute haben. Dies gilt insbesondere für:
-- Formular-Inputs, Buttons, Links
-- Listen-Elemente und Tabellen-Zeilen
-- Modals und Dialoge
+**WICHTIG:** Alle interaktiven UI-Komponenten MÜSSEN `data-testid` Attribute haben für Testbarkeit.
 
 ### Namenskonvention
 ```
@@ -288,7 +283,7 @@ Admin:      /api/admin/**
 ### Beispiele
 ```
 login-email-input, tournament-create-button, optimization-progress-bar
-admin-page-title-input, admin-page-save-button
+admin-page-title-input, admin-page-save-button, page-edit-button
 ```
 
 ### React-Admin Komponenten
@@ -324,6 +319,26 @@ Das Admin-Panel unter `/admin` nutzt [react-admin](https://marmelab.com/react-ad
 - Seiten verwalten (CRUD für statische Seiten)
 - Erfordert ADMIN-Rolle in Zitadel
 
+## Page Visibility
+
+Pages haben zwei Sichtbarkeitsstufen:
+
+| Visibility | Wer kann sehen | Beispiel |
+|------------|----------------|----------|
+| `PUBLIC` | Alle (auch ohne Login) | Impressum, AGB |
+| `INTERNAL` | Nur eingeloggte User mit `INTERNAL_ACCESS` oder `ADMIN` Rolle | Interne Dokumente |
+
+### Verhalten
+- **Footer/Menu**: Zeigt automatisch nur sichtbare Seiten basierend auf Auth-Status
+- **Direktzugriff** `/seite/{slug}`: Gibt 404 wenn User keinen Zugriff hat
+- **Admin-Panel**: Zeigt immer alle Seiten (zum Bearbeiten)
+- **Edit-Button**: Erscheint auf Public Pages nur für ADMIN User
+
+### Implementation
+- Backend: `PageController.hasInternalAccess()` prüft JWT Rollen
+- Frontend: `useMenuPages` Hook sendet Auth-Token mit, re-fetcht bei Login/Logout
+- Tests: `PageServiceTest`, `PageControllerTest`
+
 ## TODO
 
 - [x] Entity-Klassen (Tournament, Post, Page)
@@ -335,5 +350,5 @@ Das Admin-Panel unter `/admin` nutzt [react-admin](https://marmelab.com/react-ad
 - [x] Frontend Auth Integration (Zitadel OIDC)
 - [x] Frontend Optimization UI mit SSE
 - [x] Standard-Seiten mit Footer und Admin-UI
-- [x] E2E Login-Tests (AuthenticationTest mit deutschen Labels)
-- [ ] Weitere E2E Tests (Turniere, Blog, Admin)
+- [x] Page Visibility (PUBLIC/INTERNAL) mit rollenbasierter Zugriffskontrolle
+- [x] Edit-Button für Admins auf Public Pages
