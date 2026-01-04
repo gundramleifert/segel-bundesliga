@@ -12,7 +12,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none  # Let Liquibase handle schema
     open-in-view: false
 
   liquibase:
@@ -37,7 +37,7 @@ server:
 application:
   zitadel:
     issuer: ${ZITADEL_ISSUER:http://localhost:8081}
-    project-id: ${ZITADEL_PROJECT_ID:352214336132874757}
+    project-id: ${ZITADEL_PROJECT_ID:354102959333704197}
 
 # MinIO / S3 Storage
 minio:
@@ -58,3 +58,14 @@ application.image-upload:
     - .jpg
     - .jpeg
     - .png
+
+# Swagger/OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    oauth:
+      client-id: ${ZITADEL_CLIENT_ID:353690562261484037}
+      use-pkce-with-authorization-code-grant: true

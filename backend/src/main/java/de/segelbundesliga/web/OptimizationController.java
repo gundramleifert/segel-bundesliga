@@ -4,9 +4,13 @@ import de.segelbundesliga.domain.Tournament;
 import de.segelbundesliga.dto.OptimizationDto;
 import de.segelbundesliga.repository.TournamentRepository;
 import de.segelbundesliga.service.OptimizerService;
+import de.segelbundesliga.service.PdfExportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +24,7 @@ public class OptimizationController {
 
     private final OptimizerService optimizerService;
     private final TournamentRepository tournamentRepository;
+    private final PdfExportService pdfExportService;
 
     /**
      * Start optimization for a tournament.
@@ -89,12 +94,50 @@ public class OptimizationController {
 
         Tournament tournament = getTournamentWithOwnerCheck(tournamentId, jwt);
 
-        if (tournament.getResultSchedule() == null) {
+        if (tournament.getSchedule() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "No optimization result available");
         }
 
         return optimizerService.getResult(tournamentId);
+    }
+
+    /**
+     * Export tournament schedule as PDF.
+     */
+    @GetMapping("/{tournamentId}/export-pdf")
+    public ResponseEntity<byte[]> exportPdf(
+            @PathVariable Long tournamentId,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        Tournament tournament = getTournamentWithOwnerCheck(tournamentId, jwt);
+
+        if (tournament.getSchedule() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "No schedule available. Run optimization first.");
+        }
+
+        try {
+            // Generate PDF
+            byte[] pdfBytes = pdfExportService.generatePdf(tournamentId);
+
+            // Return as downloadable file
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(
+                ContentDisposition.attachment()
+                    .filename(tournament.getName().replaceAll("[^a-zA-Z0-9.-]", "_") + "_schedule.pdf")
+                    .build()
+            );
+
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to generate PDF: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -111,7 +154,7 @@ public class OptimizationController {
                 tournamentId,
                 tournament.getStatus().name(),
                 optimizerService.isRunning(tournamentId),
-                tournament.getResultSchedule() != null
+                tournament.getSchedule() != null
         );
     }
 

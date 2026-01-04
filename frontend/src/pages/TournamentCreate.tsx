@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
-import { tournamentApi, setAuthToken, TeamInput, BoatInput } from '../api/client';
+import { tournamentApi, optimizationConfigApi, displayConfigApi, setAuthToken, TeamInput, BoatInput, OptimizationConfig, DisplayConfig } from '../api/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,8 +27,40 @@ export function TournamentCreate() {
   const [newBoatName, setNewBoatName] = useState('');
   const [newBoatColor, setNewBoatColor] = useState('#009bd9');
 
+  const [optimizationConfigs, setOptimizationConfigs] = useState<OptimizationConfig[]>([]);
+  const [displayConfigs, setDisplayConfigs] = useState<DisplayConfig[]>([]);
+  const [selectedOptimizationConfigId, setSelectedOptimizationConfigId] = useState<number | undefined>();
+  const [selectedDisplayConfigId, setSelectedDisplayConfigId] = useState<number | undefined>();
+
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Fetch configs on mount
+  useEffect(() => {
+    if (!auth.user?.access_token) return;
+
+    async function fetchConfigs() {
+      try {
+        setAuthToken(auth.user!.access_token);
+
+        const [optResponse, dispResponse] = await Promise.all([
+          optimizationConfigApi.getAll(),
+          displayConfigApi.getAll()
+        ]);
+        setOptimizationConfigs(optResponse.data);
+        setDisplayConfigs(dispResponse.data);
+
+        // Pre-select first system default for optimization config
+        const defaultOptConfig = optResponse.data.find(c => c.systemDefault);
+        if (defaultOptConfig) {
+          setSelectedOptimizationConfigId(defaultOptConfig.id);
+        }
+      } catch (err) {
+        console.error('Failed to fetch configs', err);
+      }
+    }
+    fetchConfigs();
+  }, [auth.user?.access_token]);
 
   function addTeam() {
     if (!newTeamName.trim()) return;
@@ -67,6 +99,8 @@ export function TournamentCreate() {
         flights,
         teams: teams.length > 0 ? teams : undefined,
         boats: boats.length > 0 ? boats : undefined,
+        optimizationConfigId: selectedOptimizationConfigId,
+        displayConfigId: selectedDisplayConfigId,
       });
       navigate(`/tournaments/${response.data.id}`);
     } catch (err: any) {
@@ -173,6 +207,63 @@ export function TournamentCreate() {
                   data-testid="tournament-flights-input"
                 />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Configuration */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Konfiguration
+            </CardTitle>
+            <CardDescription>Optimierung und PDF-Darstellung</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="optimizationConfig">Optimierungs-Profil</Label>
+              <select
+                id="optimizationConfig"
+                value={selectedOptimizationConfigId || ''}
+                onChange={(e) => setSelectedOptimizationConfigId(e.target.value ? Number(e.target.value) : undefined)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                data-testid="optimization-config-select"
+              >
+                <option value="">Standard verwenden</option>
+                {optimizationConfigs.map((config) => (
+                  <option key={config.id} value={config.id}>
+                    {config.name} {config.description && `- ${config.description}`}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Wähle ein Profil für die Optimierungsparameter (Fast, Balanced, Thorough)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="displayConfig">PDF-Layout (optional)</Label>
+              <select
+                id="displayConfig"
+                value={selectedDisplayConfigId || ''}
+                onChange={(e) => setSelectedDisplayConfigId(e.target.value ? Number(e.target.value) : undefined)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                data-testid="display-config-select"
+              >
+                <option value="">Standard verwenden</option>
+                {displayConfigs.map((config) => (
+                  <option key={config.id} value={config.id}>
+                    {config.name} {config.description && `- ${config.description}`}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">
+                Wähle ein Layout für den PDF-Export (Schriftgröße, Ausrichtung)
+              </p>
             </div>
           </CardContent>
         </Card>

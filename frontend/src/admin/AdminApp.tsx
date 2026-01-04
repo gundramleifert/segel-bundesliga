@@ -226,76 +226,92 @@ const PageTitle = () => {
 };
 
 // Page Edit Form
-const PageEdit = () => (
-  <Edit title={<PageTitle />} mutationMode="pessimistic">
-    <SimpleForm toolbar={<PageFormToolbar />}>
-      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
-      <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
-      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
-      <RichTextInput
-        source="content"
-        label="Inhalt (DE)"
-        validate={required()}
-        data-testid="admin-page-content-input"
-      />
-      <RichTextInput
-        source="contentEn"
-        label="Inhalt (EN)"
-        data-testid="admin-page-content-en-input"
-      />
-      <SelectInput
-        source="visibility"
-        label="Sichtbarkeit"
-        choices={visibilityChoices}
-        defaultValue="PUBLIC"
-      />
-      <SelectInput
-        source="footerSection"
-        label="Footer-Bereich"
-        choices={footerSectionChoices}
-        emptyText="(Keine)"
-      />
-      <BooleanInput source="showInMenu" label="Im Menu anzeigen" />
-      <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />
-    </SimpleForm>
-  </Edit>
-);
+const PageEdit = () => {
+  // Transform empty string footerSection to null before submission
+  const transform = (data: any) => ({
+    ...data,
+    footerSection: data.footerSection === '' ? null : data.footerSection,
+  });
+
+  return (
+    <Edit title={<PageTitle />} mutationMode="pessimistic" transform={transform}>
+      <SimpleForm toolbar={<PageFormToolbar />}>
+        <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
+        <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
+        <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
+        <RichTextInput
+          source="content"
+          label="Inhalt (DE)"
+          validate={required()}
+          data-testid="admin-page-content-input"
+        />
+        <RichTextInput
+          source="contentEn"
+          label="Inhalt (EN)"
+          data-testid="admin-page-content-en-input"
+        />
+        <SelectInput
+          source="visibility"
+          label="Sichtbarkeit"
+          choices={visibilityChoices}
+          defaultValue="PUBLIC"
+        />
+        <SelectInput
+          source="footerSection"
+          label="Footer-Bereich"
+          choices={footerSectionChoices}
+          emptyText="(Keine)"
+        />
+        <BooleanInput source="showInMenu" label="Im Menu anzeigen" />
+        <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />
+      </SimpleForm>
+    </Edit>
+  );
+};
 
 // Page Create Form
-const PageCreate = () => (
-  <Create>
-    <SimpleForm toolbar={<PageFormToolbar />}>
-      <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
-      <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
-      <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
-      <RichTextInput
-        source="content"
-        label="Inhalt (DE)"
-        validate={required()}
-        data-testid="admin-page-content-input"
-      />
-      <RichTextInput
-        source="contentEn"
-        label="Inhalt (EN)"
-        data-testid="admin-page-content-en-input"
-      />
-      <SelectInput
-        source="visibility"
-        label="Sichtbarkeit"
-        choices={visibilityChoices}
-        defaultValue="PUBLIC"
-      />
-      <SelectInput
-        source="footerSection"
-        label="Footer-Bereich"
-        choices={footerSectionChoices}
-        emptyText="(Keine)"
-      />
-      <BooleanInput source="showInMenu" label="Im Menu anzeigen" defaultValue={false} />
-      <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />
-    </SimpleForm>
-  </Create>
-);
+const PageCreate = () => {
+  // Transform empty string footerSection to null before submission
+  const transform = (data: any) => ({
+    ...data,
+    footerSection: data.footerSection === '' ? null : data.footerSection,
+  });
+
+  return (
+    <Create transform={transform}>
+      <SimpleForm toolbar={<PageFormToolbar />}>
+        <TextInput source="title" label="Titel (DE)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-title-input' }} />
+        <TextInput source="titleEn" label="Titel (EN)" fullWidth inputProps={{ 'data-testid': 'admin-page-title-en-input' }} />
+        <TextInput source="slug" label="Slug (URL)" validate={required()} fullWidth inputProps={{ 'data-testid': 'admin-page-slug-input' }} />
+        <RichTextInput
+          source="content"
+          label="Inhalt (DE)"
+          validate={required()}
+          data-testid="admin-page-content-input"
+        />
+        <RichTextInput
+          source="contentEn"
+          label="Inhalt (EN)"
+          data-testid="admin-page-content-en-input"
+        />
+        <SelectInput
+          source="visibility"
+          label="Sichtbarkeit"
+          choices={visibilityChoices}
+          defaultValue="PUBLIC"
+        />
+        <SelectInput
+          source="footerSection"
+          label="Footer-Bereich"
+          choices={footerSectionChoices}
+          emptyText="(Keine)"
+        />
+        <BooleanInput source="showInMenu" label="Im Menu anzeigen" defaultValue={false} />
+        <NumberInput source="sortOrder" label="Sortierung" defaultValue={0} inputProps={{ 'data-testid': 'admin-page-sort-input' }} />
+      </SimpleForm>
+    </Create>
+  );
+};
 
 // ============================================================
 // POST Resource

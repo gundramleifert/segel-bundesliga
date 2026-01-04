@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -49,23 +47,18 @@ public class Tournament extends BaseEntity {
     @OrderBy("sortOrder ASC")
     private Set<Boat> boats = new HashSet<>();
 
-    // Optimization settings (embedded)
-    @Embedded
-    private OptimizationSettings optimizationSettings = new OptimizationSettings();
+    // Configuration references
+    @ManyToOne
+    @JoinColumn(name = "optimization_config_id")
+    private OptimizationConfig optimizationConfig;
 
-    // Optimierungsergebnis (bleibt JSON, da komplexe Struktur)
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "result_schedule", columnDefinition = "jsonb")
-    private String resultSchedule;
+    @ManyToOne
+    @JoinColumn(name = "display_config_id")
+    private DisplayConfig displayConfig;
 
-    @Column(name = "computation_time_ms")
-    private Long computationTimeMs;
-
-    @Column(name = "saved_shuttles")
-    private Integer savedShuttles;
-
-    @Column(name = "boat_changes")
-    private Integer boatChanges;
+    @ManyToOne
+    @JoinColumn(name = "schedule_id")
+    private Schedule schedule;
 
     public enum TournamentStatus {
         DRAFT,

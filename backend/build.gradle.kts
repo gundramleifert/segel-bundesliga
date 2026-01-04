@@ -24,6 +24,9 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.liquibase:liquibase-core")
 
+    // Apache Commons Codec for hashing
+    implementation("commons-codec:commons-codec:1.16.0")
+
     // MinIO / S3 Storage
     implementation("io.minio:minio:8.5.7")
 
@@ -40,6 +43,9 @@ dependencies {
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+
+    // Swagger/OpenAPI
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
     // Dev
     developmentOnly("org.springframework.boot:spring-boot-devtools")

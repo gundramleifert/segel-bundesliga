@@ -198,6 +198,19 @@ class ZitadelSetup:
         for app in result.get("result", []):
             if app.get("name") == "segel-bundesliga-frontend":
                 self.frontend_client_id = app.get("oidcConfig", {}).get("clientId")
+                app_id = app.get("id")
+
+                # Update redirect URIs to include Swagger if missing
+                current_uris = app.get("oidcConfig", {}).get("redirectUris", [])
+                swagger_uri = "http://localhost:8080/swagger-ui/oauth2-redirect.html"
+                if swagger_uri not in current_uris:
+                    print(f"  Adding Swagger redirect URI to existing app...")
+                    new_uris = current_uris + [swagger_uri]
+                    self._request("PUT", f"/management/v1/projects/{self.project_id}/apps/{app_id}/oidc_config", {
+                        "redirectUris": new_uris,
+                        "postLogoutRedirectUris": app.get("oidcConfig", {}).get("postLogoutRedirectUris", [])
+                    })
+
                 print(f"  App already exists, Client ID: {self.frontend_client_id}")
                 return self.frontend_client_id
 
@@ -206,7 +219,8 @@ class ZitadelSetup:
             "name": "segel-bundesliga-frontend",
             "redirectUris": [
                 "http://localhost:3000/callback",
-                "http://localhost:3000/silent-refresh.html"
+                "http://localhost:3000/silent-refresh.html",
+                "http://localhost:8080/swagger-ui/oauth2-redirect.html"
             ],
             "postLogoutRedirectUris": [
                 "http://localhost:3000"
@@ -415,8 +429,8 @@ VITE_ZITADEL_PROJECT_ID={self.project_id}
             return False
 
     def sync_frontend_config(self) -> bool:
-        """Update frontend .env.local with current Zitadel configuration."""
-        print("\nSyncing frontend configuration...")
+        """Update frontend .env.local and backend application.yml with current Zitadel configuration."""
+        print("\nSyncing configuration...")
 
         # First, get current project and app info
         if not self.project_id:
@@ -449,14 +463,39 @@ VITE_ZITADEL_PROJECT_ID={self.project_id}
 """
         try:
             frontend_env_path.write_text(env_content)
-            print(f"  Updated: {frontend_env_path}")
-            print(f"  Client ID: {self.frontend_client_id}")
-            print(f"  Project ID: {self.project_id}")
-            print("\n  NOTE: Restart the frontend for changes to take effect!")
-            return True
+            print(f"  Updated frontend: {frontend_env_path}")
+            print(f"    Client ID: {self.frontend_client_id}")
+            print(f"    Project ID: {self.project_id}")
         except Exception as e:
             print(f"  Failed to update frontend config: {e}")
             return False
+
+        # Update backend application.yml
+        backend_yml_path = Path(__file__).parent.parent / "backend" / "src" / "main" / "resources" / "application.yml"
+        try:
+            yml_content = backend_yml_path.read_text()
+
+            # Update project-id line using regex
+            import re
+            updated_content = re.sub(
+                r'(project-id:\s*\$\{ZITADEL_PROJECT_ID:)[0-9]+(\})',
+                f'\\g<1>{self.project_id}\\2',
+                yml_content
+            )
+
+            if updated_content != yml_content:
+                backend_yml_path.write_text(updated_content)
+                print(f"  Updated backend: {backend_yml_path}")
+                print(f"    Project ID: {self.project_id}")
+            else:
+                print(f"  Backend already up-to-date: {backend_yml_path}")
+
+        except Exception as e:
+            print(f"  Failed to update backend config: {e}")
+            return False
+
+        print("\n  NOTE: Restart backend and frontend for changes to take effect!")
+        return True
 
     def add_user(self, username: str, password: str, role: str = "ADMIN") -> bool:
         """Add a new user with the specified role."""

@@ -40,27 +40,58 @@ export interface BoatOutput {
   sortOrder: number;
 }
 
-export interface OptimizationSettings {
-  seed?: number;
-  // MatchMatrix
-  mmSwapTeams?: number;
-  mmMaxBranches?: number;
-  mmFactorLessParticipants?: number;
-  mmFactorTeamMissing?: number;
-  mmLoops?: number;
-  mmIndividuals?: number;
-  mmEarlyStopping?: number;
-  mmShowEveryN?: number;
-  // BoatSchedule
-  bsSwapBoats?: number;
-  bsSwapRaces?: number;
-  bsWeightStayOnBoat?: number;
-  bsWeightStayOnShuttle?: number;
-  bsWeightChangeBetweenBoats?: number;
-  bsLoops?: number;
-  bsIndividuals?: number;
-  bsEarlyStopping?: number;
-  bsShowEveryN?: number;
+// OptimizationConfig types
+export interface OptimizationConfig {
+  id: number;
+  name: string;
+  description?: string;
+  systemDefault: boolean;
+  // Match Matrix settings
+  seed: number;
+  mmSwapTeams: number;
+  mmMaxBranches: number;
+  mmFactorLessParticipants: number;
+  mmFactorTeamMissing: number;
+  mmLoops: number;
+  mmIndividuals: number;
+  mmEarlyStopping: number;
+  mmShowEveryN: number;
+  // Boat Schedule settings
+  bsSwapBoats: number;
+  bsSwapRaces: number;
+  bsWeightStayOnBoat: number;
+  bsWeightStayOnShuttle: number;
+  bsWeightChangeBetweenBoats: number;
+  bsLoops: number;
+  bsIndividuals: number;
+  bsEarlyStopping: number;
+  bsShowEveryN: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// DisplayConfig types
+export interface DisplayConfig {
+  id: number;
+  name: string;
+  description?: string;
+  systemDefault: boolean;
+  fontFamily: 'HELVETICA' | 'ARIAL' | 'TIMES_NEW_ROMAN';
+  fontSize: number;
+  orientation: 'PORTRAIT' | 'LANDSCAPE';
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Schedule types
+export interface Schedule {
+  id: number;
+  scheduleJson: string;
+  computationTimeMs: number;
+  savedShuttles: number;
+  boatChanges: number;
+  finalScore: number;
+  createdAt: string;
 }
 
 export interface Tournament {
@@ -73,12 +104,11 @@ export interface Tournament {
   flights: number;
   teams: TeamOutput[];
   boats: BoatOutput[];
-  optimizationSettings: OptimizationSettings;
-  resultSchedule?: string;
-  computationTimeMs?: number;
-  savedShuttles?: number;
-  boatChanges?: number;
+  optimizationConfig?: OptimizationConfig;
+  displayConfig?: DisplayConfig;
+  schedule?: Schedule;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface TournamentListItem {
@@ -100,7 +130,8 @@ export interface CreateTournament {
   flights?: number;
   teams?: TeamInput[];
   boats?: BoatInput[];
-  optimizationSettings?: OptimizationSettings;
+  optimizationConfigId?: number;
+  displayConfigId?: number;
 }
 
 export interface UpdateTournament {
@@ -111,7 +142,8 @@ export interface UpdateTournament {
   flights?: number;
   teams?: TeamInput[];
   boats?: BoatInput[];
-  optimizationSettings?: OptimizationSettings;
+  optimizationConfigId?: number;
+  displayConfigId?: number;
 }
 
 // API functions
@@ -134,4 +166,17 @@ export const optimizationApi = {
     hasResult: boolean;
   }>(`/optimization/${tournamentId}/status`),
   getResult: (tournamentId: number) => api.get(`/optimization/${tournamentId}/result`),
+  exportPdf: (tournamentId: number) => api.get(`/optimization/${tournamentId}/export-pdf`, {
+    responseType: 'blob',
+  }),
+};
+
+export const optimizationConfigApi = {
+  getAll: () => api.get<OptimizationConfig[]>('/optimization-configs'),
+  getById: (id: number) => api.get<OptimizationConfig>(`/optimization-configs/${id}`),
+};
+
+export const displayConfigApi = {
+  getAll: () => api.get<DisplayConfig[]>('/display-configs'),
+  getById: (id: number) => api.get<DisplayConfig>(`/display-configs/${id}`),
 };

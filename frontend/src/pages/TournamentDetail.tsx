@@ -137,12 +137,15 @@ export function TournamentDetail() {
   }
 
   async function cancelOptimization() {
+    // Always stop the UI state, even if API call fails
+    setIsRunning(false);
+    eventSourceRef.current?.close();
+
     try {
       await optimizationApi.cancel(Number(id));
-      setIsRunning(false);
-      eventSourceRef.current?.close();
     } catch (err) {
-      console.error(err);
+      console.error('Failed to cancel optimization:', err);
+      // State already updated above, so UI shows start button
     }
   }
 
@@ -152,6 +155,26 @@ export function TournamentDetail() {
       navigate('/tournaments');
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async function exportPdf() {
+    try {
+      const response = await optimizationApi.exportPdf(Number(id));
+
+      // Create download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${tournament?.name.replace(/[^a-zA-Z0-9.-]/g, '_')}_schedule.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('PDF export failed', err);
+      setError('PDF Export fehlgeschlagen');
     }
   }
 
@@ -293,15 +316,27 @@ export function TournamentDetail() {
               <p className="text-3xl font-bold text-primary">{tournament.boats.length}</p>
               <p className="text-sm text-muted-foreground">Boote</p>
             </div>
-            {tournament.computationTimeMs && (
+            {tournament.schedule && (
               <div className="text-center" data-testid="stat-computation-time">
                 <p className="text-3xl font-bold text-secondary">
-                  {(tournament.computationTimeMs / 1000).toFixed(1)}s
+                  {(tournament.schedule.computationTimeMs / 1000).toFixed(1)}s
                 </p>
                 <p className="text-sm text-muted-foreground">Rechenzeit</p>
               </div>
             )}
           </div>
+
+          {/* Cache Indicator */}
+          {tournament.schedule && tournament.schedule.computationTimeMs < 2000 && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground justify-center">
+              <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span data-testid="cache-indicator">
+                <span className="text-green-600 font-medium">Aus Cache wiederverwendet</span> - Identische Konfiguration bereits optimiert
+              </span>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -409,7 +444,7 @@ export function TournamentDetail() {
             </Alert>
           ) : (
             <div className="space-y-4">
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 {isRunning ? (
                   <Button
                     onClick={cancelOptimization}
@@ -434,6 +469,20 @@ export function TournamentDetail() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Optimierung starten
+                  </Button>
+                )}
+                {tournament.schedule && !isRunning && (
+                  <Button
+                    onClick={exportPdf}
+                    size="lg"
+                    variant="outline"
+                    className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                    data-testid="export-pdf-button"
+                  >
+                    <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    PDF exportieren
                   </Button>
                 )}
               </div>

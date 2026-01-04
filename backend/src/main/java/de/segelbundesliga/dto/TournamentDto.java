@@ -22,7 +22,8 @@ public class TournamentDto {
         private Integer flights = 3;
         private List<TeamInput> teams;
         private List<BoatInput> boats;
-        private OptimizationSettingsInput optimizationSettings;
+        private Long optimizationConfigId;  // FK to OptimizationConfig
+        private Long displayConfigId;  // Optional FK to DisplayConfig
     }
 
     @Data
@@ -36,7 +37,8 @@ public class TournamentDto {
         private Integer flights;
         private List<TeamInput> teams;
         private List<BoatInput> boats;
-        private OptimizationSettingsInput optimizationSettings;
+        private Long optimizationConfigId;  // FK to OptimizationConfig
+        private Long displayConfigId;  // Optional FK to DisplayConfig
     }
 
     @Data
@@ -51,11 +53,9 @@ public class TournamentDto {
         private Integer flights;
         private List<TeamOutput> teams;
         private List<BoatOutput> boats;
-        private OptimizationSettingsOutput optimizationSettings;
-        private String resultSchedule;
-        private Long computationTimeMs;
-        private Integer savedShuttles;
-        private Integer boatChanges;
+        private OptimizationConfigDto.Response optimizationConfig;  // Can be null
+        private DisplayConfigDto.Response displayConfig;  // Can be null
+        private ScheduleOutput schedule;  // Can be null
         private Instant createdAt;
         private Instant updatedAt;
     }
@@ -106,52 +106,15 @@ public class TournamentDto {
         private Integer sortOrder;
     }
 
-    // Optimization Settings DTOs
+    // Schedule DTO
     @Data
-    public static class OptimizationSettingsInput {
-        private Integer seed;
-        // MatchMatrix
-        private Integer mmSwapTeams;
-        private Integer mmMaxBranches;
-        private Double mmFactorLessParticipants;
-        private Double mmFactorTeamMissing;
-        private Integer mmLoops;
-        private Integer mmIndividuals;
-        private Double mmEarlyStopping;
-        private Integer mmShowEveryN;
-        // BoatSchedule
-        private Integer bsSwapBoats;
-        private Integer bsSwapRaces;
-        private Double bsWeightStayOnBoat;
-        private Double bsWeightStayOnShuttle;
-        private Double bsWeightChangeBetweenBoats;
-        private Integer bsLoops;
-        private Integer bsIndividuals;
-        private Double bsEarlyStopping;
-        private Integer bsShowEveryN;
-    }
-
-    @Data
-    public static class OptimizationSettingsOutput {
-        private Integer seed;
-        // MatchMatrix
-        private Integer mmSwapTeams;
-        private Integer mmMaxBranches;
-        private Double mmFactorLessParticipants;
-        private Double mmFactorTeamMissing;
-        private Integer mmLoops;
-        private Integer mmIndividuals;
-        private Double mmEarlyStopping;
-        private Integer mmShowEveryN;
-        // BoatSchedule
-        private Integer bsSwapBoats;
-        private Integer bsSwapRaces;
-        private Double bsWeightStayOnBoat;
-        private Double bsWeightStayOnShuttle;
-        private Double bsWeightChangeBetweenBoats;
-        private Integer bsLoops;
-        private Integer bsIndividuals;
-        private Double bsEarlyStopping;
-        private Integer bsShowEveryN;
+    public static class ScheduleOutput {
+        private Long id;
+        private String scheduleJson;  // The actual schedule data
+        private Long computationTimeMs;
+        private Integer savedShuttles;
+        private Integer boatChanges;
+        private Double finalScore;
+        private Instant createdAt;
     }
 }

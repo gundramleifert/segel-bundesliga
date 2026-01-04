@@ -2,7 +2,6 @@ package de.segelbundesliga.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.segelbundesliga.domain.Boat;
-import de.segelbundesliga.domain.OptimizationSettings;
 import de.segelbundesliga.domain.Team;
 import de.segelbundesliga.domain.Tournament;
 import de.segelbundesliga.dto.OptimizationDto;
@@ -20,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -37,6 +37,7 @@ public class OptimizerService {
 
     private final TournamentRepository tournamentRepository;
     private final ObjectMapper objectMapper;
+    private final ScheduleCacheService scheduleCacheService;
 
     // Active SSE emitters per tournament
     private final Map<Long, SseEmitter> activeEmitters = new ConcurrentHashMap<>();
@@ -76,6 +77,7 @@ public class OptimizerService {
     }
 
     @Async("optimizerExecutor")
+    @Transactional
     public void runOptimization(Long tournamentId) {
         if (isRunning(tournamentId)) {
             sendEvent(tournamentId, OptimizationDto.ProgressEvent.failed(tournamentId, "Optimization already running"));
@@ -89,9 +91,36 @@ public class OptimizerService {
             Tournament tournament = tournamentRepository.findById(tournamentId)
                     .orElseThrow(() -> new IllegalArgumentException("Tournament not found: " + tournamentId));
 
+            // Check if tournament has optimization config
+            if (tournament.getOptimizationConfig() == null) {
+                throw new IllegalStateException("Tournament has no optimization config");
+            }
+
+            // Step 1: Check cache
+            String configHash = scheduleCacheService.computeConfigHash(tournament);
+            var cachedSchedule = scheduleCacheService.findCachedSchedule(configHash);
+
+            if (cachedSchedule.isPresent()) {
+                // Cache hit - reuse existing schedule
+                log.info("Cache hit for tournament {} (hash: {})", tournamentId, configHash);
+                tournament.setSchedule(cachedSchedule.get());
+                tournament.setStatus(Tournament.TournamentStatus.COMPLETED);
+                tournamentRepository.save(tournament);
+
+                long cacheTime = System.currentTimeMillis() - startTime;
+                sendEvent(tournamentId, OptimizationDto.ProgressEvent.completed(tournamentId, cacheTime));
+
+                runningOptimizations.remove(tournamentId);
+                completeEmitter(tournamentId);
+                return;
+            }
+
+            // Step 2: Cache miss - run optimization
+            log.info("Cache miss for tournament {} (hash: {}), running optimization", tournamentId, configHash);
+
             // Build configs from entities
             ScheduleConfig scheduleConfig = buildScheduleConfig(tournament);
-            OptimizationConfig optimizationConfig = buildOptimizationConfig(tournament.getOptimizationSettings());
+            OptimizationConfig optimizationConfig = buildOptimizationConfig(tournament.getOptimizationConfig());
 
             // Update status
             tournament.setStatus(Tournament.TournamentStatus.OPTIMIZING);
@@ -151,11 +180,19 @@ public class OptimizerService {
 
             long computationTime = System.currentTimeMillis() - startTime;
 
-            // Save result
-            tournament.setResultSchedule(scheduleJson);
-            tournament.setComputationTimeMs(computationTime);
-            tournament.setSavedShuttles(savedShuttlesHarbour + savedShuttlesSea);
-            tournament.setBoatChanges(boatChanges);
+            // Step 3: Save to cache
+            de.segelbundesliga.domain.Schedule savedSchedule = scheduleCacheService.saveSchedule(
+                    configHash,
+                    tournament,
+                    scheduleJson,
+                    computationTime,
+                    savedShuttlesHarbour + savedShuttlesSea,
+                    boatChanges,
+                    null  // Score calculation from optimizer is complex, not needed for caching
+            );
+
+            // Step 4: Link tournament to schedule
+            tournament.setSchedule(savedSchedule);
             tournament.setStatus(Tournament.TournamentStatus.COMPLETED);
             tournamentRepository.save(tournament);
 
@@ -214,7 +251,7 @@ public class OptimizerService {
         }
     }
 
-    private OptimizationConfig buildOptimizationConfig(OptimizationSettings settings) {
+    private OptimizationConfig buildOptimizationConfig(de.segelbundesliga.domain.OptimizationConfig settings) {
         OptimizationConfig config = new OptimizationConfig();
 
         config.seed = settings.getSeed();
@@ -301,12 +338,17 @@ public class OptimizerService {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new IllegalArgumentException("Tournament not found: " + tournamentId));
 
+        if (tournament.getSchedule() == null) {
+            throw new IllegalStateException("Tournament has no schedule");
+        }
+
         return OptimizationDto.Result.builder()
                 .tournamentId(tournamentId)
-                .schedule(tournament.getResultSchedule())
-                .computationTimeMs(tournament.getComputationTimeMs())
-                .savedShuttles(tournament.getSavedShuttles())
-                .boatChanges(tournament.getBoatChanges())
+                .schedule(tournament.getSchedule().getScheduleJson())
+                .computationTimeMs(tournament.getSchedule().getComputationTimeMs())
+                .savedShuttles(tournament.getSchedule().getSavedShuttles())
+                .boatChanges(tournament.getSchedule().getBoatChanges())
+                .finalScore(tournament.getSchedule().getFinalScore())
                 .build();
     }
 

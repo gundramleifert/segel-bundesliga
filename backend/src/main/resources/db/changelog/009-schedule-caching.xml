@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Create optimization_configs table -->
+    <changeSet id="006-1" author="system">
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="optimization_configs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="system_default" type="BOOLEAN" defaultValueBoolean="false"/>
+
+            <!-- Match Matrix settings -->
+            <column name="seed" type="INTEGER" defaultValueNumeric="42"/>
+            <column name="mm_swap_teams" type="INTEGER" defaultValueNumeric="2"/>
+            <column name="mm_max_branches" type="INTEGER" defaultValueNumeric="1"/>
+            <column name="mm_factor_less_participants" type="DOUBLE" defaultValueNumeric="3.01"/>
+            <column name="mm_factor_team_missing" type="DOUBLE" defaultValueNumeric="20.01"/>
+            <column name="mm_loops" type="INTEGER" defaultValueNumeric="10000"/>
+            <column name="mm_individuals" type="INTEGER" defaultValueNumeric="100"/>
+            <column name="mm_early_stopping" type="DOUBLE" defaultValueNumeric="-1.0"/>
+            <column name="mm_show_everyn" type="INTEGER" defaultValueNumeric="1000"/>
+
+            <!-- Boat Schedule settings -->
+            <column name="bs_swap_boats" type="INTEGER" defaultValueNumeric="2"/>
+            <column name="bs_swap_races" type="INTEGER" defaultValueNumeric="2"/>
+            <column name="bs_weight_stay_on_boat" type="DOUBLE" defaultValueNumeric="1.0"/>
+            <column name="bs_weight_stay_on_shuttle" type="DOUBLE" defaultValueNumeric="1.0"/>
+            <column name="bs_weight_change_between_boats" type="DOUBLE" defaultValueNumeric="1.0"/>
+            <column name="bs_loops" type="INTEGER" defaultValueNumeric="10000"/>
+            <column name="bs_individuals" type="INTEGER" defaultValueNumeric="100"/>
+            <column name="bs_early_stopping" type="DOUBLE" defaultValueNumeric="-1.0"/>
+            <column name="bs_show_everyn" type="INTEGER" defaultValueNumeric="1000"/>
+
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Create schedules table -->
+    <changeSet id="006-2" author="system">
+        <validCheckSum>ANY</validCheckSum>
+        <createTable tableName="schedules">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="config_hash" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="num_teams" type="INTEGER"/>
+            <column name="num_boats" type="INTEGER"/>
+            <column name="num_flights" type="INTEGER"/>
+            <column name="schedule_json" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="computation_time_ms" type="BIGINT"/>
+            <column name="saved_shuttles" type="INTEGER"/>
+            <column name="boat_changes" type="INTEGER"/>
+            <column name="final_score" type="DOUBLE"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+        <createIndex tableName="schedules" indexName="idx_schedules_config_hash">
+            <column name="config_hash"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Create display_configs table -->
+    <changeSet id="006-3" author="system">
+        <createTable tableName="display_configs">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="system_default" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="font_family" type="VARCHAR(50)" defaultValue="HELVETICA"/>
+            <column name="font_size" type="INTEGER" defaultValueNumeric="10"/>
+            <column name="orientation" type="VARCHAR(20)" defaultValue="LANDSCAPE"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Update tournaments table -->
+    <changeSet id="006-4" author="system">
+        <addColumn tableName="tournaments">
+            <column name="optimization_config_id" type="BIGINT">
+                <constraints foreignKeyName="fk_tournament_optimization_config" referencedTableName="optimization_configs" referencedColumnNames="id"/>
+            </column>
+            <column name="display_config_id" type="BIGINT">
+                <constraints foreignKeyName="fk_tournament_display_config" referencedTableName="display_configs" referencedColumnNames="id"/>
+            </column>
+            <column name="schedule_id" type="BIGINT">
+                <constraints foreignKeyName="fk_tournament_schedule" referencedTableName="schedules" referencedColumnNames="id"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <!-- Drop old optimization columns from tournaments -->
+    <changeSet id="006-5" author="system">
+        <dropColumn tableName="tournaments" columnName="result_schedule"/>
+        <dropColumn tableName="tournaments" columnName="computation_time_ms"/>
+        <dropColumn tableName="tournaments" columnName="saved_shuttles"/>
+        <dropColumn tableName="tournaments" columnName="boat_changes"/>
+        <dropColumn tableName="tournaments" columnName="opt_seed"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_swap_teams"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_max_branches"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_factor_less_participants"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_factor_team_missing"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_loops"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_individuals"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_early_stopping"/>
+        <dropColumn tableName="tournaments" columnName="opt_mm_show_every_n"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_swap_boats"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_swap_races"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_weight_stay_on_boat"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_weight_stay_on_shuttle"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_weight_change_between_boats"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_loops"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_individuals"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_early_stopping"/>
+        <dropColumn tableName="tournaments" columnName="opt_bs_show_every_n"/>
+    </changeSet>
+
+    <!-- Insert default optimization configs -->
+    <changeSet id="006-6" author="system">
+        <insert tableName="optimization_configs">
+            <column name="name" value="Fast"/>
+            <column name="description" value="Quick optimization for testing (1000 iterations)"/>
+            <column name="system_default" valueBoolean="true"/>
+            <column name="mm_loops" valueNumeric="1000"/>
+            <column name="bs_loops" valueNumeric="1000"/>
+        </insert>
+        <insert tableName="optimization_configs">
+            <column name="name" value="Balanced"/>
+            <column name="description" value="Default balanced optimization (10000 iterations)"/>
+            <column name="system_default" valueBoolean="true"/>
+            <column name="mm_loops" valueNumeric="10000"/>
+            <column name="bs_loops" valueNumeric="10000"/>
+        </insert>
+        <insert tableName="optimization_configs">
+            <column name="name" value="Thorough"/>
+            <column name="description" value="High-quality optimization (50000 iterations)"/>
+            <column name="system_default" valueBoolean="true"/>
+            <column name="mm_loops" valueNumeric="50000"/>
+            <column name="bs_loops" valueNumeric="50000"/>
+            <column name="mm_individuals" valueNumeric="200"/>
+            <column name="bs_individuals" valueNumeric="200"/>
+        </insert>
+    </changeSet>
+
+    <!-- Insert default display configs -->
+    <changeSet id="006-7" author="system">
+        <insert tableName="display_configs">
+            <column name="name" value="Compact"/>
+            <column name="description" value="Small font, portrait orientation - fits more on page"/>
+            <column name="system_default" valueBoolean="true"/>
+            <column name="font_family" value="HELVETICA"/>
+            <column name="font_size" valueNumeric="9"/>
+            <column name="orientation" value="PORTRAIT"/>
+        </insert>
+        <insert tableName="display_configs">
+            <column name="name" value="Standard"/>
+            <column name="description" value="Balanced layout with readable font size"/>
+            <column name="system_default" valueBoolean="true"/>
+            <column name="font_family" value="HELVETICA"/>
+            <column name="font_size" valueNumeric="10"/>
+            <column name="orientation" value="LANDSCAPE"/>
+        </insert>
+        <insert tableName="display_configs">
+            <column name="name" value="Large"/>
+            <column name="description" value="Large font for better readability"/>
+            <column name="system_default" valueBoolean="true"/>
+            <column name="font_family" value="ARIAL"/>
+            <column name="font_size" valueNumeric="12"/>
+            <column name="orientation" value="LANDSCAPE"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

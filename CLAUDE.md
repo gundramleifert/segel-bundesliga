@@ -90,9 +90,39 @@ docker compose up -d
 |---------|-----|-------------|
 | Frontend | http://localhost:3000 | - |
 | Backend | http://localhost:8080 | - |
+| **Swagger UI** | http://localhost:8080/swagger-ui/index.html | Use Bearer Token (see below) |
 | Zitadel Console | http://localhost:8081/ui/console | admin / test1234 |
 | MinIO | http://localhost:9001 | minioadmin / minioadmin |
 | Mailhog | http://localhost:8025 | - |
+
+### Swagger UI - API Testen
+
+Swagger UI bietet eine interaktive Dokumentation und ermöglicht das Testen aller API-Endpoints.
+
+**Schnellste Methode (Bearer Token):**
+1. Im Frontend einloggen: http://localhost:3000 (admin/test1234)
+2. Browser DevTools öffnen (F12)
+3. Tab: **Application** → **Session Storage** → http://localhost:3000
+4. Key `oidc.user:http://localhost:8081:...` öffnen
+5. `access_token` Wert kopieren
+6. Swagger UI öffnen: http://localhost:8080/swagger-ui/index.html
+7. Button **"Authorize"** (Schloss-Symbol oben rechts)
+8. Im **bearer_token** Feld den Token einfügen
+9. **"Authorize"** klicken → Fertig! ✅
+
+**Alternative: OAuth2 Flow:**
+- In Swagger UI auf **"Authorize"** klicken
+- Abschnitt **zitadel_oauth** verwenden
+- Auf **"Authorize"** klicken → Weiterleitung zu Zitadel
+- Login mit admin/test1234
+- Automatische Rückleitung zu Swagger UI
+
+**Verfügbare Endpoints:**
+- `/api/optimization-configs` - Optimierungs-Profile
+- `/api/display-configs` - PDF-Layout-Konfigurationen
+- `/api/tournaments` - Tournament CRUD
+- `/api/optimization/{id}/start` - Optimierung starten
+- `/api/optimization/{id}/export-pdf` - PDF herunterladen
 
 ## Zitadel Setup
 
@@ -117,6 +147,7 @@ Das Setup-Script konfiguriert automatisch:
 - Deaktivierte 2FA-Anforderung
 - Test-User für E2E-Tests
 - Aktualisiert `frontend/.env.local` mit der neuen Client-ID
+- **Aktualisiert `backend/src/main/resources/application.yml` mit der Project-ID (wichtig für Rollen-Extraktion aus JWT!)**
 
 ### Setup-Script Befehle
 ```bash
@@ -128,7 +159,7 @@ uv run python setup_zitadel.py
 # Komplett-Reset (stoppt Services, löscht Daten, startet neu, führt Setup aus)
 uv run python setup_zitadel.py --reset
 
-# Nur Frontend-Config synchronisieren
+# Nur Frontend/Backend-Config synchronisieren (Client-ID & Project-ID)
 uv run python setup_zitadel.py --sync-frontend
 
 # Neuen Benutzer anlegen
@@ -160,6 +191,58 @@ Nach dem Reset: **Frontend neu starten!**
 ```bash
 cd ../frontend && npm run dev
 ```
+
+### Nach System-Neustart (Computer/Notebook)
+
+Nach einem Computer-Neustart müssen alle Services neu gestartet werden:
+
+```bash
+# 1. Docker Services starten
+cd docker
+docker compose -f docker-compose.dev.yml up -d
+
+# 2. Warten bis alle Services bereit sind (ca. 30 Sekunden)
+sleep 30
+
+# 3. Backend starten
+cd ..
+./gradlew :backend:bootRun   # In separatem Terminal
+
+# 4. Frontend starten
+cd frontend
+npm run dev                  # In separatem Terminal
+```
+
+**Wichtig:** Nach einem Neustart ist Zitadel normalerweise noch korrekt konfiguriert (Daten bleiben erhalten). Die Client-ID in `frontend/.env.local` sollte weiterhin funktionieren.
+
+**Bei Login-Problemen oder fehlenden Rollen (403 Errors) nach Neustart:**
+```bash
+cd docker
+
+# Prüfen ob Zitadel-Config noch stimmt
+cat ../frontend/.env.local   # Zeigt aktuelle Client-ID
+
+# Falls "empty client secret" Fehler oder Login fehlschlägt:
+uv run python setup_zitadel.py --reset
+
+# Oder nur Config synchronisieren (ohne Daten zu löschen):
+uv run python setup_zitadel.py --sync-frontend
+
+# Dann Backend UND Frontend neu starten:
+# Backend: Strg+C im Backend-Terminal, dann:
+./gradlew :backend:bootRun
+
+# Frontend: Strg+C im Frontend-Terminal, dann:
+cd frontend && npm run dev
+```
+
+**Warum Client-ID und Project-ID synchronisieren?**
+- Zitadel generiert bei jedem Reset eine neue Client-ID und Project-ID
+- Das Setup-Script aktualisiert automatisch:
+  - `frontend/.env.local` (Client-ID & Project-ID)
+  - `backend/src/main/resources/application.yml` (Project-ID für JWT-Rollen-Extraktion)
+- Backend UND Frontend müssen neu gestartet werden, um die neue Config zu laden
+- Ohne Neustart sieht man "empty client secret", "App not found" oder 403-Fehler (keine Rollen)
 
 ### Troubleshooting
 
