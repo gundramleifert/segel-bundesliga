@@ -1,0 +1,41 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "gen:api": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/api/schema.d.ts",
+    "typecheck": "tsc -b --force"
+  },
+  "dependencies": {
+    "@heroui/react": "^3.2.4",
+    "@react-aria/i18n": "^3.13.1",
+    "@react-aria/ssr": "^3.10.1",
+    "@react-aria/utils": "^3.34.1",
+    "@tanstack/react-query": "^5.102.8",
+    "i18next": "^26.4.2",
+    "i18next-browser-languagedetector": "^8.2.1",
+    "react": "^19.2.8",
+    "react-aria": "^3.52.0",
+    "react-aria-components": "^1.21.0",
+    "react-dom": "^19.2.8",
+    "react-i18next": "^17.0.13",
+    "react-router-dom": "^7.18.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "openapi-typescript": "^7.13.0",
+    "oxlint": "^1.79.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2"
+  }
+}

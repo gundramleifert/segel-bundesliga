@@ -1,0 +1,10 @@
+{
+  "title": "Rolle wechseln",
+  "subtitle": "Nur in der Entwicklung. Meldet ohne Prüfung an.",
+  "searchPlaceholder": "Name, E-Mail, Verein oder Rolle …",
+  "searchLabel": "Testkonten durchsuchen",
+  "noRole": "ohne Rolle",
+  "notFound": "Nichts gefunden.",
+  "signOut": "Abmelden",
+  "notSignedIn": "Nicht angemeldet"
+}

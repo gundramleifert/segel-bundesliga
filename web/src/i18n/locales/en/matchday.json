@@ -1,0 +1,21 @@
+{
+  "loading": "Matchday is loading…",
+  "racesCount": "{{scored}} of {{total}} races scored",
+  "liveUpdate": "standings are being updated live",
+  "viewLabel": "View",
+  "standingsTab": "Daily standings",
+  "pairingTab": "Pairing list",
+  "noResultsYet": "No results available for this matchday yet.",
+  "notSailedYet": "No races sailed yet. The pairing list is ready.",
+  "standingsCaption": "Daily standings",
+  "placeHeader": "Place",
+  "teamHeader": "Team",
+  "pointsHeader": "Points",
+  "racesHeader": "Races",
+  "gross": "gross",
+  "pairingLoading": "Pairing list is loading…",
+  "noRacesDrawn": "No races drawn for this matchday yet.",
+  "pairingCaption": "Pairing list: teams by boat and race",
+  "numberHeader": "No.",
+  "flightHeader": "Flight"
+}

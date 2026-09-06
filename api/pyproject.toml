@@ -1,0 +1,43 @@
+[project]
+name = "sbl-api"
+version = "0.1.0"
+description = "Backend der Segel-Bundesliga-Website"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14",
+    "pydantic[email]>=2.9",
+    "pydantic-settings>=2.6",
+    "httpx>=0.28",
+    "aiosqlite>=0.20",
+    "pyyaml>=6.0.3",
+    "asyncpg>=0.31.0",
+    "pyjwt>=2.13.0",
+    "argon2-cffi>=25.1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# Von Alembic erzeugt, nicht von Hand geschrieben — eigene Formatierung, eigene Zeilenlängen.
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# B008 verbietet Funktionsaufrufe in Argument-Defaults. Bei FastAPI ist genau das die
+# vorgesehene Schreibweise für Depends() und Query() — hier also ein Fehlalarm.
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]

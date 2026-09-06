@@ -1,0 +1,55 @@
+{
+  "siteTitle": "German Sailing Bundesliga",
+  "loading": "Loading …",
+  "skipToContent": "Skip to content",
+  "nav": {
+    "start": "Home",
+    "standings": "Standings",
+    "events": "Events",
+    "clubs": "Clubs",
+    "account": "Account",
+    "admin": "Admin"
+  },
+  "status": {
+    "planned": "planned",
+    "live": "live",
+    "final": "final",
+    "cancelled": "cancelled"
+  },
+  "crewRole": {
+    "helm": "Helm",
+    "crew": "Crew",
+    "substitute": "Substitute"
+  },
+  "boatColor": {
+    "BLACK": "Black",
+    "GREEN": "Green",
+    "DARKBLUE": "Dark blue",
+    "RED": "Red",
+    "GRAY": "Gray",
+    "ORANGE": "Orange"
+  },
+  "hostedBy": "Host: {{name}}",
+  "venueUnknown": "Venue to be announced",
+  "actNumber": "Act {{number}}",
+  "footer": "German Sailing Bundesliga · 18 clubs, 6 boats, 48 races per matchday",
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "transferList": {
+    "filterPlaceholder": "Search clubs …",
+    "available": "Available ({{count}})",
+    "selected": "Selected ({{count}})",
+    "noneAvailable": "No matches.",
+    "noneSelected": "None selected yet."
+  },
+  "errors": {
+    "loadFailed": "The data could not be loaded. Is there a connection?",
+    "loginFailed": "Sign-in failed.",
+    "actionFailed": "That didn't work. Is there a connection?",
+    "requestFailed": "The request failed ({{status}}).",
+    "noSeriesThisYear": "There's no series yet for this year."
+  }
+}

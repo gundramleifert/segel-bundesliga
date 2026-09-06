@@ -1,0 +1,21 @@
+{
+  "loading": "Spieltag wird geladen…",
+  "racesCount": "{{scored}} von {{total}} Wettfahrten gewertet",
+  "liveUpdate": "der Stand wird fortgeschrieben",
+  "viewLabel": "Ansicht",
+  "standingsTab": "Tageswertung",
+  "pairingTab": "Pairing-Liste",
+  "noResultsYet": "Für diesen Spieltag liegen noch keine Ergebnisse vor.",
+  "notSailedYet": "Es wurde noch nicht gesegelt. Die Pairing-Liste steht schon bereit.",
+  "standingsCaption": "Tageswertung",
+  "placeHeader": "Platz",
+  "teamHeader": "Mannschaft",
+  "pointsHeader": "Punkte",
+  "racesHeader": "Wettfahrten",
+  "gross": "brutto",
+  "pairingLoading": "Pairing-Liste wird geladen…",
+  "noRacesDrawn": "Für diesen Spieltag ist noch nichts ausgelost.",
+  "pairingCaption": "Pairing-Liste: Team je Boot und Wettfahrt",
+  "numberHeader": "Nr.",
+  "flightHeader": "Flight"
+}

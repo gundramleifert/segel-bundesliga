@@ -1,0 +1,26 @@
+{
+  "title": "Account",
+  "notSignedIn": "Not signed in",
+  "description": "Public pages are open to everyone. To access squads, entries, and results, you must sign in.",
+  "sessionExpired": "Your session is no longer valid. Please sign in again.",
+  "devNote": "In development, the switcher in the bottom right lets you cycle through roles. Later, you'll sign in here via Google, Microsoft, or a one-time code by email.",
+  "permissions": "Your permissions",
+  "noPermissions": "Nothing beyond public pages. Roles are assigned by the admin.",
+  "signedInNoRole": "Signed in, but with no special role",
+  "roles": {
+    "admin": "Manage master data, series, matchdays, accounts and roles",
+    "admin_pairing": "Generate and publish pairing lists",
+    "editor": "Write posts and approve club contributions",
+    "race_officer": "Record and correct results",
+    "club_manager": "Assign users to your club",
+    "club_manager_squad": "Manage squad and matchday entry (planned)"
+  },
+  "labels": {
+    "club": "Club",
+    "notAssigned": "not assigned",
+    "signInMethods": "Sign-in methods",
+    "status": "Status",
+    "active": "active",
+    "disabled": "disabled"
+  }
+}

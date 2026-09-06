@@ -1,0 +1,59 @@
+# --- Personal / machine-local files that live in this working tree but are NOT the project ---
+# (the sandbox masks several of these as /dev/null; patterns have no trailing slash so
+#  they match whatever type they appear as)
+.bashrc
+.bash_profile
+.profile
+.zshrc
+.zprofile
+.ripgreprc
+.gitconfig
+.gitmodules
+.idea
+.vscode
+.claude
+.mcp.json
+
+# --- Reference repos: shallow clones for lookup only, deliberately not versioned ---
+/reference/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# The development database (SQLite) plus WAL files — regenerate any time with
+# `uv run python -m app.seed_test_setup --reset`.
+*.db
+*.db-shm
+*.db-wal
+.uv-cache/
+
+# Secrets: real env files are never committed; .env.example is the template that is.
+.env
+.env.local
+.env.*.local
+
+# --- Node ---
+node_modules/
+dist/
+.vite/
+
+# --- Playwright ---
+playwright-report/
+test-results/
+/test-results/
+/playwright-report/
+
+# Sandbox masks this so it cannot be committed from here — `git add -f` it yourself.
+.env.example
+
+# Stale artifacts — not part of the project
+*.bak
+*.db.bak
+# Scraped reference copies of the live WordPress site (logos/colours were taken from here);
+# reference material, not shipped, not referenced by any source.
+web/sbl.html
+web/sbl.css

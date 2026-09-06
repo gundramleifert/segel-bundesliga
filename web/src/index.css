@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@import "@heroui/react/styles";
+
+/* Farben von deutsche-segelbundesliga.de übernommen:
+   #3166B1 als Markenblau, #EBEDF2 als ruhige Fläche, #121212 als Schrift.
+   Die übrigen Werte im dortigen Stylesheet sind WordPress-Theme-Vorgaben, kein Branding. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-marke-50: #eef3fa;
+  --color-marke-100: #d8e4f4;
+  --color-marke-200: #b4cbe9;
+  --color-marke-300: #85a9da;
+  --color-marke-400: #5786c7;
+  --color-marke-500: #3166b1;
+  --color-marke-600: #2a5799;
+  --color-marke-700: #23477c;
+  --color-marke-800: #1d3a64;
+  --color-marke-900: #182f52;
+
+  --color-flaeche: #ebedf2;
+  --color-tinte: #121212;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ergebnistabellen sind breit. Sie scrollen in ihrem eigenen Kasten, nie die ganze Seite. */
+.tabelle-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

@@ -1,0 +1,19 @@
+{
+  "loading": {
+    "text": "Series standings loading…"
+  },
+  "subtitle": "{{teamCount}} teams · {{actCount}} acts",
+  "description": "Low-point scoring: <strong>fewer points is better</strong>. The series standings add up the ranks from each act. If you missed an act, you score <strong>field size + 1</strong> for that act.",
+  "empty": {
+    "noRaces": "No races have been sailed yet in this series.",
+    "noEvents": "No events scheduled for this series yet."
+  },
+  "caption": "Series standings {{seriesName}}",
+  "table": {
+    "rank": "Rank",
+    "club": "Club",
+    "points": "Points",
+    "act": "Act {{matchday}}",
+    "notSailed": "Did not sail — field size + 1"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "loading": "Loading club…",
+  "teams": "Teams",
+  "squad": "Squad",
+  "squad_empty": "No one registered yet.",
+  "events": "Matchdays",
+  "events_empty": "No scheduled matchdays.",
+  "ownEvents": "Own Events",
+  "ownEvents_desc": "Without a series — they don't count toward any series standings.",
+  "unassigned": "This club is not assigned to any series for the current year.",
+  "crew_empty": "Lineup to be determined",
+  "stats": "{{count}} registered · {{events}} matchdays",
+  "website": "Club website",
+  "clubDescription": "{{short_name}} · {{city}}"
+}

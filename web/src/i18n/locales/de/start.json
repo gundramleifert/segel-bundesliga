@@ -1,0 +1,20 @@
+{
+  "hero": {
+    "tagline": "Deutsche Segel-Bundesliga",
+    "description": "18 Vereine, sechs identische J/70, 48 Wettfahrten je Spieltag. Jede Mannschaft segelt in jedem Flight einmal — auf wechselnden Booten."
+  },
+  "eventsSection": {
+    "heading": "Veranstaltungen",
+    "allLink": "Terminübersicht",
+    "empty": "Es sind noch keine Veranstaltungen angesetzt."
+  },
+  "seriesSection": {
+    "heading": "Serien",
+    "empty": "Für diesen Jahrgang ist noch keine Serie eingerichtet.",
+    "eventCount_one": "1 Veranstaltung",
+    "eventCount_other": "{{count}} Veranstaltungen"
+  },
+  "seriesCard": {
+    "linkText": "Zur Tabelle"
+  }
+}

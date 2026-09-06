@@ -1,0 +1,55 @@
+{
+  "siteTitle": "Deutsche Segel-Bundesliga",
+  "loading": "Wird geladen …",
+  "skipToContent": "Zum Inhalt springen",
+  "nav": {
+    "start": "Start",
+    "standings": "Tabelle",
+    "events": "Termine",
+    "clubs": "Vereine",
+    "account": "Konto",
+    "admin": "Verwaltung"
+  },
+  "status": {
+    "planned": "geplant",
+    "live": "läuft",
+    "final": "beendet",
+    "cancelled": "abgesagt"
+  },
+  "crewRole": {
+    "helm": "Steuermann",
+    "crew": "Crew",
+    "substitute": "Ersatz"
+  },
+  "boatColor": {
+    "BLACK": "Schwarz",
+    "GREEN": "Grün",
+    "DARKBLUE": "Dunkelblau",
+    "RED": "Rot",
+    "GRAY": "Grau",
+    "ORANGE": "Orange"
+  },
+  "hostedBy": "Ausrichter: {{name}}",
+  "venueUnknown": "Ort noch offen",
+  "actNumber": "{{number}}. Act",
+  "footer": "Deutsche Segel-Bundesliga · 18 Vereine, 6 Boote, 48 Wettfahrten je Spieltag",
+  "language": {
+    "label": "Sprache",
+    "en": "English",
+    "de": "Deutsch"
+  },
+  "transferList": {
+    "filterPlaceholder": "Vereine suchen …",
+    "available": "Verfügbar ({{count}})",
+    "selected": "Ausgewählt ({{count}})",
+    "noneAvailable": "Keine Treffer.",
+    "noneSelected": "Noch nichts ausgewählt."
+  },
+  "errors": {
+    "loadFailed": "Die Daten konnten nicht geladen werden. Besteht eine Verbindung?",
+    "loginFailed": "Anmeldung fehlgeschlagen.",
+    "actionFailed": "Das hat nicht geklappt. Besteht eine Verbindung?",
+    "requestFailed": "Die Anfrage ist fehlgeschlagen ({{status}}).",
+    "noSeriesThisYear": "Für dieses Jahr gibt es noch keine Serie."
+  }
+}

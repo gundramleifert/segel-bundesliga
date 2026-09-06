@@ -1,0 +1,15 @@
+{
+  "loading": "Verein wird geladen …",
+  "teams": "Mannschaften",
+  "squad": "Kader der Serie",
+  "squad_empty": "Noch niemand gemeldet.",
+  "events": "Acts",
+  "events_empty": "Noch keine Termine.",
+  "ownEvents": "Eigene Veranstaltungen",
+  "ownEvents_desc": "Ohne Serie — sie zählen in keine Serienwertung.",
+  "unassigned": "Für den laufenden Jahrgang ist dieser Verein noch keiner Serie zugeordnet.",
+  "crew_empty": "Aufstellung steht noch aus",
+  "stats": "{{count}} gemeldet · {{events}} Acts",
+  "website": "Website des Vereins",
+  "clubDescription": "{{short_name}} · {{city}}"
+}

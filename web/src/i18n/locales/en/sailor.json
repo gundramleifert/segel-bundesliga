@@ -1,0 +1,9 @@
+{
+  "loading": "Loading page…",
+  "registeredFor": "Registered for {{clubs}}",
+  "notRegistered": "Not registered for the current season",
+  "registrations": "Season Registrations",
+  "noRegistrations": "No registrations for the current season.",
+  "lineups": "Lineups",
+  "noLineups": "Not set up in any matchday. Being on the squad doesn't mean sailing every Act."
+}

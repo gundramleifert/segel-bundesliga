@@ -1,0 +1,26 @@
+{
+  "title": "Konto",
+  "notSignedIn": "Nicht angemeldet",
+  "description": "Öffentliche Seiten stehen allen offen. Für Kader, Meldungen und Ergebnisse ist eine Anmeldung nötig.",
+  "sessionExpired": "Die Sitzung ist nicht mehr gültig. Bitte neu anmelden.",
+  "devNote": "In der Entwicklung führt der Schalter unten rechts durch die Rollen. Später gibt es hier die Anmeldung über Google, Microsoft oder einen Einmalcode per E-Mail.",
+  "permissions": "Was Sie dürfen",
+  "noPermissions": "Nichts über die öffentlichen Seiten hinaus. Rollen vergibt die Verwaltung.",
+  "signedInNoRole": "Angemeldet, aber ohne besondere Rolle",
+  "roles": {
+    "admin": "Stammdaten, Ligen, Spieltage, Konten und Rollen verwalten",
+    "admin_pairing": "Pairing-Listen berechnen und veröffentlichen",
+    "editor": "Nachrichten schreiben und Vereinsbeiträge freigeben",
+    "race_officer": "Ergebnisse erfassen und korrigieren",
+    "club_manager": "Nutzer dem eigenen Verein zuordnen",
+    "club_manager_squad": "Saisonkader und Spieltagsmeldung pflegen (geplant)"
+  },
+  "labels": {
+    "club": "Verein",
+    "notAssigned": "keiner zugeordnet",
+    "signInMethods": "Anmeldewege",
+    "status": "Status",
+    "active": "aktiv",
+    "disabled": "gesperrt"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "title": "Switch role",
+  "subtitle": "Development only. Signs in without verification.",
+  "searchPlaceholder": "Name, email, club, or role …",
+  "searchLabel": "Search test accounts",
+  "noRole": "no role",
+  "notFound": "Nothing found.",
+  "signOut": "Sign out",
+  "notSignedIn": "Not signed in"
+}

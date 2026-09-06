@@ -1,0 +1,34 @@
+flights: 16
+titles:
+  - "Pairing List - 1. Segel-Bundesliga - MRSV/DTYC"
+  - "Pairing List - 1. Segel-Bundesliga - BYC (BA)"
+  - "Pairing List - 1. Segel-Bundesliga - Kieler Förde"
+  - "Pairing List - 1. Segel-Bundesliga - NRV"
+  - "Pairing List - 1. Segel-Bundesliga - PYC"
+  - "Pairing List - 1. Segel-Bundesliga - VSaW"
+teams:
+  - BYC (BA)
+  - BYC (BE)
+  - BSC
+  - BOH-YC
+  - BYCÜ
+  - DYC
+  - JSC
+  - EnSFr
+  - KYC (SH)
+  - KaR
+  - MSC
+  - MYC
+  - NRV
+  - PYC
+  - SMCÜ
+  - SVWu
+  - SVI
+  - WYC
+boats:
+- color: BLACK
+- color: GREEN
+- color: DARKBLUE
+- color: RED
+- color: GRAY
+- color: ORANGE

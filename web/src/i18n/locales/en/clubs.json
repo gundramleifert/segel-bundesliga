@@ -1,0 +1,6 @@
+{
+  "title": "Clubs",
+  "subtitle": "{{count}} teams in the league",
+  "loading": "Loading clubs…",
+  "empty": "No clubs registered yet."
+}

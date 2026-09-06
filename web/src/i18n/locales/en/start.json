@@ -1,0 +1,20 @@
+{
+  "hero": {
+    "tagline": "German Sailing Bundesliga",
+    "description": "18 clubs, six identical J/70s, 48 races per matchday. Each team sails in every flight once — on alternating boats."
+  },
+  "eventsSection": {
+    "heading": "Events",
+    "allLink": "All Events",
+    "empty": "No events scheduled yet."
+  },
+  "seriesSection": {
+    "heading": "Series",
+    "empty": "No series set up for this year.",
+    "eventCount_one": "1 event",
+    "eventCount_other": "{{count}} events"
+  },
+  "seriesCard": {
+    "linkText": "View Table"
+  }
+}

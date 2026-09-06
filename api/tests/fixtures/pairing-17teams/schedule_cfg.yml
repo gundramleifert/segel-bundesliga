@@ -1,0 +1,28 @@
+flights: 16
+titles:
+  - "Pairing List - Youth SAILING Champions League - Vilamoura"
+teams:
+  - MYC
+  - AS
+  - TS
+  - SCSTÄ
+  - CER
+  - RCNA
+  - CN Altea
+  - WSVG
+  - LCC
+  - TEN
+  - HSK
+  - BSF
+  - RCO
+  - UYCWg
+  - USSC
+  - WYD
+  - BoYC
+boats:
+- color: WHITE
+- color: BLUE
+- color: BLACK
+- color: GREEN
+- color: YELLOW
+- color: RED
