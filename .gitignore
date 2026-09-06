@@ -47,9 +47,6 @@ test-results/
 /test-results/
 /playwright-report/
 
-# Sandbox masks this so it cannot be committed from here — `git add -f` it yourself.
-.env.example
-
 # Stale artifacts — not part of the project
 *.bak
 *.db.bak

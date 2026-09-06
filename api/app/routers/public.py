@@ -1,7 +1,7 @@
 """Read-only endpoints of the public website.
 
 All routes address via the primary key; the slug appears in responses and is used for
-display, not as an address. See ``docs/konzepte.md`` for terminology.
+display, not as an address. See ``docs/concepts.md`` for terminology.
 """
 
 from __future__ import annotations
