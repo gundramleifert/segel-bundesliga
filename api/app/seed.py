@@ -3,8 +3,8 @@
 Without real data volumes, scoring, pairing, and live view cannot be assessed —
 that's why this seed generates a complete matchday with 16 flights of 3 races each.
 
-The clubs are real, the sailor names are made up: personal data do not belong in
-a test fixture.
+The clubs are real; every sailor name is synthetic — drawn from a generated 30 x 30
+pool of made-up names (see ``_name_pool``), so no real person appears in the fixture.
 
     uv run python -m app.seed
 """
@@ -80,8 +80,27 @@ VENUES: list[tuple[str, str, str]] = [
     ("Berlin-Wannsee", "Berlin", "Wannsee"),
 ]
 
-FIRST_NAMES = ["Alex", "Chris", "Jona", "Kim", "Luca", "Mika", "Noa", "Robin", "Sam", "Toni"]
-LAST_NAMES = ["Ahrens", "Bergmann", "Clausen", "Dahl", "Ehlers", "Frank", "Groth", "Hansen"]
+# Sailor names are synthetic — a 30 x 30 pool of made-up names built from syllables, so
+# 900 combinations cover the ~360 seeded sailors without a real person's name appearing.
+# Its own RNG with a fixed seed: reproducible, and independent of the main seed sequence.
+def _name_pool(count: int, *, seed: int, suffixes: tuple[str, ...] = ()) -> list[str]:
+    rng = random.Random(seed)
+    heads = (
+        "ba be bo da de ei fa fi ha he ju ka ke la le li ma me mi na ne ni "
+        "ro ru sa se si ta te to va ve vi"
+    ).split()
+    tails = "lin ric son den mar vik nor tal ber ken del ras nis wen".split()
+    names: set[str] = set()
+    while len(names) < count:
+        name = rng.choice(heads) + rng.choice(tails)
+        if suffixes:
+            name += rng.choice(suffixes)
+        names.add(name.capitalize())
+    return sorted(names)
+
+
+FIRST_NAMES = _name_pool(30, seed=4241)
+LAST_NAMES = _name_pool(30, seed=4242, suffixes=("sen", "berg", "gaard", "dahl", "qvist"))
 
 
 async def seed() -> None:
