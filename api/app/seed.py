@@ -37,6 +37,7 @@ from app.models import (
     Team,
     TeamMembership,
     Venue,
+    WaiverText,
 )
 from app.models.racing import BOAT_COLORS
 from app.pairing import build_pairing
@@ -125,6 +126,40 @@ async def seed() -> None:
         serien = [erste, zweite, junioren, champions]
         session.add_all(serien)
 
+        # The liability waiver in force. One version is enough for the seed; a wording
+        # change would be version 2 (Story S-2).
+        session.add(
+            WaiverText(
+                version=1,
+                title_en="Liability waiver and assumption of risk",
+                body_en=(
+                    "I take part in the Sailing Bundesliga at my own risk. I confirm that "
+                    "I am medically fit to sail, can swim, and will wear a personal "
+                    "flotation device on the water. I am responsible for deciding whether "
+                    "to start or continue in the prevailing conditions (RRS 3). Neither "
+                    "the organizing authority, the host club, the league, nor their "
+                    "officials are liable for damage to property or injury to persons "
+                    "caused by slight negligence, on land or on the water. Liability for "
+                    "injury to life, body or health, and for intent or gross negligence, "
+                    "remains unaffected."
+                ),
+                title_de="Haftungsausschluss und Risikoübernahme",
+                body_de=(
+                    "Ich nehme auf eigenes Risiko an der Segel-Bundesliga teil. Ich "
+                    "bestätige, dass ich segeltauglich bin, schwimmen kann und auf dem "
+                    "Wasser eine Rettungsweste trage. Die Entscheidung über Start und "
+                    "Fortsetzung der Wettfahrt bei den herrschenden Bedingungen liegt bei "
+                    "mir (WR 3). Weder der Veranstalter, der ausrichtende Verein, die Liga "
+                    "noch deren Beauftragte haften für Sach- oder Vermögensschäden sowie "
+                    "Personenschäden, die durch leichte Fahrlässigkeit an Land oder auf "
+                    "dem Wasser verursacht werden. Die Haftung für Schäden aus der "
+                    "Verletzung von Leben, Körper oder Gesundheit sowie für Vorsatz und "
+                    "grobe Fahrlässigkeit bleibt unberührt."
+                ),
+                notes="Initial version.",
+            )
+        )
+
         venues = [
             Venue(slug=slugify(name), name=name, city=city, water=water)
             for name, city, water in VENUES
@@ -188,8 +223,15 @@ async def seed() -> None:
                     # and a club fields multiple teams.
                     email=f"{slugify(vorname)}.{slugify(nachname)}{laufend}"
                     f"@{club.slug}.example.com",
+                    # Juniors are teenagers — several are minors on a 2026 matchday, which
+                    # is what makes the guardian path in Story S-2 testable against the
+                    # seed. Everyone else is an adult.
                     birth_date=date(
-                        rng.randint(1985, 2005), rng.randint(1, 12), rng.randint(1, 28)
+                        rng.randint(2009, 2011)
+                        if _serie is junioren
+                        else rng.randint(1985, 2004),
+                        rng.randint(1, 12),
+                        rng.randint(1, 28),
                     ),
                 )
                 session.add(sailor)

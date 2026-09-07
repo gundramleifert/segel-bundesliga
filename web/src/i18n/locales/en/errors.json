@@ -1,0 +1,17 @@
+{
+  "unknown": "Something went wrong. Please try again.",
+  "validation": "Some of the entered data is not valid.",
+  "http-400": "The request could not be processed.",
+  "http-401": "Please sign in to continue.",
+  "http-403": "You do not have access to this.",
+  "http-404": "This could not be found.",
+  "http-409": "That conflicts with the current state.",
+  "http-500": "The server ran into a problem. Please try again later.",
+  "no-waiver-published": "No liability waiver has been published yet.",
+  "waiver-birth-date-required": "Add the sailor's date of birth first — it decides whether a guardian has to sign.",
+  "guardian-confirmation-needed": "A sailor under 18 needs a parent or legal guardian to sign. An online confirmation on its own is not enough.",
+  "guardian-name-required": "Enter the name of the guardian who signed.",
+  "waiver-already-confirmed": "This sailor has already confirmed version {{required_version}} of the waiver for this competition.",
+  "waiver-confirmation-forbidden": "You can only confirm the waiver for your own account.",
+  "waiver-checklist-forbidden": "The check-in list is available to the event organizer and the league office."
+}

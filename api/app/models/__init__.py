@@ -22,6 +22,7 @@ from app.models.racing import (
     ResultCode,
 )
 from app.models.standings import EventStanding, SeriesStanding
+from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
     "AuditLog",
@@ -54,4 +55,7 @@ __all__ = [
     "User",
     "UserRole",
     "Venue",
+    "WaiverConfirmation",
+    "WaiverMethod",
+    "WaiverText",
 ]

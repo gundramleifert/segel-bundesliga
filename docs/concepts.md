@@ -259,3 +259,41 @@ sailor pages. Names appear on every results list anyway.
 
 **Routes address via primary key** — short, familiar integers, not UUIDs. The `slug` remains
 in responses and serves for display and search, not as an address.
+
+---
+
+## Errors — one machine-readable type, translated by the client
+
+Error responses are [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) *Problem Details*
+(`application/problem+json`). The **contract is the `type`** — a stable URI reference like
+`/errors/guardian-confirmation-needed`. The client maps the last segment (the *code*) to
+its own wording, in its own language. The backend never ships the localized sentence as
+the contract.
+
+```json
+{
+  "type": "/errors/waiver-already-confirmed",
+  "title": "This sailor has already confirmed the current waiver version.",
+  "status": 409,
+  "detail": "…",                     // optional English elaboration, for logs and curl
+  "instance": "/api/series/3/waiver",
+  "required_version": 2               // extension members: extra facts for the client
+}
+```
+
+**Backend** (`api/app/problems.py`): a router raises `Problem(status, code, title, **extra)`
+— never a `tr(locale, …)` sentence for a typed error. `title` is a fixed English summary
+of the *type* (a fallback, and useful in logs); extension members carry the specifics.
+Plain `HTTPException` and request-validation failures are also rendered as `problem+json`
+with a generic `type` (`/errors/http-409`, `/errors/validation`) while keeping `detail`
+where clients already read it — routers adopt real codes one at a time. The waiver router
+(`app/routers/waivers.py`) is the worked example.
+
+**Frontend** (`web/src/api/problems.ts`): `describeProblem()` turns a problem into a
+message via the `errors` i18n namespace — `errors:<code>`, with the extension members
+passed as interpolation values (`"… version {{required_version}} …"`), falling back to
+`title` then `errors:unknown`. `ApiError` carries `.code` and `.problem` so a component
+can branch on the code or re-translate on a language switch.
+
+Adding a language is then a frontend-only change: `en/errors.json` and `de/errors.json`
+hold every code, and no backend string needs touching.

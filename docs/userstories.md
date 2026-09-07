@@ -243,19 +243,25 @@ As an **event organizer** I want **teams to check themselves in at the event and
 the liability waiver**, so that I **have little work on event day**.
 
 Acceptance criteria:
+- **Check-in happens in advance, not on event day.** The link/QR opens a set number of days
+  before the event (reuse the deadline pattern from V-2) and closes at event start. On event
+  day the organizer only reads the status list — nothing legal is signed on the dock.
 - A team checks in by itself (QR code or link), without any involvement from the organizer.
 - During check-in, the crew is confirmed or corrected.
 - The liability waiver is displayed in full text and must be actively confirmed.
-- The confirmation is **documented proof**: who, when, which version of the text. The text
-  version is tracked — a text changed later must not retroactively alter an old confirmation.
+- The confirmation is **documented proof**: who (authenticated account, not a typed-in name),
+  when, which version of the text. The text version is tracked — a text changed later must
+  not retroactively alter an old confirmation.
 - The organizer sees at a glance which teams have checked in and which are missing.
 
 Overlaps with story S-1: If the liability waiver is already available for the season, only
 attendance needs to be confirmed at check-in. Check-in thus becomes much shorter.
 
-Note: This is the legally most sensitive part of the project. Before building, it must be
-clarified whether digital confirmation meets the league and insurer's requirements, and
-whether minors need separate consent.
+Note: This is the legally most sensitive part of the project. Legal landscape and the two
+constraints that actually bind (insurer's required form, guardian consent for minors) are
+written up in `docs/findings.md` section 6. Before building, the league and its insurer must
+confirm whether an authenticated online confirmation is accepted for adults; if not, everyone
+takes the scan-upload path from S-1.
 
 Tests: none yet
 
@@ -781,24 +787,66 @@ and a signature. Therefore:
 Open: Does digital confirmation for adults meet the insurer's and league's requirements? If
 not, everyone needs the scan path.
 
+Built on top of the versioned confirmation mechanism — see [S-3](#s-3--confirm-a-waiver-version-for-a-series-or-event).
+
 Tests: none yet
 
-### VA-5 ○ Confirm liability waivers
+### S-3 ● Confirm a waiver version for a series or event
+As a **sailor** (or an admin/club manager acting for one) I want to **confirm one specific
+version of the liability waiver**, so that **participation is covered and provable**.
+
+Acceptance criteria:
+- The waiver text is **versioned and frozen**. `POST /api/admin/waiver/texts` adds the next
+  version; the highest one is in force. An existing version is never edited — a wording
+  change is a new version.
+- A confirmation records **who, when, which version, in which language** — and never moves
+  when a new version is published. It is append-only.
+- **Scope is a series or a single event.** A **series** confirmation covers **every event**
+  of that series; an event confirmation covers only that event.
+- Publishing a new version does not rewrite old confirmations; it means the sailor is **no
+  longer cleared** until they confirm the new one (status `version_outdated`).
+- Confirming the same version for the same scope twice is rejected
+  (`/errors/waiver-already-confirmed`).
+- A sailor can confirm for **their own account** (matched by email); `admin`, `editor`, and
+  `club_manager` can record for anyone (they collect the paper forms).
+
+**Minors** (under 18 on the reference date — the event start, or the series start / 1 Jan of
+its year):
+- An online self-confirmation is **not enough** (`/errors/guardian-confirmation-needed`).
+- The confirmation is recorded as `guardian` with the guardian's **name** and a reference to
+  the **signed statement** (`guardian_signature_ref` — a URL, an object key, or a note;
+  file storage itself is still open, see below). The name may be recorded first and the
+  scan reference attached later — until it is present the sailor is not cleared
+  (`guardian_signature_missing`).
+- If the sailor's **date of birth is unknown**, confirmation is refused
+  (`/errors/waiver-birth-date-required`) — age can't be judged.
+
+Endpoints: `GET /api/waiver`, `GET /api/admin/waiver/texts`, `POST /api/admin/waiver/texts`,
+`POST /api/series/{series_id}/waiver`, `POST /api/events/{event_id}/waiver`,
+`GET /api/admin/events/{event_id}/waivers`
+
+Tests: `api/tests/stories/test_haftungsausschluss.py`
+
+Open: the reference version is the single one in force league-wide. A separate waiver text
+per series (e.g. a juniors-specific wording) would add `Series.waiver_text_id`; not built
+until it is actually needed.
+
+### VA-5 ◐ Confirm liability waivers
 As a **race organizer** I want to **only check off submitted liability waivers**,
 so that I **don't have to collect anything on event day**.
 
 Acceptance criteria:
-- List of all registered people with their status: submitted, missing, confirmed.
-- One check per person; the actual statement has already been submitted by the person.
-- Who is not confirmed cannot be registered for a matchday — the lock applies in Story V-2,
-  not on the water.
-- Every confirmation is logged: who, when.
+- List of all people in the participating squads with their status: cleared, missing,
+  outdated version, or (for a minor) waiting on the guardian's signature. **Built** —
+  `GET /api/admin/events/{event_id}/waivers` (see [S-3](#s-3--confirm-a-waiver-version-for-a-series-or-event)).
+- Who is not cleared cannot be registered for a matchday — the lock applies in Story V-2,
+  not on the water. **Not yet wired** into the V-2 lineup check.
+- Every confirmation is logged: who, when. **Built** — the confirmation row records it.
 
-Open: **Is race organizer a new role?** There is `admin`, `editor`, `race_officer`, and
-`club_manager`. If the race organizer is the on-site organizer, they might be `race_officer`
-— or a fifth role is added. To be decided before the endpoint is built.
+Access: the event's host-club leadership, plus `admin`, `editor`, `race_officer`. No fifth
+role was added — the on-site organizer is a `race_officer` or the host `club_manager`.
 
-Tests: none yet
+Tests: `api/tests/stories/test_haftungsausschluss.py::TestMinors` (check-in list)
 
 ### V-2 ● Select sailors for matchday
 As a **club manager** I want to **name the four sailors for a matchday in advance**,

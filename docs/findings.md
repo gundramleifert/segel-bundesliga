@@ -245,3 +245,56 @@ must be requested from the business office.
 - Add Postgres: `sudo apt install -y postgresql`, then `sudo service postgresql start`
   (required after each restart in WSL without systemd).
 - `uv` requires `UV_CACHE_DIR` in a scratch area — `~/.cache` is read-only in this session.
+
+---
+
+## 6. Liability Waiver — Legal Landscape (VA-2, S-1, VA-5)
+
+Not legal advice. This records what we understand so the stories can be built sensibly; the
+league and its insurer have the final word and must be asked before launch.
+
+### Online confirmation for adults
+
+- German civil law has no general form requirement (`Formfreiheit`, §125 BGB). A liability
+  waiver / risk-assumption statement is a declaration of intent and is binding when actively
+  confirmed (checkbox + button) — no handwritten signature needed. `Schriftform` (§126 BGB,
+  wet ink or a qualified eIDAS signature) is **not** statutorily required for a sport waiver.
+- A pre-formulated waiver is a general term (§305 ff BGB) and content-controlled: liability
+  for injury to body/health from intent or gross negligence **cannot** be waived
+  (§309 Nr. 7 BGB). So the text is really *risk acknowledgement + waiver for slight
+  negligence*, not a blanket release. For what such a text can lawfully cover, a click is enough.
+- The real constraints are not the BGB:
+  1. **The insurer's / league's required form.** The DSBL runs on group liability and accident
+     cover; the insurer or the Deutsche Segel-Liga GmbH may contractually demand a specific
+     form. This is the binding question — flagged "Open" in S-1 and VA-2.
+  2. **Evidentiary value.** A handwritten signature carries an `Anscheinsbeweis`; an online
+     confirmation is weaker evidence. It needs a solid, immutable audit trail: authenticated
+     identity of the confirmer, timestamp, exact text version, ideally IP/user-agent — stored
+     append-only. This is why VA-2 says "authenticated account, not a typed-in name".
+
+### Minors (< 18)
+
+- A minor aged 7–17 has limited legal capacity (§§106–108 BGB). A waiver is **not** "merely
+  legally advantageous", so the minor's own confirmation is `schwebend unwirksam` — invalid
+  without guardian consent.
+- Guardian consent itself is form-free in principle (guardians *could* confirm online), but
+  online we cannot verify that the confirmer is actually the guardian. Hence S-1's decision:
+  **scan upload of a wet-ink signed statement**; the statement counts as submitted only with
+  the scan present.
+- Where both parents share custody (§1629 BGB), both must consent; leagues in practice accept
+  one signature — confirm with the league.
+- The Notice of Race / DSV youth provisions may add their own parental-declaration and
+  supervision requirements. Check the NoR.
+- The scan is the most sensitive artifact in the project (minor's data + signature): access
+  restricted to the person, their club, and the organizer; every retrieval logged; hard
+  deletion deadline after season end. See S-1.
+
+### Consequence for the build
+
+- Model the confirmation as an immutable record: `person`, `waiver_text_version`,
+  `confirmed_at`, `method` (`online` | `scan`), optional `scan_asset_id`, request metadata.
+- Waiver texts are versioned rows; a confirmation references a version and never a mutable
+  "current text".
+- Ship the scan path (S-1) regardless — it is the fallback if the insurer rejects online
+  confirmation for adults, and it is mandatory for minors either way.
+- Check-in is a **pre-event** flow (VA-2), not an event-day one.

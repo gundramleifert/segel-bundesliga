@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 58daaf7c5580
+Revision ID: a72aa462609e
 Revises: 
-Create Date: 2026-09-05 14:13:31.728705
+Create Date: 2026-09-07 23:02:56.274813
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '58daaf7c5580'
+revision: str = 'a72aa462609e'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -143,6 +143,22 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('venue', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_venue_slug'), ['slug'], unique=True)
+
+    op.create_table('waiver_text',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('version', sa.Integer(), nullable=False),
+    sa.Column('title_en', sa.String(length=200), nullable=False),
+    sa.Column('body_en', sa.Text(), nullable=False),
+    sa.Column('title_de', sa.String(length=200), nullable=False),
+    sa.Column('body_de', sa.Text(), nullable=False),
+    sa.Column('published_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('notes', sa.String(length=500), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_waiver_text'))
+    )
+    with op.batch_alter_table('waiver_text', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_waiver_text_version'), ['version'], unique=True)
 
     op.create_table('app_user',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -293,6 +309,37 @@ def upgrade() -> None:
     with op.batch_alter_table('user_role', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_user_role_role'), ['role'], unique=False)
         batch_op.create_index(batch_op.f('ix_user_role_user_id'), ['user_id'], unique=False)
+
+    op.create_table('waiver_confirmation',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('sailor_id', sa.Integer(), nullable=False),
+    sa.Column('waiver_text_id', sa.Integer(), nullable=False),
+    sa.Column('series_id', sa.Integer(), nullable=True),
+    sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('confirmed_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('method', sa.String(length=16), nullable=False),
+    sa.Column('locale_shown', sa.String(length=2), nullable=False),
+    sa.Column('recorded_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('user_agent', sa.String(length=400), nullable=True),
+    sa.Column('guardian_name', sa.String(length=160), nullable=True),
+    sa.Column('guardian_signature_ref', sa.String(length=500), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('(series_id IS NULL) <> (event_id IS NULL)', name=op.f('ck_waiver_confirmation_exactly_one_scope')),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_waiver_confirmation_event_id_event')),
+    sa.ForeignKeyConstraint(['recorded_by_user_id'], ['app_user.id'], name=op.f('fk_waiver_confirmation_recorded_by_user_id_app_user')),
+    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_waiver_confirmation_sailor_id_sailor')),
+    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_waiver_confirmation_series_id_series')),
+    sa.ForeignKeyConstraint(['waiver_text_id'], ['waiver_text.id'], name=op.f('fk_waiver_confirmation_waiver_text_id_waiver_text')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_waiver_confirmation'))
+    )
+    with op.batch_alter_table('waiver_confirmation', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_waiver_confirmation_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_waiver_confirmation_sailor_id'), ['sailor_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_waiver_confirmation_series_id'), ['series_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_waiver_confirmation_waiver_text_id'), ['waiver_text_id'], unique=False)
+        batch_op.create_index('uq_waiver_conf_event', ['sailor_id', 'event_id', 'waiver_text_id'], unique=True, sqlite_where=sa.text('series_id IS NULL'), postgresql_where=sa.text('series_id IS NULL'))
+        batch_op.create_index('uq_waiver_conf_series', ['sailor_id', 'series_id', 'waiver_text_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
 
     op.create_table('event_crew',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -449,6 +496,15 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_event_crew_event_id'))
 
     op.drop_table('event_crew')
+    with op.batch_alter_table('waiver_confirmation', schema=None) as batch_op:
+        batch_op.drop_index('uq_waiver_conf_series', sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
+        batch_op.drop_index('uq_waiver_conf_event', sqlite_where=sa.text('series_id IS NULL'), postgresql_where=sa.text('series_id IS NULL'))
+        batch_op.drop_index(batch_op.f('ix_waiver_confirmation_waiver_text_id'))
+        batch_op.drop_index(batch_op.f('ix_waiver_confirmation_series_id'))
+        batch_op.drop_index(batch_op.f('ix_waiver_confirmation_sailor_id'))
+        batch_op.drop_index(batch_op.f('ix_waiver_confirmation_event_id'))
+
+    op.drop_table('waiver_confirmation')
     with op.batch_alter_table('user_role', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_user_role_user_id'))
         batch_op.drop_index(batch_op.f('ix_user_role_role'))
@@ -493,6 +549,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_app_user_club_id'))
 
     op.drop_table('app_user')
+    with op.batch_alter_table('waiver_text', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_waiver_text_version'))
+
+    op.drop_table('waiver_text')
     with op.batch_alter_table('venue', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_venue_slug'))
 

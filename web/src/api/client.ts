@@ -5,6 +5,7 @@
  * shape changes, the build should fail, not the page in the browser.
  */
 import i18n from "../i18n";
+import { type ProblemDetail, describeProblem, isProblem, problemCode } from "./problems";
 import type { components } from "./schema";
 import { getToken } from "./session";
 
@@ -37,10 +38,20 @@ export type SquadEntry = S["KaderEintrag"];
 export class ApiError extends Error {
   // No constructor shorthand: this project builds with `erasableSyntaxOnly`.
   status: number;
+  /** The RFC 9457 problem code, e.g. `waiver-already-confirmed` — null for non-typed errors. */
+  code: string | null;
+  /** The full problem body, for reading extension members. */
+  problem: ProblemDetail | null;
 
-  constructor(status: number, message: string) {
+  constructor(
+    status: number,
+    message: string,
+    options: { code?: string | null; problem?: ProblemDetail | null } = {},
+  ) {
     super(message);
     this.status = status;
+    this.code = options.code ?? null;
+    this.problem = options.problem ?? null;
   }
 }
 
@@ -58,34 +69,35 @@ async function request<T>(
 ): Promise<T> {
   const response = await fetch(path, { ...init, headers: headers(init.body) });
   if (!response.ok) {
-    throw new ApiError(response.status, await errorText(response));
+    throw await apiError(response);
   }
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
 
-/** The server's own error message, not a made-up one.
+/** Turns a failed response into an {@link ApiError}.
  *
- * FastAPI returns a list per field on validation errors; that gets summarised readably
- * instead of showing up as "[object Object]".
+ * The backend answers with RFC 9457 `application/problem+json`: the `type` carries a
+ * stable code the UI maps to a translation (see `./problems`). A non-problem body (an
+ * old deployment, a proxy error page) still yields a readable message.
  */
-async function errorText(response: Response): Promise<string> {
+async function apiError(response: Response): Promise<ApiError> {
+  let body: unknown;
   try {
-    const body = await response.json();
-    const detail = body?.detail;
-    if (typeof detail === "string") return detail;
-    if (Array.isArray(detail)) {
-      return detail
-        .map((entry) => {
-          const field = Array.isArray(entry?.loc) ? entry.loc.slice(1).join(".") : "";
-          return field ? `${field}: ${entry.msg}` : entry.msg;
-        })
-        .join(" · ");
-    }
+    body = await response.json();
   } catch {
-    // Response wasn't JSON — the generic message is enough.
+    // Response wasn't JSON — fall through to the generic message.
   }
-  return i18n.t("common:errors.requestFailed", { status: response.status });
+  if (isProblem(body)) {
+    return new ApiError(response.status, describeProblem(body), {
+      code: problemCode(body),
+      problem: body,
+    });
+  }
+  return new ApiError(
+    response.status,
+    i18n.t("common:errors.requestFailed", { status: response.status }),
+  );
 }
 
 function get<T>(path: string, signal?: AbortSignal): Promise<T> {

@@ -1,0 +1,17 @@
+{
+  "unknown": "Etwas ist schiefgelaufen. Bitte noch einmal versuchen.",
+  "validation": "Einige der eingegebenen Daten sind ungültig.",
+  "http-400": "Die Anfrage konnte nicht verarbeitet werden.",
+  "http-401": "Bitte melde dich an, um fortzufahren.",
+  "http-403": "Dazu hast du keinen Zugriff.",
+  "http-404": "Das wurde nicht gefunden.",
+  "http-409": "Das steht im Widerspruch zum aktuellen Stand.",
+  "http-500": "Auf dem Server ist ein Fehler aufgetreten. Bitte später erneut versuchen.",
+  "no-waiver-published": "Es ist noch kein Haftungsausschluss veröffentlicht.",
+  "waiver-birth-date-required": "Zuerst das Geburtsdatum eintragen — daran entscheidet sich, ob ein Erziehungsberechtigter unterschreiben muss.",
+  "guardian-confirmation-needed": "Wer unter 18 ist, braucht die Unterschrift eines Elternteils oder Erziehungsberechtigten. Eine reine Online-Bestätigung genügt nicht.",
+  "guardian-name-required": "Bitte den Namen des oder der Erziehungsberechtigten eintragen, die unterschrieben haben.",
+  "waiver-already-confirmed": "Diese Person hat Version {{required_version}} des Haftungsausschlusses für diesen Wettbewerb bereits bestätigt.",
+  "waiver-confirmation-forbidden": "Du kannst den Haftungsausschluss nur für dein eigenes Konto bestätigen.",
+  "waiver-checklist-forbidden": "Die Check-in-Liste steht dem Ausrichter und der Geschäftsstelle zur Verfügung."
+}

@@ -1,11 +1,16 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.jobs import jobs
+from app.problems import CONTENT_TYPE, Problem, http_problem_body, problem_handler
 from app.routers import (
     admin,
     applications,
@@ -18,6 +23,7 @@ from app.routers import (
     public,
     sailors,
     series,
+    waivers,
 )
 
 
@@ -46,6 +52,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Every error response is RFC 9457 application/problem+json. Typed errors (app.problems)
+# carry a stable `type` the frontend maps to a translation; plain HTTPExceptions and
+# validation errors get a generic type but keep `detail` where clients already read it.
+app.add_exception_handler(Problem, problem_handler)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def _http_exception(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=http_problem_body(exc.status_code, exc.detail, request.url.path),
+        headers=getattr(exc, "headers", None),
+        media_type=CONTENT_TYPE,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "type": "/errors/validation",
+            "title": "Request could not be processed",
+            "status": 422,
+            "instance": request.url.path,
+            # The per-field list stays under `detail` — the frontend already renders it.
+            "detail": jsonable_encoder(exc.errors()),
+        },
+        media_type=CONTENT_TYPE,
+    )
+
+
 app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
@@ -56,6 +97,7 @@ app.include_router(series.router)
 app.include_router(applications.router)
 app.include_router(club_members.router)
 app.include_router(sailors.router)
+app.include_router(waivers.router)
 
 if settings.dev_login:
     # Development only: login without verification to try out roles.

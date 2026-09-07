@@ -14,6 +14,7 @@ via participant phones.
 | `docs/concepts.md` | **Terms and data model** — Series, Event, Squad, Scoring. Start here. |
 | `docs/userstories.md` | What the system should do, with tests included |
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
+| `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `reference/` | Shallow clones of external repos for reference, not versioned |
 | `~/.claude/plans/iterative-jingling-willow.md` | The agreed overall plan |
 
@@ -214,9 +215,17 @@ default and source language.
 - `Locale` — enum for supported languages
 - `resolve_locale(request)` — FastAPI dependency that reads `Accept-Language` header, defaults
   to English
-- `tr(locale, en=..., de=...)` — for any user-facing string built directly by a router (e.g.,
-  HTTPException messages, validation errors). Only literal runtime-visible text uses `tr()`;
-  docstrings and Field descriptions are plain English.
+- `tr(locale, en=..., de=...)` — for user-facing strings a router builds directly, on routes
+  not yet migrated to typed errors. Only literal runtime-visible text uses `tr()`; docstrings
+  and Field descriptions are plain English.
+
+**Errors — RFC 9457 Problem Details** (`api/app/problems.py`, `web/src/api/problems.ts`,
+concept in `docs/concepts.md`): error responses are `application/problem+json`. A router
+raises `Problem(status, code, title, **extra)`; the stable `type` (`/errors/<code>`) is the
+contract, and the frontend maps `<code>` to the `errors` i18n namespace. Typed errors carry
+**no** `tr()` sentence. Plain `HTTPException` / validation errors are also rendered as
+problem+json (generic type, `detail` preserved). `app/routers/waivers.py` is the worked
+example; other routers migrate incrementally.
 
 **Domain terms** are now consistently translated throughout the codebase (code, docs, comments):
 Wettfahrt → Race, Flight → Flight (unchanged), Spieltag → Matchday, Wettfahrtleitung → Race

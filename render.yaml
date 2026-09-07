@@ -1,0 +1,53 @@
+# One-click deploy of both services on Render's free tier — for testing only.
+#
+#   1. Push this repo to GitHub.
+#   2. Render dashboard → "New" → "Blueprint" → pick the repo.
+#   3. Deploy. The API URL is https://sbl-api.onrender.com, the site
+#      https://sbl-web.onrender.com (Render appends a suffix if the name is taken —
+#      then fix the rewrite `destination` below to match and redeploy).
+#
+# Notes:
+#   * Free web services sleep after 15 min idle; the first request then takes ~1 min.
+#   * The database is baked into the image (SQLite). A restart or redeploy resets it to
+#     the seeded state. That is intentional here — no backup, no external DB.
+#   * SBL_DEV_LOGIN=true lets anyone sign in as any role without verification. Fine for a
+#     private test URL; never do this for anything real. See docs/deploy.md.
+
+services:
+  - type: web
+    name: sbl-api
+    runtime: docker
+    rootDir: api
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: SBL_JWT_SECRET
+        generateValue: true
+      - key: SBL_DEV_LOGIN
+        value: "true"
+      - key: SBL_ALLOW_REGISTRATION
+        value: "false"
+      # Same-origin via the rewrite below, so CORS isn't needed. Set this to the site URL
+      # if you ever call the API cross-origin.
+      - key: SBL_CORS_ORIGINS
+        value: '["https://sbl-web.onrender.com"]'
+
+  - type: web
+    name: sbl-web
+    runtime: static
+    rootDir: web
+    buildCommand: pnpm install --frozen-lockfile --prod=false && pnpm build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+    routes:
+      # The SPA calls /api/... relative; proxy that to the backend so the browser stays
+      # same-origin. Order matters — this must come before the catch-all.
+      - type: rewrite
+        source: /api/*
+        destination: https://sbl-api.onrender.com/api/*
+      - type: rewrite
+        source: /*
+        destination: /index.html

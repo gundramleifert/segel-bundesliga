@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.uv-cache/
+sbl.db
+sbl.db-shm
+sbl.db-wal
+sbl.db.bak
+*.bak
+.env
+.env.*
+tests/

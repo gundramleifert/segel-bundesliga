@@ -18,6 +18,7 @@ import clubDe from "./locales/de/club.json";
 import clubsDe from "./locales/de/clubs.json";
 import commonDe from "./locales/de/common.json";
 import devDe from "./locales/de/dev.json";
+import errorsDe from "./locales/de/errors.json";
 import eventsDe from "./locales/de/events.json";
 import matchdayDe from "./locales/de/matchday.json";
 import sailorDe from "./locales/de/sailor.json";
@@ -29,6 +30,7 @@ import clubEn from "./locales/en/club.json";
 import clubsEn from "./locales/en/clubs.json";
 import commonEn from "./locales/en/common.json";
 import devEn from "./locales/en/dev.json";
+import errorsEn from "./locales/en/errors.json";
 import eventsEn from "./locales/en/events.json";
 import matchdayEn from "./locales/en/matchday.json";
 import sailorEn from "./locales/en/sailor.json";
@@ -55,6 +57,7 @@ void i18n
         account: accountEn,
         admin: adminEn,
         dev: devEn,
+        errors: errorsEn,
       },
       de: {
         common: commonDe,
@@ -68,6 +71,7 @@ void i18n
         account: accountDe,
         admin: adminDe,
         dev: devDe,
+        errors: errorsDe,
       },
     },
     fallbackLng: "en",
@@ -84,6 +88,7 @@ void i18n
       "account",
       "admin",
       "dev",
+      "errors",
     ],
     defaultNS: "common",
     interpolation: { escapeValue: false },
