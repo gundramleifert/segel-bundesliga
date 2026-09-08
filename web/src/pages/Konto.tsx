@@ -71,7 +71,15 @@ export function Account() {
 
   return (
     <>
-      <Seitenkopf titel={t("title")} unterzeile={konto.email} />
+      <Seitenkopf
+        titel={t("title")}
+        unterzeile={konto.email}
+        rechts={
+          <Button variant="outline" onPress={() => setToken(null)}>
+            {t("signOut")}
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>

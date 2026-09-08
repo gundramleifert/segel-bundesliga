@@ -1,5 +1,6 @@
 {
   "title": "Konto",
+  "signOut": "Abmelden",
   "notSignedIn": "Nicht angemeldet",
   "description": "Öffentliche Seiten stehen allen offen. Für Kader, Meldungen und Ergebnisse ist eine Anmeldung nötig.",
   "sessionExpired": "Die Sitzung ist nicht mehr gültig. Bitte neu anmelden.",

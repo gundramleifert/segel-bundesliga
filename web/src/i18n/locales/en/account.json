@@ -1,5 +1,6 @@
 {
   "title": "Account",
+  "signOut": "Sign out",
   "notSignedIn": "Not signed in",
   "description": "Public pages are open to everyone. To access squads, entries, and results, you must sign in.",
   "sessionExpired": "Your session is no longer valid. Please sign in again.",
