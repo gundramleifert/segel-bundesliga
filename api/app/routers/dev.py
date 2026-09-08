@@ -11,6 +11,9 @@ manager without fetching a one-time code from the log each time.
 
 from __future__ import annotations
 
+import asyncio
+import socket
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
@@ -178,3 +181,61 @@ async def test_email(request: TestEmail) -> TestEmailOut:
     except MailError as exc:
         return TestEmailOut(attempted=True, sent=False, error=str(exc))
     return TestEmailOut(attempted=True, sent=True)
+
+
+class AddressProbe(BaseModel):
+    family: str
+    address: str
+    connect_ok: bool
+    error: str | None = None
+
+
+class NetworkProbeOut(BaseModel):
+    host: str
+    port: int
+    resolved: list[AddressProbe]
+
+
+@router.get(
+    "/network-probe", response_model=NetworkProbeOut, summary="Diagnose outbound TCP"
+)
+async def network_probe(host: str | None = None, port: int | None = None) -> NetworkProbeOut:
+    """Resolves `host` (default: the configured SMTP host) and tries a raw TCP connect to
+    *each* resolved address individually — this tells apart a common container gotcha
+    (DNS returns an address family, usually IPv6, with no actual outbound route, while the
+    other family would work fine) from every address genuinely being blocked (e.g. the
+    platform firewalling the port itself)."""
+    target_host = host or settings.smtp_host
+    target_port = port or settings.smtp_port
+    if not target_host:
+        return NetworkProbeOut(host="", port=target_port, resolved=[])
+
+    def _probe() -> list[AddressProbe]:
+        try:
+            infos = socket.getaddrinfo(target_host, target_port, proto=socket.IPPROTO_TCP)
+        except OSError as exc:
+            return [AddressProbe(family="dns", address="", connect_ok=False, error=str(exc))]
+
+        probes: list[AddressProbe] = []
+        seen: set[str] = set()
+        for family, _type, _proto, _canon, sockaddr in infos:
+            addr = sockaddr[0]
+            if addr in seen:
+                continue
+            seen.add(addr)
+            family_name = "IPv6" if family == socket.AF_INET6 else "IPv4"
+            try:
+                with socket.socket(family, socket.SOCK_STREAM) as s:
+                    s.settimeout(6)
+                    s.connect((addr, target_port))
+                probes.append(AddressProbe(family=family_name, address=addr, connect_ok=True))
+            except OSError as exc:
+                probes.append(
+                    AddressProbe(
+                        family=family_name, address=addr, connect_ok=False, error=str(exc)
+                    )
+                )
+        return probes
+
+    resolved = await asyncio.to_thread(_probe)
+    return NetworkProbeOut(host=target_host, port=target_port, resolved=resolved)
