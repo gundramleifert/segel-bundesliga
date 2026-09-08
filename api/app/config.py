@@ -1,8 +1,24 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Render (and Docker Secrets, Kubernetes) mount uploaded secret files here, one file per
+# secret, named exactly like the env var it replaces (e.g. a file literally named
+# "SBL_JWT_SECRET"). pydantic-settings reads it under that name automatically — this is
+# the mechanism, not a convention invented here. Used only for the fields that are
+# genuine credentials (jwt_secret, smtp_password); everything else stays a plain,
+# non-sensitive env var — see docs/deploy.md. An explicit env var still wins if both are
+# set, and fields fall back to their defaults if the file is absent (e.g. local
+# development, where the directory itself usually doesn't exist at all). Guarded on
+# existence purely to skip pydantic-settings' otherwise-harmless "directory does not
+# exist" warning locally.
+_SECRETS_DIR = "/etc/secrets" if os.path.isdir("/etc/secrets") else None
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="SBL_", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_prefix="SBL_", extra="ignore", secrets_dir=_SECRETS_DIR
+    )
 
     # SQLite — a file next to the code, no server to start first. For the data volumes of a
     # league this is more than sufficient; Postgres remains the goal once it goes into

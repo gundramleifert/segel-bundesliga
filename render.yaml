@@ -21,15 +21,21 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /health
-    # Everything is a plain env var — including SBL_SMTP_PASSWORD. `sync: false` means
-    # Render prompts for the value once in the Dashboard, during the *initial* Blueprint
-    # provisioning — it does nothing for a service that already exists (that cost real
-    # time to track down here). For an existing service, add these directly on its
-    # Environment tab instead; a later Blueprint re-sync leaves an existing `sync: false`
-    # value alone either way, so this is also how you change one later. See docs/deploy.md.
+    # Two real credentials — SBL_JWT_SECRET, SBL_SMTP_PASSWORD — are deliberately NOT
+    # declared here. Add each as a Secret File instead (this service's Environment tab →
+    # Secret Files → Add Secret File), named *exactly* like the setting it replaces (a
+    # file named `SBL_JWT_SECRET`, another named `SBL_SMTP_PASSWORD`), containing only the
+    # value. app.config reads them from /etc/secrets/<that name> automatically (see
+    # `_SECRETS_DIR` there) — no config change needed, and Secret Files sit outside
+    # Blueprint sync entirely so they're never touched by a re-sync of this file.
+    #
+    # Everything else is a plain env var. `sync: false` means Render prompts for the
+    # value once in the Dashboard, during the *initial* Blueprint provisioning — it does
+    # nothing for a service that already exists (that cost real time to track down here).
+    # For an existing service, add these directly on its Environment tab instead; a later
+    # Blueprint re-sync leaves an existing `sync: false` value alone either way, so this
+    # is also how you change one later. See docs/deploy.md for the full picture.
     envVars:
-      - key: SBL_JWT_SECRET
-        generateValue: true
       - key: SBL_DEV_LOGIN
         value: "true"
       - key: SBL_ALLOW_REGISTRATION
@@ -43,8 +49,6 @@ services:
       - key: SBL_SMTP_PORT
         sync: false
       - key: SBL_SMTP_USER
-        sync: false
-      - key: SBL_SMTP_PASSWORD
         sync: false
       - key: SBL_SMTP_STARTTLS
         value: "true"

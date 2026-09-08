@@ -74,35 +74,45 @@ In the generated `fly.toml` set `internal_port = 8080` (Fly's default) or add
 
 ---
 
-## Configuration — plain environment variables
+## Configuration — Secret Files for credentials, plain env vars for the rest
 
-Everything `sbl-api` needs, including `SBL_SMTP_PASSWORD`, is an ordinary env var —
-declared in `render.yaml` with a fixed `value:` where the setting doesn't depend on the
-deployment, or `sync: false` where it does (SMTP settings, since they depend on whichever
-provider is in use).
+Two real credentials — `SBL_JWT_SECRET` and `SBL_SMTP_PASSWORD` — are **Secret Files**,
+not env vars. Everything else is an ordinary env var declared in `render.yaml` (fixed
+`value:` where the setting doesn't depend on the deployment, `sync: false` where it does).
 
 | Variable | How it's set | Notes |
 |---|---|---|
-| `SBL_JWT_SECRET` | `render.yaml`, auto-generated | **empty closes the protected area entirely** (by design); a known/reused value would let anyone forge tokens |
+| `SBL_JWT_SECRET` | **Secret File** | **empty closes the protected area entirely** (by design); a known/reused value would let anyone forge tokens |
 | `SBL_DEV_LOGIN` | `render.yaml`, `true` | see the security note below before turning this on anywhere but a private test URL |
 | `SBL_ALLOW_REGISTRATION` | `render.yaml`, `true` | lets the self-registration tab on `/account` work |
 | `SBL_CORS_ORIGINS` | `render.yaml`, fixed | only matters if the site is ever called cross-origin; the `/api/*` rewrite already keeps the browser same-origin |
-| `SBL_SMTP_HOST` | Dashboard (`sync: false`) | your provider's SMTP hostname, e.g. `smtp.strato.de` |
-| `SBL_SMTP_PORT` | Dashboard (`sync: false`) | `587` for STARTTLS, `465` for implicit TLS/SSL — check your provider |
-| `SBL_SMTP_SSL` | Dashboard (`sync: false`) | `true` for a provider that documents implicit TLS as the normal-client path (e.g. STRATO: `smtp.strato.de:465` — STRATO documents `587`/STARTTLS there as relay-only, not for a normal client like this app) |
+| `SBL_SMTP_HOST` | Dashboard env var (`sync: false`) | your provider's SMTP hostname, e.g. `smtp.strato.de` |
+| `SBL_SMTP_PORT` | Dashboard env var (`sync: false`) | `587` for STARTTLS, `465` for implicit TLS/SSL — check your provider |
+| `SBL_SMTP_SSL` | Dashboard env var (`sync: false`) | `true` for a provider that documents implicit TLS as the normal-client path (e.g. STRATO: `smtp.strato.de:465` — STRATO documents `587`/STARTTLS there as relay-only, not for a normal client like this app) |
 | `SBL_SMTP_STARTTLS` | `render.yaml`, `true` | ignored if `SBL_SMTP_SSL` is `true` (the two aren't combined) |
-| `SBL_SMTP_USER` | Dashboard (`sync: false`) | login name for the SMTP account (often the full email address) |
-| `SBL_SMTP_PASSWORD` | Dashboard (`sync: false`) | the mailbox password / API key |
-| `SBL_MAIL_FROM` | Dashboard (`sync: false`) | the `From:` address, e.g. `web@yourdomain` |
+| `SBL_SMTP_USER` | Dashboard env var (`sync: false`) | login name for the SMTP account (often the full email address) |
+| `SBL_SMTP_PASSWORD` | **Secret File** | the mailbox password / API key |
+| `SBL_MAIL_FROM` | Dashboard env var (`sync: false`) | the `From:` address, e.g. `web@yourdomain` |
 
-**Where the Dashboard-only (`sync: false`) values actually get entered:** a Render
-Blueprint only prompts for a `sync: false` variable the *first* time a service is
-provisioned — adding one to `render.yaml` later does nothing for a service that already
-exists (that's exactly what cost real time to track down while getting this deployment's
-SMTP working). For an existing service, add these directly on its Environment tab
-(**Environment Variables**, not Secret Files) instead; a later Blueprint re-sync leaves an
-existing `sync: false` value alone either way, so this is also how you change one, e.g. to
-rotate the SMTP password.
+**Secret Files** (`SBL_JWT_SECRET`, `SBL_SMTP_PASSWORD`): `sbl-api` service → **Environment**
+tab → **Secret Files** → **Add Secret File** → filename *exactly* the variable name → the
+value as the file's whole content (nothing else). Mechanically, `api/app/config.py` sets
+pydantic-settings' `secrets_dir` to `/etc/secrets` — exactly where Render mounts Secret
+Files — so at startup it looks there for a file matching a setting with no env var set,
+and uses its content. That directory doesn't exist on a machine without any Secret Files
+(e.g. your own laptop), so this is a no-op there and `api/.env` keeps working locally
+unchanged. An explicit env var still wins over the file for the same name — if either of
+these two was ever added as a plain env var on this service, delete that env var once its
+Secret File exists, or the file is silently ignored. To rotate a value, edit the Secret
+File in place.
+
+**Everything else**, the Dashboard env vars marked `sync: false` above: a Render Blueprint
+only prompts for a `sync: false` variable the *first* time a service is provisioned —
+adding one to `render.yaml` later does nothing for a service that already exists (that's
+exactly what cost real time to track down while getting this deployment's SMTP working).
+For an existing service, add these directly on its Environment tab under **Environment
+Variables** (not Secret Files) instead; a later Blueprint re-sync leaves an existing
+`sync: false` value alone either way, so this is also how you change one.
 
 **Getting real SMTP credentials for testing:** [Brevo](https://www.brevo.com) and
 [Resend](https://resend.com) both have a free tier and hand you an SMTP username and
