@@ -3,6 +3,12 @@
 Intentionally behind a narrow interface: in development the code goes to the log, in
 production it goes via SMTP. Anyone trying the application locally should be able to log in
 without setting up a mail server.
+
+A second transport (Brevo's HTTPS API) exists purely as a workaround for platforms that
+block outbound SMTP entirely — confirmed on the Render test deployment via
+`GET /api/dev/network-probe`: both port 465 and 587 to a real SMTP host time out, while
+HTTPS is unaffected (the platform itself depends on it). It is opt-in
+(`SBL_BREVO_API_KEY`) and dev/test-only, not a replacement for SMTP as the intended path.
 """
 
 from __future__ import annotations
@@ -12,6 +18,8 @@ import logging
 import smtplib
 import ssl
 from email.message import EmailMessage
+
+import httpx
 
 from app.config import settings
 
@@ -37,6 +45,17 @@ If you did not try to log in, you can ignore this message — nothing happens wi
 
 async def send_login_code(email: str, code: str) -> None:
     minutes = settings.otp_lifetime_minutes
+    body = BODY.format(code=code, minutes=minutes)
+
+    if settings.brevo_api_key:
+        try:
+            await _send_via_brevo(email, body)
+        except Exception as exc:
+            logger.error("Sending the login email to %s via Brevo failed: %s", email, exc)
+            raise MailError(str(exc)) from exc
+        logger.info("Login email sent to %s via Brevo", email)
+        return
+
     if not settings.smtp_host:
         # No mail server configured: code goes to the log instead. Intended for development
         # — in production SBL_SMTP_HOST must be set.
@@ -47,7 +66,7 @@ async def send_login_code(email: str, code: str) -> None:
     message["Subject"] = SUBJECT
     message["From"] = settings.mail_from
     message["To"] = email
-    message.set_content(BODY.format(code=code, minutes=minutes))
+    message.set_content(body)
 
     # Silent on success and on failure alike before this: there was no way to tell, short
     # of reading someone's inbox, whether SBL_SMTP_* actually works. Log both outcomes —
@@ -62,6 +81,31 @@ async def send_login_code(email: str, code: str) -> None:
         )
         raise MailError(str(exc)) from exc
     logger.info("Login email sent to %s via %s:%s", email, settings.smtp_host, settings.smtp_port)
+
+
+async def _send_via_brevo(email: str, body: str) -> None:
+    async with httpx.AsyncClient(timeout=15) as client:
+        response = await client.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "api-key": settings.brevo_api_key,
+                "content-type": "application/json",
+                "accept": "application/json",
+            },
+            json={
+                "sender": {"email": settings.mail_from},
+                "to": [{"email": email}],
+                "subject": SUBJECT,
+                "textContent": body,
+            },
+        )
+    if response.status_code >= 400:
+        # Brevo's error body is JSON with "code"/"message" — surface both if present.
+        try:
+            detail = response.json().get("message", response.text)
+        except ValueError:
+            detail = response.text
+        raise MailError(f"Brevo {response.status_code}: {detail}")
 
 
 def _send(message: EmailMessage) -> None:

@@ -137,14 +137,17 @@ class SmtpConfigOut(BaseModel):
     smtp_user: str
     smtp_password_set: bool
     mail_from: str
+    brevo_configured: bool
 
 
 @router.get(
-    "/smtp-config", response_model=SmtpConfigOut, summary="What SMTP config is resolved"
+    "/smtp-config", response_model=SmtpConfigOut, summary="What mail config is resolved"
 )
 async def smtp_config() -> SmtpConfigOut:
     """Shows exactly what `app.config.settings` resolved to — from env vars, Secret
-    Files, or defaults, whichever won — without exposing the password itself."""
+    Files, or defaults, whichever won — without exposing the password/API key itself.
+    When `brevo_configured` is true, `app.mail` sends over Brevo's HTTPS API instead of
+    SMTP, and the SMTP fields below are irrelevant to what actually gets used."""
     return SmtpConfigOut(
         smtp_host=settings.smtp_host,
         smtp_port=settings.smtp_port,
@@ -153,6 +156,7 @@ async def smtp_config() -> SmtpConfigOut:
         smtp_user=settings.smtp_user,
         smtp_password_set=bool(settings.smtp_password),
         mail_from=settings.mail_from,
+        brevo_configured=bool(settings.brevo_api_key),
     )
 
 
@@ -167,15 +171,20 @@ class TestEmailOut(BaseModel):
 
 
 @router.post(
-    "/test-email", response_model=TestEmailOut, summary="Attempt an actual SMTP send"
+    "/test-email", response_model=TestEmailOut, summary="Attempt an actual send"
 )
 async def test_email(request: TestEmail) -> TestEmailOut:
     """Sends a real message with a throwaway code to the given address right now, and
     reports the outcome directly in the response — the same send path
-    `app.services.login.request_email_code` uses, just without needing a valid account or
-    the anti-enumeration silence that endpoint deliberately has."""
-    if not settings.smtp_host:
-        return TestEmailOut(attempted=False, sent=False, error="SBL_SMTP_HOST is not set.")
+    `app.services.login.request_email_code` uses (SMTP or Brevo, whichever
+    `app.mail.send_login_code` picks), just without needing a valid account or the
+    anti-enumeration silence that endpoint deliberately has."""
+    if not settings.smtp_host and not settings.brevo_api_key:
+        return TestEmailOut(
+            attempted=False,
+            sent=False,
+            error="Neither SBL_SMTP_HOST nor SBL_BREVO_API_KEY is set.",
+        )
     try:
         await send_login_code(request.email, "000000")
     except MailError as exc:

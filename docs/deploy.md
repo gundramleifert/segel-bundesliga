@@ -121,6 +121,36 @@ password/API key on sign-up; the concrete host and port are on your own account'
 settings page in their dashboard — copy those into `render.env` rather than assuming a
 fixed hostname, since they can change per account/region.
 
+---
+
+## When the platform blocks outbound SMTP entirely (Render did)
+
+Confirmed via `GET /api/dev/network-probe?host=<smtp host>&port=<port>` (see below): on
+this Render plan, **both** port 465 and 587 to a real SMTP server time out — an egress
+firewall, not a wrong setting anywhere. No SMTP port/TLS combination gets past that; the
+only way through is a provider's **HTTPS API** instead of raw SMTP, since HTTPS clearly
+isn't blocked (the platform itself depends on it).
+
+`api/app/mail.py` supports this as an **opt-in, dev/test-only alternate transport**:
+Brevo's HTTP API (`POST https://api.brevo.com/v3/smtp/email`). It activates automatically
+whenever `SBL_BREVO_API_KEY` is set — checked *before* SMTP in `send_login_code` — with
+the SMTP path otherwise untouched and still the intended one for a host that can actually
+reach an SMTP server (e.g. a plain VPS instead of Render).
+
+**Setting it up:**
+1. Sign up at [brevo.com](https://www.brevo.com) (free tier).
+2. Create an API key: Settings → SMTP & API → API Keys.
+3. Verify the `SBL_MAIL_FROM` address as a sender in Brevo (usually just a confirmation
+   link sent to that inbox — full domain authentication via DNS records improves
+   deliverability but isn't required to start).
+4. Add `SBL_BREVO_API_KEY` as a **Secret File** the same way as `SBL_JWT_SECRET` /
+   `SBL_SMTP_PASSWORD` (it's a real credential, not something for `render.env`).
+
+Verified end to end (with an intentionally invalid key, to confirm the wiring without a
+real account yet): the request reaches Brevo's real API and its `401: Key not found`
+response is parsed and surfaced correctly — so once a real key and a verified sender are
+in place, this should just work.
+
 **Checking whether a code was actually sent:** `app.mail` logs every attempt — an `INFO`
 line naming the recipient and host on success, an `ERROR` line with the underlying SMTP
 error on failure (wrong credentials, wrong port/encryption, connection refused, …). On

@@ -81,5 +81,12 @@ class Settings(BaseSettings):
     smtp_ssl: bool = False
     mail_from: str = "noreply@segelbundesliga.de"
 
+    # Alternate transport for hosts that block outbound SMTP entirely (confirmed on the
+    # Render test deployment — both port 465 and 587 time out; see docs/deploy.md). Sends
+    # over Brevo's HTTPS API instead of smtplib when set; SMTP above stays the intended
+    # path for a real host that can reach an SMTP server. Opt-in and dev/test-only — not a
+    # replacement for SMTP, a workaround for one platform's egress firewall.
+    brevo_api_key: str = ""
+
 
 settings = Settings()
