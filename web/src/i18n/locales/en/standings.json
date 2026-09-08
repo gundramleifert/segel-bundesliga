@@ -3,7 +3,11 @@
     "text": "Series standings loading…"
   },
   "subtitle": "{{teamCount}} teams · {{actCount}} acts",
-  "description": "Low-point scoring: <strong>fewer points is better</strong>. The series standings add up the ranks from each act. If you missed an act, you score <strong>field size + 1</strong> for that act.",
+  "scoringNote": "Low-point scoring: fewer points is better. The series standings add up the ranks from each act. Missing an act scores field size + 1 for it.",
+  "eventsSection": {
+    "heading": "Events",
+    "empty": "No events scheduled for this series yet."
+  },
   "empty": {
     "noRaces": "No races have been sailed yet in this series.",
     "noEvents": "No events scheduled for this series yet."

@@ -119,6 +119,14 @@ async def seed() -> None:
             year=JAHRGANG,
             level=1,
             scoring=wertung,
+            description=(
+                "## Willkommen zur 1. Segel-Bundesliga 2026\n\n"
+                "Gesegelt wird nach **Low-Point-Wertung**: Wer die wenigsten Punkte "
+                "sammelt, gewinnt. Die Serientabelle addiert die Platzierungen aller "
+                "Acts; wer bei einem Act fehlt, bekommt dort *Teilnehmerzahl + 1* "
+                "Punkte angerechnet.\n\n"
+                "Wir freuen uns auf eine spannende Saison mit allen 18 Vereinen!"
+            ),
         )
         zweite = Series(
             slug="dsbl-2-2026",

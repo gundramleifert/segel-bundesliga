@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import (
@@ -19,8 +19,8 @@ from app.auth import (
 )
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import AuditLog, Club
-from app.models.auth import IdentityProvider, Role, User, UserRole
+from app.models import AuditLog, Club, ClubMember, WaiverConfirmation
+from app.models.auth import Role, User, UserRole
 from app.services.login import (
     LoginError,
     login_with_oidc,
@@ -59,6 +59,32 @@ class OidcLogin(BaseModel):
 class IdentityOut(BaseModel):
     provider: str
     subject: str
+
+
+class ProviderInfo(BaseModel):
+    available: bool
+    client_id: str | None = Field(
+        default=None, description="Public OAuth client ID, only set when available"
+    )
+
+
+class MicrosoftProviderInfo(ProviderInfo):
+    tenant: str | None = Field(
+        default=None, description="Azure AD tenant to sign in against, e.g. 'common'"
+    )
+
+
+class ProvidersOut(BaseModel):
+    """Everything the sign-in UI needs to decide which buttons to show and how to
+    initialize each provider's SDK — one call instead of separate build-time config."""
+
+    google: ProviderInfo
+    microsoft: MicrosoftProviderInfo
+    email: ProviderInfo
+    allow_registration: bool = Field(
+        description="Whether POST /api/auth/register is open, i.e. a 'create an account' "
+        "link makes sense to show"
+    )
 
 
 class UserOut(BaseModel):
@@ -105,16 +131,29 @@ class ClubUpdate(BaseModel):
     )
 
 
-@router.get("/providers", summary="Which sign-in methods are available")
-async def providers() -> dict[str, bool]:
-    """So the interface only shows buttons that actually work."""
+@router.get(
+    "/providers", response_model=ProvidersOut, summary="Which sign-in methods are available"
+)
+async def providers() -> ProvidersOut:
+    """So the interface only shows buttons that actually work, and can initialize the
+    Google/Microsoft SDKs without its own build-time configuration — the client ID is a
+    public value, not a secret (the actual check is the ID-token signature verification
+    against the provider's JWKS, done server-side in `app.services.login`)."""
     from app.config import settings
 
-    return {
-        IdentityProvider.GOOGLE: bool(settings.google_client_id),
-        IdentityProvider.MICROSOFT: bool(settings.microsoft_client_id),
-        IdentityProvider.EMAIL: True,
-    }
+    return ProvidersOut(
+        google=ProviderInfo(
+            available=bool(settings.google_client_id),
+            client_id=settings.google_client_id or None,
+        ),
+        microsoft=MicrosoftProviderInfo(
+            available=bool(settings.microsoft_client_id),
+            client_id=settings.microsoft_client_id or None,
+            tenant=settings.microsoft_tenant if settings.microsoft_client_id else None,
+        ),
+        email=ProviderInfo(available=True),
+        allow_registration=settings.allow_registration,
+    )
 
 
 @router.post(
@@ -213,6 +252,46 @@ async def oidc_login(
 @router.get("/me", response_model=UserOut, summary="Get my account")
 async def me(user: User = Depends(current_user)) -> UserOut:
     return UserOut.of(user)
+
+
+@router.delete(
+    "/me",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete my account",
+)
+async def delete_my_account(
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> None:
+    """Deletes the signed-in account outright — deliberately different from
+    ``DELETE /api/auth/users/{id}`` (administration removing *someone else*, which keeps
+    the row for its history, see Story Z-6).
+
+    This is a temporary, testing-phase convenience (Story Z-7): while accounts are still
+    mostly test data, being able to clean up your own is worth more than an audit trail.
+    Once accounts are reachable from real season history (registrations, results, waiver
+    confirmations someone else relies on), a real delete stops being safe, and this should
+    become a deactivation too, or gain a precondition ("no active registrations"). Revisit
+    before real seasons depend on this data — don't just leave it as-is.
+
+    A ``Sailor`` is a separate record linked only by email, never by foreign key, so
+    deleting the account never touches squad, series, or event history — only the account
+    row and the administrative records that point at it by id.
+    """
+    # ClubMember has no ORM relationship back from User (one-directional), so it is not
+    # cascaded automatically — remove it explicitly.
+    await session.execute(delete(ClubMember).where(ClubMember.user_id == acting.id))
+    # A waiver confirmation is someone else's evidence that they agreed to the waiver —
+    # it must not disappear just because the staff member who recorded it deleted their
+    # own account. Drop the reference, keep the confirmation.
+    await session.execute(
+        update(WaiverConfirmation)
+        .where(WaiverConfirmation.recorded_by_user_id == acting.id)
+        .values(recorded_by_user_id=None)
+    )
+    # UserRole and Identity cascade via the ORM relationship (cascade="all, delete-orphan").
+    await session.delete(acting)
+    await session.commit()
 
 
 @router.get(

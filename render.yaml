@@ -32,6 +32,33 @@ services:
       # if you ever call the API cross-origin.
       - key: SBL_CORS_ORIGINS
         value: '["https://sbl-web.onrender.com"]'
+      # SMTP, for the email one-time-code sign-in (the only sign-in method the UI offers
+      # today). Without these, app.mail falls back to just logging the code — fine for
+      # SBL_DEV_LOGIN=true, useless once that's turned off. `sync: false` means Render
+      # prompts for the value once in the dashboard during the initial Blueprint launch
+      # and stores it there — it is never written into this file. See docs/deploy.md.
+      #
+      # Two different encryption schemes, not interchangeable — check your provider's own
+      # docs rather than assuming: STARTTLS upgrades a plaintext connection (usually port
+      # 587); implicit TLS/SSL encrypts from the first byte (usually port 465) — some
+      # providers (e.g. STRATO) document that as the path for normal mail clients and
+      # 587/STARTTLS as relay-only. PORT and SSL are `sync: false` alongside the rest so a
+      # provider-specific choice made in the dashboard is never silently reverted by a
+      # later Blueprint re-sync — this deployment currently uses STRATO (port 465, SSL).
+      - key: SBL_SMTP_HOST
+        sync: false
+      - key: SBL_SMTP_PORT
+        sync: false
+      - key: SBL_SMTP_USER
+        sync: false
+      - key: SBL_SMTP_PASSWORD
+        sync: false
+      - key: SBL_SMTP_STARTTLS
+        value: "true"
+      - key: SBL_SMTP_SSL
+        sync: false
+      - key: SBL_MAIL_FROM
+        sync: false
 
   - type: web
     name: sbl-web

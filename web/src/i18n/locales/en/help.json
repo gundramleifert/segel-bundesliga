@@ -1,0 +1,114 @@
+{
+  "title": "Help",
+  "intro": "How the site works — for guests, club managers, race committees and administrators alike.",
+  "roles": {
+    "title": "Roles and what they can do",
+    "intro": "Every request checks a person's roles fresh against the database, so granting or revoking one takes effect immediately, not after the next sign-in. The table below summarizes who can do what.",
+    "areaHeader": "Area",
+    "columns": {
+      "admin": "Admin",
+      "editor": "Editor",
+      "raceOfficer": "Race committee",
+      "clubManager": "Club manager"
+    },
+    "areas": {
+      "createClubsEnroll": "Create clubs and enroll them in a Series",
+      "createSeries": "Create a Series and set its participants",
+      "maintainEvents": "Create and maintain Events",
+      "pairingAccountsRoles": "Generate pairing lists; manage accounts and roles",
+      "enterResults": "Enter race results",
+      "assignUserToClub": "Assign a person to a club",
+      "registerParticipants": "Register participants for a Series or Event",
+      "maintainSailors": "Create and maintain sailor records",
+      "registerSquad": "Register a Squad for a Series",
+      "acceptClubMembers": "Accept club membership requests"
+    },
+    "cells": {
+      "yes": "Yes",
+      "no": "—",
+      "own": "Own club only",
+      "hostsCreate": "Only to create an Event their own club hosts"
+    },
+    "guestNote": "Without an account, or with no role assigned, you can still browse everything public — the league table, Events, clubs and sailor profiles. You just can't change anything."
+  },
+  "howTo": {
+    "title": "Common tasks, step by step",
+    "createSeries": {
+      "title": "Create a Series",
+      "who": "Admin only.",
+      "steps": [
+        "Sign in with an account that has the admin role and open Admin from the top navigation.",
+        "In the Series section, enter a name that carries the year, e.g. \"1st German Sailing Bundesliga 2027\" — there is no separate field for the year in the public display, though an optional numeric Year field is there too, mainly for sorting.",
+        "Optionally set a start and end date.",
+        "Choose which clubs take part with the two-column selector: click a club on the left to move it into \"selected\" on the right.",
+        "Click Create."
+      ],
+      "note": "Editors can see this section but not create a Series — a message there explains that series are created by the business office (admin) only. Once a Series exists, its \"Edit\" button lets an admin change the participating clubs or add a description at any time."
+    },
+    "createEvent": {
+      "title": "Create an Event",
+      "who": "Admin, editor or race committee — plus a club manager, but only for an Event their own club hosts.",
+      "steps": [
+        "Open Admin and go to the Events section.",
+        "Enter a title and a date.",
+        "Optionally assign the Event to a Series — this is what makes it count toward that Series' standings — and pick a host club.",
+        "Set team count, boat count and flight count; the form shows the resulting races per flight as you type.",
+        "Click Create."
+      ],
+      "note": "Today the Admin page itself is reachable for admin and editor accounts only. The race-committee and hosting-club-manager permissions to create an Event exist in the rules, but the interface has no entry point for them yet."
+    },
+    "createClub": {
+      "title": "Create a Club",
+      "who": "Admin or editor.",
+      "steps": [
+        "Open Admin and go to the Clubs section.",
+        "Enter the club's name (at least 3 characters); short name and city are optional.",
+        "Click Create."
+      ],
+      "note": "A newly created club does not appear on the public Clubs page until it is enrolled in a Series for the current year — creating it is only the first step."
+    },
+    "createAccount": {
+      "title": "Create an Account",
+      "who": "An admin can create one directly for someone; a person can also create their own where self-registration is switched on.",
+      "steps": [
+        "Admin path: an administrator creates the account with an email address, a display name and any roles it should start with. Such an account counts as already verified, since the address came from an entry or import rather than being claimed by the person themselves.",
+        "Self-registration path: where enabled, a person submits their own email and name and receives a confirmation code by email, valid for ten minutes. Entering that code verifies the address.",
+        "Either way, a fresh account starts with no role and no club — it becomes useful once it is linked to a club (see \"Join a Club\" below).",
+        "Signing in itself never uses a stored password: it happens via Google, Microsoft, or a one-time code sent by email."
+      ],
+      "note": "Neither path has a page in the interface yet — account creation, self-registration and real sign-in are currently reachable only through the API. In development, the role switcher in the bottom-right corner stands in for signing in as any test account."
+    },
+    "registerSeries": {
+      "title": "Register a Club for a Series",
+      "who": "Admin sets this directly; a club manager can also apply on their own club's behalf, subject to admin approval.",
+      "steps": [
+        "Admin path: while creating or editing a Series, add the club with the club selector in the Admin page — this takes effect immediately, no approval needed.",
+        "Application path: a club manager submits a request naming their club and the Series; it only counts once an admin accepts it.",
+        "This registration — with no Event attached — is what makes the club's Squad and its public visibility for that Series possible. It is separate from taking part in any one Event of that Series."
+      ],
+      "note": "The application path exists in the API but has no page in the interface yet. For now, registering a club for a Series happens through the Admin page's Series section."
+    },
+    "registerEvent": {
+      "title": "Register a Club for an Event",
+      "who": "Admin sets this directly; a club manager can also apply, subject to admin approval.",
+      "steps": [
+        "A club must already be registered for the Event's Series before it can take part in one of that Series' Events.",
+        "Admin path: the clubs participating in a specific Event are set directly and take effect immediately.",
+        "Application path: a club manager submits a request naming their club and the Event; it only counts once an admin accepts it.",
+        "This participation — with the Event attached — is what the pairing list, results and lineup for that Event work from."
+      ],
+      "note": "Neither the admin path nor the application path for Event participants has a page in the interface yet; both exist only as API endpoints so far."
+    },
+    "joinClub": {
+      "title": "Join a Club (Club Membership)",
+      "who": "Requires mutual consent — one side proposes, the other side decides.",
+      "steps": [
+        "A person applies to a club; the club's leadership then approves or rejects the request.",
+        "Or the other way around: a club invites someone by their email address; that person then accepts or declines.",
+        "If both sides have already acted — an application meeting a standing invitation, or the reverse — membership becomes active right away.",
+        "Either side can later end an active membership."
+      ],
+      "note": "This differs from registering for a Series or an Event, which management can also do unilaterally. Club membership has no page in the interface yet — it exists only as API endpoints (apply, invite, accept, reject, withdraw)."
+    }
+  }
+}

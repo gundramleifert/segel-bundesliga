@@ -3,7 +3,22 @@
   "notSignedIn": "Not signed in",
   "description": "Public pages are open to everyone. To access squads, entries, and results, you must sign in.",
   "sessionExpired": "Your session is no longer valid. Please sign in again.",
-  "devNote": "In development, the switcher in the bottom right lets you cycle through roles. Later, you'll sign in here via Google, Microsoft, or a one-time code by email.",
+  "devNote": "In development, the switcher in the bottom right lets you cycle through roles.",
+  "signIn": {
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "sendCode": "Send code",
+    "sending": "Sending…",
+    "codeSentTitle": "Check your email",
+    "codeSentHint": "If an account exists for {{email}}, a code is on its way. It's valid for ten minutes.",
+    "codeLabel": "One-time code",
+    "codePlaceholder": "6-digit code",
+    "verify": "Sign in",
+    "verifying": "Signing in…",
+    "changeEmail": "Use a different address",
+    "resendCode": "Resend code",
+    "resent": "A new code is on its way."
+  },
   "permissions": "Your permissions",
   "noPermissions": "Nothing beyond public pages. Roles are assigned by the admin.",
   "signedInNoRole": "Signed in, but with no special role",
@@ -22,5 +37,14 @@
     "status": "Status",
     "active": "active",
     "disabled": "disabled"
+  },
+  "deleteAccount": {
+    "title": "Delete account",
+    "description": "For now, this removes the account outright — a convenience while accounts are still mostly test data, not the permanent behavior.",
+    "button": "Delete my account",
+    "confirmPrompt": "This cannot be undone. Delete the account permanently?",
+    "confirmButton": "Yes, delete permanently",
+    "cancelButton": "Cancel",
+    "deleting": "Deleting…"
   }
 }

@@ -8,7 +8,8 @@
     "events": "Termine",
     "clubs": "Vereine",
     "account": "Konto",
-    "admin": "Verwaltung"
+    "admin": "Verwaltung",
+    "help": "Hilfe"
   },
   "status": {
     "planned": "geplant",

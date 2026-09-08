@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: a72aa462609e
+Revision ID: ca9199325b2d
 Revises: 
-Create Date: 2026-09-07 23:02:56.274813
+Create Date: 2026-09-08 20:48:51.019924
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'a72aa462609e'
+revision: str = 'ca9199325b2d'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -121,6 +121,7 @@ def upgrade() -> None:
     sa.Column('ends_on', sa.Date(), nullable=True),
     sa.Column('level', sa.Integer(), nullable=True),
     sa.Column('scoring', sa.JSON(), nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_series'))

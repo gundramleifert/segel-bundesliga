@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout } from "./components/Layout";
 import { LegacyRedirect } from "./components/LegacyRedirect";
+import { Help } from "./pages/Help";
 import { Account } from "./pages/Konto";
 import { Sailor } from "./pages/Segler";
 import { Matchday } from "./pages/Spieltag";
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="sailors/:id" element={<Sailor />} />
         <Route path="account" element={<Account />} />
         <Route path="admin" element={<Admin />} />
+        <Route path="help" element={<Help />} />
         {/* Legacy German paths from before the English rewrite — kept as redirects so
             nothing bookmarked from the earlier build breaks outright. */}
         <Route path="tabelle" element={<Navigate to="/standings" replace />} />

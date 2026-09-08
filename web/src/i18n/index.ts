@@ -20,6 +20,7 @@ import commonDe from "./locales/de/common.json";
 import devDe from "./locales/de/dev.json";
 import errorsDe from "./locales/de/errors.json";
 import eventsDe from "./locales/de/events.json";
+import helpDe from "./locales/de/help.json";
 import matchdayDe from "./locales/de/matchday.json";
 import sailorDe from "./locales/de/sailor.json";
 import standingsDe from "./locales/de/standings.json";
@@ -32,6 +33,7 @@ import commonEn from "./locales/en/common.json";
 import devEn from "./locales/en/dev.json";
 import errorsEn from "./locales/en/errors.json";
 import eventsEn from "./locales/en/events.json";
+import helpEn from "./locales/en/help.json";
 import matchdayEn from "./locales/en/matchday.json";
 import sailorEn from "./locales/en/sailor.json";
 import standingsEn from "./locales/en/standings.json";
@@ -58,6 +60,7 @@ void i18n
         admin: adminEn,
         dev: devEn,
         errors: errorsEn,
+        help: helpEn,
       },
       de: {
         common: commonDe,
@@ -72,6 +75,7 @@ void i18n
         admin: adminDe,
         dev: devDe,
         errors: errorsDe,
+        help: helpDe,
       },
     },
     fallbackLng: "en",
@@ -89,6 +93,7 @@ void i18n
       "admin",
       "dev",
       "errors",
+      "help",
     ],
     defaultNS: "common",
     interpolation: { escapeValue: false },

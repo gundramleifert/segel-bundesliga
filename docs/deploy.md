@@ -88,3 +88,55 @@ login works.
 
 Leave `SBL_JWT_SECRET` to `generateValue` / a random string. An **empty** secret closes
 the protected area entirely (by design); a **known** secret would let anyone forge tokens.
+
+---
+
+## Turning on real sign-in (SMTP)
+
+The UI's sign-in flow is a one-time code sent by email (`POST /api/auth/email/request` /
+`/email/verify`) — this is the only sign-in method the frontend offers today. Without SMTP
+configured, `api/app/mail.py` falls back to **logging** the code instead of sending it,
+which is only useful with `SBL_DEV_LOGIN=true` and shell access to read the log. To make
+sign-in actually usable for real users, `render.yaml` declares these variables on
+`sbl-api` (see the "SMTP" block there):
+
+| Variable | Default | Notes |
+|---|---|---|
+| `SBL_SMTP_HOST` | *(none, `sync: false`)* | your provider's SMTP hostname |
+| `SBL_SMTP_PORT` | `587` | STARTTLS submission port — check your provider if it differs |
+| `SBL_SMTP_USER` | *(none, `sync: false`)* | login name for the SMTP account |
+| `SBL_SMTP_PASSWORD` | *(none, `sync: false`)* | login password / API key |
+| `SBL_SMTP_STARTTLS` | `true` | STARTTLS on the plaintext connection (ignored if `SBL_SMTP_SSL` is `true`) |
+| `SBL_SMTP_SSL` | `false` | implicit TLS/SSL from the first byte instead — set `true` **and** `SBL_SMTP_PORT=465` for a provider that documents that as the normal-client path (e.g. STRATO: `smtp.strato.de:465`, username = the full email address, `587`/STARTTLS documented there as relay-only) |
+| `SBL_MAIL_FROM` | *(none, `sync: false`)* | the `From:` address, e.g. `noreply@yourdomain` |
+
+**Where to enter the `sync: false` values:** these are deliberately left out of
+`render.yaml` (see the "Security note" above the sign-in section, and the comment next to
+each `sync: false` line) — a Render Blueprint prompts for each `sync: false` variable
+once, during the **initial** Blueprint creation flow in the Dashboard. If you deploy first
+and configure SMTP afterwards, or need to change a value later, go to the `sbl-api`
+service in the Render Dashboard → **Environment** tab → add/edit the variable there
+directly; a later re-sync of the Blueprint from `render.yaml` does not touch variables
+already marked `sync: false`, so this is also how you rotate a password. The value never
+gets written back into `render.yaml` or committed to the repo either way.
+
+**Getting real SMTP credentials for testing:** this doc already points at
+[Brevo](https://www.brevo.com) and [Resend](https://resend.com) as free-tier options for
+closing `SBL_DEV_LOGIN`. Both give you an SMTP username and password/API key on sign-up;
+the concrete host and port are on your own account's SMTP settings page in their
+dashboard (Brevo's transactional-email SMTP page, Resend's SMTP integration page) — copy
+those values into `SBL_SMTP_HOST`/`SBL_SMTP_PORT` rather than assuming a fixed hostname,
+since these can change per account/region.
+
+**Google and Microsoft sign-in are not wired up in the UI yet** — the backend already
+supports both (`api/app/services/login.py`, `POST /api/auth/oidc/{provider}`) and
+`GET /api/auth/providers` already reports `SBL_GOOGLE_CLIENT_ID` /
+`SBL_MICROSOFT_CLIENT_ID` availability for whenever a frontend button is built against it,
+but for now email is the only sign-in method the site actually offers, so `render.yaml`
+does not declare those two variables. Once a Google/Microsoft sign-in button exists in
+`web/`, add `SBL_GOOGLE_CLIENT_ID`, `SBL_MICROSOFT_CLIENT_ID` (both `sync: false` —
+deployment-specific, not secret) and `SBL_MICROSOFT_TENANT` (default `common`) to
+`sbl-api` in `render.yaml` the same way as the SMTP variables above.
+
+Once SMTP is configured (and, later, an OIDC provider if one gets added), `SBL_DEV_LOGIN`
+can be turned off.

@@ -144,6 +144,34 @@ class TestSeriesCreation:
         public = {s["year"] for s in (await client.get("/api/series")).json()}
         assert public == {2026}
 
+    async def test_description_round_trips_through_the_api(self, client, caplog):
+        """The free-text, Markdown description is set on creation and can be edited."""
+        headers = await als(client, caplog, "se11@example.com", Role.ADMIN)
+        series = (
+            await client.post(
+                "/api/admin/series",
+                headers=headers,
+                json={
+                    "name": "Described Series 2028",
+                    "year": 2028,
+                    "description": "## Welcome\n\nSee you on the water.",
+                },
+            )
+        ).json()
+        assert series["description"] == "## Welcome\n\nSee you on the water."
+
+        changed = await client.patch(
+            f"/api/admin/series/{series['id']}",
+            headers=headers,
+            json={"description": "Updated text."},
+        )
+        assert changed.status_code == 200
+        assert changed.json()["description"] == "Updated text."
+
+        table = await client.get(f"/api/series/{series['id']}/table")
+        assert table.status_code == 200
+        assert table.json()["series"]["description"] == "Updated text."
+
     async def test_series_can_be_renamed(self, client, caplog):
         headers = await als(client, caplog, "se9@example.com", Role.ADMIN)
         series = (

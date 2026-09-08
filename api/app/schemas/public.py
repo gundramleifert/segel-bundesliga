@@ -38,6 +38,8 @@ class SeriesOut(BaseModel):
     level: int | None = None
     starts_on: date | None = None
     ends_on: date | None = None
+    # Free-text, Markdown, for the public standings page. Absent unless an admin set one.
+    description: str | None = None
 
 
 class VenueOut(BaseModel):
@@ -67,6 +69,24 @@ class MemberOut(BaseModel):
     first_name: str
     last_name: str
     role: str
+
+
+class ClubMemberOut(BaseModel):
+    """A fellow member of the club, as seen by another active member.
+
+    Not to be confused with `MemberOut`: that one is the sporting roster (squad/lineup)
+    and is public to everyone. This describes `ClubMember` — the account's affiliation
+    with the club — and is only ever shown to that club's own active members or staff.
+    Deliberately without email or decision notes, and only active memberships: contact
+    data and pending requests stay the club leadership's business (see `MembershipOut`
+    in `app.routers.club_members`), not something every peer should see.
+    """
+
+    user_id: int
+    display_name: str
+    # Whether this member also organizes the club (holds `club_manager` for it) — same
+    # logic as `MembershipOut.organizer`.
+    organizer: bool = False
 
 
 class ClubEventOut(BaseModel):

@@ -549,6 +549,31 @@ Endpoints: `DELETE /api/auth/users/{id}`
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestRemoveAccount`
 
+### Z-7 ● Delete my own account
+
+As a **signed-in person** I want to **delete my own account outright**,
+so that **cleaning up a test account doesn't need administration**.
+
+Deliberately different from Z-6: this is a **testing-phase convenience**, not the
+permanent answer. While accounts are still mostly test data, self-service cleanup matters
+more than an audit trail — a real delete is safe because nothing in season history points
+at a `User` by foreign key today (`Sailor` is linked only by email). **Once accounts are
+reachable from real registrations, results, or waiver confirmations other people rely on,
+this stops being safe** and should become a deactivation too, or gain a precondition —
+revisit before real seasons depend on this data.
+
+Acceptance criteria:
+- `DELETE /api/auth/me` removes the account row itself, not just `is_active`.
+- Administrative rows that point at the account by id and have no ORM cascade are cleaned
+  up explicitly: club memberships (`ClubMember`) are deleted; a waiver confirmation the
+  account recorded for someone else keeps its row, with the reference cleared.
+- `UserRole` and `Identity` rows go with the account (already cascaded).
+- The now-invalid token stops working immediately, same as any other removed account.
+
+Endpoints: `DELETE /api/auth/me`
+
+Tests: `api/tests/stories/test_login_and_roles.py::TestDeleteMyAccount`
+
 ### V-4 ● Create sailors
 As a **club manager** I want to **create sailors in my club**,
 so that I **can register them in the squad**.
@@ -734,6 +759,26 @@ Tests: `api/tests/stories/test_vereinsmitgliedschaft.py::TestVereinLaedtEin`,
 must consent, in whatever direction it begins. With series and event it is different — there
 administration also assigns **unilaterally**, because it runs the competition, and only the
 opposite direction (club applies) needs their consent. See [V-6](#v-6--request-participation-in-an-event).
+
+### V-10 ● See fellow club members
+As an **active club member** I want to **see who else belongs to my club**, so that I
+**know who I'm sailing with** — without needing the leadership's admin view.
+
+Acceptance criteria:
+- Only **active** memberships are shown — pending requests and invitations stay the
+  leadership's business ([V-8](#v-8--decide-on-membership-requests)).
+- No email address and no decision notes: that stays reserved for the club's own
+  leadership and admin ([V-8](#v-8--decide-on-membership-requests)). Display name and
+  organizer status only.
+- Open to a signed-in **active member of that specific club**, or `admin`/`editor` staff.
+  A stranger, or a member of a *different* club, gets 403; signed-out gets 401.
+- **Not** the sporting roster: the squad and lineup (`ClubDetail.teams[].members`,
+  `.events[].crew`) stay public with no login required, exactly as before — this is only
+  about `ClubMember`, the account-level affiliation.
+
+Endpoints: `GET /api/clubs/{id}/members`
+
+Tests: `api/tests/stories/test_vereinsmitgliedschaft.py::TestMemberRoster`
 
 ### V-1 ● Register season squad
 As a **club manager** I want to **register the people who are allowed to sail for us**,

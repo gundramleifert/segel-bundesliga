@@ -11,5 +11,7 @@
   "crew_empty": "Aufstellung steht noch aus",
   "stats": "{{count}} gemeldet · {{events}} Acts",
   "website": "Website des Vereins",
-  "clubDescription": "{{short_name}} · {{city}}"
+  "clubDescription": "{{short_name}} · {{city}}",
+  "members": "Mitglieder",
+  "organizer": "Organisator:in"
 }

@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { path: "/events", key: "events", exact: false },
   { path: "/clubs", key: "clubs", exact: false },
   { path: "/account", key: "account", exact: false },
+  { path: "/help", key: "help", exact: false },
 ] as const;
 
 export function Layout() {

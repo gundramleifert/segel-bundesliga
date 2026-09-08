@@ -54,6 +54,11 @@ class SeriesCreate(BaseModel):
     )
     scoring: dict[str, Any] | None = None
     slug: str | None = Field(default=None, description="If absent, it is generated from the name.")
+    description: str | None = Field(
+        default=None,
+        max_length=4000,
+        description="Markdown, shown on the public standings page.",
+    )
 
 
 class SeriesUpdate(BaseModel):
@@ -64,6 +69,7 @@ class SeriesUpdate(BaseModel):
     ends_on: date | None = None
     level: int | None = None
     scoring: dict[str, Any] | None = None
+    description: str | None = Field(default=None, max_length=4000)
 
 
 class SetClubs(BaseModel):
@@ -162,6 +168,7 @@ async def create_series(
         ends_on=request.ends_on,
         level=request.level,
         scoring=request.scoring if request.scoring is not None else dict(DEFAULT_SCORING),
+        description=request.description.strip() if request.description else None,
     )
     session.add(series)
     await session.flush()

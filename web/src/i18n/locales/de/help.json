@@ -1,0 +1,114 @@
+{
+  "title": "Hilfe",
+  "intro": "So funktioniert die Seite — für Gäste ebenso wie für Vereinsverwaltung, Wettfahrtleitung und Geschäftsstelle.",
+  "roles": {
+    "title": "Rollen und ihre Rechte",
+    "intro": "Jede Anfrage prüft die Rollen einer Person frisch gegen die Datenbank. Wird eine Rolle vergeben oder entzogen, wirkt das sofort — nicht erst bei der nächsten Anmeldung. Die folgende Tabelle zeigt, wer was darf.",
+    "areaHeader": "Bereich",
+    "columns": {
+      "admin": "Geschäftsstelle",
+      "editor": "Redaktion",
+      "raceOfficer": "Wettfahrtleitung",
+      "clubManager": "Vereinsverwaltung"
+    },
+    "areas": {
+      "createClubsEnroll": "Vereine anlegen und einer Serie zuordnen",
+      "createSeries": "Eine Serie anlegen und ihre Teilnehmer festlegen",
+      "maintainEvents": "Veranstaltungen anlegen und pflegen",
+      "pairingAccountsRoles": "Pairing-Listen berechnen; Konten und Rollen verwalten",
+      "enterResults": "Wettfahrtergebnisse erfassen",
+      "assignUserToClub": "Eine Person einem Verein zuordnen",
+      "registerParticipants": "Teilnehmer für eine Serie oder Veranstaltung melden",
+      "maintainSailors": "Segler anlegen und pflegen",
+      "registerSquad": "Den Kader für eine Serie melden",
+      "acceptClubMembers": "Aufnahmeanträge von Vereinsmitgliedern annehmen"
+    },
+    "cells": {
+      "yes": "Ja",
+      "no": "—",
+      "own": "Nur der eigene Verein",
+      "hostsCreate": "Nur um eine Veranstaltung anzulegen, die der eigene Verein ausrichtet"
+    },
+    "guestNote": "Auch ohne Konto oder ohne zugewiesene Rolle lässt sich alles Öffentliche einsehen — Tabelle, Veranstaltungen, Vereine und Seglerprofile. Ändern lässt sich damit nur nichts."
+  },
+  "howTo": {
+    "title": "Häufige Aufgaben, Schritt für Schritt",
+    "createSeries": {
+      "title": "Eine Serie anlegen",
+      "who": "Nur die Geschäftsstelle (Rolle admin).",
+      "steps": [
+        "Mit einem Konto anmelden, das die Rolle admin hat, und oben in der Navigation Verwaltung öffnen.",
+        "Im Abschnitt Serien einen Namen eingeben, der den Jahrgang schon trägt, z. B. \"1. Segel-Bundesliga 2027\" — für die öffentliche Anzeige gibt es kein eigenes Jahresfeld, wohl aber ein optionales Zahlenfeld Jahrgang, das vor allem der Sortierung dient.",
+        "Optional Beginn- und Enddatum setzen.",
+        "Mit der zweispaltigen Auswahl festlegen, welche Vereine teilnehmen: ein Klick auf einen Verein links verschiebt ihn nach rechts in die Auswahl.",
+        "Auf Serie anlegen klicken."
+      ],
+      "note": "Die Redaktion sieht diesen Abschnitt, kann aber keine Serie anlegen — ein Hinweistext erklärt, dass Serien nur die Geschäftsstelle anlegt. Ist eine Serie einmal angelegt, lässt sich über deren Schaltfläche \"Vereine ändern\" jederzeit die Teilnehmerliste anpassen oder eine Beschreibung ergänzen."
+    },
+    "createEvent": {
+      "title": "Eine Veranstaltung anlegen",
+      "who": "Geschäftsstelle, Redaktion oder Wettfahrtleitung — außerdem die Vereinsverwaltung, aber nur für eine Veranstaltung, die der eigene Verein ausrichtet.",
+      "steps": [
+        "Verwaltung öffnen und zum Abschnitt Veranstaltungen gehen.",
+        "Name und Datum eingeben.",
+        "Optional die Veranstaltung einer Serie zuordnen — erst dadurch zählt sie zu deren Tabelle — und einen Ausrichter wählen.",
+        "Team-, Boots- und Flight-Anzahl festlegen; das Formular zeigt dabei sofort, wie viele Wettfahrten pro Flight sich daraus ergeben.",
+        "Auf Veranstaltung anlegen klicken."
+      ],
+      "note": "Aktuell ist die Verwaltungsseite selbst nur für Geschäftsstelle und Redaktion erreichbar. Die Rechte von Wettfahrtleitung und ausrichtender Vereinsverwaltung, eine Veranstaltung anzulegen, sind zwar in den Regeln vorgesehen, aber noch ohne eigene Oberfläche."
+    },
+    "createClub": {
+      "title": "Einen Verein anlegen",
+      "who": "Geschäftsstelle oder Redaktion.",
+      "steps": [
+        "Verwaltung öffnen und zum Abschnitt Vereine gehen.",
+        "Den Namen des Vereins eingeben (mindestens 3 Zeichen); Kürzel und Ort sind optional.",
+        "Auf Anlegen klicken."
+      ],
+      "note": "Ein neu angelegter Verein erscheint erst auf der öffentlichen Vereinsseite, sobald er einer Serie des laufenden Jahrgangs zugeordnet ist — das Anlegen selbst ist nur der erste Schritt."
+    },
+    "createAccount": {
+      "title": "Ein Konto anlegen",
+      "who": "Die Geschäftsstelle kann ein Konto direkt für jemanden anlegen; eine Person kann sich auch selbst registrieren, sofern das freigeschaltet ist.",
+      "steps": [
+        "Weg über die Geschäftsstelle: Eine Verwaltungsperson legt das Konto mit E-Mail-Adresse, Anzeigename und den gewünschten Startrollen an. Ein so angelegtes Konto gilt als bereits bestätigt, weil die Adresse aus einer Erfassung oder einem Import stammt und nicht von der Person selbst beansprucht wurde.",
+        "Weg über Selbstregistrierung: Ist dies freigeschaltet, gibt eine Person ihre eigene E-Mail-Adresse und ihren Namen an und erhält per E-Mail einen zehn Minuten gültigen Bestätigungscode. Mit dessen Eingabe gilt die Adresse als bestätigt.",
+        "In beiden Fällen startet ein frisches Konto ohne Rolle und ohne Verein — nützlich wird es erst, sobald es mit einem Verein verknüpft ist (siehe \"Einem Verein beitreten\" weiter unten).",
+        "Die Anmeldung selbst kommt ganz ohne gespeichertes Passwort aus: Sie läuft über Google, Microsoft oder einen per E-Mail verschickten Einmalcode."
+      ],
+      "note": "Für beide Wege gibt es noch keine eigene Seite in der Oberfläche — Konto anlegen, Selbstregistrierung und die eigentliche Anmeldung sind derzeit nur über die Programmierschnittstelle erreichbar. In der Entwicklungsumgebung übernimmt der Rollenschalter unten rechts ersatzweise die Anmeldung mit einem beliebigen Testkonto."
+    },
+    "registerSeries": {
+      "title": "Einen Verein für eine Serie melden",
+      "who": "Die Geschäftsstelle legt dies direkt fest; die Vereinsverwaltung kann für den eigenen Verein auch einen Antrag stellen, über den dann die Geschäftsstelle entscheidet.",
+      "steps": [
+        "Weg über die Geschäftsstelle: Beim Anlegen oder Bearbeiten einer Serie den Verein über die Vereinsauswahl in der Verwaltungsseite hinzufügen — das wirkt sofort, ohne weitere Zustimmung.",
+        "Weg über einen Antrag: Die Vereinsverwaltung stellt einen Antrag mit dem eigenen Verein und der gewünschten Serie; er zählt erst, wenn die Geschäftsstelle ihn annimmt.",
+        "Diese Meldung — ohne zugeordnete Veranstaltung — ist die Voraussetzung für den Kader des Vereins und seine öffentliche Sichtbarkeit in dieser Serie. Sie ist etwas anderes als die Teilnahme an einer einzelnen Veranstaltung dieser Serie."
+      ],
+      "note": "Der Antragsweg existiert bereits in der Programmierschnittstelle, hat aber noch keine eigene Seite. Aktuell läuft die Meldung eines Vereins für eine Serie über den Abschnitt Serien der Verwaltungsseite."
+    },
+    "registerEvent": {
+      "title": "Einen Verein für eine Veranstaltung melden",
+      "who": "Die Geschäftsstelle legt dies direkt fest; die Vereinsverwaltung kann auch hier einen Antrag stellen, über den die Geschäftsstelle entscheidet.",
+      "steps": [
+        "Ein Verein muss bereits für die Serie der Veranstaltung gemeldet sein, bevor er an einer ihrer Veranstaltungen teilnehmen kann.",
+        "Weg über die Geschäftsstelle: Die teilnehmenden Vereine einer bestimmten Veranstaltung werden direkt festgelegt und wirken sofort.",
+        "Weg über einen Antrag: Die Vereinsverwaltung stellt einen Antrag mit dem eigenen Verein und der gewünschten Veranstaltung; er zählt erst nach Annahme durch die Geschäftsstelle.",
+        "Diese Teilnahme — mit zugeordneter Veranstaltung — ist die Grundlage, auf der Pairing-Liste, Ergebnisse und Aufstellung dieser Veranstaltung aufbauen."
+      ],
+      "note": "Weder der direkte Weg über die Geschäftsstelle noch der Antragsweg für Veranstaltungsteilnehmer haben bisher eine eigene Seite — beide existieren bislang nur als Endpunkte der Programmierschnittstelle."
+    },
+    "joinClub": {
+      "title": "Einem Verein beitreten (Mitgliedschaft)",
+      "who": "Erfordert die Zustimmung beider Seiten — eine Seite schlägt vor, die andere entscheidet.",
+      "steps": [
+        "Eine Person beantragt die Mitgliedschaft bei einem Verein; die Vereinsleitung nimmt den Antrag an oder lehnt ihn ab.",
+        "Oder umgekehrt: Ein Verein lädt jemanden über dessen E-Mail-Adresse ein; diese Person nimmt die Einladung an oder lehnt sie ab.",
+        "Haben beide Seiten bereits gehandelt — trifft ein Antrag auf eine bestehende Einladung oder umgekehrt —, wird die Mitgliedschaft sofort aktiv.",
+        "Jede Seite kann eine aktive Mitgliedschaft später wieder beenden."
+      ],
+      "note": "Das unterscheidet sich von der Meldung für eine Serie oder Veranstaltung, die die Verwaltung auch einseitig vornehmen kann. Für die Vereinsmitgliedschaft gibt es noch keine eigene Seite — sie existiert bislang nur als Programmierschnittstelle (beantragen, einladen, annehmen, ablehnen, austreten)."
+    }
+  }
+}

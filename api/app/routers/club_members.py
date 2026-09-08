@@ -26,7 +26,8 @@ from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import AuditLog, Club, ClubMember, ClubMemberStatus
 from app.models.auth import Role, User, UserRole
-from app.schemas.public import ClubOut
+from app.problems import Problem
+from app.schemas.public import ClubMemberOut, ClubOut
 
 router = APIRouter(tags=["membership"])
 
@@ -259,6 +260,57 @@ async def list_club_members(
         )
     ).scalars()
     return [_format_membership(row) for row in rows]
+
+
+@router.get(
+    "/api/clubs/{club_id}/members",
+    response_model=list[ClubMemberOut],
+    summary="Fellow club members",
+)
+async def list_members_for_member(
+    club_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+    locale: Locale = Depends(resolve_locale),
+) -> list[ClubMemberOut]:
+    """Who else belongs to my club — for an ordinary member, not just the leadership.
+
+    A narrower sibling of ``list_club_members``: that one is leadership-only and shows
+    every pending request plus each member's email; this one is open to any signed-in
+    **active member of this specific club** (or admin/editor staff), and shows only active
+    memberships with no contact details — a stranger, or a member of a *different* club,
+    gets 403.
+    """
+    club = await _get_club(session, club_id, locale)
+    if not acting.has_any(Role.ADMIN, Role.EDITOR):
+        own = await _get_existing_membership(session, club.id, acting.id)
+        if own is None or own.status != ClubMemberStatus.ACTIVE:
+            raise Problem(
+                403,
+                "club-members-restricted-to-members",
+                "Only active members of this club, or staff, can see its member list.",
+            )
+
+    rows = (
+        await session.execute(
+            _with_relations(
+                select(ClubMember).where(
+                    ClubMember.club_id == club.id,
+                    ClubMember.status == ClubMemberStatus.ACTIVE,
+                )
+            )
+        )
+    ).scalars()
+    members = [
+        ClubMemberOut(
+            user_id=row.user_id,
+            display_name=row.user.display_name,
+            organizer=row.user.club_id == row.club_id and row.user.has_any(Role.CLUB_MANAGER),
+        )
+        for row in rows
+    ]
+    members.sort(key=lambda member: member.display_name)
+    return members
 
 
 @router.post(

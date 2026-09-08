@@ -11,5 +11,7 @@
   "crew_empty": "Lineup to be determined",
   "stats": "{{count}} registered · {{events}} matchdays",
   "website": "Club website",
-  "clubDescription": "{{short_name}} · {{city}}"
+  "clubDescription": "{{short_name}} · {{city}}",
+  "members": "Members",
+  "organizer": "Organizer"
 }

@@ -8,7 +8,8 @@
     "events": "Events",
     "clubs": "Clubs",
     "account": "Account",
-    "admin": "Admin"
+    "admin": "Admin",
+    "help": "Help"
   },
   "status": {
     "planned": "planned",

@@ -56,7 +56,13 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
+    # Two different ways providers expect encryption on the wire — not interchangeable:
+    # STARTTLS upgrades a plaintext connection (typically port 587/25); implicit TLS/SSL
+    # encrypts from the first byte (typically port 465). STRATO, for example, documents
+    # 465/SSL as the path for normal mail clients and 587/STARTTLS as relay-only — check
+    # your provider's docs rather than assuming. smtp_ssl wins if both were set.
     smtp_starttls: bool = True
+    smtp_ssl: bool = False
     mail_from: str = "noreply@segelbundesliga.de"
 
 

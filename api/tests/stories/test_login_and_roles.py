@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import delete, select
 
 from app.db import SessionLocal
-from app.models import ClubMember
+from app.models import Club, ClubMember, ClubMemberStatus, Sailor, WaiverConfirmation, WaiverText
 from app.models.auth import IdentityProvider, LoginCode, Role, User, UserRole
 
 
@@ -72,8 +72,9 @@ class TestAnmeldung:
         """The page tells which sign-in methods are available."""
         wege = (await client.get("/api/auth/providers")).json()
         # Email always works; providers only with configured application ID.
-        assert wege[IdentityProvider.EMAIL] is True
+        assert wege[IdentityProvider.EMAIL]["available"] is True
         assert IdentityProvider.GOOGLE in wege and IdentityProvider.MICROSOFT in wege
+        assert "allow_registration" in wege
 
     async def test_mit_einem_einmalcode_komme_ich_hinein(self, client, caplog):
         """I can sign in with a one-time code."""
@@ -251,6 +252,110 @@ class TestRemoveAccount:
             headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 403
+
+
+class TestDeleteMyAccount:
+    """Story Z-7: a signed-in person can delete their own account outright — a
+    testing-phase convenience, unlike administration removing someone else (Z-6, which
+    deactivates and keeps the row)."""
+
+    async def test_deleting_removes_the_row(self, client, caplog):
+        user_id = await make_user("del-self@example.org")
+        token = await login_as(client, "del-self@example.org", caplog)
+
+        response = await client.delete(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 204
+
+        async with SessionLocal() as session:
+            gone = (
+                await session.execute(select(User).where(User.id == user_id))
+            ).scalar_one_or_none()
+        assert gone is None
+
+    async def test_the_token_stops_working_immediately(self, client, caplog):
+        await make_user("del-self2@example.org")
+        token = await login_as(client, "del-self2@example.org", caplog)
+
+        await client.delete("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+
+        response = await client.get(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 401
+
+    async def test_club_membership_is_cleaned_up(self, client, caplog):
+        """ClubMember has no ORM cascade from User — deletion must remove it by hand."""
+        user_id = await make_user("del-member@example.org")
+        token = await login_as(client, "del-member@example.org", caplog)
+
+        async with SessionLocal() as session:
+            club = (await session.execute(select(Club).limit(1))).scalars().first()
+            session.add(
+                ClubMember(
+                    club_id=club.id, user_id=user_id, status=ClubMemberStatus.ACTIVE
+                )
+            )
+            await session.commit()
+
+        response = await client.delete(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 204
+
+        async with SessionLocal() as session:
+            leftover = (
+                await session.execute(
+                    select(ClubMember).where(ClubMember.user_id == user_id)
+                )
+            ).scalar_one_or_none()
+        assert leftover is None
+
+    async def test_waiver_confirmations_survive_with_recorder_cleared(
+        self, client, caplog, ids
+    ):
+        """A waiver confirmation is someone else's evidence — it must outlive the staff
+        account that happened to record it, with only the reference cleared."""
+        recorder_id = await make_user("del-recorder@example.org", Role.ADMIN)
+        token = await login_as(client, "del-recorder@example.org", caplog)
+
+        async with SessionLocal() as session:
+            sailor = Sailor(
+                first_name="Del",
+                last_name="Tester",
+                email="del-tester-sailor@example.com",
+            )
+            session.add(sailor)
+            await session.flush()
+            waiver = (
+                await session.execute(select(WaiverText).where(WaiverText.version == 1))
+            ).scalar_one()
+            confirmation = WaiverConfirmation(
+                sailor_id=sailor.id,
+                waiver_text_id=waiver.id,
+                series_id=ids.series("dsbl-1-2026"),
+                method="online",
+                recorded_by_user_id=recorder_id,
+            )
+            session.add(confirmation)
+            await session.commit()
+            confirmation_id = confirmation.id
+
+        response = await client.delete(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 204
+
+        async with SessionLocal() as session:
+            still_there = (
+                await session.execute(
+                    select(WaiverConfirmation).where(
+                        WaiverConfirmation.id == confirmation_id
+                    )
+                )
+            ).scalar_one()
+        assert still_there.recorded_by_user_id is None
 
 
 class TestZuschnittDesSpieltags:

@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import smtplib
+import ssl
 from email.message import EmailMessage
 
 from app.config import settings
@@ -47,9 +48,22 @@ async def send_login_code(email: str, code: str) -> None:
 
 
 def _send(message: EmailMessage) -> None:
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as smtp:
-        if settings.smtp_starttls:
-            smtp.starttls()
+    # Implicit TLS (smtp_ssl, typically port 465) encrypts from the first byte and needs
+    # its own connection class; STARTTLS (typically port 587) upgrades a plaintext one.
+    # Passing an explicit `ssl.create_default_context()` rather than smtplib's own default
+    # ensures certificate and hostname verification actually happen.
+    if settings.smtp_ssl:
+        smtp_cls = smtplib.SMTP_SSL
+        context = ssl.create_default_context()
+        smtp: smtplib.SMTP = smtp_cls(
+            settings.smtp_host, settings.smtp_port, timeout=15, context=context
+        )
+    else:
+        smtp = smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15)
+
+    with smtp:
+        if settings.smtp_starttls and not settings.smtp_ssl:
+            smtp.starttls(context=ssl.create_default_context())
         if settings.smtp_user:
             smtp.login(settings.smtp_user, settings.smtp_password)
         smtp.send_message(message)

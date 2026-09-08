@@ -4,7 +4,7 @@ from datetime import date
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import JSON, Date, ForeignKey, Numeric, String, UniqueConstraint
+from sqlalchemy import JSON, Date, ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -53,6 +53,10 @@ class Series(Base, TimestampMixin):
     # Rank within a year: 1 for the top division, 2 for the second.
     level: Mapped[int | None] = mapped_column(default=None)
     scoring: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    # Free-text description for the public standings page, written and rendered as
+    # Markdown. Longer than a club's — this is where the scoring can be explained, sponsors
+    # thanked, or a season recapped, so `Text` rather than a bounded `String`.
+    description: Mapped[str | None] = mapped_column(Text, default=None)
 
     events: Mapped[list[Event]] = relationship(back_populates="series")
     teams: Mapped[list[Team]] = relationship(back_populates="series")

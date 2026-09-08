@@ -22,6 +22,8 @@ export type ClubDetail = S["ClubDetail"];
 export type SailorDetail = S["SailorDetail"];
 export type Member = S["MemberOut"];
 export type SeriesRow = S["SeriesStandingRow"];
+/** A fellow club member, as seen by another active member — no email, no pending requests. */
+export type ClubMemberSummary = S["ClubMemberOut"];
 
 // Admin
 export type SeriesAdmin = S["SeriesAdminOut"];
@@ -29,11 +31,15 @@ export type ClubAdmin = S["ClubAdminOut"];
 export type SeriesCreate = S["SeriesCreate"];
 export type ClubCreate = S["ClubCreate"];
 export type EventCreate = S["EventCreate"];
+export type BoatSpec = S["BoatSpec"];
+export type PairingCatalogEntry = S["KatalogEintragOut"];
 export type EventTeam = S["ParticipantOut"];
 export type SailorAdmin = S["SailorAdminOut"];
 export type SailorCreate = S["SailorCreate"];
 export type Squad = S["KaderOut"];
 export type SquadEntry = S["KaderEintrag"];
+export type Providers = S["ProvidersOut"];
+export type TokenOut = S["TokenOut"];
 
 export class ApiError extends Error {
   // No constructor shorthand: this project builds with `erasableSyntaxOnly`.
@@ -145,8 +151,23 @@ export const api = {
     const data = (await response.json()) as { access_token: string };
     return data.access_token;
   },
+  /** Sign-in — Google/Microsoft/email one-time code, on top of the already-verified
+   *  backend in `app.services.login`. */
+  auth: {
+    providers: (signal?: AbortSignal) => get<Providers>("/api/auth/providers", signal),
+    requestEmailCode: (email: string) =>
+      send<{ detail: string }>("POST", "/api/auth/email/request", { email }),
+    verifyEmailCode: (email: string, code: string) =>
+      send<TokenOut>("POST", "/api/auth/email/verify", { email, code }),
+    /** Deletes the signed-in account outright — a testing-phase convenience (Story Z-7). */
+    deleteMyAccount: () => send<void>("DELETE", "/api/auth/me"),
+  },
+
   clubs: (signal?: AbortSignal) => get<Club[]>("/api/clubs", signal),
   club: (id: number, signal?: AbortSignal) => get<ClubDetail>(`/api/clubs/${id}`, signal),
+  /** Fellow members of a club — 403 unless the caller is an active member (or staff). */
+  clubMembers: (id: number, signal?: AbortSignal) =>
+    get<ClubMemberSummary[]>(`/api/clubs/${id}/members`, signal),
   sailor: (id: number, signal?: AbortSignal) =>
     get<SailorDetail>(`/api/sailors/${id}`, signal),
   series: (signal?: AbortSignal) => get<Series[]>("/api/series", signal),
@@ -181,6 +202,12 @@ export const api = {
       get<EventTeam[]>(`/api/admin/events/${eventId}/clubs`, signal),
     setEventClubs: (eventId: number, clubs: number[]) =>
       send<EventTeam[]>("PUT", `/api/admin/events/${eventId}/clubs`, { clubs }),
+
+    // Pre-computed pairing-list sizes (teams/boats/flights). The optimization run behind
+    // a size takes minutes, so event creation only ever picks among these instead of
+    // triggering a fresh computation (see app/pairing/catalog.py).
+    pairingCatalog: (signal?: AbortSignal) =>
+      get<PairingCatalogEntry[]>("/api/admin/pairing/catalog", signal),
 
     sailors: (q: string, signal?: AbortSignal) =>
       get<SailorAdmin[]>(`/api/admin/sailors?q=${encodeURIComponent(q)}`, signal),

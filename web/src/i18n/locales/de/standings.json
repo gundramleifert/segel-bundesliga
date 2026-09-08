@@ -3,7 +3,11 @@
     "text": "Serientabelle wird geladen …"
   },
   "subtitle": "{{teamCount}} Mannschaften · {{actCount}} Acts",
-  "description": "Gesegelt wird nach Low-Point-Wertung: <strong>weniger Punkte ist besser</strong>. Die Serientabelle addiert die Platzierungen der Acts. Wer bei einem Act gefehlt hat, trägt dort <strong>Teilnehmerzahl + 1</strong>.",
+  "scoringNote": "Gesegelt wird nach Low-Point-Wertung: weniger Punkte ist besser. Die Serientabelle addiert die Platzierungen der Acts. Wer bei einem Act gefehlt hat, trägt dort Teilnehmerzahl + 1.",
+  "eventsSection": {
+    "heading": "Veranstaltungen",
+    "empty": "Für diese Serie ist noch keine Veranstaltung angesetzt."
+  },
   "empty": {
     "noRaces": "In dieser Serie wurde noch keine Wettfahrt gesegelt.",
     "noEvents": "Für diese Serie ist noch keine Veranstaltung angesetzt."

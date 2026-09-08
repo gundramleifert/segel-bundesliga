@@ -181,7 +181,10 @@ export interface paths {
         };
         /**
          * Which sign-in methods are available
-         * @description So the interface only shows buttons that actually work.
+         * @description So the interface only shows buttons that actually work, and can initialize the
+         *     Google/Microsoft SDKs without its own build-time configuration — the client ID is a
+         *     public value, not a secret (the actual check is the ID-token signature verification
+         *     against the provider's JWKS, done server-side in `app.services.login`).
          */
         get: operations["providers_api_auth_providers_get"];
         put?: never;
@@ -974,6 +977,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/clubs/{club_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fellow club members
+         * @description Who else belongs to my club — for an ordinary member, not just the leadership.
+         *
+         *     A narrower sibling of ``list_club_members``: that one is leadership-only and shows
+         *     every pending request plus each member's email; this one is open to any signed-in
+         *     **active member of this specific club** (or admin/editor staff), and shows only active
+         *     memberships with no contact details — a stranger, or a member of a *different* club,
+         *     gets 403.
+         */
+        get: operations["list_members_for_member_api_clubs__club_id__members_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/clubs/{club_id}/members/{user_id}/organizer": {
         parameters: {
             query?: never;
@@ -1080,15 +1109,18 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/dev/users": {
+    "/api/waiver": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List test accounts */
-        get: operations["list_test_users_api_dev_users_get"];
+        /**
+         * Current waiver text
+         * @description The version in force. Both languages are returned so the client can show either.
+         */
+        get: operations["get_current_waiver_api_waiver_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1097,7 +1129,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/dev/login": {
+    "/api/admin/waiver/texts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All waiver versions */
+        get: operations["list_waiver_texts_api_admin_waiver_texts_get"];
+        put?: never;
+        /**
+         * Publish a new waiver version
+         * @description Adds the next version. From now on it is the one in force, and it is frozen.
+         *
+         *     Confirmations of earlier versions stay exactly as they were; sailors are simply no
+         *     longer cleared until they confirm this one.
+         */
+        post: operations["publish_waiver_text_api_admin_waiver_texts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/series/{series_id}/waiver": {
         parameters: {
             query?: never;
             header?: never;
@@ -1106,8 +1162,51 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sign in without verification */
-        post: operations["dev_login_api_dev_login_post"];
+        /**
+         * Confirm the waiver for a series
+         * @description One confirmation here counts for every event of the series.
+         */
+        post: operations["confirm_for_series_api_series__series_id__waiver_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{event_id}/waiver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm the waiver for an event */
+        post: operations["confirm_for_event_api_events__event_id__waiver_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/waivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Waiver status for an event
+         * @description The check-in list — Stories VA-2 and VA-5.
+         *
+         *     One row per person in the participating squads: cleared, missing, or (for a minor)
+         *     waiting on the guardian's signature.
+         */
+        get: operations["event_waivers_api_admin_events__event_id__waivers_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1341,6 +1440,28 @@ export interface components {
             /** Crew */
             crew?: components["schemas"]["MemberOut"][];
         };
+        /**
+         * ClubMemberOut
+         * @description A fellow member of the club, as seen by another active member.
+         *
+         *     Not to be confused with `MemberOut`: that one is the sporting roster (squad/lineup)
+         *     and is public to everyone. This describes `ClubMember` — the account's affiliation
+         *     with the club — and is only ever shown to that club's own active members or staff.
+         *     Deliberately without email or decision notes, and only active memberships: contact
+         *     data and pending requests stay the club leadership's business (see `MembershipOut`
+         *     in `app.routers.club_members`), not something every peer should see.
+         */
+        ClubMemberOut: {
+            /** User Id */
+            user_id: number;
+            /** Display Name */
+            display_name: string;
+            /**
+             * Organizer
+             * @default false
+             */
+            organizer: boolean;
+        };
         /** ClubOut */
         ClubOut: {
             /** Id */
@@ -1375,6 +1496,27 @@ export interface components {
             /** Events */
             events?: components["schemas"]["ClubEventOut"][];
         };
+        /** ConfirmWaiver */
+        ConfirmWaiver: {
+            /** Sailor Id */
+            sailor_id: number;
+            /**
+             * Locale Shown
+             * @description Which language of the text the sailor was shown.
+             * @default en
+             * @enum {string}
+             */
+            locale_shown: "en" | "de";
+            /** @description Left empty, an adult is recorded as 'online' and a minor must be 'guardian'. Passing 'online' for a minor is rejected. */
+            method?: components["schemas"]["WaiverMethod"] | null;
+            /** Guardian Name */
+            guardian_name?: string | null;
+            /**
+             * Guardian Signature Ref
+             * @description Where the signed statement lives: a URL, an object key, or a note.
+             */
+            guardian_signature_ref?: string | null;
+        };
         /** CrewMember */
         CrewMember: {
             /** Sailor Id */
@@ -1398,14 +1540,6 @@ export interface components {
          * @enum {string}
          */
         CrewRole: "helm" | "crew" | "substitute";
-        /** DevLogin */
-        DevLogin: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-        };
         /** EmailRequest */
         EmailRequest: {
             /**
@@ -1589,6 +1723,19 @@ export interface components {
             /** Flight Count */
             flight_count?: number | null;
         };
+        /** EventWaiverList */
+        EventWaiverList: {
+            /** Event Id */
+            event_id: number;
+            /** Required Version */
+            required_version: number | null;
+            /** Cleared */
+            cleared: number;
+            /** Outstanding */
+            outstanding: number;
+            /** Sailors */
+            sailors: components["schemas"]["SailorWaiverRow"][];
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -1728,6 +1875,21 @@ export interface components {
             /** Club Id */
             club_id: number;
         };
+        /** MicrosoftProviderInfo */
+        MicrosoftProviderInfo: {
+            /** Available */
+            available: boolean;
+            /**
+             * Client Id
+             * @description Public OAuth client ID, only set when available
+             */
+            client_id?: string | null;
+            /**
+             * Tenant
+             * @description Azure AD tenant to sign in against, e.g. 'common'
+             */
+            tenant?: string | null;
+        };
         /** OidcLogin */
         OidcLogin: {
             /**
@@ -1825,6 +1987,31 @@ export interface components {
              * @description Clubs that enter this event. An empty list removes all.
              */
             clubs: number[];
+        };
+        /** ProviderInfo */
+        ProviderInfo: {
+            /** Available */
+            available: boolean;
+            /**
+             * Client Id
+             * @description Public OAuth client ID, only set when available
+             */
+            client_id?: string | null;
+        };
+        /**
+         * ProvidersOut
+         * @description Everything the sign-in UI needs to decide which buttons to show and how to
+         *     initialize each provider's SDK — one call instead of separate build-time config.
+         */
+        ProvidersOut: {
+            google: components["schemas"]["ProviderInfo"];
+            microsoft: components["schemas"]["MicrosoftProviderInfo"];
+            email: components["schemas"]["ProviderInfo"];
+            /**
+             * Allow Registration
+             * @description Whether POST /api/auth/register is open, i.e. a 'create an account' link makes sense to show
+             */
+            allow_registration: boolean;
         };
         /** PublishRequest */
         PublishRequest: {
@@ -1960,6 +2147,29 @@ export interface components {
             /** Birth Date */
             birth_date?: string | null;
         };
+        /** SailorWaiverRow */
+        SailorWaiverRow: {
+            /** Sailor Id */
+            sailor_id: number;
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            /** Club */
+            club?: string | null;
+            /** Status */
+            status: string;
+            /** Minor */
+            minor?: boolean | null;
+            /** Required Version */
+            required_version?: number | null;
+            /** Confirmed Version */
+            confirmed_version?: number | null;
+            /** Confirmed At */
+            confirmed_at?: string | null;
+            /** Method */
+            method?: string | null;
+        };
         /**
          * SeriesAdminOut
          * @description Like SeriesOut, plus participants and how many events have been scheduled.
@@ -1981,6 +2191,8 @@ export interface components {
             starts_on?: string | null;
             /** Ends On */
             ends_on?: string | null;
+            /** Description */
+            description?: string | null;
             /** Clubs */
             clubs?: components["schemas"]["SeriesParticipantOut"][];
             /**
@@ -2037,6 +2249,11 @@ export interface components {
              * @description If absent, it is generated from the name.
              */
             slug?: string | null;
+            /**
+             * Description
+             * @description Markdown, shown on the public standings page.
+             */
+            description?: string | null;
         };
         /**
          * SeriesOut
@@ -2059,6 +2276,8 @@ export interface components {
             starts_on?: string | null;
             /** Ends On */
             ends_on?: string | null;
+            /** Description */
+            description?: string | null;
         };
         /**
          * SeriesParticipantOut
@@ -2138,6 +2357,8 @@ export interface components {
             scoring?: {
                 [key: string]: unknown;
             } | null;
+            /** Description */
+            description?: string | null;
         };
         /** SetClubs */
         SetClubs: {
@@ -2167,21 +2388,6 @@ export interface components {
             /** Name */
             name: string;
             club: components["schemas"]["ClubOut"];
-        };
-        /** TestUserOut */
-        TestUserOut: {
-            /** Id */
-            id: number;
-            /** Email */
-            email: string;
-            /** Display Name */
-            display_name: string;
-            /** Roles */
-            roles: string[];
-            /** Club */
-            club?: string | null;
-            /** Description */
-            description: string;
         };
         /** TokenOut */
         TokenOut: {
@@ -2253,6 +2459,73 @@ export interface components {
             city: string;
             /** Water */
             water?: string | null;
+        };
+        /** WaiverConfirmationOut */
+        WaiverConfirmationOut: {
+            /** Id */
+            id: number;
+            /** Sailor Id */
+            sailor_id: number;
+            /** Version */
+            version: number;
+            /** Scope */
+            scope: string;
+            /** Scope Id */
+            scope_id: number;
+            /** Method */
+            method: string;
+            /** Locale Shown */
+            locale_shown: string;
+            /**
+             * Confirmed At
+             * Format: date-time
+             */
+            confirmed_at: string;
+            /** Guardian Name */
+            guardian_name?: string | null;
+            /** Cleared */
+            cleared: boolean;
+        };
+        /**
+         * WaiverMethod
+         * @enum {string}
+         */
+        WaiverMethod: "online" | "guardian";
+        /**
+         * WaiverTextCreate
+         * @description A new version. The version number is assigned automatically (previous + 1).
+         */
+        WaiverTextCreate: {
+            /** Title En */
+            title_en: string;
+            /** Body En */
+            body_en: string;
+            /** Title De */
+            title_de: string;
+            /** Body De */
+            body_de: string;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** WaiverTextOut */
+        WaiverTextOut: {
+            /** Version */
+            version: number;
+            /**
+             * Published At
+             * Format: date-time
+             */
+            published_at: string;
+            /** Title En */
+            title_en: string;
+            /** Body En */
+            body_en: string;
+            /** Title De */
+            title_de: string;
+            /** Body De */
+            body_de: string;
+            /** Notes */
+            notes?: string | null;
         };
         /** ClubUpdate */
         app__routers__auth__ClubUpdate: {
@@ -2572,9 +2845,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: boolean;
-                    };
+                    "application/json": components["schemas"]["ProvidersOut"];
                 };
             };
         };
@@ -4044,6 +4315,39 @@ export interface operations {
             };
         };
     };
+    list_members_for_member_api_clubs__club_id__members_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                club_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubMemberOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     grant_organizer_api_admin_clubs__club_id__members__user_id__organizer_post: {
         parameters: {
             query?: never;
@@ -4285,12 +4589,10 @@ export interface operations {
             };
         };
     };
-    list_test_users_api_dev_users_get: {
+    get_current_waiver_api_waiver_get: {
         parameters: {
             query?: never;
-            header?: {
-                "accept-language"?: string | null;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -4302,7 +4604,51 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TestUserOut"][];
+                    "application/json": components["schemas"]["WaiverTextOut"];
+                };
+            };
+        };
+    };
+    list_waiver_texts_api_admin_waiver_texts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaiverTextOut"][];
+                };
+            };
+        };
+    };
+    publish_waiver_text_api_admin_waiver_texts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WaiverTextCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaiverTextOut"];
                 };
             };
             /** @description Validation Error */
@@ -4316,20 +4662,90 @@ export interface operations {
             };
         };
     };
-    dev_login_api_dev_login_post: {
+    confirm_for_series_api_series__series_id__waiver_post: {
         parameters: {
             query?: never;
             header?: {
-                "accept-language"?: string | null;
+                "user-agent"?: string | null;
             };
-            path?: never;
+            path: {
+                series_id: number;
+            };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DevLogin"];
+                "application/json": components["schemas"]["ConfirmWaiver"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaiverConfirmationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_for_event_api_events__event_id__waiver_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "user-agent"?: string | null;
+            };
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmWaiver"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WaiverConfirmationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_waivers_api_admin_events__event_id__waivers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -4337,7 +4753,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenOut"];
+                    "application/json": components["schemas"]["EventWaiverList"];
                 };
             };
             /** @description Validation Error */

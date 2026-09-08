@@ -2,8 +2,8 @@ import { Card } from "@heroui/react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api, type ClubDetail, type Member } from "../api/client";
-import { useApi } from "../api/useApi";
+import { api, type ClubDetail, type ClubMemberSummary, type Member } from "../api/client";
+import { useApi, useKonto } from "../api/useApi";
 import { Fehler, Laden, Leer, StatusMarke } from "../components/Bausteine";
 import { ortText, rolle, zeitraum } from "../lib/format";
 
@@ -13,6 +13,7 @@ type ClubEvent = NonNullable<NonNullable<ClubDetail["teams"]>[number]["events"]>
 export function Club() {
   const { t } = useTranslation("club");
   const { id = "" } = useParams();
+  const { konto } = useKonto();
   const { data, error, loading } = useApi(["club", id], (signal) =>
     api.club(Number(id), signal),
   );
@@ -107,7 +108,45 @@ export function Club() {
           </Card>
         </section>
       ) : null}
+
+      {konto && <Mitglieder clubId={Number(id)} />}
     </>
+  );
+}
+
+/** The club's own membership roster (Story V-10) — rendered only for a signed-in active
+ * member of *this* club, or staff. Anyone else gets 403 from the endpoint; since a guest
+ * or another club's member landing on this page is the normal case, not a failure, that
+ * simply hides the section instead of showing an error banner. */
+function Mitglieder({ clubId }: { clubId: number }) {
+  const { t } = useTranslation("club");
+  const { data, error, loading } = useApi(["clubMembers", clubId], (signal) =>
+    api.clubMembers(clubId, signal),
+  );
+
+  if (loading || error || !data?.length) return null;
+
+  return (
+    <section className="mt-8">
+      <h2 className="mb-2 text-lg font-semibold">{t("members")}</h2>
+      <Card>
+        <Card.Content>
+          <ul className="divide-y divide-slate-100 text-sm">
+            {data.map((mitglied: ClubMemberSummary) => (
+              <li
+                key={mitglied.user_id}
+                className="flex items-center justify-between gap-3 py-2"
+              >
+                <span>{mitglied.display_name}</span>
+                {mitglied.organizer && (
+                  <span className="shrink-0 text-slate-500">{t("organizer")}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Card.Content>
+      </Card>
+    </section>
   );
 }
 

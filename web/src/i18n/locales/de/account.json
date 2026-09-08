@@ -3,7 +3,22 @@
   "notSignedIn": "Nicht angemeldet",
   "description": "Öffentliche Seiten stehen allen offen. Für Kader, Meldungen und Ergebnisse ist eine Anmeldung nötig.",
   "sessionExpired": "Die Sitzung ist nicht mehr gültig. Bitte neu anmelden.",
-  "devNote": "In der Entwicklung führt der Schalter unten rechts durch die Rollen. Später gibt es hier die Anmeldung über Google, Microsoft oder einen Einmalcode per E-Mail.",
+  "devNote": "In der Entwicklung führt der Schalter unten rechts durch die Rollen.",
+  "signIn": {
+    "emailLabel": "E-Mail-Adresse",
+    "emailPlaceholder": "sie@beispiel.de",
+    "sendCode": "Code senden",
+    "sending": "Wird gesendet…",
+    "codeSentTitle": "E-Mail-Postfach prüfen",
+    "codeSentHint": "Falls zu {{email}} ein Konto besteht, ist ein Code unterwegs. Er gilt zehn Minuten.",
+    "codeLabel": "Einmalcode",
+    "codePlaceholder": "6-stelliger Code",
+    "verify": "Anmelden",
+    "verifying": "Anmeldung läuft…",
+    "changeEmail": "Andere Adresse verwenden",
+    "resendCode": "Code erneut senden",
+    "resent": "Ein neuer Code ist unterwegs."
+  },
   "permissions": "Was Sie dürfen",
   "noPermissions": "Nichts über die öffentlichen Seiten hinaus. Rollen vergibt die Verwaltung.",
   "signedInNoRole": "Angemeldet, aber ohne besondere Rolle",
@@ -22,5 +37,14 @@
     "status": "Status",
     "active": "aktiv",
     "disabled": "gesperrt"
+  },
+  "deleteAccount": {
+    "title": "Konto löschen",
+    "description": "Das Konto wird derzeit vollständig entfernt — eine Erleichterung, solange Konten größtenteils Testdaten sind, kein Dauerzustand.",
+    "button": "Mein Konto löschen",
+    "confirmPrompt": "Das lässt sich nicht rückgängig machen. Konto endgültig löschen?",
+    "confirmButton": "Ja, endgültig löschen",
+    "cancelButton": "Abbrechen",
+    "deleting": "Wird gelöscht…"
   }
 }

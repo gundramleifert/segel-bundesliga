@@ -398,3 +398,81 @@ class TestOrganizerRole:
         )
         assert response.status_code == 409
         assert "different club" in response.json()["detail"]
+
+
+class TestMemberRoster:
+    """Story V-10: an active member sees who else belongs to their club.
+
+    Deliberately narrower than the leadership's admin view: no email, no pending
+    requests, and only visible to that club's own active members (or staff).
+    """
+
+    async def _admin(self, client, caplog):
+        from app.models.auth import Role
+
+        await make_user("roster-admin@example.com", Role.ADMIN)
+        return kopf(await login_as(client, "roster-admin@example.com", caplog))
+
+    async def _active_member(
+        self, client, caplog, admin, email: str, slug: str
+    ) -> tuple[dict[str, str], int, int]:
+        """Register a person and have the admin accept them into the club."""
+        person = kopf(await registrieren(client, caplog, email, "Roster Member"))
+        c = await club_id(slug)
+        request = (
+            await client.post("/api/club-memberships", headers=person, json={"club_id": c})
+        ).json()
+        accepted = await client.post(
+            f"/api/club-memberships/{request['id']}/accept", headers=admin
+        )
+        assert accepted.status_code == 200, accepted.text
+        return person, request["user_id"], c
+
+    async def test_an_active_member_can_see_the_roster(self, client, caplog):
+        admin = await self._admin(client, caplog)
+        member, _, c = await self._active_member(
+            client, caplog, admin, "roster1@example.com", "wyc"
+        )
+
+        response = await client.get(f"/api/clubs/{c}/members", headers=member)
+        assert response.status_code == 200, response.text
+        rows = response.json()
+        assert rows  # at least the member themselves
+        assert any(row["display_name"] == "Roster Member" for row in rows)
+
+    async def test_the_response_carries_no_email_or_pending_data(self, client, caplog):
+        admin = await self._admin(client, caplog)
+        member, _, c = await self._active_member(
+            client, caplog, admin, "roster2@example.com", "wyc"
+        )
+
+        response = await client.get(f"/api/clubs/{c}/members", headers=member)
+        for row in response.json():
+            assert "email" not in row
+            assert "decision_note" not in row
+            assert "status" not in row
+
+    async def test_a_member_of_a_different_club_cannot_see_it(self, client, caplog):
+        admin = await self._admin(client, caplog)
+        _, _, c = await self._active_member(client, caplog, admin, "roster3a@example.com", "wyc")
+        outsider, _, _ = await self._active_member(
+            client, caplog, admin, "roster3b@example.com", "lsc"
+        )
+
+        response = await client.get(f"/api/clubs/{c}/members", headers=outsider)
+        assert response.status_code == 403
+
+    async def test_a_signed_out_visitor_is_rejected(self, client, caplog):
+        admin = await self._admin(client, caplog)
+        _, _, c = await self._active_member(client, caplog, admin, "roster4@example.com", "wyc")
+
+        response = await client.get(f"/api/clubs/{c}/members")
+        assert response.status_code == 401
+
+    async def test_admin_can_also_see_it(self, client, caplog):
+        admin = await self._admin(client, caplog)
+        _, _, c = await self._active_member(client, caplog, admin, "roster5@example.com", "wyc")
+
+        response = await client.get(f"/api/clubs/{c}/members", headers=admin)
+        assert response.status_code == 200, response.text
+        assert any(row["display_name"] == "Roster Member" for row in response.json())
