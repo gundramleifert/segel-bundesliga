@@ -21,6 +21,12 @@ RUN uv sync --frozen --no-dev
 COPY . .
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Non-secret deployment config, baked in rather than left to the host's env vars — see
+# render.env for why. Real secrets are never here; they come from Render Secret Files
+# at runtime (/etc/secrets/<name>, see app/config.py's _SECRETS_DIR), which still take
+# priority over this file if a host ever sets the same var as an actual env var.
+RUN cp render.env .env
+
 # Seed the database at build time. The secret here is only used by the seed script to
 # mint the sample tokens it prints; it is NOT the runtime signing secret (set that as a
 # real environment variable — SBL_JWT_SECRET — on the host).
