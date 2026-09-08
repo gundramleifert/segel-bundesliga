@@ -128,6 +128,16 @@ dashboard (Brevo's transactional-email SMTP page, Resend's SMTP integration page
 those values into `SBL_SMTP_HOST`/`SBL_SMTP_PORT` rather than assuming a fixed hostname,
 since these can change per account/region.
 
+**Checking whether a code was actually sent:** `app.mail` logs every attempt — an `INFO`
+line naming the recipient and host on success, an `ERROR` line with the underlying SMTP
+error on failure (wrong credentials, wrong port/encryption, connection refused, …). On
+Render, that's the `sbl-api` service's **Logs** tab; locally it's just stdout. A 202
+response from `/api/auth/email/request` or `/api/auth/register` only means the request was
+accepted — it deliberately never reveals whether the address has an account or whether the
+mail server accepted the message (see the code comment in
+`app.services.login.request_email_code` for why) — the log line is the actual source of
+truth for "did it send."
+
 **Google and Microsoft sign-in are not wired up in the UI yet** — the backend already
 supports both (`api/app/services/login.py`, `POST /api/auth/oidc/{provider}`) and
 `GET /api/auth/providers` already reports `SBL_GOOGLE_CLIENT_ID` /

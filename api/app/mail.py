@@ -17,6 +17,12 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+
+class MailError(Exception):
+    """The message could not be handed to the mail server — wraps the underlying
+    smtplib/network error so callers don't need to know smtplib's exception zoo."""
+
+
 SUBJECT = "Your login code for Sailing Bundesliga"
 
 BODY = """Hello,
@@ -43,8 +49,19 @@ async def send_login_code(email: str, code: str) -> None:
     message["To"] = email
     message.set_content(BODY.format(code=code, minutes=minutes))
 
-    # smtplib is blocking; run in a thread to keep the event loop free.
-    await asyncio.to_thread(_send, message)
+    # Silent on success and on failure alike before this: there was no way to tell, short
+    # of reading someone's inbox, whether SBL_SMTP_* actually works. Log both outcomes —
+    # this is what "did the mail go out?" is checked against (e.g. Render's log viewer).
+    try:
+        # smtplib is blocking; run in a thread to keep the event loop free.
+        await asyncio.to_thread(_send, message)
+    except Exception as exc:
+        logger.error(
+            "Sending the login email to %s via %s:%s failed: %s",
+            email, settings.smtp_host, settings.smtp_port, exc,
+        )
+        raise MailError(str(exc)) from exc
+    logger.info("Login email sent to %s via %s:%s", email, settings.smtp_host, settings.smtp_port)
 
 
 def _send(message: EmailMessage) -> None:

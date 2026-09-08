@@ -29,7 +29,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.mail import send_login_code
+from app.mail import MailError, send_login_code
 from app.models.auth import Identity, IdentityProvider, LoginCode, User
 
 _hasher = PasswordHasher()
@@ -140,7 +140,15 @@ async def request_email_code(session: AsyncSession, email: str) -> None:
         )
     )
     await session.commit()
-    await send_login_code(email, code)
+    try:
+        await send_login_code(email, code)
+    except MailError:
+        # Swallowed deliberately, not a bug: for a nonexistent address this function
+        # already returns before this point without a trace, so surfacing a send failure
+        # only here would itself reveal that the address has an account. mail.py already
+        # logged the failure (recipient, host, the underlying error) — that's how a broken
+        # SBL_SMTP_* configuration is diagnosed, not via this function's return value.
+        pass
 
 
 async def verify_email_code(session: AsyncSession, email: str, code: str) -> User:
