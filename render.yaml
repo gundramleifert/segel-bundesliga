@@ -21,20 +21,37 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /health
-    # No env vars at all for sbl-api, deliberately — not even the non-secret ones. Two
-    # reasons: an env var is visible in the Dashboard, in `render env`/API dumps, and to
-    # anything that can read the process environment; and a `sync: false` var only ever
-    # gets auto-created the first time a service is provisioned from a Blueprint — adding
-    # one to this file later does nothing for a service that already exists (that's
-    # exactly what cost real time to track down here). Every setting instead goes into a
-    # Secret File on this service's Environment tab in the Dashboard (Environment →
-    # Secret Files → Add Secret File), named *exactly* like the setting it configures —
-    # e.g. a file named `SBL_SMTP_HOST` containing just `smtp.strato.de`. app.config reads
-    # each one from /etc/secrets/<that name> automatically (see `_SECRETS_DIR` there); it
-    # works the same whether the value is genuinely secret (`SBL_JWT_SECRET`,
-    # `SBL_SMTP_PASSWORD`) or just deployment-specific (`SBL_DEV_LOGIN`,
-    # `SBL_CORS_ORIGINS`, …) — one mechanism for all of it. Full list and rationale in
-    # docs/deploy.md.
+    # Everything is a plain env var — including SBL_SMTP_PASSWORD. `sync: false` means
+    # Render prompts for the value once in the Dashboard, during the *initial* Blueprint
+    # provisioning — it does nothing for a service that already exists (that cost real
+    # time to track down here). For an existing service, add these directly on its
+    # Environment tab instead; a later Blueprint re-sync leaves an existing `sync: false`
+    # value alone either way, so this is also how you change one later. See docs/deploy.md.
+    envVars:
+      - key: SBL_JWT_SECRET
+        generateValue: true
+      - key: SBL_DEV_LOGIN
+        value: "true"
+      - key: SBL_ALLOW_REGISTRATION
+        value: "true"
+      # Same-origin via the rewrite below, so CORS isn't needed. Set this to the site URL
+      # if you ever call the API cross-origin.
+      - key: SBL_CORS_ORIGINS
+        value: '["https://sbl-web.onrender.com"]'
+      - key: SBL_SMTP_HOST
+        sync: false
+      - key: SBL_SMTP_PORT
+        sync: false
+      - key: SBL_SMTP_USER
+        sync: false
+      - key: SBL_SMTP_PASSWORD
+        sync: false
+      - key: SBL_SMTP_STARTTLS
+        value: "true"
+      - key: SBL_SMTP_SSL
+        sync: false
+      - key: SBL_MAIL_FROM
+        sync: false
 
   - type: web
     name: sbl-web
