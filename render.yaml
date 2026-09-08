@@ -21,44 +21,20 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /health
-    envVars:
-      - key: SBL_JWT_SECRET
-        generateValue: true
-      - key: SBL_DEV_LOGIN
-        value: "true"
-      - key: SBL_ALLOW_REGISTRATION
-        value: "true"
-      # Same-origin via the rewrite below, so CORS isn't needed. Set this to the site URL
-      # if you ever call the API cross-origin.
-      - key: SBL_CORS_ORIGINS
-        value: '["https://sbl-web.onrender.com"]'
-      # SMTP, for the email one-time-code sign-in (the only sign-in method the UI offers
-      # today). Without these, app.mail falls back to just logging the code — fine for
-      # SBL_DEV_LOGIN=true, useless once that's turned off. `sync: false` means Render
-      # prompts for the value once in the dashboard during the initial Blueprint launch
-      # and stores it there — it is never written into this file. See docs/deploy.md.
-      #
-      # Two different encryption schemes, not interchangeable — check your provider's own
-      # docs rather than assuming: STARTTLS upgrades a plaintext connection (usually port
-      # 587); implicit TLS/SSL encrypts from the first byte (usually port 465) — some
-      # providers (e.g. STRATO) document that as the path for normal mail clients and
-      # 587/STARTTLS as relay-only. PORT and SSL are `sync: false` alongside the rest so a
-      # provider-specific choice made in the dashboard is never silently reverted by a
-      # later Blueprint re-sync — this deployment currently uses STRATO (port 465, SSL).
-      - key: SBL_SMTP_HOST
-        sync: false
-      - key: SBL_SMTP_PORT
-        sync: false
-      - key: SBL_SMTP_USER
-        sync: false
-      - key: SBL_SMTP_PASSWORD
-        sync: false
-      - key: SBL_SMTP_STARTTLS
-        value: "true"
-      - key: SBL_SMTP_SSL
-        sync: false
-      - key: SBL_MAIL_FROM
-        sync: false
+    # No env vars at all for sbl-api, deliberately — not even the non-secret ones. Two
+    # reasons: an env var is visible in the Dashboard, in `render env`/API dumps, and to
+    # anything that can read the process environment; and a `sync: false` var only ever
+    # gets auto-created the first time a service is provisioned from a Blueprint — adding
+    # one to this file later does nothing for a service that already exists (that's
+    # exactly what cost real time to track down here). Every setting instead goes into a
+    # Secret File on this service's Environment tab in the Dashboard (Environment →
+    # Secret Files → Add Secret File), named *exactly* like the setting it configures —
+    # e.g. a file named `SBL_SMTP_HOST` containing just `smtp.strato.de`. app.config reads
+    # each one from /etc/secrets/<that name> automatically (see `_SECRETS_DIR` there); it
+    # works the same whether the value is genuinely secret (`SBL_JWT_SECRET`,
+    # `SBL_SMTP_PASSWORD`) or just deployment-specific (`SBL_DEV_LOGIN`,
+    # `SBL_CORS_ORIGINS`, …) — one mechanism for all of it. Full list and rationale in
+    # docs/deploy.md.
 
   - type: web
     name: sbl-web

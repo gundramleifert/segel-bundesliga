@@ -74,59 +74,58 @@ In the generated `fly.toml` set `internal_port = 8080` (Fly's default) or add
 
 ---
 
-## Security note — `SBL_DEV_LOGIN`
+## Configuration — Secret Files, not environment variables
 
-`SBL_DEV_LOGIN=true` exposes `/api/dev`, which **issues real access tokens for any seeded
-account without any verification** — including `admin@sbl.example.com`. That is the whole
-point for a test instance (no mail server needed), but it means anyone who finds the URL
-is an admin.
+`sbl-api` takes **no environment variables at all** — `render.yaml` declares none, on
+purpose (see the comment there). Every setting, secret or not, is configured the same
+way: as a **Secret File** on the `sbl-api` service's **Environment** tab in the Render
+Dashboard (**Environment → Secret Files → Add Secret File**), named *exactly* like the
+setting, containing only its value.
 
-For a test instance that's usually an acceptable trade for a link you don't publish. To
-close it instead, set `SBL_DEV_LOGIN=false` and configure SMTP (`SBL_SMTP_*`,
-`SBL_MAIL_FROM`) — Brevo and Resend both have a free tier — so the email one-time-code
-login works.
+Why files instead of env vars, for everything, not just passwords: an env var is visible
+in the Dashboard, in `render env`/API dumps, and to anything that can read the process
+environment; and `render.yaml`'s `sync: false` only ever auto-creates that empty slot the
+*first* time a service is provisioned from the Blueprint — adding a `sync: false` line
+later does nothing for a service that already exists (that's exactly what cost real time
+to track down while getting this deployment's SMTP working). One mechanism, always
+reliable, covers both cases.
 
-Leave `SBL_JWT_SECRET` to `generateValue` / a random string. An **empty** secret closes
-the protected area entirely (by design); a **known** secret would let anyone forge tokens.
+Mechanically: `api/app/config.py` sets pydantic-settings' `secrets_dir` to `/etc/secrets`
+— exactly where Render mounts Secret Files — so at startup, for any setting, it looks for
+a file there named like the setting and reads its content as the value. That directory
+simply doesn't exist on a machine without any Secret Files (e.g. your own laptop, or CI),
+so this is a no-op there and `api/.env` / a plain env var still works locally — the
+`secrets_dir` behavior only ever adds a source, it never removes the usual ones, and an
+explicit env var still wins over a file if one happens to be set.
 
----
+**Files to create**, each just containing its value with nothing else:
 
-## Turning on real sign-in (SMTP)
+| Secret File name | Value |
+|---|---|
+| `SBL_JWT_SECRET` | a random string, e.g. `openssl rand -hex 32` — **empty closes the protected area entirely** (by design); a known/reused value would let anyone forge tokens |
+| `SBL_DEV_LOGIN` | `true` — see the security note below before turning this on anywhere but a private test URL |
+| `SBL_ALLOW_REGISTRATION` | `true` to let the self-registration tab on `/account` work |
+| `SBL_CORS_ORIGINS` | `["https://sbl-web.onrender.com"]` — only needed if the site is ever called cross-origin; the `/api/*` rewrite in `render.yaml` already keeps the browser same-origin, so this can usually be left unset |
+| `SBL_SMTP_HOST` | your provider's SMTP hostname, e.g. `smtp.strato.de` |
+| `SBL_SMTP_PORT` | `587` for STARTTLS, `465` for implicit TLS/SSL — check your provider |
+| `SBL_SMTP_SSL` | `true` for a provider that documents implicit TLS as the normal-client path (e.g. STRATO: `smtp.strato.de:465` — STRATO documents `587`/STARTTLS there as relay-only, not for a normal client like this app) |
+| `SBL_SMTP_STARTTLS` | `true` unless `SBL_SMTP_SSL` is `true` (the two aren't combined) |
+| `SBL_SMTP_USER` | login name for the SMTP account (often the full email address) |
+| `SBL_SMTP_PASSWORD` | the mailbox password / API key — a real credential |
+| `SBL_MAIL_FROM` | the `From:` address, e.g. `web@yourdomain` |
 
-The UI's sign-in flow is a one-time code sent by email (`POST /api/auth/email/request` /
-`/email/verify`) — this is the only sign-in method the frontend offers today. Without SMTP
-configured, `api/app/mail.py` falls back to **logging** the code instead of sending it,
-which is only useful with `SBL_DEV_LOGIN=true` and shell access to read the log. To make
-sign-in actually usable for real users, `render.yaml` declares these variables on
-`sbl-api` (see the "SMTP" block there):
+Saving a Secret File triggers a redeploy, same as an env var change would. To rotate a
+value later, edit the Secret File in place — nothing else needs to change. If a setting
+was previously a **plain environment variable** on this service (from before this
+approach), delete that env var once its Secret File exists — an explicit env var still
+wins over the file, so leaving the old one behind would make the new file silently
+ignored.
 
-| Variable | Default | Notes |
-|---|---|---|
-| `SBL_SMTP_HOST` | *(none, `sync: false`)* | your provider's SMTP hostname |
-| `SBL_SMTP_PORT` | `587` | STARTTLS submission port — check your provider if it differs |
-| `SBL_SMTP_USER` | *(none, `sync: false`)* | login name for the SMTP account |
-| `SBL_SMTP_PASSWORD` | *(none, `sync: false`)* | login password / API key |
-| `SBL_SMTP_STARTTLS` | `true` | STARTTLS on the plaintext connection (ignored if `SBL_SMTP_SSL` is `true`) |
-| `SBL_SMTP_SSL` | `false` | implicit TLS/SSL from the first byte instead — set `true` **and** `SBL_SMTP_PORT=465` for a provider that documents that as the normal-client path (e.g. STRATO: `smtp.strato.de:465`, username = the full email address, `587`/STARTTLS documented there as relay-only) |
-| `SBL_MAIL_FROM` | *(none, `sync: false`)* | the `From:` address, e.g. `noreply@yourdomain` |
-
-**Where to enter the `sync: false` values:** these are deliberately left out of
-`render.yaml` (see the "Security note" above the sign-in section, and the comment next to
-each `sync: false` line) — a Render Blueprint prompts for each `sync: false` variable
-once, during the **initial** Blueprint creation flow in the Dashboard. If you deploy first
-and configure SMTP afterwards, or need to change a value later, go to the `sbl-api`
-service in the Render Dashboard → **Environment** tab → add/edit the variable there
-directly; a later re-sync of the Blueprint from `render.yaml` does not touch variables
-already marked `sync: false`, so this is also how you rotate a password. The value never
-gets written back into `render.yaml` or committed to the repo either way.
-
-**Getting real SMTP credentials for testing:** this doc already points at
-[Brevo](https://www.brevo.com) and [Resend](https://resend.com) as free-tier options for
-closing `SBL_DEV_LOGIN`. Both give you an SMTP username and password/API key on sign-up;
-the concrete host and port are on your own account's SMTP settings page in their
-dashboard (Brevo's transactional-email SMTP page, Resend's SMTP integration page) — copy
-those values into `SBL_SMTP_HOST`/`SBL_SMTP_PORT` rather than assuming a fixed hostname,
-since these can change per account/region.
+**Getting real SMTP credentials for testing:** [Brevo](https://www.brevo.com) and
+[Resend](https://resend.com) both have a free tier and hand you an SMTP username and
+password/API key on sign-up; the concrete host and port are on your own account's SMTP
+settings page in their dashboard — copy those in rather than assuming a fixed hostname,
+since they can change per account/region.
 
 **Checking whether a code was actually sent:** `app.mail` logs every attempt — an `INFO`
 line naming the recipient and host on success, an `ERROR` line with the underlying SMTP
@@ -139,14 +138,17 @@ mail server accepted the message (see the code comment in
 truth for "did it send."
 
 **Google and Microsoft sign-in are not wired up in the UI yet** — the backend already
-supports both (`api/app/services/login.py`, `POST /api/auth/oidc/{provider}`) and
+supports both (`api/app/services/login.py`, `POST /api/auth/oidc/{provider}`), and
 `GET /api/auth/providers` already reports `SBL_GOOGLE_CLIENT_ID` /
-`SBL_MICROSOFT_CLIENT_ID` availability for whenever a frontend button is built against it,
-but for now email is the only sign-in method the site actually offers, so `render.yaml`
-does not declare those two variables. Once a Google/Microsoft sign-in button exists in
-`web/`, add `SBL_GOOGLE_CLIENT_ID`, `SBL_MICROSOFT_CLIENT_ID` (both `sync: false` —
-deployment-specific, not secret) and `SBL_MICROSOFT_TENANT` (default `common`) to
-`sbl-api` in `render.yaml` the same way as the SMTP variables above.
+`SBL_MICROSOFT_CLIENT_ID` availability for whenever a frontend button is built against it
+— but for now email is the only sign-in method the site actually offers. Once a
+Google/Microsoft button exists in `web/`, add Secret Files for `SBL_GOOGLE_CLIENT_ID`,
+`SBL_MICROSOFT_CLIENT_ID` (public identifiers, not secret — still a Secret File here
+simply because everything is, per the note above) and `SBL_MICROSOFT_TENANT` (default
+`common`) the same way as the rest of this table.
 
-Once SMTP is configured (and, later, an OIDC provider if one gets added), `SBL_DEV_LOGIN`
-can be turned off.
+**`SBL_DEV_LOGIN=true`** exposes `/api/dev`, which **issues real access tokens for any
+seeded account without any verification** — including `admin@sbl.example.com`. That's the
+whole point for a test instance (no mail server needed to try out roles), but it means
+anyone who finds the URL is an admin. For a private test URL that's usually an acceptable
+trade; once SMTP (and, later, an OIDC provider) is configured, it can be turned off.
