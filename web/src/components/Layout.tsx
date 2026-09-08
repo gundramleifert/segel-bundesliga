@@ -33,7 +33,7 @@ export function Layout() {
 
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
-          <NavLink to="/" className="flex items-center gap-3">
+          <NavLink to="/" className="flex shrink-0 items-center gap-3">
             <img
               src="/marke/segelbundesliga.png"
               alt="German Sailing Bundesliga"
@@ -43,10 +43,15 @@ export function Layout() {
             />
           </NavLink>
 
-          <nav aria-label="Main navigation" className="ml-auto flex items-center gap-3">
-            <ul className="flex items-center gap-1 text-sm">
+          {/* min-w-0 lets this row actually shrink instead of forcing the whole page to
+              overflow horizontally — without it, a flex child's default min-width is its
+              content width, so on a narrow phone the last items (e.g. "Standings") end up
+              past the viewport edge with no visible way to reach them. overflow-x-auto on
+              the list then makes the remaining items reachable by swiping the nav itself. */}
+          <nav aria-label="Main navigation" className="ml-auto flex min-w-0 items-center gap-3">
+            <ul className="flex min-w-0 items-center gap-1 overflow-x-auto text-sm">
               {navigation.map((item) => (
-                <li key={item.path}>
+                <li key={item.path} className="shrink-0">
                   <NavLink
                     to={item.path}
                     end={item.exact}
