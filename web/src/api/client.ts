@@ -159,6 +159,13 @@ export const api = {
       send<{ detail: string }>("POST", "/api/auth/email/request", { email }),
     verifyEmailCode: (email: string, code: string) =>
       send<TokenOut>("POST", "/api/auth/email/verify", { email, code }),
+    /** Creates an account and sends its first one-time code — Story Z-4. Redeemed the
+     *  same way as a sign-in code, via verifyEmailCode. */
+    register: (email: string, displayName: string) =>
+      send<{ detail: string }>("POST", "/api/auth/register", {
+        email,
+        display_name: displayName,
+      }),
     /** Deletes the signed-in account outright — a testing-phase convenience (Story Z-7). */
     deleteMyAccount: () => send<void>("DELETE", "/api/auth/me"),
   },

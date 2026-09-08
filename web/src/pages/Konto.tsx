@@ -186,28 +186,50 @@ function DeleteAccount() {
   );
 }
 
-/** Sign in with a one-time code sent by email — the only sign-in method today.
+/** Sign in with a one-time code sent by email — or create an account the same way, when
+ * self-registration is open.
  *
- * Two steps: enter the address, then the 6-digit code that arrives by mail. The backend
- * deliberately never reveals whether an address has an account (`request_email_code`), so
- * the "check your email" step looks the same either way; a genuinely unknown address only
- * surfaces as an error once a (wrong) code is entered.
+ * Both converge on the same two steps: enter the address (plus a name, for a new
+ * account), then the 6-digit code that arrives by mail — registering sends its first
+ * code through the exact same path a sign-in does (`app.services.login.register`). The
+ * backend deliberately never reveals whether an address already has an account, so the
+ * "check your email" step reads the same either way.
  */
 function SignIn() {
   const { t } = useTranslation("account");
+  const [mode, setMode] = useState<"signin" | "register">("signin");
+  const [registrationOffered, setRegistrationOffered] = useState(false);
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [hinweis, setHinweis] = useState<string | null>(null);
 
+  useEffect(() => {
+    // A registration tab is a nice-to-have — sign-in must keep working even if this
+    // (or the network) fails, so no error state here, just leave the tab hidden.
+    api.auth
+      .providers()
+      .then((p) => setRegistrationOffered(p.allow_registration))
+      .catch(() => {});
+  }, []);
+
+  async function anfordern() {
+    if (mode === "register") {
+      await api.auth.register(email.trim().toLowerCase(), displayName.trim());
+    } else {
+      await api.auth.requestEmailCode(email.trim().toLowerCase());
+    }
+  }
+
   async function codeAnfordern(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setFehler(null);
     try {
-      await api.auth.requestEmailCode(email.trim().toLowerCase());
+      await anfordern();
       setStep("code");
     } catch (err) {
       setFehler(fehlertext(err));
@@ -221,7 +243,7 @@ function SignIn() {
     setFehler(null);
     setHinweis(null);
     try {
-      await api.auth.requestEmailCode(email.trim().toLowerCase());
+      await anfordern();
       setHinweis(t("signIn.resent"));
     } catch (err) {
       setFehler(fehlertext(err));
@@ -244,9 +266,63 @@ function SignIn() {
     }
   }
 
+  function wechseln(naechster: "signin" | "register") {
+    setMode(naechster);
+    setFehler(null);
+  }
+
   if (step === "email") {
     return (
       <form onSubmit={codeAnfordern} className="space-y-3">
+        {registrationOffered && (
+          <div className="flex gap-4 border-b border-slate-200 pb-2 text-sm">
+            <button
+              type="button"
+              onClick={() => wechseln("signin")}
+              className={
+                mode === "signin"
+                  ? "font-semibold text-marke-700"
+                  : "text-slate-500 hover:text-slate-700"
+              }
+            >
+              {t("signIn.tabSignIn")}
+            </button>
+            <button
+              type="button"
+              onClick={() => wechseln("register")}
+              className={
+                mode === "register"
+                  ? "font-semibold text-marke-700"
+                  : "text-slate-500 hover:text-slate-700"
+              }
+            >
+              {t("signIn.tabRegister")}
+            </button>
+          </div>
+        )}
+
+        {mode === "register" && (
+          <div>
+            <label
+              htmlFor="signin-name"
+              className="mb-1 block text-sm font-medium text-slate-700"
+            >
+              {t("signIn.nameLabel")}
+            </label>
+            <input
+              id="signin-name"
+              type="text"
+              required
+              minLength={2}
+              autoComplete="name"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder={t("signIn.namePlaceholder")}
+              className={EINGABE}
+            />
+          </div>
+        )}
+
         <div>
           <label htmlFor="signin-email" className="mb-1 block text-sm font-medium text-slate-700">
             {t("signIn.emailLabel")}
@@ -262,9 +338,17 @@ function SignIn() {
             className={EINGABE}
           />
         </div>
+        {mode === "register" && <p className="text-sm text-slate-500">{t("signIn.registerHint")}</p>}
         {fehler && <Fehler text={fehler} />}
-        <Button type="submit" isDisabled={busy || !email.trim()}>
-          {busy ? t("signIn.sending") : t("signIn.sendCode")}
+        <Button
+          type="submit"
+          isDisabled={busy || !email.trim() || (mode === "register" && !displayName.trim())}
+        >
+          {busy
+            ? t("signIn.sending")
+            : mode === "register"
+              ? t("signIn.sendCodeRegister")
+              : t("signIn.sendCode")}
         </Button>
       </form>
     );
@@ -275,7 +359,9 @@ function SignIn() {
       <div>
         <p className="font-medium text-slate-900">{t("signIn.codeSentTitle")}</p>
         <p className="text-sm text-slate-600">
-          {t("signIn.codeSentHint", { email: email.trim().toLowerCase() })}
+          {t(mode === "register" ? "signIn.codeSentHintRegister" : "signIn.codeSentHint", {
+            email: email.trim().toLowerCase(),
+          })}
         </p>
       </div>
       <div>
