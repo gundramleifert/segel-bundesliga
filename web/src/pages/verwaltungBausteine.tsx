@@ -1,5 +1,12 @@
 import { Card } from "@heroui/react";
-import { useState, type ReactNode } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  useId,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import { Fehler } from "../components/Bausteine";
@@ -40,12 +47,23 @@ export function Feld({
   hinweis?: string;
   children: ReactNode;
 }) {
+  // The label is associated via htmlFor, not by wrapping the control. Wrapping a
+  // <input type="date"> (or any input with a native popup) in a <label> makes every
+  // click on the field bubble back to the label and re-toggle the picker — it opens
+  // and instantly closes, so a date can never be picked and the form stays un-submittable.
+  const id = useId();
+  const control = isValidElement(children)
+    ? cloneElement(children as ReactElement<{ id?: string }>, { id })
+    : children;
+
   return (
-    <label className="block text-sm">
-      <span className="font-medium text-slate-700">{label}</span>
+    <div className="text-sm">
+      <label htmlFor={id} className="font-medium text-slate-700">
+        {label}
+      </label>
       {hinweis && <span className="ml-2 text-slate-500">{hinweis}</span>}
-      <div className="mt-1">{children}</div>
-    </label>
+      <div className="mt-1">{control}</div>
+    </div>
   );
 }
 
@@ -80,10 +98,12 @@ export function VereinsAuswahl({
   vereine,
   gewaehlt,
   umschalten,
+  id,
 }: {
   vereine: { id: number; name: string; short_name: string }[];
   gewaehlt: Set<number>;
   umschalten: (id: number) => void;
+  id?: string;
 }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState("");
@@ -98,7 +118,7 @@ export function VereinsAuswahl({
   const selected = vereine.filter((v) => gewaehlt.has(v.id));
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div id={id} className="grid gap-3 sm:grid-cols-2">
       <div className="rounded-md border border-slate-200">
         <div className="border-b border-slate-200 p-2">
           <input
