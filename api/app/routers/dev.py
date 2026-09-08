@@ -17,8 +17,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import create_access_token
+from app.config import settings
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
+from app.mail import MailError, send_login_code
 from app.models import Club
 from app.models.auth import User
 
@@ -114,3 +116,65 @@ async def dev_login(
 
     token, expires_in = create_access_token(user)
     return TokenOut(access_token=token, expires_in=expires_in)
+
+
+# ---------------------------------------------------------------------- SMTP diagnostics
+#
+# TEMPORARY — added to debug a specific deployment's SMTP configuration without needing
+# dashboard/log access. Both are only reachable behind SBL_DEV_LOGIN like the rest of this
+# router; still, remove this section once STRATO delivery is confirmed working — it isn't
+# meant to be a permanent part of the API.
+
+
+class SmtpConfigOut(BaseModel):
+    smtp_host: str
+    smtp_port: int
+    smtp_ssl: bool
+    smtp_starttls: bool
+    smtp_user: str
+    smtp_password_set: bool
+    mail_from: str
+
+
+@router.get(
+    "/smtp-config", response_model=SmtpConfigOut, summary="What SMTP config is resolved"
+)
+async def smtp_config() -> SmtpConfigOut:
+    """Shows exactly what `app.config.settings` resolved to — from env vars, Secret
+    Files, or defaults, whichever won — without exposing the password itself."""
+    return SmtpConfigOut(
+        smtp_host=settings.smtp_host,
+        smtp_port=settings.smtp_port,
+        smtp_ssl=settings.smtp_ssl,
+        smtp_starttls=settings.smtp_starttls,
+        smtp_user=settings.smtp_user,
+        smtp_password_set=bool(settings.smtp_password),
+        mail_from=settings.mail_from,
+    )
+
+
+class TestEmail(BaseModel):
+    email: EmailStr
+
+
+class TestEmailOut(BaseModel):
+    attempted: bool
+    sent: bool
+    error: str | None = None
+
+
+@router.post(
+    "/test-email", response_model=TestEmailOut, summary="Attempt an actual SMTP send"
+)
+async def test_email(request: TestEmail) -> TestEmailOut:
+    """Sends a real message with a throwaway code to the given address right now, and
+    reports the outcome directly in the response — the same send path
+    `app.services.login.request_email_code` uses, just without needing a valid account or
+    the anti-enumeration silence that endpoint deliberately has."""
+    if not settings.smtp_host:
+        return TestEmailOut(attempted=False, sent=False, error="SBL_SMTP_HOST is not set.")
+    try:
+        await send_login_code(request.email, "000000")
+    except MailError as exc:
+        return TestEmailOut(attempted=True, sent=False, error=str(exc))
+    return TestEmailOut(attempted=True, sent=True)
