@@ -27,7 +27,7 @@ services:
       - key: SBL_DEV_LOGIN
         value: "true"
       - key: SBL_ALLOW_REGISTRATION
-        value: "false"
+        value: "true"
       # Same-origin via the rewrite below, so CORS isn't needed. Set this to the site URL
       # if you ever call the API cross-origin.
       - key: SBL_CORS_ORIGINS

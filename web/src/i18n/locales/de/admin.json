@@ -125,6 +125,22 @@
     "notSignedInError": "Für die Verwaltung müssen Sie angemeldet sein.",
     "noAccessError": "Die Verwaltung ist der Geschäftsstelle und der Redaktion vorbehalten."
   },
+  "accounts": {
+    "title": "Konten",
+    "description": "Weist zu, für welchen Verein ein Konto handelt, und vergibt oder entzieht Rollen. Ein neu registriertes Konto hat zunächst beides nicht.",
+    "searchLabel": "Suchen",
+    "searchHint": "Name oder E-Mail",
+    "searchPlaceholder": "Name oder Adresse eingeben ...",
+    "loadingText": "Konten werden geladen ...",
+    "emptyText": "Zu dieser Suche passt kein Konto.",
+    "clubNone": "— keiner —",
+    "roleLabels": {
+      "admin": "Verwaltung",
+      "editor": "Redaktion",
+      "race_officer": "Wettfahrtleitung",
+      "club_manager": "Vereinsmanager"
+    }
+  },
   "page": {
     "title": "Verwaltung",
     "signedInAs": "Angemeldet als {{displayName}} · {{roles}}"

@@ -168,6 +168,21 @@ export const api = {
       }),
     /** Deletes the signed-in account outright — a testing-phase convenience (Story Z-7). */
     deleteMyAccount: () => send<void>("DELETE", "/api/auth/me"),
+    /** Search accounts — Story Z-2/Z-3. Club managers may call this too (to find people
+     *  for their own club), but the roles/club endpoints below check permissions per call. */
+    list: (params: { q?: string; clubId?: number } = {}, signal?: AbortSignal) => {
+      const qs = new URLSearchParams();
+      if (params.q) qs.set("q", params.q);
+      if (params.clubId != null) qs.set("club_id", String(params.clubId));
+      const suffix = qs.toString() ? `?${qs.toString()}` : "";
+      return get<Account[]>(`/api/auth/users${suffix}`, signal);
+    },
+    /** Grant/revoke roles outright (admin only) — Story Z-2. */
+    setRoles: (userId: number, roles: string[]) =>
+      send<Account>("PUT", `/api/auth/users/${userId}/roles`, { roles }),
+    /** Assign (or clear, with null) the club an account acts for — Story Z-3. */
+    setClub: (userId: number, clubId: number | null) =>
+      send<Account>("PUT", `/api/auth/users/${userId}/club`, { club_id: clubId }),
   },
 
   clubs: (signal?: AbortSignal) => get<Club[]>("/api/clubs", signal),

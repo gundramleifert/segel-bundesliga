@@ -125,6 +125,22 @@
     "notSignedInError": "You must be signed in to access administration.",
     "noAccessError": "Administration is reserved for the business office and editorial team."
   },
+  "accounts": {
+    "title": "Accounts",
+    "description": "Assign the club an account acts for, and grant or revoke roles. A newly registered account starts with neither.",
+    "searchLabel": "Search",
+    "searchHint": "name or email",
+    "searchPlaceholder": "Enter a name or address ...",
+    "loadingText": "Loading accounts ...",
+    "emptyText": "No account matches this search.",
+    "clubNone": "— none —",
+    "roleLabels": {
+      "admin": "Admin",
+      "editor": "Editor",
+      "race_officer": "Race officer",
+      "club_manager": "Club manager"
+    }
+  },
   "page": {
     "title": "Administration",
     "signedInAs": "Signed in as {{displayName}} · {{roles}}"

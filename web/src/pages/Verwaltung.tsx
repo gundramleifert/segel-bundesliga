@@ -8,6 +8,7 @@ import { api, type BoatSpec, type ClubAdmin, type SeriesAdmin } from "../api/cli
 import { useApi, useInvalidieren, useKonto } from "../api/useApi";
 import { Fehler, Laden, Leer, Seitenkopf } from "../components/Bausteine";
 import { BOOTSFARBEN } from "../lib/format";
+import { AccountsAdmin } from "./VerwaltungKonten";
 import { SailorsAdmin } from "./VerwaltungSegler";
 import { EINGABE, fehlertext, umschalter } from "../lib/verwaltung";
 import { Abschnitt, Feld, Meldung, VereinsAuswahl } from "./verwaltungBausteine";
@@ -46,6 +47,7 @@ export function Admin() {
         <Series editorOnly={!hatRolle("admin")} />
         <Events />
         <SailorsAdmin />
+        {hatRolle("admin") && <AccountsAdmin />}
       </div>
     </>
   );
