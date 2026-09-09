@@ -105,6 +105,11 @@ export function SpieltagKarte({ event, testId }: { event: EventSummary; testId?:
  *  page — see `.tabelle-scroll` in `index.css`. Vertical scrolling stays the page's own,
  *  single scrollbar; there is deliberately no sticky table header (see that file for why
  *  one doesn't coexist cleanly with a horizontally-scrolling box here).
+ *
+ *  `scrollbar-none` (the same class the navbar's own horizontal scroll area already uses)
+ *  hides the native scrollbar track — a plain OS scrollbar with arrow buttons reads as
+ *  clutter, especially stacked visually next to the page's own vertical one. Touch swipe,
+ *  wheel, and drag-to-scroll still work; only the visible track is gone.
  */
 export function TabellenRahmen({
   children,
@@ -116,7 +121,7 @@ export function TabellenRahmen({
   return (
     <div
       data-testid={testId ?? "table-frame"}
-      className="tabelle-scroll rounded-xl border border-slate-200 bg-white"
+      className="tabelle-scroll scrollbar-none rounded-xl border border-slate-200 bg-white"
     >
       {children}
     </div>
