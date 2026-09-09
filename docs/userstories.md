@@ -352,10 +352,11 @@ Acceptance criteria:
 - Each boat row defaults to a color from the league colors, in order (`WHITE` beyond that, or
   once a custom field is left empty — "no color" is not a choice), and a name of
   **"Boat 1".."Boat N"** by position — a clearer starting point than an empty required field,
-  freely renamed afterwards. The **color select itself shows the chosen color** as its
-  background, predefined or custom alike, so the organizer can check it at a glance without a
-  separate swatch; a custom color can be entered as free text or picked with a native color
-  picker, kept in sync with each other.
+  freely renamed afterwards. **Three controls, always shown together**: a plain named select, a
+  native color picker, and a free-text field — the color itself is only actually visible in the
+  picker. Choosing a named color in the select copies it into the picker/text; editing either
+  the picker or the text switches the select to "Custom", so a hand-picked color is never left
+  sitting silently under a named option it no longer matches.
 - In addition to administration, editorial, and race committee, also the **leadership of the
   host club** can create — not for a foreign host.
 

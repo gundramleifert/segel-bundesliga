@@ -466,37 +466,17 @@ function vorgabeName(position: number): string {
   return i18n.t("admin:events.boatDefaultName", { number: position });
 }
 
+/** A fresh row's `eigeneFarbe` starts out matching its predefined default, not empty — the
+ *  picker and free-text field are always visible now (not just once "Custom" is chosen), so
+ *  they need a real value to show from the very first render, not a black fallback. */
 function leereBootZeile(position: number): BootZeile {
-  return { farbe: vorgabeFarbe(position), eigeneFarbe: "", name: vorgabeName(position) };
-}
-
-/** The color a row currently resolves to, for the swatch preview — a predefined color's
- *  hex via `bootsfarbe()` (same lookup as the pairing table elsewhere), or the free-text
- *  entry as-is for "custom": CSS accepts a hex string or a color name directly, and simply
- *  ignores it if it's neither, so no separate validation is needed just to preview it. */
-function vorschauFarbe(zeile: BootZeile): string {
-  if (zeile.farbe === EIGENE_FARBE) return zeile.eigeneFarbe.trim() || "#ffffff";
-  return bootsfarbe(zeile.farbe).hex;
-}
-
-/** Whether black or white text reads better on `hex` — relative luminance (ITU-R BT.601
- *  weights) against a fixed midpoint is plenty precise for a UI affordance, not a color-managed
- *  print job. Unparseable input (a CSS color name typed into the custom field, say) falls back
- *  to light text: most named CSS colors used for a boat hull skew mid-to-dark. */
-function dunklerHintergrund(hex: string): boolean {
-  const treffer = /^#([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!treffer) return true;
-  const wert = treffer[1];
-  const r = parseInt(wert.slice(0, 2), 16);
-  const g = parseInt(wert.slice(2, 4), 16);
-  const b = parseInt(wert.slice(4, 6), 16);
-  const luminanz = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminanz <= 0.6;
+  const farbe = vorgabeFarbe(position);
+  return { farbe, eigeneFarbe: bootsfarbe(farbe).hex, name: vorgabeName(position) };
 }
 
 /** `<input type="color">` needs a well-formed 6-digit hex or it silently resets to black —
- *  falls back to black only for the picker's own value, the free-text field and swatch
- *  keep showing whatever was actually typed. */
+ *  falls back to black only for the picker's own value, the free-text field keeps showing
+ *  whatever was actually typed. */
 function hexFuerPicker(text: string): string {
   const getrimmt = text.trim();
   return /^#[0-9a-f]{6}$/i.test(getrimmt) ? getrimmt.toLowerCase() : "#000000";
@@ -763,23 +743,33 @@ function Events() {
                     <td className="px-3 py-2 text-slate-500">{index + 1}</td>
                     <td className="px-3 py-2">
                       {/* `EINGABE` is `w-full` by default — every control here overrides that
-                       *  to a fixed or growing-but-bounded width instead, so up to three
-                       *  controls (select, picker, free text) stay on one line; the table's
-                       *  own `overflow-x-auto` wrapper is the fallback on narrow screens, not
-                       *  wrapping within the row. */}
+                       *  to a fixed or growing-but-bounded width instead, so all three
+                       *  controls stay on one line; the table's own `overflow-x-auto` wrapper
+                       *  is the fallback on narrow screens, not wrapping within the row.
+                       *
+                       *  All three are always shown, not just once "Custom" is picked: the
+                       *  select is the plain named choice, the picker is the only place the
+                       *  color itself is actually visible, and the text field is the same
+                       *  value as typable text. Picking a named color in the select copies its
+                       *  hex into the picker/text (so "the dropdown sets the picker"); editing
+                       *  the picker or the text field the other way switches the select to
+                       *  "Custom" (so a hand-picked color never sits silently under a named
+                       *  option it no longer matches). */}
                       <div className="flex flex-nowrap items-center gap-2">
-                        {/* The select's own background *is* the chosen color — predefined or
-                         *  custom, always, so there's one consistent way to see and check a
-                         *  row's color instead of a second, separate swatch next to it. */}
                         <select
-                          className={`${EINGABE.replace("w-full", "w-32")} shrink-0 font-medium`}
-                          style={{
-                            backgroundColor: vorschauFarbe(zeile),
-                            color: dunklerHintergrund(vorschauFarbe(zeile)) ? "#ffffff" : "#0f172a",
-                          }}
+                          className={`${EINGABE.replace("w-full", "w-32")} shrink-0`}
                           aria-label={`${t("events.boatColorLabel")} ${index + 1}`}
                           value={zeile.farbe}
-                          onChange={(e) => aktualisiereBoot(index, { farbe: e.target.value })}
+                          onChange={(e) => {
+                            const naechsteFarbe = e.target.value;
+                            aktualisiereBoot(index, {
+                              farbe: naechsteFarbe,
+                              eigeneFarbe:
+                                naechsteFarbe === EIGENE_FARBE
+                                  ? zeile.eigeneFarbe
+                                  : bootsfarbe(naechsteFarbe).hex,
+                            });
+                          }}
                           data-testid={`admin-events-boat-color-select-${index}`}
                         >
                           {VORDEFINIERTE_FARBEN.map((code) => (
@@ -789,30 +779,26 @@ function Events() {
                           ))}
                           <option value={EIGENE_FARBE}>{t("events.boatColorCustom")}</option>
                         </select>
-                        {zeile.farbe === EIGENE_FARBE && (
-                          <>
-                            <input
-                              type="color"
-                              className="h-9 w-9 shrink-0 cursor-pointer rounded border border-slate-300 p-0.5"
-                              value={hexFuerPicker(zeile.eigeneFarbe)}
-                              onChange={(e) =>
-                                aktualisiereBoot(index, { eigeneFarbe: e.target.value })
-                              }
-                              aria-label={t("events.boatColorPickerLabel")}
-                              data-testid={`admin-events-boat-color-picker-${index}`}
-                            />
-                            <input
-                              className={`${EINGABE.replace("w-full", "min-w-[6rem]")} flex-1`}
-                              value={zeile.eigeneFarbe}
-                              onChange={(e) =>
-                                aktualisiereBoot(index, { eigeneFarbe: e.target.value })
-                              }
-                              placeholder={t("events.boatColorCustomPlaceholder")}
-                              aria-label={t("events.boatColorCustomPlaceholder")}
-                              data-testid={`admin-events-boat-color-custom-input-${index}`}
-                            />
-                          </>
-                        )}
+                        <input
+                          type="color"
+                          className="h-9 w-9 shrink-0 cursor-pointer rounded border border-slate-300 p-0.5"
+                          value={hexFuerPicker(zeile.eigeneFarbe)}
+                          onChange={(e) =>
+                            aktualisiereBoot(index, { farbe: EIGENE_FARBE, eigeneFarbe: e.target.value })
+                          }
+                          aria-label={t("events.boatColorPickerLabel")}
+                          data-testid={`admin-events-boat-color-picker-${index}`}
+                        />
+                        <input
+                          className={`${EINGABE.replace("w-full", "min-w-[6rem]")} flex-1`}
+                          value={zeile.eigeneFarbe}
+                          onChange={(e) =>
+                            aktualisiereBoot(index, { farbe: EIGENE_FARBE, eigeneFarbe: e.target.value })
+                          }
+                          placeholder={t("events.boatColorCustomPlaceholder")}
+                          aria-label={t("events.boatColorCustomPlaceholder")}
+                          data-testid={`admin-events-boat-color-custom-input-${index}`}
+                        />
                       </div>
                     </td>
                     <td className="px-3 py-2">
