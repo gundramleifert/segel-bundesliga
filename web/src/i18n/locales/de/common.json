@@ -1,5 +1,5 @@
 {
-  "siteTitle": "Deutsche Segel-Bundesliga",
+  "siteTitle": "Deutsche Segel-Liga",
   "loading": "Wird geladen …",
   "skipToContent": "Zum Inhalt springen",
   "nav": {
@@ -34,7 +34,7 @@
   "hostedBy": "Ausrichter: {{name}}",
   "venueUnknown": "Ort noch offen",
   "actNumber": "{{number}}. Act",
-  "footer": "Deutsche Segel-Bundesliga · 18 Vereine, 6 Boote, 48 Wettfahrten je Spieltag",
+  "footer": "Deutsche Segel-Liga e.V. · Ligen, Pokale und ihre Spieltage",
   "language": {
     "label": "Sprache",
     "en": "English",

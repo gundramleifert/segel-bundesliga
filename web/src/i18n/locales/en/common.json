@@ -1,5 +1,5 @@
 {
-  "siteTitle": "German Sailing Bundesliga",
+  "siteTitle": "German Sailing League",
   "loading": "Loading …",
   "skipToContent": "Skip to content",
   "nav": {
@@ -34,7 +34,7 @@
   "hostedBy": "Host: {{name}}",
   "venueUnknown": "Venue to be announced",
   "actNumber": "Act {{number}}",
-  "footer": "German Sailing Bundesliga · 18 clubs, 6 boats, 48 races per matchday",
+  "footer": "Deutsche Segel-Liga e.V. · Leagues, cups and their matchdays",
   "language": {
     "label": "Language",
     "en": "English",
