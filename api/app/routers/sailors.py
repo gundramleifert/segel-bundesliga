@@ -417,15 +417,22 @@ async def get_sailor_photo(
     if not path.exists():
         raise Problem(404, "sailor-photo-not-found", "This sailor has no photo.")
 
-    if is_minor(sailor.birth_date, date.today()) and not await _may_view_minor_photo(
+    # `is_minor` is deliberately tri-state: None means the birth date is unset. None is
+    # falsy, so a plain truth test here would fail *open* — and since the birth date is an
+    # optional, self-reported field, leaving it blank would publish a 14-year-old's photo to
+    # the world, defeating the entire gate by omission. Anything other than a definite
+    # "adult" therefore requires the connected-viewer check. A sailor lifts the restriction
+    # on their own photo by filling in their birth date in the same self-service form they
+    # uploaded it from. `app/routers/waivers.py` treats the same unknown as blocking.
+    if is_minor(sailor.birth_date, date.today()) is not False and not await _may_view_minor_photo(
         session, acting, sailor
     ):
         raise Problem(
             403,
-            "sailor-photo-minor-protected",
-            "This sailor is a minor. Their photo is only shown to a signed-in account "
-            "connected to them: the sailor themselves, administration/editorial staff, "
-            "or their club's leadership.",
+            "sailor-photo-protected",
+            "This sailor is a minor, or their date of birth is not on file. Their photo is "
+            "only shown to a signed-in account connected to them: the sailor themselves, "
+            "administration/editorial staff, or their club's leadership.",
         )
 
     return FileResponse(path, media_type="image/jpeg")
@@ -536,15 +543,17 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
 async def _may_view_minor_photo(
     session: AsyncSession, acting: User | None, sailor: Sailor
 ) -> bool:
-    """Who may see a minor's photo — Story S-2's own open question, resolved here.
+    """Who may see a photo that is not public — Story S-2's own open question, resolved here.
 
-    An adult's (or unknown-birthdate's) photo is public: "so that people see who sails
-    for the club" is the whole point of S-2, and there is no reason to gate it. A minor's
-    photo is sensitive in exactly the way the waiver story (S-1) already treats minors'
-    data with extra care, so it is shown only to a signed-in account with an actual
-    connection to that person: the sailor themselves, administration/editorial staff (who
-    already manage this data unrestricted, see `_can_manage_master_data`), or a manager of a club
-    this sailor is registered with (their squad club, not just any club).
+    An **adult's** photo is public: "so that people see who sails for the club" is the whole
+    point of S-2, and there is no reason to gate it. A minor's photo is sensitive in exactly
+    the way the waiver story (S-1) already treats minors' data with extra care, so it is shown
+    only to a signed-in account with an actual connection to that person: the sailor
+    themselves, administration/editorial staff (who already manage this data unrestricted, see
+    `_can_manage_master_data`), or a manager of a club this sailor is registered with (their
+    squad club, not just any club).
+
+    An **unknown** birth date is treated like a minor's, not like an adult's — see the caller.
     """
     if acting is None:
         return False

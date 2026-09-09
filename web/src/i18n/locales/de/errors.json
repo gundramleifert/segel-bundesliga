@@ -25,5 +25,5 @@
   "sailor-photo-invalid-type": "Der Upload muss ein Bild sein.",
   "sailor-photo-invalid": "Diese Datei ist kein lesbares Bild.",
   "sailor-photo-too-large": "Das Foto ist zu groß. Bitte eine kleinere Datei verwenden.",
-  "sailor-photo-minor-protected": "Diese Person ist minderjährig. Das Foto wird nur angemeldeten Konten mit Bezug zu ihr angezeigt."
+  "sailor-photo-protected": "Diese Person ist minderjährig oder hat kein Geburtsdatum hinterlegt. Das Foto wird nur angemeldeten Konten mit Bezug zu ihr angezeigt."
 }

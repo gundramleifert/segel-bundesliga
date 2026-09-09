@@ -274,7 +274,7 @@ class TestMinorPhotoVisibility:
 
         guest = await client.get(f"/api/sailors/{sailor_id}/photo")
         assert guest.status_code == 403
-        assert guest.json()["type"] == "/errors/sailor-photo-minor-protected"
+        assert guest.json()["type"] == "/errors/sailor-photo-protected"
 
         await make_user("profil-unbeteiligt@example.com")
         unrelated = auth_headers(await login_as(client, "profil-unbeteiligt@example.com", caplog))
@@ -286,3 +286,38 @@ class TestMinorPhotoVisibility:
 
         admin_view = await client.get(f"/api/sailors/{sailor_id}/photo", headers=admin)
         assert admin_view.status_code == 200
+
+    async def test_a_photo_without_a_birth_date_on_file_is_restricted_not_published(
+        self, client, caplog
+    ):
+        """The gate must not fail open. `birth_date` is optional and self-reported, so if an
+        unknown age counted as an adult, a minor could publish their photo to the world just
+        by leaving the field blank — the restriction is lifted by supplying the date."""
+        admin = await _admin(client, caplog)
+        await _new_sailor(client, admin, email="profil.ohnedatum@example.com", birth_date=None)
+        account = await _account_for(client, caplog, "profil.ohnedatum@example.com")
+        uploaded = await client.post(
+            "/api/sailors/me/photo",
+            headers=account,
+            files={"file": ("me.jpg", _jpeg_bytes(), "image/jpeg")},
+        )
+        assert uploaded.status_code == 200, uploaded.text
+        sailor_id = uploaded.json()["id"]
+        assert uploaded.json()["birth_date"] is None
+
+        guest = await client.get(f"/api/sailors/{sailor_id}/photo")
+        assert guest.status_code == 403
+        assert guest.json()["type"] == "/errors/sailor-photo-protected"
+
+        # The sailor themselves still sees it, as do administration and editorial staff.
+        own = await client.get(f"/api/sailors/{sailor_id}/photo", headers=account)
+        assert own.status_code == 200
+        admin_view = await client.get(f"/api/sailors/{sailor_id}/photo", headers=admin)
+        assert admin_view.status_code == 200
+
+        # Supplying the birth date is what makes an adult's photo public.
+        patched = await client.patch(
+            "/api/sailors/me", headers=account, json={"birth_date": _ADULT_BIRTH}
+        )
+        assert patched.status_code == 200, patched.text
+        assert (await client.get(f"/api/sailors/{sailor_id}/photo")).status_code == 200

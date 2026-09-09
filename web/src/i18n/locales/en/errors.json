@@ -25,5 +25,5 @@
   "sailor-photo-invalid-type": "The upload must be an image.",
   "sailor-photo-invalid": "This file is not a readable image.",
   "sailor-photo-too-large": "The photo is too large. Please use a smaller file.",
-  "sailor-photo-minor-protected": "This sailor is under 18. Their photo is only shown to a signed-in account connected to them."
+  "sailor-photo-protected": "This sailor is under 18, or has no date of birth on file. Their photo is only shown to a signed-in account connected to them."
 }
