@@ -111,7 +111,7 @@ export function Standings() {
           <caption className="sr-only">
             {t("caption", { seriesName: data.series.name })}
           </caption>
-          <thead className="tabelle-kopf">
+          <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
               <th scope="col" className="w-14 px-4 py-3 font-medium text-slate-600">
                 {t("table.rank")}

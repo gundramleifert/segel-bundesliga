@@ -260,7 +260,7 @@ function SortableStandingsTable({
         style={{ minWidth: `${(zeigeProjektion ? 38 : 30) + flights.length * 3.25}rem` }}
       >
         <caption className="sr-only">{t("standingsCaption")}</caption>
-        <thead className="tabelle-kopf">
+        <thead>
           <tr className="border-b border-slate-200 bg-slate-50 text-left">
             <th scope="col" className="w-14 px-4 py-3 font-medium text-slate-600">
               {t("placeHeader")}
@@ -413,7 +413,7 @@ function PairingList({ eventId }: { eventId: number }) {
       <TabellenRahmen testId="matchday-pairing-table-frame">
         <table data-testid="matchday-pairing-table" className="w-full min-w-[44rem] border-collapse text-sm">
           <caption className="sr-only">{t("pairingCaption")}</caption>
-          <thead className="tabelle-kopf">
+          <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
               <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
                 {t("numberHeader")}
@@ -463,22 +463,19 @@ function PairingList({ eventId }: { eventId: number }) {
 
 // ---------------------------------------------------------------- Story WL-2: results
 
-/** RRS Appendix A scoring codes, in the order they're most often needed. */
-const RESULT_CODES = [
-  "FINISHED",
-  "DNS",
-  "DNF",
-  "OCS",
-  "DSQ",
-  "DNE",
-  "RDG",
-  "ZFP",
-  "SCP",
-  "RET",
-] as const;
+/** Every code except FINISHED — that one is picked as a finish position number directly in
+ *  the merged dropdown (see `RaceResultRow`), not as its own entry in this list. */
+const SPEZIAL_CODES = ["DNS", "DNF", "OCS", "DSQ", "DNE", "RET", "RDG", "ZFP", "SCP"] as const;
 
 function brauchtPlatz(code: string): boolean {
   return code === "FINISHED" || code === "ZFP" || code === "SCP";
+}
+
+/** Only ZFP/SCP still need their own position input — FINISHED's position comes directly
+ *  from picking a number in the merged dropdown, so showing a second input for it would just
+ *  be two controls for the same value. */
+function brauchtEigeneEingabe(code: string): boolean {
+  return code === "ZFP" || code === "SCP";
 }
 
 /** `DID_NOT_FINISH_CODES` in `api/app/scoring/low_point.py`: all scored identically —
@@ -584,7 +581,7 @@ function ResultsEntry({
       <TabellenRahmen testId="matchday-results-table-frame">
         <table data-testid="matchday-results-table" className="w-full min-w-[64rem] border-collapse text-sm">
           <caption className="sr-only">{t("resultsCaption")}</caption>
-          <thead className="tabelle-kopf">
+          <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
               <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
                 {t("numberHeader")}
@@ -808,69 +805,90 @@ function RaceResultRow({
         const zugewiesen = zeile.code === "FINISHED" && zeile.finish_position != null;
         const vorschlag =
           zeile.code === "RDG" ? redressVorschlag(bestehend.team.id, race.sequence, standings) : null;
+        // The merged dropdown's own value: a finish position shows as its number, every
+        // other code shows as itself, and "FINISHED with nothing picked yet" shows as the
+        // empty placeholder rather than a bare "FINISHED" that isn't a real option anymore.
+        const auswahlWert =
+          zeile.code === "FINISHED"
+            ? zeile.finish_position != null
+              ? String(zeile.finish_position)
+              : ""
+            : zeile.code;
         return (
           <td key={boot.number} className="min-w-[9.5rem] px-3 py-2.5">
-            <div className="mb-1 truncate text-xs font-medium text-slate-600">
-              {bestehend.team.club.short_name}
+            <div className="mb-1 flex items-center gap-1.5 truncate text-xs font-medium text-slate-600">
+              <span
+                aria-hidden
+                className="size-2.5 shrink-0 rounded-full ring-1 ring-slate-300"
+                style={{ backgroundColor: farbe.hex }}
+              />
+              <span className="truncate">{bestehend.team.club.short_name}</span>
             </div>
-            {bestehend.points != null && (
-              <div className="mb-1 text-[11px] text-slate-400">
-                {t("currentResultNote", { points: punkte(bestehend.points) })}
-                {bestehend.is_discarded && ` (${t("discardedNote")})`}
-              </div>
+            {bestehend.is_discarded && (
+              <div className="mb-1 text-[11px] text-slate-400">{t("discardedNote")}</div>
             )}
-            <button
-              type="button"
-              onClick={() => tippen(boot.number)}
-              aria-pressed={zugewiesen}
-              title={
-                zugewiesen
-                  ? t("tapUndoLabel", { position: zeile.finish_position })
-                  : t("tapAssignLabel", { boat: farbe.name })
-              }
-              data-testid={`matchday-results-tap-${race.id}-${boot.number}`}
-              className="mb-1.5 flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:brightness-110"
-              style={{ backgroundColor: farbe.hex }}
-            >
-              <span className="truncate">{farbe.name}</span>
-              {zugewiesen ? (
-                <span
-                  data-testid={`matchday-results-tap-badge-${race.id}-${boot.number}`}
-                  className="flex size-5 shrink-0 items-center justify-center rounded-full bg-white text-[11px] font-bold text-slate-900"
-                >
-                  {zeile.finish_position}
-                </span>
-              ) : (
-                <span aria-hidden className="shrink-0 text-[10px] font-normal text-white/80">
-                  {t("tapChipHint")}
-                </span>
-              )}
-            </button>
-            <select
-              aria-label={t("codeHeader")}
-              title={codeTitel(zeile.code)}
-              className={EINGABE}
-              value={zeile.code}
-              onChange={(e) => {
-                const neuerCode = e.target.value;
-                if (neuerCode === "RDG" && zeile.redress_points == null) {
-                  setzeFeld(boot.number, {
-                    code: neuerCode,
-                    redress_points: redressVorschlag(bestehend.team.id, race.sequence, standings),
-                  });
-                } else {
-                  setzeFeld(boot.number, { code: neuerCode });
-                }
-              }}
-              data-testid={`matchday-results-code-select-${race.id}-${boot.number}`}
-            >
-              {RESULT_CODES.map((code) => (
-                <option key={code} value={code} title={codeTitel(code)}>
-                  {code}
+            <div className="flex items-center gap-1.5">
+              <select
+                aria-label={t("codeHeader")}
+                title={codeTitel(zeile.code)}
+                className={`${EINGABE} flex-1 ${
+                  duplikatBoote.has(boot.number) ? "border-red-500 ring-2 ring-red-200" : ""
+                }`}
+                value={auswahlWert}
+                aria-invalid={duplikatBoote.has(boot.number)}
+                onChange={(e) => {
+                  const neuerWert = e.target.value;
+                  const alsPosition = Number(neuerWert);
+                  if (neuerWert !== "" && Number.isInteger(alsPosition) && alsPosition > 0) {
+                    setzeFeld(boot.number, { code: "FINISHED", finish_position: alsPosition });
+                    return;
+                  }
+                  if (neuerWert === "RDG" && zeile.redress_points == null) {
+                    setzeFeld(boot.number, {
+                      code: neuerWert,
+                      redress_points: redressVorschlag(bestehend.team.id, race.sequence, standings),
+                    });
+                    return;
+                  }
+                  setzeFeld(boot.number, { code: neuerWert });
+                }}
+                data-testid={`matchday-results-code-select-${race.id}-${boot.number}`}
+              >
+                <option value="" disabled hidden>
+                  {t("resultPlaceholder")}
                 </option>
-              ))}
-            </select>
-            {brauchtPlatz(zeile.code) && (
+                {Array.from({ length: starter }, (_, i) => i + 1).map((position) => (
+                  <option key={position} value={position} title={codeTitel("FINISHED")}>
+                    {position}
+                  </option>
+                ))}
+                {SPEZIAL_CODES.map((code) => (
+                  <option key={code} value={code} title={codeTitel(code)}>
+                    {code}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => tippen(boot.number)}
+                aria-pressed={zugewiesen}
+                title={
+                  zugewiesen
+                    ? t("tapUndoLabel", { position: zeile.finish_position })
+                    : t("tapAssignLabel", { boat: farbe.name })
+                }
+                data-testid={`matchday-results-tap-${race.id}-${boot.number}`}
+                className={`flex size-9 shrink-0 items-center justify-center rounded-md border text-base transition ${
+                  zugewiesen
+                    ? "border-transparent text-white shadow-sm hover:brightness-110"
+                    : "border-slate-300 text-slate-500 hover:bg-slate-50"
+                }`}
+                style={zugewiesen ? { backgroundColor: farbe.hex } : undefined}
+              >
+                <span aria-hidden>🏁</span>
+              </button>
+            </div>
+            {brauchtEigeneEingabe(zeile.code) && (
               <input
                 type="number"
                 min={1}
