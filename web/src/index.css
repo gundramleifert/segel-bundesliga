@@ -31,3 +31,14 @@ html {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Hides the native scrollbar track on an element that still scrolls (touch/wheel/JS) —
+   used on the navbar's item list, which needs overflow-x-auto for narrow phones but not
+   a visible scrollbar strip across the header. */
+.scrollbar-none {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}

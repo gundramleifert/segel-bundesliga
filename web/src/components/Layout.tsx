@@ -27,14 +27,26 @@ export function Layout() {
     <div className="flex min-h-dvh flex-col bg-flaeche text-tinte">
       <a
         href="#content"
+        data-testid="layout-skip-link"
         className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:ring-2 focus:ring-marke-500"
       >
         {t("skipToContent")}
       </a>
 
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
+      <header
+        data-testid="layout-header"
+        className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur"
+      >
         <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
-          <NavLink to="/" className="flex shrink-0 items-center gap-3">
+          {/* The logo links out to the league's official site, not to our own home route —
+              internal navigation to "/" is still reachable via the "Start" nav item below. */}
+          <a
+            href="https://deutsche-segelliga.de"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="layout-logo-link"
+            className="flex shrink-0 items-center gap-3"
+          >
             <img
               src="/marke/segelbundesliga.png"
               alt="German Sailing Bundesliga"
@@ -42,20 +54,28 @@ export function Layout() {
               width={120}
               height={59}
             />
-          </NavLink>
+          </a>
 
           {/* min-w-0 lets this row actually shrink instead of forcing the whole page to
               overflow horizontally — without it, a flex child's default min-width is its
               content width, so on a narrow phone the last items (e.g. "Standings") end up
               past the viewport edge with no visible way to reach them. overflow-x-auto on
-              the list then makes the remaining items reachable by swiping the nav itself. */}
-          <nav aria-label="Main navigation" className="ml-auto flex min-w-0 items-center gap-3">
-            <ul className="flex min-w-0 items-center gap-1 overflow-x-auto text-sm">
+              the list then makes the remaining items reachable by swiping the nav itself.
+              scrollbar-none hides the native scrollbar track that swipe area would otherwise
+              draw across the navbar — touch/wheel scrolling still works, only the visible
+              scrollbar is suppressed. */}
+          <nav
+            aria-label="Main navigation"
+            data-testid="layout-nav"
+            className="ml-auto flex min-w-0 items-center gap-3"
+          >
+            <ul className="scrollbar-none flex min-w-0 items-center gap-1 overflow-x-auto text-sm">
               {navigation.map((item) => (
                 <li key={item.path} className="shrink-0">
                   <NavLink
                     to={item.path}
                     end={item.exact}
+                    data-testid={`layout-nav-${item.key}`}
                     className={({ isActive }) =>
                       `rounded-md px-3 py-2 transition-colors ${
                         isActive
@@ -74,13 +94,13 @@ export function Layout() {
         </div>
       </header>
 
-      <main id="content" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+      <main id="content" data-testid="layout-main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         <Outlet />
       </main>
 
       <Rollenwechsel />
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer data-testid="layout-footer" className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-500">
           {/* Once results from SAP Sailing Analytics are shown, the SAP attribution
               notice must go here — see docs/findings.md, section 3. */}

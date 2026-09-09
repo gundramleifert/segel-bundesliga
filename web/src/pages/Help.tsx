@@ -78,9 +78,9 @@ export function Help() {
 
   return (
     <>
-      <Seitenkopf titel={t("title")} unterzeile={t("intro")} />
+      <Seitenkopf titel={t("title")} unterzeile={t("intro")} testId="help-header" />
 
-      <section className="mb-10">
+      <section data-testid="help-roles-section" className="mb-10">
         <h2 className="mb-1 text-lg font-semibold">{t("roles.title")}</h2>
         <p className="mb-3 text-sm text-slate-600">{t("roles.intro")}</p>
 
@@ -88,7 +88,7 @@ export function Help() {
             approach TabellenRahmen uses for results tables — the page itself never
             scrolls sideways. */}
         <div className="tabelle-scroll rounded-xl border border-slate-200 bg-white">
-          <table className="w-full min-w-[640px] border-collapse text-sm">
+          <table data-testid="help-roles-table" className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left">
                 <th scope="col" className="px-4 py-2.5 font-medium text-slate-700">
@@ -103,13 +103,13 @@ export function Help() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {AREAS.map((area) => (
-                <tr key={area.key}>
+                <tr key={area.key} data-testid={`help-roles-row-${area.key}`}>
                   <th scope="row" className="px-4 py-2.5 text-left font-normal text-slate-800">
                     {t(`roles.areas.${area.key}`)}
                   </th>
                   {ROLE_COLUMNS.map((role) => (
                     <td key={role} className="px-4 py-2.5 text-slate-600">
-                      <AccessCell value={area.access[role]} />
+                      <AccessCell value={area.access[role]} testId={`help-access-cell-${area.key}-${role}`} />
                     </td>
                   ))}
                 </tr>
@@ -120,10 +120,10 @@ export function Help() {
         <p className="mt-3 text-sm text-slate-600">{t("roles.guestNote")}</p>
       </section>
 
-      <section className="grid gap-6">
+      <section data-testid="help-howto-section" className="grid gap-6">
         <h2 className="text-lg font-semibold">{t("howTo.title")}</h2>
         {HOWTO_KEYS.map((key) => (
-          <Card key={key}>
+          <Card key={key} data-testid={`help-howto-card-${key}`}>
             <Card.Header>
               <Card.Title>{t(`howTo.${key}.title`)}</Card.Title>
               <Card.Description>{t(`howTo.${key}.who`)}</Card.Description>
@@ -139,12 +139,12 @@ export function Help() {
   );
 }
 
-function AccessCell({ value }: { value: Access }) {
+function AccessCell({ value, testId }: { value: Access; testId: string }) {
   const { t } = useTranslation("help");
 
   if (value === "yes") {
     return (
-      <span className="text-marke-700">
+      <span data-testid={testId} className="text-marke-700">
         <span aria-hidden>✓</span>
         <span className="sr-only"> {t("roles.cells.yes")}</span>
       </span>
@@ -152,12 +152,12 @@ function AccessCell({ value }: { value: Access }) {
   }
   if (value === "no") {
     return (
-      <span aria-hidden className="text-slate-300">
+      <span aria-hidden data-testid={testId} className="text-slate-300">
         {t("roles.cells.no")}
       </span>
     );
   }
-  return <span>{t(`roles.cells.${value}`)}</span>;
+  return <span data-testid={testId}>{t(`roles.cells.${value}`)}</span>;
 }
 
 function HowToSteps({ howToKey }: { howToKey: (typeof HOWTO_KEYS)[number] }) {

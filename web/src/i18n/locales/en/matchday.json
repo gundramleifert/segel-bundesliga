@@ -17,5 +17,16 @@
   "noRacesDrawn": "No races drawn for this matchday yet.",
   "pairingCaption": "Pairing list: teams by boat and race",
   "numberHeader": "No.",
-  "flightHeader": "Flight"
+  "flightHeader": "Flight",
+  "resultsTab": "Enter results",
+  "resultsLoading": "Races are loading…",
+  "resultsCaption": "Enter and correct race results",
+  "codeHeader": "Code",
+  "positionPlaceholder": "Position",
+  "redressPlaceholder": "Redress points",
+  "saveButton": "Save",
+  "savingButton": "Saving…",
+  "savedMessage": "Saved.",
+  "discardedNote": "discarded",
+  "currentResultNote": "currently: {{points}} points"
 }

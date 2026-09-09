@@ -13,5 +13,17 @@
   "guardian-name-required": "Bitte den Namen des oder der Erziehungsberechtigten eintragen, die unterschrieben haben.",
   "waiver-already-confirmed": "Diese Person hat Version {{required_version}} des Haftungsausschlusses für diesen Wettbewerb bereits bestätigt.",
   "waiver-confirmation-forbidden": "Du kannst den Haftungsausschluss nur für dein eigenes Konto bestätigen.",
-  "waiver-checklist-forbidden": "Die Check-in-Liste steht dem Ausrichter und der Geschäftsstelle zur Verfügung."
+  "waiver-checklist-forbidden": "Die Check-in-Liste steht dem Ausrichter und der Geschäftsstelle zur Verfügung.",
+  "race-not-found": "Diese Wettfahrt gehört nicht zu diesem Spieltag.",
+  "race-result-unknown-boat": "Boot {{boat_number}} hat keinen Eintrag in dieser Wettfahrt.",
+  "race-result-invalid-code": "Das ist kein gültiger Ergebniscode.",
+  "race-result-position-required": "Bitte eine Platzierung für Boot {{boat_number}} eintragen.",
+  "race-result-redress-required": "Bitte die Redress-Punkte für Boot {{boat_number}} eintragen.",
+  "race-result-duplicate-position": "Platz {{finish_position}} ist mehrfach vergeben.",
+  "no-linked-sailor-record": "Zu diesem Konto ist noch kein Segler-Datensatz verknüpft. Ein Admin oder die Vereinsleitung kann einen anlegen und mit deiner E-Mail-Adresse verknüpfen.",
+  "sailor-photo-not-found": "Dieser Segler hat noch kein Foto.",
+  "sailor-photo-invalid-type": "Der Upload muss ein Bild sein.",
+  "sailor-photo-invalid": "Diese Datei ist kein lesbares Bild.",
+  "sailor-photo-too-large": "Das Foto ist zu groß. Bitte eine kleinere Datei verwenden.",
+  "sailor-photo-minor-protected": "Diese Person ist minderjährig. Das Foto wird nur angemeldeten Konten mit Bezug zu ihr angezeigt."
 }

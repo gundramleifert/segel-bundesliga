@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { Fehler } from "../components/Bausteine";
+import { slugify } from "../lib/testids";
 
 /** Small pieces shared by every admin form.
  *
@@ -22,13 +23,16 @@ export function Abschnitt({
   titel,
   hinweis,
   children,
+  testId,
 }: {
   titel: string;
   hinweis?: ReactNode;
   children: ReactNode;
+  testId?: string;
 }) {
+  const resolvedTestId = testId ?? `admin-section-${slugify(titel)}`;
   return (
-    <section>
+    <section data-testid={resolvedTestId}>
       <h2 className="mb-1 text-lg font-semibold">{titel}</h2>
       {hinweis && <p className="mb-3 text-sm text-slate-600">{hinweis}</p>}
       <Card>
@@ -42,10 +46,12 @@ export function Feld({
   label,
   hinweis,
   children,
+  testId,
 }: {
   label: string;
   hinweis?: string;
   children: ReactNode;
+  testId?: string;
 }) {
   // The label is associated via htmlFor, not by wrapping the control. Wrapping a
   // <input type="date"> (or any input with a native popup) in a <label> makes every
@@ -57,7 +63,7 @@ export function Feld({
     : children;
 
   return (
-    <div className="text-sm">
+    <div data-testid={testId ?? `field-${slugify(label)}`} className="text-sm">
       <label htmlFor={id} className="font-medium text-slate-700">
         {label}
       </label>
@@ -70,15 +76,18 @@ export function Feld({
 export function Meldung({
   erfolg,
   fehler,
+  testId,
 }: {
   erfolg?: string | null;
   fehler?: string | null;
+  testId?: string;
 }) {
-  if (fehler) return <Fehler text={fehler} />;
+  if (fehler) return <Fehler text={fehler} testId={testId ? `${testId}-error` : undefined} />;
   if (erfolg) {
     return (
       <p
         role="status"
+        data-testid={testId ? `${testId}-success` : "success-message"}
         className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800"
       >
         {erfolg}
@@ -99,14 +108,17 @@ export function VereinsAuswahl({
   gewaehlt,
   umschalten,
   id,
+  testId,
 }: {
   vereine: { id: number; name: string; short_name: string }[];
   gewaehlt: Set<number>;
   umschalten: (id: number) => void;
   id?: string;
+  testId?: string;
 }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState("");
+  const resolvedTestId = testId ?? "clubs-transfer-list";
 
   const term = filter.trim().toLowerCase();
   const matches = (verein: { name: string; short_name: string }) =>
@@ -118,7 +130,7 @@ export function VereinsAuswahl({
   const selected = vereine.filter((v) => gewaehlt.has(v.id));
 
   return (
-    <div id={id} className="grid gap-3 sm:grid-cols-2">
+    <div id={id} data-testid={resolvedTestId} className="grid gap-3 sm:grid-cols-2">
       <div className="rounded-md border border-slate-200">
         <div className="border-b border-slate-200 p-2">
           <input
@@ -127,18 +139,20 @@ export function VereinsAuswahl({
             onChange={(e) => setFilter(e.target.value)}
             placeholder={t("common:transferList.filterPlaceholder")}
             aria-label={t("common:transferList.filterPlaceholder")}
+            data-testid={`${resolvedTestId}-filter-input`}
             className="w-full rounded border border-slate-300 px-2 py-1 text-sm outline-none focus:border-marke-500 focus:ring-1 focus:ring-marke-200"
           />
         </div>
         <p className="px-2 pt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
           {t("common:transferList.available", { count: available.length })}
         </p>
-        <ul className="max-h-56 overflow-y-auto p-1">
+        <ul data-testid={`${resolvedTestId}-available-list`} className="max-h-56 overflow-y-auto p-1">
           {available.map((verein) => (
             <li key={verein.id}>
               <button
                 type="button"
                 onClick={() => umschalten(verein.id)}
+                data-testid={`${resolvedTestId}-available-${verein.id}`}
                 className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-slate-50"
               >
                 <span aria-hidden className="text-slate-400">
@@ -150,7 +164,10 @@ export function VereinsAuswahl({
             </li>
           ))}
           {!available.length && (
-            <li className="px-2 py-3 text-center text-sm text-slate-400">
+            <li
+              data-testid={`${resolvedTestId}-available-empty`}
+              className="px-2 py-3 text-center text-sm text-slate-400"
+            >
               {t("common:transferList.noneAvailable")}
             </li>
           )}
@@ -161,12 +178,13 @@ export function VereinsAuswahl({
         <p className="border-b border-slate-200 px-2 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
           {t("common:transferList.selected", { count: selected.length })}
         </p>
-        <ul className="max-h-56 overflow-y-auto p-1">
+        <ul data-testid={`${resolvedTestId}-selected-list`} className="max-h-56 overflow-y-auto p-1">
           {selected.map((verein) => (
             <li key={verein.id}>
               <button
                 type="button"
                 onClick={() => umschalten(verein.id)}
+                data-testid={`${resolvedTestId}-selected-${verein.id}`}
                 className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-slate-50"
               >
                 <span className="flex-1 truncate">{verein.name}</span>
@@ -178,7 +196,10 @@ export function VereinsAuswahl({
             </li>
           ))}
           {!selected.length && (
-            <li className="px-2 py-3 text-center text-sm text-slate-400">
+            <li
+              data-testid={`${resolvedTestId}-selected-empty`}
+              className="px-2 py-3 text-center text-sm text-slate-400"
+            >
               {t("common:transferList.noneSelected")}
             </li>
           )}

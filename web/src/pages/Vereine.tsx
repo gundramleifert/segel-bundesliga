@@ -13,9 +13,9 @@ export function Clubs() {
   const { data, error, loading } = useApi(["clubs"], (signal) => api.clubs(signal));
   const [filter, setFilter] = useState("");
 
-  if (loading) return <Laden text={t("loading")} />;
-  if (error) return <Fehler text={error} />;
-  if (!data?.length) return <Leer>{t("empty")}</Leer>;
+  if (loading) return <Laden text={t("loading")} testId="clubs-loading" />;
+  if (error) return <Fehler text={error} testId="clubs-error" />;
+  if (!data?.length) return <Leer testId="clubs-empty">{t("empty")}</Leer>;
 
   const term = filter.trim().toLowerCase();
   const matches = (verein: Club) =>
@@ -28,7 +28,11 @@ export function Clubs() {
 
   return (
     <>
-      <Seitenkopf titel={t("title")} unterzeile={t("subtitle", { count: data.length })} />
+      <Seitenkopf
+        titel={t("title")}
+        unterzeile={t("subtitle", { count: data.length })}
+        testId="clubs-header"
+      />
 
       <input
         type="search"
@@ -36,15 +40,20 @@ export function Clubs() {
         onChange={(e) => setFilter(e.target.value)}
         placeholder={t("searchPlaceholder")}
         aria-label={t("searchPlaceholder")}
+        data-testid="clubs-search-input"
         className="mb-4 w-full max-w-sm rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-marke-500 focus:ring-1 focus:ring-marke-200"
       />
 
-      {!gefiltert.length && <Leer>{t("noMatches")}</Leer>}
+      {!gefiltert.length && <Leer testId="clubs-no-matches">{t("noMatches")}</Leer>}
 
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul data-testid="clubs-list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {gefiltert.map((verein) => (
           <li key={verein.id}>
-            <Link to={`/clubs/${verein.id}`} className="group block h-full">
+            <Link
+              to={`/clubs/${verein.id}`}
+              data-testid={`club-card-${verein.id}`}
+              className="group block h-full"
+            >
               <Card className="h-full transition-shadow group-hover:shadow-md">
                 <Card.Header>
                   <div className="flex items-center gap-3">

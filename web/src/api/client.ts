@@ -17,9 +17,13 @@ export type EventSummary = S["EventOut"];
 export type EventDetail = S["EventDetail"];
 export type SeriesTable = S["SeriesTable"];
 export type PairingList = S["PairingList"];
+export type BoatOut = S["BoatOut"];
 export type StandingRow = S["EventStandingRow"];
 export type ClubDetail = S["ClubDetail"];
 export type SailorDetail = S["SailorDetail"];
+// Story S-2: a sailor's own profile — name, birthdate, and whether a photo exists.
+export type SailorMe = S["SailorMeOut"];
+export type SailorMeUpdate = S["SailorMeUpdate"];
 export type Member = S["MemberOut"];
 export type SeriesRow = S["SeriesStandingRow"];
 /** A fellow club member, as seen by another active member — no email, no pending requests. */
@@ -40,6 +44,13 @@ export type Squad = S["KaderOut"];
 export type SquadEntry = S["KaderEintrag"];
 export type Providers = S["ProvidersOut"];
 export type TokenOut = S["TokenOut"];
+// Story WL-2: entering and correcting race results.
+export type AdminRaces = S["AdminRacesOut"];
+export type AdminRace = S["AdminRaceOut"];
+export type AdminRaceEntry = S["RaceEntryOut"];
+export type RaceResultInput = S["RaceResultIn"];
+export type RaceResultsInput = S["RaceResultsIn"];
+export type RaceResultsOut = S["RaceResultsOut"];
 
 export class ApiError extends Error {
   // No constructor shorthand: this project builds with `erasableSyntaxOnly`.
@@ -117,6 +128,20 @@ function send<T>(method: string, path: string, body?: unknown): Promise<T> {
   });
 }
 
+/** A multipart file upload (Story S-2's photo endpoint) — deliberately not `send`:
+ *  a `FormData` body must not get the `application/json` content type `headers()` sets
+ *  for everything else, and the browser needs to add its own boundary. */
+async function upload<T>(path: string, file: File): Promise<T> {
+  const body = new FormData();
+  body.append("file", file);
+  const token = getToken();
+  const requestHeaders: Record<string, string> = { Accept: "application/json" };
+  if (token) requestHeaders.Authorization = `Bearer ${token}`;
+  const response = await fetch(path, { method: "POST", headers: requestHeaders, body });
+  if (!response.ok) throw await apiError(response);
+  return response.json() as Promise<T>;
+}
+
 export interface Account {
   id: number;
   email: string;
@@ -192,6 +217,21 @@ export const api = {
     get<ClubMemberSummary[]>(`/api/clubs/${id}/members`, signal),
   sailor: (id: number, signal?: AbortSignal) =>
     get<SailorDetail>(`/api/sailors/${id}`, signal),
+  /** The URL of a sailor's photo — a minor's is only ever returned by the server to a
+   *  signed-in account connected to them (see `app/routers/sailors.py`); a plain `<img>`
+   *  tag sends the same Authorization the rest of the app uses only if the browser has
+   *  it in a cookie, which it doesn't here, so this is really only reliably public for
+   *  an adult sailor. The profile page's own photo always goes through `sailors.me()`
+   *  and `sailors.uploadMyPhoto` instead, which do carry the bearer token. */
+  sailorPhotoUrl: (id: number) => `/api/sailors/${id}/photo`,
+  /** Story S-2: a sailor's self-service profile — own name, birthdate, and photo. */
+  sailors: {
+    me: (signal?: AbortSignal) => get<SailorMe>("/api/sailors/me", signal),
+    updateMe: (data: Partial<SailorMeUpdate>) =>
+      send<SailorMe>("PATCH", "/api/sailors/me", data),
+    uploadMyPhoto: (file: File) => upload<SailorMe>("/api/sailors/me/photo", file),
+    deleteMyPhoto: () => send<void>("DELETE", "/api/sailors/me/photo"),
+  },
   series: (signal?: AbortSignal) => get<Series[]>("/api/series", signal),
   events: (signal?: AbortSignal) => get<EventSummary[]>("/api/events", signal),
   event: (id: number, signal?: AbortSignal) => get<EventDetail>(`/api/events/${id}`, signal),
@@ -241,5 +281,17 @@ export const api = {
       get<Squad>(`/api/admin/teams/${teamId}/members`, signal),
     setSquad: (teamId: number, members: SquadEntry[]) =>
       send<Squad>("PUT", `/api/admin/teams/${teamId}/members`, { members }),
+
+    /** Pairing plus current result state, for the entry screen (Story WL-2). */
+    races: (eventId: number, signal?: AbortSignal) =>
+      get<AdminRaces>(`/api/admin/events/${eventId}/races`, signal),
+    /** Writes one race's result. `admin`/`race_officer` only; a correction always
+     *  recomputes standings immediately — see `app/services/standings.py`. */
+    setRaceResult: (eventId: number, raceId: number, data: RaceResultsInput) =>
+      send<RaceResultsOut>(
+        "PUT",
+        `/api/admin/events/${eventId}/races/${raceId}/result`,
+        data,
+      ),
   },
 };

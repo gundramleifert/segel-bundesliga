@@ -46,6 +46,21 @@
     "active": "active",
     "disabled": "disabled"
   },
+  "profile": {
+    "title": "My sailor profile",
+    "description": "Your name and birthdate as they appear on the site, and your own photo — visible to your club and, unless you're under 18, to everyone.",
+    "noSailorRecord": "No sailor record is linked to this account yet. An administrator or your club's leadership can create one and link it to your email address — then it will appear here.",
+    "firstNameLabel": "First name",
+    "lastNameLabel": "Last name",
+    "birthDateLabel": "Birthdate",
+    "save": "Save",
+    "saving": "Saving…",
+    "photoAlt": "Your photo",
+    "uploadPhoto": "Upload photo",
+    "replacePhoto": "Replace photo",
+    "photoUploading": "Uploading…",
+    "removePhoto": "Remove photo"
+  },
   "deleteAccount": {
     "title": "Delete account",
     "description": "For now, this removes the account outright — a convenience while accounts are still mostly test data, not the permanent behavior.",

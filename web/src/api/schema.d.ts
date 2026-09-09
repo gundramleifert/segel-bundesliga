@@ -4,6 +4,78 @@
  */
 
 export interface paths {
+    "/api/sailors/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * My own sailor record
+         * @description Story S-2: a sailor views their own name, birthdate, and photo status.
+         *
+         *     Not every account has a linked sailor — an admin-only account, for instance. That is
+         *     not an error, just nothing to show here (404, not a crash).
+         */
+        get: operations["get_my_sailor_api_sailors_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit my own sailor record
+         * @description A sailor corrects their own name or birthdate — the same fields a club manager or
+         *     admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
+         *     record" instead of requiring `_darf_stammdaten`.
+         */
+        patch: operations["update_my_sailor_api_sailors_me_patch"];
+        trace?: never;
+    };
+    "/api/sailors/me/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload or replace my photo */
+        post: operations["upload_my_photo_api_sailors_me_photo_post"];
+        /**
+         * Remove my photo
+         * @description Removing a photo that doesn't exist is not an error — there is simply nothing to do.
+         */
+        delete: operations["delete_my_photo_api_sailors_me_photo_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sailors/{sailor_id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A sailor's photo
+         * @description Serves the stored photo — see `_save_photo` for the minors-visibility rule this
+         *     enforces. There is no placeholder here: the frontend already renders one when
+         *     `has_photo` is false, so a missing file is simply a 404.
+         */
+        get: operations["get_sailor_photo_api_sailors__sailor_id__photo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/series": {
         parameters: {
             query?: never;
@@ -289,7 +361,24 @@ export interface paths {
         get: operations["me_api_auth_me_get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete my account
+         * @description Deletes the signed-in account outright — deliberately different from
+         *     ``DELETE /api/auth/users/{id}`` (administration removing *someone else*, which keeps
+         *     the row for its history, see Story Z-6).
+         *
+         *     This is a temporary, testing-phase convenience (Story Z-7): while accounts are still
+         *     mostly test data, being able to clean up your own is worth more than an audit trail.
+         *     Once accounts are reachable from real season history (registrations, results, waiver
+         *     confirmations someone else relies on), a real delete stops being safe, and this should
+         *     become a deactivation too, or gain a precondition ("no active registrations"). Revisit
+         *     before real seasons depend on this data — don't just leave it as-is.
+         *
+         *     A ``Sailor`` is a separate record linked only by email, never by foreign key, so
+         *     deleting the account never touches squad, series, or event history — only the account
+         *     row and the administrative records that point at it by id.
+         */
+        delete: operations["delete_my_account_api_auth_me_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -328,9 +417,10 @@ export interface paths {
          * Assign a club
          * @description Assigns an account to a club — permanently, not per matchday.
          *
-         *     A club manager may only assign their **own** club and may only move people who have no club
-         *     or are already assigned to their club. Otherwise they could seize other teams.
-         *     Administration is exempt from these restrictions.
+         *     A club manager may only assign a club **they organize** (Story A-8 — that can now be
+         *     more than one), and may only move people who have no club or are already assigned to
+         *     one of those clubs. Otherwise they could seize other teams. Administration is exempt
+         *     from these restrictions.
          */
         put: operations["set_club_api_auth_users__user_id__club_put"];
         post?: never;
@@ -506,6 +596,58 @@ export interface paths {
          *     the first team named there. Names are only for verification, not compared.
          */
         post: operations["import_pairing_api_admin_events__event_id__pairing_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/races": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pairing and current results, for the entry screen
+         * @description Everything the race committee needs to enter or correct results.
+         *
+         *     Unlike the public pairing list (``app.routers.public.get_pairing``), this includes
+         *     unfinished races and the current result state of every entry — the raw fields plus the
+         *     derived ``points``/``is_discarded`` so a correction's effect is visible immediately.
+         */
+        get: operations["get_admin_races_api_admin_events__event_id__races_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/races/{race_id}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Enter or correct a race's result
+         * @description Writes the raw result for every submitted boat in one race.
+         *
+         *     ``code``/``finish_position``/``redress_points`` are the authoritative raw data
+         *     (``docs/concepts.md``, "Points are derived, not entered"): after writing, the event's
+         *     (and, if it belongs to one, the series') standings are recomputed immediately so
+         *     ``points``/``is_discarded`` and the published tables never lag behind a correction.
+         *
+         *     A boat not mentioned in ``results`` keeps its current result — this also allows
+         *     fixing a single entry after a protest without resubmitting the whole race.
+         */
+        put: operations["put_race_result_api_admin_events__event_id__races__race_id__result_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -767,7 +909,8 @@ export interface paths {
         };
         /**
          * View own applications
-         * @description Lists the participations of own club and their status — both requested and accepted.
+         * @description Lists the participations of every club the acting user organizes, and their status —
+         *     both requested and accepted.
          */
         get: operations["eigene_antraege_api_applications_get"];
         put?: never;
@@ -1016,8 +1159,9 @@ export interface paths {
          * Make a member an organizer
          * @description An organizer can appoint further organizers for their own club — Story A-8.
          *
-         *     Grants `club_manager` to an active member. A person only ever organizes **one**
-         *     club (`User.club_id`), so this fails if they already organize a different one.
+         *     Grants `club_manager` for this club to an active member. `club_manager` is a per-club
+         *     grant (`UserRole.club_id`): a person can organize several clubs independently, so this
+         *     no longer fails just because they already organize a different one.
          */
         post: operations["grant_organizer_api_admin_clubs__club_id__members__user_id__organizer_post"];
         /**
@@ -1258,6 +1402,35 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * AdminRaceOut
+         * @description A single race with pairing and current result state — Story WL-2.
+         */
+        AdminRaceOut: {
+            /** Id */
+            id: number;
+            /** Sequence */
+            sequence: number;
+            /** Flight */
+            flight: number;
+            /** Race In Flight */
+            race_in_flight: number;
+            /** Status */
+            status: string;
+            /** Version */
+            version: number;
+            /** Entries */
+            entries: components["schemas"]["RaceEntryOut"][];
+        };
+        /** AdminRacesOut */
+        AdminRacesOut: {
+            /** Event Id */
+            event_id: number;
+            /** Boats */
+            boats: components["schemas"]["BoatOut"][];
+            /** Races */
+            races: components["schemas"]["AdminRaceOut"][];
+        };
+        /**
          * AntragEventOut
          * @description Only as much event detail as an application needs.
          */
@@ -1340,6 +1513,11 @@ export interface components {
             name?: string | null;
             /** Sail Number */
             sail_number?: string | null;
+        };
+        /** Body_upload_my_photo_api_sailors_me_photo_post */
+        Body_upload_my_photo_api_sailors_me_photo_post: {
+            /** File */
+            file: string;
         };
         /**
          * ClubAdminOut
@@ -2033,6 +2211,69 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * RaceEntryOut
+         * @description One boat's pairing and (if entered) result in a race, for the entry screen.
+         */
+        RaceEntryOut: {
+            /** Boat Number */
+            boat_number: number;
+            team: components["schemas"]["TeamOut"];
+            /** Code */
+            code?: string | null;
+            /** Finish Position */
+            finish_position?: number | null;
+            /** Redress Points */
+            redress_points?: number | null;
+            /** Points */
+            points?: number | null;
+            /**
+             * Is Discarded
+             * @default false
+             */
+            is_discarded: boolean;
+        };
+        /**
+         * RaceResultIn
+         * @description A result as recorded by the race officer.
+         */
+        RaceResultIn: {
+            /** Boat Number */
+            boat_number: number;
+            /** Code */
+            code: string;
+            /** Finish Position */
+            finish_position?: number | null;
+            /** Redress Points */
+            redress_points?: number | null;
+        };
+        /** RaceResultsIn */
+        RaceResultsIn: {
+            /** Results */
+            results: components["schemas"]["RaceResultIn"][];
+            /** Version */
+            version?: number | null;
+        };
+        /** RaceResultsOut */
+        RaceResultsOut: {
+            /** Race Id */
+            race_id: number;
+            /** Sequence */
+            sequence: number;
+            /** Status */
+            status: string;
+            /** Version */
+            version: number;
+            /** Applied */
+            applied: boolean;
+            /**
+             * Overwrote Existing
+             * @default false
+             */
+            overwrote_existing: boolean;
+            /** Note */
+            note?: string | null;
+        };
         /** Registrierung */
         Registrierung: {
             /**
@@ -2120,6 +2361,40 @@ export interface components {
             team_id: number;
             /** Role */
             role: string;
+        };
+        /**
+         * SailorMeOut
+         * @description A sailor's own view of their record — no email (that's account identity, handled
+         *     by the sign-in flow, not this endpoint).
+         */
+        SailorMeOut: {
+            /** Id */
+            id: number;
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            /** Birth Date */
+            birth_date?: string | null;
+            /**
+             * Has Photo
+             * @default false
+             */
+            has_photo: boolean;
+        };
+        /**
+         * SailorMeUpdate
+         * @description Self-service edit. No `email` field: identity is out of scope here — it changes
+         *     via the account, not the sailor record, and a sailor may never grant themselves
+         *     someone else's record by re-pointing the email that links the two.
+         */
+        SailorMeUpdate: {
+            /** First Name */
+            first_name?: string | null;
+            /** Last Name */
+            last_name?: string | null;
+            /** Birth Date */
+            birth_date?: string | null;
         };
         /**
          * SailorTeamOut
@@ -2559,6 +2834,141 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_my_sailor_api_sailors_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SailorMeOut"];
+                };
+            };
+        };
+    };
+    update_my_sailor_api_sailors_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SailorMeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SailorMeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_my_photo_api_sailors_me_photo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_my_photo_api_sailors_me_photo_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SailorMeOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_my_photo_api_sailors_me_photo_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_sailor_photo_api_sailors__sailor_id__photo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sailor_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_series_api_series_get: {
         parameters: {
             query?: {
@@ -3012,6 +3422,24 @@ export interface operations {
             };
         };
     };
+    delete_my_account_api_auth_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_users_api_auth_users_get: {
         parameters: {
             query?: {
@@ -3405,6 +3833,75 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublishResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_admin_races_api_admin_events__event_id__races_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminRacesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_race_result_api_admin_events__event_id__races__race_id__result_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+                race_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RaceResultsIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RaceResultsOut"];
                 };
             };
             /** @description Validation Error */

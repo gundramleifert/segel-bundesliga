@@ -11,6 +11,7 @@ export function LanguageSwitcher() {
     <div
       role="group"
       aria-label={t("language.label")}
+      data-testid="language-switcher"
       className="flex overflow-hidden rounded-md border border-slate-300 text-xs"
     >
       {SUPPORTED_LANGUAGES.map((lang: SupportedLanguage) => (
@@ -19,6 +20,7 @@ export function LanguageSwitcher() {
           type="button"
           aria-pressed={current === lang}
           onClick={() => void i18n.changeLanguage(lang)}
+          data-testid={`language-switcher-${lang}`}
           className={`px-2 py-1.5 uppercase transition-colors ${
             current === lang
               ? "bg-marke-600 font-medium text-white"

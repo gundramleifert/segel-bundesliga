@@ -18,13 +18,13 @@ export function Club() {
     api.club(Number(id), signal),
   );
 
-  if (loading) return <Laden text={t("loading")} />;
-  if (error) return <Fehler text={error} />;
+  if (loading) return <Laden text={t("loading")} testId="club-loading" />;
+  if (error) return <Fehler text={error} testId="club-error" />;
   if (!data) return null;
 
   return (
     <>
-      <header className="mb-8 flex flex-wrap items-start gap-5">
+      <header data-testid="club-header" className="mb-8 flex flex-wrap items-start gap-5">
         {data.logo_url ? (
           <img
             src={data.logo_url}
@@ -41,7 +41,9 @@ export function Club() {
         )}
 
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{data.name}</h1>
+          <h1 data-testid="club-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            {data.name}
+          </h1>
           <p className="mt-1 text-slate-600">
             {[data.short_name, data.city].filter(Boolean).join(" · ")}
           </p>
@@ -50,6 +52,7 @@ export function Club() {
               href={data.website}
               target="_blank"
               rel="noreferrer noopener"
+              data-testid="club-website-link"
               className="mt-1 inline-block text-sm text-marke-700 underline-offset-2 hover:underline"
             >
               {t("website")}
@@ -59,15 +62,17 @@ export function Club() {
       </header>
 
       {data.description && (
-        <p className="mb-8 max-w-2xl text-slate-700">{data.description}</p>
+        <p data-testid="club-description" className="mb-8 max-w-2xl text-slate-700">
+          {data.description}
+        </p>
       )}
 
       <h2 className="mb-4 text-lg font-semibold">{t("teams")}</h2>
 
       {data.teams?.length ? (
-        <div className="space-y-6">
+        <div data-testid="club-teams-section" className="space-y-6">
           {data.teams.map((mannschaft) => (
-            <Card key={mannschaft.id}>
+            <Card key={mannschaft.id} data-testid={`club-team-card-${mannschaft.id}`}>
               <Card.Header>
                 <Card.Title className="text-base">{mannschaft.series.name}</Card.Title>
                 <Card.Description>
@@ -92,11 +97,11 @@ export function Club() {
           ))}
         </div>
       ) : (
-        <Leer>{t("unassigned")}</Leer>
+        <Leer testId="club-teams-empty">{t("unassigned")}</Leer>
       )}
 
       {data.events?.length ? (
-        <section className="mt-8">
+        <section data-testid="club-own-events-section" className="mt-8">
           <h2 className="mb-2 text-lg font-semibold">{t("ownEvents")}</h2>
           <p className="mb-3 text-sm text-slate-600">
             {t("ownEvents_desc")}
@@ -127,7 +132,7 @@ function Mitglieder({ clubId }: { clubId: number }) {
   if (loading || error || !data?.length) return null;
 
   return (
-    <section className="mt-8">
+    <section data-testid="club-members-section" className="mt-8">
       <h2 className="mb-2 text-lg font-semibold">{t("members")}</h2>
       <Card>
         <Card.Content>
@@ -135,6 +140,7 @@ function Mitglieder({ clubId }: { clubId: number }) {
             {data.map((mitglied: ClubMemberSummary) => (
               <li
                 key={mitglied.user_id}
+                data-testid={`club-member-row-${mitglied.user_id}`}
                 className="flex items-center justify-between gap-3 py-2"
               >
                 <span>{mitglied.display_name}</span>
@@ -155,16 +161,21 @@ function Spieltage({ eintraege }: { eintraege: ClubEvent[] }) {
   const { t } = useTranslation("club");
 
   if (!eintraege.length) {
-    return <p className="text-sm text-slate-500">{t("events_empty")}</p>;
+    return (
+      <p data-testid="club-events-empty" className="text-sm text-slate-500">
+        {t("events_empty")}
+      </p>
+    );
   }
 
   return (
     <ul className="divide-y divide-slate-100 text-sm">
       {eintraege.map(({ event, crew }) => (
-        <li key={event.id} className="py-2">
+        <li key={event.id} data-testid={`club-event-row-${event.id}`} className="py-2">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Link
               to={`/events/${event.id}`}
+              data-testid={`club-event-link-${event.id}`}
               className="font-medium underline-offset-2 hover:underline"
             >
               {event.title}
@@ -181,6 +192,7 @@ function Spieltage({ eintraege }: { eintraege: ClubEvent[] }) {
                   {index > 0 && ", "}
                   <Link
                     to={`/sailors/${mitglied.id}`}
+                    data-testid={`club-crew-link-${event.id}-${mitglied.id}`}
                     className="underline-offset-2 hover:underline"
                   >
                     {mitglied.first_name} {mitglied.last_name}
@@ -200,14 +212,24 @@ function Spieltage({ eintraege }: { eintraege: ClubEvent[] }) {
 function Kader({ mitglieder }: { mitglieder: Member[] }) {
   const { t } = useTranslation("club");
 
-  if (!mitglieder.length) return <p className="text-sm text-slate-500">{t("squad_empty")}</p>;
+  if (!mitglieder.length)
+    return (
+      <p data-testid="club-squad-empty" className="text-sm text-slate-500">
+        {t("squad_empty")}
+      </p>
+    );
 
   return (
     <ul className="divide-y divide-slate-100 text-sm">
       {mitglieder.map((mitglied) => (
-        <li key={mitglied.id} className="flex items-center justify-between gap-3 py-2">
+        <li
+          key={mitglied.id}
+          data-testid={`club-squad-row-${mitglied.id}`}
+          className="flex items-center justify-between gap-3 py-2"
+        >
           <Link
             to={`/sailors/${mitglied.id}`}
+            data-testid={`club-squad-link-${mitglied.id}`}
             className="font-medium underline-offset-2 hover:underline"
           >
             {mitglied.first_name} {mitglied.last_name}

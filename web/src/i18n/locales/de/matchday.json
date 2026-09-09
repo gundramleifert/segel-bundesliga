@@ -17,5 +17,16 @@
   "noRacesDrawn": "Für diesen Spieltag ist noch nichts ausgelost.",
   "pairingCaption": "Pairing-Liste: Team je Boot und Wettfahrt",
   "numberHeader": "Nr.",
-  "flightHeader": "Flight"
+  "flightHeader": "Flight",
+  "resultsTab": "Ergebnisse erfassen",
+  "resultsLoading": "Wettfahrten werden geladen…",
+  "resultsCaption": "Ergebnisse erfassen und korrigieren",
+  "codeHeader": "Code",
+  "positionPlaceholder": "Platzierung",
+  "redressPlaceholder": "Redress-Punkte",
+  "saveButton": "Speichern",
+  "savingButton": "Speichert…",
+  "savedMessage": "Gespeichert.",
+  "discardedNote": "gestrichen",
+  "currentResultNote": "aktuell: {{points}} Punkte"
 }

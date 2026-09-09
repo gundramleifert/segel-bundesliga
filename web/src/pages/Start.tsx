@@ -17,8 +17,8 @@ export function Start() {
   const termine = useApi(["events"], (signal) => api.events(signal));
   const serien = useApi(["series"], (signal) => api.series(signal));
 
-  if (termine.loading || serien.loading) return <Laden />;
-  if (termine.error) return <Fehler text={termine.error} />;
+  if (termine.loading || serien.loading) return <Laden testId="start-loading" />;
+  if (termine.error) return <Fehler text={termine.error} testId="start-events-error" />;
 
   const events = termine.data ?? [];
   // How many events belong to a series — already known from the events list, so no
@@ -46,11 +46,12 @@ export function Start() {
         </p>
       </section>
 
-      <section className="mb-12">
+      <section data-testid="start-events-section" className="mb-12">
         <div className="mb-3 flex items-end justify-between gap-4">
           <h2 className="text-lg font-semibold">{t("eventsSection.heading")}</h2>
           <Link
             to="/events"
+            data-testid="start-events-all-link"
             className="text-sm text-marke-700 underline-offset-2 hover:underline"
           >
             {t("eventsSection.allLink")}
@@ -66,14 +67,14 @@ export function Start() {
             ))}
           </ul>
         ) : (
-          <Leer>{t("eventsSection.empty")}</Leer>
+          <Leer testId="start-events-empty">{t("eventsSection.empty")}</Leer>
         )}
       </section>
 
-      <section>
+      <section data-testid="start-series-section">
         <h2 className="mb-3 text-lg font-semibold">{t("seriesSection.heading")}</h2>
 
-        {serien.error && <Fehler text={serien.error} />}
+        {serien.error && <Fehler text={serien.error} testId="start-series-error" />}
 
         {!serien.error &&
           (serien.data?.length ? (
@@ -87,7 +88,11 @@ export function Start() {
 
                 return (
                   <li key={serie.id}>
-                    <Link to={`/standings/${serie.id}`} className="block group">
+                    <Link
+                      to={`/standings/${serie.id}`}
+                      data-testid={`start-series-card-${serie.id}`}
+                      className="block group"
+                    >
                       <Card className="h-full transition-shadow group-hover:shadow-md">
                         <Card.Header>
                           <Card.Title>{serie.name}</Card.Title>
@@ -106,7 +111,7 @@ export function Start() {
               })}
             </ul>
           ) : (
-            <Leer>{t("seriesSection.empty")}</Leer>
+            <Leer testId="start-series-empty">{t("seriesSection.empty")}</Leer>
           ))}
       </section>
     </>

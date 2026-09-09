@@ -59,8 +59,10 @@ function CreateSailor() {
     <Abschnitt
       titel={t("sailors.title")}
       hinweis={t("sailors.description")}
+      testId="admin-sailors-section"
     >
       <form
+        data-testid="admin-sailors-create-form"
         className="grid gap-3 sm:grid-cols-[1fr_1fr_1.4fr_auto] sm:items-end"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
@@ -73,6 +75,7 @@ function CreateSailor() {
             value={vorname}
             onChange={(e) => setzeVorname(e.target.value)}
             required
+            data-testid="admin-sailors-first-name-input"
           />
         </Feld>
         <Feld label={t("sailors.lastNameLabel")}>
@@ -81,6 +84,7 @@ function CreateSailor() {
             value={nachname}
             onChange={(e) => setzeNachname(e.target.value)}
             required
+            data-testid="admin-sailors-last-name-input"
           />
         </Feld>
         <Feld label={t("sailors.emailLabel")}>
@@ -91,6 +95,7 @@ function CreateSailor() {
             onChange={(e) => setzeEmail(e.target.value)}
             required
             placeholder={t("sailors.emailPlaceholder")}
+            data-testid="admin-sailors-email-input"
           />
         </Feld>
         <Button
@@ -98,12 +103,14 @@ function CreateSailor() {
           isDisabled={
             anlegen.isPending || !vorname.trim() || !nachname.trim() || !email.trim()
           }
+          data-testid="admin-sailors-create-button"
         >
           {anlegen.isPending ? t("sailors.creatingButton") : t("sailors.createButton")}
         </Button>
       </form>
 
       <Meldung
+        testId="admin-sailors-create-message"
         fehler={anlegen.isError ? fehlertext(anlegen.error) : null}
         erfolg={
           anlegen.isSuccess
@@ -118,11 +125,12 @@ function CreateSailor() {
           value={suche}
           onChange={(e) => setzeSuche(e.target.value)}
           placeholder={t("sailors.searchPlaceholder")}
+          data-testid="admin-sailors-search-input"
         />
       </Feld>
 
-      {treffer.loading && <Laden text={t("sailors.loadingText")} />}
-      {treffer.error && <Fehler text={treffer.error} />}
+      {treffer.loading && <Laden text={t("sailors.loadingText")} testId="admin-sailors-loading" />}
+      {treffer.error && <Fehler text={treffer.error} testId="admin-sailors-error" />}
       {treffer.data && <SailorList segler={treffer.data} />}
     </Abschnitt>
   );
@@ -130,14 +138,22 @@ function CreateSailor() {
 
 function SailorList({ segler }: { segler: SailorAdmin[] }) {
   const { t } = useTranslation("admin");
-  if (!segler.length) return <Leer>{t("sailors.emptyText")}</Leer>;
+  if (!segler.length) return <Leer testId="admin-sailors-empty">{t("sailors.emptyText")}</Leer>;
 
   return (
-    <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm">
+    <ul
+      data-testid="admin-sailors-list"
+      className="divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm"
+    >
       {segler.map((person) => (
-        <li key={person.id} className="flex items-center gap-3 px-4 py-2">
+        <li
+          key={person.id}
+          data-testid={`admin-sailors-row-${person.id}`}
+          className="flex items-center gap-3 px-4 py-2"
+        >
           <Link
             to={`/segler/${person.id}`}
+            data-testid={`admin-sailors-link-${person.id}`}
             className="font-medium underline-offset-2 hover:underline"
           >
             {person.first_name} {person.last_name}
@@ -167,9 +183,10 @@ function Squad() {
     <Abschnitt
       titel={t("squad.title")}
       hinweis={t("squad.description")}
+      testId="admin-squad-section"
     >
-      {serien.loading && <Laden text={t("squad.seriesLoadingText")} />}
-      {serien.error && <Fehler text={serien.error} />}
+      {serien.loading && <Laden text={t("squad.seriesLoadingText")} testId="admin-squad-series-loading" />}
+      {serien.error && <Fehler text={serien.error} testId="admin-squad-series-error" />}
 
       {serien.data && (
         <Feld label={t("squad.seriesLabel")}>
@@ -177,6 +194,7 @@ function Squad() {
             className={EINGABE}
             value={serieId ?? ""}
             onChange={(e) => setzeSerieId(e.target.value ? Number(e.target.value) : null)}
+            data-testid="admin-squad-series-select"
           >
             <option value="">{t("squad.seriesNone")}</option>
             {serien.data.map((s) => (
@@ -200,7 +218,7 @@ function SeriesSquad({ serie }: { serie: SeriesAdmin }) {
   const gewaehlt = vereine.find((v) => v.team_id === teamId) ?? null;
 
   if (!vereine.length) {
-    return <Leer>{t("squad.clubEmptyText")}</Leer>;
+    return <Leer testId="admin-squad-club-empty">{t("squad.clubEmptyText")}</Leer>;
   }
 
   return (
@@ -210,6 +228,7 @@ function SeriesSquad({ serie }: { serie: SeriesAdmin }) {
           className={EINGABE}
           value={teamId ?? ""}
           onChange={(e) => setzeTeamId(e.target.value ? Number(e.target.value) : null)}
+          data-testid="admin-squad-club-select"
         >
           <option value="">{t("squad.clubNone")}</option>
           {vereine.map((verein) => (
@@ -242,8 +261,8 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
     onSuccess: () => invalidieren(["admin", "kader", teamId], ["club"], ["sailor"]),
   });
 
-  if (kader.loading) return <Laden text={t("squad.loadingText")} />;
-  if (kader.error) return <Fehler text={kader.error} />;
+  if (kader.loading) return <Laden text={t("squad.loadingText")} testId="admin-squad-members-loading" />;
+  if (kader.error) return <Fehler text={kader.error} testId="admin-squad-members-error" />;
   if (!kader.data) return null;
 
   const mitglieder = kader.data.members ?? [];
@@ -254,15 +273,19 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
   const imKader = new Set(aktuell.map((m) => m.sailor_id));
 
   return (
-    <div className="grid gap-4 rounded-lg border border-slate-200 p-4">
+    <div data-testid="admin-squad-management" className="grid gap-4 rounded-lg border border-slate-200 p-4">
       <div>
         <h3 className="font-medium">
           {t("squad.headerText", { clubName: verein, count: mitglieder.length })}
         </h3>
         {mitglieder.length ? (
-          <ul className="mt-2 divide-y divide-slate-100 text-sm">
+          <ul data-testid="admin-squad-members-list" className="mt-2 divide-y divide-slate-100 text-sm">
             {mitglieder.map((mitglied) => (
-              <li key={mitglied.id} className="flex items-center gap-3 py-1.5">
+              <li
+                key={mitglied.id}
+                data-testid={`admin-squad-member-row-${mitglied.id}`}
+                className="flex items-center gap-3 py-1.5"
+              >
                 <span className="flex-1">
                   {mitglied.first_name} {mitglied.last_name}
                 </span>
@@ -281,10 +304,11 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
                       ),
                     )
                   }
+                  data-testid={`admin-squad-member-role-select-${mitglied.id}`}
                 >
-                  {["helm", "crew", "substitute"].map((wert) => (
-                    <option key={wert} value={wert}>
-                      {rolle(wert)}
+                  {["helm", "crew", "substitute"].map((value) => (
+                    <option key={value} value={value}>
+                      {rolle(value)}
                     </option>
                   ))}
                 </select>
@@ -295,6 +319,7 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
                   onPress={() =>
                     speichern.mutate(aktuell.filter((m) => m.sailor_id !== mitglied.id))
                   }
+                  data-testid={`admin-squad-member-remove-button-${mitglied.id}`}
                 >
                   {t("squad.removeButton")}
                 </Button>
@@ -302,7 +327,7 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
             ))}
           </ul>
         ) : (
-          <Leer>{t("squad.teamEmptyText")}</Leer>
+          <Leer testId="admin-squad-members-empty">{t("squad.teamEmptyText")}</Leer>
         )}
       </div>
 
@@ -312,11 +337,15 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
           value={suche}
           onChange={(e) => setzeSuche(e.target.value)}
           placeholder={t("squad.addPlaceholder")}
+          data-testid="admin-squad-add-search-input"
         />
       </Feld>
 
       {treffer.data && (
-        <ul className="max-h-56 divide-y divide-slate-100 overflow-y-auto rounded border border-slate-200 text-sm">
+        <ul
+          data-testid="admin-squad-add-list"
+          className="max-h-56 divide-y divide-slate-100 overflow-y-auto rounded border border-slate-200 text-sm"
+        >
           {treffer.data
             .filter((person) => !imKader.has(person.id))
             .map((person) => (
@@ -331,6 +360,7 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
                   onPress={() =>
                     speichern.mutate([...aktuell, { sailor_id: person.id, role: "crew" }])
                   }
+                  data-testid={`admin-squad-add-button-${person.id}`}
                 >
                   {t("squad.addButtonText")}
                 </Button>
@@ -339,7 +369,9 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
         </ul>
       )}
 
-      {speichern.isError && <Fehler text={fehlertext(speichern.error)} />}
+      {speichern.isError && (
+        <Fehler text={fehlertext(speichern.error)} testId="admin-squad-save-error" />
+      )}
     </div>
   );
 }

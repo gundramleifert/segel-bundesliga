@@ -46,6 +46,21 @@
     "active": "aktiv",
     "disabled": "gesperrt"
   },
+  "profile": {
+    "title": "Mein Segler-Profil",
+    "description": "Name und Geburtsdatum, wie sie auf der Seite erscheinen, sowie Ihr eigenes Foto — sichtbar für Ihren Verein und, sofern Sie volljährig sind, für alle.",
+    "noSailorRecord": "Zu diesem Konto ist noch kein Segler-Datensatz verknüpft. Ein Admin oder die Vereinsleitung kann einen anlegen und mit Ihrer E-Mail-Adresse verknüpfen — dann erscheint er hier.",
+    "firstNameLabel": "Vorname",
+    "lastNameLabel": "Nachname",
+    "birthDateLabel": "Geburtsdatum",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "photoAlt": "Ihr Foto",
+    "uploadPhoto": "Foto hochladen",
+    "replacePhoto": "Foto ersetzen",
+    "photoUploading": "Wird hochgeladen…",
+    "removePhoto": "Foto entfernen"
+  },
   "deleteAccount": {
     "title": "Konto löschen",
     "description": "Das Konto wird derzeit vollständig entfernt — eine Erleichterung, solange Konten größtenteils Testdaten sind, kein Dauerzustand.",

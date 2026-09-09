@@ -71,9 +71,12 @@ export function Rollenwechsel() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 text-sm">
+    <div data-testid="dev-role-switcher" className="fixed bottom-4 right-4 z-50 text-sm">
       {offen && (
-        <div className="mb-2 max-h-[70vh] w-[22rem] overflow-hidden rounded-xl border border-amber-300 bg-white shadow-xl">
+        <div
+          data-testid="dev-role-switcher-panel"
+          className="mb-2 max-h-[70vh] w-[22rem] overflow-hidden rounded-xl border border-amber-300 bg-white shadow-xl"
+        >
           <div className="border-b border-amber-200 bg-amber-50 px-3 py-2">
             <p className="font-medium text-amber-900">{t("title")}</p>
             <p className="text-xs text-amber-800">{t("subtitle")}</p>
@@ -86,15 +89,17 @@ export function Rollenwechsel() {
               onChange={(e) => setSuche(e.target.value)}
               placeholder={t("searchPlaceholder")}
               aria-label={t("searchLabel")}
+              data-testid="dev-role-switcher-search-input"
               className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
             />
           </div>
 
-          <ul className="max-h-[42vh] overflow-y-auto">
+          <ul data-testid="dev-role-switcher-list" className="max-h-[42vh] overflow-y-auto">
             {gefiltert.map((konto) => (
               <li key={konto.id}>
                 <button
                   onClick={() => anmelden(konto.email)}
+                  data-testid={`dev-role-switcher-account-${konto.id}`}
                   className={`block w-full px-3 py-2 text-left hover:bg-slate-50 ${
                     ich?.email === konto.email ? "bg-sky-50" : ""
                   }`}
@@ -109,7 +114,9 @@ export function Rollenwechsel() {
               </li>
             ))}
             {!gefiltert.length && (
-              <li className="px-3 py-6 text-center text-slate-500">{t("notFound")}</li>
+              <li data-testid="dev-role-switcher-empty" className="px-3 py-6 text-center text-slate-500">
+                {t("notFound")}
+              </li>
             )}
           </ul>
 
@@ -117,6 +124,7 @@ export function Rollenwechsel() {
             <div className="border-t border-slate-200 p-2">
               <button
                 onClick={() => setToken(null)}
+                data-testid="dev-role-switcher-signout-button"
                 className="w-full rounded-md border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
               >
                 {t("signOut")}
@@ -129,6 +137,7 @@ export function Rollenwechsel() {
       <button
         onClick={() => setOffen((o) => !o)}
         aria-expanded={offen}
+        data-testid="dev-role-switcher-toggle"
         className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 font-medium text-amber-900 shadow-lg hover:bg-amber-200"
       >
         <span aria-hidden>🔧</span>

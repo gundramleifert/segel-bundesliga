@@ -24,21 +24,31 @@ export function AccountsAdmin() {
   const vereine = useApi(["admin", "clubs"], (signal) => api.admin.clubs(signal));
 
   return (
-    <Abschnitt titel={t("accounts.title")} hinweis={t("accounts.description")}>
+    <Abschnitt
+      titel={t("accounts.title")}
+      hinweis={t("accounts.description")}
+      testId="admin-accounts-section"
+    >
       <Feld label={t("accounts.searchLabel")} hinweis={t("accounts.searchHint")}>
         <input
           className={EINGABE}
           value={suche}
           onChange={(e) => setzeSuche(e.target.value)}
           placeholder={t("accounts.searchPlaceholder")}
+          data-testid="admin-accounts-search-input"
         />
       </Feld>
 
-      {konten.loading && <Laden text={t("accounts.loadingText")} />}
-      {konten.error && <Fehler text={konten.error} />}
-      {konten.data && !konten.data.length && <Leer>{t("accounts.emptyText")}</Leer>}
+      {konten.loading && <Laden text={t("accounts.loadingText")} testId="admin-accounts-loading" />}
+      {konten.error && <Fehler text={konten.error} testId="admin-accounts-error" />}
+      {konten.data && !konten.data.length && (
+        <Leer testId="admin-accounts-empty">{t("accounts.emptyText")}</Leer>
+      )}
       {konten.data && konten.data.length > 0 && (
-        <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm">
+        <ul
+          data-testid="admin-accounts-list"
+          className="divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm"
+        >
           {konten.data.map((konto) => (
             <AccountRow
               key={konto.id}
@@ -83,7 +93,10 @@ function AccountRow({
   const fehler = rollenSetzen.error ?? vereinSetzen.error;
 
   return (
-    <li className="grid gap-2 px-4 py-3 sm:grid-cols-[1.4fr_1fr_1.6fr] sm:items-center">
+    <li
+      data-testid={`admin-accounts-row-${konto.id}`}
+      className="grid gap-2 px-4 py-3 sm:grid-cols-[1.4fr_1fr_1.6fr] sm:items-center"
+    >
       <div className="min-w-0">
         <p className="truncate font-medium text-slate-900">{konto.display_name}</p>
         <p className="truncate text-slate-500">{konto.email}</p>
@@ -94,6 +107,7 @@ function AccountRow({
         value={konto.club_id ?? ""}
         disabled={vereinSetzen.isPending}
         onChange={(e) => vereinSetzen.mutate(e.target.value ? Number(e.target.value) : null)}
+        data-testid={`admin-accounts-club-select-${konto.id}`}
       >
         <option value="">{t("accounts.clubNone")}</option>
         {vereine.map((v) => (
@@ -111,13 +125,18 @@ function AccountRow({
               checked={konto.roles.includes(rolle)}
               disabled={rollenSetzen.isPending}
               onChange={(e) => toggleRolle(rolle, e.target.checked)}
+              data-testid={`admin-accounts-role-checkbox-${konto.id}-${rolle}`}
             />
             {t(`accounts.roleLabels.${rolle}`)}
           </label>
         ))}
       </div>
 
-      {fehler && <p className="col-span-full text-red-700">{fehlertext(fehler)}</p>}
+      {fehler && (
+        <p data-testid={`admin-accounts-error-${konto.id}`} className="col-span-full text-red-700">
+          {fehlertext(fehler)}
+        </p>
+      )}
     </li>
   );
 }

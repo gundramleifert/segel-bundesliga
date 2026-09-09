@@ -55,8 +55,8 @@ export function Standings() {
     serieId ? api.table(serieId, signal) : api.firstSeries(signal),
   );
 
-  if (loading) return <Laden text={t("loading.text")} />;
-  if (error) return <Fehler text={error} />;
+  if (loading) return <Laden text={t("loading.text")} testId="standings-loading" />;
+  if (error) return <Fehler text={error} testId="standings-error" />;
   if (!data) return null;
 
   return (
@@ -67,11 +67,12 @@ export function Standings() {
           teamCount: data.rows.length,
           actCount: data.events.length
         })}
+        testId="standings-header"
       />
 
       {/* The series' events, front and center — same card as the home page and the
           events list, so a matchday looks the same everywhere it appears. */}
-      <section className="mb-8">
+      <section data-testid="standings-events-section" className="mb-8">
         <h2 className="mb-3 text-lg font-semibold">{t("eventsSection.heading")}</h2>
         {data.events.length ? (
           <ul className="grid gap-4 sm:grid-cols-2">
@@ -82,13 +83,13 @@ export function Standings() {
             ))}
           </ul>
         ) : (
-          <Leer>{t("eventsSection.empty")}</Leer>
+          <Leer testId="standings-events-empty">{t("eventsSection.empty")}</Leer>
         )}
       </section>
 
       {/* Free-text, Markdown, written by the admin — nothing shown when absent. */}
       {data.series.description && (
-        <div className="mb-6">
+        <div data-testid="standings-description" className="mb-6">
           <ReactMarkdown components={MARKDOWN_COMPONENTS}>
             {data.series.description}
           </ReactMarkdown>
@@ -98,15 +99,15 @@ export function Standings() {
       {/* A series without a sailed event has no table — saying so plainly is clearer
           than showing an empty grid. */}
       {!data.rows.length ? (
-        <Leer>
+        <Leer testId="standings-table-empty">
           {data.events.length
             ? t("empty.noRaces")
             : t("empty.noEvents")}
         </Leer>
       ) : (
       <>
-      <TabellenRahmen>
-        <table className="w-full min-w-[36rem] border-collapse text-sm">
+      <TabellenRahmen testId="standings-table-frame">
+        <table data-testid="standings-table" className="w-full min-w-[36rem] border-collapse text-sm">
           <caption className="sr-only">
             {t("caption", { seriesName: data.series.name })}
           </caption>
@@ -137,6 +138,7 @@ export function Standings() {
             {data.rows.map((zeile) => (
               <tr
                 key={zeile.team.id}
+                data-testid={`standings-row-${zeile.team.id}`}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
               >
                 <td className="px-4 py-3 font-semibold tabular-nums text-slate-900">
@@ -145,6 +147,7 @@ export function Standings() {
                 <td className="px-4 py-3">
                   <Link
                     to={`/clubs/${zeile.team.club.id}`}
+                    data-testid={`standings-club-link-${zeile.team.id}`}
                     className="font-medium text-slate-900 underline-offset-2 hover:underline"
                   >
                     {zeile.team.club.name}

@@ -5,11 +5,15 @@ import { Link } from "react-router-dom";
 
 import type { EventSummary } from "../api/client";
 import { ortText, spieltagUntertitel, statusText, zeitraum } from "../lib/format";
+import { slugify } from "../lib/testids";
 
-export function Laden({ text }: { text?: string }) {
+export function Laden({ text, testId }: { text?: string; testId?: string }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center justify-center gap-3 py-16 text-slate-500">
+    <div
+      data-testid={testId ?? "loading-indicator"}
+      className="flex items-center justify-center gap-3 py-16 text-slate-500"
+    >
       <Spinner size="sm" />
       <span>{text ?? t("loading")}</span>
     </div>
@@ -17,10 +21,11 @@ export function Laden({ text }: { text?: string }) {
 }
 
 /** Errors are named, not hidden — an empty table says nothing. */
-export function Fehler({ text }: { text: string }) {
+export function Fehler({ text, testId }: { text: string; testId?: string }) {
   return (
     <div
       role="alert"
+      data-testid={testId ?? "error-message"}
       className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800"
     >
       {text}
@@ -28,8 +33,12 @@ export function Fehler({ text }: { text: string }) {
   );
 }
 
-export function Leer({ children }: { children: ReactNode }) {
-  return <p className="py-12 text-center text-slate-500">{children}</p>;
+export function Leer({ children, testId }: { children: ReactNode; testId?: string }) {
+  return (
+    <p data-testid={testId ?? "empty-state"} className="py-12 text-center text-slate-500">
+      {children}
+    </p>
+  );
 }
 
 const STATUS_STIL: Record<string, string> = {
@@ -39,9 +48,10 @@ const STATUS_STIL: Record<string, string> = {
   cancelled: "bg-red-100 text-red-800 ring-red-200",
 };
 
-export function StatusMarke({ status }: { status: string }) {
+export function StatusMarke({ status, testId }: { status: string; testId?: string }) {
   return (
     <span
+      data-testid={testId ?? `status-badge-${status}`}
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
         STATUS_STIL[status] ?? STATUS_STIL.planned
       }`}
@@ -59,11 +69,15 @@ export function StatusMarke({ status }: { status: string }) {
  * The home page and the events list show the same card — they should behave the same
  * way in both places, so it lives here rather than twice in the pages.
  */
-export function SpieltagKarte({ event }: { event: EventSummary }) {
+export function SpieltagKarte({ event, testId }: { event: EventSummary; testId?: string }) {
   const untertitel = [spieltagUntertitel(event), ortText(event)].filter(Boolean).join(" · ");
 
   return (
-    <Link to={`/events/${event.id}`} className="block group">
+    <Link
+      to={`/events/${event.id}`}
+      data-testid={testId ?? `event-card-${event.id}`}
+      className="block group"
+    >
       <Card className="h-full transition-shadow group-hover:shadow-md">
         <Card.Header>
           <div className="flex items-start justify-between gap-3">
@@ -88,9 +102,18 @@ export function SpieltagKarte({ event }: { event: EventSummary }) {
 }
 
 /** Results tables are wide. They scroll in their own box, never the whole page. */
-export function TabellenRahmen({ children }: { children: ReactNode }) {
+export function TabellenRahmen({
+  children,
+  testId,
+}: {
+  children: ReactNode;
+  testId?: string;
+}) {
   return (
-    <div className="tabelle-scroll rounded-xl border border-slate-200 bg-white">
+    <div
+      data-testid={testId ?? "table-frame"}
+      className="tabelle-scroll rounded-xl border border-slate-200 bg-white"
+    >
       {children}
     </div>
   );
@@ -100,15 +123,24 @@ export function Seitenkopf({
   titel,
   unterzeile,
   rechts,
+  testId,
 }: {
   titel: string;
   unterzeile?: ReactNode;
   rechts?: ReactNode;
+  testId?: string;
 }) {
+  const resolvedTestId = testId ?? `page-header-${slugify(titel)}`;
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <header
+      data-testid={resolvedTestId}
+      className="mb-6 flex flex-wrap items-end justify-between gap-4"
+    >
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+        <h1
+          data-testid={`${resolvedTestId}-title`}
+          className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl"
+        >
           {titel}
         </h1>
         {unterzeile && <p className="mt-1 text-slate-600">{unterzeile}</p>}

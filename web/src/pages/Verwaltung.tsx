@@ -24,15 +24,15 @@ export function Admin() {
   const { t } = useTranslation("admin");
   const { konto, laedt, hatRolle } = useKonto();
 
-  if (laedt) return <Laden />;
+  if (laedt) return <Laden testId="admin-loading" />;
   if (!konto) {
     return (
-      <Fehler text={t("auth.notSignedInError")} />
+      <Fehler text={t("auth.notSignedInError")} testId="admin-auth-error" />
     );
   }
   if (!hatRolle("admin", "editor")) {
     return (
-      <Fehler text={t("auth.noAccessError")} />
+      <Fehler text={t("auth.noAccessError")} testId="admin-access-error" />
     );
   }
 
@@ -41,6 +41,7 @@ export function Admin() {
       <Seitenkopf
         titel={t("page.title")}
         unterzeile={t("page.signedInAs", { displayName: konto.display_name, roles: konto.roles.join(", ") })}
+        testId="admin-header"
       />
       <div className="grid gap-8">
         <Clubs />
@@ -84,8 +85,10 @@ function Clubs() {
     <Abschnitt
       titel={t("clubs.title")}
       hinweis={t("clubs.description")}
+      testId="admin-clubs-section"
     >
       <form
+        data-testid="admin-clubs-create-form"
         className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
@@ -100,6 +103,7 @@ function Clubs() {
             required
             minLength={3}
             placeholder={t("clubs.namePlaceholder")}
+            data-testid="admin-clubs-name-input"
           />
         </Feld>
         <Feld label={t("clubs.shortNameLabel")} hinweis={t("clubs.shortNameHint")}>
@@ -108,6 +112,7 @@ function Clubs() {
             value={kuerzel}
             onChange={(e) => setzeKuerzel(e.target.value)}
             placeholder={t("clubs.shortNamePlaceholder")}
+            data-testid="admin-clubs-short-name-input"
           />
         </Feld>
         <Feld label={t("clubs.cityLabel")} hinweis={t("clubs.cityHint")}>
@@ -116,22 +121,28 @@ function Clubs() {
             value={ort}
             onChange={(e) => setzeOrt(e.target.value)}
             placeholder={t("clubs.cityPlaceholder")}
+            data-testid="admin-clubs-city-input"
           />
         </Feld>
-        <Button type="submit" isDisabled={anlegen.isPending || name.trim().length < 3}>
+        <Button
+          type="submit"
+          isDisabled={anlegen.isPending || name.trim().length < 3}
+          data-testid="admin-clubs-create-button"
+        >
           {anlegen.isPending ? t("clubs.creatingButton") : t("clubs.createButton")}
         </Button>
       </form>
 
       <Meldung
+        testId="admin-clubs-create-message"
         fehler={anlegen.isError ? fehlertext(anlegen.error) : null}
         erfolg={anlegen.isSuccess ? t("clubs.createdMessage", { name: anlegen.data?.name }) : null}
       />
 
-      {loading && <Laden text={t("clubs.loadingText")} />}
-      {error && <Fehler text={error} />}
+      {loading && <Laden text={t("clubs.loadingText")} testId="admin-clubs-loading" />}
+      {error && <Fehler text={error} testId="admin-clubs-error" />}
       {data && (
-        <p className="text-sm text-slate-600">
+        <p data-testid="admin-clubs-stats" className="text-sm text-slate-600">
           {t("clubs.statsText", { count: data.length, visible: data.filter((v) => v.visible).length })}
         </p>
       )}
@@ -178,8 +189,8 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
 
   if (editorOnly) {
     return (
-      <Abschnitt titel={t("series.title")}>
-        <Leer>{t("series.editOnlyAdmin")}</Leer>
+      <Abschnitt titel={t("series.title")} testId="admin-series-section">
+        <Leer testId="admin-series-editor-only">{t("series.editOnlyAdmin")}</Leer>
       </Abschnitt>
     );
   }
@@ -188,8 +199,10 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
     <Abschnitt
       titel={t("series.title")}
       hinweis={t("series.description")}
+      testId="admin-series-section"
     >
       <form
+        data-testid="admin-series-create-form"
         className="grid gap-3"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
@@ -205,6 +218,7 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
               required
               minLength={3}
               placeholder={t("series.namePlaceholder")}
+              data-testid="admin-series-name-input"
             />
           </Feld>
           <Feld label={t("series.yearLabel")} hinweis={t("series.yearHint")}>
@@ -216,6 +230,7 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
               min={1900}
               max={2200}
               placeholder={String(new Date().getFullYear())}
+              data-testid="admin-series-year-input"
             />
           </Feld>
         </div>
@@ -227,6 +242,7 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
               type="date"
               value={von}
               onChange={(e) => setzeVon(e.target.value)}
+              data-testid="admin-series-starts-input"
             />
           </Feld>
           <Feld label={t("series.endsLabel")} hinweis={t("series.endsHint")}>
@@ -235,29 +251,36 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
               type="date"
               value={bis}
               onChange={(e) => setzeBis(e.target.value)}
+              data-testid="admin-series-ends-input"
             />
           </Feld>
         </div>
 
         <Feld label={t("series.clubsLabel")} hinweis={t("series.clubsHint", { count: gewaehlt.size })}>
-          {vereine.loading && <Laden text={t("clubs.loadingText")} />}
+          {vereine.loading && <Laden text={t("clubs.loadingText")} testId="admin-series-clubs-loading" />}
           {vereine.data && (
             <VereinsAuswahl
               vereine={vereine.data}
               gewaehlt={gewaehlt}
               umschalten={umschalten}
+              testId="admin-series-clubs-select"
             />
           )}
         </Feld>
 
         <div>
-          <Button type="submit" isDisabled={anlegen.isPending || name.trim().length < 3}>
+          <Button
+            type="submit"
+            isDisabled={anlegen.isPending || name.trim().length < 3}
+            data-testid="admin-series-create-button"
+          >
             {anlegen.isPending ? t("series.creatingButton") : t("series.createButton")}
           </Button>
         </div>
       </form>
 
       <Meldung
+        testId="admin-series-create-message"
         fehler={anlegen.isError ? fehlertext(anlegen.error) : null}
         erfolg={
           anlegen.isSuccess
@@ -266,11 +289,11 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
         }
       />
 
-      {serien.loading && <Laden text={t("series.loadingText")} />}
-      {serien.error && <Fehler text={serien.error} />}
+      {serien.loading && <Laden text={t("series.loadingText")} testId="admin-series-loading" />}
+      {serien.error && <Fehler text={serien.error} testId="admin-series-error" />}
       {serien.data &&
         (serien.data.length ? (
-          <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+          <ul data-testid="admin-series-list" className="divide-y divide-slate-100 rounded-lg border border-slate-200">
             {serien.data.map((serie) => (
               <SeriesRow
                 key={serie.id}
@@ -281,7 +304,7 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
             ))}
           </ul>
         ) : (
-          <Leer>{t("series.emptyText")}</Leer>
+          <Leer testId="admin-series-empty">{t("series.emptyText")}</Leer>
         ))}
     </Abschnitt>
   );
@@ -318,11 +341,12 @@ function SeriesRow({
   });
 
   return (
-    <li className="px-4 py-3">
+    <li data-testid={`admin-series-row-${serie.id}`} className="px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <Link
             to={`/tabelle/${serie.id}`}
+            data-testid={`admin-series-link-${serie.id}`}
             className="font-medium underline-offset-2 hover:underline"
           >
             {serie.name}
@@ -331,7 +355,12 @@ function SeriesRow({
             {t("series.itemText", { count: serie.clubs?.length ?? 0, events: serie.event_count })}
           </p>
         </div>
-        <Button size="sm" variant="ghost" onPress={() => setzeOffen((o) => !o)}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onPress={() => setzeOffen((o) => !o)}
+          data-testid={`admin-series-edit-button-${serie.id}`}
+        >
           {offen ? t("series.closeButton") : t("series.editButton")}
         </Button>
       </div>
@@ -343,12 +372,14 @@ function SeriesRow({
               vereine={vereine}
               gewaehlt={gewaehlt}
               umschalten={umschalter(setzeGewaehlt)}
+              testId={`admin-series-edit-clubs-${serie.id}`}
             />
             <div className="flex items-center gap-3">
               <Button
                 size="sm"
                 isDisabled={speichern.isPending}
                 onPress={() => speichern.mutate()}
+                data-testid={`admin-series-save-clubs-button-${serie.id}`}
               >
                 {speichern.isPending ? t("series.savingButton") : t("series.saveButton", { count: gewaehlt.size })}
               </Button>
@@ -356,7 +387,9 @@ function SeriesRow({
                 {t("series.saveHint")}
               </span>
             </div>
-            {speichern.isError && <Fehler text={fehlertext(speichern.error)} />}
+            {speichern.isError && (
+              <Fehler text={fehlertext(speichern.error)} testId={`admin-series-save-clubs-error-${serie.id}`} />
+            )}
           </div>
 
           <Feld label={t("series.descriptionLabel")} hinweis={t("series.descriptionHint")}>
@@ -366,6 +399,7 @@ function SeriesRow({
               value={beschreibung}
               onChange={(e) => setzeBeschreibung(e.target.value)}
               placeholder={t("series.descriptionPlaceholder")}
+              data-testid={`admin-series-description-input-${serie.id}`}
             />
           </Feld>
           <div className="flex items-center gap-3">
@@ -373,19 +407,26 @@ function SeriesRow({
               size="sm"
               isDisabled={beschreibungSpeichern.isPending}
               onPress={() => beschreibungSpeichern.mutate()}
+              data-testid={`admin-series-save-description-button-${serie.id}`}
             >
               {beschreibungSpeichern.isPending
                 ? t("series.savingButton")
                 : t("series.saveDescriptionButton")}
             </Button>
             {beschreibungSpeichern.isSuccess && (
-              <span className="text-sm text-emerald-700">
+              <span
+                data-testid={`admin-series-description-saved-${serie.id}`}
+                className="text-sm text-emerald-700"
+              >
                 {t("series.descriptionSavedMessage")}
               </span>
             )}
           </div>
           {beschreibungSpeichern.isError && (
-            <Fehler text={fehlertext(beschreibungSpeichern.error)} />
+            <Fehler
+              text={fehlertext(beschreibungSpeichern.error)}
+              testId={`admin-series-description-error-${serie.id}`}
+            />
           )}
         </div>
       )}
@@ -510,8 +551,10 @@ function Events() {
     <Abschnitt
       titel={t("events.title")}
       hinweis={t("events.description")}
+      testId="admin-events-section"
     >
       <form
+        data-testid="admin-events-create-form"
         className="grid gap-3"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
@@ -527,6 +570,7 @@ function Events() {
               required
               minLength={3}
               placeholder={t("events.namePlaceholder")}
+              data-testid="admin-events-title-input"
             />
           </Feld>
           <Feld label={t("events.startsLabel")}>
@@ -536,6 +580,7 @@ function Events() {
               value={von}
               onChange={(e) => setzeVon(e.target.value)}
               required
+              data-testid="admin-events-starts-input"
             />
           </Feld>
           <Feld label={t("events.endsLabel")} hinweis={t("events.endsHint")}>
@@ -545,6 +590,7 @@ function Events() {
               value={bis}
               onChange={(e) => setzeBis(e.target.value)}
               min={von || undefined}
+              data-testid="admin-events-ends-input"
             />
           </Feld>
         </div>
@@ -555,6 +601,7 @@ function Events() {
               className={EINGABE}
               value={serie}
               onChange={(e) => setzeSerie(e.target.value)}
+              data-testid="admin-events-series-select"
             >
               <option value="">{t("events.seriesNone")}</option>
               {serien.data?.map((s) => (
@@ -569,6 +616,7 @@ function Events() {
               className={EINGABE}
               value={ausrichter}
               onChange={(e) => setzeAusrichter(e.target.value)}
+              data-testid="admin-events-host-select"
             >
               <option value="">{t("events.hostNone")}</option>
               {vereine.data?.map((v) => (
@@ -581,8 +629,8 @@ function Events() {
         </div>
 
         <Feld label={t("events.setupLabel")} hinweis={t("events.setupHint")}>
-          {katalog.loading && <Laden text={t("events.catalogLoadingText")} />}
-          {katalog.error && <Fehler text={katalog.error} />}
+          {katalog.loading && <Laden text={t("events.catalogLoadingText")} testId="admin-events-catalog-loading" />}
+          {katalog.error && <Fehler text={katalog.error} testId="admin-events-catalog-error" />}
           {katalog.data && katalog.data.length > 0 && (
             <select
               className={EINGABE}
@@ -597,6 +645,7 @@ function Events() {
                 setzeFlights(String(eintrag.flights));
                 setzeBootZeilen((vorher) => angepassteBootZeilen(vorher, eintrag.boats));
               }}
+              data-testid="admin-events-catalog-select"
             >
               {katalog.data.map((eintrag) => (
                 <option key={katalogSchluessel(eintrag)} value={katalogSchluessel(eintrag)}>
@@ -610,7 +659,7 @@ function Events() {
             </select>
           )}
           {katalog.data && katalog.data.length === 0 && (
-            <Fehler text={t("events.catalogEmptyText")} />
+            <Fehler text={t("events.catalogEmptyText")} testId="admin-events-catalog-empty" />
           )}
         </Feld>
 
@@ -631,7 +680,7 @@ function Events() {
 
         <Feld label={t("events.boatSetupLabel")} hinweis={t("events.boatSetupHint")}>
           <div className="overflow-x-auto rounded-md border border-slate-200">
-            <table className="w-full min-w-[36rem] text-sm">
+            <table data-testid="admin-events-boat-table" className="w-full min-w-[36rem] text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                   <th scope="col" className="px-3 py-2 font-medium">
@@ -656,6 +705,7 @@ function Events() {
                           aria-label={`${t("events.boatColorLabel")} ${index + 1}`}
                           value={zeile.farbe}
                           onChange={(e) => aktualisiereBoot(index, { farbe: e.target.value })}
+                          data-testid={`admin-events-boat-color-select-${index}`}
                         >
                           <option value="">{t("events.boatColorNone")}</option>
                           {VORDEFINIERTE_FARBEN.map((code) => (
@@ -674,6 +724,7 @@ function Events() {
                             }
                             placeholder={t("events.boatColorCustomPlaceholder")}
                             aria-label={t("events.boatColorCustomPlaceholder")}
+                            data-testid={`admin-events-boat-color-custom-input-${index}`}
                           />
                         )}
                       </div>
@@ -686,6 +737,7 @@ function Events() {
                         required
                         placeholder={t("events.boatNamePlaceholder")}
                         aria-label={`${t("events.boatNameLabel")} ${index + 1}`}
+                        data-testid={`admin-events-boat-name-input-${index}`}
                       />
                     </td>
                   </tr>
@@ -705,6 +757,7 @@ function Events() {
               !katalog.data?.length ||
               !bootNamenVollstaendig(bootZeilen)
             }
+            data-testid="admin-events-create-button"
           >
             {anlegen.isPending ? t("events.creatingButton") : t("events.createButton")}
           </Button>
@@ -712,6 +765,7 @@ function Events() {
       </form>
 
       <Meldung
+        testId="admin-events-create-message"
         fehler={anlegen.isError ? fehlertext(anlegen.error) : null}
         erfolg={anlegen.isSuccess ? t("events.createdMessage", { title: anlegen.data?.title }) : null}
       />

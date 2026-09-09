@@ -15,8 +15,8 @@ export function Sailor() {
     api.sailor(Number(id), signal),
   );
 
-  if (loading) return <Laden text={t("loading")} />;
-  if (error) return <Fehler text={error} />;
+  if (loading) return <Laden text={t("loading")} testId="sailor-loading" />;
+  if (error) return <Fehler text={error} testId="sailor-error" />;
   if (!data) return null;
 
   return (
@@ -28,19 +28,21 @@ export function Sailor() {
             ? t("registeredFor", { clubs: data.teams.map((t) => t.club.short_name).join(", ") })
             : t("notRegistered")
         }
+        testId="sailor-header"
       />
 
-      <section className="mb-8">
+      <section data-testid="sailor-registrations-section" className="mb-8">
         <h2 className="mb-3 text-lg font-semibold">{t("registrations")}</h2>
         {data.teams?.length ? (
           <ul className="grid gap-3 sm:grid-cols-2">
             {data.teams.map((eintrag) => (
-              <li key={eintrag.team_id}>
+              <li key={eintrag.team_id} data-testid={`sailor-registration-card-${eintrag.team_id}`}>
                 <Card>
                   <Card.Header>
                     <Card.Title className="text-base">
                       <Link
                         to={`/clubs/${eintrag.club.id}`}
+                        data-testid={`sailor-registration-club-link-${eintrag.team_id}`}
                         className="underline-offset-2 hover:underline"
                       >
                         {eintrag.club.name}
@@ -55,11 +57,11 @@ export function Sailor() {
             ))}
           </ul>
         ) : (
-          <Leer>{t("noRegistrations")}</Leer>
+          <Leer testId="sailor-registrations-empty">{t("noRegistrations")}</Leer>
         )}
       </section>
 
-      <section>
+      <section data-testid="sailor-lineups-section">
         <h2 className="mb-3 text-lg font-semibold">{t("lineups")}</h2>
         {data.events?.length ? (
           <ul className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -67,6 +69,7 @@ export function Sailor() {
               <li key={eintrag.event.id} className="border-b border-slate-100 last:border-0">
                 <Link
                   to={`/events/${eintrag.event.id}`}
+                  data-testid={`sailor-lineup-row-${eintrag.event.id}`}
                   className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-slate-50"
                 >
                   <span className="font-medium">{eintrag.event.title}</span>
@@ -81,7 +84,7 @@ export function Sailor() {
             ))}
           </ul>
         ) : (
-          <Leer>{t("noLineups")}</Leer>
+          <Leer testId="sailor-lineups-empty">{t("noLineups")}</Leer>
         )}
       </section>
     </>
