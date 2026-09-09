@@ -49,31 +49,21 @@ function punkteImFlight(zeile: StandingRow, flight: number, proFlight: number): 
   return vorhanden ? summe : null;
 }
 
-/** Average gross points per sailed race across every team that has sailed at least one race —
- *  the fallback for a team that itself hasn't sailed yet, so it still gets a sensible
- *  projection instead of none. */
-function durchschnittProWettfahrtGesamt(standings: StandingRow[]): number {
-  let punkteSumme = 0;
-  let wettfahrtenSumme = 0;
-  for (const zeile of standings) {
-    if (zeile.races_scored > 0) {
-      punkteSumme += zeile.total;
-      wettfahrtenSumme += zeile.races_scored;
-    }
-  }
-  return wettfahrtenSumme > 0 ? punkteSumme / wettfahrtenSumme : 0;
+/** A team's own average points per sailed race — or, before it has sailed anything, the fair
+ *  expected value of a single low-point result: the mean of places 1..N is (N+1)/2 (e.g. in a
+ *  6-boat race, a still-unraced result is "expected" to be worth 3.5 points). This single
+ *  number both fills a not-yet-sailed flight's cell (shown greyed, clearly an estimate, never
+ *  a real result) and builds the projected total below — never persisted, purely a display
+ *  computation. */
+function erwarteterDurchschnitt(zeile: StandingRow, boatCount: number): number {
+  return zeile.races_scored > 0 ? zeile.total / zeile.races_scored : (boatCount + 1) / 2;
 }
 
-/** Provisional final total: gross so far, plus the team's own (or, failing that, the
- *  event-wide) average points per race, extrapolated over the still-unsailed flights.
- *  Purely a display computation — never persisted, never used for `rank`. */
-function projizierterGesamtwert(
-  zeile: StandingRow,
-  flightCount: number,
-  durchschnittGesamt: number,
-): number {
+/** Provisional final total: gross so far, plus the expected average extrapolated over the
+ *  still-unsailed flights. Purely a display computation — never persisted, and never changes
+ *  the backend-provided `rank`; sorting the table by this column is a client-side view only. */
+function projizierterGesamtwert(zeile: StandingRow, flightCount: number, durchschnitt: number): number {
   const verbleibend = Math.max(0, flightCount - zeile.races_scored);
-  const durchschnitt = zeile.races_scored > 0 ? zeile.total / zeile.races_scored : durchschnittGesamt;
   return zeile.total + durchschnitt * verbleibend;
 }
 
@@ -180,16 +170,87 @@ function DailyStandings({
   const flights = Array.from({ length: event.flight_count }, (_, i) => i + 1);
   // B-2: "a running matchday shows an interim standing" — once anything has been sailed
   // anywhere in the event, a team with 0 races so far would otherwise show net=0 and look
-  // like it's winning outright. The projected total makes that provisional, never the sort.
+  // like it's winning outright. The projected column makes that provisional, never the
+  // backend's own rank — sorting by it below is a client-side view, not a re-ranking.
   const zeigeProjektion = racesScored > 0;
-  const durchschnittGesamt = zeigeProjektion ? durchschnittProWettfahrtGesamt(standings) : 0;
+
+  return (
+    <SortableStandingsTable
+      standings={standings}
+      event={event}
+      flights={flights}
+      proFlight={proFlight}
+      zeigeProjektion={zeigeProjektion}
+      t={t}
+    />
+  );
+}
+
+type SortSpalte = "punkte" | "projektion";
+
+function SortableStandingsTable({
+  standings,
+  event,
+  flights,
+  proFlight,
+  zeigeProjektion,
+  t,
+}: {
+  standings: StandingRow[];
+  event: EventSummary;
+  flights: number[];
+  proFlight: number;
+  zeigeProjektion: boolean;
+  t: (key: string, options?: Record<string, unknown>) => string;
+}) {
+  // null = the backend's own order (rank — official, fewer points is better). Choosing a
+  // column here only changes what order rows are *displayed* in; `rank` itself, shown in
+  // its own column regardless of sort, never changes.
+  const [sortSpalte, setSortSpalte] = useState<SortSpalte | null>(null);
+  const [sortAufsteigend, setSortAufsteigend] = useState(true);
+
+  function sortierenNach(spalte: SortSpalte) {
+    if (sortSpalte === spalte) {
+      setSortAufsteigend((vorher) => !vorher);
+    } else {
+      setSortSpalte(spalte);
+      setSortAufsteigend(true);
+    }
+  }
+
+  function wertFuerSpalte(zeile: StandingRow, spalte: SortSpalte): number {
+    if (spalte === "punkte") return zeile.net;
+    const durchschnitt = erwarteterDurchschnitt(zeile, event.boat_count);
+    return projizierterGesamtwert(zeile, event.flight_count, durchschnitt);
+  }
+
+  const angezeigteZeilen = sortSpalte
+    ? [...standings].sort((a, b) => {
+        const diff = wertFuerSpalte(a, sortSpalte) - wertFuerSpalte(b, sortSpalte);
+        return sortAufsteigend ? diff : -diff;
+      })
+    : standings;
+
+  function sortPfeil(spalte: SortSpalte) {
+    if (sortSpalte !== spalte) return null;
+    return (
+      <span aria-hidden className="ml-0.5">
+        {sortAufsteigend ? "▲" : "▼"}
+      </span>
+    );
+  }
+
+  function ariaSort(spalte: SortSpalte): "ascending" | "descending" | "none" {
+    if (sortSpalte !== spalte) return "none";
+    return sortAufsteigend ? "ascending" : "descending";
+  }
 
   return (
     <TabellenRahmen testId="matchday-standings-table-frame">
       <table
         data-testid="matchday-standings-table"
         className="w-full border-collapse text-sm"
-        style={{ minWidth: `${30 + flights.length * 3.25}rem` }}
+        style={{ minWidth: `${(zeigeProjektion ? 38 : 30) + flights.length * 3.25}rem` }}
       >
         <caption className="sr-only">{t("standingsCaption")}</caption>
         <thead className="tabelle-kopf">
@@ -200,9 +261,39 @@ function DailyStandings({
             <th scope="col" className="px-4 py-3 font-medium text-slate-600">
               {t("teamHeader")}
             </th>
-            <th scope="col" className="w-32 px-4 py-3 text-right font-medium text-slate-600">
-              {t("pointsHeader")}
+            <th
+              scope="col"
+              aria-sort={ariaSort("punkte")}
+              className="w-32 px-4 py-3 text-right font-medium text-slate-600"
+            >
+              <button
+                type="button"
+                onClick={() => sortierenNach("punkte")}
+                data-testid="matchday-standings-sort-points"
+                className="inline-flex items-center hover:text-slate-900"
+              >
+                {t("pointsHeader")}
+                {sortPfeil("punkte")}
+              </button>
             </th>
+            {zeigeProjektion && (
+              <th
+                scope="col"
+                aria-sort={ariaSort("projektion")}
+                title={t("projectedTooltip")}
+                className="w-28 px-4 py-3 text-right font-medium text-slate-600"
+              >
+                <button
+                  type="button"
+                  onClick={() => sortierenNach("projektion")}
+                  data-testid="matchday-standings-sort-projected"
+                  className="inline-flex items-center hover:text-slate-900"
+                >
+                  {t("projectedColumnHeader")}
+                  {sortPfeil("projektion")}
+                </button>
+              </th>
+            )}
             <th scope="col" className="w-16 px-4 py-3 text-right font-medium text-slate-600">
               {t("racesHeader")}
             </th>
@@ -219,9 +310,10 @@ function DailyStandings({
           </tr>
         </thead>
         <tbody>
-          {standings.map((zeile) => {
+          {angezeigteZeilen.map((zeile) => {
+            const durchschnitt = erwarteterDurchschnitt(zeile, event.boat_count);
             const projektion = zeigeProjektion
-              ? projizierterGesamtwert(zeile, event.flight_count, durchschnittGesamt)
+              ? projizierterGesamtwert(zeile, event.flight_count, durchschnitt)
               : null;
             return (
               <tr
@@ -246,27 +338,43 @@ function DailyStandings({
                       ({punkte(zeile.total)} {t("gross")})
                     </span>
                   )}
-                  {projektion != null && (
-                    <span
-                      title={t("projectedTooltip")}
-                      data-testid={`matchday-standings-projected-${zeile.team.id}`}
-                      className="ml-1.5 block text-xs font-normal italic text-slate-400"
-                    >
-                      {t("projectedLabel", { value: punkte(projektion) })}
-                    </span>
-                  )}
                 </td>
+                {zeigeProjektion && (
+                  <td
+                    title={t("projectedTooltip")}
+                    data-testid={`matchday-standings-projected-${zeile.team.id}`}
+                    className="px-4 py-3 text-right italic tabular-nums text-slate-500"
+                  >
+                    ≈{punkte(projektion as number)}
+                  </td>
+                )}
                 <td className="px-4 py-3 text-right tabular-nums text-slate-500">
                   {zeile.races_scored}
                 </td>
                 {flights.map((flight) => {
                   const wert = punkteImFlight(zeile, flight, proFlight);
+                  if (wert != null) {
+                    return (
+                      <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-500">
+                        {punkte(wert)}
+                      </td>
+                    );
+                  }
+                  if (!zeigeProjektion) {
+                    return (
+                      <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-400">
+                        –
+                      </td>
+                    );
+                  }
                   return (
                     <td
                       key={flight}
-                      className="px-2 py-3 text-right tabular-nums text-slate-500"
+                      title={t("projectedFlightTooltip")}
+                      data-testid={`matchday-standings-flight-projected-${zeile.team.id}-${flight}`}
+                      className="px-2 py-3 text-right italic tabular-nums text-slate-400"
                     >
-                      {wert == null ? "–" : punkte(wert)}
+                      {punkte(durchschnitt)}
                     </td>
                   );
                 })}
