@@ -70,16 +70,24 @@ function erwarteterDurchschnitt(zeile: StandingRow, boatCount: number): number {
   return zeile.races_scored > 0 ? zeile.total / zeile.races_scored : (boatCount + 1) / 2;
 }
 
-/** Provisional total: gross so far, plus **one** expected-average race — not the average
- *  extrapolated over every still-unsailed flight, which compounds into an implausibly large
- *  number the more flights remain. This bounds how far "projected" can ever sit above the
- *  real total to at most a single race's worth (at most #boats + 1 points, the worst
- *  possible single result) — a nudge showing who's trending well, not a full end-of-day
- *  forecast. Nothing here is persisted, and it never changes the backend-provided `rank`;
- *  sorting the table by this column is a client-side view only. */
-function projizierterGesamtwert(zeile: StandingRow, flightCount: number, durchschnitt: number): number {
-  const hatOffeneFlights = zeile.races_scored < flightCount;
-  return zeile.total + (hatOffeneFlights ? durchschnitt : 0);
+/** The flights this team has no result in *yet* which are nevertheless already under way —
+ *  someone else has sailed a race in them. Exactly the cells that carry a greyed estimate in
+ *  "extrapolate" mode, so the projected total is precisely the sum of what the row shows,
+ *  with nothing added that isn't visible somewhere.
+ *
+ *  Because races run in sequence, in practice this is at most one flight — which is what
+ *  keeps a projection from ever drifting more than a single race's worth above the real
+ *  total, without needing a separate cap to enforce it. A flight nobody has reached yet is
+ *  never estimated: there is no evidence it is under way. */
+function geschaetzteFlights(
+  zeile: StandingRow,
+  flights: number[],
+  proFlight: number,
+  begonnen: Set<number>,
+): number[] {
+  return flights.filter(
+    (flight) => begonnen.has(flight) && punkteImFlight(zeile, flight, proFlight) === null,
+  );
 }
 
 /** B-2 and B-3: Daily standings and pairing list of a matchday. */
@@ -153,7 +161,7 @@ export function Matchday() {
       </div>
 
       {ansicht === "wertung" && (
-        <DailyStandings standings={standings} event={event} racesScored={races_scored} />
+        <DailyStandings standings={standings} event={event} />
       )}
       {ansicht === "pairing" && <PairingList eventId={Number(id)} />}
       {ansicht === "ergebnisse" && kannErfassen && (
@@ -166,11 +174,9 @@ export function Matchday() {
 function DailyStandings({
   standings,
   event,
-  racesScored,
 }: {
   standings: StandingRow[];
   event: EventSummary;
-  racesScored: number;
 }) {
   const { t } = useTranslation("matchday");
 
@@ -183,83 +189,74 @@ function DailyStandings({
 
   const proFlight = racesProFlight(event);
   const flights = Array.from({ length: event.flight_count }, (_, i) => i + 1);
-  // B-2: "a running matchday shows an interim standing" — once anything has been sailed
-  // anywhere in the event, a team with 0 races so far would otherwise show net=0 and look
-  // like it's winning outright. The projected column makes that provisional, never the
-  // backend's own rank — sorting by it below is a client-side view, not a re-ranking.
-  const zeigeProjektion = racesScored > 0;
 
-  return (
-    <SortableStandingsTable
-      standings={standings}
-      event={event}
-      flights={flights}
-      proFlight={proFlight}
-      zeigeProjektion={zeigeProjektion}
-      t={t}
-    />
-  );
+  return <StandingsTable standings={standings} event={event} flights={flights} proFlight={proFlight} t={t} />;
 }
 
-type SortSpalte = "punkte" | "projektion";
+/** How the one points column reads a team that hasn't sailed every started flight yet.
+ *
+ *  "exact" shows only what was actually sailed — a flight with no result is a plain dash and
+ *  contributes nothing. "extrapolate" fills a flight that is already under way with this
+ *  team's expected average, greyed, and counts it in the total. Deliberately a display
+ *  toggle over one column rather than two columns side by side: the two numbers answer the
+ *  same question ("how does this team stand?") under different assumptions, and showing both
+ *  at once invited reading the provisional one as official. */
+type PunkteModus = "exact" | "extrapolate";
 
-function SortableStandingsTable({
+function StandingsTable({
   standings,
   event,
   flights,
   proFlight,
-  zeigeProjektion,
   t,
 }: {
   standings: StandingRow[];
   event: EventSummary;
   flights: number[];
   proFlight: number;
-  zeigeProjektion: boolean;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
-  // null = the backend's own order (rank — official, fewer points is better). Choosing a
-  // column here only changes what order rows are *displayed* in; `rank` itself, shown in
-  // its own column regardless of sort, never changes. Deliberately one fixed direction
-  // (descending) with no ascending/descending toggle — click a header to sort by it, click
-  // the active one again to go back to the official rank order.
-  const [sortSpalte, setSortSpalte] = useState<SortSpalte | null>(null);
-
-  function sortierenNach(spalte: SortSpalte) {
-    setSortSpalte((vorher) => (vorher === spalte ? null : spalte));
-  }
-
-  function wertFuerSpalte(zeile: StandingRow, spalte: SortSpalte): number {
-    if (spalte === "punkte") return zeile.net;
-    const durchschnitt = erwarteterDurchschnitt(zeile, event.boat_count);
-    return projizierterGesamtwert(zeile, event.flight_count, durchschnitt);
-  }
-
-  const angezeigteZeilen = sortSpalte
-    ? [...standings].sort((a, b) => wertFuerSpalte(b, sortSpalte) - wertFuerSpalte(a, sortSpalte))
-    : standings;
-
-  function sortPfeil(spalte: SortSpalte) {
-    if (sortSpalte !== spalte) return null;
-    return (
-      <span aria-hidden className="ml-0.5 text-[10px]">
-        ▼
-      </span>
-    );
-  }
-
-  function ariaSort(spalte: SortSpalte): "descending" | "none" {
-    return sortSpalte === spalte ? "descending" : "none";
-  }
-
+  const [modus, setModus] = useState<PunkteModus>("exact");
   const flightsBegonnen = begonneneFlights(standings, proFlight);
 
+  // Rows always keep the backend's own order — `rank`, official, fewer points ranking higher
+  // (`app/services/standings.py`). There is deliberately no client-side sorting: the one
+  // question a standings table answers is "who leads", and letting a *provisional* column
+  // reorder the official table only ever made a projection look like a result.
   return (
-    <TabellenRahmen testId="matchday-standings-table-frame">
+    <>
+      <div className="mb-3 flex items-center justify-end gap-2">
+        <span className="text-sm text-slate-600">{t("pointsModeLabel")}</span>
+        <div
+          role="group"
+          aria-label={t("pointsModeLabel")}
+          data-testid="matchday-standings-mode"
+          className="flex shrink-0 overflow-hidden rounded-md border border-slate-300 text-xs"
+        >
+          {(["exact", "extrapolate"] as const).map((wert) => (
+            <button
+              key={wert}
+              type="button"
+              aria-pressed={modus === wert}
+              onClick={() => setModus(wert)}
+              title={t(wert === "exact" ? "pointsModeExactHint" : "pointsModeExtrapolateHint")}
+              data-testid={`matchday-standings-mode-${wert}`}
+              className={`px-2 py-1.5 transition-colors ${
+                modus === wert
+                  ? "bg-marke-600 font-medium text-white"
+                  : "bg-white text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {t(wert === "exact" ? "pointsModeExact" : "pointsModeExtrapolate")}
+            </button>
+          ))}
+        </div>
+      </div>
+      <TabellenRahmen testId="matchday-standings-table-frame">
       <table
         data-testid="matchday-standings-table"
         className="w-full border-collapse text-sm"
-        style={{ minWidth: `${(zeigeProjektion ? 38 : 30) + flights.length * 3.25}rem` }}
+        style={{ minWidth: `${30 + flights.length * 3.25}rem` }}
       >
         <caption className="sr-only">{t("standingsCaption")}</caption>
         <thead>
@@ -272,41 +269,11 @@ function SortableStandingsTable({
             </th>
             <th
               scope="col"
-              aria-sort={ariaSort("punkte")}
+              title={modus === "extrapolate" ? t("projectedTooltip") : undefined}
               className="w-32 px-4 py-3 text-right font-medium text-slate-600"
             >
-              <button
-                type="button"
-                onClick={() => sortierenNach("punkte")}
-                data-testid="matchday-standings-sort-points"
-                className={`inline-flex items-center hover:text-slate-900 ${
-                  sortSpalte !== "projektion" ? "font-semibold text-slate-900" : ""
-                }`}
-              >
-                {t("pointsHeader")}
-                {sortPfeil("punkte")}
-              </button>
+              {modus === "extrapolate" ? t("projectedColumnHeader") : t("pointsHeader")}
             </th>
-            {zeigeProjektion && (
-              <th
-                scope="col"
-                aria-sort={ariaSort("projektion")}
-                title={t("projectedTooltip")}
-                className="w-28 px-4 py-3 text-right font-medium text-slate-600"
-              >
-                <button
-                  type="button"
-                  onClick={() => sortierenNach("projektion")}
-                  data-testid="matchday-standings-sort-projected"
-                  className={`inline-flex items-center hover:text-slate-900 ${
-                    sortSpalte === "projektion" ? "font-semibold text-slate-900" : ""
-                  }`}
-                >
-                  {t("projectedColumnHeader")}
-                  {sortPfeil("projektion")}
-                </button>
-              </th>
-            )}
             <th scope="col" className="w-16 px-4 py-3 text-right font-medium text-slate-600">
               {t("racesHeader")}
             </th>
@@ -323,11 +290,12 @@ function SortableStandingsTable({
           </tr>
         </thead>
         <tbody>
-          {angezeigteZeilen.map((zeile) => {
+          {standings.map((zeile) => {
             const durchschnitt = erwarteterDurchschnitt(zeile, event.boat_count);
-            const projektion = zeigeProjektion
-              ? projizierterGesamtwert(zeile, event.flight_count, durchschnitt)
-              : null;
+            const geschaetzt = geschaetzteFlights(zeile, flights, proFlight, flightsBegonnen);
+            // The projected total is exactly the row's own cells added up: real flight sums
+            // plus one expected average per greyed cell. Nothing is added that isn't shown.
+            const hochgerechnet = zeile.total + geschaetzt.length * durchschnitt;
             return (
               <tr
                 key={zeile.team.id}
@@ -344,27 +312,25 @@ function SortableStandingsTable({
                     {zeile.team.club.name}
                   </Link>
                 </td>
-                <td
-                  className={`px-4 py-3 text-right tabular-nums ${
-                    sortSpalte === "projektion" ? "font-normal" : "font-semibold"
-                  }`}
-                >
-                  {punkte(zeile.net)}
-                  {zeile.net !== zeile.total && (
-                    <span className="ml-1 text-xs font-normal text-slate-400">
-                      ({punkte(zeile.total)} {t("gross")})
-                    </span>
-                  )}
-                </td>
-                {zeigeProjektion && (
+                {modus === "extrapolate" ? (
                   <td
                     title={t("projectedTooltip")}
                     data-testid={`matchday-standings-projected-${zeile.team.id}`}
-                    className={`px-4 py-3 text-right italic tabular-nums ${
-                      sortSpalte === "projektion" ? "font-semibold text-slate-700" : "text-slate-500"
-                    }`}
+                    className="px-4 py-3 text-right font-semibold italic tabular-nums text-slate-700"
                   >
-                    {punkte(projektion as number)}
+                    {punkte(hochgerechnet)}
+                  </td>
+                ) : (
+                  <td
+                    data-testid={`matchday-standings-points-${zeile.team.id}`}
+                    className="px-4 py-3 text-right font-semibold tabular-nums"
+                  >
+                    {punkte(zeile.net)}
+                    {zeile.net !== zeile.total && (
+                      <span className="ml-1 text-xs font-normal text-slate-400">
+                        ({punkte(zeile.total)} {t("gross")})
+                      </span>
+                    )}
                   </td>
                 )}
                 <td className="px-4 py-3 text-right tabular-nums text-slate-500">
@@ -379,11 +345,11 @@ function SortableStandingsTable({
                       </td>
                     );
                   }
-                  // An estimate only makes sense once this flight is actually under way —
-                  // someone else's race in it already has a result. A flight nobody has
-                  // reached yet stays a plain dash, even once the matchday itself has
-                  // started elsewhere.
-                  if (!zeigeProjektion || !flightsBegonnen.has(flight)) {
+                  // In "exact" mode an unsailed flight is always a plain dash. In
+                  // "extrapolate" it carries the expected average — but only where the flight
+                  // is already under way, i.e. someone has a result in it. A flight nobody
+                  // has reached yet is never estimated, even mid-matchday.
+                  if (modus === "exact" || !geschaetzt.includes(flight)) {
                     return (
                       <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-400">
                         –
@@ -406,7 +372,8 @@ function SortableStandingsTable({
           })}
         </tbody>
       </table>
-    </TabellenRahmen>
+      </TabellenRahmen>
+    </>
   );
 }
 
