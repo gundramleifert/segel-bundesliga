@@ -154,6 +154,19 @@ These points were deliberately decided this way; bypassing them costs a lot late
   positions in milliseconds and leaves every quality metric unchanged — they depend on structure,
   not names. Extend with:
   `uv run python -m app.pairing.catalog --teams 18 --boats 6 --flights 16`.
+- **Four states of an event, deliberately not one state machine** (Story VA-8,
+  `app/services/event_readiness.py`): **Saving never requires validity** — title alone is
+  enough, and an event with no date, no boats and the wrong number of clubs is the normal
+  early state. **Publication is orthogonal to status**: `published` on `Event` and `Series`
+  decides who can see it, `status` where it stands sportingly, and publishing **locks
+  nothing** — a published event stays fully editable and need not be complete; public
+  endpoints show published data only and answer 404 for a draft. **Validity is computed,
+  never stored**, and returns a list of machine-readable reasons (the UI must say *what* is
+  missing); it gates the **draw** and the **start** (`POST …/start`, which also needs a
+  pairing list). **The first race freezes the configuration** — dimensions, series/matchday,
+  clubs, boats, pairing list — the trigger being any race no longer `scheduled` or any
+  result recorded. It **never** freezes results: correcting a result, including a protest
+  decision months later, is the point of the race-committee screens.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
 

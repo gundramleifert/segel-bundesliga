@@ -37,7 +37,11 @@ async def create_series(slug: str, name: str, year: int) -> int:
         ).scalar_one_or_none()
         if existing is not None:
             return existing.id
-        series = Series(slug=slug, name=name, short_name=name, year=year, scoring={})
+        # Published: these stand for the next year's real competition, and the public
+        # views under test show published series only (Story VA-8).
+        series = Series(
+            slug=slug, name=name, short_name=name, year=year, scoring={}, published=True
+        )
         session.add(series)
         await session.commit()
         return series.id

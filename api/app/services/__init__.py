@@ -1,3 +1,12 @@
+from app.services.event_readiness import (
+    CATALOG_REASON,
+    FrozenConfiguration,
+    ReadinessReason,
+    configuration_frozen,
+    event_readiness,
+    require_editable_configuration,
+    require_ready,
+)
 from app.services.participation import (
     ParticipationError,
     adopt_series_registrations,
@@ -29,17 +38,22 @@ from app.services.waivers import (
 )
 
 __all__ = [
+    "CATALOG_REASON",
+    "FrozenConfiguration",
     "ParticipationError",
+    "ReadinessReason",
     "SailorWaiver",
     "SeriesRow",
     "adopt_series_registrations",
     "compute_event",
     "compute_series",
+    "configuration_frozen",
     "current_waiver_text",
     "current_year",
     "delete_event_entries",
     "event_entries",
     "event_entry",
+    "event_readiness",
     "event_standings",
     "event_waiver_status",
     "has_results",
@@ -47,6 +61,8 @@ __all__ = [
     "new_event_entry",
     "recompute_event",
     "recompute_series",
+    "require_editable_configuration",
+    "require_ready",
     "series_of_year",
     "series_reference_date",
     "series_registration",

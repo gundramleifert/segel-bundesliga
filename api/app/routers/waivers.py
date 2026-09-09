@@ -42,6 +42,7 @@ from app.problems import Problem
 from app.services import current_waiver_text, event_waiver_status, is_minor
 from app.services.waivers import (
     STATUS_CLEARED,
+    event_reference_date,
     series_reference_date,
 )
 
@@ -252,7 +253,7 @@ async def confirm_for_event(
         request=request,
         scope="event",
         scope_id=event.id,
-        reference_date=event.starts_on,
+        reference_date=event_reference_date(event),
     )
 
 

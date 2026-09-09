@@ -2,6 +2,12 @@
 
 All routes address via the primary key; the slug appears in responses and is used for
 display, not as an address. See ``docs/concepts.md`` for terminology.
+
+**Only published data appears here** (Story VA-8). A series and an event each carry a
+``published`` flag; while it is false the thing is a draft — planned, edited, discussed —
+and this router behaves as if it did not exist, down to answering 404 rather than
+admitting that it is there. The ``/api/admin/...`` routers show everything, drafts
+included; that is where the work happens.
 """
 
 from __future__ import annotations
@@ -64,6 +70,22 @@ _EVENT_LOAD = tuple(selectinload(getattr(Event, name)) for name in _EVENT_RELATI
 _ROLE_ORDER = {CrewRole.HELM: 0, CrewRole.CREW: 1, CrewRole.SUBSTITUTE: 2}
 
 
+def _only_public_events(stmt):
+    """Narrows an ``Event`` query to what a visitor may see.
+
+    Two conditions, because an event hangs off a series: the event itself must be
+    published, and it must not belong to an **unpublished** series — otherwise publishing
+    a single matchday would leak the draft series it belongs to through
+    ``EventOut.series``. A standalone event has no series and passes on its own flag.
+    """
+    draft_series = (
+        select(Series.id)
+        .where(Series.id == Event.series_id, Series.published.is_(False))
+        .exists()
+    )
+    return stmt.where(Event.published.is_(True), ~draft_series)
+
+
 # -------------------------------------------------------------------------- Series
 
 
@@ -72,9 +94,15 @@ async def list_series(
     year: int | None = Query(default=None, description="Year; otherwise the current one"),
     session: AsyncSession = Depends(get_session),
 ) -> list[Series]:
-    """A series is a set of events that are scored together."""
-    effective_year = year if year is not None else await current_year(session)
-    stmt = select(Series).order_by(Series.level.nulls_last(), Series.name)
+    """A series is a set of events that are scored together. Published ones only."""
+    effective_year = (
+        year if year is not None else await current_year(session, published_only=True)
+    )
+    stmt = (
+        select(Series)
+        .where(Series.published.is_(True))
+        .order_by(Series.level.nulls_last(), Series.name)
+    )
     if effective_year is not None:
         stmt = stmt.where(Series.year == effective_year)
     return list((await session.execute(stmt)).scalars())
@@ -92,7 +120,11 @@ async def get_series_table(
     compete must never be better than competing and placing last.
     """
     series = (
-        await session.execute(select(Series).where(Series.id == series_id))
+        await session.execute(
+            # An unpublished series is not a 403 but a 404: a draft's existence is itself
+            # not public.
+            select(Series).where(Series.id == series_id, Series.published.is_(True))
+        )
     ).scalar_one_or_none()
     if series is None:
         raise HTTPException(
@@ -107,10 +139,12 @@ async def get_series_table(
     events = list(
         (
             await session.execute(
-                select(Event)
-                .options(*_EVENT_LOAD)
-                .where(Event.series_id == series.id)
-                .order_by(Event.matchday.nulls_last(), Event.starts_on)
+                _only_public_events(
+                    select(Event)
+                    .options(*_EVENT_LOAD)
+                    .where(Event.series_id == series.id)
+                    .order_by(Event.matchday.nulls_last(), Event.starts_on)
+                )
             )
         ).scalars()
     )
@@ -119,9 +153,14 @@ async def get_series_table(
 
     rows = []
     for row in await compute_series(session, series.id):
+        # Only published matchdays are broken out. The **points** still come from every
+        # event of the series — that is the sporting truth, and a sailed matchday someone
+        # forgot to publish must not silently change a standing — but its column would
+        # give away an event the visitor is not meant to see yet.
         acts = {
-            matchday_by_event.get(event_id) or 0: rank
+            matchday_by_event[event_id] or 0: rank
             for event_id, rank in row.event_ranks.items()
+            if event_id in matchday_by_event
         }
         rows.append(
             SeriesStandingRow(
@@ -130,7 +169,9 @@ async def get_series_table(
                 points=row.points,
                 ranks_by_matchday=acts,
                 missed_matchdays=sorted(
-                    matchday_by_event.get(event_id) or 0 for event_id in row.missed_events
+                    matchday_by_event[event_id] or 0
+                    for event_id in row.missed_events
+                    if event_id in matchday_by_event
                 ),
                 events_sailed=row.events_sailed,
             )
@@ -152,10 +193,12 @@ async def list_clubs(
     series: int | None = Query(default=None, description="ID of a series"),
     session: AsyncSession = Depends(get_session),
 ) -> list[Club]:
-    """Clubs assigned to at least one series in the year.
+    """Clubs assigned to at least one **published** series in the year.
 
     A newly created club does **not** appear here as long as it is not assigned to a
-    series — and an assignment always applies only to one year.
+    series — and an assignment always applies only to one year. An assignment to a series
+    still in draft counts just as little: the club page would otherwise name a competition
+    nobody is supposed to know about yet.
     """
     stmt = (
         select(Club)
@@ -163,14 +206,20 @@ async def list_clubs(
         .join(Series, Team.series_id == Series.id)
         # A pending club is not yet a participant. We count registration for the series,
         # not participation in a single event.
-        .where(Team.status == TeamStatus.ACCEPTED, Team.event_id.is_(None))
+        .where(
+            Team.status == TeamStatus.ACCEPTED,
+            Team.event_id.is_(None),
+            Series.published.is_(True),
+        )
         .order_by(Club.name)
         .distinct()
     )
     if series is not None:
         stmt = stmt.where(Series.id == series)
     else:
-        effective_year = year if year is not None else await current_year(session)
+        effective_year = (
+            year if year is not None else await current_year(session, published_only=True)
+        )
         if effective_year is None:
             return []
         stmt = stmt.where(Series.year == effective_year)
@@ -203,7 +252,9 @@ async def get_club(
             ),
         )
 
-    effective_year = year if year is not None else await current_year(session)
+    effective_year = (
+        year if year is not None else await current_year(session, published_only=True)
+    )
 
     teams: list[ClubTeamOut] = []
     if effective_year is not None:
@@ -215,6 +266,7 @@ async def get_club(
                     Team.club_id == club.id,
                     Team.event_id.is_(None),
                     Series.year == effective_year,
+                    Series.published.is_(True),
                     Team.status == TeamStatus.ACCEPTED,
                 )
                 .order_by(Series.level.nulls_last(), Series.name)
@@ -240,10 +292,12 @@ async def get_club(
     # They are identified by the host club.
     standalone_events = (
         await session.execute(
-            select(Event)
-            .options(*_EVENT_LOAD)
-            .where(Event.host_club_id == club.id, Event.series_id.is_(None))
-            .order_by(Event.starts_on)
+            _only_public_events(
+                select(Event)
+                .options(*_EVENT_LOAD)
+                .where(Event.host_club_id == club.id, Event.series_id.is_(None))
+                .order_by(Event.starts_on)
+            )
         )
     ).scalars()
 
@@ -303,7 +357,9 @@ async def get_sailor(
             ),
         )
 
-    effective_year = year if year is not None else await current_year(session)
+    effective_year = (
+        year if year is not None else await current_year(session, published_only=True)
+    )
     teams: list[SailorTeamOut] = []
     events: list[SailorEventOut] = []
 
@@ -318,6 +374,7 @@ async def get_sailor(
                     TeamMembership.sailor_id == sailor.id,
                     Team.event_id.is_(None),
                     Series.year == effective_year,
+                    Series.published.is_(True),
                     Team.status == TeamStatus.ACCEPTED,
                 )
                 .order_by(Series.level.nulls_last(), Series.name)
@@ -335,11 +392,13 @@ async def get_sailor(
 
         lineups = (
             await session.execute(
-                select(EventCrew, Event)
-                .join(Event, EventCrew.event_id == Event.id)
-                .options(*_EVENT_LOAD)
-                .where(EventCrew.sailor_id == sailor.id)
-                .order_by(Event.starts_on)
+                _only_public_events(
+                    select(EventCrew, Event)
+                    .join(Event, EventCrew.event_id == Event.id)
+                    .options(*_EVENT_LOAD)
+                    .where(EventCrew.sailor_id == sailor.id)
+                    .order_by(Event.starts_on)
+                )
             )
         ).all()
         events = [
@@ -365,7 +424,7 @@ async def list_events(
     series: int | None = Query(default=None, description="ID of a series"),
     session: AsyncSession = Depends(get_session),
 ) -> list[EventOut]:
-    stmt = select(Event).options(*_EVENT_LOAD).order_by(Event.starts_on)
+    stmt = _only_public_events(select(Event).options(*_EVENT_LOAD).order_by(Event.starts_on))
     if series is not None:
         stmt = stmt.where(Event.series_id == series)
     elif year is not None:
@@ -464,9 +523,12 @@ async def get_pairing(
 
 
 async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale) -> Event:
+    """The event, if a visitor may see it — a draft is a 404 here, like anywhere public."""
     event = (
         await session.execute(
-            select(Event).options(*_EVENT_LOAD).where(Event.id == event_id)
+            _only_public_events(
+                select(Event).options(*_EVENT_LOAD).where(Event.id == event_id)
+            )
         )
     ).scalar_one_or_none()
     if event is None:
@@ -566,10 +628,12 @@ async def _events_by_team(
 
     events = (
         await session.execute(
-            select(Event)
-            .options(*_EVENT_LOAD)
-            .where(Event.series_id.in_(series_ids))
-            .order_by(Event.starts_on)
+            _only_public_events(
+                select(Event)
+                .options(*_EVENT_LOAD)
+                .where(Event.series_id.in_(series_ids))
+                .order_by(Event.starts_on)
+            )
         )
     ).scalars().all()
 
@@ -648,6 +712,7 @@ def _event_out(event: Event) -> EventOut:
         starts_on=event.starts_on,
         ends_on=event.ends_on,
         status=event.status,
+        published=event.published,
         series=SeriesOut.model_validate(event.series) if event.series else None,
         venue=VenueOut.model_validate(event.venue) if event.venue else None,
         host_club=host_club,

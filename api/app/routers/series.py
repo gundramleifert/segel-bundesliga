@@ -53,6 +53,14 @@ class SeriesCreate(BaseModel):
         default_factory=list, description="Clubs participating in this series"
     )
     scoring: dict[str, Any] | None = None
+    published: bool = Field(
+        default=False,
+        description=(
+            "Whether the series is visible on the public site right away. A series is "
+            "usually planned first and published once the field is settled; publishing "
+            "locks nothing."
+        ),
+    )
     slug: str | None = Field(default=None, description="If absent, it is generated from the name.")
     description: str | None = Field(
         default=None,
@@ -69,6 +77,7 @@ class SeriesUpdate(BaseModel):
     ends_on: date | None = None
     level: int | None = None
     scoring: dict[str, Any] | None = None
+    published: bool | None = None
     description: str | None = Field(default=None, max_length=4000)
 
 
@@ -167,6 +176,7 @@ async def create_series(
         starts_on=request.starts_on,
         ends_on=request.ends_on,
         level=request.level,
+        published=request.published,
         scoring=request.scoring if request.scoring is not None else dict(DEFAULT_SCORING),
         description=request.description.strip() if request.description else None,
     )
@@ -196,6 +206,41 @@ async def update_series(
     series = await _get_series(session, series_id, locale)
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(series, field, value.strip() if isinstance(value, str) else value)
+    await session.commit()
+    return await _series_out(session, series.id)
+
+
+@router.post("/{series_id}/publish", response_model=SeriesAdminOut, summary="Publish series")
+async def publish_series(
+    series_id: int,
+    session: AsyncSession = Depends(get_session),
+    locale: Locale = Depends(resolve_locale),
+) -> SeriesAdminOut:
+    """Makes the series visible on the public site — Story VA-8.
+
+    A series is planned long before anyone should read about it: clubs are still being
+    assigned, the name is still being argued over. Publishing **locks nothing** — the
+    series stays as editable as it was, and the events in it keep their own publication
+    state.
+    """
+    return await _set_published(session, series_id, True, locale)
+
+
+@router.post("/{series_id}/unpublish", response_model=SeriesAdminOut, summary="Unpublish series")
+async def unpublish_series(
+    series_id: int,
+    session: AsyncSession = Depends(get_session),
+    locale: Locale = Depends(resolve_locale),
+) -> SeriesAdminOut:
+    """Back to a draft. Standings and events stay — only the public view ends."""
+    return await _set_published(session, series_id, False, locale)
+
+
+async def _set_published(
+    session: AsyncSession, series_id: int, published: bool, locale: Locale
+) -> SeriesAdminOut:
+    series = await _get_series(session, series_id, locale)
+    series.published = published
     await session.commit()
     return await _series_out(session, series.id)
 

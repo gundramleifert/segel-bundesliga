@@ -4,7 +4,7 @@ from datetime import date
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import JSON, Date, ForeignKey, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Boolean, Date, ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -15,6 +15,15 @@ if TYPE_CHECKING:
 
 
 class EventStatus(StrEnum):
+    """Where an event stands **sportingly** — deliberately not whether it is public.
+
+    ``planned`` → ``live`` → ``final``, with ``cancelled`` as the way out. Publication is
+    a separate flag (``published``): the two are orthogonal, so a published event can still
+    be ``planned``, and a draft can be worked on for weeks without anyone seeing it. See
+    ``app/services/event_readiness.py`` for what has to be true before an event may go
+    ``live``.
+    """
+
     PLANNED = "planned"
     LIVE = "live"
     FINAL = "final"
@@ -53,6 +62,11 @@ class Series(Base, TimestampMixin):
     # Rank within a year: 1 for the top division, 2 for the second.
     level: Mapped[int | None] = mapped_column(default=None)
     scoring: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    # Whether the series is visible on the public site. A series is planned long before
+    # anyone should see it: clubs get assigned, dates move, the name is still being argued
+    # over. Publishing is therefore an explicit act — and it locks nothing, a published
+    # series stays fully editable.
+    published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # Free-text description for the public standings page, written and rendered as
     # Markdown. Longer than a club's — this is where the scoring can be explained, sponsors
     # thanked, or a season recapped, so `Text` rather than a bounded `String`.
@@ -108,9 +122,18 @@ class Event(Base, TimestampMixin):
     # squad (Story V-2). A guideline, not a hard limit.
     crew_size: Mapped[int] = mapped_column(default=4)
 
-    starts_on: Mapped[date] = mapped_column(Date)
-    ends_on: Mapped[date] = mapped_column(Date)
+    # Optional, like every other part of the setup: an event must be **savable while
+    # incomplete** (a date still being negotiated with the host is the normal early
+    # state). Missing dates are one of the reasons the event isn't ready to start yet —
+    # see ``app/services/event_readiness.py``.
+    starts_on: Mapped[date | None] = mapped_column(Date, default=None)
+    ends_on: Mapped[date | None] = mapped_column(Date, default=None)
     status: Mapped[str] = mapped_column(String(16), default=EventStatus.PLANNED)
+    # Public visibility, orthogonal to ``status``: an event is published when the calendar
+    # entry should be readable, which is usually long before it goes ``live``, and
+    # publishing never freezes anything. What freezes the setup is the **first race** —
+    # see ``app/services/event_readiness.py::configuration_frozen``.
+    published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
     # Empty when the event stands on its own.
     series_id: Mapped[int | None] = mapped_column(

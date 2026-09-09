@@ -65,6 +65,9 @@ class TestSeriesCreation:
                     "name": "Visible Series 2026",
                     "year": 2026,
                     "clubs": [v["id"] for v in selected],
+                    # Public visibility takes publication (Story VA-8); an unpublished
+                    # series is a draft and shows nobody.
+                    "published": True,
                 },
             )
         ).json()
@@ -155,6 +158,9 @@ class TestSeriesCreation:
                     "name": "Described Series 2028",
                     "year": 2028,
                     "description": "## Welcome\n\nSee you on the water.",
+                    # The description is checked on the public standings page below, which
+                    # only shows published series (Story VA-8).
+                    "published": True,
                 },
             )
         ).json()

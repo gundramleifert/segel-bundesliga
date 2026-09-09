@@ -69,6 +69,9 @@ class SeriesOut(BaseModel):
     level: int | None = None
     starts_on: date | None = None
     ends_on: date | None = None
+    # Whether the series is public. On public routes this is always true — they show
+    # nothing else — but the admin views share these schemas and need to see the state.
+    published: bool = False
     # Free-text, Markdown, for the public standings page. Absent unless an admin set one.
     description: str | None = None
 
@@ -154,9 +157,13 @@ class EventOut(BaseModel):
     title: str
     # Only set for series matchdays; a standalone event stands on its own.
     matchday: int | None = None
-    starts_on: date
-    ends_on: date
+    # Absent while the date is still being negotiated — an event is savable incomplete
+    # (Story VA-8). It cannot be started without one.
+    starts_on: date | None = None
+    ends_on: date | None = None
     status: str
+    # Public visibility, orthogonal to `status`. Always true on public routes.
+    published: bool = False
     series: SeriesOut | None = None
     # Often only the date and host club are set when creating.
     venue: VenueOut | None = None

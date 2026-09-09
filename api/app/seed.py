@@ -111,6 +111,9 @@ async def seed() -> None:
             await _wipe(session)
 
         # A series carries its year in the name — there is no separate season anymore.
+        # Everything the seed creates is a **running competition**, so it is published
+        # (Story VA-8): a draft is invisible on the public site, and a seed of drafts would
+        # leave the whole dev setup blank.
         scoring = {"discard_after": [], "penalty_percent": 20}
         first_league = Series(
             slug="dsbl-1-2026",
@@ -118,6 +121,7 @@ async def seed() -> None:
             short_name="1. Liga 2026",
             year=YEAR,
             level=1,
+            published=True,
             scoring=scoring,
             description=(
                 "## Willkommen zur 1. Segel-Bundesliga 2026\n\n"
@@ -134,6 +138,7 @@ async def seed() -> None:
             short_name="2. Liga 2026",
             year=YEAR,
             level=2,
+            published=True,
             scoring=scoring,
         )
         juniors = Series(
@@ -141,6 +146,7 @@ async def seed() -> None:
             name="Junioren-Segelliga 2026",
             short_name="Junioren 2026",
             year=YEAR,
+            published=True,
             scoring=scoring,
         )
         champions = Series(
@@ -148,6 +154,7 @@ async def seed() -> None:
             name="Sailing Champions League 2026",
             short_name="SCL 2026",
             year=YEAR,
+            published=True,
             scoring=scoring,
         )
         series_list = [first_league, second_league, juniors, champions]
@@ -294,6 +301,8 @@ async def seed() -> None:
                 starts_on=day,
                 ends_on=day + timedelta(days=2),
                 status=status,
+                # Real matchdays of a running series: visible to visitors.
+                published=True,
                 team_count=len(registrations),
                 boat_count=BOATS,
                 flight_count=FLIGHTS,

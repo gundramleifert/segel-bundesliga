@@ -63,7 +63,8 @@ class ApplicationEventOut(BaseModel):
 
     id: int
     title: str
-    starts_on: date
+    # Absent while the date is still open — an event is savable incomplete (Story VA-8).
+    starts_on: date | None = None
 
 
 class ApplicationOut(BaseModel):

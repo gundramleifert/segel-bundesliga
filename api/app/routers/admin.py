@@ -41,7 +41,13 @@ from app.schemas.admin import (
     RaceResultsOut,
 )
 from app.schemas.public import BoatOut, ClubOut, TeamOut
-from app.services import recompute_event, recompute_series
+from app.services import (
+    CATALOG_REASON,
+    recompute_event,
+    recompute_series,
+    require_editable_configuration,
+    require_ready,
+)
 from app.services.pairing_service import (
     PairingDraft,
     PairingPublishError,
@@ -77,8 +83,14 @@ async def start_pairing_job(
     Depending on settings, the run takes seconds to many minutes — that's why it's a job with
     progress rather than a waiting request. The result is **not** automatically
     published; the organizer sees the quality report first.
+
+    The event has to be ready (Story VA-8) — except for the catalog reason, since computing
+    a list is exactly what one does when the catalog holds none — and its configuration
+    must not be frozen: once a race has started, the list underneath it stays.
     """
     event = await _event_by_id(session, event_id, locale)
+    await require_editable_configuration(session, event.id)
+    await require_ready(session, event, ignore={CATALOG_REASON})
     teams = await teams_for_event(session, event)
     if len(teams) < request.boats:
         raise HTTPException(
@@ -186,6 +198,7 @@ async def publish_job_result(
     locale: Locale = Depends(resolve_locale),
 ) -> PublishResult:
     event = await _event_by_id(session, event_id, locale)
+    await require_editable_configuration(session, event.id)
     job = jobs.get(request.job_id)
     if job is None:
         raise HTTPException(
@@ -284,35 +297,25 @@ async def pairing_from_catalog(
     If no entry matches the size, the path remains through the compute job.
     """
     event = await _event_by_id(session, event_id)
+    # Nothing is drawn against a running matchday, and nothing is drawn for an incomplete
+    # setup (Story VA-8). The readiness check answers both of the questions this endpoint
+    # used to ask itself — too few teams registered, and no catalog entry for these
+    # dimensions — with the same codes and statuses it always raised, so a single-cause
+    # failure reads exactly as before. See `app/services/event_readiness.py`.
+    await require_editable_configuration(session, event.id)
+    await require_ready(session, event)
+
     teams = await teams_for_event(session, event)
-
-    # The draw seats the teams actually registered, so that count — not the configured
-    # `team_count` — decides which catalog entry fits. Clubs are added *after* an event is
-    # created, so "none registered yet" is the normal early state rather than a fault, and
-    # a count that doesn't match the setup is a setup problem, not a missing catalog entry.
-    # Both used to surface as one bare 404 whose message named neither cause nor remedy.
-    if len(teams) != event.team_count:
-        raise Problem(
-            409,
-            "pairing-team-count-mismatch",
-            "The number of registered teams does not match this event's setup.",
-            registered=len(teams),
-            configured=event.team_count,
-        )
-
     try:
         pairing = load_entry(len(teams), event.boat_count, event.flight_count)
-    except CatalogError as exc:
+    except CatalogError as exc:  # pragma: no cover - readiness already ruled this out
         raise Problem(
             404,
-            "pairing-catalog-missing",
+            CATALOG_REASON,
             "No pre-computed pairing list is stored for this size.",
             teams=len(teams),
             boats=event.boat_count,
             flights=event.flight_count,
-            # Which sizes *are* stored, so the answer to "then what can I pick?" comes with
-            # the error instead of requiring a second call. `CatalogError` says this in prose;
-            # as an extension member the frontend can render it without parsing a sentence.
             available=[f"{e.teams}/{e.boats}/{e.flights}" for e in catalog_entries()],
         ) from exc
 
@@ -337,8 +340,14 @@ async def import_pairing(
 
     Team index assignment follows the order in ``schedule_cfg.yml``: index 0 is
     the first team named there. Names are only for verification, not compared.
+
+    An imported draw brings its own dimensions, so the catalog reason doesn't apply — but
+    the rest of the setup must add up, and a started matchday keeps the list it is sailing
+    (Story VA-8).
     """
     event = await _event_by_id(session, event_id, locale)
+    await require_editable_configuration(session, event.id)
+    await require_ready(session, event, ignore={CATALOG_REASON})
     teams = await teams_for_event(session, event)
 
     try:

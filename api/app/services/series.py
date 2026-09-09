@@ -16,14 +16,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Series
 
 
-async def current_year(session: AsyncSession) -> int | None:
-    """The year currently in effect."""
+async def current_year(session: AsyncSession, *, published_only: bool = False) -> int | None:
+    """The year currently in effect.
+
+    ``published_only`` restricts the question to series the public can see. The public
+    site passes it for the same reason the rule exists at all: an unpublished draft for
+    next year must not switch the site over to a year that shows nothing.
+    """
     year = datetime.now(UTC).year
+    visible = (Series.published.is_(True),) if published_only else ()
 
     current = (
         await session.execute(
             select(Series.year)
-            .where(Series.year.is_not(None), Series.year <= year)
+            .where(Series.year.is_not(None), Series.year <= year, *visible)
             .order_by(Series.year.desc())
             .limit(1)
         )
@@ -35,7 +41,7 @@ async def current_year(session: AsyncSession) -> int | None:
     return (
         await session.execute(
             select(Series.year)
-            .where(Series.year.is_not(None))
+            .where(Series.year.is_not(None), *visible)
             .order_by(Series.year)
             .limit(1)
         )

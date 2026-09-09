@@ -394,6 +394,64 @@ Extend catalog: `uv run python -m app.pairing.catalog --teams 18 --boats 6 --fli
 Tests: `api/tests/unit/test_pairing_catalog.py`,
 `api/tests/stories/test_veranstaltung_anlegen.py::TestPairingAusDemKatalog`
 
+### VA-8 ● Save a draft, publish it, start it
+As an **event organizer** I want to **save an event that isn't finished yet, publish it when
+it is worth showing, and start it when it is valid**, so that I **can work in the order the
+season actually happens — and so that nothing moves under a race that is already sailing**.
+
+Acceptance criteria:
+- **Saving never depends on validity.** Title alone is enough; no date, no host, no boats, the
+  wrong number of clubs — all savable. That is the normal early state, not an error.
+- **Publication is a separate flag, not a status.** `Event.published` and `Series.published`
+  decide *who can see it*; `Event.status` (`planned` → `live` → `final`, or `cancelled`)
+  says where it stands sportingly. The two are orthogonal: a published event can be
+  `planned`, and a started one can stay unpublished.
+- **Publishing locks nothing.** A published event stays fully editable, and it does not have
+  to be complete — the calendar entry is often what makes people ask about the missing
+  pieces. Unpublishing takes it back to a draft; results and pairing list are untouched.
+- **A draft does not exist publicly.** Every public endpoint (series list and standings
+  table, event list and detail, pairing list, club and sailor pages, the club list and the
+  event-logo fallback) shows published data only, and answers **404** rather than 403 — a
+  draft's existence is itself not public. A published event of an *unpublished* series stays
+  hidden, or one matchday would give the draft series away. `/api/admin/…` shows everything.
+- **Validity is computed, never stored**, and it answers with a **list of reasons**, not a
+  flag: the organizer has to be told what is missing. Each reason is a stable code plus the
+  numbers involved (`registered`/`configured`, `teams`/`boats`/`flights`/`available`, …),
+  translated by the client — never an English sentence from the server. The rules:
+  registered teams ≠ `team_count`, boats set up ≠ `boat_count`, no catalog entry for
+  `team_count`/`boat_count`/`flight_count`, and no date.
+- **Validity gates the draw and the start**, and reports the same reasons in the same shape.
+  A single cause keeps its own code and status, so `pairing-team-count-mismatch` (409) and
+  `pairing-catalog-missing` (404) read exactly as before; several causes arrive together as
+  `event-not-ready` (409) carrying `reasons`. The catalog reason is exempt where it makes no
+  sense: the optimizer job, an imported draw, and the start of an event whose list already
+  exists.
+- **Starting is a decision, not a date passing.** `POST …/start` requires readiness and a
+  pairing list (`event-without-pairing-list`) and moves the event to `live`. A matchday
+  postponed by fog must not start itself. Calling it twice is not an error.
+- **After the first race, the configuration freezes.** The trigger is precise and does not
+  depend on `status`: any race of the event that has left `scheduled` (running, finished,
+  abandoned) **or** any result recorded. Frozen are the dimensions (`team_count`,
+  `boat_count`, `flight_count`), the series and matchday, the entered clubs, the boats and
+  the pairing list — `event-configuration-frozen` (409), carrying `races_started` and
+  `results_recorded`. A redraw *before* the first start still works, which is the point of
+  drawing twice while the fleet is at the dock.
+- **Results are never frozen.** Entering, correcting and re-correcting results is the whole
+  purpose of the race-committee screens, and a protest decision must stay possible months
+  later (see [WL-2](#wl-2--enter-and-edit-results-easily) and "Points are derived, not
+  entered" in `docs/concepts.md`). Title, dates, venue, host, logo, status and publication
+  also stay editable while racing: a typo has to be fixable on a race day too.
+
+Endpoints: `GET /api/admin/events/{id}/readiness`,
+`POST /api/admin/events/{id}/publish`, `POST /api/admin/events/{id}/unpublish`,
+`POST /api/admin/events/{id}/start`, `POST /api/admin/series/{id}/publish`,
+`POST /api/admin/series/{id}/unpublish`; `published` also on `POST /api/admin/events`,
+`PATCH /api/admin/events/{id}`, `POST /api/admin/series`, `PATCH /api/admin/series/{id}`.
+Computed in `api/app/services/event_readiness.py`.
+
+Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
+`::TestPublication`, `::TestStarting`, `::TestFreezeAfterTheFirstRace`
+
 ---
 
 ## Administration

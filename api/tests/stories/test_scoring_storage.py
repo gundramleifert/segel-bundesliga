@@ -20,12 +20,28 @@ from app.models import (
 from app.models.auth import Role
 from app.services import recompute_event
 
+LEAGUE = "dsbl-1-2026"
 
-async def first_matchday() -> int:
+
+async def matchday(number: int) -> int:
+    """The n-th matchday **of the seeded first league**.
+
+    Qualified by series on purpose: matchday numbers count from 1 within their own series,
+    so any test that creates a series of its own also creates a "matchday 1". Asking for
+    the number alone found more than one row as soon as that happened.
+    """
     async with SessionLocal() as session:
         return (
-            await session.execute(select(Event.id).where(Event.matchday == 1))
+            await session.execute(
+                select(Event.id)
+                .join(Series, Event.series_id == Series.id)
+                .where(Series.slug == LEAGUE, Event.matchday == number)
+            )
         ).scalar_one()
+
+
+async def first_matchday() -> int:
+    return await matchday(1)
 
 
 class TestStoredPoints:
@@ -48,10 +64,8 @@ class TestStoredPoints:
         assert unscoredcount == 0
 
     async def test_unraced_entry_has_no_points(self, seeded):
+        planned = await matchday(3)
         async with SessionLocal() as session:
-            planned = (
-                await session.execute(select(Event.id).where(Event.matchday == 3))
-            ).scalar_one()
             with_points = (
                 await session.execute(
                     select(func.count())

@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 4f90748598ed
+Revision ID: dd57b52d1b83
 Revises: 
-Create Date: 2026-09-09 21:27:11.051675
+Create Date: 2026-09-10 01:14:27.221130
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '4f90748598ed'
+revision: str = 'dd57b52d1b83'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -121,6 +121,7 @@ def upgrade() -> None:
     sa.Column('ends_on', sa.Date(), nullable=True),
     sa.Column('level', sa.Integer(), nullable=True),
     sa.Column('scoring', sa.JSON(), nullable=False),
+    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
@@ -187,9 +188,10 @@ def upgrade() -> None:
     sa.Column('boat_count', sa.Integer(), nullable=False),
     sa.Column('flight_count', sa.Integer(), nullable=False),
     sa.Column('crew_size', sa.Integer(), nullable=False),
-    sa.Column('starts_on', sa.Date(), nullable=False),
-    sa.Column('ends_on', sa.Date(), nullable=False),
+    sa.Column('starts_on', sa.Date(), nullable=True),
+    sa.Column('ends_on', sa.Date(), nullable=True),
     sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
     sa.Column('series_id', sa.Integer(), nullable=True),
     sa.Column('venue_id', sa.Integer(), nullable=True),
     sa.Column('host_club_id', sa.Integer(), nullable=True),

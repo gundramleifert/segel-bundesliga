@@ -49,7 +49,14 @@ def series_reference_date(series: Series) -> date:
 
 
 def event_reference_date(event: Event) -> date:
-    return event.starts_on
+    """The date an age is judged against for an event confirmation.
+
+    The event's start if it has one — an event may be saved before its date is settled
+    (Story VA-8) — otherwise today, the same fallback a dateless series gets. Deliberately
+    not the series' date: the relationship isn't loaded here, and an age judged a few
+    weeks off is a better answer than a lazy load in an async session.
+    """
+    return event.starts_on if event.starts_on is not None else date.today()
 
 
 async def current_waiver_text(session: AsyncSession) -> WaiverText | None:

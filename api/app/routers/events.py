@@ -3,8 +3,11 @@
 Access is available to administration, editorial, and race officers — all three contribute
 to an event and should be able to record a date without waiting for someone else.
 
-To create an event, only **name, date and host club** are required. Venue, boat count, and
-flight count can be added later; the matchday number is incremented if not specified.
+To create an event, only the **name** is required — everything else, the date included, can
+be filled in later. **Saving never depends on validity** (Story VA-8): an event with the
+wrong number of clubs, no boats and no date is how one starts out, not an error worth
+rejecting. What validity gates is the *draw* and the *start*; what freezes the setup is the
+*first race*. Both live in ``app/services/event_readiness.py``.
 """
 
 from __future__ import annotations
@@ -20,17 +23,34 @@ from sqlalchemy.orm import selectinload
 from app.auth import current_user, require_event_manager
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import Boat, Club, Event, EventStatus, Series, Team, TeamStatus, Venue
+from app.models import (
+    Boat,
+    Club,
+    Event,
+    EventStatus,
+    Flight,
+    Race,
+    Series,
+    Team,
+    TeamStatus,
+    Venue,
+)
 from app.models.auth import Role, User
 from app.models.racing import BOAT_COLORS
+from app.problems import Problem
 from app.routers.public import _event_out
 from app.schemas.public import ClubOut, EventOut
 from app.services import (
+    CATALOG_REASON,
     ParticipationError,
     adopt_series_registrations,
+    configuration_frozen,
     event_entries,
+    event_readiness,
     has_results,
     new_event_entry,
+    require_editable_configuration,
+    require_ready,
 )
 from app.text import slugify
 
@@ -55,7 +75,13 @@ class BoatSpec(BaseModel):
 
 class EventCreate(BaseModel):
     title: str = Field(min_length=3, max_length=200, description="Matchday name")
-    starts_on: date
+    starts_on: date | None = Field(
+        default=None,
+        description=(
+            "Optional: an event whose date is still being negotiated with the host can be "
+            "saved without one. It cannot be started without one."
+        ),
+    )
     ends_on: date | None = Field(
         default=None, description="If omitted, the matchday is treated as single-day."
     )
@@ -86,12 +112,19 @@ class EventCreate(BaseModel):
             "league colors; if specified, their count determines boat_count."
         ),
     )
+    published: bool = Field(
+        default=False,
+        description=(
+            "Whether the event is visible on the public site right away. A draft stays "
+            "invisible until published; publishing locks nothing."
+        ),
+    )
 
     @model_validator(mode="after")
     def _validate(self) -> EventCreate:
         if self.ends_on is None:
             self.ends_on = self.starts_on
-        elif self.ends_on < self.starts_on:
+        elif self.starts_on is not None and self.ends_on < self.starts_on:
             raise ValueError("End date cannot be before start date.")
         if self.boats:
             self.boat_count = len(self.boats)
@@ -108,6 +141,7 @@ class EventUpdate(BaseModel):
     starts_on: date | None = None
     ends_on: date | None = None
     status: str | None = None
+    published: bool | None = None
     host_club_id: int | None = None
     logo_url: str | None = None
     venue_id: int | None = None
@@ -118,6 +152,16 @@ class EventUpdate(BaseModel):
     flight_count: int | None = Field(default=None, ge=1, le=40)
 
 
+# The fields that make up the **configuration** of the event: what gets drawn and sailed.
+# Once racing has started these are frozen (Story VA-8) — a pairing list is sailed against
+# these numbers, and moving an event into another series would re-home results that are
+# already in a standings table. Everything else (title, dates, venue, host, logo, status,
+# publication) stays editable: a typo or a moved venue must remain fixable while racing.
+_CONFIGURATION_FIELDS = frozenset(
+    {"team_count", "boat_count", "flight_count", "series", "matchday"}
+)
+
+
 @router.post("", response_model=EventOut, status_code=status.HTTP_201_CREATED)
 async def create_event(
     request: EventCreate,
@@ -125,11 +169,12 @@ async def create_event(
     acting: User = Depends(current_user),
     locale: Locale = Depends(resolve_locale),
 ) -> EventOut:
-    """Create an event — Stories A-4 and VA-6.
+    """Create an event — Stories A-4, VA-6 and VA-8.
 
-    Only **name and date** are required; everything else has sensible defaults. The
-    dimensions (teams, boats, flights) determine the pairing list: either a catalog entry
-    fits, or it must be calculated.
+    Only the **name** is required; everything else has sensible defaults or may stay
+    empty — the date included, because saving must never depend on the setup being
+    complete. The dimensions (teams, boats, flights) determine the pairing list: either a
+    catalog entry fits, or it must be calculated.
 
     The **host club's** leadership can create events — they organize it, so they should be
     able to record the date — as well as administration, editorial, and race officers.
@@ -160,8 +205,10 @@ async def create_event(
             )
         desired = f"{series.slug}-act-{matchday}"
     else:
-        # Standalone event: the URL is created from title and year.
-        desired = f"{slugify(request.title)}-{request.starts_on.year}"
+        # Standalone event: the URL is created from title and year. Without a date yet,
+        # the current year stands in — the slug only has to be unique and readable.
+        year = (request.starts_on or date.today()).year
+        desired = f"{slugify(request.title)}-{year}"
 
     slug = await _find_free_slug(session, desired)
 
@@ -172,6 +219,7 @@ async def create_event(
         starts_on=request.starts_on,
         ends_on=request.ends_on or request.starts_on,
         status=EventStatus.PLANNED,
+        published=request.published,
         series_id=series.id if series else None,
         venue_id=request.venue_id,
         host_club_id=request.host_club_id,
@@ -201,9 +249,18 @@ async def update_event(
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
 ) -> EventOut:
+    """Change an event — Story VA-8.
+
+    Never refuses because the event is incomplete: a half-filled event is savable, and the
+    only thing that stands in the way of a change is the **first race**, which freezes the
+    configuration (dimensions, series, matchday). Title, dates, venue, host, logo, status
+    and publication stay editable throughout — a typo has to be fixable on a race day too.
+    """
     event = await _event(session, event_id)
 
     changes = request.model_dump(exclude_unset=True)
+    if _CONFIGURATION_FIELDS & changes.keys():
+        await require_editable_configuration(session, event.id)
     if "series" in changes:
         series = changes.pop("series")
         if series is not None:
@@ -227,7 +284,11 @@ async def update_event(
     for field, value in changes.items():
         setattr(event, field, value)
 
-    if event.ends_on < event.starts_on:
+    if (
+        event.starts_on is not None
+        and event.ends_on is not None
+        and event.ends_on < event.starts_on
+    ):
         raise HTTPException(
             status_code=422,
             detail=tr(
@@ -239,6 +300,153 @@ async def update_event(
 
     await session.commit()
     return _event_out(await _with_relationships(session, event.id))
+
+
+# -------------------------------------------------- Lifecycle (Story VA-8)
+
+
+class ReadinessReasonOut(BaseModel):
+    """One thing standing between the event and its first race.
+
+    ``code`` is the contract — the client maps it in its own ``errors`` namespace —
+    ``details`` carries the numbers to phrase it with. Deliberately no English sentence:
+    the same reason has to read in German too.
+    """
+
+    code: str
+    details: dict[str, object] = Field(default_factory=dict)
+
+
+class EventReadinessOut(BaseModel):
+    """Whether this event can be drawn and started, and what's missing if not."""
+
+    event_id: int
+    ready: bool
+    reasons: list[ReadinessReasonOut] = Field(default_factory=list)
+    # Whether a pairing list exists. Not a readiness reason — readiness is the
+    # precondition *for* the draw — but the start needs one, and the UI shows it.
+    has_pairing_list: bool = False
+    # Racing has begun, so the configuration is frozen. Results stay editable.
+    configuration_frozen: bool = False
+    races_started: int = 0
+    results_recorded: int = 0
+
+
+@router.get(
+    "/{event_id}/readiness",
+    response_model=EventReadinessOut,
+    dependencies=[Depends(require_event_manager)],
+    summary="Is this event ready to be drawn and started?",
+)
+async def get_readiness(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> EventReadinessOut:
+    """Read-only: computes, never stores — Story VA-8.
+
+    The organizer needs to see *what* is missing, which is why this is a list of reasons
+    rather than a flag. It is the same list the draw and the start refuse with, so the
+    screen and the error can never disagree.
+    """
+    event = await _event(session, event_id)
+    reasons = await event_readiness(session, event)
+    frozen = await configuration_frozen(session, event.id)
+    return EventReadinessOut(
+        event_id=event.id,
+        ready=not reasons,
+        reasons=[ReadinessReasonOut(**reason.as_dict()) for reason in reasons],
+        has_pairing_list=await _has_pairing_list(session, event.id),
+        configuration_frozen=frozen is not None,
+        races_started=frozen.races_started if frozen else 0,
+        results_recorded=frozen.results_recorded if frozen else 0,
+    )
+
+
+@router.post(
+    "/{event_id}/publish",
+    response_model=EventOut,
+    dependencies=[Depends(require_event_manager)],
+    summary="Make the event publicly visible",
+)
+async def publish_event(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> EventOut:
+    """Publishing is **not** a lock — Story VA-8.
+
+    A published event stays fully editable, and it does not have to be complete: the
+    calendar entry is often what makes people ask about the missing details. Publication
+    and ``status`` are orthogonal; this changes only who can see the event.
+    """
+    return await _set_published(session, event_id, True)
+
+
+@router.post(
+    "/{event_id}/unpublish",
+    response_model=EventOut,
+    dependencies=[Depends(require_event_manager)],
+    summary="Withdraw the event from the public site",
+)
+async def unpublish_event(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> EventOut:
+    """Back to a draft. Results and pairing list stay untouched — only visibility ends."""
+    return await _set_published(session, event_id, False)
+
+
+@router.post(
+    "/{event_id}/start",
+    response_model=EventOut,
+    dependencies=[Depends(require_event_manager)],
+    summary="Start the event",
+)
+async def start_event(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> EventOut:
+    """Moves the event to ``live`` — Story VA-8.
+
+    An explicit decision by someone on site, deliberately **not** a side effect of a date
+    passing: a matchday postponed by fog must not start itself. The event has to be ready
+    (same reasons as the draw) and must have a pairing list — there is nothing to run
+    without one.
+
+    The catalog reason is exempt here: what matters at the start is that a list *exists*,
+    not where it came from. A draw computed by the optimizer for dimensions the catalog
+    doesn't hold is just as valid.
+    """
+    event = await _event(session, event_id)
+    if event.status == EventStatus.LIVE:
+        return _event_out(await _with_relationships(session, event.id))
+
+    await require_ready(session, event, ignore={CATALOG_REASON})
+    if not await _has_pairing_list(session, event.id):
+        raise Problem(
+            409,
+            "event-without-pairing-list",
+            "This event has no pairing list yet, so there is nothing to sail.",
+            event_id=event.id,
+        )
+
+    event.status = EventStatus.LIVE
+    await session.commit()
+    return _event_out(await _with_relationships(session, event.id))
+
+
+async def _set_published(session: AsyncSession, event_id: int, published: bool) -> EventOut:
+    event = await _event(session, event_id)
+    event.published = published
+    await session.commit()
+    return _event_out(await _with_relationships(session, event.id))
+
+
+async def _has_pairing_list(session: AsyncSession, event_id: int) -> bool:
+    hit = (
+        await session.execute(
+            select(Race.id)
+            .join(Flight, Race.flight_id == Flight.id)
+            .where(Flight.event_id == event_id)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    return hit is not None
 
 
 # ------------------------------------------------------------------ Helpers
@@ -369,9 +577,11 @@ async def set_participants(
     stands here will be drawn and ranked.
 
     Two rules apply: if the event belongs to a series, the club must be **registered** for
-    it. And a club that has already sailed cannot be removed — results are attached to it.
+    it. And once racing has started the field is frozen altogether (Story VA-8) — the
+    pairing list being sailed was drawn for exactly these clubs.
     """
     event = await _event(session, event_id)
+    await require_editable_configuration(session, event.id)
     desired = {club.id: club for club in await _clubs(session, request.clubs)}
 
     existing = {

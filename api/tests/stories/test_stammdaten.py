@@ -116,22 +116,30 @@ class TestSpieltagAnlegen:
         assert event["status"] == "planned"
 
     async def test_die_spieltagsnummer_wird_fortgezaehlt(self, client, caplog, ids):
-        kopf = await als(client, caplog, "ev2@example.com", Role.ADMIN)
-        vorher = (
-            await client.get("/api/events", params={"series": ids.series("dsbl-1-2026")})
-        ).json()
-        hoechste = max(e["matchday"] for e in vorher)
+        """Zwei Anlagen hintereinander: die zweite trägt die nächste Nummer.
 
-        antwort = await client.post(
-            "/api/admin/events",
-            headers=kopf,
-            json={
-                "title": "Nächster Spieltag",
-                "starts_on": "2026-10-02",
-                "series": ids.series("dsbl-1-2026"),
-            },
-        )
-        assert antwort.json()["matchday"] == hoechste + 1
+        Früher wurde die höchste Nummer aus `/api/events` gelesen. Das geht nicht mehr:
+        die öffentliche Liste zeigt nur veröffentlichte Veranstaltungen (Story VA-8), ein
+        Entwurf zählt aber sehr wohl mit, wenn weitergezählt wird. Der Vergleich zweier
+        aufeinanderfolgender Anlagen prüft dasselbe und hängt an keiner Sichtbarkeit.
+        """
+        kopf = await als(client, caplog, "ev2@example.com", Role.ADMIN)
+
+        async def anlegen(titel: str, tag: str) -> int:
+            antwort = await client.post(
+                "/api/admin/events",
+                headers=kopf,
+                json={
+                    "title": titel,
+                    "starts_on": tag,
+                    "series": ids.series("dsbl-1-2026"),
+                },
+            )
+            assert antwort.status_code == 201, antwort.text
+            return antwort.json()["matchday"]
+
+        erster = await anlegen("Nächster Spieltag", "2026-10-02")
+        assert await anlegen("Übernächster Spieltag", "2026-10-09") == erster + 1
 
     async def test_ohne_eigenes_logo_gilt_das_wappen_des_ausrichters(self, client, caplog, ids):
         kopf = await als(client, caplog, "ev3@example.com", Role.ADMIN)
@@ -276,7 +284,12 @@ class TestFreieVeranstaltung:
             await client.post(
                 "/api/admin/events",
                 headers=kopf,
-                json={"title": "Trainingswochenende Nord", "starts_on": "2026-11-07"},
+                # Veröffentlicht — im Terminkalender steht, was öffentlich ist (VA-8).
+                json={
+                    "title": "Trainingswochenende Nord",
+                    "starts_on": "2026-11-07",
+                    "published": True,
+                },
             )
         ).json()
 
@@ -302,7 +315,11 @@ class TestFreieVeranstaltung:
             await client.post(
                 "/api/admin/events",
                 headers=kopf,
-                json={"title": "Clubregatta Beispielsee", "starts_on": "2026-12-05"},
+                json={
+                    "title": "Clubregatta Beispielsee",
+                    "starts_on": "2026-12-05",
+                    "published": True,
+                },
             )
         ).json()
 

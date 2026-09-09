@@ -42,7 +42,11 @@ async def club_id(slug: str) -> int:
 
 
 async def event_with_participants(client, headers, title: str, date: str) -> int:
-    """Creates an event in league dimensions and registers 18 clubs as participants."""
+    """Creates an event in league dimensions and registers 18 clubs as participants.
+
+    Published right away, because these tests read the result back off the **public**
+    pairing list, and that shows published events only (Story VA-8).
+    """
     created = await client.post(
         "/api/admin/events",
         headers=headers,
@@ -52,6 +56,7 @@ async def event_with_participants(client, headers, title: str, date: str) -> int
             "team_count": 18,
             "flight_count": 16,
             "boats": BOATS,
+            "published": True,
         },
     )
     assert created.status_code == 201, created.text
@@ -96,7 +101,12 @@ class TestCreateEvent:
             await client.post(
                 "/api/admin/events",
                 headers=headers,
-                json={"title": "Colorless Cup", "starts_on": "2026-10-17", "boat_count": 6},
+                json={
+                    "title": "Colorless Cup",
+                    "starts_on": "2026-10-17",
+                    "boat_count": 6,
+                    "published": True,
+                },
             )
         ).json()
 
