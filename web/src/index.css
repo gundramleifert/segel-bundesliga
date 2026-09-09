@@ -20,22 +20,29 @@
 
   --color-flaeche: #ebedf2;
   --color-tinte: #121212;
-
-  /* Rendered height of Layout.tsx's global nav (`<header class="sticky top-0 z-40 ...">`):
-     its inner row's tallest child is the 36px logo/nav-link content (h-9 logo, text-sm
-     NavLinks at py-2 → 20px line-height + 16px padding = 36px), plus that row's own
-     py-3 padding (12px top + 12px bottom = 24px), plus the header's 1px border-b.
-     36 + 24 + 1 = 61px. Table headers stick just below this offset — see .tabelle-kopf. */
-  --header-height: 61px;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Ergebnistabellen sind breit. Sie scrollen in ihrem eigenen Kasten, nie die ganze Seite. */
+/* Ergebnistabellen sind breit. Sie scrollen in ihrem eigenen Kasten, nie die ganze Seite.
+ *
+ * Bounded height + overflow: auto on *both* axes deliberately, not just overflow-x: per the
+ * CSS Overflow spec, setting only overflow-x to a non-visible value silently forces the
+ * computed overflow-y to "auto" too (a visible/non-visible pair isn't allowed) — so this box
+ * was already a scroll container on both axes even before max-height existed here, just an
+ * unbounded one (it grew to fit its content, so it never actually scrolled vertically).
+ * That ambiguity is exactly what broke .tabelle-kopf below: a sticky child's "stuck" position
+ * is computed against its nearest scroll-container ancestor, and there were effectively two
+ * candidates (this box vs. the page) with no bounded box actually taking over — the reported
+ * bug (header floating above/overlapping row 1) came from that. Giving the box an explicit,
+ * bounded max-height makes it unambiguously the real scroll container for a long table, and
+ * the header sticks reliably within it — self-contained, independent of the page's own
+ * scroll or the global nav's height. */
 .tabelle-scroll {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: min(70vh, 42rem);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -53,11 +60,14 @@ html {
 /* Every <thead> inside a .tabelle-scroll box (i.e. every TabellenRahmen table, see
    components/Bausteine.tsx) must carry this class so its column headers stay visible while
    the table body scrolls past underneath — the header row already has an opaque bg-slate-50
-   (on its <tr>), so nothing shows through. `top` docks it just below Layout.tsx's global nav
-   instead of underneath it (the nav is `sticky top-0 z-40`); z-index stays below that 40 (and
-   below Rollenwechsel's 50) so the global nav always wins if both are stuck at once. */
+   (on its <tr>), so nothing shows through. `top: 0` sticks it to the top of its own
+   .tabelle-scroll box (now the unambiguous scroll container, see above) — not to the page or
+   the global nav, so there's no cross-component height offset to keep in sync. z-index just
+   needs to clear the table body's own content, so it stays well below the global nav's 40
+   and Rollenwechsel's 50 (both are unrelated stacking contexts anyway, since this sticky
+   context lives inside .tabelle-scroll, not the page). */
 .tabelle-kopf {
   position: sticky;
-  top: var(--header-height);
+  top: 0;
   z-index: 10;
 }
