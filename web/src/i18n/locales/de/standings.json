@@ -19,5 +19,12 @@
     "points": "Punkte",
     "act": "{{matchday}}. Act",
     "notSailed": "nicht angetreten — Teilnehmerzahl + 1"
+  },
+  "seriesOverview": {
+    "title": "Serien",
+    "subtitle": "Der Verband führt mehrere Serien parallel. Eine auswählen, um ihre Tabelle zu sehen.",
+    "empty": "Für diesen Jahrgang ist noch keine Serie eingerichtet.",
+    "eventCount_one": "1 Veranstaltung",
+    "eventCount_other": "{{count}} Veranstaltungen"
   }
 }

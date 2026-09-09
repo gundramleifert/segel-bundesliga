@@ -19,5 +19,12 @@
     "points": "Points",
     "act": "Act {{matchday}}",
     "notSailed": "Did not sail — field size + 1"
+  },
+  "seriesOverview": {
+    "title": "Series",
+    "subtitle": "The association runs several series at once. Pick one to see its table.",
+    "empty": "No series has been set up for this year yet.",
+    "eventCount_one": "1 event",
+    "eventCount_other": "{{count}} events"
   }
 }

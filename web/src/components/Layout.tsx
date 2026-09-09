@@ -7,7 +7,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const NAV_ITEMS = [
   { path: "/", key: "start", exact: true },
-  { path: "/standings", key: "standings", exact: false },
+  { path: "/series", key: "series", exact: false },
   { path: "/events", key: "events", exact: false },
   { path: "/clubs", key: "clubs", exact: false },
   { path: "/help", key: "help", exact: false },

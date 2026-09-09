@@ -98,7 +98,7 @@ export function Start() {
                 return (
                   <li key={serie.id}>
                     <Link
-                      to={`/standings/${serie.id}`}
+                      to={`/series/${serie.id}`}
                       data-testid={`start-series-card-${serie.id}`}
                       className="block group"
                     >

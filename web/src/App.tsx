@@ -6,6 +6,7 @@ import { Help } from "./pages/Help";
 import { Account } from "./pages/Konto";
 import { Sailor } from "./pages/Segler";
 import { Matchday } from "./pages/Spieltag";
+import { SeriesOverview } from "./pages/SeriesOverview";
 import { Start } from "./pages/Start";
 import { Standings } from "./pages/Tabelle";
 import { Events } from "./pages/Termine";
@@ -18,8 +19,11 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Start />} />
-        <Route path="standings" element={<Standings />} />
-        <Route path="standings/:id" element={<Standings />} />
+        {/* Several series run at once, so the way in is the overview; a single series'
+            table hangs below it. There is deliberately no bare "standings" page — it could
+            only ever have shown one arbitrary series of several. */}
+        <Route path="series" element={<SeriesOverview />} />
+        <Route path="series/:id" element={<Standings />} />
         <Route path="events" element={<Events />} />
         <Route path="events/:id" element={<Matchday />} />
         <Route path="clubs" element={<Clubs />} />
@@ -28,10 +32,13 @@ export default function App() {
         <Route path="account" element={<Account />} />
         <Route path="admin" element={<Admin />} />
         <Route path="help" element={<Help />} />
-        {/* Legacy German paths from before the English rewrite — kept as redirects so
-            nothing bookmarked from the earlier build breaks outright. */}
-        <Route path="tabelle" element={<Navigate to="/standings" replace />} />
-        <Route path="tabelle/:id" element={<LegacyRedirect to="/standings/:id" />} />
+        {/* Legacy German paths from before the English rewrite, plus the former
+            "standings" paths from when the site presented a single league — kept as
+            redirects so nothing bookmarked from an earlier build breaks outright. */}
+        <Route path="standings" element={<Navigate to="/series" replace />} />
+        <Route path="standings/:id" element={<LegacyRedirect to="/series/:id" />} />
+        <Route path="tabelle" element={<Navigate to="/series" replace />} />
+        <Route path="tabelle/:id" element={<LegacyRedirect to="/series/:id" />} />
         <Route path="termine" element={<Navigate to="/events" replace />} />
         <Route path="spieltage/:id" element={<LegacyRedirect to="/events/:id" />} />
         <Route path="vereine" element={<Navigate to="/clubs" replace />} />
