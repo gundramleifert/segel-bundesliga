@@ -36,11 +36,20 @@ export function Start() {
         <p className="text-sm font-medium uppercase tracking-wider text-marke-100">
           {t("hero.tagline")}
         </p>
-        <img
-          src="/marke/segelbundesliga-weiss.png"
-          alt={t("hero.tagline")}
-          className="mt-3 h-14 w-auto sm:h-16"
-        />
+        {/* The real logo (see Layout.tsx) is a photograph with a white background baked
+            in, not a white-on-transparent mark like the old placeholder asset this
+            replaces — dropped straight onto this dark bg-marke-600 hero it would show a
+            stray white rectangle. Framing it in its own white card keeps that white
+            edge deliberate instead of looking like a rendering bug. */}
+        <div className="mt-3 inline-block rounded-lg bg-white p-2 shadow-sm sm:p-3">
+          <img
+            src="/marke/deutsche-segelliga-logo.jpg"
+            alt="Deutsche Segel-Liga"
+            className="h-12 w-auto sm:h-14"
+            width={600}
+            height={173}
+          />
+        </div>
         <p className="mt-3 max-w-2xl text-marke-100">
           {t("hero.description")}
         </p>
