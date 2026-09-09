@@ -28,7 +28,8 @@
     "DARKBLUE": "Dunkelblau",
     "RED": "Rot",
     "GRAY": "Grau",
-    "ORANGE": "Orange"
+    "ORANGE": "Orange",
+    "WHITE": "Weiß"
   },
   "hostedBy": "Ausrichter: {{name}}",
   "venueUnknown": "Ort noch offen",

@@ -28,7 +28,8 @@
     "DARKBLUE": "Dark blue",
     "RED": "Red",
     "GRAY": "Gray",
-    "ORANGE": "Orange"
+    "ORANGE": "Orange",
+    "WHITE": "White"
   },
   "hostedBy": "Host: {{name}}",
   "venueUnknown": "Venue to be announced",

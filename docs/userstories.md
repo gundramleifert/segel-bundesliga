@@ -349,11 +349,13 @@ Acceptance criteria:
   specification, their count determines `boat_count`.
 - Boats belong to the **event**, not the draw: a new pairing list changes the assignment,
   not the boats at the dock.
-- Each boat row defaults to a color from the league colors, in order, and a name of
+- Each boat row defaults to a color from the league colors, in order (`WHITE` beyond that, or
+  once a custom field is left empty — "no color" is not a choice), and a name of
   **"Boat 1".."Boat N"** by position — a clearer starting point than an empty required field,
-  freely renamed afterwards. A **visible color swatch** next to every row (predefined or
-  custom) lets the organizer check the color before saving; a custom color can be entered as
-  free text or picked with a native color picker, kept in sync with each other.
+  freely renamed afterwards. The **color select itself shows the chosen color** as its
+  background, predefined or custom alike, so the organizer can check it at a glance without a
+  separate swatch; a custom color can be entered as free text or picked with a native color
+  picker, kept in sync with each other.
 - In addition to administration, editorial, and race committee, also the **leadership of the
   host club** can create — not for a foreign host.
 

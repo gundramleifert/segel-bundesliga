@@ -33,6 +33,7 @@ export const BOOTSFARBEN: Record<string, { hex: string }> = {
   RED: { hex: "#dc2626" },
   GRAY: { hex: "#9ca3af" },
   ORANGE: { hex: "#f97316" },
+  WHITE: { hex: "#ffffff" },
 };
 
 export function bootsfarbe(farbe: string | null | undefined): { hex: string; name: string } {

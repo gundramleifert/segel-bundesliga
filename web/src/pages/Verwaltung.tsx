@@ -437,9 +437,11 @@ function SeriesRow({
 
 // --------------------------------------------------------------- Events
 
-/** The league's predefined boat colors, in pairing-list order — same codes and order as
- *  the backend's `BOAT_COLORS` (`app/models/racing.py`), reused here from `BOOTSFARBEN`
- *  (`lib/format.ts`) so the color names shown match the rest of the site (e.g. Spieltag.tsx). */
+/** The league's predefined boat colors, in pairing-list order — the first six are the
+ *  backend's own `BOAT_COLORS` (`app/models/racing.py`); `WHITE` is a UI-only addition on top
+ *  (`lib/format.ts`), a real, sensible hull color and the fallback whenever a boat must have
+ *  *some* color but none has been chosen — "no color" is deliberately not a choice here (the
+ *  backend column is a free string either way, so this is a UI convention, not a schema one). */
 const VORDEFINIERTE_FARBEN = Object.keys(BOOTSFARBEN);
 
 /** Sentinel select value for "type your own color" — distinct from every real color string. */
@@ -452,9 +454,9 @@ interface BootZeile {
 }
 
 /** The color the backend would assign by position if boats aren't configured explicitly:
- *  the predefined colors in order, nothing beyond the sixth boat. */
+ *  the predefined colors in order, `WHITE` beyond that — never "no color". */
 function vorgabeFarbe(position: number): string {
-  return position <= VORDEFINIERTE_FARBEN.length ? VORDEFINIERTE_FARBEN[position - 1] : "";
+  return position <= VORDEFINIERTE_FARBEN.length ? VORDEFINIERTE_FARBEN[position - 1] : "WHITE";
 }
 
 /** Default name for a freshly added row — "Boat 1".."Boat N" by position, unique by
@@ -473,8 +475,23 @@ function leereBootZeile(position: number): BootZeile {
  *  entry as-is for "custom": CSS accepts a hex string or a color name directly, and simply
  *  ignores it if it's neither, so no separate validation is needed just to preview it. */
 function vorschauFarbe(zeile: BootZeile): string {
-  if (zeile.farbe === EIGENE_FARBE) return zeile.eigeneFarbe.trim() || "transparent";
-  return zeile.farbe ? bootsfarbe(zeile.farbe).hex : "transparent";
+  if (zeile.farbe === EIGENE_FARBE) return zeile.eigeneFarbe.trim() || "#ffffff";
+  return bootsfarbe(zeile.farbe).hex;
+}
+
+/** Whether black or white text reads better on `hex` — relative luminance (ITU-R BT.601
+ *  weights) against a fixed midpoint is plenty precise for a UI affordance, not a color-managed
+ *  print job. Unparseable input (a CSS color name typed into the custom field, say) falls back
+ *  to light text: most named CSS colors used for a boat hull skew mid-to-dark. */
+function dunklerHintergrund(hex: string): boolean {
+  const treffer = /^#([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!treffer) return true;
+  const wert = treffer[1];
+  const r = parseInt(wert.slice(0, 2), 16);
+  const g = parseInt(wert.slice(2, 4), 16);
+  const b = parseInt(wert.slice(4, 6), 16);
+  const luminanz = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminanz <= 0.6;
 }
 
 /** `<input type="color">` needs a well-formed 6-digit hex or it silently resets to black —
@@ -504,7 +521,7 @@ function angepassteBootZeilen(vorher: BootZeile[], ziel: number): BootZeile[] {
 function bootsspezifikationen(zeilen: BootZeile[]): BoatSpec[] {
   return zeilen.map((zeile, index) => ({
     number: index + 1,
-    color: zeile.farbe === EIGENE_FARBE ? zeile.eigeneFarbe.trim() || null : zeile.farbe || null,
+    color: zeile.farbe === EIGENE_FARBE ? zeile.eigeneFarbe.trim() || "#ffffff" : zeile.farbe || "WHITE",
     name: zeile.name.trim(),
     sail_number: null,
   }));
@@ -724,9 +741,9 @@ function Events() {
           </a>
         </p>
 
-        <Feld label={t("events.boatSetupLabel")} hinweis={t("events.boatSetupHint")}>
+        <Feld label={t("events.boatSetupLabel")}>
           <div className="overflow-x-auto rounded-md border border-slate-200">
-            <table data-testid="admin-events-boat-table" className="w-full min-w-[36rem] text-sm">
+            <table data-testid="admin-events-boat-table" className="w-full min-w-[44rem] text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
                   <th scope="col" className="px-3 py-2 font-medium">
@@ -745,15 +762,26 @@ function Events() {
                   <tr key={index}>
                     <td className="px-3 py-2 text-slate-500">{index + 1}</td>
                     <td className="px-3 py-2">
-                      <div className="flex flex-wrap items-center gap-2">
+                      {/* `EINGABE` is `w-full` by default — every control here overrides that
+                       *  to a fixed or growing-but-bounded width instead, so up to three
+                       *  controls (select, picker, free text) stay on one line; the table's
+                       *  own `overflow-x-auto` wrapper is the fallback on narrow screens, not
+                       *  wrapping within the row. */}
+                      <div className="flex flex-nowrap items-center gap-2">
+                        {/* The select's own background *is* the chosen color — predefined or
+                         *  custom, always, so there's one consistent way to see and check a
+                         *  row's color instead of a second, separate swatch next to it. */}
                         <select
-                          className={EINGABE}
+                          className={`${EINGABE.replace("w-full", "w-32")} shrink-0 font-medium`}
+                          style={{
+                            backgroundColor: vorschauFarbe(zeile),
+                            color: dunklerHintergrund(vorschauFarbe(zeile)) ? "#ffffff" : "#0f172a",
+                          }}
                           aria-label={`${t("events.boatColorLabel")} ${index + 1}`}
                           value={zeile.farbe}
                           onChange={(e) => aktualisiereBoot(index, { farbe: e.target.value })}
                           data-testid={`admin-events-boat-color-select-${index}`}
                         >
-                          <option value="">{t("events.boatColorNone")}</option>
                           {VORDEFINIERTE_FARBEN.map((code) => (
                             <option key={code} value={code}>
                               {t(`common:boatColor.${code}`)}
@@ -761,19 +789,11 @@ function Events() {
                           ))}
                           <option value={EIGENE_FARBE}>{t("events.boatColorCustom")}</option>
                         </select>
-                        {/* Visible for every row, predefined or custom, so the color can be
-                         *  checked before submitting — same swatch pattern as Spieltag.tsx. */}
-                        <span
-                          aria-hidden
-                          className="size-5 shrink-0 rounded-full ring-1 ring-slate-300"
-                          style={{ backgroundColor: vorschauFarbe(zeile) }}
-                          data-testid={`admin-events-boat-color-swatch-${index}`}
-                        />
                         {zeile.farbe === EIGENE_FARBE && (
                           <>
                             <input
                               type="color"
-                              className="h-9 w-9 cursor-pointer rounded border border-slate-300 p-0.5"
+                              className="h-9 w-9 shrink-0 cursor-pointer rounded border border-slate-300 p-0.5"
                               value={hexFuerPicker(zeile.eigeneFarbe)}
                               onChange={(e) =>
                                 aktualisiereBoot(index, { eigeneFarbe: e.target.value })
@@ -782,7 +802,7 @@ function Events() {
                               data-testid={`admin-events-boat-color-picker-${index}`}
                             />
                             <input
-                              className={EINGABE}
+                              className={`${EINGABE.replace("w-full", "min-w-[6rem]")} flex-1`}
                               value={zeile.eigeneFarbe}
                               onChange={(e) =>
                                 aktualisiereBoot(index, { eigeneFarbe: e.target.value })
