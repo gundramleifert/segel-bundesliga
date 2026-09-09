@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 import { useKonto } from "../api/useApi";
 import { Rollenwechsel } from "../dev/Rollenwechsel";
@@ -10,15 +10,24 @@ const NAV_ITEMS = [
   { path: "/standings", key: "standings", exact: false },
   { path: "/events", key: "events", exact: false },
   { path: "/clubs", key: "clubs", exact: false },
-  { path: "/account", key: "account", exact: false },
   { path: "/help", key: "help", exact: false },
 ] as const;
+
+/** Initials for the profile button's avatar — there's no separate first/last name on
+ *  `Account`, only `display_name`, so this splits on whitespace instead. One word gives
+ *  its first two letters, several words give the first letter of the first and last. */
+function initialen(displayName: string): string {
+  const teile = displayName.trim().split(/\s+/).filter(Boolean);
+  if (!teile.length) return "";
+  if (teile.length === 1) return teile[0].slice(0, 2).toUpperCase();
+  return `${teile[0].charAt(0)}${teile[teile.length - 1].charAt(0)}`.toUpperCase();
+}
 
 export function Layout() {
   const { t } = useTranslation();
   // Admin only shows up when it's actually open — a link that leads to a 403 is worse
   // than no link.
-  const { hatRolle } = useKonto();
+  const { hatRolle, konto, laedt } = useKonto();
   const navigation = hatRolle("admin", "editor")
     ? [...NAV_ITEMS, { path: "/admin", key: "admin", exact: false } as const]
     : NAV_ITEMS;
@@ -90,6 +99,38 @@ export function Layout() {
               ))}
             </ul>
             <LanguageSwitcher />
+            {/* The corner-most element of the header: always present, signed in or not —
+                signed out it's a plain account icon leading to the sign-in form, signed
+                in it becomes an initials avatar. Either way it's just a link to
+                `/account`, which already renders the right view for both cases. */}
+            <Link
+              to="/account"
+              aria-label={t("nav.account")}
+              data-testid="layout-profile-button"
+              className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold uppercase transition-colors ${
+                konto
+                  ? "bg-marke-600 text-white hover:bg-marke-700"
+                  : `bg-slate-100 text-slate-500 hover:bg-slate-200 ${laedt ? "animate-pulse" : ""}`
+              }`}
+            >
+              {konto ? (
+                initialen(konto.display_name)
+              ) : (
+                <svg
+                  aria-hidden
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4"
+                >
+                  <circle cx="12" cy="8" r="3.5" />
+                  <path d="M4.5 20c0-3.6 3.4-6.5 7.5-6.5s7.5 2.9 7.5 6.5" />
+                </svg>
+              )}
+            </Link>
           </nav>
         </div>
       </header>
