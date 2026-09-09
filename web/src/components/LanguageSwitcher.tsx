@@ -12,7 +12,13 @@ export function LanguageSwitcher() {
       role="group"
       aria-label={t("language.label")}
       data-testid="language-switcher"
-      className="flex overflow-hidden rounded-md border border-slate-300 text-xs"
+      // shrink-0 matters here, not just cosmetically: overflow-hidden makes a flex item's
+      // automatic minimum width 0 per the flexbox spec, so without shrink-0 the navbar's
+      // flex-shrink algorithm was free to squeeze this element below its own two-button
+      // content width under space pressure — and overflow-hidden then silently clipped the
+      // second button instead of showing it (this is exactly what happened: "EN" stayed
+      // visible, "DE" vanished at the edge of the header).
+      className="flex shrink-0 overflow-hidden rounded-md border border-slate-300 text-xs"
     >
       {SUPPORTED_LANGUAGES.map((lang: SupportedLanguage) => (
         <button
