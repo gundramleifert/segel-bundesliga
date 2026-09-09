@@ -57,11 +57,11 @@ export function Layout() {
             className="flex shrink-0 items-center gap-3"
           >
             <img
-              src="/marke/segelbundesliga.png"
-              alt="German Sailing Bundesliga"
+              src="/marke/deutsche-segelliga-logo.jpg"
+              alt="Deutsche Segel-Liga"
               className="h-9 w-auto"
-              width={120}
-              height={59}
+              width={200}
+              height={58}
             />
           </a>
 
