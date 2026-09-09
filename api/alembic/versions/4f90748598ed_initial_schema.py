@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: ca9199325b2d
+Revision ID: 4f90748598ed
 Revises: 
-Create Date: 2026-09-08 20:48:51.019924
+Create Date: 2026-09-09 21:27:11.051675
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'ca9199325b2d'
+revision: str = '4f90748598ed'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -283,7 +283,7 @@ def upgrade() -> None:
     sa.Column('decided_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.CheckConstraint('series_id IS NOT NULL OR event_id IS NOT NULL', name=op.f('ck_team_team_hat_einen_wettbewerb')),
+    sa.CheckConstraint('series_id IS NOT NULL OR event_id IS NOT NULL', name=op.f('ck_team_team_has_a_competition')),
     sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_team_club_id_club')),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_team_event_id_event')),
     sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_team_series_id_series')),
@@ -295,19 +295,22 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_team_event_id'), ['event_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_team_series_id'), ['series_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_team_status'), ['status'], unique=False)
-        batch_op.create_index('uq_team_series_meldung', ['club_id', 'series_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
+        batch_op.create_index('uq_team_series_registration', ['club_id', 'series_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
 
     op.create_table('user_role',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('role', sa.String(length=32), nullable=False),
+    sa.Column('club_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_user_role_club_id_club')),
     sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_user_role_user_id_app_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_user_role')),
-    sa.UniqueConstraint('user_id', 'role', name=op.f('uq_user_role_user_id'))
+    sa.UniqueConstraint('user_id', 'role', 'club_id', name=op.f('uq_user_role_user_id'))
     )
     with op.batch_alter_table('user_role', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_user_role_club_id'), ['club_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_user_role_role'), ['role'], unique=False)
         batch_op.create_index(batch_op.f('ix_user_role_user_id'), ['user_id'], unique=False)
 
@@ -509,10 +512,11 @@ def downgrade() -> None:
     with op.batch_alter_table('user_role', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_user_role_user_id'))
         batch_op.drop_index(batch_op.f('ix_user_role_role'))
+        batch_op.drop_index(batch_op.f('ix_user_role_club_id'))
 
     op.drop_table('user_role')
     with op.batch_alter_table('team', schema=None) as batch_op:
-        batch_op.drop_index('uq_team_series_meldung', sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
+        batch_op.drop_index('uq_team_series_registration', sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
         batch_op.drop_index(batch_op.f('ix_team_status'))
         batch_op.drop_index(batch_op.f('ix_team_series_id'))
         batch_op.drop_index(batch_op.f('ix_team_event_id'))

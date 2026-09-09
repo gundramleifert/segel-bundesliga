@@ -134,7 +134,7 @@ class Team(Base, TimestampMixin):
         # The same statement for the series registration — as a partial index, because an
         # ordinary unique constraint on (club_id, series_id) would also count the act rows.
         Index(
-            "uq_team_series_meldung",
+            "uq_team_series_registration",
             "club_id",
             "series_id",
             unique=True,
@@ -143,7 +143,7 @@ class Team(Base, TimestampMixin):
         ),
         CheckConstraint(
             "series_id IS NOT NULL OR event_id IS NOT NULL",
-            name="team_hat_einen_wettbewerb",
+            name="team_has_a_competition",
         ),
     )
 
@@ -177,7 +177,7 @@ class Team(Base, TimestampMixin):
     race_entries: Mapped[list[RaceEntry]] = relationship(back_populates="team")
 
     @property
-    def ist_serienmeldung(self) -> bool:
+    def is_series_registration(self) -> bool:
         """The registration for the whole series — not the entry in a single act."""
         return self.event_id is None
 
@@ -230,9 +230,9 @@ class ClubMember(Base, TimestampMixin):
     user: Mapped[User] = relationship()
 
     @property
-    def wartet_auf_verein(self) -> bool:
+    def awaiting_club(self) -> bool:
         return self.status == ClubMemberStatus.PENDING_CLUB
 
     @property
-    def wartet_auf_person(self) -> bool:
+    def awaiting_person(self) -> bool:
         return self.status == ClubMemberStatus.PENDING_USER

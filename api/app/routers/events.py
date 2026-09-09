@@ -26,11 +26,11 @@ from app.models.racing import BOAT_COLORS
 from app.routers.public import _event_out
 from app.schemas.public import ClubOut, EventOut
 from app.services import (
-    TeilnahmeFehler,
-    antritte,
-    hat_ergebnisse,
-    neuer_antritt,
-    uebernehme_serienmeldungen,
+    ParticipationError,
+    adopt_series_registrations,
+    event_entries,
+    has_results,
+    new_event_entry,
 )
 from app.text import slugify
 
@@ -185,7 +185,7 @@ async def create_event(
     session.add_all(_boats(event, request))
     # Typically, the same clubs enter an act as in the series. The administration can
     # deviate later via PUT /api/admin/events/{id}/clubs.
-    await uebernehme_serienmeldungen(session, event)
+    await adopt_series_registrations(session, event)
     await session.commit()
     return _event_out(await _with_relationships(session, event.id))
 
@@ -375,7 +375,7 @@ async def set_participants(
     desired = {club.id: club for club in await _clubs(session, request.clubs)}
 
     existing = {
-        team.club_id: team for team in await antritte(session, event.id, nur_angenommen=False)
+        team.club_id: team for team in await event_entries(session, event.id, accepted_only=False)
     }
 
     for club_id, team in existing.items():
@@ -383,7 +383,7 @@ async def set_participants(
             # An approval from above lifts a pending request.
             team.status = TeamStatus.ACCEPTED
             continue
-        if await hat_ergebnisse(session, team):
+        if await has_results(session, team):
             de_msg = (
                 "Dieser Verein lässt sich nicht herausnehmen: "
                 "es liegen bereits Wettfahrtergebnisse vor."
@@ -402,8 +402,8 @@ async def set_participants(
         if club_id in existing:
             continue
         try:
-            await neuer_antritt(session, event, club)
-        except TeilnahmeFehler as error:
+            await new_event_entry(session, event, club)
+        except ParticipationError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
 
     await session.commit()
@@ -452,7 +452,7 @@ def _can_create(acting: User, host_club_id: int | None) -> None:
     if acting.has_any(Role.ADMIN, Role.EDITOR, Role.RACE_OFFICER):
         return
     if acting.has_any(Role.CLUB_MANAGER) and host_club_id is not None:
-        if acting.club_id == host_club_id:
+        if acting.manages_club(host_club_id):
             return
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -16,6 +16,8 @@ dependencies = [
     "asyncpg>=0.31.0",
     "pyjwt>=2.13.0",
     "argon2-cffi>=25.1.0",
+    "pillow>=12.3.0",
+    "python-multipart>=0.0.32",
 ]
 
 [dependency-groups]

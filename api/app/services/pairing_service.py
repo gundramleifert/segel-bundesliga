@@ -151,7 +151,7 @@ async def _boats(
     liegen dieselben Boote, gleichgültig wie oft neu gelost wird. Ergänzt wird nur, was
     fehlt; überzählige Boote fallen weg, wenn die neue Liste mit weniger auskommt.
     """
-    vorhanden = {
+    existing = {
         boat.number: boat
         for boat in (
             await session.execute(select(Boat).where(Boat.event_id == event.id))
@@ -160,14 +160,14 @@ async def _boats(
 
     boats: list[Boat] = []
     for spec in specs:
-        boat = vorhanden.pop(spec.number, None)
+        boat = existing.pop(spec.number, None)
         if boat is None:
             boat = Boat(event_id=event.id, number=spec.number, color=spec.color)
             session.add(boat)
         boats.append(boat)
 
-    for uebrig in vorhanden.values():
-        await session.delete(uebrig)
+    for leftover in existing.values():
+        await session.delete(leftover)
 
     await session.flush()
     return boats

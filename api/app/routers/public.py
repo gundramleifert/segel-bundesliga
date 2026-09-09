@@ -49,7 +49,7 @@ from app.schemas.public import (
     TeamOut,
     VenueOut,
 )
-from app.services import aktueller_jahrgang, compute_event, compute_series
+from app.services import compute_event, compute_series, current_year
 
 router = APIRouter(prefix="/api", tags=["public"])
 
@@ -70,10 +70,10 @@ async def list_series(
     session: AsyncSession = Depends(get_session),
 ) -> list[Series]:
     """A series is a set of events that are scored together."""
-    jahrgang = year if year is not None else await aktueller_jahrgang(session)
+    effective_year = year if year is not None else await current_year(session)
     stmt = select(Series).order_by(Series.level.nulls_last(), Series.name)
-    if jahrgang is not None:
-        stmt = stmt.where(Series.year == jahrgang)
+    if effective_year is not None:
+        stmt = stmt.where(Series.year == effective_year)
     return list((await session.execute(stmt)).scalars())
 
 
@@ -117,8 +117,8 @@ async def get_series_table(
     rows = []
     for row in await compute_series(session, series.id):
         acts = {
-            matchday_by_event.get(event_id) or 0: platz
-            for event_id, platz in row.event_ranks.items()
+            matchday_by_event.get(event_id) or 0: rank
+            for event_id, rank in row.event_ranks.items()
         }
         rows.append(
             SeriesStandingRow(
@@ -167,10 +167,10 @@ async def list_clubs(
     if series is not None:
         stmt = stmt.where(Series.id == series)
     else:
-        jahrgang = year if year is not None else await aktueller_jahrgang(session)
-        if jahrgang is None:
+        effective_year = year if year is not None else await current_year(session)
+        if effective_year is None:
             return []
-        stmt = stmt.where(Series.year == jahrgang)
+        stmt = stmt.where(Series.year == effective_year)
 
     return list((await session.execute(stmt)).scalars())
 
@@ -200,10 +200,10 @@ async def get_club(
             ),
         )
 
-    current_year = year if year is not None else await aktueller_jahrgang(session)
+    effective_year = year if year is not None else await current_year(session)
 
     teams: list[ClubTeamOut] = []
-    if current_year is not None:
+    if effective_year is not None:
         rows = (
             await session.execute(
                 select(Team, Series)
@@ -211,7 +211,7 @@ async def get_club(
                 .where(
                     Team.club_id == club.id,
                     Team.event_id.is_(None),
-                    Series.year == current_year,
+                    Series.year == effective_year,
                     Team.status == TeamStatus.ACCEPTED,
                 )
                 .order_by(Series.level.nulls_last(), Series.name)
@@ -281,11 +281,11 @@ async def get_sailor(
             ),
         )
 
-    current_year = year if year is not None else await aktueller_jahrgang(session)
+    effective_year = year if year is not None else await current_year(session)
     teams: list[SailorTeamOut] = []
     events: list[SailorEventOut] = []
 
-    if current_year is not None:
+    if effective_year is not None:
         rows = (
             await session.execute(
                 select(TeamMembership, Team, Club, Series)
@@ -295,7 +295,7 @@ async def get_sailor(
                 .where(
                     TeamMembership.sailor_id == sailor.id,
                     Team.event_id.is_(None),
-                    Series.year == current_year,
+                    Series.year == effective_year,
                     Team.status == TeamStatus.ACCEPTED,
                 )
                 .order_by(Series.level.nulls_last(), Series.name)

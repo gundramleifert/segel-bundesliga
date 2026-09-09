@@ -87,6 +87,10 @@ async def _validation_error(
     )
 
 
+# sailors.me_router before public.router: both define a route under /api/sailors, and
+# Starlette matches by registration order — "/api/sailors/me" must be tried before
+# public.router's "/api/sailors/{sailor_id}", or "me" would be parsed as a sailor id.
+app.include_router(sailors.me_router)
 app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(admin.router)

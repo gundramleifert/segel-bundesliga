@@ -20,7 +20,7 @@ from app.models import Event, EventCrew, Sailor, Team, TeamMembership, TeamStatu
 from app.models.auth import Role, User
 from app.models.org import CrewRole
 from app.schemas.public import MemberOut
-from app.services import TeilnahmeFehler, antritt, kader_mannschaft
+from app.services import ParticipationError, event_entry, squad_team
 
 router = APIRouter(prefix="/api/admin/events", tags=["administration"])
 
@@ -96,8 +96,8 @@ async def set_crew(
 
     if desired:
         try:
-            squad = await kader_mannschaft(session, team)
-        except TeilnahmeFehler as error:
+            squad = await squad_team(session, team)
+        except ParticipationError as error:
             raise HTTPException(status_code=422, detail=str(error)) from error
         await _from_squad(session, squad.id, set(desired))
         await _not_elsewhere_lined_up(session, event.id, team.id, set(desired))
@@ -139,7 +139,7 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
     if team is None:
         raise HTTPException(status_code=404, detail="This team does not exist.")
 
-    found = await antritt(session, event.id, team.club_id)
+    found = await event_entry(session, event.id, team.club_id)
     if found is None or found.status != TeamStatus.ACCEPTED:
         raise HTTPException(
             status_code=422,
@@ -156,7 +156,7 @@ def _check_permissions(acting: User, team: Team) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Lineup can be set by club officials, administration, and race officers.",
         )
-    if acting.club_id != team.club_id:
+    if not acting.manages_club(team.club_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only line up your own team.",

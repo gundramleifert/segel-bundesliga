@@ -125,11 +125,11 @@ fixed hostname, since they can change per account/region.
 
 ## When the platform blocks outbound SMTP entirely (Render did)
 
-Confirmed via `GET /api/dev/network-probe?host=<smtp host>&port=<port>` (see below): on
-this Render plan, **both** port 465 and 587 to a real SMTP server time out — an egress
-firewall, not a wrong setting anywhere. No SMTP port/TLS combination gets past that; the
-only way through is a provider's **HTTPS API** instead of raw SMTP, since HTTPS clearly
-isn't blocked (the platform itself depends on it).
+Confirmed with a dev-only network probe (since removed, see below): on this Render plan,
+**both** port 465 and 587 to a real SMTP server time out — an egress firewall, not a
+wrong setting anywhere. No SMTP port/TLS combination gets past that; the only way through
+is a provider's **HTTPS API** instead of raw SMTP, since HTTPS clearly isn't blocked (the
+platform itself depends on it).
 
 `api/app/mail.py` supports this as an **opt-in, dev/test-only alternate transport**:
 Brevo's HTTP API (`POST https://api.brevo.com/v3/smtp/email`). It activates automatically
@@ -146,23 +146,22 @@ reach an SMTP server (e.g. a plain VPS instead of Render).
 4. Add `SBL_BREVO_API_KEY` as a **Secret File** the same way as `SBL_JWT_SECRET` /
    `SBL_SMTP_PASSWORD` (it's a real credential, not something for `render.env`).
 
-Verified end to end (with an intentionally invalid key, to confirm the wiring without a
-real account yet): the request reaches Brevo's real API and its `401: Key not found`
-response is parsed and surfaced correctly — so once a real key and a verified sender are
-in place, this should just work.
+Verified end to end with a real Brevo account and API key: a login email sent through the
+live Render deployment arrived in the inbox. The three dev-only diagnostic routes used to
+establish this (`/api/dev/smtp-config`, `/api/dev/test-email`, `/api/dev/network-probe`)
+have since been removed from `app/routers/dev.py` — they did their job. If a future
+deployment needs the same kind of investigation, `git log` has the implementation to
+resurrect.
 
 **Checking whether a code was actually sent:** `app.mail` logs every attempt — an `INFO`
-line naming the recipient and host on success, an `ERROR` line with the underlying SMTP
-error on failure (wrong credentials, wrong port/encryption, connection refused, …). On
-Render, that's the `sbl-api` service's **Logs** tab; locally it's just stdout. There are
-also two dev-only diagnostic routes for this (gated behind `SBL_DEV_LOGIN`, like the rest
-of `/api/dev`): `GET /api/dev/smtp-config` shows exactly what `settings` resolved to
-(password never exposed), and `POST /api/dev/test-email` attempts a real send right now
-and reports the outcome directly in the response. A 202 from `/api/auth/email/request` or
-`/api/auth/register` only means the request was accepted — it deliberately never reveals
-whether the address has an account or whether the mail server accepted the message (see
-the code comment in `app.services.login.request_email_code` for why), so those two routes
-are the actual source of truth for "did it send."
+line naming the recipient and host (or "via Brevo") on success, an `ERROR` line with the
+underlying error on failure (wrong credentials, wrong port/encryption, connection
+refused, Brevo's error body, …). On Render, that's the `sbl-api` service's **Logs** tab;
+locally it's just stdout. A 202 from `/api/auth/email/request` or `/api/auth/register`
+only means the request was accepted — it deliberately never reveals whether the address
+has an account or whether the mail server accepted the message (see the code comment in
+`app.services.login.request_email_code` for why), so the logs are the actual source of
+truth for "did it send."
 
 **Google and Microsoft sign-in are not wired up in the UI yet** — the backend already
 supports both (`api/app/services/login.py`, `POST /api/auth/oidc/{provider}`), and
@@ -179,3 +178,14 @@ tokens for any seeded account without any verification** — including
 needed to try out roles), but it means anyone who finds the URL is an admin. For a
 private test URL that's usually an acceptable trade; once SMTP (and, later, an OIDC
 provider) is confirmed working, it can be turned off by editing `render.env`.
+
+**Getting the first real admin without `SBL_DEV_LOGIN`:** once dev-login is off, nothing
+in the interface can grant the very first `admin` role — every role-granting endpoint
+requires being `admin` already. `SBL_ADMIN_EMAILS` solves exactly that bootstrap problem:
+any address listed there (case-insensitive) is granted `admin` automatically the moment
+it successfully signs in, through any provider (`app.services.login._resolve_user`) —
+checked on every sign-in, so adding an address later still takes effect on that person's
+next login. Add it to `render.env` as a JSON array, the same way as `SBL_CORS_ORIGINS`:
+`SBL_ADMIN_EMAILS=["you@example.com"]`. From there, that account can grant `admin`,
+`editor`, `race_officer`, and `club_manager` to anyone else via the accounts admin UI
+(Story Z-2) — the whitelist only needs to cover whoever bootstraps the first admin.

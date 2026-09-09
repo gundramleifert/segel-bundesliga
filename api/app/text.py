@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-_UMLAUTE = str.maketrans(
+_UMLAUTS = str.maketrans(
     {"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss", "Ä": "ae", "Ö": "oe", "Ü": "ue"}
 )
 
@@ -15,6 +15,6 @@ def slugify(value: str) -> str:
     Umlauts are spelled out instead of removed: from ``BYCÜ`` becomes ``bycue`` not
     ``byc`` — otherwise clubs differing only in umlauts would collide.
     """
-    text = value.strip().lower().translate(_UMLAUTE)
+    text = value.strip().lower().translate(_UMLAUTS)
     text = re.sub(r"[^a-z0-9]+", "-", text)
-    return text.strip("-") or "eintrag"
+    return text.strip("-") or "entry"

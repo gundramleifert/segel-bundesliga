@@ -8,7 +8,7 @@ Optimierungslauf entfällt bei jeder weiteren Veranstaltung.
 import pytest
 
 from app.pairing import logistics_report, pairing_report
-from app.pairing.catalog import KatalogFehler, als_yaml, katalog, lade, mische
+from app.pairing.catalog import CatalogError, catalog_entries, load_entry, shuffle_pairing, to_yaml
 
 
 def guete(pairing) -> dict:
@@ -21,13 +21,13 @@ def guete(pairing) -> dict:
 class TestKatalog:
     def test_der_katalog_kennt_den_ligazuschnitt(self):
         """""18 teams, 6 boats, 16 flights — the Bundesliga matchday."""""
-        zuschnitte = {(e.teams, e.boats, e.flights) for e in katalog()}
+        zuschnitte = {(e.teams, e.boats, e.flights) for e in catalog_entries()}
         assert (18, 6, 16) in zuschnitte
 
     def test_der_zuschnitt_wird_aus_der_datei_gelesen_nicht_aus_dem_namen(self):
         """""A file from the Java tool can be placed in unchanged."""""
-        for eintrag in katalog():
-            geladen = lade(eintrag.teams, eintrag.boats, eintrag.flights)
+        for eintrag in catalog_entries():
+            geladen = load_entry(eintrag.teams, eintrag.boats, eintrag.flights)
             assert geladen.flights == eintrag.flights
             assert len(geladen.boats) == eintrag.boats
             assert len(geladen.teams) == eintrag.teams
@@ -35,7 +35,7 @@ class TestKatalog:
     def test_die_abgelegte_liste_ist_eine_gueltige_auslosung(self):
         """Each team once per flight, each boat once per race — otherwise
         it would be worthless."""
-        pairing = lade(18, 6, 16)
+        pairing = load_entry(18, 6, 16)
         assert len(pairing.slots) == 18 * 16
 
         je_flight: dict[int, list[int]] = {}
@@ -56,13 +56,13 @@ class TestKatalog:
         The Python generator produces about 27 boat changes here; the stored run of the
         Java-Werkzeugs kommt mit null aus. Genau diese Güte soll erhalten bleiben.
         """
-        bericht = guete(lade(18, 6, 16))
+        bericht = guete(load_entry(18, 6, 16))
         assert bericht["boat_changes"] == 0
         assert bericht["repeated_groups"] == 0
 
     def test_ein_unbekannter_zuschnitt_sagt_was_es_gibt(self):
-        with pytest.raises(KatalogFehler) as fehler:
-            lade(20, 5, 12)
+        with pytest.raises(CatalogError) as fehler:
+            load_entry(20, 5, 12)
         assert "20 teams" in str(fehler.value)
         assert "Available" in str(fehler.value)
 
@@ -70,13 +70,13 @@ class TestKatalog:
 class TestMischen:
     def test_mischen_laesst_jede_guetekennzahl_unveraendert(self):
         """""The metrics depend on the structure, not who sits where."""""
-        pairing = lade(18, 6, 16)
+        pairing = load_entry(18, 6, 16)
         vorher = guete(pairing)
         for seed in (1, 42, 4711):
-            assert guete(mische(pairing, seed)) == vorher
+            assert guete(shuffle_pairing(pairing, seed)) == vorher
 
     def test_mischen_bleibt_eine_gueltige_auslosung(self):
-        gemischt = mische(lade(18, 6, 16), 42)
+        gemischt = shuffle_pairing(load_entry(18, 6, 16), 42)
         je_flight: dict[int, list[int]] = {}
         for slot in gemischt.slots:
             je_flight.setdefault(slot.flight, []).append(slot.team_index)
@@ -85,30 +85,30 @@ class TestMischen:
 
     def test_derselbe_startwert_ergibt_dieselbe_auslosung(self):
         """""A draw must be provable in case of dispute."""""
-        pairing = lade(18, 6, 16)
-        assert mische(pairing, 42).slots == mische(pairing, 42).slots
+        pairing = load_entry(18, 6, 16)
+        assert shuffle_pairing(pairing, 42).slots == shuffle_pairing(pairing, 42).slots
 
     def test_ein_anderer_startwert_ergibt_eine_andere_auslosung(self):
-        pairing = lade(18, 6, 16)
-        assert mische(pairing, 1).slots != mische(pairing, 2).slots
+        pairing = load_entry(18, 6, 16)
+        assert shuffle_pairing(pairing, 1).slots != shuffle_pairing(pairing, 2).slots
 
     def test_mischen_dauert_nicht_lange(self):
         """""The whole point: seconds instead of minutes."""""
         import time
 
-        pairing = lade(18, 6, 16)
+        pairing = load_entry(18, 6, 16)
         start = time.perf_counter()
         for seed in range(50):
-            mische(pairing, seed)
+            shuffle_pairing(pairing, seed)
         assert time.perf_counter() - start < 1.0
 
 
 class TestAblegen:
     def test_was_geschrieben_wird_laesst_sich_wieder_lesen(self, tmp_path):
         """""Without this round, the catalog would only be as good as the file it contains."""""
-        pairing = lade(12, 6, 8)
+        pairing = load_entry(12, 6, 8)
         datei = tmp_path / "t12-b6-f8.yml"
-        datei.write_text(als_yaml(pairing.slots, pairing.flights), encoding="utf-8")
+        datei.write_text(to_yaml(pairing.slots, pairing.flights), encoding="utf-8")
 
-        wieder = lade(12, 6, 8, basis=tmp_path)
+        wieder = load_entry(12, 6, 8, base=tmp_path)
         assert wieder.slots == pairing.slots

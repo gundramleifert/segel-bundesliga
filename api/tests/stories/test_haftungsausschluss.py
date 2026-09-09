@@ -16,7 +16,7 @@ from app.db import SessionLocal
 from app.models import Sailor, Series, Team, TeamMembership, WaiverConfirmation, WaiverText
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import kopf
+from tests.stories.test_registrierung import auth_headers
 
 V2 = {
     "title_en": "Liability waiver v2",
@@ -29,12 +29,12 @@ V2 = {
 
 async def _admin(client, caplog):
     await make_user("wv-admin@example.com", Role.ADMIN)
-    return kopf(await login_as(client, "wv-admin@example.com", caplog))
+    return auth_headers(await login_as(client, "wv-admin@example.com", caplog))
 
 
 async def _account_for(client, caplog, email: str):
     await make_user(email)
-    return kopf(await login_as(client, email, caplog))
+    return auth_headers(await login_as(client, email, caplog))
 
 
 async def _new_sailor(client, admin, *, email: str, birth_date: str | None) -> int:

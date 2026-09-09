@@ -6,6 +6,7 @@ We do not manage passwords: identity comes from Google, Microsoft, or a one-time
 import pytest
 from sqlalchemy import delete, select
 
+from app.config import settings
 from app.db import SessionLocal
 from app.models import Club, ClubMember, ClubMemberStatus, Sailor, WaiverConfirmation, WaiverText
 from app.models.auth import IdentityProvider, LoginCode, Role, User, UserRole
@@ -33,7 +34,13 @@ async def make_user(
             is_active=active,
             club_id=club_id,
         )
-        user.role_rows = [UserRole(role=role) for role in roles]
+        # club_manager is granted per club (UserRole.club_id); every other role is
+        # league-wide. A caller that passes club_id alongside Role.CLUB_MANAGER means
+        # "organizes this club" — mirroring how `grant_organizer` scopes the grant.
+        user.role_rows = [
+            UserRole(role=role, club_id=club_id if role == Role.CLUB_MANAGER else None)
+            for role in roles
+        ]
         session.add(user)
         await session.commit()
         return user.id
@@ -184,6 +191,47 @@ class TestRollen:
         )
         assert response.status_code == 202
         assert await latest_code("gesperrt@example.org") is None
+
+
+class TestAdminWhitelist:
+    """As a deployment operator, I want a whitelisted address to become admin on its
+    first sign-in — otherwise a fresh deployment has no one who can grant any role."""
+
+    async def test_eine_gelistete_adresse_wird_beim_ersten_login_admin(
+        self, client, caplog, monkeypatch
+    ):
+        """A whitelisted address becomes admin on its first sign-in."""
+        monkeypatch.setattr(settings, "admin_emails", ["Chef@Example.org"])
+        await make_user("chef@example.org")
+
+        token = await login_as(client, "chef@example.org", caplog)
+        response = await client.get(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.json()["roles"] == [Role.ADMIN]
+
+    async def test_eine_nicht_gelistete_adresse_bleibt_ohne_rolle(self, client, caplog):
+        """An address not on the list gets no role, as before."""
+        await make_user("niemand@example.org")
+        token = await login_as(client, "niemand@example.org", caplog)
+
+        response = await client.get(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.json()["roles"] == []
+
+    async def test_die_rolle_wird_nicht_doppelt_vergeben(self, client, caplog, monkeypatch):
+        """Signing in twice doesn't create a duplicate role row."""
+        monkeypatch.setattr(settings, "admin_emails", ["chef@example.org"])
+        await make_user("chef@example.org")
+
+        await login_as(client, "chef@example.org", caplog)
+        token = await login_as(client, "chef@example.org", caplog)
+
+        response = await client.get(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.json()["roles"] == [Role.ADMIN]
 
 
 class TestRemoveAccount:
@@ -414,11 +462,7 @@ class TestVereinszuordnung:
     ):
         """A club manager can assign users to their own club."""
         clubs = await self._clubs(client)
-        async with SessionLocal() as session:
-            manager_id = await make_user("manager@example.org", Role.CLUB_MANAGER)
-            manager = await session.get(User, manager_id)
-            manager.club_id = clubs[0]["id"]
-            await session.commit()
+        await make_user("manager@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
 
         token = await login_as(client, "manager@example.org", caplog)
         user_id = await make_user("crew@example.org")
@@ -434,11 +478,7 @@ class TestVereinszuordnung:
     async def test_ein_fremder_verein_laesst_sich_nicht_zuordnen(self, client, caplog):
         """A club manager cannot assign users to other clubs — else they could seize teams."""
         clubs = await self._clubs(client)
-        async with SessionLocal() as session:
-            manager_id = await make_user("manager2@example.org", Role.CLUB_MANAGER)
-            manager = await session.get(User, manager_id)
-            manager.club_id = clubs[0]["id"]
-            await session.commit()
+        await make_user("manager2@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
 
         token = await login_as(client, "manager2@example.org", caplog)
         user_id = await make_user("fremd@example.org")
@@ -453,11 +493,9 @@ class TestVereinszuordnung:
     async def test_wer_schon_woanders_ist_wird_nicht_abgeworben(self, client, caplog):
         """Users already assigned to another club cannot be poached."""
         clubs = await self._clubs(client)
+        await make_user("manager3@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
+        besetzt_id = await make_user("besetzt@example.org")
         async with SessionLocal() as session:
-            manager_id = await make_user("manager3@example.org", Role.CLUB_MANAGER)
-            manager = await session.get(User, manager_id)
-            manager.club_id = clubs[0]["id"]
-            besetzt_id = await make_user("besetzt@example.org")
             besetzt = await session.get(User, besetzt_id)
             besetzt.club_id = clubs[1]["id"]
             await session.commit()

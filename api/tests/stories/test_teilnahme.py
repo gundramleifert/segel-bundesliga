@@ -12,22 +12,18 @@ from app.models.auth import Role, User
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
-async def als(client, caplog, email: str, *rollen: str) -> dict[str, str]:
-    await make_user(email, *rollen)
+async def as_role(client, caplog, email: str, *roles: str) -> dict[str, str]:
+    await make_user(email, *roles)
     return {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
 
 
-async def als_verein(client, caplog, email: str, club_id: int) -> dict[str, str]:
-    user_id = await make_user(email, Role.CLUB_MANAGER)
-    async with SessionLocal() as session:
-        user = await session.get(User, user_id)
-        user.club_id = club_id
-        await session.commit()
+async def club_leadership(client, caplog, email: str, club_id: int) -> dict[str, str]:
+    await make_user(email, Role.CLUB_MANAGER, club_id=club_id)
     return {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
 
 
-async def neuer_verein(client, kopf, name: str) -> dict:
-    response = await client.post("/api/admin/clubs", headers=kopf, json={"name": name})
+async def new_club(client, headers, name: str) -> dict:
+    response = await client.post("/api/admin/clubs", headers=headers, json={"name": name})
     assert response.status_code == 201, response.text
     return response.json()
 
@@ -36,9 +32,9 @@ class TestAntragStellen:
     """V-5: As a club officer, I register my club."""
 
     async def test_ein_verein_meldet_sich_selbst_an(self, client, caplog, ids):
-        admin = await als(client, caplog, "tn1a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Bewerber Segelclub")
-        headers = await als_verein(client, caplog, "tn1@example.com", club["id"])
+        admin = await as_role(client, caplog, "tn1a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Bewerber Segelclub")
+        headers = await club_leadership(client, caplog, "tn1@example.com", club["id"])
 
         response = await client.post(
             "/api/applications",
@@ -49,9 +45,9 @@ class TestAntragStellen:
         assert response.json()["status"] == "requested"
 
     async def test_ein_antrag_macht_den_verein_noch_nicht_sichtbar(self, client, caplog, ids):
-        admin = await als(client, caplog, "tn2a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Wartender Segelclub")
-        headers = await als_verein(client, caplog, "tn2@example.com", club["id"])
+        admin = await as_role(client, caplog, "tn2a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Wartender Segelclub")
+        headers = await club_leadership(client, caplog, "tn2@example.com", club["id"])
 
         await client.post(
             "/api/applications",
@@ -63,9 +59,9 @@ class TestAntragStellen:
         assert club["slug"] not in {v["slug"] for v in public}
 
     async def test_der_verein_sieht_den_stand_seines_antrags(self, client, caplog, ids):
-        admin = await als(client, caplog, "tn3a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Neugieriger Segelclub")
-        headers = await als_verein(client, caplog, "tn3@example.com", club["id"])
+        admin = await as_role(client, caplog, "tn3a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Neugieriger Segelclub")
+        headers = await club_leadership(client, caplog, "tn3@example.com", club["id"])
 
         await client.post(
             "/api/applications",
@@ -79,10 +75,10 @@ class TestAntragStellen:
         assert own[0]["series"]["slug"] == "junioren-2026"
 
     async def test_ein_fremder_verein_laesst_sich_nicht_anmelden(self, client, caplog, ids):
-        admin = await als(client, caplog, "tn4a@example.com", Role.ADMIN)
-        own = await neuer_verein(client, admin, "Eigener Segelclub")
-        other = await neuer_verein(client, admin, "Fremder Segelclub")
-        headers = await als_verein(client, caplog, "tn4@example.com", own["id"])
+        admin = await as_role(client, caplog, "tn4a@example.com", Role.ADMIN)
+        own = await new_club(client, admin, "Eigener Segelclub")
+        other = await new_club(client, admin, "Fremder Segelclub")
+        headers = await club_leadership(client, caplog, "tn4@example.com", own["id"])
 
         response = await client.post(
             "/api/applications",
@@ -92,9 +88,9 @@ class TestAntragStellen:
         assert response.status_code == 403
 
     async def test_ein_zweiter_antrag_wird_abgewiesen(self, client, caplog, ids):
-        admin = await als(client, caplog, "tn5a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Hartnaeckiger Segelclub")
-        headers = await als_verein(client, caplog, "tn5@example.com", club["id"])
+        admin = await as_role(client, caplog, "tn5a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Hartnaeckiger Segelclub")
+        headers = await club_leadership(client, caplog, "tn5@example.com", club["id"])
         data = {"club_id": club["id"], "series_id": ids.series("dsbl-2-2026")}
 
         assert (
@@ -104,9 +100,9 @@ class TestAntragStellen:
         assert second.status_code == 409
 
     async def test_ein_antrag_laesst_sich_zurueckziehen(self, client, caplog, ids):
-        admin = await als(client, caplog, "tn6a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Unentschlossener Segelclub")
-        headers = await als_verein(client, caplog, "tn6@example.com", club["id"])
+        admin = await as_role(client, caplog, "tn6a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Unentschlossener Segelclub")
+        headers = await club_leadership(client, caplog, "tn6@example.com", club["id"])
 
         application = (
             await client.post(
@@ -121,9 +117,9 @@ class TestAntragStellen:
         assert (await client.get("/api/applications", headers=headers)).json() == []
 
     async def test_ohne_rolle_geht_gar_nichts(self, client, caplog, ids):
-        admin = await als(client, caplog, "tn7a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Rollenloser Segelclub")
-        headers = await als(client, caplog, "tn7@example.com")
+        admin = await as_role(client, caplog, "tn7a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Rollenloser Segelclub")
+        headers = await as_role(client, caplog, "tn7@example.com")
 
         response = await client.post(
             "/api/applications",
@@ -137,9 +133,9 @@ class TestEntscheidung:
     """A-9: As an admin, I accept or reject applications."""
 
     async def _antrag(self, client, caplog, name: str, email: str, ids, serie="dsbl-2-2026"):
-        admin = await als(client, caplog, f"{email}-adm@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, name)
-        headers = await als_verein(client, caplog, f"{email}@example.com", club["id"])
+        admin = await as_role(client, caplog, f"{email}-adm@example.com", Role.ADMIN)
+        club = await new_club(client, admin, name)
+        headers = await club_leadership(client, caplog, f"{email}@example.com", club["id"])
         application = (
             await client.post(
                 "/api/applications",
@@ -246,7 +242,7 @@ class TestEntscheidung:
         self, client, caplog, ids
     ):
         """A team that has raced has results attached."""
-        admin = await als(client, caplog, "tn14@example.com", Role.ADMIN)
+        admin = await as_role(client, caplog, "tn14@example.com", Role.ADMIN)
         raced = (
             await client.get(
                 "/api/admin/applications",
@@ -284,8 +280,8 @@ class TestTeilnahmeAnEinerVeranstaltung:
     async def test_ein_verein_meldet_sich_fuer_eine_einzelveranstaltung_an(
         self, client, caplog, ids
     ):
-        admin = await als(client, caplog, "tv1a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Pokal Segelclub")
+        admin = await as_role(client, caplog, "tv1a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Pokal Segelclub")
         event = (
             await client.post(
                 "/api/admin/events",
@@ -294,7 +290,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
             )
         ).json()
 
-        headers = await als_verein(client, caplog, "tv1b@example.com", club["id"])
+        headers = await club_leadership(client, caplog, "tv1b@example.com", club["id"])
         response = await client.post(
             "/api/applications",
             headers=headers,
@@ -308,10 +304,10 @@ class TestTeilnahmeAnEinerVeranstaltung:
         """Until acceptance, an application doesn't count anywhere — not even in the draw."""
         from app.db import SessionLocal
         from app.models import Event
-        from app.services import antritte
+        from app.services import event_entries
 
-        admin = await als(client, caplog, "tv2a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Abwartender Segelclub")
+        admin = await as_role(client, caplog, "tv2a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Abwartender Segelclub")
         event_data = (
             await client.post(
                 "/api/admin/events",
@@ -320,7 +316,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
             )
         ).json()
 
-        headers = await als_verein(client, caplog, "tv2b@example.com", club["id"])
+        headers = await club_leadership(client, caplog, "tv2b@example.com", club["id"])
         await client.post(
             "/api/applications",
             headers=headers,
@@ -330,16 +326,16 @@ class TestTeilnahmeAnEinerVeranstaltung:
         async with SessionLocal() as session:
             event = await session.get(Event, event_data["id"])
             assert event is not None
-            assert await antritte(session, event.id) == []
+            assert await event_entries(session, event.id) == []
 
     async def test_wer_nicht_fuer_die_serie_gemeldet_ist_tritt_bei_ihrem_act_nicht_an(
         self, client, caplog, ids
     ):
         """Otherwise a club would appear in the daily standings but not in any series table."""
-        admin = await als(client, caplog, "tv3a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Serienloser Segelclub")
+        admin = await as_role(client, caplog, "tv3a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Serienloser Segelclub")
 
-        headers = await als_verein(client, caplog, "tv3b@example.com", club["id"])
+        headers = await club_leadership(client, caplog, "tv3b@example.com", club["id"])
         response = await client.post(
             "/api/applications",
             headers=headers,
@@ -353,8 +349,8 @@ class TestTeilnahmeAnEinerVeranstaltung:
 
         Unlike club membership, where both sides must agree.
         """
-        admin = await als(client, caplog, "tv4a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Gesetzter Segelclub")
+        admin = await as_role(client, caplog, "tv4a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Gesetzter Segelclub")
         event = (
             await client.post(
                 "/api/admin/events",
@@ -374,8 +370,8 @@ class TestTeilnahmeAnEinerVeranstaltung:
     async def test_eine_zusage_von_oben_hebt_den_offenen_antrag_auf(
         self, client, caplog, ids
     ):
-        admin = await als(client, caplog, "tv5a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Doppelweg Segelclub")
+        admin = await as_role(client, caplog, "tv5a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Doppelweg Segelclub")
         event = (
             await client.post(
                 "/api/admin/events",
@@ -384,7 +380,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
             )
         ).json()
 
-        headers = await als_verein(client, caplog, "tv5b@example.com", club["id"])
+        headers = await club_leadership(client, caplog, "tv5b@example.com", club["id"])
         await client.post(
             "/api/applications",
             headers=headers,
@@ -400,7 +396,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
 
     async def test_die_acts_einer_serie_uebernehmen_ihre_vereine(self, client, caplog, ids):
         """Normally, the same clubs participate in all acts."""
-        admin = await als(client, caplog, "tv6a@example.com", Role.ADMIN)
+        admin = await as_role(client, caplog, "tv6a@example.com", Role.ADMIN)
         created = (
             await client.post(
                 "/api/admin/events",
@@ -429,9 +425,9 @@ class TestTeilnahmeAnEinerVeranstaltung:
     async def test_entweder_serie_oder_veranstaltung_aber_nicht_beides(
         self, client, caplog, ids
     ):
-        admin = await als(client, caplog, "tv7a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Zwiespaeltiger Segelclub")
-        headers = await als_verein(client, caplog, "tv7b@example.com", club["id"])
+        admin = await as_role(client, caplog, "tv7a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Zwiespaeltiger Segelclub")
+        headers = await club_leadership(client, caplog, "tv7b@example.com", club["id"])
 
         response = await client.post(
             "/api/applications",
@@ -449,10 +445,10 @@ class TestNurDieVereinsleitungMeldet:
     """V-6: Only the club organizer registers participants for series and events."""
 
     async def test_ein_gewoehnliches_mitglied_meldet_niemanden(self, client, caplog, ids):
-        admin = await als(client, caplog, "nv1a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Mitglieder Segelclub")
+        admin = await as_role(client, caplog, "nv1a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Mitglieder Segelclub")
 
-        headers = await als_verein(client, caplog, "nv1b@example.com", club["id"])
+        headers = await club_leadership(client, caplog, "nv1b@example.com", club["id"])
         # Remove the role again: registration only works with club_manager.
         async with SessionLocal() as session:
             from sqlalchemy import delete
@@ -477,10 +473,10 @@ class TestNurDieVereinsleitungMeldet:
 
     async def test_die_wettfahrtleitung_meldet_auch_niemanden(self, client, caplog, ids):
         """They run the races — the club registers itself."""
-        admin = await als(client, caplog, "nv2a@example.com", Role.ADMIN)
-        club = await neuer_verein(client, admin, "Wettfahrt Segelclub")
+        admin = await as_role(client, caplog, "nv2a@example.com", Role.ADMIN)
+        club = await new_club(client, admin, "Wettfahrt Segelclub")
 
-        race_officer = await als(client, caplog, "nv2b@example.com", Role.RACE_OFFICER)
+        race_officer = await as_role(client, caplog, "nv2b@example.com", Role.RACE_OFFICER)
         response = await client.post(
             "/api/applications",
             headers=race_officer,

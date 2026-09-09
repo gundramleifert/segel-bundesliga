@@ -162,12 +162,12 @@ async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRo
             .order_by(Event.matchday.nulls_last(), Event.starts_on)
         )
     ).scalars().all()
-    gewertet = [event for event in events if event.status in SCORED_STATES]
+    scored_events = [event for event in events if event.status in SCORED_STATES]
 
     # The series registrations — including clubs that missed an act. The series table
     # operates at this level; the daily standings come from the entries in individual
     # acts and are translated back here via the club.
-    meldungen = (
+    registrations = (
         await session.execute(
             select(Team.id, Team.club_id).where(
                 Team.series_id == series_id,
@@ -176,11 +176,11 @@ async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRo
             )
         )
     ).all()
-    zeilen = {team_id: SeriesRow(team_id=team_id, points=0.0) for team_id, _ in meldungen}
-    meldung_je_verein = {club_id: team_id for team_id, club_id in meldungen}
+    rows_by_team = {team_id: SeriesRow(team_id=team_id, points=0.0) for team_id, _ in registrations}
+    team_id_by_club = {club_id: team_id for team_id, club_id in registrations}
 
     # Entry -> club, to map the daily standings onto the series registration.
-    verein_je_antritt = dict(
+    club_id_by_entry = dict(
         (
             await session.execute(
                 select(Team.id, Team.club_id).where(
@@ -190,41 +190,41 @@ async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRo
         ).all()
     )
 
-    for event in gewertet:
-        platzierungen: dict[int, int] = {}
+    for event in scored_events:
+        ranks_by_row: dict[int, int] = {}
         for score in await compute_event(session, event.id):
-            club_id = verein_je_antritt.get(score.team_id)
+            club_id = club_id_by_entry.get(score.team_id)
             # Without a series registration, the entry stands on its own — it then shows
             # up below as its own row instead of silently disappearing.
-            zeile_id = meldung_je_verein.get(club_id, score.team_id) if club_id else score.team_id
-            platzierungen[zeile_id] = score.rank
-        if not platzierungen:
+            row_id = team_id_by_club.get(club_id, score.team_id) if club_id else score.team_id
+            ranks_by_row[row_id] = score.rank
+        if not ranks_by_row:
             continue
         # Whoever is missing gets field size + 1.
-        ersatzwertung = len(platzierungen) + 1
+        substitute_rank = len(ranks_by_row) + 1
 
-        for team_id, zeile in zeilen.items():
-            platz = platzierungen.get(team_id)
-            if platz is None:
-                zeile.event_ranks[event.id] = ersatzwertung
-                zeile.missed_events.add(event.id)
+        for team_id, row in rows_by_team.items():
+            rank = ranks_by_row.get(team_id)
+            if rank is None:
+                row.event_ranks[event.id] = substitute_rank
+                row.missed_events.add(event.id)
             else:
-                zeile.event_ranks[event.id] = platz
+                row.event_ranks[event.id] = rank
 
         # An entry without a series registration still shows up — otherwise its results
         # would silently vanish. Under normal operation this can't happen: entering an
         # act requires being registered for its series.
-        for team_id, platz in platzierungen.items():
-            if team_id not in zeilen:
-                zeilen[team_id] = SeriesRow(team_id=team_id, points=0.0)
-                zeilen[team_id].event_ranks[event.id] = platz
+        for team_id, rank in ranks_by_row.items():
+            if team_id not in rows_by_team:
+                rows_by_team[team_id] = SeriesRow(team_id=team_id, points=0.0)
+                rows_by_team[team_id].event_ranks[event.id] = rank
 
-    for zeile in zeilen.values():
-        zeile.points = float(sum(zeile.event_ranks.values()))
+    for row in rows_by_team.values():
+        row.points = float(sum(row.event_ranks.values()))
 
-    rows = [zeile for zeile in zeilen.values() if zeile.event_ranks]
+    rows = [row for row in rows_by_team.values() if row.event_ranks]
     # Ties: the better result in the most recent act decides.
-    rows.sort(key=lambda row: (row.points, _letzter_platz(row)))
+    rows.sort(key=lambda row: (row.points, _latest_rank(row)))
     for position, row in enumerate(rows, start=1):
         row.rank = position
     return rows
@@ -263,7 +263,7 @@ async def recompute_series(session: AsyncSession, series_id: int) -> list[Series
     return rows
 
 
-def _letzter_platz(row: SeriesRow) -> int:
+def _latest_rank(row: SeriesRow) -> int:
     if not row.event_ranks:
         return 999
     return row.event_ranks[max(row.event_ranks)]

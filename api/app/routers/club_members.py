@@ -76,7 +76,7 @@ def _format_membership(row: ClubMember) -> MembershipOut:
             if row.status == ClubMemberStatus.PENDING_USER
             else None
         ),
-        organizer=row.user.club_id == row.club_id and row.user.has_any(Role.CLUB_MANAGER),
+        organizer=row.user.manages_club(row.club_id),
     )
 
 
@@ -305,7 +305,7 @@ async def list_members_for_member(
         ClubMemberOut(
             user_id=row.user_id,
             display_name=row.user.display_name,
-            organizer=row.user.club_id == row.club_id and row.user.has_any(Role.CLUB_MANAGER),
+            organizer=row.user.manages_club(row.club_id),
         )
         for row in rows
     ]
@@ -327,29 +327,32 @@ async def grant_organizer(
 ) -> MembershipOut:
     """An organizer can appoint further organizers for their own club — Story A-8.
 
-    Grants `club_manager` to an active member. A person only ever organizes **one**
-    club (`User.club_id`), so this fails if they already organize a different one.
+    Grants `club_manager` for this club to an active member. `club_manager` is a per-club
+    grant (`UserRole.club_id`): a person can organize several clubs independently, so this
+    no longer fails just because they already organize a different one.
     """
     club = await _get_club(session, club_id, locale)
     _check_club_leadership(acting, club.id, locale)
     row = await _active_membership(session, club.id, user_id, locale)
 
     target = row.user
-    if target.club_id is not None and target.club_id != club.id:
+    if target.manages_club(club.id):
         raise HTTPException(
             status_code=409,
             detail=tr(
                 locale,
-                en="This person already organizes a different club.",
-                de="Diese Person leitet bereits einen anderen Verein.",
+                en="This person already organizes this club.",
+                de="Diese Person leitet diesen Verein bereits.",
             ),
         )
 
-    if not target.has_any(Role.CLUB_MANAGER):
-        # Change the collection, not a bare INSERT — otherwise the in-memory user still
-        # looks role-less to the response we build below (expire_on_commit is off).
-        target.role_rows.append(UserRole(role=Role.CLUB_MANAGER))
-    target.club_id = club.id
+    # Change the collection, not a bare INSERT — otherwise the in-memory user still
+    # looks role-less to the response we build below (expire_on_commit is off).
+    target.role_rows.append(UserRole(role=Role.CLUB_MANAGER, club_id=club.id))
+    if target.club_id is None:
+        # Populate the "represents" convention on someone's first grant — but it must
+        # never again be the thing that blocks or defines a (further) grant.
+        target.club_id = club.id
     session.add(
         AuditLog(
             entity_type="user",
@@ -385,7 +388,7 @@ async def revoke_organizer(
     row = await _active_membership(session, club.id, user_id, locale)
 
     target = row.user
-    if target.club_id != club.id or not target.has_any(Role.CLUB_MANAGER):
+    if not target.manages_club(club.id):
         raise HTTPException(
             status_code=409,
             detail=tr(
@@ -406,8 +409,11 @@ async def revoke_organizer(
         )
 
     # Reassign the collection so the in-memory user is consistent for the response;
-    # delete-orphan cascade removes the dropped row on flush.
-    target.role_rows = [r for r in target.role_rows if r.role != Role.CLUB_MANAGER]
+    # delete-orphan cascade removes the dropped row on flush. Only the grant for
+    # *this* club goes — other clubs this person organizes are untouched.
+    target.role_rows = [
+        r for r in target.role_rows if not (r.role == Role.CLUB_MANAGER and r.club_id == club.id)
+    ]
     session.add(
         AuditLog(
             entity_type="user",
@@ -532,14 +538,12 @@ async def _active_membership(
 async def _organizer_count(
     session: AsyncSession, club_id: int, *, excluding_user_id: int | None = None
 ) -> int:
-    """How many accounts organize this club — i.e. hold `club_manager` and represent it."""
-    stmt = (
-        select(func.count(func.distinct(User.id)))
-        .join(UserRole, UserRole.user_id == User.id)
-        .where(User.club_id == club_id, UserRole.role == Role.CLUB_MANAGER)
+    """How many accounts organize this club — i.e. hold `club_manager` for it."""
+    stmt = select(func.count(func.distinct(UserRole.user_id))).where(
+        UserRole.role == Role.CLUB_MANAGER, UserRole.club_id == club_id
     )
     if excluding_user_id is not None:
-        stmt = stmt.where(User.id != excluding_user_id)
+        stmt = stmt.where(UserRole.user_id != excluding_user_id)
     return int((await session.execute(stmt)).scalar_one())
 
 
@@ -582,14 +586,14 @@ def _is_club_leadership(acting: User, row: ClubMember) -> bool:
     """Check if the acting user is leadership of the club in this membership."""
     if acting.has_any(Role.ADMIN):
         return True
-    return acting.has_any(Role.CLUB_MANAGER) and acting.club_id == row.club_id
+    return acting.manages_club(row.club_id)
 
 
 def _check_club_leadership(acting: User, club_id: int, locale: Locale) -> None:
     """Verify that the acting user can manage this club's members."""
     if acting.has_any(Role.ADMIN):
         return
-    if acting.has_any(Role.CLUB_MANAGER) and acting.club_id == club_id:
+    if acting.manages_club(club_id):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

@@ -328,9 +328,10 @@ async def set_club(
 ) -> UserOut:
     """Assigns an account to a club — permanently, not per matchday.
 
-    A club manager may only assign their **own** club and may only move people who have no club
-    or are already assigned to their club. Otherwise they could seize other teams.
-    Administration is exempt from these restrictions.
+    A club manager may only assign a club **they organize** (Story A-8 — that can now be
+    more than one), and may only move people who have no club or are already assigned to
+    one of those clubs. Otherwise they could seize other teams. Administration is exempt
+    from these restrictions.
     """
     user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
     if user is None:
@@ -354,25 +355,26 @@ async def set_club(
             )
 
     if not acting.has_any(Role.ADMIN):
-        if acting.club_id is None:
+        managed = acting.managed_club_ids
+        if not managed:
             raise HTTPException(
                 status_code=409,
                 detail=tr(
                     locale,
-                    en="Your account is not assigned to a club.",
-                    de="Ihrem Konto ist selbst kein Verein zugeordnet."
+                    en="Your account does not organize any club.",
+                    de="Ihr Konto leitet keinen Verein."
                 ),
             )
-        if request.club_id not in (acting.club_id, None):
+        if request.club_id is not None and request.club_id not in managed:
             raise HTTPException(
                 status_code=403,
                 detail=tr(
                     locale,
-                    en="You can only assign your own club.",
-                    de="Sie können nur den eigenen Verein zuordnen."
+                    en="You can only assign a club you organize.",
+                    de="Sie können nur einen Verein zuordnen, den Sie leiten."
                 )
             )
-        if user.club_id not in (None, acting.club_id):
+        if user.club_id is not None and user.club_id not in managed:
             raise HTTPException(
                 status_code=403,
                 detail=tr(

@@ -29,12 +29,12 @@ from app.i18n import Locale, resolve_locale, tr
 from app.models import AuditLog, Club, Event, Series, Team, TeamStatus
 from app.models.auth import Role, User
 from app.schemas.public import ClubOut, SeriesOut
-from app.services import TeilnahmeFehler, hat_ergebnisse, neuer_antritt
+from app.services import ParticipationError, has_results, new_event_entry
 
 router = APIRouter(tags=["applications"])
 
 
-class AntragStellen(BaseModel):
+class ApplicationCreate(BaseModel):
     """An application is for **one** series or **one** event."""
 
     club_id: int
@@ -42,7 +42,7 @@ class AntragStellen(BaseModel):
     event_id: int | None = None
 
     @model_validator(mode="after")
-    def _genau_eines(self) -> AntragStellen:
+    def _exactly_one(self) -> ApplicationCreate:
         if (self.series_id is None) == (self.event_id is None):
             raise ValueError(
                 "Specify either a series or an event, not both."
@@ -50,7 +50,7 @@ class AntragStellen(BaseModel):
         return self
 
 
-class Entscheidung(BaseModel):
+class ApplicationDecision(BaseModel):
     note: str | None = Field(
         default=None,
         max_length=500,
@@ -58,7 +58,7 @@ class Entscheidung(BaseModel):
     )
 
 
-class AntragEventOut(BaseModel):
+class ApplicationEventOut(BaseModel):
     """Only as much event detail as an application needs."""
 
     id: int
@@ -66,25 +66,25 @@ class AntragEventOut(BaseModel):
     starts_on: date
 
 
-class AntragOut(BaseModel):
+class ApplicationOut(BaseModel):
     team_id: int
     status: str
     decision_note: str | None = None
     club: ClubOut
     # Exactly one is set: the competition in question.
     series: SeriesOut | None = None
-    event: AntragEventOut | None = None
+    event: ApplicationEventOut | None = None
 
 
-def _out(team: Team) -> AntragOut:
-    return AntragOut(
+def _out(team: Team) -> ApplicationOut:
+    return ApplicationOut(
         team_id=team.id,
         status=team.status,
         decision_note=team.decision_note,
         club=ClubOut.model_validate(team.club),
         series=SeriesOut.model_validate(team.series) if team.event is None else None,
         event=(
-            AntragEventOut(
+            ApplicationEventOut(
                 id=team.event.id, title=team.event.title, starts_on=team.event.starts_on
             )
             if team.event is not None
@@ -95,45 +95,48 @@ def _out(team: Team) -> AntragOut:
 
 @router.post(
     "/api/applications",
-    response_model=AntragOut,
+    response_model=ApplicationOut,
     status_code=status.HTTP_201_CREATED,
     summary="Request participation",
 )
-async def antrag_stellen(
-    request: AntragStellen,
+async def submit_application(
+    request: ApplicationCreate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
     locale: Locale = Depends(resolve_locale),
-) -> AntragOut:
+) -> ApplicationOut:
     """Registers own club for a series or event.
 
     The application doesn't count anywhere until the admin accepts it: the club doesn't
     appear publicly or in any standings, and won't be drawn.
     """
-    _darf_beantragen(acting, request.club_id, locale)
-    club = await _verein(session, request.club_id, locale)
+    _can_apply(acting, request.club_id, locale)
+    club = await _get_club(session, request.club_id, locale)
 
     if request.series_id is not None:
-        team = await _serienantrag(session, club, request.series_id, locale)
+        team = await _apply_for_series(session, club, request.series_id, locale)
     else:
-        team = await _veranstaltungsantrag(session, club, request.event_id or 0, locale)
+        team = await _apply_for_event(session, club, request.event_id or 0, locale)
 
     await session.commit()
-    return _out(await _mit_bezuegen(session, team.id, locale))
+    return _out(await _with_relations(session, team.id, locale))
 
 
 @router.get(
     "/api/applications",
-    response_model=list[AntragOut],
+    response_model=list[ApplicationOut],
     summary="View own applications",
 )
-async def eigene_antraege(
+async def list_own_applications(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
     locale: Locale = Depends(resolve_locale),
-) -> list[AntragOut]:
-    """Lists the participations of own club and their status — both requested and accepted."""
-    if acting.club_id is None:
+) -> list[ApplicationOut]:
+    """Lists the participations of every club the acting user organizes, and their status —
+    both requested and accepted.
+    """
+    club_ids = acting.managed_club_ids
+    if not club_ids:
         return []
     teams = (
         await session.execute(
@@ -141,7 +144,7 @@ async def eigene_antraege(
             .options(
                 selectinload(Team.club), selectinload(Team.series), selectinload(Team.event)
             )
-            .where(Team.club_id == acting.club_id)
+            .where(Team.club_id.in_(club_ids))
             .order_by(Team.id)
         )
     ).scalars()
@@ -153,15 +156,15 @@ async def eigene_antraege(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Withdraw application",
 )
-async def antrag_zuruecknehmen(
+async def withdraw_application(
     team_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
     locale: Locale = Depends(resolve_locale),
 ) -> None:
     """Withdraws an application while it's still pending."""
-    team = await _mit_bezuegen(session, team_id, locale)
-    if not acting.has_any(Role.ADMIN) and acting.club_id != team.club_id:
+    team = await _with_relations(session, team_id, locale)
+    if not acting.has_any(Role.ADMIN) and not acting.manages_club(team.club_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=tr(locale, en="This is not your application.", de="Das ist nicht Ihr Antrag."),
@@ -181,16 +184,16 @@ async def antrag_zuruecknehmen(
 
 @router.get(
     "/api/admin/applications",
-    response_model=list[AntragOut],
+    response_model=list[ApplicationOut],
     dependencies=[Depends(require_admin)],
     summary="Pending applications",
 )
-async def offene_antraege(
+async def list_pending_applications(
     series_id: int | None = None,
     event_id: int | None = None,
     status_filter: str = "requested",
     session: AsyncSession = Depends(get_session),
-) -> list[AntragOut]:
+) -> list[ApplicationOut]:
     stmt = (
         select(Team)
         .options(
@@ -208,21 +211,21 @@ async def offene_antraege(
 
 @router.post(
     "/api/admin/applications/{team_id}/accept",
-    response_model=AntragOut,
+    response_model=ApplicationOut,
     summary="Accept application",
 )
-async def annehmen(
+async def accept_application(
     team_id: int,
-    request: Entscheidung | None = None,
+    request: ApplicationDecision | None = None,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(require_admin),
     locale: Locale = Depends(resolve_locale),
-) -> AntragOut:
+) -> ApplicationOut:
     """Accepts an application, making the club a participant.
 
     Afterwards everything works like direct assignment.
     """
-    team = await _entscheiden(
+    team = await _decide(
         session, team_id, TeamStatus.ACCEPTED, request.note if request else None, acting, locale
     )
     return _out(team)
@@ -230,17 +233,17 @@ async def annehmen(
 
 @router.post(
     "/api/admin/applications/{team_id}/reject",
-    response_model=AntragOut,
+    response_model=ApplicationOut,
     summary="Reject application",
 )
-async def ablehnen(
+async def reject_application(
     team_id: int,
-    request: Entscheidung | None = None,
+    request: ApplicationDecision | None = None,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(require_admin),
     locale: Locale = Depends(resolve_locale),
-) -> AntragOut:
-    team = await _entscheiden(
+) -> ApplicationOut:
+    team = await _decide(
         session, team_id, TeamStatus.REJECTED, request.note if request else None, acting, locale
     )
     return _out(team)
@@ -249,7 +252,7 @@ async def ablehnen(
 # ------------------------------------------------------------------ Helper functions
 
 
-def _darf_beantragen(acting: User, club_id: int, locale: Locale) -> None:
+def _can_apply(acting: User, club_id: int, locale: Locale) -> None:
     """Only club officers can register — for their own club.
 
     Admins can also register because they can set directly anyway; a request in their
@@ -264,18 +267,18 @@ def _darf_beantragen(acting: User, club_id: int, locale: Locale) -> None:
                 de="Teilnehmer meldet die Vereinsleitung.",
             ),
         )
-    if not acting.has_any(Role.ADMIN) and acting.club_id != club_id:
+    if not acting.has_any(Role.ADMIN) and not acting.manages_club(club_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=tr(
                 locale,
-                en="You can only register your own club.",
-                de="Sie können nur den eigenen Verein anmelden.",
+                en="You can only register a club you organize.",
+                de="Sie können nur einen Verein anmelden, den Sie leiten.",
             ),
         )
 
 
-async def _verein(session: AsyncSession, club_id: int, locale: Locale) -> Club:
+async def _get_club(session: AsyncSession, club_id: int, locale: Locale) -> Club:
     club = (
         await session.execute(select(Club).where(Club.id == club_id))
     ).scalar_one_or_none()
@@ -291,13 +294,13 @@ async def _verein(session: AsyncSession, club_id: int, locale: Locale) -> Club:
     return club
 
 
-async def _serienantrag(
+async def _apply_for_series(
     session: AsyncSession, club: Club, series_id: int, locale: Locale
 ) -> Team:
-    serie = (
+    series = (
         await session.execute(select(Series).where(Series.id == series_id))
     ).scalar_one_or_none()
-    if serie is None:
+    if series is None:
         raise HTTPException(
             status_code=404,
             detail=tr(
@@ -307,29 +310,29 @@ async def _serienantrag(
             ),
         )
 
-    vorhanden = (
+    existing = (
         await session.execute(
             select(Team).where(
                 Team.club_id == club.id,
-                Team.series_id == serie.id,
+                Team.series_id == series.id,
                 Team.event_id.is_(None),
             )
         )
     ).scalar_one_or_none()
-    if vorhanden is not None:
-        return _erneut_versuchen(vorhanden, "this series", locale)
+    if existing is not None:
+        return _retry_after_rejection(existing, "this series", locale)
 
     team = Team(
         name=club.short_name,
         club_id=club.id,
-        series_id=serie.id,
+        series_id=series.id,
         status=TeamStatus.REQUESTED,
     )
     session.add(team)
     return team
 
 
-async def _veranstaltungsantrag(
+async def _apply_for_event(
     session: AsyncSession, club: Club, event_id: int, locale: Locale
 ) -> Team:
     event = (
@@ -345,21 +348,21 @@ async def _veranstaltungsantrag(
             ),
         )
 
-    vorhanden = (
+    existing = (
         await session.execute(
             select(Team).where(Team.club_id == club.id, Team.event_id == event.id)
         )
     ).scalar_one_or_none()
-    if vorhanden is not None:
-        return _erneut_versuchen(vorhanden, "this event", locale)
+    if existing is not None:
+        return _retry_after_rejection(existing, "this event", locale)
 
     try:
-        return await neuer_antritt(session, event, club, status=TeamStatus.REQUESTED)
-    except TeilnahmeFehler as fehler:
-        raise HTTPException(status_code=422, detail=str(fehler)) from fehler
+        return await new_event_entry(session, event, club, status=TeamStatus.REQUESTED)
+    except ParticipationError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
-def _erneut_versuchen(team: Team, where: str, locale: Locale) -> Team:
+def _retry_after_rejection(team: Team, where: str, locale: Locale) -> Team:
     """A new attempt after rejection is allowed — a duplicate application is not."""
     if team.status == TeamStatus.REJECTED:
         team.status = TeamStatus.REQUESTED
@@ -382,7 +385,7 @@ def _erneut_versuchen(team: Team, where: str, locale: Locale) -> Team:
     )
 
 
-async def _mit_bezuegen(session: AsyncSession, team_id: int, locale: Locale) -> Team:
+async def _with_relations(session: AsyncSession, team_id: int, locale: Locale) -> Team:
     team = (
         await session.execute(
             select(Team)
@@ -404,18 +407,18 @@ async def _mit_bezuegen(session: AsyncSession, team_id: int, locale: Locale) -> 
     return team
 
 
-async def _entscheiden(
+async def _decide(
     session: AsyncSession,
     team_id: int,
-    neuer_status: str,
+    new_status: str,
     note: str | None,
     acting: User,
     locale: Locale,
 ) -> Team:
-    team = await _mit_bezuegen(session, team_id, locale)
+    team = await _with_relations(session, team_id, locale)
 
-    if team.status == TeamStatus.ACCEPTED and neuer_status != TeamStatus.ACCEPTED:
-        if await hat_ergebnisse(session, team):
+    if team.status == TeamStatus.ACCEPTED and new_status != TeamStatus.ACCEPTED:
+        if await has_results(session, team):
             raise HTTPException(
                 status_code=409,
                 detail=tr(
@@ -431,8 +434,8 @@ async def _entscheiden(
                 ),
             )
 
-    vorher = team.status
-    team.status = neuer_status
+    previous_status = team.status
+    team.status = new_status
     team.decision_note = note
     team.decided_at = datetime.now(UTC)
 
@@ -443,8 +446,8 @@ async def _entscheiden(
             entity_id=team.id,
             action="decide_participation",
             actor=acting.email,
-            payload={"from": vorher, "to": neuer_status, "note": note},
+            payload={"from": previous_status, "to": new_status, "note": note},
         )
     )
     await session.commit()
-    return await _mit_bezuegen(session, team.id, locale)
+    return await _with_relations(session, team.id, locale)

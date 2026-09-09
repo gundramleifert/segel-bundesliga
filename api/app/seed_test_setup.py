@@ -28,17 +28,17 @@ from app.models import Base
 from app.seed import seed
 from app.seed_users import seed_users
 
-WURZEL = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def _alembic_config() -> Config:
-    config = Config(str(WURZEL / "alembic.ini"))
-    config.set_main_option("script_location", str(WURZEL / "alembic"))
+    config = Config(str(ROOT / "alembic.ini"))
+    config.set_main_option("script_location", str(ROOT / "alembic"))
     config.set_main_option("sqlalchemy.url", settings.database_url)
     return config
 
 
-async def _verwerfen() -> None:
+async def _drop_all() -> None:
     """Drop all tables and migration state."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -47,19 +47,19 @@ async def _verwerfen() -> None:
     print("All tables dropped.")
 
 
-async def _migrieren() -> None:
+async def _migrate() -> None:
     # Alembic calls asyncio.run internally; can't do that from a running loop.
     await asyncio.to_thread(command.upgrade, _alembic_config(), "head")
     print("Schema up to date.")
 
 
 async def seed_test_setup(*, reset: bool = False) -> None:
-    ziel = settings.database_url.split("@")[-1]
-    print(f"Database: {ziel}\n")
+    target = settings.database_url.split("@")[-1]
+    print(f"Database: {target}\n")
 
     if reset:
-        await _verwerfen()
-    await _migrieren()
+        await _drop_all()
+    await _migrate()
 
     print()
     await seed()

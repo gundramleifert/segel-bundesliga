@@ -30,7 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.mail import MailError, send_login_code
-from app.models.auth import Identity, IdentityProvider, LoginCode, User
+from app.models.auth import Identity, IdentityProvider, LoginCode, Role, User, UserRole
 
 _hasher = PasswordHasher()
 
@@ -223,9 +223,21 @@ async def _resolve_user(
     if (provider, subject) not in known:
         session.add(Identity(user_id=user.id, provider=provider, subject=subject))
 
+    _grant_whitelisted_admin(user)
+
     user.last_login_at = datetime.now(UTC)
     await session.flush()
     return user
+
+
+def _grant_whitelisted_admin(user: User) -> None:
+    """Deployment bootstrap: an address listed in ``SBL_ADMIN_EMAILS`` becomes `admin` the
+    moment it signs in, so a fresh deployment has someone who can grant every other role
+    (Story Z-2) without needing direct database access first. Checked on every sign-in, not
+    just account creation, so adding an address to the list later still takes effect."""
+    whitelist = {address.strip().lower() for address in settings.admin_emails}
+    if user.email in whitelist and Role.ADMIN not in user.roles:
+        user.role_rows.append(UserRole(user_id=user.id, role=Role.ADMIN))
 
 
 async def register(session: AsyncSession, email: str, display_name: str) -> None:

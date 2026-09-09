@@ -131,10 +131,10 @@ class TestOncePerCompetition:
 
     async def test_endpoint_rejects_foreign_team(self, client, caplog):
         """Via the API — the database is the last barrier, not the only one."""
-        from tests.stories.test_aufstellung import als_vereinsleitung, erste_mannschaft, spieltag_id
+        from tests.stories.test_aufstellung import club_leadership, first_team, matchday_id
 
-        team_id, club_id, squad = await erste_mannschaft()
-        headers = await als_vereinsleitung(client, caplog, "mv1@example.com", club_id)
+        team_id, club_id, squad = await first_team()
+        headers = await club_leadership(client, caplog, "mv1@example.com", club_id)
 
         async with SessionLocal() as session:
             foreign_team = (
@@ -147,7 +147,7 @@ class TestOncePerCompetition:
             ).scalar_one()
 
         response = await client.put(
-            f"/api/admin/events/{await spieltag_id()}/crew",
+            f"/api/admin/events/{await matchday_id()}/crew",
             headers=headers,
             json={
                 "team_id": foreign_team,

@@ -23,7 +23,7 @@ from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventStatus, Series, Team, TeamStatus
 from app.schemas.public import ClubOut, SeriesOut
-from app.services import hat_ergebnisse, loesche_antritte, uebernehme_serienmeldungen
+from app.services import adopt_series_registrations, delete_event_entries, has_results
 from app.text import slugify
 
 router = APIRouter(
@@ -146,7 +146,7 @@ async def create_series(
 ) -> SeriesAdminOut:
     """Creates a series and registers the selected clubs immediately."""
     slug = slugify(request.slug or request.name)
-    if await _slug_belegt(session, slug):
+    if await _slug_taken(session, slug):
         raise HTTPException(
             status_code=409,
             detail=tr(
@@ -226,7 +226,7 @@ async def set_clubs(
     for club_id, team in existing.items():
         if club_id in desired:
             continue
-        if await hat_ergebnisse(session, team):
+        if await has_results(session, team):
             raise HTTPException(
                 status_code=409,
                 detail=tr(
@@ -242,7 +242,7 @@ async def set_clubs(
                 ),
             )
         # Without series registration, no entry in its events.
-        await loesche_antritte(session, series.id, club_id)
+        await delete_event_entries(session, series.id, club_id)
         await session.delete(team)
 
     session.add_all(
@@ -256,7 +256,7 @@ async def set_clubs(
         if club_id not in existing
     )
     await session.flush()
-    await _antritte_nachziehen(session, series.id)
+    await _backfill_event_entries(session, series.id)
     await session.commit()
     return await _series_out(session, series.id)
 
@@ -304,7 +304,7 @@ async def _resolve_clubs(session: AsyncSession, club_ids: list[int], locale: Loc
     return [found[club_id] for club_id in unique]
 
 
-async def _slug_belegt(session: AsyncSession, slug: str) -> bool:
+async def _slug_taken(session: AsyncSession, slug: str) -> bool:
     """Check if a slug is already taken."""
     hit = (
         await session.execute(select(Series.id).where(Series.slug == slug))
@@ -317,7 +317,7 @@ async def _series_out(session: AsyncSession, series_id: int) -> SeriesAdminOut:
     return next(s for s in await list_all_series(session) if s.id == series_id)
 
 
-async def _antritte_nachziehen(session: AsyncSession, series_id: int) -> None:
+async def _backfill_event_entries(session: AsyncSession, series_id: int) -> None:
     """Register the series' clubs in unraced events of the series.
 
     Normally, the same clubs enter every event of a series; if a club joins later,
@@ -333,4 +333,4 @@ async def _antritte_nachziehen(session: AsyncSession, series_id: int) -> None:
         )
     ).scalars().all()
     for event in events:
-        await uebernehme_serienmeldungen(session, event)
+        await adopt_series_registrations(session, event)

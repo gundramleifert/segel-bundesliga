@@ -17,10 +17,10 @@ from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Series, Team, TeamStatus
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import (
-    aktueller_jahrgang,
-    hat_ergebnisse,
-    loesche_antritte,
-    uebernehme_serienmeldungen,
+    adopt_series_registrations,
+    current_year,
+    delete_event_entries,
+    has_results,
 )
 from app.text import slugify
 
@@ -86,7 +86,7 @@ class ClubAdminOut(ClubOut):
 async def list_all_clubs(session: AsyncSession = Depends(get_session)) -> list[ClubAdminOut]:
     """Includes those not yet assigned — otherwise they couldn't be found."""
     clubs = (await session.execute(select(Club).order_by(Club.name))).scalars().all()
-    current_year = await aktueller_jahrgang(session)
+    year = await current_year(session)
 
     assignments = (
         await session.execute(
@@ -114,8 +114,8 @@ async def list_all_clubs(session: AsyncSession = Depends(get_session)) -> list[C
             **ClubOut.model_validate(club).model_dump(),
             assignments=by_club.get(club.id, []),
             visible=any(
-                z.series.year == current_year and z.status == TeamStatus.ACCEPTED
-                for z in by_club.get(club.id, [])
+                assignment.series.year == year and assignment.status == TeamStatus.ACCEPTED
+                for assignment in by_club.get(club.id, [])
             ),
         )
         for club in clubs
@@ -176,7 +176,7 @@ async def set_series(
     for series_id, team in existing.items():
         if series_id in desired:
             continue
-        if await hat_ergebnisse(session, team):
+        if await has_results(session, team):
             raise HTTPException(
                 status_code=409,
                 detail=tr(
@@ -192,7 +192,7 @@ async def set_series(
                 ),
             )
         # Without series registration, no entry in its events.
-        await loesche_antritte(session, series_id, club.id)
+        await delete_event_entries(session, series_id, club.id)
         await session.delete(team)
 
     for series_id in desired:
@@ -208,7 +208,7 @@ async def set_series(
             )
 
     await session.flush()
-    await _antritte_nachziehen(session, desired.keys())
+    await _backfill_event_entries(session, desired.keys())
     await session.commit()
     return next(c for c in await list_all_clubs(session) if c.id == club_id)
 
@@ -220,7 +220,7 @@ async def create_club(
     locale: Locale = Depends(resolve_locale),
 ) -> Club:
     slug = slugify(request.slug or request.short_name or request.name)
-    if await _slug_belegt(session, slug):
+    if await _slug_taken(session, slug):
         raise HTTPException(
             status_code=409,
             detail=tr(
@@ -272,7 +272,7 @@ async def update_club(
     return club
 
 
-async def _slug_belegt(session: AsyncSession, slug: str) -> bool:
+async def _slug_taken(session: AsyncSession, slug: str) -> bool:
     """Check if a slug is already taken."""
     hit = (
         await session.execute(select(Club.id).where(Club.slug == slug))
@@ -280,7 +280,7 @@ async def _slug_belegt(session: AsyncSession, slug: str) -> bool:
     return hit is not None
 
 
-async def _antritte_nachziehen(session: AsyncSession, series_ids) -> None:
+async def _backfill_event_entries(session: AsyncSession, series_ids) -> None:
     """Register newly assigned clubs in unraced events of their series.
 
     Normally, the same clubs enter every event of a series. If a club joins later,
@@ -298,4 +298,4 @@ async def _antritte_nachziehen(session: AsyncSession, series_ids) -> None:
             )
         ).scalars().all()
         for event in events:
-            await uebernehme_serienmeldungen(session, event)
+            await adopt_series_registrations(session, event)

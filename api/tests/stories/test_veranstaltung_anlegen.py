@@ -12,7 +12,7 @@ from app.db import SessionLocal
 from app.models import Club
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import kopf, registrieren
+from tests.stories.test_registrierung import auth_headers, register
 
 BOATS = [
     {"color": "BLACK", "name": "Black Seven", "sail_number": "GER 701"},
@@ -26,7 +26,7 @@ BOATS = [
 
 async def admin(client, caplog, email: str) -> dict[str, str]:
     await make_user(email, Role.ADMIN)
-    return kopf(await login_as(client, email, caplog))
+    return auth_headers(await login_as(client, email, caplog))
 
 
 async def league_clubs(client) -> list[int]:
@@ -126,7 +126,7 @@ class TestCreateEvent:
         """The host should be able to record the date without waiting for someone."""
         club = await club_id("kyc")
         await make_user("va5@example.com", Role.CLUB_MANAGER, club_id=club)
-        headers = kopf(await login_as(client, "va5@example.com", caplog))
+        headers = auth_headers(await login_as(client, "va5@example.com", caplog))
 
         response = await client.post(
             "/api/admin/events",
@@ -141,7 +141,7 @@ class TestCreateEvent:
 
     async def test_cannot_host_for_foreign_club(self, client, caplog):
         await make_user("va6@example.com", Role.CLUB_MANAGER, club_id=await club_id("kyc"))
-        headers = kopf(await login_as(client, "va6@example.com", caplog))
+        headers = auth_headers(await login_as(client, "va6@example.com", caplog))
 
         response = await client.post(
             "/api/admin/events",
@@ -156,7 +156,7 @@ class TestCreateEvent:
         assert "own club" in response.json()["detail"]
 
     async def test_account_without_role_cannot_create_event(self, client, caplog):
-        headers = kopf(await registrieren(client, caplog, "va7@example.com", "Otto Nobody"))
+        headers = auth_headers(await register(client, caplog, "va7@example.com", "Otto Nobody"))
         response = await client.post(
             "/api/admin/events",
             headers=headers,

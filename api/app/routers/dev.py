@@ -80,11 +80,11 @@ async def list_test_users(
             description=tr(
                 locale,
                 en=" ".join(
-                    DESCRIPTION[rolle] for rolle in sorted(user.roles) if rolle in DESCRIPTION
+                    DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION
                 )
                 or "Signed in, but no special permissions.",
                 de=" ".join(
-                    DESCRIPTION[rolle] for rolle in sorted(user.roles) if rolle in DESCRIPTION
+                    DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION
                 )
                 or "Angemeldet, aber ohne besondere Rechte.",
             ),
@@ -123,10 +123,17 @@ async def dev_login(
 
 # ---------------------------------------------------------------------- SMTP diagnostics
 #
-# TEMPORARY — added to debug a specific deployment's SMTP configuration without needing
-# dashboard/log access. Both are only reachable behind SBL_DEV_LOGIN like the rest of this
-# router; still, remove this section once STRATO delivery is confirmed working — it isn't
-# meant to be a permanent part of the API.
+# Added to debug the Render test deployment's SMTP/Brevo configuration without needing
+# dashboard/log access — confirmed working end to end (STRATO SMTP is blocked outbound by
+# Render, Brevo's HTTPS API is the live path). Disabled by default now that the question
+# is settled; flip _MAIL_DIAGNOSTICS_ENABLED back to True if a future deployment needs the
+# same investigation again, rather than rewriting this from scratch.
+_MAIL_DIAGNOSTICS_ENABLED = False
+
+
+def _require_mail_diagnostics_enabled() -> None:
+    if not _MAIL_DIAGNOSTICS_ENABLED:
+        raise HTTPException(status_code=404, detail="Not found")
 
 
 class SmtpConfigOut(BaseModel):
@@ -148,6 +155,7 @@ async def smtp_config() -> SmtpConfigOut:
     Files, or defaults, whichever won — without exposing the password/API key itself.
     When `brevo_configured` is true, `app.mail` sends over Brevo's HTTPS API instead of
     SMTP, and the SMTP fields below are irrelevant to what actually gets used."""
+    _require_mail_diagnostics_enabled()
     return SmtpConfigOut(
         smtp_host=settings.smtp_host,
         smtp_port=settings.smtp_port,
@@ -179,6 +187,7 @@ async def test_email(request: TestEmail) -> TestEmailOut:
     `app.services.login.request_email_code` uses (SMTP or Brevo, whichever
     `app.mail.send_login_code` picks), just without needing a valid account or the
     anti-enumeration silence that endpoint deliberately has."""
+    _require_mail_diagnostics_enabled()
     if not settings.smtp_host and not settings.brevo_api_key:
         return TestEmailOut(
             attempted=False,
@@ -214,6 +223,7 @@ async def network_probe(host: str | None = None, port: int | None = None) -> Net
     (DNS returns an address family, usually IPv6, with no actual outbound route, while the
     other family would work fine) from every address genuinely being blocked (e.g. the
     platform firewalling the port itself)."""
+    _require_mail_diagnostics_enabled()
     target_host = host or settings.smtp_host
     target_port = port or settings.smtp_port
     if not target_host:

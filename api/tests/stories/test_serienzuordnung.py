@@ -13,8 +13,8 @@ from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
-async def als(client, caplog, email: str, *rollen: str) -> dict[str, str]:
-    await make_user(email, *rollen)
+async def as_role(client, caplog, email: str, *roles: str) -> dict[str, str]:
+    await make_user(email, *roles)
     token = await login_as(client, email, caplog)
     return {"Authorization": f"Bearer {token}"}
 
@@ -47,7 +47,7 @@ class TestClubCreationAndAssignment:
     """A-3: A club appears publicly only when assigned to a series."""
 
     async def test_name_alone_suffices_for_creation(self, client, caplog):
-        headers = await als(client, caplog, "lz1@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz1@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Segelverein Namenlos")
 
         assert club["slug"] == "segelverein-namenlos"
@@ -56,14 +56,14 @@ class TestClubCreationAndAssignment:
         assert club["city"] is None
 
     async def test_unassigned_club_does_not_appear_on_homepage(self, client, caplog):
-        headers = await als(client, caplog, "lz2@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz2@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Unsichtbarer Segelclub", "USC")
 
         public = (await client.get("/api/clubs")).json()
         assert club["slug"] not in {v["slug"] for v in public}
 
     async def test_admin_also_sees_unassigned_clubs(self, client, caplog):
-        headers = await als(client, caplog, "lz3@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz3@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Noch Ungeordnet", "NUG")
 
         all_clubs = (await client.get("/api/admin/clubs", headers=headers)).json()
@@ -72,7 +72,7 @@ class TestClubCreationAndAssignment:
         assert entry["visible"] is False
 
     async def test_after_assignment_club_appears(self, client, caplog, ids):
-        headers = await als(client, caplog, "lz4@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz4@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Sichtbarer Segelclub", "SSC")
 
         response = await client.put(
@@ -87,7 +87,7 @@ class TestClubCreationAndAssignment:
         assert club["slug"] in {v["slug"] for v in public}
 
     async def test_club_can_enter_multiple_series(self, client, caplog, ids):
-        headers = await als(client, caplog, "lz5@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz5@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Vielseitiger Segelclub", "VSC")
 
         desired = ["dsbl-2-2026", "junioren-2026", "scl-2026"]
@@ -112,7 +112,7 @@ class TestClubCreationAndAssignment:
         assert club["slug"] not in {v["slug"] for v in first}
 
     async def test_assignment_can_be_revoked(self, client, caplog, ids):
-        headers = await als(client, caplog, "lz6@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz6@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Wechselhafter Segelclub", "WSC")
         path = f"/api/admin/clubs/{club['id']}/series"
 
@@ -123,7 +123,7 @@ class TestClubCreationAndAssignment:
         assert empty.json()["visible"] is False
 
     async def test_unknown_series_is_rejected(self, client, caplog):
-        headers = await als(client, caplog, "lz7@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz7@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Fehlerhafter Segelclub", "FSC2")
 
         response = await client.put(
@@ -134,10 +134,10 @@ class TestClubCreationAndAssignment:
         assert response.status_code == 404
 
     async def test_race_officers_cannot_assign(self, client, caplog, ids):
-        headers = await als(client, caplog, "lz8@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz8@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Geschuetzter Segelclub", "GSC")
 
-        race_officer = await als(client, caplog, "lz9@example.com", Role.RACE_OFFICER)
+        race_officer = await as_role(client, caplog, "lz9@example.com", Role.RACE_OFFICER)
         response = await client.put(
             f"/api/admin/clubs/{club['id']}/series",
             headers=race_officer,
@@ -151,7 +151,7 @@ class TestYearTransition:
 
     async def test_2026_assignment_does_not_apply_to_2027(self, client, caplog, ids):
         next_series = await create_series("dsbl-1-2027", "1. Segel-Bundesliga 2027", 2027)
-        headers = await als(client, caplog, "sw1@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "sw1@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Jahreswechsel Segelclub", "JWC")
 
         await client.put(
@@ -168,7 +168,7 @@ class TestYearTransition:
 
     async def test_new_assignment_includes_club_in_2027(self, client, caplog, ids):
         next_series = await create_series("dsbl-1-2027", "1. Segel-Bundesliga 2027", 2027)
-        headers = await als(client, caplog, "sw2@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "sw2@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Treuer Segelclub", "TSC")
 
         await client.put(
@@ -183,7 +183,7 @@ class TestYearTransition:
 
     async def test_assignments_for_both_years_coexist(self, client, caplog, ids):
         next_series = await create_series("dsbl-1-2027", "1. Segel-Bundesliga 2027", 2027)
-        headers = await als(client, caplog, "sw3@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "sw3@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Aufsteiger Segelclub", "ASC")
 
         response = await client.put(
@@ -239,7 +239,7 @@ class TestSeriesNaming:
         assert detail["event"]["series"]["name"] == "1. Segel-Bundesliga 2026"
 
     async def test_assignment_shows_series_name(self, client, caplog, ids):
-        headers = await als(client, caplog, "ln1@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "ln1@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Benennungs Segelclub", "BSC2")
         response = await client.put(
             f"/api/admin/clubs/{club['id']}/series",

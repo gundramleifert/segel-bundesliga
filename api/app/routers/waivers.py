@@ -282,7 +282,7 @@ async def event_waivers(
 
     if not (
         acting.has_any(Role.ADMIN, Role.EDITOR, Role.RACE_OFFICER)
-        or (acting.has_any(Role.CLUB_MANAGER) and acting.club_id == event.host_club_id)
+        or (acting.has_any(Role.CLUB_MANAGER) and acting.manages_club(event.host_club_id))
     ):
         raise Problem(
             403,

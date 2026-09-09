@@ -82,14 +82,40 @@ class User(Base, TimestampMixin):
     def has_any(self, *roles: str) -> bool:
         return bool(self.roles & set(roles))
 
+    def manages_club(self, club_id: int) -> bool:
+        """Whether this account holds `club_manager` for this specific club.
+
+        `club_manager` is granted per club (`UserRole.club_id`), not globally: a person
+        can organize several clubs independently. Unrelated to `User.club_id`, which is
+        the separate "represents" field (shared/club accounts, display convenience).
+        """
+        return any(
+            row.role == Role.CLUB_MANAGER and row.club_id == club_id for row in self.role_rows
+        )
+
+    @property
+    def managed_club_ids(self) -> set[int]:
+        """Every club this account organizes — for "show me everything I manage" listings."""
+        return {
+            row.club_id
+            for row in self.role_rows
+            if row.role == Role.CLUB_MANAGER and row.club_id is not None
+        }
+
 
 class UserRole(Base, TimestampMixin):
     __tablename__ = "user_role"
-    __table_args__ = (UniqueConstraint("user_id", "role"),)
+    __table_args__ = (UniqueConstraint("user_id", "role", "club_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("app_user.id"), index=True)
     role: Mapped[str] = mapped_column(String(32), index=True)
+    # Which club this grant organizes — meaningful only for `Role.CLUB_MANAGER`.
+    # Every other role (admin, editor, race_officer) is league-wide, so its rows keep
+    # this NULL. A person can hold several `CLUB_MANAGER` rows, one per club they organize.
+    club_id: Mapped[int | None] = mapped_column(
+        ForeignKey("club.id"), default=None, index=True
+    )
 
     user: Mapped[User] = relationship(back_populates="role_rows")
 

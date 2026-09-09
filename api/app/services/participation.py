@@ -17,34 +17,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Club, Event, RaceEntry, Team, TeamStatus
 
 
-class TeilnahmeFehler(ValueError):
+class ParticipationError(ValueError):
     """A participation that isn't allowed to exist like this."""
 
 
-async def serienmeldungen(
-    session: AsyncSession, series_id: int, *, nur_angenommen: bool = True
+async def series_registrations(
+    session: AsyncSession, series_id: int, *, accepted_only: bool = True
 ) -> list[Team]:
     """The clubs registered for the series — not their entries in individual acts."""
     stmt = select(Team).where(Team.series_id == series_id, Team.event_id.is_(None))
-    if nur_angenommen:
+    if accepted_only:
         stmt = stmt.where(Team.status == TeamStatus.ACCEPTED)
     return list((await session.execute(stmt.order_by(Team.name, Team.id))).scalars())
 
 
-async def antritte(
-    session: AsyncSession, event_id: int, *, nur_angenommen: bool = True
+async def event_entries(
+    session: AsyncSession, event_id: int, *, accepted_only: bool = True
 ) -> list[Team]:
     """The teams entered in this event.
 
     Sorted by name so the same input always produces the same pairing.
     """
     stmt = select(Team).where(Team.event_id == event_id)
-    if nur_angenommen:
+    if accepted_only:
         stmt = stmt.where(Team.status == TeamStatus.ACCEPTED)
     return list((await session.execute(stmt.order_by(Team.name, Team.id))).scalars())
 
 
-async def serienmeldung(session: AsyncSession, series_id: int, club_id: int) -> Team | None:
+async def series_registration(session: AsyncSession, series_id: int, club_id: int) -> Team | None:
     return (
         await session.execute(
             select(Team).where(
@@ -56,7 +56,7 @@ async def serienmeldung(session: AsyncSession, series_id: int, club_id: int) -> 
     ).scalar_one_or_none()
 
 
-async def antritt(session: AsyncSession, event_id: int, club_id: int) -> Team | None:
+async def event_entry(session: AsyncSession, event_id: int, club_id: int) -> Team | None:
     return (
         await session.execute(
             select(Team).where(Team.event_id == event_id, Team.club_id == club_id)
@@ -64,25 +64,25 @@ async def antritt(session: AsyncSession, event_id: int, club_id: int) -> Team | 
     ).scalar_one_or_none()
 
 
-async def kader_mannschaft(session: AsyncSession, team: Team) -> Team:
+async def squad_team(session: AsyncSession, team: Team) -> Team:
     """The team the squad hangs off.
 
     For an act, that's the same club's series registration: you register for the series,
     and field a lineup for the individual matchday. If the event stands on its own, the
     squad hangs off it directly.
     """
-    if team.ist_serienmeldung or team.series_id is None:
+    if team.is_series_registration or team.series_id is None:
         return team
-    meldung = await serienmeldung(session, team.series_id, team.club_id)
-    if meldung is None:
-        raise TeilnahmeFehler(
+    registration = await series_registration(session, team.series_id, team.club_id)
+    if registration is None:
+        raise ParticipationError(
             "This club is entered in the event but isn't registered for its series — "
             "so there's no squad."
         )
-    return meldung
+    return registration
 
 
-async def neuer_antritt(
+async def new_event_entry(
     session: AsyncSession,
     event: Event,
     club: Club,
@@ -96,9 +96,9 @@ async def neuer_antritt(
     no series table.
     """
     if event.series_id is not None:
-        meldung = await serienmeldung(session, event.series_id, club.id)
-        if meldung is None or meldung.status != TeamStatus.ACCEPTED:
-            raise TeilnahmeFehler(
+        registration = await series_registration(session, event.series_id, club.id)
+        if registration is None or registration.status != TeamStatus.ACCEPTED:
+            raise ParticipationError(
                 f"{club.short_name} isn't registered for this event's series. "
                 "Register for the series first, then enter the act."
             )
@@ -114,7 +114,7 @@ async def neuer_antritt(
     return team
 
 
-async def uebernehme_serienmeldungen(session: AsyncSession, event: Event) -> list[Team]:
+async def adopt_series_registrations(session: AsyncSession, event: Event) -> list[Team]:
     """Enters the series' registered clubs as participants of the event.
 
     The normal case: the same clubs enter every act of a series. Deviations are then
@@ -123,32 +123,34 @@ async def uebernehme_serienmeldungen(session: AsyncSession, event: Event) -> lis
     if event.series_id is None:
         return []
 
-    schon_da = {team.club_id for team in await antritte(session, event.id, nur_angenommen=False)}
-    neu = [
+    already_entered = {
+        team.club_id for team in await event_entries(session, event.id, accepted_only=False)
+    }
+    new_teams = [
         Team(
-            name=meldung.name,
-            club_id=meldung.club_id,
+            name=registration.name,
+            club_id=registration.club_id,
             series_id=event.series_id,
             event_id=event.id,
             status=TeamStatus.ACCEPTED,
         )
-        for meldung in await serienmeldungen(session, event.series_id)
-        if meldung.club_id not in schon_da
+        for registration in await series_registrations(session, event.series_id)
+        if registration.club_id not in already_entered
     ]
-    session.add_all(neu)
-    return neu
+    session.add_all(new_teams)
+    return new_teams
 
 
-async def hat_ergebnisse(session: AsyncSession, team: Team) -> bool:
+async def has_results(session: AsyncSession, team: Team) -> bool:
     """Whether racing has already happened under this participation.
 
     Results hang off the entry in an event. For a series registration, that means whether
     any of its acts have been raced — otherwise a club could be removed from a series
     whose results still appear in the table.
     """
-    kennungen = [team.id]
-    if team.ist_serienmeldung and team.series_id is not None:
-        kennungen += list(
+    team_ids = [team.id]
+    if team.is_series_registration and team.series_id is not None:
+        team_ids += list(
             (
                 await session.execute(
                     select(Team.id).where(
@@ -160,15 +162,15 @@ async def hat_ergebnisse(session: AsyncSession, team: Team) -> bool:
             ).scalars()
         )
 
-    treffer = (
+    hit = (
         await session.execute(
-            select(RaceEntry.id).where(RaceEntry.team_id.in_(kennungen)).limit(1)
+            select(RaceEntry.id).where(RaceEntry.team_id.in_(team_ids)).limit(1)
         )
     ).scalar_one_or_none()
-    return treffer is not None
+    return hit is not None
 
 
-async def loesche_antritte(session: AsyncSession, series_id: int, club_id: int) -> None:
+async def delete_event_entries(session: AsyncSession, series_id: int, club_id: int) -> None:
     """Removes a club from every act of a series — when its series registration is dropped."""
     for team in (
         await session.execute(

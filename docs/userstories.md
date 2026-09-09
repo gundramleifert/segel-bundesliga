@@ -162,8 +162,13 @@ Acceptance criteria:
 - A revoked role takes effect immediately, not when the token expires.
 - The administrator's own role cannot be self-revoked.
 - A blocked account cannot sign in.
+- **Bootstrap:** an address listed in `SBL_ADMIN_EMAILS` becomes `admin` automatically on
+  its first successful sign-in (any provider) — otherwise a fresh deployment has no one
+  who can grant the first role at all. Checked on every sign-in, not just account
+  creation. See `docs/deploy.md`.
 
-Tests: `api/tests/stories/test_login_and_roles.py::TestRollen`
+Tests: `api/tests/stories/test_login_and_roles.py::TestRollen`,
+`api/tests/stories/test_login_and_roles.py::TestAdminWhitelist`
 
 ### Z-3 ● Assign user to club
 As a **club manager** I want to **assign a user to a club**,
@@ -171,8 +176,9 @@ so that **registrations, posts, and check-in go to the right club**.
 
 Acceptance criteria:
 - The assignment is tied to the account, not the matchday — it applies **across matchdays**.
-- A club manager assigns only their **own** club and moves only people who are not yet
-  assigned or already assigned to their club. Otherwise, other teams could be taken over.
+- A club manager assigns only a club **they organize** (Story A-8 — that can now be more
+  than one) and moves only people who are not yet assigned or already assigned to one of
+  those clubs. Otherwise, other teams could be taken over.
 - Administration is exempt and can set and remove any assignment.
 - People are discoverable by name and email so the assignment is practical.
 - Every change is logged: who, when, from which club to which.
@@ -514,19 +520,26 @@ Tests: `api/tests/stories/test_serienzuordnung.py::TestVereinAnlegenUndZuordnen`
 As **administration** I want to **give a club an organizer**,
 so that **the club manages itself from then on**.
 
-The organizer is the account with the `club_manager` role, bound to their club (via
-`User.club_id`). They maintain squads, lineups, and posts — and apply for participation (V-5).
+The organizer is the account with the `club_manager` role for that club. `club_manager` is
+a **per-club** grant (`UserRole.club_id`) — a person can organize several clubs
+independently, each grant and revoke handled on its own. They maintain squads, lineups, and
+posts — and apply for participation (V-5).
 
 Acceptance criteria:
 - Administration creates the account (name, email) and binds it to the club — the first
   account of a club can only come from administration: who has no one cannot name anyone.
 - **An existing organizer may name more organizers for their own club.** Grant adds
-  `club_manager` to an **active member** of the club; a person only organizes **one** club,
-  so it fails if they already organize a different one.
-- Revoking `club_manager` is allowed too — but **at least one organizer must remain** for
-  the club; the last one can't step down until someone else has taken over. The account
-  stays either way.
+  `club_manager`, scoped to this club, to an **active member** of the club. **A person may
+  organize multiple clubs** — granting a second club no longer fails because they already
+  organize a different one; it fails only if they already organize *this* one.
+- Revoking `club_manager` for one club is allowed too — but **at least one organizer must
+  remain** for that specific club; the last one can't step down until someone else has
+  taken over. Revoking one club never touches a person's organizer status at any other
+  club, and the account stays either way.
 - Every grant and revoke is written to the audit log.
+- `User.club_id` keeps its separate meaning — "the club this account represents" (e.g. a
+  shared club account, Story VA-4) — and is no longer what defines or limits organizer
+  scope. Granting someone's first club populates it as a sensible default if it was unset.
 
 Endpoints: `POST /api/admin/clubs/{club_id}/members/{user_id}/organizer`,
 `DELETE /api/admin/clubs/{club_id}/members/{user_id}/organizer` (an organizer of that club,
@@ -918,20 +931,49 @@ Tests: `api/tests/stories/test_aufstellung.py`
 
 Open: coupling to confirmed liability waiver (S-1, VA-5).
 
-### S-2 ○ Upload own photo
-As a **sailor** I want to **optionally upload a photo of myself**,
-so that **people see who sails for the club**.
+### S-2 ◐ Upload own photo, edit own name and birthdate
+As a **sailor** I want to **optionally upload a photo of myself and correct my own name
+or birthdate**, so that **people see who sails for the club, and my data is right**.
 
 Acceptance criteria:
-- Voluntary. Without a photo everything remains usable; there is a neutral placeholder.
-- The person uploads it themselves and can remove it anytime.
-- On upload it must be confirmed that rights to the image are held.
-- Cropped and scaled down; mobile format works.
+- Voluntary. Without a photo everything remains usable; the frontend renders a neutral
+  placeholder itself (`GET /api/sailors/{id}/photo` only serves the file — a missing one
+  is a plain 404, not this endpoint's job).
+- The person uploads it themselves (`POST /api/sailors/me/photo`) and can remove it
+  anytime (`DELETE /api/sailors/me/photo` — removing an absent photo is a no-op, not an
+  error).
+- Cropped and scaled down; mobile format works: every upload is EXIF-rotated upright,
+  center-cropped to a square, and downsized to a fixed 512×512 JPEG regardless of the
+  source aspect ratio or camera format. Rejected with a typed error if it's not a
+  readable image, or over ~5&nbsp;MB.
+- The sailor can also view and correct their own `first_name`/`last_name`/`birth_date`
+  (`GET`/`PATCH /api/sailors/me`) — previously only a club manager or admin could. Not
+  `email`: that's account identity, out of scope here. Resolved via the account's
+  **verified** email matching `Sailor.email` — the same link Story S-1's waiver
+  confirmation already relies on — so there is no id parameter to point at anyone else's
+  record. An account with no matching sailor row (e.g. an admin-only account) gets a
+  clear 404, not a crash.
 
-Open: Is the photo publicly visible or only in the logged-in area? For minors, being publicly
-visible is sensitive and needs guardian consent.
+**Storage** (resolves the "not yet decided" note below, for this story only): a
+deterministic local path, `api/uploads/sailors/{sailor_id}.jpg` — the file's existence
+*is* the "has a photo" state, so no database column was needed. Not versioned (see
+`.gitignore`); an S3-compatible store remains a later option once this needs to survive
+redeploys of the API's disk, or multiple instances.
 
-Tests: none yet
+**Resolved — visibility:** public **unless** the sailor is a minor (under 18 as of
+today) *and* has a `birth_date` on record: their photo is then shown only to a signed-in
+account connected to them — themselves, `admin`/`editor`, or a manager of a club they're
+registered with — matching how Story S-1 already treats minors' data with extra care.
+An adult's, or a sailor with no recorded birthdate, is public — "so that people see who
+sails for the club" is the point of the story, and there's no reason to gate it absent
+the minors concern. No separate rights-confirmation checkbox was added: the upload is
+already restricted to the sailor's own account, which is a stronger guarantee than a
+click-through checkbox would be — open if a future review wants it anyway (e.g. for a
+guardian uploading on a minor's behalf, which is out of scope for now: today only the
+sailor's own linked account can upload their photo, same as a minor's waiver still needs
+the *guardian's* signature recorded separately in S-1).
+
+Tests: `api/tests/stories/test_sailor_profile.py`
 
 ### V-3 ○ Upload club crest
 As a **club manager** I want to **upload our club's crest**,
@@ -963,7 +1005,7 @@ Acceptance criteria:
 
 Tests: none yet
 
-### WL-2 ○ Enter and edit results easily
+### WL-2 ◐ Enter and edit results easily
 As **race committee** I want to **enter and correct results easily**,
 so that **a mis-entry is not a disaster**.
 
@@ -975,7 +1017,18 @@ Acceptance criteria:
 - With simultaneous changes on two devices, the later entry wins; the overridden status is
   not lost but logged and displayed.
 
-Tests: none yet
+Open: results are typed in (position number or code per boat), not tapped in finish order —
+a touch-optimized "tap the finish line" UI and full offline capture are Story WL-1 (offline
+sync) territory and stay open here.
+What's done: `PUT /api/admin/events/{event_id}/races/{race_id}/result` records
+`code`/`finish_position`/`redress_points` per boat (`admin`, `race_officer`), rejects an
+invalid ranking (two boats claiming the same place), and recomputes points/standings
+immediately, so a protest decision is a one-row correction, never a data migration. With a
+stale `version`, the later submission still wins (a rocking boat is no place for a hard
+conflict error), but the state it replaces is written to `AuditLog` first, not silently
+dropped — displaying that history in the UI remains open.
+
+Tests: `api/tests/stories/test_ergebniserfassung.py::TestErgebniserfassung`
 
 ---
 
@@ -986,11 +1039,15 @@ Sensible next areas:
 - **B-…** Live: follow running race, see boats on map.
 - **S-…** Tracking: register mobile as tracker and record.
 - **A-…** Administration: set up seasons and leagues, maintain venues.
-- **File storage — not yet decided.** Three stories need uploads: the scan of the consent
-  (S-1), member photo (S-2), and club crest (V-3). There is no storage yet. To be clarified
-  before the first is built: local directory or S3-compatible storage, size and type limits,
-  virus scanning, and especially **access control** — crests and photos may be public, the
-  scan from S-1 on no account. This rules out putting everything under the same static path.
+- **File storage — decided for S-2, still open for S-1 and V-3.** Three stories need
+  uploads: the scan of the consent (S-1), member photo (S-2), and club crest (V-3). S-2
+  now uses a local directory (`api/uploads/sailors/{id}.jpg`, deterministic path, no
+  database column, access control per request in `app/routers/sailors.py`) — see its
+  section above for the reasoning. Still to be decided before S-1 is built, since a
+  consent scan is far more sensitive than a photo: local directory or S3-compatible
+  storage, size and type limits, virus scanning, and retention. **Access control differs
+  per story** — a crest and most photos are public, the scan from S-1 on no account —
+  which already rules out one shared static path for all three.
 - **Deadlines:** deliberately left out for now. Series and event each have a **time range**
   (`starts_on`, `ends_on`); a deadline concept is derived from this if it becomes clear what
   is needed.

@@ -44,12 +44,12 @@ from app.pairing import build_pairing
 from app.services.standings import recompute_series
 from app.text import slugify
 
-JAHRGANG = 2026
+YEAR = 2026
 BOATS = 6
 FLIGHTS = 16
 # A club registers ten members for the season (Story V-1); four of them sail
 # at one matchday (Story V-2).
-KADER = 10
+SQUAD_SIZE = 10
 CREW = 4
 
 CLUBS: list[tuple[str, str, str]] = [
@@ -111,14 +111,14 @@ async def seed() -> None:
             await _wipe(session)
 
         # A series carries its year in the name — there is no separate season anymore.
-        wertung = {"discard_after": [], "penalty_percent": 20}
-        erste = Series(
+        scoring = {"discard_after": [], "penalty_percent": 20}
+        first_league = Series(
             slug="dsbl-1-2026",
             name="1. Segel-Bundesliga 2026",
             short_name="1. Liga 2026",
-            year=JAHRGANG,
+            year=YEAR,
             level=1,
-            scoring=wertung,
+            scoring=scoring,
             description=(
                 "## Willkommen zur 1. Segel-Bundesliga 2026\n\n"
                 "Gesegelt wird nach **Low-Point-Wertung**: Wer die wenigsten Punkte "
@@ -128,30 +128,30 @@ async def seed() -> None:
                 "Wir freuen uns auf eine spannende Saison mit allen 18 Vereinen!"
             ),
         )
-        zweite = Series(
+        second_league = Series(
             slug="dsbl-2-2026",
             name="2. Segel-Bundesliga 2026",
             short_name="2. Liga 2026",
-            year=JAHRGANG,
+            year=YEAR,
             level=2,
-            scoring=wertung,
+            scoring=scoring,
         )
-        junioren = Series(
+        juniors = Series(
             slug="junioren-2026",
             name="Junioren-Segelliga 2026",
             short_name="Junioren 2026",
-            year=JAHRGANG,
-            scoring=wertung,
+            year=YEAR,
+            scoring=scoring,
         )
         champions = Series(
             slug="scl-2026",
             name="Sailing Champions League 2026",
             short_name="SCL 2026",
-            year=JAHRGANG,
-            scoring=wertung,
+            year=YEAR,
+            scoring=scoring,
         )
-        serien = [erste, zweite, junioren, champions]
-        session.add_all(serien)
+        series_list = [first_league, second_league, juniors, champions]
+        session.add_all(series_list)
 
         # The liability waiver in force. One version is enough for the seed; a wording
         # change would be version 2 (Story S-2).
@@ -211,51 +211,51 @@ async def seed() -> None:
 
         # The teams of all leagues. A club can compete in several; each
         # team has its own roster — juniors are different people than the first.
-        zuordnungen: list[tuple[Series, Club]] = [
-            *((erste, club) for club in clubs),
+        assignments: list[tuple[Series, Club]] = [
+            *((first_league, club) for club in clubs),
             *(
-                (serie, club)
-                for serie, anzahl in ((junioren, 12), (champions, 6))
-                for club in clubs[:anzahl]
+                (series, club)
+                for series, count in ((juniors, 12), (champions, 6))
+                for club in clubs[:count]
             ),
         ]
 
-        mannschaften = [
+        teams = [
             (
-                serie,
+                series,
                 club,
-                Team(name=club.short_name, club_id=club.id, series_id=serie.id),
+                Team(name=club.short_name, club_id=club.id, series_id=series.id),
             )
-            for serie, club in zuordnungen
+            for series, club in assignments
         ]
-        session.add_all(team for _, _, team in mannschaften)
+        session.add_all(team for _, _, team in teams)
         await session.flush()
 
         # The acts are sailed for the first series. These are the registrations for
         # the series; the participation in each act is created below per event.
-        meldungen = [team for serie, _, team in mannschaften if serie is erste]
+        registrations = [team for series, _, team in teams if series is first_league]
 
-        kader: dict[int, list[Sailor]] = {}
-        laufend = 0
-        for _serie, club, team in mannschaften:
-            kader[team.id] = []
-            for position in range(KADER):
-                vorname = rng.choice(FIRST_NAMES)
-                nachname = rng.choice(LAST_NAMES)
-                laufend += 1
+        squads: dict[int, list[Sailor]] = {}
+        counter = 0
+        for _series, club, team in teams:
+            squads[team.id] = []
+            for position in range(SQUAD_SIZE):
+                first_name = rng.choice(FIRST_NAMES)
+                last_name = rng.choice(LAST_NAMES)
+                counter += 1
                 sailor = Sailor(
-                    first_name=vorname,
-                    last_name=nachname,
+                    first_name=first_name,
+                    last_name=last_name,
                     # Unique via a sequential counter — names repeat
                     # and a club fields multiple teams.
-                    email=f"{slugify(vorname)}.{slugify(nachname)}{laufend}"
+                    email=f"{slugify(first_name)}.{slugify(last_name)}{counter}"
                     f"@{club.slug}.example.com",
                     # Juniors are teenagers — several are minors on a 2026 matchday, which
                     # is what makes the guardian path in Story S-2 testable against the
                     # seed. Everyone else is an adult.
                     birth_date=date(
                         rng.randint(2009, 2011)
-                        if _serie is junioren
+                        if _series is juniors
                         else rng.randint(1985, 2004),
                         rng.randint(1, 12),
                         rng.randint(1, 28),
@@ -263,7 +263,7 @@ async def seed() -> None:
                 )
                 session.add(sailor)
                 await session.flush()
-                kader[team.id].append(sailor)
+                squads[team.id].append(sailor)
                 session.add(
                     TeamMembership(
                         team_id=team.id,
@@ -294,10 +294,10 @@ async def seed() -> None:
                 starts_on=day,
                 ends_on=day + timedelta(days=2),
                 status=status,
-                team_count=len(meldungen),
+                team_count=len(registrations),
                 boat_count=BOATS,
                 flight_count=FLIGHTS,
-                series_id=erste.id,
+                series_id=first_league.id,
                 venue_id=venue.id,
             )
             session.add(event)
@@ -305,27 +305,27 @@ async def seed() -> None:
 
             # The participation in this act. This is where pairing list, results, and
             # lineup hang from — the series registration alongside carries the roster.
-            antritte = [
+            entries = [
                 Team(
-                    name=meldung.name,
-                    club_id=meldung.club_id,
-                    series_id=erste.id,
+                    name=registration.name,
+                    club_id=registration.club_id,
+                    series_id=first_league.id,
                     event_id=event.id,
                 )
-                for meldung in meldungen
+                for registration in registrations
             ]
-            session.add_all(antritte)
+            session.add_all(entries)
             await session.flush()
 
-            await _seed_matchday(session, event, antritte, rng, status)
+            await _seed_matchday(session, event, entries, rng, status)
 
             # Lineup for the matchday: the first four from the roster sail.
-            for meldung, antritt in zip(meldungen, antritte, strict=True):
-                for position, sailor in enumerate(kader[meldung.id][:CREW]):
+            for registration, entry in zip(registrations, entries, strict=True):
+                for position, sailor in enumerate(squads[registration.id][:CREW]):
                     session.add(
                         EventCrew(
                             event_id=event.id,
-                            team_id=antritt.id,
+                            team_id=entry.id,
                             sailor_id=sailor.id,
                             role=CrewRole.HELM if position == 0 else CrewRole.CREW,
                         )
@@ -334,12 +334,12 @@ async def seed() -> None:
         await session.commit()
 
         # Points and standings are derived — build them once after creation.
-        for serie in serien:
-            await recompute_series(session, serie.id)
+        for series in series_list:
+            await recompute_series(session, series.id)
         await session.commit()
 
     print(
-        f"Seed complete: {len(CLUBS)} clubs with {KADER} members each, 4 series, 3 acts, "
+        f"Seed complete: {len(CLUBS)} clubs with {SQUAD_SIZE} members each, 4 series, 3 acts, "
         f"{FLIGHTS * 3} races per act"
     )
 
