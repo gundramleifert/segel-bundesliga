@@ -159,7 +159,7 @@ export interface TestAccount {
   display_name: string;
   roles: string[];
   club: string | null;
-  beschreibung: string;
+  description: string;
 }
 
 export const api = {

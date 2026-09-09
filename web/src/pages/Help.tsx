@@ -1,7 +1,7 @@
 import { Card } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 
-import { Seitenkopf } from "../components/Bausteine";
+import { PageHeader } from "../components/Blocks";
 
 const ROLE_COLUMNS = ["admin", "editor", "raceOfficer", "clubManager"] as const;
 type RoleColumn = (typeof ROLE_COLUMNS)[number];
@@ -78,16 +78,16 @@ export function Help() {
 
   return (
     <>
-      <Seitenkopf titel={t("title")} unterzeile={t("intro")} testId="help-header" />
+      <PageHeader title={t("title")} subtitle={t("intro")} testId="help-header" />
 
       <section data-testid="help-roles-section" className="mb-10">
         <h2 className="mb-1 text-lg font-semibold">{t("roles.title")}</h2>
         <p className="mb-3 text-sm text-slate-600">{t("roles.intro")}</p>
 
         {/* Scrolls horizontally inside its own box on narrow screens, matching the
-            approach TabellenRahmen uses for results tables — the page itself never
+            approach TableFrame uses for results tables — the page itself never
             scrolls sideways. */}
-        <div className="tabelle-scroll rounded-xl border border-slate-200 bg-white">
+        <div className="table-scroll rounded-xl border border-slate-200 bg-white">
           <table data-testid="help-roles-table" className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left">

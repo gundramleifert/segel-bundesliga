@@ -7,7 +7,7 @@
  * `"club-card-12"`, `"event-row-34"`, `"admin-series-row-7"`. State-dependent regions
  * (loading/error/empty/success) get their own testid too, since those are exactly what a
  * flow test asserts on. Reusable building-block components
- * (`components/Bausteine.tsx`, `pages/verwaltungBausteine.tsx`) accept an optional
+ * (`components/Blocks.tsx`, `pages/adminBuildingBlocks.tsx`) accept an optional
  * `testId` prop that they forward to their root element, with a sensible default derived
  * from context (via `slugify` below) when one is available — call sites pass an explicit
  * `testId` whenever they need something more specific than that default.

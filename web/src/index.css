@@ -36,7 +36,7 @@ html {
  * unless the box is explicitly bounded). That trade — a second, nested vertical scrollbar
  * for every long table — was tried and reverted: one scrollbar per axis (this box's
  * horizontal one, the page's vertical one) matters more here than a pinned header. */
-.tabelle-scroll {
+.table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }

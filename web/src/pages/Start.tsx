@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
 import { useApi } from "../api/useApi";
-import { Fehler, Laden, Leer, SpieltagKarte } from "../components/Bausteine";
-import { zeitraum } from "../lib/format";
+import { ErrorMessage, Loading, Empty, MatchdayCard } from "../components/Blocks";
+import { dateRange } from "../lib/format";
 
 /** The home page shows two things: all events and all series.
  *
@@ -14,19 +14,19 @@ import { zeitraum } from "../lib/format";
  */
 export function Start() {
   const { t } = useTranslation("start");
-  const termine = useApi(["events"], (signal) => api.events(signal));
-  const serien = useApi(["series"], (signal) => api.series(signal));
+  const eventsQuery = useApi(["events"], (signal) => api.events(signal));
+  const seriesList = useApi(["series"], (signal) => api.series(signal));
 
-  if (termine.loading || serien.loading) return <Laden testId="start-loading" />;
-  if (termine.error) return <Fehler text={termine.error} testId="start-events-error" />;
+  if (eventsQuery.loading || seriesList.loading) return <Loading testId="start-loading" />;
+  if (eventsQuery.error) return <ErrorMessage text={eventsQuery.error} testId="start-events-error" />;
 
-  const events = termine.data ?? [];
+  const events = eventsQuery.data ?? [];
   // How many events belong to a series — already known from the events list, so no
   // second request is needed.
-  const actsJeSerie = new Map<number, number>();
+  const actsPerSeries = new Map<number, number>();
   for (const event of events) {
     if (event.series) {
-      actsJeSerie.set(event.series.id, (actsJeSerie.get(event.series.id) ?? 0) + 1);
+      actsPerSeries.set(event.series.id, (actsPerSeries.get(event.series.id) ?? 0) + 1);
     }
   }
 
@@ -71,43 +71,43 @@ export function Start() {
           <ul className="grid gap-4 sm:grid-cols-2">
             {events.map((event) => (
               <li key={event.id}>
-                <SpieltagKarte event={event} />
+                <MatchdayCard event={event} />
               </li>
             ))}
           </ul>
         ) : (
-          <Leer testId="start-events-empty">{t("eventsSection.empty")}</Leer>
+          <Empty testId="start-events-empty">{t("eventsSection.empty")}</Empty>
         )}
       </section>
 
       <section data-testid="start-series-section">
         <h2 className="mb-3 text-lg font-semibold">{t("seriesSection.heading")}</h2>
 
-        {serien.error && <Fehler text={serien.error} testId="start-series-error" />}
+        {seriesList.error && <ErrorMessage text={seriesList.error} testId="start-series-error" />}
 
-        {!serien.error &&
-          (serien.data?.length ? (
+        {!seriesList.error &&
+          (seriesList.data?.length ? (
             <ul className="grid gap-4 sm:grid-cols-2">
-              {serien.data.map((serie) => {
-                const acts = actsJeSerie.get(serie.id) ?? 0;
-                const zeitangabe =
-                  serie.starts_on && serie.ends_on
-                    ? zeitraum(serie.starts_on, serie.ends_on)
+              {seriesList.data.map((series) => {
+                const acts = actsPerSeries.get(series.id) ?? 0;
+                const dateRangeText =
+                  series.starts_on && series.ends_on
+                    ? dateRange(series.starts_on, series.ends_on)
                     : null;
 
                 return (
-                  <li key={serie.id}>
+                  <li key={series.id}>
                     <Link
-                      to={`/series/${serie.id}`}
-                      data-testid={`start-series-card-${serie.id}`}
+                      to={`/series/${series.id}`}
+                      data-testid={`start-series-card-${series.id}`}
                       className="block group"
                     >
                       <Card className="h-full transition-shadow group-hover:shadow-md">
                         <Card.Header>
-                          <Card.Title>{serie.name}</Card.Title>
+                          <Card.Title>{series.name}</Card.Title>
                           <Card.Description>
                             {t("seriesSection.eventCount", { count: acts })}
-                            {zeitangabe && ` · ${zeitangabe}`}
+                            {dateRangeText && ` · ${dateRangeText}`}
                           </Card.Description>
                         </Card.Header>
                         <Card.Content>
@@ -120,7 +120,7 @@ export function Start() {
               })}
             </ul>
           ) : (
-            <Leer testId="start-series-empty">{t("seriesSection.empty")}</Leer>
+            <Empty testId="start-series-empty">{t("seriesSection.empty")}</Empty>
           ))}
       </section>
     </>

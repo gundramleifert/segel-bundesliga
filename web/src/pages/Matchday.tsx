@@ -10,54 +10,54 @@ import {
   type EventSummary,
   type StandingRow,
 } from "../api/client";
-import { useApi, useInvalidieren, useKonto } from "../api/useApi";
+import { useApi, useInvalidate, useAccount } from "../api/useApi";
 import {
-  Fehler,
-  Laden,
-  Leer,
-  Seitenkopf,
-  StatusMarke,
-  TabellenRahmen,
-} from "../components/Bausteine";
-import { bootsfarbe, ortText, punkte, spieltagUntertitel, zeitraum } from "../lib/format";
-import { EINGABE, fehlertext } from "../lib/verwaltung";
+  ErrorMessage,
+  Loading,
+  Empty,
+  PageHeader,
+  StatusBadge,
+  TableFrame,
+} from "../components/Blocks";
+import { boatColor, locationText, formatPoints, matchdaySubtitle, dateRange } from "../lib/format";
+import { INPUT_CLASS, errorText } from "../lib/admin";
 
 /** `races_per_flight = ceil(team_count / boat_count)` — same formula as
  *  `Verwaltung.tsx`'s `events.formatText` (`CLAUDE.md`: "The Event defines the
  *  configuration"). Guarded against `boat_count === 0` while an event is still being set up. */
-function racesProFlight(event: Pick<EventSummary, "team_count" | "boat_count">): number {
+function racesPerFlight(event: Pick<EventSummary, "team_count" | "boat_count">): number {
   return event.boat_count > 0 ? Math.ceil(event.team_count / event.boat_count) : 0;
 }
 
 /** Sum of a team's `points_by_race` for the races that belong to one flight, or `null` when
  *  none of that flight's races have a result yet for this team. Keys of `points_by_race` are
  *  JSON object keys (always strings) even though the backend type is `dict[int, float]`. */
-function punkteImFlight(zeile: StandingRow, flight: number, proFlight: number): number | null {
-  const start = (flight - 1) * proFlight + 1;
-  const end = flight * proFlight;
-  let summe = 0;
-  let vorhanden = false;
-  for (const [sequenzText, wert] of Object.entries(zeile.points_by_race)) {
-    const sequenz = Number(sequenzText);
-    if (sequenz >= start && sequenz <= end) {
-      summe += wert;
-      vorhanden = true;
+function pointsInFlight(row: StandingRow, flight: number, perFlight: number): number | null {
+  const start = (flight - 1) * perFlight + 1;
+  const end = flight * perFlight;
+  let sum = 0;
+  let present = false;
+  for (const [sequenceText, value] of Object.entries(row.points_by_race)) {
+    const sequence = Number(sequenceText);
+    if (sequence >= start && sequence <= end) {
+      sum += value;
+      present = true;
     }
   }
-  return vorhanden ? summe : null;
+  return present ? sum : null;
 }
 
 /** Which flights have at least one recorded result, for *any* team — a flight nobody has
  *  raced in yet gets a plain "–" for everyone, not a grey estimate: an estimate only makes
  *  sense once the flight is actually under way (someone else's race in it already ran). */
-function begonneneFlights(standings: StandingRow[], proFlight: number): Set<number> {
-  const begonnen = new Set<number>();
-  for (const zeile of standings) {
-    for (const sequenzText of Object.keys(zeile.points_by_race)) {
-      begonnen.add(Math.ceil(Number(sequenzText) / proFlight));
+function startedFlights(standings: StandingRow[], perFlight: number): Set<number> {
+  const started = new Set<number>();
+  for (const row of standings) {
+    for (const sequenceText of Object.keys(row.points_by_race)) {
+      started.add(Math.ceil(Number(sequenceText) / perFlight));
     }
   }
-  return begonnen;
+  return started;
 }
 
 /** A team's own average points per sailed race — or, before it has sailed anything, the fair
@@ -66,8 +66,8 @@ function begonneneFlights(standings: StandingRow[], proFlight: number): Set<numb
  *  number both fills a not-yet-sailed flight's cell (shown greyed, clearly an estimate, never
  *  a real result) and builds the projected total below — never persisted, purely a display
  *  computation. */
-function erwarteterDurchschnitt(zeile: StandingRow, boatCount: number): number {
-  return zeile.races_scored > 0 ? zeile.total / zeile.races_scored : (boatCount + 1) / 2;
+function expectedAverage(row: StandingRow, boatCount: number): number {
+  return row.races_scored > 0 ? row.total / row.races_scored : (boatCount + 1) / 2;
 }
 
 /** The flights this team has no result in *yet* which are nevertheless already under way —
@@ -79,14 +79,14 @@ function erwarteterDurchschnitt(zeile: StandingRow, boatCount: number): number {
  *  keeps a projection from ever drifting more than a single race's worth above the real
  *  total, without needing a separate cap to enforce it. A flight nobody has reached yet is
  *  never estimated: there is no evidence it is under way. */
-function geschaetzteFlights(
-  zeile: StandingRow,
+function estimatedFlights(
+  row: StandingRow,
   flights: number[],
-  proFlight: number,
-  begonnen: Set<number>,
+  perFlight: number,
+  started: Set<number>,
 ): number[] {
   return flights.filter(
-    (flight) => begonnen.has(flight) && punkteImFlight(zeile, flight, proFlight) === null,
+    (flight) => started.has(flight) && pointsInFlight(row, flight, perFlight) === null,
   );
 }
 
@@ -94,41 +94,41 @@ function geschaetzteFlights(
 export function Matchday() {
   const { t } = useTranslation("matchday");
   const { id = "" } = useParams();
-  const [ansicht, setAnsicht] = useState<"wertung" | "pairing" | "ergebnisse">("wertung");
-  const { hatRolle } = useKonto();
-  const kannErfassen = hatRolle("admin", "race_officer");
+  const [view, setView] = useState<"standings" | "pairing" | "results">("standings");
+  const { hasRole } = useAccount();
+  const canEnterResults = hasRole("admin", "race_officer");
 
-  const spieltag = useApi(["event", id], (signal) => api.event(Number(id), signal));
+  const matchday = useApi(["event", id], (signal) => api.event(Number(id), signal));
 
-  if (spieltag.loading) return <Laden text={t("loading")} testId="matchday-loading" />;
-  if (spieltag.error) return <Fehler text={spieltag.error} testId="matchday-error" />;
-  if (!spieltag.data) return null;
+  if (matchday.loading) return <Loading text={t("loading")} testId="matchday-loading" />;
+  if (matchday.error) return <ErrorMessage text={matchday.error} testId="matchday-error" />;
+  if (!matchday.data) return null;
 
-  const { event, standings, races_scored, races_total } = spieltag.data;
+  const { event, standings, races_scored, races_total } = matchday.data;
 
-  const tabs: Array<["wertung" | "pairing" | "ergebnisse", string]> = [
-    ["wertung", t("standingsTab")],
+  const tabs: Array<["standings" | "pairing" | "results", string]> = [
+    ["standings", t("standingsTab")],
     ["pairing", t("pairingTab")],
   ];
-  if (kannErfassen) tabs.push(["ergebnisse", t("resultsTab")]);
+  if (canEnterResults) tabs.push(["results", t("resultsTab")]);
 
   return (
     <>
-      <Seitenkopf
-        titel={event.title}
-        unterzeile={
+      <PageHeader
+        title={event.title}
+        subtitle={
           <>
             {[
-              spieltagUntertitel(event),
-              ortText(event),
-              zeitraum(event.starts_on, event.ends_on),
+              matchdaySubtitle(event),
+              locationText(event),
+              dateRange(event.starts_on, event.ends_on),
             ]
               .filter(Boolean)
               .join(" · ")}
           </>
         }
         testId="matchday-header"
-        rechts={<StatusMarke status={event.status} testId="matchday-status-badge" />}
+        right={<StatusBadge status={event.status} testId="matchday-status-badge" />}
       />
 
       <p className="mb-6 text-sm text-slate-600">
@@ -146,11 +146,11 @@ export function Matchday() {
           <button
             key={value}
             role="tab"
-            aria-selected={ansicht === value}
-            onClick={() => setAnsicht(value)}
+            aria-selected={view === value}
+            onClick={() => setView(value)}
             data-testid={`matchday-${value}-tab`}
             className={`rounded-md px-4 py-1.5 text-sm transition-colors ${
-              ansicht === value
+              view === value
                 ? "bg-marke-600 font-medium text-white"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
@@ -160,11 +160,11 @@ export function Matchday() {
         ))}
       </div>
 
-      {ansicht === "wertung" && (
+      {view === "standings" && (
         <DailyStandings standings={standings} event={event} />
       )}
-      {ansicht === "pairing" && <PairingList eventId={Number(id)} />}
-      {ansicht === "ergebnisse" && kannErfassen && (
+      {view === "pairing" && <PairingList eventId={Number(id)} />}
+      {view === "results" && canEnterResults && (
         <ResultsEntry eventId={Number(id)} eventIdParam={id} standings={standings} />
       )}
     </>
@@ -180,17 +180,17 @@ function DailyStandings({
 }) {
   const { t } = useTranslation("matchday");
 
-  if (!standings.length) return <Leer testId="matchday-standings-empty">{t("noResultsYet")}</Leer>;
+  if (!standings.length) return <Empty testId="matchday-standings-empty">{t("noResultsYet")}</Empty>;
 
-  const gesegelt = standings.some((zeile) => zeile.races_scored > 0);
-  if (!gesegelt) {
-    return <Leer testId="matchday-standings-not-sailed">{t("notSailedYet")}</Leer>;
+  const hasSailed = standings.some((row) => row.races_scored > 0);
+  if (!hasSailed) {
+    return <Empty testId="matchday-standings-not-sailed">{t("notSailedYet")}</Empty>;
   }
 
-  const proFlight = racesProFlight(event);
+  const perFlight = racesPerFlight(event);
   const flights = Array.from({ length: event.flight_count }, (_, i) => i + 1);
 
-  return <StandingsTable standings={standings} event={event} flights={flights} proFlight={proFlight} t={t} />;
+  return <StandingsTable standings={standings} event={event} flights={flights} perFlight={perFlight} t={t} />;
 }
 
 /** How the one points column reads a team that hasn't sailed every started flight yet.
@@ -201,23 +201,23 @@ function DailyStandings({
  *  toggle over one column rather than two columns side by side: the two numbers answer the
  *  same question ("how does this team stand?") under different assumptions, and showing both
  *  at once invited reading the provisional one as official. */
-type PunkteModus = "exact" | "extrapolate";
+type PointsMode = "exact" | "extrapolate";
 
 function StandingsTable({
   standings,
   event,
   flights,
-  proFlight,
+  perFlight,
   t,
 }: {
   standings: StandingRow[];
   event: EventSummary;
   flights: number[];
-  proFlight: number;
+  perFlight: number;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
-  const [modus, setModus] = useState<PunkteModus>("exact");
-  const flightsBegonnen = begonneneFlights(standings, proFlight);
+  const [mode, setMode] = useState<PointsMode>("exact");
+  const flightsStarted = startedFlights(standings, perFlight);
 
   // Rows always keep the backend's own order — `rank`, official, fewer points ranking higher
   // (`app/services/standings.py`). There is deliberately no client-side sorting: the one
@@ -233,26 +233,26 @@ function StandingsTable({
           data-testid="matchday-standings-mode"
           className="flex shrink-0 overflow-hidden rounded-md border border-slate-300 text-xs"
         >
-          {(["exact", "extrapolate"] as const).map((wert) => (
+          {(["exact", "extrapolate"] as const).map((value) => (
             <button
-              key={wert}
+              key={value}
               type="button"
-              aria-pressed={modus === wert}
-              onClick={() => setModus(wert)}
-              title={t(wert === "exact" ? "pointsModeExactHint" : "pointsModeExtrapolateHint")}
-              data-testid={`matchday-standings-mode-${wert}`}
+              aria-pressed={mode === value}
+              onClick={() => setMode(value)}
+              title={t(value === "exact" ? "pointsModeExactHint" : "pointsModeExtrapolateHint")}
+              data-testid={`matchday-standings-mode-${value}`}
               className={`px-2 py-1.5 transition-colors ${
-                modus === wert
+                mode === value
                   ? "bg-marke-600 font-medium text-white"
                   : "bg-white text-slate-600 hover:bg-slate-100"
               }`}
             >
-              {t(wert === "exact" ? "pointsModeExact" : "pointsModeExtrapolate")}
+              {t(value === "exact" ? "pointsModeExact" : "pointsModeExtrapolate")}
             </button>
           ))}
         </div>
       </div>
-      <TabellenRahmen testId="matchday-standings-table-frame">
+      <TableFrame testId="matchday-standings-table-frame">
       <table
         data-testid="matchday-standings-table"
         className="w-full border-collapse text-sm"
@@ -269,7 +269,7 @@ function StandingsTable({
             </th>
             <th
               scope="col"
-              title={modus === "extrapolate" ? t("projectedTooltip") : undefined}
+              title={mode === "extrapolate" ? t("projectedTooltip") : undefined}
               className="w-32 px-4 py-3 text-right font-medium text-slate-600"
             >
               {/* Always "Points", in both modes: the column is about points either way, and
@@ -294,58 +294,58 @@ function StandingsTable({
           </tr>
         </thead>
         <tbody>
-          {standings.map((zeile) => {
-            const durchschnitt = erwarteterDurchschnitt(zeile, event.boat_count);
-            const geschaetzt = geschaetzteFlights(zeile, flights, proFlight, flightsBegonnen);
+          {standings.map((row) => {
+            const average = expectedAverage(row, event.boat_count);
+            const estimated = estimatedFlights(row, flights, perFlight, flightsStarted);
             // The projected total is exactly the row's own cells added up: real flight sums
             // plus one expected average per greyed cell. Nothing is added that isn't shown.
-            const hochgerechnet = zeile.total + geschaetzt.length * durchschnitt;
+            const extrapolated = row.total + estimated.length * average;
             return (
               <tr
-                key={zeile.team.id}
-                data-testid={`matchday-standings-row-${zeile.team.id}`}
+                key={row.team.id}
+                data-testid={`matchday-standings-row-${row.team.id}`}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
               >
-                <td className="px-4 py-3 font-semibold tabular-nums">{zeile.rank}</td>
+                <td className="px-4 py-3 font-semibold tabular-nums">{row.rank}</td>
                 <td className="px-4 py-3">
                   <Link
-                    to={`/clubs/${zeile.team.club.id}`}
-                    data-testid={`matchday-standings-club-link-${zeile.team.id}`}
+                    to={`/clubs/${row.team.club.id}`}
+                    data-testid={`matchday-standings-club-link-${row.team.id}`}
                     className="font-medium underline-offset-2 hover:underline"
                   >
-                    {zeile.team.club.name}
+                    {row.team.club.name}
                   </Link>
                 </td>
-                {modus === "extrapolate" ? (
+                {mode === "extrapolate" ? (
                   <td
                     title={t("projectedTooltip")}
-                    data-testid={`matchday-standings-projected-${zeile.team.id}`}
+                    data-testid={`matchday-standings-projected-${row.team.id}`}
                     className="px-4 py-3 text-right font-semibold italic tabular-nums text-slate-700"
                   >
-                    {punkte(hochgerechnet)}
+                    {formatPoints(extrapolated)}
                   </td>
                 ) : (
                   <td
-                    data-testid={`matchday-standings-points-${zeile.team.id}`}
+                    data-testid={`matchday-standings-points-${row.team.id}`}
                     className="px-4 py-3 text-right font-semibold tabular-nums"
                   >
-                    {punkte(zeile.net)}
-                    {zeile.net !== zeile.total && (
+                    {formatPoints(row.net)}
+                    {row.net !== row.total && (
                       <span className="ml-1 text-xs font-normal text-slate-400">
-                        ({punkte(zeile.total)} {t("gross")})
+                        ({formatPoints(row.total)} {t("gross")})
                       </span>
                     )}
                   </td>
                 )}
                 <td className="px-4 py-3 text-right tabular-nums text-slate-500">
-                  {zeile.races_scored}
+                  {row.races_scored}
                 </td>
                 {flights.map((flight) => {
-                  const wert = punkteImFlight(zeile, flight, proFlight);
-                  if (wert != null) {
+                  const value = pointsInFlight(row, flight, perFlight);
+                  if (value != null) {
                     return (
                       <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-500">
-                        {punkte(wert)}
+                        {formatPoints(value)}
                       </td>
                     );
                   }
@@ -353,7 +353,7 @@ function StandingsTable({
                   // "extrapolate" it carries the expected average — but only where the flight
                   // is already under way, i.e. someone has a result in it. A flight nobody
                   // has reached yet is never estimated, even mid-matchday.
-                  if (modus === "exact" || !geschaetzt.includes(flight)) {
+                  if (mode === "exact" || !estimated.includes(flight)) {
                     return (
                       <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-400">
                         –
@@ -364,10 +364,10 @@ function StandingsTable({
                     <td
                       key={flight}
                       title={t("projectedFlightTooltip")}
-                      data-testid={`matchday-standings-flight-projected-${zeile.team.id}-${flight}`}
+                      data-testid={`matchday-standings-flight-projected-${row.team.id}-${flight}`}
                       className="px-2 py-3 text-right italic tabular-nums text-slate-400"
                     >
-                      {punkte(durchschnitt)}
+                      {formatPoints(average)}
                     </td>
                   );
                 })}
@@ -376,7 +376,7 @@ function StandingsTable({
           })}
         </tbody>
       </table>
-      </TabellenRahmen>
+      </TableFrame>
     </>
   );
 }
@@ -387,13 +387,13 @@ function PairingList({ eventId }: { eventId: number }) {
     api.pairing(eventId, signal),
   );
 
-  if (loading) return <Laden text={t("pairingLoading")} testId="matchday-pairing-loading" />;
-  if (error) return <Fehler text={error} testId="matchday-pairing-error" />;
-  if (!data?.races.length) return <Leer testId="matchday-pairing-empty">{t("noRacesDrawn")}</Leer>;
+  if (loading) return <Loading text={t("pairingLoading")} testId="matchday-pairing-loading" />;
+  if (error) return <ErrorMessage text={error} testId="matchday-pairing-error" />;
+  if (!data?.races.length) return <Empty testId="matchday-pairing-empty">{t("noRacesDrawn")}</Empty>;
 
   return (
     <>
-      <TabellenRahmen testId="matchday-pairing-table-frame">
+      <TableFrame testId="matchday-pairing-table-frame">
         <table data-testid="matchday-pairing-table" className="w-full min-w-[44rem] border-collapse text-sm">
           <caption className="sr-only">{t("pairingCaption")}</caption>
           <thead>
@@ -404,17 +404,17 @@ function PairingList({ eventId }: { eventId: number }) {
               <th scope="col" className="w-20 px-3 py-3 font-medium text-slate-600">
                 {t("flightHeader")}
               </th>
-              {data.boats.map((boot) => {
-                const farbe = bootsfarbe(boot.color);
+              {data.boats.map((boat) => {
+                const color = boatColor(boat.color);
                 return (
-                  <th key={boot.number} scope="col" className="px-3 py-3 font-medium">
+                  <th key={boat.number} scope="col" className="px-3 py-3 font-medium">
                     <span className="flex items-center gap-1.5">
                       <span
                         aria-hidden
                         className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
-                        style={{ backgroundColor: farbe.hex }}
+                        style={{ backgroundColor: color.hex }}
                       />
-                      <span className="text-slate-600">{farbe.name}</span>
+                      <span className="text-slate-600">{color.name}</span>
                     </span>
                   </th>
                 );
@@ -422,24 +422,24 @@ function PairingList({ eventId }: { eventId: number }) {
             </tr>
           </thead>
           <tbody>
-            {data.races.map((wettfahrt) => (
+            {data.races.map((race) => (
               <tr
-                key={wettfahrt.sequence}
-                data-testid={`matchday-pairing-row-${wettfahrt.sequence}`}
+                key={race.sequence}
+                data-testid={`matchday-pairing-row-${race.sequence}`}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
               >
-                <td className="px-3 py-2.5 font-semibold tabular-nums">{wettfahrt.sequence}</td>
-                <td className="px-3 py-2.5 tabular-nums text-slate-500">{wettfahrt.flight}</td>
-                {data.boats.map((boot) => (
-                  <td key={boot.number} className="px-3 py-2.5">
-                    {wettfahrt.teams_by_boat[String(boot.number)]?.club.short_name ?? "–"}
+                <td className="px-3 py-2.5 font-semibold tabular-nums">{race.sequence}</td>
+                <td className="px-3 py-2.5 tabular-nums text-slate-500">{race.flight}</td>
+                {data.boats.map((boat) => (
+                  <td key={boat.number} className="px-3 py-2.5">
+                    {race.teams_by_boat[String(boat.number)]?.club.short_name ?? "–"}
                   </td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
-      </TabellenRahmen>
+      </TableFrame>
     </>
   );
 }
@@ -448,16 +448,16 @@ function PairingList({ eventId }: { eventId: number }) {
 
 /** Every code except FINISHED — that one is picked as a finish position number directly in
  *  the merged dropdown (see `RaceResultRow`), not as its own entry in this list. */
-const SPEZIAL_CODES = ["DNS", "DNF", "OCS", "DSQ", "DNE", "RET", "RDG", "ZFP", "SCP"] as const;
+const SPECIAL_CODES = ["DNS", "DNF", "OCS", "DSQ", "DNE", "RET", "RDG", "ZFP", "SCP"] as const;
 
-function brauchtPlatz(code: string): boolean {
+function needsPosition(code: string): boolean {
   return code === "FINISHED" || code === "ZFP" || code === "SCP";
 }
 
 /** Only ZFP/SCP still need their own position input — FINISHED's position comes directly
  *  from picking a number in the merged dropdown, so showing a second input for it would just
  *  be two controls for the same value. */
-function brauchtEigeneEingabe(code: string): boolean {
+function needsOwnInput(code: string): boolean {
   return code === "ZFP" || code === "SCP";
 }
 
@@ -466,45 +466,45 @@ function brauchtEigeneEingabe(code: string): boolean {
  *  code at all. Drives the tap icon's in-progress/done flip: a boat that hasn't finished this
  *  race yet still reads "in progress" even once other boats in the same race already have a
  *  result recorded. */
-function ergebnisVollstaendig(zeile: EingabeZeile): boolean {
-  if (brauchtPlatz(zeile.code)) return zeile.finish_position != null;
-  if (zeile.code === "RDG") return zeile.redress_points != null;
+function resultComplete(row: ResultRow): boolean {
+  if (needsPosition(row.code)) return row.finish_position != null;
+  if (row.code === "RDG") return row.redress_points != null;
   return true;
 }
 
 /** The tap fast-path only ever assigns/undoes a *FINISHED* position — once a special code has
  *  been chosen via the dropdown, tapping the icon would silently overwrite it back to a
  *  numbered finish, so it's disabled (still shown, just not clickable) for those rows. */
-function kannGetipptWerden(zeile: EingabeZeile): boolean {
-  return zeile.code === "FINISHED";
+function canBeTapped(row: ResultRow): boolean {
+  return row.code === "FINISHED";
 }
 
 /** `DID_NOT_FINISH_CODES` in `api/app/scoring/low_point.py`: all scored identically —
  *  starters + 1 points, worse than finishing last. Frontend copy of that fact for the
  *  tooltip text; the backend file is the source of truth and isn't touched here. */
-const NICHT_BEENDET_CODES = new Set(["DNS", "DNF", "OCS", "DSQ", "DNE", "RET"]);
+const NOT_FINISHED_CODES = new Set(["DNS", "DNF", "OCS", "DSQ", "DNE", "RET"]);
 
 /** RRS Appendix A10: nearest tenth, 0.05 rounds up — `Math.round` already rounds half away
  *  from zero for these non-negative point values, so this is exact for the RDG suggestion. */
-function rundeAufZehntel(wert: number): number {
-  return Math.round(wert * 10) / 10;
+function roundToTenth(value: number): number {
+  return Math.round(value * 10) / 10;
 }
 
 /** RRS A10's suggested redress convention: the average of the team's points in this event's
  *  other already-scored races (this race's own sequence excluded). A suggestion the race
  *  officer can override, not something the app enforces — A10 allows alternatives too. */
-function redressVorschlag(
+function redressSuggestion(
   teamId: number,
-  ausgeschlosseneSequenz: number,
+  excludedSequence: number,
   standings: StandingRow[],
 ): number | null {
-  const zeile = standings.find((z) => z.team.id === teamId);
-  if (!zeile) return null;
-  const werte = Object.entries(zeile.points_by_race)
-    .filter(([sequenzText]) => Number(sequenzText) !== ausgeschlosseneSequenz)
-    .map(([, wert]) => wert);
-  if (!werte.length) return null;
-  return rundeAufZehntel(werte.reduce((summe, wert) => summe + wert, 0) / werte.length);
+  const row = standings.find((z) => z.team.id === teamId);
+  if (!row) return null;
+  const values = Object.entries(row.points_by_race)
+    .filter(([sequenceText]) => Number(sequenceText) !== excludedSequence)
+    .map(([, value]) => value);
+  if (!values.length) return null;
+  return roundToTenth(values.reduce((sum, value) => sum + value, 0) / values.length);
 }
 
 /** Only `admin`/`race_officer` can reach this (gated in `Matchday`) — the race committee's
@@ -515,7 +515,7 @@ function redressVorschlag(
  */
 /** A race not yet finished (or abandoned) — races run strictly one at a time in sequence,
  *  so at most one race in the whole matchday is ever actually "open" at once. */
-function nochOffen(race: AdminRace): boolean {
+function stillOpen(race: AdminRace): boolean {
   return race.status !== "finished" && race.status !== "abandoned";
 }
 
@@ -532,11 +532,11 @@ function ResultsEntry({
   const { data, error, loading } = useApi(["admin", "races", eventId], (signal) =>
     api.admin.races(eventId, signal),
   );
-  const [alleAnzeigen, setAlleAnzeigen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
-  if (loading) return <Laden text={t("resultsLoading")} testId="matchday-results-loading" />;
-  if (error) return <Fehler text={error} testId="matchday-results-error" />;
-  if (!data?.races.length) return <Leer testId="matchday-results-empty">{t("noRacesDrawn")}</Leer>;
+  if (loading) return <Loading text={t("resultsLoading")} testId="matchday-results-loading" />;
+  if (error) return <ErrorMessage text={error} testId="matchday-results-error" />;
+  if (!data?.races.length) return <Empty testId="matchday-results-empty">{t("noRacesDrawn")}</Empty>;
 
   // Captured as its own const so TS keeps `races` narrowed to non-null inside the closures
   // below — narrowing on `data` itself doesn't survive into a nested function body.
@@ -547,20 +547,20 @@ function ResultsEntry({
   // (just finished) and one "next" (drawn but not run) worth focusing on at a time. Default
   // to that neighborhood instead of all 48 rows; "show all" stays available for correcting
   // an older result later (a protest decision isn't limited to the most recent race).
-  const aktuellerIndex = races.findIndex(nochOffen);
-  const angezeigt = alleAnzeigen
+  const currentIndex = races.findIndex(stillOpen);
+  const displayed = showAll
     ? races
-    : aktuellerIndex === -1
+    : currentIndex === -1
       ? races.slice(-3)
-      : races.slice(Math.max(0, aktuellerIndex - 1), aktuellerIndex + 2);
+      : races.slice(Math.max(0, currentIndex - 1), currentIndex + 2);
 
-  function rolle(race: AdminRace): "previous" | "current" | "next" | null {
-    if (alleAnzeigen) return null;
+  function raceRole(race: AdminRace): "previous" | "current" | "next" | null {
+    if (showAll) return null;
     const index = races.indexOf(race);
-    if (aktuellerIndex === -1) return null;
-    if (index === aktuellerIndex) return "current";
-    if (index === aktuellerIndex - 1) return "previous";
-    if (index === aktuellerIndex + 1) return "next";
+    if (currentIndex === -1) return null;
+    if (index === currentIndex) return "current";
+    if (index === currentIndex - 1) return "previous";
+    if (index === currentIndex + 1) return "next";
     return null;
   }
 
@@ -568,18 +568,18 @@ function ResultsEntry({
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-600" data-testid="matchday-results-focus-hint">
-          {alleAnzeigen ? t("resultsAllHint") : t("resultsFocusHint")}
+          {showAll ? t("resultsAllHint") : t("resultsFocusHint")}
         </p>
         <button
           type="button"
-          onClick={() => setAlleAnzeigen((vorher) => !vorher)}
+          onClick={() => setShowAll((prev) => !prev)}
           data-testid="matchday-results-show-all-toggle"
           className="text-sm font-medium text-marke-700 underline-offset-2 hover:underline"
         >
-          {alleAnzeigen ? t("resultsShowFocused") : t("resultsShowAll")}
+          {showAll ? t("resultsShowFocused") : t("resultsShowAll")}
         </button>
       </div>
-      <TabellenRahmen testId="matchday-results-table-frame">
+      <TableFrame testId="matchday-results-table-frame">
         <table data-testid="matchday-results-table" className="w-full min-w-[64rem] border-collapse text-sm">
           <caption className="sr-only">{t("resultsCaption")}</caption>
           <thead>
@@ -590,17 +590,17 @@ function ResultsEntry({
               <th scope="col" className="w-20 px-3 py-3 font-medium text-slate-600">
                 {t("flightHeader")}
               </th>
-              {data.boats.map((boot) => {
-                const farbe = bootsfarbe(boot.color);
+              {data.boats.map((boat) => {
+                const color = boatColor(boat.color);
                 return (
-                  <th key={boot.number} scope="col" className="px-3 py-3 font-medium">
+                  <th key={boat.number} scope="col" className="px-3 py-3 font-medium">
                     <span className="flex items-center gap-1.5">
                       <span
                         aria-hidden
                         className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
-                        style={{ backgroundColor: farbe.hex }}
+                        style={{ backgroundColor: color.hex }}
                       />
-                      <span className="text-slate-600">{farbe.name}</span>
+                      <span className="text-slate-600">{color.name}</span>
                     </span>
                   </th>
                 );
@@ -609,7 +609,7 @@ function ResultsEntry({
             </tr>
           </thead>
           <tbody>
-            {angezeigt.map((race) => (
+            {displayed.map((race) => (
               // Keyed on the version too: after a save, the row re-mounts with the fresh
               // server state instead of quietly keeping the pre-save form values.
               <RaceResultRow
@@ -619,17 +619,17 @@ function ResultsEntry({
                 eventId={eventId}
                 eventIdParam={eventIdParam}
                 standings={standings}
-                rolle={rolle(race)}
+                raceRole={raceRole(race)}
               />
             ))}
           </tbody>
         </table>
-      </TabellenRahmen>
+      </TableFrame>
     </>
   );
 }
 
-interface EingabeZeile {
+interface ResultRow {
   boat_number: number;
   code: string;
   finish_position: number | null;
@@ -645,14 +645,14 @@ interface EingabeZeile {
 /** Smallest finish position not currently occupied by a tap-assigned (or manually entered)
  *  `FINISHED` boat — so the tap flow always continues 1, 2, 3, … even across a single-boat
  *  undo, without needing to renumber everyone else. */
-function naechsteFreiePosition(zeilen: Record<number, EingabeZeile>): number {
-  const belegt = new Set(
-    Object.values(zeilen)
-      .filter((zeile) => zeile.code === "FINISHED" && zeile.finish_position != null)
-      .map((zeile) => zeile.finish_position as number),
+function nextFreePosition(rows: Record<number, ResultRow>): number {
+  const taken = new Set(
+    Object.values(rows)
+      .filter((row) => row.code === "FINISHED" && row.finish_position != null)
+      .map((row) => row.finish_position as number),
   );
   let position = 1;
-  while (belegt.has(position)) position += 1;
+  while (taken.has(position)) position += 1;
   return position;
 }
 
@@ -662,54 +662,54 @@ function RaceResultRow({
   eventId,
   eventIdParam,
   standings,
-  rolle,
+  raceRole,
 }: {
   race: AdminRace;
   boats: BoatOut[];
   eventId: number;
   eventIdParam: string;
   standings: StandingRow[];
-  rolle: "previous" | "current" | "next" | null;
+  raceRole: "previous" | "current" | "next" | null;
 }) {
   const { t } = useTranslation("matchday");
-  const invalidieren = useInvalidieren();
-  const byBoat = new Map(race.entries.map((eintrag) => [eintrag.boat_number, eintrag]));
+  const invalidate = useInvalidate();
+  const byBoat = new Map(race.entries.map((entry) => [entry.boat_number, entry]));
 
   // RRS A9: the DNF family scores as starters + 1; ZFP/SCP add a 20%-of-starters penalty
   // capped at that value. `race.entries.length` is this race's starter count.
   const starter = race.entries.length;
-  const dnfPunkte = starter + 1;
-  const zfpStrafe = Math.max(1, Math.round(starter * 0.2));
+  const dnfPoints = starter + 1;
+  const zfpPenalty = Math.max(1, Math.round(starter * 0.2));
 
-  function codeTitel(code: string): string {
+  function codeTitle(code: string): string {
     if (code === "FINISHED") return t("codeTooltip.FINISHED");
-    if (NICHT_BEENDET_CODES.has(code)) return t(`codeTooltip.${code}`, { points: dnfPunkte });
+    if (NOT_FINISHED_CODES.has(code)) return t(`codeTooltip.${code}`, { points: dnfPoints });
     if (code === "ZFP" || code === "SCP") {
-      return t(`codeTooltip.${code}`, { cap: dnfPunkte, penalty: zfpStrafe });
+      return t(`codeTooltip.${code}`, { cap: dnfPoints, penalty: zfpPenalty });
     }
     if (code === "RDG") return t("codeTooltip.RDG");
     return code;
   }
 
-  const [zeilen, setZeilen] = useState<Record<number, EingabeZeile>>(() =>
+  const [rows, setRows] = useState<Record<number, ResultRow>>(() =>
     Object.fromEntries(
-      race.entries.map((eintrag) => {
-        const code = eintrag.code ?? "FINISHED";
-        const redress_points = eintrag.redress_points ?? null;
+      race.entries.map((entry) => {
+        const code = entry.code ?? "FINISHED";
+        const redress_points = entry.redress_points ?? null;
         // No backend field says whether a stored RDG value was the auto-average or a jury's
         // own figure — guess "auto" when it still matches today's average, "fixed" otherwise
         // (e.g. the average has since shifted, or it never matched to begin with).
         let redress_mode: "auto" | "fixed" = "auto";
         if (code === "RDG" && redress_points != null) {
-          const vorschlag = redressVorschlag(eintrag.team.id, race.sequence, standings);
-          redress_mode = vorschlag != null && Math.abs(vorschlag - redress_points) < 0.05 ? "auto" : "fixed";
+          const suggestion = redressSuggestion(entry.team.id, race.sequence, standings);
+          redress_mode = suggestion != null && Math.abs(suggestion - redress_points) < 0.05 ? "auto" : "fixed";
         }
         return [
-          eintrag.boat_number,
+          entry.boat_number,
           {
-            boat_number: eintrag.boat_number,
+            boat_number: entry.boat_number,
             code,
-            finish_position: eintrag.finish_position ?? null,
+            finish_position: entry.finish_position ?? null,
             redress_points,
             redress_mode,
           },
@@ -721,276 +721,276 @@ function RaceResultRow({
   // In "auto" mode the stored `redress_points` can be stale (the average moves as other
   // races get scored) — recompute fresh from the current `standings` at save time instead of
   // trusting whatever was last written into state.
-  function effektiverRedressWert(zeile: EingabeZeile): number | null {
-    if (zeile.code !== "RDG") return null;
-    if (zeile.redress_mode === "fixed") return zeile.redress_points;
-    const teamId = byBoat.get(zeile.boat_number)?.team.id;
-    if (teamId == null) return zeile.redress_points;
-    return redressVorschlag(teamId, race.sequence, standings) ?? zeile.redress_points;
+  function effectiveRedressValue(row: ResultRow): number | null {
+    if (row.code !== "RDG") return null;
+    if (row.redress_mode === "fixed") return row.redress_points;
+    const teamId = byBoat.get(row.boat_number)?.team.id;
+    if (teamId == null) return row.redress_points;
+    return redressSuggestion(teamId, race.sequence, standings) ?? row.redress_points;
   }
 
   // No Save button: every change writes straight through to the backend (still guarded by
   // the same duplicate check that used to just disable Save — an in-progress duplicate
   // simply doesn't save yet, rather than blocking a click that no longer exists).
-  const speichern = useMutation({
-    mutationFn: (naechsteZeilen: Record<number, EingabeZeile>) =>
+  const save = useMutation({
+    mutationFn: (nextRows: Record<number, ResultRow>) =>
       api.admin.setRaceResult(eventId, race.id, {
-        results: Object.values(naechsteZeilen).map((zeile) => ({
-          boat_number: zeile.boat_number,
-          code: zeile.code,
-          finish_position: brauchtPlatz(zeile.code) ? zeile.finish_position : null,
-          redress_points: effektiverRedressWert(zeile),
+        results: Object.values(nextRows).map((row) => ({
+          boat_number: row.boat_number,
+          code: row.code,
+          finish_position: needsPosition(row.code) ? row.finish_position : null,
+          redress_points: effectiveRedressValue(row),
         })),
       }),
     onSuccess: () => {
-      invalidieren(["admin", "races", eventId], ["event", eventIdParam]);
+      invalidate(["admin", "races", eventId], ["event", eventIdParam]);
     },
   });
 
-  function duplikateIn(kandidat: Record<number, EingabeZeile>): Set<number> {
-    const positionsAnzahl = new Map<number, number>();
-    for (const zeile of Object.values(kandidat)) {
-      if (brauchtPlatz(zeile.code) && zeile.finish_position != null) {
-        positionsAnzahl.set(zeile.finish_position, (positionsAnzahl.get(zeile.finish_position) ?? 0) + 1);
+  function duplicatesIn(candidate: Record<number, ResultRow>): Set<number> {
+    const positionCounts = new Map<number, number>();
+    for (const row of Object.values(candidate)) {
+      if (needsPosition(row.code) && row.finish_position != null) {
+        positionCounts.set(row.finish_position, (positionCounts.get(row.finish_position) ?? 0) + 1);
       }
     }
     return new Set(
-      Object.values(kandidat)
+      Object.values(candidate)
         .filter(
-          (zeile) =>
-            brauchtPlatz(zeile.code) &&
-            zeile.finish_position != null &&
-            (positionsAnzahl.get(zeile.finish_position) ?? 0) > 1,
+          (row) =>
+            needsPosition(row.code) &&
+            row.finish_position != null &&
+            (positionCounts.get(row.finish_position) ?? 0) > 1,
         )
-        .map((zeile) => zeile.boat_number),
+        .map((row) => row.boat_number),
     );
   }
 
-  function anwenden(naechsteZeilen: Record<number, EingabeZeile>) {
-    setZeilen(naechsteZeilen);
-    if (duplikateIn(naechsteZeilen).size === 0) {
-      speichern.mutate(naechsteZeilen);
+  function apply(nextRows: Record<number, ResultRow>) {
+    setRows(nextRows);
+    if (duplicatesIn(nextRows).size === 0) {
+      save.mutate(nextRows);
     }
   }
 
-  const setzeFeld = (boatNumber: number, patch: Partial<EingabeZeile>) =>
-    anwenden({ ...zeilen, [boatNumber]: { ...zeilen[boatNumber], ...patch } });
+  const setField = (boatNumber: number, patch: Partial<ResultRow>) =>
+    apply({ ...rows, [boatNumber]: { ...rows[boatNumber], ...patch } });
 
   // Fast path (Story WL-2): tapping a boat assigns it FINISHED + the next unused finish
-  // position; tapping an already-assigned boat undoes just that one. `zeilen` stays the
+  // position; tapping an already-assigned boat undoes just that one. `rows` stays the
   // single source of truth — the <select> and position <input> below just read it back, so
   // tap-assignment and manual entry can never drift apart.
-  function tippen(boatNumber: number) {
-    const zeile = zeilen[boatNumber];
-    const naechsteZeile =
-      zeile.code === "FINISHED" && zeile.finish_position != null
-        ? { ...zeile, finish_position: null }
-        : { ...zeile, code: "FINISHED", finish_position: naechsteFreiePosition(zeilen) };
-    anwenden({ ...zeilen, [boatNumber]: naechsteZeile });
+  function tap(boatNumber: number) {
+    const row = rows[boatNumber];
+    const nextRow =
+      row.code === "FINISHED" && row.finish_position != null
+        ? { ...row, finish_position: null }
+        : { ...row, code: "FINISHED", finish_position: nextFreePosition(rows) };
+    apply({ ...rows, [boatNumber]: nextRow });
   }
 
-  const duplikatBoote = duplikateIn(zeilen);
-  const hatDuplikate = duplikatBoote.size > 0;
+  const duplicateBoats = duplicatesIn(rows);
+  const hasDuplicates = duplicateBoats.size > 0;
 
   return (
     <tr
       data-testid={`matchday-results-row-${race.id}`}
       className={`border-b border-slate-100 align-top last:border-0 ${
-        rolle === "current" ? "bg-marke-50" : ""
+        raceRole === "current" ? "bg-marke-50" : ""
       }`}
     >
       <td className="px-3 py-2.5 font-semibold tabular-nums">
         {race.sequence}
-        {rolle && (
+        {raceRole && (
           <span
             data-testid={`matchday-results-role-${race.id}`}
             className={`ml-1.5 block text-[10px] font-normal uppercase tracking-wide ${
-              rolle === "current" ? "text-marke-700" : "text-slate-400"
+              raceRole === "current" ? "text-marke-700" : "text-slate-400"
             }`}
           >
-            {t(`raceRole.${rolle}`)}
+            {t(`raceRole.${raceRole}`)}
           </span>
         )}
       </td>
       <td className="px-3 py-2.5 tabular-nums text-slate-500">{race.flight}</td>
-      {boats.map((boot) => {
-        const bestehend = byBoat.get(boot.number);
-        const zeile = zeilen[boot.number];
-        if (!bestehend || !zeile) {
+      {boats.map((boat) => {
+        const existing = byBoat.get(boat.number);
+        const row = rows[boat.number];
+        if (!existing || !row) {
           return (
-            <td key={boot.number} className="px-3 py-2.5 text-slate-400">
+            <td key={boat.number} className="px-3 py-2.5 text-slate-400">
               –
             </td>
           );
         }
-        const farbe = bootsfarbe(boot.color);
-        const vollstaendig = ergebnisVollstaendig(zeile);
-        const tippbar = kannGetipptWerden(zeile);
-        const vorschlag =
-          zeile.code === "RDG" ? redressVorschlag(bestehend.team.id, race.sequence, standings) : null;
+        const color = boatColor(boat.color);
+        const complete = resultComplete(row);
+        const tappable = canBeTapped(row);
+        const suggestion =
+          row.code === "RDG" ? redressSuggestion(existing.team.id, race.sequence, standings) : null;
         // The merged dropdown's own value: a finish position shows as its number, every
         // other code shows as itself, and "FINISHED with nothing picked yet" shows as the
         // empty placeholder rather than a bare "FINISHED" that isn't a real option anymore.
-        const auswahlWert =
-          zeile.code === "FINISHED"
-            ? zeile.finish_position != null
-              ? String(zeile.finish_position)
+        const selectValue =
+          row.code === "FINISHED"
+            ? row.finish_position != null
+              ? String(row.finish_position)
               : ""
-            : zeile.code;
+            : row.code;
         return (
-          <td key={boot.number} className="min-w-[9.5rem] px-3 py-2.5">
+          <td key={boat.number} className="min-w-[9.5rem] px-3 py-2.5">
             <div className="mb-1 flex items-center gap-1.5 truncate text-xs font-medium text-slate-600">
               <span
                 aria-hidden
                 className="size-2.5 shrink-0 rounded-full ring-1 ring-slate-300"
-                style={{ backgroundColor: farbe.hex }}
+                style={{ backgroundColor: color.hex }}
               />
-              <span className="truncate">{bestehend.team.club.short_name}</span>
+              <span className="truncate">{existing.team.club.short_name}</span>
             </div>
-            {bestehend.is_discarded && (
+            {existing.is_discarded && (
               <div className="mb-1 text-[11px] text-slate-400">{t("discardedNote")}</div>
             )}
             <div className="flex items-center gap-1.5">
               <select
                 aria-label={t("codeHeader")}
-                title={codeTitel(zeile.code)}
-                className={`${EINGABE} flex-1 ${
-                  duplikatBoote.has(boot.number) ? "border-red-500 ring-2 ring-red-200" : ""
+                title={codeTitle(row.code)}
+                className={`${INPUT_CLASS} flex-1 ${
+                  duplicateBoats.has(boat.number) ? "border-red-500 ring-2 ring-red-200" : ""
                 }`}
-                value={auswahlWert}
-                aria-invalid={duplikatBoote.has(boot.number)}
+                value={selectValue}
+                aria-invalid={duplicateBoats.has(boat.number)}
                 onChange={(e) => {
-                  const neuerWert = e.target.value;
-                  const alsPosition = Number(neuerWert);
-                  if (neuerWert !== "" && Number.isInteger(alsPosition) && alsPosition > 0) {
-                    setzeFeld(boot.number, { code: "FINISHED", finish_position: alsPosition });
+                  const nextValue = e.target.value;
+                  const asPosition = Number(nextValue);
+                  if (nextValue !== "" && Number.isInteger(asPosition) && asPosition > 0) {
+                    setField(boat.number, { code: "FINISHED", finish_position: asPosition });
                     return;
                   }
-                  if (neuerWert === "RDG") {
-                    const vorschlagBeiUmschaltung = redressVorschlag(
-                      bestehend.team.id,
+                  if (nextValue === "RDG") {
+                    const suggestionOnSwitch = redressSuggestion(
+                      existing.team.id,
                       race.sequence,
                       standings,
                     );
-                    setzeFeld(boot.number, {
-                      code: neuerWert,
+                    setField(boat.number, {
+                      code: nextValue,
                       // Most redress cases are the plain A10 average — default to "auto"
                       // whenever one can actually be computed, "fixed" only when there's
                       // nothing yet to average (this team hasn't scored another race).
-                      redress_mode: vorschlagBeiUmschaltung != null ? "auto" : "fixed",
-                      redress_points: vorschlagBeiUmschaltung,
+                      redress_mode: suggestionOnSwitch != null ? "auto" : "fixed",
+                      redress_points: suggestionOnSwitch,
                     });
                     return;
                   }
-                  setzeFeld(boot.number, { code: neuerWert });
+                  setField(boat.number, { code: nextValue });
                 }}
-                data-testid={`matchday-results-code-select-${race.id}-${boot.number}`}
+                data-testid={`matchday-results-code-select-${race.id}-${boat.number}`}
               >
                 <option value="" disabled hidden>
                   {t("resultPlaceholder")}
                 </option>
                 {Array.from({ length: starter }, (_, i) => i + 1).map((position) => (
-                  <option key={position} value={position} title={codeTitel("FINISHED")}>
+                  <option key={position} value={position} title={codeTitle("FINISHED")}>
                     {position}
                   </option>
                 ))}
-                {SPEZIAL_CODES.map((code) => (
-                  <option key={code} value={code} title={codeTitel(code)}>
+                {SPECIAL_CODES.map((code) => (
+                  <option key={code} value={code} title={codeTitle(code)}>
                     {code}
                   </option>
                 ))}
               </select>
               <button
                 type="button"
-                onClick={() => tippbar && tippen(boot.number)}
-                disabled={!tippbar}
-                aria-pressed={tippbar ? vollstaendig : undefined}
+                onClick={() => tappable && tap(boat.number)}
+                disabled={!tappable}
+                aria-pressed={tappable ? complete : undefined}
                 title={
-                  !tippbar
-                    ? t("tapLockedLabel", { code: zeile.code })
-                    : vollstaendig
-                      ? t("tapUndoLabel", { position: zeile.finish_position })
-                      : t("tapInProgressLabel", { boat: farbe.name })
+                  !tappable
+                    ? t("tapLockedLabel", { code: row.code })
+                    : complete
+                      ? t("tapUndoLabel", { position: row.finish_position })
+                      : t("tapInProgressLabel", { boat: color.name })
                 }
-                data-testid={`matchday-results-tap-${race.id}-${boot.number}`}
+                data-testid={`matchday-results-tap-${race.id}-${boat.number}`}
                 className={`flex size-9 shrink-0 items-center justify-center rounded-md border border-transparent text-base text-white shadow-sm transition ${
-                  tippbar ? "hover:brightness-110" : "cursor-default opacity-90"
+                  tappable ? "hover:brightness-110" : "cursor-default opacity-90"
                 }`}
-                style={{ backgroundColor: farbe.hex }}
+                style={{ backgroundColor: color.hex }}
               >
                 <span aria-hidden className="[text-shadow:0_1px_2px_rgb(0_0_0_/_55%)]">
-                  {vollstaendig ? "🏁" : "⏳"}
+                  {complete ? "🏁" : "⏳"}
                 </span>
               </button>
             </div>
-            {brauchtEigeneEingabe(zeile.code) && (
+            {needsOwnInput(row.code) && (
               <input
                 type="number"
                 min={1}
-                className={`${EINGABE} mt-1 ${
-                  duplikatBoote.has(boot.number) ? "border-red-500 ring-2 ring-red-200" : ""
+                className={`${INPUT_CLASS} mt-1 ${
+                  duplicateBoats.has(boat.number) ? "border-red-500 ring-2 ring-red-200" : ""
                 }`}
-                value={zeile.finish_position ?? ""}
+                value={row.finish_position ?? ""}
                 placeholder={t("positionPlaceholder")}
-                aria-invalid={duplikatBoote.has(boot.number)}
+                aria-invalid={duplicateBoats.has(boat.number)}
                 onChange={(e) =>
-                  setzeFeld(boot.number, {
+                  setField(boat.number, {
                     finish_position: e.target.value ? Number(e.target.value) : null,
                   })
                 }
-                data-testid={`matchday-results-position-input-${race.id}-${boot.number}`}
+                data-testid={`matchday-results-position-input-${race.id}-${boat.number}`}
               />
             )}
-            {zeile.code === "RDG" && (
+            {row.code === "RDG" && (
               <div className="mt-1 space-y-1">
                 <div className="flex gap-1" role="group" aria-label={t("redressModeLabel")}>
-                  {(["auto", "fixed"] as const).map((modus) => (
+                  {(["auto", "fixed"] as const).map((mode) => (
                     <button
-                      key={modus}
+                      key={mode}
                       type="button"
                       onClick={() =>
-                        setzeFeld(boot.number, {
-                          redress_mode: modus,
+                        setField(boat.number, {
+                          redress_mode: mode,
                           // Switching to "auto" snaps the value to today's average right
                           // away; switching to "fixed" just unlocks the field and keeps
                           // whatever number is currently showing as the starting point.
-                          redress_points: modus === "auto" ? vorschlag : zeile.redress_points,
+                          redress_points: mode === "auto" ? suggestion : row.redress_points,
                         })
                       }
-                      aria-pressed={zeile.redress_mode === modus}
-                      data-testid={`matchday-results-redress-mode-${modus}-${race.id}-${boot.number}`}
+                      aria-pressed={row.redress_mode === mode}
+                      data-testid={`matchday-results-redress-mode-${mode}-${race.id}-${boat.number}`}
                       className={`flex-1 rounded-md border px-1.5 py-1 text-[11px] font-medium transition ${
-                        zeile.redress_mode === modus
+                        row.redress_mode === mode
                           ? "border-marke-600 bg-marke-50 text-marke-700"
                           : "border-slate-300 text-slate-500 hover:bg-slate-50"
                       }`}
                     >
-                      {t(`redress${modus === "auto" ? "Auto" : "Fixed"}Label`)}
+                      {t(`redress${mode === "auto" ? "Auto" : "Fixed"}Label`)}
                     </button>
                   ))}
                 </div>
-                {zeile.redress_mode === "auto" ? (
+                {row.redress_mode === "auto" ? (
                   <p
                     className="text-[11px] italic text-slate-500"
-                    data-testid={`matchday-results-redress-auto-value-${race.id}-${boot.number}`}
+                    data-testid={`matchday-results-redress-auto-value-${race.id}-${boat.number}`}
                   >
-                    {vorschlag != null
-                      ? t("redressAutoValue", { value: punkte(vorschlag) })
+                    {suggestion != null
+                      ? t("redressAutoValue", { value: formatPoints(suggestion) })
                       : t("redressAutoUnavailable")}
                   </p>
                 ) : (
                   <input
                     type="number"
                     step="0.1"
-                    className={EINGABE}
-                    value={zeile.redress_points ?? ""}
+                    className={INPUT_CLASS}
+                    value={row.redress_points ?? ""}
                     placeholder={t("redressPlaceholder")}
                     onChange={(e) =>
-                      setzeFeld(boot.number, {
+                      setField(boat.number, {
                         redress_points: e.target.value ? Number(e.target.value) : null,
                       })
                     }
-                    data-testid={`matchday-results-redress-input-${race.id}-${boot.number}`}
+                    data-testid={`matchday-results-redress-input-${race.id}-${boat.number}`}
                   />
                 )}
               </div>
@@ -999,7 +999,7 @@ function RaceResultRow({
         );
       })}
       <td className="px-3 py-2.5">
-        {hatDuplikate && (
+        {hasDuplicates && (
           <p
             role="alert"
             data-testid={`matchday-results-duplicate-warning-${race.id}`}
@@ -1008,13 +1008,13 @@ function RaceResultRow({
             {t("duplicatePositionWarning")}
           </p>
         )}
-        {!hatDuplikate && speichern.isPending && (
+        {!hasDuplicates && save.isPending && (
           <p className="text-xs text-slate-400" data-testid={`matchday-results-save-message-${race.id}`}>
             {t("savingButton")}
           </p>
         )}
-        {!hatDuplikate && speichern.isError && (
-          <Fehler text={fehlertext(speichern.error)} testId={`matchday-results-save-message-${race.id}`} />
+        {!hasDuplicates && save.isError && (
+          <ErrorMessage text={errorText(save.error)} testId={`matchday-results-save-message-${race.id}`} />
         )}
       </td>
     </tr>

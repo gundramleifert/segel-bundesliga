@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, Outlet } from "react-router-dom";
 
-import { useKonto } from "../api/useApi";
-import { Rollenwechsel } from "../dev/Rollenwechsel";
+import { useAccount } from "../api/useApi";
+import { RoleSwitcher } from "../dev/RoleSwitcher";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 const NAV_ITEMS = [
@@ -16,19 +16,19 @@ const NAV_ITEMS = [
 /** Initials for the profile button's avatar — there's no separate first/last name on
  *  `Account`, only `display_name`, so this splits on whitespace instead. One word gives
  *  its first two letters, several words give the first letter of the first and last. */
-function initialen(displayName: string): string {
-  const teile = displayName.trim().split(/\s+/).filter(Boolean);
-  if (!teile.length) return "";
-  if (teile.length === 1) return teile[0].slice(0, 2).toUpperCase();
-  return `${teile[0].charAt(0)}${teile[teile.length - 1].charAt(0)}`.toUpperCase();
+function initials(displayName: string): string {
+  const parts = displayName.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
 }
 
 export function Layout() {
   const { t } = useTranslation();
   // Admin only shows up when it's actually open — a link that leads to a 403 is worse
   // than no link.
-  const { hatRolle, konto, laedt } = useKonto();
-  const navigation = hatRolle("admin", "editor")
+  const { hasRole, account, loading } = useAccount();
+  const navigation = hasRole("admin", "editor")
     ? [...NAV_ITEMS, { path: "/admin", key: "admin", exact: false } as const]
     : NAV_ITEMS;
 
@@ -108,13 +108,13 @@ export function Layout() {
               aria-label={t("nav.account")}
               data-testid="layout-profile-button"
               className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold uppercase transition-colors ${
-                konto
+                account
                   ? "bg-marke-600 text-white hover:bg-marke-700"
-                  : `bg-slate-100 text-slate-500 hover:bg-slate-200 ${laedt ? "animate-pulse" : ""}`
+                  : `bg-slate-100 text-slate-500 hover:bg-slate-200 ${loading ? "animate-pulse" : ""}`
               }`}
             >
-              {konto ? (
-                initialen(konto.display_name)
+              {account ? (
+                initials(account.display_name)
               ) : (
                 <svg
                   aria-hidden
@@ -139,7 +139,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <Rollenwechsel />
+      <RoleSwitcher />
 
       <footer data-testid="layout-footer" className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-500">

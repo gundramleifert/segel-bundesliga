@@ -20,7 +20,7 @@ function message(error: unknown, fallback: string): string {
  *
  * The key doubles as the cache identity: the same query is only fetched once even if two
  * pages need it, and a change in the admin area can invalidate it precisely
- * (`useInvalidieren`). Cancelling on navigation is handled by Query itself — that's why
+ * (`useInvalidate`). Cancelling on navigation is handled by Query itself — that's why
  * the passed-through `signal` is all that's needed here.
  */
 export function useApi<T>(
@@ -41,7 +41,7 @@ export function useApi<T>(
 }
 
 /** Invalidates cached queries — after every mutation. */
-export function useInvalidieren() {
+export function useInvalidate() {
   const client = useQueryClient();
   return (...keys: readonly unknown[][]) => {
     for (const key of keys) void client.invalidateQueries({ queryKey: key });
@@ -55,14 +55,14 @@ export function useToken(): string | null {
   return token;
 }
 
-export interface KontoState {
-  konto: Account | null;
-  laedt: boolean;
-  hatRolle: (...rollen: string[]) => boolean;
+export interface AccountState {
+  account: Account | null;
+  loading: boolean;
+  hasRole: (...roles: string[]) => boolean;
 }
 
 /** The own account, including roles. Without a token, it's not even requested. */
-export function useKonto(): KontoState {
+export function useAccount(): AccountState {
   const token = useToken();
   const query = useQuery({
     queryKey: ["me", token],
@@ -72,10 +72,10 @@ export function useKonto(): KontoState {
     retry: false,
   });
 
-  const konto = token ? (query.data ?? null) : null;
+  const account = token ? (query.data ?? null) : null;
   return {
-    konto,
-    laedt: Boolean(token) && query.isPending,
-    hatRolle: (...rollen) => Boolean(konto && rollen.some((r) => konto.roles.includes(r))),
+    account,
+    loading: Boolean(token) && query.isPending,
+    hasRole: (...roles) => Boolean(account && roles.some((r) => account.roles.includes(r))),
   };
 }

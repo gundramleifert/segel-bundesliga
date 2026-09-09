@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Fehler } from "../components/Bausteine";
+import { ErrorMessage } from "../components/Blocks";
 import { slugify } from "../lib/testids";
 
 /** Small pieces shared by every admin form.
@@ -19,22 +19,22 @@ import { slugify } from "../lib/testids";
  * component with its own state management.
  */
 
-export function Abschnitt({
-  titel,
-  hinweis,
+export function Section({
+  title,
+  hint,
   children,
   testId,
 }: {
-  titel: string;
-  hinweis?: ReactNode;
+  title: string;
+  hint?: ReactNode;
   children: ReactNode;
   testId?: string;
 }) {
-  const resolvedTestId = testId ?? `admin-section-${slugify(titel)}`;
+  const resolvedTestId = testId ?? `admin-section-${slugify(title)}`;
   return (
     <section data-testid={resolvedTestId}>
-      <h2 className="mb-1 text-lg font-semibold">{titel}</h2>
-      {hinweis && <p className="mb-3 text-sm text-slate-600">{hinweis}</p>}
+      <h2 className="mb-1 text-lg font-semibold">{title}</h2>
+      {hint && <p className="mb-3 text-sm text-slate-600">{hint}</p>}
       <Card>
         <Card.Content className="grid gap-4 py-4">{children}</Card.Content>
       </Card>
@@ -42,14 +42,14 @@ export function Abschnitt({
   );
 }
 
-export function Feld({
+export function Field({
   label,
-  hinweis,
+  hint,
   children,
   testId,
 }: {
   label: string;
-  hinweis?: string;
+  hint?: string;
   children: ReactNode;
   testId?: string;
 }) {
@@ -67,30 +67,30 @@ export function Feld({
       <label htmlFor={id} className="font-medium text-slate-700">
         {label}
       </label>
-      {hinweis && <span className="ml-2 text-slate-500">{hinweis}</span>}
+      {hint && <span className="ml-2 text-slate-500">{hint}</span>}
       <div className="mt-1">{control}</div>
     </div>
   );
 }
 
-export function Meldung({
-  erfolg,
-  fehler,
+export function Message({
+  success,
+  error,
   testId,
 }: {
-  erfolg?: string | null;
-  fehler?: string | null;
+  success?: string | null;
+  error?: string | null;
   testId?: string;
 }) {
-  if (fehler) return <Fehler text={fehler} testId={testId ? `${testId}-error` : undefined} />;
-  if (erfolg) {
+  if (error) return <ErrorMessage text={error} testId={testId ? `${testId}-error` : undefined} />;
+  if (success) {
     return (
       <p
         role="status"
         data-testid={testId ? `${testId}-success` : "success-message"}
         className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800"
       >
-        {erfolg}
+        {success}
       </p>
     );
   }
@@ -103,16 +103,16 @@ export function Meldung({
  * clubs to scan. Right: selected. Clicking an entry moves it across; there's no separate
  * "add"/"remove" button, the click target already says what it does.
  */
-export function VereinsAuswahl({
-  vereine,
-  gewaehlt,
-  umschalten,
+export function ClubSelector({
+  clubs,
+  selectedIds,
+  toggle,
   id,
   testId,
 }: {
-  vereine: { id: number; name: string; short_name: string }[];
-  gewaehlt: Set<number>;
-  umschalten: (id: number) => void;
+  clubs: { id: number; name: string; short_name: string }[];
+  selectedIds: Set<number>;
+  toggle: (id: number) => void;
   id?: string;
   testId?: string;
 }) {
@@ -121,13 +121,13 @@ export function VereinsAuswahl({
   const resolvedTestId = testId ?? "clubs-transfer-list";
 
   const term = filter.trim().toLowerCase();
-  const matches = (verein: { name: string; short_name: string }) =>
+  const matches = (club: { name: string; short_name: string }) =>
     !term ||
-    verein.name.toLowerCase().includes(term) ||
-    verein.short_name.toLowerCase().includes(term);
+    club.name.toLowerCase().includes(term) ||
+    club.short_name.toLowerCase().includes(term);
 
-  const available = vereine.filter((v) => !gewaehlt.has(v.id) && matches(v));
-  const selected = vereine.filter((v) => gewaehlt.has(v.id));
+  const available = clubs.filter((v) => !selectedIds.has(v.id) && matches(v));
+  const selected = clubs.filter((v) => selectedIds.has(v.id));
 
   return (
     <div id={id} data-testid={resolvedTestId} className="grid gap-3 sm:grid-cols-2">
@@ -147,19 +147,19 @@ export function VereinsAuswahl({
           {t("common:transferList.available", { count: available.length })}
         </p>
         <ul data-testid={`${resolvedTestId}-available-list`} className="max-h-56 overflow-y-auto p-1">
-          {available.map((verein) => (
-            <li key={verein.id}>
+          {available.map((club) => (
+            <li key={club.id}>
               <button
                 type="button"
-                onClick={() => umschalten(verein.id)}
-                data-testid={`${resolvedTestId}-available-${verein.id}`}
+                onClick={() => toggle(club.id)}
+                data-testid={`${resolvedTestId}-available-${club.id}`}
                 className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-slate-50"
               >
                 <span aria-hidden className="text-slate-400">
                   +
                 </span>
-                <span className="flex-1 truncate">{verein.name}</span>
-                <span className="text-slate-400">{verein.short_name}</span>
+                <span className="flex-1 truncate">{club.name}</span>
+                <span className="text-slate-400">{club.short_name}</span>
               </button>
             </li>
           ))}
@@ -179,16 +179,16 @@ export function VereinsAuswahl({
           {t("common:transferList.selected", { count: selected.length })}
         </p>
         <ul data-testid={`${resolvedTestId}-selected-list`} className="max-h-56 overflow-y-auto p-1">
-          {selected.map((verein) => (
-            <li key={verein.id}>
+          {selected.map((club) => (
+            <li key={club.id}>
               <button
                 type="button"
-                onClick={() => umschalten(verein.id)}
-                data-testid={`${resolvedTestId}-selected-${verein.id}`}
+                onClick={() => toggle(club.id)}
+                data-testid={`${resolvedTestId}-selected-${club.id}`}
                 className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm hover:bg-slate-50"
               >
-                <span className="flex-1 truncate">{verein.name}</span>
-                <span className="text-slate-400">{verein.short_name}</span>
+                <span className="flex-1 truncate">{club.name}</span>
+                <span className="text-slate-400">{club.short_name}</span>
                 <span aria-hidden className="text-slate-400">
                   ×
                 </span>

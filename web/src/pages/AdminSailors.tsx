@@ -5,11 +5,11 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { api, type SailorAdmin, type SeriesAdmin } from "../api/client";
-import { useApi, useInvalidieren } from "../api/useApi";
-import { Fehler, Laden, Leer } from "../components/Bausteine";
-import { rolle } from "../lib/format";
-import { EINGABE, fehlertext } from "../lib/verwaltung";
-import { Abschnitt, Feld, Meldung } from "./verwaltungBausteine";
+import { useApi, useInvalidate } from "../api/useApi";
+import { ErrorMessage, Loading, Empty } from "../components/Blocks";
+import { roleText } from "../lib/format";
+import { INPUT_CLASS, errorText } from "../lib/admin";
+import { Section, Field, Message } from "./adminBuildingBlocks";
 
 /** Stories V-4 and V-1: Create sailors and register a squad for a series.
  *
@@ -30,17 +30,17 @@ export function SailorsAdmin() {
 
 function CreateSailor() {
   const { t } = useTranslation("admin");
-  const invalidieren = useInvalidieren();
-  const [suche, setzeSuche] = useState("");
+  const invalidate = useInvalidate();
+  const [search, setSearch] = useState("");
   const [vorname, setzeVorname] = useState("");
   const [nachname, setzeNachname] = useState("");
   const [email, setzeEmail] = useState("");
 
-  const treffer = useApi(["admin", "sailors", suche], (signal) =>
-    api.admin.sailors(suche, signal),
+  const results = useApi(["admin", "sailors", search], (signal) =>
+    api.admin.sailors(search, signal),
   );
 
-  const anlegen = useMutation({
+  const create = useMutation({
     mutationFn: () =>
       api.admin.createSailor({
         first_name: vorname.trim(),
@@ -51,14 +51,14 @@ function CreateSailor() {
       setzeVorname("");
       setzeNachname("");
       setzeEmail("");
-      invalidieren(["admin", "sailors"]);
+      invalidate(["admin", "sailors"]);
     },
   });
 
   return (
-    <Abschnitt
-      titel={t("sailors.title")}
-      hinweis={t("sailors.description")}
+    <Section
+      title={t("sailors.title")}
+      hint={t("sailors.description")}
       testId="admin-sailors-section"
     >
       <form
@@ -66,30 +66,30 @@ function CreateSailor() {
         className="grid gap-3 sm:grid-cols-[1fr_1fr_1.4fr_auto] sm:items-end"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
-          anlegen.mutate();
+          create.mutate();
         }}
       >
-        <Feld label={t("sailors.firstNameLabel")}>
+        <Field label={t("sailors.firstNameLabel")}>
           <input
-            className={EINGABE}
+            className={INPUT_CLASS}
             value={vorname}
             onChange={(e) => setzeVorname(e.target.value)}
             required
             data-testid="admin-sailors-first-name-input"
           />
-        </Feld>
-        <Feld label={t("sailors.lastNameLabel")}>
+        </Field>
+        <Field label={t("sailors.lastNameLabel")}>
           <input
-            className={EINGABE}
+            className={INPUT_CLASS}
             value={nachname}
             onChange={(e) => setzeNachname(e.target.value)}
             required
             data-testid="admin-sailors-last-name-input"
           />
-        </Feld>
-        <Feld label={t("sailors.emailLabel")}>
+        </Field>
+        <Field label={t("sailors.emailLabel")}>
           <input
-            className={EINGABE}
+            className={INPUT_CLASS}
             type="email"
             value={email}
             onChange={(e) => setzeEmail(e.target.value)}
@@ -97,62 +97,62 @@ function CreateSailor() {
             placeholder={t("sailors.emailPlaceholder")}
             data-testid="admin-sailors-email-input"
           />
-        </Feld>
+        </Field>
         <Button
           type="submit"
           isDisabled={
-            anlegen.isPending || !vorname.trim() || !nachname.trim() || !email.trim()
+            create.isPending || !vorname.trim() || !nachname.trim() || !email.trim()
           }
           data-testid="admin-sailors-create-button"
         >
-          {anlegen.isPending ? t("sailors.creatingButton") : t("sailors.createButton")}
+          {create.isPending ? t("sailors.creatingButton") : t("sailors.createButton")}
         </Button>
       </form>
 
-      <Meldung
+      <Message
         testId="admin-sailors-create-message"
-        fehler={anlegen.isError ? fehlertext(anlegen.error) : null}
-        erfolg={
-          anlegen.isSuccess
-            ? t("sailors.createdMessage", { firstName: anlegen.data?.first_name, lastName: anlegen.data?.last_name })
+        error={create.isError ? errorText(create.error) : null}
+        success={
+          create.isSuccess
+            ? t("sailors.createdMessage", { firstName: create.data?.first_name, lastName: create.data?.last_name })
             : null
         }
       />
 
-      <Feld label={t("sailors.searchLabel")} hinweis={t("sailors.searchHint")}>
+      <Field label={t("sailors.searchLabel")} hint={t("sailors.searchHint")}>
         <input
-          className={EINGABE}
-          value={suche}
-          onChange={(e) => setzeSuche(e.target.value)}
+          className={INPUT_CLASS}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder={t("sailors.searchPlaceholder")}
           data-testid="admin-sailors-search-input"
         />
-      </Feld>
+      </Field>
 
-      {treffer.loading && <Laden text={t("sailors.loadingText")} testId="admin-sailors-loading" />}
-      {treffer.error && <Fehler text={treffer.error} testId="admin-sailors-error" />}
-      {treffer.data && <SailorList segler={treffer.data} />}
-    </Abschnitt>
+      {results.loading && <Loading text={t("sailors.loadingText")} testId="admin-sailors-loading" />}
+      {results.error && <ErrorMessage text={results.error} testId="admin-sailors-error" />}
+      {results.data && <SailorList sailors={results.data} />}
+    </Section>
   );
 }
 
-function SailorList({ segler }: { segler: SailorAdmin[] }) {
+function SailorList({ sailors }: { sailors: SailorAdmin[] }) {
   const { t } = useTranslation("admin");
-  if (!segler.length) return <Leer testId="admin-sailors-empty">{t("sailors.emptyText")}</Leer>;
+  if (!sailors.length) return <Empty testId="admin-sailors-empty">{t("sailors.emptyText")}</Empty>;
 
   return (
     <ul
       data-testid="admin-sailors-list"
       className="divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm"
     >
-      {segler.map((person) => (
+      {sailors.map((person) => (
         <li
           key={person.id}
           data-testid={`admin-sailors-row-${person.id}`}
           className="flex items-center gap-3 px-4 py-2"
         >
           <Link
-            to={`/segler/${person.id}`}
+            to={`/sailors/${person.id}`}
             data-testid={`admin-sailors-link-${person.id}`}
             className="font-medium underline-offset-2 hover:underline"
           >
@@ -174,128 +174,128 @@ function SailorList({ segler }: { segler: SailorAdmin[] }) {
 
 function Squad() {
   const { t } = useTranslation("admin");
-  const serien = useApi(["admin", "series"], (signal) => api.admin.series(signal));
-  const [serieId, setzeSerieId] = useState<number | null>(null);
+  const seriesList = useApi(["admin", "series"], (signal) => api.admin.series(signal));
+  const [seriesId, setSeriesId] = useState<number | null>(null);
 
-  const serie = serien.data?.find((s) => s.id === serieId) ?? null;
+  const series = seriesList.data?.find((s) => s.id === seriesId) ?? null;
 
   return (
-    <Abschnitt
-      titel={t("squad.title")}
-      hinweis={t("squad.description")}
+    <Section
+      title={t("squad.title")}
+      hint={t("squad.description")}
       testId="admin-squad-section"
     >
-      {serien.loading && <Laden text={t("squad.seriesLoadingText")} testId="admin-squad-series-loading" />}
-      {serien.error && <Fehler text={serien.error} testId="admin-squad-series-error" />}
+      {seriesList.loading && <Loading text={t("squad.seriesLoadingText")} testId="admin-squad-series-loading" />}
+      {seriesList.error && <ErrorMessage text={seriesList.error} testId="admin-squad-series-error" />}
 
-      {serien.data && (
-        <Feld label={t("squad.seriesLabel")}>
+      {seriesList.data && (
+        <Field label={t("squad.seriesLabel")}>
           <select
-            className={EINGABE}
-            value={serieId ?? ""}
-            onChange={(e) => setzeSerieId(e.target.value ? Number(e.target.value) : null)}
+            className={INPUT_CLASS}
+            value={seriesId ?? ""}
+            onChange={(e) => setSeriesId(e.target.value ? Number(e.target.value) : null)}
             data-testid="admin-squad-series-select"
           >
             <option value="">{t("squad.seriesNone")}</option>
-            {serien.data.map((s) => (
+            {seriesList.data.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
             ))}
           </select>
-        </Feld>
+        </Field>
       )}
 
-      {serie && <SeriesSquad serie={serie} />}
-    </Abschnitt>
+      {series && <SeriesSquad series={series} />}
+    </Section>
   );
 }
 
-function SeriesSquad({ serie }: { serie: SeriesAdmin }) {
+function SeriesSquad({ series }: { series: SeriesAdmin }) {
   const { t } = useTranslation("admin");
   const [teamId, setzeTeamId] = useState<number | null>(null);
-  const vereine = serie.clubs ?? [];
-  const gewaehlt = vereine.find((v) => v.team_id === teamId) ?? null;
+  const clubs = series.clubs ?? [];
+  const selectedClub = clubs.find((v) => v.team_id === teamId) ?? null;
 
-  if (!vereine.length) {
-    return <Leer testId="admin-squad-club-empty">{t("squad.clubEmptyText")}</Leer>;
+  if (!clubs.length) {
+    return <Empty testId="admin-squad-club-empty">{t("squad.clubEmptyText")}</Empty>;
   }
 
   return (
     <>
-      <Feld label={t("squad.clubLabel")}>
+      <Field label={t("squad.clubLabel")}>
         <select
-          className={EINGABE}
+          className={INPUT_CLASS}
           value={teamId ?? ""}
           onChange={(e) => setzeTeamId(e.target.value ? Number(e.target.value) : null)}
           data-testid="admin-squad-club-select"
         >
           <option value="">{t("squad.clubNone")}</option>
-          {vereine.map((verein) => (
-            <option key={verein.team_id} value={verein.team_id}>
-              {verein.name}
+          {clubs.map((clubName) => (
+            <option key={clubName.team_id} value={clubName.team_id}>
+              {clubName.name}
             </option>
           ))}
         </select>
-      </Feld>
+      </Field>
 
-      {gewaehlt && <SquadManagement teamId={gewaehlt.team_id} verein={gewaehlt.name} />}
+      {selectedClub && <SquadManagement teamId={selectedClub.team_id} clubName={selectedClub.name} />}
     </>
   );
 }
 
-function SquadManagement({ teamId, verein }: { teamId: number; verein: string }) {
+function SquadManagement({ teamId, clubName }: { teamId: number; clubName: string }) {
   const { t } = useTranslation("admin");
-  const kader = useApi(["admin", "kader", teamId], (signal) =>
+  const squad = useApi(["admin", "squad", teamId], (signal) =>
     api.admin.squad(teamId, signal),
   );
-  const invalidieren = useInvalidieren();
-  const [suche, setzeSuche] = useState("");
-  const treffer = useApi(["admin", "sailors", suche], (signal) =>
-    api.admin.sailors(suche, signal),
+  const invalidate = useInvalidate();
+  const [search, setSearch] = useState("");
+  const results = useApi(["admin", "sailors", search], (signal) =>
+    api.admin.sailors(search, signal),
   );
 
-  const speichern = useMutation({
+  const save = useMutation({
     mutationFn: (members: { sailor_id: number; role: "helm" | "crew" | "substitute" }[]) =>
       api.admin.setSquad(teamId, members),
-    onSuccess: () => invalidieren(["admin", "kader", teamId], ["club"], ["sailor"]),
+    onSuccess: () => invalidate(["admin", "squad", teamId], ["club"], ["sailor"]),
   });
 
-  if (kader.loading) return <Laden text={t("squad.loadingText")} testId="admin-squad-members-loading" />;
-  if (kader.error) return <Fehler text={kader.error} testId="admin-squad-members-error" />;
-  if (!kader.data) return null;
+  if (squad.loading) return <Loading text={t("squad.loadingText")} testId="admin-squad-members-loading" />;
+  if (squad.error) return <ErrorMessage text={squad.error} testId="admin-squad-members-error" />;
+  if (!squad.data) return null;
 
-  const mitglieder = kader.data.members ?? [];
-  const aktuell = mitglieder.map((m) => ({
+  const members = squad.data.members ?? [];
+  const currentMembers = members.map((m) => ({
     sailor_id: m.id,
     role: m.role as "helm" | "crew" | "substitute",
   }));
-  const imKader = new Set(aktuell.map((m) => m.sailor_id));
+  const memberIds = new Set(currentMembers.map((m) => m.sailor_id));
 
   return (
     <div data-testid="admin-squad-management" className="grid gap-4 rounded-lg border border-slate-200 p-4">
       <div>
         <h3 className="font-medium">
-          {t("squad.headerText", { clubName: verein, count: mitglieder.length })}
+          {t("squad.headerText", { clubName: clubName, count: members.length })}
         </h3>
-        {mitglieder.length ? (
+        {members.length ? (
           <ul data-testid="admin-squad-members-list" className="mt-2 divide-y divide-slate-100 text-sm">
-            {mitglieder.map((mitglied) => (
+            {members.map((member) => (
               <li
-                key={mitglied.id}
-                data-testid={`admin-squad-member-row-${mitglied.id}`}
+                key={member.id}
+                data-testid={`admin-squad-member-row-${member.id}`}
                 className="flex items-center gap-3 py-1.5"
               >
                 <span className="flex-1">
-                  {mitglied.first_name} {mitglied.last_name}
+                  {member.first_name} {member.last_name}
                 </span>
                 <select
                   className="rounded border border-slate-300 px-2 py-1 text-xs"
-                  value={mitglied.role}
+                  value={member.role}
                   onChange={(e) =>
-                    speichern.mutate(
-                      aktuell.map((m) =>
-                        m.sailor_id === mitglied.id
+                    save.mutate(
+                      currentMembers.map((m) =>
+                        m.sailor_id === member.id
                           ? {
                               ...m,
                               role: e.target.value as "helm" | "crew" | "substitute",
@@ -304,22 +304,22 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
                       ),
                     )
                   }
-                  data-testid={`admin-squad-member-role-select-${mitglied.id}`}
+                  data-testid={`admin-squad-member-role-select-${member.id}`}
                 >
                   {["helm", "crew", "substitute"].map((value) => (
                     <option key={value} value={value}>
-                      {rolle(value)}
+                      {roleText(value)}
                     </option>
                   ))}
                 </select>
                 <Button
                   size="sm"
                   variant="ghost"
-                  isDisabled={speichern.isPending}
+                  isDisabled={save.isPending}
                   onPress={() =>
-                    speichern.mutate(aktuell.filter((m) => m.sailor_id !== mitglied.id))
+                    save.mutate(currentMembers.filter((m) => m.sailor_id !== member.id))
                   }
-                  data-testid={`admin-squad-member-remove-button-${mitglied.id}`}
+                  data-testid={`admin-squad-member-remove-button-${member.id}`}
                 >
                   {t("squad.removeButton")}
                 </Button>
@@ -327,27 +327,27 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
             ))}
           </ul>
         ) : (
-          <Leer testId="admin-squad-members-empty">{t("squad.teamEmptyText")}</Leer>
+          <Empty testId="admin-squad-members-empty">{t("squad.teamEmptyText")}</Empty>
         )}
       </div>
 
-      <Feld label={t("squad.addLabel")} hinweis={t("squad.addHint")}>
+      <Field label={t("squad.addLabel")} hint={t("squad.addHint")}>
         <input
-          className={EINGABE}
-          value={suche}
-          onChange={(e) => setzeSuche(e.target.value)}
+          className={INPUT_CLASS}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder={t("squad.addPlaceholder")}
           data-testid="admin-squad-add-search-input"
         />
-      </Feld>
+      </Field>
 
-      {treffer.data && (
+      {results.data && (
         <ul
           data-testid="admin-squad-add-list"
           className="max-h-56 divide-y divide-slate-100 overflow-y-auto rounded border border-slate-200 text-sm"
         >
-          {treffer.data
-            .filter((person) => !imKader.has(person.id))
+          {results.data
+            .filter((person) => !memberIds.has(person.id))
             .map((person) => (
               <li key={person.id} className="flex items-center gap-3 px-3 py-1.5">
                 <span className="flex-1">
@@ -356,9 +356,9 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
                 <Button
                   size="sm"
                   variant="ghost"
-                  isDisabled={speichern.isPending}
+                  isDisabled={save.isPending}
                   onPress={() =>
-                    speichern.mutate([...aktuell, { sailor_id: person.id, role: "crew" }])
+                    save.mutate([...currentMembers, { sailor_id: person.id, role: "crew" }])
                   }
                   data-testid={`admin-squad-add-button-${person.id}`}
                 >
@@ -369,8 +369,8 @@ function SquadManagement({ teamId, verein }: { teamId: number; verein: string })
         </ul>
       )}
 
-      {speichern.isError && (
-        <Fehler text={fehlertext(speichern.error)} testId="admin-squad-save-error" />
+      {save.isError && (
+        <ErrorMessage text={errorText(save.error)} testId="admin-squad-save-error" />
       )}
     </div>
   );

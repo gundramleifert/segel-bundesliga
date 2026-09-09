@@ -6,14 +6,14 @@ import ReactMarkdown from "react-markdown";
 import { api } from "../api/client";
 import { useApi } from "../api/useApi";
 import {
-  Fehler,
-  Laden,
-  Leer,
-  Seitenkopf,
-  SpieltagKarte,
-  TabellenRahmen,
-} from "../components/Bausteine";
-import { punkte } from "../lib/format";
+  ErrorMessage,
+  Loading,
+  Empty,
+  PageHeader,
+  MatchdayCard,
+  TableFrame,
+} from "../components/Blocks";
+import { formatPoints } from "../lib/format";
 
 /** Minimal Tailwind styling for the series' Markdown description — this project has no
  *  typography plugin, so headings, emphasis and paragraphs are styled element by element
@@ -50,20 +50,20 @@ const MARKDOWN_COMPONENTS = {
 export function Standings() {
   const { t } = useTranslation("standings");
   const { id } = useParams();
-  const serieId = id ? Number(id) : null;
-  const { data, error, loading } = useApi(["series-table", serieId], (signal) =>
-    serieId ? api.table(serieId, signal) : api.firstSeries(signal),
+  const seriesId = id ? Number(id) : null;
+  const { data, error, loading } = useApi(["series-table", seriesId], (signal) =>
+    seriesId ? api.table(seriesId, signal) : api.firstSeries(signal),
   );
 
-  if (loading) return <Laden text={t("loading.text")} testId="standings-loading" />;
-  if (error) return <Fehler text={error} testId="standings-error" />;
+  if (loading) return <Loading text={t("loading.text")} testId="standings-loading" />;
+  if (error) return <ErrorMessage text={error} testId="standings-error" />;
   if (!data) return null;
 
   return (
     <>
-      <Seitenkopf
-        titel={data.series.name}
-        unterzeile={t("subtitle", {
+      <PageHeader
+        title={data.series.name}
+        subtitle={t("subtitle", {
           teamCount: data.rows.length,
           actCount: data.events.length
         })}
@@ -78,12 +78,12 @@ export function Standings() {
           <ul className="grid gap-4 sm:grid-cols-2">
             {data.events.map((event) => (
               <li key={event.id}>
-                <SpieltagKarte event={event} />
+                <MatchdayCard event={event} />
               </li>
             ))}
           </ul>
         ) : (
-          <Leer testId="standings-events-empty">{t("eventsSection.empty")}</Leer>
+          <Empty testId="standings-events-empty">{t("eventsSection.empty")}</Empty>
         )}
       </section>
 
@@ -99,14 +99,14 @@ export function Standings() {
       {/* A series without a sailed event has no table — saying so plainly is clearer
           than showing an empty grid. */}
       {!data.rows.length ? (
-        <Leer testId="standings-table-empty">
+        <Empty testId="standings-table-empty">
           {data.events.length
             ? t("empty.noRaces")
             : t("empty.noEvents")}
-        </Leer>
+        </Empty>
       ) : (
       <>
-      <TabellenRahmen testId="standings-table-frame">
+      <TableFrame testId="standings-table-frame">
         <table data-testid="standings-table" className="w-full min-w-[36rem] border-collapse text-sm">
           <caption className="sr-only">
             {t("caption", { seriesName: data.series.name })}
@@ -122,59 +122,59 @@ export function Standings() {
               <th scope="col" className="w-24 px-4 py-3 text-right font-medium text-slate-600">
                 {t("table.points")}
               </th>
-              {data.events.map((spieltag) => (
+              {data.events.map((event) => (
                 <th
-                  key={spieltag.id}
+                  key={event.id}
                   scope="col"
                   className="w-20 px-3 py-3 text-center font-medium text-slate-600"
-                  title={spieltag.title}
+                  title={event.title}
                 >
-                  {t("table.act", { matchday: spieltag.matchday })}
+                  {t("table.act", { matchday: event.matchday })}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {data.rows.map((zeile) => (
+            {data.rows.map((row) => (
               <tr
-                key={zeile.team.id}
-                data-testid={`standings-row-${zeile.team.id}`}
+                key={row.team.id}
+                data-testid={`standings-row-${row.team.id}`}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
               >
                 <td className="px-4 py-3 font-semibold tabular-nums text-slate-900">
-                  {zeile.rank}
+                  {row.rank}
                 </td>
                 <td className="px-4 py-3">
                   <Link
-                    to={`/clubs/${zeile.team.club.id}`}
-                    data-testid={`standings-club-link-${zeile.team.id}`}
+                    to={`/clubs/${row.team.club.id}`}
+                    data-testid={`standings-club-link-${row.team.id}`}
                     className="font-medium text-slate-900 underline-offset-2 hover:underline"
                   >
-                    {zeile.team.club.name}
+                    {row.team.club.name}
                   </Link>
-                  <span className="ml-2 text-slate-500">{zeile.team.club.short_name}</span>
+                  <span className="ml-2 text-slate-500">{row.team.club.short_name}</span>
                 </td>
                 <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                  {punkte(zeile.points)}
+                  {formatPoints(row.points)}
                 </td>
-                {data.events.map((spieltag) => (
+                {data.events.map((event) => (
                   <td
-                    key={spieltag.id}
+                    key={event.id}
                     className="px-3 py-3 text-center tabular-nums text-slate-500"
                   >
                     <span
                       className={
-                        zeile.missed_matchdays?.includes(spieltag.matchday ?? 0)
+                        row.missed_matchdays?.includes(event.matchday ?? 0)
                           ? "italic text-slate-400"
                           : ""
                       }
                       title={
-                        zeile.missed_matchdays?.includes(spieltag.matchday ?? 0)
+                        row.missed_matchdays?.includes(event.matchday ?? 0)
                           ? t("table.notSailed")
                           : undefined
                       }
                     >
-                      {zeile.ranks_by_matchday[String(spieltag.matchday)] ?? "–"}
+                      {row.ranks_by_matchday[String(event.matchday)] ?? "–"}
                     </span>
                   </td>
                 ))}
@@ -182,7 +182,7 @@ export function Standings() {
             ))}
           </tbody>
         </table>
-      </TabellenRahmen>
+      </TableFrame>
       {/* The scoring rule itself is short and unconditional — it stays here as a
           permanent legend, independent of whatever the series' own description says. */}
       <p className="mt-3 text-sm text-slate-500">{t("scoringNote")}</p>

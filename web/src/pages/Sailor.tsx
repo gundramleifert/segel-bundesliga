@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 
 import { api } from "../api/client";
 import { useApi } from "../api/useApi";
-import { Fehler, Laden, Leer, Seitenkopf, StatusMarke } from "../components/Bausteine";
-import { ortText, rolle, zeitraum } from "../lib/format";
+import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
+import { locationText, roleText, dateRange } from "../lib/format";
 
 /** B-8: The Sailor page — which teams someone is registered with and where they compete. */
 export function Sailor() {
@@ -15,15 +15,15 @@ export function Sailor() {
     api.sailor(Number(id), signal),
   );
 
-  if (loading) return <Laden text={t("loading")} testId="sailor-loading" />;
-  if (error) return <Fehler text={error} testId="sailor-error" />;
+  if (loading) return <Loading text={t("loading")} testId="sailor-loading" />;
+  if (error) return <ErrorMessage text={error} testId="sailor-error" />;
   if (!data) return null;
 
   return (
     <>
-      <Seitenkopf
-        titel={`${data.first_name} ${data.last_name}`}
-        unterzeile={
+      <PageHeader
+        title={`${data.first_name} ${data.last_name}`}
+        subtitle={
           data.teams?.length
             ? t("registeredFor", { clubs: data.teams.map((t) => t.club.short_name).join(", ") })
             : t("notRegistered")
@@ -35,21 +35,21 @@ export function Sailor() {
         <h2 className="mb-3 text-lg font-semibold">{t("registrations")}</h2>
         {data.teams?.length ? (
           <ul className="grid gap-3 sm:grid-cols-2">
-            {data.teams.map((eintrag) => (
-              <li key={eintrag.team_id} data-testid={`sailor-registration-card-${eintrag.team_id}`}>
+            {data.teams.map((entry) => (
+              <li key={entry.team_id} data-testid={`sailor-registration-card-${entry.team_id}`}>
                 <Card>
                   <Card.Header>
                     <Card.Title className="text-base">
                       <Link
-                        to={`/clubs/${eintrag.club.id}`}
-                        data-testid={`sailor-registration-club-link-${eintrag.team_id}`}
+                        to={`/clubs/${entry.club.id}`}
+                        data-testid={`sailor-registration-club-link-${entry.team_id}`}
                         className="underline-offset-2 hover:underline"
                       >
-                        {eintrag.club.name}
+                        {entry.club.name}
                       </Link>
                     </Card.Title>
                     <Card.Description>
-                      {eintrag.series.name} · {rolle(eintrag.role)}
+                      {entry.series.name} · {roleText(entry.role)}
                     </Card.Description>
                   </Card.Header>
                 </Card>
@@ -57,7 +57,7 @@ export function Sailor() {
             ))}
           </ul>
         ) : (
-          <Leer testId="sailor-registrations-empty">{t("noRegistrations")}</Leer>
+          <Empty testId="sailor-registrations-empty">{t("noRegistrations")}</Empty>
         )}
       </section>
 
@@ -65,26 +65,26 @@ export function Sailor() {
         <h2 className="mb-3 text-lg font-semibold">{t("lineups")}</h2>
         {data.events?.length ? (
           <ul className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-            {data.events.map((eintrag) => (
-              <li key={eintrag.event.id} className="border-b border-slate-100 last:border-0">
+            {data.events.map((entry) => (
+              <li key={entry.event.id} className="border-b border-slate-100 last:border-0">
                 <Link
-                  to={`/events/${eintrag.event.id}`}
-                  data-testid={`sailor-lineup-row-${eintrag.event.id}`}
+                  to={`/events/${entry.event.id}`}
+                  data-testid={`sailor-lineup-row-${entry.event.id}`}
                   className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-slate-50"
                 >
-                  <span className="font-medium">{eintrag.event.title}</span>
-                  <StatusMarke status={eintrag.event.status} />
+                  <span className="font-medium">{entry.event.title}</span>
+                  <StatusBadge status={entry.event.status} />
                   <span className="w-full text-sm text-slate-500">
-                    {ortText(eintrag.event)} ·{" "}
-                    {zeitraum(eintrag.event.starts_on, eintrag.event.ends_on)} ·{" "}
-                    {rolle(eintrag.role)}
+                    {locationText(entry.event)} ·{" "}
+                    {dateRange(entry.event.starts_on, entry.event.ends_on)} ·{" "}
+                    {roleText(entry.role)}
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
         ) : (
-          <Leer testId="sailor-lineups-empty">{t("noLineups")}</Leer>
+          <Empty testId="sailor-lineups-empty">{t("noLineups")}</Empty>
         )}
       </section>
     </>

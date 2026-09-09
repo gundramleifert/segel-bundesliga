@@ -3,16 +3,16 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { LegacyRedirect } from "./components/LegacyRedirect";
 import { Help } from "./pages/Help";
-import { Account } from "./pages/Konto";
-import { Sailor } from "./pages/Segler";
-import { Matchday } from "./pages/Spieltag";
+import { Account } from "./pages/Account";
+import { Sailor } from "./pages/Sailor";
+import { Matchday } from "./pages/Matchday";
 import { SeriesOverview } from "./pages/SeriesOverview";
 import { Start } from "./pages/Start";
-import { Standings } from "./pages/Tabelle";
-import { Events } from "./pages/Termine";
-import { Admin } from "./pages/Verwaltung";
-import { Club } from "./pages/Verein";
-import { Clubs } from "./pages/Vereine";
+import { Standings } from "./pages/Standings";
+import { Events } from "./pages/Events";
+import { Admin } from "./pages/Admin";
+import { Club } from "./pages/Club";
+import { Clubs } from "./pages/Clubs";
 
 export default function App() {
   return (

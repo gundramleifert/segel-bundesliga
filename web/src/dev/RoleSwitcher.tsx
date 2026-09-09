@@ -11,68 +11,68 @@ import { getToken, onTokenChange, setToken } from "../api/session";
  * manager, or a plain participant without fishing a one-time code out of the server log
  * every time.
  */
-export function Rollenwechsel() {
+export function RoleSwitcher() {
   const { t } = useTranslation("dev");
-  const [offen, setOffen] = useState(false);
-  const [konten, setKonten] = useState<TestAccount[] | null>(null);
-  const [ich, setIch] = useState<Account | null>(null);
-  const [suche, setSuche] = useState("");
-  const [verfuegbar, setVerfuegbar] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [accounts, setAccounts] = useState<TestAccount[] | null>(null);
+  const [me, setMe] = useState<Account | null>(null);
+  const [search, setSearch] = useState("");
+  const [available, setAvailable] = useState(true);
 
   useEffect(() => {
     api
       .testAccounts()
-      .then(setKonten)
-      .catch(() => setVerfuegbar(false));
+      .then(setAccounts)
+      .catch(() => setAvailable(false));
   }, []);
 
   useEffect(() => {
-    const laden = () => {
+    const load = () => {
       if (!getToken()) {
-        setIch(null);
+        setMe(null);
         return;
       }
       api
         .me()
-        .then(setIch)
+        .then(setMe)
         .catch(() => {
           // Expired or invalid token: better to sign out than get stuck half-signed-in.
           setToken(null);
-          setIch(null);
+          setMe(null);
         });
     };
-    laden();
-    return onTokenChange(laden);
+    load();
+    return onTokenChange(load);
   }, []);
 
-  const gefiltert = useMemo(() => {
-    if (!konten) return [];
-    const begriff = suche.trim().toLowerCase();
-    const passt = begriff
-      ? konten.filter(
+  const filtered = useMemo(() => {
+    if (!accounts) return [];
+    const term = search.trim().toLowerCase();
+    const matched = term
+      ? accounts.filter(
           (k: TestAccount) =>
-            k.email.toLowerCase().includes(begriff) ||
-            k.display_name.toLowerCase().includes(begriff) ||
-            (k.club ?? "").toLowerCase().includes(begriff) ||
-            k.roles.some((r: string) => r.includes(begriff)),
+            k.email.toLowerCase().includes(term) ||
+            k.display_name.toLowerCase().includes(term) ||
+            (k.club ?? "").toLowerCase().includes(term) ||
+            k.roles.some((r: string) => r.includes(term)),
         )
-      : konten;
+      : accounts;
     // Accounts with a role first — those are the interesting ones to try out.
-    return [...passt]
+    return [...matched]
       .sort((a, b) => b.roles.length - a.roles.length || a.email.localeCompare(b.email))
       .slice(0, 40);
-  }, [konten, suche]);
+  }, [accounts, search]);
 
-  if (!verfuegbar) return null;
+  if (!available) return null;
 
-  async function anmelden(email: string) {
+  async function signIn(email: string) {
     setToken(await api.devLogin(email));
-    setOffen(false);
+    setOpen(false);
   }
 
   return (
     <div data-testid="dev-role-switcher" className="fixed bottom-4 right-4 z-50 text-sm">
-      {offen && (
+      {open && (
         <div
           data-testid="dev-role-switcher-panel"
           className="mb-2 max-h-[70vh] w-[22rem] overflow-hidden rounded-xl border border-amber-300 bg-white shadow-xl"
@@ -85,8 +85,8 @@ export function Rollenwechsel() {
           <div className="border-b border-slate-200 p-2">
             <input
               type="search"
-              value={suche}
-              onChange={(e) => setSuche(e.target.value)}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder={t("searchPlaceholder")}
               aria-label={t("searchLabel")}
               data-testid="dev-role-switcher-search-input"
@@ -95,32 +95,32 @@ export function Rollenwechsel() {
           </div>
 
           <ul data-testid="dev-role-switcher-list" className="max-h-[42vh] overflow-y-auto">
-            {gefiltert.map((konto) => (
-              <li key={konto.id}>
+            {filtered.map((account) => (
+              <li key={account.id}>
                 <button
-                  onClick={() => anmelden(konto.email)}
-                  data-testid={`dev-role-switcher-account-${konto.id}`}
+                  onClick={() => signIn(account.email)}
+                  data-testid={`dev-role-switcher-account-${account.id}`}
                   className={`block w-full px-3 py-2 text-left hover:bg-slate-50 ${
-                    ich?.email === konto.email ? "bg-sky-50" : ""
+                    me?.email === account.email ? "bg-sky-50" : ""
                   }`}
                 >
-                  <span className="font-medium">{konto.display_name}</span>
-                  {konto.club && <span className="ml-1.5 text-slate-500">[{konto.club}]</span>}
-                  <span className="block text-xs text-slate-500">{konto.email}</span>
+                  <span className="font-medium">{account.display_name}</span>
+                  {account.club && <span className="ml-1.5 text-slate-500">[{account.club}]</span>}
+                  <span className="block text-xs text-slate-500">{account.email}</span>
                   <span className="block text-xs text-sky-800">
-                    {konto.roles.join(", ") || t("noRole")}
+                    {account.roles.join(", ") || t("noRole")}
                   </span>
                 </button>
               </li>
             ))}
-            {!gefiltert.length && (
+            {!filtered.length && (
               <li data-testid="dev-role-switcher-empty" className="px-3 py-6 text-center text-slate-500">
                 {t("notFound")}
               </li>
             )}
           </ul>
 
-          {ich && (
+          {me && (
             <div className="border-t border-slate-200 p-2">
               <button
                 onClick={() => setToken(null)}
@@ -135,13 +135,13 @@ export function Rollenwechsel() {
       )}
 
       <button
-        onClick={() => setOffen((o) => !o)}
-        aria-expanded={offen}
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
         data-testid="dev-role-switcher-toggle"
         className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 font-medium text-amber-900 shadow-lg hover:bg-amber-200"
       >
         <span aria-hidden>🔧</span>
-        {ich ? `${ich.display_name} · ${ich.roles.join(", ") || t("noRole")}` : t("notSignedIn")}
+        {me ? `${me.display_name} · ${me.roles.join(", ") || t("noRole")}` : t("notSignedIn")}
       </button>
     </div>
   );

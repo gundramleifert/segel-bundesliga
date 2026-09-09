@@ -3,9 +3,9 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { api, type ClubDetail, type ClubMemberSummary, type Member } from "../api/client";
-import { useApi, useKonto } from "../api/useApi";
-import { Fehler, Laden, Leer, StatusMarke } from "../components/Bausteine";
-import { ortText, rolle, zeitraum } from "../lib/format";
+import { useApi, useAccount } from "../api/useApi";
+import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
+import { locationText, roleText, dateRange } from "../lib/format";
 
 type ClubEvent = NonNullable<NonNullable<ClubDetail["teams"]>[number]["events"]>[number];
 
@@ -13,13 +13,13 @@ type ClubEvent = NonNullable<NonNullable<ClubDetail["teams"]>[number]["events"]>
 export function Club() {
   const { t } = useTranslation("club");
   const { id = "" } = useParams();
-  const { konto } = useKonto();
+  const { account } = useAccount();
   const { data, error, loading } = useApi(["club", id], (signal) =>
     api.club(Number(id), signal),
   );
 
-  if (loading) return <Laden text={t("loading")} testId="club-loading" />;
-  if (error) return <Fehler text={error} testId="club-error" />;
+  if (loading) return <Loading text={t("loading")} testId="club-loading" />;
+  if (error) return <ErrorMessage text={error} testId="club-error" />;
   if (!data) return null;
 
   return (
@@ -71,12 +71,12 @@ export function Club() {
 
       {data.teams?.length ? (
         <div data-testid="club-teams-section" className="space-y-6">
-          {data.teams.map((mannschaft) => (
-            <Card key={mannschaft.id} data-testid={`club-team-card-${mannschaft.id}`}>
+          {data.teams.map((team) => (
+            <Card key={team.id} data-testid={`club-team-card-${team.id}`}>
               <Card.Header>
-                <Card.Title className="text-base">{mannschaft.series.name}</Card.Title>
+                <Card.Title className="text-base">{team.series.name}</Card.Title>
                 <Card.Description>
-                  {t("stats", { count: mannschaft.members?.length ?? 0, events: mannschaft.events?.length ?? 0 })}
+                  {t("stats", { count: team.members?.length ?? 0, events: team.events?.length ?? 0 })}
                 </Card.Description>
               </Card.Header>
               <Card.Content>
@@ -85,11 +85,11 @@ export function Club() {
                     <h3 className="mb-2 text-sm font-medium text-slate-500">
                       {t("squad")}
                     </h3>
-                    <Kader mitglieder={mannschaft.members ?? []} />
+                    <Squad members={team.members ?? []} />
                   </section>
                   <section>
                     <h3 className="mb-2 text-sm font-medium text-slate-500">{t("events")}</h3>
-                    <Spieltage eintraege={mannschaft.events ?? []} />
+                    <Matchdays entries={team.events ?? []} />
                   </section>
                 </div>
               </Card.Content>
@@ -97,7 +97,7 @@ export function Club() {
           ))}
         </div>
       ) : (
-        <Leer testId="club-teams-empty">{t("unassigned")}</Leer>
+        <Empty testId="club-teams-empty">{t("unassigned")}</Empty>
       )}
 
       {data.events?.length ? (
@@ -108,13 +108,13 @@ export function Club() {
           </p>
           <Card>
             <Card.Content>
-              <Spieltage eintraege={data.events} />
+              <Matchdays entries={data.events} />
             </Card.Content>
           </Card>
         </section>
       ) : null}
 
-      {konto && <Mitglieder clubId={Number(id)} />}
+      {account && <Members clubId={Number(id)} />}
     </>
   );
 }
@@ -123,7 +123,7 @@ export function Club() {
  * member of *this* club, or staff. Anyone else gets 403 from the endpoint; since a guest
  * or another club's member landing on this page is the normal case, not a failure, that
  * simply hides the section instead of showing an error banner. */
-function Mitglieder({ clubId }: { clubId: number }) {
+function Members({ clubId }: { clubId: number }) {
   const { t } = useTranslation("club");
   const { data, error, loading } = useApi(["clubMembers", clubId], (signal) =>
     api.clubMembers(clubId, signal),
@@ -137,14 +137,14 @@ function Mitglieder({ clubId }: { clubId: number }) {
       <Card>
         <Card.Content>
           <ul className="divide-y divide-slate-100 text-sm">
-            {data.map((mitglied: ClubMemberSummary) => (
+            {data.map((member: ClubMemberSummary) => (
               <li
-                key={mitglied.user_id}
-                data-testid={`club-member-row-${mitglied.user_id}`}
+                key={member.user_id}
+                data-testid={`club-member-row-${member.user_id}`}
                 className="flex items-center justify-between gap-3 py-2"
               >
-                <span>{mitglied.display_name}</span>
-                {mitglied.organizer && (
+                <span>{member.display_name}</span>
+                {member.organizer && (
                   <span className="shrink-0 text-slate-500">{t("organizer")}</span>
                 )}
               </li>
@@ -157,10 +157,10 @@ function Mitglieder({ clubId }: { clubId: number }) {
 }
 
 /** Matchdays of a team, with crew members sailing for the club. */
-function Spieltage({ eintraege }: { eintraege: ClubEvent[] }) {
+function Matchdays({ entries }: { entries: ClubEvent[] }) {
   const { t } = useTranslation("club");
 
-  if (!eintraege.length) {
+  if (!entries.length) {
     return (
       <p data-testid="club-events-empty" className="text-sm text-slate-500">
         {t("events_empty")}
@@ -170,7 +170,7 @@ function Spieltage({ eintraege }: { eintraege: ClubEvent[] }) {
 
   return (
     <ul className="divide-y divide-slate-100 text-sm">
-      {eintraege.map(({ event, crew }) => (
+      {entries.map(({ event, crew }) => (
         <li key={event.id} data-testid={`club-event-row-${event.id}`} className="py-2">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Link
@@ -180,22 +180,22 @@ function Spieltage({ eintraege }: { eintraege: ClubEvent[] }) {
             >
               {event.title}
             </Link>
-            <StatusMarke status={event.status} />
+            <StatusBadge status={event.status} />
           </div>
           <p className="text-slate-500">
-            {ortText(event)} · {zeitraum(event.starts_on, event.ends_on)}
+            {locationText(event)} · {dateRange(event.starts_on, event.ends_on)}
           </p>
           <p className="mt-0.5 text-slate-600">
             {crew?.length ? (
-              crew.map((mitglied, index) => (
-                <span key={mitglied.id}>
+              crew.map((member, index) => (
+                <span key={member.id}>
                   {index > 0 && ", "}
                   <Link
-                    to={`/sailors/${mitglied.id}`}
-                    data-testid={`club-crew-link-${event.id}-${mitglied.id}`}
+                    to={`/sailors/${member.id}`}
+                    data-testid={`club-crew-link-${event.id}-${member.id}`}
                     className="underline-offset-2 hover:underline"
                   >
-                    {mitglied.first_name} {mitglied.last_name}
+                    {member.first_name} {member.last_name}
                   </Link>
                 </span>
               ))
@@ -209,10 +209,10 @@ function Spieltage({ eintraege }: { eintraege: ClubEvent[] }) {
   );
 }
 
-function Kader({ mitglieder }: { mitglieder: Member[] }) {
+function Squad({ members }: { members: Member[] }) {
   const { t } = useTranslation("club");
 
-  if (!mitglieder.length)
+  if (!members.length)
     return (
       <p data-testid="club-squad-empty" className="text-sm text-slate-500">
         {t("squad_empty")}
@@ -221,20 +221,20 @@ function Kader({ mitglieder }: { mitglieder: Member[] }) {
 
   return (
     <ul className="divide-y divide-slate-100 text-sm">
-      {mitglieder.map((mitglied) => (
+      {members.map((member) => (
         <li
-          key={mitglied.id}
-          data-testid={`club-squad-row-${mitglied.id}`}
+          key={member.id}
+          data-testid={`club-squad-row-${member.id}`}
           className="flex items-center justify-between gap-3 py-2"
         >
           <Link
-            to={`/sailors/${mitglied.id}`}
-            data-testid={`club-squad-link-${mitglied.id}`}
+            to={`/sailors/${member.id}`}
+            data-testid={`club-squad-link-${member.id}`}
             className="font-medium underline-offset-2 hover:underline"
           >
-            {mitglied.first_name} {mitglied.last_name}
+            {member.first_name} {member.last_name}
           </Link>
-          <span className="shrink-0 text-slate-500">{rolle(mitglied.role)}</span>
+          <span className="shrink-0 text-slate-500">{roleText(member.role)}</span>
         </li>
       ))}
     </ul>

@@ -4,63 +4,63 @@ import { useTranslation } from "react-i18next";
 
 import { ApiError, api, type Account as AccountData, type SailorMe } from "../api/client";
 import { getToken, onTokenChange, setToken } from "../api/session";
-import { Fehler, Laden, Seitenkopf } from "../components/Bausteine";
-import { EINGABE, fehlertext } from "../lib/verwaltung";
+import { ErrorMessage, Loading, PageHeader } from "../components/Blocks";
+import { INPUT_CLASS, errorText } from "../lib/admin";
 
 /** Roles and what permissions they grant. Without this page, role switching would be invisible
  *  as long as there are no protected areas yet. */
-const RECHTE: { rolle: string; key: string }[] = [
-  { rolle: "admin", key: "roles.admin" },
-  { rolle: "admin", key: "roles.admin_pairing" },
-  { rolle: "editor", key: "roles.editor" },
-  { rolle: "race_officer", key: "roles.race_officer" },
-  { rolle: "club_manager", key: "roles.club_manager" },
-  { rolle: "club_manager", key: "roles.club_manager_squad" },
+const PERMISSIONS: { role: string; key: string }[] = [
+  { role: "admin", key: "roles.admin" },
+  { role: "admin", key: "roles.admin_pairing" },
+  { role: "editor", key: "roles.editor" },
+  { role: "race_officer", key: "roles.race_officer" },
+  { role: "club_manager", key: "roles.club_manager" },
+  { role: "club_manager", key: "roles.club_manager_squad" },
 ];
 
 export function Account() {
   const { t } = useTranslation("account");
-  const [konto, setKonto] = useState<AccountData | null>(null);
-  const [fehler, setFehler] = useState<string | null>(null);
-  const [laedt, setLaedt] = useState(true);
+  const [account, setAccount] = useState<AccountData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const laden = () => {
+    const load = () => {
       if (!getToken()) {
-        setKonto(null);
-        setFehler(null);
-        setLaedt(false);
+        setAccount(null);
+        setError(null);
+        setLoading(false);
         return;
       }
-      setLaedt(true);
+      setLoading(true);
       api
         .me()
-        .then((daten) => {
-          setKonto(daten);
-          setFehler(null);
+        .then((data) => {
+          setAccount(data);
+          setError(null);
         })
-        .catch(() => setFehler(t("sessionExpired")))
-        .finally(() => setLaedt(false));
+        .catch(() => setError(t("sessionExpired")))
+        .finally(() => setLoading(false));
     };
-    laden();
-    return onTokenChange(laden);
+    load();
+    return onTokenChange(load);
   }, [t]);
 
-  if (laedt) return <Laden testId="account-loading" />;
+  if (loading) return <Loading testId="account-loading" />;
 
-  if (!konto) {
+  if (!account) {
     return (
       <>
-        <Seitenkopf titel={t("title")} testId="account-header" />
+        <PageHeader title={t("title")} testId="account-header" />
         <Card data-testid="account-signin-card">
           <Card.Header>
             <Card.Title>{t("notSignedIn")}</Card.Title>
             <Card.Description>{t("description")}</Card.Description>
           </Card.Header>
           <Card.Content>
-            {fehler && (
+            {error && (
               <p data-testid="account-session-error" className="mb-3 text-red-700">
-                {fehler}
+                {error}
               </p>
             )}
             <SignIn />
@@ -70,16 +70,16 @@ export function Account() {
     );
   }
 
-  const meine = new Set(konto.roles);
-  const erlaubt = RECHTE.filter((eintrag) => meine.has(eintrag.rolle));
+  const myRoles = new Set(account.roles);
+  const allowed = PERMISSIONS.filter((entry) => myRoles.has(entry.role));
 
   return (
     <>
-      <Seitenkopf
-        titel={t("title")}
-        unterzeile={konto.email}
+      <PageHeader
+        title={t("title")}
+        subtitle={account.email}
         testId="account-header"
-        rechts={
+        right={
           <Button variant="outline" onPress={() => setToken(null)} data-testid="account-signout-button">
             {t("signOut")}
           </Button>
@@ -89,19 +89,19 @@ export function Account() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Card data-testid="account-info-card">
           <Card.Header>
-            <Card.Title>{konto.display_name}</Card.Title>
+            <Card.Title>{account.display_name}</Card.Title>
             <Card.Description>
-              {konto.roles.length ? konto.roles.join(", ") : t("signedInNoRole")}
+              {account.roles.length ? account.roles.join(", ") : t("signedInNoRole")}
             </Card.Description>
           </Card.Header>
           <Card.Content>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
               <dt className="text-slate-500">{t("labels.club")}</dt>
-              <dd>{konto.club_id ? `#${konto.club_id}` : t("labels.notAssigned")}</dd>
+              <dd>{account.club_id ? `#${account.club_id}` : t("labels.notAssigned")}</dd>
               <dt className="text-slate-500">{t("labels.signInMethods")}</dt>
-              <dd>{konto.identities.map((i) => i.provider).join(", ") || "—"}</dd>
+              <dd>{account.identities.map((i) => i.provider).join(", ") || "—"}</dd>
               <dt className="text-slate-500">{t("labels.status")}</dt>
-              <dd>{konto.is_active ? t("labels.active") : t("labels.disabled")}</dd>
+              <dd>{account.is_active ? t("labels.active") : t("labels.disabled")}</dd>
             </dl>
           </Card.Content>
         </Card>
@@ -111,14 +111,14 @@ export function Account() {
             <Card.Title>{t("permissions")}</Card.Title>
           </Card.Header>
           <Card.Content>
-            {erlaubt.length ? (
+            {allowed.length ? (
               <ul className="space-y-1.5 text-sm">
-                {erlaubt.map((eintrag) => (
-                  <li key={eintrag.key} className="flex gap-2">
+                {allowed.map((entry) => (
+                  <li key={entry.key} className="flex gap-2">
                     <span aria-hidden className="text-marke-600">
                       ✓
                     </span>
-                    {t(eintrag.key)}
+                    {t(entry.key)}
                   </li>
                 ))}
               </ul>
@@ -145,44 +145,44 @@ export function Account() {
 function Profile() {
   const { t } = useTranslation("account");
   const [sailor, setSailor] = useState<SailorMe | null>(null);
-  const [keinDatensatz, setKeinDatensatz] = useState(false);
-  const [ladeFehler, setLadeFehler] = useState<string | null>(null);
-  const [laedt, setLaedt] = useState(true);
+  const [noRecord, setNoRecord] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [vorname, setVorname] = useState("");
-  const [nachname, setNachname] = useState("");
-  const [geburtsdatum, setGeburtsdatum] = useState("");
-  const [speichernLaeuft, setSpeichernLaeuft] = useState(false);
-  const [fehler, setFehler] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [birthDate, setBirthDate] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
-  const [fotoLaeuft, setFotoLaeuft] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
 
   useEffect(() => {
-    let aktiv = true;
-    setLaedt(true);
+    let active = true;
+    setLoading(true);
     api.sailors
       .me()
-      .then((daten) => {
-        if (!aktiv) return;
-        setSailor(daten);
-        setVorname(daten.first_name);
-        setNachname(daten.last_name);
-        setGeburtsdatum(daten.birth_date ?? "");
-        setKeinDatensatz(false);
-        setLadeFehler(null);
+      .then((data) => {
+        if (!active) return;
+        setSailor(data);
+        setFirstName(data.first_name);
+        setLastName(data.last_name);
+        setBirthDate(data.birth_date ?? "");
+        setNoRecord(false);
+        setLoadError(null);
       })
       .catch((err) => {
-        if (!aktiv) return;
+        if (!active) return;
         if (err instanceof ApiError && err.code === "no-linked-sailor-record") {
-          setKeinDatensatz(true);
+          setNoRecord(true);
         } else {
-          setLadeFehler(fehlertext(err));
+          setLoadError(errorText(err));
         }
       })
-      .finally(() => aktiv && setLaedt(false));
+      .finally(() => active && setLoading(false));
     return () => {
-      aktiv = false;
+      active = false;
     };
   }, []);
 
@@ -192,71 +192,71 @@ function Profile() {
   // into an object URL works for that case exactly as it does for a public, adult photo.
   useEffect(() => {
     if (!sailor?.has_photo) {
-      setFotoUrl(null);
+      setPhotoUrl(null);
       return;
     }
-    let aktiv = true;
-    let lokaleUrl: string | null = null;
+    let active = true;
+    let localUrl: string | null = null;
     const token = getToken();
     fetch(api.sailorPhotoUrl(sailor.id), {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
-      .then((antwort) => (antwort.ok ? antwort.blob() : Promise.reject(antwort)))
+      .then((response) => (response.ok ? response.blob() : Promise.reject(response)))
       .then((blob) => {
-        if (!aktiv) return;
-        lokaleUrl = URL.createObjectURL(blob);
-        setFotoUrl(lokaleUrl);
+        if (!active) return;
+        localUrl = URL.createObjectURL(blob);
+        setPhotoUrl(localUrl);
       })
-      .catch(() => aktiv && setFotoUrl(null));
+      .catch(() => active && setPhotoUrl(null));
     return () => {
-      aktiv = false;
-      if (lokaleUrl) URL.revokeObjectURL(lokaleUrl);
+      active = false;
+      if (localUrl) URL.revokeObjectURL(localUrl);
     };
   }, [sailor?.id, sailor?.has_photo]);
 
-  async function speichern(e: FormEvent) {
+  async function save(e: FormEvent) {
     e.preventDefault();
-    setSpeichernLaeuft(true);
-    setFehler(null);
+    setSaving(true);
+    setError(null);
     try {
-      const aktualisiert = await api.sailors.updateMe({
-        first_name: vorname.trim(),
-        last_name: nachname.trim(),
-        birth_date: geburtsdatum || null,
+      const updated = await api.sailors.updateMe({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        birth_date: birthDate || null,
       });
-      setSailor(aktualisiert);
+      setSailor(updated);
     } catch (err) {
-      setFehler(fehlertext(err));
+      setError(errorText(err));
     } finally {
-      setSpeichernLaeuft(false);
+      setSaving(false);
     }
   }
 
-  async function fotoHochladen(e: ChangeEvent<HTMLInputElement>) {
-    const datei = e.target.files?.[0];
+  async function uploadPhoto(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
     e.target.value = "";
-    if (!datei) return;
-    setFotoLaeuft(true);
-    setFehler(null);
+    if (!file) return;
+    setPhotoBusy(true);
+    setError(null);
     try {
-      setSailor(await api.sailors.uploadMyPhoto(datei));
+      setSailor(await api.sailors.uploadMyPhoto(file));
     } catch (err) {
-      setFehler(fehlertext(err));
+      setError(errorText(err));
     } finally {
-      setFotoLaeuft(false);
+      setPhotoBusy(false);
     }
   }
 
-  async function fotoEntfernen() {
-    setFotoLaeuft(true);
-    setFehler(null);
+  async function removePhoto() {
+    setPhotoBusy(true);
+    setError(null);
     try {
       await api.sailors.deleteMyPhoto();
-      setSailor((vorher) => (vorher ? { ...vorher, has_photo: false } : vorher));
+      setSailor((prev) => (prev ? { ...prev, has_photo: false } : prev));
     } catch (err) {
-      setFehler(fehlertext(err));
+      setError(errorText(err));
     } finally {
-      setFotoLaeuft(false);
+      setPhotoBusy(false);
     }
   }
 
@@ -267,18 +267,18 @@ function Profile() {
         <Card.Description>{t("profile.description")}</Card.Description>
       </Card.Header>
       <Card.Content>
-        {laedt ? (
-          <Laden testId="account-profile-loading" />
-        ) : ladeFehler ? (
-          <Fehler text={ladeFehler} testId="account-profile-load-error" />
-        ) : keinDatensatz ? (
+        {loading ? (
+          <Loading testId="account-profile-loading" />
+        ) : loadError ? (
+          <ErrorMessage text={loadError} testId="account-profile-load-error" />
+        ) : noRecord ? (
           <p className="text-sm text-slate-600">{t("profile.noSailorRecord")}</p>
         ) : sailor ? (
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-4">
-              {fotoUrl ? (
+              {photoUrl ? (
                 <img
-                  src={fotoUrl}
+                  src={photoUrl}
                   alt={t("profile.photoAlt")}
                   data-testid="account-profile-photo"
                   className="h-20 w-20 rounded-full object-cover ring-1 ring-slate-200"
@@ -298,10 +298,10 @@ function Profile() {
                   className={
                     "inline-flex cursor-pointer items-center justify-center rounded-md " +
                     "border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50 " +
-                    (fotoLaeuft ? "pointer-events-none opacity-60" : "")
+                    (photoBusy ? "pointer-events-none opacity-60" : "")
                   }
                 >
-                  {fotoLaeuft
+                  {photoBusy
                     ? t("profile.photoUploading")
                     : sailor.has_photo
                       ? t("profile.replacePhoto")
@@ -310,16 +310,16 @@ function Profile() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    disabled={fotoLaeuft}
-                    onChange={fotoHochladen}
+                    disabled={photoBusy}
+                    onChange={uploadPhoto}
                     data-testid="account-profile-photo-upload-input"
                   />
                 </label>
                 {sailor.has_photo && (
                   <Button
                     variant="outline"
-                    isDisabled={fotoLaeuft}
-                    onPress={fotoEntfernen}
+                    isDisabled={photoBusy}
+                    onPress={removePhoto}
                     data-testid="account-profile-photo-remove-button"
                   >
                     {t("profile.removePhoto")}
@@ -328,7 +328,7 @@ function Profile() {
               </div>
             </div>
 
-            <form onSubmit={speichern} data-testid="account-profile-form" className="space-y-3">
+            <form onSubmit={save} data-testid="account-profile-form" className="space-y-3">
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label
@@ -341,9 +341,9 @@ function Profile() {
                     id="profile-first-name"
                     type="text"
                     required
-                    value={vorname}
-                    onChange={(e) => setVorname(e.target.value)}
-                    className={EINGABE}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className={INPUT_CLASS}
                     data-testid="account-profile-first-name-input"
                   />
                 </div>
@@ -358,9 +358,9 @@ function Profile() {
                     id="profile-last-name"
                     type="text"
                     required
-                    value={nachname}
-                    onChange={(e) => setNachname(e.target.value)}
-                    className={EINGABE}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className={INPUT_CLASS}
                     data-testid="account-profile-last-name-input"
                   />
                 </div>
@@ -375,16 +375,16 @@ function Profile() {
                 <input
                   id="profile-birth-date"
                   type="date"
-                  value={geburtsdatum}
+                  value={birthDate}
                   max={new Date().toISOString().slice(0, 10)}
-                  onChange={(e) => setGeburtsdatum(e.target.value)}
-                  className={EINGABE}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className={INPUT_CLASS}
                   data-testid="account-profile-birth-date-input"
                 />
               </div>
-              {fehler && <Fehler text={fehler} testId="account-profile-error" />}
-              <Button type="submit" isDisabled={speichernLaeuft} data-testid="account-profile-save-button">
-                {speichernLaeuft ? t("profile.saving") : t("profile.save")}
+              {error && <ErrorMessage text={error} testId="account-profile-error" />}
+              <Button type="submit" isDisabled={saving} data-testid="account-profile-save-button">
+                {saving ? t("profile.saving") : t("profile.save")}
               </Button>
             </form>
           </div>
@@ -402,16 +402,16 @@ function DeleteAccount() {
   const { t } = useTranslation("account");
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [fehler, setFehler] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  async function loeschen() {
+  async function deleteAccount() {
     setBusy(true);
-    setFehler(null);
+    setError(null);
     try {
       await api.auth.deleteMyAccount();
       setToken(null);
     } catch (err) {
-      setFehler(fehlertext(err));
+      setError(errorText(err));
       setBusy(false);
     }
   }
@@ -423,7 +423,7 @@ function DeleteAccount() {
         <Card.Description>{t("deleteAccount.description")}</Card.Description>
       </Card.Header>
       <Card.Content>
-        {fehler && <Fehler text={fehler} testId="account-delete-error" />}
+        {error && <ErrorMessage text={error} testId="account-delete-error" />}
         {confirming ? (
           <div className="flex flex-wrap items-center gap-3">
             <p data-testid="account-delete-confirm-prompt" className="text-sm font-medium text-red-800">
@@ -432,7 +432,7 @@ function DeleteAccount() {
             <Button
               className="bg-red-600 text-white hover:bg-red-700"
               isDisabled={busy}
-              onPress={loeschen}
+              onPress={deleteAccount}
               data-testid="account-delete-confirm-button"
             >
               {busy ? t("deleteAccount.deleting") : t("deleteAccount.confirmButton")}
@@ -480,8 +480,8 @@ function SignIn() {
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
-  const [fehler, setFehler] = useState<string | null>(null);
-  const [hinweis, setHinweis] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     // A registration tab is a nice-to-have — sign-in must keep working even if this
@@ -492,7 +492,7 @@ function SignIn() {
       .catch(() => {});
   }, []);
 
-  async function anfordern() {
+  async function requestCode() {
     if (mode === "register") {
       await api.auth.register(email.trim().toLowerCase(), displayName.trim());
     } else {
@@ -500,61 +500,61 @@ function SignIn() {
     }
   }
 
-  async function codeAnfordern(e: FormEvent) {
+  async function submitEmail(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setFehler(null);
+    setError(null);
     try {
-      await anfordern();
+      await requestCode();
       setStep("code");
     } catch (err) {
-      setFehler(fehlertext(err));
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
   }
 
-  async function erneutSenden() {
+  async function resendCode() {
     setBusy(true);
-    setFehler(null);
-    setHinweis(null);
+    setError(null);
+    setNotice(null);
     try {
-      await anfordern();
-      setHinweis(t("signIn.resent"));
+      await requestCode();
+      setNotice(t("signIn.resent"));
     } catch (err) {
-      setFehler(fehlertext(err));
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
   }
 
-  async function anmelden(e: FormEvent) {
+  async function submitCode(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setFehler(null);
+    setError(null);
     try {
-      const ergebnis = await api.auth.verifyEmailCode(email.trim().toLowerCase(), code.trim());
-      setToken(ergebnis.access_token);
+      const result = await api.auth.verifyEmailCode(email.trim().toLowerCase(), code.trim());
+      setToken(result.access_token);
     } catch (err) {
-      setFehler(fehlertext(err));
+      setError(errorText(err));
     } finally {
       setBusy(false);
     }
   }
 
-  function wechseln(naechster: "signin" | "register") {
-    setMode(naechster);
-    setFehler(null);
+  function switchMode(next: "signin" | "register") {
+    setMode(next);
+    setError(null);
   }
 
   if (step === "email") {
     return (
-      <form onSubmit={codeAnfordern} data-testid="account-signin-form" className="space-y-3">
+      <form onSubmit={submitEmail} data-testid="account-signin-form" className="space-y-3">
         {registrationOffered && (
           <div className="flex gap-4 border-b border-slate-200 pb-2 text-sm">
             <button
               type="button"
-              onClick={() => wechseln("signin")}
+              onClick={() => switchMode("signin")}
               data-testid="account-signin-tab-signin"
               className={
                 mode === "signin"
@@ -566,7 +566,7 @@ function SignIn() {
             </button>
             <button
               type="button"
-              onClick={() => wechseln("register")}
+              onClick={() => switchMode("register")}
               data-testid="account-signin-tab-register"
               className={
                 mode === "register"
@@ -596,7 +596,7 @@ function SignIn() {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder={t("signIn.namePlaceholder")}
-              className={EINGABE}
+              className={INPUT_CLASS}
               data-testid="account-signin-name-input"
             />
           </div>
@@ -614,12 +614,12 @@ function SignIn() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t("signIn.emailPlaceholder")}
-            className={EINGABE}
+            className={INPUT_CLASS}
             data-testid="account-signin-email-input"
           />
         </div>
         {mode === "register" && <p className="text-sm text-slate-500">{t("signIn.registerHint")}</p>}
-        {fehler && <Fehler text={fehler} testId="account-signin-error" />}
+        {error && <ErrorMessage text={error} testId="account-signin-error" />}
         <Button
           type="submit"
           isDisabled={busy || !email.trim() || (mode === "register" && !displayName.trim())}
@@ -636,7 +636,7 @@ function SignIn() {
   }
 
   return (
-    <form onSubmit={anmelden} data-testid="account-signin-code-form" className="space-y-3">
+    <form onSubmit={submitCode} data-testid="account-signin-code-form" className="space-y-3">
       <div>
         <p className="font-medium text-slate-900">{t("signIn.codeSentTitle")}</p>
         <p className="text-sm text-slate-600">
@@ -658,14 +658,14 @@ function SignIn() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder={t("signIn.codePlaceholder")}
-          className={EINGABE}
+          className={INPUT_CLASS}
           data-testid="account-signin-code-input"
         />
       </div>
-      {fehler && <Fehler text={fehler} testId="account-signin-verify-error" />}
-      {hinweis && (
+      {error && <ErrorMessage text={error} testId="account-signin-verify-error" />}
+      {notice && (
         <p data-testid="account-signin-resent-message" className="text-sm text-emerald-700">
-          {hinweis}
+          {notice}
         </p>
       )}
       <div className="flex flex-wrap items-center gap-3">
@@ -674,7 +674,7 @@ function SignIn() {
         </Button>
         <button
           type="button"
-          onClick={erneutSenden}
+          onClick={resendCode}
           disabled={busy}
           data-testid="account-signin-resend-button"
           className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900"
@@ -686,8 +686,8 @@ function SignIn() {
           onClick={() => {
             setStep("email");
             setCode("");
-            setFehler(null);
-            setHinweis(null);
+            setError(null);
+            setNotice(null);
           }}
           disabled={busy}
           data-testid="account-signin-change-email-button"

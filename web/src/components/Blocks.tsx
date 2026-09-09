@@ -4,10 +4,10 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { EventSummary } from "../api/client";
-import { ortText, spieltagUntertitel, statusText, zeitraum } from "../lib/format";
+import { locationText, matchdaySubtitle, statusText, dateRange } from "../lib/format";
 import { slugify } from "../lib/testids";
 
-export function Laden({ text, testId }: { text?: string; testId?: string }) {
+export function Loading({ text, testId }: { text?: string; testId?: string }) {
   const { t } = useTranslation();
   return (
     <div
@@ -21,7 +21,7 @@ export function Laden({ text, testId }: { text?: string; testId?: string }) {
 }
 
 /** Errors are named, not hidden — an empty table says nothing. */
-export function Fehler({ text, testId }: { text: string; testId?: string }) {
+export function ErrorMessage({ text, testId }: { text: string; testId?: string }) {
   return (
     <div
       role="alert"
@@ -33,7 +33,7 @@ export function Fehler({ text, testId }: { text: string; testId?: string }) {
   );
 }
 
-export function Leer({ children, testId }: { children: ReactNode; testId?: string }) {
+export function Empty({ children, testId }: { children: ReactNode; testId?: string }) {
   return (
     <p data-testid={testId ?? "empty-state"} className="py-12 text-center text-slate-500">
       {children}
@@ -41,19 +41,19 @@ export function Leer({ children, testId }: { children: ReactNode; testId?: strin
   );
 }
 
-const STATUS_STIL: Record<string, string> = {
+const STATUS_STYLE: Record<string, string> = {
   planned: "bg-slate-100 text-slate-700 ring-slate-200",
   live: "bg-emerald-100 text-emerald-800 ring-emerald-300",
   final: "bg-marke-100 text-marke-800 ring-marke-200",
   cancelled: "bg-red-100 text-red-800 ring-red-200",
 };
 
-export function StatusMarke({ status, testId }: { status: string; testId?: string }) {
+export function StatusBadge({ status, testId }: { status: string; testId?: string }) {
   return (
     <span
       data-testid={testId ?? `status-badge-${status}`}
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-        STATUS_STIL[status] ?? STATUS_STIL.planned
+        STATUS_STYLE[status] ?? STATUS_STYLE.planned
       }`}
     >
       {status === "live" && (
@@ -69,8 +69,8 @@ export function StatusMarke({ status, testId }: { status: string; testId?: strin
  * The home page and the events list show the same card — they should behave the same
  * way in both places, so it lives here rather than twice in the pages.
  */
-export function SpieltagKarte({ event, testId }: { event: EventSummary; testId?: string }) {
-  const untertitel = [spieltagUntertitel(event), ortText(event)].filter(Boolean).join(" · ");
+export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: string }) {
+  const subtitle = [matchdaySubtitle(event), locationText(event)].filter(Boolean).join(" · ");
 
   return (
     <Link
@@ -87,13 +87,13 @@ export function SpieltagKarte({ event, testId }: { event: EventSummary; testId?:
               )}
               <Card.Title>{event.title}</Card.Title>
             </div>
-            <StatusMarke status={event.status} />
+            <StatusBadge status={event.status} />
           </div>
-          <Card.Description>{untertitel}</Card.Description>
+          <Card.Description>{subtitle}</Card.Description>
         </Card.Header>
         <Card.Content>
           <p className="text-sm text-slate-600">
-            {zeitraum(event.starts_on, event.ends_on)}
+            {dateRange(event.starts_on, event.ends_on)}
           </p>
         </Card.Content>
       </Card>
@@ -102,7 +102,7 @@ export function SpieltagKarte({ event, testId }: { event: EventSummary; testId?:
 }
 
 /** Results tables are wide. They scroll horizontally in their own box, never the whole
- *  page — see `.tabelle-scroll` in `index.css`. Vertical scrolling stays the page's own,
+ *  page — see `.table-scroll` in `index.css`. Vertical scrolling stays the page's own,
  *  single scrollbar; there is deliberately no sticky table header (see that file for why
  *  one doesn't coexist cleanly with a horizontally-scrolling box here).
  *
@@ -111,7 +111,7 @@ export function SpieltagKarte({ event, testId }: { event: EventSummary; testId?:
  *  clutter, especially stacked visually next to the page's own vertical one. Touch swipe,
  *  wheel, and drag-to-scroll still work; only the visible track is gone.
  */
-export function TabellenRahmen({
+export function TableFrame({
   children,
   testId,
 }: {
@@ -121,25 +121,25 @@ export function TabellenRahmen({
   return (
     <div
       data-testid={testId ?? "table-frame"}
-      className="tabelle-scroll scrollbar-none rounded-xl border border-slate-200 bg-white"
+      className="table-scroll scrollbar-none rounded-xl border border-slate-200 bg-white"
     >
       {children}
     </div>
   );
 }
 
-export function Seitenkopf({
-  titel,
-  unterzeile,
-  rechts,
+export function PageHeader({
+  title,
+  subtitle,
+  right,
   testId,
 }: {
-  titel: string;
-  unterzeile?: ReactNode;
-  rechts?: ReactNode;
+  title: string;
+  subtitle?: ReactNode;
+  right?: ReactNode;
   testId?: string;
 }) {
-  const resolvedTestId = testId ?? `page-header-${slugify(titel)}`;
+  const resolvedTestId = testId ?? `page-header-${slugify(title)}`;
   return (
     <header
       data-testid={resolvedTestId}
@@ -150,11 +150,11 @@ export function Seitenkopf({
           data-testid={`${resolvedTestId}-title`}
           className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl"
         >
-          {titel}
+          {title}
         </h1>
-        {unterzeile && <p className="mt-1 text-slate-600">{unterzeile}</p>}
+        {subtitle && <p className="mt-1 text-slate-600">{subtitle}</p>}
       </div>
-      {rechts}
+      {right}
     </header>
   );
 }

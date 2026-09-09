@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 
 import { api } from "../api/client";
 import { useApi } from "../api/useApi";
-import { Fehler, Laden, Leer, Seitenkopf } from "../components/Bausteine";
-import { zeitraum } from "../lib/format";
+import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
+import { dateRange } from "../lib/format";
 
 /** The series of the current year, as an overview.
  *
@@ -17,56 +17,56 @@ import { zeitraum } from "../lib/format";
  */
 export function SeriesOverview() {
   const { t } = useTranslation("standings");
-  const serien = useApi(["series"], (signal) => api.series(signal));
+  const seriesList = useApi(["series"], (signal) => api.series(signal));
   // The event counts come out of the events list, which is loaded anyway — one request
   // instead of one per series. Same approach as the home page's series section.
-  const termine = useApi(["events"], (signal) => api.events(signal));
+  const eventsQuery = useApi(["events"], (signal) => api.events(signal));
 
-  if (serien.loading) return <Laden testId="series-loading" />;
-  if (serien.error) return <Fehler text={serien.error} testId="series-error" />;
+  if (seriesList.loading) return <Loading testId="series-loading" />;
+  if (seriesList.error) return <ErrorMessage text={seriesList.error} testId="series-error" />;
 
-  const actsJeSerie = new Map<number, number>();
-  for (const event of termine.data ?? []) {
+  const actsPerSeries = new Map<number, number>();
+  for (const event of eventsQuery.data ?? []) {
     if (event.series) {
-      actsJeSerie.set(event.series.id, (actsJeSerie.get(event.series.id) ?? 0) + 1);
+      actsPerSeries.set(event.series.id, (actsPerSeries.get(event.series.id) ?? 0) + 1);
     }
   }
 
   return (
     <>
-      <Seitenkopf titel={t("seriesOverview.title")} unterzeile={t("seriesOverview.subtitle")} testId="series-header" />
+      <PageHeader title={t("seriesOverview.title")} subtitle={t("seriesOverview.subtitle")} testId="series-header" />
 
-      {!serien.data?.length ? (
-        <Leer testId="series-empty">{t("seriesOverview.empty")}</Leer>
+      {!seriesList.data?.length ? (
+        <Empty testId="series-empty">{t("seriesOverview.empty")}</Empty>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2" data-testid="series-list">
-          {serien.data.map((serie) => {
-            const acts = actsJeSerie.get(serie.id) ?? 0;
-            const zeitangabe =
-              serie.starts_on && serie.ends_on ? zeitraum(serie.starts_on, serie.ends_on) : null;
+          {seriesList.data.map((series) => {
+            const acts = actsPerSeries.get(series.id) ?? 0;
+            const dateRangeText =
+              series.starts_on && series.ends_on ? dateRange(series.starts_on, series.ends_on) : null;
 
             return (
-              <li key={serie.id}>
+              <li key={series.id}>
                 <Link
-                  to={`/series/${serie.id}`}
-                  data-testid={`series-card-${serie.id}`}
+                  to={`/series/${series.id}`}
+                  data-testid={`series-card-${series.id}`}
                   className="block group"
                 >
                   <Card className="h-full transition-shadow group-hover:shadow-md">
                     <Card.Header>
-                      <Card.Title>{serie.name}</Card.Title>
+                      <Card.Title>{series.name}</Card.Title>
                       <Card.Description>
                         {t("seriesOverview.eventCount", { count: acts })}
-                        {zeitangabe && ` · ${zeitangabe}`}
+                        {dateRangeText && ` · ${dateRangeText}`}
                       </Card.Description>
                     </Card.Header>
-                    {serie.description && (
+                    {series.description && (
                       <Card.Content>
                         {/* Deliberately the plain first line, not rendered Markdown: the
                             series' own page renders the full description, and a card is not
                             the place for headings and links. */}
                         <p className="line-clamp-2 text-sm text-slate-600">
-                          {serie.description}
+                          {series.description}
                         </p>
                       </Card.Content>
                     )}

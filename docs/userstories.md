@@ -47,7 +47,7 @@ Acceptance criteria:
 - A running matchday shows an interim standing, a planned one shows no results yet.
 
 `EventStandingRow.points_by_race`/`discarded_races` (`api/app/schemas/public.py`) carried the
-per-race breakdown from the start, but `web/src/pages/Spieltag.tsx`'s daily standings only
+per-race breakdown from the start, but `web/src/pages/Matchday.tsx`'s daily standings only
 rendered rank/team/net/total until now — the second acceptance criterion was met by the API but
 not actually visible anywhere. The page now adds one column per flight (16, not 48 individual
 races — clearer to read, still sums to the same total) showing that team's points for the
@@ -1088,7 +1088,7 @@ invalid ranking (two boats claiming the same place), and recomputes points/stand
 immediately, so a protest decision is a one-row correction, never a data migration. With a
 stale `version`, the later submission still wins (a rocking boat is no place for a hard
 conflict error), but the state it replaces is written to `AuditLog` first, not silently
-dropped. `web/src/pages/Spieltag.tsx`'s results-entry tab (`RaceResultRow`) now makes the
+dropped. `web/src/pages/Matchday.tsx`'s results-entry tab (`RaceResultRow`) now makes the
 finish line the primary, fast path: tapping a boat's colored chip in finish order assigns it
 `FINISHED` + the next unused position (a normal 6-boat race is 6 taps), the chip shows the
 assigned rank as a badge, tapping again undoes just that boat, and a "reset race" action clears
