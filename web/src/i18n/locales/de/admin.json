@@ -85,7 +85,19 @@
     "createdMessage": "{{title}} ist angesetzt.",
     "pairingDrawSuccessMessage": "Pairing-Liste aus dem Katalog ausgelost.",
     "pairingDrawFailedMessage": "Veranstaltung angelegt, aber die Auslosung ist fehlgeschlagen: {{error}}",
-    "pairingDrawPendingMessage": "Noch keine Pairing-Liste: erst die Vereine zu dieser Veranstaltung hinzufügen, dann auslosen. Die Zahl der Vereine muss zum Zuschnitt passen, bevor gewertet wird."
+    "pairingDrawPendingMessage": "Noch keine Pairing-Liste: erst die Vereine zu dieser Veranstaltung hinzufügen, dann auslosen. Die Zahl der Vereine muss zum Zuschnitt passen, bevor gewertet wird.",
+    "clubsLabel": "Teilnehmende Vereine",
+    "clubsHint": "{{count}} gewählt",
+    "clubsEditButton": "Vereine ändern",
+    "clubsCloseButton": "Schließen",
+    "clubsSaveButton": "{{count}} Vereine setzen",
+    "clubsSavingButton": "Wird gespeichert ...",
+    "clubsLoadingText": "Vereine werden geladen ...",
+    "clubsFromSeriesHint": "Diese Veranstaltung gehört zu einer Serie — antreten können nur Vereine, die für diese Serie gemeldet sind.",
+    "clubsAnyHint": "Diese Veranstaltung steht für sich — jeder Verein kann antreten.",
+    "clubsSeriesEmptyText": "Für diese Serie ist noch kein Verein gemeldet. Erst für die Serie melden, dann hier eintragen.",
+    "clubsFrozenHint": "Es wird schon gesegelt — das Feld steht fest, denn die gesegelte Pairing-Liste wurde für genau diese Vereine ausgelost.",
+    "clubsCountHint": "Der Zuschnitt erwartet {{expected}} Vereine; eingetragen sind {{actual}}."
   },
   "sailors": {
     "title": "Segler",

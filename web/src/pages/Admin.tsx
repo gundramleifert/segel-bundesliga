@@ -466,9 +466,6 @@ function defaultName(position: number): string {
   return i18n.t("admin:events.boatDefaultName", { number: position });
 }
 
-/** A fresh row's `customColor` starts out matching its predefined default, not empty — the
- *  picker and free-text field are always visible now (not just once "Custom" is chosen), so
- *  they need a real value to show from the very first render, not a black fallback. */
 /** Whether a failed draw is just "the clubs aren't in yet" rather than something wrong.
  *  A newly created event has no clubs — they are registered afterwards — so this is the
  *  expected outcome of the automatic draw, not a fault to report in red. */
@@ -476,6 +473,9 @@ function isTeamCountNotice(error: unknown): boolean {
   return error instanceof ApiError && error.code === "pairing-team-count-mismatch";
 }
 
+/** A fresh row's `customColor` starts out matching its predefined default, not empty — the
+ *  picker and free-text field are always visible now (not just once "Custom" is chosen), so
+ *  they need a real value to show from the very first render, not a black fallback. */
 function emptyBoatRow(position: number): BoatRow {
   const color = defaultColor(position);
   return { color, customColor: boatColor(color).hex, name: defaultName(position) };

@@ -85,7 +85,19 @@
     "createdMessage": "{{title}} has been scheduled.",
     "pairingDrawSuccessMessage": "Pairing list drawn from the catalog.",
     "pairingDrawFailedMessage": "Event created, but the pairing draw failed: {{error}}",
-    "pairingDrawPendingMessage": "No pairing list yet: add the clubs to this event, then draw it. The number of clubs has to match the setup before scoring starts."
+    "pairingDrawPendingMessage": "No pairing list yet: add the clubs to this event, then draw it. The number of clubs has to match the setup before scoring starts.",
+    "clubsLabel": "Participating clubs",
+    "clubsHint": "{{count}} selected",
+    "clubsEditButton": "Edit clubs",
+    "clubsCloseButton": "Close",
+    "clubsSaveButton": "Set {{count}} clubs",
+    "clubsSavingButton": "Saving ...",
+    "clubsLoadingText": "Loading clubs ...",
+    "clubsFromSeriesHint": "This event belongs to a series, so only clubs registered for that series can enter.",
+    "clubsAnyHint": "This event stands on its own, so any club can enter.",
+    "clubsSeriesEmptyText": "No club is registered for this series yet. Register them for the series first, then enter them here.",
+    "clubsFrozenHint": "Racing has started — the field is fixed, because the pairing list being sailed was drawn for exactly these clubs.",
+    "clubsCountHint": "The setup expects {{expected}} clubs; {{actual}} are entered."
   },
   "sailors": {
     "title": "Sailors",
