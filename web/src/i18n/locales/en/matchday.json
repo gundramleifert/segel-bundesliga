@@ -28,5 +28,26 @@
   "savingButton": "Saving…",
   "savedMessage": "Saved.",
   "discardedNote": "discarded",
-  "currentResultNote": "currently: {{points}} points"
+  "currentResultNote": "currently: {{points}} points",
+  "flightColumnHeader": "Flight {{number}}",
+  "projectedLabel": "≈{{value}} projected",
+  "projectedTooltip": "Provisional final total: current points plus this team's own average per race (or, if it hasn't sailed yet, the event-wide average) for the remaining flights. Not an official result and never used for ranking.",
+  "tapChipHint": "tap",
+  "tapAssignLabel": "Assign the next finish position to {{boat}}",
+  "tapUndoLabel": "Finished {{position}} — tap to undo",
+  "resetRaceButton": "Reset race",
+  "duplicatePositionWarning": "Two boats have the same finish position. Fix that before saving.",
+  "redressSuggested": "Suggested: {{value}} (RRS A10 average of this team's other scored races)",
+  "codeTooltip": {
+    "FINISHED": "Scored by finish position — no penalty.",
+    "DNS": "Did not start. Scored as {{points}} points (starters + 1) — worse than finishing last.",
+    "DNF": "Did not finish. Scored as {{points}} points (starters + 1) — worse than finishing last.",
+    "OCS": "On course side / early start. Scored as {{points}} points (starters + 1) — worse than finishing last.",
+    "DSQ": "Disqualified. Scored as {{points}} points (starters + 1) — worse than finishing last.",
+    "DNE": "Disqualification not excludable. Scored as {{points}} points (starters + 1) — worse than finishing last, and never discarded even when discards apply.",
+    "RET": "Retired. Scored as {{points}} points (starters + 1) — worse than finishing last.",
+    "ZFP": "Scoring penalty: finish position + 20% of starters (min. 1 point), capped at {{cap}} points (never worse than DNF). This race's penalty is {{penalty}} points.",
+    "SCP": "Scoring penalty: finish position + 20% of starters (min. 1 point), capped at {{cap}} points (never worse than DNF). This race's penalty is {{penalty}} points.",
+    "RDG": "Redress: the jury enters the awarded points directly — they are not computed automatically."
+  }
 }

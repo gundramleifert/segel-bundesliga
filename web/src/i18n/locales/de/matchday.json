@@ -28,5 +28,26 @@
   "savingButton": "Speichert…",
   "savedMessage": "Gespeichert.",
   "discardedNote": "gestrichen",
-  "currentResultNote": "aktuell: {{points}} Punkte"
+  "currentResultNote": "aktuell: {{points}} Punkte",
+  "flightColumnHeader": "Flight {{number}}",
+  "projectedLabel": "≈{{value}} hochgerechnet",
+  "projectedTooltip": "Vorläufiger Endstand: aktuelle Punkte plus der eigene Punkteschnitt je Wettfahrt dieses Teams (oder, falls es noch nicht gesegelt ist, der Schnitt über alle Teams) für die verbleibenden Flights. Kein offizielles Ergebnis und geht nicht in die Platzierung ein.",
+  "tapChipHint": "tippen",
+  "tapAssignLabel": "{{boat}} den nächsten Zielplatz zuweisen",
+  "tapUndoLabel": "Platz {{position}} — antippen zum Rückgängigmachen",
+  "resetRaceButton": "Wettfahrt zurücksetzen",
+  "duplicatePositionWarning": "Zwei Boote haben denselben Zielplatz. Das muss vor dem Speichern korrigiert werden.",
+  "redressSuggested": "Vorschlag: {{value}} (RRS A10-Durchschnitt der übrigen gewerteten Wettfahrten dieses Teams)",
+  "codeTooltip": {
+    "FINISHED": "Wird nach Zielplatz gewertet — keine Strafe.",
+    "DNS": "Nicht gestartet. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
+    "DNF": "Nicht beendet. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
+    "OCS": "Vorzeitig gestartet (On Course Side). Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
+    "DSQ": "Disqualifiziert. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
+    "DNE": "Disqualifikation, nicht streichbar. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz, und wird auch bei Streichungen nie gestrichen.",
+    "RET": "Aufgegeben (Retired). Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
+    "ZFP": "Wertungsstrafe: Zielplatz + 20 % der Starter (mind. 1 Punkt), gedeckelt bei {{cap}} Punkten (nie schlechter als DNF). Die Strafe in dieser Wettfahrt beträgt {{penalty}} Punkte.",
+    "SCP": "Wertungsstrafe: Zielplatz + 20 % der Starter (mind. 1 Punkt), gedeckelt bei {{cap}} Punkten (nie schlechter als DNF). Die Strafe in dieser Wettfahrt beträgt {{penalty}} Punkte.",
+    "RDG": "Redress: Die Jury trägt die zuerkannten Punkte direkt ein — sie werden nicht automatisch berechnet."
+  }
 }

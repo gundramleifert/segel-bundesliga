@@ -46,7 +46,20 @@ Acceptance criteria:
 - The points are broken down by race, and the sum gives the overall standings.
 - A running matchday shows an interim standing, a planned one shows no results yet.
 
-Tests: `api/tests/stories/test_visitor.py::TestSpieltagsergebnis`
+`EventStandingRow.points_by_race`/`discarded_races` (`api/app/schemas/public.py`) carried the
+per-race breakdown from the start, but `web/src/pages/Spieltag.tsx`'s daily standings only
+rendered rank/team/net/total until now — the second acceptance criterion was met by the API but
+not actually visible anywhere. The page now adds one column per flight (16, not 48 individual
+races — clearer to read, still sums to the same total) showing that team's points for the
+flight, "–" where not yet sailed, scrollable horizontally like the other result tables. It also
+adds a clearly-marked, italic "≈ projected" total once any race in the matchday has been scored,
+so a team that hasn't sailed yet no longer looks like it's provisionally winning outright with
+`net = 0` — purely a display computation, never used for `rank` or sorting.
+
+Tests: `api/tests/stories/test_visitor.py::TestSpieltagsergebnis`. The new UI additions
+(flight columns, projected total) have no additional automated test — verified via
+`pnpm typecheck`/`pnpm build` and against seeded data; Playwright e2e coverage for this page is
+a separate, not-yet-started task.
 
 ### B-3 ● View pairing list
 As a **sailor** I want to **know before the matchday which boat I'm on**,
@@ -1017,16 +1030,29 @@ Acceptance criteria:
 - With simultaneous changes on two devices, the later entry wins; the overridden status is
   not lost but logged and displayed.
 
-Open: results are typed in (position number or code per boat), not tapped in finish order —
-a touch-optimized "tap the finish line" UI and full offline capture are Story WL-1 (offline
-sync) territory and stay open here.
+Open: full offline capture is Story WL-1 (offline sync) territory and stays open here. The
+overridden state on a stale-`version` submission is written to `AuditLog`
+(`app/services/standings.py`) but not yet surfaced anywhere in the UI — displaying that history
+remains open.
 What's done: `PUT /api/admin/events/{event_id}/races/{race_id}/result` records
 `code`/`finish_position`/`redress_points` per boat (`admin`, `race_officer`), rejects an
 invalid ranking (two boats claiming the same place), and recomputes points/standings
 immediately, so a protest decision is a one-row correction, never a data migration. With a
 stale `version`, the later submission still wins (a rocking boat is no place for a hard
 conflict error), but the state it replaces is written to `AuditLog` first, not silently
-dropped — displaying that history in the UI remains open.
+dropped. `web/src/pages/Spieltag.tsx`'s results-entry tab (`RaceResultRow`) now makes the
+finish line the primary, fast path: tapping a boat's colored chip in finish order assigns it
+`FINISHED` + the next unused position (a normal 6-boat race is 6 taps), the chip shows the
+assigned rank as a badge, tapping again undoes just that boat, and a "reset race" action clears
+all taps at once. The existing per-boat code `<select>` and manual position/redress `<input>`s
+stay available underneath for the exceptions (DNF, DSQ, OCS, RDG, …) and always reflect the same
+component state as the tap flow, so the two can never drift apart. Every result code now carries
+a tooltip spelling out its exact point consequence (from `api/app/scoring/low_point.py`), and
+picking `RDG` prefills the redress points with a suggested RRS A10 average of the team's other
+scored races in the event — clearly labelled as a suggestion, never enforced. Duplicate finish
+positions from the manual inputs (tap-assignment cannot produce one by construction) are flagged
+in the UI and block Save immediately, ahead of the existing
+`/errors/race-result-duplicate-position` server-side check.
 
 Tests: `api/tests/stories/test_ergebniserfassung.py::TestErgebniserfassung`
 
