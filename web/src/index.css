@@ -20,6 +20,13 @@
 
   --color-flaeche: #ebedf2;
   --color-tinte: #121212;
+
+  /* Rendered height of Layout.tsx's global nav (`<header class="sticky top-0 z-40 ...">`):
+     its inner row's tallest child is the 36px logo/nav-link content (h-9 logo, text-sm
+     NavLinks at py-2 → 20px line-height + 16px padding = 36px), plus that row's own
+     py-3 padding (12px top + 12px bottom = 24px), plus the header's 1px border-b.
+     36 + 24 + 1 = 61px. Table headers stick just below this offset — see .tabelle-kopf. */
+  --header-height: 61px;
 }
 
 html {
@@ -41,4 +48,16 @@ html {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+
+/* Every <thead> inside a .tabelle-scroll box (i.e. every TabellenRahmen table, see
+   components/Bausteine.tsx) must carry this class so its column headers stay visible while
+   the table body scrolls past underneath — the header row already has an opaque bg-slate-50
+   (on its <tr>), so nothing shows through. `top` docks it just below Layout.tsx's global nav
+   instead of underneath it (the nav is `sticky top-0 z-40`); z-index stays below that 40 (and
+   below Rollenwechsel's 50) so the global nav always wins if both are stuck at once. */
+.tabelle-kopf {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 10;
 }

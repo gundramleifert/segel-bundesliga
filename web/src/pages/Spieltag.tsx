@@ -192,7 +192,7 @@ function DailyStandings({
         style={{ minWidth: `${30 + flights.length * 3.25}rem` }}
       >
         <caption className="sr-only">{t("standingsCaption")}</caption>
-        <thead>
+        <thead className="tabelle-kopf">
           <tr className="border-b border-slate-200 bg-slate-50 text-left">
             <th scope="col" className="w-14 px-4 py-3 font-medium text-slate-600">
               {t("placeHeader")}
@@ -294,7 +294,7 @@ function PairingList({ eventId }: { eventId: number }) {
       <TabellenRahmen testId="matchday-pairing-table-frame">
         <table data-testid="matchday-pairing-table" className="w-full min-w-[44rem] border-collapse text-sm">
           <caption className="sr-only">{t("pairingCaption")}</caption>
-          <thead>
+          <thead className="tabelle-kopf">
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
               <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
                 {t("numberHeader")}
@@ -418,7 +418,7 @@ function ResultsEntry({
     <TabellenRahmen testId="matchday-results-table-frame">
       <table data-testid="matchday-results-table" className="w-full min-w-[64rem] border-collapse text-sm">
         <caption className="sr-only">{t("resultsCaption")}</caption>
-        <thead>
+        <thead className="tabelle-kopf">
           <tr className="border-b border-slate-200 bg-slate-50 text-left">
             <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
               {t("numberHeader")}

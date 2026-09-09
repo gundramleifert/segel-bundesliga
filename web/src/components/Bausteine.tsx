@@ -101,7 +101,16 @@ export function SpieltagKarte({ event, testId }: { event: EventSummary; testId?:
   );
 }
 
-/** Results tables are wide. They scroll in their own box, never the whole page. */
+/** Results tables are wide. They scroll in their own box, never the whole page.
+ *
+ * Convention: every `<thead>` placed inside this frame must carry the `tabelle-kopf`
+ * class (defined in `index.css`, alongside the `.tabelle-scroll` class this component
+ * itself uses) so its column headers stay pinned while a long table's body scrolls —
+ * `TabellenRahmen` only wraps arbitrary table markup, so it cannot inject that class into
+ * a child `<thead>` itself. Keep each header row's existing opaque background
+ * (`bg-slate-50` on the `<tr>`, in every table so far) — a sticky header needs one so
+ * scrolled-past rows don't show through.
+ */
 export function TabellenRahmen({
   children,
   testId,
