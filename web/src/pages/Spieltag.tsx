@@ -49,6 +49,19 @@ function punkteImFlight(zeile: StandingRow, flight: number, proFlight: number): 
   return vorhanden ? summe : null;
 }
 
+/** Which flights have at least one recorded result, for *any* team — a flight nobody has
+ *  raced in yet gets a plain "–" for everyone, not a grey estimate: an estimate only makes
+ *  sense once the flight is actually under way (someone else's race in it already ran). */
+function begonneneFlights(standings: StandingRow[], proFlight: number): Set<number> {
+  const begonnen = new Set<number>();
+  for (const zeile of standings) {
+    for (const sequenzText of Object.keys(zeile.points_by_race)) {
+      begonnen.add(Math.ceil(Number(sequenzText) / proFlight));
+    }
+  }
+  return begonnen;
+}
+
 /** A team's own average points per sailed race — or, before it has sailed anything, the fair
  *  expected value of a single low-point result: the mean of places 1..N is (N+1)/2 (e.g. in a
  *  6-boat race, a still-unraced result is "expected" to be worth 3.5 points). This single
@@ -205,17 +218,13 @@ function SortableStandingsTable({
 }) {
   // null = the backend's own order (rank — official, fewer points is better). Choosing a
   // column here only changes what order rows are *displayed* in; `rank` itself, shown in
-  // its own column regardless of sort, never changes.
+  // its own column regardless of sort, never changes. Deliberately one fixed direction
+  // (descending) with no ascending/descending toggle — click a header to sort by it, click
+  // the active one again to go back to the official rank order.
   const [sortSpalte, setSortSpalte] = useState<SortSpalte | null>(null);
-  const [sortAufsteigend, setSortAufsteigend] = useState(true);
 
   function sortierenNach(spalte: SortSpalte) {
-    if (sortSpalte === spalte) {
-      setSortAufsteigend((vorher) => !vorher);
-    } else {
-      setSortSpalte(spalte);
-      setSortAufsteigend(true);
-    }
+    setSortSpalte((vorher) => (vorher === spalte ? null : spalte));
   }
 
   function wertFuerSpalte(zeile: StandingRow, spalte: SortSpalte): number {
@@ -225,25 +234,23 @@ function SortableStandingsTable({
   }
 
   const angezeigteZeilen = sortSpalte
-    ? [...standings].sort((a, b) => {
-        const diff = wertFuerSpalte(a, sortSpalte) - wertFuerSpalte(b, sortSpalte);
-        return sortAufsteigend ? diff : -diff;
-      })
+    ? [...standings].sort((a, b) => wertFuerSpalte(b, sortSpalte) - wertFuerSpalte(a, sortSpalte))
     : standings;
 
   function sortPfeil(spalte: SortSpalte) {
     if (sortSpalte !== spalte) return null;
     return (
-      <span aria-hidden className="ml-0.5">
-        {sortAufsteigend ? "▲" : "▼"}
+      <span aria-hidden className="ml-0.5 text-[10px]">
+        ▼
       </span>
     );
   }
 
-  function ariaSort(spalte: SortSpalte): "ascending" | "descending" | "none" {
-    if (sortSpalte !== spalte) return "none";
-    return sortAufsteigend ? "ascending" : "descending";
+  function ariaSort(spalte: SortSpalte): "descending" | "none" {
+    return sortSpalte === spalte ? "descending" : "none";
   }
+
+  const flightsBegonnen = begonneneFlights(standings, proFlight);
 
   return (
     <TabellenRahmen testId="matchday-standings-table-frame">
@@ -345,7 +352,7 @@ function SortableStandingsTable({
                     data-testid={`matchday-standings-projected-${zeile.team.id}`}
                     className="px-4 py-3 text-right italic tabular-nums text-slate-500"
                   >
-                    ≈{punkte(projektion as number)}
+                    {punkte(projektion as number)}
                   </td>
                 )}
                 <td className="px-4 py-3 text-right tabular-nums text-slate-500">
@@ -360,7 +367,11 @@ function SortableStandingsTable({
                       </td>
                     );
                   }
-                  if (!zeigeProjektion) {
+                  // An estimate only makes sense once this flight is actually under way —
+                  // someone else's race in it already has a result. A flight nobody has
+                  // reached yet stays a plain dash, even once the matchday itself has
+                  // started elsewhere.
+                  if (!zeigeProjektion || !flightsBegonnen.has(flight)) {
                     return (
                       <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-400">
                         –
