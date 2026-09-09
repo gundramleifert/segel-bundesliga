@@ -490,6 +490,24 @@ function brauchtEigeneEingabe(code: string): boolean {
   return code === "ZFP" || code === "SCP";
 }
 
+/** Whether this row already carries a complete result: a finish position for
+ *  FINISHED/ZFP/SCP, redress points for RDG, or — for the rest — simply having chosen the
+ *  code at all. Drives the tap icon's in-progress/done flip: a boat that hasn't finished this
+ *  race yet still reads "in progress" even once other boats in the same race already have a
+ *  result recorded. */
+function ergebnisVollstaendig(zeile: EingabeZeile): boolean {
+  if (brauchtPlatz(zeile.code)) return zeile.finish_position != null;
+  if (zeile.code === "RDG") return zeile.redress_points != null;
+  return true;
+}
+
+/** The tap fast-path only ever assigns/undoes a *FINISHED* position — once a special code has
+ *  been chosen via the dropdown, tapping the icon would silently overwrite it back to a
+ *  numbered finish, so it's disabled (still shown, just not clickable) for those rows. */
+function kannGetipptWerden(zeile: EingabeZeile): boolean {
+  return zeile.code === "FINISHED";
+}
+
 /** `DID_NOT_FINISH_CODES` in `api/app/scoring/low_point.py`: all scored identically —
  *  starters + 1 points, worse than finishing last. Frontend copy of that fact for the
  *  tooltip text; the backend file is the source of truth and isn't touched here. */
@@ -645,6 +663,12 @@ interface EingabeZeile {
   code: string;
   finish_position: number | null;
   redress_points: number | null;
+  /** Only meaningful while `code === "RDG"`: RRS A10's recommended convention is the average
+   *  of the team's other scored races in this event, which covers the large majority of
+   *  redress cases — "auto" keeps `redress_points` pinned to that live average; "fixed" is a
+   *  jury figure entered by hand instead. Not a backend field — inferred on load by comparing
+   *  the stored value against the computed average, since only the raw points are persisted. */
+  redress_mode: "auto" | "fixed";
 }
 
 /** Smallest finish position not currently occupied by a tap-assigned (or manually entered)
@@ -698,17 +722,41 @@ function RaceResultRow({
 
   const [zeilen, setZeilen] = useState<Record<number, EingabeZeile>>(() =>
     Object.fromEntries(
-      race.entries.map((eintrag) => [
-        eintrag.boat_number,
-        {
-          boat_number: eintrag.boat_number,
-          code: eintrag.code ?? "FINISHED",
-          finish_position: eintrag.finish_position ?? null,
-          redress_points: eintrag.redress_points ?? null,
-        },
-      ]),
+      race.entries.map((eintrag) => {
+        const code = eintrag.code ?? "FINISHED";
+        const redress_points = eintrag.redress_points ?? null;
+        // No backend field says whether a stored RDG value was the auto-average or a jury's
+        // own figure — guess "auto" when it still matches today's average, "fixed" otherwise
+        // (e.g. the average has since shifted, or it never matched to begin with).
+        let redress_mode: "auto" | "fixed" = "auto";
+        if (code === "RDG" && redress_points != null) {
+          const vorschlag = redressVorschlag(eintrag.team.id, race.sequence, standings);
+          redress_mode = vorschlag != null && Math.abs(vorschlag - redress_points) < 0.05 ? "auto" : "fixed";
+        }
+        return [
+          eintrag.boat_number,
+          {
+            boat_number: eintrag.boat_number,
+            code,
+            finish_position: eintrag.finish_position ?? null,
+            redress_points,
+            redress_mode,
+          },
+        ];
+      }),
     ),
   );
+
+  // In "auto" mode the stored `redress_points` can be stale (the average moves as other
+  // races get scored) — recompute fresh from the current `standings` at save time instead of
+  // trusting whatever was last written into state.
+  function effektiverRedressWert(zeile: EingabeZeile): number | null {
+    if (zeile.code !== "RDG") return null;
+    if (zeile.redress_mode === "fixed") return zeile.redress_points;
+    const teamId = byBoat.get(zeile.boat_number)?.team.id;
+    if (teamId == null) return zeile.redress_points;
+    return redressVorschlag(teamId, race.sequence, standings) ?? zeile.redress_points;
+  }
 
   // No Save button: every change writes straight through to the backend (still guarded by
   // the same duplicate check that used to just disable Save — an in-progress duplicate
@@ -720,7 +768,7 @@ function RaceResultRow({
           boat_number: zeile.boat_number,
           code: zeile.code,
           finish_position: brauchtPlatz(zeile.code) ? zeile.finish_position : null,
-          redress_points: zeile.code === "RDG" ? zeile.redress_points : null,
+          redress_points: effektiverRedressWert(zeile),
         })),
       }),
     onSuccess: () => {
@@ -805,7 +853,8 @@ function RaceResultRow({
           );
         }
         const farbe = bootsfarbe(boot.color);
-        const zugewiesen = zeile.code === "FINISHED" && zeile.finish_position != null;
+        const vollstaendig = ergebnisVollstaendig(zeile);
+        const tippbar = kannGetipptWerden(zeile);
         const vorschlag =
           zeile.code === "RDG" ? redressVorschlag(bestehend.team.id, race.sequence, standings) : null;
         // The merged dropdown's own value: a finish position shows as its number, every
@@ -846,10 +895,19 @@ function RaceResultRow({
                     setzeFeld(boot.number, { code: "FINISHED", finish_position: alsPosition });
                     return;
                   }
-                  if (neuerWert === "RDG" && zeile.redress_points == null) {
+                  if (neuerWert === "RDG") {
+                    const vorschlagBeiUmschaltung = redressVorschlag(
+                      bestehend.team.id,
+                      race.sequence,
+                      standings,
+                    );
                     setzeFeld(boot.number, {
                       code: neuerWert,
-                      redress_points: redressVorschlag(bestehend.team.id, race.sequence, standings),
+                      // Most redress cases are the plain A10 average — default to "auto"
+                      // whenever one can actually be computed, "fixed" only when there's
+                      // nothing yet to average (this team hasn't scored another race).
+                      redress_mode: vorschlagBeiUmschaltung != null ? "auto" : "fixed",
+                      redress_points: vorschlagBeiUmschaltung,
                     });
                     return;
                   }
@@ -873,22 +931,25 @@ function RaceResultRow({
               </select>
               <button
                 type="button"
-                onClick={() => tippen(boot.number)}
-                aria-pressed={zugewiesen}
+                onClick={() => tippbar && tippen(boot.number)}
+                disabled={!tippbar}
+                aria-pressed={tippbar ? vollstaendig : undefined}
                 title={
-                  zugewiesen
-                    ? t("tapUndoLabel", { position: zeile.finish_position })
-                    : t("tapAssignLabel", { boat: farbe.name })
+                  !tippbar
+                    ? t("tapLockedLabel", { code: zeile.code })
+                    : vollstaendig
+                      ? t("tapUndoLabel", { position: zeile.finish_position })
+                      : t("tapInProgressLabel", { boat: farbe.name })
                 }
                 data-testid={`matchday-results-tap-${race.id}-${boot.number}`}
-                className={`flex size-9 shrink-0 items-center justify-center rounded-md border text-base transition ${
-                  zugewiesen
-                    ? "border-transparent text-white shadow-sm hover:brightness-110"
-                    : "border-slate-300 text-slate-500 hover:bg-slate-50"
+                className={`flex size-9 shrink-0 items-center justify-center rounded-md border border-transparent text-base text-white shadow-sm transition ${
+                  tippbar ? "hover:brightness-110" : "cursor-default opacity-90"
                 }`}
-                style={zugewiesen ? { backgroundColor: farbe.hex } : undefined}
+                style={{ backgroundColor: farbe.hex }}
               >
-                <span aria-hidden>🏁</span>
+                <span aria-hidden className="[text-shadow:0_1px_2px_rgb(0_0_0_/_55%)]">
+                  {vollstaendig ? "🏁" : "⏳"}
+                </span>
               </button>
             </div>
             {brauchtEigeneEingabe(zeile.code) && (
@@ -910,26 +971,58 @@ function RaceResultRow({
               />
             )}
             {zeile.code === "RDG" && (
-              <>
-                <input
-                  type="number"
-                  step="0.1"
-                  className={`${EINGABE} mt-1`}
-                  value={zeile.redress_points ?? ""}
-                  placeholder={t("redressPlaceholder")}
-                  onChange={(e) =>
-                    setzeFeld(boot.number, {
-                      redress_points: e.target.value ? Number(e.target.value) : null,
-                    })
-                  }
-                  data-testid={`matchday-results-redress-input-${race.id}-${boot.number}`}
-                />
-                {vorschlag != null && (
-                  <p className="mt-0.5 text-[11px] italic text-slate-400">
-                    {t("redressSuggested", { value: punkte(vorschlag) })}
+              <div className="mt-1 space-y-1">
+                <div className="flex gap-1" role="group" aria-label={t("redressModeLabel")}>
+                  {(["auto", "fixed"] as const).map((modus) => (
+                    <button
+                      key={modus}
+                      type="button"
+                      onClick={() =>
+                        setzeFeld(boot.number, {
+                          redress_mode: modus,
+                          // Switching to "auto" snaps the value to today's average right
+                          // away; switching to "fixed" just unlocks the field and keeps
+                          // whatever number is currently showing as the starting point.
+                          redress_points: modus === "auto" ? vorschlag : zeile.redress_points,
+                        })
+                      }
+                      aria-pressed={zeile.redress_mode === modus}
+                      data-testid={`matchday-results-redress-mode-${modus}-${race.id}-${boot.number}`}
+                      className={`flex-1 rounded-md border px-1.5 py-1 text-[11px] font-medium transition ${
+                        zeile.redress_mode === modus
+                          ? "border-marke-600 bg-marke-50 text-marke-700"
+                          : "border-slate-300 text-slate-500 hover:bg-slate-50"
+                      }`}
+                    >
+                      {t(`redress${modus === "auto" ? "Auto" : "Fixed"}Label`)}
+                    </button>
+                  ))}
+                </div>
+                {zeile.redress_mode === "auto" ? (
+                  <p
+                    className="text-[11px] italic text-slate-500"
+                    data-testid={`matchday-results-redress-auto-value-${race.id}-${boot.number}`}
+                  >
+                    {vorschlag != null
+                      ? t("redressAutoValue", { value: punkte(vorschlag) })
+                      : t("redressAutoUnavailable")}
                   </p>
+                ) : (
+                  <input
+                    type="number"
+                    step="0.1"
+                    className={EINGABE}
+                    value={zeile.redress_points ?? ""}
+                    placeholder={t("redressPlaceholder")}
+                    onChange={(e) =>
+                      setzeFeld(boot.number, {
+                        redress_points: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                    data-testid={`matchday-results-redress-input-${race.id}-${boot.number}`}
+                  />
                 )}
-              </>
+              </div>
             )}
           </td>
         );
