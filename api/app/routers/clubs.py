@@ -2,19 +2,27 @@
 
 Admin and editorial roles have access. Clubs are master data: teams, accounts, and
 memberships depend on them — and the choice of host for creating an event.
+
+The crest upload (Story V-3) sits on a **second router** in this file: it is the one club
+endpoint a `club_manager` may also use — for their own club — so it cannot live under this
+module's router-level `require_master_data`. See `crest_router`.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import require_master_data
+from app.auth import current_user, require_master_data
+from app.crests import delete_crest, save_crest
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Series, Team, TeamStatus
+from app.models.auth import Role, User
+from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import (
     adopt_series_registrations,
@@ -29,6 +37,10 @@ router = APIRouter(
     tags=["admin"],
     dependencies=[Depends(require_master_data)],
 )
+
+# Same prefix, different permission: a router-level dependency cannot be relaxed for a
+# single route, and the crest is the one thing a club's own manager maintains here.
+crest_router = APIRouter(prefix="/api/admin/clubs", tags=["admin"])
 
 
 class ClubCreate(BaseModel):
@@ -269,6 +281,80 @@ async def update_club(
         setattr(club, field, value.strip() if isinstance(value, str) else value)
 
     await session.commit()
+    return club
+
+
+# ------------------------------------------------------------------- Crest (V-3)
+
+
+@crest_router.post("/{club_id}/logo", response_model=ClubOut, summary="Upload club crest")
+async def upload_club_logo(
+    club_id: int,
+    file: UploadFile = File(...),
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> ClubOut:
+    """Story V-3: the club's crest ("Stander") as an actual file, not a pasted URL.
+
+    Uploading again simply replaces it — there is one crest per club, and a second upload
+    is the way to correct a bad one. The response is the club as the public API renders it,
+    so the caller immediately sees the resolved `logo_url` (see
+    `ClubOut._prefer_uploaded_crest`) and does not have to guess the URL.
+    """
+    _can_manage_crest(acting, club_id)
+    club = await _club(session, club_id)
+    save_crest(club.id, await file.read(), content_type=file.content_type)
+    return ClubOut.model_validate(club)
+
+
+@crest_router.delete(
+    "/{club_id}/logo",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove club crest",
+)
+async def delete_club_logo(
+    club_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> Response:
+    """Removes the uploaded file. Doing this to a club that has none is a no-op, not an
+    error — the desired state is "no uploaded crest" either way.
+
+    `Club.logo_url` is deliberately left alone: it means "externally hosted emblem", and a
+    club that had one before the upload gets it back rather than losing it here.
+    """
+    _can_manage_crest(acting, club_id)
+    await _club(session, club_id)
+    delete_crest(club_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def _can_manage_crest(acting: User, club_id: int) -> None:
+    """Administration and editorial for any club, a `club_manager` for their own.
+
+    `club_manager` is granted per club (`UserRole.club_id`), so the check is
+    `manages_club(...)` — never `acting.club_id == club_id`, which is the separate
+    "represents" field and would let a member of one club edit it while missing a manager
+    who organizes several.
+    """
+    if acting.has_any(Role.ADMIN, Role.EDITOR):
+        return
+    if acting.manages_club(club_id):
+        return
+    raise Problem(
+        403,
+        "club-crest-not-yours",
+        "The crest is maintained by administration, editorial staff, or the club's own "
+        "leadership.",
+    )
+
+
+async def _club(session: AsyncSession, club_id: int) -> Club:
+    club = (
+        await session.execute(select(Club).where(Club.id == club_id))
+    ).scalar_one_or_none()
+    if club is None:
+        raise Problem(404, "club-not-found", f"Club {club_id} not found.")
     return club
 
 

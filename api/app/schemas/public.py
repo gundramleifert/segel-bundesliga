@@ -9,7 +9,9 @@ from __future__ import annotations
 
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+from app.crests import crest_url
 
 
 class ClubOut(BaseModel):
@@ -23,6 +25,35 @@ class ClubOut(BaseModel):
     website: str | None = None
     logo_url: str | None = None
     description: str | None = None
+
+    @model_validator(mode="after")
+    def _prefer_uploaded_crest(self) -> ClubOut:
+        """An uploaded crest wins over the `Club.logo_url` column — Story V-3.
+
+        This is the load-bearing decision of the crest upload. Two sources exist for one
+        idea ("the club's emblem"): a file someone uploaded, and a URL someone pasted.
+        Resolving them **here, on read**, rather than by writing the file's URL into the
+        column, keeps three things true:
+
+        * `Club.logo_url` keeps its single meaning — *an externally hosted emblem*. A club
+          that only has that keeps working untouched, and deleting an upload falls back to
+          it instead of destroying it.
+        * The file's existence stays the only state, exactly as for a sailor photo. There
+          is no column that can disagree with the disk.
+        * Every consumer that already reads `logo_url` — the club list, the club page, the
+          admin list, and the event-logo fallback chain in `public.py::_event_out` — is
+          served the uploaded crest with no change on their side and none in the frontend.
+
+        Applies to every subclass (`ClubDetail`, `ClubAdminOut`) and to both construction
+        paths, `model_validate(club)` and direct keyword construction — including the
+        `ClubOut` nested in `TeamOut`, so it costs one `stat()` per serialized club. That
+        is negligible next to the queries that produced the row, and it is the price of
+        having exactly one source of truth instead of a column that can drift from disk.
+        """
+        uploaded = crest_url(self.id)
+        if uploaded is not None:
+            self.logo_url = uploaded
+        return self
 
 
 class SeriesOut(BaseModel):

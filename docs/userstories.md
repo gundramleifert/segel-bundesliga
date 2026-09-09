@@ -1000,19 +1000,55 @@ the *guardian's* signature recorded separately in S-1).
 
 Tests: `api/tests/stories/test_sailor_profile.py`
 
-### V-3 ○ Upload club crest
+### V-3 ◐ Upload club crest
 As a **club manager** I want to **upload our club's crest**,
 so that **we are recognizable on the page**.
 
 Acceptance criteria:
 - The `club_manager` uploads it for their **own** club — the same restriction as club
-  assignment (Z-3).
-- Replacing and removing are possible.
+  assignment (Z-3). `admin` and `editor` may do it for any club, as with the rest of club
+  master data (A-1). The check is `User.manages_club(club_id)`: `club_manager` is granted
+  per club, so someone who organizes two clubs can maintain both crests, and merely
+  *representing* a club (`User.club_id`) grants nothing.
+- Replacing and removing are possible (`POST` again replaces; `DELETE` on a club without
+  an uploaded crest is a no-op, not an error).
 - Appears in table, club overview, and matchday view; without crest the abbreviation field
-  remains.
-- The field `Club.logo_url` already exists in the model — only the path to it is missing.
+  remains — no placeholder is invented by the API, a club without a crest simply has no
+  file (`GET /api/clubs/{id}/logo` → 404).
+- **Transparency survives.** Deliberately *not* the sailor-photo pipeline (S-2), which
+  flattens to RGB and re-encodes as JPEG: a crest is a logo drawn over colored surfaces
+  (the home-page hero, the event cards), so flattening its alpha channel would put a
+  visible white box around the emblem. PNG, JPEG and WebP are accepted as input; the store
+  is always PNG, RGBA when the source carried transparency in any form (including a
+  palette image's transparency index). There is also **no square crop** — a pennant is not
+  square — only the longest edge is bounded at 512 px, and an already-smaller crest is
+  left at its own resolution. Rejected with a typed error if it is not a readable image
+  (`/errors/club-crest-invalid-type`, `/errors/club-crest-invalid`) or over 2 MB
+  (`/errors/club-crest-too-large`).
 
-Tests: none yet
+**Storage**, as in S-2: a deterministic local path, `api/uploads/clubs/{club_id}.png` —
+the file's existence *is* the "has a crest" state, so no database column was added. Not
+versioned (see `.gitignore`); an S3-compatible store remains the same later option.
+
+**Resolved — how the upload reaches consumers:** `Club.logo_url` keeps its single meaning,
+*an externally hosted emblem*, and the two sources are resolved **on read** in one place
+(`ClubOut._prefer_uploaded_crest`, `api/app/schemas/public.py`): an uploaded file wins,
+otherwise the column is used. The alternative — writing the file's URL into the column on
+upload — was rejected because it makes two places able to disagree about one fact and
+destroys a pasted URL that the club may still want. Consequences: everything that already
+reads `logo_url` (club list, club page, admin list, and the event-logo fallback
+`event.logo_url or host_club.logo_url` in `public.py::_event_out`) shows an uploaded crest
+with no change on its side and none in the frontend, and removing the upload falls back to
+the external URL instead of leaving the club blank. The served URL carries a `?v=<mtime>`
+cache stamp, because the path itself is stable across replacements.
+
+Open: the admin/club-manager **UI** for the upload — the API is complete, the form is not
+built yet.
+
+Endpoints: `POST /api/admin/clubs/{club_id}/logo`, `DELETE /api/admin/clubs/{club_id}/logo`,
+`GET /api/clubs/{club_id}/logo`
+
+Tests: `api/tests/stories/test_club_crest.py`
 
 ---
 
@@ -1077,11 +1113,13 @@ Sensible next areas:
 - **B-…** Live: follow running race, see boats on map.
 - **S-…** Tracking: register mobile as tracker and record.
 - **A-…** Administration: set up seasons and leagues, maintain venues.
-- **File storage — decided for S-2, still open for S-1 and V-3.** Three stories need
+- **File storage — decided for S-2 and V-3, still open for S-1.** Three stories need
   uploads: the scan of the consent (S-1), member photo (S-2), and club crest (V-3). S-2
-  now uses a local directory (`api/uploads/sailors/{id}.jpg`, deterministic path, no
-  database column, access control per request in `app/routers/sailors.py`) — see its
-  section above for the reasoning. Still to be decided before S-1 is built, since a
+  and V-3 now use a local directory (`api/uploads/sailors/{id}.jpg`,
+  `api/uploads/clubs/{id}.png`; deterministic path, no database column, access control per
+  request in `app/routers/sailors.py` and `app/routers/clubs.py`) — see their sections
+  above for the reasoning, including why a crest keeps its alpha channel where a photo does
+  not. Still to be decided before S-1 is built, since a
   consent scan is far more sensitive than a photo: local directory or S3-compatible
   storage, size and type limits, virus scanning, and retention. **Access control differs
   per story** — a crest and most photos are public, the scan from S-1 on no account —

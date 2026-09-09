@@ -7,10 +7,12 @@ display, not as an address. See ``docs/concepts.md`` for terminology.
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.crests import crest_path
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import (
@@ -28,6 +30,7 @@ from app.models import (
     TeamMembership,
     TeamStatus,
 )
+from app.problems import Problem
 from app.schemas.public import (
     BoatOut,
     ClubDetail,
@@ -249,6 +252,25 @@ async def get_club(
         teams=teams,
         events=[ClubEventOut(event=_event_out(e)) for e in standalone_events],
     )
+
+
+@router.get("/clubs/{club_id}/logo", summary="A club's crest")
+async def get_club_logo(club_id: int) -> FileResponse:
+    """Serves the uploaded crest — Story V-3.
+
+    Public, like the rest of this router: a club emblem is on every table row and every
+    matchday card. No placeholder is invented here (same as the sailor photo): a club
+    without an uploaded crest simply has no file, and its `logo_url` then either points at
+    an external image or is empty, which the frontend already handles by showing the
+    abbreviation.
+
+    Needs no database round-trip — the file's presence answers the question. A club id
+    that does not exist and a club without a crest are the same 404 here.
+    """
+    path = crest_path(club_id)
+    if not path.exists():
+        raise Problem(404, "club-crest-not-found", "This club has no uploaded crest.")
+    return FileResponse(path, media_type="image/png")
 
 
 # ----------------------------------------------------------------------- Sailors
@@ -617,6 +639,7 @@ async def _race_sequences(session: AsyncSession, event_id: int) -> dict[int, int
 
 
 def _event_out(event: Event) -> EventOut:
+    host_club = ClubOut.model_validate(event.host_club) if event.host_club else None
     return EventOut(
         id=event.id,
         slug=event.slug,
@@ -627,9 +650,11 @@ def _event_out(event: Event) -> EventOut:
         status=event.status,
         series=SeriesOut.model_validate(event.series) if event.series else None,
         venue=VenueOut.model_validate(event.venue) if event.venue else None,
-        host_club=ClubOut.model_validate(event.host_club) if event.host_club else None,
-        # Without its own logo, the host club's emblem takes its place.
-        logo_url=event.logo_url or (event.host_club.logo_url if event.host_club else None),
+        host_club=host_club,
+        # Without its own logo, the host club's emblem takes its place — taken from the
+        # serialized `ClubOut`, not the ORM column, so an uploaded crest (Story V-3,
+        # `ClubOut._prefer_uploaded_crest`) wins here too.
+        logo_url=event.logo_url or (host_club.logo_url if host_club else None),
         team_count=event.team_count,
         boat_count=event.boat_count,
         flight_count=event.flight_count,
