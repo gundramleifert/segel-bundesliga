@@ -142,10 +142,34 @@ export function Layout() {
       <Rollenwechsel />
 
       <footer data-testid="layout-footer" className="border-t border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 text-sm text-slate-500">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-slate-500">
           {/* Once results from SAP Sailing Analytics are shown, the SAP attribution
               notice must go here — see docs/findings.md, section 3. */}
-          {t("footer")}
+          <span>{t("footer")}</span>
+          {/* Legal notice and privacy policy are mandatory for a German public site and
+              must be reachable from every page — hence here, not in the main nav. */}
+          <nav aria-label={t("footerLegal.label")} data-testid="layout-footer-legal">
+            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <li>
+                <Link
+                  to="/legal-notice"
+                  data-testid="layout-footer-legal-notice"
+                  className="hover:text-slate-900 hover:underline"
+                >
+                  {t("footerLegal.legalNotice")}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/privacy"
+                  data-testid="layout-footer-privacy"
+                  className="hover:text-slate-900 hover:underline"
+                >
+                  {t("footerLegal.privacy")}
+                </Link>
+              </li>
+            </ul>
+          </nav>
         </div>
       </footer>
     </div>

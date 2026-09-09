@@ -35,6 +35,11 @@
   "venueUnknown": "Venue to be announced",
   "actNumber": "Act {{number}}",
   "footer": "German Sailing Bundesliga · 18 clubs, 6 boats, 48 races per matchday",
+  "footerLegal": {
+    "label": "Legal",
+    "legalNotice": "Legal notice",
+    "privacy": "Privacy policy"
+  },
   "language": {
     "label": "Language",
     "en": "English",

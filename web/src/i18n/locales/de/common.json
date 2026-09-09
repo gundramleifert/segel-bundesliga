@@ -35,6 +35,11 @@
   "venueUnknown": "Ort noch offen",
   "actNumber": "{{number}}. Act",
   "footer": "Deutsche Segel-Bundesliga · 18 Vereine, 6 Boote, 48 Wettfahrten je Spieltag",
+  "footerLegal": {
+    "label": "Rechtliches",
+    "legalNotice": "Impressum",
+    "privacy": "Datenschutz"
+  },
   "language": {
     "label": "Sprache",
     "en": "English",
