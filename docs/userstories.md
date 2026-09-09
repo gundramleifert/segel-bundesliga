@@ -147,6 +147,40 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_vereinsseite.py::TestSeglerseite`
 
+### B-9 ◐ Find legal notice and privacy policy
+As a **visitor** I want to **reach the legal notice and the privacy policy from every page**,
+so that I **can see who runs this site and what happens to my data**.
+
+Acceptance criteria:
+- The footer links to both, on every page, without login.
+- Routes `/legal-notice` and `/privacy`, plus the German aliases `/impressum` and
+  `/datenschutz` — those are the words German visitors search for.
+- Both pages read fully in German and English through the language switcher (`legal`
+  namespace); no key exists in one language only.
+- The legal notice carries the § 5 DDG provider information and the person responsible
+  for editorial content under § 18 Abs. 2 MStV. It names **no** EU online dispute
+  resolution platform — that platform was shut down in July 2025.
+- The privacy policy follows Art. 13 DSGVO and describes what this application actually
+  stores: accounts without passwords, OIDC identities, sailor profiles with birth dates
+  and photos including the minors rule, waivers, club membership. No cookie-consent
+  section, because the app sets no cookies and runs no analytics.
+- Values nobody has yet — register court, association register number — appear as visibly
+  marked pending values, never invented. Points still undecided — retention periods, the
+  deletion concept for position data — appear as marked open questions, and the privacy
+  page carries a draft banner until it has been reviewed.
+- Because a club can run **its own** Event here, the privacy page states as its most
+  prominent open question that it is undetermined whether the association is sole
+  controller (Art. 4(7) DSGVO), processor for that club (Art. 28) or joint controller
+  (Art. 26) — each answer requires different agreements, and the draft picks none.
+
+Frontend: `web/src/pages/LegalNotice.tsx`, `web/src/pages/Privacy.tsx`,
+`web/src/components/LegalText.tsx`
+
+Tests: none yet.
+
+Open: The legal review by the association's board, and the placeholder values, are still
+missing — see the open questions rendered on the pages themselves.
+
 ---
 
 ## Access

@@ -35,6 +35,11 @@
   "venueUnknown": "Ort noch offen",
   "actNumber": "{{number}}. Act",
   "footer": "Deutsche Segel-Liga e.V. · Ligen, Pokale und ihre Spieltage",
+  "footerLegal": {
+    "label": "Rechtliches",
+    "legalNotice": "Impressum",
+    "privacy": "Datenschutz"
+  },
   "language": {
     "label": "Sprache",
     "en": "English",

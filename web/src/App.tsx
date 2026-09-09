@@ -4,6 +4,8 @@ import { Layout } from "./components/Layout";
 import { LegacyRedirect } from "./components/LegacyRedirect";
 import { Help } from "./pages/Help";
 import { Account } from "./pages/Account";
+import { LegalNotice } from "./pages/LegalNotice";
+import { Privacy } from "./pages/Privacy";
 import { Sailor } from "./pages/Sailor";
 import { Matchday } from "./pages/Matchday";
 import { SeriesOverview } from "./pages/SeriesOverview";
@@ -32,6 +34,13 @@ export default function App() {
         <Route path="account" element={<Account />} />
         <Route path="admin" element={<Admin />} />
         <Route path="help" element={<Help />} />
+        <Route path="legal-notice" element={<LegalNotice />} />
+        <Route path="privacy" element={<Privacy />} />
+        {/* German-language aliases for the legal pages. Unlike the legacy redirects below
+            these are not leftovers: "Impressum" and "Datenschutz" are the words German
+            visitors type and search for, so those URLs have to resolve. */}
+        <Route path="impressum" element={<Navigate to="/legal-notice" replace />} />
+        <Route path="datenschutz" element={<Navigate to="/privacy" replace />} />
         {/* Legacy German paths from before the English rewrite, plus the former
             "standings" paths from when the site presented a single league — kept as
             redirects so nothing bookmarked from an earlier build breaks outright. */}

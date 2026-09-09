@@ -1,0 +1,339 @@
+{
+  "openQuestionLabel": "Offene Frage:",
+  "draft": {
+    "title": "Entwurf — vor der Veröffentlichung prüfen lassen",
+    "body": "Diese Datenschutzerklärung ist ein Arbeitsentwurf für die Anwendung, die gerade entsteht. Die Angaben zum Verantwortlichen sind verbindlich, die Beschreibung der Verarbeitungen folgt dem heutigen Stand des Programmcodes. Bevor die Seite öffentlich geht, muss der Vorstand als vertretungsberechtigtes Organ den Text prüfen und rechtlich abnehmen lassen.",
+    "openQuestions": "Eine Frage wiegt schwerer als die übrigen: Richtet ein Verein auf dieser Plattform eine eigene Veranstaltung aus, ist unbestimmt, ob der Verband allein Verantwortlicher, Auftragsverarbeiter dieses Vereins oder gemeinsam mit ihm verantwortlich ist — jede Antwort verlangt andere Vereinbarungen. Diese und alle weiteren unentschiedenen Punkte — Löschfristen, das Löschkonzept und die Einwilligung für die Positionsdaten, die Frage eines Datenschutzbeauftragten — sind unten als offene Frage gekennzeichnet und bewusst nicht geraten."
+  },
+  "legalNotice": {
+    "title": "Impressum",
+    "subtitle": "Angaben nach § 5 DDG und § 18 Abs. 2 MStV",
+    "lastUpdated": "Stand: 10. September 2026",
+    "sections": [
+      {
+        "heading": "Anbieter",
+        "paragraphs": [
+          "Deutsche Segel-Liga e.V.\nc/o Düsseldorfer Yacht-Club\nRotterdamer Straße 30\n40474 Düsseldorf"
+        ]
+      },
+      {
+        "heading": "Vertreten durch den Vorstand",
+        "paragraphs": [
+          "Vorsitzender: Peter Weichsel\nStellvertretender Vorsitzender: Markus Westerwalbesloh\nSchatzmeister: Tom Lukas Voigt"
+        ]
+      },
+      {
+        "heading": "Kontakt",
+        "paragraphs": [
+          "E-Mail: vorstand@deutsche-segelliga.de"
+        ]
+      },
+      {
+        "heading": "Registereintrag",
+        "paragraphs": [
+          "Eingetragen im Vereinsregister.",
+          "Registergericht: «folgt»\nVereinsregisternummer: «folgt»",
+          "Registergericht und Registernummer sind noch nicht veröffentlicht. Für einen eingetragenen Verein verlangt § 5 DDG diese Angaben; sie werden hier ergänzt, sobald sie vorliegen."
+        ],
+        "open": "Registergericht und Vereinsregisternummer müssen nachgetragen werden. Sie stehen auch auf deutsche-segelliga.de bisher als „[folgt]“ und dürfen nicht erfunden werden."
+      },
+      {
+        "heading": "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
+        "paragraphs": [
+          "Peter Weichsel\nc/o Düsseldorfer Yacht-Club\nRotterdamer Straße 30\n40474 Düsseldorf"
+        ],
+        "open": "Sobald die Redaktion eigene Beiträge veröffentlicht, ist zu klären, ob weiterhin der Vorsitzende oder eine benannte Redaktionsleitung als verantwortlich nach § 18 Abs. 2 MStV geführt wird."
+      },
+      {
+        "heading": "Streitbeilegung",
+        "paragraphs": [
+          "Die frühere Pflichtangabe zur Plattform der EU-Kommission für Online-Streitbeilegung entfällt: Diese OS-Plattform wurde im Juli 2025 eingestellt. Ein Hinweis darauf wäre heute unrichtig und fehlt deshalb bewusst."
+        ],
+        "open": "Ob eine Erklärung nach § 36 VSBG zur Teilnahme an einer Verbraucherschlichtungsstelle abgegeben werden soll, entscheidet der Vorstand. Für einen Verein dieser Größe besteht die Pflicht in der Regel nicht; die Erklärung wird hier nicht vorweggenommen."
+      },
+      {
+        "heading": "Haftung für Inhalte",
+        "paragraphs": [
+          "Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Wir sind nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen (§§ 7 bis 10 DDG). Sobald wir von einer konkreten Rechtsverletzung Kenntnis erlangen, entfernen wir den betroffenen Inhalt unverzüglich.",
+          "Ergebnisse, Tabellen und Wettfahrtdaten werden nach bestem Wissen erfasst. Verbindlich ist allein das Ergebnis, das die Wettfahrtleitung der jeweiligen Veranstaltung veröffentlicht."
+        ]
+      },
+      {
+        "heading": "Haftung für Links",
+        "paragraphs": [
+          "Unser Angebot verweist auf externe Seiten, auf deren Inhalte wir keinen Einfluss haben. Für diese Inhalte ist stets der jeweilige Anbieter verantwortlich. Zum Zeitpunkt der Verlinkung waren keine rechtswidrigen Inhalte erkennbar; ohne konkreten Anlass ist eine dauerhafte inhaltliche Kontrolle nicht zumutbar."
+        ]
+      },
+      {
+        "heading": "Urheberrecht",
+        "paragraphs": [
+          "Die von uns erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Vervielfältigung, Bearbeitung und Verbreitung außerhalb der Grenzen des Urheberrechts bedürfen unserer schriftlichen Zustimmung. Vereinswappen, Logos und Fotos bleiben Eigentum der jeweiligen Rechteinhaber."
+        ],
+        "open": "Unter welcher Bedingung dürfen Presse und Vereine Ergebnislisten und Fotos übernehmen? Eine ausdrückliche Nutzungsregel fehlt bisher."
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Datenschutzerklärung",
+    "subtitle": "Informationen nach Art. 13 DSGVO",
+    "lastUpdated": "Stand: 10. September 2026",
+    "sections": [
+      {
+        "heading": "Geltungsbereich",
+        "paragraphs": [
+          "Diese Erklärung beschreibt, welche personenbezogenen Daten diese Website und die dahinterliegenden Werkzeuge verarbeiten und auf welcher Grundlage. Betrieben wird die Plattform von der Deutschen Segel-Liga e.V. Die Erklärung gilt nur für diese Anwendung — für den Hauptauftritt des Vereins unter deutsche-segelliga.de gilt eine eigene Datenschutzerklärung.",
+          "Die Anwendung wird auf mehrere Weisen genutzt: Besucher lesen öffentliche Seiten ohne Konto; Segler und Vereinsverantwortliche melden sich an, um Kader, Profile und Haftungserklärungen zu pflegen; die Wettfahrtleitung erfasst Ergebnisse; und ein Verein kann hier eine eigene Veranstaltung organisieren. Was verarbeitet wird, hängt davon ab, was davon auf Sie zutrifft."
+        ]
+      },
+      {
+        "heading": "Verantwortlicher",
+        "paragraphs": [
+          "Deutsche Segel-Liga e.V.\nc/o Düsseldorfer Yacht-Club\nRotterdamer Straße 30\n40474 Düsseldorf",
+          "Vertretungsberechtigte Personen: Peter Weichsel, Markus Westerwalbesloh, Tom Lukas Voigt\nE-Mail: vorstand@deutsche-segelliga.de\nImpressum: https://deutsche-segelliga.de/impressum/"
+        ],
+        "open": "Es ist kein Datenschutzbeauftragter benannt. Ob der Verein einen benennen muss oder freiwillig benennen will, ist zu prüfen — für einen Verein dieser Größe besteht die Pflicht häufig nicht, und veröffentlicht ist bisher keiner. Wird einer benannt, gehören seine Kontaktdaten hierher."
+      },
+      {
+        "heading": "Wer verantwortlich ist, wenn ein Verein seine eigene Veranstaltung durchführt",
+        "paragraphs": [
+          "Die Deutsche Segel-Liga e.V. betreibt diese Plattform. Sie ist nicht nur eine Ergebnisseite für die eigenen Serien des Verbandes: Ein Verein kann darauf eine eigene Veranstaltung organisieren — einen Pokal, ein Trainingswochenende — und verarbeitet dabei personenbezogene Daten der teilnehmenden Segler. Der ausrichtende Verein und der Verband sind zwei verschiedene Akteure; diese Erklärung wirft sie nicht zusammen.",
+          "Welche datenschutzrechtliche Rolle jeder von beiden bei einer solchen Veranstaltung hat, ist nicht bestimmt. Es gibt drei Möglichkeiten mit unterschiedlichen Pflichten: der Verband als allein Verantwortlicher (Art. 4 Nr. 7 DSGVO); der Verband als Auftragsverarbeiter für den ausrichtenden Verein (Art. 28 DSGVO — das erforderte einen Auftragsverarbeitungsvertrag mit jedem teilnehmenden Verein); oder gemeinsame Verantwortlichkeit (Art. 26 DSGVO — das erforderte eine Vereinbarung über die gemeinsame Verarbeitung, deren wesentlicher Inhalt Ihnen zugänglich gemacht werden muss)."
+        ],
+        "open": "Das ist die wichtigste offene Frage dieses Dokuments, und sie gehört in die rechtliche Beratung des Verbandes, nicht in eine technische Entscheidung. Bis sie beantwortet ist, kann diese Erklärung nicht sagen, wer für die Daten einer von einem anderen Verein hier durchgeführten Veranstaltung einsteht, welche Verträge bestehen müssen und an wen Sie Ihre Rechte für eine solche Veranstaltung richten. Nichts hier ist als Wahl einer der drei Rollen zu verstehen."
+      },
+      {
+        "heading": "Arten der verarbeiteten Daten",
+        "paragraphs": [
+          "Je nachdem, wie Sie die Anwendung nutzen:"
+        ],
+        "items": [
+          "Kontodaten: E-Mail-Adresse, Anzeigename, ob diese Adresse bestätigt ist, und der Zeitpunkt der letzten Anmeldung.",
+          "Anmeldedaten: welchen Weg Sie nutzen (Google, Microsoft oder ein Code per E-Mail) und die Kennung, die der Anbieter für Sie führt; Einmalcodes, gespeichert nur als Hash.",
+          "Segler-Stammdaten: Vor- und Nachname, Geburtsdatum, optional eine E-Mail-Adresse, die das Profil mit einem Konto verbindet, und eine Verbandsnummer, sofern erfasst.",
+          "Ein Profilfoto, wenn der Segler selbst eines hochlädt.",
+          "Mitgliedschafts- und Rollendaten: zu welchem Verein Sie gehören, der Status eines Aufnahmeantrags, ein etwaiger Vermerk zur Entscheidung und welche Rollen Ihr Konto hat.",
+          "Sportliche Daten: Kader- und Aufstellungseinträge, Bootszuordnungen und Wettfahrtergebnisse je Team.",
+          "Haftungserklärungen: welche Fassung des Textes bestätigt wurde, wann, in welcher Sprache, von welchem Konto aus, die Browser-Kennung dieser Bestätigung und bei Minderjährigen der Name der erziehungsberechtigten Person sowie ein Verweis auf deren Unterschrift.",
+          "Technische Daten: die IP-Adresse, mit der Ihr Gerät die Seite abruft; sie wird von unserem Hosting-Anbieter verarbeitet, um die Seiten ausliefern zu können."
+        ]
+      },
+      {
+        "heading": "Zwecke der Verarbeitung",
+        "paragraphs": [
+          "Die Zwecke sind die einer Segel-Liga und ihrer Website:"
+        ],
+        "items": [
+          "Durchführung des Wettbewerbs: Meldungen, Kader, Aufstellungen, Pairing-Listen, Ergebnisse und Tabellen.",
+          "Veröffentlichung der sportlichen Ergebnisse und der Teilnahme — der Zweck einer öffentlichen Liga-Seite.",
+          "Anmeldung und Rechteprüfung, damit nur die richtigen Personen Daten ändern können.",
+          "Nachweis darüber, dass Haftungserklärungen abgegeben wurden.",
+          "Sicherheit, Fehlersuche und die Einhaltung gesetzlicher Aufbewahrungspflichten, soweit sie greifen."
+        ]
+      },
+      {
+        "heading": "Maßgebliche Rechtsgrundlagen",
+        "paragraphs": [
+          "Wir verarbeiten personenbezogene Daten auf folgenden Grundlagen der DSGVO:",
+          "Neben der DSGVO gelten nationale Regelungen, insbesondere das Bundesdatenschutzgesetz (BDSG) mit eigenen Vorgaben zu Auskunft, Löschung, Widerspruch, besonderen Datenkategorien und automatisierter Entscheidungsfindung. Zusätzlich können Landesdatenschutzgesetze zur Anwendung kommen."
+        ],
+        "items": [
+          "Einwilligung, Art. 6 Abs. 1 lit. a DSGVO — wo wir ausdrücklich danach fragen, insbesondere für das geplante, noch nicht genutzte Positions-Tracking.",
+          "Berechtigte Interessen, Art. 6 Abs. 1 lit. f DSGVO — Betrieb und Absicherung der Seite, Durchführung des Wettbewerbs sowie Veröffentlichung der sportlichen Ergebnisse und der Teilnahme.",
+          "Rechtliche Verpflichtung, Art. 6 Abs. 1 lit. c DSGVO — soweit handels- oder steuerrechtliche Aufbewahrungspflichten bestehen."
+        ],
+        "open": "Auf welcher Grundlage Namen, Vereinszugehörigkeit und Fotos von Seglern offen im Internet veröffentlicht werden — berechtigtes Interesse oder Einwilligung —, ist eine echte rechtliche Bewertung und bislang nicht entschieden. Das muss die rechtliche Beratung des Vereins prüfen, besonders für Teilnehmende unter 18, deren Namen derzeit genauso öffentlich sind wie die von Erwachsenen."
+      },
+      {
+        "heading": "Sicherheitsmaßnahmen",
+        "paragraphs": [
+          "Wir treffen technische und organisatorische Maßnahmen, die dem Risiko angemessen sind, und berücksichtigen den Datenschutz bereits bei Auswahl und Entwicklung der Software. Insbesondere:"
+        ],
+        "items": [
+          "Es wird kein Passwort gespeichert. Die Identität kommt von Google, Microsoft oder über einen Einmalcode per E-Mail.",
+          "Einmalcodes werden nur als Argon2-Hash gespeichert, verfallen nach zehn Minuten, erlauben fünf Versuche und sind einmal verwendbar.",
+          "Der gesamte Datenverkehr läuft über HTTPS (TLS).",
+          "Rollen werden bei jeder einzelnen Anfrage gegen die Datenbank geprüft; ein entzogenes Recht wirkt damit sofort und nicht erst bei der nächsten Anmeldung.",
+          "Hochgeladene Fotos werden neu kodiert. Dabei entfallen die Metadaten der Originaldatei, einschließlich etwaiger GPS-Koordinaten der Kamera.",
+          "Das Profilfoto einer minderjährigen Person wird überhaupt nicht öffentlich ausgeliefert (siehe unten)."
+        ]
+      },
+      {
+        "heading": "Empfänger und Auftragsverarbeiter",
+        "paragraphs": [
+          "Wir setzen Dienstleister ein, die Daten in unserem Auftrag verarbeiten. Sie sind an unsere Weisungen gebunden und dürfen die Daten nicht für eigene Zwecke nutzen.",
+          "Über diese Dienstleister hinaus sehen die Verantwortlichen des ausrichtenden Vereins die Teilnehmenden, Aufstellungen und den Stand der Haftungserklärungen ihrer Veranstaltung — anders lässt sie sich nicht durchführen. In welcher datenschutzrechtlichen Rolle sie das tun, ist die oben genannte offene Frage."
+        ],
+        "items": [
+          "Render Services, Inc. — Hosting der Anwendung und ihrer Datenbank.",
+          "Brevo — Versand der Anmelde- und Bestätigungs-E-Mails über deren Schnittstelle, sofern dieser Weg aktiv ist.",
+          "STRATO AG — Postfach und SMTP-Server für den Versand, soweit nicht über Brevo verschickt wird."
+        ],
+        "open": "Ob mit jedem dieser Anbieter ein Auftragsverarbeitungsvertrag nach Art. 28 DSGVO besteht, muss vor dem Livegang geprüft und, wo er fehlt, geschlossen werden."
+      },
+      {
+        "heading": "Internationale Datentransfers",
+        "paragraphs": [
+          "Render ist ein US-Unternehmen. Soweit personenbezogene Daten außerhalb der EU oder des EWR verarbeitet werden, stützen wir uns auf die gesetzlich vorgesehenen Garantien — einen Angemessenheitsbeschluss wie das EU-US Data Privacy Framework oder die Standardvertragsklauseln der EU-Kommission."
+        ],
+        "open": "Die Hosting-Region ist in unserer Betriebskonfiguration nicht festgelegt und folgt daher der Voreinstellung des Anbieters, die in den USA liegt. Vor dem Livegang ist zu entscheiden — und festzuschreiben —, ob Anwendung und Datenbank in einer EU-Region laufen; die Transfergarantien sind entsprechend zu dokumentieren."
+      },
+      {
+        "heading": "Speicherdauer und Löschung",
+        "paragraphs": [
+          "Wir löschen personenbezogene Daten, sobald der Zweck ihrer Erhebung entfällt, es sei denn, eine gesetzliche Pflicht verlangt eine längere Aufbewahrung — insbesondere handels- und steuerrechtliche Unterlagen sind nach deutschem Recht bis zu zehn Jahre aufzubewahren.",
+          "Ihr eigenes Konto können Sie jederzeit löschen; Rollen und Anmelde-Identitäten gehen mit. Ein von der Verwaltung entferntes Konto wird deaktiviert und nicht gelöscht, damit die daran hängende sportliche Historie erhalten bleibt."
+        ],
+        "open": "Konkrete Löschfristen existieren noch nicht. Anmeldecodes, das interne Änderungsprotokoll (das die E-Mail-Adresse der handelnden Person enthält), Bestätigungen von Haftungserklärungen und hochgeladene Fotos bleiben derzeit unbegrenzt gespeichert, weil keine Löschroutine gebaut ist. Ein Löschkonzept mit Fristen je Datenkategorie muss entschieden und umgesetzt werden; bis dahin kann dieser Abschnitt keine genauen Fristen nennen."
+      },
+      {
+        "heading": "Rechte der betroffenen Personen",
+        "paragraphs": [
+          "Nach Art. 15 bis 21 DSGVO haben Sie das Recht auf:",
+          "Zur Wahrnehmung genügt eine E-Mail an vorstand@deutsche-segelliga.de. Außerdem haben Sie das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren, insbesondere in dem Mitgliedstaat Ihres Aufenthaltsorts, Ihres Arbeitsplatzes oder des vermuteten Verstoßes."
+        ],
+        "items": [
+          "Auskunft — Bestätigung, ob wir Daten über Sie verarbeiten, und eine Kopie dieser Daten;",
+          "Berichtigung — Korrektur unrichtiger und Vervollständigung unvollständiger Daten;",
+          "Löschung — Entfernung Ihrer Daten, soweit keine Aufbewahrungspflicht entgegensteht;",
+          "Einschränkung der Verarbeitung als Alternative zur Löschung;",
+          "Datenübertragbarkeit — die von Ihnen bereitgestellten Daten in einem strukturierten, gängigen, maschinenlesbaren Format;",
+          "Widerspruch — gegen eine Verarbeitung auf Grundlage berechtigter Interessen, aus Gründen Ihrer besonderen Situation;",
+          "Widerruf einer Einwilligung — jederzeit, ohne dass die Rechtmäßigkeit der Verarbeitung bis zum Widerruf berührt wird."
+        ]
+      },
+      {
+        "heading": "Bereitstellung des Onlineangebots",
+        "paragraphs": [
+          "Um die Seiten auszuliefern, wird die IP-Adresse Ihres Geräts verarbeitet — technisch unvermeidbar, denn ohne sie könnte keine Antwort bei Ihnen ankommen. Verarbeitet wird sie durch unseren Hosting-Anbieter; wir speichern sie weder in unserer Datenbank noch protokolliert sie die Anwendung.",
+          "Die Plattform führt übliche Server-Protokolle über die Abrufe. Eine Reichweitenmessung, Werbung, Zählpixel oder ein Profiling von Besuchern gibt es in dieser Anwendung nicht."
+        ],
+        "open": "Wie lange der Hosting-Anbieter seine Server-Protokolle aufbewahrt, ist nicht ermittelt und sollte hier angegeben werden."
+      },
+      {
+        "heading": "Lokaler Speicher statt Cookies",
+        "paragraphs": [
+          "Diese Seite setzt keine Cookies. Sie speichert genau zwei Werte im lokalen Speicher Ihres Browsers:",
+          "Beide sind für von Ihnen gewünschte Funktionen unbedingt erforderlich; ein Einwilligungsbanner ist deshalb nach § 25 Abs. 2 TDDDG nicht nötig. Keiner der Werte wird an Dritte weitergegeben oder dazu genutzt, Sie über Websites hinweg wiederzuerkennen. Ist keine Sprache gespeichert, entscheidet die Spracheinstellung Ihres Browsers."
+        ],
+        "items": [
+          "Ihr Zugangstoken, damit Sie angemeldet bleiben — es wird beim Abmelden entfernt;",
+          "die von Ihnen gewählte Sprache der Oberfläche."
+        ]
+      },
+      {
+        "heading": "Konto und Anmeldung",
+        "paragraphs": [
+          "Ein Konto enthält Ihre E-Mail-Adresse (klein geschrieben gespeichert), Ihren Anzeigenamen, ob diese Adresse bestätigt ist, den Zeitpunkt der letzten Anmeldung, Ihren Verein und Ihre Rollen. Ein Passwortfeld gibt es bewusst nicht.",
+          "Melden Sie sich mit einem Code per E-Mail an, speichern wir die Adresse, einen Hash des Codes, dessen Ablaufzeitpunkt, die Zahl der Versuche und ob er verbraucht ist. Nach erfolgreicher Anmeldung hält Ihr Browser ein zwölf Stunden gültiges Zugangstoken; auf unseren Servern wird es nicht gespeichert."
+        ],
+        "open": "Verbrauchte und abgelaufene Anmeldecodes werden derzeit nicht aufgeräumt. Hier sollte eine kurze Löschfrist — Tage, nicht Jahre — festgelegt und umgesetzt werden."
+      },
+      {
+        "heading": "Anmeldung über Google oder Microsoft",
+        "paragraphs": [
+          "Wählen Sie diesen Weg, melden Sie sich bei Google oder Microsoft an, und wir erhalten von dort ein Identitätstoken, das wir prüfen. Aus diesem Token lesen und speichern wir nur drei Angaben: Ihre E-Mail-Adresse, die dauerhafte Kennung des Anbieters für Sie und Ihren Namen.",
+          "Zur Prüfung der Signatur ruft unser Server die öffentlichen Schlüssel des Anbieters ab; Daten über Sie übermitteln wir dabei nicht. Ihre Nutzung des Anmeldedienstes ist gleichwohl eine Verarbeitung durch diesen Anbieter nach dessen eigener Datenschutzerklärung und kann eine Übermittlung in die USA umfassen. Wer das vermeiden möchte, nutzt stattdessen den Code per E-Mail — er führt zum selben Konto."
+        ]
+      },
+      {
+        "heading": "Vereinsmitgliedschaft und Rollen",
+        "paragraphs": [
+          "Die Mitgliedschaft in einem Verein setzt die Zustimmung beider Seiten voraus: Sie beantragen und der Verein nimmt an, oder der Verein lädt Sie über Ihre E-Mail-Adresse ein und Sie nehmen an. Gespeichert werden der betroffene Verein, der Status des Antrags, der Zeitpunkt der Entscheidung und ein etwaiger Vermerk der entscheidenden Seite.",
+          "Ihre E-Mail-Adresse sehen die Vereinsverwaltung und die Geschäftsstelle, nicht die übrigen Mitglieder. Mitglieder desselben Vereins sehen Ihren Anzeigenamen und ob Sie eine Verwaltungsrolle haben."
+        ]
+      },
+      {
+        "heading": "Seglerprofile, Veröffentlichung und Ergebnisse",
+        "paragraphs": [
+          "Ein Seglerdatensatz enthält Vor- und Nachnamen, das Geburtsdatum, optional eine E-Mail-Adresse, die das Profil mit einem Konto verbindet, und eine Verbandsnummer, sofern erfasst.",
+          "Öffentlich — also ohne jede Anmeldung — werden nur Name und Rolle gezeigt, dazu der Verein, die Kader und die Spieltage, an denen eine Person teilgenommen hat. E-Mail-Adresse, Geburtsdatum und Verbandsnummer werden nie veröffentlicht.",
+          "Tabellen und Ergebnisse werden je Team erfasst, nicht je Person. Namen werden über Kader- und Aufstellungslisten Teil des öffentlichen Bestands."
+        ],
+        "open": "Die Namen von Teilnehmenden unter 18 werden genauso veröffentlicht wie die von Erwachsenen. Ob das so bleiben soll und auf welcher Grundlage, ist rechtlich zu prüfen — ebenso, ob eine Person der Veröffentlichung ihres Namens widersprechen können soll, ohne den Wettbewerb zu verlassen."
+      },
+      {
+        "heading": "Profilfotos und Schutz Minderjähriger",
+        "paragraphs": [
+          "Ein Foto kann nur der Segler selbst aus seinem bestätigten Konto hochladen und jederzeit wieder löschen. Es wird auf dem Server der Anwendung gespeichert, auf 512×512 Pixel skaliert und neu kodiert; dabei entfallen die ursprünglichen Metadaten, auch ein von der Kamera erfasster Ort.",
+          "Das Foto einer erwachsenen Person ist öffentlich sichtbar. Das Foto einer minderjährigen Person nicht: Es wird nur an die Person selbst, an Geschäftsstelle und Redaktion sowie an die Verwaltung eines Vereins ausgeliefert, für den die Person gemeldet ist. Alle anderen werden abgewiesen, auch angemeldete Unbekannte.",
+          "Das Alter ergibt sich aus dem gespeicherten Geburtsdatum, Schwelle sind 18 Jahre."
+        ],
+        "open": "Ist kein Geburtsdatum erfasst, kann das System die Minderjährigkeit nicht erkennen und behandelt das Foto wie das einer erwachsenen Person, also öffentlich. Diese Lücke braucht eine Entscheidung: ein unbekanntes Geburtsdatum als geschützt behandeln oder das Datum verlangen, bevor ein Foto gezeigt werden darf."
+      },
+      {
+        "heading": "Haftungserklärungen",
+        "paragraphs": [
+          "Wird eine Haftungserklärung für eine Serie oder eine Veranstaltung bestätigt, halten wir diese Bestätigung als Nachweis fest. Der Eintrag wird nachträglich nicht verändert; eine korrigierte Erklärung ist eine neue Bestätigung. Er enthält:",
+          "Personen unter 18 können eine Haftungserklärung nicht selbst wirksam bestätigen — ohne erziehungsberechtigte Person bleibt eine solche Bestätigung rechtlich unwirksam. Deshalb ist die Bestätigung durch eine erziehungsberechtigte Person erforderlich und wird als solche erfasst. Eine IP-Adresse wird zur Bestätigung nicht gespeichert."
+        ],
+        "items": [
+          "welcher Segler und welche genaue Fassung des Erklärungstextes;",
+          "Zeitpunkt der Bestätigung und die Sprache, in der der Text gezeigt wurde;",
+          "ob online bestätigt oder als Bestätigung einer erziehungsberechtigten Person erfasst;",
+          "welches Konto den Eintrag angelegt hat und von welcher Browser-Kennung aus;",
+          "bei Minderjährigen: Name der erziehungsberechtigten Person und ein Verweis darauf, wo deren Unterschrift liegt."
+        ],
+        "open": "Wie lange Bestätigungen aufbewahrt werden und ob eingescannte Unterschriften erziehungsberechtigter Personen überhaupt in der Anwendung gespeichert werden, ist offen. Kommen Scans hinzu, sind zugleich Zugriffsregeln, die Protokollierung jedes Abrufs und eine Löschfrist nach Saisonende festzulegen."
+      },
+      {
+        "heading": "E-Mails, die wir versenden",
+        "paragraphs": [
+          "Die Anwendung versendet genau eine Art von E-Mail: Anmelde- und Bestätigungscodes. Einen Newsletter, Werbung oder Benachrichtigungs-E-Mails gibt es nicht.",
+          "Je nach Konfiguration geht der Versand über die Schnittstelle von Brevo oder über den SMTP-Server unseres Postfachanbieters. Die Empfängeradresse erscheint für die Dauer der Aufbewahrung im Betriebsprotokoll."
+        ],
+        "open": "Welcher der beiden Wege im Live-Betrieb genutzt wird, sollte hier stehen, sobald es feststeht, und der entsprechende Auftragsverarbeiter benannt werden — die derzeitige Testinstallation nutzt Brevo, weil die Hosting-Plattform ausgehendes SMTP blockiert."
+      },
+      {
+        "heading": "Protokolldaten und internes Änderungsprotokoll",
+        "paragraphs": [
+          "Die Anwendung führt kein eigenes Zugriffsprotokoll und speichert keine IP-Adressen. Die Hosting-Plattform führt übliche Server-Protokolle, und unser Betriebsprotokoll hält die Empfängeradresse jeder versendeten E-Mail fest.",
+          "Verwaltungsvorgänge — etwa die Zuordnung einer Person zu einem anderen Verein — werden in einem internen Änderungsprotokoll zusammen mit der E-Mail-Adresse der handelnden Person festgehalten, damit ein solcher Vorgang später nachvollziehbar ist."
+        ],
+        "open": "Für das Änderungsprotokoll gibt es keine Aufbewahrungsgrenze, es wird nie bereinigt. Hier ist eine Frist festzulegen."
+      },
+      {
+        "heading": "Geplant: Positionsdaten von Teilnehmer-Telefonen",
+        "paragraphs": [
+          "Geplant ist eine Live-Verfolgung der Boote über die Telefone der Teilnehmenden. Sie ist nicht gebaut: Heute werden keine Positionsdaten erhoben, gespeichert oder übermittelt.",
+          "Wird sie gebaut, verarbeitet sie während einer Wettfahrt eine Gerätekennung, einen Zeitstempel, Breite und Länge, Geschwindigkeit und Kurs und übergibt diese an das für die Liga genutzte Zeitnahme- und Analysesystem. Positionsdaten sind Bewegungsdaten und können erheblich mehr zeigen als eine Regattaspur — sie werden deshalb auf Ihrer ausdrücklichen, je Veranstaltung erteilten und widerruflichen Einwilligung beruhen und niemals stillschweigend eingeschaltet."
+        ],
+        "open": "Das Löschkonzept für Positionsdaten, der genaue Wortlaut der Einwilligung im Tracker und die Frage, wie lange Spuren für Wiederholungen aufbewahrt werden dürfen, sind offen. Das muss geklärt sein, bevor die Funktion eingeschaltet wird; diese Erklärung ist keine Freigabe dafür."
+      },
+      {
+        "heading": "Geplant: Importe, Exporte und redaktionelle Inhalte",
+        "paragraphs": [
+          "Zwei Austausche mit externen Systemen sind geplant, aber nicht umgesetzt. Meldungen würden aus manage2sail importiert — Namen und Vereinszuordnungen —, und Ergebnisse würden an das Zeitnahme- und Analysesystem der Liga übermittelt, in dem Name, Segelnummer und Nationalität einer Teilnehmerin oder eines Teilnehmers erscheinen.",
+          "Geplant ist außerdem ein Nachrichtenbereich, in dem die Vereine Beiträge schreiben. Die Entscheidung dort lautet bewusst ein Konto je Verein statt eines je Segler, gerade um die Menge personenbezogener Daten klein zu halten; Beiträge werden vor der Veröffentlichung geprüft, und wer ein Foto einer erkennbaren Person hochlädt, muss bestätigen, dass die nötige Einwilligung vorliegt."
+        ],
+        "open": "Umfang und Rechtsgrundlage beider Austausche sind noch zu klären, ebenso der Weg, auf dem ein Foto oder ein Beitrag auf Widerspruch hin entfernt wird. Aktiv ist derzeit keines von beidem."
+      },
+      {
+        "heading": "Aktueller Betriebszustand",
+        "paragraphs": [
+          "Diese Anwendung wird noch gebaut. Die derzeit erreichbare Installation ist eine Testinstanz: Sie enthält synthetische Daten, ihre Datenbank wird beim Neustart des Dienstes zurückgesetzt, und eine Entwicklungsanmeldung ist aktiv, die Zugangstoken ohne Prüfung ausgibt.",
+          "Solange das so ist, sollten keine echten personenbezogenen Daten eingegeben werden."
+        ],
+        "open": "Die Entwicklungsanmeldung muss abgeschaltet und die Datenbank dauerhaft gemacht werden, bevor echte Konten, Segler oder Haftungserklärungen erfasst werden. Dieser Abschnitt soll zum Livegang verschwinden."
+      },
+      {
+        "heading": "Änderung und Aktualisierung",
+        "paragraphs": [
+          "Wir passen diese Erklärung an, wenn sich die Anwendung ändert. Solange neue Funktionen hinzukommen — insbesondere Positionsverfolgung und Nachrichtenbereich —, wird sie sich weiter ändern; das Datum oben nennt die Fassung, die Sie lesen."
+        ]
+      },
+      {
+        "heading": "Begriffsdefinitionen",
+        "paragraphs": [
+          "Kurz und ohne juristische Feinheiten:"
+        ],
+        "items": [
+          "Personenbezogene Daten — alle Angaben zu einer identifizierbaren Person: ein Name, eine E-Mail-Adresse oder eine Position auf dem Wasser gleichermaßen.",
+          "Verarbeitung — alles, was mit solchen Daten geschieht: erheben, speichern, anzeigen, übermitteln, löschen.",
+          "Verantwortlicher — wer entscheidet, warum und wie Daten verarbeitet werden; hier die Deutsche Segel-Liga e.V.",
+          "Auftragsverarbeiter — ein Dienstleister, der Daten nach Weisung des Verantwortlichen verarbeitet, etwa der Hosting- oder Mailanbieter.",
+          "Betroffene Person — die Person, um deren Daten es geht; Sie."
+        ]
+      }
+    ]
+  }
+}

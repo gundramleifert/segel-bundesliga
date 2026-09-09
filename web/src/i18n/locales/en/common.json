@@ -35,6 +35,11 @@
   "venueUnknown": "Venue to be announced",
   "actNumber": "Act {{number}}",
   "footer": "Deutsche Segel-Liga e.V. · Leagues, cups and their matchdays",
+  "footerLegal": {
+    "label": "Legal",
+    "legalNotice": "Legal notice",
+    "privacy": "Privacy policy"
+  },
   "language": {
     "label": "Language",
     "en": "English",
