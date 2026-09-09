@@ -7,7 +7,8 @@ import { useTranslation } from "react-i18next";
 import { api, type BoatSpec, type ClubAdmin, type SeriesAdmin } from "../api/client";
 import { useApi, useInvalidieren, useKonto } from "../api/useApi";
 import { Fehler, Laden, Leer, Seitenkopf } from "../components/Bausteine";
-import { BOOTSFARBEN } from "../lib/format";
+import i18n from "../i18n";
+import { BOOTSFARBEN, bootsfarbe } from "../lib/format";
 import { AccountsAdmin } from "./VerwaltungKonten";
 import { SailorsAdmin } from "./VerwaltungSegler";
 import { EINGABE, fehlertext, umschalter } from "../lib/verwaltung";
@@ -456,8 +457,32 @@ function vorgabeFarbe(position: number): string {
   return position <= VORDEFINIERTE_FARBEN.length ? VORDEFINIERTE_FARBEN[position - 1] : "";
 }
 
+/** Default name for a freshly added row — "Boat 1".."Boat N" by position, unique by
+ *  construction and a clearer starting point than an empty required field. Freely
+ *  editable afterwards; a rename is never overwritten by a later resize. */
+function vorgabeName(position: number): string {
+  return i18n.t("admin:events.boatDefaultName", { number: position });
+}
+
 function leereBootZeile(position: number): BootZeile {
-  return { farbe: vorgabeFarbe(position), eigeneFarbe: "", name: "" };
+  return { farbe: vorgabeFarbe(position), eigeneFarbe: "", name: vorgabeName(position) };
+}
+
+/** The color a row currently resolves to, for the swatch preview — a predefined color's
+ *  hex via `bootsfarbe()` (same lookup as the pairing table elsewhere), or the free-text
+ *  entry as-is for "custom": CSS accepts a hex string or a color name directly, and simply
+ *  ignores it if it's neither, so no separate validation is needed just to preview it. */
+function vorschauFarbe(zeile: BootZeile): string {
+  if (zeile.farbe === EIGENE_FARBE) return zeile.eigeneFarbe.trim() || "transparent";
+  return zeile.farbe ? bootsfarbe(zeile.farbe).hex : "transparent";
+}
+
+/** `<input type="color">` needs a well-formed 6-digit hex or it silently resets to black —
+ *  falls back to black only for the picker's own value, the free-text field and swatch
+ *  keep showing whatever was actually typed. */
+function hexFuerPicker(text: string): string {
+  const getrimmt = text.trim();
+  return /^#[0-9a-f]{6}$/i.test(getrimmt) ? getrimmt.toLowerCase() : "#000000";
 }
 
 /** Resizes the boat rows to a new boat count — growing appends default rows, shrinking
@@ -516,6 +541,9 @@ function Events() {
   const [teams, setzeTeams] = useState("18");
   const [boote, setzeBoote] = useState("6");
   const [flights, setzeFlights] = useState("16");
+  // Default matches the backend's own default seed (`PairingJobRequest.seed` in
+  // app/schemas/admin.py) — same seed, same draw, reproducible if it ever needs proving.
+  const [seed, setzeSeed] = useState("1240");
   const [bootZeilen, setzeBootZeilen] = useState<BootZeile[]>(() =>
     Array.from({ length: 6 }, (_, i) => leereBootZeile(i + 1)),
   );
@@ -524,6 +552,12 @@ function Events() {
     setzeBootZeilen((vorher) =>
       vorher.map((zeile, i) => (i === index ? { ...zeile, ...patch } : zeile)),
     );
+
+  // Separate from event creation on purpose: the event exists either way, so a failed draw
+  // (e.g. a standalone event with no teams registered yet) must not read as "creation failed."
+  const auslosen = useMutation({
+    mutationFn: (eventId: number) => api.admin.pairingFromCatalog(eventId, Number(seed) || 1240),
+  });
 
   const anlegen = useMutation({
     mutationFn: () =>
@@ -538,12 +572,13 @@ function Events() {
         flight_count: Number(flights),
         boats: bootsspezifikationen(bootZeilen),
       }),
-    onSuccess: () => {
+    onSuccess: (event) => {
       setzeTitel("");
       setzeVon("");
       setzeBis("");
       setzeBootZeilen(Array.from({ length: Number(boote) || 6 }, (_, i) => leereBootZeile(i + 1)));
       invalidieren(["admin", "series"], ["events"], ["series"]);
+      auslosen.mutate(event.id);
     },
   });
 
@@ -666,6 +701,17 @@ function Events() {
         <p className="text-sm text-slate-500">
           {t("events.formatText", { teams, boats: boote, races: Math.ceil(Number(teams) / Number(boote)) || 0 })}
         </p>
+
+        <Feld label={t("events.seedLabel")} hinweis={t("events.seedHint")}>
+          <input
+            className={EINGABE}
+            type="number"
+            value={seed}
+            onChange={(e) => setzeSeed(e.target.value)}
+            data-testid="admin-events-seed-input"
+          />
+        </Feld>
+
         <p className="text-sm text-slate-500">
           {t("events.catalogContactHint")}{" "}
           <a
@@ -699,7 +745,7 @@ function Events() {
                   <tr key={index}>
                     <td className="px-3 py-2 text-slate-500">{index + 1}</td>
                     <td className="px-3 py-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <select
                           className={EINGABE}
                           aria-label={`${t("events.boatColorLabel")} ${index + 1}`}
@@ -715,17 +761,37 @@ function Events() {
                           ))}
                           <option value={EIGENE_FARBE}>{t("events.boatColorCustom")}</option>
                         </select>
+                        {/* Visible for every row, predefined or custom, so the color can be
+                         *  checked before submitting — same swatch pattern as Spieltag.tsx. */}
+                        <span
+                          aria-hidden
+                          className="size-5 shrink-0 rounded-full ring-1 ring-slate-300"
+                          style={{ backgroundColor: vorschauFarbe(zeile) }}
+                          data-testid={`admin-events-boat-color-swatch-${index}`}
+                        />
                         {zeile.farbe === EIGENE_FARBE && (
-                          <input
-                            className={EINGABE}
-                            value={zeile.eigeneFarbe}
-                            onChange={(e) =>
-                              aktualisiereBoot(index, { eigeneFarbe: e.target.value })
-                            }
-                            placeholder={t("events.boatColorCustomPlaceholder")}
-                            aria-label={t("events.boatColorCustomPlaceholder")}
-                            data-testid={`admin-events-boat-color-custom-input-${index}`}
-                          />
+                          <>
+                            <input
+                              type="color"
+                              className="h-9 w-9 cursor-pointer rounded border border-slate-300 p-0.5"
+                              value={hexFuerPicker(zeile.eigeneFarbe)}
+                              onChange={(e) =>
+                                aktualisiereBoot(index, { eigeneFarbe: e.target.value })
+                              }
+                              aria-label={t("events.boatColorPickerLabel")}
+                              data-testid={`admin-events-boat-color-picker-${index}`}
+                            />
+                            <input
+                              className={EINGABE}
+                              value={zeile.eigeneFarbe}
+                              onChange={(e) =>
+                                aktualisiereBoot(index, { eigeneFarbe: e.target.value })
+                              }
+                              placeholder={t("events.boatColorCustomPlaceholder")}
+                              aria-label={t("events.boatColorCustomPlaceholder")}
+                              data-testid={`admin-events-boat-color-custom-input-${index}`}
+                            />
+                          </>
                         )}
                       </div>
                     </td>
@@ -769,6 +835,21 @@ function Events() {
         fehler={anlegen.isError ? fehlertext(anlegen.error) : null}
         erfolg={anlegen.isSuccess ? t("events.createdMessage", { title: anlegen.data?.title }) : null}
       />
+
+      {/* Distinct from event-creation success/failure above: the event exists either way,
+       *  so a failed draw (e.g. no teams registered yet for a standalone event) is reported
+       *  as its own, clearly-labeled notice rather than looking like creation itself failed. */}
+      {anlegen.isSuccess && auslosen.isError && (
+        <Fehler
+          text={t("events.pairingDrawFailedMessage", { error: fehlertext(auslosen.error) })}
+          testId="admin-events-pairing-draw-error"
+        />
+      )}
+      {anlegen.isSuccess && auslosen.isSuccess && (
+        <p data-testid="admin-events-pairing-draw-success" className="text-sm text-emerald-700">
+          {t("events.pairingDrawSuccessMessage")}
+        </p>
+      )}
     </Abschnitt>
   );
 }

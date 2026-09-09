@@ -349,6 +349,11 @@ Acceptance criteria:
   specification, their count determines `boat_count`.
 - Boats belong to the **event**, not the draw: a new pairing list changes the assignment,
   not the boats at the dock.
+- Each boat row defaults to a color from the league colors, in order, and a name of
+  **"Boat 1".."Boat N"** by position — a clearer starting point than an empty required field,
+  freely renamed afterwards. A **visible color swatch** next to every row (predefined or
+  custom) lets the organizer check the color before saving; a custom color can be entered as
+  free text or picked with a native color picker, kept in sync with each other.
 - In addition to administration, editorial, and race committee, also the **leadership of the
   host club** can create — not for a foreign host.
 
@@ -373,6 +378,10 @@ Acceptance criteria:
 - If no entry fits the configuration, the response says which ones are available; the way via
   the calculation job ([VA-3](#va-3--calculate-and-publish-pairing-list-in-the-interface))
   remains.
+- **Event creation applies this automatically:** the event-creation form (VA-6) takes a seed
+  (default `1240`, reproducible) and calls this endpoint right after the event is created, so a
+  new event has its pairing list immediately, without a separate manual step. A failed draw
+  (e.g. no teams registered yet) is reported as its own notice — the event exists either way.
 
 Endpoints: `GET /api/admin/pairing/catalog`,
 `POST /api/admin/events/{id}/pairing/from-catalog`

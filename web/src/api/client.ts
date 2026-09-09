@@ -37,6 +37,7 @@ export type ClubCreate = S["ClubCreate"];
 export type EventCreate = S["EventCreate"];
 export type BoatSpec = S["BoatSpec"];
 export type PairingCatalogEntry = S["KatalogEintragOut"];
+export type PairingPublishResult = S["PublishResult"];
 export type EventTeam = S["ParticipantOut"];
 export type SailorAdmin = S["SailorAdminOut"];
 export type SailorCreate = S["SailorCreate"];
@@ -270,6 +271,15 @@ export const api = {
     // triggering a fresh computation (see app/pairing/catalog.py).
     pairingCatalog: (signal?: AbortSignal) =>
       get<PairingCatalogEntry[]>("/api/admin/pairing/catalog", signal),
+    /** Takes the catalog's pre-optimized list for the event's size and shuffles starting
+     *  positions by `seed` — deterministic, milliseconds (Story VA-7). Called right after
+     *  event creation so a newly created event has a pairing list immediately. */
+    pairingFromCatalog: (eventId: number, seed: number) =>
+      send<PairingPublishResult>(
+        "POST",
+        `/api/admin/events/${eventId}/pairing/from-catalog`,
+        { seed },
+      ),
 
     sailors: (q: string, signal?: AbortSignal) =>
       get<SailorAdmin[]>(`/api/admin/sailors?q=${encodeURIComponent(q)}`, signal),
