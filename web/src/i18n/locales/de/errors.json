@@ -25,5 +25,7 @@
   "sailor-photo-invalid-type": "Der Upload muss ein Bild sein.",
   "sailor-photo-invalid": "Diese Datei ist kein lesbares Bild.",
   "sailor-photo-too-large": "Das Foto ist zu groß. Bitte eine kleinere Datei verwenden.",
-  "sailor-photo-protected": "Diese Person ist minderjährig oder hat kein Geburtsdatum hinterlegt. Das Foto wird nur angemeldeten Konten mit Bezug zu ihr angezeigt."
+  "sailor-photo-protected": "Diese Person ist minderjährig oder hat kein Geburtsdatum hinterlegt. Das Foto wird nur angemeldeten Konten mit Bezug zu ihr angezeigt.",
+  "pairing-team-count-mismatch": "Die Zahl der gemeldeten Vereine passt nicht zum Zuschnitt dieser Veranstaltung. Vereine ergänzen oder entfernen, bis die Zahlen übereinstimmen, dann auslosen.",
+  "pairing-catalog-missing": "Für diese Kombination aus Teams, Booten und Flights ist keine Pairing-Liste vorberechnet."
 }

@@ -272,7 +272,11 @@ function StandingsTable({
               title={modus === "extrapolate" ? t("projectedTooltip") : undefined}
               className="w-32 px-4 py-3 text-right font-medium text-slate-600"
             >
-              {modus === "extrapolate" ? t("projectedColumnHeader") : t("pointsHeader")}
+              {/* Always "Points", in both modes: the column is about points either way, and
+                  the toggle above already says how they are arrived at. A header that renamed
+                  itself read as a different quantity rather than the same one computed
+                  differently. */}
+              {t("pointsHeader")}
             </th>
             <th scope="col" className="w-16 px-4 py-3 text-right font-medium text-slate-600">
               {t("racesHeader")}

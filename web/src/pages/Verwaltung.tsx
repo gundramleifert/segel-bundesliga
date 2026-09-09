@@ -4,7 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api, type BoatSpec, type ClubAdmin, type SeriesAdmin } from "../api/client";
+import { api, ApiError, type BoatSpec, type ClubAdmin, type SeriesAdmin } from "../api/client";
 import { useApi, useInvalidieren, useKonto } from "../api/useApi";
 import { Fehler, Laden, Leer, Seitenkopf } from "../components/Bausteine";
 import i18n from "../i18n";
@@ -469,6 +469,13 @@ function vorgabeName(position: number): string {
 /** A fresh row's `eigeneFarbe` starts out matching its predefined default, not empty — the
  *  picker and free-text field are always visible now (not just once "Custom" is chosen), so
  *  they need a real value to show from the very first render, not a black fallback. */
+/** Whether a failed draw is just "the clubs aren't in yet" rather than something wrong.
+ *  A newly created event has no clubs — they are registered afterwards — so this is the
+ *  expected outcome of the automatic draw, not a fault to report in red. */
+function istTeamzahlHinweis(error: unknown): boolean {
+  return error instanceof ApiError && error.code === "pairing-team-count-mismatch";
+}
+
 function leereBootZeile(position: number): BootZeile {
   const farbe = vorgabeFarbe(position);
   return { farbe, eigeneFarbe: bootsfarbe(farbe).hex, name: vorgabeName(position) };
@@ -843,13 +850,23 @@ function Events() {
       />
 
       {/* Distinct from event-creation success/failure above: the event exists either way,
-       *  so a failed draw (e.g. no teams registered yet for a standalone event) is reported
-       *  as its own, clearly-labeled notice rather than looking like creation itself failed. */}
+       *  so a failed draw is reported as its own, clearly-labeled notice rather than looking
+       *  like creation itself failed.
+       *
+       *  Having no clubs yet is the *normal* state right after creating an event — they are
+       *  added afterwards — so the backend's `pairing-team-count-mismatch` is not an error
+       *  here at all, it is the next step. Only a genuine failure is shown in red. */}
       {anlegen.isSuccess && auslosen.isError && (
-        <Fehler
-          text={t("events.pairingDrawFailedMessage", { error: fehlertext(auslosen.error) })}
-          testId="admin-events-pairing-draw-error"
-        />
+        istTeamzahlHinweis(auslosen.error) ? (
+          <p data-testid="admin-events-pairing-draw-pending" className="text-sm text-slate-600">
+            {t("events.pairingDrawPendingMessage")}
+          </p>
+        ) : (
+          <Fehler
+            text={t("events.pairingDrawFailedMessage", { error: fehlertext(auslosen.error) })}
+            testId="admin-events-pairing-draw-error"
+          />
+        )
       )}
       {anlegen.isSuccess && auslosen.isSuccess && (
         <p data-testid="admin-events-pairing-draw-success" className="text-sm text-emerald-700">

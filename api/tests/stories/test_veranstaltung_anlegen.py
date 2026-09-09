@@ -284,4 +284,53 @@ class TestPairingFromCatalog:
             json={"seed": 1},
         )
         assert response.status_code == 404
-        assert "Available" in response.json()["detail"]
+        body = response.json()
+        assert body["type"] == "/errors/pairing-catalog-missing"
+        assert (body["teams"], body["boats"], body["flights"]) == (18, 5, 11)
+        # The sizes that *are* stored travel with the error, so "then what can I pick?" is
+        # answered without a second request.
+        assert "18/6/16" in body["available"]
+
+    async def test_a_draw_before_the_clubs_are_added_says_so(self, client, caplog):
+        """Clubs are added after an event is created, so a draw attempted too early must name
+        that as the reason. It used to fail as a bare 404 "not found": the catalog was asked
+        for a nought-team entry, and the message mentioned neither the teams nor the fix."""
+        headers = await admin(client, caplog, "pk7@example.com")
+        created = (
+            await client.post(
+                "/api/admin/events",
+                headers=headers,
+                json={
+                    "title": "Too Early Cup",
+                    "starts_on": "2027-01-09",
+                    "team_count": 18,
+                    "boat_count": 6,
+                    "flight_count": 16,
+                },
+            )
+        ).json()
+
+        response = await client.post(
+            f"/api/admin/events/{created['id']}/pairing/from-catalog",
+            headers=headers,
+            json={"seed": 1},
+        )
+        assert response.status_code == 409
+        body = response.json()
+        assert body["type"] == "/errors/pairing-team-count-mismatch"
+        assert body["registered"] == 0
+        assert body["configured"] == 18
+
+        # And once the clubs are there, the same call succeeds unchanged.
+        await client.put(
+            f"/api/admin/events/{created['id']}/clubs",
+            headers=headers,
+            json={"clubs": await league_clubs(client)},
+        )
+        drawn = await client.post(
+            f"/api/admin/events/{created['id']}/pairing/from-catalog",
+            headers=headers,
+            json={"seed": 1},
+        )
+        assert drawn.status_code == 200, drawn.text
+        assert drawn.json()["races"] == 48

@@ -286,10 +286,35 @@ async def pairing_from_catalog(
     event = await _event_by_id(session, event_id)
     teams = await teams_for_event(session, event)
 
+    # The draw seats the teams actually registered, so that count — not the configured
+    # `team_count` — decides which catalog entry fits. Clubs are added *after* an event is
+    # created, so "none registered yet" is the normal early state rather than a fault, and
+    # a count that doesn't match the setup is a setup problem, not a missing catalog entry.
+    # Both used to surface as one bare 404 whose message named neither cause nor remedy.
+    if len(teams) != event.team_count:
+        raise Problem(
+            409,
+            "pairing-team-count-mismatch",
+            "The number of registered teams does not match this event's setup.",
+            registered=len(teams),
+            configured=event.team_count,
+        )
+
     try:
         pairing = load_entry(len(teams), event.boat_count, event.flight_count)
     except CatalogError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise Problem(
+            404,
+            "pairing-catalog-missing",
+            "No pre-computed pairing list is stored for this size.",
+            teams=len(teams),
+            boats=event.boat_count,
+            flights=event.flight_count,
+            # Which sizes *are* stored, so the answer to "then what can I pick?" comes with
+            # the error instead of requiring a second call. `CatalogError` says this in prose;
+            # as an extension member the frontend can render it without parsing a sentence.
+            available=[f"{e.teams}/{e.boats}/{e.flights}" for e in catalog_entries()],
+        ) from exc
 
     seed = request.seed if request else 0
     draft = PairingDraft.from_import(shuffle_pairing(pairing, seed), [team.id for team in teams])

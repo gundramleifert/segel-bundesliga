@@ -84,7 +84,8 @@
     "loadingText": "Loading events ...",
     "createdMessage": "{{title}} has been scheduled.",
     "pairingDrawSuccessMessage": "Pairing list drawn from the catalog.",
-    "pairingDrawFailedMessage": "Event created, but the pairing draw failed: {{error}}"
+    "pairingDrawFailedMessage": "Event created, but the pairing draw failed: {{error}}",
+    "pairingDrawPendingMessage": "No pairing list yet: add the clubs to this event, then draw it. The number of clubs has to match the setup before scoring starts."
   },
   "sailors": {
     "title": "Sailors",

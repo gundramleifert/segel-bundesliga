@@ -13,11 +13,18 @@ export function datum(iso: string): string {
   );
 }
 
-/** "May 8–10, 2026" — a matchday can span several days. */
+/** "12.–14. Juni 2026" / "June 12 – 14, 2026" — a matchday can span several days.
+ *
+ *  `formatRange` does the work: it prints only the parts the two dates *don't* share and
+ *  collapses the rest, per locale. Gluing two separately formatted dates together instead
+ *  produced "12.06.–14. Juni 2026" — a numeric month on one side and a written-out one on
+ *  the other, plus the month and year repeated when both dates fall in the same month. */
 export function zeitraum(von: string, bis: string): string {
   if (von === bis) return datum(von);
-  const kurz = dateFormatter({ day: "2-digit", month: "2-digit" });
-  return `${kurz.format(new Date(von))}–${datum(bis)}`;
+  return dateFormatter({ day: "2-digit", month: "long", year: "numeric" }).formatRange(
+    new Date(von),
+    new Date(bis),
+  );
 }
 
 export function punkte(wert: number): string {

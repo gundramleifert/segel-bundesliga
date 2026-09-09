@@ -84,7 +84,8 @@
     "loadingText": "Veranstaltungen werden geladen ...",
     "createdMessage": "{{title}} ist angesetzt.",
     "pairingDrawSuccessMessage": "Pairing-Liste aus dem Katalog ausgelost.",
-    "pairingDrawFailedMessage": "Veranstaltung angelegt, aber die Auslosung ist fehlgeschlagen: {{error}}"
+    "pairingDrawFailedMessage": "Veranstaltung angelegt, aber die Auslosung ist fehlgeschlagen: {{error}}",
+    "pairingDrawPendingMessage": "Noch keine Pairing-Liste: erst die Vereine zu dieser Veranstaltung hinzufügen, dann auslosen. Die Zahl der Vereine muss zum Zuschnitt passen, bevor gewertet wird."
   },
   "sailors": {
     "title": "Segler",

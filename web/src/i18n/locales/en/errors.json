@@ -25,5 +25,7 @@
   "sailor-photo-invalid-type": "The upload must be an image.",
   "sailor-photo-invalid": "This file is not a readable image.",
   "sailor-photo-too-large": "The photo is too large. Please use a smaller file.",
-  "sailor-photo-protected": "This sailor is under 18, or has no date of birth on file. Their photo is only shown to a signed-in account connected to them."
+  "sailor-photo-protected": "This sailor is under 18, or has no date of birth on file. Their photo is only shown to a signed-in account connected to them.",
+  "pairing-team-count-mismatch": "The number of registered clubs does not match this event’s setup. Add or remove clubs until the counts agree, then draw.",
+  "pairing-catalog-missing": "No pre-computed pairing list is stored for this combination of teams, boats and flights."
 }
