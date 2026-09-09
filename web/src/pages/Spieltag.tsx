@@ -515,6 +515,12 @@ function redressVorschlag(
  *  `code`/`finish_position`/`redress_points` — `points` are always derived
  *  (`app/services/standings.py`), never entered here.
  */
+/** A race not yet finished (or abandoned) — races run strictly one at a time in sequence,
+ *  so at most one race in the whole matchday is ever actually "open" at once. */
+function nochOffen(race: AdminRace): boolean {
+  return race.status !== "finished" && race.status !== "abandoned";
+}
+
 function ResultsEntry({
   eventId,
   eventIdParam,
@@ -528,57 +534,100 @@ function ResultsEntry({
   const { data, error, loading } = useApi(["admin", "races", eventId], (signal) =>
     api.admin.races(eventId, signal),
   );
+  const [alleAnzeigen, setAlleAnzeigen] = useState(false);
 
   if (loading) return <Laden text={t("resultsLoading")} testId="matchday-results-loading" />;
   if (error) return <Fehler text={error} testId="matchday-results-error" />;
   if (!data?.races.length) return <Leer testId="matchday-results-empty">{t("noRacesDrawn")}</Leer>;
 
+  // Captured as its own const so TS keeps `races` narrowed to non-null inside the closures
+  // below — narrowing on `data` itself doesn't survive into a nested function body.
+  const races = data.races;
+
+  // Everything before the first still-open race is already finished, everything after it
+  // can't have started yet — so there's never more than one "current" race, one "previous"
+  // (just finished) and one "next" (drawn but not run) worth focusing on at a time. Default
+  // to that neighborhood instead of all 48 rows; "show all" stays available for correcting
+  // an older result later (a protest decision isn't limited to the most recent race).
+  const aktuellerIndex = races.findIndex(nochOffen);
+  const angezeigt = alleAnzeigen
+    ? races
+    : aktuellerIndex === -1
+      ? races.slice(-3)
+      : races.slice(Math.max(0, aktuellerIndex - 1), aktuellerIndex + 2);
+
+  function rolle(race: AdminRace): "previous" | "current" | "next" | null {
+    if (alleAnzeigen) return null;
+    const index = races.indexOf(race);
+    if (aktuellerIndex === -1) return null;
+    if (index === aktuellerIndex) return "current";
+    if (index === aktuellerIndex - 1) return "previous";
+    if (index === aktuellerIndex + 1) return "next";
+    return null;
+  }
+
   return (
-    <TabellenRahmen testId="matchday-results-table-frame">
-      <table data-testid="matchday-results-table" className="w-full min-w-[64rem] border-collapse text-sm">
-        <caption className="sr-only">{t("resultsCaption")}</caption>
-        <thead className="tabelle-kopf">
-          <tr className="border-b border-slate-200 bg-slate-50 text-left">
-            <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
-              {t("numberHeader")}
-            </th>
-            <th scope="col" className="w-20 px-3 py-3 font-medium text-slate-600">
-              {t("flightHeader")}
-            </th>
-            {data.boats.map((boot) => {
-              const farbe = bootsfarbe(boot.color);
-              return (
-                <th key={boot.number} scope="col" className="px-3 py-3 font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <span
-                      aria-hidden
-                      className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
-                      style={{ backgroundColor: farbe.hex }}
-                    />
-                    <span className="text-slate-600">{farbe.name}</span>
-                  </span>
-                </th>
-              );
-            })}
-            <th scope="col" className="w-28 px-3 py-3 font-medium text-slate-600" />
-          </tr>
-        </thead>
-        <tbody>
-          {data.races.map((race) => (
-            // Keyed on the version too: after a save, the row re-mounts with the fresh
-            // server state instead of quietly keeping the pre-save form values.
-            <RaceResultRow
-              key={`${race.id}-${race.version}`}
-              race={race}
-              boats={data.boats}
-              eventId={eventId}
-              eventIdParam={eventIdParam}
-              standings={standings}
-            />
-          ))}
-        </tbody>
-      </table>
-    </TabellenRahmen>
+    <>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-slate-600" data-testid="matchday-results-focus-hint">
+          {alleAnzeigen ? t("resultsAllHint") : t("resultsFocusHint")}
+        </p>
+        <button
+          type="button"
+          onClick={() => setAlleAnzeigen((vorher) => !vorher)}
+          data-testid="matchday-results-show-all-toggle"
+          className="text-sm font-medium text-marke-700 underline-offset-2 hover:underline"
+        >
+          {alleAnzeigen ? t("resultsShowFocused") : t("resultsShowAll")}
+        </button>
+      </div>
+      <TabellenRahmen testId="matchday-results-table-frame">
+        <table data-testid="matchday-results-table" className="w-full min-w-[64rem] border-collapse text-sm">
+          <caption className="sr-only">{t("resultsCaption")}</caption>
+          <thead className="tabelle-kopf">
+            <tr className="border-b border-slate-200 bg-slate-50 text-left">
+              <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
+                {t("numberHeader")}
+              </th>
+              <th scope="col" className="w-20 px-3 py-3 font-medium text-slate-600">
+                {t("flightHeader")}
+              </th>
+              {data.boats.map((boot) => {
+                const farbe = bootsfarbe(boot.color);
+                return (
+                  <th key={boot.number} scope="col" className="px-3 py-3 font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        aria-hidden
+                        className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
+                        style={{ backgroundColor: farbe.hex }}
+                      />
+                      <span className="text-slate-600">{farbe.name}</span>
+                    </span>
+                  </th>
+                );
+              })}
+              <th scope="col" className="w-28 px-3 py-3 font-medium text-slate-600" />
+            </tr>
+          </thead>
+          <tbody>
+            {angezeigt.map((race) => (
+              // Keyed on the version too: after a save, the row re-mounts with the fresh
+              // server state instead of quietly keeping the pre-save form values.
+              <RaceResultRow
+                key={`${race.id}-${race.version}`}
+                race={race}
+                boats={data.boats}
+                eventId={eventId}
+                eventIdParam={eventIdParam}
+                standings={standings}
+                rolle={rolle(race)}
+              />
+            ))}
+          </tbody>
+        </table>
+      </TabellenRahmen>
+    </>
   );
 }
 
@@ -609,12 +658,14 @@ function RaceResultRow({
   eventId,
   eventIdParam,
   standings,
+  rolle,
 }: {
   race: AdminRace;
   boats: BoatOut[];
   eventId: number;
   eventIdParam: string;
   standings: StandingRow[];
+  rolle: "previous" | "current" | "next" | null;
 }) {
   const { t } = useTranslation("matchday");
   const invalidieren = useInvalidieren();
@@ -723,8 +774,25 @@ function RaceResultRow({
   const hatDuplikate = duplikatBoote.size > 0;
 
   return (
-    <tr data-testid={`matchday-results-row-${race.id}`} className="border-b border-slate-100 align-top last:border-0">
-      <td className="px-3 py-2.5 font-semibold tabular-nums">{race.sequence}</td>
+    <tr
+      data-testid={`matchday-results-row-${race.id}`}
+      className={`border-b border-slate-100 align-top last:border-0 ${
+        rolle === "current" ? "bg-marke-50" : ""
+      }`}
+    >
+      <td className="px-3 py-2.5 font-semibold tabular-nums">
+        {race.sequence}
+        {rolle && (
+          <span
+            data-testid={`matchday-results-role-${race.id}`}
+            className={`ml-1.5 block text-[10px] font-normal uppercase tracking-wide ${
+              rolle === "current" ? "text-marke-700" : "text-slate-400"
+            }`}
+          >
+            {t(`raceRole.${rolle}`)}
+          </span>
+        )}
+      </td>
       <td className="px-3 py-2.5 tabular-nums text-slate-500">{race.flight}</td>
       {boats.map((boot) => {
         const bestehend = byBoat.get(boot.number);

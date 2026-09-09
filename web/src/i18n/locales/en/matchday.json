@@ -21,6 +21,15 @@
   "resultsTab": "Enter results",
   "resultsLoading": "Races are loading…",
   "resultsCaption": "Enter and correct race results",
+  "resultsFocusHint": "Races run one at a time, so only the previous, current, and next race are shown.",
+  "resultsAllHint": "Showing every race — use this to correct an older result.",
+  "resultsShowAll": "Show all races",
+  "resultsShowFocused": "Show only previous / current / next",
+  "raceRole": {
+    "previous": "Previous",
+    "current": "Current",
+    "next": "Next"
+  },
   "codeHeader": "Code",
   "positionPlaceholder": "Position",
   "redressPlaceholder": "Redress points",

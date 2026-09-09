@@ -21,6 +21,15 @@
   "resultsTab": "Ergebnisse erfassen",
   "resultsLoading": "Wettfahrten werden geladen…",
   "resultsCaption": "Ergebnisse erfassen und korrigieren",
+  "resultsFocusHint": "Wettfahrten laufen nacheinander — gezeigt werden nur die vorherige, die aktuelle und die nächste Wettfahrt.",
+  "resultsAllHint": "Alle Wettfahrten werden angezeigt — damit lässt sich ein älteres Ergebnis korrigieren.",
+  "resultsShowAll": "Alle Wettfahrten anzeigen",
+  "resultsShowFocused": "Nur vorherige / aktuelle / nächste anzeigen",
+  "raceRole": {
+    "previous": "Vorherige",
+    "current": "Aktuell",
+    "next": "Nächste"
+  },
   "codeHeader": "Code",
   "positionPlaceholder": "Platzierung",
   "redressPlaceholder": "Redress-Punkte",
