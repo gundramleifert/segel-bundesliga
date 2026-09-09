@@ -1,8 +1,19 @@
-# Segel-Bundesliga — Website
+# Deutsche Segel-Liga — Website
 
-Official website of the German Segel-Bundesliga (sailing league) plus the tools that support
-a matchday: race result entry by the race committee, pairing lists, live view, and GPS tracking
-via participant phones.
+Official website of the **Deutsche Segel-Liga e.V.** plus the tools that support a matchday:
+race result entry by the race committee, pairing lists, live view, and GPS tracking via
+participant phones.
+
+**The site is not one league.** The association runs several Series — 1. Liga, 2. Liga,
+Junioren-Liga, DSL-Pokal — and the 1. Segel-Bundesliga is only *one* of them. Never brand the
+site, its title, or its copy as "Segel-Bundesliga" / "Sailing Bundesliga", and never state one
+series' configuration (18 teams, 6 boats, 48 races) as if it were a property of the site;
+that name belongs only to an individual Series, e.g. as an example series name.
+
+Beyond the association's own competitions, the site is a **service the association offers to
+other clubs**, so that a club can organise its own events here. That is why an Event need not
+belong to any Series, and why a club's leadership can create an event their own club hosts
+(see Domain decisions and Permissions below).
 
 ## Where things are
 
