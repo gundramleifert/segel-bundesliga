@@ -1,4 +1,3 @@
-import { Button } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -22,7 +21,6 @@ import {
 } from "../components/Bausteine";
 import { bootsfarbe, ortText, punkte, spieltagUntertitel, zeitraum } from "../lib/format";
 import { EINGABE, fehlertext } from "../lib/verwaltung";
-import { Meldung } from "./verwaltungBausteine";
 
 /** `races_per_flight = ceil(team_count / boat_count)` — same formula as
  *  `Verwaltung.tsx`'s `events.formatText` (`CLAUDE.md`: "The Event defines the
@@ -72,12 +70,16 @@ function erwarteterDurchschnitt(zeile: StandingRow, boatCount: number): number {
   return zeile.races_scored > 0 ? zeile.total / zeile.races_scored : (boatCount + 1) / 2;
 }
 
-/** Provisional final total: gross so far, plus the expected average extrapolated over the
- *  still-unsailed flights. Purely a display computation — never persisted, and never changes
- *  the backend-provided `rank`; sorting the table by this column is a client-side view only. */
+/** Provisional total: gross so far, plus **one** expected-average race — not the average
+ *  extrapolated over every still-unsailed flight, which compounds into an implausibly large
+ *  number the more flights remain. This bounds how far "projected" can ever sit above the
+ *  real total to at most a single race's worth (at most #boats + 1 points, the worst
+ *  possible single result) — a nudge showing who's trending well, not a full end-of-day
+ *  forecast. Nothing here is persisted, and it never changes the backend-provided `rank`;
+ *  sorting the table by this column is a client-side view only. */
 function projizierterGesamtwert(zeile: StandingRow, flightCount: number, durchschnitt: number): number {
-  const verbleibend = Math.max(0, flightCount - zeile.races_scored);
-  return zeile.total + durchschnitt * verbleibend;
+  const hatOffeneFlights = zeile.races_scored < flightCount;
+  return zeile.total + (hatOffeneFlights ? durchschnitt : 0);
 }
 
 /** B-2 and B-3: Daily standings and pairing list of a matchday. */
@@ -277,7 +279,9 @@ function SortableStandingsTable({
                 type="button"
                 onClick={() => sortierenNach("punkte")}
                 data-testid="matchday-standings-sort-points"
-                className="inline-flex items-center hover:text-slate-900"
+                className={`inline-flex items-center hover:text-slate-900 ${
+                  sortSpalte !== "projektion" ? "font-semibold text-slate-900" : ""
+                }`}
               >
                 {t("pointsHeader")}
                 {sortPfeil("punkte")}
@@ -294,7 +298,9 @@ function SortableStandingsTable({
                   type="button"
                   onClick={() => sortierenNach("projektion")}
                   data-testid="matchday-standings-sort-projected"
-                  className="inline-flex items-center hover:text-slate-900"
+                  className={`inline-flex items-center hover:text-slate-900 ${
+                    sortSpalte === "projektion" ? "font-semibold text-slate-900" : ""
+                  }`}
                 >
                   {t("projectedColumnHeader")}
                   {sortPfeil("projektion")}
@@ -338,7 +344,11 @@ function SortableStandingsTable({
                     {zeile.team.club.name}
                   </Link>
                 </td>
-                <td className="px-4 py-3 text-right font-semibold tabular-nums">
+                <td
+                  className={`px-4 py-3 text-right tabular-nums ${
+                    sortSpalte === "projektion" ? "font-normal" : "font-semibold"
+                  }`}
+                >
                   {punkte(zeile.net)}
                   {zeile.net !== zeile.total && (
                     <span className="ml-1 text-xs font-normal text-slate-400">
@@ -350,7 +360,9 @@ function SortableStandingsTable({
                   <td
                     title={t("projectedTooltip")}
                     data-testid={`matchday-standings-projected-${zeile.team.id}`}
-                    className="px-4 py-3 text-right italic tabular-nums text-slate-500"
+                    className={`px-4 py-3 text-right italic tabular-nums ${
+                      sortSpalte === "projektion" ? "font-semibold text-slate-700" : "text-slate-500"
+                    }`}
                   >
                     {punkte(projektion as number)}
                   </td>
@@ -698,10 +710,13 @@ function RaceResultRow({
     ),
   );
 
+  // No Save button: every change writes straight through to the backend (still guarded by
+  // the same duplicate check that used to just disable Save — an in-progress duplicate
+  // simply doesn't save yet, rather than blocking a click that no longer exists).
   const speichern = useMutation({
-    mutationFn: () =>
+    mutationFn: (naechsteZeilen: Record<number, EingabeZeile>) =>
       api.admin.setRaceResult(eventId, race.id, {
-        results: Object.values(zeilen).map((zeile) => ({
+        results: Object.values(naechsteZeilen).map((zeile) => ({
           boat_number: zeile.boat_number,
           code: zeile.code,
           finish_position: brauchtPlatz(zeile.code) ? zeile.finish_position : null,
@@ -713,61 +728,49 @@ function RaceResultRow({
     },
   });
 
+  function duplikateIn(kandidat: Record<number, EingabeZeile>): Set<number> {
+    const positionsAnzahl = new Map<number, number>();
+    for (const zeile of Object.values(kandidat)) {
+      if (brauchtPlatz(zeile.code) && zeile.finish_position != null) {
+        positionsAnzahl.set(zeile.finish_position, (positionsAnzahl.get(zeile.finish_position) ?? 0) + 1);
+      }
+    }
+    return new Set(
+      Object.values(kandidat)
+        .filter(
+          (zeile) =>
+            brauchtPlatz(zeile.code) &&
+            zeile.finish_position != null &&
+            (positionsAnzahl.get(zeile.finish_position) ?? 0) > 1,
+        )
+        .map((zeile) => zeile.boat_number),
+    );
+  }
+
+  function anwenden(naechsteZeilen: Record<number, EingabeZeile>) {
+    setZeilen(naechsteZeilen);
+    if (duplikateIn(naechsteZeilen).size === 0) {
+      speichern.mutate(naechsteZeilen);
+    }
+  }
+
   const setzeFeld = (boatNumber: number, patch: Partial<EingabeZeile>) =>
-    setZeilen((vorher) => ({
-      ...vorher,
-      [boatNumber]: { ...vorher[boatNumber], ...patch },
-    }));
+    anwenden({ ...zeilen, [boatNumber]: { ...zeilen[boatNumber], ...patch } });
 
   // Fast path (Story WL-2): tapping a boat assigns it FINISHED + the next unused finish
   // position; tapping an already-assigned boat undoes just that one. `zeilen` stays the
   // single source of truth — the <select> and position <input> below just read it back, so
   // tap-assignment and manual entry can never drift apart.
-  const tippen = (boatNumber: number) =>
-    setZeilen((vorher) => {
-      const zeile = vorher[boatNumber];
-      if (zeile.code === "FINISHED" && zeile.finish_position != null) {
-        return { ...vorher, [boatNumber]: { ...zeile, finish_position: null } };
-      }
-      return {
-        ...vorher,
-        [boatNumber]: {
-          ...zeile,
-          code: "FINISHED",
-          finish_position: naechsteFreiePosition(vorher),
-        },
-      };
-    });
-
-  const alleZuruecksetzen = () =>
-    setZeilen((vorher) =>
-      Object.fromEntries(
-        Object.entries(vorher).map(([nummer, zeile]) => [
-          nummer,
-          zeile.code === "FINISHED" ? { ...zeile, finish_position: null } : zeile,
-        ]),
-      ),
-    );
-
-  // Client-side duplicate check (tap-assignment can't produce one by construction — only
-  // manual position entry can): flags every boat sharing a position so Save is blocked
-  // before the round trip to the typed `/errors/race-result-duplicate-position` response.
-  const positionsAnzahl = new Map<number, number>();
-  for (const zeile of Object.values(zeilen)) {
-    if (brauchtPlatz(zeile.code) && zeile.finish_position != null) {
-      positionsAnzahl.set(zeile.finish_position, (positionsAnzahl.get(zeile.finish_position) ?? 0) + 1);
-    }
+  function tippen(boatNumber: number) {
+    const zeile = zeilen[boatNumber];
+    const naechsteZeile =
+      zeile.code === "FINISHED" && zeile.finish_position != null
+        ? { ...zeile, finish_position: null }
+        : { ...zeile, code: "FINISHED", finish_position: naechsteFreiePosition(zeilen) };
+    anwenden({ ...zeilen, [boatNumber]: naechsteZeile });
   }
-  const duplikatBoote = new Set(
-    Object.values(zeilen)
-      .filter(
-        (zeile) =>
-          brauchtPlatz(zeile.code) &&
-          zeile.finish_position != null &&
-          (positionsAnzahl.get(zeile.finish_position) ?? 0) > 1,
-      )
-      .map((zeile) => zeile.boat_number),
-  );
+
+  const duplikatBoote = duplikateIn(zeilen);
   const hatDuplikate = duplikatBoote.size > 0;
 
   return (
@@ -932,40 +935,23 @@ function RaceResultRow({
         );
       })}
       <td className="px-3 py-2.5">
-        <div className="flex flex-wrap gap-1.5">
-          <Button
-            size="sm"
-            onPress={() => speichern.mutate()}
-            isDisabled={speichern.isPending || hatDuplikate}
-            data-testid={`matchday-results-save-button-${race.id}`}
+        {hatDuplikate && (
+          <p
+            role="alert"
+            data-testid={`matchday-results-duplicate-warning-${race.id}`}
+            className="mb-1 text-xs text-red-700"
           >
-            {speichern.isPending ? t("savingButton") : t("saveButton")}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onPress={alleZuruecksetzen}
-            data-testid={`matchday-results-reset-button-${race.id}`}
-          >
-            {t("resetRaceButton")}
-          </Button>
-        </div>
-        <div className="mt-1">
-          {hatDuplikate && (
-            <p
-              role="alert"
-              data-testid={`matchday-results-duplicate-warning-${race.id}`}
-              className="mb-1 text-xs text-red-700"
-            >
-              {t("duplicatePositionWarning")}
-            </p>
-          )}
-          <Meldung
-            testId={`matchday-results-save-message-${race.id}`}
-            fehler={speichern.isError ? fehlertext(speichern.error) : null}
-            erfolg={speichern.isSuccess ? t("savedMessage") : null}
-          />
-        </div>
+            {t("duplicatePositionWarning")}
+          </p>
+        )}
+        {!hatDuplikate && speichern.isPending && (
+          <p className="text-xs text-slate-400" data-testid={`matchday-results-save-message-${race.id}`}>
+            {t("savingButton")}
+          </p>
+        )}
+        {!hatDuplikate && speichern.isError && (
+          <Fehler text={fehlertext(speichern.error)} testId={`matchday-results-save-message-${race.id}`} />
+        )}
       </td>
     </tr>
   );
