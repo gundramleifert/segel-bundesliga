@@ -1,10 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/** E2E-Tests laufen gegen die tatsächlich laufende Anwendung.
+/** E2E tests run against the actually running application.
  *
- * Voraussetzung: Backend auf 8000 und Vite auf 5173. Beide starten hier nicht automatisch,
- * damit ein fehlgeschlagener Test nicht als „Server war nicht da" missverstanden wird —
- * `reuseExistingServer` würde das verschleiern.
+ * Prerequisites: the backend on 8000 and Vite on 5173. Neither is started here on purpose,
+ * so that a failing test is never misread as "the server wasn't there" —
+ * `reuseExistingServer` would paper over exactly that.
+ *
+ * The locale is pinned to `en-US`. English is the source language, so pinning it keeps the
+ * assertions comparing against strings that live in `en/*.json` rather than against a
+ * translation; the language switcher gets its own test instead (`visitor.spec.ts`).
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -14,12 +18,12 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : [["list"]],
   use: {
     baseURL: "http://127.0.0.1:5173",
-    locale: "de-DE",
+    locale: "en-US",
     trace: "on-first-retry",
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    // Die Seite wird überwiegend auf Handys gelesen — das gehört mitgetestet.
-    { name: "handy", use: { ...devices["Pixel 7"] } },
+    // The site is read mostly on phones — that belongs in the tests.
+    { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
 });

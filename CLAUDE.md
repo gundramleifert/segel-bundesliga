@@ -211,9 +211,21 @@ story ID in the docstring. New features are added to stories first, then tested.
   Prerequisites: Backend on port 8000 **and** Vite on 5173 already running; the configuration
   deliberately does not start servers so a missing server is not a test failure.
   Two projects: `chromium` and `mobile` (Pixel 7) — the site is read mostly on mobile.
+  `e2e/lifecycle.spec.ts` signs in through `/api/dev/login`, so the backend needs
+  `SBL_DEV_LOGIN=true`; it also **writes** (clubs, series, events), so point it at a
+  throwaway database rather than one whose contents matter.
 
-  **Frontend type check:** `pnpm typecheck` (i.e., `tsc -b`). `tsc --noEmit` checks **nothing**
-  in this Vite template — it uses project references.
+  Specs address elements by `data-testid`, not by visible text, wherever a test is about
+  structure rather than wording: the site is bilingual and the copy is edited often, and a
+  spec that breaks on a reworded heading tests the translator, not the application. The
+  locale is pinned to `en-US` for the same reason — English is the source language.
+
+  **Frontend type check:** `pnpm typecheck` in `web/` (i.e., `tsc -b`). `tsc --noEmit` checks
+  **nothing** in this Vite template — it uses project references. The **specs** have their
+  own root `tsconfig.json`, run with `pnpm typecheck` at the repo root; it borrows
+  `@types/node` from `web/node_modules` because the root package has no install of its own.
+  `pnpm e2e:list` loads and enumerates every spec without starting a browser — the quickest
+  check that a spec still parses.
 
   **One-time setup:** `sudo pnpm exec playwright install-deps chromium` (or
   `sudo apt install -y libnss3 libnspr4 libasound2t64`). Chromium will not start without these

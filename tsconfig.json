@@ -1,0 +1,23 @@
+{
+  // Type checking for the Playwright specs and their config only. `web/` has its own
+  // project references (see CLAUDE.md — `tsc --noEmit` checks nothing there); this file
+  // covers the one part of the repo that was outside every tsconfig, so until now a typo
+  // in a spec surfaced only when the spec ran.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // `@types/node` is not a dependency of this root package — pnpm cannot add one here
+    // (its store lives under the locked ~/.cache) — so the copy web/ already has is
+    // pointed at directly. `process.env.CI` in playwright.config.ts needs it.
+    "typeRoots": ["./web/node_modules/@types"],
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts"]
+}
