@@ -53,5 +53,6 @@
     "actionFailed": "That didn't work. Is there a connection?",
     "requestFailed": "The request failed ({{status}}).",
     "noSeriesThisYear": "There's no series yet for this year."
-  }
+  },
+  "dateOpen": "Date to be confirmed"
 }

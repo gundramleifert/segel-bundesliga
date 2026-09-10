@@ -26,8 +26,8 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Ergebnistabellen sind breit. Sie scrollen horizontal in ihrem eigenen Kasten, nie die
- * ganze Seite — vertical scrolling stays the page's own, single scrollbar.
+/* Results tables are wide. They scroll horizontally in their own box, never the whole
+ * page — vertical scrolling stays the page's own, single scrollbar.
  *
  * Deliberately no sticky table header: making one work correctly here would mean giving this
  * box its own bounded height and vertical scroll (per the CSS Overflow spec, overflow-x:auto
@@ -52,3 +52,16 @@ html {
   display: none; /* Chrome, Safari, Opera */
 }
 
+/* A checkerboard behind a club crest ("Stander"). The upload keeps the alpha channel a
+   burgee needs, so a transparent crest must *read* as transparent here rather than as a
+   white rectangle that happens to match the page. */
+.crest-backdrop {
+  background-image:
+    linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-color: #fff;
+}

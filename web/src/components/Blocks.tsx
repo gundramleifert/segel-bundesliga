@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { EventSummary } from "../api/client";
-import { locationText, matchdaySubtitle, statusText, dateRange } from "../lib/format";
+import { locationText, matchdaySubtitle, statusText, eventDates } from "../lib/format";
 import { slugify } from "../lib/testids";
 
 export function Loading({ text, testId }: { text?: string; testId?: string }) {
@@ -93,7 +93,7 @@ export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: 
         </Card.Header>
         <Card.Content>
           <p className="text-sm text-slate-600">
-            {dateRange(event.starts_on, event.ends_on)}
+            {eventDates(event)}
           </p>
         </Card.Content>
       </Card>

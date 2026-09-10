@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api, type ClubDetail, type ClubMemberSummary, type Member } from "../api/client";
 import { useApi, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
-import { locationText, roleText, dateRange } from "../lib/format";
+import { locationText, roleText, eventDates } from "../lib/format";
 
 type ClubEvent = NonNullable<NonNullable<ClubDetail["teams"]>[number]["events"]>[number];
 
@@ -183,7 +183,7 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
             <StatusBadge status={event.status} />
           </div>
           <p className="text-slate-500">
-            {locationText(event)} · {dateRange(event.starts_on, event.ends_on)}
+            {locationText(event)} · {eventDates(event)}
           </p>
           <p className="mt-0.5 text-slate-600">
             {crew?.length ? (

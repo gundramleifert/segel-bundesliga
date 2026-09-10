@@ -38,7 +38,7 @@ from app.models import (
 from app.models.auth import Role, User
 from app.models.racing import BOAT_COLORS
 from app.problems import Problem
-from app.routers.public import _event_out
+from app.routers.public import _EVENT_LOAD, _event_out
 from app.schemas.public import ClubOut, EventOut
 from app.services import (
     CATALOG_REASON,
@@ -160,6 +160,30 @@ class EventUpdate(BaseModel):
 _CONFIGURATION_FIELDS = frozenset(
     {"team_count", "boat_count", "flight_count", "series", "matchday"}
 )
+
+
+@router.get(
+    "",
+    response_model=list[EventOut],
+    dependencies=[Depends(require_event_manager)],
+    summary="All events, drafts included",
+)
+async def list_all_events(session: AsyncSession = Depends(get_session)) -> list[EventOut]:
+    """Everything that has been saved — deliberately *not* the public list.
+
+    ``GET /api/events`` shows only what is published, which is exactly the wrong list for
+    the screen that publishes things: a draft would be invisible on the one page meant to
+    finish it. Drafts sort first, then by date, newest first — an event with no date yet is
+    the one still being worked on, so it belongs at the top rather than at the end.
+    """
+    events = (
+        await session.execute(
+            select(Event)
+            .options(*_EVENT_LOAD)
+            .order_by(Event.starts_on.desc().nulls_first(), Event.id.desc())
+        )
+    ).scalars()
+    return [_event_out(event) for event in events]
 
 
 @router.post("", response_model=EventOut, status_code=status.HTTP_201_CREATED)

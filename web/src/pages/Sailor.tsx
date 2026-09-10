@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import { useApi } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
-import { locationText, roleText, dateRange } from "../lib/format";
+import { locationText, roleText, eventDates } from "../lib/format";
 
 /** B-8: The Sailor page — which teams someone is registered with and where they compete. */
 export function Sailor() {
@@ -76,7 +76,7 @@ export function Sailor() {
                   <StatusBadge status={entry.event.status} />
                   <span className="w-full text-sm text-slate-500">
                     {locationText(entry.event)} ·{" "}
-                    {dateRange(entry.event.starts_on, entry.event.ends_on)} ·{" "}
+                    {eventDates(entry.event)} ·{" "}
                     {roleText(entry.role)}
                   </span>
                 </Link>

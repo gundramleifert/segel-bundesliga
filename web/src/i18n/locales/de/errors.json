@@ -27,5 +27,17 @@
   "sailor-photo-too-large": "Das Foto ist zu groß. Bitte eine kleinere Datei verwenden.",
   "sailor-photo-protected": "Diese Person ist minderjährig oder hat kein Geburtsdatum hinterlegt. Das Foto wird nur angemeldeten Konten mit Bezug zu ihr angezeigt.",
   "pairing-team-count-mismatch": "Die Zahl der gemeldeten Vereine passt nicht zum Zuschnitt dieser Veranstaltung. Vereine ergänzen oder entfernen, bis die Zahlen übereinstimmen, dann auslosen.",
-  "pairing-catalog-missing": "Für diese Kombination aus Teams, Booten und Flights ist keine Pairing-Liste vorberechnet."
+  "pairing-catalog-missing": "Für diese Kombination aus Teams, Booten und Flights ist keine Pairing-Liste vorberechnet.",
+  "event-not-ready": "Die Konfiguration dieser Veranstaltung ist unvollständig. Was fehlt, steht in der Bearbeitungsansicht.",
+  "event-boat-count-mismatch": "Es sind {{configured_boats}} Boote eingerichtet, die Veranstaltung ist aber auf {{boat_count}} eingestellt.",
+  "event-dates-missing": "Diese Veranstaltung hat noch kein Datum.",
+  "event-without-pairing-list": "Für diese Veranstaltung gibt es noch keine Pairing-Liste, es gibt also nichts zu segeln. Lose zuerst eine aus.",
+  "event-configuration-frozen": "Es wird gesegelt ({{races_started}} Wettfahrten, {{results_recorded}} Ergebnisse), deshalb lässt sich die Konfiguration nicht mehr ändern. Ergebnisse bleiben änderbar.",
+  "club-crest-invalid-type": "Dieser Dateityp lässt sich nicht als Stander verwenden. Nutze PNG, JPEG, WebP oder GIF.",
+  "club-crest-invalid": "Diese Datei ließ sich nicht als Bild lesen.",
+  "club-crest-too-large": "Der Stander ist zu groß. Nutze bitte eine kleinere Datei.",
+  "club-crest-not-yours": "Du kannst nur den Stander deines eigenen Vereins ändern.",
+  "club-crest-not-found": "Für diesen Verein ist kein Stander hochgeladen.",
+  "club-not-found": "Diesen Verein gibt es nicht.",
+  "club-members-restricted-to-members": "Die Mitgliederliste eines Vereins sehen nur dessen eigene Mitglieder."
 }

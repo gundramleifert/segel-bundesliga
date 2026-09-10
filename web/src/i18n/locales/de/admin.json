@@ -14,7 +14,12 @@
     "creatingButton": "Wird angelegt ...",
     "loadingText": "Vereine werden geladen ...",
     "statsText": "{{count}} Vereine, davon {{visible}} im laufenden Jahrgang sichtbar",
-    "createdMessage": "{{name}} ist angelegt."
+    "createdMessage": "{{name}} ist angelegt.",
+    "emptyText": "Es sind noch keine Vereine angelegt.",
+    "crestUploadButton": "Stander hochladen",
+    "crestReplaceButton": "Stander ersetzen",
+    "crestUploadingButton": "Wird hochgeladen ...",
+    "crestRemoveButton": "Entfernen"
   },
   "series": {
     "title": "Serien",
@@ -45,7 +50,11 @@
     "descriptionHint": "Markdown, wird auf der öffentlichen Tabellenseite angezeigt",
     "descriptionPlaceholder": "z. B. ein Grußwort, Sponsoren oder ein Saisonrückblick ...",
     "saveDescriptionButton": "Beschreibung speichern",
-    "descriptionSavedMessage": "Gespeichert."
+    "descriptionSavedMessage": "Gespeichert.",
+    "publishedBadge": "Öffentlich",
+    "draftBadge": "Entwurf",
+    "publishButton": "Veröffentlichen",
+    "unpublishButton": "Zurückziehen"
   },
   "events": {
     "title": "Veranstaltungen",
@@ -97,7 +106,8 @@
     "clubsAnyHint": "Diese Veranstaltung steht für sich — jeder Verein kann antreten.",
     "clubsSeriesEmptyText": "Für diese Serie ist noch kein Verein gemeldet. Erst für die Serie melden, dann hier eintragen.",
     "clubsFrozenHint": "Es wird schon gesegelt — das Feld steht fest, denn die gesegelte Pairing-Liste wurde für genau diese Vereine ausgelost.",
-    "clubsCountHint": "Der Zuschnitt erwartet {{expected}} Vereine; eingetragen sind {{actual}}."
+    "clubsCountHint": "Der Zuschnitt erwartet {{expected}} Vereine; eingetragen sind {{actual}}.",
+    "startsHint": "optional, kann später kommen"
   },
   "sailors": {
     "title": "Segler",
@@ -161,5 +171,51 @@
   "page": {
     "title": "Verwaltung",
     "signedInAs": "Angemeldet als {{displayName}} · {{roles}}"
+  },
+  "manage": {
+    "title": "Veranstaltung durchführen",
+    "description": "Alles nach dem Namen: das Datum, sobald der Ausrichter zusagt, die Vereine, die Auslosung, die Veröffentlichung und der Start. Entwürfe stehen hier ebenfalls — im öffentlichen Kalender erscheint nur, was veröffentlicht ist.",
+    "loadingText": "Veranstaltungen werden geladen ...",
+    "emptyText": "Es sind noch keine Veranstaltungen angelegt.",
+    "manageButton": "Bearbeiten",
+    "closeButton": "Schließen",
+    "standaloneLabel": "Einzelveranstaltung",
+    "sizeText": "{{teams}} Vereine · {{boats}} Boote · {{flights}} Flights",
+    "publishedBadge": "Öffentlich",
+    "draftBadge": "Entwurf",
+    "readinessTitle": "Es fehlt noch",
+    "readinessLoadingText": "Wird geprüft ...",
+    "readyMessage": "Bereit: diese Veranstaltung kann ausgelost und gestartet werden.",
+    "frozenMessage": "Es wird gesegelt ({{races}} Wettfahrten begonnen, {{results}} Ergebnisse erfasst), deshalb steht die Konfiguration fest. Ergebnisse bleiben änderbar — eine Protestentscheidung Monate später ist genau der Zweck der Wettfahrtleitungs-Ansicht.",
+    "savingButton": "Wird gespeichert ...",
+    "saveDatesButton": "Datum speichern",
+    "datesSavedMessage": "Datum gespeichert.",
+    "clubsTitle": "Gemeldete Vereine: {{count}} von {{configured}}",
+    "clubsFromSeriesHint": "Nur Vereine, die für {{series}} gemeldet sind, können an einer ihrer Veranstaltungen teilnehmen — genau das ist die Serienmeldung.",
+    "clubsStandaloneHint": "Diese Veranstaltung gehört zu keiner Serie, deshalb kann jeder Verein teilnehmen.",
+    "clubsLoadingText": "Meldungen werden geladen ...",
+    "seriesHasNoClubs": "Für die Serie dieser Veranstaltung ist noch kein Verein gemeldet. Melde sie zuerst bei der Serie.",
+    "noClubsAtAll": "Es gibt noch keine Vereine. Lege oben zuerst einen an.",
+    "saveClubsButton": "{{count}} Vereine melden",
+    "clubsSavedMessage": "Meldungen gespeichert.",
+    "frozenClubsHint": "Seit der ersten Wettfahrt fest.",
+    "pairingTitle": "Pairing-Liste",
+    "pairingExistsHint": "Eine Pairing-Liste liegt vor. Ein erneutes Auslosen ersetzt sie — möglich, bis die erste Wettfahrt beginnt.",
+    "pairingMissingHint": "Noch keine Pairing-Liste. Die Auslosung nimmt die vorberechnete Liste für diese Größe und mischt die Startpositionen mit dem Startwert.",
+    "drawButton": "Auslosen",
+    "redrawButton": "Neu auslosen",
+    "drawingButton": "Wird ausgelost ...",
+    "drawSuccessMessage": "Pairing-Liste ausgelost.",
+    "drawNeedsReadyHint": "Die Auslosung braucht eine vollständige Konfiguration — siehe „Es fehlt noch“ oben.",
+    "openPairingLink": "Pairing-Liste öffnen",
+    "lifecycleTitle": "Veröffentlichung und Start",
+    "publishHint": "Die Veröffentlichung entscheidet, wer die Veranstaltung sieht; sie sperrt nichts und verlangt keine vollständigen Angaben. Eine veröffentlichte Veranstaltung bleibt vollständig bearbeitbar.",
+    "publishButton": "Veröffentlichen",
+    "unpublishButton": "Zurückziehen",
+    "startButton": "Veranstaltung starten",
+    "startedButton": "Läuft",
+    "startedMessage": "Die Veranstaltung läuft.",
+    "startNeedsHint": "Der Start braucht eine vollständige Konfiguration und eine Pairing-Liste — ohne sie gibt es nichts zu segeln.",
+    "openResultsLink": "Ergebnisse erfassen"
   }
 }

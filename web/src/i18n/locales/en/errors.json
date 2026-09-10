@@ -27,5 +27,17 @@
   "sailor-photo-too-large": "The photo is too large. Please use a smaller file.",
   "sailor-photo-protected": "This sailor is under 18, or has no date of birth on file. Their photo is only shown to a signed-in account connected to them.",
   "pairing-team-count-mismatch": "The number of registered clubs does not match this event’s setup. Add or remove clubs until the counts agree, then draw.",
-  "pairing-catalog-missing": "No pre-computed pairing list is stored for this combination of teams, boats and flights."
+  "pairing-catalog-missing": "No pre-computed pairing list is stored for this combination of teams, boats and flights.",
+  "event-not-ready": "This event's setup is incomplete. The manage panel lists what is missing.",
+  "event-boat-count-mismatch": "{{configured_boats}} boats are set up, but the event is configured for {{boat_count}}.",
+  "event-dates-missing": "This event has no date yet.",
+  "event-without-pairing-list": "This event has no pairing list yet, so there is nothing to sail. Draw one first.",
+  "event-configuration-frozen": "Racing has started ({{races_started}} races, {{results_recorded}} results), so the setup can no longer be changed. Results stay editable.",
+  "club-crest-invalid-type": "That file type cannot be used as a crest. Use PNG, JPEG, WebP or GIF.",
+  "club-crest-invalid": "That file could not be read as an image.",
+  "club-crest-too-large": "The crest is too large. Please use a smaller file.",
+  "club-crest-not-yours": "You can only change the crest of your own club.",
+  "club-crest-not-found": "This club has no uploaded crest.",
+  "club-not-found": "This club does not exist.",
+  "club-members-restricted-to-members": "Only a club's own members can see its member list."
 }

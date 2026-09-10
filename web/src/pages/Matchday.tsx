@@ -19,7 +19,7 @@ import {
   StatusBadge,
   TableFrame,
 } from "../components/Blocks";
-import { boatColor, locationText, formatPoints, matchdaySubtitle, dateRange } from "../lib/format";
+import { boatColor, locationText, formatPoints, matchdaySubtitle, eventDates } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 
 /** `races_per_flight = ceil(team_count / boat_count)` — same formula as
@@ -121,7 +121,7 @@ export function Matchday() {
             {[
               matchdaySubtitle(event),
               locationText(event),
-              dateRange(event.starts_on, event.ends_on),
+              eventDates(event),
             ]
               .filter(Boolean)
               .join(" · ")}

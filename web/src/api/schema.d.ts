@@ -28,7 +28,7 @@ export interface paths {
          * Edit my own sailor record
          * @description A sailor corrects their own name or birthdate — the same fields a club manager or
          *     admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
-         *     record" instead of requiring `_darf_stammdaten`.
+         *     record" instead of requiring `_can_manage_master_data`.
          */
         patch: operations["update_my_sailor_api_sailors_me_patch"];
         trace?: never;
@@ -85,7 +85,7 @@ export interface paths {
         };
         /**
          * Series of a year
-         * @description A series is a set of events that are scored together.
+         * @description A series is a set of events that are scored together. Published ones only.
          */
         get: operations["list_series_api_series_get"];
         put?: never;
@@ -128,10 +128,12 @@ export interface paths {
         };
         /**
          * List Clubs
-         * @description Clubs assigned to at least one series in the year.
+         * @description Clubs assigned to at least one **published** series in the year.
          *
          *     A newly created club does **not** appear here as long as it is not assigned to a
-         *     series — and an assignment always applies only to one year.
+         *     series — and an assignment always applies only to one year. An assignment to a series
+         *     still in draft counts just as little: the club page would otherwise name a competition
+         *     nobody is supposed to know about yet.
          */
         get: operations["list_clubs_api_clubs_get"];
         put?: never;
@@ -157,6 +159,35 @@ export interface paths {
          *     appear under their team; events hosted by the club without a series appear separately.
          */
         get: operations["get_club_api_clubs__club_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clubs/{club_id}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A club's crest
+         * @description Serves the uploaded crest — Story V-3.
+         *
+         *     Public, like the rest of this router: a club emblem is on every table row and every
+         *     matchday card. No placeholder is invented here (same as the sailor photo): a club
+         *     without an uploaded crest simply has no file, and its `logo_url` then either points at
+         *     an external image or is empty, which the frontend already handles by showing the
+         *     abbreviation.
+         *
+         *     Needs no database round-trip — the file's presence answers the question. A club id
+         *     that does not exist and a club without a crest are the same 404 here.
+         */
+        get: operations["get_club_logo_api_clubs__club_id__logo_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -486,6 +517,10 @@ export interface paths {
          *     Depending on settings, the run takes seconds to many minutes — that's why it's a job with
          *     progress rather than a waiting request. The result is **not** automatically
          *     published; the organizer sees the quality report first.
+         *
+         *     The event has to be ready (Story VA-8) — except for the catalog reason, since computing
+         *     a list is exactly what one does when the catalog holds none — and its configuration
+         *     must not be frozen: once a race has started, the list underneath it stays.
          */
         post: operations["start_pairing_job_api_admin_events__event_id__pairing_jobs_post"];
         delete?: never;
@@ -543,7 +578,7 @@ export interface paths {
          *     A size is completely determined by teams, boats, and flights — which club
          *     sits at which starting position is decided only when shuffling.
          */
-        get: operations["pairing_katalog_api_admin_pairing_catalog_get"];
+        get: operations["list_pairing_catalog_api_admin_pairing_catalog_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -572,7 +607,7 @@ export interface paths {
          *
          *     If no entry matches the size, the path remains through the compute job.
          */
-        post: operations["pairing_aus_katalog_api_admin_events__event_id__pairing_from_catalog_post"];
+        post: operations["pairing_from_catalog_api_admin_events__event_id__pairing_from_catalog_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -594,6 +629,10 @@ export interface paths {
          *
          *     Team index assignment follows the order in ``schedule_cfg.yml``: index 0 is
          *     the first team named there. Names are only for verification, not compared.
+         *
+         *     An imported draw brings its own dimensions, so the catalog reason doesn't apply — but
+         *     the rest of the setup must add up, and a started matchday keeps the list it is sailing
+         *     (Story VA-8).
          */
         post: operations["import_pairing_api_admin_events__event_id__pairing_import_post"];
         delete?: never;
@@ -661,15 +700,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * All events, drafts included
+         * @description Everything that has been saved — deliberately *not* the public list.
+         *
+         *     ``GET /api/events`` shows only what is published, which is exactly the wrong list for
+         *     the screen that publishes things: a draft would be invisible on the one page meant to
+         *     finish it. Drafts sort first, then by date, newest first — an event with no date yet is
+         *     the one still being worked on, so it belongs at the top rather than at the end.
+         */
+        get: operations["list_all_events_api_admin_events_get"];
         put?: never;
         /**
          * Create Event
-         * @description Create an event — Stories A-4 and VA-6.
+         * @description Create an event — Stories A-4, VA-6 and VA-8.
          *
-         *     Only **name and date** are required; everything else has sensible defaults. The
-         *     dimensions (teams, boats, flights) determine the pairing list: either a catalog entry
-         *     fits, or it must be calculated.
+         *     Only the **name** is required; everything else has sensible defaults or may stay
+         *     empty — the date included, because saving must never depend on the setup being
+         *     complete. The dimensions (teams, boats, flights) determine the pairing list: either a
+         *     catalog entry fits, or it must be calculated.
          *
          *     The **host club's** leadership can create events — they organize it, so they should be
          *     able to record the date — as well as administration, editorial, and race officers.
@@ -694,8 +743,113 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update Event */
+        /**
+         * Update Event
+         * @description Change an event — Story VA-8.
+         *
+         *     Never refuses because the event is incomplete: a half-filled event is savable, and the
+         *     only thing that stands in the way of a change is the **first race**, which freezes the
+         *     configuration (dimensions, series, matchday). Title, dates, venue, host, logo, status
+         *     and publication stay editable throughout — a typo has to be fixable on a race day too.
+         */
         patch: operations["update_event_api_admin_events__event_id__patch"];
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Is this event ready to be drawn and started?
+         * @description Read-only: computes, never stores — Story VA-8.
+         *
+         *     The organizer needs to see *what* is missing, which is why this is a list of reasons
+         *     rather than a flag. It is the same list the draw and the start refuse with, so the
+         *     screen and the error can never disagree.
+         */
+        get: operations["get_readiness_api_admin_events__event_id__readiness_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make the event publicly visible
+         * @description Publishing is **not** a lock — Story VA-8.
+         *
+         *     A published event stays fully editable, and it does not have to be complete: the
+         *     calendar entry is often what makes people ask about the missing details. Publication
+         *     and ``status`` are orthogonal; this changes only who can see the event.
+         */
+        post: operations["publish_event_api_admin_events__event_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Withdraw the event from the public site
+         * @description Back to a draft. Results and pairing list stay untouched — only visibility ends.
+         */
+        post: operations["unpublish_event_api_admin_events__event_id__unpublish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start the event
+         * @description Moves the event to ``live`` — Story VA-8.
+         *
+         *     An explicit decision by someone on site, deliberately **not** a side effect of a date
+         *     passing: a matchday postponed by fog must not start itself. The event has to be ready
+         *     (same reasons as the draw) and must have a pairing list — there is nothing to run
+         *     without one.
+         *
+         *     The catalog reason is exempt here: what matters at the start is that a list *exists*,
+         *     not where it came from. A draw computed by the optimizer for dimensions the catalog
+         *     doesn't hold is just as valid.
+         */
+        post: operations["start_event_api_admin_events__event_id__start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/admin/events/{event_id}/clubs": {
@@ -718,7 +872,8 @@ export interface paths {
          *     stands here will be drawn and ranked.
          *
          *     Two rules apply: if the event belongs to a series, the club must be **registered** for
-         *     it. And a club that has already sailed cannot be removed — results are attached to it.
+         *     it. And once racing has started the field is frozen altogether (Story VA-8) — the
+         *     pairing list being sailed was drawn for exactly these clubs.
          */
         put: operations["set_participants_api_admin_events__event_id__clubs_put"];
         post?: never;
@@ -788,6 +943,39 @@ export interface paths {
         head?: never;
         /** Update Club */
         patch: operations["update_club_api_admin_clubs__club_id__patch"];
+        trace?: never;
+    };
+    "/api/admin/clubs/{club_id}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload club crest
+         * @description Story V-3: the club's crest ("Stander") as an actual file, not a pasted URL.
+         *
+         *     Uploading again simply replaces it — there is one crest per club, and a second upload
+         *     is the way to correct a bad one. The response is the club as the public API renders it,
+         *     so the caller immediately sees the resolved `logo_url` (see
+         *     `ClubOut._prefer_uploaded_crest`) and does not have to guess the URL.
+         */
+        post: operations["upload_club_logo_api_admin_clubs__club_id__logo_post"];
+        /**
+         * Remove club crest
+         * @description Removes the uploaded file. Doing this to a club that has none is a no-op, not an
+         *     error — the desired state is "no uploaded crest" either way.
+         *
+         *     `Club.logo_url` is deliberately left alone: it means "externally hosted emblem", and a
+         *     club that had one before the upload gets it back rather than losing it here.
+         */
+        delete: operations["delete_club_logo_api_admin_clubs__club_id__logo_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/admin/events/{event_id}/crew/{team_id}": {
@@ -878,6 +1066,51 @@ export interface paths {
         patch: operations["update_series_api_admin_series__series_id__patch"];
         trace?: never;
     };
+    "/api/admin/series/{series_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish series
+         * @description Makes the series visible on the public site — Story VA-8.
+         *
+         *     A series is planned long before anyone should read about it: clubs are still being
+         *     assigned, the name is still being argued over. Publishing **locks nothing** — the
+         *     series stays as editable as it was, and the events in it keep their own publication
+         *     state.
+         */
+        post: operations["publish_series_api_admin_series__series_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/series/{series_id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unpublish series
+         * @description Back to a draft. Standings and events stay — only the public view ends.
+         */
+        post: operations["unpublish_series_api_admin_series__series_id__unpublish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/series/{series_id}/clubs": {
         parameters: {
             query?: never;
@@ -912,7 +1145,7 @@ export interface paths {
          * @description Lists the participations of every club the acting user organizes, and their status —
          *     both requested and accepted.
          */
-        get: operations["eigene_antraege_api_applications_get"];
+        get: operations["list_own_applications_api_applications_get"];
         put?: never;
         /**
          * Request participation
@@ -921,7 +1154,7 @@ export interface paths {
          *     The application doesn't count anywhere until the admin accepts it: the club doesn't
          *     appear publicly or in any standings, and won't be drawn.
          */
-        post: operations["antrag_stellen_api_applications_post"];
+        post: operations["submit_application_api_applications_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -942,7 +1175,7 @@ export interface paths {
          * Withdraw application
          * @description Withdraws an application while it's still pending.
          */
-        delete: operations["antrag_zuruecknehmen_api_applications__team_id__delete"];
+        delete: operations["withdraw_application_api_applications__team_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -956,7 +1189,7 @@ export interface paths {
             cookie?: never;
         };
         /** Pending applications */
-        get: operations["offene_antraege_api_admin_applications_get"];
+        get: operations["list_pending_applications_api_admin_applications_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -980,7 +1213,7 @@ export interface paths {
          *
          *     Afterwards everything works like direct assignment.
          */
-        post: operations["annehmen_api_admin_applications__team_id__accept_post"];
+        post: operations["accept_application_api_admin_applications__team_id__accept_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -997,7 +1230,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Reject application */
-        post: operations["ablehnen_api_admin_applications__team_id__reject_post"];
+        post: operations["reject_application_api_admin_applications__team_id__reject_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1431,22 +1664,39 @@ export interface components {
             races: components["schemas"]["AdminRaceOut"][];
         };
         /**
-         * AntragEventOut
+         * ApplicationCreate
+         * @description An application is for **one** series or **one** event.
+         */
+        ApplicationCreate: {
+            /** Club Id */
+            club_id: number;
+            /** Series Id */
+            series_id?: number | null;
+            /** Event Id */
+            event_id?: number | null;
+        };
+        /** ApplicationDecision */
+        ApplicationDecision: {
+            /**
+             * Note
+             * @description If rejected: the reason. The club should know why.
+             */
+            note?: string | null;
+        };
+        /**
+         * ApplicationEventOut
          * @description Only as much event detail as an application needs.
          */
-        AntragEventOut: {
+        ApplicationEventOut: {
             /** Id */
             id: number;
             /** Title */
             title: string;
-            /**
-             * Starts On
-             * Format: date
-             */
-            starts_on: string;
+            /** Starts On */
+            starts_on?: string | null;
         };
-        /** AntragOut */
-        AntragOut: {
+        /** ApplicationOut */
+        ApplicationOut: {
             /** Team Id */
             team_id: number;
             /** Status */
@@ -1455,19 +1705,7 @@ export interface components {
             decision_note?: string | null;
             club: components["schemas"]["ClubOut"];
             series?: components["schemas"]["SeriesOut"] | null;
-            event?: components["schemas"]["AntragEventOut"] | null;
-        };
-        /**
-         * AntragStellen
-         * @description An application is for **one** series or **one** event.
-         */
-        AntragStellen: {
-            /** Club Id */
-            club_id: number;
-            /** Series Id */
-            series_id?: number | null;
-            /** Event Id */
-            event_id?: number | null;
+            event?: components["schemas"]["ApplicationEventOut"] | null;
         };
         /** AssignmentOut */
         AssignmentOut: {
@@ -1476,15 +1714,6 @@ export interface components {
             status: string;
             /** Decision Note */
             decision_note?: string | null;
-        };
-        /** AusKatalog */
-        AusKatalog: {
-            /**
-             * Seed
-             * @description Seed value for shuffling starting positions. The same value always produces the same draw — it can be used to reconstruct it in case of dispute.
-             * @default 0
-             */
-            seed: number;
         };
         /** BoatOut */
         BoatOut: {
@@ -1514,10 +1743,31 @@ export interface components {
             /** Sail Number */
             sail_number?: string | null;
         };
+        /** Body_upload_club_logo_api_admin_clubs__club_id__logo_post */
+        Body_upload_club_logo_api_admin_clubs__club_id__logo_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_my_photo_api_sailors_me_photo_post */
         Body_upload_my_photo_api_sailors_me_photo_post: {
             /** File */
             file: string;
+        };
+        /**
+         * CatalogEntryOut
+         * @description A finished size from the catalog.
+         */
+        CatalogEntryOut: {
+            /** Name */
+            name: string;
+            /** Teams */
+            teams: number;
+            /** Boats */
+            boats: number;
+            /** Flights */
+            flights: number;
+            /** Races */
+            races: number;
         };
         /**
          * ClubAdminOut
@@ -1736,14 +1986,6 @@ export interface components {
             /** Code */
             code: string;
         };
-        /** Entscheidung */
-        Entscheidung: {
-            /**
-             * Note
-             * @description If rejected: the reason. The club should know why.
-             */
-            note?: string | null;
-        };
         /** EventCreate */
         EventCreate: {
             /**
@@ -1753,9 +1995,9 @@ export interface components {
             title: string;
             /**
              * Starts On
-             * Format: date
+             * @description Optional: an event whose date is still being negotiated with the host can be saved without one. It cannot be started without one.
              */
-            starts_on: string;
+            starts_on?: string | null;
             /**
              * Ends On
              * @description If omitted, the matchday is treated as single-day.
@@ -1803,6 +2045,12 @@ export interface components {
              * @description Boats with color and name. If not specified, boat_count boats are created in league colors; if specified, their count determines boat_count.
              */
             boats?: components["schemas"]["BoatSpec"][];
+            /**
+             * Published
+             * @description Whether the event is visible on the public site right away. A draft stays invisible until published; publishing locks nothing.
+             * @default false
+             */
+            published: boolean;
         };
         /** EventDetail */
         EventDetail: {
@@ -1824,18 +2072,17 @@ export interface components {
             title: string;
             /** Matchday */
             matchday?: number | null;
-            /**
-             * Starts On
-             * Format: date
-             */
-            starts_on: string;
-            /**
-             * Ends On
-             * Format: date
-             */
-            ends_on: string;
+            /** Starts On */
+            starts_on?: string | null;
+            /** Ends On */
+            ends_on?: string | null;
             /** Status */
             status: string;
+            /**
+             * Published
+             * @default false
+             */
+            published: boolean;
             series?: components["schemas"]["SeriesOut"] | null;
             venue?: components["schemas"]["VenueOut"] | null;
             host_club?: components["schemas"]["ClubOut"] | null;
@@ -1849,6 +2096,38 @@ export interface components {
             flight_count: number;
             /** Crew Size */
             crew_size: number;
+        };
+        /**
+         * EventReadinessOut
+         * @description Whether this event can be drawn and started, and what's missing if not.
+         */
+        EventReadinessOut: {
+            /** Event Id */
+            event_id: number;
+            /** Ready */
+            ready: boolean;
+            /** Reasons */
+            reasons?: components["schemas"]["ReadinessReasonOut"][];
+            /**
+             * Has Pairing List
+             * @default false
+             */
+            has_pairing_list: boolean;
+            /**
+             * Configuration Frozen
+             * @default false
+             */
+            configuration_frozen: boolean;
+            /**
+             * Races Started
+             * @default 0
+             */
+            races_started: number;
+            /**
+             * Results Recorded
+             * @default 0
+             */
+            results_recorded: number;
         };
         /**
          * EventStandingRow
@@ -1884,6 +2163,8 @@ export interface components {
             ends_on?: string | null;
             /** Status */
             status?: string | null;
+            /** Published */
+            published?: boolean | null;
             /** Host Club Id */
             host_club_id?: number | null;
             /** Logo Url */
@@ -1913,6 +2194,15 @@ export interface components {
             outstanding: number;
             /** Sailors */
             sailors: components["schemas"]["SailorWaiverRow"][];
+        };
+        /** FromCatalogRequest */
+        FromCatalogRequest: {
+            /**
+             * Seed
+             * @description Seed value for shuffling starting positions. The same value always produces the same draw — it can be used to reconstruct it in case of dispute.
+             * @default 0
+             */
+            seed: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1951,48 +2241,6 @@ export interface components {
             quality?: {
                 [key: string]: unknown;
             };
-        };
-        /** KaderEintrag */
-        KaderEintrag: {
-            /** Sailor Id */
-            sailor_id: number;
-            /** @default crew */
-            role: components["schemas"]["CrewRole"];
-        };
-        /** KaderOut */
-        KaderOut: {
-            /** Team Id */
-            team_id: number;
-            /** Club Id */
-            club_id: number;
-            /** Series Id */
-            series_id: number | null;
-            /** Members */
-            members?: components["schemas"]["MemberOut"][];
-        };
-        /** KaderSetzen */
-        KaderSetzen: {
-            /**
-             * Members
-             * @description The complete squad. An empty list removes it.
-             */
-            members: components["schemas"]["KaderEintrag"][];
-        };
-        /**
-         * KatalogEintragOut
-         * @description A finished size from the catalog.
-         */
-        KatalogEintragOut: {
-            /** Name */
-            name: string;
-            /** Teams */
-            teams: number;
-            /** Boats */
-            boats: number;
-            /** Flights */
-            flights: number;
-            /** Races */
-            races: number;
         };
         /**
          * MemberOut
@@ -2274,6 +2522,22 @@ export interface components {
             /** Note */
             note?: string | null;
         };
+        /**
+         * ReadinessReasonOut
+         * @description One thing standing between the event and its first race.
+         *
+         *     ``code`` is the contract — the client maps it in its own ``errors`` namespace —
+         *     ``details`` carries the numbers to phrase it with. Deliberately no English sentence:
+         *     the same reason has to read in German too.
+         */
+        ReadinessReasonOut: {
+            /** Code */
+            code: string;
+            /** Details */
+            details?: {
+                [key: string]: unknown;
+            };
+        };
         /** Registrierung */
         Registrierung: {
             /**
@@ -2466,6 +2730,11 @@ export interface components {
             starts_on?: string | null;
             /** Ends On */
             ends_on?: string | null;
+            /**
+             * Published
+             * @default false
+             */
+            published: boolean;
             /** Description */
             description?: string | null;
             /** Clubs */
@@ -2520,6 +2789,12 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /**
+             * Published
+             * @description Whether the series is visible on the public site right away. A series is usually planned first and published once the field is settled; publishing locks nothing.
+             * @default false
+             */
+            published: boolean;
+            /**
              * Slug
              * @description If absent, it is generated from the name.
              */
@@ -2551,6 +2826,11 @@ export interface components {
             starts_on?: string | null;
             /** Ends On */
             ends_on?: string | null;
+            /**
+             * Published
+             * @default false
+             */
+            published: boolean;
             /** Description */
             description?: string | null;
         };
@@ -2632,6 +2912,8 @@ export interface components {
             scoring?: {
                 [key: string]: unknown;
             } | null;
+            /** Published */
+            published?: boolean | null;
             /** Description */
             description?: string | null;
         };
@@ -2655,6 +2937,32 @@ export interface components {
              * @description The lined-up crew. An empty list clears the lineup.
              */
             members: components["schemas"]["CrewMember"][];
+        };
+        /** SquadMemberIn */
+        SquadMemberIn: {
+            /** Sailor Id */
+            sailor_id: number;
+            /** @default crew */
+            role: components["schemas"]["CrewRole"];
+        };
+        /** SquadOut */
+        SquadOut: {
+            /** Team Id */
+            team_id: number;
+            /** Club Id */
+            club_id: number;
+            /** Series Id */
+            series_id: number | null;
+            /** Members */
+            members?: components["schemas"]["MemberOut"][];
+        };
+        /** SquadSetRequest */
+        SquadSetRequest: {
+            /**
+             * Members
+             * @description The complete squad. An empty list removes it.
+             */
+            members: components["schemas"]["SquadMemberIn"][];
         };
         /** TeamOut */
         TeamOut: {
@@ -3091,6 +3399,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClubDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_club_logo_api_clubs__club_id__logo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                club_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -3754,7 +4093,7 @@ export interface operations {
             };
         };
     };
-    pairing_katalog_api_admin_pairing_catalog_get: {
+    list_pairing_catalog_api_admin_pairing_catalog_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -3769,12 +4108,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KatalogEintragOut"][];
+                    "application/json": components["schemas"]["CatalogEntryOut"][];
                 };
             };
         };
     };
-    pairing_aus_katalog_api_admin_events__event_id__pairing_from_catalog_post: {
+    pairing_from_catalog_api_admin_events__event_id__pairing_from_catalog_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -3785,7 +4124,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["AusKatalog"] | null;
+                "application/json": components["schemas"]["FromCatalogRequest"] | null;
             };
         };
         responses: {
@@ -3915,6 +4254,26 @@ export interface operations {
             };
         };
     };
+    list_all_events_api_admin_events_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"][];
+                };
+            };
+        };
+    };
     create_event_api_admin_events_post: {
         parameters: {
             query?: never;
@@ -3966,6 +4325,130 @@ export interface operations {
                 "application/json": components["schemas"]["EventUpdate"];
             };
         };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_readiness_api_admin_events__event_id__readiness_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventReadinessOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_event_api_admin_events__event_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unpublish_event_api_admin_events__event_id__unpublish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_event_api_admin_events__event_id__start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -4184,6 +4667,70 @@ export interface operations {
             };
         };
     };
+    upload_club_logo_api_admin_clubs__club_id__logo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                club_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_club_logo_api_admin_clubs__club_id__logo_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClubOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_club_logo_api_admin_clubs__club_id__logo_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                club_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_crew_api_admin_events__event_id__crew__team_id__get: {
         parameters: {
             query?: never;
@@ -4345,6 +4892,72 @@ export interface operations {
             };
         };
     };
+    publish_series_api_admin_series__series_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                series_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesAdminOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unpublish_series_api_admin_series__series_id__unpublish_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                series_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesAdminOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     set_clubs_api_admin_series__series_id__clubs_put: {
         parameters: {
             query?: never;
@@ -4382,7 +4995,7 @@ export interface operations {
             };
         };
     };
-    eigene_antraege_api_applications_get: {
+    list_own_applications_api_applications_get: {
         parameters: {
             query?: never;
             header?: {
@@ -4399,7 +5012,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AntragOut"][];
+                    "application/json": components["schemas"]["ApplicationOut"][];
                 };
             };
             /** @description Validation Error */
@@ -4413,7 +5026,7 @@ export interface operations {
             };
         };
     };
-    antrag_stellen_api_applications_post: {
+    submit_application_api_applications_post: {
         parameters: {
             query?: never;
             header?: {
@@ -4424,7 +5037,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AntragStellen"];
+                "application/json": components["schemas"]["ApplicationCreate"];
             };
         };
         responses: {
@@ -4434,7 +5047,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AntragOut"];
+                    "application/json": components["schemas"]["ApplicationOut"];
                 };
             };
             /** @description Validation Error */
@@ -4448,7 +5061,7 @@ export interface operations {
             };
         };
     };
-    antrag_zuruecknehmen_api_applications__team_id__delete: {
+    withdraw_application_api_applications__team_id__delete: {
         parameters: {
             query?: never;
             header?: {
@@ -4479,7 +5092,7 @@ export interface operations {
             };
         };
     };
-    offene_antraege_api_admin_applications_get: {
+    list_pending_applications_api_admin_applications_get: {
         parameters: {
             query?: {
                 series_id?: number | null;
@@ -4498,7 +5111,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AntragOut"][];
+                    "application/json": components["schemas"]["ApplicationOut"][];
                 };
             };
             /** @description Validation Error */
@@ -4512,7 +5125,7 @@ export interface operations {
             };
         };
     };
-    annehmen_api_admin_applications__team_id__accept_post: {
+    accept_application_api_admin_applications__team_id__accept_post: {
         parameters: {
             query?: never;
             header?: {
@@ -4525,7 +5138,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["Entscheidung"] | null;
+                "application/json": components["schemas"]["ApplicationDecision"] | null;
             };
         };
         responses: {
@@ -4535,7 +5148,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AntragOut"];
+                    "application/json": components["schemas"]["ApplicationOut"];
                 };
             };
             /** @description Validation Error */
@@ -4549,7 +5162,7 @@ export interface operations {
             };
         };
     };
-    ablehnen_api_admin_applications__team_id__reject_post: {
+    reject_application_api_admin_applications__team_id__reject_post: {
         parameters: {
             query?: never;
             header?: {
@@ -4562,7 +5175,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["Entscheidung"] | null;
+                "application/json": components["schemas"]["ApplicationDecision"] | null;
             };
         };
         responses: {
@@ -4572,7 +5185,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AntragOut"];
+                    "application/json": components["schemas"]["ApplicationOut"];
                 };
             };
             /** @description Validation Error */
@@ -5035,7 +5648,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KaderOut"];
+                    "application/json": components["schemas"]["SquadOut"];
                 };
             };
             /** @description Validation Error */
@@ -5062,7 +5675,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["KaderSetzen"];
+                "application/json": components["schemas"]["SquadSetRequest"];
             };
         };
         responses: {
@@ -5072,7 +5685,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["KaderOut"];
+                    "application/json": components["schemas"]["SquadOut"];
                 };
             };
             /** @description Validation Error */

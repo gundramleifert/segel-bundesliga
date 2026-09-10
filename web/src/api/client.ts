@@ -36,13 +36,17 @@ export type SeriesCreate = S["SeriesCreate"];
 export type ClubCreate = S["ClubCreate"];
 export type EventCreate = S["EventCreate"];
 export type BoatSpec = S["BoatSpec"];
-export type PairingCatalogEntry = S["KatalogEintragOut"];
+export type PairingCatalogEntry = S["CatalogEntryOut"];
 export type PairingPublishResult = S["PublishResult"];
 export type EventTeam = S["ParticipantOut"];
+export type EventUpdate = S["EventUpdate"];
+/** Story VA-8: whether an event may be drawn and started, and what's missing if not. */
+export type EventReadiness = S["EventReadinessOut"];
+export type ReadinessReason = S["ReadinessReasonOut"];
 export type SailorAdmin = S["SailorAdminOut"];
 export type SailorCreate = S["SailorCreate"];
-export type Squad = S["KaderOut"];
-export type SquadEntry = S["KaderEintrag"];
+export type Squad = S["SquadOut"];
+export type SquadEntry = S["SquadMemberIn"];
 export type Providers = S["ProvidersOut"];
 export type TokenOut = S["TokenOut"];
 // Story WL-2: entering and correcting race results.
@@ -256,11 +260,40 @@ export const api = {
       send<SeriesAdmin>("PATCH", `/api/admin/series/${id}`, data),
     setSeriesClubs: (id: number, clubs: number[]) =>
       send<SeriesAdmin>("PUT", `/api/admin/series/${id}/clubs`, { clubs }),
+    /** Publication decides who may *see* the series; it locks nothing (Story VA-8). */
+    publishSeries: (id: number, published: boolean) =>
+      send<SeriesAdmin>(
+        "POST",
+        `/api/admin/series/${id}/${published ? "publish" : "unpublish"}`,
+      ),
 
     clubs: (signal?: AbortSignal) => get<ClubAdmin[]>("/api/admin/clubs", signal),
     createClub: (data: ClubCreate) => send<Club>("POST", "/api/admin/clubs", data),
+    /** A club's crest ("Stander"). Kept as uploaded, alpha channel included — a burgee is
+     *  a shape, not a rectangle, so flattening it onto white would ruin it. */
+    uploadClubCrest: (clubId: number, file: File) =>
+      upload<ClubAdmin>(`/api/admin/clubs/${clubId}/logo`, file),
+    deleteClubCrest: (clubId: number) => send<void>("DELETE", `/api/admin/clubs/${clubId}/logo`),
 
+    /** Every event, drafts included — the public list shows only published ones, which is
+     *  the wrong list for the screen that does the publishing. */
+    events: (signal?: AbortSignal) => get<EventSummary[]>("/api/admin/events", signal),
     createEvent: (data: EventCreate) => send<EventSummary>("POST", "/api/admin/events", data),
+    updateEvent: (eventId: number, data: EventUpdate) =>
+      send<EventSummary>("PATCH", `/api/admin/events/${eventId}`, data),
+    /** Story VA-8. Computed on every call, never stored: the screen and the errors the
+     *  draw and the start refuse with can therefore never disagree. */
+    eventReadiness: (eventId: number, signal?: AbortSignal) =>
+      get<EventReadiness>(`/api/admin/events/${eventId}/readiness`, signal),
+    publishEvent: (eventId: number, published: boolean) =>
+      send<EventSummary>(
+        "POST",
+        `/api/admin/events/${eventId}/${published ? "publish" : "unpublish"}`,
+      ),
+    /** Moves the event to `live` — an explicit decision by someone on site, never a side
+     *  effect of a date passing. Needs readiness *and* a pairing list. */
+    startEvent: (eventId: number) =>
+      send<EventSummary>("POST", `/api/admin/events/${eventId}/start`),
     eventClubs: (eventId: number, signal?: AbortSignal) =>
       get<EventTeam[]>(`/api/admin/events/${eventId}/clubs`, signal),
     setEventClubs: (eventId: number, clubs: number[]) =>

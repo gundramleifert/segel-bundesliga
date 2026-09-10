@@ -14,7 +14,12 @@
     "creatingButton": "Creating ...",
     "loadingText": "Loading clubs ...",
     "statsText": "{{count}} clubs, {{visible}} visible in the current year",
-    "createdMessage": "{{name}} has been created."
+    "createdMessage": "{{name}} has been created.",
+    "emptyText": "No clubs have been created yet.",
+    "crestUploadButton": "Upload crest",
+    "crestReplaceButton": "Replace crest",
+    "crestUploadingButton": "Uploading ...",
+    "crestRemoveButton": "Remove"
   },
   "series": {
     "title": "Series",
@@ -45,7 +50,11 @@
     "descriptionHint": "Markdown, shown on the public standings page",
     "descriptionPlaceholder": "e.g. a welcome note, sponsors, or a season recap ...",
     "saveDescriptionButton": "Save description",
-    "descriptionSavedMessage": "Saved."
+    "descriptionSavedMessage": "Saved.",
+    "publishedBadge": "Public",
+    "draftBadge": "Draft",
+    "publishButton": "Publish",
+    "unpublishButton": "Unpublish"
   },
   "events": {
     "title": "Events",
@@ -97,7 +106,8 @@
     "clubsAnyHint": "This event stands on its own, so any club can enter.",
     "clubsSeriesEmptyText": "No club is registered for this series yet. Register them for the series first, then enter them here.",
     "clubsFrozenHint": "Racing has started — the field is fixed, because the pairing list being sailed was drawn for exactly these clubs.",
-    "clubsCountHint": "The setup expects {{expected}} clubs; {{actual}} are entered."
+    "clubsCountHint": "The setup expects {{expected}} clubs; {{actual}} are entered.",
+    "startsHint": "optional, can follow later"
   },
   "sailors": {
     "title": "Sailors",
@@ -161,5 +171,51 @@
   "page": {
     "title": "Administration",
     "signedInAs": "Signed in as {{displayName}} · {{roles}}"
+  },
+  "manage": {
+    "title": "Run an event",
+    "description": "Everything after the name: the date once the host confirms it, the clubs, the draw, publication, and the start. Drafts are listed here too — the public calendar shows only what has been published.",
+    "loadingText": "Loading events ...",
+    "emptyText": "No events have been created yet.",
+    "manageButton": "Manage",
+    "closeButton": "Close",
+    "standaloneLabel": "Standalone",
+    "sizeText": "{{teams}} clubs · {{boats}} boats · {{flights}} flights",
+    "publishedBadge": "Public",
+    "draftBadge": "Draft",
+    "readinessTitle": "Still missing",
+    "readinessLoadingText": "Checking ...",
+    "readyMessage": "Ready: this event can be drawn and started.",
+    "frozenMessage": "Racing has started ({{races}} races under way, {{results}} results recorded), so the setup is fixed. Results stay editable — a protest decision months later is exactly what the race-committee screen is for.",
+    "savingButton": "Saving ...",
+    "saveDatesButton": "Save date",
+    "datesSavedMessage": "Date saved.",
+    "clubsTitle": "Clubs entered: {{count}} of {{configured}}",
+    "clubsFromSeriesHint": "Only clubs registered for {{series}} can enter one of its events — that is what the series registration is.",
+    "clubsStandaloneHint": "This event belongs to no series, so any club can enter.",
+    "clubsLoadingText": "Loading entries ...",
+    "seriesHasNoClubs": "This event's series has no registered clubs yet. Register them with the series first.",
+    "noClubsAtAll": "No clubs exist yet. Create one above first.",
+    "saveClubsButton": "Enter {{count}} clubs",
+    "clubsSavedMessage": "Entries saved.",
+    "frozenClubsHint": "Fixed since the first race.",
+    "pairingTitle": "Pairing list",
+    "pairingExistsHint": "A pairing list exists. Drawing again replaces it — possible until the first race starts.",
+    "pairingMissingHint": "No pairing list yet. The draw takes the pre-computed list for this size and shuffles the starting positions with the seed.",
+    "drawButton": "Draw",
+    "redrawButton": "Draw again",
+    "drawingButton": "Drawing ...",
+    "drawSuccessMessage": "Pairing list drawn.",
+    "drawNeedsReadyHint": "The draw needs a complete setup — see \"Still missing\" above.",
+    "openPairingLink": "Open pairing list",
+    "lifecycleTitle": "Publication and start",
+    "publishHint": "Publishing decides who can see the event; it locks nothing and does not require the event to be complete. A published event stays fully editable.",
+    "publishButton": "Publish",
+    "unpublishButton": "Unpublish",
+    "startButton": "Start event",
+    "startedButton": "Running",
+    "startedMessage": "The event is running.",
+    "startNeedsHint": "Starting needs a complete setup and a pairing list — there is nothing to sail without one.",
+    "openResultsLink": "Enter results"
   }
 }

@@ -27,6 +27,21 @@ export function dateRange(from: string, to: string): string {
   );
 }
 
+/** The date line of an event, which may not have one yet.
+ *
+ *  Since Story VA-8 an event is savable before its date is agreed with the host, so
+ *  `starts_on` and `ends_on` are nullable. Passing a null straight into `dateRange` would
+ *  print "Invalid Date" on the calendar; every screen that shows an event's date goes
+ *  through here instead. A start with no end is a single day, which is how the backend
+ *  treats it too. */
+export function eventDates(event: {
+  starts_on?: string | null;
+  ends_on?: string | null;
+}): string {
+  if (!event.starts_on) return i18n.t("common:dateOpen");
+  return dateRange(event.starts_on, event.ends_on ?? event.starts_on);
+}
+
 export function formatPoints(value: number): string {
   return value.toLocaleString(i18n.language, { maximumFractionDigits: 1 });
 }

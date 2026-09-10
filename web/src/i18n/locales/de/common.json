@@ -53,5 +53,6 @@
     "actionFailed": "Das hat nicht geklappt. Besteht eine Verbindung?",
     "requestFailed": "Die Anfrage ist fehlgeschlagen ({{status}}).",
     "noSeriesThisYear": "Für dieses Jahr gibt es noch keine Serie."
-  }
+  },
+  "dateOpen": "Datum steht noch nicht fest"
 }

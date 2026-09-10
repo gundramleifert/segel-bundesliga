@@ -442,15 +442,49 @@ Acceptance criteria:
   entered" in `docs/concepts.md`). Title, dates, venue, host, logo, status and publication
   also stay editable while racing: a typo has to be fixable on a race day too.
 
-Endpoints: `GET /api/admin/events/{id}/readiness`,
+- **Drafts are listed where they are finished.** `GET /api/admin/events` lists every event,
+  drafts included, ordered dateless-first then newest-first. The public `GET /api/events`
+  shows published events only — the right list for a calendar and exactly the wrong one for
+  the screen that publishes, where it would hide the single event being worked on.
+
+Endpoints: `GET /api/admin/events`, `GET /api/admin/events/{id}/readiness`,
 `POST /api/admin/events/{id}/publish`, `POST /api/admin/events/{id}/unpublish`,
 `POST /api/admin/events/{id}/start`, `POST /api/admin/series/{id}/publish`,
 `POST /api/admin/series/{id}/unpublish`; `published` also on `POST /api/admin/events`,
 `PATCH /api/admin/events/{id}`, `POST /api/admin/series`, `PATCH /api/admin/series/{id}`.
-Computed in `api/app/services/event_readiness.py`.
+Computed in `api/app/services/event_readiness.py`. The admin screen is
+`web/src/pages/AdminEvents.tsx` — a create form that gates almost nothing, and a manage
+panel per event carrying the readiness reasons, the date, the entered clubs, the draw,
+publication and the start.
 
 Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
-`::TestPublication`, `::TestStarting`, `::TestFreezeAfterTheFirstRace`
+`::TestPublication`, `::TestStarting`, `::TestFreezeAfterTheFirstRace`,
+`api/tests/stories/test_complete_lifecycle.py::TestTheAdminEventList`
+
+---
+
+### VA-9 ● Run one event from end to end
+
+As the **association** I want **one test that walks the whole way — clubs, series, event,
+boats, clubs entered, draw, start, all races sailed, standings, freeze, protest** — so that
+**the steps are proven to fit together in the order they actually happen**.
+
+Acceptance criteria:
+- Every individual step is already covered by its own story test. What this adds is the
+  **sequence**: each step's output really is the next step's input, through the HTTP API
+  only, with nothing reached around into the database.
+- It runs the catalog's **smallest** configuration (12 clubs, 6 boats, 8 flights = 16
+  races), not the league's 48 — small enough to sail to the end in a test, large enough to
+  be a real pairing list rather than a hand-made fixture.
+- Deliberately **one long test**, not several: a step that only makes sense after the
+  previous one has happened cannot be a test that runs on its own.
+- It asserts the things that are wrong only *in sequence*: that a draw refuses while the
+  clubs are still being added, that an event saves with no date because the date is agreed
+  later, that a series' registrations gate who may enter its events, that the whole fleet's
+  points add up to what 16 races hand out, and that a protest decision still lands after
+  the configuration has frozen.
+
+Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
 
 ---
 
@@ -1100,8 +1134,10 @@ with no change on its side and none in the frontend, and removing the upload fal
 the external URL instead of leaving the club blank. The served URL carries a `?v=<mtime>`
 cache stamp, because the path itself is stable across replacements.
 
-Open: the admin/club-manager **UI** for the upload — the API is complete, the form is not
-built yet.
+**The UI** is the club list in `web/src/pages/Admin.tsx` (`ClubRow`): a thumbnail, an
+upload button that replaces when one already exists, and a remove button. The thumbnail
+sits on a checkerboard, because a crest whose transparency was deliberately preserved has
+to *read* as transparent rather than as a white rectangle that happens to match the page.
 
 Endpoints: `POST /api/admin/clubs/{club_id}/logo`, `DELETE /api/admin/clubs/{club_id}/logo`,
 `GET /api/clubs/{club_id}/logo`
