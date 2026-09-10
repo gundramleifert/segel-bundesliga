@@ -32,25 +32,25 @@ export function Start() {
 
   return (
     <>
-      <section className="mb-10 rounded-2xl bg-marke-600 px-6 py-10 text-white sm:px-10">
-        <p className="text-sm font-medium uppercase tracking-wider text-marke-100">
+      <section className="mb-10 rounded-2xl bg-brand-600 px-6 py-10 text-white sm:px-10">
+        <p className="text-sm font-medium uppercase tracking-wider text-brand-100">
           {t("hero.tagline")}
         </p>
         {/* The real logo (see Layout.tsx) is a photograph with a white background baked
             in, not a white-on-transparent mark like the old placeholder asset this
-            replaces — dropped straight onto this dark bg-marke-600 hero it would show a
+            replaces — dropped straight onto this dark bg-brand-600 hero it would show a
             stray white rectangle. Framing it in its own white card keeps that white
             edge deliberate instead of looking like a rendering bug. */}
         <div className="mt-3 inline-block rounded-lg bg-white p-2 shadow-sm sm:p-3">
           <img
-            src="/marke/deutsche-segelliga-logo.jpg"
+            src="/brand/deutsche-segelliga-logo.jpg"
             alt="Deutsche Segel-Liga"
             className="h-12 w-auto sm:h-14"
             width={600}
             height={173}
           />
         </div>
-        <p className="mt-3 max-w-2xl text-marke-100">
+        <p className="mt-3 max-w-2xl text-brand-100">
           {t("hero.description")}
         </p>
       </section>
@@ -61,7 +61,7 @@ export function Start() {
           <Link
             to="/events"
             data-testid="start-events-all-link"
-            className="text-sm text-marke-700 underline-offset-2 hover:underline"
+            className="text-sm text-brand-700 underline-offset-2 hover:underline"
           >
             {t("eventsSection.allLink")}
           </Link>
@@ -111,7 +111,7 @@ export function Start() {
                           </Card.Description>
                         </Card.Header>
                         <Card.Content>
-                          <p className="text-sm text-marke-700">{t("seriesCard.linkText")}</p>
+                          <p className="text-sm text-brand-700">{t("seriesCard.linkText")}</p>
                         </Card.Content>
                       </Card>
                     </Link>

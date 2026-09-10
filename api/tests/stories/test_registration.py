@@ -35,10 +35,10 @@ async def account(email: str) -> User | None:
 async def register(client, caplog, email: str, name: str) -> str:
     """Registers and immediately redeems the confirmation code. Returns the token."""
     with caplog.at_level(logging.WARNING, logger="app.mail"):
-        antwort = await client.post(
+        response = await client.post(
             "/api/auth/register", json={"email": email, "display_name": name}
         )
-    assert antwort.status_code == 202, antwort.text
+    assert response.status_code == 202, response.text
 
     code = caplog.records[-1].args[-1]
     eingeloest = await client.post(
@@ -52,25 +52,25 @@ def auth_headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-class TestRegistrierung:
+class TestRegistering:
     """As a sailor, I want to create an account myself."""
 
-    async def test_die_registrierung_legt_ein_konto_mit_meiner_adresse_an(
+    async def test_registering_creates_an_account_for_my_address(
         self, client, caplog
     ):
         """Registration creates an account with my email address."""
         with caplog.at_level(logging.WARNING, logger="app.mail"):
-            antwort = await client.post(
+            response = await client.post(
                 "/api/auth/register",
                 json={"email": "neu.anna@example.com", "display_name": "Anna Neu"},
             )
-        assert antwort.status_code == 202
+        assert response.status_code == 202
 
         person = await account("neu.anna@example.com")
         assert person is not None
         assert person.display_name == "Anna Neu"
 
-    async def test_vor_der_bestaetigung_gilt_die_adresse_als_bloss_behauptet(
+    async def test_before_confirmation_the_address_is_merely_claimed(
         self, client, caplog
     ):
         """Before confirmation, the address is only claimed — anyone could type someone else's."""
@@ -83,7 +83,7 @@ class TestRegistrierung:
         assert person is not None
         assert person.email_verified is False
 
-    async def test_mit_dem_code_ist_die_adresse_nachgewiesen(self, client, caplog):
+    async def test_the_code_proves_the_address(self, client, caplog):
         """With the code, the address is verified."""
         token = await register(client, caplog, "bestaetigt@example.com", "Bea Bestätigt")
 
@@ -92,14 +92,14 @@ class TestRegistrierung:
         assert ich["roles"] == []
         assert ich["club_id"] is None
 
-    async def test_ohne_namen_geht_es_nicht(self, client):
+    async def test_a_name_is_required(self, client):
         """Registration requires a name."""
-        antwort = await client.post(
+        response = await client.post(
             "/api/auth/register", json={"email": "namenlos@example.com", "display_name": ""}
         )
-        assert antwort.status_code == 422
+        assert response.status_code == 422
 
-    async def test_eine_bekannte_adresse_verraet_sich_nicht(self, client, caplog):
+    async def test_a_known_address_gives_nothing_away(self, client, caplog):
         """A known address doesn't reveal itself — else we could enumerate accounts
         via registration."""
         await make_user("schon.da@example.com")
@@ -117,7 +117,7 @@ class TestRegistrierung:
         assert bekannt.status_code == unbekannt.status_code == 202
         assert bekannt.json() == unbekannt.json()
 
-    async def test_die_registrierung_ueberschreibt_kein_bestehendes_konto(
+    async def test_registering_overwrites_no_existing_account(
         self, client, caplog
     ):
         """Registration does not overwrite an existing account."""
@@ -132,22 +132,22 @@ class TestRegistrierung:
         assert person.display_name == "bestand"
 
 
-class TestAufnahmeAntrag:
+class TestRequestingClubMembership:
     """As a registered person, I want to request membership in a club."""
 
-    async def test_die_anfrage_wartet_auf_den_verein(self, client, caplog):
+    async def test_the_request_waits_for_the_club(self, client, caplog):
         """The request waits for the club's decision."""
         token = await register(client, caplog, "antrag1@example.com", "Anne Antrag")
         club = await club_id()
 
-        antwort = await client.post(
+        response = await client.post(
             "/api/club-memberships", headers=auth_headers(token), json={"club_id": club}
         )
-        assert antwort.status_code == 201, antwort.text
-        assert antwort.json()["status"] == ClubMemberStatus.PENDING_CLUB
-        assert antwort.json()["waiting_for"] == "club"
+        assert response.status_code == 201, response.text
+        assert response.json()["status"] == ClubMemberStatus.PENDING_CLUB
+        assert response.json()["waiting_for"] == "club"
 
-    async def test_eine_anfrage_macht_noch_kein_mitglied(self, client, caplog):
+    async def test_a_request_alone_makes_nobody_a_member(self, client, caplog):
         """A request doesn't make you a member yet — the other side must agree."""
         token = await register(client, caplog, "antrag2@example.com", "Bert Antrag")
         club = await club_id()
@@ -158,7 +158,7 @@ class TestAufnahmeAntrag:
         ich = (await client.get("/api/auth/me", headers=auth_headers(token))).json()
         assert ich["club_id"] is None
 
-    async def test_ohne_bestaetigte_adresse_geht_das_nicht(self, client, caplog):
+    async def test_this_needs_a_confirmed_address(self, client, caplog):
         """Without a verified address, you cannot request membership — else someone
         could flood clubs with requests using fake addresses."""
         await make_user("ohnenachweis@example.com")
@@ -175,17 +175,17 @@ class TestAufnahmeAntrag:
         from app.auth import create_access_token
 
         token, _ = create_access_token(person)
-        antwort = await client.post(
+        response = await client.post(
             "/api/club-memberships",
             headers=auth_headers(token),
             json={"club_id": await club_id()},
         )
-        assert antwort.status_code == 403
-        assert "verify" in antwort.json()["detail"].lower()
+        assert response.status_code == 403
+        assert "verify" in response.json()["detail"].lower()
 
-    async def test_ohne_anmeldung_gar_nicht(self, client):
+    async def test_not_at_all_without_signing_in(self, client):
         """Without sign-in, you cannot request membership."""
-        antwort = await client.post(
+        response = await client.post(
             "/api/club-memberships", json={"club_id": await club_id()}
         )
-        assert antwort.status_code == 401
+        assert response.status_code == 401

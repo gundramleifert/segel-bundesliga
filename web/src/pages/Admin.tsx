@@ -1,4 +1,4 @@
-import { Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
@@ -169,6 +169,10 @@ function Clubs() {
  * the image, not a place to host it. The thumbnail sits on a checkerboard so a transparent
  * burgee reads as transparent instead of as a white rectangle — the upload deliberately
  * keeps the alpha channel (see `app/services/crests.py`).
+ *
+ * **The crest is edited from the crest**, not from a button beside it: hovering it reveals
+ * a pen, and clicking it opens the file chooser. A separate "Replace crest" button said the
+ * same thing twice and put the action a row's width away from the thing it acts on.
  */
 function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }) {
   const { t } = useTranslation("admin");
@@ -183,39 +187,10 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
     onSuccess: onChanged,
   });
 
+  const label = club.logo_url ? t("clubs.crestReplaceLabel") : t("clubs.crestUploadLabel");
+
   return (
     <li data-testid={`admin-club-row-${club.id}`} className="flex flex-wrap items-center gap-3 px-4 py-3">
-      {/* No cache-busting suffix needed: `logo_url` already carries the file's mtime as a
-          `?v=` stamp (`app/crests.py`), so a replaced crest arrives under a new URL on its
-          own once the list is invalidated. */}
-      <span className="crest-backdrop grid size-10 shrink-0 place-items-center overflow-hidden rounded border border-slate-200">
-        {club.logo_url ? (
-          <img
-            src={club.logo_url}
-            alt=""
-            className="size-10 object-contain"
-            data-testid={`admin-club-crest-${club.id}`}
-          />
-        ) : (
-          <span aria-hidden className="text-xs text-slate-400">
-            —
-          </span>
-        )}
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <Link
-          to={`/clubs/${club.id}`}
-          data-testid={`admin-club-link-${club.id}`}
-          className="font-medium underline-offset-2 hover:underline"
-        >
-          {club.name}
-        </Link>
-        <p className="text-sm text-slate-500">
-          {[club.short_name, club.city].filter(Boolean).join(" · ")}
-        </p>
-      </div>
-
       <input
         ref={fileInput}
         type="file"
@@ -230,19 +205,78 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
         }}
         data-testid={`admin-club-crest-input-${club.id}`}
       />
-      <Button
-        size="sm"
-        variant="ghost"
-        isDisabled={upload.isPending}
-        onPress={() => fileInput.current?.click()}
-        data-testid={`admin-club-crest-upload-${club.id}`}
+
+      {/* A real button, not a clickable div: it has to be reachable and operable from the
+          keyboard, and the pen has to appear on focus as well as on hover — a pen that only
+          shows under the mouse pointer tells a keyboard user nothing.
+
+          No cache-busting suffix on the image: `logo_url` already carries the file's mtime
+          as a `?v=` stamp (`app/crests.py`), so a replaced crest arrives under a new URL on
+          its own once the list is invalidated. */}
+      <button
+        type="button"
+        onClick={() => fileInput.current?.click()}
+        disabled={upload.isPending}
+        aria-label={`${label}: ${club.name}`}
+        title={label}
+        data-testid={`admin-club-crest-edit-${club.id}`}
+        className="crest-backdrop group relative grid size-10 shrink-0 cursor-pointer place-items-center overflow-hidden rounded border border-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
       >
-        {upload.isPending
-          ? t("clubs.crestUploadingButton")
-          : club.logo_url
-            ? t("clubs.crestReplaceButton")
-            : t("clubs.crestUploadButton")}
-      </Button>
+        {club.logo_url ? (
+          <img
+            src={club.logo_url}
+            alt=""
+            className="size-10 object-contain"
+            data-testid={`admin-club-crest-${club.id}`}
+          />
+        ) : (
+          <span aria-hidden className="text-xs text-slate-400">
+            —
+          </span>
+        )}
+        <span
+          aria-hidden
+          data-testid={`admin-club-crest-pen-${club.id}`}
+          className={`absolute inset-0 grid place-items-center bg-slate-900/55 text-white transition-opacity ${
+            upload.isPending
+              ? "opacity-100"
+              : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
+          }`}
+        >
+          {upload.isPending ? (
+            <Spinner size="sm" />
+          ) : (
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="size-4"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          )}
+        </span>
+      </button>
+
+      <div className="min-w-0 flex-1">
+        <Link
+          to={`/clubs/${club.id}`}
+          data-testid={`admin-club-link-${club.id}`}
+          className="font-medium underline-offset-2 hover:underline"
+        >
+          {club.name}
+        </Link>
+        <p className="text-sm text-slate-500">
+          {[club.short_name, club.city].filter(Boolean).join(" · ")}
+        </p>
+      </div>
+
+      {/* Removing is a different action from replacing, so it keeps its own control —
+          but only when there is something to remove. */}
       {club.logo_url && (
         <Button
           size="sm"
@@ -478,7 +512,7 @@ function SeriesRow({
               data-testid={`admin-series-publication-${series.id}`}
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
                 series.published
-                  ? "bg-marke-50 text-marke-800 ring-marke-200"
+                  ? "bg-brand-50 text-brand-800 ring-brand-200"
                   : "bg-amber-50 text-amber-800 ring-amber-200"
               }`}
             >

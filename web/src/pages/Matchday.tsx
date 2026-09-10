@@ -151,7 +151,7 @@ export function Matchday() {
             data-testid={`matchday-${value}-tab`}
             className={`rounded-md px-4 py-1.5 text-sm transition-colors ${
               view === value
-                ? "bg-marke-600 font-medium text-white"
+                ? "bg-brand-600 font-medium text-white"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
           >
@@ -243,7 +243,7 @@ function StandingsTable({
               data-testid={`matchday-standings-mode-${value}`}
               className={`px-2 py-1.5 transition-colors ${
                 mode === value
-                  ? "bg-marke-600 font-medium text-white"
+                  ? "bg-brand-600 font-medium text-white"
                   : "bg-white text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -574,7 +574,7 @@ function ResultsEntry({
           type="button"
           onClick={() => setShowAll((prev) => !prev)}
           data-testid="matchday-results-show-all-toggle"
-          className="text-sm font-medium text-marke-700 underline-offset-2 hover:underline"
+          className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
         >
           {showAll ? t("resultsShowFocused") : t("resultsShowAll")}
         </button>
@@ -796,7 +796,7 @@ function RaceResultRow({
     <tr
       data-testid={`matchday-results-row-${race.id}`}
       className={`border-b border-slate-100 align-top last:border-0 ${
-        raceRole === "current" ? "bg-marke-50" : ""
+        raceRole === "current" ? "bg-brand-50" : ""
       }`}
     >
       <td className="px-3 py-2.5 font-semibold tabular-nums">
@@ -805,7 +805,7 @@ function RaceResultRow({
           <span
             data-testid={`matchday-results-role-${race.id}`}
             className={`ml-1.5 block text-[10px] font-normal uppercase tracking-wide ${
-              raceRole === "current" ? "text-marke-700" : "text-slate-400"
+              raceRole === "current" ? "text-brand-700" : "text-slate-400"
             }`}
           >
             {t(`raceRole.${raceRole}`)}
@@ -961,7 +961,7 @@ function RaceResultRow({
                       data-testid={`matchday-results-redress-mode-${mode}-${race.id}-${boat.number}`}
                       className={`flex-1 rounded-md border px-1.5 py-1 text-[11px] font-medium transition ${
                         row.redress_mode === mode
-                          ? "border-marke-600 bg-marke-50 text-marke-700"
+                          ? "border-brand-600 bg-brand-50 text-brand-700"
                           : "border-slate-300 text-slate-500 hover:bg-slate-50"
                       }`}
                     >

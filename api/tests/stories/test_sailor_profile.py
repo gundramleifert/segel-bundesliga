@@ -20,7 +20,7 @@ from app.db import SessionLocal
 from app.models import Sailor
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers
+from tests.stories.test_registration import auth_headers
 
 
 async def _admin(client, caplog):

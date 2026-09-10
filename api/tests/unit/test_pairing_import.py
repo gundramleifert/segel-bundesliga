@@ -26,7 +26,7 @@ def test_schedule_config_reads_teams_and_boat_colours():
     config = parse_schedule_config(SCHEDULE_CFG)
     assert len(config.teams) == 18
     assert config.flights == 16
-    # Umlaute und Klammern in Kürzeln müssen unversehrt durchkommen.
+    # Umlauts and brackets in abbreviations have to come through untouched.
     assert "BYCÜ" in config.teams
     assert "BYC (BA)" in config.teams
     assert [b.color for b in config.boats] == [
@@ -85,8 +85,8 @@ def test_the_official_draw_sets_the_quality_benchmark():
     }
 
 
-class TestUnvollstaendigeFlotte:
-    """17 Teams auf 6 Booten: das Java-Werkzeug füllt mit Leerplätzen auf.
+class TestAnIncompleteFleet:
+    """17 teams on 6 boats: the Java tool pads the gap with empty slots.
 
     Fixture: Event ``2024-04-06_JSCL-Vilamoura``, Youth Sailing Champions League.
     """

@@ -154,7 +154,7 @@ class GenerationResult:
     log: str
 
     def summary(self) -> dict:
-        """Der Gütebericht, den der Veranstalter vor dem Veröffentlichen sieht (VA-3)."""
+        """The quality report the organizer sees before publishing (Story VA-3)."""
         return {**self.quality, **self.logistics.as_dict()}
 
 
@@ -185,7 +185,7 @@ async def generate_pairing(
         schedule_cfg = workdir / "schedule_cfg.yml"
         schedule_cfg.write_text(request.schedule_yaml(), encoding="utf-8")
         (workdir / "opt_cfg.yml").write_text(request.optimizer.as_yaml(), encoding="utf-8")
-        # Ohne Anzeigekonfiguration bricht das Werkzeug ab, auch wenn kein PDF verlangt ist.
+        # Without a display config the tool aborts, even when no PDF was asked for.
         (workdir / "display_cfg.yml").write_text(
             display_config if display_config is not None else _DEFAULT_DISPLAY, encoding="utf-8"
         )

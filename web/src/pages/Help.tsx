@@ -144,7 +144,7 @@ function AccessCell({ value, testId }: { value: Access; testId: string }) {
 
   if (value === "yes") {
     return (
-      <span data-testid={testId} className="text-marke-700">
+      <span data-testid={testId} className="text-brand-700">
         <span aria-hidden>✓</span>
         <span className="sr-only"> {t("roles.cells.yes")}</span>
       </span>

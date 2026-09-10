@@ -19,7 +19,7 @@ from app.db import SessionLocal
 from app.models import AuditLog, Boat, Event, Flight, Race, RaceEntry, RaceStatus, ResultCode
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers
+from tests.stories.test_registration import auth_headers
 
 LIVE_MATCHDAY = "dsbl-1-2026-act-2"
 FINISHED_MATCHDAY = "dsbl-1-2026-act-1"
@@ -95,7 +95,7 @@ async def _entries(race_id: int) -> list[RaceEntry]:
         )
 
 
-class TestErgebniserfassung:
+class TestEnteringResults:
     """WL-2: race committee enters and corrects results."""
 
     async def test_race_officer_can_enter_results_and_points_are_recomputed(

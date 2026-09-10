@@ -593,7 +593,7 @@ function PublicationBadge({ published, eventId }: { published: boolean; eventId:
       data-testid={`admin-manage-event-publication-${eventId}`}
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
         published
-          ? "bg-marke-50 text-marke-800 ring-marke-200"
+          ? "bg-brand-50 text-brand-800 ring-brand-200"
           : "bg-amber-50 text-amber-800 ring-amber-200"
       }`}
     >

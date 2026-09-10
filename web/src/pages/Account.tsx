@@ -115,7 +115,7 @@ export function Account() {
               <ul className="space-y-1.5 text-sm">
                 {allowed.map((entry) => (
                   <li key={entry.key} className="flex gap-2">
-                    <span aria-hidden className="text-marke-600">
+                    <span aria-hidden className="text-brand-600">
                       ✓
                     </span>
                     {t(entry.key)}
@@ -558,7 +558,7 @@ function SignIn() {
               data-testid="account-signin-tab-signin"
               className={
                 mode === "signin"
-                  ? "font-semibold text-marke-700"
+                  ? "font-semibold text-brand-700"
                   : "text-slate-500 hover:text-slate-700"
               }
             >
@@ -570,7 +570,7 @@ function SignIn() {
               data-testid="account-signin-tab-register"
               className={
                 mode === "register"
-                  ? "font-semibold text-marke-700"
+                  ? "font-semibold text-brand-700"
                   : "text-slate-500 hover:text-slate-700"
               }
             >

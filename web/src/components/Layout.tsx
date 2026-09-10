@@ -33,11 +33,11 @@ export function Layout() {
     : NAV_ITEMS;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-flaeche text-tinte">
+    <div className="flex min-h-dvh flex-col bg-surface text-ink">
       <a
         href="#content"
         data-testid="layout-skip-link"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:ring-2 focus:ring-marke-500"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:ring-2 focus:ring-brand-500"
       >
         {t("skipToContent")}
       </a>
@@ -57,7 +57,7 @@ export function Layout() {
             className="flex shrink-0 items-center gap-3"
           >
             <img
-              src="/marke/deutsche-segelliga-logo.jpg"
+              src="/brand/deutsche-segelliga-logo.jpg"
               alt="Deutsche Segel-Liga"
               className="h-9 w-auto"
               width={200}
@@ -88,7 +88,7 @@ export function Layout() {
                     className={({ isActive }) =>
                       `rounded-md px-3 py-2 transition-colors ${
                         isActive
-                          ? "bg-marke-50 font-medium text-marke-800"
+                          ? "bg-brand-50 font-medium text-brand-800"
                           : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                       }`
                     }
@@ -109,7 +109,7 @@ export function Layout() {
               data-testid="layout-profile-button"
               className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold uppercase transition-colors ${
                 account
-                  ? "bg-marke-600 text-white hover:bg-marke-700"
+                  ? "bg-brand-600 text-white hover:bg-brand-700"
                   : `bg-slate-100 text-slate-500 hover:bg-slate-200 ${loading ? "animate-pulse" : ""}`
               }`}
             >

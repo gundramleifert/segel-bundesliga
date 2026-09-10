@@ -16,13 +16,13 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus
 from app.models.auth import Role
-from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers
-from tests.stories.test_veranstaltung_anlegen import (
+from tests.stories.test_create_event import (
     admin,
     event_with_participants,
     league_clubs,
 )
+from tests.stories.test_login_and_roles import login_as, make_user
+from tests.stories.test_registration import auth_headers
 
 FINISHED_MATCHDAY = "dsbl-1-2026-act-1"
 

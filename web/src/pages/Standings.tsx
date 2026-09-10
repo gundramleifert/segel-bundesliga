@@ -38,7 +38,7 @@ const MARKDOWN_COMPONENTS = {
     <ol className="mb-2 list-decimal pl-5 text-sm text-slate-600 last:mb-0" {...props} />
   ),
   a: (props: ComponentProps<"a">) => (
-    <a className="underline underline-offset-2 hover:text-marke-700" {...props} />
+    <a className="underline underline-offset-2 hover:text-brand-700" {...props} />
   ),
 };
 

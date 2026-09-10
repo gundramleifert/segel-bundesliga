@@ -41,7 +41,7 @@ export function Clubs() {
         placeholder={t("searchPlaceholder")}
         aria-label={t("searchPlaceholder")}
         data-testid="clubs-search-input"
-        className="mb-4 w-full max-w-sm rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-marke-500 focus:ring-1 focus:ring-marke-200"
+        className="mb-4 w-full max-w-sm rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
       />
 
       {!filtered.length && <Empty testId="clubs-no-matches">{t("noMatches")}</Empty>}
@@ -66,7 +66,7 @@ export function Clubs() {
                     ) : (
                       <span
                         aria-hidden
-                        className="grid size-10 shrink-0 place-items-center rounded-lg bg-marke-600 text-xs font-bold text-white"
+                        className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-600 text-xs font-bold text-white"
                       >
                         {club.short_name.slice(0, 4)}
                       </span>

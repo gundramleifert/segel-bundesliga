@@ -36,25 +36,18 @@ export default function App() {
         <Route path="help" element={<Help />} />
         <Route path="legal-notice" element={<LegalNotice />} />
         <Route path="privacy" element={<Privacy />} />
-        {/* German-language aliases for the legal pages. Unlike the legacy redirects below
-            these are not leftovers: "Impressum" and "Datenschutz" are the words German
-            visitors type and search for, so those URLs have to resolve. */}
-        <Route path="impressum" element={<Navigate to="/legal-notice" replace />} />
-        <Route path="datenschutz" element={<Navigate to="/privacy" replace />} />
-        {/* Legacy German paths from before the English rewrite, plus the former
-            "standings" paths from when the site presented a single league — kept as
-            redirects so nothing bookmarked from an earlier build breaks outright. */}
+        {/* The former "standings" paths, from when the site presented a single league
+            rather than several series — kept as redirects because they were the real URLs
+            of a deployed build.
+
+            Every route on this site is English. The German paths of the pre-rename build
+            (`/tabelle`, `/termine`, `/spieltage`, `/vereine`, `/segler`, `/konto`,
+            `/verwaltung`) and the German legal aliases (`/impressum`, `/datenschutz`) are
+            deliberately gone: German is a language this site is *translated into*, never a
+            second set of identifiers. The catch-all below answers anyone who still tries
+            one. */}
         <Route path="standings" element={<Navigate to="/series" replace />} />
         <Route path="standings/:id" element={<LegacyRedirect to="/series/:id" />} />
-        <Route path="tabelle" element={<Navigate to="/series" replace />} />
-        <Route path="tabelle/:id" element={<LegacyRedirect to="/series/:id" />} />
-        <Route path="termine" element={<Navigate to="/events" replace />} />
-        <Route path="spieltage/:id" element={<LegacyRedirect to="/events/:id" />} />
-        <Route path="vereine" element={<Navigate to="/clubs" replace />} />
-        <Route path="vereine/:id" element={<LegacyRedirect to="/clubs/:id" />} />
-        <Route path="segler/:id" element={<LegacyRedirect to="/sailors/:id" />} />
-        <Route path="konto" element={<Navigate to="/account" replace />} />
-        <Route path="verwaltung" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

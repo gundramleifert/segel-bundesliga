@@ -16,7 +16,7 @@ from app.db import SessionLocal
 from app.models import Sailor, Series, Team, TeamMembership, WaiverConfirmation, WaiverText
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers
+from tests.stories.test_registration import auth_headers
 
 V2 = {
     "title_en": "Liability waiver v2",
@@ -343,7 +343,17 @@ class TestMinors:
         assert summary["cleared"] + summary["outstanding"] == len(summary["sailors"])
         # Nobody has confirmed for this fresh event yet.
         assert summary["cleared"] == 0
-        assert all(r["minor"] for r in summary["sailors"])
+
+        # `minor` is deliberately tri-state (`bool | None`) — see `is_minor`. Everyone in
+        # the junior series who *has* a birth date on file is a minor; someone with none is
+        # reported as unknown and **never** silently as an adult, which is the distinction
+        # the whole minors rule rests on. Asserting `all(row["minor"])` instead would be
+        # asserting something about the seed rather than about this endpoint: any other test
+        # that puts a sailor without a birth date into a junior squad makes it fail, which
+        # is exactly what happened.
+        assert summary["sailors"], "a junior act should list the series' squad"
+        assert all(row["minor"] is not False for row in summary["sailors"])
+        assert any(row["minor"] is True for row in summary["sailors"])
 
 
 class TestProblemFormat:

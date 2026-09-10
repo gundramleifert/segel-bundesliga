@@ -42,7 +42,7 @@ class EmailRequest(BaseModel):
     email: EmailStr
 
 
-class Registrierung(BaseModel):
+class Registration(BaseModel):
     email: EmailStr
     display_name: str = Field(min_length=2, max_length=120, description="First and last name")
 
@@ -162,7 +162,7 @@ async def providers() -> ProvidersOut:
     summary="Create an account",
 )
 async def registrieren(
-    request: Registrierung,
+    request: Registration,
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
 ) -> dict[str, str]:

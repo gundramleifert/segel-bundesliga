@@ -65,7 +65,7 @@ async def client(seeded):
         yield client
 
 
-class Kennungen:
+class Identifiers:
     """Slug -> primary key for seed data.
 
     Routes address via primary key; in stories a readable slug is much more
@@ -88,14 +88,14 @@ class Kennungen:
 
 
 @pytest.fixture
-async def ids(seeded) -> Kennungen:
+async def ids(seeded) -> Identifiers:
     from sqlalchemy import select
 
     from app.db import SessionLocal
     from app.models import Club, Event, Series
 
     async with SessionLocal() as session:
-        return Kennungen(
+        return Identifiers(
             clubs={c.slug: c.id for c in (await session.execute(select(Club))).scalars()},
             events={e.slug: e.id for e in (await session.execute(select(Event))).scalars()},
             series={s.slug: s.id for s in (await session.execute(select(Series))).scalars()},

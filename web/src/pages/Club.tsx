@@ -34,7 +34,7 @@ export function Club() {
         ) : (
           <span
             aria-hidden
-            className="grid size-20 shrink-0 place-items-center rounded-xl bg-marke-600 text-lg font-bold text-white"
+            className="grid size-20 shrink-0 place-items-center rounded-xl bg-brand-600 text-lg font-bold text-white"
           >
             {data.short_name.slice(0, 4)}
           </span>
@@ -53,7 +53,7 @@ export function Club() {
               target="_blank"
               rel="noreferrer noopener"
               data-testid="club-website-link"
-              className="mt-1 inline-block text-sm text-marke-700 underline-offset-2 hover:underline"
+              className="mt-1 inline-block text-sm text-brand-700 underline-offset-2 hover:underline"
             >
               {t("website")}
             </a>

@@ -21,7 +21,7 @@ from PIL import Image
 
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers
+from tests.stories.test_registration import auth_headers
 
 
 async def _headers(client, caplog, email: str, *roles: str, club_id: int | None = None):
@@ -280,7 +280,7 @@ class TestCrestAsEventLogo:
     async def test_an_event_without_its_own_logo_uses_the_uploaded_crest(
         self, client, caplog
     ):
-        admin = await _headers(client, caplog, "crest-ausrichter@example.com", Role.ADMIN)
+        admin = await _headers(client, caplog, "crest-host_club@example.com", Role.ADMIN)
         club = await _new_club(client, admin, short_name="WPV")
         uploaded = await client.post(
             f"/api/admin/clubs/{club['id']}/logo",

@@ -29,7 +29,7 @@ export function LanguageSwitcher() {
           data-testid={`language-switcher-${lang}`}
           className={`px-2 py-1.5 uppercase transition-colors ${
             current === lang
-              ? "bg-marke-600 font-medium text-white"
+              ? "bg-brand-600 font-medium text-white"
               : "bg-white text-slate-600 hover:bg-slate-100"
           }`}
         >

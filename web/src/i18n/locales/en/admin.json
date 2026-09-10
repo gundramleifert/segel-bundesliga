@@ -16,10 +16,9 @@
     "statsText": "{{count}} clubs, {{visible}} visible in the current year",
     "createdMessage": "{{name}} has been created.",
     "emptyText": "No clubs have been created yet.",
-    "crestUploadButton": "Upload crest",
-    "crestReplaceButton": "Replace crest",
-    "crestUploadingButton": "Uploading ...",
-    "crestRemoveButton": "Remove"
+    "crestRemoveButton": "Remove crest",
+    "crestUploadLabel": "Upload crest",
+    "crestReplaceLabel": "Replace crest"
   },
   "series": {
     "title": "Series",

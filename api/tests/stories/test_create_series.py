@@ -8,8 +8,8 @@ from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
-async def als(client, caplog, email: str, *rollen: str) -> dict[str, str]:
-    await make_user(email, *rollen)
+async def as_role(client, caplog, email: str, *roles: str) -> dict[str, str]:
+    await make_user(email, *roles)
     return {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
 
 
@@ -19,7 +19,7 @@ async def clubs(client, count: int = 3) -> list[dict]:
 
 class TestSeriesCreation:
     async def test_name_and_year_suffice(self, client, caplog):
-        headers = await als(client, caplog, "se1@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se1@example.com", Role.ADMIN)
         response = await client.post(
             "/api/admin/series",
             headers=headers,
@@ -36,7 +36,7 @@ class TestSeriesCreation:
         assert series["event_count"] == 0
 
     async def test_clubs_can_be_selected_immediately(self, client, caplog):
-        headers = await als(client, caplog, "se2@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se2@example.com", Role.ADMIN)
         selected = await clubs(client, 3)
 
         response = await client.post(
@@ -54,7 +54,7 @@ class TestSeriesCreation:
         assert {c["id"] for c in series["clubs"]} == {v["id"] for v in selected}
 
     async def test_selected_clubs_appear_in_series(self, client, caplog):
-        headers = await als(client, caplog, "se3@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se3@example.com", Role.ADMIN)
         selected = await clubs(client, 2)
 
         series = (
@@ -76,7 +76,7 @@ class TestSeriesCreation:
         assert {c["id"] for c in public} == {v["id"] for v in selected}
 
     async def test_participants_can_be_changed_later(self, client, caplog):
-        headers = await als(client, caplog, "se4@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se4@example.com", Role.ADMIN)
         all_clubs = await clubs(client, 4)
 
         series = (
@@ -99,7 +99,7 @@ class TestSeriesCreation:
 
     async def test_club_with_results_cannot_be_removed(self, client, caplog, ids):
         """Results are attached to a team that raced under it."""
-        headers = await als(client, caplog, "se5@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se5@example.com", Role.ADMIN)
 
         response = await client.put(
             f"/api/admin/series/{ids.series('dsbl-1-2026')}/clubs",
@@ -110,7 +110,7 @@ class TestSeriesCreation:
         assert "race results" in response.json()["detail"]
 
     async def test_unknown_club_is_reported(self, client, caplog):
-        headers = await als(client, caplog, "se6@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se6@example.com", Role.ADMIN)
         response = await client.post(
             "/api/admin/series",
             headers=headers,
@@ -120,7 +120,7 @@ class TestSeriesCreation:
         assert "999999" in response.json()["detail"]
 
     async def test_taken_url_is_detected(self, client, caplog):
-        headers = await als(client, caplog, "se7@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se7@example.com", Role.ADMIN)
         data = {"name": "Duplicate Series 2028", "year": 2028}
         assert (
             await client.post("/api/admin/series", headers=headers, json=data)
@@ -132,7 +132,7 @@ class TestSeriesCreation:
 
     async def test_admin_sees_all_years(self, client, caplog):
         """They plan ahead — not just the current year counts."""
-        headers = await als(client, caplog, "se8@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se8@example.com", Role.ADMIN)
         await client.post(
             "/api/admin/series",
             headers=headers,
@@ -149,7 +149,7 @@ class TestSeriesCreation:
 
     async def test_description_round_trips_through_the_api(self, client, caplog):
         """The free-text, Markdown description is set on creation and can be edited."""
-        headers = await als(client, caplog, "se11@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se11@example.com", Role.ADMIN)
         series = (
             await client.post(
                 "/api/admin/series",
@@ -179,7 +179,7 @@ class TestSeriesCreation:
         assert table.json()["series"]["description"] == "Updated text."
 
     async def test_series_can_be_renamed(self, client, caplog):
-        headers = await als(client, caplog, "se9@example.com", Role.ADMIN)
+        headers = await as_role(client, caplog, "se9@example.com", Role.ADMIN)
         series = (
             await client.post(
                 "/api/admin/series",
@@ -198,7 +198,7 @@ class TestSeriesCreation:
         assert changed.json()["level"] == 1
 
     async def test_editors_cannot_create_series(self, client, caplog):
-        headers = await als(client, caplog, "se10@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "se10@example.com", Role.EDITOR)
         response = await client.post(
             "/api/admin/series",
             headers=headers,

@@ -166,7 +166,7 @@ class TestSeriesStanding:
 
     async def test_latecomer_gets_substitute_scoring(self, client, caplog, ids):
         """A club assigned to the series later has not sailed anywhere."""
-        from tests.stories.test_serienzuordnung import as_role, new_club
+        from tests.stories.test_series_assignment import as_role, new_club
 
         header = await as_role(client, caplog, "sw-latecomer@example.com", Role.ADMIN)
         club = await new_club(client, header, "Latecomer Sailing Club", "ZSC")

@@ -23,9 +23,9 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Event, EventStatus
 from app.models.auth import Role
+from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers
-from tests.stories.test_veranstaltung_anlegen import admin
+from tests.stories.test_registration import auth_headers
 
 # The catalog's smallest entry (`app/pairing/schedules/t12-b6-f8.yml`).
 TEAMS = 12

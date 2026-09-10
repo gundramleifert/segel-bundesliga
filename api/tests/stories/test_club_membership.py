@@ -14,7 +14,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Club, ClubMemberStatus
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers, register
+from tests.stories.test_registration import auth_headers, register
 
 # Two fixed clubs from the seed that others don't touch.
 CLUB = "wyc"

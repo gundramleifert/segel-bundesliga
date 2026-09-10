@@ -72,10 +72,10 @@ async def login_as(client, email: str, caplog) -> str:
     return response.json()["access_token"]
 
 
-class TestAnmeldung:
+class TestSigningIn:
     """As a user, I want to sign in without a password."""
 
-    async def test_die_seite_sagt_welche_anmeldewege_offenstehen(self, client):
+    async def test_the_page_says_which_sign_in_methods_are_open(self, client):
         """The page tells which sign-in methods are available."""
         wege = (await client.get("/api/auth/providers")).json()
         # Email always works; providers only with configured application ID.
@@ -83,7 +83,7 @@ class TestAnmeldung:
         assert IdentityProvider.GOOGLE in wege and IdentityProvider.MICROSOFT in wege
         assert "allow_registration" in wege
 
-    async def test_mit_einem_einmalcode_komme_ich_hinein(self, client, caplog):
+    async def test_a_one_time_code_signs_me_in(self, client, caplog):
         """I can sign in with a one-time code."""
         await make_user("seglerin@example.org", Role.CLUB_MANAGER)
         token = await login_as(client, "seglerin@example.org", caplog)
@@ -94,7 +94,7 @@ class TestAnmeldung:
         assert response.status_code == 200
         assert response.json()["roles"] == [Role.CLUB_MANAGER]
 
-    async def test_der_code_gilt_nur_einmal(self, client, caplog):
+    async def test_a_code_works_only_once(self, client, caplog):
         """The code can only be used once."""
         import logging
 
@@ -108,7 +108,7 @@ class TestAnmeldung:
         zweiter = await client.post("/api/auth/email/verify", json=payload)
         assert zweiter.status_code == 401
 
-    async def test_ein_falscher_code_kommt_nicht_durch(self, client, caplog):
+    async def test_a_wrong_code_does_not_get_through(self, client, caplog):
         """A wrong code is rejected."""
         await make_user("falsch@example.org")
         await client.post("/api/auth/email/request", json={"email": "falsch@example.org"})
@@ -118,7 +118,7 @@ class TestAnmeldung:
         )
         assert response.status_code == 401
 
-    async def test_eine_unbekannte_adresse_verraet_nichts(self, client):
+    async def test_an_unknown_address_gives_nothing_away(self, client):
         """An unknown address reveals nothing — otherwise we could enumerate accounts."""
         response = await client.post(
             "/api/auth/email/request", json={"email": "gibtsnicht@example.org"}
@@ -126,15 +126,15 @@ class TestAnmeldung:
         assert response.status_code == 202
         assert await latest_code("gibtsnicht@example.org") is None
 
-    async def test_ohne_anmeldung_ist_der_eigene_bereich_zu(self, client):
+    async def test_the_own_area_is_closed_without_signing_in(self, client):
         """Without sign-in, the personal area is locked."""
         assert (await client.get("/api/auth/me")).status_code == 401
 
 
-class TestRollen:
+class TestRoles:
     """As an admin, I want to grant and revoke roles."""
 
-    async def test_ohne_verwaltungsrolle_bleibt_die_verwaltung_zu(self, client, caplog):
+    async def test_the_admin_area_stays_closed_without_an_admin_role(self, client, caplog):
         """Without an admin role, the admin area stays locked."""
         await make_user("gast@example.org")
         token = await login_as(client, "gast@example.org", caplog)
@@ -145,7 +145,7 @@ class TestRollen:
         assert response.status_code == 403
         assert "lack the permission" in response.json()["detail"]
 
-    async def test_die_verwaltung_kann_konten_anlegen_und_rollen_vergeben(self, client, caplog):
+    async def test_administration_can_create_accounts_and_grant_roles(self, client, caplog):
         """Admin can create accounts and assign roles."""
         await make_user("chefin@example.org", Role.ADMIN)
         token = await login_as(client, "chefin@example.org", caplog)
@@ -160,15 +160,15 @@ class TestRollen:
         assert angelegt.json()["roles"] == []
 
         user_id = angelegt.json()["id"]
-        geaendert = await client.put(
+        changed = await client.put(
             f"/api/auth/users/{user_id}/roles",
             headers=headers,
             json={"roles": [Role.RACE_OFFICER]},
         )
-        assert geaendert.status_code == 200
-        assert geaendert.json()["roles"] == [Role.RACE_OFFICER]
+        assert changed.status_code == 200
+        assert changed.json()["roles"] == [Role.RACE_OFFICER]
 
-    async def test_die_eigene_verwaltungsrolle_laesst_sich_nicht_selbst_entziehen(
+    async def test_nobody_can_revoke_their_own_admin_role(
         self, client, caplog
     ):
         """Cannot revoke your own admin role — otherwise the last admin could
@@ -183,7 +183,7 @@ class TestRollen:
         )
         assert response.status_code == 409
 
-    async def test_ein_gesperrtes_konto_kommt_nicht_hinein(self, client):
+    async def test_a_disabled_account_cannot_sign_in(self, client):
         """A suspended account cannot sign in."""
         await make_user("gesperrt@example.org", Role.ADMIN, active=False)
         response = await client.post(
@@ -197,7 +197,7 @@ class TestAdminWhitelist:
     """As a deployment operator, I want a whitelisted address to become admin on its
     first sign-in — otherwise a fresh deployment has no one who can grant any role."""
 
-    async def test_eine_gelistete_adresse_wird_beim_ersten_login_admin(
+    async def test_a_listed_address_becomes_admin_on_first_sign_in(
         self, client, caplog, monkeypatch
     ):
         """A whitelisted address becomes admin on its first sign-in."""
@@ -210,7 +210,7 @@ class TestAdminWhitelist:
         )
         assert response.json()["roles"] == [Role.ADMIN]
 
-    async def test_eine_nicht_gelistete_adresse_bleibt_ohne_rolle(self, client, caplog):
+    async def test_an_unlisted_address_stays_without_a_role(self, client, caplog):
         """An address not on the list gets no role, as before."""
         await make_user("niemand@example.org")
         token = await login_as(client, "niemand@example.org", caplog)
@@ -220,7 +220,7 @@ class TestAdminWhitelist:
         )
         assert response.json()["roles"] == []
 
-    async def test_die_rolle_wird_nicht_doppelt_vergeben(self, client, caplog, monkeypatch):
+    async def test_a_role_is_never_granted_twice(self, client, caplog, monkeypatch):
         """Signing in twice doesn't create a duplicate role row."""
         monkeypatch.setattr(settings, "admin_emails", ["chef@example.org"])
         await make_user("chef@example.org")
@@ -406,14 +406,14 @@ class TestDeleteMyAccount:
         assert still_there.recorded_by_user_id is None
 
 
-class TestZuschnittDesSpieltags:
+class TestTheShapeOfAMatchday:
     """Team count and boat count determine the races per flight."""
 
     @pytest.mark.parametrize(
         ("teams", "boats", "erwartet"),
         [(18, 6, 3), (17, 6, 3), (12, 6, 2), (12, 4, 3), (7, 4, 2)],
     )
-    def test_die_rennen_je_flight_ergeben_sich_aus_teams_und_booten(
+    def test_races_per_flight_follow_from_teams_and_boats(
         self, teams, boats, erwartet
     ):
         """Races per flight are derived from team count and boat count."""
@@ -423,19 +423,19 @@ class TestZuschnittDesSpieltags:
         assert event.races_per_flight == erwartet
         assert event.races_total == erwartet * 16
 
-    async def test_der_gesegelte_spieltag_kennt_seinen_zuschnitt(self, client, ids):
+    async def test_a_sailed_matchday_knows_its_own_shape(self, client, ids):
         """A raced matchday knows its configuration."""
         detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
         assert detail["races_total"] == 48
 
 
-class TestVereinszuordnung:
+class TestAssigningAClub:
     """As a club manager, I want to assign users to a club — permanently."""
 
     async def _clubs(self, client) -> list[dict]:
         return (await client.get("/api/clubs")).json()
 
-    async def test_die_zuordnung_gilt_ueber_spieltage_hinweg(self, client, caplog):
+    async def test_the_assignment_holds_across_matchdays(self, client, caplog):
         """Assignment persists across matchdays — it attaches to the account, not the event."""
         clubs = await self._clubs(client)
         await make_user("chef@example.org", Role.ADMIN)
@@ -451,13 +451,13 @@ class TestVereinszuordnung:
         assert response.status_code == 200
         assert response.json()["club_id"] == clubs[0]["id"]
 
-        # Auch nach einem erneuten Abruf steht sie noch — kein Bezug zu einem Spieltag.
-        erneut = await client.get(
+        # Still there when read again — the assignment hangs off no single matchday.
+        again = await client.get(
             "/api/auth/users", headers=headers, params={"club_id": clubs[0]["id"]}
         )
-        assert user_id in [u["id"] for u in erneut.json()]
+        assert user_id in [u["id"] for u in again.json()]
 
-    async def test_ein_vereinsverantwortlicher_ordnet_dem_eigenen_verein_zu(
+    async def test_a_club_manager_assigns_to_their_own_club(
         self, client, caplog
     ):
         """A club manager can assign users to their own club."""
@@ -475,7 +475,7 @@ class TestVereinszuordnung:
         assert response.status_code == 200
         assert response.json()["club_id"] == clubs[0]["id"]
 
-    async def test_ein_fremder_verein_laesst_sich_nicht_zuordnen(self, client, caplog):
+    async def test_nobody_assigns_a_club_that_is_not_theirs(self, client, caplog):
         """A club manager cannot assign users to other clubs — else they could seize teams."""
         clubs = await self._clubs(client)
         await make_user("manager2@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
@@ -490,7 +490,7 @@ class TestVereinszuordnung:
         )
         assert response.status_code == 403
 
-    async def test_wer_schon_woanders_ist_wird_nicht_abgeworben(self, client, caplog):
+    async def test_someone_already_elsewhere_is_not_poached(self, client, caplog):
         """Users already assigned to another club cannot be poached."""
         clubs = await self._clubs(client)
         await make_user("manager3@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
@@ -508,7 +508,7 @@ class TestVereinszuordnung:
         )
         assert response.status_code == 403
 
-    async def test_ohne_rolle_geht_gar_nichts(self, client, caplog):
+    async def test_nothing_works_without_a_role(self, client, caplog):
         """Without a role, a user cannot assign anyone to a club."""
         clubs = await self._clubs(client)
         await make_user("niemand@example.org")
@@ -522,7 +522,7 @@ class TestVereinszuordnung:
         )
         assert response.status_code == 403
 
-    async def test_ein_unbekannter_verein_wird_abgewiesen(self, client, caplog):
+    async def test_an_unknown_club_is_refused(self, client, caplog):
         """An unknown club is rejected."""
         await make_user("chef2@example.org", Role.ADMIN)
         token = await login_as(client, "chef2@example.org", caplog)
@@ -535,7 +535,7 @@ class TestVereinszuordnung:
         )
         assert response.status_code == 404
 
-    async def test_die_zuordnung_wird_protokolliert(self, client, caplog):
+    async def test_the_assignment_is_recorded_in_the_audit_log(self, client, caplog):
         """Club assignment is logged — entries, posts, and check-in depend on it."""
         from app.models import AuditLog
 
@@ -551,13 +551,13 @@ class TestVereinszuordnung:
         )
 
         async with SessionLocal() as session:
-            eintrag = (
+            entry = (
                 await session.execute(
                     select(AuditLog).where(
                         AuditLog.entity_type == "app_user", AuditLog.entity_id == user_id
                     )
                 )
             ).scalars().first()
-        assert eintrag is not None
-        assert eintrag.actor == "chef3@example.org"
-        assert eintrag.payload["to"] == clubs[0]["id"]
+        assert entry is not None
+        assert entry.actor == "chef3@example.org"
+        assert entry.payload["to"] == clubs[0]["id"]

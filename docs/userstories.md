@@ -19,7 +19,7 @@ Acceptance criteria:
 - For each matchday, the position achieved there is visible.
 - A not yet sailed matchday does not count.
 
-Tests: `api/tests/stories/test_visitor.py::TestLigatabelle`
+Tests: `api/tests/stories/test_visitor.py::TestSeriesTable`
 ```
 
 ---
@@ -35,7 +35,7 @@ Acceptance criteria:
 - For each matchday, the position achieved there is visible.
 - A not yet sailed matchday does not count.
 
-Tests: `api/tests/stories/test_visitor.py::TestLigatabelle`
+Tests: `api/tests/stories/test_visitor.py::TestSeriesTable`
 
 ### B-2 ● Review matchday results
 As a **fan** I want to **review how a matchday turned out**,
@@ -56,7 +56,7 @@ adds a clearly-marked, italic "≈ projected" total once any race in the matchda
 so a team that hasn't sailed yet no longer looks like it's provisionally winning outright with
 `net = 0` — purely a display computation, never used for `rank` or sorting.
 
-Tests: `api/tests/stories/test_visitor.py::TestSpieltagsergebnis`. The new UI additions
+Tests: `api/tests/stories/test_visitor.py::TestMatchdayResult`. The new UI additions
 (flight columns, projected total) have no additional automated test — verified via
 `pnpm typecheck`/`pnpm build` and against seeded data; Playwright e2e coverage for this page is
 a separate, not-yet-started task.
@@ -71,7 +71,7 @@ Acceptance criteria:
 - In each flight, each team sails exactly once.
 - Accessible before the matchday begins.
 
-Tests: `api/tests/stories/test_visitor.py::TestPairingListe`
+Tests: `api/tests/stories/test_visitor.py::TestPairingList`
 
 ### B-5 ○ Follow live updates
 As a **spectator** I want to **see current results on the page**,
@@ -105,7 +105,7 @@ As a **visitor** I want to **find the participating clubs and dates**.
 
 Open: club profile with squad and past results.
 
-Tests: `api/tests/stories/test_visitor.py::TestVereine`
+Tests: `api/tests/stories/test_visitor.py::TestClubs`
 
 ### B-7 ● View club page
 As a **visitor** I want to **see a club's page**,
@@ -126,7 +126,68 @@ Acceptance criteria:
 - The cards on `/vereine` lead to the club page.
 - Without a league assignment, the page remains accessible and says so.
 
-Tests: `api/tests/stories/test_vereinsseite.py::TestVereinsseite`
+Tests: `api/tests/stories/test_club_page.py::TestClubPage`
+
+### B-10 ○ My clubs beside the club search
+As **someone who sails**, I want **the clubs I belong to at the top of the clubs page**,
+so that I **reach my own club in one click instead of searching for it every time**.
+
+Today `/clubs` is one flat, searchable list of every club. For a visitor that is right; for
+the people who actually use this site every week it is wrong — they open the page to reach
+*their* club, and they have to type its name to find it among eighteen others.
+
+Acceptance criteria:
+- **"My clubs"** comes first: every club the signed-in account belongs to. Plural
+  deliberately — a person can be an active member of more than one club (Story V-7), and a
+  `club_manager` can manage several, so this is a list, never a single club.
+- What counts as "mine" is **active membership** (`ClubMember` with an accepted status), not
+  `User.club_id`. That field means "the club this account represents" and is a different,
+  narrower idea; a pending membership request does not put a club in this list either.
+- The **club search** sits beside it on a wide screen and **below it** on a phone — the
+  section that matters most has to be the one that is above the fold on the small screen.
+  It searches every club, exactly as it does now.
+- A **guest, or a signed-in account with no membership, sees no "My clubs" section at all**
+  — not an empty box explaining what would go there. The search then simply is the page,
+  which is what `/clubs` is today.
+- A club in "My clubs" is marked with **what the account is there**: member, or organizer of
+  it. That is the one place a person can check whether their manager rights actually
+  arrived, without opening the admin area.
+- Both sections lead to the same club page (Story B-11).
+
+Endpoints: `GET /api/clubs` exists and stays the search's source. What is missing is the
+account's own memberships as a list of clubs — `GET /api/clubs/mine` (signed-in only,
+returns the clubs plus this account's role in each), rather than making the frontend fan out
+over `GET /api/clubs/{id}/members` for all eighteen clubs to find itself.
+
+Tests: none yet
+
+### B-11 ○ Club page in tabs
+As a **visitor** I want the club page **split into Info, Team and Competition**,
+so that I **find what I came for instead of scrolling past everything else**.
+
+Story B-7 built this page as one column: crest and description, then the teams, then each
+team's squad, then each team's matchdays. That is everything a club has, in one scroll, and
+on a phone the competition data — the part that changes weekly — sits furthest from the top.
+
+Acceptance criteria:
+- Three tabs, in this order: **Info**, **Team**, **Competition**.
+  - **Info** — crest, name, location, website, description. The club as an organisation.
+  - **Team** — the squads. Per series team: the ten registered sailors, helm first,
+    each linking to their sailor page (Story B-8).
+  - **Competition** — the **series** the club is enrolled in and the **events** it enters,
+    including standalone events it hosts. This is the tab that answers "when do they sail
+    next" and "how did they do", so it carries the club's placing per event where one
+    exists.
+- The tab lives in the **URL** (`/clubs/:id/team`, or a query parameter — the existing
+  matchday tabs in `web/src/pages/Matchday.tsx` are the pattern to follow), so a tab can be
+  linked and survives a reload. `/clubs/:id` opens Info.
+- **Everyone sees all three tabs** without signing in. Nothing here is member-only: the same
+  rule as B-7 — no contact details, no birth dates, because names are on every result list
+  anyway and those two are not.
+- A tab with nothing in it says so plainly rather than rendering an empty table — a club
+  with no series enrollment keeps a working page (B-7 already requires this).
+
+Tests: none yet
 
 ### B-8 ● View sailor page
 As a **visitor** I want to **see who someone registers for and where they sail**.
@@ -145,7 +206,7 @@ Acceptance criteria:
 - No contact details, no birth year.
 - Accessible without login.
 
-Tests: `api/tests/stories/test_vereinsseite.py::TestSeglerseite`
+Tests: `api/tests/stories/test_club_page.py::TestSailorPage`
 
 ### B-9 ◐ Find legal notice and privacy policy
 As a **visitor** I want to **reach the legal notice and the privacy policy from every page**,
@@ -153,8 +214,10 @@ so that I **can see who runs this site and what happens to my data**.
 
 Acceptance criteria:
 - The footer links to both, on every page, without login.
-- Routes `/legal-notice` and `/privacy`, plus the German aliases `/impressum` and
-  `/datenschutz` — those are the words German visitors search for.
+- Routes `/legal-notice` and `/privacy`. Deliberately **no** German aliases: every route
+  on this site is English, and German is a language the site is translated into, never a
+  second set of identifiers. The page titles and all their text do read German through the
+  language switcher, which is what a German visitor actually needs.
 - Both pages read fully in German and English through the language switcher (`legal`
   namespace); no key exists in one language only.
 - The legal notice carries the § 5 DDG provider information and the person responsible
@@ -198,7 +261,7 @@ Acceptance criteria:
 - The response does not reveal whether an account exists for an address.
 - Accounts are created by creation, import, or **explicit registration** ([Z-4](#z-4--register-yourself)) — not silently when signing in with an unknown address.
 
-Tests: `api/tests/stories/test_login_and_roles.py::TestAnmeldung`
+Tests: `api/tests/stories/test_login_and_roles.py::TestSigningIn`
 
 ### Z-2 ● Assign roles
 As a **administrator** I want to **assign and revoke roles**, so that **everyone can only do
@@ -214,7 +277,7 @@ Acceptance criteria:
   who can grant the first role at all. Checked on every sign-in, not just account
   creation. See `docs/deploy.md`.
 
-Tests: `api/tests/stories/test_login_and_roles.py::TestRollen`,
+Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
 `api/tests/stories/test_login_and_roles.py::TestAdminWhitelist`
 
 ### Z-3 ● Assign user to club
@@ -230,7 +293,7 @@ Acceptance criteria:
 - People are discoverable by name and email so the assignment is practical.
 - Every change is logged: who, when, from which club to which.
 
-Tests: `api/tests/stories/test_login_and_roles.py::TestVereinszuordnung`
+Tests: `api/tests/stories/test_login_and_roles.py::TestAssigningAClub`
 
 ### Z-4 ● Register yourself
 As a **sailor** I want to **create an account for myself**, so that I **don't have to wait
@@ -249,7 +312,7 @@ Acceptance criteria:
 
 Endpoints: `POST /api/auth/register`, then `POST /api/auth/email/verify`
 
-Tests: `api/tests/stories/test_registrierung.py::TestRegistrierung`
+Tests: `api/tests/stories/test_registration.py::TestRegistering`
 
 ### Z-5 ● Request club membership
 As a **registered person** I want to **request membership in a club**, so that I **can sail
@@ -266,8 +329,8 @@ Acceptance criteria:
 Endpoints: `POST /api/club-memberships`, `GET /api/club-memberships`,
 `DELETE /api/club-memberships/{id}`
 
-Tests: `api/tests/stories/test_registrierung.py::TestAufnahmeAntrag`,
-`api/tests/stories/test_vereinsmitgliedschaft.py::TestPersonFragtAn`
+Tests: `api/tests/stories/test_registration.py::TestRequestingClubMembership`,
+`api/tests/stories/test_club_membership.py::TestPersonApplies`
 
 Open: More roles will be needed later.
 
@@ -396,7 +459,7 @@ Acceptance criteria:
 
 Endpoints: `POST /api/admin/events`
 
-Tests: `api/tests/stories/test_veranstaltung_anlegen.py::TestVeranstaltungAnlegen`
+Tests: `api/tests/stories/test_create_event.py::TestCreateEvent`
 
 ### VA-7 ● Take finished pairing list from catalog
 As an **event organizer** I want to **have the draw immediately**, so that I **don't wait
@@ -426,7 +489,7 @@ Endpoints: `GET /api/admin/pairing/catalog`,
 Extend catalog: `uv run python -m app.pairing.catalog --teams 18 --boats 6 --flights 16`
 
 Tests: `api/tests/unit/test_pairing_catalog.py`,
-`api/tests/stories/test_veranstaltung_anlegen.py::TestPairingAusDemKatalog`
+`api/tests/stories/test_create_event.py::TestPairingFromCatalog`
 
 ### VA-8 ● Save a draft, publish it, start it
 As an **event organizer** I want to **save an event that isn't finished yet, publish it when
@@ -537,7 +600,7 @@ Acceptance criteria:
 
 Endpoints: `POST /api/admin/clubs`, `PATCH /api/admin/clubs/{slug}`
 
-Tests: `api/tests/stories/test_stammdaten.py::TestVereineAnlegen`
+Tests: `api/tests/stories/test_master_data.py::TestClubCreation`
 
 ### A-2 ● Create matchday
 As an **event organizer** I want to **create a matchday with name, date, and host**,
@@ -557,7 +620,7 @@ Acceptance criteria:
 
 Endpoints: `POST /api/admin/events`, `PATCH /api/admin/events/{slug}`
 
-Tests: `api/tests/stories/test_stammdaten.py::TestSpieltagAnlegen`
+Tests: `api/tests/stories/test_master_data.py::TestCreatingAMatchday`
 
 Open: The interface for this is still missing — only via API so far.
 
@@ -583,7 +646,7 @@ Model: the assignment *is* `Team` — (club, series). No separate table is neede
 Endpoints: `PUT /api/admin/clubs/{id}/series`, `GET /api/admin/clubs`,
 `GET /api/clubs?year=&series=`
 
-Tests: `api/tests/stories/test_serienzuordnung.py`
+Tests: `api/tests/stories/test_series_assignment.py`
 
 ### A-4 ● Series includes its year
 As a **user** I want to **see the year from the name**,
@@ -599,7 +662,7 @@ Acceptance criteria:
 The **number of the act** belongs to the event, not the series: `Event.matchday`. An event
 without a series has none.
 
-Tests: `api/tests/stories/test_serienzuordnung.py::TestSerienname`
+Tests: `api/tests/stories/test_series_assignment.py::TestSeriesNaming`
 
 ### A-5 ● Series standings with substitute score
 As a **fan** I want to **see a series table that is correct even with missing clubs**.
@@ -614,7 +677,7 @@ Acceptance criteria:
 - The table shows which acts a team was missing — otherwise its points would be inexplicable.
 - A not-yet-sailed act does not count.
 
-Tests: `api/tests/stories/test_scoring_storage.py::TestSerienwertung`
+Tests: `api/tests/stories/test_scoring_storage.py::TestSeriesStanding`
 
 ### B-6 ● Read as guest without login
 As a **visitor without an account** I want to **see public pages**,
@@ -626,7 +689,7 @@ Acceptance criteria:
   treated as a guest (`app/auth.py::optional_user`).
 - Protected areas respond with 401 instead of partial data.
 
-Tests: `api/tests/stories/test_serienzuordnung.py::TestGastzugriff`
+Tests: `api/tests/stories/test_series_assignment.py::TestGuestAccess`
 
 ### A-6 ● Create series and select clubs
 As **administration** I want to **create a series and select clubs in the process**, so that
@@ -649,7 +712,7 @@ club to multiple series, here a series to multiple clubs. Both write the same `T
 Endpoints: `POST /api/admin/series`, `PATCH /api/admin/series/{id}`,
 `PUT /api/admin/series/{id}/clubs`, `GET /api/admin/series`
 
-Tests: `api/tests/stories/test_serie_anlegen.py`
+Tests: `api/tests/stories/test_create_series.py`
 
 Open: The interface for this is missing — only via API so far. Currently only `admin` has
 access; editorial may also create clubs. Whether that should remain is to be decided.
@@ -665,7 +728,7 @@ Already built that way (see [A-1](#a-1--create-clubs) and
 - It can maintain its page, have organizers and sailors, without belonging to a series.
 - Publicly, it only appears with its first **accepted** participation.
 
-Tests: `api/tests/stories/test_serienzuordnung.py::TestVereinAnlegenUndZuordnen`
+Tests: `api/tests/stories/test_series_assignment.py::TestClubCreationAndAssignment`
 
 ### A-8 ● Set up club organizer
 As **administration** I want to **give a club an organizer**,
@@ -696,7 +759,7 @@ Endpoints: `POST /api/admin/clubs/{club_id}/members/{user_id}/organizer`,
 `DELETE /api/admin/clubs/{club_id}/members/{user_id}/organizer` (an organizer of that club,
 or administration). `MembershipOut.organizer` reports the current state.
 
-Tests: `api/tests/stories/test_vereinsmitgliedschaft.py::TestOrganizerRole`
+Tests: `api/tests/stories/test_club_membership.py::TestOrganizerRole`
 
 ### Z-6 ● Removing an account deactivates it
 As **administration** I want **removing an account to leave the row in place**,
@@ -773,7 +836,7 @@ via the address.
 Endpoints: `GET /api/admin/sailors`, `POST /api/admin/sailors`,
 `PATCH /api/admin/sailors/{id}`
 
-Tests: `api/tests/stories/test_segler_und_kader.py::TestSeglerAnlegen`
+Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`
 
 ---
 
@@ -799,7 +862,7 @@ Acceptance criteria:
 Endpoints: `POST /api/applications`, `GET /api/applications`,
 `DELETE /api/applications/{team_id}`
 
-Tests: `api/tests/stories/test_teilnahme.py::TestAntragStellen`
+Tests: `api/tests/stories/test_participation.py::TestApplying`
 
 ### A-9 ● Accept or reject participation
 As **administration** I want to **accept or reject applications**,
@@ -819,7 +882,7 @@ Acceptance criteria:
 Endpoints: `GET /api/admin/applications`, `POST /api/admin/applications/{team_id}/accept`,
 `POST /api/admin/applications/{team_id}/reject`
 
-Tests: `api/tests/stories/test_teilnahme.py::TestEntscheidung`
+Tests: `api/tests/stories/test_participation.py::TestDecidingOnApplications`
 
 ### V-6 ● Request participation in an event
 As a **club manager** I want to **register my club for a single event**,
@@ -840,8 +903,8 @@ Acceptance criteria:
 Endpoints: `POST /api/applications` (with `event_id`),
 `GET /api/admin/events/{id}/clubs`, `PUT /api/admin/events/{id}/clubs`
 
-Tests: `api/tests/stories/test_teilnahme.py::TestTeilnahmeAnEinerVeranstaltung`,
-`::TestNurDieVereinsleitungMeldet`
+Tests: `api/tests/stories/test_participation.py::TestEnteringAnEvent`,
+`::TestOnlyTheClubOrganizerRegisters`
 
 ### How participation is modeled now
 
@@ -897,7 +960,7 @@ Acceptance criteria:
 Endpoints: `GET /api/admin/clubs/{id}/members`,
 `POST /api/club-memberships/{id}/accept`, `POST /api/club-memberships/{id}/reject`
 
-Tests: `api/tests/stories/test_vereinsmitgliedschaft.py::TestPersonFragtAn`
+Tests: `api/tests/stories/test_club_membership.py::TestPersonApplies`
 
 ### V-9 ● Invite someone to club
 As a **club manager** I want to **invite someone**, so that I **can register our sailors
@@ -916,7 +979,7 @@ Acceptance criteria:
 
 Endpoints: `POST /api/admin/clubs/{id}/members`
 
-Tests: `api/tests/stories/test_vereinsmitgliedschaft.py::TestVereinLaedtEin`,
+Tests: `api/tests/stories/test_club_membership.py::TestClubInvites`,
 `::TestBeideRichtungenTreffenSich`
 
 **Difference from competition participation.** Here two equal sides face each other: **both**
@@ -942,7 +1005,7 @@ Acceptance criteria:
 
 Endpoints: `GET /api/clubs/{id}/members`
 
-Tests: `api/tests/stories/test_vereinsmitgliedschaft.py::TestMemberRoster`
+Tests: `api/tests/stories/test_club_membership.py::TestMemberRoster`
 
 ### V-1 ● Register season squad
 As a **club manager** I want to **register the people who are allowed to sail for us**,
@@ -966,7 +1029,7 @@ squad can be changed (see "Deadlines remain out for now").
 Endpoints: `GET /api/admin/teams/{team_id}/members`,
 `PUT /api/admin/teams/{team_id}/members`
 
-Tests: `api/tests/stories/test_segler_und_kader.py::TestKaderMelden`
+Tests: `api/tests/stories/test_sailors_and_squads.py::TestRegisteringASquad`
 
 ### S-1 ○ Submit liability waiver online for the season
 As a **sailor** I want to **submit the liability waiver once online for the whole season**,
@@ -1034,7 +1097,7 @@ Endpoints: `GET /api/waiver`, `GET /api/admin/waiver/texts`, `POST /api/admin/wa
 `POST /api/series/{series_id}/waiver`, `POST /api/events/{event_id}/waiver`,
 `GET /api/admin/events/{event_id}/waivers`
 
-Tests: `api/tests/stories/test_haftungsausschluss.py`
+Tests: `api/tests/stories/test_waiver.py`
 
 Open: the reference version is the single one in force league-wide. A separate waiver text
 per series (e.g. a juniors-specific wording) would add `Series.waiver_text_id`; not built
@@ -1055,7 +1118,7 @@ Acceptance criteria:
 Access: the event's host-club leadership, plus `admin`, `editor`, `race_officer`. No fifth
 role was added — the on-site organizer is a `race_officer` or the host `club_manager`.
 
-Tests: `api/tests/stories/test_haftungsausschluss.py::TestMinors` (check-in list)
+Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list)
 
 ### V-2 ● Select sailors for matchday
 As a **club manager** I want to **name the four sailors for a matchday in advance**,
@@ -1078,7 +1141,7 @@ Acceptance criteria:
 
 Endpoints: `PUT /api/admin/events/{slug}/crew`, `GET /api/admin/events/{slug}/crew/{team_id}`
 
-Tests: `api/tests/stories/test_aufstellung.py`
+Tests: `api/tests/stories/test_lineup.py`
 
 Open: coupling to confirmed liability waiver (S-1, VA-5).
 
@@ -1126,6 +1189,39 @@ the *guardian's* signature recorded separately in S-1).
 
 Tests: `api/tests/stories/test_sailor_profile.py`
 
+### V-11 ○ Manage our own club page
+As a **club organizer** I want to **edit our club page where it is shown**,
+so that I **do not have to ask administration to fix our description or our crest**.
+
+A `club_manager` can already upload the crest (Story V-3) and maintain sailors (V-4) — but
+through the admin area, which is a different page from the one the public reads. The club
+page is where a manager notices that the description is out of date, and it is where they
+should be able to fix it.
+
+Acceptance criteria:
+- On the club page (Story B-11), a manager of **this** club — and `admin`/`editor` for any
+  club — sees the page's own editing affordances. Everyone else sees the page exactly as it
+  is today, with no disabled buttons and no hint that an editing mode exists.
+- The check is `User.manages_club(club_id)`, never `acting.club_id == club_id`:
+  `club_manager` is granted per club, so someone who organizes two clubs can maintain both,
+  and merely *representing* a club grants nothing (same rule as V-3).
+- **Info tab**: description, website and location are editable in place. Name and
+  abbreviation are **not** — the abbreviation is in the URL and in every external-id
+  mapping, so renaming a club stays an administration action.
+- **The crest is edited from the crest.** Hovering the crest shows a pen overlay when the
+  viewer may change it, and clicking it opens the file chooser — no separate "upload" button
+  beside it. Without the right, there is no overlay and the crest is just an image.
+- **Team tab**: a manager reaches the squad registration for their teams from here rather
+  than only from the admin area. The rules do not change — a squad hangs off the series
+  registration (V-1), and someone in a lineup cannot be dropped (V-2).
+- **Competition tab** stays read-only for a manager: which series a club is enrolled in is
+  an administration decision (A-3), and entering an event goes through a request that
+  administration accepts (V-6, A-9). A manager sees the state of those requests here.
+- Every change is a normal API call against the endpoints that already enforce these rules;
+  no new permission path is invented in the frontend.
+
+Tests: none yet
+
 ### V-3 ◐ Upload club crest
 As a **club manager** I want to **upload our club's crest**,
 so that **we are recognizable on the page**.
@@ -1168,10 +1264,16 @@ with no change on its side and none in the frontend, and removing the upload fal
 the external URL instead of leaving the club blank. The served URL carries a `?v=<mtime>`
 cache stamp, because the path itself is stable across replacements.
 
-**The UI** is the club list in `web/src/pages/Admin.tsx` (`ClubRow`): a thumbnail, an
-upload button that replaces when one already exists, and a remove button. The thumbnail
-sits on a checkerboard, because a crest whose transparency was deliberately preserved has
-to *read* as transparent rather than as a white rectangle that happens to match the page.
+**The UI** is the club list in `web/src/pages/Admin.tsx` (`ClubRow`). The crest is edited
+**from the crest**: hovering (or keyboard-focusing) the thumbnail reveals a pen over it, and
+activating it opens the file chooser — there is deliberately no separate "upload"/"replace"
+button, which said the same thing twice and put the action a row's width away from the thing
+it acts on. It is a real `<button>`, so the pen appears on focus as well as on hover; one
+that only showed under a mouse pointer would tell a keyboard user nothing. Removing keeps its
+own control, because removing is not replacing, and it appears only when there is something
+to remove. The thumbnail sits on a checkerboard, because a crest whose transparency was
+deliberately preserved has to *read* as transparent rather than as a white rectangle that
+happens to match the page.
 
 Endpoints: `POST /api/admin/clubs/{club_id}/logo`, `DELETE /api/admin/clubs/{club_id}/logo`,
 `GET /api/clubs/{club_id}/logo`
@@ -1230,7 +1332,7 @@ positions from the manual inputs (tap-assignment cannot produce one by construct
 in the UI and block Save immediately, ahead of the existing
 `/errors/race-result-duplicate-position` server-side check.
 
-Tests: `api/tests/stories/test_ergebniserfassung.py::TestErgebniserfassung`
+Tests: `api/tests/stories/test_result_entry.py::TestEnteringResults`
 
 ---
 

@@ -126,14 +126,28 @@ test.describe("Foundations", () => {
     await expect(page.getByTestId("layout-nav-clubs")).toHaveText("Vereine");
   });
 
-  test("bookmarks from before the English rewrite still work", async ({ page }) => {
-    // The German paths are kept as redirects — nothing bookmarked from an earlier build
-    // should break outright.
-    await page.goto("/vereine");
-    await expect(page).toHaveURL(/\/clubs$/);
+  test("the former single-league standings URLs still redirect", async ({ page }) => {
+    // These were the real URLs of a deployed build, so they stay. The pre-rename German
+    // paths were never public and are gone; the catch-all answers those.
+    await page.goto("/standings");
+    await expect(page).toHaveURL(/\/series$/);
 
-    await page.goto("/tabelle/1");
+    await page.goto("/standings/1");
     await expect(page).toHaveURL(/\/series\/1$/);
+  });
+
+  test("the mandatory legal pages are reachable from the footer of every page", async ({
+    page,
+  }) => {
+    // § 5 DDG requires them to be reachable from anywhere on a German public site, which
+    // is why they live in the footer rather than the main nav.
+    await page.goto("/clubs");
+    await page.getByTestId("layout-footer-legal-notice").click();
+    await expect(page).toHaveURL(/\/legal-notice$/);
+
+    await page.goto("/events");
+    await page.getByTestId("layout-footer-privacy").click();
+    await expect(page).toHaveURL(/\/privacy$/);
   });
 
   test("the page never scrolls sideways — not even with a wide table", async ({ page }) => {

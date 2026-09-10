@@ -14,7 +14,7 @@ from app.db import SessionLocal
 from app.models import Club, Event, Series, Team, TeamMembership
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
-from tests.stories.test_registrierung import auth_headers
+from tests.stories.test_registration import auth_headers
 
 
 async def as_role(client, caplog, email: str, *roles: str, club_id: int | None = None):
@@ -76,7 +76,7 @@ async def act_id(slug: str) -> int:
         ).scalar_one()
 
 
-class TestSeglerAnlegen:
+class TestCreatingSailors:
     """V-4: As club leadership, I want to create our sailors."""
 
     async def test_email_is_required(self, client, caplog):
@@ -101,7 +101,7 @@ class TestSeglerAnlegen:
         assert with_email.status_code == 201, with_email.text
         assert with_email.json()["first_name"] == "Marie"
 
-    async def test_die_adresse_ist_die_verbindung_zum_konto(self, client, caplog):
+    async def test_the_email_address_is_the_link_to_the_account(self, client, caplog):
         header = await as_role(client, caplog, "sg2@example.com", Role.ADMIN)
         response = await client.post(
             "/api/admin/sailors",
@@ -115,7 +115,7 @@ class TestSeglerAnlegen:
         # Stored lowercased — otherwise two spellings lead to two accounts.
         assert response.json()["email"] == "jan.vorschoter@example.com"
 
-    async def test_dieselbe_adresse_zweimal_wird_abgewiesen(self, client, caplog):
+    async def test_the_same_address_twice_is_refused(self, client, caplog):
         header = await as_role(client, caplog, "sg3@example.com", Role.ADMIN)
         data = {
             "first_name": "Doppel",
@@ -130,7 +130,7 @@ class TestSeglerAnlegen:
         assert second.status_code == 409
         assert "unique" in second.json()["detail"]
 
-    async def test_die_vereinsleitung_darf_es_auch(self, client, caplog):
+    async def test_the_club_leadership_may_do_it_too(self, client, caplog):
         """They know the spelling of names, the head office doesn't."""
         _team_id, club_id = await series_registration()
         header = await as_role(
@@ -147,7 +147,7 @@ class TestSeglerAnlegen:
         )
         assert response.status_code == 201
 
-    async def test_ein_konto_ohne_rolle_legt_niemanden_an(self, client, caplog):
+    async def test_an_account_without_a_role_creates_nobody(self, client, caplog):
         header = await as_role(client, caplog, "sg5@example.com")
         response = await client.post(
             "/api/admin/sailors",
@@ -160,7 +160,7 @@ class TestSeglerAnlegen:
         )
         assert response.status_code == 403
 
-    async def test_segler_lassen_sich_ueber_den_namen_finden(self, client, caplog):
+    async def test_sailors_can_be_found_by_name(self, client, caplog):
         header = await as_role(client, caplog, "sg6@example.com", Role.ADMIN)
         await client.post(
             "/api/admin/sailors",
@@ -176,7 +176,7 @@ class TestSeglerAnlegen:
         ).json()
         assert [t["last_name"] for t in matches] == ["Suchbar"]
 
-    async def test_ein_name_laesst_sich_berichtigen(self, client, caplog):
+    async def test_a_name_can_be_corrected(self, client, caplog):
         header = await as_role(client, caplog, "sg7@example.com", Role.ADMIN)
         created = (
             await client.post(
@@ -199,7 +199,7 @@ class TestSeglerAnlegen:
         assert updated.json()["last_name"] == "Fehler"
 
 
-class TestKaderMelden:
+class TestRegisteringASquad:
     """V-1: As club leadership, I register the people who may compete for us."""
 
     async def _new_sailors(self, client, header, count: int, marker: str) -> list[int]:
@@ -218,7 +218,7 @@ class TestKaderMelden:
             ids.append(response.json()["id"])
         return ids
 
-    async def test_der_kader_haengt_an_der_serienmeldung(self, client, caplog):
+    async def test_the_squad_hangs_off_the_series_registration(self, client, caplog):
         team_id, club_id = await series_registration()
         header = await as_role(
             client, caplog, "kd1@example.com", Role.CLUB_MANAGER, club_id=club_id
@@ -240,7 +240,7 @@ class TestKaderMelden:
         # Helm first — the order in which you name a crew.
         assert response.json()["members"][0]["role"] == "helm"
 
-    async def test_der_kader_ersetzt_den_bisherigen_vollstaendig(self, client, caplog):
+    async def test_a_new_squad_replaces_the_previous_one_completely(self, client, caplog):
         team_id, club_id = await series_registration()
         header = await as_role(
             client, caplog, "kd2@example.com", Role.CLUB_MANAGER, club_id=club_id
@@ -260,7 +260,7 @@ class TestKaderMelden:
         )
         assert {m["id"] for m in afterwards.json()["members"]} == set(sailors[:2])
 
-    async def test_niemand_steht_zweimal_im_selben_kader(self, client, caplog):
+    async def test_nobody_appears_twice_in_the_same_squad(self, client, caplog):
         team_id, club_id = await series_registration()
         header = await as_role(
             client, caplog, "kd3@example.com", Role.CLUB_MANAGER, club_id=club_id
@@ -280,7 +280,7 @@ class TestKaderMelden:
         assert response.status_code == 422
         assert "twice" in response.json()["detail"]
 
-    async def test_in_derselben_serie_nicht_fuer_zwei_vereine(self, client, caplog):
+    async def test_not_for_two_clubs_in_the_same_series(self, client, caplog):
         """Otherwise the person would be competing against themselves."""
         admin = await as_role(client, caplog, "kd4a@example.com", Role.ADMIN)
         first_team, _ = await series_registration(most_recent=True)
@@ -302,7 +302,7 @@ class TestKaderMelden:
         assert second.status_code == 409
         assert "once per series" in second.json()["detail"]
 
-    async def test_in_zwei_serien_fuer_zwei_vereine_ist_erlaubt(self, client, caplog):
+    async def test_two_clubs_in_two_different_series_is_allowed(self, client, caplog):
         admin = await as_role(client, caplog, "kd5@example.com", Role.ADMIN)
         juniors, _ = await series_registration("junioren-2026")
         scl, _ = await series_registration("scl-2026")
@@ -316,7 +316,7 @@ class TestKaderMelden:
             )
             assert response.status_code == 200, response.text
 
-    async def test_ein_fremder_verein_meldet_nicht(self, client, caplog):
+    async def test_a_club_that_is_not_theirs_registers_nobody(self, client, caplog):
         team_id, club_id = await series_registration()
         other = await as_role(
             client, caplog, "kd6@example.com", Role.CLUB_MANAGER, club_id=club_id + 1
@@ -326,7 +326,7 @@ class TestKaderMelden:
         )
         assert response.status_code == 403
 
-    async def test_am_antritt_zu_einem_act_haengt_kein_kader(self, client, caplog):
+    async def test_entering_an_act_carries_no_squad_of_its_own(self, client, caplog):
         """Registered for the series, selected for individual matchdays."""
         admin = await as_role(client, caplog, "kd7@example.com", Role.ADMIN)
         async with SessionLocal() as session:
@@ -344,7 +344,7 @@ class TestKaderMelden:
         assert response.status_code == 422
         assert "series registration" in response.json()["detail"]
 
-    async def test_wer_aufgestellt_ist_faellt_nicht_aus_dem_kader(self, client, caplog):
+    async def test_someone_in_a_lineup_cannot_drop_out_of_the_squad(self, client, caplog):
         """Otherwise a lineup would exist that has no registration anymore."""
         admin = await as_role(client, caplog, "kd8@example.com", Role.ADMIN)
 

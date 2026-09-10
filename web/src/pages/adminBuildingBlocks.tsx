@@ -140,7 +140,7 @@ export function ClubSelector({
             placeholder={t("common:transferList.filterPlaceholder")}
             aria-label={t("common:transferList.filterPlaceholder")}
             data-testid={`${resolvedTestId}-filter-input`}
-            className="w-full rounded border border-slate-300 px-2 py-1 text-sm outline-none focus:border-marke-500 focus:ring-1 focus:ring-marke-200"
+            className="w-full rounded border border-slate-300 px-2 py-1 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
           />
         </div>
         <p className="px-2 pt-2 text-xs font-medium uppercase tracking-wide text-slate-500">

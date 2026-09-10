@@ -44,7 +44,7 @@ export function Empty({ children, testId }: { children: ReactNode; testId?: stri
 const STATUS_STYLE: Record<string, string> = {
   planned: "bg-slate-100 text-slate-700 ring-slate-200",
   live: "bg-emerald-100 text-emerald-800 ring-emerald-300",
-  final: "bg-marke-100 text-marke-800 ring-marke-200",
+  final: "bg-brand-100 text-brand-800 ring-brand-200",
   cancelled: "bg-red-100 text-red-800 ring-red-200",
 };
 

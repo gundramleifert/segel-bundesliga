@@ -28,10 +28,10 @@ async def new_club(client, headers, name: str) -> dict:
     return response.json()
 
 
-class TestAntragStellen:
+class TestApplying:
     """V-5: As a club officer, I register my club."""
 
-    async def test_ein_verein_meldet_sich_selbst_an(self, client, caplog, ids):
+    async def test_a_club_registers_itself(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tn1a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Bewerber Segelclub")
         headers = await club_leadership(client, caplog, "tn1@example.com", club["id"])
@@ -44,7 +44,7 @@ class TestAntragStellen:
         assert response.status_code == 201, response.text
         assert response.json()["status"] == "requested"
 
-    async def test_ein_antrag_macht_den_verein_noch_nicht_sichtbar(self, client, caplog, ids):
+    async def test_an_application_does_not_make_the_club_public_yet(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tn2a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Wartender Segelclub")
         headers = await club_leadership(client, caplog, "tn2@example.com", club["id"])
@@ -58,7 +58,7 @@ class TestAntragStellen:
         public = (await client.get("/api/clubs")).json()
         assert club["slug"] not in {v["slug"] for v in public}
 
-    async def test_der_verein_sieht_den_stand_seines_antrags(self, client, caplog, ids):
+    async def test_the_club_sees_where_its_application_stands(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tn3a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Neugieriger Segelclub")
         headers = await club_leadership(client, caplog, "tn3@example.com", club["id"])
@@ -74,7 +74,7 @@ class TestAntragStellen:
         assert own[0]["status"] == "requested"
         assert own[0]["series"]["slug"] == "junioren-2026"
 
-    async def test_ein_fremder_verein_laesst_sich_nicht_anmelden(self, client, caplog, ids):
+    async def test_nobody_registers_a_club_that_is_not_theirs(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tn4a@example.com", Role.ADMIN)
         own = await new_club(client, admin, "Eigener Segelclub")
         other = await new_club(client, admin, "Fremder Segelclub")
@@ -87,7 +87,7 @@ class TestAntragStellen:
         )
         assert response.status_code == 403
 
-    async def test_ein_zweiter_antrag_wird_abgewiesen(self, client, caplog, ids):
+    async def test_a_second_application_is_refused(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tn5a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Hartnaeckiger Segelclub")
         headers = await club_leadership(client, caplog, "tn5@example.com", club["id"])
@@ -99,7 +99,7 @@ class TestAntragStellen:
         second = await client.post("/api/applications", headers=headers, json=data)
         assert second.status_code == 409
 
-    async def test_ein_antrag_laesst_sich_zurueckziehen(self, client, caplog, ids):
+    async def test_an_application_can_be_withdrawn(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tn6a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Unentschlossener Segelclub")
         headers = await club_leadership(client, caplog, "tn6@example.com", club["id"])
@@ -116,7 +116,7 @@ class TestAntragStellen:
         assert result.status_code == 204
         assert (await client.get("/api/applications", headers=headers)).json() == []
 
-    async def test_ohne_rolle_geht_gar_nichts(self, client, caplog, ids):
+    async def test_nothing_works_without_a_role(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tn7a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Rollenloser Segelclub")
         headers = await as_role(client, caplog, "tn7@example.com")
@@ -129,7 +129,7 @@ class TestAntragStellen:
         assert response.status_code == 403
 
 
-class TestEntscheidung:
+class TestDecidingOnApplications:
     """A-9: As an admin, I accept or reject applications."""
 
     async def _antrag(self, client, caplog, name: str, email: str, ids, serie="dsbl-2-2026"):
@@ -145,7 +145,7 @@ class TestEntscheidung:
         ).json()
         return admin, club, application
 
-    async def test_annehmen_macht_den_verein_zum_teilnehmer(self, client, caplog, ids):
+    async def test_accepting_makes_the_club_a_participant(self, client, caplog, ids):
         admin, club, application = await self._antrag(
             client, caplog, "Angenommener Segelclub", "tn8", ids
         )
@@ -176,7 +176,7 @@ class TestEntscheidung:
         public = (await client.get("/api/clubs")).json()
         assert club["slug"] not in {v["slug"] for v in public}
 
-    async def test_der_verein_erfaehrt_die_ablehnung(self, client, caplog, ids):
+    async def test_the_club_learns_it_was_rejected(self, client, caplog, ids):
         admin, club, application = await self._antrag(
             client, caplog, "Erfahrender Segelclub", "tn10", ids
         )
@@ -191,7 +191,7 @@ class TestEntscheidung:
         assert own[0]["status"] == "rejected"
         assert own[0]["decision_note"] == "Zu spät gemeldet."
 
-    async def test_nach_einer_ablehnung_ist_ein_neuer_anlauf_moeglich(self, client, caplog, ids):
+    async def test_a_new_attempt_is_possible_after_a_rejection(self, client, caplog, ids):
         admin, club, application = await self._antrag(
             client, caplog, "Zweiter Anlauf Segelclub", "tn11", ids
         )
@@ -208,7 +208,7 @@ class TestEntscheidung:
         assert retry.status_code == 201
         assert retry.json()["status"] == "requested"
 
-    async def test_die_verwaltung_sieht_die_offenen_antraege(self, client, caplog, ids):
+    async def test_administration_sees_the_open_applications(self, client, caplog, ids):
         admin, _club, _application = await self._antrag(
             client, caplog, "Offener Segelclub", "tn12", ids
         )
@@ -217,7 +217,7 @@ class TestEntscheidung:
         assert any(a["club"]["name"] == "Offener Segelclub" for a in pending)
         assert all(a["status"] == "requested" for a in pending)
 
-    async def test_jede_entscheidung_wird_protokolliert(self, client, caplog, ids):
+    async def test_every_decision_is_recorded_in_the_audit_log(self, client, caplog, ids):
         admin, _club, application = await self._antrag(
             client, caplog, "Protokollierter Segelclub", "tn13", ids
         )
@@ -238,7 +238,7 @@ class TestEntscheidung:
         assert entry.payload["to"] == "accepted"
         assert entry.actor == "tn13-adm@example.com"
 
-    async def test_eine_teilnahme_mit_ergebnissen_laesst_sich_nicht_widerrufen(
+    async def test_an_entry_with_results_cannot_be_withdrawn(
         self, client, caplog, ids
     ):
         """A team that has raced has results attached."""
@@ -258,7 +258,7 @@ class TestEntscheidung:
         assert response.status_code == 409
         assert "race results" in response.json()["detail"]
 
-    async def test_ein_vereinskonto_darf_nicht_entscheiden(self, client, caplog, ids):
+    async def test_a_club_account_cannot_decide(self, client, caplog, ids):
         _admin, club, application = await self._antrag(
             client, caplog, "Selbstentscheider Segelclub", "tn15", ids
         )
@@ -270,14 +270,14 @@ class TestEntscheidung:
         assert response.status_code == 403
 
 
-class TestTeilnahmeAnEinerVeranstaltung:
+class TestEnteringAnEvent:
     """V-6: As a club officer, I register my club for an event.
 
     The pairing list is attached to the event, as is participation. For an act of a series:
     whoever participates must also be registered for the series.
     """
 
-    async def test_ein_verein_meldet_sich_fuer_eine_einzelveranstaltung_an(
+    async def test_a_club_registers_for_a_standalone_event(
         self, client, caplog, ids
     ):
         admin = await as_role(client, caplog, "tv1a@example.com", Role.ADMIN)
@@ -300,7 +300,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
         assert response.json()["status"] == "requested"
         assert response.json()["event"]["title"] == "Offener Herbstpokal"
 
-    async def test_ein_beantragter_verein_wird_nicht_ausgelost(self, client, caplog, ids):
+    async def test_a_club_that_only_applied_is_not_drawn(self, client, caplog, ids):
         """Until acceptance, an application doesn't count anywhere — not even in the draw."""
         from app.db import SessionLocal
         from app.models import Event
@@ -328,7 +328,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
             assert event is not None
             assert await event_entries(session, event.id) == []
 
-    async def test_wer_nicht_fuer_die_serie_gemeldet_ist_tritt_bei_ihrem_act_nicht_an(
+    async def test_someone_not_registered_for_the_series_cannot_enter_its_act(
         self, client, caplog, ids
     ):
         """Otherwise a club would appear in the daily standings but not in any series table."""
@@ -344,7 +344,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
         assert response.status_code == 422
         assert "isn't registered for this event's series" in response.json()["detail"]
 
-    async def test_die_verwaltung_setzt_ohne_rueckfrage_zu(self, client, caplog, ids):
+    async def test_administration_adds_someone_without_asking(self, client, caplog, ids):
         """The other direction needs no consent: the admin assigns.
 
         Unlike club membership, where both sides must agree.
@@ -367,7 +367,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
         assert result.status_code == 200, result.text
         assert [z["status"] for z in result.json()] == ["accepted"]
 
-    async def test_eine_zusage_von_oben_hebt_den_offenen_antrag_auf(
+    async def test_an_approval_from_above_lifts_the_open_application(
         self, client, caplog, ids
     ):
         admin = await as_role(client, caplog, "tv5a@example.com", Role.ADMIN)
@@ -394,7 +394,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
         )
         assert [z["status"] for z in result.json()] == ["accepted"]
 
-    async def test_die_acts_einer_serie_uebernehmen_ihre_vereine(self, client, caplog, ids):
+    async def test_the_acts_of_a_series_adopt_its_clubs(self, client, caplog, ids):
         """Normally, the same clubs participate in all acts."""
         admin = await as_role(client, caplog, "tv6a@example.com", Role.ADMIN)
         created = (
@@ -422,7 +422,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
         assert {z["club"]["id"] for z in participants} == {c["id"] for c in s["clubs"]}
         assert all(z["status"] == "accepted" for z in participants)
 
-    async def test_entweder_serie_oder_veranstaltung_aber_nicht_beides(
+    async def test_either_a_series_or_an_event_but_not_both(
         self, client, caplog, ids
     ):
         admin = await as_role(client, caplog, "tv7a@example.com", Role.ADMIN)
@@ -441,7 +441,7 @@ class TestTeilnahmeAnEinerVeranstaltung:
         assert response.status_code == 422
 
 
-class TestNurDieVereinsleitungMeldet:
+class TestOnlyTheClubOrganizerRegisters:
     """V-6: Only the club organizer registers participants for series and events."""
 
     async def test_ein_gewoehnliches_mitglied_meldet_niemanden(self, client, caplog, ids):
@@ -471,7 +471,7 @@ class TestNurDieVereinsleitungMeldet:
         assert response.status_code == 403
         assert "club officers" in response.json()["detail"]
 
-    async def test_die_wettfahrtleitung_meldet_auch_niemanden(self, client, caplog, ids):
+    async def test_the_race_committee_registers_nobody_either(self, client, caplog, ids):
         """They run the races — the club registers itself."""
         admin = await as_role(client, caplog, "nv2a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Wettfahrt Segelclub")

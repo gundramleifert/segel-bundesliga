@@ -96,9 +96,9 @@ def test_discards_remove_the_worst_result_once_configured():
 
 
 def test_dne_survives_a_discard():
-    """""A non-discardable disqualification remains.
+    """A non-discardable disqualification remains.
 
-    Gestrichen wird stattdessen das nächstschlechte Ergebnis.
+    The next-worst result is dropped in its place.
     """
     config = ScoringConfig(discard_after=(2,))
     dne = RaceResult(race_id=1, sequence=1, starters=STARTERS, code=ResultCode.DNE)
