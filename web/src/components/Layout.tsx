@@ -33,7 +33,7 @@ export function Layout() {
     : NAV_ITEMS;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-surface text-ink">
+    <div className="flex min-h-dvh flex-col bg-page text-ink">
       <a
         href="#content"
         data-testid="layout-skip-link"

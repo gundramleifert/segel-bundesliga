@@ -1,9 +1,9 @@
 @import "tailwindcss";
 @import "@heroui/react/styles";
 
-/* Farben von deutsche-segelbundesliga.de übernommen:
-   #3166B1 als Markenblau, #EBEDF2 als ruhige Fläche, #121212 als Schrift.
-   Die übrigen Werte im dortigen Stylesheet sind WordPress-Theme-Vorgaben, kein Branding. */
+/* Colors taken from deutsche-segelliga.de: #3166B1 as the brand blue, #EBEDF2 as the quiet
+   backdrop, #121212 as the text color. The remaining values in that stylesheet are
+   WordPress theme defaults, not branding. */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
@@ -18,7 +18,12 @@
   --color-brand-800: #1d3a64;
   --color-brand-900: #182f52;
 
-  --color-surface: #ebedf2;
+  /* The page backdrop. Deliberately **not** called `surface`: HeroUI's own theme defines
+     `--color-surface` (white) and its Card is literally `@apply bg-surface`, so naming our
+     backdrop that way overrode the card's background with the page's — every card ended up
+     the same color as the page it sits on, borders and shadow the only thing left of it.
+     `page` is ours, `surface` stays HeroUI's. */
+  --color-page: #ebedf2;
   --color-ink: #121212;
 }
 
