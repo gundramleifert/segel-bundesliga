@@ -116,6 +116,16 @@ These points were deliberately decided this way; bypassing them costs a lot late
   registrations are pre-selected by default.
 - **A club appears publicly only when enrolled.** `GET /api/clubs` filters by year;
   a newly created club is visible only in `/api/admin/clubs`.
+- **Participation is public, affiliation is not.** Whoever is registered for a Series or
+  entered into an Event is named publicly — the pairing list, the results and the standings
+  carry that name anyway, so hiding it on the club page would be theatre. Plain club
+  **membership** (`ClubMember`) is different: it is shown only to that club's own active
+  members and to `admin`/`editor` (`GET /api/clubs/{id}/members`, Story V-10). Never widen
+  the roster to guests, and never gate a squad or a lineup behind a login.
+  A sailor may additionally switch off their own **profile page** (`Sailor.profile_public`,
+  Story S-4) — that hides the collection (photo, club and matchday history, the page
+  itself), while the **name** stays on every competition record, as plain text instead of a
+  link. So: a name in a result is never hidden, and a profile page is never forced.
 - **Who misses an Event gets that Event's participant count + 1 points.** Not showing up must
   never be better than showing up and finishing last
   (`app/services/standings.py::compute_series`).

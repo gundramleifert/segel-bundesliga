@@ -172,8 +172,10 @@ on a phone the competition data — the part that changes weekly — sits furthe
 Acceptance criteria:
 - Three tabs, in this order: **Info**, **Team**, **Competition**.
   - **Info** — crest, name, location, website, description. The club as an organisation.
-  - **Team** — the squads. Per series team: the ten registered sailors, helm first,
-    each linking to their sailor page (Story B-8).
+  - **Team** — two lists that must not be conflated, because they are visible to
+    different people (see the visibility rule below): the **squads** per series team —
+    the ten registered sailors, helm first, each linking to their sailor page (Story
+    B-8) — and, for a member, the club's **member roster** (Story V-10).
   - **Competition** — the **series** the club is enrolled in and the **events** it enters,
     including standalone events it hosts. This is the tab that answers "when do they sail
     next" and "how did they do", so it carries the club's placing per event where one
@@ -181,9 +183,18 @@ Acceptance criteria:
 - The tab lives in the **URL** (`/clubs/:id/team`, or a query parameter — the existing
   matchday tabs in `web/src/pages/Matchday.tsx` are the pattern to follow), so a tab can be
   linked and survives a reload. `/clubs/:id` opens Info.
-- **Everyone sees all three tabs** without signing in. Nothing here is member-only: the same
-  rule as B-7 — no contact details, no birth dates, because names are on every result list
-  anyway and those two are not.
+- **Everyone sees all three tabs** without signing in — but the Team tab's two lists differ:
+  **participation is public, affiliation is not.** Whoever a club registers for a series or
+  enters into an event is publicly named, because they appear on every pairing list, result
+  and standings row anyway; simply *belonging* to the club is shown only to the club's own
+  active members (and `admin`/`editor` staff), exactly as Story V-10 already enforces on
+  `GET /api/clubs/{id}/members`.
+  - So a guest sees the squads and, where the roster would be, nothing at all — not a
+    locked box and not a sign-in prompt. The tab never advertises what it is withholding.
+  - Consequence worth naming: a member who is in no squad is **not** publicly listed
+    anywhere on this page, which is the point of the split.
+  - Still no contact details and no birth dates for anyone, member or not, the same rule
+    as B-7 — the roster adds display name and organizer status, nothing more.
 - A tab with nothing in it says so plainly rather than rendering an empty table — a club
   with no series enrollment keeps a working page (B-7 already requires this).
 
@@ -204,7 +215,9 @@ Acceptance criteria:
 - Name, the clubs and leagues of the season with role, the matchdays with role.
 - A substitute is registered but not placed anywhere — the page says so.
 - No contact details, no birth year.
-- Accessible without login.
+- Accessible without login — **unless the sailor has switched their profile off**
+  (Story S-4), in which case this page is theirs and their club's, and the rest of the
+  site shows their name without a link to it.
 
 Tests: `api/tests/stories/test_club_page.py::TestSailorPage`
 
@@ -1219,6 +1232,50 @@ the *guardian's* signature recorded separately in S-1).
 
 Tests: `api/tests/stories/test_sailor_profile.py`
 
+### S-4 ○ Decide whether my own profile is public
+As a **sailor** I want to **decide whether my profile page is public**,
+so that I **can compete without having a page about me on the open internet**.
+
+The site names whoever sails — the pairing list, the results and the standings all carry
+the name, and a race cannot be published without them. A **profile page** is a different
+thing: it collects a photo, every club and series someone has sailed for, and every
+matchday they were in a lineup for, in one place, under one URL. That collection is the
+part a person should be able to decline.
+
+Acceptance criteria:
+- One switch on the sailor's own profile (`PATCH /api/sailors/me`, a `profile_public`
+  boolean on `Sailor`). **The sailor owns this choice**: a club manager, an `editor` or an
+  `admin` can see the setting but cannot flip it for someone else — this is the one field
+  on the sailor record that management does not maintain (contrast V-4, where they
+  maintain all of it).
+- **Off means the profile page is not public**: `GET /api/sailors/{id}` answers 404 for a
+  guest, so the page does not confirm that the person exists to whoever guesses an id.
+  Signed in it still opens for the people already connected to that record — the sailor
+  themselves, `admin`/`editor`, and a manager of a club they are registered with — the
+  same circle Story S-2 already uses for a minor's photo.
+- **The name stays visible wherever they compete, and only the name.** In a squad, a
+  lineup, a pairing list, a result row or a standings row, a hidden profile appears as
+  plain text instead of a link to the page — never as "anonymous", never omitted. Hiding
+  a name there would make the pairing list unusable for the race committee and the
+  results unverifiable for everyone else, and the same name is on the notice board at the
+  club anyway.
+  - Correspondingly **no photo** travels with the name in those places while the profile
+    is off, and no birth date or club history — the competition views carry the name and
+    the sporting facts of that competition, nothing about the person.
+- **The default follows age**, not a blanket choice: an adult's profile starts public
+  (that is what B-8 is for and what the clubs want), a **minor's starts off**, matching
+  S-2's existing rule that a minor's photo is not public. A sailor with no recorded
+  birth date counts as an adult here, because `is_minor` returns `None` and guessing
+  "minor" would hide most of the seed; the switch is theirs to turn off either way.
+- Turning the switch back on is symmetric and immediate — no review step, no
+  administration involved.
+
+Open: whether a guardian can set this for a minor. Today only the sailor's own linked
+account can, exactly as with the photo (S-2) — noted there as out of scope for the same
+reason.
+
+Tests: none yet
+
 ### V-11 ○ Manage our own club page
 As a **club organizer** I want to **edit our club page where it is shown**,
 so that I **do not have to ask administration to fix our description or our crest**.
@@ -1243,7 +1300,9 @@ Acceptance criteria:
   beside it. Without the right, there is no overlay and the crest is just an image.
 - **Team tab**: a manager reaches the squad registration for their teams from here rather
   than only from the admin area. The rules do not change — a squad hangs off the series
-  registration (V-1), and someone in a lineup cannot be dropped (V-2).
+  registration (V-1), and someone in a lineup cannot be dropped (V-2). The member roster
+  on this tab is the members-only one (V-10); a manager additionally sees the pending
+  requests they have to decide on (V-8), which no other member does.
 - **Competition tab** stays read-only for a manager: which series a club is enrolled in is
   an administration decision (A-3), and entering an event goes through a request that
   administration accepts (V-6, A-9). A manager sees the state of those requests here.
