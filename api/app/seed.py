@@ -296,7 +296,7 @@ async def seed() -> None:
         ):
             event = Event(
                 slug=f"dsbl-1-2026-act-{matchday}",
-                title=f"{matchday}. Spieltag {venue.city}",
+                title=f"Act {matchday} {venue.city}",
                 matchday=matchday,
                 starts_on=day,
                 ends_on=day + timedelta(days=2),

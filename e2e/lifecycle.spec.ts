@@ -17,6 +17,13 @@ import { expect, test, type Page } from "@playwright/test";
 
 const ADMIN = "admin@sbl.example.com";
 
+/** The seeded series with the league's own 18 clubs registered to it.
+ *
+ *  Selected **by name**, never by index: the admin series list is ordered by year
+ *  descending, so any series a previous run created for a later year sorts above this one —
+ *  and picking it by position quietly tested an empty series instead. */
+const LEAGUE_SERIES = "1. Segel-Bundesliga 2026";
+
 /** A token for a seeded test account, put where the app looks for it. */
 async function signIn(page: Page, email: string): Promise<void> {
   // Relative, so it goes through Vite's own /api proxy — the same path the app uses, and
@@ -35,6 +42,23 @@ async function signIn(page: Page, email: string): Promise<void> {
 /** A title nothing else in the database can collide with. */
 function uniqueTitle(prefix: string): string {
   return `${prefix} ${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+}
+
+/** Opens the admin page and waits until its data has actually arrived.
+ *
+ *  Not ceremony: filling a form the instant `/admin` responds submits while the page's own
+ *  queries are still in flight, and the list then renders the pre-submit response — a state
+ *  no person reaches, because nobody types faster than the first paint. Waiting for the
+ *  lists makes the test do what a user does. (Once the list has loaded, a create *is*
+ *  reflected immediately — verified separately.)
+ *
+ *  The catalog select is the "form is ready" signal: the create button cannot be used as
+ *  one, because it is also disabled while the title is empty. */
+async function openAdmin(page: Page): Promise<void> {
+  await page.goto("/admin");
+  await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
+  await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
+  await expect(page.getByTestId("admin-events-catalog-select")).toBeVisible();
 }
 
 /** The row of the manage list belonging to a freshly created event, opened.
@@ -61,7 +85,7 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Draft Cup");
 
-    await page.goto("/admin");
+    await openAdmin(page);
     await page.getByTestId("admin-events-title-input").fill(title);
     // Deliberately nothing else: no date, no series, no host. This is the normal early
     // state of an event, and the create button has to be enabled for it.
@@ -100,7 +124,7 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Dateless Cup");
 
-    await page.goto("/admin");
+    await openAdmin(page);
     await page.getByTestId("admin-events-title-input").fill(title);
     await page.getByTestId("admin-events-create-button").click();
     await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
@@ -137,55 +161,68 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await signIn(page, ADMIN);
     const standalone = uniqueTitle("E2E Open Regatta");
 
-    await page.goto("/admin");
+    await openAdmin(page);
     await page.getByTestId("admin-events-title-input").fill(standalone);
     await page.getByTestId("admin-events-create-button").click();
     await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
 
     let eventId = await openPanel(page, standalone);
-    // No series: every club in the database is a candidate. That is the case that makes
-    // this site a service to clubs outside the association's own series.
+    // No series, so every club in the database is a candidate and none is entered yet.
+    // That is the case that makes this site a service to clubs outside the association's
+    // own series. The seed has 18 clubs; this spec may have added more on earlier runs, so
+    // the claim is "at least the league's 18", not an exact count.
     const openList = page.getByTestId(`admin-manage-event-clubs-${eventId}-available-list`);
     await expect(openList.getByRole("listitem").first()).toBeVisible();
-    const anyClubCount = await openList.getByRole("listitem").count();
-    expect(anyClubCount).toBeGreaterThan(0);
+    expect(await openList.getByRole("listitem").count()).toBeGreaterThanOrEqual(18);
 
-    // Now one inside a series. Its registrations were adopted at creation, so the clubs
-    // are already on the selected side rather than waiting to be picked.
+    // Now one inside a series. Its registrations were adopted at creation, so the clubs are
+    // already on the selected side rather than waiting to be picked.
     const inSeries = uniqueTitle("E2E Series Act");
     await page.getByTestId("admin-events-title-input").fill(inSeries);
-    await page.getByTestId("admin-events-series-select").selectOption({ index: 1 });
+    await page.getByTestId("admin-events-series-select").selectOption({ label: LEAGUE_SERIES });
     await page.getByTestId("admin-events-create-button").click();
     await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
 
     eventId = await openPanel(page, inSeries);
-    const selected = page.getByTestId(`admin-manage-event-clubs-${eventId}-selected-list`);
-    await expect(selected.getByRole("listitem").first()).toBeVisible();
-    // The candidates are the series' registered clubs — never every club in the database,
-    // which is the rule `app/services/participation.py` enforces on the way in.
-    const seriesCandidates =
-      (await selected.getByRole("listitem").count()) +
-      (await page
-        .getByTestId(`admin-manage-event-clubs-${eventId}-available-list`)
-        .getByRole("listitem")
-        .count());
-    expect(seriesCandidates).toBeLessThanOrEqual(anyClubCount + 1);
+    // The precise claim, and the reason this test exists: the candidate pool for a series
+    // event is the series' **own 18 registered clubs** and nothing else — never every club
+    // in the database, which is the rule `app/services/participation.py` enforces on the
+    // way in. All 18 were adopted at creation, so they are all on the selected side and
+    // the available side is empty. `toHaveCount` auto-waits; a bare `count()` would read
+    // the list mid-load.
+    await expect(
+      page.getByTestId(`admin-manage-event-clubs-${eventId}-selected-list`).getByRole("listitem"),
+    ).toHaveCount(18);
+    // ...and nothing is left to pick. Asserted via the empty-state row, not a count of 0:
+    // `ClubSelector` renders one "none available" <li> when the side is empty, so the
+    // listitem count is 1 even when there is no club in it.
+    await expect(
+      page.getByTestId(`admin-manage-event-clubs-${eventId}-available-empty`),
+    ).toBeVisible();
   });
 
   test("a complete event can be drawn, published and started", async ({ page }) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Ready Act");
 
-    await page.goto("/admin");
+    await openAdmin(page);
     await page.getByTestId("admin-events-title-input").fill(title);
     await page.getByTestId("admin-events-starts-input").fill("2027-06-12");
-    // The first series has the league's own 18 clubs, so the default 18/6/16 setup and its
+    // This series has the league's own 18 clubs, so the default 18/6/16 setup and its
     // registrations agree with each other from the start.
-    await page.getByTestId("admin-events-series-select").selectOption({ index: 1 });
+    await page.getByTestId("admin-events-series-select").selectOption({ label: LEAGUE_SERIES });
     await page.getByTestId("admin-events-create-button").click();
     await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
     // 18 clubs entered and a date: the automatic draw right after creation succeeds.
-    await expect(page.getByTestId("admin-events-pairing-draw-success")).toBeVisible();
+    //
+    // A long timeout on purpose. The draw endpoint itself answers in well under a second
+    // (measured), but it is fired from the create mutation's `onSuccess` *after* four query
+    // invalidations, so in a dev build it lands behind their refetches and the confirmation
+    // can take several seconds to appear. Worth improving in the app — a user watching this
+    // line has no idea the work is already done — but it is latency, not a failure.
+    await expect(page.getByTestId("admin-events-pairing-draw-success")).toBeVisible({
+      timeout: 20_000,
+    });
 
     const eventId = await openPanel(page, title);
     await expect(page.getByTestId(`admin-readiness-ready-${eventId}`)).toBeVisible();
@@ -206,7 +243,9 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await expect(start).toBeEnabled();
     await start.click();
     await expect(page.getByTestId(`admin-manage-event-lifecycle-message-${eventId}-success`)).toBeVisible();
-    await expect(page.getByTestId(`admin-manage-event-status-${eventId}`)).toHaveText("Live");
+    // Lowercase, as `common:status.live` defines it — the badge shows the label, not a
+    // capitalised version of the enum.
+    await expect(page.getByTestId(`admin-manage-event-status-${eventId}`)).toHaveText("live");
 
     // The pairing list is reachable from here, which is where the race committee goes next.
     await page.getByTestId(`admin-manage-event-results-link-${eventId}`).click();
@@ -220,9 +259,11 @@ test.describe("A-1/V-3: clubs and their crests", () => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Sailing Club");
 
-    await page.goto("/admin");
+    await openAdmin(page);
     await page.getByTestId("admin-clubs-name-input").fill(name);
-    await page.getByTestId("admin-clubs-short-name-input").fill("E2E");
+    // Unique, because the club's URL is built from its abbreviation: a fixed one collides
+    // with the club a previous run created and the create fails with a 409.
+    await page.getByTestId("admin-clubs-short-name-input").fill(`E${Date.now() % 100000}`);
     await page.getByTestId("admin-clubs-city-input").fill("Kiel");
     await page.getByTestId("admin-clubs-create-button").click();
 
@@ -236,9 +277,12 @@ test.describe("A-1/V-3: clubs and their crests", () => {
     // no placeholder invented for it (Story V-3).
     await expect(row.getByRole("button").first()).toBeVisible();
 
-    // A club appears publicly only when enrolled in a current series.
+    // A club appears publicly only when enrolled in a current series, so the one just
+    // created must not be in the public list. Asserting a *count* here would drift as soon
+    // as this spec has ever run before; asserting this club's absence is the real claim.
     await page.goto("/clubs");
-    await expect(page.getByTestId("clubs-list").getByRole("listitem")).toHaveCount(18);
+    await expect(page.getByTestId("clubs-list")).toBeVisible();
+    await expect(page.getByTestId("clubs-list").getByText(name, { exact: true })).toHaveCount(0);
   });
 });
 
@@ -247,7 +291,7 @@ test.describe("VA-8: a series is published the same way", () => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Trophy");
 
-    await page.goto("/admin");
+    await openAdmin(page);
     await page.getByTestId("admin-series-name-input").fill(name);
     await page.getByTestId("admin-series-year-input").fill("2027");
     await page.getByTestId("admin-series-create-button").click();

@@ -33,9 +33,14 @@ export function Start() {
   return (
     <>
       <section className="mb-10 rounded-2xl bg-brand-600 px-6 py-10 text-white sm:px-10">
-        <p className="text-sm font-medium uppercase tracking-wider text-brand-100">
+        {/* An <h1>, not a <p>: the association's name is the heading of its own home page.
+            The logo below carries it visually, but an image is not a heading — this page
+            had no h1 at all and its sections started at <h2>, which leaves a screen reader
+            with no top-level label for the landing page. The Tailwind classes are the same
+            ones the paragraph had, so nothing moves; only the structure is now honest. */}
+        <h1 className="text-sm font-medium uppercase tracking-wider text-brand-100">
           {t("hero.tagline")}
-        </p>
+        </h1>
         {/* The real logo (see Layout.tsx) is a photograph with a white background baked
             in, not a white-on-transparent mark like the old placeholder asset this
             replaces — dropped straight onto this dark bg-brand-600 hero it would show a

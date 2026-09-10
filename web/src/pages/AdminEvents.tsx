@@ -60,11 +60,23 @@ function defaultName(position: number): string {
   return i18n.t("admin:events.boatDefaultName", { number: position });
 }
 
-/** Whether a failed draw is just "the clubs aren't in yet" rather than something wrong.
- *  A newly created event has no clubs — they are registered afterwards — so this is the
- *  expected outcome of the automatic draw, not a fault to report in red. */
-function isTeamCountNotice(error: unknown): boolean {
-  return error instanceof ApiError && error.code === "pairing-team-count-mismatch";
+/** Whether a failed draw is just "the setup isn't finished yet" rather than something wrong.
+ *
+ *  A newly created event has no clubs and often no date — they arrive afterwards — so this
+ *  is the *expected* outcome of the automatic draw, not a fault to report in red.
+ *
+ *  Both codes have to be accepted. `pairing-team-count-mismatch` is what the draw refuses
+ *  with when that is the **only** thing missing; as soon as a second reason applies — and
+ *  for an event saved with a title alone, the missing date always does — readiness answers
+ *  with `event-not-ready` carrying the reasons instead (see
+ *  `app/services/event_readiness.py::require_ready`). Checking only the single-reason code
+ *  meant the normal case, creating an event and filling it in later, reported a red error
+ *  every time. */
+function isSetupIncompleteNotice(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    (error.code === "pairing-team-count-mismatch" || error.code === "event-not-ready")
+  );
 }
 
 /** A fresh row's `customColor` starts out matching its predefined default, not empty — the
@@ -466,11 +478,11 @@ function CreateEvent() {
        *  so a failed draw is reported as its own, clearly-labeled notice rather than looking
        *  like creation itself failed.
        *
-       *  Having no clubs yet is the *normal* state right after creating an event — they are
-       *  added afterwards — so the backend's `pairing-team-count-mismatch` is not an error
-       *  here at all, it is the next step. Only a genuine failure is shown in red. */}
+       *  Having no clubs and no date yet is the *normal* state right after creating an
+       *  event — both arrive afterwards — so a readiness refusal is not an error here at
+       *  all, it is the next step. Only a genuine failure is shown in red. */}
       {create.isSuccess && drawPairing.isError && (
-        isTeamCountNotice(drawPairing.error) ? (
+        isSetupIncompleteNotice(drawPairing.error) ? (
           <p data-testid="admin-events-pairing-draw-pending" className="text-sm text-slate-600">
             {t("events.pairingDrawPendingMessage")}
           </p>

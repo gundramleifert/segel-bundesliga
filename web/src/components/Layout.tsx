@@ -141,7 +141,19 @@ export function Layout() {
 
       <RoleSwitcher />
 
-      <footer data-testid="layout-footer" className="border-t border-slate-200 bg-white">
+      {/* The extra bottom padding is clearance for the dev role switcher, which is
+          `fixed bottom-4 right-4 z-50` and otherwise sits directly on top of this footer —
+          it intercepted the clicks on the legal-notice and privacy links, which § 5 DDG
+          requires to be reachable from every page.
+
+          Padding rather than a lower z-index on the switcher: the switcher has to stay
+          above page content to be usable at all, so the fix is to stop putting content
+          underneath it. And only in a dev build — the switcher cannot exist in production
+          (see `dev/RoleSwitcher.tsx`), so the real site pays no dead space for it. */}
+      <footer
+        data-testid="layout-footer"
+        className={`border-t border-slate-200 bg-white ${import.meta.env.DEV ? "pb-24" : ""}`}
+      >
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-slate-500">
           {/* Once results from SAP Sailing Analytics are shown, the SAP attribution
               notice must go here — see docs/findings.md, section 3. */}

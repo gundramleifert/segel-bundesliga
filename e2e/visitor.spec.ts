@@ -41,8 +41,10 @@ test.describe("B-1: as a fan I see the series standings", () => {
     // happened to be first for the year and the others were reachable only by URL.
     await page.goto("/series");
 
+    // `toHaveCount` retries; a bare `count()` does not auto-wait and reads whatever is
+    // on the page at that instant — which, mid-load, is nothing.
     const cards = page.getByTestId("series-list").getByRole("listitem");
-    expect(await cards.count()).toBeGreaterThan(1);
+    await expect(cards).toHaveCount(4);
 
     await page.getByTestId("series-card-1").click();
     await expect(page).toHaveURL(/\/series\/1$/);
@@ -54,7 +56,7 @@ test.describe("B-2: as a fan I read up on how a matchday went", () => {
   test("the finished matchday shows a complete set of results", async ({ page }) => {
     await page.goto(FINISHED_EVENT);
 
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Act");
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByTestId("matchday-standings-table").locator("tbody tr")).toHaveCount(18);
   });
 

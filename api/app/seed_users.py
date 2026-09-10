@@ -26,11 +26,11 @@ from app.models.auth import Role, User, UserRole
 
 # Accounts not linked to a club: (email, name, roles)
 FUNCTIONAL_ACCOUNTS: list[tuple[str, str, list[str]]] = [
-    ("admin@sbl.example.com", "Alina Verwaltung", [Role.ADMIN]),
-    ("redaktion@sbl.example.com", "Rudi Redaktion", [Role.EDITOR]),
-    ("wl@sbl.example.com", "Wanda Wettfahrtleitung", [Role.RACE_OFFICER]),
-    ("beides@sbl.example.com", "Bea Doppelrolle", [Role.EDITOR, Role.RACE_OFFICER]),
-    ("gast@sbl.example.com", "Gero Gast", []),
+    ("admin@sbl.example.com", "Alina Admin", [Role.ADMIN]),
+    ("redaktion@sbl.example.com", "Rudi Editor", [Role.EDITOR]),
+    ("wl@sbl.example.com", "Wanda Racecommittee", [Role.RACE_OFFICER]),
+    ("beides@sbl.example.com", "Bea Bothroles", [Role.EDITOR, Role.RACE_OFFICER]),
+    ("gast@sbl.example.com", "Gero Guest", []),
 ]
 
 
@@ -162,7 +162,7 @@ async def _report(
 
     print("Functional accounts:")
     for email, name, roles in FUNCTIONAL_ACCOUNTS:
-        print(f"  {email:24s} {', '.join(roles) or 'keine Rolle':28s} {name}")
+        print(f"  {email:24s} {', '.join(roles) or 'no role':28s} {name}")
 
     samples = (
         await session.execute(

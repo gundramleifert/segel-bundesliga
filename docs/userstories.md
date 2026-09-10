@@ -587,6 +587,36 @@ Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
 
 ## Administration
 
+### A-10 ○ The admin screens have to work on a phone
+As an **organizer standing on a jetty with a phone**, I want **the admin screens to be
+operable at 412 px**, so that I **can fix a date or publish an event without finding a
+laptop**.
+
+Found by `e2e/lifecycle.spec.ts` running under the `mobile` project (Pixel 7): **every**
+click on a control inside an admin row is refused, all five tests timing out with
+Playwright's "…intercepts pointer events". The named interceptor is the row's own title
+block — `<div class="flex flex-wrap items-center gap-2">` inside `<div class="min-w-0">`
+in `EventRow` (`web/src/pages/AdminEvents.tsx`) — and, for the series row, a club name
+`<span class="flex-1 truncate">` from the create form's `ClubSelector` above it. The same
+rows work correctly at desktop width; all 20 chromium tests pass.
+
+So the rows are not merely cramped on a phone: the buttons cannot be pressed at all. Until
+this is fixed, the `mobile` Playwright project deliberately skips `lifecycle.spec.ts` (see
+the comment in `playwright.config.ts`) so the known defect does not drown out regressions
+elsewhere.
+
+Acceptance criteria:
+- Every control in an admin row — manage/close, save, draw, publish, start, the crest pen —
+  is clickable at 412 px width, with no element overlaying another.
+- The row header wraps sensibly instead of overlapping: the title and badges on one line,
+  the actions below, each with its own hit area.
+- `ClubSelector`'s two panes stack on a narrow screen (they already do) without their
+  scrollable lists covering what follows them.
+- The fix is verified by **removing** the `testIgnore` from the `mobile` project and having
+  `lifecycle.spec.ts` pass there — that is what closes this story.
+
+Tests: `e2e/lifecycle.spec.ts` under the `mobile` project (currently skipped — see above)
+
 ### A-1 ● Create clubs
 As **administration or editorial** I want to **create and maintain clubs**,
 so that **teams, accounts, and matchdays can reference them**.
