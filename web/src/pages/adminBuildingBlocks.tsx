@@ -36,7 +36,14 @@ export function Section({
       <h2 className="mb-1 text-lg font-semibold">{title}</h2>
       {hint && <p className="mb-3 text-sm text-slate-600">{hint}</p>}
       <Card>
-        <Card.Content className="grid gap-4 py-4">{children}</Card.Content>
+        {/* The explicit `minmax(0,1fr)` column matters on a narrow screen: a grid's `auto`
+            column is sized by its items' min-content width, so one wide table or form row
+            inside a section widens the section — and, through the page's own grid, every
+            other section with it. The browser answers that by zooming the whole page out,
+            which is how the admin screens ended up unreadable and untappable on a phone
+            (Story A-10). Allowing the column to be narrower than its content keeps the
+            overflow inside the box that actually overflows. */}
+        <Card.Content className="grid grid-cols-[minmax(0,1fr)] gap-4 py-4">{children}</Card.Content>
       </Card>
     </section>
   );
@@ -130,7 +137,11 @@ export function ClubSelector({
   const selected = clubs.filter((v) => selectedIds.has(v.id));
 
   return (
-    <div id={id} data-testid={resolvedTestId} className="grid gap-3 sm:grid-cols-2">
+    <div
+      id={id}
+      data-testid={resolvedTestId}
+      className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2"
+    >
       <div className="rounded-md border border-slate-200">
         <div className="border-b border-slate-200 p-2">
           <input

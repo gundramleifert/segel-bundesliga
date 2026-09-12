@@ -600,35 +600,55 @@ Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
 
 ## Administration
 
-### A-10 ○ The admin screens have to work on a phone
+### A-10 ● The admin screens have to work on a phone
 As an **organizer standing on a jetty with a phone**, I want **the admin screens to be
 operable at 412 px**, so that I **can fix a date or publish an event without finding a
 laptop**.
 
-Found by `e2e/lifecycle.spec.ts` running under the `mobile` project (Pixel 7): **every**
-click on a control inside an admin row is refused, all five tests timing out with
-Playwright's "…intercepts pointer events". The named interceptor is the row's own title
-block — `<div class="flex flex-wrap items-center gap-2">` inside `<div class="min-w-0">`
-in `EventRow` (`web/src/pages/AdminEvents.tsx`) — and, for the series row, a club name
-`<span class="flex-1 truncate">` from the create form's `ClubSelector` above it. The same
-rows work correctly at desktop width; all 20 chromium tests pass.
+Found by `e2e/lifecycle.spec.ts` under the `mobile` project (Pixel 7): **every** click on a
+control inside an admin row was refused, each test timing out with Playwright's
+"…intercepts pointer events" and naming a different interceptor every retry — sometimes the
+row's own title block, sometimes an input from the create form far above, sometimes the
+header's language switcher. The same controls worked at desktop width.
 
-So the rows are not merely cramped on a phone: the buttons cannot be pressed at all. Until
-this is fixed, the `mobile` Playwright project deliberately skips `lifecycle.spec.ts` (see
-the comment in `playwright.config.ts`) so the known defect does not drown out regressions
-elsewhere.
+**The cause was not the rows.** `/admin` overflowed horizontally, and mobile Chromium
+answers horizontal overflow by *zooming the whole page out to fit it*: `window.innerWidth`
+reported **754 px inside a 412 px viewport**, the page rendered at ~55%, and pointer
+coordinates no longer matched what was under them. A shifting cast of interceptors is what
+that looks like from the test's side; unreadably small text is what it looks like to a
+person.
+
+The overflow itself came from the `grid gap-*` idiom used to stack the admin sections and
+their form rows. A grid's `auto` column is sized by its items' **min-content** width, so
+one wide box — the boat-setup table in `AdminEvents.tsx` — widened its column, and because
+grid items stretch to the column, *every* sibling section grew with it. The fix is to make
+those columns able to be narrower than their content: `grid-cols-[minmax(0,1fr)]` on the
+page's own grid (`Admin.tsx`), on `Section`'s card content (`adminBuildingBlocks.tsx`), on
+`ClubSelector`'s pane grid, and on the nineteen stacking grids in the admin pages. The wide
+table then scrolls inside its own `overflow-x-auto` box, which is what it was always
+supposed to do.
+
+Two related defects were fixed with it, both in `web/src/index.css`: `scroll-padding-top`
+so a scroll-into-view does not park its target beneath the `sticky top-0` header, and
+`scroll-behavior: smooth` moved behind `prefers-reduced-motion: no-preference`.
 
 Acceptance criteria:
 - Every control in an admin row — manage/close, save, draw, publish, start, the crest pen —
-  is clickable at 412 px width, with no element overlaying another.
-- The row header wraps sensibly instead of overlapping: the title and badges on one line,
-  the actions below, each with its own hit area.
-- `ClubSelector`'s two panes stack on a narrow screen (they already do) without their
-  scrollable lists covering what follows them.
-- The fix is verified by **removing** the `testIgnore` from the `mobile` project and having
-  `lifecycle.spec.ts` pass there — that is what closes this story.
+  is clickable at 412 px width.
+- **The page is never zoomed out**: `window.innerWidth` equals the viewport width, and
+  `document.documentElement.scrollWidth` does not exceed it. A wide table scrolls inside its
+  own box (`.table-scroll` / `overflow-x-auto`) and never widens the page.
+- The row header wraps: the title and badges on one line, the actions below, each with its
+  own hit area.
+- `ClubSelector`'s two panes stack on a narrow screen without their scrollable lists
+  covering what follows them.
+- Verified by **removing** the `testIgnore` from the `mobile` project and having
+  `lifecycle.spec.ts` pass there — done; the `mobile` project now runs every spec.
+- The zoom-out cannot come back silently: `expectNoZoomOut` in `e2e/lifecycle.spec.ts`
+  asserts both numbers on every admin visit. Extending that guard across the public pages
+  is its own piece of work.
 
-Tests: `e2e/lifecycle.spec.ts` under the `mobile` project (currently skipped — see above)
+Tests: `e2e/lifecycle.spec.ts` under the `mobile` project (all six tests)
 
 ### A-1 ● Create clubs
 As **administration or editorial** I want to **create and maintain clubs**,

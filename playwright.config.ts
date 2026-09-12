@@ -25,23 +25,23 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:5173",
     locale: "en-US",
+    // An automated run has no business animating. The site's own smooth scrolling is
+    // already behind `prefers-reduced-motion` (see `web/src/index.css`), and this is the
+    // browser stating that preference: without it, every scroll-into-view is an animation
+    // and the element under the click point keeps changing while Playwright waits for the
+    // target to be "stable" — which is how a working button looks like a broken one.
+    // Under `contextOptions`: as of Playwright 1.62 that is where this lives, and a
+    // top-level `reducedMotion` is accepted by the config loader but has no effect.
+    contextOptions: { reducedMotion: "reduce" },
     trace: "on-first-retry",
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    // The site is read mostly on phones — that belongs in the tests.
-    //
-    // `lifecycle.spec.ts` is excluded here, and **not** because it is inconvenient: on a
-    // 412 px viewport the admin rows are genuinely unusable. Every click on a row's button
-    // is refused with "…intercepts pointer events", the interceptor being the row's own
-    // title block. That is a real layout defect (Story A-10), not a test artefact — running
-    // the spec here would just restate the same known bug five times while hiding
-    // regressions in everything else. The public pages, which are what people actually read
-    // on a phone, are covered by `visitor.spec.ts` on both projects.
-    {
-      name: "mobile",
-      use: { ...devices["Pixel 7"] },
-      testIgnore: /lifecycle\.spec\.ts/,
-    },
+    // The site is read mostly on phones — that belongs in the tests. And the admin screens
+    // are used on one too: `lifecycle.spec.ts` runs here as well, which is what keeps Story
+    // A-10 closed. It was skipped here for exactly as long as the admin rows were unusable
+    // at 412 px (every click refused with "…intercepts pointer events"); putting it back is
+    // the fix's own regression test.
+    { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
 });

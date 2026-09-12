@@ -217,13 +217,13 @@ function CreateEvent() {
     >
       <form
         data-testid="admin-events-create-form"
-        className="grid gap-3"
+        className="grid grid-cols-[minmax(0,1fr)] gap-3"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
           create.mutate();
         }}
       >
-        <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr_1fr]">
           <Field label={t("events.nameLabel")}>
             <input
               className={INPUT_CLASS}
@@ -256,7 +256,7 @@ function CreateEvent() {
           </Field>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
           <Field label={t("events.seriesLabel")} hint={t("events.seriesHint")}>
             <select
               className={INPUT_CLASS}
@@ -705,7 +705,7 @@ function EventPanel({
   const hasPairing = readiness.data?.has_pairing_list ?? false;
 
   return (
-    <div className="mt-4 grid gap-5 border-t border-slate-100 pt-4">
+    <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-5 border-t border-slate-100 pt-4">
       {/* 1. What's missing --------------------------------------------------- */}
       <div>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.readinessTitle")}</h3>
@@ -726,7 +726,7 @@ function EventPanel({
           ) : (
             <ul
               data-testid={`admin-readiness-reasons-${event.id}`}
-              className="mt-1 grid gap-1 text-sm text-amber-800"
+              className="mt-1 grid grid-cols-[minmax(0,1fr)] gap-1 text-sm text-amber-800"
             >
               {(readiness.data.reasons ?? []).map((reason) => (
                 <li key={reason.code} data-testid={`admin-readiness-reason-${reason.code}`}>
@@ -749,8 +749,8 @@ function EventPanel({
       </div>
 
       {/* 2. The date, once the host confirms it ----------------------------- */}
-      <div className="grid gap-3">
-        <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <Field label={t("events.startsLabel")}>
             <input
               className={INPUT_CLASS}
@@ -787,7 +787,7 @@ function EventPanel({
       </div>
 
       {/* 3. Who enters ------------------------------------------------------ */}
-      <div className="grid gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         <h3 className="text-sm font-semibold text-slate-700">
           {t("manage.clubsTitle", { count: selection.size, configured: event.team_count })}
         </h3>
@@ -842,7 +842,7 @@ function EventPanel({
       </div>
 
       {/* 4. The draw -------------------------------------------------------- */}
-      <div className="grid gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.pairingTitle")}</h3>
         <p className="text-sm text-slate-600">
           {hasPairing ? t("manage.pairingExistsHint") : t("manage.pairingMissingHint")}
@@ -890,7 +890,7 @@ function EventPanel({
       </div>
 
       {/* 5. Publication and start ------------------------------------------- */}
-      <div className="grid gap-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.lifecycleTitle")}</h3>
         <p className="text-sm text-slate-600">{t("manage.publishHint")}</p>
         <div className="flex flex-wrap items-center gap-3">

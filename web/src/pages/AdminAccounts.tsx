@@ -95,7 +95,7 @@ function AccountRow({
   return (
     <li
       data-testid={`admin-accounts-row-${account.id}`}
-      className="grid gap-2 px-4 py-3 sm:grid-cols-[1.4fr_1fr_1.6fr] sm:items-center"
+      className="grid grid-cols-[minmax(0,1fr)] gap-2 px-4 py-3 sm:grid-cols-[1.4fr_1fr_1.6fr] sm:items-center"
     >
       <div className="min-w-0">
         <p className="truncate font-medium text-slate-900">{account.display_name}</p>

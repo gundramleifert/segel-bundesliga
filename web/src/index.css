@@ -27,8 +27,27 @@
   --color-ink: #121212;
 }
 
+/* The header is `sticky top-0` and opaque (see `Layout.tsx`): 36px of logo plus 2×12px of
+   padding, so about 60px of bar that is always over the top of the scrollport.
+   `scroll-padding-top` tells every scroll-into-view — an in-page anchor, a keyboard focus
+   moving down a long admin list, a script scrolling a row into view — to leave that much
+   room, instead of parking the target underneath the header where it cannot be read or
+   tapped. 5rem is the bar plus a little breathing space.
+
+   This was not cosmetic: on a 412px viewport it made the admin rows *unusable*. Any
+   control near the bottom of the page gets scrolled to the top edge, i.e. behind the
+   header, and the tap then lands on the header's own buttons (Story A-10). */
 html {
-  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
+/* Smooth scrolling is a preference, not a default: `prefers-reduced-motion` exists because
+   animated scrolling makes some people ill, and an animated scroll also means anything
+   watching the page — assistive tech, a test — sees the target keep moving. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 /* Results tables are wide. They scroll horizontally in their own box, never the whole

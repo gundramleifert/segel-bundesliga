@@ -43,7 +43,14 @@ export function Admin() {
         subtitle={t("page.signedInAs", { displayName: account.display_name, roles: account.roles.join(", ") })}
         testId="admin-header"
       />
-      <div className="grid gap-8">
+      {/* `grid-cols-[minmax(0,1fr)]`, not a bare `grid`: an `auto` column is sized by its
+          items' *min-content* width, so a single wide control anywhere in any section
+          stretches the column — and with it every other section — past the viewport. The
+          browser then zooms the whole page out to fit (412px of viewport rendered as 754),
+          which is why the admin screens were unusable on a phone (Story A-10).
+          `minmax(0, 1fr)` lets the column be narrower than its content, so overflow stays
+          inside whichever box actually overflows. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
         <Clubs />
         <Series editorOnly={!hasRole("admin")} />
         <EventsAdmin />
@@ -89,7 +96,7 @@ function Clubs() {
     >
       <form
         data-testid="admin-clubs-create-form"
-        className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
+        className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
           create.mutate();
@@ -351,13 +358,13 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
     >
       <form
         data-testid="admin-series-create-form"
-        className="grid gap-3"
+        className="grid grid-cols-[minmax(0,1fr)] gap-3"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
           create.mutate();
         }}
       >
-        <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr]">
           <Field label={t("series.nameLabel")}>
             <input
               className={INPUT_CLASS}
@@ -383,7 +390,7 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
           </Field>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
           <Field label={t("series.startsLabel")} hint={t("series.startsHint")}>
             <input
               className={INPUT_CLASS}
@@ -551,8 +558,8 @@ function SeriesRow({
       )}
 
       {open && (
-        <div className="mt-3 grid gap-4">
-          <div className="grid gap-3">
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-4">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
             <ClubSelector
               clubs={clubs}
               selectedIds={selectedClubs}

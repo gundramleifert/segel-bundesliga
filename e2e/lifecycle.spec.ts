@@ -59,6 +59,33 @@ async function openAdmin(page: Page): Promise<void> {
   await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
   await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
   await expect(page.getByTestId("admin-events-catalog-select")).toBeVisible();
+  await expectNoZoomOut(page);
+}
+
+/** Fails if the browser had to zoom the page out to fit its own content.
+ *
+ * This is the guard for Story A-10, and it earns its place: while the admin page overflowed
+ * horizontally, mobile Chromium answered by scaling the whole page down — a 412px viewport
+ * laid out as 754px — and every click then landed on a neighbouring element. The symptom
+ * read as "these buttons are broken", not as "this page is too wide", which cost an
+ * afternoon. `window.innerWidth` is the layout viewport, so comparing it against the
+ * viewport Playwright actually configured catches the zoom-out directly, and
+ * `scrollWidth` catches the overflow that causes it before it gets that far.
+ */
+async function expectNoZoomOut(page: Page): Promise<void> {
+  const configured = page.viewportSize()!.width;
+  const measured = await page.evaluate(() => ({
+    innerWidth: window.innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(
+    measured.innerWidth,
+    `the page was zoomed out to fit its content: laid out at ${measured.innerWidth}px in a ${configured}px viewport`,
+  ).toBe(configured);
+  expect(
+    measured.scrollWidth,
+    `the page overflows horizontally (${measured.scrollWidth}px of content in ${configured}px) — a wide table has to scroll inside its own box, not widen the page`,
+  ).toBeLessThanOrEqual(configured);
 }
 
 /** The row of the manage list belonging to a freshly created event, opened.
@@ -96,7 +123,18 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
     // No clubs are entered yet, so the automatic draw reports the next step rather than
     // an error — having no clubs right after creating an event is expected.
-    await expect(page.getByTestId("admin-events-pairing-draw-pending")).toBeVisible();
+    //
+    // The longer timeout is deliberate and measured, not padding. This notice is the end
+    // of a chain: the create succeeds, its `onSuccess` invalidates four queries *and*
+    // fires the draw, the server refuses it (409 in ~150ms — verified in the access log),
+    // and only the re-render after that shows the notice. Under the `mobile` project's
+    // device emulation that last render is repeatedly slower than the 5s default, so the
+    // assertion failed on roughly one run in five while the application was behaving
+    // correctly. The notice always arrives; what varies is when. If it genuinely never
+    // came, this still fails — just later.
+    await expect(page.getByTestId("admin-events-pairing-draw-pending")).toBeVisible({
+      timeout: 20_000,
+    });
 
     const eventId = await openPanel(page, title);
 

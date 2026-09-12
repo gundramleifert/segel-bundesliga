@@ -63,7 +63,7 @@ function CreateSailor() {
     >
       <form
         data-testid="admin-sailors-create-form"
-        className="grid gap-3 sm:grid-cols-[1fr_1fr_1.4fr_auto] sm:items-end"
+        className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_1fr_1.4fr_auto] sm:items-end"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
           create.mutate();
@@ -273,7 +273,7 @@ function SquadManagement({ teamId, clubName }: { teamId: number; clubName: strin
   const memberIds = new Set(currentMembers.map((m) => m.sailor_id));
 
   return (
-    <div data-testid="admin-squad-management" className="grid gap-4 rounded-lg border border-slate-200 p-4">
+    <div data-testid="admin-squad-management" className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-slate-200 p-4">
       <div>
         <h3 className="font-medium">
           {t("squad.headerText", { clubName: clubName, count: members.length })}
