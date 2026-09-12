@@ -1,23 +1,32 @@
-# Kopieren nach api/.env und anpassen.
+# Copy to api/.env and adjust.
 
-# Datenbank (Produktion und Entwicklung: Postgres)
+# Database. The default in app/config.py is SQLite — sqlite+aiosqlite:///./sbl.db, which
+# needs no server and is what development uses today. This line is what a Postgres
+# deployment uses instead; Postgres stays the eventual production target.
 SBL_DATABASE_URL=postgresql+asyncpg://sbl:sbl@localhost:5432/sbl
 
-# Signatur der Sitzungstoken. Ohne diesen Wert ist der geschützte Bereich zu.
-# Erzeugen mit: python -c "import secrets; print(secrets.token_urlsafe(48))"
+# Signs the session tokens. Without it the protected area stays closed.
+# Generate with: python -c "import secrets; print(secrets.token_urlsafe(48))"
 SBL_JWT_SECRET=
 
-# Identitätsanbieter — ohne Anwendungskennung ist der jeweilige Weg zu.
+# Identity providers — without an application ID the respective path is closed.
 SBL_GOOGLE_CLIENT_ID=
 SBL_MICROSOFT_CLIENT_ID=
 SBL_MICROSOFT_TENANT=common
 
-# Ohne SMTP landet der Anmeldecode im Log (nur für die Entwicklung gedacht).
+# Without SMTP the login code goes to the log. Development only.
 SBL_SMTP_HOST=
 SBL_SMTP_PORT=587
 SBL_SMTP_USER=
 SBL_SMTP_PASSWORD=
-SBL_MAIL_FROM=noreply@segelbundesliga.de
+# Must also be verified as a sender with the mail provider (Brevo), or login
+# codes are accepted and then silently dropped.
+SBL_MAIL_FROM=noreply@deutsche-segelliga.de
 
-# Pairing-Generator: JAR aus reference/PairingList, gebaut mit "mvn -DskipTests package"
+# Pairing generator: JAR from reference/PairingList, built with "mvn -DskipTests package"
 SBL_PAIRING_JAR=../reference/PairingList/target/pairing-list-1.0-SNAPSHOT-jar-with-dependencies.jar
+
+# Development only: /api/dev issues access tokens **without verification** and the role
+# switcher appears in the UI. A security hole in any reachable environment — the server
+# warns on startup while it is on. e2e/lifecycle.spec.ts needs it.
+SBL_DEV_LOGIN=false
