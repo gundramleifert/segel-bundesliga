@@ -24,6 +24,13 @@ export SBL_DATABASE_URL="sqlite+aiosqlite:///./e2e.db"
 # `e2e/lifecycle.spec.ts` signs in through /api/dev/login, which only exists with this on.
 # It issues tokens without verification — never set it anywhere reachable.
 export SBL_DEV_LOGIN=true
+# A signing secret, so the stack is self-contained: signing in needs one, and relying on
+# `api/.env` means the suite fails with "No signing secret is configured" on any checkout
+# that has not got one yet. This value is deliberately not a secret and is only ever used
+# against the throwaway database above — next to SBL_DEV_LOGIN, which hands out tokens
+# without verification at all, it is not the weak link. Set SBL_JWT_SECRET yourself to
+# override it.
+export SBL_JWT_SECRET="${SBL_JWT_SECRET:-dev-stack-throwaway-not-a-secret}"
 export UV_CACHE_DIR="${UV_CACHE_DIR:-${TMPDIR:-/tmp}/uv-cache}"
 
 if [[ "${1:-}" != "--keep" ]]; then

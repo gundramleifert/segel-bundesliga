@@ -700,9 +700,22 @@ function EventPanel({
     onSuccess: refresh,
   });
 
+  // Story VA-10. One mutation for all three transitions: they are the same decision from
+  // the screen's point of view — this day is over, one way or the other — and only one of
+  // them can be pending at a time anyway, so a shared `isPending` is the honest one.
+  const close = useMutation({
+    mutationFn: (transition: "finish" | "cancel" | "reopen") =>
+      api.admin.closeEvent(event.id, transition),
+    onSuccess: refresh,
+  });
+
   const frozen = readiness.data?.configuration_frozen ?? false;
   const ready = readiness.data?.ready ?? false;
   const hasPairing = readiness.data?.has_pairing_list ?? false;
+  // Closed as in "declared over", not as in "locked": results stay editable forever and
+  // both closings undo with one press (Story VA-10). This only decides which buttons the
+  // closing block offers.
+  const closed = event.status === "final" || event.status === "cancelled";
 
   return (
     <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-5 border-t border-slate-100 pt-4">
@@ -932,6 +945,81 @@ function EventPanel({
                 : null
           }
           success={start.isSuccess ? t("manage.startedMessage") : null}
+        />
+      </div>
+
+      {/* 6. Closing it ------------------------------------------------------ */}
+      {/* Story VA-10. Last, because it is the last thing done to an event — and because
+          putting "Call off" next to "Publish" invites the wrong press.
+
+          Only the transitions that apply are rendered. A permanently visible, permanently
+          disabled "Reopen" under every planned event would be noise on a screen that has
+          to stay usable at 412 px (Story A-10), and a disabled button explains nothing
+          here: the reason it is disabled is simply that the event is not closed, which the
+          status badge already says.
+
+          Neither closing asks for confirmation. Both undo with one press and neither
+          deletes anything — not the pairing list, not a single result — so a dialog would
+          buy nothing and cost a tap on a rocking boat. */}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+        <h3 className="text-sm font-semibold text-slate-700">{t("manage.closingTitle")}</h3>
+        <p className="text-sm text-slate-600">
+          {closed
+            ? t(
+                event.status === "final"
+                  ? "manage.finishedHint"
+                  : "manage.cancelledHint",
+              )
+            : t("manage.closingHint")}
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          {closed ? (
+            <Button
+              size="sm"
+              isDisabled={close.isPending}
+              onPress={() => close.mutate("reopen")}
+              data-testid={`admin-manage-event-reopen-${event.id}`}
+            >
+              {t(
+                event.status === "final"
+                  ? "manage.reopenFinishedButton"
+                  : "manage.reopenCancelledButton",
+              )}
+            </Button>
+          ) : (
+            <>
+              {/* Finishing needs a live event — a day that never started cannot be over,
+                  and the server says so with `event-not-started`. It deliberately does
+                  **not** need complete results: demanding all 48 races would disable this
+                  exactly on the day the wind died after flight 13. */}
+              <Button
+                size="sm"
+                isDisabled={close.isPending || event.status !== "live"}
+                onPress={() => close.mutate("finish")}
+                data-testid={`admin-manage-event-finish-${event.id}`}
+              >
+                {t("manage.finishButton")}
+              </Button>
+              {/* Available from `planned` as well as `live`: a day is called off before
+                  anyone leaves the dock at least as often as halfway through. */}
+              <Button
+                size="sm"
+                variant="ghost"
+                isDisabled={close.isPending}
+                onPress={() => close.mutate("cancel")}
+                data-testid={`admin-manage-event-cancel-${event.id}`}
+              >
+                {t("manage.cancelButton")}
+              </Button>
+            </>
+          )}
+        </div>
+        {!closed && event.status !== "live" && (
+          <p className="text-sm text-slate-500">{t("manage.finishNeedsLiveHint")}</p>
+        )}
+        <Message
+          testId={`admin-manage-event-closing-message-${event.id}`}
+          error={close.isError ? errorText(close.error) : null}
         />
       </div>
     </div>

@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "gen:api": "openapi-typescript http://127.0.0.1:8000/openapi.json -o src/api/schema.d.ts",
+    "gen:api": "../scripts/gen-api-types.sh",
     "typecheck": "tsc -b --force"
   },
   "dependencies": {

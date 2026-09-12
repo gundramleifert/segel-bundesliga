@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 
+from fastapi import HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -198,9 +199,19 @@ async def _report(
     admin = (
         await session.execute(select(User).where(User.email == "admin@sbl.example.com"))
     ).scalar_one()
-    token, _ = create_access_token(admin)
-    print("\nAccess via curl (administration):")
-    print(f'  curl -s http://127.0.0.1:8000/api/auth/me -H "Authorization: Bearer {token}"')
+    # A convenience line, and nothing the seed depends on — so a missing signing secret
+    # must not take the whole seeding down with it. It used to: `create_access_token`
+    # raises 503 without `SBL_JWT_SECRET`, which made `seed_test_setup` exit 1 *after*
+    # writing every row correctly, and `scripts/dev-stack.sh` then refused to start
+    # servers against a database that was in fact complete.
+    try:
+        token, _ = create_access_token(admin)
+    except HTTPException:
+        print("\nNo SBL_JWT_SECRET is configured, so no example token is printed here.")
+        print("Set one to sign in — the seeded data itself is complete either way.")
+    else:
+        print("\nAccess via curl (administration):")
+        print(f'  curl -s http://127.0.0.1:8000/api/auth/me -H "Authorization: Bearer {token}"')
     print("\nIn the interface: the role switcher at the bottom right (dev only).")
 
 

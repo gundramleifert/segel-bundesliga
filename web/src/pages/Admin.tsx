@@ -7,18 +7,23 @@ import { useTranslation } from "react-i18next";
 import { api, type ClubAdmin, type SeriesAdmin } from "../api/client";
 import { useApi, useInvalidate, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
+import { TabbedView, type TabDef } from "../components/Tabs";
 import { AccountsAdmin } from "./AdminAccounts";
 import { EventsAdmin } from "./AdminEvents";
 import { SailorsAdmin } from "./AdminSailors";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
 import { Section, Field, Message, ClubSelector } from "./adminBuildingBlocks";
 
-/** Stories A-1, A-4, and A-6: Create clubs, create series, schedule events.
+/** Stories A-1, A-4, A-6 and A-11: create clubs, create series, schedule events.
  *
- * The flow is deliberately top-to-bottom: **first clubs, then a series with their
- * clubs, then events for the series.** A series without clubs has no standings,
- * and an event without a series counts toward no scoring — that's why the three
- * sections are in this order, not alphabetically.
+ * **One tab per area**, in the order the work happens: clubs, then a series with those
+ * clubs, then events for that series, then the people. A series without clubs has no
+ * standings and an event without a series counts toward no scoring, which is why the order
+ * is this and not alphabetical — the tabs read as the sequence a new season is set up in.
+ *
+ * They were five stacked sections until Story A-11. Each is short on its own; together
+ * they were a page nobody read top to bottom, with the events area — the one used on a
+ * jetty — several screens down. Tabs also mean one area's queries load instead of five.
  */
 export function Admin() {
   const { t } = useTranslation("admin");
@@ -36,6 +41,27 @@ export function Admin() {
     );
   }
 
+  // `render` rather than a node: `TabbedView` mounts only the selected panel, so an area
+  // nobody opened never issues its queries. Building the elements eagerly here would undo
+  // that — they would be created on every render of this component regardless.
+  // The labels are each area's own section title, not a second set of strings: a tab whose
+  // wording drifts from the heading it opens is a translation bug waiting to happen.
+  const tabs: TabDef<AdminTab>[] = [
+    { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
+    {
+      key: "series",
+      label: t("series.title"),
+      render: () => <Series editorOnly={!hasRole("admin")} />,
+    },
+    { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
+    { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
+  ];
+  // Accounts is admin-only, so for an editor the tab does not exist rather than existing
+  // and refusing — the same rule the section already followed.
+  if (hasRole("admin")) {
+    tabs.push({ key: "accounts", label: t("accounts.title"), render: () => <AccountsAdmin /> });
+  }
+
   return (
     <>
       <PageHeader
@@ -44,22 +70,25 @@ export function Admin() {
         testId="admin-header"
       />
       {/* `grid-cols-[minmax(0,1fr)]`, not a bare `grid`: an `auto` column is sized by its
-          items' *min-content* width, so a single wide control anywhere in any section
-          stretches the column — and with it every other section — past the viewport. The
-          browser then zooms the whole page out to fit (412px of viewport rendered as 754),
-          which is why the admin screens were unusable on a phone (Story A-10).
-          `minmax(0, 1fr)` lets the column be narrower than its content, so overflow stays
-          inside whichever box actually overflows. */}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-8">
-        <Clubs />
-        <Series editorOnly={!hasRole("admin")} />
-        <EventsAdmin />
-        <SailorsAdmin />
-        {hasRole("admin") && <AccountsAdmin />}
-      </div>
+          items' *min-content* width, so a single wide control anywhere in the panel
+          stretches the column past the viewport. The browser then zooms the whole page out
+          to fit (412px of viewport rendered as 754), which is why the admin screens were
+          unusable on a phone (Story A-10). `minmax(0, 1fr)` lets the column be narrower
+          than its content, so overflow stays inside whichever box actually overflows. */}
+      <TabbedView
+        tabs={tabs}
+        param="tab"
+        testIdPrefix="admin"
+        label={t("page.tabsLabel")}
+        className="grid grid-cols-[minmax(0,1fr)]"
+      />
     </>
   );
 }
+
+/** The areas of the admin screen. Also the values `?tab=` accepts — an unknown one falls
+ *  back to the first tab rather than erroring (Story A-11). */
+type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
 
 // ---------------------------------------------------------------------- Clubs
 

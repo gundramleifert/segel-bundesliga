@@ -169,7 +169,8 @@
   },
   "page": {
     "title": "Administration",
-    "signedInAs": "Signed in as {{displayName}} · {{roles}}"
+    "signedInAs": "Signed in as {{displayName}} · {{roles}}",
+    "tabsLabel": "Area"
   },
   "manage": {
     "title": "Run an event",
@@ -215,6 +216,15 @@
     "startedButton": "Running",
     "startedMessage": "The event is running.",
     "startNeedsHint": "Starting needs a complete setup and a pairing list — there is nothing to sail without one.",
-    "openResultsLink": "Enter results"
+    "openResultsLink": "Enter results",
+    "closingTitle": "Closing",
+    "closingHint": "Declaring a day over, or calling it off, is a decision by the people on site — never a date passing. Both are reversible and neither deletes anything.",
+    "finishButton": "Racing is over",
+    "cancelButton": "Call the event off",
+    "finishNeedsLiveHint": "An event that has not started cannot be declared over — but it can still be called off.",
+    "finishedHint": "Racing is over. Results stay editable: a protest heard weeks from now still lands here.",
+    "cancelledHint": "This event was called off. Nothing was deleted, and it counts in no series standings — being at a regatta that was called off costs nobody anything.",
+    "reopenFinishedButton": "Resume racing",
+    "reopenCancelledButton": "Reinstate the event"
   }
 }

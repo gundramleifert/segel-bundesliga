@@ -46,7 +46,25 @@ function uniqueTitle(prefix: string): string {
   return `${prefix} ${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
-/** Opens the admin page and waits until its data has actually arrived.
+type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
+
+/** The element that proves a tab's panel has finished loading, per tab (Story A-11).
+ *
+ *  One per tab because only the selected panel is mounted now: waiting for the clubs list
+ *  while the events tab is open waits forever, and waiting for nothing at all is the race
+ *  described on `openAdmin`. Deliberately a list or a populated <select> rather than a
+ *  heading — a heading renders before its query answers, so it proves nothing. */
+const TAB_READY: Record<AdminTab, string> = {
+  clubs: "admin-clubs-list",
+  series: "admin-series-list",
+  // The catalog select is the "form is ready" signal for the events tab: the create button
+  // cannot be used as one, because it is also disabled while the title is empty.
+  events: "admin-events-catalog-select",
+  sailors: "admin-sailors-list",
+  accounts: "admin-accounts-list",
+};
+
+/** Opens one tab of the admin page and waits until its data has actually arrived.
  *
  *  Not ceremony: filling a form the instant `/admin` responds submits while the page's own
  *  queries are still in flight, and the list then renders the pre-submit response — a state
@@ -54,13 +72,21 @@ function uniqueTitle(prefix: string): string {
  *  lists makes the test do what a user does. (Once the list has loaded, a create *is*
  *  reflected immediately — verified separately.)
  *
- *  The catalog select is the "form is ready" signal: the create button cannot be used as
- *  one, because it is also disabled while the title is empty. */
-async function openAdmin(page: Page, testInfo: TestInfo): Promise<void> {
-  await page.goto("/admin");
-  await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
-  await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
-  await expect(page.getByTestId("admin-events-catalog-select")).toBeVisible();
+ *  The tab goes in the URL rather than being clicked: `?tab=` is part of the contract
+ *  (Story A-11), so navigating straight to it exercises the deep link every time this
+ *  helper is used, and a test about creating an event does not spend its first assertion
+ *  on the tab strip. The strip itself is covered by its own test. */
+async function openAdmin(
+  page: Page,
+  testInfo: TestInfo,
+  tab: AdminTab = "events",
+): Promise<void> {
+  await page.goto(`/admin?tab=${tab}`);
+  await expect(page.getByTestId(`admin-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId(TAB_READY[tab])).toBeVisible();
+  if (tab === "events") {
+    await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
+  }
   // Story A-10: the admin page was unusable on a phone because it was too wide, and the
   // symptom was clicks landing on the wrong element rather than anything visibly broken.
   await expectNoSidewaysScroll(page, testInfo);
@@ -266,12 +292,121 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
   });
 });
 
+test.describe("VA-10: closing an event, and taking it back", () => {
+  test("a running event is declared over, then resumed", async ({ page }, testInfo) => {
+    await signIn(page, ADMIN);
+    const title = uniqueTitle("E2E Closing Act");
+
+    await openAdmin(page, testInfo);
+    await page.getByTestId("admin-events-title-input").fill(title);
+    await page.getByTestId("admin-events-starts-input").fill("2027-07-03");
+    await page.getByTestId("admin-events-series-select").selectOption({ label: LEAGUE_SERIES });
+    await page.getByTestId("admin-events-create-button").click();
+    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
+    await expect(page.getByTestId("admin-events-pairing-draw-success")).toBeVisible({
+      timeout: 20_000,
+    });
+
+    const eventId = await openPanel(page, title);
+
+    // Nothing has started, so there is nothing to declare over — and the panel says which
+    // of the two is still open to the organizer rather than offering a dead button.
+    await expect(page.getByTestId(`admin-manage-event-finish-${eventId}`)).toBeDisabled();
+    await expect(page.getByTestId(`admin-manage-event-cancel-${eventId}`)).toBeEnabled();
+    await expect(page.getByTestId(`admin-manage-event-reopen-${eventId}`)).toHaveCount(0);
+
+    await page.getByTestId(`admin-manage-event-start-${eventId}`).click();
+    await expect(page.getByTestId(`admin-manage-event-status-${eventId}`)).toHaveText("live");
+
+    // Racing is over. Deliberately with no results entered at all: finishing must not
+    // require a complete race list, or the button would be unusable on the days the wind
+    // dies (Story VA-10).
+    const finish = page.getByTestId(`admin-manage-event-finish-${eventId}`);
+    await expect(finish).toBeEnabled();
+    await finish.click();
+    await expect(page.getByTestId(`admin-manage-event-status-${eventId}`)).toHaveText("final");
+
+    // A closed event offers exactly one transition, and it is the one that undoes this.
+    await expect(page.getByTestId(`admin-manage-event-finish-${eventId}`)).toHaveCount(0);
+    await expect(page.getByTestId(`admin-manage-event-cancel-${eventId}`)).toHaveCount(0);
+
+    // Closing freezes nothing: the dates are still editable while the event is `final`,
+    // because a protest heard weeks later still has to land on it.
+    await expect(page.getByTestId(`admin-manage-event-starts-${eventId}`)).toBeEditable();
+
+    await page.getByTestId(`admin-manage-event-reopen-${eventId}`).click();
+    await expect(page.getByTestId(`admin-manage-event-status-${eventId}`)).toHaveText("live");
+  });
+
+  test("a day called off before the start goes back to planned", async ({ page }, testInfo) => {
+    await signIn(page, ADMIN);
+    const title = uniqueTitle("E2E Called Off");
+
+    await openAdmin(page, testInfo);
+    await page.getByTestId("admin-events-title-input").fill(title);
+    await page.getByTestId("admin-events-create-button").click();
+    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
+
+    const eventId = await openPanel(page, title);
+
+    // Cancelling works from `planned` — a forecast is often bad enough to call a weekend
+    // off days before anyone leaves the dock — and needs none of the readiness the draw
+    // and the start insist on.
+    await page.getByTestId(`admin-manage-event-cancel-${eventId}`).click();
+    await expect(page.getByTestId(`admin-manage-event-status-${eventId}`)).toHaveText("cancelled");
+
+    // ...and a cancellation that turns out to be premature costs nothing: a reinstated
+    // event returns to `planned`, because it is prepared again rather than resumed.
+    await page.getByTestId(`admin-manage-event-reopen-${eventId}`).click();
+    await expect(page.getByTestId(`admin-manage-event-status-${eventId}`)).toHaveText("planned");
+  });
+});
+
+test.describe("A-11: the admin screen is organized in tabs", () => {
+  test("the tab is in the URL, survives a reload, and mounts only its own area", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, ADMIN);
+    await openAdmin(page, testInfo, "clubs");
+
+    // The point of the split: the other four areas are not on the page at all. This is
+    // also what makes it cheap — an unmounted panel issues none of its queries.
+    await expect(page.getByTestId("admin-manage-events-list")).toHaveCount(0);
+    await expect(page.getByTestId("admin-sailors-list")).toHaveCount(0);
+
+    // Clicking a tab is a navigation, so the URL follows...
+    await page.getByTestId("admin-events-tab").click();
+    await expect(page).toHaveURL(/[?&]tab=events/);
+    await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
+    await expect(page.getByTestId("admin-clubs-list")).toHaveCount(0);
+
+    // ...which means Back steps between tabs rather than leaving the screen.
+    await page.goBack();
+    await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
+
+    // A reload comes back to the same tab. Without the URL it would come back to the
+    // first one, which is the thing that makes tabbed admin screens annoying.
+    await page.goForward();
+    await page.reload();
+    await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
+
+    // An unknown tab opens the first one instead of erroring.
+    await page.goto("/admin?tab=nonsense");
+    await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
+
+    // Five tabs do not fit across a phone; the strip scrolls inside its own box rather
+    // than widening the page (Story A-10 is what happens when it does not).
+    await expect(page.getByTestId("admin-tabs")).toBeVisible();
+    await expectNoSidewaysScroll(page, testInfo);
+  });
+});
+
 test.describe("A-1/V-3: clubs and their crests", () => {
   test("a created club appears in the admin list and is not public yet", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Sailing Club");
 
-    await openAdmin(page, testInfo);
+    await openAdmin(page, testInfo, "clubs");
     await page.getByTestId("admin-clubs-name-input").fill(name);
     // Unique, because the club's URL is built from its abbreviation: a fixed one collides
     // with the club a previous run created and the create fails with a 409.
@@ -303,7 +438,7 @@ test.describe("VA-8: a series is published the same way", () => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Trophy");
 
-    await openAdmin(page, testInfo);
+    await openAdmin(page, testInfo, "series");
     await page.getByTestId("admin-series-name-input").fill(name);
     await page.getByTestId("admin-series-year-input").fill("2027");
     await page.getByTestId("admin-series-create-button").click();

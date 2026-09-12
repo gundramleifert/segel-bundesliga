@@ -852,6 +852,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/events/{event_id}/finish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Declare that racing is over
+         * @description Moves a **live** event to ``final`` — Story VA-10.
+         *
+         *     Like the start, a declaration by the people on site rather than a consequence of
+         *     anything: a day is over when the race committee says so, not when the last scheduled
+         *     race has been sailed or a date has passed.
+         *
+         *     It therefore **does not require a complete race list**. A matchday that loses its last
+         *     three flights to dying wind is still finished; demanding all 48 races would disable
+         *     this exactly on the days it is needed. A day where nothing at all was sailed is a
+         *     cancellation, not a finish.
+         *
+         *     And it **freezes nothing**. The configuration was already frozen by the first race
+         *     (``require_editable_configuration``), and results deliberately never freeze — a protest
+         *     heard weeks later still has to land, which is what the race-committee screens are for.
+         */
+        post: operations["finish_event_api_admin_events__event_id__finish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Call the event off
+         * @description Moves the event to ``cancelled`` — Story VA-10.
+         *
+         *     Available from ``planned`` **and** from ``live``: a day can be called off before anyone
+         *     leaves the dock, or abandoned halfway through.
+         *
+         *     It **deletes nothing**. The pairing list and any results recorded stay exactly where
+         *     they are, so a cancellation that turns out to be premature costs no data and
+         *     ``reopen`` is enough to undo it.
+         *
+         *     A cancelled event leaves the scored set (``SCORED_STATES`` in
+         *     ``app/services/standings.py``), which also means the "who misses an event gets
+         *     participants + 1" rule does not fire for it: being at a regatta that was called off
+         *     must never be worse than staying home.
+         */
+        post: operations["cancel_event_api_admin_events__event_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/events/{event_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Undo a finish or a cancellation
+         * @description Takes a closed event back — Story VA-10.
+         *
+         *     Both closings are judgements made in a hurry, on a jetty, so both undo. Where they go
+         *     back to differs, and the difference is the honest one: a finished event returns to
+         *     ``live`` because it was being sailed, a cancelled one returns to ``planned`` because a
+         *     reinstated day is prepared again, not resumed mid-race.
+         */
+        post: operations["reopen_event_api_admin_events__event_id__reopen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/events/{event_id}/clubs": {
         parameters: {
             query?: never;
@@ -2538,8 +2628,8 @@ export interface components {
                 [key: string]: unknown;
             };
         };
-        /** Registrierung */
-        Registrierung: {
+        /** Registration */
+        Registration: {
             /**
              * Email
              * Format: email
@@ -3610,7 +3700,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Registrierung"];
+                "application/json": components["schemas"]["Registration"];
             };
         };
         responses: {
@@ -4440,6 +4530,99 @@ export interface operations {
         };
     };
     start_event_api_admin_events__event_id__start_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    finish_event_api_admin_events__event_id__finish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_event_api_admin_events__event_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reopen_event_api_admin_events__event_id__reopen_post: {
         parameters: {
             query?: never;
             header?: never;

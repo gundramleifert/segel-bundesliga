@@ -36,11 +36,13 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
-    title="Sailing Bundesliga API",
+    # The association runs several series and the 1. Segel-Bundesliga is only one of them,
+    # so neither the title nor the description may carry that name (see CLAUDE.md).
+    title="Deutsche Segel-Liga API",
     version="0.1.0",
     description=(
-        "Backend for the Sailing Bundesliga website: master data, standings, pairing lists. "
-        "Points are never stored, only computed from raw results."
+        "Backend for the Deutsche Segel-Liga website: master data, standings, pairing "
+        "lists. Points are never stored, only computed from raw results."
     ),
 )
 

@@ -596,7 +596,7 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
 
-### VA-10 ◐ Close an event, or call it off
+### VA-10 ● Close an event, or call it off
 
 As an **event organizer** I want to **declare that racing is over, or that it never
 happened**, so that **the calendar, the series table and everyone reading them stop treating
@@ -639,13 +639,18 @@ Acceptance criteria:
   (VA-8).
 - Permissions are the same as for starting: `admin`, `editor`, `race_officer`.
 
-**What is done:** the three transitions and every rule above, through the API —
-`POST …/finish`, `POST …/cancel`, `POST …/reopen` in `app/routers/events.py`, covered by 16
-tests. **What is open:** the manage panel (`web/src/pages/AdminEvents.tsx`) has no buttons
-for them yet, so an organizer still cannot close a day without a REST client. That is the
-remaining piece, and it is what keeps this story at ◐ rather than ●.
+In the interface, the three transitions live in their own block at the bottom of the manage
+panel — after publication and the start, because that is the order an organizer does them
+in. The block shows **only the transitions that apply right now**: an open event offers
+Finish and Call off, a closed one offers a single Reopen and nothing else. That is
+deliberate — a permanently visible, permanently disabled "Reopen" on every planned event
+would be four-fifths noise on a screen that has to work at 412 px (Story A-10).
 
-Tests: `api/tests/stories/test_event_closing.py`
+Neither closing asks for confirmation. Both are one tap to undo and neither deletes
+anything, so a confirmation dialog would buy nothing and cost a tap on a boat.
+
+Tests: `api/tests/stories/test_event_closing.py`,
+`e2e/lifecycle.spec.ts::VA-10: closing an event, and taking it back`
 
 ---
 
@@ -695,11 +700,42 @@ Acceptance criteria:
   covering what follows them.
 - Verified by **removing** the `testIgnore` from the `mobile` project and having
   `lifecycle.spec.ts` pass there — done; the `mobile` project now runs every spec.
-- The zoom-out cannot come back silently: `expectNoZoomOut` in `e2e/lifecycle.spec.ts`
-  asserts both numbers on every admin visit. Extending that guard across the public pages
-  is its own piece of work.
+- The zoom-out cannot come back silently: `expectNoSidewaysScroll` in `e2e/layout.ts`
+  asserts both numbers on every admin visit, and `e2e/visitor.spec.ts` runs it over every
+  public page.
 
-Tests: `e2e/lifecycle.spec.ts` under the `mobile` project (all six tests)
+Tests: `e2e/lifecycle.spec.ts` under the `mobile` project (every test in the file)
+
+### A-11 ● The admin screen in tabs
+As an **organizer**, I want the admin screen **split into tabs by what I am configuring**,
+so that I **reach the one thing I came for instead of scrolling past four other areas**.
+
+`/admin` grew by section: clubs, then series, then events, then sailors, then accounts —
+five independent tools stacked in one column. Each is short on its own; together they are a
+page nobody reads top to bottom, and on a phone the events section — the one used on a
+jetty — is several screens down.
+
+Acceptance criteria:
+- Five tabs, in the order the work happens: **Clubs**, **Series**, **Events**, **Sailors**,
+  **Accounts**. That is the same order the sections had, and the order is not alphabetical
+  for a reason: a series needs clubs, an event needs a series.
+- **The tab lives in the URL** (`/admin?tab=events`), so it can be linked, survives a
+  reload, and the browser's back button steps between tabs. An unknown or missing `tab`
+  opens the first tab the signed-in user may see rather than erroring.
+- **A tab a role may not use does not exist for it.** Accounts is `admin` only, exactly as
+  the section was; an `editor` sees four tabs, not five with one refusing.
+- **Only the selected tab's panel is mounted.** This is the part that pays for itself: the
+  page used to issue every area's queries on load — clubs, series, events, readiness,
+  sailors, accounts — and now issues one area's.
+- **The tab strip never widens the page.** Five tabs do not fit across 412 px, so the strip
+  scrolls sideways inside its own box. The alternative is the failure Story A-10 documents:
+  a page wider than the viewport, which mobile Chromium answers by zooming everything out.
+- Switching tabs loses no work in progress in the sense that matters: nothing on this
+  screen is a multi-step wizard, and every form is a create-or-save that either happened or
+  did not. A half-typed club name is discarded when the tab changes, and that is acceptable
+  where re-typing costs one line.
+
+Tests: `e2e/lifecycle.spec.ts::A-11: the admin screen is organized in tabs`
 
 ### A-1 ● Create clubs
 As **administration or editorial** I want to **create and maintain clubs**,

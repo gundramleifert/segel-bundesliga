@@ -294,6 +294,12 @@ export const api = {
      *  effect of a date passing. Needs readiness *and* a pairing list. */
     startEvent: (eventId: number) =>
       send<EventSummary>("POST", `/api/admin/events/${eventId}/start`),
+    /** Story VA-10. One call for all three closings, because the screen treats them as one
+     *  decision ("this day is over, one way or the other") and the server distinguishes
+     *  them anyway. `reopen` undoes either: `final` goes back to `live`, `cancelled` to
+     *  `planned`. None of them deletes anything or freezes anything. */
+    closeEvent: (eventId: number, transition: "finish" | "cancel" | "reopen") =>
+      send<EventSummary>("POST", `/api/admin/events/${eventId}/${transition}`),
     eventClubs: (eventId: number, signal?: AbortSignal) =>
       get<EventTeam[]>(`/api/admin/events/${eventId}/clubs`, signal),
     setEventClubs: (eventId: number, clubs: number[]) =>

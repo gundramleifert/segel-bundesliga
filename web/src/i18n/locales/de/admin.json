@@ -169,7 +169,8 @@
   },
   "page": {
     "title": "Verwaltung",
-    "signedInAs": "Angemeldet als {{displayName}} · {{roles}}"
+    "signedInAs": "Angemeldet als {{displayName}} · {{roles}}",
+    "tabsLabel": "Bereich"
   },
   "manage": {
     "title": "Veranstaltung durchführen",
@@ -215,6 +216,15 @@
     "startedButton": "Läuft",
     "startedMessage": "Die Veranstaltung läuft.",
     "startNeedsHint": "Der Start braucht eine vollständige Konfiguration und eine Pairing-Liste — ohne sie gibt es nichts zu segeln.",
-    "openResultsLink": "Ergebnisse erfassen"
+    "openResultsLink": "Ergebnisse erfassen",
+    "closingTitle": "Abschluss",
+    "closingHint": "Ob ein Tag beendet oder abgesagt ist, entscheiden die Leute vor Ort — nie ein Datum. Beides lässt sich zurücknehmen, und beides löscht nichts.",
+    "finishButton": "Wettfahrten sind beendet",
+    "cancelButton": "Veranstaltung absagen",
+    "finishNeedsLiveHint": "Eine Veranstaltung, die nicht gestartet ist, kann nicht beendet werden — absagen lässt sie sich trotzdem.",
+    "finishedHint": "Die Wettfahrten sind beendet. Ergebnisse bleiben änderbar: eine Protestentscheidung in einigen Wochen landet weiterhin hier.",
+    "cancelledHint": "Diese Veranstaltung wurde abgesagt. Es wurde nichts gelöscht, und sie zählt in keiner Serienwertung — bei einer abgesagten Regatta dabei gewesen zu sein, darf niemanden etwas kosten.",
+    "reopenFinishedButton": "Wettfahrten fortsetzen",
+    "reopenCancelledButton": "Absage zurücknehmen"
   }
 }
