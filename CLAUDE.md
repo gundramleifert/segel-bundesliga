@@ -258,14 +258,17 @@ External APIs are never called live in tests; we test against recorded fixtures 
 Three habits. They exist because each one was learned the expensive way, and the cost of
 re-learning falls on whoever comes next.
 
-### Before you debug, read `docs/gotchas/`
+### Before you debug, read `docs/gotchas/INDEX.md`
 
-One file per surprise, named after the rule it teaches, so `ls docs/gotchas/` reads as a
-list of advice. Skim the filenames at the start of a task and read the one that matches
-your symptom. These are things that are **not** deducible by reading the code harder: a
-library that owns a CSS token name we also wanted, an assertion that passes because the
-bug it guards against hides itself, a sandbox rule that makes a working command fail in the
-next call.
+One line per note — the whole folder skimmable for the price of one file. Read it at the
+start of a task, and open the note whose rule matches what you are about to touch or what
+just surprised you. These are things **not** deducible by reading the code harder: a library
+that owns a CSS token name we also wanted, an assertion that passes because the bug it
+guards against hides itself, a sandbox rule that makes a working command fail in the next
+call.
+
+The index is generated — `scripts/check-docs.py --fix` — and `scripts/check.sh` fails if it
+is stale, so it cannot quietly drift out of date.
 
 ### When you were wrong, write it down
 
@@ -280,8 +283,16 @@ recovers. `docs/gotchas/README.md` has the format and the rules for keeping the 
 honest — including deleting an entry once it stops being true, which is a real
 contribution, not housekeeping.
 
+    scripts/check-docs.py --new "a sentence stating the rule"   # scaffolds the note
+    scripts/check-docs.py --fix                                 # refreshes the index
+
 Do not write a note for an ordinary bug you fixed, or for something `CLAUDE.md` and
 `docs/concepts.md` already say. Noise is what makes the next person stop reading the folder.
+
+**Do this before you report the work finished, not after.** By the next session the
+reasoning is gone and only the diff is left — and the diff is precisely the part that does
+*not* carry why you first went the wrong way. A task where you were wrong at least once,
+and no note came out of it, is a task that quietly threw away its most useful product.
 
 ### When you do something twice, make it a function
 
@@ -301,6 +312,15 @@ What already exists, and what each one replaced:
 - **`e2e/layout.ts::expectNoSidewaysScroll`** — the "does this page fit its viewport"
   check, which has to assert *two* numbers to work at all, and which names the offending
   boxes when it fails so nobody writes that probe again.
+- **`scripts/check-docs.py`** — makes the documentation prove itself: every `Tests:`
+  reference must resolve to something that exists, every story ID a test claims must be a
+  real story, every gotcha must carry its Evidence, and the index must be current. It is
+  part of `check.sh`, so the docs cannot rot silently between commits.
+
+A tool nobody trusts is worse than none, so **verify a new check by breaking something on
+purpose** and watching it fail. `check-docs.py` was run against a renamed class, a deleted
+file, an invented story ID and a note with its Evidence removed before it was believed —
+each one caught. A check that has never failed has not been tested; it has only been run.
 
 ### How to update the docs when you change something
 

@@ -33,6 +33,7 @@ step() {
   fi
 }
 
+step "docs"            python3 scripts/check-docs.py
 step "ruff"            bash -c 'cd api && uv run ruff check .'
 [[ "${1:-}" == "--fast" ]] || step "pytest" bash -c 'cd api && uv run pytest -q'
 step "web typecheck"   bash -c 'cd web && pnpm typecheck'

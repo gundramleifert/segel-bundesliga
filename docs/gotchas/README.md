@@ -9,6 +9,19 @@ passes while the thing it guards is broken, the sandbox rule that makes a workin
 fail in the next call. None of it is deducible from the code by reading harder, which is
 exactly why it is written down.
 
+## How to use it
+
+    cat docs/gotchas/INDEX.md                                   # one line per note
+    scripts/check-docs.py --new "a sentence stating the rule"   # scaffold a new one
+    scripts/check-docs.py --fix                                 # refresh the index
+
+`docs/gotchas/REFLECT.md` is the review that feeds this folder — run it at the end of a
+piece of work, before reporting it finished. Copy it to `.claude/commands/reflect.md` and
+it becomes `/reflect`.
+
+`scripts/check.sh` fails if a note is missing a section or the index is stale, so neither
+can rot quietly.
+
 ## Who this is for
 
 Whoever works here next, human or agent. An agent that reads this folder first does not
