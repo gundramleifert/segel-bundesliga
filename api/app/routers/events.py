@@ -454,6 +454,116 @@ async def start_event(
     return _event_out(await _with_relationships(session, event.id))
 
 
+@router.post(
+    "/{event_id}/finish",
+    response_model=EventOut,
+    dependencies=[Depends(require_event_manager)],
+    summary="Declare that racing is over",
+)
+async def finish_event(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> EventOut:
+    """Moves a **live** event to ``final`` — Story VA-10.
+
+    Like the start, a declaration by the people on site rather than a consequence of
+    anything: a day is over when the race committee says so, not when the last scheduled
+    race has been sailed or a date has passed.
+
+    It therefore **does not require a complete race list**. A matchday that loses its last
+    three flights to dying wind is still finished; demanding all 48 races would disable
+    this exactly on the days it is needed. A day where nothing at all was sailed is a
+    cancellation, not a finish.
+
+    And it **freezes nothing**. The configuration was already frozen by the first race
+    (``require_editable_configuration``), and results deliberately never freeze — a protest
+    heard weeks later still has to land, which is what the race-committee screens are for.
+    """
+    event = await _event(session, event_id)
+    if event.status == EventStatus.FINAL:
+        return _event_out(await _with_relationships(session, event.id))
+    if event.status != EventStatus.LIVE:
+        raise Problem(
+            409,
+            "event-not-started",
+            "This event has not been started, so there is nothing to declare over.",
+            event_id=event.id,
+            event_status=event.status,
+        )
+    return await _set_status(session, event, EventStatus.FINAL)
+
+
+@router.post(
+    "/{event_id}/cancel",
+    response_model=EventOut,
+    dependencies=[Depends(require_event_manager)],
+    summary="Call the event off",
+)
+async def cancel_event(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> EventOut:
+    """Moves the event to ``cancelled`` — Story VA-10.
+
+    Available from ``planned`` **and** from ``live``: a day can be called off before anyone
+    leaves the dock, or abandoned halfway through.
+
+    It **deletes nothing**. The pairing list and any results recorded stay exactly where
+    they are, so a cancellation that turns out to be premature costs no data and
+    ``reopen`` is enough to undo it.
+
+    A cancelled event leaves the scored set (``SCORED_STATES`` in
+    ``app/services/standings.py``), which also means the "who misses an event gets
+    participants + 1" rule does not fire for it: being at a regatta that was called off
+    must never be worse than staying home.
+    """
+    event = await _event(session, event_id)
+    if event.status == EventStatus.CANCELLED:
+        return _event_out(await _with_relationships(session, event.id))
+    return await _set_status(session, event, EventStatus.CANCELLED)
+
+
+@router.post(
+    "/{event_id}/reopen",
+    response_model=EventOut,
+    dependencies=[Depends(require_event_manager)],
+    summary="Undo a finish or a cancellation",
+)
+async def reopen_event(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> EventOut:
+    """Takes a closed event back — Story VA-10.
+
+    Both closings are judgements made in a hurry, on a jetty, so both undo. Where they go
+    back to differs, and the difference is the honest one: a finished event returns to
+    ``live`` because it was being sailed, a cancelled one returns to ``planned`` because a
+    reinstated day is prepared again, not resumed mid-race.
+    """
+    event = await _event(session, event_id)
+    if event.status == EventStatus.FINAL:
+        return await _set_status(session, event, EventStatus.LIVE)
+    if event.status == EventStatus.CANCELLED:
+        return await _set_status(session, event, EventStatus.PLANNED)
+    raise Problem(
+        409,
+        "event-not-closed",
+        "This event is neither finished nor cancelled, so there is nothing to reopen.",
+        event_id=event.id,
+        event_status=event.status,
+    )
+
+
+async def _set_status(
+    session: AsyncSession, event: Event, status_value: EventStatus
+) -> EventOut:
+    """Writes a status and nothing else.
+
+    Publication is deliberately untouched: ``published`` is the only thing that decides who
+    can see an event, and closing one says nothing about that (Story VA-8).
+    """
+    event.status = status_value
+    await session.commit()
+    return _event_out(await _with_relationships(session, event.id))
+
+
 async def _set_published(session: AsyncSession, event_id: int, published: bool) -> EventOut:
     event = await _event(session, event_id)
     event.published = published

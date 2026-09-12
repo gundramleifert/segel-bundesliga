@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { expectNoSidewaysScroll } from "./layout";
+
 /** E2E cut along the user stories — see docs/userstories.md.
  *
  * These are the public pages, read as a visitor with no account. They address elements by
@@ -15,6 +17,24 @@ import { expect, test } from "@playwright/test";
 const FINISHED_EVENT = "/events/1"; // dsbl-1-2026-act-1
 const PLANNED_EVENT = "/events/3"; // dsbl-1-2026-act-3
 const FIRST_SERIES = "/series/1"; // dsbl-1-2026
+
+/** Every public page, with the testid that means "this page has its data".
+ *
+ *  A list rather than a test each: adding a page should be one line, and every page has to
+ *  answer the same question — does it fit the viewport it is being read on. */
+const PUBLIC_PAGES: [path: string, ready: string][] = [
+  ["/", "start-events-section"],
+  ["/series", "series-list"],
+  [FIRST_SERIES, "standings-table"],
+  ["/events", "events-list"],
+  [FINISHED_EVENT, "matchday-header"],
+  ["/clubs", "clubs-list"],
+  ["/clubs/1", "club-header"],
+  ["/sailors/1", "sailor-registrations-section"],
+  ["/help", "help-roles-section"],
+  ["/legal-notice", "legal-notice-header"],
+  ["/privacy", "privacy-header"],
+];
 
 test.describe("B-1: as a fan I see the series standings", () => {
   test("the table lists all 18 clubs in ranks 1 to 18", async ({ page }) => {
@@ -152,14 +172,24 @@ test.describe("Foundations", () => {
     await expect(page).toHaveURL(/\/privacy$/);
   });
 
-  test("the page never scrolls sideways — not even with a wide table", async ({ page }) => {
+  test("the page never scrolls sideways — not even with a wide table", async ({ page }, testInfo) => {
     await page.goto(PLANNED_EVENT);
     await page.getByTestId("matchday-pairing-tab").click();
     await expect(page.getByTestId("matchday-pairing-row-1")).toBeVisible();
 
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
+    // Via the shared helper, which also checks that the browser has not zoomed the page
+    // out — the check this test used to make could not see that, and passed for weeks
+    // while the admin screens were unusable (docs/gotchas/, Story A-10).
+    await expectNoSidewaysScroll(page, testInfo);
+  });
+
+  test("every public page fits its viewport", async ({ page }, testInfo) => {
+    // One list, so a new page is one line rather than a new test — and so this runs on
+    // the phone viewport too, where fitting is the whole question.
+    for (const [path, ready] of PUBLIC_PAGES) {
+      await page.goto(path);
+      await expect(page.getByTestId(ready)).toBeVisible();
+      await expectNoSidewaysScroll(page, testInfo);
+    }
   });
 });

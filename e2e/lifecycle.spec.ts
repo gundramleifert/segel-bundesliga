@@ -1,4 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type TestInfo } from "@playwright/test";
+
+import { expectNoSidewaysScroll } from "./layout";
 
 /** Story VA-9: running an event, in a real browser.
  *
@@ -54,38 +56,14 @@ function uniqueTitle(prefix: string): string {
  *
  *  The catalog select is the "form is ready" signal: the create button cannot be used as
  *  one, because it is also disabled while the title is empty. */
-async function openAdmin(page: Page): Promise<void> {
+async function openAdmin(page: Page, testInfo: TestInfo): Promise<void> {
   await page.goto("/admin");
   await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
   await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
   await expect(page.getByTestId("admin-events-catalog-select")).toBeVisible();
-  await expectNoZoomOut(page);
-}
-
-/** Fails if the browser had to zoom the page out to fit its own content.
- *
- * This is the guard for Story A-10, and it earns its place: while the admin page overflowed
- * horizontally, mobile Chromium answered by scaling the whole page down — a 412px viewport
- * laid out as 754px — and every click then landed on a neighbouring element. The symptom
- * read as "these buttons are broken", not as "this page is too wide", which cost an
- * afternoon. `window.innerWidth` is the layout viewport, so comparing it against the
- * viewport Playwright actually configured catches the zoom-out directly, and
- * `scrollWidth` catches the overflow that causes it before it gets that far.
- */
-async function expectNoZoomOut(page: Page): Promise<void> {
-  const configured = page.viewportSize()!.width;
-  const measured = await page.evaluate(() => ({
-    innerWidth: window.innerWidth,
-    scrollWidth: document.documentElement.scrollWidth,
-  }));
-  expect(
-    measured.innerWidth,
-    `the page was zoomed out to fit its content: laid out at ${measured.innerWidth}px in a ${configured}px viewport`,
-  ).toBe(configured);
-  expect(
-    measured.scrollWidth,
-    `the page overflows horizontally (${measured.scrollWidth}px of content in ${configured}px) — a wide table has to scroll inside its own box, not widen the page`,
-  ).toBeLessThanOrEqual(configured);
+  // Story A-10: the admin page was unusable on a phone because it was too wide, and the
+  // symptom was clicks landing on the wrong element rather than anything visibly broken.
+  await expectNoSidewaysScroll(page, testInfo);
 }
 
 /** The row of the manage list belonging to a freshly created event, opened.
@@ -106,13 +84,11 @@ async function openPanel(page: Page, title: string): Promise<string> {
 }
 
 test.describe("VA-8/VA-9: from a draft to a running event", () => {
-  test("an event with only a title is savable, and the panel says what is missing", async ({
-    page,
-  }) => {
+  test("an event with only a title is savable, and the panel says what is missing", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Draft Cup");
 
-    await openAdmin(page);
+    await openAdmin(page, testInfo);
     await page.getByTestId("admin-events-title-input").fill(title);
     // Deliberately nothing else: no date, no series, no host. This is the normal early
     // state of an event, and the create button has to be enabled for it.
@@ -158,11 +134,11 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await expect(page.getByTestId(`admin-manage-event-start-${eventId}`)).toBeDisabled();
   });
 
-  test("the date can follow later, and publishing does not require it", async ({ page }) => {
+  test("the date can follow later, and publishing does not require it", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Dateless Cup");
 
-    await openAdmin(page);
+    await openAdmin(page, testInfo);
     await page.getByTestId("admin-events-title-input").fill(title);
     await page.getByTestId("admin-events-create-button").click();
     await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
@@ -193,13 +169,11 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await expect(page.getByTestId(`admin-manage-event-starts-${eventId}`)).toBeEditable();
   });
 
-  test("a standalone event takes any club, a series event only the series' own", async ({
-    page,
-  }) => {
+  test("a standalone event takes any club, a series event only the series' own", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const standalone = uniqueTitle("E2E Open Regatta");
 
-    await openAdmin(page);
+    await openAdmin(page, testInfo);
     await page.getByTestId("admin-events-title-input").fill(standalone);
     await page.getByTestId("admin-events-create-button").click();
     await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
@@ -239,11 +213,11 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     ).toBeVisible();
   });
 
-  test("a complete event can be drawn, published and started", async ({ page }) => {
+  test("a complete event can be drawn, published and started", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Ready Act");
 
-    await openAdmin(page);
+    await openAdmin(page, testInfo);
     await page.getByTestId("admin-events-title-input").fill(title);
     await page.getByTestId("admin-events-starts-input").fill("2027-06-12");
     // This series has the league's own 18 clubs, so the default 18/6/16 setup and its
@@ -293,11 +267,11 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
 });
 
 test.describe("A-1/V-3: clubs and their crests", () => {
-  test("a created club appears in the admin list and is not public yet", async ({ page }) => {
+  test("a created club appears in the admin list and is not public yet", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Sailing Club");
 
-    await openAdmin(page);
+    await openAdmin(page, testInfo);
     await page.getByTestId("admin-clubs-name-input").fill(name);
     // Unique, because the club's URL is built from its abbreviation: a fixed one collides
     // with the club a previous run created and the create fails with a 409.
@@ -325,11 +299,11 @@ test.describe("A-1/V-3: clubs and their crests", () => {
 });
 
 test.describe("VA-8: a series is published the same way", () => {
-  test("a new series starts as a draft and the row publishes it", async ({ page }) => {
+  test("a new series starts as a draft and the row publishes it", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Trophy");
 
-    await openAdmin(page);
+    await openAdmin(page, testInfo);
     await page.getByTestId("admin-series-name-input").fill(name);
     await page.getByTestId("admin-series-year-input").fill("2027");
     await page.getByTestId("admin-series-create-button").click();

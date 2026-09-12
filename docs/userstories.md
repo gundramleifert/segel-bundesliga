@@ -596,6 +596,57 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
 
+### VA-10 ◐ Close an event, or call it off
+
+As an **event organizer** I want to **declare that racing is over, or that it never
+happened**, so that **the calendar, the series table and everyone reading them stop treating
+a finished day as if it were still running**.
+
+`EventStatus` has carried `final` and `cancelled` from the beginning, and
+`app/services/standings.py` already scores `live` and `final` alike — but nothing ever set
+either. The only transition that existed was `start` (`planned` → `live`), so every event
+that had ever begun stayed "live" forever, including seasons that ended months ago.
+
+Acceptance criteria:
+- **Finishing** (`POST …/finish`) moves a **live** event to `final`. It is a declaration by
+  the people on site, never a consequence of a date passing or of all races being sailed —
+  a matchday that loses its last three flights to dying wind is still over when the race
+  committee says it is.
+- **Finishing does not require complete results**, and deliberately so: requiring all 48
+  races would disable the button exactly on the days it is needed. A day where *nothing*
+  was sailed is a cancellation, not a finish.
+- **Finishing freezes nothing.** The configuration was already frozen by the first race
+  (VA-8), and results stay editable forever — a protest heard weeks later is the entire
+  point of the race-committee screens, and it must still land on a `final` event.
+- **Cancelling** (`POST …/cancel`) is available from `planned` **and** from `live`: a day
+  can be called off before anyone leaves the dock, or abandoned halfway through. It
+  **deletes nothing** — pairing list and any results recorded stay exactly as they are, so
+  a cancellation that turns out to be premature costs no data.
+- **A cancelled event scores nothing, and costs nobody anything.** It drops out of
+  `scored_events`, so the "who misses an event gets participants + 1" rule does **not**
+  fire for it — being at a regatta that was called off must never be worse than staying
+  home.
+- **Both are reversible** (`POST …/reopen`), because both are human judgements made in a
+  hurry: `final` → `live`, `cancelled` → `planned`. Nothing else about the event changes.
+- Every transition is **idempotent** — finishing a `final` event answers 200, the same way
+  starting a `live` one already does. A second tap on a button in a rocking boat is not an
+  error.
+- Refusals are typed and say which state the event is actually in: finishing something that
+  never started is `event-not-started`, and reopening something that was never closed is
+  `event-not-closed`.
+- **Publication stays orthogonal.** Finishing does not publish, cancelling does not
+  withdraw — `published` remains the only thing that decides who can see the event
+  (VA-8).
+- Permissions are the same as for starting: `admin`, `editor`, `race_officer`.
+
+**What is done:** the three transitions and every rule above, through the API —
+`POST …/finish`, `POST …/cancel`, `POST …/reopen` in `app/routers/events.py`, covered by 16
+tests. **What is open:** the manage panel (`web/src/pages/AdminEvents.tsx`) has no buttons
+for them yet, so an organizer still cannot close a day without a REST client. That is the
+remaining piece, and it is what keeps this story at ◐ rather than ●.
+
+Tests: `api/tests/stories/test_event_closing.py`
+
 ---
 
 ## Administration

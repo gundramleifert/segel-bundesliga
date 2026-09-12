@@ -25,6 +25,8 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/concepts.md` | **Terms and data model** — Series, Event, Squad, Scoring. Start here. |
 | `docs/userstories.md` | What the system should do, with tests included |
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
+| `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
+| `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `reference/` | Shallow clones of external repos for reference, not versioned |
 | `~/.claude/plans/iterative-jingling-willow.md` | The agreed overall plan |
@@ -177,6 +179,14 @@ These points were deliberately decided this way; bypassing them costs a lot late
   clubs, boats, pairing list — the trigger being any race no longer `scheduled` or any
   result recorded. It **never** freezes results: correcting a result, including a protest
   decision months later, is the point of the race-committee screens.
+- **Closing an event is a declaration, never a consequence** (Story VA-10). `finish`
+  (`live` → `final`) is the race committee saying racing is over; it deliberately does
+  **not** require a complete race list, because a day that loses its last flights to dying
+  wind is still over. `cancel` works from `planned` and from `live`, deletes nothing, and
+  takes the event out of `SCORED_STATES` — so a called-off day costs nobody the
+  "participants + 1" that missing an event would. Both undo via `reopen` (`final` → `live`,
+  `cancelled` → `planned`). Closing freezes nothing: a protest heard weeks later still has
+  to land on a `final` event.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
 
@@ -242,6 +252,77 @@ story ID in the docstring. New features are added to stories first, then tested.
   system libraries.
 
 External APIs are never called live in tests; we test against recorded fixtures (`api/tests/fixtures/`).
+
+## Working here
+
+Three habits. They exist because each one was learned the expensive way, and the cost of
+re-learning falls on whoever comes next.
+
+### Before you debug, read `docs/gotchas/`
+
+One file per surprise, named after the rule it teaches, so `ls docs/gotchas/` reads as a
+list of advice. Skim the filenames at the start of a task and read the one that matches
+your symptom. These are things that are **not** deducible by reading the code harder: a
+library that owns a CSS token name we also wanted, an assertion that passes because the
+bug it guards against hides itself, a sandbox rule that makes a working command fail in the
+next call.
+
+### When you were wrong, write it down
+
+This is the part that is easy to skip and the part that pays. Write a note when you were
+**confidently wrong** — you named a cause, acted on it, and it was something else — or when
+a surprise cost more than ~15 minutes, or when a symptom pointed away from its cause, or
+when a green check turned out to protect nothing.
+
+Say *what misled you*, in one line, under **Cause**. That line is the whole point: it is
+the hint the next agent needs before they start, and the part no amount of code-reading
+recovers. `docs/gotchas/README.md` has the format and the rules for keeping the folder
+honest — including deleting an entry once it stops being true, which is a real
+contribution, not housekeeping.
+
+Do not write a note for an ordinary bug you fixed, or for something `CLAUDE.md` and
+`docs/concepts.md` already say. Noise is what makes the next person stop reading the folder.
+
+### When you do something twice, make it a function
+
+Repeated work is a design signal, not a chore. The rule of thumb: the second time, notice;
+the third time, extract — and put the reasoning in the extracted thing, where it will be
+read.
+
+What already exists, and what each one replaced:
+
+- **`scripts/check.sh`** — every gate that must be green, in fail-fastest order. Run it
+  before you commit. It encodes two traps: `tsc --noEmit` checks *nothing* in the web
+  project (project references — the real check is `pnpm typecheck`), and the Playwright
+  specs plus `playwright.config.ts` are only covered by the **root** tsconfig.
+- **`scripts/dev-stack.sh`** — seeds a throwaway database and runs both servers, which is
+  what the e2e suite needs and deliberately does not start itself. It also keeps the suite
+  away from `api/sbl.db`, which `lifecycle.spec.ts` would otherwise fill with test rows.
+- **`e2e/layout.ts::expectNoSidewaysScroll`** — the "does this page fit its viewport"
+  check, which has to assert *two* numbers to work at all, and which names the offending
+  boxes when it fails so nobody writes that probe again.
+
+### How to update the docs when you change something
+
+Order matters, and it is the order the project already follows:
+
+1. **The story first** (`docs/userstories.md`). New behaviour is described before it is
+   built — a story with acceptance criteria, and the reasoning for any decision that was
+   not obvious. If you are changing existing behaviour, edit that story rather than adding
+   a second one beside it.
+2. **Then the test**, naming its story ID in the docstring. Watch it fail for the reason
+   you expect; a test that passes before the code exists is testing nothing.
+3. **Then the code.**
+4. **Then the status marker and the `Tests:` line** — ○ open, ◐ partial, ● implemented
+   *and tested*. Every `Tests:` reference must resolve to a node that actually exists;
+   stale references are worse than none, because they make the document look checked when
+   it is not.
+5. **A domain rule that will outlive the story goes in this file**, under Domain decisions,
+   in one or two sentences. A surprise that will not goes in `docs/gotchas/`.
+
+If a story turns out to have recorded the wrong cause — it happens; A-10 blamed a
+`flex-wrap` header for weeks — **correct the story**, and say what the cause actually was.
+The narrative in a story is read by the next person as fact.
 
 ## Language
 
