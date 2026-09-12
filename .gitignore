@@ -11,7 +11,7 @@
 .gitmodules
 .idea
 .vscode
-.claude
+#x.claude
 .mcp.json
 
 # --- Reference repos: shallow clones for lookup only, deliberately not versioned ---
