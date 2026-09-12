@@ -92,7 +92,11 @@ class Settings(BaseSettings):
     # your provider's docs rather than assuming. smtp_ssl wins if both were set.
     smtp_starttls: bool = True
     smtp_ssl: bool = False
-    mail_from: str = "noreply@segelbundesliga.de"
+    # The association is the Deutsche Segel-Liga and its domain is deutsche-segelliga.de —
+    # "segelbundesliga" is the name of one *series*, not of the association or this site
+    # (see CLAUDE.md). Whatever stands here must also be verified as a sender with the mail
+    # provider, or login codes are accepted and then silently dropped (docs/deploy.md).
+    mail_from: str = "noreply@deutsche-segelliga.de"
 
     # Alternate transport for hosts that block outbound SMTP entirely (confirmed on the
     # Render test deployment — both port 465 and 587 time out; see docs/deploy.md). Sends
