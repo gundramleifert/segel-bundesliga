@@ -39,5 +39,10 @@
   "club-crest-not-yours": "You can only change the crest of your own club.",
   "club-crest-not-found": "This club has no uploaded crest.",
   "club-not-found": "This club does not exist.",
-  "club-members-restricted-to-members": "Only a club's own members can see its member list."
+  "club-members-restricted-to-members": "Only a club's own members can see its member list.",
+  "squad-duplicate-sailor": "Someone is in this squad twice.",
+  "squad-sailor-in-another-club": "Already sailing for another club in this series: {{sailors}}. A person competes only once per series.",
+  "squad-member-is-lined-up": "Already lined up for a matchday: {{selections}}. Change the lineup first, then the squad.",
+  "squad-needs-series-registration": "A squad belongs to a series registration, not to an entry in a single event.",
+  "squad-unknown-sailor": "Some of these people no longer exist. Reload the page."
 }

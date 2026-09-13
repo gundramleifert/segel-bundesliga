@@ -19,11 +19,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.crests import crest_path
+from app.auth import current_user
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import (
     Boat,
     Club,
+    ClubMember,
+    ClubMemberStatus,
     CrewRole,
     Event,
     EventCrew,
@@ -36,6 +39,7 @@ from app.models import (
     TeamMembership,
     TeamStatus,
 )
+from app.models.auth import User
 from app.problems import Problem
 from app.schemas.public import (
     BoatOut,
@@ -47,6 +51,9 @@ from app.schemas.public import (
     EventOut,
     EventStandingRow,
     MemberOut,
+    MyClubOut,
+    MySeriesOut,
+    MyTeamOut,
     PairingList,
     PairingRow,
     SailorDetail,
@@ -225,6 +232,93 @@ async def list_clubs(
         stmt = stmt.where(Series.year == effective_year)
 
     return list((await session.execute(stmt)).scalars())
+
+
+@router.get(
+    "/clubs/mine",
+    response_model=list[MyClubOut],
+    tags=["membership"],
+    summary="The clubs this account belongs to or may manage",
+)
+async def my_clubs(
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> list[MyClubOut]:
+    """Stories B-10 and V-12: one request for "the clubs that are something to me".
+
+    Two independent relationships, both reported, because the two screens reading this
+    need different ones — `/clubs` lists what someone *belongs to*, `/club` opens what
+    they may *act for* — and because they genuinely do not imply each other. Deciding
+    here which of the two counts would force the other screen into a second endpoint.
+
+    **`admin` gets no shortcut.** The role may manage every club, but this route answers
+    "mine", not "all": handing an administrator eighteen clubs would make the club screen
+    a worse copy of the admin screen and bury the one club they actually sail for. The
+    admin screen is where all eighteen belong.
+
+    Registered above `/clubs/{club_id}` on purpose — Starlette matches in registration
+    order, so "mine" would otherwise be read as a club id (the same reason
+    `sailors.me_router` is included before `public.router` in `app/main.py`).
+    """
+    member_of = set(
+        (
+            await session.execute(
+                select(ClubMember.club_id).where(
+                    ClubMember.user_id == acting.id,
+                    ClubMember.status == ClubMemberStatus.ACTIVE,
+                )
+            )
+        ).scalars()
+    )
+    # `club_manager` is granted per club (`UserRole.club_id`), never globally — so this
+    # comes off the role rows and not off `User.club_id`, which is the separate and
+    # narrower "this account represents that club".
+    manages = acting.managed_club_ids
+    club_ids = member_of | manages
+    if not club_ids:
+        return []
+
+    clubs = list(
+        (
+            await session.execute(
+                select(Club).where(Club.id.in_(club_ids)).order_by(Club.name)
+            )
+        ).scalars()
+    )
+
+    # Series registrations only — a `Team` with an `event_id` is an entry in one event and
+    # carries no squad (Story V-1), so offering it would produce a panel every save
+    # refuses.
+    rows = (
+        await session.execute(
+            select(Team.id, Team.club_id, Series, func.count(TeamMembership.id))
+            .join(Series, Team.series_id == Series.id)
+            .outerjoin(TeamMembership, TeamMembership.team_id == Team.id)
+            .where(Team.club_id.in_(club_ids), Team.event_id.is_(None))
+            .group_by(Team.id, Team.club_id, Series.id)
+            .order_by(Series.year.desc(), Series.name)
+        )
+    ).all()
+
+    teams_by_club: dict[int, list[MyTeamOut]] = {}
+    for team_id, club_id, series, squad_size in rows:
+        teams_by_club.setdefault(club_id, []).append(
+            MyTeamOut(
+                team_id=team_id,
+                series=MySeriesOut.model_validate(series, from_attributes=True),
+                squad_size=squad_size,
+            )
+        )
+
+    return [
+        MyClubOut(
+            club=ClubOut.model_validate(club, from_attributes=True),
+            is_member=club.id in member_of,
+            may_manage=club.id in manages,
+            teams=teams_by_club.get(club.id, []),
+        )
+        for club in clubs
+    ]
 
 
 @router.get("/clubs/{club_id}", response_model=ClubDetail)

@@ -154,12 +154,25 @@ Acceptance criteria:
   arrived, without opening the admin area.
 - Both sections lead to the same club page (Story B-11).
 
-Endpoints: `GET /api/clubs` exists and stays the search's source. What is missing is the
-account's own memberships as a list of clubs — `GET /api/clubs/mine` (signed-in only,
-returns the clubs plus this account's role in each), rather than making the frontend fan out
-over `GET /api/clubs/{id}/members` for all eighteen clubs to find itself.
+Endpoints: `GET /api/clubs` exists and stays the search's source. The account's own clubs
+come from `GET /api/clubs/mine` (signed-in only) rather than making the frontend fan out
+over `GET /api/clubs/{id}/members` for all eighteen clubs to find itself. **Built for Story
+V-12**, which needed the same list to let a club manager reach their squad; this page is
+still to be written.
 
-Tests: none yet
+Each entry carries the club, the account's two *independent* relationships to it, and the
+club's series registrations:
+
+- `is_member` — an **active** `ClubMember`. This is what "my clubs" means on this page.
+- `may_manage` — `club_manager` for this club, or `admin`. Deliberately separate: the two
+  do not imply each other. A club's organizer is often not in the sailing squad and need
+  not be an accepted member at all, and most members manage nothing. An entry appears when
+  **either** is true, so this page filters on `is_member` and V-12's screen on `may_manage`,
+  from one request.
+- `teams` — the club's series registrations (`team_id`, series, current squad size), which
+  is what V-12 navigates by.
+
+Tests: `api/tests/stories/test_my_clubs.py`
 
 ### B-11 ○ Club page in tabs
 As a **visitor** I want the club page **split into Info, Team and Competition**,
@@ -1179,14 +1192,72 @@ Acceptance criteria:
   exist with no squad. Change the lineup first, then the squad.
 - Registration may be done by the leadership of their **own** club; administration everywhere.
 
+- **Every refusal is a typed problem** (`app/problems.py`), not a sentence built in the
+  router: the squad screen has to say *which* rule was broken, and it has to say it in the
+  reader's language. A club manager who adds someone who already sails for another club in
+  the same series gets that sentence, with both names in it — not a 422 whose body is an
+  English string chosen by the backend.
+  - `squad-duplicate-sailor` — the same person twice in one submission.
+  - `squad-sailor-in-another-club` — already registered for this series elsewhere, and by
+    whom.
+  - `squad-member-is-lined-up` — cannot be dropped while lined up for a matchday, and for
+    which one.
+  - `squad-needs-series-registration` — this `Team` is an event entry, not a series
+    registration, so it carries no squad.
+- **Ten is a target the screen shows, never a rule it enforces.** "7 of 10 registered" with
+  the usual size coming from the series, and nothing is blocked at eleven or at three. The
+  same goes for having exactly one helm: the screen says when there is none or more than
+  one, and saves anyway. Illness and late registration have to get through, which is why
+  this is guidance and not validation — and saying so on screen is what stops it from
+  looking like an oversight.
+- Somebody is added **in the role they will sail**, not always as crew to be corrected
+  afterwards.
+
 Open: **Is it always exactly ten, or is ten a ceiling?** The number is deliberately not enforced
-yet — illness and late registration would not get through otherwise. Also open: until when the
+— illness and late registration would not get through otherwise. Also open: until when the
 squad can be changed (see "Deadlines remain out for now").
 
 Endpoints: `GET /api/admin/teams/{team_id}/members`,
 `PUT /api/admin/teams/{team_id}/members`
 
-Tests: `api/tests/stories/test_sailors_and_squads.py::TestRegisteringASquad`
+Tests: `api/tests/stories/test_sailors_and_squads.py::TestRegisteringASquad`,
+`api/tests/stories/test_sailors_and_squads.py::TestSquadRefusalsAreTyped`
+
+### V-12 ● Reach our own squad without the admin screen
+As a **club manager** I want **my club's squad to be somewhere I can get to**,
+so that **I can register who may sail without asking an administrator to do it for me**.
+
+Story V-1 has said since it was written that "registration may be done by the leadership of
+their **own** club", and the endpoint has enforced exactly that from the start. The screen
+never did: the only squad panel lives under `/admin`, which refuses anyone who is not
+`admin` or `editor`, and it finds a team by first listing every series through
+`GET /api/admin/series` — an admin-only route. So a club manager had the permission, the
+data and no door. This story is the door.
+
+Acceptance criteria:
+- **`/club` is the club manager's screen.** It shows the clubs the signed-in account may
+  act for (`GET /api/clubs/mine`, Story B-10), and for each of them that club's series
+  registrations. One club is the normal case and opens straight away; several are listed,
+  because a person can manage more than one.
+- **Nothing on the way in is admin-only.** The route reaches the squad through
+  `/api/clubs/mine` and `/api/admin/teams/{team_id}/members`, both of which a
+  `club_manager` may call for their own club. Needing an admin-only list to find your own
+  team was the actual defect, and it would come straight back if this screen borrowed the
+  admin page's queries.
+- **The squad panel is the same component in both places.** `SquadPanel` is used by `/club`
+  and by the admin screen; two copies would drift, and the rules it displays — the ten, the
+  one helm, the typed refusals — are the ones that took the longest to get right.
+- **The screen never offers what the account may not do.** A member who is not an organizer
+  of that club sees the squad and cannot change it; the buttons are absent, not disabled
+  and refused on click.
+- **A signed-in account with no club does not get an empty screen.** `/club` says so in a
+  sentence and links to the clubs page, which is where joining one starts (Story V-7).
+- Administration keeps its own way in unchanged: `/admin?tab=sailors` still reaches every
+  club's squad through the series, which is the right shape for someone whose job is all
+  eighteen of them.
+
+Tests: `api/tests/stories/test_my_clubs.py`,
+`e2e/lifecycle.spec.ts::V-12: a club manager manages their own squad`
 
 ### S-1 ○ Submit liability waiver online for the season
 As a **sailor** I want to **submit the liability waiver once online for the whole season**,

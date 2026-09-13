@@ -401,6 +401,68 @@ test.describe("A-11: the admin screen is organized in tabs", () => {
   });
 });
 
+test.describe("V-12: a club manager manages their own squad", () => {
+  /** A seeded account holding `club_manager`, found rather than hardcoded.
+   *
+   *  The seed builds its names from a generated list, so `roden.nanisberg1@nrv.example.com`
+   *  is stable only until someone touches `app/seed_users.py`. `/api/dev/users` is the same
+   *  list the role switcher reads, and asking it keeps this spec pinned to the *role*
+   *  rather than to one person's name. */
+  async function aClubManager(page: Page): Promise<string> {
+    const response = await page.request.get("/api/dev/users");
+    expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
+    const accounts = (await response.json()) as { email: string; roles: string[] }[];
+    const manager = accounts.find((account) => account.roles.includes("club_manager"));
+    expect(manager, "the seed creates one club_manager per club").toBeTruthy();
+    return manager!.email;
+  }
+
+  test("reaches the squad without ever touching an admin route", async ({ page }, testInfo) => {
+    await signIn(page, await aClubManager(page));
+
+    // The defect this story fixes: the permission existed and there was no door. So the
+    // claim is about the nav, not about typing a URL.
+    await page.goto("/");
+    const link = page.getByTestId("layout-nav-myClub");
+    await expect(link).toBeVisible();
+    await link.click();
+    await expect(page).toHaveURL(/\/club/);
+
+    // One club, so no chooser — straight to the series registrations and their squads.
+    await expect(page.getByTestId("my-club-header")).toBeVisible();
+    await expect(page.getByTestId("admin-squad-management")).toBeVisible();
+    await expect(page.getByTestId("admin-squad-members-list")).toBeVisible();
+
+    // Ten is guidance the screen shows, never a rule (Story V-1) — so the hint is there
+    // and the panel is usable regardless of what it says.
+    await expect(page.getByTestId("admin-squad-size-hint")).toBeVisible();
+
+    // And it works: somebody is registered, in the role picked before adding.
+    const before = await page.getByTestId("admin-squad-members-list").getByRole("listitem").count();
+    await page.getByTestId("admin-squad-add-search-input").fill("a");
+    const candidate = page.getByTestId("admin-squad-add-list").getByRole("listitem").first();
+    await expect(candidate).toBeVisible();
+    await candidate.getByRole("button").click();
+    await expect(
+      page.getByTestId("admin-squad-members-list").getByRole("listitem"),
+    ).toHaveCount(before + 1);
+
+    // Story A-10: this screen is used on a phone at least as often as the admin one.
+    await expectNoSidewaysScroll(page, testInfo);
+  });
+
+  test("the admin screen is still refused, which is the point of the separate route", async ({
+    page,
+  }) => {
+    await signIn(page, await aClubManager(page));
+    await page.goto("/admin");
+    // Not a redirect and not a blank page — the message says the area is not theirs, and
+    // /club is where their work actually is.
+    await expect(page.getByTestId("admin-access-error")).toBeVisible();
+    await expect(page.getByTestId("layout-nav-admin")).toHaveCount(0);
+  });
+});
+
 test.describe("A-1/V-3: clubs and their crests", () => {
   test("a created club appears in the admin list and is not public yet", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);

@@ -13,5 +13,18 @@
   "website": "Website des Vereins",
   "clubDescription": "{{short_name}} · {{city}}",
   "members": "Mitglieder",
-  "organizer": "Organisator:in"
+  "organizer": "Organisator:in",
+  "mine": {
+    "title": "Unser Verein",
+    "subtitle_one": "Der Verein, den du organisierst.",
+    "subtitle_other": "Die {{count}} Vereine, die du organisierst.",
+    "notSignedIn": "Zum Ansehen des eigenen Vereins bitte anmelden.",
+    "noClubText": "Du gehörst noch zu keinem Verein.",
+    "noClubLink": "Verein finden",
+    "noTeamsText": "Dieser Verein ist noch für keine Serie gemeldet, es gibt also keinen Kader aufzustellen.",
+    "roleOrganizer": "Du organisierst diesen Verein",
+    "roleMember": "Du bist Mitglied dieses Vereins",
+    "clubTabsLabel": "Verein",
+    "seriesTabsLabel": "Serie"
+  }
 }

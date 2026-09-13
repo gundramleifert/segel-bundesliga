@@ -1,8 +1,8 @@
 """Response models of the public API.
 
 Deliberately separate schemas rather than passed-through ORM objects: the public interface
-should not change just because a column is renamed. From these models, the TypeScript types
-of the frontend are generated via ``openapi-typescript``.
+should not change just because a column is renamed. From these models, the frontend's whole
+API client is generated (``scripts/gen-api-client.sh``).
 """
 
 from __future__ import annotations
@@ -269,3 +269,40 @@ class SailorDetail(BaseModel):
     last_name: str
     teams: list[SailorTeamOut] = Field(default_factory=list)
     events: list[SailorEventOut] = Field(default_factory=list)
+
+
+class MySeriesOut(BaseModel):
+    """A series, as it appears on a club's own registration row."""
+
+    id: int
+    slug: str
+    name: str
+    year: int | None = None
+
+
+class MyTeamOut(BaseModel):
+    """One series registration of a club — what a squad hangs off (Story V-1)."""
+
+    team_id: int
+    series: MySeriesOut
+    #: How many people are registered. On the row so a screen listing several
+    #: registrations can show "7 of 10" without opening each squad in turn.
+    squad_size: int
+
+
+class MyClubOut(BaseModel):
+    """A club this account has something to do with — Stories B-10 and V-12.
+
+    The two relationships are kept apart because they are genuinely different and the two
+    screens reading this need different ones: `/clubs` lists what someone *belongs to*,
+    `/club` opens what they may *act for*. A club's organizer is frequently not in the
+    sailing squad and need not be an accepted member at all, and almost every member
+    manages nothing.
+    """
+
+    club: ClubOut
+    #: An accepted `ClubMember`. A pending request is not membership.
+    is_member: bool
+    #: `club_manager` for this club — granted per club, never globally.
+    may_manage: bool
+    teams: list[MyTeamOut]

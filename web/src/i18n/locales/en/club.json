@@ -13,5 +13,18 @@
   "website": "Club website",
   "clubDescription": "{{short_name}} · {{city}}",
   "members": "Members",
-  "organizer": "Organizer"
+  "organizer": "Organizer",
+  "mine": {
+    "title": "Our club",
+    "subtitle_one": "The club you organize.",
+    "subtitle_other": "The {{count}} clubs you organize.",
+    "notSignedIn": "Sign in to see your club.",
+    "noClubText": "You are not in any club yet.",
+    "noClubLink": "Find a club",
+    "noTeamsText": "This club is not registered for any series yet, so there is no squad to put together.",
+    "roleOrganizer": "You organize this club",
+    "roleMember": "You are a member of this club",
+    "clubTabsLabel": "Club",
+    "seriesTabsLabel": "Series"
+  }
 }

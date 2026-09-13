@@ -19,6 +19,7 @@ See the docstring on `_save_photo` for the storage and minors-visibility design.
 from __future__ import annotations
 
 import io
+from collections import Counter
 from datetime import date
 from pathlib import Path
 
@@ -299,25 +300,22 @@ async def set_squad(
     _can_manage_squad(acting, team)
 
     if not team.is_series_registration:
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en="Squad is tied to series registration, not to competition at a single event.",
-                de="Der Kader hängt an der Meldung für die Serie, nicht am Antritt zu einer "
-                "einzelnen Veranstaltung.",
-            ),
+        raise Problem(
+            422,
+            "squad-needs-series-registration",
+            "A squad belongs to a series registration, not to an entry in one event.",
+            team_id=team.id,
         )
 
     desired = {entry.sailor_id: entry.role for entry in request.members}
     if len(desired) != len(request.members):
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en="A person appears twice in the squad.",
-                de="Eine Person steht doppelt im Kader.",
-            ),
+        counts = Counter(entry.sailor_id for entry in request.members)
+        twice = sorted(sailor_id for sailor_id, n in counts.items() if n > 1)
+        raise Problem(
+            422,
+            "squad-duplicate-sailor",
+            "A person appears twice in this squad.",
+            sailor_ids=twice,
         )
 
     if desired:
@@ -638,8 +636,11 @@ async def _all_exist(session: AsyncSession, sailor_ids: set[int]) -> None:
     )
     missing = sorted(sailor_ids - found)
     if missing:
-        raise HTTPException(
-            status_code=404, detail=f"These people don't exist: {missing}"
+        raise Problem(
+            404,
+            "squad-unknown-sailor",
+            "Some of these people do not exist.",
+            sailor_ids=missing,
         )
 
 
@@ -664,16 +665,14 @@ async def _not_already_in_series(
         )
     ).all()
     if rows:
-        names = ", ".join(f"{first} {last}" for first, last in rows)
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=f"Already registered for another club in this series: {names}. "
-                "A person competes only once per series.",
-                de=f"In dieser Serie schon für einen anderen Verein gemeldet: {names}. "
-                "Eine Person tritt je Serie nur einmal an.",
-            ),
+        # The names travel as data, not inside a sentence: the screen builds the sentence
+        # in the reader's language (`errors.squad-sailor-in-another-club`), and a sentence
+        # assembled here could only ever be in one.
+        raise Problem(
+            409,
+            "squad-sailor-in-another-club",
+            "Some of these people already sail for another club in this series.",
+            sailors=[f"{first} {last}" for first, last in rows],
         )
 
 
@@ -704,16 +703,16 @@ async def _not_removing_lined_up(
 
     selected = (await session.execute(stmt)).all()
     if selected:
-        description = ", ".join(f"{first} {last} ({title})" for first, last, title in selected)
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=f"These people are already selected: {description}. "
-                "Change the lineup first, then the squad.",
-                de=f"Diese Personen sind bereits aufgestellt: {description}. "
-                "Erst die Aufstellung ändern, dann den Kader.",
-            ),
+        # Sailor *and* matchday, because the fix is "go and change that lineup first" and
+        # the organizer needs to know which one.
+        raise Problem(
+            409,
+            "squad-member-is-lined-up",
+            "Some of these people are lined up for a matchday.",
+            selections=[
+                {"sailor": f"{first} {last}", "event": title}
+                for first, last, title in selected
+            ],
         )
 
 

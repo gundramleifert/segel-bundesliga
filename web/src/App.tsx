@@ -13,6 +13,7 @@ import { Start } from "./pages/Start";
 import { Standings } from "./pages/Standings";
 import { Events } from "./pages/Events";
 import { Admin } from "./pages/Admin";
+import { MyClub } from "./pages/MyClub";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
 
@@ -32,6 +33,9 @@ export default function App() {
         <Route path="clubs/:id" element={<Club />} />
         <Route path="sailors/:id" element={<Sailor />} />
         <Route path="account" element={<Account />} />
+        {/* Story V-12: the club manager's own screen. Deliberately not under /admin — the
+            whole point is that it needs no admin role. */}
+        <Route path="club" element={<MyClub />} />
         <Route path="admin" element={<Admin />} />
         <Route path="help" element={<Help />} />
         <Route path="legal-notice" element={<LegalNotice />} />

@@ -145,7 +145,11 @@
     "loadingText": "Kader wird geladen ...",
     "roleHelm": "Steuermann",
     "roleCrew": "Crew",
-    "roleSubstitute": "Ersatz"
+    "roleSubstitute": "Ersatz",
+    "sizeHint": "{{count}} von üblicherweise {{usual}} — keine Grenze, es wird in keine Richtung blockiert.",
+    "noHelmHint": "Noch kein Steuermann gemeldet.",
+    "manyHelmsHint": "{{count}} Steuerleute gemeldet — üblich ist einer.",
+    "addRoleLabel": "Als"
   },
   "auth": {
     "notSignedInError": "Für die Verwaltung müssen Sie angemeldet sein.",

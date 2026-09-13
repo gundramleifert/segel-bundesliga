@@ -28,9 +28,14 @@ export function Layout() {
   // Admin only shows up when it's actually open — a link that leads to a 403 is worse
   // than no link.
   const { hasRole, account, loading } = useAccount();
-  const navigation = hasRole("admin", "editor")
-    ? [...NAV_ITEMS, { path: "/admin", key: "admin", exact: false } as const]
-    : NAV_ITEMS;
+  // Both extra entries appear only when they actually lead somewhere — a link that ends
+  // in a 403, or in "you belong to no club", is worse than no link. "Our club" is for
+  // whoever organizes one (Story V-12); administration keeps its own, wider way in.
+  const navigation = [
+    ...NAV_ITEMS,
+    ...(hasRole("club_manager") ? [{ path: "/club", key: "myClub", exact: false } as const] : []),
+    ...(hasRole("admin", "editor") ? [{ path: "/admin", key: "admin", exact: false } as const] : []),
+  ];
 
   return (
     <div className="flex min-h-dvh flex-col bg-page text-ink">

@@ -278,7 +278,7 @@ class TestRegisteringASquad:
             },
         )
         assert response.status_code == 422
-        assert "twice" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/squad-duplicate-sailor"
 
     async def test_not_for_two_clubs_in_the_same_series(self, client, caplog):
         """Otherwise the person would be competing against themselves."""
@@ -300,7 +300,7 @@ class TestRegisteringASquad:
             f"/api/admin/teams/{second_team}/members", headers=admin, json=entry
         )
         assert second.status_code == 409
-        assert "once per series" in second.json()["detail"]
+        assert second.json()["type"] == "/errors/squad-sailor-in-another-club"
 
     async def test_two_clubs_in_two_different_series_is_allowed(self, client, caplog):
         admin = await as_role(client, caplog, "kd5@example.com", Role.ADMIN)
@@ -342,7 +342,7 @@ class TestRegisteringASquad:
             json={"members": []},
         )
         assert response.status_code == 422
-        assert "series registration" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/squad-needs-series-registration"
 
     async def test_someone_in_a_lineup_cannot_drop_out_of_the_squad(self, client, caplog):
         """Otherwise a lineup would exist that has no registration anymore."""
@@ -370,4 +370,137 @@ class TestRegisteringASquad:
             json={"members": []},
         )
         assert response.status_code == 409
-        assert "already selected" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/squad-member-is-lined-up"
+
+
+class TestSquadRefusalsAreTyped:
+    """V-1: every refusal carries a stable code, and the names that make it actionable.
+
+    The squad screen has to say *which* rule was broken, in the reader's language. A 422
+    whose body is an English sentence the router happened to build cannot do that: the
+    frontend can only print it, and only in English. So each refusal is an RFC 9457 problem
+    — `type` is the contract, and the extension members carry the names the sentence needs
+    (`web/src/i18n/locales/*/errors.json`).
+    """
+
+    async def _new_sailors(self, client, headers, count: int, prefix: str) -> list[int]:
+        ids = []
+        for index in range(count):
+            response = await client.post(
+                "/api/admin/sailors",
+                headers=headers,
+                json={
+                    "first_name": prefix,
+                    "last_name": f"Typed{index}",
+                    "email": f"typed-{prefix.lower()}{index}@example.com",
+                },
+            )
+            assert response.status_code in (200, 201), response.text
+            ids.append(response.json()["id"])
+        return ids
+
+    async def test_the_same_person_twice_says_who(self, client, caplog):
+        admin = await as_role(client, caplog, "typed1@example.com", Role.ADMIN)
+        team_id, _ = await series_registration()
+        sailor = (await self._new_sailors(client, admin, 1, "Dup"))[0]
+
+        response = await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={
+                "members": [
+                    {"sailor_id": sailor, "role": "helm"},
+                    {"sailor_id": sailor, "role": "crew"},
+                ]
+            },
+        )
+        assert response.status_code == 422, response.text
+        problem = response.json()
+        assert problem["type"] == "/errors/squad-duplicate-sailor"
+        assert problem["sailor_ids"] == [sailor]
+
+    async def test_already_sailing_for_another_club_names_both(self, client, caplog):
+        admin = await as_role(client, caplog, "typed2@example.com", Role.ADMIN)
+        first_team, _ = await series_registration(most_recent=True)
+        second_team, _ = await series_registration(most_recent=False)
+        sailor = (await self._new_sailors(client, admin, 1, "Other"))[0]
+        entry = {"members": [{"sailor_id": sailor, "role": "crew"}]}
+
+        assert (
+            await client.put(
+                f"/api/admin/teams/{first_team}/members", headers=admin, json=entry
+            )
+        ).status_code == 200
+
+        response = await client.put(
+            f"/api/admin/teams/{second_team}/members", headers=admin, json=entry
+        )
+        assert response.status_code == 409, response.text
+        problem = response.json()
+        assert problem["type"] == "/errors/squad-sailor-in-another-club"
+        # The names, so the sentence can be built in either language rather than shipped
+        # in one.
+        assert problem["sailors"] == ["Other Typed0"]
+
+    async def test_an_event_entry_says_it_carries_no_squad(self, client, caplog):
+        admin = await as_role(client, caplog, "typed3@example.com", Role.ADMIN)
+        async with SessionLocal() as session:
+            entry = (
+                await session.execute(
+                    select(Team).where(Team.event_id.is_not(None)).limit(1)
+                )
+            ).scalar_one()
+
+        response = await client.put(
+            f"/api/admin/teams/{entry.id}/members", headers=admin, json={"members": []}
+        )
+        assert response.status_code == 422, response.text
+        assert response.json()["type"] == "/errors/squad-needs-series-registration"
+
+    async def test_dropping_someone_who_is_lined_up_names_the_matchday(
+        self, client, caplog
+    ):
+        admin = await as_role(client, caplog, "typed4@example.com", Role.ADMIN)
+        team_id, squad = await squad_of("byc", "dsbl-1-2026")
+        assert len(squad) >= 4
+
+        selected = await client.put(
+            f"/api/admin/events/{await act_id('dsbl-1-2026-act-3')}/crew",
+            headers=admin,
+            json={
+                "team_id": team_id,
+                "members": [{"sailor_id": s, "role": "crew"} for s in squad[:4]],
+            },
+        )
+        assert selected.status_code == 200, selected.text
+
+        response = await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={
+                "members": [
+                    {"sailor_id": sailor_id, "role": "crew"} for sailor_id in squad[4:]
+                ]
+            },
+        )
+        assert response.status_code == 409, response.text
+        problem = response.json()
+        assert problem["type"] == "/errors/squad-member-is-lined-up"
+        # Which matchday, so the organizer knows where to go and change it first.
+        assert problem["selections"]
+        assert problem["selections"][0]["event"]
+        assert problem["selections"][0]["sailor"]
+
+    async def test_a_person_who_does_not_exist_is_a_typed_404(self, client, caplog):
+        admin = await as_role(client, caplog, "typed5@example.com", Role.ADMIN)
+        team_id, _ = await series_registration()
+
+        response = await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={"members": [{"sailor_id": 10_000_000, "role": "crew"}]},
+        )
+        assert response.status_code == 404, response.text
+        problem = response.json()
+        assert problem["type"] == "/errors/squad-unknown-sailor"
+        assert problem["sailor_ids"] == [10_000_000]

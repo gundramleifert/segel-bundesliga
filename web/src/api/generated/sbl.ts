@@ -68,6 +68,7 @@ import type {
   MembershipInvitation,
   MembershipOut,
   MembershipRequest,
+  MyClubOut,
   NetworkProbeOut,
   NetworkProbeParams,
   OidcLogin,
@@ -896,6 +897,122 @@ export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TErr
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListClubsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMyClubsUrl = () => {
+
+
+
+
+  return `/api/clubs/mine`
+}
+
+/**
+ * Stories B-10 and V-12: one request for "the clubs that are something to me".
+ *
+ * Two independent relationships, both reported, because the two screens reading this
+ * need different ones — `/clubs` lists what someone *belongs to*, `/club` opens what
+ * they may *act for* — and because they genuinely do not imply each other. Deciding
+ * here which of the two counts would force the other screen into a second endpoint.
+ *
+ * **`admin` gets no shortcut.** The role may manage every club, but this route answers
+ * "mine", not "all": handing an administrator eighteen clubs would make the club screen
+ * a worse copy of the admin screen and bury the one club they actually sail for. The
+ * admin screen is where all eighteen belong.
+ *
+ * Registered above `/clubs/{club_id}` on purpose — Starlette matches in registration
+ * order, so "mine" would otherwise be read as a club id (the same reason
+ * `sailors.me_router` is included before `public.router` in `app/main.py`).
+ * @summary The clubs this account belongs to or may manage
+ */
+export const myClubs = async ( options?: RequestInit): Promise<MyClubOut[]> => {
+
+  return http<MyClubOut[]>(getMyClubsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getMyClubsQueryKey = () => {
+    return [
+    `/api/clubs/mine`
+    ] as const;
+    }
+
+
+export const getMyClubsQueryOptions = <TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMyClubsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof myClubs>>> = ({ signal }) => myClubs({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MyClubsQueryResult = NonNullable<Awaited<ReturnType<typeof myClubs>>>
+export type MyClubsQueryError = ErrorType<unknown>
+
+
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof myClubs>>,
+          TError,
+          Awaited<ReturnType<typeof myClubs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof myClubs>>,
+          TError,
+          Awaited<ReturnType<typeof myClubs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The clubs this account belongs to or may manage
+ */
+
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMyClubsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

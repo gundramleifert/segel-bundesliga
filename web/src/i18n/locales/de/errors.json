@@ -39,5 +39,10 @@
   "club-crest-not-yours": "Du kannst nur den Stander deines eigenen Vereins ändern.",
   "club-crest-not-found": "Für diesen Verein ist kein Stander hochgeladen.",
   "club-not-found": "Diesen Verein gibt es nicht.",
-  "club-members-restricted-to-members": "Die Mitgliederliste eines Vereins sehen nur dessen eigene Mitglieder."
+  "club-members-restricted-to-members": "Die Mitgliederliste eines Vereins sehen nur dessen eigene Mitglieder.",
+  "squad-duplicate-sailor": "Jemand steht doppelt in diesem Kader.",
+  "squad-sailor-in-another-club": "In dieser Serie schon für einen anderen Verein gemeldet: {{sailors}}. Eine Person tritt je Serie nur einmal an.",
+  "squad-member-is-lined-up": "Schon für eine Veranstaltung aufgestellt: {{selections}}. Erst die Aufstellung ändern, dann den Kader.",
+  "squad-needs-series-registration": "Ein Kader hängt an der Meldung für eine Serie, nicht am Antritt zu einer einzelnen Veranstaltung.",
+  "squad-unknown-sailor": "Einige dieser Personen gibt es nicht mehr. Bitte die Seite neu laden."
 }

@@ -4,18 +4,15 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
-  getGetSquadQueryKey,
   getListSailorsQueryKey,
   useCreateSailor,
-  useGetSquad,
   useListAllSeries,
   useListSailors,
-  useSetSquad,
 } from "../api/generated/sbl";
 import type { SailorAdmin, SeriesAdmin } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
-import { roleText } from "../lib/format";
+import { SquadPanel } from "../components/SquadPanel";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Section, Field, Message } from "./adminBuildingBlocks";
 
@@ -249,143 +246,7 @@ function SeriesSquad({ series }: { series: SeriesAdmin }) {
         </select>
       </Field>
 
-      {selectedClub && <SquadManagement teamId={selectedClub.team_id} clubName={selectedClub.name} />}
+      {selectedClub && <SquadPanel teamId={selectedClub.team_id} title={selectedClub.name} />}
     </>
-  );
-}
-
-function SquadManagement({ teamId, clubName }: { teamId: number; clubName: string }) {
-  const { t } = useTranslation("admin");
-  const squad = useAsync(useGetSquad(teamId));
-  const invalidate = useInvalidate();
-  const [search, setSearch] = useState("");
-  const results = useAsync(useListSailors({ q: search || undefined }));
-
-  const setSquad = useSetSquad({
-    mutation: {
-      // The squad shows up on every club page and on each member's sailor page, so both
-      // are stale the moment it changes — hence the path prefixes rather than one key.
-      onSuccess: () => invalidate(getGetSquadQueryKey(teamId), "/api/clubs", "/api/sailors"),
-    },
-  });
-
-  /** Writes the whole squad. The endpoint takes the complete list, never a delta: an
-   *  "add one" call would have to be ordered against a concurrent "remove one", and the
-   *  screen has the full list in front of it anyway. */
-  const save = (members: { sailor_id: number; role: "helm" | "crew" | "substitute" }[]) =>
-    setSquad.mutate({ teamId, data: { members } });
-
-  if (squad.loading) return <Loading text={t("squad.loadingText")} testId="admin-squad-members-loading" />;
-  if (squad.error) return <ErrorMessage text={squad.error} testId="admin-squad-members-error" />;
-  if (!squad.data) return null;
-
-  const members = squad.data.members ?? [];
-  const currentMembers = members.map((m) => ({
-    sailor_id: m.id,
-    role: m.role as "helm" | "crew" | "substitute",
-  }));
-  const memberIds = new Set(currentMembers.map((m) => m.sailor_id));
-
-  return (
-    <div data-testid="admin-squad-management" className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-slate-200 p-4">
-      <div>
-        <h3 className="font-medium">
-          {t("squad.headerText", { clubName: clubName, count: members.length })}
-        </h3>
-        {members.length ? (
-          <ul data-testid="admin-squad-members-list" className="mt-2 divide-y divide-slate-100 text-sm">
-            {members.map((member) => (
-              <li
-                key={member.id}
-                data-testid={`admin-squad-member-row-${member.id}`}
-                className="flex items-center gap-3 py-1.5"
-              >
-                <span className="flex-1">
-                  {member.first_name} {member.last_name}
-                </span>
-                <select
-                  className="rounded border border-slate-300 px-2 py-1 text-xs"
-                  value={member.role}
-                  onChange={(e) =>
-                    save(
-                      currentMembers.map((m) =>
-                        m.sailor_id === member.id
-                          ? {
-                              ...m,
-                              role: e.target.value as "helm" | "crew" | "substitute",
-                            }
-                          : m,
-                      ),
-                    )
-                  }
-                  data-testid={`admin-squad-member-role-select-${member.id}`}
-                >
-                  {["helm", "crew", "substitute"].map((value) => (
-                    <option key={value} value={value}>
-                      {roleText(value)}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  isDisabled={setSquad.isPending}
-                  onPress={() =>
-                    save(currentMembers.filter((m) => m.sailor_id !== member.id))
-                  }
-                  data-testid={`admin-squad-member-remove-button-${member.id}`}
-                >
-                  {t("squad.removeButton")}
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <Empty testId="admin-squad-members-empty">{t("squad.teamEmptyText")}</Empty>
-        )}
-      </div>
-
-      <Field label={t("squad.addLabel")} hint={t("squad.addHint")}>
-        <input
-          className={INPUT_CLASS}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("squad.addPlaceholder")}
-          data-testid="admin-squad-add-search-input"
-        />
-      </Field>
-
-      {results.data && (
-        <ul
-          data-testid="admin-squad-add-list"
-          className="max-h-56 divide-y divide-slate-100 overflow-y-auto rounded border border-slate-200 text-sm"
-        >
-          {results.data
-            .filter((person) => !memberIds.has(person.id))
-            .map((person) => (
-              <li key={person.id} className="flex items-center gap-3 px-3 py-1.5">
-                <span className="flex-1">
-                  {person.first_name} {person.last_name}
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  isDisabled={setSquad.isPending}
-                  onPress={() =>
-                    save([...currentMembers, { sailor_id: person.id, role: "crew" }])
-                  }
-                  data-testid={`admin-squad-add-button-${person.id}`}
-                >
-                  {t("squad.addButtonText")}
-                </Button>
-              </li>
-            ))}
-        </ul>
-      )}
-
-      {setSquad.isError && (
-        <ErrorMessage text={errorText(setSquad.error)} testId="admin-squad-save-error" />
-      )}
-    </div>
   );
 }
