@@ -504,3 +504,161 @@ class TestSquadRefusalsAreTyped:
         problem = response.json()
         assert problem["type"] == "/errors/squad-unknown-sailor"
         assert problem["sailor_ids"] == [10_000_000]
+
+
+class TestFindingTheRightPerson:
+    """V-1: a candidate list has to identify people, not just name them.
+
+    A person belongs to as many clubs as they sail for — one `TeamMembership` row per
+    series registration — and in this data eighteen people share a surname. So a row
+    reading "Nanisberg · 3 registrations" answers neither of the two questions a club
+    manager actually has: is this the right one, and can I add them at all.
+    """
+
+    async def test_a_sailor_carries_the_clubs_and_series_they_sail_for(
+        self, client, caplog
+    ):
+        admin = await as_role(client, caplog, "who1@example.com", Role.ADMIN)
+        team_id, club_id = await series_registration()
+
+        created = await client.post(
+            "/api/admin/sailors",
+            headers=admin,
+            json={
+                "first_name": "Identifiable",
+                "last_name": "Person",
+                "email": "who-identifiable@example.com",
+            },
+        )
+        assert created.status_code in (200, 201), created.text
+        sailor_id = created.json()["id"]
+
+        assert (
+            await client.put(
+                f"/api/admin/teams/{team_id}/members",
+                headers=admin,
+                json={"members": [{"sailor_id": sailor_id, "role": "helm"}]},
+            )
+        ).status_code == 200
+
+        found = await client.get(
+            "/api/admin/sailors", headers=admin, params={"q": "Identifiable"}
+        )
+        assert found.status_code == 200, found.text
+        person = next(p for p in found.json() if p["id"] == sailor_id)
+
+        assert len(person["registrations"]) == 1
+        registration = person["registrations"][0]
+        assert registration["club"]["id"] == club_id
+        # Club *and* series: the club alone does not say which competition, and a person
+        # can be in the same club for two of them.
+        assert registration["series"]["id"]
+        assert registration["role"] == "helm"
+
+    async def test_the_same_person_in_two_clubs_shows_both(self, client, caplog):
+        """The case the bare count could not express. Two clubs, two different series —
+        allowed, and the reason the list has to name them."""
+        admin = await as_role(client, caplog, "who2@example.com", Role.ADMIN)
+        juniors, juniors_club = await series_registration("junioren-2026")
+        scl, scl_club = await series_registration("scl-2026")
+
+        created = await client.post(
+            "/api/admin/sailors",
+            headers=admin,
+            json={
+                "first_name": "Two",
+                "last_name": "Clubs",
+                "email": "who-twoclubs@example.com",
+            },
+        )
+        sailor_id = created.json()["id"]
+
+        for team_id in (juniors, scl):
+            response = await client.put(
+                f"/api/admin/teams/{team_id}/members",
+                headers=admin,
+                json={"members": [{"sailor_id": sailor_id, "role": "crew"}]},
+            )
+            assert response.status_code == 200, response.text
+
+        person = next(
+            p
+            for p in (
+                await client.get(
+                    "/api/admin/sailors", headers=admin, params={"q": "Clubs"}
+                )
+            ).json()
+            if p["id"] == sailor_id
+        )
+        assert {r["club"]["id"] for r in person["registrations"]} == {
+            juniors_club,
+            scl_club,
+        }
+        assert len({r["series"]["id"] for r in person["registrations"]}) == 2
+
+    async def test_someone_in_no_squad_has_an_empty_list(self, client, caplog):
+        admin = await as_role(client, caplog, "who3@example.com", Role.ADMIN)
+        created = await client.post(
+            "/api/admin/sailors",
+            headers=admin,
+            json={
+                "first_name": "Unregistered",
+                "last_name": "Person",
+                "email": "who-none@example.com",
+            },
+        )
+        person = next(
+            p
+            for p in (
+                await client.get(
+                    "/api/admin/sailors", headers=admin, params={"q": "Unregistered"}
+                )
+            ).json()
+            if p["id"] == created.json()["id"]
+        )
+        assert person["registrations"] == []
+
+    async def test_an_event_entry_is_not_a_registration(self, client, caplog):
+        """Only series registrations count here. A `Team` with an `event_id` is an entry
+        in one event and carries no squad, so it would name a club the person is not
+        registered with (Story V-1)."""
+        admin = await as_role(client, caplog, "who4@example.com", Role.ADMIN)
+        team_id, _ = await series_registration()
+        created = await client.post(
+            "/api/admin/sailors",
+            headers=admin,
+            json={
+                "first_name": "Seriesonly",
+                "last_name": "Person",
+                "email": "who-seriesonly@example.com",
+            },
+        )
+        sailor_id = created.json()["id"]
+        await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={"members": [{"sailor_id": sailor_id, "role": "crew"}]},
+        )
+
+        person = next(
+            p
+            for p in (
+                await client.get(
+                    "/api/admin/sailors", headers=admin, params={"q": "Seriesonly"}
+                )
+            ).json()
+            if p["id"] == sailor_id
+        )
+        async with SessionLocal() as session:
+            registered_teams = {
+                team.id
+                for team in (
+                    await session.execute(
+                        select(Team).where(Team.id.in_([r["team_id"] for r in person["registrations"]]))
+                    )
+                ).scalars()
+            }
+            for team in (
+                await session.execute(select(Team).where(Team.id.in_(registered_teams)))
+            ).scalars():
+                assert team.event_id is None

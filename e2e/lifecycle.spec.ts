@@ -437,12 +437,29 @@ test.describe("V-12: a club manager manages their own squad", () => {
     // and the panel is usable regardless of what it says.
     await expect(page.getByTestId("admin-squad-size-hint")).toBeVisible();
 
-    // And it works: somebody is registered, in the role picked before adding.
-    const before = await page.getByTestId("admin-squad-members-list").getByRole("listitem").count();
+    // Every candidate says where they already sail. Not decoration: a person may be
+    // registered in several clubs at once, eighteen people in this data share a surname,
+    // and the row is the only thing that tells them apart (Story V-1).
     await page.getByTestId("admin-squad-add-search-input").fill("a");
-    const candidate = page.getByTestId("admin-squad-add-list").getByRole("listitem").first();
-    await expect(candidate).toBeVisible();
-    await candidate.getByRole("button").click();
+    const candidates = page.getByTestId("admin-squad-add-list").getByRole("listitem");
+    await expect(candidates.first()).toBeVisible();
+    const firstId = (await candidates.first().getAttribute("data-testid"))!.replace(
+      "admin-squad-candidate-",
+      "",
+    );
+    await expect(page.getByTestId(`admin-squad-candidate-clubs-${firstId}`)).toBeVisible();
+
+    // And it works: somebody is registered, in the role picked before adding. Whoever is
+    // already in this series for another club is offered without an add button, so the
+    // one that is clicked is deliberately an addable one.
+    const before = await page.getByTestId("admin-squad-members-list").getByRole("listitem").count();
+    const addable = page
+      .getByTestId("admin-squad-add-list")
+      .getByRole("listitem")
+      .filter({ has: page.getByRole("button") })
+      .first();
+    await expect(addable).toBeVisible();
+    await addable.getByRole("button").click();
     await expect(
       page.getByTestId("admin-squad-members-list").getByRole("listitem"),
     ).toHaveCount(before + 1);

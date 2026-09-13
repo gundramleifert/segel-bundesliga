@@ -39,6 +39,9 @@ export type { CatalogEntryOut as PairingCatalogEntry } from "./generated/model/c
 export type { PublishResult as PairingPublishResult } from "./generated/model/publishResult";
 export type { ParticipantOut as EventTeam } from "./generated/model/participantOut";
 export type { SailorAdminOut as SailorAdmin } from "./generated/model/sailorAdminOut";
+/** One series registration of a person. There is one row per registration and somebody
+ *  legitimately has several — sailing for more than one club is allowed (Story V-1). */
+export type { SailorRegistrationOut as SailorRegistration } from "./generated/model/sailorRegistrationOut";
 export type { SailorCreate } from "./generated/model/sailorCreate";
 export type { SquadOut as Squad } from "./generated/model/squadOut";
 export type { SquadMemberIn as SquadEntry } from "./generated/model/squadMemberIn";

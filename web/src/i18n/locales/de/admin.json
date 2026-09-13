@@ -149,7 +149,9 @@
     "sizeHint": "{{count}} von üblicherweise {{usual}} — keine Grenze, es wird in keine Richtung blockiert.",
     "noHelmHint": "Noch kein Steuermann gemeldet.",
     "manyHelmsHint": "{{count}} Steuerleute gemeldet — üblich ist einer.",
-    "addRoleLabel": "Als"
+    "addRoleLabel": "Als",
+    "alreadyInSeries": "Segelt in dieser Serie schon für {{club}}",
+    "noRegistrations": "Für keine Serie gemeldet"
   },
   "auth": {
     "notSignedInError": "Für die Verwaltung müssen Sie angemeldet sein.",

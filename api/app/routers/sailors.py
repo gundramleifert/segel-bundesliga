@@ -34,7 +34,7 @@ from app.auth import current_user, optional_user
 from app.config import settings
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import Event, EventCrew, Sailor, Team, TeamMembership
+from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
 from app.models.auth import Role, User
 from app.models.org import CrewRole
 from app.problems import Problem
@@ -95,6 +95,36 @@ class SailorUpdate(SailorFields):
     birth_date: date | None = Field(default=None, le=date.today())
 
 
+class SquadClubOut(BaseModel):
+    """The club of one registration — enough to tell two people with one surname apart."""
+
+    id: int
+    name: str
+    short_name: str
+
+
+class SquadSeriesOut(BaseModel):
+    """The series of one registration. Named alongside the club, because the same club can
+    register the same person for two of them and the club alone would be ambiguous."""
+
+    id: int
+    name: str
+
+
+class SailorRegistrationOut(BaseModel):
+    """One series registration of a person — Story V-1.
+
+    A `TeamMembership` row, as the candidate list needs it. There is one per registration
+    and a person legitimately has several: sailing for more than one club is allowed, and
+    only doing it twice *within a series* is not.
+    """
+
+    team_id: int
+    club: SquadClubOut
+    series: SquadSeriesOut
+    role: str
+
+
 class SailorAdminOut(BaseModel):
     """Like MemberOut, but with contact details — administration needs them, the website doesn't."""
 
@@ -108,6 +138,11 @@ class SailorAdminOut(BaseModel):
     # How many series this person is registered for. Says at a glance whether they're
     # in a squad anywhere.
     squads: int = 0
+    # Where, specifically. A bare count cannot answer either question a squad screen has
+    # — "is this the right Nanisberg" and "can I add them to *this* series" — because
+    # eighteen people share that surname and a person may sail for several clubs at once
+    # (Story V-1).
+    registrations: list[SailorRegistrationOut] = Field(default_factory=list)
 
 
 class SailorMeOut(BaseModel):
@@ -179,23 +214,58 @@ async def list_sailors(
             )
         )
     sailors = list((await session.execute(stmt)).scalars())
-
-    membership_counts = dict(
-        (
-            await session.execute(
-                select(TeamMembership.sailor_id, func.count())
-                .where(TeamMembership.sailor_id.in_([s.id for s in sailors]))
-                .group_by(TeamMembership.sailor_id)
-            )
-        ).all()
-    )
+    registrations = await _registrations_by_sailor(session, [s.id for s in sailors])
 
     return [
         SailorAdminOut.model_validate(sailor).model_copy(
-            update={"squads": membership_counts.get(sailor.id, 0)}
+            update={
+                "squads": len(registrations.get(sailor.id, [])),
+                "registrations": registrations.get(sailor.id, []),
+            }
         )
         for sailor in sailors
     ]
+
+
+async def _registrations_by_sailor(
+    session: AsyncSession, sailor_ids: list[int]
+) -> dict[int, list[SailorRegistrationOut]]:
+    """Every series registration of these people, grouped by person.
+
+    **Series registrations only** (`Team.event_id is None`). The other kind of `Team` row
+    is an entry in one event, carries no squad, and naming it here would tell a club
+    manager the person is registered somewhere they are not (Story V-1).
+
+    One query rather than one per person: this feeds a candidate list of up to 500.
+    """
+    if not sailor_ids:
+        return {}
+
+    rows = (
+        await session.execute(
+            select(TeamMembership.sailor_id, Team.id, TeamMembership.role, Club, Series)
+            .join(Team, TeamMembership.team_id == Team.id)
+            .join(Club, Team.club_id == Club.id)
+            .join(Series, Team.series_id == Series.id)
+            .where(
+                TeamMembership.sailor_id.in_(sailor_ids),
+                Team.event_id.is_(None),
+            )
+            .order_by(Series.year.desc(), Series.name, Club.name)
+        )
+    ).all()
+
+    grouped: dict[int, list[SailorRegistrationOut]] = {}
+    for sailor_id, team_id, role, club, series in rows:
+        grouped.setdefault(sailor_id, []).append(
+            SailorRegistrationOut(
+                team_id=team_id,
+                club=SquadClubOut(id=club.id, name=club.name, short_name=club.short_name),
+                series=SquadSeriesOut(id=series.id, name=series.name),
+                role=role,
+            )
+        )
+    return grouped
 
 
 @router.post(

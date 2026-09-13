@@ -5,6 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { SailorRegistrationOut } from './sailorRegistrationOut';
 
 /**
  * Like MemberOut, but with contact details — administration needs them, the website doesn't.
@@ -16,4 +17,5 @@ export interface SailorAdminOut {
   email?: string | null;
   birth_date?: string | null;
   squads?: number;
+  registrations?: SailorRegistrationOut[];
 }

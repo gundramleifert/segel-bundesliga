@@ -8,6 +8,7 @@ import {
   useListSailors,
   useSetSquad,
 } from "../api/generated/sbl";
+import type { SailorAdmin, SailorRegistration } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "./Blocks";
 import { roleText } from "../lib/format";
@@ -77,6 +78,19 @@ export function SquadPanel({
   const current = members.map((m) => ({ sailor_id: m.id, role: m.role as SquadRole }));
   const memberIds = new Set(current.map((m) => m.sailor_id));
   const helmCount = current.filter((m) => m.role === "helm").length;
+  const seriesId = squad.data.series_id;
+
+  /** Where this person already sails, and whether that rules them out here.
+   *
+   *  A person is legitimately registered in several clubs — one row per series
+   *  registration — and only twice *within one series* is forbidden. So the list has to
+   *  show the registrations (eighteen people in this data share a surname, and a name on
+   *  its own identifies nobody) and single out the one that clashes. The endpoint still
+   *  refuses it; this is a courtesy, not the enforcement. */
+  const clash = (person: SailorAdmin): SailorRegistration | undefined =>
+    seriesId == null
+      ? undefined
+      : person.registrations?.find((r) => r.series.id === seriesId);
 
   return (
     <div
@@ -199,24 +213,52 @@ export function SquadPanel({
             >
               {results.data
                 .filter((person) => !memberIds.has(person.id))
-                .map((person) => (
-                  <li key={person.id} className="flex items-center gap-3 px-3 py-1.5">
-                    <span className="min-w-0 flex-1 truncate">
-                      {person.first_name} {person.last_name}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      isDisabled={setSquad.isPending}
-                      onPress={() =>
-                        save([...current, { sailor_id: person.id, role: addRole }])
-                      }
-                      data-testid={`admin-squad-add-button-${person.id}`}
+                .map((person) => {
+                  const taken = clash(person);
+                  return (
+                    <li
+                      key={person.id}
+                      data-testid={`admin-squad-candidate-${person.id}`}
+                      className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-1.5"
                     >
-                      {t("squad.addButtonText")}
-                    </Button>
-                  </li>
-                ))}
+                      <span className="min-w-0 flex-1 truncate">
+                        {person.first_name} {person.last_name}
+                      </span>
+                      {taken ? (
+                        <span
+                          data-testid={`admin-squad-candidate-taken-${person.id}`}
+                          className="text-xs text-amber-700"
+                        >
+                          {t("squad.alreadyInSeries", { club: taken.club.name })}
+                        </span>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          isDisabled={setSquad.isPending}
+                          onPress={() =>
+                            save([...current, { sailor_id: person.id, role: addRole }])
+                          }
+                          data-testid={`admin-squad-add-button-${person.id}`}
+                        >
+                          {t("squad.addButtonText")}
+                        </Button>
+                      )}
+                      {/* Every registration, not only the clashing one: this is what
+                          tells two people with the same surname apart. */}
+                      <span
+                        data-testid={`admin-squad-candidate-clubs-${person.id}`}
+                        className="w-full text-xs text-slate-500"
+                      >
+                        {person.registrations?.length
+                          ? person.registrations
+                              .map((r) => `${r.club.short_name || r.club.name} · ${r.series.name}`)
+                              .join(" — ")
+                          : t("squad.noRegistrations")}
+                      </span>
+                    </li>
+                  );
+                })}
             </ul>
           )}
         </>

@@ -149,7 +149,9 @@
     "sizeHint": "{{count}} of usually {{usual}} — not a limit, and nothing is blocked either way.",
     "noHelmHint": "No helm registered yet.",
     "manyHelmsHint": "{{count}} helms registered — usually there is one.",
-    "addRoleLabel": "As"
+    "addRoleLabel": "As",
+    "alreadyInSeries": "Already sailing for {{club}} in this series",
+    "noRegistrations": "Not registered for any series"
   },
   "auth": {
     "notSignedInError": "You must be signed in to access administration.",

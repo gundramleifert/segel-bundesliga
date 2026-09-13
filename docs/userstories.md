@@ -1212,6 +1212,18 @@ Acceptance criteria:
   looking like an oversight.
 - Somebody is added **in the role they will sail**, not always as crew to be corrected
   afterwards.
+- **The list to pick from says where each person already sails.** A name on its own does
+  not identify anybody: eighteen people in this data share a surname, and a person is
+  legitimately registered in **several clubs at once** — one `TeamMembership` row per
+  series registration — so "3 registrations" as a bare number answers neither "is this the
+  right Nanisberg" nor "can I add them". Each candidate therefore carries their
+  registrations as club **and** series.
+- **Somebody already registered for *this* series is offered as unavailable, naming the
+  club they sail for**, instead of being addable and refused on save. The rule is the
+  oldest one in this story — once per series, whichever club — and it is the one a club
+  manager is most likely to walk into, because the person is genuinely a member of their
+  club too. The endpoint keeps refusing it (`squad-sailor-in-another-club`): the list is
+  a courtesy, not the enforcement.
 
 Open: **Is it always exactly ten, or is ten a ceiling?** The number is deliberately not enforced
 — illness and late registration would not get through otherwise. Also open: until when the
