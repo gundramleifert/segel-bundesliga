@@ -256,8 +256,17 @@ Each story in `docs/userstories.md` lists the tests that cover it — and each s
 story ID in the docstring. New features are added to stories first, then tested.
 
 - `e2e/` — Playwright against the running application, also organized by stories.
-  Prerequisites: Backend on port 8000 **and** Vite on 5173 already running; the configuration
-  deliberately does not start servers so a missing server is not a test failure.
+  Prerequisites: `scripts/dev-stack.sh --workers 4`, then `playwright test`. The
+  configuration deliberately does not start servers, so a missing server is not a test
+  failure.
+
+  **The suite is parallel, with one stack per worker.** `dev-stack.sh` runs N backends
+  over N SQLite files and N web servers; `e2e/fixtures.ts` points each worker at its own
+  via `parallelIndex` (**not** `workerIndex`, which keeps climbing as workers are
+  replaced). The shared database was what forced a single worker: `lifecycle.spec.ts`
+  writes, and a second worker read lists while the first changed them. It also runs
+  against a **built** bundle rather than the dev server — the suite is dominated by page
+  loads, and a build costs two seconds. Together: 3.7 minutes down to 34 seconds.
   Two projects: `chromium` and `mobile` (Pixel 7) — the site is read mostly on mobile.
   `e2e/lifecycle.spec.ts` signs in through `/api/dev/login`, so the backend needs
   `SBL_DEV_LOGIN=true`; it also **writes** (clubs, series, events), so point it at a

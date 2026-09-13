@@ -171,7 +171,14 @@ export function Layout() {
           </div>
         </main>
 
-        <RoleSwitcher />
+        {/* Development only, and gated on the *build* rather than on whether the
+            backend happens to answer `/api/dev`. Those two used to disagree: the switcher
+            showed itself whenever the backend offered dev login, while the footer's
+            clearance for it was `import.meta.env.DEV` — so in a built bundle against a
+            dev-login backend, which is exactly what the e2e suite runs, the switcher sat
+            on top of the legal links that § 5 DDG requires to be reachable. One
+            condition now. */}
+        {import.meta.env.DEV && <RoleSwitcher />}
 
         {/* The extra bottom padding is clearance for the dev role switcher, which is
             `fixed bottom-4 right-4 z-50` and otherwise sits directly on top of this footer —
@@ -180,8 +187,8 @@ export function Layout() {
 
             Padding rather than a lower z-index on the switcher: the switcher has to stay
             above page content to be usable at all, so the fix is to stop putting content
-            underneath it. And only in a dev build — the switcher cannot exist in production
-            (see `dev/RoleSwitcher.tsx`), so the real site pays no dead space for it. */}
+            underneath it. The same `import.meta.env.DEV` as the switcher above, so the two
+            cannot drift apart again. */}
         <footer
           data-testid="layout-footer"
           className={`bg-white ${import.meta.env.DEV ? "pb-24" : ""}`}

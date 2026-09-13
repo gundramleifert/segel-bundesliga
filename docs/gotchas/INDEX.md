@@ -15,6 +15,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [orval's override.query flags invert its GET/non-GET split, so a POST gets a query hook](orval-s-override-query-flags-invert-its-get-non-get-split-so-a-post-gets-a-query.md)
 - [`locator.count()` does not auto-wait; `toHaveCount()` does](playwright-count-does-not-auto-wait.md)
 - [Playwright accepts unknown `use` keys silently — `reducedMotion` moved under `contextOptions`](playwright-moved-reducedmotion-into-contextoptions.md)
+- [Playwright's workerIndex keeps climbing past the worker count; parallelIndex is the bounded slot](playwright-s-workerindex-keeps-climbing-past-the-worker-count-parallelindex-is-th.md)
 - [pnpm runs a store-writing lockfile check before every script, so `pnpm <script>` fails where the store is read-only](pnpm-runs-a-store-writing-lockfile-check-before-every-script-so-pnpm-script-fail.md)
 - [An RFC 9457 extension member may not be named `status`, `title`, `code` or `type`](problem-extension-members-cannot-shadow-its-parameters.md)
 - [A public endpoint answers 404 for a draft — including in tests you just set up](public-endpoints-answer-404-for-unpublished-things.md)

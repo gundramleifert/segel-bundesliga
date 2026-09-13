@@ -1,4 +1,6 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import type { Page, TestInfo } from "@playwright/test";
+
+import { expect, test } from "./fixtures";
 
 import { expectNoSidewaysScroll, openNavigation } from "./layout";
 

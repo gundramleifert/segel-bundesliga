@@ -47,4 +47,4 @@ if (( ${#failed[@]} )); then
   printf '\033[31m%d failed: %s\033[0m\n' "${#failed[@]}" "${failed[*]}"
   exit 1
 fi
-printf '\033[32mall green\033[0m — e2e still needs scripts/dev-stack.sh + playwright test\n'
+printf '\033[32mall green\033[0m — e2e still needs: scripts/dev-stack.sh --workers 4, then playwright test\n'
