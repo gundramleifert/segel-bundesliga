@@ -65,7 +65,14 @@ export function Standings() {
       ) : (
       <>
       <TableFrame testId="standings-table-frame">
-        <table data-testid="standings-table" className="data-table w-full min-w-[28rem] border-collapse text-sm">
+        <table
+          data-testid="standings-table"
+          // Sized by its content, not stretched to the panel. Every column here is a rank,
+          // an abbreviation or a number, so stretching only widened the club column — with
+          // `w-full` the browser hands the leftover width to whichever column has no
+          // explicit one, and "BYC (BE)" then sat in a column three times its width.
+          className="data-table border-collapse text-sm"
+        >
           <caption className="sr-only">
             {t("caption", { seriesName: data.series.name })}
           </caption>
@@ -74,7 +81,9 @@ export function Standings() {
               <th scope="col" className="w-14 font-medium text-slate-600">
                 {t("table.rank")}
               </th>
-              <th scope="col" className="font-medium text-slate-600">
+              {/* Abbreviations only (the full name is the row's tooltip), so ten
+                  characters — "BYC (BE)" — is the widest this ever has to be. */}
+              <th scope="col" className="max-w-28 font-medium text-slate-600">
                 {t("table.club")}
               </th>
               <th scope="col" className="w-24 text-right font-medium text-slate-600">

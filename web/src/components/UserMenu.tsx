@@ -131,20 +131,35 @@ function initials(displayName: string): string {
  */
 function LanguageChoice() {
   const { t, i18n } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [side, setSide] = useState<"right" | "left" | null>(null);
+  const open = side !== null;
   const current = (i18n.resolvedLanguage ?? i18n.language) as SupportedLanguage;
 
+  /** Opens beside the row — to the right, or to the left when there is no room there.
+   *
+   *  The account menu is anchored to the top right of the window, so "to the right" is
+   *  off-screen as often as not. Decided when it opens, from the row's own rectangle,
+   *  rather than assumed: a flyout that hangs off the edge of a phone is not a menu. */
+  const toggle = (event: { currentTarget: HTMLElement }) => {
+    if (open) return setSide(null);
+    const rect = event.currentTarget.getBoundingClientRect();
+    setSide(rect.right + SUBMENU_WIDTH + 8 <= window.innerWidth ? "right" : "left");
+  };
+
   return (
-    <>
+    <div className="relative">
       <button
         type="button"
         aria-expanded={open}
         aria-controls="user-menu-language"
-        onClick={() => setOpen((wasOpen) => !wasOpen)}
+        aria-haspopup="menu"
+        onClick={toggle}
         data-testid="layout-user-menu-language"
         className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
       >
         <span>{t("language.label")}</span>
+        {/* The chosen language stays on this row, so the menu says what it is without
+            being opened. */}
         <span className="flex items-center gap-1 text-slate-500">
           {t(`language.${current}`)}
           <svg
@@ -155,23 +170,31 @@ function LanguageChoice() {
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+            className="size-3.5"
           >
-            <path d="M6 9l6 6 6-6" />
+            <path d="M9 6l6 6-6 6" />
           </svg>
         </span>
       </button>
 
       {open && (
-        <ul id="user-menu-language" data-testid="language-switcher">
+        <ul
+          id="user-menu-language"
+          data-testid="language-switcher"
+          role="menu"
+          className={`absolute top-0 z-10 w-40 rounded-xl bg-white p-2 shadow-xl ring-1 ring-slate-900/5 ${
+            side === "right" ? "left-full ml-1" : "right-full mr-1"
+          }`}
+        >
           {SUPPORTED_LANGUAGES.map((lang) => (
-            <li key={lang}>
+            <li key={lang} role="none">
               <button
                 type="button"
-                // `aria-current`, not `aria-pressed`: these are a set of alternatives of
-                // which exactly one holds, which is what "current" means — not two
-                // independent toggles.
-                aria-current={current === lang ? "true" : undefined}
+                role="menuitemradio"
+                // `menuitemradio` + `aria-checked`: a set of alternatives of which
+                // exactly one holds, which is what this is — not two independent toggles,
+                // which is what `aria-pressed` would have claimed.
+                aria-checked={current === lang}
                 onClick={() => void i18n.changeLanguage(lang)}
                 data-testid={`language-switcher-${lang}`}
                 className={`flex w-full items-center gap-2 rounded-md py-1.5 pl-7 pr-3 text-sm hover:bg-slate-100 ${
@@ -187,6 +210,9 @@ function LanguageChoice() {
           ))}
         </ul>
       )}
-    </>
+    </div>
   );
 }
+
+/** Matches `w-40` on the panel below — the number the flip decision needs. */
+const SUBMENU_WIDTH = 160;

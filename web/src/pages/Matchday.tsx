@@ -254,8 +254,9 @@ function StandingsTable({
       <TableFrame testId="matchday-standings-table-frame">
       <table
         data-testid="matchday-standings-table"
-        className="data-table w-full border-collapse text-sm"
-        style={{ minWidth: `${30 + flights.length * 3.25}rem` }}
+        // Content-sized, like the series table: with `w-full` the leftover width went to
+        // the club column, which holds an abbreviation.
+        className="data-table border-collapse text-sm"
       >
         <caption className="sr-only">{t("standingsCaption")}</caption>
         <thead>

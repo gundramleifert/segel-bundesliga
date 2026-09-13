@@ -306,11 +306,16 @@ test.describe("A-12: the navigation moves with the viewport", () => {
     // each named in its own language and the current one marked.
     await expect(page.getByTestId("language-switcher")).toHaveCount(0);
     await page.getByTestId("layout-user-menu-language").click();
-    const languages = page.getByTestId("language-switcher").getByRole("listitem");
+    // `menuitemradio`, not `listitem`: the panel is a `role="menu"`, which replaces its
+    // children's implicit list roles — and radio is what these are, a set of alternatives
+    // of which exactly one holds.
+    const languages = page
+      .getByTestId("language-switcher")
+      .getByRole("menuitemradio");
     await expect(languages).toHaveCount(2);
     await expect(page.getByTestId("language-switcher-de")).toHaveText("Deutsch");
     await expect(page.getByTestId("language-switcher-en")).toHaveAttribute(
-      "aria-current",
+      "aria-checked",
       "true",
     );
     await page.getByTestId("layout-user-menu-language").click();

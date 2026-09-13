@@ -737,7 +737,10 @@ Acceptance criteria:
 - **Tables are dense.** One rule sets cell padding for every data table (`.data-table` in
   `index.css`), because a results screen is read by scanning down it and generous padding
   means fewer rows in view and more scrolling to compare two of them. A cell that needs
-  something else still overrides it with a utility.
+  something else still overrides it with a utility. The standings tables are sized by their
+  content rather than stretched to the panel: a table stretched to its container hands the
+  leftover width to whichever column has no explicit one, which was the club column — and
+  it holds an abbreviation.
 - `ClubSelector`'s two panes stack on a narrow screen without their scrollable lists
   covering what follows them.
 - Verified by **removing** the `testIgnore` from the `mobile` project and having
@@ -815,7 +818,11 @@ Acceptance criteria:
   pages. Each of those is used rarely, and as separate items in the frame they
   competed with the navigation for room — Help was a main nav entry beside Series and
   Clubs, which is not what someone comes to the site for.
-  - **The language is a submenu**, not a pair of toggle buttons. Two languages fitted an
+  - **The language is a flyout submenu**, not a pair of toggle buttons. It opens beside
+    the row — to the right, or to the left when there is no room there, decided from the
+    row's own rectangle when it opens: the account menu is anchored to the top right of
+    the window, so "to the right" is off-screen as often as not. The chosen language stays
+    on the row itself, so the menu says what it is without being opened. Two languages fitted an
     EN|DE segmented control; a third would not, and the control read as a widget wedged
     into a list of links rather than as one of its entries. The row says what the language
     currently is and opens to the choices, which is the same shape as everything else in
