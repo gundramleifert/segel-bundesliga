@@ -285,3 +285,110 @@ class TestEnteringResults:
             discarded = logged.payload["discarded_entries"]
             # The first submission's finish order — exactly what the second one replaced.
             assert discarded[str(boats[0])]["finish_position"] == 1
+
+
+class TestABoatWithNoResultYet:
+    """WL-2: "not entered yet" is a state the screen may submit, not an error.
+
+    A race starts with six boats and no results, and is filled in one boat at a time. The
+    entry screen writes through on every change, so it has to be able to say "this boat has
+    nothing recorded" — otherwise a boat whose position has not been typed yet has to be
+    submitted as ``FINISHED`` with no position, which the endpoint rightly refuses. That
+    refusal was appearing under the race on the way to every hand-entered result.
+    """
+
+    async def test_a_null_code_is_accepted_and_records_nothing(self, client, caplog):
+        event_id, race_id, boats = await _unfinished_race(offset=6)
+        headers = await _race_officer(client, caplog, "wl-null1@example.com")
+
+        # One boat home, the rest still racing — the normal state a second into a race.
+        response = await client.put(
+            f"/api/admin/events/{event_id}/races/{race_id}/result",
+            headers=headers,
+            json={
+                "results": [
+                    {"boat_number": boats[0], "code": "FINISHED", "finish_position": 1},
+                    *(
+                        {"boat_number": boat, "code": None, "finish_position": None}
+                        for boat in boats[1:]
+                    ),
+                ]
+            },
+        )
+        assert response.status_code == 200, response.text
+        # Not finished: five boats have no result, so the race is still running.
+        assert response.json()["status"] != "finished"
+
+        entries = {entry.boat_id: entry for entry in await _entries(race_id)}
+        by_number = await _entries_by_boat_number(race_id)
+        assert by_number[boats[0]].code == ResultCode.FINISHED
+        assert by_number[boats[0]].finish_position == 1
+        for boat in boats[1:]:
+            assert by_number[boat].code is None
+            assert by_number[boat].finish_position is None
+        assert entries  # the entries themselves are never deleted, only emptied
+
+    async def test_a_null_code_clears_a_result_that_was_there(self, client, caplog):
+        """Undoing a tap. The boat had a place; now it has none."""
+        event_id, race_id, boats = await _unfinished_race(offset=7)
+        headers = await _race_officer(client, caplog, "wl-null2@example.com")
+
+        first = await client.put(
+            f"/api/admin/events/{event_id}/races/{race_id}/result",
+            headers=headers,
+            json=_finished_payload(boats),
+        )
+        assert first.status_code == 200, first.text
+        assert (await _entries_by_boat_number(race_id))[boats[2]].finish_position == 3
+
+        cleared = await client.put(
+            f"/api/admin/events/{event_id}/races/{race_id}/result",
+            headers=headers,
+            json={"results": [{"boat_number": boats[2], "code": None}]},
+        )
+        assert cleared.status_code == 200, cleared.text
+
+        after = await _entries_by_boat_number(race_id)
+        assert after[boats[2]].code is None
+        assert after[boats[2]].finish_position is None
+        # Points go with it — a boat with no result scores nothing, rather than keeping
+        # the points its old place earned.
+        assert after[boats[2]].points is None
+        # And the boats that were not mentioned keep what they had.
+        assert after[boats[0]].finish_position == 1
+
+    async def test_a_code_that_needs_a_position_is_still_refused_without_one(
+        self, client, caplog
+    ):
+        """The refusal this makes room for must not disappear with it.
+
+        `code: null` means "nothing recorded". `code: "FINISHED"` with no position means
+        "finished, somewhere" — which is not a result, and never was.
+        """
+        event_id, race_id, boats = await _unfinished_race(offset=8)
+        headers = await _race_officer(client, caplog, "wl-null3@example.com")
+
+        response = await client.put(
+            f"/api/admin/events/{event_id}/races/{race_id}/result",
+            headers=headers,
+            json={
+                "results": [
+                    {"boat_number": boats[0], "code": "FINISHED", "finish_position": None}
+                ]
+            },
+        )
+        assert response.status_code == 422, response.text
+        assert response.json()["type"] == "/errors/race-result-position-required"
+
+
+async def _entries_by_boat_number(race_id: int) -> dict[int, RaceEntry]:
+    """The race's entries keyed by boat number rather than by the boat's row id."""
+    async with SessionLocal() as session:
+        rows = (
+            await session.execute(
+                select(Boat.number, RaceEntry)
+                .join(RaceEntry, RaceEntry.boat_id == Boat.id)
+                .where(RaceEntry.race_id == race_id)
+            )
+        ).all()
+        return {number: entry for number, entry in rows}

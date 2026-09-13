@@ -26,7 +26,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/userstories.md` | What the system should do, with tests included |
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
-| `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green) |
+| `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `reference/` | Shallow clones of external repos for reference, not versioned |
 | `~/.claude/plans/iterative-jingling-willow.md` | The agreed overall plan |
@@ -62,6 +62,33 @@ Alembic runs in **batch mode** for SQLite (see `api/alembic/env.py`). The **test
 uses its own SQLite file so tests run without any external state; the test URL is set in
 `api/tests/conftest.py` **at module level**, not in a fixture, because `app.config` builds
 its settings on import.
+
+**The frontend's API client is generated, never written.** `scripts/gen-api-client.sh`
+reads the OpenAPI document straight off the FastAPI app object — no server to start, and
+no way to describe a stale build — and `orval` turns it into `web/src/api/generated/`: one
+function and one TanStack Query hook per endpoint, plus every request and response type.
+Run it after any change to a route or a schema, then `pnpm typecheck` in `web/`: that
+failing build is the whole point, and is what a hand-written client could not give.
+
+- **Nothing under `generated/` is edited.** The next run overwrites it silently.
+- **Names come from the route handler's own name** (`app/main.py::_operation_id`), so
+  `async def list_series` becomes `listSeries` / `useListSeries`. Renaming a handler
+  renames it in the frontend — which is a reason to name handlers well, and a reason the
+  rename shows up as a compile error rather than a 404.
+- **`web/src/api/http.ts`** is the one place a request leaves the browser: it attaches the
+  bearer token, turns an RFC 9457 body into an `ApiError` carrying its problem code, and
+  handles a 204. orval routes every generated call through it, and reads `ErrorType` from
+  it so every hook's `error` is typed as `ApiError`.
+- **`web/src/api/types.ts`** renames the generated types to the names the app uses
+  (`EventOut` → `EventSummary`). It declares nothing: a hand-written copy of a response
+  shape drifts, and the one that existed had been missing a field for months without a
+  single compile error.
+- **`useAsync(useListClubs())`** narrows a hook to the `{ data, error, loading }` the pages
+  want, translating the error on the way. Reach past it for `isFetching` or `refetch`.
+- **Invalidate with generated keys** — `invalidate(getListAllClubsQueryKey())` — or with a
+  **path prefix**, `invalidate("/api/clubs")`, which covers the list, each club and each
+  club's members in one. Never a key written out by hand: one that matches no query
+  invalidates nothing, silently.
 
 **Authentication:** We store **no passwords**. Identity comes from Google, Microsoft
 (OIDC token verification against provider keys) or via one-time code by email. Accounts are

@@ -44,7 +44,12 @@ echo "vite → $LOGS/vite.log"
 
 (cd "$ROOT/api" && uv run uvicorn app.main:app --port 8000 --host 127.0.0.1 > "$LOGS/api.log" 2>&1) &
 api_pid=$!
-(cd "$ROOT/web" && pnpm dev --port 5173 --host 127.0.0.1 > "$LOGS/vite.log" 2>&1) &
+# `node_modules/.bin/vite`, not `pnpm dev`: before running any script, pnpm checks that
+# the installed tree matches the lockfile, and that check writes to the pnpm store. Where
+# the store is not writable it fails with "unable to open database file" — and since that
+# lands in the Vite log, the symptom is this script reporting "not ready — api:200
+# vite:000", which points at Vite and not at pnpm. Calling the binary skips the check.
+(cd "$ROOT/web" && ./node_modules/.bin/vite --port 5173 --host 127.0.0.1 > "$LOGS/vite.log" 2>&1) &
 vite_pid=$!
 
 trap 'kill $api_pid $vite_pid 2>/dev/null || true' EXIT INT TERM

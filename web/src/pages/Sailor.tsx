@@ -2,8 +2,8 @@ import { Card } from "@heroui/react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api } from "../api/client";
-import { useApi } from "../api/useApi";
+import { useGetSailor } from "../api/generated/sbl";
+import { useAsync } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
 import { locationText, roleText, eventDates } from "../lib/format";
 
@@ -11,9 +11,7 @@ import { locationText, roleText, eventDates } from "../lib/format";
 export function Sailor() {
   const { t } = useTranslation("sailor");
   const { id = "" } = useParams();
-  const { data, error, loading } = useApi(["sailor", id], (signal) =>
-    api.sailor(Number(id), signal),
-  );
+  const { data, error, loading } = useAsync(useGetSailor(Number(id)));
 
   if (loading) return <Loading text={t("loading")} testId="sailor-loading" />;
   if (error) return <ErrorMessage text={error} testId="sailor-error" />;

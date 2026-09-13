@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
@@ -34,8 +35,22 @@ async def lifespan(_: FastAPI):
     await jobs.shutdown()
 
 
+def _operation_id(route: APIRoute) -> str:
+    """The function's own name as the operation id.
+
+    FastAPI's default appends path and verb — `list_series_api_series_get` — which is
+    unique but unreadable, and the frontend client is **generated from these names**
+    (`orval`, see `web/orval.config.ts`): they become `useListSeriesApiSeriesGet` in every
+    component. The handler names are already unique across all routers, and a duplicate
+    would be caught immediately, because FastAPI refuses to build the schema twice under
+    one id.
+    """
+    return route.name
+
+
 app = FastAPI(
     lifespan=lifespan,
+    generate_unique_id_function=_operation_id,
     # The association runs several series and the 1. Segel-Bundesliga is only one of them,
     # so neither the title nor the description may carry that name (see CLAUDE.md).
     title="Deutsche Segel-Liga API",

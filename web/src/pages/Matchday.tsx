@@ -1,16 +1,17 @@
-import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
-  api,
-  type AdminRace,
-  type BoatOut,
-  type EventSummary,
-  type StandingRow,
-} from "../api/client";
-import { useApi, useInvalidate, useAccount } from "../api/useApi";
+  getGetAdminRacesQueryKey,
+  getGetEventQueryKey,
+  useGetAdminRaces,
+  useGetEvent,
+  useGetPairing,
+  usePutRaceResult,
+} from "../api/generated/sbl";
+import type { AdminRace, BoatOut, EventSummary, StandingRow } from "../api/types";
+import { useAsync, useInvalidate, useAccount } from "../api/useApi";
 import {
   ErrorMessage,
   Loading,
@@ -98,7 +99,7 @@ export function Matchday() {
   const { hasRole } = useAccount();
   const canEnterResults = hasRole("admin", "race_officer");
 
-  const matchday = useApi(["event", id], (signal) => api.event(Number(id), signal));
+  const matchday = useAsync(useGetEvent(Number(id)));
 
   if (matchday.loading) return <Loading text={t("loading")} testId="matchday-loading" />;
   if (matchday.error) return <ErrorMessage text={matchday.error} testId="matchday-error" />;
@@ -165,7 +166,7 @@ export function Matchday() {
       )}
       {view === "pairing" && <PairingList eventId={Number(id)} />}
       {view === "results" && canEnterResults && (
-        <ResultsEntry eventId={Number(id)} eventIdParam={id} standings={standings} />
+        <ResultsEntry eventId={Number(id)} standings={standings} />
       )}
     </>
   );
@@ -383,9 +384,7 @@ function StandingsTable({
 
 function PairingList({ eventId }: { eventId: number }) {
   const { t } = useTranslation("matchday");
-  const { data, error, loading } = useApi(["pairing", eventId], (signal) =>
-    api.pairing(eventId, signal),
-  );
+  const { data, error, loading } = useAsync(useGetPairing(eventId));
 
   if (loading) return <Loading text={t("pairingLoading")} testId="matchday-pairing-loading" />;
   if (error) return <ErrorMessage text={error} testId="matchday-pairing-error" />;
@@ -521,17 +520,13 @@ function stillOpen(race: AdminRace): boolean {
 
 function ResultsEntry({
   eventId,
-  eventIdParam,
   standings,
 }: {
   eventId: number;
-  eventIdParam: string;
   standings: StandingRow[];
 }) {
   const { t } = useTranslation("matchday");
-  const { data, error, loading } = useApi(["admin", "races", eventId], (signal) =>
-    api.admin.races(eventId, signal),
-  );
+  const { data, error, loading } = useAsync(useGetAdminRaces(eventId));
   const [showAll, setShowAll] = useState(false);
 
   if (loading) return <Loading text={t("resultsLoading")} testId="matchday-results-loading" />;
@@ -617,7 +612,6 @@ function ResultsEntry({
                 race={race}
                 boats={data.boats}
                 eventId={eventId}
-                eventIdParam={eventIdParam}
                 standings={standings}
                 raceRole={raceRole(race)}
               />
@@ -660,14 +654,12 @@ function RaceResultRow({
   race,
   boats,
   eventId,
-  eventIdParam,
   standings,
   raceRole,
 }: {
   race: AdminRace;
   boats: BoatOut[];
   eventId: number;
-  eventIdParam: string;
   standings: StandingRow[];
   raceRole: "previous" | "current" | "next" | null;
 }) {
@@ -732,19 +724,36 @@ function RaceResultRow({
   // No Save button: every change writes straight through to the backend (still guarded by
   // the same duplicate check that used to just disable Save — an in-progress duplicate
   // simply doesn't save yet, rather than blocking a click that no longer exists).
-  const save = useMutation({
-    mutationFn: (nextRows: Record<number, ResultRow>) =>
-      api.admin.setRaceResult(eventId, race.id, {
-        results: Object.values(nextRows).map((row) => ({
-          boat_number: row.boat_number,
-          code: row.code,
-          finish_position: needsPosition(row.code) ? row.finish_position : null,
-          redress_points: effectiveRedressValue(row),
-        })),
-      }),
-    onSuccess: () => {
-      invalidate(["admin", "races", eventId], ["event", eventIdParam]);
+  const save = usePutRaceResult({
+    mutation: {
+      onSuccess: () => {
+        // The keys come from the generated getters, so they cannot drift away from the
+        // queries they are meant to clear. Both matter: the race list this screen reads,
+        // and the event, whose standings the backend just recomputed.
+        invalidate(getGetAdminRacesQueryKey(eventId), getGetEventQueryKey(eventId));
+      },
     },
+  });
+
+  /** The results of one race, in the shape the endpoint wants.
+   *
+   *  A row that is not a complete result is sent as `code: null` — "nothing recorded for
+   *  this boat" (Story WL-2). Every race starts as six of those and is filled in one boat
+   *  at a time; reporting such a row as `FINISHED` with no position instead earned a
+   *  correct-but-useless "Enter a finish position for boat 4" under the race on the way to
+   *  every hand-entered result. `null` is also what undoing a tap sends, so clearing a
+   *  boat and never having entered it are the same request. */
+  const resultsBody = (nextRows: Record<number, ResultRow>) => ({
+    results: Object.values(nextRows).map((row) =>
+      resultComplete(row)
+        ? {
+            boat_number: row.boat_number,
+            code: row.code,
+            finish_position: needsPosition(row.code) ? row.finish_position : null,
+            redress_points: effectiveRedressValue(row),
+          }
+        : { boat_number: row.boat_number, code: null },
+    ),
   });
 
   function duplicatesIn(candidate: Record<number, ResultRow>): Set<number> {
@@ -769,7 +778,7 @@ function RaceResultRow({
   function apply(nextRows: Record<number, ResultRow>) {
     setRows(nextRows);
     if (duplicatesIn(nextRows).size === 0) {
-      save.mutate(nextRows);
+      save.mutate({ eventId, raceId: race.id, data: resultsBody(nextRows) });
     }
   }
 

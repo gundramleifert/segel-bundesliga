@@ -1,11 +1,24 @@
 import { Button, Spinner } from "@heroui/react";
-import { useMutation } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api, type ClubAdmin, type SeriesAdmin } from "../api/client";
-import { useApi, useInvalidate, useAccount } from "../api/useApi";
+import {
+  getListAllClubsQueryKey,
+  getListAllSeriesQueryKey,
+  useCreateClub,
+  useCreateSeries,
+  useDeleteClubLogo,
+  useListAllClubs,
+  useListAllSeries,
+  usePublishSeries,
+  useSetClubs,
+  useUnpublishSeries,
+  useUpdateSeries,
+  useUploadClubLogo,
+} from "../api/generated/sbl";
+import type { ClubAdmin, SeriesAdmin } from "../api/types";
+import { useAsync, useInvalidate, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { AccountsAdmin } from "./AdminAccounts";
@@ -94,26 +107,20 @@ type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
 
 function Clubs() {
   const { t } = useTranslation("admin");
-  const { data, error, loading } = useApi(["admin", "clubs"], (signal) =>
-    api.admin.clubs(signal),
-  );
+  const { data, error, loading } = useAsync(useListAllClubs());
   const invalidate = useInvalidate();
   const [name, setName] = useState("");
   const [shortName, setShortName] = useState("");
   const [city, setCity] = useState("");
 
-  const create = useMutation({
-    mutationFn: () =>
-      api.admin.createClub({
-        name: name.trim(),
-        short_name: shortName.trim() || null,
-        city: city.trim() || null,
-      }),
-    onSuccess: () => {
-      setName("");
-      setShortName("");
-      setCity("");
-      invalidate(["admin", "clubs"], ["clubs"]);
+  const create = useCreateClub({
+    mutation: {
+      onSuccess: () => {
+        setName("");
+        setShortName("");
+        setCity("");
+        invalidate(getListAllClubsQueryKey(), "/api/clubs");
+      },
     },
   });
 
@@ -128,7 +135,13 @@ function Clubs() {
         className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
-          create.mutate();
+          create.mutate({
+            data: {
+              name: name.trim(),
+              short_name: shortName.trim() || null,
+              city: city.trim() || null,
+            },
+          });
         }}
       >
         <Field label={t("clubs.nameLabel")}>
@@ -189,7 +202,7 @@ function Clubs() {
             className="divide-y divide-slate-100 rounded-lg border border-slate-200"
           >
             {data.map((club) => (
-              <ClubRow key={club.id} club={club} onChanged={() => invalidate(["admin", "clubs"], ["clubs"])} />
+              <ClubRow key={club.id} club={club} onChanged={() => invalidate(getListAllClubsQueryKey(), "/api/clubs")} />
             ))}
           </ul>
         ) : (
@@ -214,14 +227,8 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
   const { t } = useTranslation("admin");
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const upload = useMutation({
-    mutationFn: (file: File) => api.admin.uploadClubCrest(club.id, file),
-    onSuccess: onChanged,
-  });
-  const remove = useMutation({
-    mutationFn: () => api.admin.deleteClubCrest(club.id),
-    onSuccess: onChanged,
-  });
+  const upload = useUploadClubLogo({ mutation: { onSuccess: onChanged } });
+  const remove = useDeleteClubLogo({ mutation: { onSuccess: onChanged } });
 
   const label = club.logo_url ? t("clubs.crestReplaceLabel") : t("clubs.crestUploadLabel");
 
@@ -237,7 +244,7 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
           // Reset first: picking the same file twice in a row fires no change event
           // otherwise, so a retry after a failed upload would do nothing.
           e.target.value = "";
-          if (file) upload.mutate(file);
+          if (file) upload.mutate({ clubId: club.id, data: { file } });
         }}
         data-testid={`admin-club-crest-input-${club.id}`}
       />
@@ -318,7 +325,7 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
           size="sm"
           variant="ghost"
           isDisabled={remove.isPending}
-          onPress={() => remove.mutate()}
+          onPress={() => remove.mutate({ clubId: club.id })}
           data-testid={`admin-club-crest-remove-${club.id}`}
         >
           {t("clubs.crestRemoveButton")}
@@ -335,8 +342,8 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
 
 function Series({ editorOnly }: { editorOnly: boolean }) {
   const { t } = useTranslation("admin");
-  const seriesList = useApi(["admin", "series"], (signal) => api.admin.series(signal));
-  const clubs = useApi(["admin", "clubs"], (signal) => api.admin.clubs(signal));
+  const seriesList = useAsync(useListAllSeries());
+  const clubs = useAsync(useListAllClubs());
   const invalidate = useInvalidate();
 
   const [name, setName] = useState("");
@@ -349,25 +356,16 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
 
   const toggle = toggleSet(setSelectedClubs);
 
-  const create = useMutation({
-    mutationFn: () =>
-      api.admin.createSeries({
-        name: name.trim(),
-        year: year ? Number(year) : null,
-        starts_on: startsOn || null,
-        ends_on: endsOn || null,
-        clubs: [...selectedClubs],
-        // A new series starts as a draft: clubs are still being assigned and the name
-        // still argued over. The row's own Publish button makes it visible (Story VA-8).
-        published: false,
-      }),
-    onSuccess: () => {
-      setName("");
-      setYear("");
-      setStartsOn("");
-      setEndsOn("");
-      setSelectedClubs(new Set());
-      invalidate(["admin", "series"], ["series"], ["clubs"]);
+  const create = useCreateSeries({
+    mutation: {
+      onSuccess: () => {
+        setName("");
+        setYear("");
+        setStartsOn("");
+        setEndsOn("");
+        setSelectedClubs(new Set());
+        invalidate(getListAllSeriesQueryKey(), "/api/series", "/api/clubs");
+      },
     },
   });
 
@@ -390,7 +388,19 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
         className="grid grid-cols-[minmax(0,1fr)] gap-3"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
-          create.mutate();
+          create.mutate({
+            data: {
+              name: name.trim(),
+              year: year ? Number(year) : null,
+              starts_on: startsOn || null,
+              ends_on: endsOn || null,
+              clubs: [...selectedClubs],
+              // A new series starts as a draft: clubs are still being assigned and the
+              // name still argued over. The row's own Publish button makes it visible
+              // (Story VA-8).
+              published: false,
+            },
+          });
         }}
       >
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr]">
@@ -483,7 +493,7 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
                 key={series.id}
                 series={series}
                 clubs={clubs.data ?? []}
-                onChanged={() => invalidate(["admin", "series"], ["series"], ["clubs"])}
+                onChanged={() => invalidate(getListAllSeriesQueryKey(), "/api/series", "/api/clubs")}
               />
             ))}
           </ul>
@@ -510,27 +520,26 @@ function SeriesRow({
   );
   const [description, setDescription] = useState(series.description ?? "");
 
-  const save = useMutation({
-    mutationFn: () => api.admin.setSeriesClubs(series.id, [...selectedClubs]),
-    onSuccess: () => {
-      setOpen(false);
-      onChanged();
+  const save = useSetClubs({
+    mutation: {
+      onSuccess: () => {
+        setOpen(false);
+        onChanged();
+      },
     },
   });
 
-  const saveDescription = useMutation({
-    mutationFn: () =>
-      api.admin.updateSeries(series.id, { description: description.trim() || null }),
-    onSuccess: () => onChanged(),
-  });
+  const saveDescription = useUpdateSeries({ mutation: { onSuccess: () => onChanged() } });
 
   // Story VA-8: a series is planned long before anyone should read about it — clubs are
   // still being assigned, the name still argued over. Publishing changes only who can see
   // it and locks nothing, which is why this is a plain toggle and not a final step.
-  const publish = useMutation({
-    mutationFn: () => api.admin.publishSeries(series.id, !series.published),
-    onSuccess: () => onChanged(),
-  });
+  // Two endpoints, not one with a flag — so the screen picks by what the row currently
+  // is. `isPending` has to consider both, or the button stays live while the other is
+  // in flight.
+  const publish = usePublishSeries({ mutation: { onSuccess: () => onChanged() } });
+  const unpublish = useUnpublishSeries({ mutation: { onSuccess: () => onChanged() } });
+  const publication = series.published ? unpublish : publish;
 
   return (
     <li data-testid={`admin-series-row-${series.id}`} className="px-4 py-3">
@@ -563,8 +572,8 @@ function SeriesRow({
           <Button
             size="sm"
             variant="ghost"
-            isDisabled={publish.isPending}
-            onPress={() => publish.mutate()}
+            isDisabled={publication.isPending}
+            onPress={() => publication.mutate({ seriesId: series.id })}
             data-testid={`admin-series-publish-button-${series.id}`}
           >
             {series.published ? t("series.unpublishButton") : t("series.publishButton")}
@@ -579,9 +588,9 @@ function SeriesRow({
           </Button>
         </div>
       </div>
-      {publish.isError && (
+      {publication.isError && (
         <ErrorMessage
-          text={errorText(publish.error)}
+          text={errorText(publication.error)}
           testId={`admin-series-publish-error-${series.id}`}
         />
       )}
@@ -599,7 +608,7 @@ function SeriesRow({
               <Button
                 size="sm"
                 isDisabled={save.isPending}
-                onPress={() => save.mutate()}
+                onPress={() => save.mutate({ seriesId: series.id, data: { clubs: [...selectedClubs] } })}
                 data-testid={`admin-series-save-clubs-button-${series.id}`}
               >
                 {save.isPending ? t("series.savingButton") : t("series.saveButton", { count: selectedClubs.size })}
@@ -627,7 +636,12 @@ function SeriesRow({
             <Button
               size="sm"
               isDisabled={saveDescription.isPending}
-              onPress={() => saveDescription.mutate()}
+              onPress={() =>
+                saveDescription.mutate({
+                  seriesId: series.id,
+                  data: { description: description.trim() || null },
+                })
+              }
               data-testid={`admin-series-save-description-button-${series.id}`}
             >
               {saveDescription.isPending

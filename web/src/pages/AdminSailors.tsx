@@ -1,11 +1,19 @@
 import { Button } from "@heroui/react";
-import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api, type SailorAdmin, type SeriesAdmin } from "../api/client";
-import { useApi, useInvalidate } from "../api/useApi";
+import {
+  getGetSquadQueryKey,
+  getListSailorsQueryKey,
+  useCreateSailor,
+  useGetSquad,
+  useListAllSeries,
+  useListSailors,
+  useSetSquad,
+} from "../api/generated/sbl";
+import type { SailorAdmin, SeriesAdmin } from "../api/types";
+import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { roleText } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
@@ -36,22 +44,18 @@ function CreateSailor() {
   const [nachname, setzeNachname] = useState("");
   const [email, setzeEmail] = useState("");
 
-  const results = useApi(["admin", "sailors", search], (signal) =>
-    api.admin.sailors(search, signal),
-  );
+  const results = useAsync(useListSailors({ q: search || undefined }));
 
-  const create = useMutation({
-    mutationFn: () =>
-      api.admin.createSailor({
-        first_name: vorname.trim(),
-        last_name: nachname.trim(),
-        email: email.trim(),
-      }),
-    onSuccess: () => {
-      setzeVorname("");
-      setzeNachname("");
-      setzeEmail("");
-      invalidate(["admin", "sailors"]);
+  const create = useCreateSailor({
+    mutation: {
+      onSuccess: () => {
+        setzeVorname("");
+        setzeNachname("");
+        setzeEmail("");
+        // No params: the generated key is `["/api/admin/sailors"]`, which is a prefix of
+        // every search variant, so one call clears them all.
+        invalidate(getListSailorsQueryKey());
+      },
     },
   });
 
@@ -66,7 +70,13 @@ function CreateSailor() {
         className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_1fr_1.4fr_auto] sm:items-end"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
-          create.mutate();
+          create.mutate({
+            data: {
+              first_name: vorname.trim(),
+              last_name: nachname.trim(),
+              email: email.trim(),
+            },
+          });
         }}
       >
         <Field label={t("sailors.firstNameLabel")}>
@@ -174,7 +184,7 @@ function SailorList({ sailors }: { sailors: SailorAdmin[] }) {
 
 function Squad() {
   const { t } = useTranslation("admin");
-  const seriesList = useApi(["admin", "series"], (signal) => api.admin.series(signal));
+  const seriesList = useAsync(useListAllSeries());
   const [seriesId, setSeriesId] = useState<number | null>(null);
 
   const series = seriesList.data?.find((s) => s.id === seriesId) ?? null;
@@ -246,20 +256,24 @@ function SeriesSquad({ series }: { series: SeriesAdmin }) {
 
 function SquadManagement({ teamId, clubName }: { teamId: number; clubName: string }) {
   const { t } = useTranslation("admin");
-  const squad = useApi(["admin", "squad", teamId], (signal) =>
-    api.admin.squad(teamId, signal),
-  );
+  const squad = useAsync(useGetSquad(teamId));
   const invalidate = useInvalidate();
   const [search, setSearch] = useState("");
-  const results = useApi(["admin", "sailors", search], (signal) =>
-    api.admin.sailors(search, signal),
-  );
+  const results = useAsync(useListSailors({ q: search || undefined }));
 
-  const save = useMutation({
-    mutationFn: (members: { sailor_id: number; role: "helm" | "crew" | "substitute" }[]) =>
-      api.admin.setSquad(teamId, members),
-    onSuccess: () => invalidate(["admin", "squad", teamId], ["club"], ["sailor"]),
+  const setSquad = useSetSquad({
+    mutation: {
+      // The squad shows up on every club page and on each member's sailor page, so both
+      // are stale the moment it changes — hence the path prefixes rather than one key.
+      onSuccess: () => invalidate(getGetSquadQueryKey(teamId), "/api/clubs", "/api/sailors"),
+    },
   });
+
+  /** Writes the whole squad. The endpoint takes the complete list, never a delta: an
+   *  "add one" call would have to be ordered against a concurrent "remove one", and the
+   *  screen has the full list in front of it anyway. */
+  const save = (members: { sailor_id: number; role: "helm" | "crew" | "substitute" }[]) =>
+    setSquad.mutate({ teamId, data: { members } });
 
   if (squad.loading) return <Loading text={t("squad.loadingText")} testId="admin-squad-members-loading" />;
   if (squad.error) return <ErrorMessage text={squad.error} testId="admin-squad-members-error" />;
@@ -293,7 +307,7 @@ function SquadManagement({ teamId, clubName }: { teamId: number; clubName: strin
                   className="rounded border border-slate-300 px-2 py-1 text-xs"
                   value={member.role}
                   onChange={(e) =>
-                    save.mutate(
+                    save(
                       currentMembers.map((m) =>
                         m.sailor_id === member.id
                           ? {
@@ -315,9 +329,9 @@ function SquadManagement({ teamId, clubName }: { teamId: number; clubName: strin
                 <Button
                   size="sm"
                   variant="ghost"
-                  isDisabled={save.isPending}
+                  isDisabled={setSquad.isPending}
                   onPress={() =>
-                    save.mutate(currentMembers.filter((m) => m.sailor_id !== member.id))
+                    save(currentMembers.filter((m) => m.sailor_id !== member.id))
                   }
                   data-testid={`admin-squad-member-remove-button-${member.id}`}
                 >
@@ -356,9 +370,9 @@ function SquadManagement({ teamId, clubName }: { teamId: number; clubName: strin
                 <Button
                   size="sm"
                   variant="ghost"
-                  isDisabled={save.isPending}
+                  isDisabled={setSquad.isPending}
                   onPress={() =>
-                    save.mutate([...currentMembers, { sailor_id: person.id, role: "crew" }])
+                    save([...currentMembers, { sailor_id: person.id, role: "crew" }])
                   }
                   data-testid={`admin-squad-add-button-${person.id}`}
                 >
@@ -369,8 +383,8 @@ function SquadManagement({ teamId, clubName }: { teamId: number; clubName: strin
         </ul>
       )}
 
-      {save.isError && (
-        <ErrorMessage text={errorText(save.error)} testId="admin-squad-save-error" />
+      {setSquad.isError && (
+        <ErrorMessage text={errorText(setSquad.error)} testId="admin-squad-save-error" />
       )}
     </div>
   );

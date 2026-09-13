@@ -2,7 +2,21 @@ import { Button, Card } from "@heroui/react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ApiError, api, type Account as AccountData, type SailorMe } from "../api/client";
+import {
+  deleteMyAccount,
+  deleteMyPhoto,
+  emailRequest,
+  emailVerify,
+  getGetSailorPhotoUrl,
+  getMySailor,
+  me,
+  providers,
+  registerAccount,
+  updateMySailor,
+  uploadMyPhoto,
+} from "../api/generated/sbl";
+import { ApiError } from "../api/http";
+import type { Account as AccountData, SailorMe } from "../api/types";
 import { getToken, onTokenChange, setToken } from "../api/session";
 import { ErrorMessage, Loading, PageHeader } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
@@ -33,8 +47,7 @@ export function Account() {
         return;
       }
       setLoading(true);
-      api
-        .me()
+      me()
         .then((data) => {
           setAccount(data);
           setError(null);
@@ -161,8 +174,7 @@ function Profile() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    api.sailors
-      .me()
+    getMySailor()
       .then((data) => {
         if (!active) return;
         setSailor(data);
@@ -198,7 +210,7 @@ function Profile() {
     let active = true;
     let localUrl: string | null = null;
     const token = getToken();
-    fetch(api.sailorPhotoUrl(sailor.id), {
+    fetch(getGetSailorPhotoUrl(sailor.id), {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((response) => (response.ok ? response.blob() : Promise.reject(response)))
@@ -219,7 +231,7 @@ function Profile() {
     setSaving(true);
     setError(null);
     try {
-      const updated = await api.sailors.updateMe({
+      const updated = await updateMySailor({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         birth_date: birthDate || null,
@@ -239,7 +251,7 @@ function Profile() {
     setPhotoBusy(true);
     setError(null);
     try {
-      setSailor(await api.sailors.uploadMyPhoto(file));
+      setSailor(await uploadMyPhoto({ file }));
     } catch (err) {
       setError(errorText(err));
     } finally {
@@ -251,7 +263,7 @@ function Profile() {
     setPhotoBusy(true);
     setError(null);
     try {
-      await api.sailors.deleteMyPhoto();
+      await deleteMyPhoto();
       setSailor((prev) => (prev ? { ...prev, has_photo: false } : prev));
     } catch (err) {
       setError(errorText(err));
@@ -408,7 +420,7 @@ function DeleteAccount() {
     setBusy(true);
     setError(null);
     try {
-      await api.auth.deleteMyAccount();
+      await deleteMyAccount();
       setToken(null);
     } catch (err) {
       setError(errorText(err));
@@ -486,17 +498,19 @@ function SignIn() {
   useEffect(() => {
     // A registration tab is a nice-to-have — sign-in must keep working even if this
     // (or the network) fails, so no error state here, just leave the tab hidden.
-    api.auth
-      .providers()
+    providers()
       .then((p) => setRegistrationOffered(p.allow_registration))
       .catch(() => {});
   }, []);
 
   async function requestCode() {
     if (mode === "register") {
-      await api.auth.register(email.trim().toLowerCase(), displayName.trim());
+      await registerAccount({
+        email: email.trim().toLowerCase(),
+        display_name: displayName.trim(),
+      });
     } else {
-      await api.auth.requestEmailCode(email.trim().toLowerCase());
+      await emailRequest({ email: email.trim().toLowerCase() });
     }
   }
 
@@ -533,7 +547,7 @@ function SignIn() {
     setBusy(true);
     setError(null);
     try {
-      const result = await api.auth.verifyEmailCode(email.trim().toLowerCase(), code.trim());
+      const result = await emailVerify({ email: email.trim().toLowerCase(), code: code.trim() });
       setToken(result.access_token);
     } catch (err) {
       setError(errorText(err));

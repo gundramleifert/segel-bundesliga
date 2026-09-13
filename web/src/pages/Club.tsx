@@ -2,8 +2,9 @@ import { Card } from "@heroui/react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api, type ClubDetail, type ClubMemberSummary, type Member } from "../api/client";
-import { useApi, useAccount } from "../api/useApi";
+import { useGetClub, useListClubMembers } from "../api/generated/sbl";
+import type { ClubDetail, ClubMemberSummary, Member } from "../api/types";
+import { useAsync, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
 import { locationText, roleText, eventDates } from "../lib/format";
 
@@ -14,9 +15,7 @@ export function Club() {
   const { t } = useTranslation("club");
   const { id = "" } = useParams();
   const { account } = useAccount();
-  const { data, error, loading } = useApi(["club", id], (signal) =>
-    api.club(Number(id), signal),
-  );
+  const { data, error, loading } = useAsync(useGetClub(Number(id)));
 
   if (loading) return <Loading text={t("loading")} testId="club-loading" />;
   if (error) return <ErrorMessage text={error} testId="club-error" />;
@@ -125,9 +124,7 @@ export function Club() {
  * simply hides the section instead of showing an error banner. */
 function Members({ clubId }: { clubId: number }) {
   const { t } = useTranslation("club");
-  const { data, error, loading } = useApi(["clubMembers", clubId], (signal) =>
-    api.clubMembers(clubId, signal),
-  );
+  const { data, error, loading } = useAsync(useListClubMembers(clubId));
 
   if (loading || error || !data?.length) return null;
 

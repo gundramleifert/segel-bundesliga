@@ -2,8 +2,8 @@ import { Card } from "@heroui/react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api } from "../api/client";
-import { useApi } from "../api/useApi";
+import { useListEvents, useListSeries } from "../api/generated/sbl";
+import { useAsync } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { dateRange } from "../lib/format";
 
@@ -17,10 +17,10 @@ import { dateRange } from "../lib/format";
  */
 export function SeriesOverview() {
   const { t } = useTranslation("standings");
-  const seriesList = useApi(["series"], (signal) => api.series(signal));
+  const seriesList = useAsync(useListSeries());
   // The event counts come out of the events list, which is loaded anyway — one request
   // instead of one per series. Same approach as the home page's series section.
-  const eventsQuery = useApi(["events"], (signal) => api.events(signal));
+  const eventsQuery = useAsync(useListEvents());
 
   if (seriesList.loading) return <Loading testId="series-loading" />;
   if (seriesList.error) return <ErrorMessage text={seriesList.error} testId="series-error" />;

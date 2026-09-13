@@ -205,14 +205,21 @@ As a **visitor** I want to **see who someone registers for and where they sail**
 
 Two levels that must not be confused:
 
-- **Registration for the season** — a league's squad (`TeamMembership`, ten people).
-- **Lineup for a matchday** — who actually sails (`EventCrew`, four people).
+- **Registration for a series** — a club's squad for that series (`TeamMembership`, ten
+  people), which is a `Team` row with no `event_id`.
+- **Lineup for a matchday** — who actually sails one event (`EventCrew`, four people).
 
 Someone in the squad does not necessarily sail every matchday. The page shows both
 separately.
 
+There is no "season" on this page, and the wording must not invent one. The site has no
+season field — a `Series` carries its own year in its name, and a sailor can be registered
+for several series at once (1. Liga and DSL-Pokal, say). "Registrations for the season"
+named a thing that does not exist and implied a single one; the heading is **Series
+registrations**.
+
 Acceptance criteria:
-- Name, the clubs and leagues of the season with role, the matchdays with role.
+- Name, the club and series of each registration with role, the matchdays with role.
 - A substitute is registered but not placed anywhere — the page says so.
 - No contact details, no birth year.
 - Accessible without login — **unless the sailor has switched their profile off**
@@ -1500,6 +1507,15 @@ Acceptance criteria:
 - Finish line is recorded by tapping in order, not by typing position numbers.
 - Penalty codes (DNF, DSQ, OCS, ZFP, RDG …) are readily accessible.
 - Every entry can be undone and changed later.
+- **A boat with no result yet is a normal state, not an error.** A race begins with six of
+  them and is entered one boat at a time, so "no result recorded" has to be something the
+  screen can *send*, not merely something it starts out with. `code: null` for a boat
+  clears that boat's result — code, position and redress alike — and undoing a tap uses
+  exactly that. Without it, the screen had to report a boat whose position had not been
+  typed yet as `FINISHED` with no position, which the endpoint correctly refused: a red
+  "Enter a finish position for boat 4" appeared under the race on the way to every
+  hand-entered result and cleared itself a keystroke later. The refusal itself stays — it
+  still catches a *code* that needs a position arriving without one.
 - A correction overrides import from foreign systems, never the other way.
 - With simultaneous changes on two devices, the later entry wins; the overridden status is
   not lost but logged and displayed.

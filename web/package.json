@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "gen:api": "../scripts/gen-api-types.sh",
+    "gen:api": "../scripts/gen-api-client.sh",
     "typecheck": "tsc -b --force"
   },
   "dependencies": {
@@ -34,6 +34,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "openapi-typescript": "^7.13.0",
+    "orval": "^8.31.0",
     "oxlint": "^1.79.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",

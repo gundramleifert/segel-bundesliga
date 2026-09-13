@@ -1,0 +1,4 @@
+# orval transpiles `orval.config.ts` with esbuild, which needs the native binary its
+# install script fetches — so this build is allowed to run.
+allowBuilds:
+  esbuild: true

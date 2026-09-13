@@ -1,9 +1,11 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ApiError, api, type Account } from "./client";
+import { useMe } from "./generated/sbl";
+import { ApiError } from "./http";
 import { getToken, onTokenChange } from "./session";
+import type { Account } from "./types";
 
 export interface AsyncState<T> {
   data: T | null;
@@ -11,40 +13,77 @@ export interface AsyncState<T> {
   loading: boolean;
 }
 
-function message(error: unknown, fallback: string): string {
-  if (error instanceof ApiError) return error.message;
-  return fallback;
-}
-
-/** Loads data via TanStack Query.
+/** What a screen needs from a generated query hook, and nothing else.
  *
- * The key doubles as the cache identity: the same query is only fetched once even if two
- * pages need it, and a change in the admin area can invalidate it precisely
- * (`useInvalidate`). Cancelling on navigation is handled by Query itself — that's why
- * the passed-through `signal` is all that's needed here.
+ * The hooks in `generated/sbl.ts` return TanStack's full `UseQueryResult` — twenty fields,
+ * of which the pages here use three. This narrows it to those three and turns the error
+ * into a sentence on the way, which is the part that must not be repeated: an `ApiError`
+ * already carries a translated message from its problem code, and anything else has to
+ * fall back to a generic one. Done per page, one of them would eventually render
+ * "[object Object]".
+ *
+ *     const { data, error, loading } = useAsync(useListClubs());
+ *
+ * Reach past it — `const q = useListClubs()` — whenever a screen genuinely needs more:
+ * `isFetching` for a background refresh, `refetch` for a retry button.
  */
-export function useApi<T>(
-  key: readonly unknown[],
-  load: (signal: AbortSignal) => Promise<T>,
-): AsyncState<T> {
+export function useAsync<Q extends QueryLike>(query: Q): AsyncState<Payload<Q>> {
   const { t } = useTranslation();
-  const query = useQuery({
-    queryKey: key,
-    queryFn: ({ signal }) => load(signal),
-  });
-
   return {
-    data: query.data ?? null,
-    error: query.isError ? message(query.error, t("errors.loadFailed")) : null,
+    data: (query.data ?? null) as Payload<Q> | null,
+    error: query.isError ? errorMessage(query.error, t("errors.loadFailed")) : null,
     loading: query.isPending,
   };
 }
 
-/** Invalidates cached queries — after every mutation. */
+/** The four fields taken off a query result, and nothing more. */
+interface QueryLike {
+  data: unknown;
+  isError: boolean;
+  error: unknown;
+  isPending: boolean;
+}
+
+/** What the query resolves to.
+ *
+ * Inferred *from the argument* rather than declared as `useAsync<T>(q: UseQueryResult<T>)`.
+ * `UseQueryResult` is a union over the pending, error and success states, and in two of
+ * them `data` is `undefined`; asking TypeScript to unify `T` across all three infers it as
+ * `never`, and then every `data.map(...)` on the page stops compiling with an error that
+ * points at the page rather than at this line.
+ */
+type Payload<Q extends QueryLike> = NonNullable<Q["data"]>;
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
+}
+
+/** Invalidates cached queries — after every mutation. Takes two kinds of argument:
+ *
+ * - **A generated key**, `getListAllClubsQueryKey()`, for one query. Never a key written
+ *   out by hand here: one that no longer matches any query invalidates nothing, silently,
+ *   and the screen simply keeps showing what it showed before.
+ * - **A path prefix**, `"/api/clubs"`, for every query underneath it — the list *and*
+ *   `/api/clubs/7` *and* `/api/clubs/7/members`. Generated keys start with the request
+ *   path, so a prefix is the honest way to say "anything about clubs is now stale".
+ *   Naming each affected page instead means the one that gets forgotten shows a stale
+ *   club until the tab is reloaded.
+ */
 export function useInvalidate() {
   const client = useQueryClient();
-  return (...keys: readonly unknown[][]) => {
-    for (const key of keys) void client.invalidateQueries({ queryKey: key });
+  return (...targets: (readonly unknown[] | string)[]) => {
+    for (const target of targets) {
+      if (typeof target === "string") {
+        void client.invalidateQueries({
+          predicate: (query) => {
+            const path = query.queryKey[0];
+            return typeof path === "string" && path.startsWith(target);
+          },
+        });
+      } else {
+        void client.invalidateQueries({ queryKey: target });
+      }
+    }
   };
 }
 
@@ -64,12 +103,16 @@ export interface AccountState {
 /** The own account, including roles. Without a token, it's not even requested. */
 export function useAccount(): AccountState {
   const token = useToken();
-  const query = useQuery({
-    queryKey: ["me", token],
-    queryFn: ({ signal }) => api.me(signal),
-    enabled: Boolean(token),
-    // An expired token isn't an error worth retrying.
-    retry: false,
+  const query = useMe({
+    query: {
+      // The token is part of the key on purpose: signing in as someone else must not be
+      // answered from the previous account's cache entry, and signing out must not leave
+      // the old roles behind. The generated key alone does not know about identity.
+      queryKey: ["/api/auth/me", token],
+      enabled: Boolean(token),
+      // An expired token isn't an error worth retrying.
+      retry: false,
+    },
   });
 
   const account = token ? (query.data ?? null) : null;

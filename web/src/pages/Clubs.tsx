@@ -3,14 +3,15 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { api, type Club } from "../api/client";
-import { useApi } from "../api/useApi";
+import { useListClubs } from "../api/generated/sbl";
+import type { Club } from "../api/types";
+import { useAsync } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 
 /** B-4: As a visitor, I want to find the participating clubs. */
 export function Clubs() {
   const { t } = useTranslation("clubs");
-  const { data, error, loading } = useApi(["clubs"], (signal) => api.clubs(signal));
+  const { data, error, loading } = useAsync(useListClubs());
   const [filter, setFilter] = useState("");
 
   if (loading) return <Loading text={t("loading")} testId="clubs-loading" />;

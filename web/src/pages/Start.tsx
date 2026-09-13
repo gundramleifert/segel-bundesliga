@@ -2,8 +2,8 @@ import { Card } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import { api } from "../api/client";
-import { useApi } from "../api/useApi";
+import { useListEvents, useListSeries } from "../api/generated/sbl";
+import { useAsync } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, MatchdayCard } from "../components/Blocks";
 import { dateRange } from "../lib/format";
 
@@ -14,8 +14,8 @@ import { dateRange } from "../lib/format";
  */
 export function Start() {
   const { t } = useTranslation("start");
-  const eventsQuery = useApi(["events"], (signal) => api.events(signal));
-  const seriesList = useApi(["series"], (signal) => api.series(signal));
+  const eventsQuery = useAsync(useListEvents());
+  const seriesList = useAsync(useListSeries());
 
   if (eventsQuery.loading || seriesList.loading) return <Loading testId="start-loading" />;
   if (eventsQuery.error) return <ErrorMessage text={eventsQuery.error} testId="start-events-error" />;

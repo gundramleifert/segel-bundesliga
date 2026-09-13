@@ -58,10 +58,17 @@ class PublishResult(BaseModel):
 
 
 class RaceResultIn(BaseModel):
-    """A result as recorded by the race officer."""
+    """A result as recorded by the race officer.
+
+    ``code`` may be **null**, meaning "this boat has no result recorded" — which clears
+    code, position and redress alike. That is not an edge case: a race begins with every
+    boat in that state and is entered one at a time, and undoing a tap puts a boat back
+    into it (Story WL-2). Without it the entry screen had to report a boat whose position
+    had not been typed yet as ``FINISHED`` with no position, and be told off for it.
+    """
 
     boat_number: int
-    code: str
+    code: str | None = None
     finish_position: int | None = None
     redress_points: float | None = None
 

@@ -161,7 +161,7 @@ async def providers() -> ProvidersOut:
     status_code=status.HTTP_202_ACCEPTED,
     summary="Create an account",
 )
-async def registrieren(
+async def register_account(
     request: Registration,
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),

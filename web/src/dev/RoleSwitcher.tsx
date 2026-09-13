@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { api, type Account, type TestAccount } from "../api/client";
+import { devLogin, listTestUsers, me as fetchMe } from "../api/generated/sbl";
+import type { Account, TestAccount } from "../api/types";
 import { getToken, onTokenChange, setToken } from "../api/session";
 
 /** Development role switcher.
@@ -20,8 +21,9 @@ export function RoleSwitcher() {
   const [available, setAvailable] = useState(true);
 
   useEffect(() => {
-    api
-      .testAccounts()
+    // The plain generated function, not its hook: this panel is mounted outside the page
+    // tree and has nothing to cache — /api/dev is either there or it is not.
+    listTestUsers()
       .then(setAccounts)
       .catch(() => setAvailable(false));
   }, []);
@@ -32,8 +34,7 @@ export function RoleSwitcher() {
         setMe(null);
         return;
       }
-      api
-        .me()
+      fetchMe()
         .then(setMe)
         .catch(() => {
           // Expired or invalid token: better to sign out than get stuck half-signed-in.
@@ -66,7 +67,8 @@ export function RoleSwitcher() {
   if (!available) return null;
 
   async function signIn(email: string) {
-    setToken(await api.devLogin(email));
+    const { access_token } = await devLogin({ email });
+    setToken(access_token);
     setOpen(false);
   }
 

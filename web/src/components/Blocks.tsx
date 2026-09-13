@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import type { EventSummary } from "../api/client";
+import type { EventSummary } from "../api/types";
 import { locationText, matchdaySubtitle, statusText, eventDates } from "../lib/format";
 import { slugify } from "../lib/testids";
 

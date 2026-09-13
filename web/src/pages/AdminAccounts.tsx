@@ -1,14 +1,18 @@
-import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { api, type Account, type ClubAdmin } from "../api/client";
-import { useApi, useInvalidate } from "../api/useApi";
+import { useListAllClubs, useListUsers, useSetClub, useSetRoles } from "../api/generated/sbl";
+import { Role } from "../api/generated/model/role";
+import type { Account, ClubAdmin } from "../api/types";
+import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Section, Field } from "./adminBuildingBlocks";
 
-const ROLES = ["admin", "editor", "race_officer", "club_manager"] as const;
+// The generated enum, not a list written out here: a role added on the backend appears in
+// this screen by itself, and one removed there stops compiling here instead of rendering a
+// checkbox that every click answers with a 422.
+const ROLES = Object.values(Role);
 
 /** Stories Z-2 and Z-3: search accounts, assign the club they act for, grant/revoke
  *  roles. Admin only — set_roles is admin-exclusive on the backend, and showing this to
@@ -18,10 +22,8 @@ export function AccountsAdmin() {
   const invalidate = useInvalidate();
   const [search, setSearch] = useState("");
 
-  const accounts = useApi(["admin", "accounts", search], (signal) =>
-    api.auth.list({ q: search || undefined }, signal),
-  );
-  const clubs = useApi(["admin", "clubs"], (signal) => api.admin.clubs(signal));
+  const accounts = useAsync(useListUsers({ q: search || undefined }));
+  const clubs = useAsync(useListAllClubs());
 
   return (
     <Section
@@ -54,7 +56,7 @@ export function AccountsAdmin() {
               key={account.id}
               account={account}
               clubs={clubs.data ?? []}
-              onChanged={() => invalidate(["admin", "accounts"])}
+              onChanged={() => invalidate("/api/auth/users")}
             />
           ))}
         </ul>
@@ -74,20 +76,21 @@ function AccountRow({
 }) {
   const { t } = useTranslation("admin");
 
-  const setRolesMutation = useMutation({
-    mutationFn: (roles: string[]) => api.auth.setRoles(account.id, roles),
-    onSuccess: onChanged,
-  });
-  const setClubMutation = useMutation({
-    mutationFn: (clubId: number | null) => api.auth.setClub(account.id, clubId),
-    onSuccess: onChanged,
-  });
+  const setRolesMutation = useSetRoles({ mutation: { onSuccess: onChanged } });
+  const setClubMutation = useSetClub({ mutation: { onSuccess: onChanged } });
 
-  function toggleRole(role: string, checked: boolean) {
-    const nextRoles = checked
-      ? [...account.roles, role]
-      : account.roles.filter((r) => r !== role);
-    setRolesMutation.mutate(nextRoles);
+  function toggleRole(role: Role, checked: boolean) {
+    // `account.roles` is `string[]` — the server may well know roles this build does not,
+    // and dropping them silently on any unrelated edit would quietly demote someone. So
+    // the unknown ones are kept and only the known ones are matched against.
+    const known = new Set<string>(ROLES);
+    const kept = account.roles.filter((r) => !known.has(r)) as Role[];
+    const current = ROLES.filter((r) => account.roles.includes(r));
+    const nextRoles = [
+      ...kept,
+      ...(checked ? [...current, role] : current.filter((r) => r !== role)),
+    ];
+    setRolesMutation.mutate({ userId: account.id, data: { roles: nextRoles } });
   }
 
   const error = setRolesMutation.error ?? setClubMutation.error;
@@ -106,7 +109,12 @@ function AccountRow({
         className={INPUT_CLASS}
         value={account.club_id ?? ""}
         disabled={setClubMutation.isPending}
-        onChange={(e) => setClubMutation.mutate(e.target.value ? Number(e.target.value) : null)}
+        onChange={(e) =>
+          setClubMutation.mutate({
+            userId: account.id,
+            data: { club_id: e.target.value ? Number(e.target.value) : null },
+          })
+        }
         data-testid={`admin-accounts-club-select-${account.id}`}
       >
         <option value="">{t("accounts.clubNone")}</option>

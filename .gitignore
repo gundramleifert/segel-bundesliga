@@ -57,3 +57,6 @@ test-results/
 # reference material, not shipped, not referenced by any source.
 web/sbl.html
 web/sbl.css
+
+# Build input for the generated API client (scripts/gen-api-client.sh writes it).
+web/openapi.json

@@ -503,7 +503,7 @@ async def put_race_result(
     ).all()
     entry_by_boat: dict[int, RaceEntry] = {number: entry for entry, number in entry_rows}
 
-    updates: dict[int, tuple[ResultCode, int | None, float | None]] = {}
+    updates: dict[int, tuple[ResultCode | None, int | None, float | None]] = {}
     for result in request.results:
         entry = entry_by_boat.get(result.boat_number)
         if entry is None:
@@ -513,6 +513,13 @@ async def put_race_result(
                 f"Boat {result.boat_number} has no entry in race {race_id}.",
                 boat_number=result.boat_number,
             )
+        if result.code is None:
+            # "Nothing recorded for this boat" — not a code, and deliberately not an
+            # error. Position and redress go with it: a boat with no result must not keep
+            # the place it used to have (Story WL-2).
+            updates[result.boat_number] = (None, None, None)
+            continue
+
         try:
             code = ResultCode(result.code)
         except ValueError as exc:

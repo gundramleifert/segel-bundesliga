@@ -4,7 +4,7 @@
  * stops working there.
  */
 import i18n from "../i18n";
-import { ApiError } from "../api/client";
+import { ApiError } from "../api/http";
 
 export const INPUT_CLASS =
   "w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none " +

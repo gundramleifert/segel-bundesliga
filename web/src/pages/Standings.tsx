@@ -3,8 +3,8 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 
-import { api } from "../api/client";
-import { useApi } from "../api/useApi";
+import { useGetSeriesTable, useListSeries } from "../api/generated/sbl";
+import { useAsync } from "../api/useApi";
 import {
   ErrorMessage,
   Loading,
@@ -50,14 +50,30 @@ const MARKDOWN_COMPONENTS = {
 export function Standings() {
   const { t } = useTranslation("standings");
   const { id } = useParams();
-  const seriesId = id ? Number(id) : null;
-  const { data, error, loading } = useApi(["series-table", seriesId], (signal) =>
-    seriesId ? api.table(seriesId, signal) : api.firstSeries(signal),
+  const named = id ? Number(id) : null;
+
+  // Without an id in the URL this needs the list first, to learn which series is "the
+  // first of the current year". Two dependent queries rather than one composite call:
+  // the list is the same one the navigation and the overview page already hold, so with
+  // a warm cache the extra request does not happen at all.
+  const list = useAsync(useListSeries());
+  const seriesId = named ?? list.data?.[0]?.id ?? null;
+  const table = useAsync(
+    useGetSeriesTable(seriesId ?? 0, { query: { enabled: seriesId !== null } }),
   );
+
+  // A disabled query stays `isPending` forever, so "still loading" cannot simply be
+  // `table.loading`: with no series this year there is no id to look up, and the page
+  // would spin until someone reloaded it.
+  const loading = (named === null && list.loading) || (seriesId !== null && table.loading);
+  const error = table.error ?? list.error;
+  const data = table.data;
 
   if (loading) return <Loading text={t("loading.text")} testId="standings-loading" />;
   if (error) return <ErrorMessage text={error} testId="standings-error" />;
-  if (!data) return null;
+  // No series at all this year: the list answered, it was empty, so there is nothing to
+  // look up. Previously this threw a 404 from inside the composite call.
+  if (!data) return <ErrorMessage text={t("common:errors.noSeriesThisYear")} testId="standings-error" />;
 
   return (
     <>

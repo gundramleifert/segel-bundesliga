@@ -1,9 +1,9 @@
 {
   "loading": "Seite wird geladen …",
   "registeredFor": "Gemeldet für {{clubs}}",
-  "notRegistered": "Im laufenden Jahrgang nicht gemeldet",
-  "registrations": "Meldungen des Jahrgangs",
-  "noRegistrations": "Für den laufenden Jahrgang liegt keine Meldung vor.",
+  "notRegistered": "Für keine Serie gemeldet",
+  "registrations": "Meldungen für Serien",
+  "noRegistrations": "In diesem Jahr für keine Serie gemeldet.",
   "lineups": "Aufgestellt bei",
   "noLineups": "Bei keiner Veranstaltung aufgestellt. Im Kader zu stehen heißt nicht, jeden Act zu segeln."
 }

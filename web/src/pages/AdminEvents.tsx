@@ -1,19 +1,38 @@
 import { Button } from "@heroui/react";
-import { useMutation } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
-  api,
-  ApiError,
-  type BoatSpec,
-  type ClubAdmin,
-  type EventSummary,
-  type ReadinessReason,
-  type SeriesAdmin,
-} from "../api/client";
-import { useApi, useInvalidate } from "../api/useApi";
+  getListAllEventsQueryKey,
+  getGetReadinessQueryKey,
+  getListParticipantsQueryKey,
+  useCancelEvent,
+  useCreateEvent,
+  useFinishEvent,
+  useGetReadiness,
+  useListAllClubs,
+  useListAllEvents,
+  useListAllSeries,
+  useListPairingCatalog,
+  useListParticipants,
+  usePairingFromCatalog,
+  usePublishEvent,
+  useReopenEvent,
+  useSetParticipants,
+  useStartEvent,
+  useUnpublishEvent,
+  useUpdateEvent,
+} from "../api/generated/sbl";
+import { ApiError } from "../api/http";
+import type {
+  BoatSpec,
+  ClubAdmin,
+  EventSummary,
+  ReadinessReason,
+  SeriesAdmin,
+} from "../api/types";
+import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
 import i18n from "../i18n";
 import { BOAT_COLORS, boatColor, eventDates } from "../lib/format";
@@ -143,15 +162,15 @@ export function EventsAdmin() {
 
 function CreateEvent() {
   const { t } = useTranslation("admin");
-  const seriesList = useApi(["admin", "series"], (signal) => api.admin.series(signal));
-  const clubs = useApi(["admin", "clubs"], (signal) => api.admin.clubs(signal));
+  const seriesList = useAsync(useListAllSeries());
+  const clubs = useAsync(useListAllClubs());
   // Only pre-computed sizes are offered here — picking a free combination of teams,
   // boats and flights would mean drawing a pairing list from scratch later, an
   // optimization run that takes minutes, not seconds (see app/pairing/catalog.py).
   // What can still be varied per event without recomputing is the seed that shuffles
   // starting positions — that's a separate step once the event exists, not part of
   // creating it.
-  const catalog = useApi(["admin", "pairingCatalog"], (signal) => api.admin.pairingCatalog(signal));
+  const catalog = useAsync(useListPairingCatalog());
   const invalidate = useInvalidate();
 
   const [title, setTitle] = useState("");
@@ -176,36 +195,20 @@ function CreateEvent() {
 
   // Separate from event creation on purpose: the event exists either way, so a failed draw
   // (e.g. a standalone event with no teams registered yet) must not read as "creation failed."
-  const drawPairing = useMutation({
-    mutationFn: (eventId: number) => api.admin.pairingFromCatalog(eventId, Number(seed) || 1240),
-    onSuccess: () => invalidate(["admin", "readiness"]),
+  const drawPairing = usePairingFromCatalog({
+    mutation: { onSuccess: () => invalidate("/api/admin/events") },
   });
 
-  const create = useMutation({
-    mutationFn: () =>
-      api.admin.createEvent({
-        title: title.trim(),
-        // Empty means "not agreed with the host yet", which is savable — the date is
-        // needed to *start* the event, not to write it down (Story VA-8).
-        starts_on: startsOn || null,
-        ends_on: endsOn || null,
-        series: seriesId ? Number(seriesId) : null,
-        host_club_id: hostClubId ? Number(hostClubId) : null,
-        team_count: Number(teams),
-        boat_count: Number(boats),
-        flight_count: Number(flights),
-        boats: boatSpecs(boatRows),
-        // Saved as a draft. Publication is a separate, reversible decision in the manage
-        // panel below — it changes only who can see the event (Story VA-8).
-        published: false,
-      }),
-    onSuccess: (event) => {
-      setTitle("");
-      setStartsOn("");
-      setEndsOn("");
-      setBoatRows(Array.from({ length: Number(boats) || 6 }, (_, i) => emptyBoatRow(i + 1)));
-      invalidate(["admin", "series"], ["admin", "events"], ["events"], ["series"]);
-      drawPairing.mutate(event.id);
+  const create = useCreateEvent({
+    mutation: {
+      onSuccess: (event) => {
+        setTitle("");
+        setStartsOn("");
+        setEndsOn("");
+        setBoatRows(Array.from({ length: Number(boats) || 6 }, (_, i) => emptyBoatRow(i + 1)));
+        invalidate("/api/admin/events", "/api/admin/series", "/api/events", "/api/series");
+        drawPairing.mutate({ eventId: event.id, data: { seed: Number(seed) || 1240 } });
+      },
     },
   });
 
@@ -220,7 +223,24 @@ function CreateEvent() {
         className="grid grid-cols-[minmax(0,1fr)] gap-3"
         onSubmit={(e: FormEvent) => {
           e.preventDefault();
-          create.mutate();
+          create.mutate({
+            data: {
+              title: title.trim(),
+              // Empty means "not agreed with the host yet", which is savable — the date
+              // is needed to *start* the event, not to write it down (Story VA-8).
+              starts_on: startsOn || null,
+              ends_on: endsOn || null,
+              series: seriesId ? Number(seriesId) : null,
+              host_club_id: hostClubId ? Number(hostClubId) : null,
+              team_count: Number(teams),
+              boat_count: Number(boats),
+              flight_count: Number(flights),
+              boats: boatSpecs(boatRows),
+              // Saved as a draft. Publication is a separate, reversible decision in the
+              // manage panel below — it changes only who can see the event (Story VA-8).
+              published: false,
+            },
+          });
         }}
       >
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr_1fr]">
@@ -508,9 +528,9 @@ function ManageEvents() {
   const { t } = useTranslation("admin");
   // The admin list, not the public one: a draft has to appear on the very screen whose
   // job is to finish and publish it.
-  const events = useApi(["admin", "events"], (signal) => api.admin.events(signal));
-  const seriesList = useApi(["admin", "series"], (signal) => api.admin.series(signal));
-  const clubs = useApi(["admin", "clubs"], (signal) => api.admin.clubs(signal));
+  const events = useAsync(useListAllEvents());
+  const seriesList = useAsync(useListAllSeries());
+  const clubs = useAsync(useListAllClubs());
 
   return (
     <Section
@@ -567,7 +587,7 @@ function EventRow({
               {event.title}
             </Link>
             <StatusBadge status={event.status} testId={`admin-manage-event-status-${event.id}`} />
-            <PublicationBadge published={event.published} eventId={event.id} />
+            <PublicationBadge published={event.published ?? false} eventId={event.id} />
           </div>
           <p className="text-sm text-slate-600">
             {[
@@ -631,12 +651,8 @@ function EventPanel({
 }) {
   const { t } = useTranslation("admin");
   const invalidate = useInvalidate();
-  const readiness = useApi(["admin", "readiness", event.id], (signal) =>
-    api.admin.eventReadiness(event.id, signal),
-  );
-  const participants = useApi(["admin", "eventClubs", event.id], (signal) =>
-    api.admin.eventClubs(event.id, signal),
-  );
+  const readiness = useAsync(useGetReadiness(event.id));
+  const participants = useAsync(useListParticipants(event.id));
 
   const [startsOn, setStartsOn] = useState(event.starts_on ?? "");
   const [endsOn, setEndsOn] = useState(event.ends_on ?? "");
@@ -661,53 +677,44 @@ function EventPanel({
 
   const refresh = () =>
     invalidate(
-      ["admin", "events"],
-      ["admin", "readiness", event.id],
-      ["admin", "eventClubs", event.id],
-      ["events"],
-      ["event", event.id],
+      getListAllEventsQueryKey(),
+      getGetReadinessQueryKey(event.id),
+      getListParticipantsQueryKey(event.id),
+      // The public side too: this event's own page and the calendar both show what just
+      // changed, and a prefix covers `/api/events` as well as `/api/events/7/pairing`.
+      "/api/events",
     );
 
-  const saveDates = useMutation({
-    mutationFn: () =>
-      api.admin.updateEvent(event.id, {
-        starts_on: startsOn || null,
-        ends_on: endsOn || startsOn || null,
-      }),
-    onSuccess: refresh,
-  });
+  const saveDates = useUpdateEvent({ mutation: { onSuccess: refresh } });
 
-  const saveClubs = useMutation({
-    mutationFn: () => api.admin.setEventClubs(event.id, [...selection]),
-    onSuccess: () => {
-      setSelectedClubs(null);
-      refresh();
+  const saveClubs = useSetParticipants({
+    mutation: {
+      onSuccess: () => {
+        setSelectedClubs(null);
+        refresh();
+      },
     },
   });
 
-  const draw = useMutation({
-    mutationFn: () => api.admin.pairingFromCatalog(event.id, Number(seed) || 1240),
-    onSuccess: refresh,
-  });
+  const draw = usePairingFromCatalog({ mutation: { onSuccess: refresh } });
 
-  const publish = useMutation({
-    mutationFn: (published: boolean) => api.admin.publishEvent(event.id, published),
-    onSuccess: refresh,
-  });
+  // Publishing and withdrawing are two endpoints, so the screen picks by what the event
+  // currently is rather than passing a flag.
+  const publishEvent = usePublishEvent({ mutation: { onSuccess: refresh } });
+  const unpublishEvent = useUnpublishEvent({ mutation: { onSuccess: refresh } });
+  const publish = event.published ? unpublishEvent : publishEvent;
 
-  const start = useMutation({
-    mutationFn: () => api.admin.startEvent(event.id),
-    onSuccess: refresh,
-  });
+  const start = useStartEvent({ mutation: { onSuccess: refresh } });
 
-  // Story VA-10. One mutation for all three transitions: they are the same decision from
-  // the screen's point of view — this day is over, one way or the other — and only one of
-  // them can be pending at a time anyway, so a shared `isPending` is the honest one.
-  const close = useMutation({
-    mutationFn: (transition: "finish" | "cancel" | "reopen") =>
-      api.admin.closeEvent(event.id, transition),
-    onSuccess: refresh,
-  });
+  // Story VA-10. Three endpoints, but one decision from the screen's point of view —
+  // this day is over, one way or the other — and only one of them is ever offered at a
+  // time, so the block reads them as a single `closing`.
+  const finish = useFinishEvent({ mutation: { onSuccess: refresh } });
+  const cancel = useCancelEvent({ mutation: { onSuccess: refresh } });
+  const reopen = useReopenEvent({ mutation: { onSuccess: refresh } });
+  const closing = [finish, cancel, reopen];
+  const closingPending = closing.some((m) => m.isPending);
+  const closingError = closing.find((m) => m.isError)?.error ?? null;
 
   const frozen = readiness.data?.configuration_frozen ?? false;
   const ready = readiness.data?.ready ?? false;
@@ -786,7 +793,12 @@ function EventPanel({
           <Button
             size="sm"
             isDisabled={saveDates.isPending}
-            onPress={() => saveDates.mutate()}
+            onPress={() =>
+              saveDates.mutate({
+                eventId: event.id,
+                data: { starts_on: startsOn || null, ends_on: endsOn || startsOn || null },
+              })
+            }
             data-testid={`admin-manage-event-save-dates-${event.id}`}
           >
             {saveDates.isPending ? t("manage.savingButton") : t("manage.saveDatesButton")}
@@ -834,7 +846,7 @@ function EventPanel({
               <Button
                 size="sm"
                 isDisabled={saveClubs.isPending || frozen}
-                onPress={() => saveClubs.mutate()}
+                onPress={() => saveClubs.mutate({ eventId: event.id, data: { clubs: [...selection] } })}
                 data-testid={`admin-manage-event-save-clubs-${event.id}`}
               >
                 {saveClubs.isPending
@@ -873,7 +885,7 @@ function EventPanel({
           <Button
             size="sm"
             isDisabled={draw.isPending || frozen || !ready}
-            onPress={() => draw.mutate()}
+            onPress={() => draw.mutate({ eventId: event.id, data: { seed: Number(seed) || 1240 } })}
             data-testid={`admin-manage-event-draw-${event.id}`}
           >
             {draw.isPending
@@ -911,7 +923,7 @@ function EventPanel({
             size="sm"
             variant={event.published ? "ghost" : "primary"}
             isDisabled={publish.isPending}
-            onPress={() => publish.mutate(!event.published)}
+            onPress={() => publish.mutate({ eventId: event.id })}
             data-testid={`admin-manage-event-publish-${event.id}`}
           >
             {event.published ? t("manage.unpublishButton") : t("manage.publishButton")}
@@ -919,7 +931,7 @@ function EventPanel({
           <Button
             size="sm"
             isDisabled={start.isPending || !ready || !hasPairing || event.status === "live"}
-            onPress={() => start.mutate()}
+            onPress={() => start.mutate({ eventId: event.id })}
             data-testid={`admin-manage-event-start-${event.id}`}
           >
             {event.status === "live" ? t("manage.startedButton") : t("manage.startButton")}
@@ -976,8 +988,8 @@ function EventPanel({
           {closed ? (
             <Button
               size="sm"
-              isDisabled={close.isPending}
-              onPress={() => close.mutate("reopen")}
+              isDisabled={closingPending}
+              onPress={() => reopen.mutate({ eventId: event.id })}
               data-testid={`admin-manage-event-reopen-${event.id}`}
             >
               {t(
@@ -994,8 +1006,8 @@ function EventPanel({
                   exactly on the day the wind died after flight 13. */}
               <Button
                 size="sm"
-                isDisabled={close.isPending || event.status !== "live"}
-                onPress={() => close.mutate("finish")}
+                isDisabled={closingPending || event.status !== "live"}
+                onPress={() => finish.mutate({ eventId: event.id })}
                 data-testid={`admin-manage-event-finish-${event.id}`}
               >
                 {t("manage.finishButton")}
@@ -1005,8 +1017,8 @@ function EventPanel({
               <Button
                 size="sm"
                 variant="ghost"
-                isDisabled={close.isPending}
-                onPress={() => close.mutate("cancel")}
+                isDisabled={closingPending}
+                onPress={() => cancel.mutate({ eventId: event.id })}
                 data-testid={`admin-manage-event-cancel-${event.id}`}
               >
                 {t("manage.cancelButton")}
@@ -1019,7 +1031,7 @@ function EventPanel({
         )}
         <Message
           testId={`admin-manage-event-closing-message-${event.id}`}
-          error={close.isError ? errorText(close.error) : null}
+          error={closingError ? errorText(closingError) : null}
         />
       </div>
     </div>
