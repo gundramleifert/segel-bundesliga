@@ -17,6 +17,15 @@ use an absolute scratchpad path for log files or the redirect fails with
 `unable to get credential storage lock … Read-only file system` while still succeeding —
 verify with `git ls-remote origin main` rather than believing the error.
 
+**And it reports itself as a pass.** `playwright test | tail -40` exits with *tail's*
+status, so a suite that failed every test on `ECONNREFUSED` came back exit 0, and the tail
+of a failed run looks like a list of test names — no ✓, no summary, nothing that says
+"failed" in the last 40 lines. Two rules follow: never pipe a gate's output into `tail`
+(redirect to a file and grep it), and read the `Running N tests` / `N passed` lines rather
+than the end of the output. The alternative to disabling the sandbox is to start the stack
+and run the suite **inside one call** — `dev-stack.sh --keep &`, wait for its `ready.` line,
+then `playwright test` — which keeps both in the same namespace.
+
 **Evidence** — `scripts/dev-stack.sh` exists so this does not have to be re-derived.
 
-**Seen** — 2026-09-11.
+**Seen** — 2026-09-11, again 2026-09-13 (the exit-0 report).
