@@ -246,7 +246,11 @@ As a **visitor** I want to **reach the legal notice and the privacy policy from 
 so that I **can see who runs this site and what happens to my data**.
 
 Acceptance criteria:
-- The footer links to both, on every page, without login.
+- **The account menu links to both, on every page, without login** (Story A-12). They sat
+  in a footer until that menu existed; a footer that carried two links and one line of
+  copy was a strip of chrome on every page for the sake of something used twice a year,
+  and the menu is on every page too. What § 5 DDG asks for is reachability, not a
+  particular corner of the screen.
 - Routes `/legal-notice` and `/privacy`. Deliberately **no** German aliases: every route
   on this site is English, and German is a language the site is translated into, never a
   second set of identifiers. The page titles and all their text do read German through the
@@ -799,12 +803,29 @@ Acceptance criteria:
     downward pinned to that edge.
   - Escape closes it, a click outside closes it, following a link in it closes it —
     the same three rules as the burger panel, which is why both use `useDisclosure`.
-  - The legal pages **stay in the footer too**. § 5 DDG wants them reachable from every
-    page and the footer is where people look for them; the menu is an addition, not a
-    move.
-- **No hairlines in the frame.** Sidebar, header, breadcrumb row, drawer and footer are
-  separated by the page's own background colour rather than by 1px borders. The borders
-  were drawing boxes around regions that a change of background already distinguishes.
+  - The legal pages are **only** here. The footer that used to carry them is gone: it was
+    a strip of chrome on every page holding two links and one line of copy. § 5 DDG wants
+    them reachable from every page, and this menu is on every page — so the requirement is
+    met by the menu, which is why the footer could go at all.
+- **No hairlines, and no footer.** The frame is white and the page is a tinted panel
+  inside it, so the regions are told apart by colour rather than by 1px borders — and the
+  panel's **top-left corner is rounded**, at the point where the navigation, the
+  breadcrumb and the page meet, so the frame reads as wrapping around the page rather
+  than being ruled off from it. On a phone there is no sidebar, so both top corners are
+  rounded.
+- **The page states its name once, and that place is its `<h1>`.** The breadcrumb's last
+  crumb — where you are — is the heading element, small type and all. A page with no `h1`
+  has no outline for anyone reading it with a screen reader, and moving the name into the
+  breadcrumb must not cost that. `PageHeader` no longer
+  renders an `<h1>` — it was the same words the breadcrumb above it had just said — nor a
+  subtitle, most of which restated what the page then showed ("18 clubs" above a list of
+  eighteen clubs). It keeps `title`, because that is what the breadcrumb reads, and a
+  `right` slot for the one control that belongs to the page as a whole. Facts that live
+  nowhere else — a matchday's venue and dates — stay on the page as their own line, which
+  is what they always were.
+- **Sections do not explain themselves.** `Section`'s `hint` is gone with them: a
+  paragraph above every admin form describing what the form obviously does is read once
+  and skipped forever after.
 - The navigation entries themselves do not change: `admin` and `Our club` still appear only
   for the roles that can use them, because a link that ends in a 403 is worse than no link.
 

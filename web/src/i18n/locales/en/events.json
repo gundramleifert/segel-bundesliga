@@ -1,7 +1,5 @@
 {
   "title": "Events",
   "loading": "Loading events …",
-  "noEvents": "No matchdays are scheduled for this year.",
-  "eventCount_one": "1 event",
-  "eventCount_other": "{{count}} events"
+  "noEvents": "No matchdays are scheduled for this year."
 }

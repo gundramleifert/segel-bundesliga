@@ -91,7 +91,6 @@ export function Account() {
     <>
       <PageHeader
         title={t("title")}
-        subtitle={account.email}
         testId="account-header"
         right={
           <Button variant="outline" onPress={() => setToken(null)} data-testid="account-signout-button">

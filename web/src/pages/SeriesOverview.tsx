@@ -35,7 +35,7 @@ export function SeriesOverview() {
 
   return (
     <>
-      <PageHeader title={t("seriesOverview.title")} subtitle={t("seriesOverview.subtitle")} testId="series-header" />
+      <PageHeader title={t("seriesOverview.title")} testId="series-header" />
 
       {!seriesList.data?.length ? (
         <Empty testId="series-empty">{t("seriesOverview.empty")}</Empty>

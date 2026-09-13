@@ -32,13 +32,13 @@ const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/series", "series-list"],
   [FIRST_SERIES, "standings-table"],
   ["/events", "events-list"],
-  [FINISHED_EVENT, "matchday-header"],
+  [FINISHED_EVENT, "matchday-tabs"],
   ["/clubs", "clubs-list"],
   ["/clubs/1", "club-header"],
   ["/sailors/1", "sailor-registrations-section"],
   ["/help", "help-roles-section"],
-  ["/legal-notice", "legal-notice-header"],
-  ["/privacy", "privacy-header"],
+  ["/legal-notice", "legal-notice-last-updated"],
+  ["/privacy", "privacy-last-updated"],
 ];
 
 test.describe("B-1: as a fan I see the series standings", () => {
@@ -173,17 +173,18 @@ test.describe("Foundations", () => {
     await expect(page).toHaveURL(/\/series\/1$/);
   });
 
-  test("the mandatory legal pages are reachable from the footer of every page", async ({
-    page,
-  }) => {
-    // § 5 DDG requires them to be reachable from anywhere on a German public site, which
-    // is why they live in the footer rather than the main nav.
+  test("the mandatory legal pages are reachable from every page", async ({ page }) => {
+    // § 5 DDG requires them to be reachable from anywhere on a German public site. They
+    // are in the account menu (Story A-12), which is in the frame of every page — that
+    // is what let the footer go.
     await page.goto("/clubs");
-    await page.getByTestId("layout-footer-legal-notice").click();
+    await openUserMenu(page);
+    await page.getByTestId("layout-user-menu-legalNotice").click();
     await expect(page).toHaveURL(/\/legal-notice$/);
 
     await page.goto("/events");
-    await page.getByTestId("layout-footer-privacy").click();
+    await openUserMenu(page);
+    await page.getByTestId("layout-user-menu-privacy").click();
     await expect(page).toHaveURL(/\/privacy$/);
   });
 
@@ -230,12 +231,16 @@ test.describe("A-12: the navigation moves with the viewport", () => {
     await expect(crumb).toBeVisible();
     await expect(crumb.getByRole("listitem")).toHaveCount(1);
 
-    // ...and two once you are inside it, the second being the page's own title.
+    // ...and two once you are inside it, the second being the page's own name. Which is
+    // the whole point of the crumb now: the page states its name here and nowhere else,
+    // so this asserts the name is a real one rather than the section repeated.
     await page.goto("/series");
     await page.getByTestId("series-list").getByRole("link").first().click();
     await expect(crumb.getByRole("listitem")).toHaveCount(2);
-    const heading = await page.getByTestId("standings-header-title").textContent();
-    await expect(crumb).toContainText(heading!.trim());
+    const crumbs = await crumb.getByRole("listitem").allInnerTexts();
+    const page_name = crumbs[1].replace("›", "").trim();
+    expect(page_name.length).toBeGreaterThan(0);
+    expect(page_name).not.toEqual(crumbs[0].trim());
 
     // The first crumb leads back to the section.
     await crumb.getByRole("link").first().click();

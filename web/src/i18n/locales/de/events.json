@@ -1,7 +1,5 @@
 {
   "title": "Veranstaltungen",
   "loading": "Veranstaltungen werden geladen …",
-  "noEvents": "Für dieses Jahr sind noch keine Spieltage angesetzt.",
-  "eventCount_one": "1 Veranstaltung",
-  "eventCount_other": "{{count}} Veranstaltungen"
+  "noEvents": "Für dieses Jahr sind noch keine Spieltage angesetzt."
 }

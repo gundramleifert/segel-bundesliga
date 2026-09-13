@@ -45,7 +45,6 @@ function ClubList({
     <>
       <PageHeader
         title={t("title")}
-        subtitle={t("subtitle", { count: data.length })}
         testId="clubs-header"
       />
 

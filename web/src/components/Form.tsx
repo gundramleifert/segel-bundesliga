@@ -24,20 +24,17 @@ import { slugify } from "../lib/testids";
 
 export function Section({
   title,
-  hint,
   children,
   testId,
 }: {
   title: string;
-  hint?: ReactNode;
   children: ReactNode;
   testId?: string;
 }) {
   const resolvedTestId = testId ?? `admin-section-${slugify(title)}`;
   return (
     <section data-testid={resolvedTestId}>
-      <h2 className="mb-1 text-lg font-semibold">{title}</h2>
-      {hint && <p className="mb-3 text-sm text-slate-600">{hint}</p>}
+      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
       <Card>
         {/* The explicit `minmax(0,1fr)` column matters on a narrow screen: a grid's `auto`
             column is sized by its items' min-content width, so one wide table or form row

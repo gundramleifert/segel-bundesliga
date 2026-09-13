@@ -217,7 +217,6 @@ function CreateEvent() {
   return (
     <Section
       title={t("events.title")}
-      hint={t("events.description")}
       testId="admin-events-section"
     >
       <form
@@ -537,7 +536,6 @@ function ManageEvents() {
   return (
     <Section
       title={t("manage.title")}
-      hint={t("manage.description")}
       testId="admin-manage-events-section"
     >
       {events.loading && <Loading text={t("manage.loadingText")} testId="admin-manage-events-loading" />}

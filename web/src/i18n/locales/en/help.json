@@ -1,6 +1,5 @@
 {
   "title": "Help",
-  "intro": "How the site works — for guests, club managers, race committees and administrators alike.",
   "roles": {
     "title": "Roles and what they can do",
     "intro": "Every request checks a person's roles fresh against the database, so granting or revoking one takes effect immediately, not after the next sign-in. The table below summarizes who can do what.",

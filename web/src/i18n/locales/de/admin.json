@@ -1,7 +1,6 @@
 {
   "clubs": {
     "title": "Vereine",
-    "description": "Zum Anlegen genügt der Name. Öffentlich erscheint ein Verein erst, wenn er einer laufenden Serie zugeordnet ist.",
     "nameLabel": "Name",
     "shortNameLabel": "Kürzel",
     "shortNameHint": "optional",
@@ -22,7 +21,6 @@
   },
   "series": {
     "title": "Serien",
-    "description": "Eine Serie ist eine Menge von Veranstaltungen, die zusammen gewertet werden. Der Name trägt den Jahrgang - 1. Segel-Bundesliga 2026. Wer bei einem Act fehlt, bekommt dort Teilnehmerzahl + 1.",
     "editOnlyAdmin": "Serien legt die Geschäftsstelle an.",
     "nameLabel": "Name",
     "namePlaceholder": "1. Segel-Bundesliga 2027",
@@ -57,7 +55,6 @@
   },
   "events": {
     "title": "Veranstaltungen",
-    "description": "Nötig sind Name und Datum. Gehört die Veranstaltung zu einer Serie, treten voreingestellt deren Vereine an.",
     "nameLabel": "Name",
     "namePlaceholder": "1. Spieltag Kiel",
     "startsLabel": "Beginn",
@@ -110,7 +107,6 @@
   },
   "sailors": {
     "title": "Segler",
-    "description": "Eine Person gehört noch zu keinem Wettbewerb. Das tut erst die Meldung für eine Serie. Die E-Mail-Adresse ist die Verbindung zum Konto - ohne Login kann niemand seinen Haftungsausschluss einreichen.",
     "firstNameLabel": "Vorname",
     "lastNameLabel": "Nachname",
     "emailLabel": "E-Mail",
@@ -128,7 +124,6 @@
   },
   "squad": {
     "title": "Kader",
-    "description": "Der Kader hängt an der Meldung für die Serie, nicht am einzelnen Spieltag. Innerhalb einer Serie tritt eine Person nur einmal an - für mehrere Vereine in verschiedenen Serien zu segeln ist erlaubt.",
     "seriesLabel": "Serie",
     "seriesNone": "- wählen -",
     "seriesLoadingText": "Serien werden geladen ...",
@@ -159,7 +154,6 @@
   },
   "accounts": {
     "title": "Konten",
-    "description": "Weist zu, für welchen Verein ein Konto handelt, und vergibt oder entzieht Rollen. Ein neu registriertes Konto hat zunächst beides nicht.",
     "searchLabel": "Suchen",
     "searchHint": "Name oder E-Mail",
     "searchPlaceholder": "Name oder Adresse eingeben ...",
@@ -175,7 +169,6 @@
   },
   "page": {
     "title": "Verwaltung",
-    "signedInAs": "Angemeldet als {{displayName}} · {{roles}}",
     "tabsLabel": "Bereich"
   },
   "manage": {

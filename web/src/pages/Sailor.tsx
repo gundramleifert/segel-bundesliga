@@ -22,11 +22,6 @@ export function Sailor() {
     <>
       <PageHeader
         title={`${data.first_name} ${data.last_name}`}
-        subtitle={
-          data.teams?.length
-            ? t("registeredFor", { clubs: data.teams.map((t) => t.club.short_name).join(", ") })
-            : t("notRegistered")
-        }
         testId="sailor-header"
       />
 

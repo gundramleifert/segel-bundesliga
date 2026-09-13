@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { Stack } from "../components/Layouts";
@@ -8,6 +8,8 @@ import { useAsync, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { SquadPanel } from "../components/SquadPanel";
 import { TabbedView, type TabDef } from "../components/Tabs";
+import { Field } from "../components/Form";
+import { INPUT_CLASS } from "../lib/admin";
 
 /** Story V-12: a club manager's own screen.
  *
@@ -54,29 +56,74 @@ export function MyClub() {
     <>
       <PageHeader
         title={t("mine.title")}
-        subtitle={t("mine.subtitle", { count: entries.length })}
         testId="my-club-header"
       />
-      {/* One club is the normal case and needs no chooser; several happen, because
-          `club_manager` is granted per club and a person can hold it for more than one. */}
-      {entries.length === 1 ? (
-        <ClubTeams entry={entries[0]} />
-      ) : (
-        <TabbedView
-          tabs={entries.map(
-            (entry): TabDef<string> => ({
-              key: String(entry.club.id),
-              label: entry.club.short_name || entry.club.name,
-              render: () => <ClubTeams entry={entry} />,
-            }),
-          )}
-          param="club"
-          testIdPrefix="my-club"
-          label={t("mine.clubTabsLabel")}
-          className="grid grid-cols-[minmax(0,1fr)]"
-        />
-      )}
+      <ClubChooser entries={entries} />
     </>
+  );
+}
+
+/** Which club, and what you are in it.
+ *
+ * A dropdown rather than tabs: the two things a person needs to see here are the club's
+ * name and their standing in it, and a tab strip can show one of those. Someone can be an
+ * organizer of one club and merely a member of another — the same screen then offers
+ * editing in one and not in the other, and the row has to say which without being asked.
+ *
+ * One club is still the normal case, so with one there is no chooser at all; the line
+ * below states it. `?club=` keeps whichever was picked, so the page can be linked and
+ * survives a reload.
+ */
+function ClubChooser({ entries }: { entries: MyClubOut[] }) {
+  const { t } = useTranslation("club");
+  const [params, setParams] = useSearchParams();
+
+  const requested = params.get("club");
+  const entry = entries.find((e) => String(e.club.id) === requested) ?? entries[0];
+
+  const roleOf = (item: MyClubOut) =>
+    item.may_manage ? t("mine.roleOrganizer") : t("mine.roleMember");
+
+  return (
+    <Stack gap={6}>
+      <div className="flex flex-wrap items-center gap-3">
+        {entries.length > 1 ? (
+          <Field label={t("mine.clubLabel")}>
+            <select
+              className={INPUT_CLASS}
+              value={entry.club.id}
+              onChange={(e) =>
+                setParams((previous) => {
+                  const next = new URLSearchParams(previous);
+                  next.set("club", e.target.value);
+                  // The chosen series belongs to the club that was open; keeping it would
+                  // point at a team of the club just left.
+                  next.delete("team");
+                  return next;
+                })
+              }
+              data-testid="my-club-select"
+            >
+              {entries.map((item) => (
+                <option key={item.club.id} value={item.club.id}>
+                  {item.club.name} — {roleOf(item)}
+                </option>
+              ))}
+            </select>
+          </Field>
+        ) : (
+          <p data-testid={`my-club-role-${entry.club.id}`} className="text-sm text-slate-600">
+            <Link to={`/clubs/${entry.club.id}`} className="underline underline-offset-2">
+              {entry.club.name}
+            </Link>
+            {" · "}
+            {roleOf(entry)}
+          </p>
+        )}
+      </div>
+
+      <ClubTeams entry={entry} />
+    </Stack>
   );
 }
 
@@ -95,14 +142,6 @@ function ClubTeams({ entry }: { entry: MyClubOut }) {
 
   return (
     <Stack gap={6}>
-      <p data-testid={`my-club-role-${entry.club.id}`} className="text-sm text-slate-600">
-        <Link to={`/clubs/${entry.club.id}`} className="underline underline-offset-2">
-          {entry.club.name}
-        </Link>
-        {" · "}
-        {entry.may_manage ? t("mine.roleOrganizer") : t("mine.roleMember")}
-      </p>
-
       <TabbedView
         tabs={teams.map(
           (team): TabDef<string> => ({

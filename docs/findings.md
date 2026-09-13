@@ -144,6 +144,12 @@ Verification row 1: yml `2,0,15,12,1,13` + 1 = csv `3,1,16,13,2,14`. ✓
 
 ## 3. SAP Sailing Analytics — API
 
+> **Where the attribution goes.** Once results from SAP Sailing Analytics are shown, their
+> attribution notice has to appear on the pages that show them. It used to be pencilled in
+> for the site footer; there is no footer any more (Story A-12), so the note belongs with
+> the results themselves — under the standings and the matchday tables — which is also
+> where a reader can tell what it refers to.
+
 Source: sparse clone at `reference/sailing-analytics`, path
 `java/com.sap.sailing.server.gateway/webservices/api/`. The user operates their own
 **instance** (Docker Compose, port 8888).

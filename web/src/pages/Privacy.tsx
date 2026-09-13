@@ -26,7 +26,6 @@ export function Privacy() {
     <>
       <PageHeader
         title={t("privacy.title")}
-        subtitle={t("privacy.subtitle")}
         testId="privacy-header"
       />
       <LegalDraftNotice testId="privacy-draft-notice" />

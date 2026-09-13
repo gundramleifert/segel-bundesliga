@@ -135,22 +135,18 @@ export function Matchday() {
     <>
       <PageHeader
         title={event.title}
-        subtitle={
-          <>
-            {[
-              matchdaySubtitle(event),
-              locationText(event),
-              eventDates(event),
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </>
-        }
         testId="matchday-header"
         right={<StatusBadge status={event.status} testId="matchday-status-badge" />}
       />
 
-      <p className="mb-6 text-sm text-slate-600">
+      {/* Where and when, and how far along. Not a page subtitle — the breadcrumb names
+          the page — but the matchday's own facts, and the only place on this page they
+          appear. */}
+      <p data-testid="matchday-meta" className="mb-6 text-sm text-slate-600">
+        {[matchdaySubtitle(event), locationText(event), eventDates(event)]
+          .filter(Boolean)
+          .join(" · ")}
+        {" · "}
         {t("racesCount", { scored: races_scored, total: races_total })}
         {event.status === "live" && ` · ${t("liveUpdate")}`}
       </p>

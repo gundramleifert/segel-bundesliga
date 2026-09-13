@@ -1,7 +1,5 @@
 {
   "loading": "Loading page…",
-  "registeredFor": "Registered for {{clubs}}",
-  "notRegistered": "Not registered for any series",
   "registrations": "Series registrations",
   "noRegistrations": "Not registered for any series this year.",
   "lineups": "Lineups",

@@ -24,7 +24,6 @@ export function LegalNotice() {
     <>
       <PageHeader
         title={t("legalNotice.title")}
-        subtitle={t("legalNotice.subtitle")}
         testId="legal-notice-header"
       />
       <LegalLastUpdated

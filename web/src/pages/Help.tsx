@@ -78,7 +78,7 @@ export function Help() {
 
   return (
     <>
-      <PageHeader title={t("title")} subtitle={t("intro")} testId="help-header" />
+      <PageHeader title={t("title")} testId="help-header" />
 
       <section data-testid="help-roles-section" className="mb-10">
         <h2 className="mb-1 text-lg font-semibold">{t("roles.title")}</h2>

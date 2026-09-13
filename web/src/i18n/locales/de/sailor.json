@@ -1,7 +1,5 @@
 {
   "loading": "Seite wird geladen …",
-  "registeredFor": "Gemeldet für {{clubs}}",
-  "notRegistered": "Für keine Serie gemeldet",
   "registrations": "Meldungen für Serien",
   "noRegistrations": "In diesem Jahr für keine Serie gemeldet.",
   "lineups": "Aufgestellt bei",

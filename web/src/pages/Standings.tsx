@@ -80,10 +80,6 @@ export function Standings() {
     <>
       <PageHeader
         title={data.series.name}
-        subtitle={t("subtitle", {
-          teamCount: data.rows.length,
-          actCount: data.events.length
-        })}
         testId="standings-header"
       />
 

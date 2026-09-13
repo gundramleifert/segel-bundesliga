@@ -432,7 +432,9 @@ test.describe("V-12: a club manager manages their own squad", () => {
     await expect(page).toHaveURL(/\/club/);
 
     // One club, so no chooser — straight to the series registrations and their squads.
-    await expect(page.getByTestId("my-club-header")).toBeVisible();
+    // The breadcrumb is where a page states its name now (Story A-12), so that is what
+    // says the right screen arrived.
+    await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-members-list")).toBeVisible();
 

@@ -1,7 +1,6 @@
 {
   "clubs": {
     "title": "Clubs",
-    "description": "Only the name is required. A club appears publicly only when assigned to a current series.",
     "nameLabel": "Name",
     "shortNameLabel": "Short name",
     "shortNameHint": "optional",
@@ -22,7 +21,6 @@
   },
   "series": {
     "title": "Series",
-    "description": "A series is a set of events scored together. The name includes the year-\"1st German Sailing Bundesliga 2026\". Anyone missing from an act gets (number of participants + 1).",
     "editOnlyAdmin": "Series are created by the business office only.",
     "nameLabel": "Name",
     "namePlaceholder": "1st German Sailing Bundesliga 2027",
@@ -57,7 +55,6 @@
   },
   "events": {
     "title": "Events",
-    "description": "Name and date are required. If the event belongs to a series, its clubs will participate by default.",
     "nameLabel": "Name",
     "namePlaceholder": "1st Matchday Kiel",
     "startsLabel": "Starts on",
@@ -110,7 +107,6 @@
   },
   "sailors": {
     "title": "Sailors",
-    "description": "A person doesn't belong to any competition yet. That happens through registration for a series. The email address connects to the account-without login, no one can submit their waiver.",
     "firstNameLabel": "First name",
     "lastNameLabel": "Last name",
     "emailLabel": "Email",
@@ -128,7 +124,6 @@
   },
   "squad": {
     "title": "Squad",
-    "description": "The squad is tied to registration for the series, not individual matchdays. Within a series, a person competes only once-competing for multiple clubs in different series is allowed.",
     "seriesLabel": "Series",
     "seriesNone": "- select -",
     "seriesLoadingText": "Loading series ...",
@@ -159,7 +154,6 @@
   },
   "accounts": {
     "title": "Accounts",
-    "description": "Assign the club an account acts for, and grant or revoke roles. A newly registered account starts with neither.",
     "searchLabel": "Search",
     "searchHint": "name or email",
     "searchPlaceholder": "Enter a name or address ...",
@@ -175,7 +169,6 @@
   },
   "page": {
     "title": "Administration",
-    "signedInAs": "Signed in as {{displayName}} · {{roles}}",
     "tabsLabel": "Area"
   },
   "manage": {

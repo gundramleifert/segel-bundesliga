@@ -1,6 +1,5 @@
 {
   "title": "Hilfe",
-  "intro": "So funktioniert die Seite — für Gäste ebenso wie für Vereinsverwaltung, Wettfahrtleitung und Geschäftsstelle.",
   "roles": {
     "title": "Rollen und ihre Rechte",
     "intro": "Jede Anfrage prüft die Rollen einer Person frisch gegen die Datenbank. Wird eine Rolle vergeben oder entzogen, wirkt das sofort — nicht erst bei der nächsten Anmeldung. Die folgende Tabelle zeigt, wer was darf.",

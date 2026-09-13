@@ -2,7 +2,6 @@
   "loading": {
     "text": "Series standings loading…"
   },
-  "subtitle": "{{teamCount}} teams · {{actCount}} acts",
   "scoringNote": "Low-point scoring: fewer points is better. The series standings add up the ranks from each act. Missing an act scores field size + 1 for it.",
   "eventsSection": {
     "heading": "Events",
@@ -22,7 +21,6 @@
   },
   "seriesOverview": {
     "title": "Series",
-    "subtitle": "The association runs several series at once. Pick one to see its table.",
     "empty": "No series has been set up for this year yet.",
     "eventCount_one": "1 event",
     "eventCount_other": "{{count}} events"

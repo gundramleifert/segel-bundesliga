@@ -1,6 +1,5 @@
 {
   "title": "Vereine",
-  "subtitle": "{{count}} Mannschaften in der Liga",
   "loading": "Vereine werden geladen …",
   "empty": "Es sind noch keine Vereine hinterlegt.",
   "searchPlaceholder": "Suche nach Name, Kürzel oder Ort …",

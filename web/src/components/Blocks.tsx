@@ -118,14 +118,23 @@ export function TableFrame({
   );
 }
 
+/** A page's identity, which is now entirely the breadcrumb (Story A-12).
+ *
+ * There is no `<h1>` here any more and no subtitle. The title was the same words the
+ * breadcrumb above it already said, twice on every page, and the subtitles were mostly a
+ * restatement of what the page then showed — "18 clubs" above a list of eighteen clubs.
+ * What a page still needs is somewhere to put the one control that belongs to the page as
+ * a whole (a status badge, a sign-out button); that is `right`.
+ *
+ * `title` stays in the API, and is still required, because it is what the breadcrumb
+ * renders. Removing it would mean every page declaring its name a second way.
+ */
 export function PageHeader({
   title,
-  subtitle,
   right,
   testId,
 }: {
   title: string;
-  subtitle?: ReactNode;
   right?: ReactNode;
   testId?: string;
 }) {
@@ -140,20 +149,17 @@ export function PageHeader({
     return () => setPageTitle(null);
   }, [title]);
 
+  // Nothing to draw on most pages — the component is mounted for the effect above, which
+  // is what puts this page's name in the breadcrumb. So do not leave an empty element
+  // behind: a `data-testid` on a box with no content is exactly the sort of thing a test
+  // ends up waiting for, and it would say nothing about whether the page has its data.
+  if (!right) return null;
+
   return (
     <header
       data-testid={resolvedTestId}
-      className="mb-6 flex flex-wrap items-end justify-between gap-4"
+      className="mb-4 flex flex-wrap items-center justify-end gap-3"
     >
-      <div>
-        <h1
-          data-testid={`${resolvedTestId}-title`}
-          className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl"
-        >
-          {title}
-        </h1>
-        {subtitle && <p className="mt-1 text-slate-600">{subtitle}</p>}
-      </div>
       {right}
     </header>
   );

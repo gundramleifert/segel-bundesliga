@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 
 import { useAccount } from "../api/useApi";
 import { WIDE_LAYOUT, useMediaQuery } from "../lib/useMediaQuery";
@@ -48,7 +48,10 @@ export function Layout() {
   ];
 
   return (
-    <div className="min-h-dvh bg-page text-ink lg:flex">
+    // The frame is white and the page is the tinted panel inside it, not the other way
+    // round. That is what lets the panel's corner be visible at all: a rounded grey
+    // corner against grey chrome draws nothing.
+    <div className="min-h-dvh bg-white text-ink lg:flex">
       <a
         href="#content"
         data-testid="layout-skip-link"
@@ -161,10 +164,22 @@ export function Layout() {
           </>
         )}
 
+        {/* The panel. Its top-left corner is rounded — the point where the navigation
+            on the left, the breadcrumb above and the page itself meet — so the frame
+            reads as wrapping around the page rather than being ruled off from it. On a
+            phone there is no sidebar, so both top corners are rounded instead. */}
         <main
           id="content"
           data-testid="layout-main"
-          className="w-full min-w-0 flex-1 px-4 py-6 lg:px-6 lg:py-8"
+          className={`w-full min-w-0 flex-1 bg-page px-4 py-6 lg:px-6 lg:py-8 ${
+            wide ? "rounded-tl-2xl" : "rounded-t-2xl"
+          } ${
+            // Clearance for the dev role switcher, which is `fixed bottom-4 right-4 z-50`
+            // and otherwise sits on top of whatever is at the foot of the page. The same
+            // `import.meta.env.DEV` as the switcher itself, so the two cannot disagree —
+            // they did once, and it covered the legal links.
+            import.meta.env.DEV ? "pb-28" : ""
+          }`}
         >
           <div className="mx-auto w-full max-w-6xl">
             <Outlet />
@@ -180,49 +195,6 @@ export function Layout() {
             condition now. */}
         {import.meta.env.DEV && <RoleSwitcher />}
 
-        {/* The extra bottom padding is clearance for the dev role switcher, which is
-            `fixed bottom-4 right-4 z-50` and otherwise sits directly on top of this footer —
-            it intercepted the clicks on the legal-notice and privacy links, which § 5 DDG
-            requires to be reachable from every page.
-
-            Padding rather than a lower z-index on the switcher: the switcher has to stay
-            above page content to be usable at all, so the fix is to stop putting content
-            underneath it. The same `import.meta.env.DEV` as the switcher above, so the two
-            cannot drift apart again. */}
-        <footer
-          data-testid="layout-footer"
-          className={`bg-white ${import.meta.env.DEV ? "pb-24" : ""}`}
-        >
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-slate-500">
-            {/* Once results from SAP Sailing Analytics are shown, the SAP attribution
-                notice must go here — see docs/findings.md, section 3. */}
-            <span>{t("footer")}</span>
-            {/* Legal notice and privacy policy are mandatory for a German public site and
-                must be reachable from every page — hence here, not in the main nav. */}
-            <nav aria-label={t("footerLegal.label")} data-testid="layout-footer-legal">
-              <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <li>
-                  <Link
-                    to="/legal-notice"
-                    data-testid="layout-footer-legal-notice"
-                    className="hover:text-slate-900 hover:underline"
-                  >
-                    {t("footerLegal.legalNotice")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/privacy"
-                    data-testid="layout-footer-privacy"
-                    className="hover:text-slate-900 hover:underline"
-                  >
-                    {t("footerLegal.privacy")}
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          </div>
-        </footer>
       </div>
     </div>
   );

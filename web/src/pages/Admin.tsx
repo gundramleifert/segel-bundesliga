@@ -81,7 +81,6 @@ export function Admin() {
     <>
       <PageHeader
         title={t("page.title")}
-        subtitle={t("page.signedInAs", { displayName: account.display_name, roles: account.roles.join(", ") })}
         testId="admin-header"
       />
       {/* `grid-cols-[minmax(0,1fr)]`, not a bare `grid`: an `auto` column is sized by its
@@ -129,7 +128,6 @@ function Clubs() {
   return (
     <Section
       title={t("clubs.title")}
-      hint={t("clubs.description")}
       testId="admin-clubs-section"
     >
       <form
@@ -382,7 +380,6 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
   return (
     <Section
       title={t("series.title")}
-      hint={t("series.description")}
       testId="admin-series-section"
     >
       <form

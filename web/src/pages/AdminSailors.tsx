@@ -59,7 +59,6 @@ function CreateSailor() {
   return (
     <Section
       title={t("sailors.title")}
-      hint={t("sailors.description")}
       testId="admin-sailors-section"
     >
       <form
@@ -189,7 +188,6 @@ function Squad() {
   return (
     <Section
       title={t("squad.title")}
-      hint={t("squad.description")}
       testId="admin-squad-section"
     >
       {seriesList.loading && <Loading text={t("squad.seriesLoadingText")} testId="admin-squad-series-loading" />}

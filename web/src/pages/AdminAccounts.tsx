@@ -28,7 +28,6 @@ export function AccountsAdmin() {
   return (
     <Section
       title={t("accounts.title")}
-      hint={t("accounts.description")}
       testId="admin-accounts-section"
     >
       <Field label={t("accounts.searchLabel")} hint={t("accounts.searchHint")}>

@@ -51,14 +51,18 @@ export function Breadcrumb() {
                 {crumb.label}
               </Link>
             ) : (
-              // The last crumb is where you are, so it is not a link to itself.
-              <span
+              // The last crumb is where you are — so it is not a link to itself, and it
+              // is the page's `<h1>`. Since Story A-12 removed the heading block, this is
+              // the only place the page states its name, and a page with no `h1` has no
+              // document outline for anyone reading it with a screen reader. Small type,
+              // real heading.
+              <h1
                 aria-current="page"
-                className="truncate font-medium text-slate-700"
+                className="truncate text-sm font-medium text-slate-700"
                 title={crumb.label}
               >
                 {crumb.label}
-              </span>
+              </h1>
             )}
           </li>
         ))}

@@ -22,7 +22,6 @@ export function Events() {
         <>
           <PageHeader
             title={t("title")}
-            subtitle={t("eventCount", { count: data.length })}
             testId="events-header"
           />
 
