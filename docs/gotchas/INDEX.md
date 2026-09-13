@@ -8,6 +8,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A card grid's 1fr track is floored at min-content, so the overflow only appears once test data is long enough](a-card-grid-s-1fr-track-is-floored-at-min-content-so-the-overflow-only-appears-o.md)
 - [`require_ready` answers with a *different* code depending on how many things are missing](a-readiness-refusal-carries-two-different-codes.md)
 - [A sandbox-denied file shows up as a 0-byte `/dev/null`, so `ls` and `stat` describe something that is not there](a-sandbox-denied-file-looks-like-an-empty-file.md)
+- [A wrapper cannot carry the surface of a table wider than its container](a-wrapper-cannot-carry-the-surface-of-a-table-wider-than-its-container.md)
 - [A "page doesn't scroll sideways" assertion passes while the page is unusably zoomed out](an-overflow-assertion-cannot-see-its-own-symptom.md)
 - [A Tailwind `grid gap-*` column is sized by its widest item's min-content — and that can zoom the whole page out](grid-auto-columns-can-zoom-the-whole-page-out.md)
 - [HeroUI owns `--color-surface`; naming our own token that overrode it made every card invisible](heroui-owns-the-surface-color-token.md)

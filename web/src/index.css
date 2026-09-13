@@ -76,6 +76,33 @@ html {
    them. `:where()` keeps the specificity at the class alone, so a cell that genuinely
    needs different padding can still say so with a utility and win. */
 @layer components {
+  /* The table carries its own surface — white, rounded, hairline outline — rather than a
+     wrapper carrying it. A wrapper cannot: it is a block sized by the scrolling panel,
+     so with a table wider than the panel the white simply stops partway across and the
+     rest of the table sits on the page's grey.
+     Nor can the wrapper be content-sized to fix that. `width: fit-content` is clamped to
+     the available width and changes nothing; `max-content` does widen it, but it also
+     propagates the table's *min-content* width up the page, and where a table holds
+     sentences rather than numbers that is wide enough for mobile Chromium to shrink the
+     whole page to fit (Story A-10's failure, from the opposite direction). A table is
+     exactly as wide as its own content, so putting the surface on it has neither problem.
+     `box-shadow` rather than `border`, because `border-collapse: collapse` hands a
+     table's border over to its cells. */
+  .data-table {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 0 0 1px var(--color-slate-200, #e2e8f0);
+  }
+
+  /* The header band is tinted, so it has to follow the table's corners or it squares
+     them off again. */
+  .data-table :where(thead tr:first-child th:first-child) {
+    border-start-start-radius: 0.75rem;
+  }
+  .data-table :where(thead tr:first-child th:last-child) {
+    border-start-end-radius: 0.75rem;
+  }
+
   .data-table :where(th, td) {
     padding-inline: 0.5rem;
     padding-block: 0.3125rem;
