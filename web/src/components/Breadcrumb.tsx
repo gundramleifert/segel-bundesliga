@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Tip } from "./Tip";
@@ -39,7 +40,15 @@ export function Breadcrumb() {
   if (!crumbs.length) crumbs.push({ label: t("nav.start"), to: "/" });
 
   return (
-    <nav aria-label={t("breadcrumb.label")} data-testid="layout-breadcrumb">
+    // `min-w-0`, or the `truncate` below can never engage: a flex child's minimum is its
+    // content width, so without this the breadcrumb keeps its natural width and a long
+    // page name pushes the *header* — which is outside the scrolling panel — past the
+    // viewport, which is the zoom-out of Story A-10.
+    <nav
+      aria-label={t("breadcrumb.label")}
+      data-testid="layout-breadcrumb"
+      className="min-w-0"
+    >
       <ol className="flex min-w-0 items-center gap-1.5 text-sm text-slate-500">
         {crumbs.map((crumb, index) => (
           <li key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-1.5">
@@ -58,18 +67,46 @@ export function Breadcrumb() {
               // the only place the page states its name, and a page with no `h1` has no
               // document outline for anyone reading it with a screen reader. Small type,
               // real heading.
-              <Tip text={crumb.label}>
-                <h1
-                  aria-current="page"
-                  className="truncate text-sm font-medium text-slate-700"
-                >
-                  {crumb.label}
-                </h1>
-              </Tip>
+              <PageName label={crumb.label} />
             )}
           </li>
         ))}
       </ol>
     </nav>
+  );
+}
+
+/** The page's name, with a tooltip **only when it does not fit**.
+ *
+ * A tooltip that repeats text the reader can already see is noise, and most page names
+ * fit. Whether this one does is measured rather than guessed at from a character count:
+ * it depends on the font, the language and the width of the window.
+ */
+function PageName({ label }: { label: string }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  const [clipped, setClipped] = useState(false);
+
+  // Re-measured when the window changes, because that is the other way a name that fitted
+  // stops fitting.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = heading.current;
+      setClipped(!!el && el.scrollWidth > el.clientWidth + 1);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [label]);
+
+  return (
+    <Tip text={clipped ? label : null}>
+      <h1
+        ref={heading}
+        aria-current="page"
+        className="truncate text-sm font-medium text-slate-700"
+      >
+        {label}
+      </h1>
+    </Tip>
   );
 }

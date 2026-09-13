@@ -113,6 +113,11 @@ most need a tooltip here are a `truncate`d name and a cell inside the horizontal
 scrolling panel. Empty `text` renders the child alone, so a caller may pass a value that is
 sometimes absent.
 
+The bubble opens above its trigger, or **below it when there is no room above** — measured
+after mount in a layout effect, because the bubble's height depends on how its text wraps
+and a fixed threshold is wrong for exactly the long strings that need a tooltip. It ran off
+the top of the window on the breadcrumb before that.
+
 In an iterator, the `key` belongs on the `Tip`, not on the child — it is the outer element
 now.
 
