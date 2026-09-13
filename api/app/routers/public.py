@@ -18,8 +18,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.crests import crest_path
 from app.auth import current_user
+from app.crests import crest_path
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import (

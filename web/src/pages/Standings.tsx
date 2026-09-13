@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -5,7 +6,15 @@ import { Tip } from "../components/Tip";
 
 import { useGetSeriesTable, useListSeries } from "../api/generated/sbl";
 import { useAsync } from "../api/useApi";
-import { ErrorMessage, Loading, Empty, PageHeader, TableFrame } from "../components/Blocks";
+import {
+  ErrorMessage,
+  Loading,
+  Empty,
+  MatchdayCard,
+  PageHeader,
+  TableFrame,
+} from "../components/Blocks";
+import { CardGrid, Stack } from "../components/Layouts";
 import { formatPoints } from "../lib/format";
 
 /** B-1: As a fan, I want to see where my team stands in the series.
@@ -48,12 +57,16 @@ export function Standings() {
         testId="standings-header"
       />
 
-      {/* The table is the page. The matchdays used to sit above it as a grid of cards and
-          the series' free-text description above that, so the ranking — the one thing
-          someone opens a league table for — started below the fold. The acts are not
-          lost: every act column heading links to its matchday, which is where a reader
-          looking at that column's numbers wants to go anyway. The description still has
-          its home on the club and event pages; a standings page is not a place to read. */}
+      {/* Two blocks, in the order they are wanted: the ranking, then the matchdays it is
+          made of. The matchdays used to sit *above* the table, together with the series'
+          free-text description, so the ranking — the one thing someone opens a league
+          table for — started below the fold. Below it they are the natural next step, and
+          the reader has already seen the numbers each one contributed. The description
+          keeps its home on the club and event pages; a standings page is not a place to
+          read. */}
+      <Stack gap={8}>
+      <section data-testid="standings-results-section">
+      <SectionHeading>{t("resultsHeading")}</SectionHeading>
       {/* A series without a sailed event has no table — saying so plainly is clearer
           than showing an empty grid. */}
       {!data.rows.length ? (
@@ -63,7 +76,6 @@ export function Standings() {
             : t("empty.noEvents")}
         </Empty>
       ) : (
-      <>
       <TableFrame testId="standings-table-frame">
         <table
           data-testid="standings-table"
@@ -169,8 +181,32 @@ export function Standings() {
           </tbody>
         </table>
       </TableFrame>
-      </>
       )}
+      </section>
+
+      {/* The events of the series, in the order they are sailed. An act column in the
+          table above already links to its matchday, but that link is a number in a grid —
+          it answers "how did we do there", not "where and when is the next one". */}
+      {data.events.length > 0 && (
+        <section data-testid="standings-events-section">
+          <SectionHeading>{t("eventsHeading")}</SectionHeading>
+          <CardGrid testId="standings-events-list">
+            {data.events.map((event) => (
+              <li key={event.id}>
+                <MatchdayCard event={event} />
+              </li>
+            ))}
+          </CardGrid>
+        </section>
+      )}
+      </Stack>
     </>
   );
+}
+
+/** The name of a block within a page. The page's own name is the breadcrumb's (Story
+ *  A-12), so these are deliberately quieter than an `h1` would be — but they are real
+ *  headings, and a page of two unlabelled blocks has no outline at all. */
+function SectionHeading({ children }: { children: ReactNode }) {
+  return <h2 className="mb-3 text-base font-semibold text-slate-900">{children}</h2>;
 }

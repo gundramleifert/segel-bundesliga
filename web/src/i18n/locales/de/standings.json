@@ -7,6 +7,8 @@
     "noEvents": "Für diese Serie ist noch keine Veranstaltung angesetzt."
   },
   "caption": "Serientabelle {{seriesName}}",
+  "resultsHeading": "Ergebnisse",
+  "eventsHeading": "Veranstaltungen",
   "table": {
     "rank": "Platz",
     "club": "Verein",

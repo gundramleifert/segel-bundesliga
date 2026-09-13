@@ -34,13 +34,17 @@ Acceptance criteria:
 - All 18 teams, places 1–18, fewer points rank higher.
 - For each matchday, the position achieved there is visible.
 - A not yet sailed matchday does not count.
-- **The table is the page.** The matchdays used to sit above it as a grid of cards, with
+- **The ranking comes first.** The matchdays used to sit above it as a grid of cards, with
   the series' free-text description above that and a paragraph explaining low-point
   scoring below — so the ranking, which is the one thing a league table is opened for,
-  started below the fold. All three are gone.
-- **Each act column heading links to its matchday.** That is where the acts went, and it
-  is where a reader looking at a column of positions wants to go anyway. The heading is
-  narrow ("Act 2"), so the event's full name rides along as the link's `title`.
+  started below the fold. The description and the paragraph are gone for good.
+- **Two named blocks: "Results", then "Events".** The matchday cards are back, but below
+  the table. There they are the step a reader takes *after* the numbers rather than an
+  obstacle in front of them, and the page states what each block is — the page's own name
+  is the breadcrumb's (Story A-12), so these are `h2`s, not a second title.
+- **Each act column heading also links to its matchday.** A reader looking at one column of
+  positions wants that matchday, and the cards below answer a different question ("where
+  and when"). The heading is narrow ("Act 2"), so the event's full name is its tooltip.
 - The scoring rule is not explained on the page. A "did not sail" cell says so in its own
   tooltip, which is where the question is actually asked; a permanent paragraph restating
   it was read once and skipped thereafter.
@@ -81,8 +85,16 @@ Acceptance criteria:
 - In each race, each boat is crewed exactly once.
 - In each flight, each team sails exactly once.
 - Accessible before the matchday begins.
+- Every cell is centred under its heading. The grid is read by scanning a column for one's
+  own abbreviation; left-aligned tokens in columns far wider than they are made that a
+  ragged line to follow.
+- A club is named by its abbreviation, carries its full name as a tooltip, and links to its
+  page — the same treatment the standings tables give it. The abbreviation is what keeps the
+  column narrow enough for six boats to fit side by side, and "which club is BYC (BE)?" was a
+  question this table previously refused to answer.
 
-Tests: `api/tests/stories/test_visitor.py::TestPairingList`
+Tests: `api/tests/stories/test_visitor.py::TestPairingList`,
+`e2e/visitor.spec.ts::B-3: as a sailor I see when I am on which boat`
 
 ### B-5 ○ Follow live updates
 As a **spectator** I want to **see current results on the page**,

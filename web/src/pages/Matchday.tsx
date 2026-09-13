@@ -408,11 +408,16 @@ function PairingList({ eventId }: { eventId: number }) {
   return (
     <>
       <TableFrame testId="matchday-pairing-table-frame">
-        <table data-testid="matchday-pairing-table" className="data-table w-full min-w-[44rem] border-collapse text-sm">
+        {/* Centred throughout, heading over cell. Every column holds one short token — a
+            race number, a flight number, a club abbreviation — so left alignment left each
+            one pinned to the edge of a column much wider than its content, and which
+            abbreviation belonged under which boat was a matter of tracing a ragged line.
+            Centring makes the grid read as a grid. */}
+        <table data-testid="matchday-pairing-table" className="data-table w-full min-w-[44rem] border-collapse text-center text-sm">
           <caption className="sr-only">{t("pairingCaption")}</caption>
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th scope="col" className="w-16 font-medium text-slate-600">
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th scope="col" className="w-24 font-medium text-slate-600">
                 {t("numberHeader")}
               </th>
               <th scope="col" className="w-20 font-medium text-slate-600">
@@ -422,7 +427,7 @@ function PairingList({ eventId }: { eventId: number }) {
                 const color = boatColor(boat.color);
                 return (
                   <th key={boat.number} scope="col" className="font-medium">
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <span
                         aria-hidden
                         className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
@@ -436,21 +441,62 @@ function PairingList({ eventId }: { eventId: number }) {
             </tr>
           </thead>
           <tbody>
-            {data.races.map((race) => (
+            {data.races.map((race, index) => {
+              // A flight is the unit this list is actually read in — every team sails
+              // exactly once in it, and a crew looks up "our flight", not "our race". 48
+              // evenly-ruled rows hid that structure completely. Each flight is now a
+              // banded block: a rule where one starts, and every second one tinted, so
+              // the three races that belong together are one shape on the page.
+              const startsFlight = data.races[index - 1]?.flight !== race.flight;
+              const banded = race.flight % 2 === 0;
+              return (
               <tr
                 key={race.sequence}
                 data-testid={`matchday-pairing-row-${race.sequence}`}
-                className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                className={`last:border-0 ${
+                  startsFlight && index > 0
+                    ? "border-t-2 border-t-slate-300"
+                    : "border-t border-t-slate-100"
+                } ${banded ? "bg-slate-50/70 hover:bg-slate-100" : "hover:bg-slate-50"}`}
               >
                 <td className="font-semibold tabular-nums">{race.sequence}</td>
-                <td className="tabular-nums text-slate-500">{race.flight}</td>
-                {data.boats.map((boat) => (
-                  <td key={boat.number}>
-                    {race.teams_by_boat[String(boat.number)]?.club.short_name ?? "–"}
-                  </td>
-                ))}
+                {/* Named once per block rather than on all three of its rows: repeating
+                    the same number down a group is what made the grouping invisible in
+                    the first place. */}
+                <td className="font-semibold tabular-nums text-slate-600">
+                  {startsFlight ? race.flight : ""}
+                </td>
+                {data.boats.map((boat) => {
+                  const team = race.teams_by_boat[String(boat.number)];
+                  // Same treatment as every other club in the site: the abbreviation is
+                  // what fits, the full name is the tooltip, and the name is the way to
+                  // that club — a pairing list is read by someone looking for one club's
+                  // races, and "which club is BYC (BE)?" was a question the table refused
+                  // to answer.
+                  if (!team) {
+                    return (
+                      <td key={boat.number} className="text-slate-400">
+                        –
+                      </td>
+                    );
+                  }
+                  return (
+                    <td key={boat.number}>
+                      <Tip text={team.club.name}>
+                        <Link
+                          to={`/clubs/${team.club.id}`}
+                          data-testid={`matchday-pairing-club-link-${race.sequence}-${boat.number}`}
+                          className="font-medium underline-offset-2 hover:underline"
+                        >
+                          {team.club.short_name}
+                        </Link>
+                      </Tip>
+                    </td>
+                  );
+                })}
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </TableFrame>

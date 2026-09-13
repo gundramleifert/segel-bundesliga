@@ -7,6 +7,8 @@
     "noEvents": "No events scheduled for this series yet."
   },
   "caption": "Series standings {{seriesName}}",
+  "resultsHeading": "Results",
+  "eventsHeading": "Events",
   "table": {
     "rank": "Rank",
     "club": "Club",

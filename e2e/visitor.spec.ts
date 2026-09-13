@@ -62,18 +62,24 @@ test.describe("B-1: as a fan I see the series standings", () => {
     expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
   });
 
-  test("the table is the page, and each act column leads to its matchday", async ({
-    page,
-  }) => {
+  test("the ranking comes first, the events below it", async ({ page }) => {
+    await page.goto(FIRST_SERIES);
+    await expect(page.getByTestId("standings-table")).toBeVisible();
+    await expect(page.getByTestId("standings-events-list")).toBeVisible();
+
+    // Order is the point of this test: the ranking is what a league table is opened for,
+    // and it used to start below a grid of cards and a series blurb. The blurb is gone;
+    // the cards moved below.
+    const table = (await page.getByTestId("standings-results-section").boundingBox())!;
+    const events = (await page.getByTestId("standings-events-section").boundingBox())!;
+    expect(events.y).toBeGreaterThan(table.y);
+    await expect(page.getByTestId("standings-description")).toHaveCount(0);
+  });
+
+  test("each act column leads to its matchday", async ({ page }) => {
     await page.goto(FIRST_SERIES);
     await expect(page.getByTestId("standings-table")).toBeVisible();
 
-    // Nothing above the table any more: no grid of matchday cards, no series blurb, no
-    // paragraph explaining the scoring. The ranking is what the page is for.
-    await expect(page.getByTestId("standings-events-section")).toHaveCount(0);
-    await expect(page.getByTestId("standings-description")).toHaveCount(0);
-
-    // The acts are reachable from the column headings instead.
     const columns = page.getByTestId("standings-table").getByRole("columnheader");
     const actLink = columns.getByRole("link").first();
     await expect(actLink).toBeVisible();
@@ -155,6 +161,34 @@ test.describe("B-3: as a sailor I see when I am on which boat", () => {
     for (let column = 3; column <= 8; column++) {
       await expect(firstRow.locator(`td:nth-child(${column})`)).not.toHaveText("–");
     }
+  });
+
+  test("the three races of a flight read as one block", async ({ page }) => {
+    await page.goto(PLANNED_EVENT);
+    await page.getByTestId("matchday-pairing-tab").click();
+    await expect(page.getByTestId("matchday-pairing-row-1")).toBeVisible();
+
+    // The flight is named where it starts and nowhere else — 48 rows each repeating their
+    // flight number is what made the grouping invisible. Races 1-3 are flight 1, 4-6
+    // flight 2.
+    const flightCell = (sequence: number) =>
+      page.getByTestId(`matchday-pairing-row-${sequence}`).locator("td:nth-child(2)");
+    await expect(flightCell(1)).toHaveText("1");
+    await expect(flightCell(2)).toHaveText("");
+    await expect(flightCell(3)).toHaveText("");
+    await expect(flightCell(4)).toHaveText("2");
+  });
+
+  test("each club in the draw leads to its own page", async ({ page }) => {
+    await page.goto(PLANNED_EVENT);
+    await page.getByTestId("matchday-pairing-tab").click();
+
+    // The first boat of the first race — an abbreviation, so the full name has to be
+    // reachable some other way, and the club page is where a sailor goes next.
+    const club = page.getByTestId("matchday-pairing-club-link-1-1");
+    await expect(club).toBeVisible();
+    await club.click();
+    await expect(page.getByTestId("club-header")).toBeVisible();
   });
 });
 
