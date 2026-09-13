@@ -122,3 +122,17 @@ export async function openUserMenu(page: Page): Promise<void> {
   await page.getByTestId("layout-profile-button").click();
   await expect(page.getByTestId("layout-user-menu")).toBeVisible();
 }
+
+/** Picks a language through the account menu.
+ *
+ * Three steps rather than one click, because the language is a submenu now (Story A-12):
+ * the account button opens the menu, the "Language" row opens the choices, and the choice
+ * itself is the third. Written once here so a spec that only cares about the *result* of
+ * switching language does not have to spell the path out.
+ */
+export async function chooseLanguage(page: Page, language: "en" | "de"): Promise<void> {
+  await openUserMenu(page);
+  await page.getByTestId("layout-user-menu-language").click();
+  await expect(page.getByTestId("language-switcher")).toBeVisible();
+  await page.getByTestId(`language-switcher-${language}`).click();
+}

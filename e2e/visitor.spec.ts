@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import {
+  chooseLanguage,
   closeNavigation,
   expectNoSidewaysScroll,
   openNavigation,
@@ -192,10 +193,8 @@ test.describe("Foundations", () => {
     // only thing on the page.
     await closeNavigation(page);
 
-    // The switcher lives in the account menu now, with the other things that are about
-    // the reader rather than the page (Story A-12).
-    await openUserMenu(page);
-    await page.getByTestId("language-switcher-de").click();
+    // The language lives in the account menu now, as a submenu of its own (Story A-12).
+    await chooseLanguage(page, "de");
     await page.keyboard.press("Escape");
 
     await openNavigation(page);
@@ -299,10 +298,23 @@ test.describe("A-12: the navigation moves with the viewport", () => {
     );
 
     await openUserMenu(page);
-    for (const key of ["profile", "help", "legalNotice", "privacy"]) {
+    for (const key of ["language", "profile", "help", "legalNotice", "privacy"]) {
       await expect(page.getByTestId(`layout-user-menu-${key}`)).toBeVisible();
     }
-    await expect(page.getByTestId("language-switcher")).toBeVisible();
+
+    // The language is a submenu: closed until asked for, then one entry per language,
+    // each named in its own language and the current one marked.
+    await expect(page.getByTestId("language-switcher")).toHaveCount(0);
+    await page.getByTestId("layout-user-menu-language").click();
+    const languages = page.getByTestId("language-switcher").getByRole("listitem");
+    await expect(languages).toHaveCount(2);
+    await expect(page.getByTestId("language-switcher-de")).toHaveText("Deutsch");
+    await expect(page.getByTestId("language-switcher-en")).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    await page.getByTestId("layout-user-menu-language").click();
+    await expect(page.getByTestId("language-switcher")).toHaveCount(0);
 
     // It opens for a guest too: the language and the legal pages belong to a visitor as
     // much as to anybody.

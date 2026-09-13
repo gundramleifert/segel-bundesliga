@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { Account } from "../api/types";
 import { useDisclosure } from "../lib/useDisclosure";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
 
 /** Everything that is about *you* and about the site, behind the account button.
  *
@@ -85,11 +86,10 @@ export function UserMenu({
             </p>
           )}
 
-          <div className="px-3 pb-2">
-            <LanguageSwitcher />
-          </div>
-
           <ul>
+            <li>
+              <LanguageChoice />
+            </li>
             {links.map((link) => (
               <li key={link.key}>
                 <Link
@@ -116,4 +116,77 @@ function initials(displayName: string): string {
   if (!parts.length) return "";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+}
+
+/** The language, as a submenu rather than a pair of toggle buttons.
+ *
+ * Two languages fitted a segmented EN|DE control; a third would not, and the control read
+ * as a widget wedged into a list of links rather than as one of its entries. A row that
+ * says what the language currently is, and opens to the choices, is the same shape as
+ * everything else in this menu and does not change when a language is added.
+ *
+ * Each language is named **in itself** — "English", "Deutsch" — never translated. Someone
+ * looking for their own language is looking for the word they would recognise, which is
+ * not the word for it in a language they do not read.
+ */
+function LanguageChoice() {
+  const { t, i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const current = (i18n.resolvedLanguage ?? i18n.language) as SupportedLanguage;
+
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="user-menu-language"
+        onClick={() => setOpen((wasOpen) => !wasOpen)}
+        data-testid="layout-user-menu-language"
+        className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+      >
+        <span>{t("language.label")}</span>
+        <span className="flex items-center gap-1 text-slate-500">
+          {t(`language.${current}`)}
+          <svg
+            aria-hidden
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        </span>
+      </button>
+
+      {open && (
+        <ul id="user-menu-language" data-testid="language-switcher">
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <li key={lang}>
+              <button
+                type="button"
+                // `aria-current`, not `aria-pressed`: these are a set of alternatives of
+                // which exactly one holds, which is what "current" means — not two
+                // independent toggles.
+                aria-current={current === lang ? "true" : undefined}
+                onClick={() => void i18n.changeLanguage(lang)}
+                data-testid={`language-switcher-${lang}`}
+                className={`flex w-full items-center gap-2 rounded-md py-1.5 pl-7 pr-3 text-sm hover:bg-slate-100 ${
+                  current === lang ? "font-medium text-slate-900" : "text-slate-600"
+                }`}
+              >
+                <span aria-hidden className="w-3 text-brand-600">
+                  {current === lang ? "✓" : ""}
+                </span>
+                {t(`language.${lang}`)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
 }

@@ -811,10 +811,18 @@ Acceptance criteria:
   does not shrink and the content column may be narrower than its content; on a phone the
   panel is an overlay, so it adds no width at all.
 - **The account button opens a menu**, in both arrangements, holding everything that is
-  about the *reader* rather than the page: the language switcher, Profile, Help, and the
-  two legal pages. Each of those is used rarely, and as separate items in the frame they
+  about the *reader* rather than the page: the language, Profile, Help, and the two legal
+  pages. Each of those is used rarely, and as separate items in the frame they
   competed with the navigation for room — Help was a main nav entry beside Series and
   Clubs, which is not what someone comes to the site for.
+  - **The language is a submenu**, not a pair of toggle buttons. Two languages fitted an
+    EN|DE segmented control; a third would not, and the control read as a widget wedged
+    into a list of links rather than as one of its entries. The row says what the language
+    currently is and opens to the choices, which is the same shape as everything else in
+    the menu and does not change when a language is added. Each language is named **in
+    itself** — "English", "Deutsch", never translated: someone looking for their own
+    language is looking for the word they would recognise, which is not the word for it in
+    a language they cannot read.
   - It opens for a guest as well. The language and the legal pages belong to a visitor as
     much as to anybody; only the avatar changes, from initials to a plain account icon.
   - On a phone it sits **top right**, where a phone's account button belongs, and opens
