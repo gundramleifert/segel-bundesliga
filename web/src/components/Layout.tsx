@@ -44,7 +44,14 @@ export function Layout() {
   const { t } = useTranslation();
   const { hasRole, account, loading } = useAccount();
   const { pathname } = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  // The menu remembers *where* it was opened rather than whether it is open. Any
+  // navigation therefore closes it by arithmetic: a menu left standing over the page it
+  // just navigated to reads as a broken link. Derived rather than reset in an effect on
+  // `pathname`, which would re-render the whole frame a second time on every navigation
+  // to undo a state nobody wanted.
+  const [openedAt, setOpenedAt] = useState<string | null>(null);
+  const menuOpen = openedAt === pathname;
+  const setMenuOpen = (open: boolean) => setOpenedAt(open ? pathname : null);
   // Which arrangement this viewport gets, decided in the DOM rather than with
   // `hidden lg:flex`. Rendering both and hiding one leaves two navigations and two
   // breadcrumbs in the document, which is ambiguous for assistive technology and for
@@ -60,13 +67,13 @@ export function Layout() {
     ...(hasRole("admin", "editor") ? [{ path: "/admin", key: "admin", exact: false }] : []),
   ];
 
-  // A menu left open over the page it just navigated to reads as a broken link.
-  useEffect(() => setMenuOpen(false), [pathname]);
-
+  // Escape closes it — the one keyboard gesture every overlay owes its reader. Listening
+  // only while it is open, and closing by clearing `openedAt` directly so the effect does
+  // not depend on a function rebuilt on every render.
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuOpen(false);
+      if (event.key === "Escape") setOpenedAt(null);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -150,7 +157,7 @@ export function Layout() {
               aria-label={t("nav.menu")}
               aria-expanded={menuOpen}
               aria-controls="site-menu"
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => setMenuOpen(!menuOpen)}
               data-testid="layout-menu-button"
               className="grid size-9 shrink-0 place-items-center rounded-md text-slate-700 hover:bg-slate-100"
             >
@@ -322,7 +329,18 @@ function NavList({
   className?: string;
 }) {
   return (
-    <nav aria-label={t("nav.label")} data-testid="layout-nav" className={className}>
+    // `min-h-0` is not optional here, and it is not cosmetic. This nav is a flex child
+    // with `overflow-y-auto`, and a flex child's minimum height is its *content* height
+    // unless told otherwise — so with enough links it grows past the panel instead of
+    // scrolling inside it, and silently covers the row beneath (the language switcher,
+    // the account button). The symptom is Playwright's "<nav …> intercepts pointer
+    // events" on a control that is plainly visible: the same misleading shape as Story
+    // A-10, one axis over.
+    <nav
+      aria-label={t("nav.label")}
+      data-testid="layout-nav"
+      className={`min-h-0 ${className}`}
+    >
       <ul className="flex flex-col gap-1 text-sm">
         {navigation.map((item) => (
           <li key={item.path}>

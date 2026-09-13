@@ -13,7 +13,7 @@ import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "./Blocks";
 import { roleText } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
-import { Field } from "../pages/adminBuildingBlocks";
+import { Field } from "./Form";
 
 /** Registering who may sail for one team — Story V-1.
  *

@@ -3,6 +3,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { Stack } from "../components/Layouts";
 import {
   getListAllClubsQueryKey,
   getListAllSeriesQueryKey,
@@ -25,7 +26,8 @@ import { AccountsAdmin } from "./AdminAccounts";
 import { EventsAdmin } from "./AdminEvents";
 import { SailorsAdmin } from "./AdminSailors";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
-import { Section, Field, Message, ClubSelector } from "./adminBuildingBlocks";
+import { Section, Field, Message } from "../components/Form";
+import { ClubSelector } from "../components/ClubSelector";
 
 /** Stories A-1, A-4, A-6 and A-11: create clubs, create series, schedule events.
  *
@@ -596,8 +598,8 @@ function SeriesRow({
       )}
 
       {open && (
-        <div className="mt-3 grid grid-cols-[minmax(0,1fr)] gap-4">
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+        <Stack className="mt-3">
+          <Stack gap={3}>
             <ClubSelector
               clubs={clubs}
               selectedIds={selectedClubs}
@@ -620,7 +622,7 @@ function SeriesRow({
             {save.isError && (
               <ErrorMessage text={errorText(save.error)} testId={`admin-series-save-clubs-error-${series.id}`} />
             )}
-          </div>
+          </Stack>
 
           <Field label={t("series.descriptionLabel")} hint={t("series.descriptionHint")}>
             <textarea
@@ -663,7 +665,7 @@ function SeriesRow({
               testId={`admin-series-description-error-${series.id}`}
             />
           )}
-        </div>
+        </Stack>
       )}
     </li>
   );

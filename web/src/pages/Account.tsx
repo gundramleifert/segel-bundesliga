@@ -1,6 +1,7 @@
 import { Button, Card } from "@heroui/react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { CardGrid } from "../components/Layouts";
 
 import {
   deleteMyAccount,
@@ -99,7 +100,7 @@ export function Account() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <CardGrid as="div">
         <Card data-testid="account-info-card">
           <Card.Header>
             <Card.Title>{account.display_name}</Card.Title>
@@ -140,7 +141,7 @@ export function Account() {
             )}
           </Card.Content>
         </Card>
-      </div>
+      </CardGrid>
 
       <Profile />
       <DeleteAccount />
@@ -341,7 +342,7 @@ function Profile() {
             </div>
 
             <form onSubmit={save} data-testid="account-profile-form" className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
+              <CardGrid gap={3} as="div">
                 <div>
                   <label
                     htmlFor="profile-first-name"
@@ -376,7 +377,7 @@ function Profile() {
                     data-testid="account-profile-last-name-input"
                   />
                 </div>
-              </div>
+              </CardGrid>
               <div>
                 <label
                   htmlFor="profile-birth-date"

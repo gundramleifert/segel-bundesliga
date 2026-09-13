@@ -85,9 +85,15 @@ export async function expectNoSidewaysScroll(page: Page, testInfo: TestInfo): Pr
  * which reads like a broken link rather than a closed menu.
  */
 export async function openNavigation(page: Page): Promise<void> {
-  const burger = page.getByTestId("layout-menu-button");
-  if (await burger.isVisible()) {
-    await burger.click();
+  // Decided from the **viewport**, not from the DOM. `isVisible()` does not auto-wait
+  // (the same trap as `count()`, see docs/gotchas/playwright-count-does-not-auto-wait.md):
+  // asked before the layout has painted it answers `false`, the burger is never clicked,
+  // and the next line then waits thirty seconds for a navigation that is sitting behind a
+  // closed menu. Intermittent, and it reads as the page being broken rather than the
+  // helper being wrong. The viewport width is known and settled before the first render.
+  if ((page.viewportSize()?.width ?? 0) < 1024) {
+    // `click()` does auto-wait, so this also waits for the burger to exist.
+    await page.getByTestId("layout-menu-button").click();
     await expect(page.getByTestId("layout-menu")).toBeVisible();
   }
   await expect(page.getByTestId("layout-nav")).toBeVisible();

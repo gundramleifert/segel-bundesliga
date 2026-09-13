@@ -1,6 +1,7 @@
 import { Card } from "@heroui/react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { CardGrid } from "../components/Layouts";
 
 import { useListEvents, useListSeries } from "../api/generated/sbl";
 import { useAsync } from "../api/useApi";
@@ -39,7 +40,7 @@ export function SeriesOverview() {
       {!seriesList.data?.length ? (
         <Empty testId="series-empty">{t("seriesOverview.empty")}</Empty>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2" data-testid="series-list">
+        <CardGrid testId="series-list">
           {seriesList.data.map((series) => {
             const acts = actsPerSeries.get(series.id) ?? 0;
             const dateRangeText =
@@ -75,7 +76,7 @@ export function SeriesOverview() {
               </li>
             );
           })}
-        </ul>
+        </CardGrid>
       )}
     </>
   );

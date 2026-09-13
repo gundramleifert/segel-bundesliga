@@ -699,7 +699,7 @@ their form rows. A grid's `auto` column is sized by its items' **min-content** w
 one wide box — the boat-setup table in `AdminEvents.tsx` — widened its column, and because
 grid items stretch to the column, *every* sibling section grew with it. The fix is to make
 those columns able to be narrower than their content: `grid-cols-[minmax(0,1fr)]` on the
-page's own grid (`Admin.tsx`), on `Section`'s card content (`adminBuildingBlocks.tsx`), on
+page's own grid (`Admin.tsx`), on `Section`'s card content (`components/Form.tsx`), on
 `ClubSelector`'s pane grid, and on the nineteen stacking grids in the admin pages. The wide
 table then scrolls inside its own `overflow-x-auto` box, which is what it was always
 supposed to do.

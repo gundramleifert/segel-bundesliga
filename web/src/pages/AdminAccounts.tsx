@@ -7,7 +7,7 @@ import type { Account, ClubAdmin } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
-import { Section, Field } from "./adminBuildingBlocks";
+import { Section, Field } from "../components/Form";
 
 // The generated enum, not a list written out here: a role added on the backend appears in
 // this screen by itself, and one removed there stops compiling here instead of rendering a

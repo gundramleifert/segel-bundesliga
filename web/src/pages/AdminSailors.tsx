@@ -14,7 +14,7 @@ import { useAsync, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { SquadPanel } from "../components/SquadPanel";
 import { INPUT_CLASS, errorText } from "../lib/admin";
-import { Section, Field, Message } from "./adminBuildingBlocks";
+import { Section, Field, Message } from "../components/Form";
 
 /** Stories V-4 and V-1: Create sailors and register a squad for a series.
  *

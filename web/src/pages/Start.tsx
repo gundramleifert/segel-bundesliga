@@ -1,5 +1,6 @@
 import { Card } from "@heroui/react";
 import { useTranslation } from "react-i18next";
+import { CardGrid } from "../components/Layouts";
 import { Link } from "react-router-dom";
 
 import { useListEvents, useListSeries } from "../api/generated/sbl";
@@ -73,13 +74,13 @@ export function Start() {
         </div>
 
         {events.length ? (
-          <ul className="grid gap-4 sm:grid-cols-2">
+          <CardGrid>
             {events.map((event) => (
               <li key={event.id}>
                 <MatchdayCard event={event} />
               </li>
             ))}
-          </ul>
+          </CardGrid>
         ) : (
           <Empty testId="start-events-empty">{t("eventsSection.empty")}</Empty>
         )}
@@ -92,7 +93,7 @@ export function Start() {
 
         {!seriesList.error &&
           (seriesList.data?.length ? (
-            <ul className="grid gap-4 sm:grid-cols-2">
+            <CardGrid>
               {seriesList.data.map((series) => {
                 const acts = actsPerSeries.get(series.id) ?? 0;
                 const dateRangeText =
@@ -123,7 +124,7 @@ export function Start() {
                   </li>
                 );
               })}
-            </ul>
+            </CardGrid>
           ) : (
             <Empty testId="start-series-empty">{t("seriesSection.empty")}</Empty>
           ))}

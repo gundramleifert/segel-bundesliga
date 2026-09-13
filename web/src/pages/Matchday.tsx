@@ -12,6 +12,7 @@ import {
 } from "../api/generated/sbl";
 import type { AdminRace, BoatOut, EventSummary, StandingRow } from "../api/types";
 import { useAsync, useInvalidate, useAccount } from "../api/useApi";
+import { TabbedView, type TabDef } from "../components/Tabs";
 import {
   ErrorMessage,
   Loading,
@@ -95,7 +96,6 @@ function estimatedFlights(
 export function Matchday() {
   const { t } = useTranslation("matchday");
   const { id = "" } = useParams();
-  const [view, setView] = useState<"standings" | "pairing" | "results">("standings");
   const { hasRole } = useAccount();
   const canEnterResults = hasRole("admin", "race_officer");
 
@@ -107,11 +107,29 @@ export function Matchday() {
 
   const { event, standings, races_scored, races_total } = matchday.data;
 
-  const tabs: Array<["standings" | "pairing" | "results", string]> = [
-    ["standings", t("standingsTab")],
-    ["pairing", t("pairingTab")],
+  // The same strip as the admin screen and the club screen. It was hand-rolled here
+  // first; `TabbedView` grew out of it (Story A-11) and owns the parts that get forgotten
+  // when a strip is copied — the roving tabindex, the arrow keys, the scroll guard — and
+  // it puts the selection in the URL, so a matchday's results tab can be linked.
+  const tabs: TabDef<"standings" | "pairing" | "results">[] = [
+    {
+      key: "standings",
+      label: t("standingsTab"),
+      render: () => <DailyStandings standings={standings} event={event} />,
+    },
+    {
+      key: "pairing",
+      label: t("pairingTab"),
+      render: () => <PairingList eventId={Number(id)} />,
+    },
   ];
-  if (canEnterResults) tabs.push(["results", t("resultsTab")]);
+  if (canEnterResults) {
+    tabs.push({
+      key: "results",
+      label: t("resultsTab"),
+      render: () => <ResultsEntry eventId={Number(id)} standings={standings} />,
+    });
+  }
 
   return (
     <>
@@ -137,37 +155,7 @@ export function Matchday() {
         {event.status === "live" && ` · ${t("liveUpdate")}`}
       </p>
 
-      <div
-        role="tablist"
-        aria-label={t("viewLabel")}
-        data-testid="matchday-tabs"
-        className="mb-4 inline-flex rounded-lg border border-slate-200 bg-white p-1"
-      >
-        {tabs.map(([value, text]) => (
-          <button
-            key={value}
-            role="tab"
-            aria-selected={view === value}
-            onClick={() => setView(value)}
-            data-testid={`matchday-${value}-tab`}
-            className={`rounded-md px-4 py-1.5 text-sm transition-colors ${
-              view === value
-                ? "bg-brand-600 font-medium text-white"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            {text}
-          </button>
-        ))}
-      </div>
-
-      {view === "standings" && (
-        <DailyStandings standings={standings} event={event} />
-      )}
-      {view === "pairing" && <PairingList eventId={Number(id)} />}
-      {view === "results" && canEnterResults && (
-        <ResultsEntry eventId={Number(id)} standings={standings} />
-      )}
+      <TabbedView tabs={tabs} param="view" testIdPrefix="matchday" label={t("viewLabel")} />
     </>
   );
 }

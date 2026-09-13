@@ -26,6 +26,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/userstories.md` | What the system should do, with tests included |
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
+| `docs/components.md` | **The frontend's building blocks** — read before writing a page |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `reference/` | Shallow clones of external repos for reference, not versioned |
@@ -339,6 +340,12 @@ What already exists, and what each one replaced:
 - **`e2e/layout.ts::expectNoSidewaysScroll`** — the "does this page fit its viewport"
   check, which has to assert *two* numbers to work at all, and which names the offending
   boxes when it fails so nobody writes that probe again.
+- **`web/src/components/`** — the pieces every screen is assembled from, listed in
+  `docs/components.md`: `Async` (one request, rendered: loading, error, empty, content),
+  `Stack` and `CardGrid` (the two layouts, one of which *is* Story A-10 — a bare `grid`
+  zooms the page out on a phone), `LinkCard`, `TabbedView`, and the form primitives. Read
+  that file before writing a page; each entry replaced three or more hand-written copies
+  that had already drifted apart. A component never imports from `pages/`.
 - **`scripts/check-docs.py`** — makes the documentation prove itself: every `Tests:`
   reference must resolve to something that exists, every story ID a test claims must be a
   real story, every gotcha must carry its Evidence, and the index must be current. It is

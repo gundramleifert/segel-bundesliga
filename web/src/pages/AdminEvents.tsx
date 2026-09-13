@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { Stack } from "../components/Layouts";
 import {
   getListAllEventsQueryKey,
   getGetReadinessQueryKey,
@@ -37,7 +38,8 @@ import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks"
 import i18n from "../i18n";
 import { BOAT_COLORS, boatColor, eventDates } from "../lib/format";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
-import { Section, Field, Message, ClubSelector } from "./adminBuildingBlocks";
+import { Section, Field, Message } from "../components/Form";
+import { ClubSelector } from "../components/ClubSelector";
 
 /** Stories A-4, VA-7 and VA-8: scheduling an event and taking it through its life.
  *
@@ -725,7 +727,7 @@ function EventPanel({
   const closed = event.status === "final" || event.status === "cancelled";
 
   return (
-    <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-5 border-t border-slate-100 pt-4">
+    <Stack gap={5} className="mt-4  border-t border-slate-100 pt-4">
       {/* 1. What's missing --------------------------------------------------- */}
       <div>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.readinessTitle")}</h3>
@@ -769,7 +771,7 @@ function EventPanel({
       </div>
 
       {/* 2. The date, once the host confirms it ----------------------------- */}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <Stack gap={3}>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <Field label={t("events.startsLabel")}>
             <input
@@ -809,10 +811,10 @@ function EventPanel({
           error={saveDates.isError ? errorText(saveDates.error) : null}
           success={saveDates.isSuccess ? t("manage.datesSavedMessage") : null}
         />
-      </div>
+      </Stack>
 
       {/* 3. Who enters ------------------------------------------------------ */}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <Stack gap={3}>
         <h3 className="text-sm font-semibold text-slate-700">
           {t("manage.clubsTitle", { count: selection.size, configured: event.team_count })}
         </h3>
@@ -864,10 +866,10 @@ function EventPanel({
           error={saveClubs.isError ? errorText(saveClubs.error) : null}
           success={saveClubs.isSuccess ? t("manage.clubsSavedMessage") : null}
         />
-      </div>
+      </Stack>
 
       {/* 4. The draw -------------------------------------------------------- */}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <Stack gap={3}>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.pairingTitle")}</h3>
         <p className="text-sm text-slate-600">
           {hasPairing ? t("manage.pairingExistsHint") : t("manage.pairingMissingHint")}
@@ -912,10 +914,10 @@ function EventPanel({
           error={draw.isError ? errorText(draw.error) : null}
           success={draw.isSuccess ? t("manage.drawSuccessMessage") : null}
         />
-      </div>
+      </Stack>
 
       {/* 5. Publication and start ------------------------------------------- */}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <Stack gap={3}>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.lifecycleTitle")}</h3>
         <p className="text-sm text-slate-600">{t("manage.publishHint")}</p>
         <div className="flex flex-wrap items-center gap-3">
@@ -958,7 +960,7 @@ function EventPanel({
           }
           success={start.isSuccess ? t("manage.startedMessage") : null}
         />
-      </div>
+      </Stack>
 
       {/* 6. Closing it ------------------------------------------------------ */}
       {/* Story VA-10. Last, because it is the last thing done to an event — and because
@@ -973,7 +975,7 @@ function EventPanel({
           Neither closing asks for confirmation. Both undo with one press and neither
           deletes anything — not the pairing list, not a single result — so a dialog would
           buy nothing and cost a tap on a rocking boat. */}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <Stack gap={3}>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.closingTitle")}</h3>
         <p className="text-sm text-slate-600">
           {closed
@@ -1033,8 +1035,8 @@ function EventPanel({
           testId={`admin-manage-event-closing-message-${event.id}`}
           error={closingError ? errorText(closingError) : null}
         />
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 }
 

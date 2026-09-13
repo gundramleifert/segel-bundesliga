@@ -1,23 +1,37 @@
-import { Card } from "@heroui/react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useListClubs } from "../api/generated/sbl";
 import type { Club } from "../api/types";
 import { useAsync } from "../api/useApi";
-import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
+import { Empty, PageHeader } from "../components/Blocks";
+import { Async } from "../components/Async";
+import { CardGrid } from "../components/Layouts";
+import { LinkCard } from "../components/LinkCard";
 
 /** B-4: As a visitor, I want to find the participating clubs. */
 export function Clubs() {
   const { t } = useTranslation("clubs");
-  const { data, error, loading } = useAsync(useListClubs());
+  const clubs = useAsync(useListClubs());
   const [filter, setFilter] = useState("");
 
-  if (loading) return <Loading text={t("loading")} testId="clubs-loading" />;
-  if (error) return <ErrorMessage text={error} testId="clubs-error" />;
-  if (!data?.length) return <Empty testId="clubs-empty">{t("empty")}</Empty>;
+  return (
+    <Async state={clubs} testId="clubs" loadingText={t("loading")} empty={t("empty")}>
+      {(data) => <ClubList data={data} filter={filter} setFilter={setFilter} />}
+    </Async>
+  );
+}
 
+function ClubList({
+  data,
+  filter,
+  setFilter,
+}: {
+  data: Club[];
+  filter: string;
+  setFilter: (value: string) => void;
+}) {
+  const { t } = useTranslation("clubs");
   const term = filter.trim().toLowerCase();
   const matches = (club: Club) =>
     !term ||
@@ -47,42 +61,36 @@ export function Clubs() {
 
       {!filtered.length && <Empty testId="clubs-no-matches">{t("noMatches")}</Empty>}
 
-      <ul data-testid="clubs-list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <CardGrid columns={3} testId="clubs-list">
         {filtered.map((club) => (
           <li key={club.id}>
-            <Link
+            <LinkCard
               to={`/clubs/${club.id}`}
-              data-testid={`club-card-${club.id}`}
-              className="group block h-full"
-            >
-              <Card className="h-full transition-shadow group-hover:shadow-md">
-                <Card.Header>
-                  <div className="flex items-center gap-3">
-                    {club.logo_url ? (
-                      <img
-                        src={club.logo_url}
-                        alt=""
-                        className="size-10 shrink-0 rounded-lg bg-white object-contain p-1 ring-1 ring-slate-200"
-                      />
-                    ) : (
-                      <span
-                        aria-hidden
-                        className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-600 text-xs font-bold text-white"
-                      >
-                        {club.short_name.slice(0, 4)}
-                      </span>
-                    )}
-                    <div className="min-w-0">
-                      <Card.Title className="truncate text-base">{club.name}</Card.Title>
-                      <Card.Description>{club.city}</Card.Description>
-                    </div>
-                  </div>
-                </Card.Header>
-              </Card>
-            </Link>
+              testId={`club-card-${club.id}`}
+              title={club.name}
+              description={club.city}
+              lead={
+                club.logo_url ? (
+                  <img
+                    src={club.logo_url}
+                    alt=""
+                    className="size-10 shrink-0 rounded-lg bg-white object-contain p-1 ring-1 ring-slate-200"
+                  />
+                ) : (
+                  // No crest uploaded: the abbreviation, rather than a grey placeholder
+                  // that says nothing (Story V-3).
+                  <span
+                    aria-hidden
+                    className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-600 text-xs font-bold text-white"
+                  >
+                    {club.short_name.slice(0, 4)}
+                  </span>
+                )
+              }
+            />
           </li>
         ))}
-      </ul>
+      </CardGrid>
     </>
   );
 }

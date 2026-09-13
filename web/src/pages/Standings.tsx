@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { CardGrid } from "../components/Layouts";
 import ReactMarkdown from "react-markdown";
 
 import { useGetSeriesTable, useListSeries } from "../api/generated/sbl";
@@ -91,13 +92,13 @@ export function Standings() {
       <section data-testid="standings-events-section" className="mb-8">
         <h2 className="mb-3 text-lg font-semibold">{t("eventsSection.heading")}</h2>
         {data.events.length ? (
-          <ul className="grid gap-4 sm:grid-cols-2">
+          <CardGrid>
             {data.events.map((event) => (
               <li key={event.id}>
                 <MatchdayCard event={event} />
               </li>
             ))}
-          </ul>
+          </CardGrid>
         ) : (
           <Empty testId="standings-events-empty">{t("eventsSection.empty")}</Empty>
         )}

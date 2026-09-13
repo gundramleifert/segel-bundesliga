@@ -15,4 +15,10 @@ wrong even when the list is logically empty.
 
 **Evidence** — `e2e/lifecycle.spec.ts`, `e2e/visitor.spec.ts`.
 
+**Also** — `locator.isVisible()` has the same shape and the same trap: asked before the
+element has painted it answers `false` with no waiting, so `if (await x.isVisible())` is a
+coin flip on timing. `openNavigation` in `e2e/layout.ts` used it to decide whether this
+viewport has a burger menu, and now decides from the viewport width instead. Decide from
+something settled — a viewport size, a URL — or use an assertion, which waits.
+
 **Seen** — 2026-09-09, commit `0893578`.

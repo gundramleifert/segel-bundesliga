@@ -27,7 +27,7 @@ scrolling belongs. When a click is refused and the interceptor changes between r
 measure the layout before you touch the element: `window.innerWidth` against the viewport
 you configured.
 
-**Evidence** — `web/src/pages/Admin.tsx`, `web/src/pages/adminBuildingBlocks.tsx`
+**Evidence** — `web/src/pages/Admin.tsx`, `web/src/components/Form.tsx`
 (`Section`), and 19 grids across the admin pages. Guard: `expectNoSidewaysScroll` in
 `e2e/layout.ts`. Story A-10.
 

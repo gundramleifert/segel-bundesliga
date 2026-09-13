@@ -1,6 +1,7 @@
 import { Card } from "@heroui/react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { CardGrid } from "../components/Layouts";
 
 import { useGetSailor } from "../api/generated/sbl";
 import { useAsync } from "../api/useApi";
@@ -32,7 +33,7 @@ export function Sailor() {
       <section data-testid="sailor-registrations-section" className="mb-8">
         <h2 className="mb-3 text-lg font-semibold">{t("registrations")}</h2>
         {data.teams?.length ? (
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <CardGrid gap={3}>
             {data.teams.map((entry) => (
               <li key={entry.team_id} data-testid={`sailor-registration-card-${entry.team_id}`}>
                 <Card>
@@ -53,7 +54,7 @@ export function Sailor() {
                 </Card>
               </li>
             ))}
-          </ul>
+          </CardGrid>
         ) : (
           <Empty testId="sailor-registrations-empty">{t("noRegistrations")}</Empty>
         )}

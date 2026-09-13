@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { Stack } from "../components/Layouts";
 import { useMyClubs } from "../api/generated/sbl";
 import type { MyClubOut } from "../api/generated/model/myClubOut";
 import { useAsync, useAccount } from "../api/useApi";
@@ -93,7 +94,7 @@ function ClubTeams({ entry }: { entry: MyClubOut }) {
   }
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+    <Stack gap={6}>
       <p data-testid={`my-club-role-${entry.club.id}`} className="text-sm text-slate-600">
         <Link to={`/clubs/${entry.club.id}`} className="underline underline-offset-2">
           {entry.club.name}
@@ -124,6 +125,6 @@ function ClubTeams({ entry }: { entry: MyClubOut }) {
         label={t("mine.seriesTabsLabel")}
         className="grid grid-cols-[minmax(0,1fr)]"
       />
-    </div>
+    </Stack>
   );
 }

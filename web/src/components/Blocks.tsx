@@ -1,11 +1,11 @@
-import { Card, Spinner } from "@heroui/react";
+import { Spinner } from "@heroui/react";
 import { useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 
 import type { EventSummary } from "../api/types";
 import { locationText, matchdaySubtitle, statusText, eventDates } from "../lib/format";
 import { setPageTitle } from "./breadcrumb";
+import { LinkCard } from "./LinkCard";
 import { slugify } from "../lib/testids";
 
 export function Loading({ text, testId }: { text?: string; testId?: string }) {
@@ -74,31 +74,20 @@ export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: 
   const subtitle = [matchdaySubtitle(event), locationText(event)].filter(Boolean).join(" · ");
 
   return (
-    <Link
+    <LinkCard
       to={`/events/${event.id}`}
-      data-testid={testId ?? `event-card-${event.id}`}
-      className="block group"
+      testId={testId ?? `event-card-${event.id}`}
+      title={event.title}
+      description={subtitle}
+      lead={
+        event.logo_url ? (
+          <img src={event.logo_url} alt="" className="size-8 shrink-0 object-contain" />
+        ) : undefined
+      }
+      aside={<StatusBadge status={event.status} />}
     >
-      <Card className="h-full transition-shadow group-hover:shadow-md">
-        <Card.Header>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              {event.logo_url && (
-                <img src={event.logo_url} alt="" className="size-8 shrink-0 object-contain" />
-              )}
-              <Card.Title>{event.title}</Card.Title>
-            </div>
-            <StatusBadge status={event.status} />
-          </div>
-          <Card.Description>{subtitle}</Card.Description>
-        </Card.Header>
-        <Card.Content>
-          <p className="text-sm text-slate-600">
-            {eventDates(event)}
-          </p>
-        </Card.Content>
-      </Card>
-    </Link>
+      <p className="text-sm text-slate-600">{eventDates(event)}</p>
+    </LinkCard>
   );
 }
 
