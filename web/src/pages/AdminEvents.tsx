@@ -373,16 +373,16 @@ function CreateEvent() {
 
         <Field label={t("events.boatSetupLabel")}>
           <div className="overflow-x-auto rounded-md border border-slate-200">
-            <table data-testid="admin-events-boat-table" className="w-full min-w-[44rem] text-sm">
+            <table data-testid="admin-events-boat-table" className="data-table w-full min-w-[44rem] text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
-                  <th scope="col" className="px-3 py-2 font-medium">
+                  <th scope="col" className="font-medium">
                     {t("events.boatNumberLabel")}
                   </th>
-                  <th scope="col" className="px-3 py-2 font-medium">
+                  <th scope="col" className="font-medium">
                     {t("events.boatColorLabel")}
                   </th>
-                  <th scope="col" className="px-3 py-2 font-medium">
+                  <th scope="col" className="font-medium">
                     {t("events.boatNameLabel")}
                   </th>
                 </tr>
@@ -390,8 +390,8 @@ function CreateEvent() {
               <tbody className="divide-y divide-slate-100">
                 {boatRows.map((row, index) => (
                   <tr key={index}>
-                    <td className="px-3 py-2 text-slate-500">{index + 1}</td>
-                    <td className="px-3 py-2">
+                    <td className="text-slate-500">{index + 1}</td>
+                    <td>
                       {/* `INPUT_CLASS` is `w-full` by default — every control here overrides that
                        *  to a fixed or growing-but-bounded width instead, so all three
                        *  controls stay on one line; the table's own `overflow-x-auto` wrapper
@@ -451,7 +451,7 @@ function CreateEvent() {
                         />
                       </div>
                     </td>
-                    <td className="px-3 py-2">
+                    <td>
                       <input
                         className={INPUT_CLASS}
                         value={row.name}

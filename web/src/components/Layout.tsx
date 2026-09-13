@@ -171,7 +171,10 @@ export function Layout() {
         <main
           id="content"
           data-testid="layout-main"
-          className={`w-full min-w-0 flex-1 bg-page px-4 py-6 lg:px-6 lg:py-8 ${
+          // `panel-scroll`: a table wider than the panel scrolls the panel, not the
+          // document. The document staying at viewport width is what Story A-10 is about;
+          // *which* box scrolls is a choice, and one region beats a scrollbar per table.
+          className={`panel-scroll w-full min-w-0 flex-1 bg-page px-4 py-6 lg:px-6 lg:py-8 ${
             wide ? "rounded-tl-2xl" : "rounded-t-2xl"
           } ${
             // Clearance for the dev role switcher, which is `fixed bottom-4 right-4 z-50`

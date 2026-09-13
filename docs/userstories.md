@@ -713,11 +713,10 @@ The overflow itself came from the `grid gap-*` idiom used to stack the admin sec
 their form rows. A grid's `auto` column is sized by its items' **min-content** width, so
 one wide box — the boat-setup table in `AdminEvents.tsx` — widened its column, and because
 grid items stretch to the column, *every* sibling section grew with it. The fix is to make
-those columns able to be narrower than their content: `grid-cols-[minmax(0,1fr)]` on the
-page's own grid (`Admin.tsx`), on `Section`'s card content (`components/Form.tsx`), on
-`ClubSelector`'s pane grid, and on the nineteen stacking grids in the admin pages. The wide
-table then scrolls inside its own `overflow-x-auto` box, which is what it was always
-supposed to do.
+those columns able to be narrower than their content — which is now what `Stack` and
+`CardGrid` are for (`components/Layouts.tsx`), so it cannot be forgotten by writing the
+class string out again. The wide table then scrolls inside the nearest scroll container
+rather than widening the page.
 
 Two related defects were fixed with it, both in `web/src/index.css`: `scroll-padding-top`
 so a scroll-into-view does not park its target beneath the `sticky top-0` header, and
@@ -727,10 +726,18 @@ Acceptance criteria:
 - Every control in an admin row — manage/close, save, draw, publish, start, the crest pen —
   is clickable at 412 px width.
 - **The page is never zoomed out**: `window.innerWidth` equals the viewport width, and
-  `document.documentElement.scrollWidth` does not exceed it. A wide table scrolls inside its
-  own box (`.table-scroll` / `overflow-x-auto`) and never widens the page.
+  `document.documentElement.scrollWidth` does not exceed it. That is the rule — the
+  *document* must not be wider than the viewport. **Which** box scrolls instead is a
+  separate choice, and it is now the content panel (`.panel-scroll` on `<main>`) rather
+  than a box around each table: a page with two wide tables had two independent
+  horizontal scrollbars, each ending in mid-air where its own box did, and neither moving
+  the headings that belong with the columns.
 - The row header wraps: the title and badges on one line, the actions below, each with its
   own hit area.
+- **Tables are dense.** One rule sets cell padding for every data table (`.data-table` in
+  `index.css`), because a results screen is read by scanning down it and generous padding
+  means fewer rows in view and more scrolling to compare two of them. A cell that needs
+  something else still overrides it with a utility.
 - `ClubSelector`'s two panes stack on a narrow screen without their scrollable lists
   covering what follows them.
 - Verified by **removing** the `testIgnore` from the `mobile` project and having

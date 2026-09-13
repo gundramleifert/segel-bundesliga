@@ -240,22 +240,22 @@ function StandingsTable({
       <TableFrame testId="matchday-standings-table-frame">
       <table
         data-testid="matchday-standings-table"
-        className="w-full border-collapse text-sm"
+        className="data-table w-full border-collapse text-sm"
         style={{ minWidth: `${30 + flights.length * 3.25}rem` }}
       >
         <caption className="sr-only">{t("standingsCaption")}</caption>
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50 text-left">
-            <th scope="col" className="w-14 px-4 py-3 font-medium text-slate-600">
+            <th scope="col" className="w-14 font-medium text-slate-600">
               {t("placeHeader")}
             </th>
-            <th scope="col" className="px-4 py-3 font-medium text-slate-600">
+            <th scope="col" className="font-medium text-slate-600">
               {t("teamHeader")}
             </th>
             <th
               scope="col"
               title={mode === "extrapolate" ? t("projectedTooltip") : undefined}
-              className="w-32 px-4 py-3 text-right font-medium text-slate-600"
+              className="w-32 text-right font-medium text-slate-600"
             >
               {/* Always "Points", in both modes: the column is about points either way, and
                   the toggle above already says how they are arrived at. A header that renamed
@@ -263,7 +263,7 @@ function StandingsTable({
                   differently. */}
               {t("pointsHeader")}
             </th>
-            <th scope="col" className="w-16 px-4 py-3 text-right font-medium text-slate-600">
+            <th scope="col" className="w-16 text-right font-medium text-slate-600">
               {t("racesHeader")}
             </th>
             {flights.map((flight) => (
@@ -271,7 +271,7 @@ function StandingsTable({
                 key={flight}
                 scope="col"
                 title={t("flightColumnHeader", { number: flight })}
-                className="w-12 px-2 py-3 text-right font-medium text-slate-600"
+                className="w-12 text-right font-medium text-slate-600"
               >
                 {flight}
               </th>
@@ -291,8 +291,8 @@ function StandingsTable({
                 data-testid={`matchday-standings-row-${row.team.id}`}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
               >
-                <td className="px-4 py-3 font-semibold tabular-nums">{row.rank}</td>
-                <td className="px-4 py-3">
+                <td className="font-semibold tabular-nums">{row.rank}</td>
+                <td>
                   <Link
                     to={`/clubs/${row.team.club.id}`}
                     data-testid={`matchday-standings-club-link-${row.team.id}`}
@@ -305,14 +305,14 @@ function StandingsTable({
                   <td
                     title={t("projectedTooltip")}
                     data-testid={`matchday-standings-projected-${row.team.id}`}
-                    className="px-4 py-3 text-right font-semibold italic tabular-nums text-slate-700"
+                    className="text-right font-semibold italic tabular-nums text-slate-700"
                   >
                     {formatPoints(extrapolated)}
                   </td>
                 ) : (
                   <td
                     data-testid={`matchday-standings-points-${row.team.id}`}
-                    className="px-4 py-3 text-right font-semibold tabular-nums"
+                    className="text-right font-semibold tabular-nums"
                   >
                     {formatPoints(row.net)}
                     {row.net !== row.total && (
@@ -322,14 +322,14 @@ function StandingsTable({
                     )}
                   </td>
                 )}
-                <td className="px-4 py-3 text-right tabular-nums text-slate-500">
+                <td className="text-right tabular-nums text-slate-500">
                   {row.races_scored}
                 </td>
                 {flights.map((flight) => {
                   const value = pointsInFlight(row, flight, perFlight);
                   if (value != null) {
                     return (
-                      <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-500">
+                      <td key={flight} className="text-right tabular-nums text-slate-500">
                         {formatPoints(value)}
                       </td>
                     );
@@ -340,7 +340,7 @@ function StandingsTable({
                   // has reached yet is never estimated, even mid-matchday.
                   if (mode === "exact" || !estimated.includes(flight)) {
                     return (
-                      <td key={flight} className="px-2 py-3 text-right tabular-nums text-slate-400">
+                      <td key={flight} className="text-right tabular-nums text-slate-400">
                         –
                       </td>
                     );
@@ -350,7 +350,7 @@ function StandingsTable({
                       key={flight}
                       title={t("projectedFlightTooltip")}
                       data-testid={`matchday-standings-flight-projected-${row.team.id}-${flight}`}
-                      className="px-2 py-3 text-right italic tabular-nums text-slate-400"
+                      className="text-right italic tabular-nums text-slate-400"
                     >
                       {formatPoints(average)}
                     </td>
@@ -377,20 +377,20 @@ function PairingList({ eventId }: { eventId: number }) {
   return (
     <>
       <TableFrame testId="matchday-pairing-table-frame">
-        <table data-testid="matchday-pairing-table" className="w-full min-w-[44rem] border-collapse text-sm">
+        <table data-testid="matchday-pairing-table" className="data-table w-full min-w-[44rem] border-collapse text-sm">
           <caption className="sr-only">{t("pairingCaption")}</caption>
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
+              <th scope="col" className="w-16 font-medium text-slate-600">
                 {t("numberHeader")}
               </th>
-              <th scope="col" className="w-20 px-3 py-3 font-medium text-slate-600">
+              <th scope="col" className="w-20 font-medium text-slate-600">
                 {t("flightHeader")}
               </th>
               {data.boats.map((boat) => {
                 const color = boatColor(boat.color);
                 return (
-                  <th key={boat.number} scope="col" className="px-3 py-3 font-medium">
+                  <th key={boat.number} scope="col" className="font-medium">
                     <span className="flex items-center gap-1.5">
                       <span
                         aria-hidden
@@ -411,10 +411,10 @@ function PairingList({ eventId }: { eventId: number }) {
                 data-testid={`matchday-pairing-row-${race.sequence}`}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
               >
-                <td className="px-3 py-2.5 font-semibold tabular-nums">{race.sequence}</td>
-                <td className="px-3 py-2.5 tabular-nums text-slate-500">{race.flight}</td>
+                <td className="font-semibold tabular-nums">{race.sequence}</td>
+                <td className="tabular-nums text-slate-500">{race.flight}</td>
                 {data.boats.map((boat) => (
-                  <td key={boat.number} className="px-3 py-2.5">
+                  <td key={boat.number}>
                     {race.teams_by_boat[String(boat.number)]?.club.short_name ?? "–"}
                   </td>
                 ))}
@@ -559,20 +559,20 @@ function ResultsEntry({
         </button>
       </div>
       <TableFrame testId="matchday-results-table-frame">
-        <table data-testid="matchday-results-table" className="w-full min-w-[64rem] border-collapse text-sm">
+        <table data-testid="matchday-results-table" className="data-table w-full min-w-[64rem] border-collapse text-sm">
           <caption className="sr-only">{t("resultsCaption")}</caption>
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th scope="col" className="w-16 px-3 py-3 font-medium text-slate-600">
+              <th scope="col" className="w-16 font-medium text-slate-600">
                 {t("numberHeader")}
               </th>
-              <th scope="col" className="w-20 px-3 py-3 font-medium text-slate-600">
+              <th scope="col" className="w-20 font-medium text-slate-600">
                 {t("flightHeader")}
               </th>
               {data.boats.map((boat) => {
                 const color = boatColor(boat.color);
                 return (
-                  <th key={boat.number} scope="col" className="px-3 py-3 font-medium">
+                  <th key={boat.number} scope="col" className="font-medium">
                     <span className="flex items-center gap-1.5">
                       <span
                         aria-hidden
@@ -584,7 +584,7 @@ function ResultsEntry({
                   </th>
                 );
               })}
-              <th scope="col" className="w-28 px-3 py-3 font-medium text-slate-600" />
+              <th scope="col" className="w-28 font-medium text-slate-600" />
             </tr>
           </thead>
           <tbody>

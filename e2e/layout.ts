@@ -24,7 +24,8 @@ function expectedWidth(page: Page, testInfo: TestInfo): number {
  *  is indistinguishable among them. A box whose `scrollWidth` exceeds its own
  *  `clientWidth` is actually overflowing. Boxes that scroll on purpose are excluded —
  *  a results table scrolling inside its own container is correct here, by design
- *  (`.table-scroll` in `web/src/index.css`). */
+ *  (`.panel-scroll` in `web/src/index.css` — the content panel, so one scrollbar moves
+ *  everything rather than one per table). */
 async function overflowSources(page: Page): Promise<string[]> {
   return page.evaluate(() =>
     Array.from(document.querySelectorAll<HTMLElement>("*"))

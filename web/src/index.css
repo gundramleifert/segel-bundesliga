@@ -50,19 +50,42 @@ html {
   }
 }
 
-/* Results tables are wide. They scroll horizontally in their own box, never the whole
- * page — vertical scrolling stays the page's own, single scrollbar.
+/* Results tables are wide, and they scroll **with the panel**, not inside their own box.
  *
- * Deliberately no sticky table header: making one work correctly here would mean giving this
- * box its own bounded height and vertical scroll (per the CSS Overflow spec, overflow-x:auto
- * alone already forces the computed overflow-y to "auto" too — a visible/non-visible pair
- * isn't allowed — so a sticky <thead> inside it sticks relative to *this* box, not the page,
- * unless the box is explicitly bounded). That trade — a second, nested vertical scrollbar
- * for every long table — was tried and reverted: one scrollbar per axis (this box's
- * horizontal one, the page's vertical one) matters more here than a pinned header. */
-.table-scroll {
+ * The rule that matters is Story A-10's: the *document* must never be wider than the
+ * viewport, or mobile Chromium zooms the whole page out and every tap lands off-target.
+ * A scroll container inside the page satisfies that — but which container it is, is a
+ * choice. It used to be a box around each table, which meant a page with two tables had
+ * two independent horizontal scrollbars, each ending in mid-air where its own box did.
+ * The content panel is one region, so there is one horizontal scrollbar and it moves
+ * everything on the page together.
+ *
+ * Deliberately no sticky table header: per the CSS Overflow spec, `overflow-x: auto` alone
+ * already forces the computed `overflow-y` to `auto` as well — a visible/non-visible pair
+ * is not allowed — so a sticky <thead> would stick relative to the scroll container rather
+ * than to the page unless that container is given a bounded height. That trade, a second
+ * nested vertical scrollbar, was tried and reverted: one scrollbar per axis matters more
+ * here than a pinned header. */
+.panel-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Table density, in one place — a screen of results is read by scanning down it, and
+   generous cell padding means fewer rows in view and more scrolling to compare two of
+   them. `:where()` keeps the specificity at the class alone, so a cell that genuinely
+   needs different padding can still say so with a utility and win. */
+@layer components {
+  .data-table :where(th, td) {
+    padding-inline: 0.5rem;
+    padding-block: 0.3125rem;
+  }
+  .data-table :where(th:first-child, td:first-child) {
+    padding-inline-start: 0.75rem;
+  }
+  .data-table :where(th:last-child, td:last-child) {
+    padding-inline-end: 0.75rem;
+  }
 }
 
 /* Hides the native scrollbar track on an element that still scrolls (touch/wheel/JS) —

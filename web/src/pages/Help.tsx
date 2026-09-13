@@ -87,15 +87,15 @@ export function Help() {
         {/* Scrolls horizontally inside its own box on narrow screens, matching the
             approach TableFrame uses for results tables — the page itself never
             scrolls sideways. */}
-        <div className="table-scroll rounded-xl border border-slate-200 bg-white">
-          <table data-testid="help-roles-table" className="w-full min-w-[640px] border-collapse text-sm">
+        <div className="rounded-xl border border-slate-200 bg-white">
+          <table data-testid="help-roles-table" className="data-table w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left">
-                <th scope="col" className="px-4 py-2.5 font-medium text-slate-700">
+                <th scope="col" className="font-medium text-slate-700">
                   {t("roles.areaHeader")}
                 </th>
                 {ROLE_COLUMNS.map((role) => (
-                  <th key={role} scope="col" className="px-4 py-2.5 font-medium text-slate-700">
+                  <th key={role} scope="col" className="font-medium text-slate-700">
                     {t(`roles.columns.${role}`)}
                   </th>
                 ))}
@@ -104,11 +104,11 @@ export function Help() {
             <tbody className="divide-y divide-slate-100">
               {AREAS.map((area) => (
                 <tr key={area.key} data-testid={`help-roles-row-${area.key}`}>
-                  <th scope="row" className="px-4 py-2.5 text-left font-normal text-slate-800">
+                  <th scope="row" className="text-left font-normal text-slate-800">
                     {t(`roles.areas.${area.key}`)}
                   </th>
                   {ROLE_COLUMNS.map((role) => (
-                    <td key={role} className="px-4 py-2.5 text-slate-600">
+                    <td key={role} className="text-slate-600">
                       <AccessCell value={area.access[role]} testId={`help-access-cell-${area.key}-${role}`} />
                     </td>
                   ))}

@@ -92,14 +92,12 @@ export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: 
 }
 
 /** Results tables are wide. They scroll horizontally in their own box, never the whole
- *  page — see `.table-scroll` in `index.css`. Vertical scrolling stays the page's own,
+ *  page — the content panel scrolls instead (`.panel-scroll` in `index.css`), so a page
+ *  with two wide tables has one horizontal scrollbar rather than two. Vertical scrolling
+ *  stays the page's own,
  *  single scrollbar; there is deliberately no sticky table header (see that file for why
  *  one doesn't coexist cleanly with a horizontally-scrolling box here).
  *
- *  `scrollbar-none` (the same class the navbar's own horizontal scroll area already uses)
- *  hides the native scrollbar track — a plain OS scrollbar with arrow buttons reads as
- *  clutter, especially stacked visually next to the page's own vertical one. Touch swipe,
- *  wheel, and drag-to-scroll still work; only the visible track is gone.
  */
 export function TableFrame({
   children,
@@ -111,7 +109,7 @@ export function TableFrame({
   return (
     <div
       data-testid={testId ?? "table-frame"}
-      className="table-scroll scrollbar-none rounded-xl border border-slate-200 bg-white"
+      className="rounded-xl border border-slate-200 bg-white"
     >
       {children}
     </div>

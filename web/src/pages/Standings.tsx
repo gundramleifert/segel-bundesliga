@@ -63,26 +63,26 @@ export function Standings() {
       ) : (
       <>
       <TableFrame testId="standings-table-frame">
-        <table data-testid="standings-table" className="w-full min-w-[36rem] border-collapse text-sm">
+        <table data-testid="standings-table" className="data-table w-full min-w-[36rem] border-collapse text-sm">
           <caption className="sr-only">
             {t("caption", { seriesName: data.series.name })}
           </caption>
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th scope="col" className="w-14 px-4 py-3 font-medium text-slate-600">
+              <th scope="col" className="w-14 font-medium text-slate-600">
                 {t("table.rank")}
               </th>
-              <th scope="col" className="px-4 py-3 font-medium text-slate-600">
+              <th scope="col" className="font-medium text-slate-600">
                 {t("table.club")}
               </th>
-              <th scope="col" className="w-24 px-4 py-3 text-right font-medium text-slate-600">
+              <th scope="col" className="w-24 text-right font-medium text-slate-600">
                 {t("table.points")}
               </th>
               {data.events.map((event) => (
                 <th
                   key={event.id}
                   scope="col"
-                  className="w-20 px-3 py-3 text-center font-medium text-slate-600"
+                  className="w-20 text-center font-medium text-slate-600"
                 >
                   {/* The heading is the way into the matchday. `title` carries the event's
                       full name, because the column is only wide enough for "Act 2". */}
@@ -105,10 +105,10 @@ export function Standings() {
                 data-testid={`standings-row-${row.team.id}`}
                 className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
               >
-                <td className="px-4 py-3 font-semibold tabular-nums text-slate-900">
+                <td className="font-semibold tabular-nums text-slate-900">
                   {row.rank}
                 </td>
-                <td className="px-4 py-3">
+                <td>
                   <Link
                     to={`/clubs/${row.team.club.id}`}
                     data-testid={`standings-club-link-${row.team.id}`}
@@ -118,13 +118,13 @@ export function Standings() {
                   </Link>
                   <span className="ml-2 text-slate-500">{row.team.club.short_name}</span>
                 </td>
-                <td className="px-4 py-3 text-right font-semibold tabular-nums">
+                <td className="text-right font-semibold tabular-nums">
                   {formatPoints(row.points)}
                 </td>
                 {data.events.map((event) => (
                   <td
                     key={event.id}
-                    className="px-3 py-3 text-center tabular-nums text-slate-500"
+                    className="text-center tabular-nums text-slate-500"
                   >
                     <span
                       className={
