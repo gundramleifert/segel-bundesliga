@@ -757,6 +757,43 @@ Acceptance criteria:
 
 Tests: `e2e/lifecycle.spec.ts::A-11: the admin screen is organized in tabs`
 
+### A-12 ● Navigation beside the page, not above it
+As **someone who uses this site on a laptop and on a phone**, I want **the navigation where
+that device puts it**, so that **the screen is spent on what I came to read**.
+
+One horizontal bar served both and served neither well. On a laptop it wasted the full
+width of a wide screen on six links and left no room to say where you are; the site grew
+two more entries (Story V-12's "Our club", the admin area) and the row started competing
+for space with the language switcher and the account button. On a phone the same row had
+to scroll sideways, which is a navigation nobody discovers.
+
+Acceptance criteria:
+- **Wide screens (`lg` and up) put the navigation in a column on the left.** It holds the
+  logo, the links, the language switcher and the account button — everything that is about
+  the site rather than about the page.
+- **The top bar then carries a breadcrumb and nothing else**, small: `Series`, or
+  `Series › 1. Segel-Bundesliga 2026`. It answers "where am I" in the place the eye
+  already goes, and it is the only thing in the header, so it can stay quiet.
+  - The first crumb comes from the route and links to that section. The second is the
+    page's own title, which every page already declares through `PageHeader` — so a page
+    contributes its crumb by existing, and none of them needed changing.
+  - A section's own landing page shows one crumb, not the same word twice.
+- **Narrow screens keep a top bar**, in the arrangement a phone user expects: **burger on
+  the left, logo in the middle, account on the right**. The burger opens the same links as
+  a panel.
+  - The panel closes when a link in it is followed, and on `Escape`. A menu that stays open
+    over the page it just navigated to reads as a broken link.
+  - While it is open it is the only thing the tab key reaches, and the burger says so
+    (`aria-expanded`).
+- **Neither layout may widen the page** (Story A-10). The sidebar is a fixed column that
+  does not shrink and the content column may be narrower than its content; on a phone the
+  panel is an overlay, so it adds no width at all.
+- The navigation entries themselves do not change: `admin` and `Our club` still appear only
+  for the roles that can use them, because a link that ends in a 403 is worse than no link.
+
+Tests: `e2e/visitor.spec.ts::A-12: the navigation moves with the viewport`
+
+
 ### A-1 ● Create clubs
 As **administration or editorial** I want to **create and maintain clubs**,
 so that **teams, accounts, and matchdays can reference them**.

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { expectNoSidewaysScroll } from "./layout";
+import { expectNoSidewaysScroll, openNavigation } from "./layout";
 
 /** E2E cut along the user stories — see docs/userstories.md.
  *
@@ -141,8 +141,10 @@ test.describe("Foundations", () => {
     // English is the source language and the default; German is a full second language,
     // not a fallback (see CLAUDE.md, "Language").
     await page.goto("/");
-    const nav = page.getByTestId("layout-nav-clubs");
-    await expect(nav).toHaveText("Clubs");
+    // The links live in the left column on a wide screen and behind the burger on a
+    // phone (Story A-12); the switcher sits beside them in both.
+    await openNavigation(page);
+    await expect(page.getByTestId("layout-nav-clubs")).toHaveText("Clubs");
 
     await page.getByTestId("language-switcher-de").click();
     await expect(page.getByTestId("layout-nav-clubs")).toHaveText("Vereine");
@@ -191,5 +193,63 @@ test.describe("Foundations", () => {
       await expect(page.getByTestId(ready)).toBeVisible();
       await expectNoSidewaysScroll(page, testInfo);
     }
+  });
+});
+
+test.describe("A-12: the navigation moves with the viewport", () => {
+  test("wide screens get a left column and a breadcrumb, phones get a burger", async ({
+    page,
+  }, testInfo) => {
+    await page.goto("/series");
+
+    // Which arrangement this project gets is decided by its own viewport, so the test
+    // asserts the *pair*: exactly one of the two exists. Counts, not visibility — the
+    // point is that only one is in the document, because rendering both and hiding one
+    // with `hidden lg:flex` leaves two navigations and two breadcrumbs behind.
+    const wide = (page.viewportSize()?.width ?? 0) >= 1024;
+    await expect(page.getByTestId("layout-sidebar")).toHaveCount(wide ? 1 : 0);
+    await expect(page.getByTestId("layout-menu-button")).toHaveCount(wide ? 0 : 1);
+    await expect(page.getByTestId("layout-breadcrumb")).toHaveCount(1);
+
+    // The breadcrumb says where you are, in both. On a section's own landing page that is
+    // one crumb — repeating "Series › Series" would say nothing twice.
+    const crumb = page.getByTestId("layout-breadcrumb");
+    await expect(crumb).toBeVisible();
+    await expect(crumb.getByRole("listitem")).toHaveCount(1);
+
+    // ...and two once you are inside it, the second being the page's own title.
+    await page.goto("/series");
+    await page.getByTestId("series-list").getByRole("link").first().click();
+    await expect(crumb.getByRole("listitem")).toHaveCount(2);
+    const heading = await page.getByTestId("standings-header-title").textContent();
+    await expect(crumb).toContainText(heading!.trim());
+
+    // The first crumb leads back to the section.
+    await crumb.getByRole("link").first().click();
+    await expect(page).toHaveURL(/\/series$/);
+  });
+
+  test("the burger opens the links, and closes again on Escape and on a click", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const burger = page.getByTestId("layout-menu-button");
+    test.skip(!(await burger.isVisible()), "wide layout has no burger — its own test above");
+
+    await expect(page.getByTestId("layout-nav")).toHaveCount(0);
+    await expect(burger).toHaveAttribute("aria-expanded", "false");
+
+    await burger.click();
+    await expect(page.getByTestId("layout-menu")).toBeVisible();
+    await expect(burger).toHaveAttribute("aria-expanded", "true");
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("layout-menu")).toHaveCount(0);
+
+    // A menu left open over the page it just navigated to reads as a broken link.
+    await burger.click();
+    await page.getByTestId("layout-nav-clubs").click();
+    await expect(page).toHaveURL(/\/clubs$/);
+    await expect(page.getByTestId("layout-menu")).toHaveCount(0);
   });
 });

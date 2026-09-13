@@ -1,6 +1,6 @@
 import { expect, test, type Page, type TestInfo } from "@playwright/test";
 
-import { expectNoSidewaysScroll } from "./layout";
+import { expectNoSidewaysScroll, openNavigation } from "./layout";
 
 /** Story VA-9: running an event, in a real browser.
  *
@@ -423,6 +423,7 @@ test.describe("V-12: a club manager manages their own squad", () => {
     // The defect this story fixes: the permission existed and there was no door. So the
     // claim is about the nav, not about typing a URL.
     await page.goto("/");
+    await openNavigation(page);
     const link = page.getByTestId("layout-nav-myClub");
     await expect(link).toBeVisible();
     await link.click();
@@ -476,6 +477,7 @@ test.describe("V-12: a club manager manages their own squad", () => {
     // Not a redirect and not a blank page — the message says the area is not theirs, and
     // /club is where their work actually is.
     await expect(page.getByTestId("admin-access-error")).toBeVisible();
+    await openNavigation(page);
     await expect(page.getByTestId("layout-nav-admin")).toHaveCount(0);
   });
 });

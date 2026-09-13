@@ -10,7 +10,9 @@
     "account": "Konto",
     "admin": "Verwaltung",
     "help": "Hilfe",
-    "myClub": "Unser Verein"
+    "myClub": "Unser Verein",
+    "menu": "Menü",
+    "label": "Hauptnavigation"
   },
   "status": {
     "planned": "geplant",
@@ -60,5 +62,8 @@
     "requestFailed": "Die Anfrage ist fehlgeschlagen ({{status}}).",
     "noSeriesThisYear": "Für dieses Jahr gibt es noch keine Serie."
   },
-  "dateOpen": "Datum steht noch nicht fest"
+  "dateOpen": "Datum steht noch nicht fest",
+  "breadcrumb": {
+    "label": "Brotkrumennavigation"
+  }
 }

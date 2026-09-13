@@ -75,3 +75,20 @@ export async function expectNoSidewaysScroll(page: Page, testInfo: TestInfo): Pr
     ).toEqual({ innerWidth: configured, scrollWidth: measured.clientWidth });
   }
 }
+
+/** Makes the navigation links reachable, whichever layout this viewport gets.
+ *
+ * Story A-12: from `lg` up the links sit in a column on the left and are simply there;
+ * below that they are behind the burger. Every spec that clicks a nav link runs in both
+ * projects, so each of them would otherwise need the same two-line conditional — and the
+ * one that forgets it fails only in the `mobile` project, with "element is not visible",
+ * which reads like a broken link rather than a closed menu.
+ */
+export async function openNavigation(page: Page): Promise<void> {
+  const burger = page.getByTestId("layout-menu-button");
+  if (await burger.isVisible()) {
+    await burger.click();
+    await expect(page.getByTestId("layout-menu")).toBeVisible();
+  }
+  await expect(page.getByTestId("layout-nav")).toBeVisible();
+}

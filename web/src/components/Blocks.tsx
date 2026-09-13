@@ -1,10 +1,11 @@
 import { Card, Spinner } from "@heroui/react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { EventSummary } from "../api/types";
 import { locationText, matchdaySubtitle, statusText, eventDates } from "../lib/format";
+import { setPageTitle } from "./breadcrumb";
 import { slugify } from "../lib/testids";
 
 export function Loading({ text, testId }: { text?: string; testId?: string }) {
@@ -140,6 +141,16 @@ export function PageHeader({
   testId?: string;
 }) {
   const resolvedTestId = testId ?? `page-header-${slugify(title)}`;
+
+  // Publishes this page's name to the header's breadcrumb (Story A-12). In an effect, so
+  // it runs after the render that mounted this header rather than during it; the cleanup
+  // clears it, so a page without a `PageHeader` shows one crumb instead of the previous
+  // page's name.
+  useEffect(() => {
+    setPageTitle(title);
+    return () => setPageTitle(null);
+  }, [title]);
+
   return (
     <header
       data-testid={resolvedTestId}

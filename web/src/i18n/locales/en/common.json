@@ -10,7 +10,9 @@
     "account": "Account",
     "admin": "Admin",
     "help": "Help",
-    "myClub": "Our club"
+    "myClub": "Our club",
+    "menu": "Menu",
+    "label": "Main navigation"
   },
   "status": {
     "planned": "planned",
@@ -60,5 +62,8 @@
     "requestFailed": "The request failed ({{status}}).",
     "noSeriesThisYear": "There's no series yet for this year."
   },
-  "dateOpen": "Date to be confirmed"
+  "dateOpen": "Date to be confirmed",
+  "breadcrumb": {
+    "label": "Breadcrumb"
+  }
 }
