@@ -34,8 +34,19 @@ Acceptance criteria:
 - All 18 teams, places 1–18, fewer points rank higher.
 - For each matchday, the position achieved there is visible.
 - A not yet sailed matchday does not count.
+- **The table is the page.** The matchdays used to sit above it as a grid of cards, with
+  the series' free-text description above that and a paragraph explaining low-point
+  scoring below — so the ranking, which is the one thing a league table is opened for,
+  started below the fold. All three are gone.
+- **Each act column heading links to its matchday.** That is where the acts went, and it
+  is where a reader looking at a column of positions wants to go anyway. The heading is
+  narrow ("Act 2"), so the event's full name rides along as the link's `title`.
+- The scoring rule is not explained on the page. A "did not sail" cell says so in its own
+  tooltip, which is where the question is actually asked; a permanent paragraph restating
+  it was read once and skipped thereafter.
 
-Tests: `api/tests/stories/test_visitor.py::TestSeriesTable`
+Tests: `api/tests/stories/test_visitor.py::TestSeriesTable`,
+`e2e/visitor.spec.ts::B-1: as a fan I see the series standings`
 
 ### B-2 ● Review matchday results
 As a **fan** I want to **review how a matchday turned out**,

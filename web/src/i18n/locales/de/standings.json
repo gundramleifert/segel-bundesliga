@@ -2,11 +2,6 @@
   "loading": {
     "text": "Serientabelle wird geladen …"
   },
-  "scoringNote": "Gesegelt wird nach Low-Point-Wertung: weniger Punkte ist besser. Die Serientabelle addiert die Platzierungen der Acts. Wer bei einem Act gefehlt hat, trägt dort Teilnehmerzahl + 1.",
-  "eventsSection": {
-    "heading": "Veranstaltungen",
-    "empty": "Für diese Serie ist noch keine Veranstaltung angesetzt."
-  },
   "empty": {
     "noRaces": "In dieser Serie wurde noch keine Wettfahrt gesegelt.",
     "noEvents": "Für diese Serie ist noch keine Veranstaltung angesetzt."

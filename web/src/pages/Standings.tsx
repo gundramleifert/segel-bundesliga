@@ -1,47 +1,10 @@
-import type { ComponentProps } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CardGrid } from "../components/Layouts";
-import ReactMarkdown from "react-markdown";
 
 import { useGetSeriesTable, useListSeries } from "../api/generated/sbl";
 import { useAsync } from "../api/useApi";
-import {
-  ErrorMessage,
-  Loading,
-  Empty,
-  PageHeader,
-  MatchdayCard,
-  TableFrame,
-} from "../components/Blocks";
+import { ErrorMessage, Loading, Empty, PageHeader, TableFrame } from "../components/Blocks";
 import { formatPoints } from "../lib/format";
-
-/** Minimal Tailwind styling for the series' Markdown description — this project has no
- *  typography plugin, so headings, emphasis and paragraphs are styled element by element
- *  rather than through a `prose` class. */
-const MARKDOWN_COMPONENTS = {
-  h1: (props: ComponentProps<"h2">) => (
-    <h2 className="mb-2 text-lg font-semibold text-slate-900" {...props} />
-  ),
-  h2: (props: ComponentProps<"h3">) => (
-    <h3 className="mb-2 text-base font-semibold text-slate-900" {...props} />
-  ),
-  h3: (props: ComponentProps<"h4">) => (
-    <h4 className="mb-2 text-sm font-semibold text-slate-900" {...props} />
-  ),
-  p: (props: ComponentProps<"p">) => (
-    <p className="mb-2 text-sm text-slate-600 last:mb-0" {...props} />
-  ),
-  ul: (props: ComponentProps<"ul">) => (
-    <ul className="mb-2 list-disc pl-5 text-sm text-slate-600 last:mb-0" {...props} />
-  ),
-  ol: (props: ComponentProps<"ol">) => (
-    <ol className="mb-2 list-decimal pl-5 text-sm text-slate-600 last:mb-0" {...props} />
-  ),
-  a: (props: ComponentProps<"a">) => (
-    <a className="underline underline-offset-2 hover:text-brand-700" {...props} />
-  ),
-};
 
 /** B-1: As a fan, I want to see where my team stands in the series.
  *
@@ -83,32 +46,12 @@ export function Standings() {
         testId="standings-header"
       />
 
-      {/* The series' events, front and center — same card as the home page and the
-          events list, so a matchday looks the same everywhere it appears. */}
-      <section data-testid="standings-events-section" className="mb-8">
-        <h2 className="mb-3 text-lg font-semibold">{t("eventsSection.heading")}</h2>
-        {data.events.length ? (
-          <CardGrid>
-            {data.events.map((event) => (
-              <li key={event.id}>
-                <MatchdayCard event={event} />
-              </li>
-            ))}
-          </CardGrid>
-        ) : (
-          <Empty testId="standings-events-empty">{t("eventsSection.empty")}</Empty>
-        )}
-      </section>
-
-      {/* Free-text, Markdown, written by the admin — nothing shown when absent. */}
-      {data.series.description && (
-        <div data-testid="standings-description" className="mb-6">
-          <ReactMarkdown components={MARKDOWN_COMPONENTS}>
-            {data.series.description}
-          </ReactMarkdown>
-        </div>
-      )}
-
+      {/* The table is the page. The matchdays used to sit above it as a grid of cards and
+          the series' free-text description above that, so the ranking — the one thing
+          someone opens a league table for — started below the fold. The acts are not
+          lost: every act column heading links to its matchday, which is where a reader
+          looking at that column's numbers wants to go anyway. The description still has
+          its home on the club and event pages; a standings page is not a place to read. */}
       {/* A series without a sailed event has no table — saying so plainly is clearer
           than showing an empty grid. */}
       {!data.rows.length ? (
@@ -140,9 +83,17 @@ export function Standings() {
                   key={event.id}
                   scope="col"
                   className="w-20 px-3 py-3 text-center font-medium text-slate-600"
-                  title={event.title}
                 >
-                  {t("table.act", { matchday: event.matchday })}
+                  {/* The heading is the way into the matchday. `title` carries the event's
+                      full name, because the column is only wide enough for "Act 2". */}
+                  <Link
+                    to={`/events/${event.id}`}
+                    data-testid={`standings-event-link-${event.id}`}
+                    title={event.title}
+                    className="underline-offset-2 hover:text-slate-900 hover:underline"
+                  >
+                    {t("table.act", { matchday: event.matchday })}
+                  </Link>
                 </th>
               ))}
             </tr>
@@ -196,9 +147,6 @@ export function Standings() {
           </tbody>
         </table>
       </TableFrame>
-      {/* The scoring rule itself is short and unconditional — it stays here as a
-          permanent legend, independent of whatever the series' own description says. */}
-      <p className="mt-3 text-sm text-slate-500">{t("scoringNote")}</p>
       </>
       )}
     </>

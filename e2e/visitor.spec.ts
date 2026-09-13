@@ -61,6 +61,26 @@ test.describe("B-1: as a fan I see the series standings", () => {
     expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
   });
 
+  test("the table is the page, and each act column leads to its matchday", async ({
+    page,
+  }) => {
+    await page.goto(FIRST_SERIES);
+    await expect(page.getByTestId("standings-table")).toBeVisible();
+
+    // Nothing above the table any more: no grid of matchday cards, no series blurb, no
+    // paragraph explaining the scoring. The ranking is what the page is for.
+    await expect(page.getByTestId("standings-events-section")).toHaveCount(0);
+    await expect(page.getByTestId("standings-description")).toHaveCount(0);
+
+    // The acts are reachable from the column headings instead.
+    const columns = page.getByTestId("standings-table").getByRole("columnheader");
+    const actLink = columns.getByRole("link").first();
+    await expect(actLink).toBeVisible();
+    await actLink.click();
+    await expect(page).toHaveURL(/\/events\/\d+$/);
+    await expect(page.getByTestId("matchday-tabs")).toBeVisible();
+  });
+
   test("several series run at once, so the way in is an overview", async ({ page }) => {
     // Before the overview existed, the navigation went straight to whichever series
     // happened to be first for the year and the others were reachable only by URL.
