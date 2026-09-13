@@ -80,7 +80,9 @@ export function locationText(event: {
   host_club?: { name: string } | null;
 }): string {
   if (event.venue) {
-    return event.venue.water ? `${event.venue.name} · ${event.venue.water}` : event.venue.name;
+    // A comma, not a dot: the place and the water are one fact — where this is sailed —
+    // and the dot elsewhere separates facts of *different* kinds.
+    return event.venue.water ? `${event.venue.name}, ${event.venue.water}` : event.venue.name;
   }
   if (event.host_club) return i18n.t("common:hostedBy", { name: event.host_club.name });
   return i18n.t("common:venueUnknown");

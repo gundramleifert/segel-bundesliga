@@ -1,7 +1,7 @@
 {
   "loading": "Matchday is loading…",
   "racesCount": "{{scored}} of {{total}} races scored",
-  "liveUpdate": "standings are being updated live",
+  "liveUpdate": "updated live",
   "viewLabel": "View",
   "standingsTab": "Results",
   "pairingTab": "Pairing list",

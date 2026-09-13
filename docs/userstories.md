@@ -734,6 +734,12 @@ Acceptance criteria:
   the headings that belong with the columns.
 - The row header wraps: the title and badges on one line, the actions below, each with its
   own hit area.
+- **A matchday's facts are three lines, not one run.** Which competition, where and when,
+  and how far along — three kinds of fact, and as a single dot-separated string they were a
+  hundred and forty characters that wrapped mid-phrase. The status badge sits on the first
+  of them rather than on a row of its own: "which matchday is this, and where does it
+  stand" is one question. Within a group the separator is a comma ("Kiel, Kieler Förde"),
+  between groups a dot — so the dot always means "a different kind of fact".
 - **Tables are dense.** One rule sets cell padding for every data table (`.data-table` in
   `index.css`), because a results screen is read by scanning down it and generous padding
   means fewer rows in view and more scrolling to compare two of them. A cell that needs

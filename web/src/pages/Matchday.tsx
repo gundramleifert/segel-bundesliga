@@ -135,23 +135,31 @@ export function Matchday() {
 
   return (
     <>
-      <PageHeader
-        title={event.title}
-        testId="matchday-header"
-        right={<StatusBadge status={event.status} testId="matchday-status-badge" />}
-      />
+      <PageHeader title={event.title} testId="matchday-header" />
 
-      {/* Where and when, and how far along. Not a page subtitle — the breadcrumb names
-          the page — but the matchday's own facts, and the only place on this page they
-          appear. */}
-      <p data-testid="matchday-meta" className="mb-6 text-sm text-slate-600">
-        {[matchdaySubtitle(event), locationText(event), eventDates(event)]
-          .filter(Boolean)
-          .join(" · ")}
-        {" · "}
-        {t("racesCount", { scored: races_scored, total: races_total })}
-        {event.status === "live" && ` · ${t("liveUpdate")}`}
-      </p>
+      {/* The matchday's own facts — not a page subtitle, the breadcrumb names the page,
+          but the only place on this page these appear.
+          Three lines rather than one, because they are three kinds of fact and as a
+          single dot-separated run they were a hundred and forty characters that wrapped
+          mid-phrase: which competition this is, where and when it is sailed, and how far
+          along it is. Each line is short enough to survive a phone. */}
+      <div data-testid="matchday-meta" className="mb-6 space-y-0.5 text-sm">
+        {/* The state belongs on the identity line, not on a row of its own above it —
+            "which matchday is this, and where does it stand" is one question. */}
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <p className="font-medium text-slate-900">{matchdaySubtitle(event) ?? event.title}</p>
+          <StatusBadge status={event.status} testId="matchday-status-badge" />
+        </div>
+        <p className="text-slate-600">
+          {[locationText(event), eventDates(event)].filter(Boolean).join(" · ")}
+        </p>
+        <p className="text-slate-500">
+          {t("racesCount", { scored: races_scored, total: races_total })}
+          {event.status === "live" && (
+            <span className="text-emerald-700"> · {t("liveUpdate")}</span>
+          )}
+        </p>
+      </div>
 
       <TabbedView tabs={tabs} param="view" testIdPrefix="matchday" label={t("viewLabel")} />
     </>
