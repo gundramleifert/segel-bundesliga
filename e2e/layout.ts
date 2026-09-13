@@ -98,3 +98,26 @@ export async function openNavigation(page: Page): Promise<void> {
   }
   await expect(page.getByTestId("layout-nav")).toBeVisible();
 }
+
+/** Closes the burger panel again, if this viewport has one.
+ *
+ *  Needed before touching anything else in the frame: while the drawer is open its
+ *  backdrop covers the rest of the page on purpose, so a click on the account button is
+ *  correctly refused with "backdrop intercepts pointer events".
+ */
+export async function closeNavigation(page: Page): Promise<void> {
+  const menu = page.getByTestId("layout-menu");
+  if ((await menu.count()) === 0) return;
+  await page.keyboard.press("Escape");
+  await expect(menu).toHaveCount(0);
+}
+
+/** Opens the account menu — language, profile, help and the legal pages live behind it.
+ *
+ * The same button in both arrangements (Story A-12), so unlike `openNavigation` this
+ * needs no viewport check: the account button is in the frame at every width.
+ */
+export async function openUserMenu(page: Page): Promise<void> {
+  await page.getByTestId("layout-profile-button").click();
+  await expect(page.getByTestId("layout-user-menu")).toBeVisible();
+}

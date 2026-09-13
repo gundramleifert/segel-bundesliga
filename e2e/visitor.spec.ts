@@ -1,6 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-import { expectNoSidewaysScroll, openNavigation } from "./layout";
+import {
+  closeNavigation,
+  expectNoSidewaysScroll,
+  openNavigation,
+  openUserMenu,
+} from "./layout";
 
 /** E2E cut along the user stories — see docs/userstories.md.
  *
@@ -141,12 +146,20 @@ test.describe("Foundations", () => {
     // English is the source language and the default; German is a full second language,
     // not a fallback (see CLAUDE.md, "Language").
     await page.goto("/");
-    // The links live in the left column on a wide screen and behind the burger on a
-    // phone (Story A-12); the switcher sits beside them in both.
     await openNavigation(page);
     await expect(page.getByTestId("layout-nav-clubs")).toHaveText("Clubs");
+    // Closed again before touching the account button: on a phone the open drawer puts a
+    // backdrop over the rest of the frame, deliberately — while it is open, it is the
+    // only thing on the page.
+    await closeNavigation(page);
 
+    // The switcher lives in the account menu now, with the other things that are about
+    // the reader rather than the page (Story A-12).
+    await openUserMenu(page);
     await page.getByTestId("language-switcher-de").click();
+    await page.keyboard.press("Escape");
+
+    await openNavigation(page);
     await expect(page.getByTestId("layout-nav-clubs")).toHaveText("Vereine");
   });
 
@@ -227,6 +240,37 @@ test.describe("A-12: the navigation moves with the viewport", () => {
     // The first crumb leads back to the section.
     await crumb.getByRole("link").first().click();
     await expect(page).toHaveURL(/\/series$/);
+  });
+
+  test("the account button opens what is about the reader, not about the page", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    // Nothing is open until it is asked for — the frame carries only the navigation.
+    await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
+    await expect(page.getByTestId("layout-profile-button")).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+
+    await openUserMenu(page);
+    for (const key of ["profile", "help", "legalNotice", "privacy"]) {
+      await expect(page.getByTestId(`layout-user-menu-${key}`)).toBeVisible();
+    }
+    await expect(page.getByTestId("language-switcher")).toBeVisible();
+
+    // It opens for a guest too: the language and the legal pages belong to a visitor as
+    // much as to anybody.
+    await expect(page.getByTestId("layout-nav-help")).toHaveCount(0);
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
+
+    await openUserMenu(page);
+    await page.getByTestId("layout-user-menu-help").click();
+    await expect(page).toHaveURL(/\/help$/);
+    await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
   });
 
   test("the burger opens the links, and closes again on Escape and on a click", async ({

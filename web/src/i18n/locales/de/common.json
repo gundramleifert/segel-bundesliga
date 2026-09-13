@@ -7,9 +7,7 @@
     "series": "Serien",
     "events": "Veranstaltungen",
     "clubs": "Vereine",
-    "account": "Konto",
     "admin": "Verwaltung",
-    "help": "Hilfe",
     "myClub": "Unser Verein",
     "menu": "Menü",
     "label": "Hauptnavigation"
@@ -65,5 +63,12 @@
   "dateOpen": "Datum steht noch nicht fest",
   "breadcrumb": {
     "label": "Brotkrumennavigation"
+  },
+  "userMenu": {
+    "label": "Konto und Einstellungen",
+    "profile": "Profil",
+    "help": "Hilfe",
+    "legalNotice": "Impressum",
+    "privacy": "Datenschutz"
   }
 }

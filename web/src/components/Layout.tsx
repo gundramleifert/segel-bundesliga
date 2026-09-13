@@ -1,32 +1,24 @@
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 import { useAccount } from "../api/useApi";
 import { WIDE_LAYOUT, useMediaQuery } from "../lib/useMediaQuery";
 import { RoleSwitcher } from "../dev/RoleSwitcher";
 import { Breadcrumb } from "./Breadcrumb";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+import { UserMenu } from "./UserMenu";
+import { useDisclosure } from "../lib/useDisclosure";
 
+// What someone came to the site for, and nothing else. Help, the legal pages, the
+// language and the profile are each used rarely and none is about the page being read —
+// they live behind the account button instead (`UserMenu`).
 const NAV_ITEMS = [
   { path: "/", key: "start", exact: true },
   { path: "/series", key: "series", exact: false },
   { path: "/events", key: "events", exact: false },
   { path: "/clubs", key: "clubs", exact: false },
-  { path: "/help", key: "help", exact: false },
 ] as const;
 
 type NavItem = { path: string; key: string; exact: boolean };
-
-/** Initials for the profile button's avatar — there's no separate first/last name on
- *  `Account`, only `display_name`, so this splits on whitespace instead. One word gives
- *  its first two letters, several words give the first letter of the first and last. */
-function initials(displayName: string): string {
-  const parts = displayName.trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return "";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
-}
 
 /** The frame every page sits in — Story A-12.
  *
@@ -43,19 +35,7 @@ function initials(displayName: string): string {
 export function Layout() {
   const { t } = useTranslation();
   const { hasRole, account, loading } = useAccount();
-  const { pathname } = useLocation();
-  // The menu remembers *where* it was opened rather than whether it is open. Any
-  // navigation therefore closes it by arithmetic: a menu left standing over the page it
-  // just navigated to reads as a broken link. Derived rather than reset in an effect on
-  // `pathname`, which would re-render the whole frame a second time on every navigation
-  // to undo a state nobody wanted.
-  const [openedAt, setOpenedAt] = useState<string | null>(null);
-  const menuOpen = openedAt === pathname;
-  const setMenuOpen = (open: boolean) => setOpenedAt(open ? pathname : null);
-  // Which arrangement this viewport gets, decided in the DOM rather than with
-  // `hidden lg:flex`. Rendering both and hiding one leaves two navigations and two
-  // breadcrumbs in the document, which is ambiguous for assistive technology and for
-  // tests, and lets a click land on the copy nobody can see.
+  const menu = useDisclosure("site-menu");
   const wide = useMediaQuery(WIDE_LAYOUT);
 
   // Both extra entries appear only when they actually lead somewhere — a link that ends
@@ -66,52 +46,6 @@ export function Layout() {
     ...(hasRole("club_manager") ? [{ path: "/club", key: "myClub", exact: false }] : []),
     ...(hasRole("admin", "editor") ? [{ path: "/admin", key: "admin", exact: false }] : []),
   ];
-
-  // Escape closes it — the one keyboard gesture every overlay owes its reader. Listening
-  // only while it is open, and closing by clearing `openedAt` directly so the effect does
-  // not depend on a function rebuilt on every render.
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenedAt(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
-
-  const profile = (
-    /* Always present, signed in or not — signed out it's a plain account icon leading to
-       the sign-in form, signed in it becomes an initials avatar. Either way it's just a
-       link to `/account`, which already renders the right view for both cases. */
-    <Link
-      to="/account"
-      aria-label={t("nav.account")}
-      data-testid="layout-profile-button"
-      className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold uppercase transition-colors ${
-        account
-          ? "bg-brand-600 text-white hover:bg-brand-700"
-          : `bg-slate-100 text-slate-500 hover:bg-slate-200 ${loading ? "animate-pulse" : ""}`
-      }`}
-    >
-      {account ? (
-        initials(account.display_name)
-      ) : (
-        <svg
-          aria-hidden
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="size-4"
-        >
-          <circle cx="12" cy="8" r="3.5" />
-          <path d="M4.5 20c0-3.6 3.4-6.5 7.5-6.5s7.5 2.9 7.5 6.5" />
-        </svg>
-      )}
-    </Link>
-  );
 
   return (
     <div className="min-h-dvh bg-page text-ink lg:flex">
@@ -131,13 +65,12 @@ export function Layout() {
       {wide && (
         <div
           data-testid="layout-sidebar"
-          className="sticky top-0 flex h-dvh w-60 shrink-0 flex-col border-r border-slate-200 bg-white"
+          className="sticky top-0 flex h-dvh w-60 shrink-0 flex-col bg-white"
         >
-          <SiteLogo className="border-b border-slate-200 px-4 py-4" />
-          <NavList navigation={navigation} t={t} className="flex-1 overflow-y-auto px-3 py-4" />
-          <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
-            <LanguageSwitcher />
-            {profile}
+          <SiteLogo className="px-4 py-4" />
+          <NavList navigation={navigation} t={t} className="flex-1 overflow-y-auto px-3 py-2" />
+          <div className="flex items-center justify-end px-4 py-3">
+            <UserMenu account={account} loading={loading} placement="top" />
           </div>
         </div>
       )}
@@ -148,16 +81,14 @@ export function Layout() {
             thumb and eye already expect them. */}
         <header
           data-testid="layout-header"
-          className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur"
+          className="sticky top-0 z-40 bg-white/90 backdrop-blur"
         >
           {!wide && (
           <div className="flex items-center gap-3 px-4 py-3">
             <button
               type="button"
+              {...menu.triggerProps}
               aria-label={t("nav.menu")}
-              aria-expanded={menuOpen}
-              aria-controls="site-menu"
-              onClick={() => setMenuOpen(!menuOpen)}
               data-testid="layout-menu-button"
               className="grid size-9 shrink-0 place-items-center rounded-md text-slate-700 hover:bg-slate-100"
             >
@@ -170,7 +101,7 @@ export function Layout() {
                 strokeLinecap="round"
                 className="size-5"
               >
-                {menuOpen ? (
+                {menu.open ? (
                   <>
                     <path d="M6 6l12 12" />
                     <path d="M18 6L6 18" />
@@ -185,7 +116,9 @@ export function Layout() {
               </svg>
             </button>
             <SiteLogo className="mx-auto min-w-0" />
-            {profile}
+            {/* Top right, where a phone's account button belongs — and the menu opens
+                downward from it, pinned to the same edge. */}
+            <UserMenu account={account} loading={loading} />
           </div>
           )}
 
@@ -194,7 +127,7 @@ export function Layout() {
               saying where you are. */}
           <div
             className={`flex min-w-0 items-center gap-3 ${
-              wide ? "px-6 py-3" : "border-t border-slate-100 px-4 py-2"
+              wide ? "px-6 py-3" : "px-4 pb-2"
             }`}
           >
             <Breadcrumb />
@@ -203,30 +136,27 @@ export function Layout() {
 
         {/* The panel behind the burger. An overlay, so it adds no width to the page
             (Story A-10) and no layout shift when it opens. */}
-        {!wide && menuOpen && (
+        {!wide && menu.open && (
           <>
             <button
               type="button"
               aria-hidden
               tabIndex={-1}
-              onClick={() => setMenuOpen(false)}
+              onClick={menu.close}
               data-testid="layout-menu-backdrop"
               className="fixed inset-0 z-40 bg-slate-900/30"
             />
             <div
-              id="site-menu"
+              {...menu.panelProps}
               data-testid="layout-menu"
-              className="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[80vw] flex-col border-r border-slate-200 bg-white shadow-xl"
+              className="fixed inset-y-0 left-0 z-50 flex w-64 max-w-[80vw] flex-col bg-white shadow-xl"
             >
-              <SiteLogo className="border-b border-slate-200 px-4 py-4" />
+              <SiteLogo className="px-4 py-4" />
               <NavList
                 navigation={navigation}
                 t={t}
-                className="flex-1 overflow-y-auto px-3 py-4"
+                className="flex-1 overflow-y-auto px-3 py-2"
               />
-              <div className="border-t border-slate-200 px-4 py-3">
-                <LanguageSwitcher />
-              </div>
             </div>
           </>
         )}
@@ -254,7 +184,7 @@ export function Layout() {
             (see `dev/RoleSwitcher.tsx`), so the real site pays no dead space for it. */}
         <footer
           data-testid="layout-footer"
-          className={`border-t border-slate-200 bg-white ${import.meta.env.DEV ? "pb-24" : ""}`}
+          className={`bg-white ${import.meta.env.DEV ? "pb-24" : ""}`}
         >
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-6 text-sm text-slate-500">
             {/* Once results from SAP Sailing Analytics are shown, the SAP attribution

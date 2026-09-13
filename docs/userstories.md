@@ -788,6 +788,23 @@ Acceptance criteria:
 - **Neither layout may widen the page** (Story A-10). The sidebar is a fixed column that
   does not shrink and the content column may be narrower than its content; on a phone the
   panel is an overlay, so it adds no width at all.
+- **The account button opens a menu**, in both arrangements, holding everything that is
+  about the *reader* rather than the page: the language switcher, Profile, Help, and the
+  two legal pages. Each of those is used rarely, and as separate items in the frame they
+  competed with the navigation for room — Help was a main nav entry beside Series and
+  Clubs, which is not what someone comes to the site for.
+  - It opens for a guest as well. The language and the legal pages belong to a visitor as
+    much as to anybody; only the avatar changes, from initials to a plain account icon.
+  - On a phone it sits **top right**, where a phone's account button belongs, and opens
+    downward pinned to that edge.
+  - Escape closes it, a click outside closes it, following a link in it closes it —
+    the same three rules as the burger panel, which is why both use `useDisclosure`.
+  - The legal pages **stay in the footer too**. § 5 DDG wants them reachable from every
+    page and the footer is where people look for them; the menu is an addition, not a
+    move.
+- **No hairlines in the frame.** Sidebar, header, breadcrumb row, drawer and footer are
+  separated by the page's own background colour rather than by 1px borders. The borders
+  were drawing boxes around regions that a change of background already distinguishes.
 - The navigation entries themselves do not change: `admin` and `Our club` still appear only
   for the roles that can use them, because a link that ends in a 403 is worse than no link.
 
