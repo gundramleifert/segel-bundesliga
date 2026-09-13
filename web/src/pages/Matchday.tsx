@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { Tip } from "../components/Tip";
+
 import {
   getGetAdminRacesQueryKey,
   getGetEventQueryKey,
@@ -201,7 +203,14 @@ function StandingsTable({
   perFlight: number;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
-  const [mode, setMode] = useState<PointsMode>("exact");
+  const [chosenMode, setMode] = useState<PointsMode>("exact");
+  // Extrapolation projects the flights that have not been sailed yet, so it only means
+  // anything while the matchday is running. On a finished or cancelled day there is
+  // nothing left to project and the "provisional" column would be the same numbers with
+  // an italic face and a disclaimer — so the choice is not offered, and the mode is
+  // pinned to `exact` rather than left wherever it happened to be when racing ended.
+  const canProject = event.status === "live";
+  const mode: PointsMode = canProject ? chosenMode : "exact";
   const flightsStarted = startedFlights(standings, perFlight);
 
   // Rows always keep the backend's own order — `rank`, official, fewer points ranking higher
@@ -210,6 +219,7 @@ function StandingsTable({
   // reorder the official table only ever made a projection look like a result.
   return (
     <>
+      {canProject && (
       <div className="mb-3 flex items-center justify-end gap-2">
         <span className="text-sm text-slate-600">{t("pointsModeLabel")}</span>
         <div
@@ -219,24 +229,28 @@ function StandingsTable({
           className="flex shrink-0 overflow-hidden rounded-md border border-slate-300 text-xs"
         >
           {(["exact", "extrapolate"] as const).map((value) => (
-            <button
+            <Tip
               key={value}
-              type="button"
-              aria-pressed={mode === value}
-              onClick={() => setMode(value)}
-              title={t(value === "exact" ? "pointsModeExactHint" : "pointsModeExtrapolateHint")}
-              data-testid={`matchday-standings-mode-${value}`}
-              className={`px-2 py-1.5 transition-colors ${
-                mode === value
-                  ? "bg-brand-600 font-medium text-white"
-                  : "bg-white text-slate-600 hover:bg-slate-100"
-              }`}
+              text={t(value === "exact" ? "pointsModeExactHint" : "pointsModeExtrapolateHint")}
             >
-              {t(value === "exact" ? "pointsModeExact" : "pointsModeExtrapolate")}
-            </button>
+              <button
+                type="button"
+                aria-pressed={mode === value}
+                onClick={() => setMode(value)}
+                data-testid={`matchday-standings-mode-${value}`}
+                className={`px-2 py-1.5 transition-colors ${
+                  mode === value
+                    ? "bg-brand-600 font-medium text-white"
+                    : "bg-white text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {t(value === "exact" ? "pointsModeExact" : "pointsModeExtrapolate")}
+              </button>
+            </Tip>
           ))}
         </div>
       </div>
+      )}
       <TableFrame testId="matchday-standings-table-frame">
       <table
         data-testid="matchday-standings-table"
@@ -252,29 +266,30 @@ function StandingsTable({
             <th scope="col" className="font-medium text-slate-600">
               {t("teamHeader")}
             </th>
-            <th
-              scope="col"
-              title={mode === "extrapolate" ? t("projectedTooltip") : undefined}
-              className="w-32 text-right font-medium text-slate-600"
-            >
-              {/* Always "Points", in both modes: the column is about points either way, and
-                  the toggle above already says how they are arrived at. A header that renamed
-                  itself read as a different quantity rather than the same one computed
-                  differently. */}
-              {t("pointsHeader")}
-            </th>
+            <Tip text={mode === "extrapolate" ? t("projectedTooltip") : undefined}>
+              <th
+                scope="col"
+                className="w-32 text-right font-medium text-slate-600"
+              >
+                {/* Always "Points", in both modes: the column is about points either way, and
+                    the toggle above already says how they are arrived at. A header that renamed
+                    itself read as a different quantity rather than the same one computed
+                    differently. */}
+                {t("pointsHeader")}
+              </th>
+            </Tip>
             <th scope="col" className="w-16 text-right font-medium text-slate-600">
               {t("racesHeader")}
             </th>
             {flights.map((flight) => (
-              <th
-                key={flight}
-                scope="col"
-                title={t("flightColumnHeader", { number: flight })}
-                className="w-12 text-right font-medium text-slate-600"
-              >
-                {flight}
-              </th>
+              <Tip key={flight} text={t("flightColumnHeader", { number: flight })}>
+                <th
+                  scope="col"
+                  className="w-12 text-right font-medium text-slate-600"
+                >
+                  {flight}
+                </th>
+              </Tip>
             ))}
           </tr>
         </thead>
@@ -293,22 +308,29 @@ function StandingsTable({
               >
                 <td className="font-semibold tabular-nums">{row.rank}</td>
                 <td>
-                  <Link
-                    to={`/clubs/${row.team.club.id}`}
-                    data-testid={`matchday-standings-club-link-${row.team.id}`}
-                    className="font-medium underline-offset-2 hover:underline"
-                  >
-                    {row.team.club.name}
-                  </Link>
+                  {/* The abbreviation, with the full name in the tooltip. Eighteen club
+                      names set the width of this column on their own, and the people
+                      reading a standings table know their abbreviations — that is what
+                      abbreviations are for, and every pairing list already uses them. */}
+                  <Tip text={row.team.club.name}>
+                    <Link
+                      to={`/clubs/${row.team.club.id}`}
+                      data-testid={`matchday-standings-club-link-${row.team.id}`}
+                      className="font-medium underline-offset-2 hover:underline"
+                    >
+                      {row.team.club.short_name}
+                    </Link>
+                  </Tip>
                 </td>
                 {mode === "extrapolate" ? (
-                  <td
-                    title={t("projectedTooltip")}
-                    data-testid={`matchday-standings-projected-${row.team.id}`}
-                    className="text-right font-semibold italic tabular-nums text-slate-700"
-                  >
-                    {formatPoints(extrapolated)}
-                  </td>
+                  <Tip text={t("projectedTooltip")}>
+                    <td
+                      data-testid={`matchday-standings-projected-${row.team.id}`}
+                      className="text-right font-semibold italic tabular-nums text-slate-700"
+                    >
+                      {formatPoints(extrapolated)}
+                    </td>
+                  </Tip>
                 ) : (
                   <td
                     data-testid={`matchday-standings-points-${row.team.id}`}
@@ -346,14 +368,14 @@ function StandingsTable({
                     );
                   }
                   return (
-                    <td
-                      key={flight}
-                      title={t("projectedFlightTooltip")}
-                      data-testid={`matchday-standings-flight-projected-${row.team.id}-${flight}`}
-                      className="text-right italic tabular-nums text-slate-400"
-                    >
-                      {formatPoints(average)}
-                    </td>
+                    <Tip key={flight} text={t("projectedFlightTooltip")}>
+                      <td
+                        data-testid={`matchday-standings-flight-projected-${row.team.id}-${flight}`}
+                        className="text-right italic tabular-nums text-slate-400"
+                      >
+                        {formatPoints(average)}
+                      </td>
+                    </Tip>
                   );
                 })}
               </tr>
@@ -844,61 +866,62 @@ function RaceResultRow({
               <div className="mb-1 text-[11px] text-slate-400">{t("discardedNote")}</div>
             )}
             <div className="flex items-center gap-1.5">
-              <select
-                aria-label={t("codeHeader")}
-                title={codeTitle(row.code)}
-                className={`${INPUT_CLASS} flex-1 ${
-                  duplicateBoats.has(boat.number) ? "border-red-500 ring-2 ring-red-200" : ""
-                }`}
-                value={selectValue}
-                aria-invalid={duplicateBoats.has(boat.number)}
-                onChange={(e) => {
-                  const nextValue = e.target.value;
-                  const asPosition = Number(nextValue);
-                  if (nextValue !== "" && Number.isInteger(asPosition) && asPosition > 0) {
-                    setField(boat.number, { code: "FINISHED", finish_position: asPosition });
-                    return;
-                  }
-                  if (nextValue === "RDG") {
-                    const suggestionOnSwitch = redressSuggestion(
-                      existing.team.id,
-                      race.sequence,
-                      standings,
-                    );
-                    setField(boat.number, {
-                      code: nextValue,
-                      // Most redress cases are the plain A10 average — default to "auto"
-                      // whenever one can actually be computed, "fixed" only when there's
-                      // nothing yet to average (this team hasn't scored another race).
-                      redress_mode: suggestionOnSwitch != null ? "auto" : "fixed",
-                      redress_points: suggestionOnSwitch,
-                    });
-                    return;
-                  }
-                  setField(boat.number, { code: nextValue });
-                }}
-                data-testid={`matchday-results-code-select-${race.id}-${boat.number}`}
-              >
-                <option value="" disabled hidden>
-                  {t("resultPlaceholder")}
-                </option>
-                {Array.from({ length: starter }, (_, i) => i + 1).map((position) => (
-                  <option key={position} value={position} title={codeTitle("FINISHED")}>
-                    {position}
+              <Tip text={codeTitle(row.code)}>
+                <select
+                  aria-label={t("codeHeader")}
+                  className={`${INPUT_CLASS} flex-1 ${
+                    duplicateBoats.has(boat.number) ? "border-red-500 ring-2 ring-red-200" : ""
+                  }`}
+                  value={selectValue}
+                  aria-invalid={duplicateBoats.has(boat.number)}
+                  onChange={(e) => {
+                    const nextValue = e.target.value;
+                    const asPosition = Number(nextValue);
+                    if (nextValue !== "" && Number.isInteger(asPosition) && asPosition > 0) {
+                      setField(boat.number, { code: "FINISHED", finish_position: asPosition });
+                      return;
+                    }
+                    if (nextValue === "RDG") {
+                      const suggestionOnSwitch = redressSuggestion(
+                        existing.team.id,
+                        race.sequence,
+                        standings,
+                      );
+                      setField(boat.number, {
+                        code: nextValue,
+                        // Most redress cases are the plain A10 average — default to "auto"
+                        // whenever one can actually be computed, "fixed" only when there's
+                        // nothing yet to average (this team hasn't scored another race).
+                        redress_mode: suggestionOnSwitch != null ? "auto" : "fixed",
+                        redress_points: suggestionOnSwitch,
+                      });
+                      return;
+                    }
+                    setField(boat.number, { code: nextValue });
+                  }}
+                  data-testid={`matchday-results-code-select-${race.id}-${boat.number}`}
+                >
+                  <option value="" disabled hidden>
+                    {t("resultPlaceholder")}
                   </option>
-                ))}
-                {SPECIAL_CODES.map((code) => (
-                  <option key={code} value={code} title={codeTitle(code)}>
-                    {code}
-                  </option>
-                ))}
-              </select>
+                  {Array.from({ length: starter }, (_, i) => i + 1).map((position) => (
+                    <option key={position} value={position} title={codeTitle("FINISHED")}>
+                      {position}
+                    </option>
+                  ))}
+                  {SPECIAL_CODES.map((code) => (
+                    <option key={code} value={code} title={codeTitle(code)}>
+                      {code}
+                    </option>
+                  ))}
+                </select>
+              </Tip>
               <button
                 type="button"
                 onClick={() => tappable && tap(boat.number)}
                 disabled={!tappable}
                 aria-pressed={tappable ? complete : undefined}
-                title={
+                aria-label={
                   !tappable
                     ? t("tapLockedLabel", { code: row.code })
                     : complete

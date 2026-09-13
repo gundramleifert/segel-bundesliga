@@ -87,7 +87,7 @@ export function Help() {
         {/* Scrolls horizontally inside its own box on narrow screens, matching the
             approach TableFrame uses for results tables — the page itself never
             scrolls sideways. */}
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <div className="w-fit min-w-full rounded-xl border border-slate-200 bg-white">
           <table data-testid="help-roles-table" className="data-table w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-left">

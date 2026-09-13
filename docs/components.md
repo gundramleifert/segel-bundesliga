@@ -20,6 +20,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `Blocks.tsx` | `Loading`, `ErrorMessage`, `Empty`, `PageHeader`, `StatusBadge`, `TableFrame`, `MatchdayCard` |
 | `Layouts.tsx` | `Stack`, `CardGrid` |
 | `LinkCard.tsx` | `LinkCard` |
+| `Tip.tsx` | `Tip` — the tooltip, in place of `title` |
 | `Form.tsx` | `Section`, `Field`, `Message` |
 | `ClubSelector.tsx` | the two-pane club picker |
 | `Tabs.tsx` | `TabbedView` |
@@ -92,6 +93,28 @@ click re-toggle the native picker. `Message` renders a save's success or failure
 
 Plain `<input>` elements rather than HeroUI inputs: these forms are a tool, and a plain
 input behaves more predictably inside one than a component with its own state.
+
+### `Tip` — a tooltip
+
+```tsx
+<Tip text={club.name}>
+  <Link to={`/clubs/${club.id}`}>{club.short_name}</Link>
+</Tip>
+```
+
+Replaces the browser's `title` attribute, which is free and ugly: a system rectangle in
+the OS font, appearing after a delay nobody can change, and invisible on a touch screen.
+
+It **clones** its child rather than wrapping it, because half of these sit on a `<th>` or
+`<td>` that may not have a `<span>` between it and its row — so it adds handlers, not an
+element. The bubble is rendered through a portal and positioned `fixed`, because a CSS
+`::after` bubble is clipped by every ancestor that hides overflow, and the two places that
+most need a tooltip here are a `truncate`d name and a cell inside the horizontally
+scrolling panel. Empty `text` renders the child alone, so a caller may pass a value that is
+sometimes absent.
+
+In an iterator, the `key` belongs on the `Tip`, not on the child — it is the outer element
+now.
 
 ### `TabbedView` — tabs, with the selection in the URL
 

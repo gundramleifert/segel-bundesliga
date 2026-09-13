@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+
+import { Tip } from "./Tip";
 import { Link, useLocation } from "react-router-dom";
 
 import { usePageTitle } from "./breadcrumb";
@@ -56,13 +58,14 @@ export function Breadcrumb() {
               // the only place the page states its name, and a page with no `h1` has no
               // document outline for anyone reading it with a screen reader. Small type,
               // real heading.
-              <h1
-                aria-current="page"
-                className="truncate text-sm font-medium text-slate-700"
-                title={crumb.label}
-              >
-                {crumb.label}
-              </h1>
+              <Tip text={crumb.label}>
+                <h1
+                  aria-current="page"
+                  className="truncate text-sm font-medium text-slate-700"
+                >
+                  {crumb.label}
+                </h1>
+              </Tip>
             )}
           </li>
         ))}

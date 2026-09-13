@@ -1,6 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { Tip } from "../components/Tip";
+
 import { useGetSeriesTable, useListSeries } from "../api/generated/sbl";
 import { useAsync } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader, TableFrame } from "../components/Blocks";
@@ -63,7 +65,7 @@ export function Standings() {
       ) : (
       <>
       <TableFrame testId="standings-table-frame">
-        <table data-testid="standings-table" className="data-table w-full min-w-[36rem] border-collapse text-sm">
+        <table data-testid="standings-table" className="data-table w-full min-w-[28rem] border-collapse text-sm">
           <caption className="sr-only">
             {t("caption", { seriesName: data.series.name })}
           </caption>
@@ -84,16 +86,17 @@ export function Standings() {
                   scope="col"
                   className="w-20 text-center font-medium text-slate-600"
                 >
-                  {/* The heading is the way into the matchday. `title` carries the event's
-                      full name, because the column is only wide enough for "Act 2". */}
-                  <Link
-                    to={`/events/${event.id}`}
-                    data-testid={`standings-event-link-${event.id}`}
-                    title={event.title}
-                    className="underline-offset-2 hover:text-slate-900 hover:underline"
-                  >
-                    {t("table.act", { matchday: event.matchday })}
-                  </Link>
+                  {/* The heading is the way into the matchday. The tooltip carries the
+                      event's full name — the column fits only "Act 2". */}
+                  <Tip text={event.title}>
+                    <Link
+                      to={`/events/${event.id}`}
+                      data-testid={`standings-event-link-${event.id}`}
+                      className="underline-offset-2 hover:text-slate-900 hover:underline"
+                    >
+                      {t("table.act", { matchday: event.matchday })}
+                    </Link>
+                  </Tip>
                 </th>
               ))}
             </tr>
@@ -109,14 +112,18 @@ export function Standings() {
                   {row.rank}
                 </td>
                 <td>
-                  <Link
-                    to={`/clubs/${row.team.club.id}`}
-                    data-testid={`standings-club-link-${row.team.id}`}
-                    className="font-medium text-slate-900 underline-offset-2 hover:underline"
-                  >
-                    {row.team.club.name}
-                  </Link>
-                  <span className="ml-2 text-slate-500">{row.team.club.short_name}</span>
+                  {/* The abbreviation carries the row, the full name is the tooltip. It
+                      used to be both side by side, which set this column's width from the
+                      longest of eighteen club names. */}
+                  <Tip text={row.team.club.name}>
+                    <Link
+                      to={`/clubs/${row.team.club.id}`}
+                      data-testid={`standings-club-link-${row.team.id}`}
+                      className="font-medium text-slate-900 underline-offset-2 hover:underline"
+                    >
+                      {row.team.club.short_name}
+                    </Link>
+                  </Tip>
                 </td>
                 <td className="text-right font-semibold tabular-nums">
                   {formatPoints(row.points)}
@@ -126,20 +133,26 @@ export function Standings() {
                     key={event.id}
                     className="text-center tabular-nums text-slate-500"
                   >
-                    <span
-                      className={
-                        row.missed_matchdays?.includes(event.matchday ?? 0)
-                          ? "italic text-slate-400"
-                          : ""
-                      }
-                      title={
+                    {/* The rule lives here, on the cell that raises the question — a boat
+                        that missed this act shows "field size + 1", and that is where
+                        someone asks why. It used to be a paragraph under the table. */}
+                    <Tip
+                      text={
                         row.missed_matchdays?.includes(event.matchday ?? 0)
                           ? t("table.notSailed")
-                          : undefined
+                          : null
                       }
                     >
-                      {row.ranks_by_matchday[String(event.matchday)] ?? "–"}
-                    </span>
+                      <span
+                        className={
+                          row.missed_matchdays?.includes(event.matchday ?? 0)
+                            ? "italic text-slate-400"
+                            : ""
+                        }
+                      >
+                        {row.ranks_by_matchday[String(event.matchday)] ?? "–"}
+                      </span>
+                    </Tip>
                   </td>
                 ))}
               </tr>

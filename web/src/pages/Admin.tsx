@@ -3,6 +3,8 @@ import { useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { Tip } from "../components/Tip";
+
 import { Stack } from "../components/Layouts";
 import {
   getListAllClubsQueryKey,
@@ -256,12 +258,12 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
           No cache-busting suffix on the image: `logo_url` already carries the file's mtime
           as a `?v=` stamp (`app/crests.py`), so a replaced crest arrives under a new URL on
           its own once the list is invalidated. */}
+      <Tip text={label}>
       <button
         type="button"
         onClick={() => fileInput.current?.click()}
         disabled={upload.isPending}
         aria-label={`${label}: ${club.name}`}
-        title={label}
         data-testid={`admin-club-crest-edit-${club.id}`}
         className="crest-backdrop group relative grid size-10 shrink-0 cursor-pointer place-items-center overflow-hidden rounded border border-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
       >
@@ -304,6 +306,7 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
           )}
         </span>
       </button>
+      </Tip>
 
       <div className="min-w-0 flex-1">
         <Link

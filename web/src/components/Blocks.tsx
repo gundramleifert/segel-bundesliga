@@ -109,7 +109,13 @@ export function TableFrame({
   return (
     <div
       data-testid={testId ?? "table-frame"}
-      className="rounded-xl border border-slate-200 bg-white"
+      // `w-fit min-w-full`, not a plain block. Since the *panel* scrolls rather than this
+      // box, a block-level frame is sized by the panel's content box — 412px on a phone —
+      // while the table inside it is wider and simply overflows it. The white background
+      // and the border then stop where the frame does, and the rest of the table sits on
+      // the page's grey. Shrink-to-fit makes the frame as wide as the table, and
+      // `min-w-full` keeps it full width when the table is narrower.
+      className="w-fit min-w-full rounded-xl border border-slate-200 bg-white"
     >
       {children}
     </div>

@@ -81,6 +81,25 @@ test.describe("B-1: as a fan I see the series standings", () => {
     await expect(page.getByTestId("matchday-tabs")).toBeVisible();
   });
 
+  test("a short club name carries its full name in a tooltip", async ({ page }) => {
+    await page.goto(FIRST_SERIES);
+    const club = page.getByTestId("standings-table").getByTestId(/standings-club-link-/).first();
+    await expect(club).toBeVisible();
+
+    // The cell shows the abbreviation — the column's width is set by eighteen of these,
+    // and a standings reader knows them.
+    const short = (await club.textContent())!.trim();
+    expect(short.length).toBeLessThan(12);
+
+    // Hovering names the club in full, in our own tooltip rather than the browser's.
+    await expect(page.getByTestId("tooltip")).toHaveCount(0);
+    await club.hover();
+    const tip = page.getByTestId("tooltip");
+    await expect(tip).toBeVisible();
+    await expect(tip).toHaveAttribute("role", "tooltip");
+    expect((await tip.textContent())!.length).toBeGreaterThan(short.length);
+  });
+
   test("several series run at once, so the way in is an overview", async ({ page }) => {
     // Before the overview existed, the navigation went straight to whichever series
     // happened to be first for the year and the others were reachable only by URL.
