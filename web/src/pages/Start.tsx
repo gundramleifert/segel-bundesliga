@@ -4,7 +4,7 @@ import { CardGrid } from "../components/Layouts";
 import { Link } from "react-router-dom";
 
 import { useListEvents, useListSeries } from "../api/generated/sbl";
-import { useAsync } from "../api/useApi";
+import { WHOLE_LIST, useAsync, useAsyncRows } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, MatchdayCard } from "../components/Blocks";
 import { dateRange } from "../lib/format";
 
@@ -15,7 +15,9 @@ import { dateRange } from "../lib/format";
  */
 export function Start() {
   const { t } = useTranslation("start");
-  const eventsQuery = useAsync(useListEvents());
+  // The whole list: the home page counts each series' acts out of it, and a count taken
+  // from one page would simply be wrong (Story A-13).
+  const eventsQuery = useAsyncRows(useListEvents({ limit: WHOLE_LIST }));
   const seriesList = useAsync(useListSeries());
 
   if (eventsQuery.loading || seriesList.loading) return <Loading testId="start-loading" />;

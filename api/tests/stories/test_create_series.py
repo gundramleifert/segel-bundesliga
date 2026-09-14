@@ -5,6 +5,7 @@ which ones participate — this generates the teams.
 """
 
 from app.models.auth import Role
+from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
@@ -14,7 +15,7 @@ async def as_role(client, caplog, email: str, *roles: str) -> dict[str, str]:
 
 
 async def clubs(client, count: int = 3) -> list[dict]:
-    return (await client.get("/api/clubs")).json()[:count]
+    return (await all_items(client, "/api/clubs"))[:count]
 
 
 class TestSeriesCreation:
@@ -72,7 +73,7 @@ class TestSeriesCreation:
             )
         ).json()
 
-        public = (await client.get("/api/clubs", params={"series": series["id"]})).json()
+        public = await all_items(client, "/api/clubs", params={"series": series["id"]})
         assert {c["id"] for c in public} == {v["id"] for v in selected}
 
     async def test_participants_can_be_changed_later(self, client, caplog):
@@ -139,7 +140,7 @@ class TestSeriesCreation:
             json={"name": "Future 2030", "year": 2030},
         )
 
-        all_series = (await client.get("/api/admin/series", headers=headers)).json()
+        all_series = await all_items(client, "/api/admin/series", headers=headers)
         years = {s["year"] for s in all_series}
         assert 2026 in years and 2030 in years
 

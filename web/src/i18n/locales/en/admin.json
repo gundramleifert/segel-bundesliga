@@ -120,7 +120,10 @@
     "loadingText": "Searching ...",
     "emptyText": "No one found for this search.",
     "registrationsLabel": "{{count}} registration",
-    "registrationsLabelPlural": "{{count}} registrations"
+    "registrationsLabelPlural": "{{count}} registrations",
+    "nameHeader": "Name",
+    "emailHeader": "Email",
+    "squadsHeader": "Registrations"
   },
   "squad": {
     "title": "Squad",
@@ -165,7 +168,11 @@
       "editor": "Editor",
       "race_officer": "Race officer",
       "club_manager": "Club manager"
-    }
+    },
+    "nameHeader": "Name",
+    "emailHeader": "Email",
+    "clubHeader": "Club",
+    "rolesHeader": "Roles"
   },
   "page": {
     "title": "Administration",
@@ -224,6 +231,18 @@
     "finishedHint": "Racing is over. Results stay editable: a protest heard weeks from now still lands here.",
     "cancelledHint": "This event was called off. Nothing was deleted, and it counts in no series standings — being at a regatta that was called off costs nobody anything.",
     "reopenFinishedButton": "Resume racing",
-    "reopenCancelledButton": "Reinstate the event"
+    "reopenCancelledButton": "Reinstate the event",
+    "printTitle": "How it prints",
+    "printHint": "The pairing list as a PDF: what crews take to the boat. Left empty, the font size follows the matchday's size — the sizes real league sheets are printed at.",
+    "printFontLabel": "Font size",
+    "printFontHint": "Points. Empty means derived from flights and races.",
+    "printFontAuto": "automatic",
+    "printLandscapeLabel": "Landscape",
+    "printTeamPagesLabel": "One page per team",
+    "savePrintButton": "Save print settings",
+    "printSavedMessage": "Print settings saved.",
+    "searchLabel": "Search",
+    "searchHint": "Title, venue or host club.",
+    "searchPlaceholder": "Search events"
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 
 import { useListClubs } from "../api/generated/sbl";
@@ -8,38 +8,45 @@ import { Empty, PageHeader } from "../components/Blocks";
 import { Async } from "../components/Async";
 import { CardGrid } from "../components/Layouts";
 import { LinkCard } from "../components/LinkCard";
+import { Pager } from "../components/Pager";
+import { useListParams, type ListParams } from "../lib/listParams";
 
 /** B-4: As a visitor, I want to find the participating clubs. */
 export function Clubs() {
   const { t } = useTranslation("clubs");
-  const clubs = useAsync(useListClubs());
-  const [filter, setFilter] = useState("");
+  // Searching and paging happen on the server, with both in the URL (Story A-13). This
+  // page used to fetch every club and filter in the browser, which could only ever find
+  // what was already downloaded — and a search that quietly searches a subset is worse
+  // than none. `keepPreviousData` keeps the cards on screen while the next answer loads.
+  const list = useListParams();
+  const clubs = useAsync(
+    useListClubs(
+      { ...list.request, q: list.q || undefined },
+      { query: { placeholderData: keepPreviousData } },
+    ),
+  );
 
   return (
-    <Async state={clubs} testId="clubs" loadingText={t("loading")} empty={t("empty")}>
-      {(data) => <ClubList data={data} filter={filter} setFilter={setFilter} />}
+    <Async
+      state={clubs}
+      testId="clubs"
+      loadingText={t("loading")}
+      // No `empty`: an empty answer to a *search* is not an empty club list, and the two
+      // need different words. `ClubList` draws its own.
+    >
+      {(page) => <ClubList page={page} params={list} />}
     </Async>
   );
 }
 
 function ClubList({
-  data,
-  filter,
-  setFilter,
+  page,
+  params,
 }: {
-  data: Club[];
-  filter: string;
-  setFilter: (value: string) => void;
+  page: { items: Club[]; total: number; limit: number; offset: number };
+  params: ListParams;
 }) {
   const { t } = useTranslation("clubs");
-  const term = filter.trim().toLowerCase();
-  const matches = (club: Club) =>
-    !term ||
-    club.name.toLowerCase().includes(term) ||
-    club.short_name.toLowerCase().includes(term) ||
-    (club.city ?? "").toLowerCase().includes(term);
-
-  const filtered = data.filter(matches);
 
   return (
     <>
@@ -50,18 +57,22 @@ function ClubList({
 
       <input
         type="search"
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
+        value={params.q}
+        onChange={(e) => params.setQuery(e.target.value)}
         placeholder={t("searchPlaceholder")}
         aria-label={t("searchPlaceholder")}
         data-testid="clubs-search-input"
         className="mb-4 w-full max-w-sm rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
       />
 
-      {!filtered.length && <Empty testId="clubs-no-matches">{t("noMatches")}</Empty>}
+      {!page.items.length && (
+        <Empty testId={params.q ? "clubs-no-matches" : "clubs-empty"}>
+          {params.q ? t("noMatches") : t("empty")}
+        </Empty>
+      )}
 
       <CardGrid columns={3} testId="clubs-list">
-        {filtered.map((club) => (
+        {page.items.map((club) => (
           <li key={club.id}>
             <LinkCard
               to={`/clubs/${club.id}`}
@@ -90,6 +101,7 @@ function ClubList({
           </li>
         ))}
       </CardGrid>
+      <Pager page={page} current={params.page} onPage={params.setPage} testId="clubs" />
     </>
   );
 }

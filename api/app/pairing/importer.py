@@ -49,6 +49,9 @@ class PairingImportError(ValueError):
 class BoatSpec:
     number: int
     color: str | None
+    # What the boat is called at the dock. Optional because a draw only needs the position:
+    # a list that names no boats is printed with "Boat 1".."Boat N".
+    name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -90,7 +93,7 @@ def parse_schedule_config(text: str) -> ScheduleConfig:
     if not raw_boats:
         raise PairingImportError("schedule_cfg.yml contains no boats")
     boats = [
-        BoatSpec(number=index, color=_boat_color(entry))
+        BoatSpec(number=index, color=_boat_color(entry), name=_boat_name(entry))
         for index, entry in enumerate(raw_boats, start=1)
     ]
 
@@ -112,6 +115,14 @@ def _boat_color(entry: object) -> str | None:
         color = entry.get("color")
         return str(color) if color is not None else None
     return str(entry) if entry is not None else None
+
+
+def _boat_name(entry: object) -> str | None:
+    # Older lists write boats as bare color strings; those carry no name.
+    if isinstance(entry, dict):
+        name = entry.get("name")
+        return str(name) if name else None
+    return None
 
 
 def load_pairing_yaml(schedule_cfg: str, pairing_yaml: str) -> ImportedPairing:

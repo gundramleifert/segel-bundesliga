@@ -14,10 +14,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus, Team, TeamStatus
 from app.pairing import BoatSpec, ImportedPairing, PairingSlot, logistics_report, pairing_report
+from app.pairing.pdf import PdfRequest, PrintSettings
 
 
 class PairingPublishError(RuntimeError):
     """This pairing list cannot be published as it stands."""
+
+
+class TeamNotInPairing(RuntimeError):
+    """This team has no seat in the list that was drawn."""
 
 
 @dataclass
@@ -68,6 +73,74 @@ async def teams_for_event(session: AsyncSession, event: Event) -> list[Team]:
         .order_by(Team.name, Team.id)
     )
     return list(result.scalars())
+
+
+async def stored_pairing(
+    session: AsyncSession, event: Event, *, title: str, team_id: int | None = None
+) -> PdfRequest | None:
+    """The list an event has been drawn, in the shape the printer wants (Story B-3).
+
+    ``None`` when nothing has been drawn: there is no empty sheet worth printing.
+
+    The teams come from **the draw**, not from the event's current entry list. Those two
+    can differ — a club entered after the draw has no seat in it, one taken out still has
+    one — and the printed sheet has to show the list that will be sailed. Naming a club the
+    draw does not know would push every index along and put whole flights on the wrong
+    boat. Ordered by name like everywhere else, so the same draw always prints the same way.
+
+    With ``team_id`` the request is for that club's own page instead of the whole sheet,
+    and the print settings are the ones the organizer stored on the event.
+    """
+    boats = list(
+        (
+            await session.execute(
+                select(Boat).where(Boat.event_id == event.id).order_by(Boat.number)
+            )
+        ).scalars()
+    )
+
+    stmt = (
+        select(Race, RaceEntry, Flight, Team)
+        .join(Flight, Race.flight_id == Flight.id)
+        .join(RaceEntry, RaceEntry.race_id == Race.id)
+        .join(Team, RaceEntry.team_id == Team.id)
+        .where(Flight.event_id == event.id)
+        .order_by(Race.sequence)
+    )
+    rows = (await session.execute(stmt)).all()
+    if not rows or not boats:
+        return None
+
+    teams = sorted(
+        {team.id: team for _, _, _, team in rows}.values(), key=lambda t: (t.name, t.id)
+    )
+    index_by_team = {team.id: index for index, team in enumerate(teams)}
+    boat_number = {boat.id: boat.number for boat in boats}
+
+    if team_id is not None and team_id not in index_by_team:
+        raise TeamNotInPairing(
+            f"Team {team_id} has no seat in the pairing list of event {event.id}"
+        )
+
+    return PdfRequest(
+        teams=[team.name for team in teams],
+        boats=[
+            BoatSpec(number=boat.number, color=boat.color, name=boat.name) for boat in boats
+        ],
+        slots=[
+            PairingSlot(
+                flight=flight.number,
+                race_in_flight=race.number_in_flight,
+                sequence=race.sequence,
+                team_index=index_by_team[entry.team_id],
+                boat_number=boat_number[entry.boat_id],
+            )
+            for race, entry, flight, _team in rows
+        ],
+        title=title,
+        settings=PrintSettings.from_json(event.print_settings),
+        team_index=None if team_id is None else index_by_team[team_id],
+    )
 
 
 async def sailed_races(session: AsyncSession, event_id: int) -> int:

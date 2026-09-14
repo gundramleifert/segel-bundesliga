@@ -13,6 +13,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Club, Event, Series, Team, TeamMembership
 from app.models.auth import Role
+from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
@@ -171,9 +172,9 @@ class TestCreatingSailors:
                 "email": "findus.suchbar@example.com",
             },
         )
-        matches = (
-            await client.get("/api/admin/sailors?q=suchbar", headers=header)
-        ).json()
+        matches = await all_items(
+            client, "/api/admin/sailors", headers=header, params={"q": "suchbar"}
+        )
         assert [t["last_name"] for t in matches] == ["Suchbar"]
 
     async def test_a_name_can_be_corrected(self, client, caplog):
@@ -545,7 +546,7 @@ class TestFindingTheRightPerson:
             "/api/admin/sailors", headers=admin, params={"q": "Identifiable"}
         )
         assert found.status_code == 200, found.text
-        person = next(p for p in found.json() if p["id"] == sailor_id)
+        person = next(p for p in found.json()["items"] if p["id"] == sailor_id)
 
         assert len(person["registrations"]) == 1
         registration = person["registrations"][0]
@@ -583,11 +584,9 @@ class TestFindingTheRightPerson:
 
         person = next(
             p
-            for p in (
-                await client.get(
-                    "/api/admin/sailors", headers=admin, params={"q": "Clubs"}
-                )
-            ).json()
+            for p in await all_items(
+                client, "/api/admin/sailors", headers=admin, params={"q": "Clubs"}
+            )
             if p["id"] == sailor_id
         )
         assert {r["club"]["id"] for r in person["registrations"]} == {
@@ -609,11 +608,9 @@ class TestFindingTheRightPerson:
         )
         person = next(
             p
-            for p in (
-                await client.get(
-                    "/api/admin/sailors", headers=admin, params={"q": "Unregistered"}
-                )
-            ).json()
+            for p in await all_items(
+                client, "/api/admin/sailors", headers=admin, params={"q": "Unregistered"}
+            )
             if p["id"] == created.json()["id"]
         )
         assert person["registrations"] == []
@@ -642,11 +639,9 @@ class TestFindingTheRightPerson:
 
         person = next(
             p
-            for p in (
-                await client.get(
-                    "/api/admin/sailors", headers=admin, params={"q": "Seriesonly"}
-                )
-            ).json()
+            for p in await all_items(
+                client, "/api/admin/sailors", headers=admin, params={"q": "Seriesonly"}
+            )
             if p["id"] == sailor_id
         )
         async with SessionLocal() as session:
@@ -654,7 +649,9 @@ class TestFindingTheRightPerson:
                 team.id
                 for team in (
                     await session.execute(
-                        select(Team).where(Team.id.in_([r["team_id"] for r in person["registrations"]]))
+                        select(Team).where(
+                            Team.id.in_([r["team_id"] for r in person["registrations"]])
+                        )
                     )
                 ).scalars()
             }

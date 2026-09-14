@@ -10,7 +10,7 @@ module's router-level `require_master_data`. See `crest_router`.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -22,6 +22,7 @@ from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Series, Team, TeamStatus
 from app.models.auth import Role, User
+from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import (
@@ -94,10 +95,37 @@ class ClubAdminOut(ClubOut):
     )
 
 
-@router.get("", response_model=list[ClubAdminOut], summary="All clubs with assignments")
-async def list_all_clubs(session: AsyncSession = Depends(get_session)) -> list[ClubAdminOut]:
-    """Includes those not yet assigned — otherwise they couldn't be found."""
-    clubs = (await session.execute(select(Club).order_by(Club.name))).scalars().all()
+#: Story A-13 — the columns this list may be sorted by.
+CLUB_SORT = {"name": Club.name, "short_name": Club.short_name, "city": Club.city}
+
+
+@router.get("", response_model=Page[ClubAdminOut], summary="All clubs with assignments")
+async def list_all_clubs(
+    q: str | None = Query(default=None, description="Search in name, abbreviation and city"),
+    params: PageParams = PageInput,
+    session: AsyncSession = Depends(get_session),
+) -> Page[ClubAdminOut]:
+    """Includes those not yet assigned — otherwise they couldn't be found.
+
+    Paged and searchable since Story A-13: the association runs several series of 18 clubs
+    and offers the site to clubs organising their own events, so this is the list that
+    grows fastest of all of them.
+    """
+    stmt = apply_search(select(Club), q, Club.name, Club.short_name, Club.city)
+    clubs, total = await paginate(
+        session, stmt, params, sortable=CLUB_SORT, default_order=[Club.name, Club.id]
+    )
+    return page_of(await _compose(session, list(clubs)), total, params)
+
+
+async def _compose(session: AsyncSession, clubs: list[Club]) -> list[ClubAdminOut]:
+    """Adds each club's series assignments and whether it is publicly visible.
+
+    Split out from the route by Story A-13: the route answers with one page now, so
+    `_club_out` can no longer compose the whole list and pick its club out of it.
+    """
+    if not clubs:
+        return []
     year = await current_year(session)
 
     assignments = (
@@ -106,7 +134,7 @@ async def list_all_clubs(session: AsyncSession = Depends(get_session)) -> list[C
             .join(Series, Team.series_id == Series.id)
             # Only series registrations; entries in individual events are not a separate
             # club assignment.
-            .where(Team.event_id.is_(None))
+            .where(Team.event_id.is_(None), Team.club_id.in_([c.id for c in clubs]))
             .order_by(Series.year.desc().nulls_last(), Series.level.nulls_last())
         )
     ).all()
@@ -222,7 +250,8 @@ async def set_series(
     await session.flush()
     await _backfill_event_entries(session, desired.keys())
     await session.commit()
-    return next(c for c in await list_all_clubs(session) if c.id == club_id)
+    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one()
+    return (await _compose(session, [club]))[0]
 
 
 @router.post("", response_model=ClubOut, status_code=status.HTTP_201_CREATED)

@@ -1,5 +1,7 @@
 import { Button } from "@heroui/react";
-import { useState, type FormEvent } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
+import { createColumnHelper } from "@tanstack/react-table";
+import { useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -10,7 +12,10 @@ import {
   useListSailors,
 } from "../api/generated/sbl";
 import type { SailorAdmin, SeriesAdmin } from "../api/types";
-import { useAsync, useInvalidate } from "../api/useApi";
+import { WHOLE_LIST, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
+import { DataTable } from "../components/DataTable";
+import { TABLE_FEATURES } from "../lib/table";
+import { useListParams, type ListParams } from "../lib/listParams";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { SquadPanel } from "../components/SquadPanel";
 import { INPUT_CLASS, errorText } from "../lib/admin";
@@ -36,12 +41,19 @@ export function SailorsAdmin() {
 function CreateSailor() {
   const { t } = useTranslation("admin");
   const invalidate = useInvalidate();
-  const [search, setSearch] = useState("");
   const [vorname, setzeVorname] = useState("");
   const [nachname, setzeNachname] = useState("");
   const [email, setzeEmail] = useState("");
 
-  const results = useAsync(useListSailors({ q: search || undefined }));
+  // Every registered sailor has a row here — a couple of hundred, so paged, sorted and
+  // searched on the server, with all three in the URL (Story A-13).
+  const list = useListParams();
+  const results = useAsync(
+    useListSailors(
+      { ...list.request, q: list.q || undefined, sort: list.sort ?? undefined },
+      { query: { placeholderData: keepPreviousData } },
+    ),
+  );
 
   const create = useCreateSailor({
     mutation: {
@@ -128,8 +140,8 @@ function CreateSailor() {
       <Field label={t("sailors.searchLabel")} hint={t("sailors.searchHint")}>
         <input
           className={INPUT_CLASS}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={list.q}
+          onChange={(e) => list.setQuery(e.target.value)}
           placeholder={t("sailors.searchPlaceholder")}
           data-testid="admin-sailors-search-input"
         />
@@ -137,50 +149,77 @@ function CreateSailor() {
 
       {results.loading && <Loading text={t("sailors.loadingText")} testId="admin-sailors-loading" />}
       {results.error && <ErrorMessage text={results.error} testId="admin-sailors-error" />}
-      {results.data && <SailorList sailors={results.data} />}
+      {results.data && <SailorList page={results.data} params={list} />}
     </Section>
   );
 }
 
-function SailorList({ sailors }: { sailors: SailorAdmin[] }) {
+const sailorColumn = createColumnHelper<typeof TABLE_FEATURES, SailorAdmin>();
+
+function SailorList({ page, params }: { page: SailorPage; params: ListParams }) {
   const { t } = useTranslation("admin");
-  if (!sailors.length) return <Empty testId="admin-sailors-empty">{t("sailors.emptyText")}</Empty>;
+  // Memoised, as the library asks: a fresh column array every render rebuilds the table.
+  // The headers are translated, so `t` is what it depends on.
+  const columns = useMemo(
+    () =>
+      sailorColumn.columns([
+        sailorColumn.accessor("last_name", {
+          header: t("sailors.nameHeader"),
+          // Sortable exactly where the server can sort (`SAILOR_SORT` in
+          // `app/routers/sailors.py`) — a header that promises more would 422.
+          enableSorting: true,
+          cell: ({ row }) => (
+            <Link
+              to={`/sailors/${row.original.id}`}
+              data-testid={`admin-sailors-link-${row.original.id}`}
+              className="font-medium underline-offset-2 hover:underline"
+            >
+              {row.original.first_name} {row.original.last_name}
+            </Link>
+          ),
+        }),
+        sailorColumn.accessor("email", {
+          header: t("sailors.emailHeader"),
+          enableSorting: true,
+          cell: ({ row }) => (
+            <span className="text-slate-500">{row.original.email ?? "—"}</span>
+          ),
+        }),
+        sailorColumn.accessor("squads", {
+          header: t("sailors.squadsHeader"),
+          enableSorting: false,
+          cell: ({ row }) => (
+            <span className="text-slate-400">
+              {row.original.squads === 1
+                ? t("sailors.registrationsLabel")
+                : t("sailors.registrationsLabelPlural", { count: row.original.squads ?? 0 })}
+            </span>
+          ),
+        }),
+      ]),
+    [t],
+  );
 
   return (
-    <ul
-      data-testid="admin-sailors-list"
-      className="divide-y divide-slate-100 rounded-lg border border-slate-200 text-sm"
-    >
-      {sailors.map((person) => (
-        <li
-          key={person.id}
-          data-testid={`admin-sailors-row-${person.id}`}
-          className="flex items-center gap-3 px-4 py-2"
-        >
-          <Link
-            to={`/sailors/${person.id}`}
-            data-testid={`admin-sailors-link-${person.id}`}
-            className="font-medium underline-offset-2 hover:underline"
-          >
-            {person.first_name} {person.last_name}
-          </Link>
-          <span className="flex-1 truncate text-slate-500">{person.email ?? "—"}</span>
-          <span className="shrink-0 text-slate-400">
-            {person.squads === 1
-              ? t("sailors.registrationsLabel")
-              : t("sailors.registrationsLabelPlural", { count: person.squads ?? 0 })}
-          </span>
-        </li>
-      ))}
-    </ul>
+    <DataTable
+      columns={columns}
+      page={page}
+      params={params}
+      testId="admin-sailors"
+      empty={t("sailors.emptyText")}
+      rowTestId={(sailor) => sailor.id}
+    />
   );
 }
+
+type SailorPage = { items: SailorAdmin[]; total: number; limit: number; offset: number };
 
 // ------------------------------------------------------------------------- Squad
 
 function Squad() {
   const { t } = useTranslation("admin");
-  const seriesList = useAsync(useListAllSeries());
+  // A selector, so the whole list rather than a page.
+  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
   const [seriesId, setSeriesId] = useState<number | null>(null);
 
   const series = seriesList.data?.find((s) => s.id === seriesId) ?? null;

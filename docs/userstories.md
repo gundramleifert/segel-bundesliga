@@ -92,9 +92,91 @@ Acceptance criteria:
   page — the same treatment the standings tables give it. The abbreviation is what keeps the
   column narrow enough for six boats to fit side by side, and "which club is BYC (BE)?" was a
   question this table previously refused to answer.
+- **The list is downloadable as a PDF** — the sheet that gets printed, pinned up at the
+  clubhouse and handed to crews, who do not read a matchday off a phone at the dock. One page
+  carries the whole grid; then one page per club, with that club's races marked and the teams
+  it shares a shuttle with — the sheet a crew actually uses.
+- Rendering is done by the **Java tool** (`reference/PairingList`), which owns the print
+  layout, via a new entry point `PdfExport`: schedule configuration and pairing list in, one
+  PDF out. `Optimizer` printed PDFs only as a by-product of a draw, and `ReuseSchedule` writes
+  a whole event directory. A second layout in Python would be a second thing to keep in step
+  with the first, and the printed list has looked like this for years.
+- Our boats carry **any** color (Story VA-6 offers a color picker), the tool knows only
+  named ones — so a color it does not know is handed to it as an `additional_colors` entry
+  rather than being silently dropped. A color that is neither a known name nor a hex value
+  prints white, like a boat with no color at all.
+- The rendering is **cached by its own content**: the same list, boats and title yield the
+  same file. Nothing has to be invalidated when a draw is replaced — a different draw is a
+  different key. Without it every visitor starts a JVM.
+- **A crew can print its own sheet alone** (`?team=`): the same page the full file holds for
+  that club — its races marked, its shuttle partners named — and nothing else. Finding one's
+  page among eighteen is what a crew would otherwise do at the dock, in the wind, on paper.
+  A club picker sits next to the download; "all clubs" stays the default, because the notice
+  board wants the whole thing. The file is named after the club, so eighteen downloads in one
+  folder stay apart.
+- **The teams printed are the ones that were drawn**, never the event's current entry list.
+  The two can differ — a club entered after the draw has no seat in it — and naming a club
+  the draw does not know would shift every index along it, putting whole flights on the wrong
+  boat. This was a real 503 before it was a rule.
+- **Print settings belong to the organizer, defaults to the configuration** (`Event.print_settings`):
+  font size, landscape, and whether the per-team pages are included. The organizer knows the
+  venue, the printer and the paper; nobody else does. Left empty — the normal case — the font
+  size follows the number of rows (`flights × races`), from a table read off the **43 event
+  directories** in the tool's own repository, every one of them a sheet that was printed and
+  sailed by: up to 42 rows 10pt, up to 56 8pt, up to 64 7pt, beyond that 6pt. A league
+  matchday therefore still prints at 8pt, exactly as it always has. `factor_flight_race_width`
+  and the per-team pages are unanimous across all 43, so they are not offered as choices.
+- A stored setting is **read back defensively**: anything unexpected in the column falls back
+  to the derived default. A sheet that will not print is worse than one printed at the wrong
+  size.
+
+Endpoints: `GET /api/events/{id}/pairing` (JSON),
+`GET /api/events/{id}/pairing.pdf[?team={team_id}]`.
+The organizer sets the print settings through `POST`/`PATCH /api/admin/events/{id}`
+(Story VA-6).
 
 Tests: `api/tests/stories/test_visitor.py::TestPairingList`,
+`api/tests/unit/test_pairing_pdf.py`,
+`api/tests/stories/test_create_event.py::TestCreateEvent::test_the_organizer_decides_how_the_list_prints`,
 `e2e/visitor.spec.ts::B-3: as a sailor I see when I am on which boat`
+
+### B-12 ● See who sails for each team at a matchday
+As a **visitor** I want to **see who sails for each team at one matchday**,
+so that I **know which crew is on the water when I read a result**.
+
+The lineup already exists — a club manager names it (Story V-2, `EventCrew`) and the club
+page shows it from that one club's side (Story B-7). What was missing is the matchday's own
+side of the same fact: standing at the notice board or watching from the shore, the question
+is not "who does NRV field this season" but "who is sailing here today", across every team
+at once. Answering it meant opening eighteen club pages.
+
+Acceptance criteria:
+- A third tab on the matchday page, beside the daily standings and the pairing list: one
+  entry per team **entered in this event** (`Team.event_id` set, accepted), with the people
+  lined up for it, helm first — the order a crew is announced, the same
+  `MemberOut`/`_ROLE_ORDER` the club page and the squad already use.
+- **A team with no lineup yet is listed with an empty crew, not omitted.** "Not named yet" is
+  the answer to the question; a missing row reads as "this team is not sailing", which is
+  false. The same reasoning as B-7's "if the lineup is not yet set, the page says so".
+- **No login.** Participation is public — the pairing list, the results and the standings
+  carry these names anyway, so putting the lineup behind a session would be theatre. The
+  private thing is club *membership* (Story V-10), which this is not.
+- Each name links to its sailor page; once Story S-4 exists, a sailor who has switched their
+  profile off appears here as plain text under the same name, never hidden and never omitted.
+- **No contact details**, exactly as in the squad: `MemberOut` carries id, name and role and
+  nothing else.
+- A draft matchday answers 404 here as it does everywhere public (Story VA-8).
+
+Deliberately a **new public endpoint** rather than widening `EventDetail`: the standings are
+what the matchday page opens with, and every visitor would then pay for a second table join
+they mostly do not look at. It also keeps the tab honest — an unopened tab in `TabbedView`
+issues no query at all.
+
+Endpoints: `GET /api/events/{id}/crew`
+
+Tests: `api/tests/stories/test_visitor.py::TestMatchdayCrew`. The tab itself
+(`web/src/pages/Matchday.tsx`) has no automated test yet — same state as B-2's flight
+columns; Playwright coverage for this page is a separate, not-yet-started task.
 
 ### B-5 ○ Follow live updates
 As a **spectator** I want to **see current results on the page**,
@@ -458,7 +540,8 @@ Acceptance criteria:
 - Publishing makes the list publicly visible (Story B-3) and can be undone as long as no
   races have been sailed.
 - An already sailed race must not be overwritten by recalculation.
-- Output as printable PDF that can be distributed to teams.
+- Output as printable PDF that can be distributed to teams — done, as the download on the
+  public pairing list ([B-3](#b-3--view-pairing-list)); the organizer needs no separate one.
 
 **Open decision:** This story elevates the generator from fallback to main function. Three
 approaches are available — enhance the Python generator, call the existing Java tool from
@@ -516,6 +599,10 @@ Acceptance criteria:
   sitting silently under a named option it no longer matches.
 - In addition to administration, editorial, and race committee, also the **leadership of the
   host club** can create — not for a foreign host.
+- **How the pairing list prints** is part of the setup too, and the panel offers it next to
+  the draw: font size, landscape, per-team pages (`print_settings`). Empty means the sheet
+  is printed the way its configuration implies — see [B-3](#b-3--view-pairing-list), which
+  owns the reasoning.
 
 Endpoints: `POST /api/admin/events`
 
@@ -799,6 +886,110 @@ Acceptance criteria:
   where re-typing costs one line.
 
 Tests: `e2e/lifecycle.spec.ts::A-11: the admin screen is organized in tabs`
+
+### A-13 ● One list mechanism, and every long list is paged
+
+As **someone working through several hundred sailors or accounts**, I want **to page,
+sort and search every list the same way**, so that **finding one row does not mean
+scrolling past all of them**.
+
+Every list screen had grown its own arrangement: a `<ul>` of rows here, a table there,
+a search box on two of them and not the others, and each one fetching the whole table.
+`GET /api/sailors` answered with up to 500 people in one response and the screen showed
+all of them; `GET /api/auth/users` had no limit at all. The two habits reinforce each
+other — a list with no paging needs no page control, and a screen with no page control
+has no reason to ask for less than everything.
+
+**Everything the server can do stays on the server.** Filtering, ordering and counting
+are one query against an index; a page that downloads every row in order to sort it in
+the browser has not solved the problem it appears to have solved, it has moved it to the
+slowest machine involved.
+
+Acceptance criteria:
+- **One envelope for every list that can grow**: `Page[T]` — `items`, `total`, `limit`,
+  `offset`. Not a bare array with headers: the count belongs to the body, where the
+  generated client types it and the screen can say "26–50 of 180" without a second call.
+- `limit` defaults to 25 and is capped (100); `offset` starts at 0. An `offset` past the
+  end returns an **empty page**, never a 404 — a list that shrank between two clicks is
+  not an error.
+- `total` counts what the filter matched, not what the page returned. It is the number the
+  paging control is built from, so counting the unfiltered table would make every search
+  claim more results than it can show.
+- **Sorting is a parameter**, one column name with a `-` prefix for descending. An unknown
+  column is refused (422) rather than ignored: a sort that silently does nothing looks
+  exactly like a sort that did not fire.
+- **Lists bounded by their own subject keep a plain array** — an event's participants, its
+  boats, the pairing catalog, a club's members. The concept is one mechanism applied where
+  a list grows with the database, not one shape imposed on every endpoint; an event with
+  18 participants has no page two, and inventing one would only cost every caller an
+  `.items`.
+- **The frontend has exactly one table component**, built on TanStack Table (headless — it
+  owns sorting and the row model, we own every element and class, so the `.data-table`
+  surface, the density and Story A-10's width rules all still apply).
+- **Page, sort and search live in the URL** (`?page=3&sort=-last_name&q=mann`). A row
+  someone found is then a link they can send, and a reload does not throw the work away.
+- **The table is the same on a phone.** It scrolls inside the panel rather than widening
+  the page (Story A-10), and the paging control stays reachable without horizontal
+  scrolling.
+- A column that is sorted says so to a screen reader (`aria-sort`), and the header is a
+  real button, so sorting is reachable without a mouse.
+
+**Where this stands.** The backend is done: `app/pagination.py` and every list that grows
+with the database — and since every one of them is also **searchable**, a screen no longer
+has to filter what it downloaded. `q` narrows the *statement* before `paginate` counts it
+(`pagination.apply_search`, one function rather than the same eight lines per router), so
+`total` is the number of matches and page two of a search is a search. What each list
+searches: the public club list and the admin one by name, abbreviation and city; the
+public calendar and the admin event list by title, venue and host club — one query, two
+outer joins, no lookup per row; the series list by name and short name; sailors by first
+name, last name and email; accounts by display name and email. Searching is
+case-insensitive and matches anywhere in the field, a blank or whitespace-only term is
+**no** search rather than a search for nothing, and on the public lists `q` only ever
+narrows: an unregistered club and a draft event stay unfindable however exactly they are
+named.
+
+The frontend spends it the same way everywhere. **Page, sort and search live in the URL**
+(`?page=3&sort=-last_name&q=mann`, `lib/listParams.ts`): the three belong together because
+they interact — a new term invalidates the page someone was on — and in the query string a
+found row is a link that can be sent and a reload does not throw the work away. The hook
+writes only its own keys, so `?tab=` and `?view=` survive, and it replaces rather than
+pushes: paging should not fill the Back button with every step on the way.
+
+Two shapes, and the difference is the part worth remembering:
+
+- **A table of values** uses `components/DataTable` — the one table, on TanStack Table v9,
+  headless: the library owns the sorting state model and the row model, every element and
+  class is ours, so Story A-10's width rules and the `.data-table` surface still apply. The
+  server sorts (`manualSorting`), a column is sortable exactly where its endpoint can sort
+  it, each such header is a real button, and the sorted one carries `aria-sort`. Accounts
+  and sailors are tables now; both were `<ul>`s with their own arrangement.
+- **A list whose rows are editors** keeps being a list and takes only `useListParams` and
+  `Pager`: the admin event list, where a row opens readiness, clubs, the draw, publication
+  and closing, and the club list, where a row *is* the crest editor. Forcing those into a
+  table of values would be the shape imposed where it does not fit — the mistake this story
+  warns about for endpoints.
+
+The club and event lists now search on the **server**, so a search finds what it should
+rather than what happened to be downloaded. What still asks for the whole list at once
+(`WHOLE_LIST`, the server's cap of 100, read through `useAsyncRows`) are the **selectors** —
+a dropdown must offer every club — and the two screens that *count* acts per series out of
+the event list. Those are honest ceilings rather than hidden ones: past a hundred, a
+selector needs a search of its own and the counts need the server to count them.
+
+Tests: `api/tests/stories/test_pagination.py` — the envelope in
+`api/tests/stories/test_pagination.py::TestEveryPagedListSpeaksTheSameShape`, and the
+search in `api/tests/stories/test_pagination.py::TestEverySearchableListSearchesTheSameWay`
+(one parametrized case per searchable list: nothing matched is an empty page, `total`
+counts the matches and not the page, case is ignored, whitespace is not a search) plus
+`api/tests/stories/test_pagination.py::TestSearchingTheClubList`,
+`api/tests/stories/test_pagination.py::TestSearchingTheEventCalendar` and
+`api/tests/stories/test_pagination.py::TestSearchingTheSeriesList` for the fields each one
+reaches and for what a visitor must **not** find. The frontend is covered by
+`e2e/lifecycle.spec.ts::A-13: every long list pages, sorts and searches — in the URL`,
+which pages the sailor table, reloads on page two, sorts a column both ways, searches for
+one person out of a couple of hundred and opens the whole state as a deep link. What is
+still untested: the `Pager` arithmetic at its edges ("26–50 of 180", the disabled buttons)
+has no test of its own.
 
 ### A-12 ● Navigation beside the page, not above it
 As **someone who uses this site on a laptop and on a phone**, I want **the navigation where

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { CardGrid } from "../components/Layouts";
 
 import { useListEvents, useListSeries } from "../api/generated/sbl";
-import { useAsync } from "../api/useApi";
+import { WHOLE_LIST, useAsync, useAsyncRows } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { dateRange } from "../lib/format";
 
@@ -21,7 +21,8 @@ export function SeriesOverview() {
   const seriesList = useAsync(useListSeries());
   // The event counts come out of the events list, which is loaded anyway — one request
   // instead of one per series. Same approach as the home page's series section.
-  const eventsQuery = useAsync(useListEvents());
+  // The whole list, for the same reason as the home page: these are counts, not a page.
+  const eventsQuery = useAsyncRows(useListEvents({ limit: WHOLE_LIST }));
 
   if (seriesList.loading) return <Loading testId="series-loading" />;
   if (seriesList.error) return <ErrorMessage text={seriesList.error} testId="series-error" />;

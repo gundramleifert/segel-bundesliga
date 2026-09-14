@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,8 +37,9 @@ from app.models import (
 )
 from app.models.auth import Role, User
 from app.models.racing import BOAT_COLORS
+from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
-from app.routers.public import _EVENT_LOAD, _event_out
+from app.routers.public import _EVENT_LOAD, _event_out, search_events
 from app.schemas.public import ClubOut, EventOut
 from app.services import (
     CATALOG_REASON,
@@ -71,6 +72,29 @@ class BoatSpec(BaseModel):
     color: str | None = Field(default=None, max_length=24)
     name: str | None = Field(default=None, max_length=80)
     sail_number: str | None = Field(default=None, max_length=32)
+
+
+class PrintSettingsIn(BaseModel):
+    """How this event's pairing list is printed (Story B-3).
+
+    Left alone, the sheet is printed the way its configuration implies — the sizes the
+    league's own matchdays have been printed at for years (``app/pairing/pdf.py``). The
+    organizer overrides them because they know the venue, the printer and the paper, and
+    nobody else does.
+    """
+
+    font_size: int | None = Field(
+        default=None,
+        ge=5,
+        le=16,
+        description="Points. Empty means derived from flights × races per flight.",
+    )
+    landscape: bool = Field(
+        default=False, description="Rotate the sheet; a wide fleet reads better across it."
+    )
+    team_pages: bool = Field(
+        default=True, description="One page per team after the overview."
+    )
 
 
 class EventCreate(BaseModel):
@@ -119,6 +143,9 @@ class EventCreate(BaseModel):
             "invisible until published; publishing locks nothing."
         ),
     )
+    print_settings: PrintSettingsIn | None = Field(
+        default=None, description="Print settings for the pairing list; empty for defaults."
+    )
 
     @model_validator(mode="after")
     def _validate(self) -> EventCreate:
@@ -150,6 +177,7 @@ class EventUpdate(BaseModel):
     team_count: int | None = Field(default=None, ge=2, le=64)
     boat_count: int | None = Field(default=None, ge=2, le=20)
     flight_count: int | None = Field(default=None, ge=1, le=40)
+    print_settings: PrintSettingsIn | None = None
 
 
 # The fields that make up the **configuration** of the event: what gets drawn and sailed.
@@ -162,28 +190,46 @@ _CONFIGURATION_FIELDS = frozenset(
 )
 
 
+#: Story A-13 — the columns this list may be sorted by.
+EVENT_SORT = {
+    "title": Event.title,
+    "starts_on": Event.starts_on,
+    "status": Event.status,
+    "matchday": Event.matchday,
+}
+
+
 @router.get(
     "",
-    response_model=list[EventOut],
+    response_model=Page[EventOut],
     dependencies=[Depends(require_event_manager)],
     summary="All events, drafts included",
 )
-async def list_all_events(session: AsyncSession = Depends(get_session)) -> list[EventOut]:
+async def list_all_events(
+    q: str | None = Query(default=None, description="Search in title, venue and host club"),
+    params: PageParams = PageInput,
+    session: AsyncSession = Depends(get_session),
+) -> Page[EventOut]:
     """Everything that has been saved — deliberately *not* the public list.
 
     ``GET /api/events`` shows only what is published, which is exactly the wrong list for
     the screen that publishes things: a draft would be invisible on the one page meant to
     finish it. Drafts sort first, then by date, newest first — an event with no date yet is
-    the one still being worked on, so it belongs at the top rather than at the end.
+    the one still being worked on, so it belongs at the top rather than at the end. Paged
+    since Story A-13; this list grows by a dozen or so every season and never shrinks.
+
+    Searched by the same fields as the public calendar, through the same function: the two
+    lists differ in what they may show — drafts included here — not in what a search term
+    means.
     """
-    events = (
-        await session.execute(
-            select(Event)
-            .options(*_EVENT_LOAD)
-            .order_by(Event.starts_on.desc().nulls_first(), Event.id.desc())
-        )
-    ).scalars()
-    return [_event_out(event) for event in events]
+    events, total = await paginate(
+        session,
+        search_events(select(Event).options(*_EVENT_LOAD), q),
+        params,
+        sortable=EVENT_SORT,
+        default_order=[Event.starts_on.desc().nulls_first(), Event.id.desc()],
+    )
+    return page_of([_event_out(event) for event in events], total, params)
 
 
 @router.post("", response_model=EventOut, status_code=status.HTTP_201_CREATED)
@@ -251,6 +297,9 @@ async def create_event(
         team_count=request.team_count,
         boat_count=request.boat_count,
         flight_count=request.flight_count,
+        print_settings=(
+            request.print_settings.model_dump() if request.print_settings else None
+        ),
     )
     session.add(event)
     await session.flush()

@@ -9,7 +9,7 @@ import {
   useSetSquad,
 } from "../api/generated/sbl";
 import type { SailorAdmin, SailorRegistration } from "../api/types";
-import { useAsync, useInvalidate } from "../api/useApi";
+import { useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "./Blocks";
 import { roleText } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
@@ -50,7 +50,8 @@ export function SquadPanel({
   const invalidate = useInvalidate();
   const [search, setSearch] = useState("");
   const [addRole, setAddRole] = useState<SquadRole>("crew");
-  const results = useAsync(useListSailors({ q: search || undefined }));
+  // A page of matches is what a search wants; the picker below shows them as they come.
+  const results = useAsyncRows(useListSailors({ q: search || undefined }));
 
   const setSquad = useSetSquad({
     mutation: {

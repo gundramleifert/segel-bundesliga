@@ -8,6 +8,7 @@ API client is generated (``scripts/gen-api-client.sh``).
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -174,6 +175,9 @@ class EventOut(BaseModel):
     boat_count: int
     flight_count: int
     crew_size: int
+    # How the pairing list is printed (Story B-3). Empty is the normal case and means the
+    # defaults the configuration implies; the organizer's screen shows what is set here.
+    print_settings: dict[str, Any] | None = None
 
 
 class EventStandingRow(BaseModel):
@@ -194,6 +198,26 @@ class EventDetail(BaseModel):
     standings: list[EventStandingRow]
     races_total: int
     races_scored: int
+
+
+class TeamCrewOut(BaseModel):
+    """One team entered in an event, and who sails it there.
+
+    Deliberately the same `MemberOut` as the squad and the club page: a lineup and a squad
+    are the same kind of public fact — id, name, role, and nothing about the person.
+    """
+
+    team: TeamOut
+    #: Helm first, then crew, then substitute — the order a crew is announced. Empty while
+    #: nobody is named yet, which is an answer, not a missing row.
+    crew: list[MemberOut] = Field(default_factory=list)
+
+
+class EventCrewList(BaseModel):
+    """Who sails for every team at one matchday — Story B-12."""
+
+    event: EventOut
+    teams: list[TeamCrewOut] = Field(default_factory=list)
 
 
 class SeriesStandingRow(BaseModel):

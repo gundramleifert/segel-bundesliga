@@ -64,5 +64,16 @@
     "help": "Hilfe",
     "legalNotice": "Impressum",
     "privacy": "Datenschutz"
+  },
+  "pager": {
+    "range": "{{first}}–{{last}} von {{total}}",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "page": "Seite {{page}} von {{pages}}"
+  },
+  "table": {
+    "sortBy": "Nach dieser Spalte sortieren",
+    "sortedAscending": "Aufsteigend sortiert",
+    "sortedDescending": "Absteigend sortiert"
   }
 }

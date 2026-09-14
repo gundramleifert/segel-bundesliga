@@ -12,8 +12,10 @@ included; that is where the work happens.
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -38,8 +40,11 @@ from app.models import (
     Team,
     TeamMembership,
     TeamStatus,
+    Venue,
 )
 from app.models.auth import User
+from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pairing.pdf import PairingPdfError, render_pdf
 from app.problems import Problem
 from app.schemas.public import (
     BoatOut,
@@ -47,6 +52,7 @@ from app.schemas.public import (
     ClubEventOut,
     ClubOut,
     ClubTeamOut,
+    EventCrewList,
     EventDetail,
     EventOut,
     EventStandingRow,
@@ -62,10 +68,13 @@ from app.schemas.public import (
     SeriesOut,
     SeriesStandingRow,
     SeriesTable,
+    TeamCrewOut,
     TeamOut,
     VenueOut,
 )
 from app.services import compute_event, compute_series, current_year
+from app.services.pairing_service import TeamNotInPairing, stored_pairing
+from app.text import slugify
 
 router = APIRouter(prefix="/api", tags=["public"])
 
@@ -84,10 +93,17 @@ def _only_public_events(stmt):
     published, and it must not belong to an **unpublished** series — otherwise publishing
     a single matchday would leak the draft series it belongs to through
     ``EventOut.series``. A standalone event has no series and passes on its own flag.
+
+    ``correlate(Event)`` is load-bearing: a query that also **joins** ``Series`` — the
+    calendar filtered by year does — otherwise has SQLAlchemy correlate the subquery's own
+    ``Series`` to the outer one, leaving it with no FROM at all and raising rather than
+    answering. Naming the one table to correlate keeps ``Series`` inside the subquery
+    whatever the caller joined outside it.
     """
     draft_series = (
         select(Series.id)
         .where(Series.id == Event.series_id, Series.published.is_(False))
+        .correlate(Event)
         .exists()
     )
     return stmt.where(Event.published.is_(True), ~draft_series)
@@ -194,18 +210,29 @@ async def get_series_table(
 # -------------------------------------------------------------------------- Clubs
 
 
-@router.get("/clubs", response_model=list[ClubOut])
+#: Story A-13 — the columns this list may be sorted by.
+PUBLIC_CLUB_SORT = {"name": Club.name, "short_name": Club.short_name, "city": Club.city}
+
+
+@router.get("/clubs", response_model=Page[ClubOut])
 async def list_clubs(
+    q: str | None = Query(default=None, description="Search in name, abbreviation and city"),
     year: int | None = Query(default=None, description="Year; otherwise the current one"),
     series: int | None = Query(default=None, description="ID of a series"),
+    params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
-) -> list[Club]:
+) -> Page[ClubOut]:
     """Clubs assigned to at least one **published** series in the year.
 
     A newly created club does **not** appear here as long as it is not assigned to a
     series — and an assignment always applies only to one year. An assignment to a series
     still in draft counts just as little: the club page would otherwise name a competition
     nobody is supposed to know about yet.
+
+    Searchable since Story A-13, and that is the half the visitor notices: the club page
+    used to fetch a page of clubs and filter it in the browser, which can only ever find
+    what happened to be on the page it was holding. ``q`` narrows, it never widens — a
+    club that is not public is not found by naming it either.
     """
     stmt = (
         select(Club)
@@ -218,7 +245,6 @@ async def list_clubs(
             Team.event_id.is_(None),
             Series.published.is_(True),
         )
-        .order_by(Club.name)
         .distinct()
     )
     if series is not None:
@@ -228,10 +254,14 @@ async def list_clubs(
             year if year is not None else await current_year(session, published_only=True)
         )
         if effective_year is None:
-            return []
+            return page_of([], 0, params)
         stmt = stmt.where(Series.year == effective_year)
 
-    return list((await session.execute(stmt)).scalars())
+    stmt = apply_search(stmt, q, Club.name, Club.short_name, Club.city)
+    clubs, total = await paginate(
+        session, stmt, params, sortable=PUBLIC_CLUB_SORT, default_order=[Club.name, Club.id]
+    )
+    return page_of([ClubOut.model_validate(club) for club in clubs], total, params)
 
 
 @router.get(
@@ -512,18 +542,69 @@ async def get_sailor(
 # ----------------------------------------------------------------------- Events
 
 
-@router.get("/events", response_model=list[EventOut])
+#: Story A-13 — the columns this list may be sorted by.
+PUBLIC_EVENT_SORT = {
+    "title": Event.title,
+    "starts_on": Event.starts_on,
+    "matchday": Event.matchday,
+}
+
+
+def search_events(stmt, q: str | None):
+    """Narrows an ``Event`` query to what someone searching would mean by ``q``.
+
+    Title, venue and host club in **one** statement: the two outer joins keep it a single
+    query rather than a name lookup per row, and neither can multiply an event — an event
+    has at most one venue and at most one host — so ``total`` still counts events and not
+    join rows. They are added only when there is something to search for, so an ordinary
+    listing is the query it always was.
+
+    Shared with the admin list (``app/routers/events.py``): the two lists differ in what
+    they may show, never in what "search" means.
+    """
+    if not (q or "").strip():
+        return stmt
+    return apply_search(
+        stmt.outerjoin(Venue, Event.venue_id == Venue.id).outerjoin(
+            Club, Event.host_club_id == Club.id
+        ),
+        q,
+        Event.title,
+        Venue.name,
+        Club.name,
+        Club.short_name,
+    )
+
+
+@router.get("/events", response_model=Page[EventOut])
 async def list_events(
+    q: str | None = Query(default=None, description="Search in title, venue and host club"),
     year: int | None = Query(default=None, description="Year of the series"),
     series: int | None = Query(default=None, description="ID of a series"),
+    params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
-) -> list[EventOut]:
-    stmt = _only_public_events(select(Event).options(*_EVENT_LOAD).order_by(Event.starts_on))
+) -> Page[EventOut]:
+    """The public calendar. Paged since Story A-13 — it gains a season every year.
+
+    Searching it stays on the server for the same reason the paging does: a draft event
+    is not in the answer at all, so a term that names one finds nothing here however it
+    is spelled.
+    """
+    stmt = _only_public_events(select(Event).options(*_EVENT_LOAD))
     if series is not None:
         stmt = stmt.where(Event.series_id == series)
     elif year is not None:
         stmt = stmt.join(Series, Event.series_id == Series.id).where(Series.year == year)
-    return [_event_out(e) for e in (await session.execute(stmt)).scalars()]
+    stmt = search_events(stmt, q)
+
+    events, total = await paginate(
+        session,
+        stmt,
+        params,
+        sortable=PUBLIC_EVENT_SORT,
+        default_order=[Event.starts_on, Event.id],
+    )
+    return page_of([_event_out(e) for e in events], total, params)
 
 
 @router.get("/events/{event_id}", response_model=EventDetail)
@@ -561,6 +642,62 @@ async def get_event(
         standings=rows,
         races_total=races_total,
         races_scored=await _count_scored_races(session, event.id),
+    )
+
+
+@router.get(
+    "/events/{event_id}/crew",
+    response_model=EventCrewList,
+    summary="Who sails for each team at this matchday",
+)
+async def get_event_crew(
+    event_id: int,
+    session: AsyncSession = Depends(get_session),
+    locale: Locale = Depends(resolve_locale),
+) -> EventCrewList:
+    """The lineups of one matchday, per team — Story B-12.
+
+    Public, with no login: whoever is entered is named on the pairing list, the results and
+    the standings anyway, so putting the lineup behind a session would hide nothing. Club
+    **membership** is the private thing (Story V-10), and this is not that.
+
+    A team that is entered but has nobody named yet is listed with an **empty** crew rather
+    than left out — "not named yet" is the answer to the question, while a missing row would
+    read as "this club is not sailing here".
+
+    Separate from ``get_event`` on purpose: the standings are what the page opens with, and
+    every visitor would otherwise pay for a join most of them never look at.
+    """
+    event = await _event_by_id(session, event_id, locale)
+    teams = await _teams_of_event(session, event.id)
+
+    rows = (
+        await session.execute(
+            select(EventCrew, Sailor)
+            .join(Sailor, EventCrew.sailor_id == Sailor.id)
+            .where(EventCrew.event_id == event.id)
+        )
+    ).all()
+
+    crew_by_team: dict[int, list[MemberOut]] = {}
+    for crew, sailor in rows:
+        crew_by_team.setdefault(crew.team_id, []).append(
+            MemberOut(
+                id=sailor.id,
+                first_name=sailor.first_name,
+                last_name=sailor.last_name,
+                role=crew.role,
+            )
+        )
+    for members in crew_by_team.values():
+        members.sort(key=lambda m: (_ROLE_ORDER.get(m.role, 9), m.last_name, m.first_name))
+
+    return EventCrewList(
+        event=_event_out(event),
+        teams=[
+            TeamCrewOut(team=team, crew=crew_by_team.get(team.id, []))
+            for team in sorted(teams.values(), key=lambda t: t.name)
+        ],
     )
 
 
@@ -613,7 +750,91 @@ async def get_pairing(
     )
 
 
+@router.get(
+    "/events/{event_id}/pairing.pdf",
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}}, "description": "The printable list"}},
+    summary="Pairing list as PDF",
+)
+async def download_pairing_pdf(
+    event_id: int,
+    team: int | None = Query(
+        default=None,
+        description="Print only this team's own page instead of the whole sheet",
+    ),
+    session: AsyncSession = Depends(get_session),
+    locale: Locale = Depends(resolve_locale),
+) -> Response:
+    """The pairing list as the sheet that is printed and handed out (Story B-3).
+
+    Same data as ``get_pairing``, same visibility — a draft is a 404 here as it is
+    everywhere public. It is rendered by the Java tool that owns the print layout; see
+    ``app.pairing.pdf`` for why this one may run inside a request while a draw may not.
+
+    With ``team``, the answer is that club's own page: its races marked and the teams it
+    shares a shuttle with. That is the sheet one crew wants — finding its page among
+    eighteen is what a crew does at the dock, in the wind, on paper.
+    """
+    event = await _event_by_id(session, event_id, locale)
+
+    try:
+        request = await stored_pairing(
+            session, event, title=_pdf_title(event), team_id=team
+        )
+    except TeamNotInPairing as error:
+        raise Problem(
+            404,
+            "team-not-in-pairing-list",
+            "This team has no place in the pairing list of this event.",
+            event_id=event.id,
+            team_id=team,
+        ) from error
+    if request is None:
+        raise Problem(
+            404,
+            "pairing-list-missing",
+            "This event has no pairing list yet, so there is nothing to print.",
+            event_id=event.id,
+        )
+
+    try:
+        pdf = await render_pdf(request)
+    except PairingPdfError as error:
+        # The renderer is a separate program, and a server without a Java runtime is a
+        # deployment state, not a bad request: say so instead of answering 500. The reason
+        # goes to the log, not into the response — it names paths on the server, and this
+        # endpoint answers anyone.
+        logging.getLogger(__name__).error("Rendering the pairing list failed: %s", error)
+        raise Problem(
+            503,
+            "pairing-pdf-unavailable",
+            "The pairing list could not be rendered.",
+        ) from error
+
+    # A crew's own sheet is named after the club, so eighteen downloads in one folder stay
+    # apart. `request.team_index` is set exactly when `team` was given.
+    name = event.slug
+    if request.team_index is not None:
+        name = f"{event.slug}-{slugify(request.teams[request.team_index])}"
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{name}-pairing-list.pdf"'},
+    )
+
+
 # ---------------------------------------------------------------------- Helpers
+
+
+def _pdf_title(event: Event) -> str:
+    """What is printed above the grid.
+
+    The series carries the year and the league, the event the occasion — on a sheet pinned
+    to a clubhouse wall, neither alone says which matchday it is.
+    """
+    if event.series is not None:
+        return f"{event.series.name} — {event.title}"
+    return event.title
 
 
 async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale) -> Event:
@@ -818,4 +1039,5 @@ def _event_out(event: Event) -> EventOut:
         boat_count=event.boat_count,
         flight_count=event.flight_count,
         crew_size=event.crew_size,
+        print_settings=event.print_settings,
     )

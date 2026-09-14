@@ -10,6 +10,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Series
 from app.models.auth import Role
+from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
@@ -63,14 +64,14 @@ class TestClubCreationAndAssignment:
         headers = await as_role(client, caplog, "lz2@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Unsichtbarer Segelclub", "USC")
 
-        public = (await client.get("/api/clubs")).json()
+        public = await all_items(client, "/api/clubs")
         assert club["slug"] not in {v["slug"] for v in public}
 
     async def test_admin_also_sees_unassigned_clubs(self, client, caplog):
         headers = await as_role(client, caplog, "lz3@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Noch Ungeordnet", "NUG")
 
-        all_clubs = (await client.get("/api/admin/clubs", headers=headers)).json()
+        all_clubs = await all_items(client, "/api/admin/clubs", headers=headers)
         entry = next(v for v in all_clubs if v["slug"] == club["slug"])
         assert entry["assignments"] == []
         assert entry["visible"] is False
@@ -87,7 +88,7 @@ class TestClubCreationAndAssignment:
         assert response.status_code == 200, response.text
         assert response.json()["visible"] is True
 
-        public = (await client.get("/api/clubs")).json()
+        public = await all_items(client, "/api/clubs")
         assert club["slug"] in {v["slug"] for v in public}
 
     async def test_club_can_enter_multiple_series(self, client, caplog, ids):
@@ -105,14 +106,10 @@ class TestClubCreationAndAssignment:
 
         # It appears in each of these series, but not in the first.
         for slug in ("junioren-2026", "scl-2026"):
-            filtered = (
-                await client.get("/api/clubs", params={"series": ids.series(slug)})
-            ).json()
+            filtered = await all_items(client, "/api/clubs", params={"series": ids.series(slug)})
             assert club["slug"] in {v["slug"] for v in filtered}
 
-        first = (
-            await client.get("/api/clubs", params={"series": ids.series("dsbl-1-2026")})
-        ).json()
+        first = await all_items(client, "/api/clubs", params={"series": ids.series("dsbl-1-2026")})
         assert club["slug"] not in {v["slug"] for v in first}
 
     async def test_assignment_can_be_revoked(self, client, caplog, ids):
@@ -164,8 +161,8 @@ class TestYearTransition:
             json={"series": [ids.series("dsbl-2-2026")]},
         )
 
-        in_2026 = (await client.get("/api/clubs", params={"year": 2026})).json()
-        in_2027 = (await client.get("/api/clubs", params={"series": next_series})).json()
+        in_2026 = await all_items(client, "/api/clubs", params={"year": 2026})
+        in_2027 = await all_items(client, "/api/clubs", params={"series": next_series})
 
         assert club["slug"] in {v["slug"] for v in in_2026}
         assert club["slug"] not in {v["slug"] for v in in_2027}
@@ -182,7 +179,7 @@ class TestYearTransition:
         )
 
         for year, filter_ in ((2026, {"year": 2026}), (2027, {"series": next_series})):
-            clubs_list = (await client.get("/api/clubs", params=filter_)).json()
+            clubs_list = await all_items(client, "/api/clubs", params=filter_)
             assert club["slug"] in {v["slug"] for v in clubs_list}, f"missing in {year}"
 
     async def test_assignments_for_both_years_coexist(self, client, caplog, ids):
@@ -208,7 +205,7 @@ class TestYearTransition:
         """
         await create_series("dsbl-2099", "Segel-Bundesliga 2099", 2099)
 
-        clubs_list = (await client.get("/api/clubs")).json()
+        clubs_list = await all_items(client, "/api/clubs")
         assert clubs_list, "Current year must not jump into the future"
 
         series_list = (await client.get("/api/series")).json()

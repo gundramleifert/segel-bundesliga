@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BoatSpec } from './boatSpec';
+import type { PrintSettingsIn } from './printSettingsIn';
 
 export interface EventCreate {
   /**
@@ -46,4 +47,6 @@ export interface EventCreate {
   boats?: BoatSpec[];
   /** Whether the event is visible on the public site right away. A draft stays invisible until published; publishing locks nothing. */
   published?: boolean;
+  /** Print settings for the pairing list; empty for defaults. */
+  print_settings?: PrintSettingsIn | null;
 }

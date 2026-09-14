@@ -1,20 +1,25 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Card } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 
 import { Tip } from "../components/Tip";
 
 import {
+  getDownloadPairingPdfUrl,
   getGetAdminRacesQueryKey,
   getGetEventQueryKey,
   useGetAdminRaces,
   useGetEvent,
+  useGetEventCrew,
   useGetPairing,
   usePutRaceResult,
 } from "../api/generated/sbl";
-import type { AdminRace, BoatOut, EventSummary, StandingRow } from "../api/types";
+import type { AdminRace, BoatOut, EventSummary, StandingRow, TeamCrew } from "../api/types";
 import { useAsync, useInvalidate, useAccount } from "../api/useApi";
 import { TabbedView, type TabDef } from "../components/Tabs";
+import { Async } from "../components/Async";
+import { CardGrid } from "../components/Layouts";
 import {
   ErrorMessage,
   Loading,
@@ -23,7 +28,14 @@ import {
   StatusBadge,
   TableFrame,
 } from "../components/Blocks";
-import { boatColor, locationText, formatPoints, matchdaySubtitle, eventDates } from "../lib/format";
+import {
+  boatColor,
+  locationText,
+  formatPoints,
+  matchdaySubtitle,
+  eventDates,
+  roleText,
+} from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 
 /** `races_per_flight = ceil(team_count / boat_count)` — same formula as
@@ -113,7 +125,7 @@ export function Matchday() {
   // first; `TabbedView` grew out of it (Story A-11) and owns the parts that get forgotten
   // when a strip is copied — the roving tabindex, the arrow keys, the scroll guard — and
   // it puts the selection in the URL, so a matchday's results tab can be linked.
-  const tabs: TabDef<"standings" | "pairing" | "results">[] = [
+  const tabs: TabDef<"standings" | "pairing" | "crew" | "results">[] = [
     {
       key: "standings",
       label: t("standingsTab"),
@@ -123,6 +135,11 @@ export function Matchday() {
       key: "pairing",
       label: t("pairingTab"),
       render: () => <PairingList eventId={Number(id)} />,
+    },
+    {
+      key: "crew",
+      label: t("crewTab"),
+      render: () => <Crew eventId={Number(id)} />,
     },
   ];
   if (canEnterResults) {
@@ -397,16 +414,158 @@ function StandingsTable({
   );
 }
 
+/** B-12: who sails for each team at this matchday.
+ *
+ *  Public with no login, and no name is ever hidden: whoever is entered here is already on
+ *  the pairing list, the results and the standings. Club *membership* is the private thing
+ *  (V-10), and this is not that.
+ *
+ *  Deliberately **not** a `LinkCard`, which is one anchor around the whole card: each name
+ *  is its own link to a sailor page, and an anchor inside an anchor is invalid HTML that
+ *  browsers silently unnest. The club link therefore sits in the card header on its own. */
+function Crew({ eventId }: { eventId: number }) {
+  const { t } = useTranslation("matchday");
+  const crew = useAsync(useGetEventCrew(eventId));
+
+  return (
+    <Async
+      state={crew}
+      testId="matchday-crew"
+      loadingText={t("crewLoading")}
+      empty={t("noTeamsEntered")}
+      isEmpty={(data) => !data.teams?.length}
+    >
+      {(data) => (
+        <CardGrid columns={3} testId="matchday-crew-list">
+          {(data.teams ?? []).map((entry) => (
+            <li key={entry.team.id} data-testid={`matchday-crew-team-${entry.team.id}`}>
+              <TeamCrewCard entry={entry} />
+            </li>
+          ))}
+        </CardGrid>
+      )}
+    </Async>
+  );
+}
+
+function TeamCrewCard({ entry }: { entry: TeamCrew }) {
+  const { t } = useTranslation("matchday");
+  const { team, crew } = entry;
+
+  return (
+    <Card className="h-full">
+      <Card.Header>
+        <div className="flex items-start gap-3">
+          {team.club.logo_url && (
+            <img src={team.club.logo_url} alt="" className="size-8 shrink-0 object-contain" />
+          )}
+          {/* `min-w-0` so a long club name truncates instead of widening the grid track
+              and zooming the page out on a phone (Story A-10). */}
+          <div className="min-w-0 flex-1">
+            <Card.Title className="truncate text-base">
+              <Tip text={team.club.name}>
+                <Link
+                  to={`/clubs/${team.club.id}`}
+                  data-testid={`matchday-crew-club-link-${team.id}`}
+                  className="underline-offset-2 hover:underline"
+                >
+                  {team.name}
+                </Link>
+              </Tip>
+            </Card.Title>
+            {team.club.city && <Card.Description>{team.club.city}</Card.Description>}
+          </div>
+        </div>
+      </Card.Header>
+      <Card.Content>
+        {crew?.length ? (
+          <ul className="divide-y divide-slate-100 text-sm">
+            {crew.map((member) => (
+              <li
+                key={member.id}
+                data-testid={`matchday-crew-row-${team.id}-${member.id}`}
+                className="flex items-center justify-between gap-3 py-2"
+              >
+                <Link
+                  to={`/sailors/${member.id}`}
+                  data-testid={`matchday-crew-sailor-link-${team.id}-${member.id}`}
+                  className="truncate font-medium underline-offset-2 hover:underline"
+                >
+                  {member.first_name} {member.last_name}
+                </Link>
+                <span className="shrink-0 text-slate-500">{roleText(member.role)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          /* Entered but nobody named yet — said out loud, because an empty card reads as
+             a page that failed to load. */
+          <p
+            data-testid={`matchday-crew-unnamed-${team.id}`}
+            className="text-sm text-slate-400"
+          >
+            {t("crewNotNamed")}
+          </p>
+        )}
+      </Card.Content>
+    </Card>
+  );
+}
+
 function PairingList({ eventId }: { eventId: number }) {
   const { t } = useTranslation("matchday");
+  // "" is the whole sheet; a club id is that crew's own page. Before the guards below,
+  // because a hook cannot sit after a conditional return.
+  const [club, setClub] = useState("");
   const { data, error, loading } = useAsync(useGetPairing(eventId));
 
   if (loading) return <Loading text={t("pairingLoading")} testId="matchday-pairing-loading" />;
   if (error) return <ErrorMessage text={error} testId="matchday-pairing-error" />;
   if (!data?.races.length) return <Empty testId="matchday-pairing-empty">{t("noRacesDrawn")}</Empty>;
 
+  // The teams of this draw, from the draw itself — the same set the PDF is built from, so
+  // the picker can never offer a club the printed sheet does not know.
+  const teams = [
+    ...new Map(
+      data.races.flatMap((race) => Object.values(race.teams_by_boat)).map((team) => [team.id, team]),
+    ).values(),
+  ].sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <>
+      {/* The list is also read off paper: printed for the notice board, handed out at
+          registration, carried to the boat. The link is a plain anchor, not a generated
+          hook — the response is a PDF, and `api/http.ts` parses every response it handles
+          as JSON. The picker narrows it to one crew's own page, which is what a crew at
+          the dock wants; "all clubs" stays the default because the notice board wants the
+          whole thing. */}
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+        <label className="sr-only" htmlFor="pairing-pdf-club">
+          {t("pairingPdfForClub")}
+        </label>
+        <select
+          id="pairing-pdf-club"
+          value={club}
+          onChange={(event) => setClub(event.target.value)}
+          data-testid="matchday-pairing-pdf-club"
+          className={`${INPUT_CLASS} w-auto py-1 text-sm`}
+        >
+          <option value="">{t("pairingPdfAllClubs")}</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
+          ))}
+        </select>
+        <a
+          href={getDownloadPairingPdfUrl(eventId, club ? { team: Number(club) } : undefined)}
+          download
+          data-testid="matchday-pairing-pdf-link"
+          className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+        >
+          {t("pairingPdf")}
+        </a>
+      </div>
       <TableFrame testId="matchday-pairing-table-frame">
         {/* Centred throughout, heading over cell. Every column holds one short token — a
             race number, a flight number, a club abbreviation — so left alignment left each

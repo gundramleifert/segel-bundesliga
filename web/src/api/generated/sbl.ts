@@ -42,10 +42,12 @@ import type {
   ConfirmWaiver,
   CrewOut,
   DevLogin,
+  DownloadPairingPdfParams,
   EmailRequest,
   EmailRequest202,
   EmailVerify,
   EventCreate,
+  EventCrewList,
   EventDetail,
   EventOut,
   EventReadinessOut,
@@ -58,6 +60,9 @@ import type {
   Health200,
   Index200,
   JobOut,
+  ListAllClubsParams,
+  ListAllEventsParams,
+  ListAllSeriesParams,
   ListClubsParams,
   ListEventsParams,
   ListPendingApplicationsParams,
@@ -72,6 +77,12 @@ import type {
   NetworkProbeOut,
   NetworkProbeParams,
   OidcLogin,
+  PageClubAdminOut,
+  PageClubOut,
+  PageEventOut,
+  PageSailorAdminOut,
+  PageSeriesAdminOut,
+  PageUserOut,
   PairingImportRequest,
   PairingJobRequest,
   PairingList,
@@ -817,11 +828,16 @@ export const getListClubsUrl = (params?: ListClubsParams,) => {
  * series — and an assignment always applies only to one year. An assignment to a series
  * still in draft counts just as little: the club page would otherwise name a competition
  * nobody is supposed to know about yet.
+ *
+ * Searchable since Story A-13, and that is the half the visitor notices: the club page
+ * used to fetch a page of clubs and filter it in the browser, which can only ever find
+ * what happened to be on the page it was holding. ``q`` narrows, it never widens — a
+ * club that is not public is not found by naming it either.
  * @summary List Clubs
  */
-export const listClubs = async (params?: ListClubsParams, options?: RequestInit): Promise<ClubOut[]> => {
+export const listClubs = async (params?: ListClubsParams, options?: RequestInit): Promise<PageClubOut> => {
 
-  return http<ClubOut[]>(getListClubsUrl(params),
+  return http<PageClubOut>(getListClubsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1394,11 +1410,16 @@ export const getListEventsUrl = (params?: ListEventsParams,) => {
 }
 
 /**
+ * The public calendar. Paged since Story A-13 — it gains a season every year.
+ *
+ * Searching it stays on the server for the same reason the paging does: a draft event
+ * is not in the answer at all, so a term that names one finds nothing here however it
+ * is spelled.
  * @summary List Events
  */
-export const listEvents = async (params?: ListEventsParams, options?: RequestInit): Promise<EventOut[]> => {
+export const listEvents = async (params?: ListEventsParams, options?: RequestInit): Promise<PageEventOut> => {
 
-  return http<EventOut[]>(getListEventsUrl(params),
+  return http<PageEventOut>(getListEventsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1587,6 +1608,119 @@ export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError
 
 
 
+export const getGetEventCrewUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/crew`
+}
+
+/**
+ * The lineups of one matchday, per team — Story B-12.
+ *
+ * Public, with no login: whoever is entered is named on the pairing list, the results and
+ * the standings anyway, so putting the lineup behind a session would hide nothing. Club
+ * **membership** is the private thing (Story V-10), and this is not that.
+ *
+ * A team that is entered but has nobody named yet is listed with an **empty** crew rather
+ * than left out — "not named yet" is the answer to the question, while a missing row would
+ * read as "this club is not sailing here".
+ *
+ * Separate from ``get_event`` on purpose: the standings are what the page opens with, and
+ * every visitor would otherwise pay for a join most of them never look at.
+ * @summary Who sails for each team at this matchday
+ */
+export const getEventCrew = async (eventId: number, options?: RequestInit): Promise<EventCrewList> => {
+
+  return http<EventCrewList>(getGetEventCrewUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEventCrewQueryKey = (eventId: number,) => {
+    return [
+    `/api/events/${eventId}/crew`
+    ] as const;
+    }
+
+
+export const getGetEventCrewQueryOptions = <TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventCrewQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventCrew>>> = ({ signal }) => getEventCrew(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventCrewQueryResult = NonNullable<Awaited<ReturnType<typeof getEventCrew>>>
+export type GetEventCrewQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventCrew>>,
+          TError,
+          Awaited<ReturnType<typeof getEventCrew>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventCrew>>,
+          TError,
+          Awaited<ReturnType<typeof getEventCrew>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Who sails for each team at this matchday
+ */
+
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventCrewQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetPairingUrl = (eventId: number,) => {
 
 
@@ -1677,6 +1811,131 @@ export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetPairingQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadPairingPdfUrl = (eventId: number,
+    params?: DownloadPairingPdfParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/events/${eventId}/pairing.pdf?${stringifiedParams}` : `/api/events/${eventId}/pairing.pdf`
+}
+
+/**
+ * The pairing list as the sheet that is printed and handed out (Story B-3).
+ *
+ * Same data as ``get_pairing``, same visibility — a draft is a 404 here as it is
+ * everywhere public. It is rendered by the Java tool that owns the print layout; see
+ * ``app.pairing.pdf`` for why this one may run inside a request while a draw may not.
+ *
+ * With ``team``, the answer is that club's own page: its races marked and the teams it
+ * shares a shuttle with. That is the sheet one crew wants — finding its page among
+ * eighteen is what a crew does at the dock, in the wind, on paper.
+ * @summary Pairing list as PDF
+ */
+export const downloadPairingPdf = async (eventId: number,
+    params?: DownloadPairingPdfParams, options?: RequestInit): Promise<Blob> => {
+
+  return http<Blob>(getDownloadPairingPdfUrl(eventId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadPairingPdfQueryKey = (eventId: number,
+    params?: DownloadPairingPdfParams,) => {
+    return [
+    `/api/events/${eventId}/pairing.pdf`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDownloadPairingPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(eventId: number,
+    params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadPairingPdfQueryKey(eventId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadPairingPdf>>> = ({ signal }) => downloadPairingPdf(eventId,params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadPairingPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPairingPdf>>>
+export type DownloadPairingPdfQueryError = ErrorType<HTTPValidationError>
+
+
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number,
+    params: undefined |  DownloadPairingPdfParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPairingPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPairingPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number,
+    params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPairingPdf>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPairingPdf>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number,
+    params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Pairing list as PDF
+ */
+
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number,
+    params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadPairingPdfQueryOptions(eventId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -2364,11 +2623,14 @@ export const getListUsersUrl = (params?: ListUsersParams,) => {
 
 /**
  * Also for club managers: they need to find people to assign to their club.
+ *
+ * Paged since Story A-13 — there is one account per registered sailor, so this list is
+ * as long as the sailor register and had no limit at all.
  * @summary List accounts
  */
-export const listUsers = async (params?: ListUsersParams, options?: RequestInit): Promise<UserOut[]> => {
+export const listUsers = async (params?: ListUsersParams, options?: RequestInit): Promise<PageUserOut> => {
 
-  return http<UserOut[]>(getListUsersUrl(params),
+  return http<PageUserOut>(getListUsersUrl(params),
   {
     ...options,
     method: 'GET'
@@ -3673,12 +3935,19 @@ export const usePutRaceResult = <TError = ErrorType<HTTPValidationError>,
       return useMutation(getPutRaceResultMutationOptions(options), queryClient);
     }
 
-export const getListAllEventsUrl = () => {
+export const getListAllEventsUrl = (params?: ListAllEventsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/admin/events`
+  return stringifiedParams.length > 0 ? `/api/admin/events?${stringifiedParams}` : `/api/admin/events`
 }
 
 /**
@@ -3687,12 +3956,17 @@ export const getListAllEventsUrl = () => {
  * ``GET /api/events`` shows only what is published, which is exactly the wrong list for
  * the screen that publishes things: a draft would be invisible on the one page meant to
  * finish it. Drafts sort first, then by date, newest first — an event with no date yet is
- * the one still being worked on, so it belongs at the top rather than at the end.
+ * the one still being worked on, so it belongs at the top rather than at the end. Paged
+ * since Story A-13; this list grows by a dozen or so every season and never shrinks.
+ *
+ * Searched by the same fields as the public calendar, through the same function: the two
+ * lists differ in what they may show — drafts included here — not in what a search term
+ * means.
  * @summary All events, drafts included
  */
-export const listAllEvents = async ( options?: RequestInit): Promise<EventOut[]> => {
+export const listAllEvents = async (params?: ListAllEventsParams, options?: RequestInit): Promise<PageEventOut> => {
 
-  return http<EventOut[]>(getListAllEventsUrl(),
+  return http<PageEventOut>(getListAllEventsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -3705,23 +3979,23 @@ export const listAllEvents = async ( options?: RequestInit): Promise<EventOut[]>
 
 
 
-export const getListAllEventsQueryKey = () => {
+export const getListAllEventsQueryKey = (params?: ListAllEventsParams,) => {
     return [
-    `/api/admin/events`
+    `/api/admin/events`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListAllEventsQueryOptions = <TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
+export const getListAllEventsQueryOptions = <TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAllEventsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListAllEventsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllEvents>>> = ({ signal }) => listAllEvents({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllEvents>>> = ({ signal }) => listAllEvents(params, { signal });
 
 
 
@@ -3731,11 +4005,11 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListAllEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listAllEvents>>>
-export type ListAllEventsQueryError = ErrorType<unknown>
+export type ListAllEventsQueryError = ErrorType<HTTPValidationError>
 
 
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>> & Pick<
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+ params: undefined |  ListAllEventsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllEvents>>,
           TError,
@@ -3744,8 +4018,8 @@ export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>> & Pick<
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllEvents>>,
           TError,
@@ -3754,20 +4028,20 @@ export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary All events, drafts included
  */
 
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListAllEventsQueryOptions(options)
+  const queryOptions = getListAllEventsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -4770,21 +5044,32 @@ export const useSetParticipants = <TError = ErrorType<HTTPValidationError>,
       return useMutation(getSetParticipantsMutationOptions(options), queryClient);
     }
 
-export const getListAllClubsUrl = () => {
+export const getListAllClubsUrl = (params?: ListAllClubsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/admin/clubs`
+  return stringifiedParams.length > 0 ? `/api/admin/clubs?${stringifiedParams}` : `/api/admin/clubs`
 }
 
 /**
  * Includes those not yet assigned — otherwise they couldn't be found.
+ *
+ * Paged and searchable since Story A-13: the association runs several series of 18 clubs
+ * and offers the site to clubs organising their own events, so this is the list that
+ * grows fastest of all of them.
  * @summary All clubs with assignments
  */
-export const listAllClubs = async ( options?: RequestInit): Promise<ClubAdminOut[]> => {
+export const listAllClubs = async (params?: ListAllClubsParams, options?: RequestInit): Promise<PageClubAdminOut> => {
 
-  return http<ClubAdminOut[]>(getListAllClubsUrl(),
+  return http<PageClubAdminOut>(getListAllClubsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -4797,23 +5082,23 @@ export const listAllClubs = async ( options?: RequestInit): Promise<ClubAdminOut
 
 
 
-export const getListAllClubsQueryKey = () => {
+export const getListAllClubsQueryKey = (params?: ListAllClubsParams,) => {
     return [
-    `/api/admin/clubs`
+    `/api/admin/clubs`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListAllClubsQueryOptions = <TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
+export const getListAllClubsQueryOptions = <TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAllClubsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListAllClubsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllClubs>>> = ({ signal }) => listAllClubs({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllClubs>>> = ({ signal }) => listAllClubs(params, { signal });
 
 
 
@@ -4823,11 +5108,11 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListAllClubsQueryResult = NonNullable<Awaited<ReturnType<typeof listAllClubs>>>
-export type ListAllClubsQueryError = ErrorType<unknown>
+export type ListAllClubsQueryError = ErrorType<HTTPValidationError>
 
 
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>> & Pick<
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+ params: undefined |  ListAllClubsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllClubs>>,
           TError,
@@ -4836,8 +5121,8 @@ export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>> & Pick<
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllClubs>>,
           TError,
@@ -4846,20 +5131,20 @@ export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary All clubs with assignments
  */
 
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListAllClubsQueryOptions(options)
+  const queryOptions = getListAllClubsQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -5514,21 +5799,31 @@ export const useSetCrew = <TError = ErrorType<HTTPValidationError>,
       return useMutation(getSetCrewMutationOptions(options), queryClient);
     }
 
-export const getListAllSeriesUrl = () => {
+export const getListAllSeriesUrl = (params?: ListAllSeriesParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/admin/series`
+  return stringifiedParams.length > 0 ? `/api/admin/series?${stringifiedParams}` : `/api/admin/series`
 }
 
 /**
- * All years, not just the current one — admin plans ahead.
+ * All years, not just the current one — admin plans ahead, so this grows every year.
+ *
+ * Both names are searched because both are used: the list shows "1. Segel-Bundesliga
+ * 2026", and the person looking for it types "1. Liga".
  * @summary All series
  */
-export const listAllSeries = async ( options?: RequestInit): Promise<SeriesAdminOut[]> => {
+export const listAllSeries = async (params?: ListAllSeriesParams, options?: RequestInit): Promise<PageSeriesAdminOut> => {
 
-  return http<SeriesAdminOut[]>(getListAllSeriesUrl(),
+  return http<PageSeriesAdminOut>(getListAllSeriesUrl(params),
   {
     ...options,
     method: 'GET'
@@ -5541,23 +5836,23 @@ export const listAllSeries = async ( options?: RequestInit): Promise<SeriesAdmin
 
 
 
-export const getListAllSeriesQueryKey = () => {
+export const getListAllSeriesQueryKey = (params?: ListAllSeriesParams,) => {
     return [
-    `/api/admin/series`
+    `/api/admin/series`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListAllSeriesQueryOptions = <TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
+export const getListAllSeriesQueryOptions = <TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListAllSeriesQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListAllSeriesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllSeries>>> = ({ signal }) => listAllSeries({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllSeries>>> = ({ signal }) => listAllSeries(params, { signal });
 
 
 
@@ -5567,11 +5862,11 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListAllSeriesQueryResult = NonNullable<Awaited<ReturnType<typeof listAllSeries>>>
-export type ListAllSeriesQueryError = ErrorType<unknown>
+export type ListAllSeriesQueryError = ErrorType<HTTPValidationError>
 
 
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>> & Pick<
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+ params: undefined |  ListAllSeriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllSeries>>,
           TError,
@@ -5580,8 +5875,8 @@ export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>> & Pick<
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllSeries>>,
           TError,
@@ -5590,20 +5885,20 @@ export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary All series
  */
 
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+ params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListAllSeriesQueryOptions(options)
+  const queryOptions = getListAllSeriesQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -7516,14 +7811,16 @@ export const getListSailorsUrl = (params?: ListSailorsParams,) => {
 }
 
 /**
- * Without a search term, returns the first names.
+ * One page of people, filtered by `q` and sorted by `sort` (Story A-13).
  *
- * With 360 people, a full list would be unusable.
+ * This used to answer with up to 500 rows and offer no way to ask for the 501st, so the
+ * screen showed whatever the first 500 happened to be and the rest of the register was
+ * reachable only by guessing a search term.
  * @summary Search sailors
  */
-export const listSailors = async (params?: ListSailorsParams, options?: RequestInit): Promise<SailorAdminOut[]> => {
+export const listSailors = async (params?: ListSailorsParams, options?: RequestInit): Promise<PageSailorAdminOut> => {
 
-  return http<SailorAdminOut[]>(getListSailorsUrl(params),
+  return http<PageSailorAdminOut>(getListSailorsUrl(params),
   {
     ...options,
     method: 'GET'

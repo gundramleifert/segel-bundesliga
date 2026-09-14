@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: dd57b52d1b83
+Revision ID: 614384868b1b
 Revises: 
-Create Date: 2026-09-10 01:14:27.221130
+Create Date: 2026-09-14 20:29:23.800045
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'dd57b52d1b83'
+revision: str = '614384868b1b'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -196,6 +196,7 @@ def upgrade() -> None:
     sa.Column('venue_id', sa.Integer(), nullable=True),
     sa.Column('host_club_id', sa.Integer(), nullable=True),
     sa.Column('logo_url', sa.String(length=300), nullable=True),
+    sa.Column('print_settings', sa.JSON(), nullable=True),
     sa.Column('sap_leaderboard', sa.String(length=200), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),

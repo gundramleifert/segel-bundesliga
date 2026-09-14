@@ -16,6 +16,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus
 from app.models.auth import Role
+from tests.pages import all_items
 from tests.stories.test_create_event import (
     admin,
     event_with_participants,
@@ -172,7 +173,7 @@ class TestPublication:
         ).json()
 
         assert (await client.get(f"/api/events/{created['id']}")).status_code == 404
-        calendar = {event["slug"] for event in (await client.get("/api/events")).json()}
+        calendar = {event["slug"] for event in await all_items(client, "/api/events")}
         assert created["slug"] not in calendar
 
     async def test_publishing_shows_it_and_unpublishing_hides_it_again(

@@ -152,6 +152,14 @@ class Event(Base, TimestampMixin):
     # The event's own logo. If missing, the host club's crest is shown instead.
     logo_url: Mapped[str | None] = mapped_column(String(300), default=None)
 
+    # How this event's pairing list is printed (Story B-3) — font size, landscape, whether
+    # the per-team pages are included. JSON like ``Series.scoring``, and for the same
+    # reason: a handful of print settings that nothing queries or sorts by do not each earn
+    # a column. Empty is the normal case and means "whatever the configuration implies";
+    # ``app/pairing/pdf.py::PrintSettings`` reads it and tolerates anything unexpected in
+    # it, because a sheet that will not print is worse than one printed at the wrong size.
+    print_settings: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
+
     # SAP Sailing access is a value per regatta, not a global secret.
     sap_leaderboard: Mapped[str | None] = mapped_column(String(200), default=None)
 

@@ -19,6 +19,8 @@ export type { SeriesStandingRow as SeriesRow } from "./generated/model/seriesSta
 export type { EventOut as EventSummary } from "./generated/model/eventOut";
 export type { EventDetail } from "./generated/model/eventDetail";
 export type { EventStandingRow as StandingRow } from "./generated/model/eventStandingRow";
+/** Story B-12: one team entered in a matchday, and the crew sailing it there. */
+export type { TeamCrewOut as TeamCrew } from "./generated/model/teamCrewOut";
 export type { PairingList } from "./generated/model/pairingList";
 export type { BoatOut } from "./generated/model/boatOut";
 export type { SailorDetail } from "./generated/model/sailorDetail";

@@ -1,4 +1,5 @@
 import { Button } from "@heroui/react";
+import { keepPreviousData } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -33,7 +34,9 @@ import type {
   ReadinessReason,
   SeriesAdmin,
 } from "../api/types";
-import { useAsync, useInvalidate } from "../api/useApi";
+import { WHOLE_LIST, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
+import { Pager } from "../components/Pager";
+import { useListParams } from "../lib/listParams";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
 import i18n from "../i18n";
 import { BOAT_COLORS, boatColor, eventDates } from "../lib/format";
@@ -108,6 +111,25 @@ function emptyBoatRow(position: number): BoatRow {
   return { color, customColor: boatColor(color).hex, name: defaultName(position) };
 }
 
+/** What the organizer stored about printing this event's pairing list (Story B-3).
+ *
+ *  The column is free-form JSON, so this reads defensively and falls back to what the
+ *  backend itself falls back to: no font size means "derived from the configuration",
+ *  and team pages are on unless someone turned them off.
+ */
+function printSettings(event: EventSummary): {
+  fontSize: number | null;
+  landscape: boolean;
+  teamPages: boolean;
+} {
+  const raw = (event.print_settings ?? {}) as Record<string, unknown>;
+  return {
+    fontSize: typeof raw.font_size === "number" ? raw.font_size : null,
+    landscape: raw.landscape === true,
+    teamPages: raw.team_pages !== false,
+  };
+}
+
 /** `<input type="color">` needs a well-formed 6-digit hex or it silently resets to black —
  *  falls back to black only for the picker's own value, the free-text field keeps showing
  *  whatever was actually typed. */
@@ -164,8 +186,10 @@ export function EventsAdmin() {
 
 function CreateEvent() {
   const { t } = useTranslation("admin");
-  const seriesList = useAsync(useListAllSeries());
-  const clubs = useAsync(useListAllClubs());
+  // Selectors, so the whole list rather than a page: a dropdown offering the first
+  // twenty-five series is one that cannot pick the twenty-sixth (Story A-13).
+  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
+  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
   // Only pre-computed sizes are offered here — picking a free combination of teams,
   // boats and flights would mean drawing a pairing list from scratch later, an
   // optimization run that takes minutes, not seconds (see app/pairing/catalog.py).
@@ -529,24 +553,44 @@ function ManageEvents() {
   const { t } = useTranslation("admin");
   // The admin list, not the public one: a draft has to appear on the very screen whose
   // job is to finish and publish it.
-  const events = useAsync(useListAllEvents());
-  const seriesList = useAsync(useListAllSeries());
-  const clubs = useAsync(useListAllClubs());
+  // Paged with the page in the URL (Story A-13). Deliberately **not** the shared
+  // `DataTable`: every row here opens an editor — readiness, clubs, the draw, publication,
+  // closing — so this is a list of panels, not a table of values.
+  const list = useListParams();
+  const events = useAsync(
+    useListAllEvents(
+      { ...list.request, q: list.q || undefined },
+      { query: { placeholderData: keepPreviousData } },
+    ),
+  );
+  // Both feed selectors inside each row's panel, so both want the whole list.
+  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
+  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
 
   return (
     <Section
       title={t("manage.title")}
       testId="admin-manage-events-section"
     >
+      <Field label={t("manage.searchLabel")} hint={t("manage.searchHint")}>
+        <input
+          className={INPUT_CLASS}
+          value={list.q}
+          onChange={(e) => list.setQuery(e.target.value)}
+          placeholder={t("manage.searchPlaceholder")}
+          data-testid="admin-manage-events-search-input"
+        />
+      </Field>
+
       {events.loading && <Loading text={t("manage.loadingText")} testId="admin-manage-events-loading" />}
       {events.error && <ErrorMessage text={events.error} testId="admin-manage-events-error" />}
       {events.data &&
-        (events.data.length ? (
+        (events.data.items.length ? (
           <ul
             data-testid="admin-manage-events-list"
             className="divide-y divide-slate-100 rounded-lg border border-slate-200"
           >
-            {events.data.map((event) => (
+            {events.data.items.map((event) => (
               <EventRow
                 key={event.id}
                 event={event}
@@ -558,6 +602,12 @@ function ManageEvents() {
         ) : (
           <Empty testId="admin-manage-events-empty">{t("manage.emptyText")}</Empty>
         ))}
+      <Pager
+        page={events.data}
+        current={list.page}
+        onPage={list.setPage}
+        testId="admin-manage-events"
+      />
     </Section>
   );
 }
@@ -657,6 +707,12 @@ function EventPanel({
   const [startsOn, setStartsOn] = useState(event.starts_on ?? "");
   const [endsOn, setEndsOn] = useState(event.ends_on ?? "");
   const [seed, setSeed] = useState("1240");
+  // Print settings for the pairing list (Story B-3). Empty font size means "whatever the
+  // configuration implies" — the backend derives it, and that is the normal case.
+  const stored = printSettings(event);
+  const [fontSize, setFontSize] = useState(stored.fontSize === null ? "" : String(stored.fontSize));
+  const [landscape, setLandscape] = useState(stored.landscape);
+  const [teamPages, setTeamPages] = useState(stored.teamPages);
   const [selectedClubs, setSelectedClubs] = useState<Set<number> | null>(null);
 
   // Which clubs may be entered at all: the series' registered clubs when the event belongs
@@ -686,6 +742,10 @@ function EventPanel({
     );
 
   const saveDates = useUpdateEvent({ mutation: { onSuccess: refresh } });
+
+  // Its own mutation rather than sharing `saveDates`: two save buttons that report into one
+  // message would each claim the other's success.
+  const savePrint = useUpdateEvent({ mutation: { onSuccess: refresh } });
 
   const saveClubs = useSetParticipants({
     mutation: {
@@ -914,7 +974,69 @@ function EventPanel({
         />
       </Stack>
 
-      {/* 5. Publication and start ------------------------------------------- */}
+      {/* 5. How it prints ---------------------------------------------------- */}
+      <Stack gap={3}>
+        <h3 className="text-sm font-semibold text-slate-700">{t("manage.printTitle")}</h3>
+        <p className="text-sm text-slate-600">{t("manage.printHint")}</p>
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
+          <Field label={t("manage.printFontLabel")} hint={t("manage.printFontHint")}>
+            <input
+              className={INPUT_CLASS}
+              type="number"
+              min={5}
+              max={16}
+              value={fontSize}
+              placeholder={t("manage.printFontAuto")}
+              onChange={(e) => setFontSize(e.target.value)}
+              data-testid={`admin-manage-event-print-font-${event.id}`}
+            />
+          </Field>
+          <label className="flex items-center gap-1.5 text-sm sm:pb-2">
+            <input
+              type="checkbox"
+              checked={landscape}
+              onChange={(e) => setLandscape(e.target.checked)}
+              data-testid={`admin-manage-event-print-landscape-${event.id}`}
+            />
+            {t("manage.printLandscapeLabel")}
+          </label>
+          <label className="flex items-center gap-1.5 text-sm sm:pb-2">
+            <input
+              type="checkbox"
+              checked={teamPages}
+              onChange={(e) => setTeamPages(e.target.checked)}
+              data-testid={`admin-manage-event-print-team-pages-${event.id}`}
+            />
+            {t("manage.printTeamPagesLabel")}
+          </label>
+          <Button
+            size="sm"
+            isDisabled={savePrint.isPending}
+            onPress={() =>
+              savePrint.mutate({
+                eventId: event.id,
+                data: {
+                  print_settings: {
+                    font_size: fontSize ? Number(fontSize) : null,
+                    landscape,
+                    team_pages: teamPages,
+                  },
+                },
+              })
+            }
+            data-testid={`admin-manage-event-save-print-${event.id}`}
+          >
+            {savePrint.isPending ? t("manage.savingButton") : t("manage.savePrintButton")}
+          </Button>
+        </div>
+        <Message
+          testId={`admin-manage-event-print-message-${event.id}`}
+          error={savePrint.isError ? errorText(savePrint.error) : null}
+          success={savePrint.isSuccess ? t("manage.printSavedMessage") : null}
+        />
+      </Stack>
+
+      {/* 6. Publication and start ------------------------------------------- */}
       <Stack gap={3}>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.lifecycleTitle")}</h3>
         <p className="text-sm text-slate-600">{t("manage.publishHint")}</p>
@@ -960,7 +1082,7 @@ function EventPanel({
         />
       </Stack>
 
-      {/* 6. Closing it ------------------------------------------------------ */}
+      {/* 7. Closing it ------------------------------------------------------ */}
       {/* Story VA-10. Last, because it is the last thing done to an event — and because
           putting "Call off" next to "Publish" invites the wrong press.
 

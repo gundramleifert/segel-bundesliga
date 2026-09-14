@@ -215,6 +215,14 @@ These points were deliberately decided this way; bypassing them costs a lot late
   "participants + 1" that missing an event would. Both undo via `reopen` (`final` → `live`,
   `cancelled` → `planned`). Closing freezes nothing: a protest heard weeks later still has
   to land on a `final` event.
+- **The printed pairing list is the Java tool's job, and its settings belong to the Event.**
+  `api/app/pairing/pdf.py` calls `PdfExport` in `reference/PairingList` — the layout lives
+  there and is not reimplemented here. What varies per event is stored in
+  `Event.print_settings` (JSON, like `Series.scoring`): the **organizer** sets font size,
+  landscape and whether the per-team pages are included, because they know the venue and
+  the printer. Empty is the normal case and means the default derived from the
+  configuration — a table read off the 43 event directories in the tool's repository, not
+  invented. `?team=` renders one crew's own page.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
 

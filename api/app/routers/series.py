@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +22,7 @@ from app.auth import require_admin
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventStatus, Series, Team, TeamStatus
+from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import adopt_series_registrations, delete_event_entries, has_results
 from app.text import slugify
@@ -104,20 +105,52 @@ class SeriesAdminOut(SeriesOut):
     event_count: int = 0
 
 
-@router.get("", response_model=list[SeriesAdminOut], summary="All series")
-async def list_all_series(session: AsyncSession = Depends(get_session)) -> list[SeriesAdminOut]:
-    """All years, not just the current one — admin plans ahead."""
-    series = (
-        await session.execute(
-            select(Series).order_by(Series.year.desc().nulls_last(), Series.level.nulls_last())
-        )
-    ).scalars().all()
+#: Story A-13 — the columns this list may be sorted by.
+SERIES_SORT = {"name": Series.name, "year": Series.year, "level": Series.level}
+
+
+@router.get("", response_model=Page[SeriesAdminOut], summary="All series")
+async def list_all_series(
+    q: str | None = Query(default=None, description="Search in name and short name"),
+    params: PageParams = PageInput,
+    session: AsyncSession = Depends(get_session),
+) -> Page[SeriesAdminOut]:
+    """All years, not just the current one — admin plans ahead, so this grows every year.
+
+    Both names are searched because both are used: the list shows "1. Segel-Bundesliga
+    2026", and the person looking for it types "1. Liga".
+    """
+    series, total = await paginate(
+        session,
+        apply_search(select(Series), q, Series.name, Series.short_name),
+        params,
+        sortable=SERIES_SORT,
+        default_order=[Series.year.desc().nulls_last(), Series.level.nulls_last(), Series.id],
+    )
+    return page_of(await _compose(session, series), total, params)
+
+
+async def _compose(session: AsyncSession, series: list[Series]) -> list[SeriesAdminOut]:
+    """Adds each series' participants and its event count — for these series only.
+
+    Split out from the route by Story A-13, and the split is the point: the route now
+    answers with one *page*, so `_series_out`'s old trick of composing every series and
+    picking the one it wanted would either miss it or have to read the whole table to find
+    it.
+    """
+    if not series:
+        return []
+    ids = [s.id for s in series]
 
     participants = (
         await session.execute(
             select(Team.series_id, Team.id, Club)
             .join(Club, Team.club_id == Club.id)
-            .where(Team.status == TeamStatus.ACCEPTED, Team.event_id.is_(None))
+            .where(
+                Team.status == TeamStatus.ACCEPTED,
+                Team.event_id.is_(None),
+                Team.series_id.in_(ids),
+            )
             .order_by(Club.name)
         )
     ).all()
@@ -131,7 +164,7 @@ async def list_all_series(session: AsyncSession = Depends(get_session)) -> list[
         (
             await session.execute(
                 select(Event.series_id, func.count(Event.id))
-                .where(Event.series_id.is_not(None))
+                .where(Event.series_id.in_(ids))
                 .group_by(Event.series_id)
             )
         ).all()
@@ -358,8 +391,9 @@ async def _slug_taken(session: AsyncSession, slug: str) -> bool:
 
 
 async def _series_out(session: AsyncSession, series_id: int) -> SeriesAdminOut:
-    """Fetch the current state of a series for output."""
-    return next(s for s in await list_all_series(session) if s.id == series_id)
+    """The current state of one series, in the same shape the list answers with."""
+    series = (await session.execute(select(Series).where(Series.id == series_id))).scalar_one()
+    return (await _compose(session, [series]))[0]
 
 
 async def _backfill_event_entries(session: AsyncSession, series_id: int) -> None:

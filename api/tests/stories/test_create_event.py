@@ -11,6 +11,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Club
 from app.models.auth import Role
+from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers, register
 
@@ -31,7 +32,7 @@ async def admin(client, caplog, email: str) -> dict[str, str]:
 
 async def league_clubs(client) -> list[int]:
     """The 18 clubs of the running series — exactly the dimensions of the catalog entry."""
-    return [club["id"] for club in (await client.get("/api/clubs")).json()][:18]
+    return [club["id"] for club in await all_items(client, "/api/clubs")][:18]
 
 
 async def club_id(slug: str) -> int:
@@ -94,6 +95,34 @@ class TestCreateEvent:
         pairing = (await client.get(f"/api/events/{event_id}/pairing")).json()
         assert [boat["color"] for boat in pairing["boats"]] == [b["color"] for b in BOATS]
         assert [boat["name"] for boat in pairing["boats"]] == [b["name"] for b in BOATS]
+
+    async def test_the_organizer_decides_how_the_list_prints(self, client, caplog):
+        """Story B-3: the organizer knows the venue's printer, the default only the format."""
+        headers = await admin(client, caplog, "va2b@example.com")
+        created = await client.post(
+            "/api/admin/events",
+            headers=headers,
+            json={
+                "title": "Print Cup",
+                "starts_on": "2026-10-11",
+                "print_settings": {"font_size": 12, "landscape": True, "team_pages": False},
+            },
+        )
+        assert created.status_code == 201, created.text
+        assert created.json()["print_settings"] == {
+            "font_size": 12,
+            "landscape": True,
+            "team_pages": False,
+        }
+
+        # And back to the defaults, which is what an event carries until someone decides.
+        cleared = await client.patch(
+            f"/api/admin/events/{created.json()['id']}",
+            headers=headers,
+            json={"print_settings": None},
+        )
+        assert cleared.status_code == 200, cleared.text
+        assert cleared.json()["print_settings"] is None
 
     async def test_without_boat_specs_league_colors_apply(self, client, caplog):
         headers = await admin(client, caplog, "va3@example.com")

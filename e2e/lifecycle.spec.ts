@@ -62,8 +62,8 @@ const TAB_READY: Record<AdminTab, string> = {
   // The catalog select is the "form is ready" signal for the events tab: the create button
   // cannot be used as one, because it is also disabled while the title is empty.
   events: "admin-events-catalog-select",
-  sailors: "admin-sailors-list",
-  accounts: "admin-accounts-list",
+  sailors: "admin-sailors-table",
+  accounts: "admin-accounts-table",
 };
 
 /** Opens one tab of the admin page and waits until its data has actually arrived.
@@ -374,7 +374,7 @@ test.describe("A-11: the admin screen is organized in tabs", () => {
     // The point of the split: the other four areas are not on the page at all. This is
     // also what makes it cheap — an unmounted panel issues none of its queries.
     await expect(page.getByTestId("admin-manage-events-list")).toHaveCount(0);
-    await expect(page.getByTestId("admin-sailors-list")).toHaveCount(0);
+    await expect(page.getByTestId("admin-sailors-table")).toHaveCount(0);
 
     // Clicking a tab is a navigation, so the URL follows...
     await page.getByTestId("admin-events-tab").click();
@@ -399,6 +399,64 @@ test.describe("A-11: the admin screen is organized in tabs", () => {
     // Five tabs do not fit across a phone; the strip scrolls inside its own box rather
     // than widening the page (Story A-10 is what happens when it does not).
     await expect(page.getByTestId("admin-tabs")).toBeVisible();
+    await expectNoSidewaysScroll(page, testInfo);
+  });
+});
+
+test.describe("A-13: every long list pages, sorts and searches — in the URL", () => {
+  test("a page, a sort and a search can be linked and survive a reload", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, ADMIN);
+    await openAdmin(page, testInfo, "sailors");
+
+    const table = page.getByTestId("admin-sailors-table");
+    // The name cell, not the whole row: the row also carries the email and the number of
+    // registrations, and reading a name out of all three is how this test first searched
+    // the sailor list for the word "registration".
+    const firstName = () => table.locator("tbody tr").first().locator("td").first();
+
+    // The seed registers a couple of hundred sailors, so there is a second page at all.
+    await expect(page.getByTestId("admin-sailors-pager")).toBeVisible();
+    const firstOnPageOne = await firstName().textContent();
+
+    // Paging is a URL change, so the page someone is on can be sent to someone else.
+    await page.getByTestId("admin-sailors-pager-next").click();
+    await expect(page).toHaveURL(/[?&]page=2/);
+    await expect(firstName()).not.toHaveText(firstOnPageOne ?? "");
+
+    // ...and it survives a reload, which is the whole reason it is in the URL and not in
+    // component state.
+    const onPageTwo = await firstName().textContent();
+    await page.reload();
+    await expect(page).toHaveURL(/[?&]page=2/);
+    await expect(firstName()).toHaveText(onPageTwo ?? "");
+
+    // Sorting is the server's, announced to a screen reader, and lands in the URL too.
+    await page.getByTestId("admin-sailors-sort-last_name").click();
+    await expect(page).toHaveURL(/[?&]sort=last_name/);
+    // A new sort goes back to the first page: page two of the old order means nothing.
+    await expect(page).not.toHaveURL(/[?&]page=2/);
+    await expect(
+      table.locator("th").filter({ hasText: /./ }).first(),
+    ).toHaveAttribute("aria-sort", "ascending");
+
+    // Clicking the same column again turns it around rather than clearing it.
+    await page.getByTestId("admin-sailors-sort-last_name").click();
+    await expect(page).toHaveURL(/[?&]sort=-last_name/);
+
+    // Searching is the server's as well — the result may be a single row out of hundreds,
+    // which a client-side filter over one page could never find.
+    const someone = (await firstName().textContent())?.trim().split(/\s+/).pop() ?? "";
+    await page.getByTestId("admin-sailors-search-input").fill(someone);
+    await expect(page).toHaveURL(new RegExp(`[?&]q=${encodeURIComponent(someone)}`));
+    await expect(firstName()).toContainText(someone);
+
+    // A deep link carries all three at once — the state this story exists for.
+    await page.goto(`/admin?tab=sailors&sort=-last_name&q=${encodeURIComponent(someone)}`);
+    await expect(page.getByTestId("admin-sailors-search-input")).toHaveValue(someone);
+    await expect(firstName()).toContainText(someone);
+
     await expectNoSidewaysScroll(page, testInfo);
   });
 });

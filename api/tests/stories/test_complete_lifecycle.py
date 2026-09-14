@@ -23,6 +23,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Event, EventStatus
 from app.models.auth import Role
+from tests.pages import all_items
 from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
@@ -71,7 +72,7 @@ class TestTheCompleteLifecycle:
 
         # A brand-new club is not public yet — it becomes visible through a series
         # ("A club appears publicly only when enrolled", docs/concepts.md).
-        public_clubs = {club["id"] for club in (await client.get("/api/clubs")).json()}
+        public_clubs = {club["id"] for club in await all_items(client, "/api/clubs")}
         assert not set(club_ids) & public_clubs
 
         # ------------------------------------------------- 2. A series, as a draft (A-4)
@@ -119,9 +120,9 @@ class TestTheCompleteLifecycle:
 
         # The draft is on the admin list — the very screen whose job is to finish it — and
         # not on the public one.
-        admin_list = (await client.get("/api/admin/events", headers=headers)).json()
+        admin_list = await all_items(client, "/api/admin/events", headers=headers)
         assert event_id in {row["id"] for row in admin_list}
-        assert event_id not in {row["id"] for row in (await client.get("/api/events")).json()}
+        assert event_id not in {row["id"] for row in await all_items(client, "/api/events")}
 
         # ------------------------------------------- 4. What is missing, and fixing it
         report = (
@@ -195,7 +196,7 @@ class TestTheCompleteLifecycle:
         assert (
             await client.post(f"/api/admin/events/{event_id}/publish", headers=headers)
         ).status_code == 200
-        assert event_id in {row["id"] for row in (await client.get("/api/events")).json()}
+        assert event_id in {row["id"] for row in await all_items(client, "/api/events")}
 
         started = await client.post(f"/api/admin/events/{event_id}/start", headers=headers)
         assert started.status_code == 200, started.text
@@ -334,8 +335,8 @@ class TestTheAdminEventList:
 
         managed = await client.get("/api/admin/events", headers=headers)
         assert managed.status_code == 200, managed.text
-        assert event_id in {row["id"] for row in managed.json()}
-        assert event_id not in {row["id"] for row in (await client.get("/api/events")).json()}
+        assert event_id in {row["id"] for row in managed.json()["items"]}
+        assert event_id not in {row["id"] for row in await all_items(client, "/api/events")}
 
     async def test_a_visitor_cannot_read_the_admin_list(self, client):
         """Which events are being planned is not public — not even their titles."""

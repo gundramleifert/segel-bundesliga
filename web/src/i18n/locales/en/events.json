@@ -1,5 +1,7 @@
 {
   "title": "Events",
   "loading": "Loading events …",
-  "noEvents": "No matchdays are scheduled for this year."
+  "noEvents": "No matchdays are scheduled for this year.",
+  "searchPlaceholder": "Search events",
+  "noMatches": "No event matches that."
 }

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClubOut } from './clubOut';
+import type { EventOutPrintSettings } from './eventOutPrintSettings';
 import type { SeriesOut } from './seriesOut';
 import type { VenueOut } from './venueOut';
 
@@ -26,4 +27,5 @@ export interface EventOut {
   boat_count: number;
   flight_count: number;
   crew_size: number;
+  print_settings?: EventOutPrintSettings;
 }

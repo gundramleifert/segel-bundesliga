@@ -120,7 +120,10 @@
     "loadingText": "Wird gesucht ...",
     "emptyText": "Zu dieser Suche ist niemand angelegt.",
     "registrationsLabel": "1 Meldung",
-    "registrationsLabelPlural": "{{count}} Meldungen"
+    "registrationsLabelPlural": "{{count}} Meldungen",
+    "nameHeader": "Name",
+    "emailHeader": "E-Mail",
+    "squadsHeader": "Meldungen"
   },
   "squad": {
     "title": "Kader",
@@ -165,7 +168,11 @@
       "editor": "Redaktion",
       "race_officer": "Wettfahrtleitung",
       "club_manager": "Vereinsmanager"
-    }
+    },
+    "nameHeader": "Name",
+    "emailHeader": "E-Mail",
+    "clubHeader": "Verein",
+    "rolesHeader": "Rollen"
   },
   "page": {
     "title": "Verwaltung",
@@ -224,6 +231,18 @@
     "finishedHint": "Die Wettfahrten sind beendet. Ergebnisse bleiben änderbar: eine Protestentscheidung in einigen Wochen landet weiterhin hier.",
     "cancelledHint": "Diese Veranstaltung wurde abgesagt. Es wurde nichts gelöscht, und sie zählt in keiner Serienwertung — bei einer abgesagten Regatta dabei gewesen zu sein, darf niemanden etwas kosten.",
     "reopenFinishedButton": "Wettfahrten fortsetzen",
-    "reopenCancelledButton": "Absage zurücknehmen"
+    "reopenCancelledButton": "Absage zurücknehmen",
+    "printTitle": "Wie es gedruckt wird",
+    "printHint": "Die Pairing-Liste als PDF — das Blatt, das die Crews mit aufs Boot nehmen. Bleibt das Feld leer, richtet sich die Schriftgröße nach der Größe des Spieltags.",
+    "printFontLabel": "Schriftgröße",
+    "printFontHint": "In Punkt. Leer heißt: aus Flights und Wettfahrten abgeleitet.",
+    "printFontAuto": "automatisch",
+    "printLandscapeLabel": "Querformat",
+    "printTeamPagesLabel": "Eine Seite je Team",
+    "savePrintButton": "Druckeinstellungen speichern",
+    "printSavedMessage": "Druckeinstellungen gespeichert.",
+    "searchLabel": "Suche",
+    "searchHint": "Titel, Revier oder Ausrichter.",
+    "searchPlaceholder": "Veranstaltungen suchen"
   }
 }

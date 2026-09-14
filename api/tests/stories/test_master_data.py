@@ -4,6 +4,7 @@ Clubs are master data — they appear later in the choice of host for an event.
 """
 
 from app.models.auth import Role
+from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
@@ -34,7 +35,7 @@ class TestClubCreation:
         assert club["logo_url"] == "/marke/scm.png"
 
         # But not public yet: series assignment decides that (Story A-3).
-        clubs = (await client.get("/api/clubs")).json()
+        clubs = await all_items(client, "/api/clubs")
         assert not any(v["slug"] == "scm" for v in clubs)
 
     async def test_editors_can_also_create_clubs(self, client, caplog):
@@ -88,7 +89,7 @@ class TestCreatingAMatchday:
     """As an organizer I want to create a matchday with a name, a date and a host club."""
 
     async def _host_club(self, client) -> dict:
-        return (await client.get("/api/clubs")).json()[0]
+        return (await all_items(client, "/api/clubs"))[0]
 
     async def test_name_date_and_host_club_are_enough(self, client, caplog, ids):
         headers = await as_role(client, caplog, "ev1@example.com", Role.ADMIN)
@@ -293,7 +294,7 @@ class TestStandaloneEvent:
             )
         ).json()
 
-        calendar = (await client.get("/api/events")).json()
+        calendar = await all_items(client, "/api/events")
         assert created["slug"] in {e["slug"] for e in calendar}
 
     async def test_it_counts_in_no_series_table(self, client, caplog, ids):

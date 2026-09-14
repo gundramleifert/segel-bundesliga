@@ -133,6 +133,78 @@ linked, survives a reload, and the Back button steps between tabs. It owns the r
 tabindex, the arrow keys, and the horizontal scroll guard — the parts that get dropped
 when a strip is copied.
 
+### `Pager` — one page of a long list
+
+```tsx
+const [offset, setOffset] = useState(0);
+const query = useListEvents({ limit: PAGE_SIZE, offset },
+  { query: { placeholderData: keepPreviousData } });
+...
+<Pager page={query.data} onOffset={setOffset} testId="events" />
+```
+
+The other half of Story A-13's envelope: the backend answers a growing list as
+`{ items, total, limit, offset }`, and this turns the last three numbers into "26–50 of
+180" plus the two buttons. It renders **nothing** while everything fits on one page.
+
+Two things it cannot do for you, both easy to forget:
+
+* **`placeholderData: keepPreviousData`** on the hook. The offset belongs in the query key,
+  so every step is a different query — without the placeholder, `data` empties and the
+  table is replaced by a spinner between pages.
+* **Reset the offset when a filter or search term changes.** Page 4 of the previous search
+  says nothing about this one, and an offset past the end answers empty.
+
+A screen that does *not* page — a client-side filter over the list, or a count taken from
+it — asks for `WHOLE_LIST` rows and reads them with `useAsyncRows`
+(`api/useApi.ts`), which hands back the rows and hides the envelope.
+
+### `DataTable` — the one table
+
+```tsx
+const list = useListParams();
+const query = useListSailors(
+  { ...list.request, q: list.q || undefined, sort: list.sort ?? undefined },
+  { query: { placeholderData: keepPreviousData } },
+);
+const columns = useMemo(() => helper.columns([...]), [t]);
+
+<DataTable columns={columns} page={query.data} params={list}
+           testId="admin-sailors" empty={t("sailors.emptyText")}
+           rowTestId={(sailor) => sailor.id} />
+```
+
+Story A-13's table, on TanStack Table v9 (headless: the library owns the sorting state and
+the row model, every element and class below is ours). It draws the header row, the body
+and the `Pager`, puts `aria-sort` on the sorted column and makes each sortable header a
+real button.
+
+- **The server sorts.** `manualSorting` tells the table so; without it the rows of *one
+  page* would be re-sorted among themselves, which looks like sorting and is not.
+- **Mark a column `enableSorting` only where the endpoint can sort it** — its `sortable`
+  map in the router. A header that promises more answers 422.
+- Columns are built with `createColumnHelper<typeof TABLE_FEATURES, Row>()` from
+  `lib/table.ts`, and **memoised**: a new array each render rebuilds the table.
+- There is no `rowPaginationFeature`: paging is the URL's and the server's.
+
+A screen whose rows are *editors* rather than values — the admin event list, where every
+row opens readiness, clubs, the draw and publication — stays a list and takes only
+`useListParams` + `Pager`.
+
+### `useListParams` — page, sort and search in the URL
+
+```tsx
+const list = useListParams();     // ?page=3&sort=-last_name&q=mann
+list.request                      // { limit, offset } — spread into the generated hook
+list.setQuery(value)              // also resets to page 1
+```
+
+The three live together (`lib/listParams.ts`) because they interact: a new search term
+invalidates the page someone was on. Keeping them in the query string is what makes a found
+row a link you can send, and what stops a reload from throwing the work away. It writes only
+its own keys, so `?view=pairing` and `?tab=events` survive, and it uses `replace` — paging
+should not fill the Back button with every step on the way.
+
 ## Adding to this
 
 Two rules, both from `CLAUDE.md`:

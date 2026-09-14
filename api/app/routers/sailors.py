@@ -27,7 +27,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from fastapi.responses import FileResponse, Response
 from PIL import Image, ImageOps
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_user, optional_user
@@ -37,6 +37,7 @@ from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
 from app.models.auth import Role, User
 from app.models.org import CrewRole
+from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import MemberOut
 from app.services import is_minor
@@ -190,41 +191,57 @@ class SquadOut(BaseModel):
 # ------------------------------------------------------------------------ Sailors
 
 
-@router.get("/sailors", response_model=list[SailorAdminOut], summary="Search sailors")
+#: What this list may be sorted by — Story A-13. A map rather than "any column of the
+#: model": a sort parameter is public API, and exposing the model's attribute names would
+#: make every rename a breaking change for callers.
+SAILOR_SORT = {
+    "last_name": Sailor.last_name,
+    "first_name": Sailor.first_name,
+    "email": Sailor.email,
+    "birth_date": Sailor.birth_date,
+}
+
+
+@router.get("/sailors", response_model=Page[SailorAdminOut], summary="Search sailors")
 async def list_sailors(
     q: str | None = Query(default=None, description="Search in first name, last name, and email"),
-    limit: int = Query(default=50, ge=1, le=500),
+    params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> list[SailorAdminOut]:
-    """Without a search term, returns the first names.
+) -> Page[SailorAdminOut]:
+    """One page of people, filtered by `q` and sorted by `sort` (Story A-13).
 
-    With 360 people, a full list would be unusable.
+    This used to answer with up to 500 rows and offer no way to ask for the 501st, so the
+    screen showed whatever the first 500 happened to be and the rest of the register was
+    reachable only by guessing a search term.
     """
     _can_manage_master_data(acting)
 
-    stmt = select(Sailor).order_by(Sailor.last_name, Sailor.first_name).limit(limit)
-    if q:
-        pattern = f"%{q.strip().lower()}%"
-        stmt = stmt.where(
-            or_(
-                func.lower(Sailor.first_name).like(pattern),
-                func.lower(Sailor.last_name).like(pattern),
-                func.lower(Sailor.email).like(pattern),
-            )
-        )
-    sailors = list((await session.execute(stmt)).scalars())
+    stmt = apply_search(
+        select(Sailor), q, Sailor.first_name, Sailor.last_name, Sailor.email
+    )
+    sailors, total = await paginate(
+        session,
+        stmt,
+        params,
+        sortable=SAILOR_SORT,
+        default_order=[Sailor.last_name, Sailor.first_name, Sailor.id],
+    )
     registrations = await _registrations_by_sailor(session, [s.id for s in sailors])
 
-    return [
-        SailorAdminOut.model_validate(sailor).model_copy(
-            update={
-                "squads": len(registrations.get(sailor.id, [])),
-                "registrations": registrations.get(sailor.id, []),
-            }
-        )
-        for sailor in sailors
-    ]
+    return page_of(
+        [
+            SailorAdminOut.model_validate(sailor).model_copy(
+                update={
+                    "squads": len(registrations.get(sailor.id, [])),
+                    "registrations": registrations.get(sailor.id, []),
+                }
+            )
+            for sailor in sailors
+        ],
+        total,
+        params,
+    )
 
 
 async def _registrations_by_sailor(

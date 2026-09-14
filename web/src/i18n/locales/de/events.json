@@ -1,5 +1,7 @@
 {
   "title": "Veranstaltungen",
   "loading": "Veranstaltungen werden geladen …",
-  "noEvents": "Für dieses Jahr sind noch keine Spieltage angesetzt."
+  "noEvents": "Für dieses Jahr sind noch keine Spieltage angesetzt.",
+  "searchPlaceholder": "Veranstaltungen suchen",
+  "noMatches": "Keine Veranstaltung passt dazu."
 }

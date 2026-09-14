@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import (
@@ -21,6 +21,7 @@ from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import AuditLog, Club, ClubMember, WaiverConfirmation
 from app.models.auth import Role, User, UserRole
+from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.services.login import (
     LoginError,
     login_with_oidc,
@@ -294,28 +295,39 @@ async def delete_my_account(
     await session.commit()
 
 
+#: Story A-13 — the columns this list may be sorted by.
+USER_SORT = {"display_name": User.display_name, "email": User.email}
+
+
 @router.get(
     "/users",
-    response_model=list[UserOut],
+    response_model=Page[UserOut],
     dependencies=[Depends(require_club_manager)],
     summary="List accounts",
 )
 async def list_users(
     club_id: int | None = None,
     q: str | None = None,
+    params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
-) -> list[UserOut]:
-    """Also for club managers: they need to find people to assign to their club."""
-    stmt = select(User).order_by(User.display_name)
+) -> Page[UserOut]:
+    """Also for club managers: they need to find people to assign to their club.
+
+    Paged since Story A-13 — there is one account per registered sailor, so this list is
+    as long as the sailor register and had no limit at all.
+    """
+    stmt = select(User)
     if club_id is not None:
         stmt = stmt.where(User.club_id == club_id)
-    if q:
-        pattern = f"%{q.strip().lower()}%"
-        stmt = stmt.where(
-            or_(func.lower(User.display_name).like(pattern), User.email.like(pattern))
-        )
-    result = await session.execute(stmt)
-    return [UserOut.of(user) for user in result.scalars()]
+    stmt = apply_search(stmt, q, User.display_name, User.email)
+    users, total = await paginate(
+        session,
+        stmt,
+        params,
+        sortable=USER_SORT,
+        default_order=[User.display_name, User.id],
+    )
+    return page_of([UserOut.of(user) for user in users], total, params)
 
 
 @router.put("/users/{user_id}/club", response_model=UserOut, summary="Assign a club")

@@ -36,6 +36,42 @@ export function useAsync<Q extends QueryLike>(query: Q): AsyncState<Payload<Q>> 
   };
 }
 
+/** How many rows to ask for when a screen genuinely needs the whole list.
+ *
+ * Story A-13 caps a page at `MAX_LIMIT` (100, `api/app/pagination.py`). A screen that
+ * filters client-side, or counts something out of the list, needs every row rather than a
+ * page of them — and this is the honest ceiling on that: past a hundred, such a screen has
+ * to let the server filter or count for it. It is deliberately a named constant, so those
+ * screens say what they are doing instead of passing a bare `100`.
+ */
+export const WHOLE_LIST = 100;
+
+/** The rows of a paged answer, for a screen that wants the list and not the envelope.
+ *
+ *     const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
+ *     clubs.data?.map(...)    // ClubAdminOut[], exactly as before A-13
+ *
+ * A screen that actually pages reads the envelope instead and hands it to `Pager`; this is
+ * for the other kind, where `{ items, total, limit, offset }` would only cost every line
+ * downstream an `.items`.
+ */
+export function useAsyncRows<Q extends QueryLike>(query: Q): AsyncState<Rows<Q>> {
+  const state = useAsync(query);
+  const page = state.data as { items: unknown } | null;
+  return { ...state, data: (page?.items ?? null) as Rows<Q> | null };
+}
+
+/** The rows of whatever page the query resolves to.
+ *
+ * Inferred **from the argument**, for the same reason as {@link Payload} right below:
+ * `UseQueryResult` is a union over pending, error and success, and `data` is `undefined`
+ * in two of them. Declaring the parameter as `{ data: { items: T[] } | undefined }` and
+ * letting TypeScript unify `T` across the union infers `unknown`, and then every `.map`
+ * on the calling page fails with an error that points at the page rather than at this line.
+ */
+type Rows<Q extends QueryLike> =
+  NonNullable<Q["data"]> extends { items: infer T } ? T : never;
+
 /** The four fields taken off a query result, and nothing more. */
 interface QueryLike {
   data: unknown;

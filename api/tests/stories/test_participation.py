@@ -9,6 +9,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import AuditLog
 from app.models.auth import Role, User
+from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
 
 
@@ -55,7 +56,7 @@ class TestApplying:
             json={"club_id": club["id"], "series_id": ids.series("dsbl-2-2026")},
         )
 
-        public = (await client.get("/api/clubs")).json()
+        public = await all_items(client, "/api/clubs")
         assert club["slug"] not in {v["slug"] for v in public}
 
     async def test_the_club_sees_where_its_application_stands(self, client, caplog, ids):
@@ -156,7 +157,7 @@ class TestDecidingOnApplications:
         assert response.status_code == 200
         assert response.json()["status"] == "accepted"
 
-        public = (await client.get("/api/clubs")).json()
+        public = await all_items(client, "/api/clubs")
         assert club["slug"] in {v["slug"] for v in public}
 
     async def test_ablehnen_nennt_den_grund(self, client, caplog, ids):
@@ -173,7 +174,7 @@ class TestDecidingOnApplications:
         assert response.json()["status"] == "rejected"
         assert response.json()["decision_note"] == "Das Feld ist voll."
 
-        public = (await client.get("/api/clubs")).json()
+        public = await all_items(client, "/api/clubs")
         assert club["slug"] not in {v["slug"] for v in public}
 
     async def test_the_club_learns_it_was_rejected(self, client, caplog, ids):
@@ -416,7 +417,7 @@ class TestEnteringAnEvent:
         ).json()
         # Intentionally checked against the series and not a fixed number: other stories
         # register clubs afterwards. The claim is that the act takes exactly its series' clubs.
-        series = (await client.get("/api/admin/series", headers=admin)).json()
+        series = await all_items(client, "/api/admin/series", headers=admin)
         s = next(s for s in series if s["id"] == ids.series("dsbl-1-2026"))
 
         assert {z["club"]["id"] for z in participants} == {c["id"] for c in s["clubs"]}

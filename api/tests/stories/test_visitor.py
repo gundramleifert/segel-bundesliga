@@ -4,7 +4,20 @@ Each test describes what someone wants to achieve — not what function is calle
 If one fails, something is broken that people will notice on the website.
 """
 
+import shutil
+from pathlib import Path
+
 import pytest
+
+from app.config import settings
+from tests.pages import all_items
+from tests.stories.test_create_event import admin, event_with_participants, league_clubs
+
+# Printing goes through the Java tool; without it the rest of the story still holds.
+needs_pairing_jar = pytest.mark.skipif(
+    not Path(settings.pairing_jar).is_file() or shutil.which(settings.java_binary) is None,
+    reason="Java runtime or pairing-list JAR not available",
+)
 
 
 class TestSeriesTable:
@@ -160,6 +173,170 @@ class TestPairingList:
         assert pairing["event"]["status"] == "planned"
         assert all(race["status"] == "scheduled" for race in pairing["races"])
 
+    @needs_pairing_jar
+    async def test_the_list_can_be_taken_to_the_dock_on_paper(self, client, ids):
+        """The sheet that gets printed and pinned up — Story B-3."""
+        response = await client.get(
+            f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing.pdf"
+        )
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/pdf"
+        assert "dsbl-1-2026-act-3-pairing-list.pdf" in response.headers["content-disposition"]
+        assert response.content.startswith(b"%PDF")
+
+    @needs_pairing_jar
+    async def test_a_club_entered_after_the_draw_does_not_break_the_sheet(
+        self, client, caplog
+    ):
+        """The sheet prints the teams that were **drawn**; the entry list can have moved on.
+
+        A club entered afterwards has no seat in the list. Printing the current entry list
+        instead would name one club too many and shift every index along it — whole flights
+        on the wrong boat, on the sheet people sail by.
+        """
+        headers = await admin(client, caplog, "latecomer@sbl.example.com")
+        event_id = await event_with_participants(
+            client, headers, "Late entry", "2026-08-22"
+        )
+        drawn = await client.post(
+            f"/api/admin/events/{event_id}/pairing/from-catalog",
+            headers=headers,
+            json={"seed": 3},
+        )
+        assert drawn.status_code == 200, drawn.text
+
+        created = await client.post(
+            "/api/admin/clubs",
+            headers=headers,
+            json={"name": "Seglerverein Nachzuegler", "short_name": "SVN", "city": "Spaethafen"},
+        )
+        assert created.status_code == 201, created.text
+        entered = await client.put(
+            f"/api/admin/events/{event_id}/clubs",
+            headers=headers,
+            json={"clubs": [*await league_clubs(client), created.json()["id"]]},
+        )
+        assert entered.status_code == 200, entered.text
+
+        response = await client.get(f"/api/events/{event_id}/pairing.pdf")
+
+        assert response.status_code == 200, response.text
+        assert response.content.startswith(b"%PDF")
+
+    @needs_pairing_jar
+    async def test_a_crew_can_print_its_own_sheet(self, client, ids):
+        """Story B-3: one club's page, not the file with a page for every club in it."""
+        from app.text import slugify
+
+        event_id = ids.event("dsbl-1-2026-act-1")
+        pairing = (await client.get(f"/api/events/{event_id}/pairing")).json()
+        team = next(iter(pairing["races"][0]["teams_by_boat"].values()))
+
+        response = await client.get(f"/api/events/{event_id}/pairing.pdf?team={team['id']}")
+
+        assert response.status_code == 200
+        assert response.content.startswith(b"%PDF")
+        assert slugify(team["name"]) in response.headers["content-disposition"], (
+            "the file is named after the club, so downloads stay apart"
+        )
+
+    async def test_a_club_that_does_not_sail_here_gets_no_sheet(self, client, ids):
+        """Refused before anything is rendered — no team, no page."""
+        response = await client.get(
+            f"/api/events/{ids.event('dsbl-1-2026-act-1')}/pairing.pdf?team=999999"
+        )
+
+        assert response.status_code == 404
+        assert response.json()["type"] == "/errors/team-not-in-pairing-list"
+
+    async def test_a_matchday_without_a_draw_has_nothing_to_print(self, client, caplog):
+        """An event whose list has not been drawn yet: no empty sheet."""
+        headers = await admin(client, caplog, "print@sbl.example.com")
+        event_id = await event_with_participants(
+            client, headers, "Nothing drawn yet", "2026-08-15"
+        )
+
+        response = await client.get(f"/api/events/{event_id}/pairing.pdf")
+
+        assert response.status_code == 404
+        assert response.json()["type"] == "/errors/pairing-list-missing"
+
+
+class TestMatchdayCrew:
+    """B-12: As a visitor, I want to see who sails for each team at one matchday.
+
+    Deliberately the **finished** matchday, not the planned one the pairing-list tests use.
+    Its configuration is frozen (Story VA-8), so no other story can enter a further club in
+    it, and nothing else in the suite rewrites its lineups — `test_lineup.py` and
+    `test_sailors_and_squads.py` both work on act 3. A count asserted against act 3 is green
+    on its own and red in the full run, which reads as a bug in this endpoint and is not.
+    """
+
+    MATCHDAY = "dsbl-1-2026-act-1"
+
+    async def test_every_team_sailing_today_is_listed_with_its_crew(self, client, ids):
+        from app.seed import CREW
+
+        lineups = (
+            await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")
+        ).json()
+
+        assert len(lineups["teams"]) == 18, "Every team entered in the event belongs here"
+        for entry in lineups["teams"]:
+            assert entry["team"]["club"]["name"]
+            assert len(entry["crew"]) == CREW
+            # Helm first — the order a crew is announced, as in the squad.
+            assert entry["crew"][0]["role"] == "helm"
+
+    async def test_a_team_without_a_lineup_is_listed_with_an_empty_crew(
+        self, client, caplog
+    ):
+        """Nobody named yet is the answer, not a missing row.
+
+        A team left out would read as "this club is not sailing here", which is false —
+        it is entered, the crew is simply not set (same rule as the club page, B-7).
+        """
+        headers = await admin(client, caplog, "b12@example.com")
+        event_id = await event_with_participants(
+            client, headers, "Crew Cup", "2026-09-05"
+        )
+
+        lineups = (await client.get(f"/api/events/{event_id}/crew")).json()
+
+        assert len(lineups["teams"]) == 18
+        assert all(entry["crew"] == [] for entry in lineups["teams"])
+
+    async def test_the_lineup_is_readable_without_a_login(self, client, ids):
+        """Participation is public — the pairing list carries these names anyway."""
+        response = await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")
+
+        assert response.status_code == 200
+        assert response.json()["event"]["id"] == ids.event(self.MATCHDAY)
+
+    async def test_the_lineup_reveals_no_contact_data(self, client, ids):
+        """Names are on every results list; email and birth year are not."""
+        lineups = (
+            await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")
+        ).json()
+
+        for entry in lineups["teams"]:
+            for member in entry["crew"]:
+                assert set(member) == {"id", "first_name", "last_name", "role"}
+
+    async def test_a_draft_matchday_has_no_public_lineup(self, client, caplog):
+        """Publication is orthogonal to everything else — a draft is a 404 (Story VA-8)."""
+        headers = await admin(client, caplog, "b12draft@example.com")
+        created = await client.post(
+            "/api/admin/events",
+            headers=headers,
+            json={"title": "Unpublished Cup", "starts_on": "2026-09-19"},
+        )
+        assert created.status_code == 201, created.text
+
+        response = await client.get(f"/api/events/{created.json()['id']}/crew")
+        assert response.status_code == 404
+
 
 class TestClubs:
     """As a visitor, I want to find the participating clubs."""
@@ -172,16 +349,16 @@ class TestClubs:
         """
         from app.seed import CLUBS
 
-        listed = {c["short_name"] for c in (await client.get("/api/clubs")).json()}
+        listed = {c["short_name"] for c in await all_items(client, "/api/clubs")}
         missing = {shortname for _, shortname, _ in CLUBS} - listed
         assert not missing, f"These clubs are missing: {sorted(missing)}"
 
     async def test_club_is_accessible_via_its_id(self, client):
-        clubs = (await client.get("/api/clubs")).json()
+        clubs = await all_items(client, "/api/clubs")
         response = await client.get(f"/api/clubs/{clubs[0]['id']}")
         assert response.status_code == 200
         assert response.json()["name"] == clubs[0]["name"]
 
     async def test_events_are_sorted_chronologically(self, client):
-        events = (await client.get("/api/events")).json()
+        events = await all_items(client, "/api/events")
         assert [e["starts_on"] for e in events] == sorted(e["starts_on"] for e in events)

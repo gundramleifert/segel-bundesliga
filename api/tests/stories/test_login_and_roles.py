@@ -10,6 +10,7 @@ from app.config import settings
 from app.db import SessionLocal
 from app.models import Club, ClubMember, ClubMemberStatus, Sailor, WaiverConfirmation, WaiverText
 from app.models.auth import IdentityProvider, LoginCode, Role, User, UserRole
+from tests.pages import all_items
 
 
 async def make_user(
@@ -433,7 +434,7 @@ class TestAssigningAClub:
     """As a club manager, I want to assign users to a club — permanently."""
 
     async def _clubs(self, client) -> list[dict]:
-        return (await client.get("/api/clubs")).json()
+        return await all_items(client, "/api/clubs")
 
     async def test_the_assignment_holds_across_matchdays(self, client, caplog):
         """Assignment persists across matchdays — it attaches to the account, not the event."""
@@ -455,7 +456,7 @@ class TestAssigningAClub:
         again = await client.get(
             "/api/auth/users", headers=headers, params={"club_id": clubs[0]["id"]}
         )
-        assert user_id in [u["id"] for u in again.json()]
+        assert user_id in [u["id"] for u in again.json()["items"]]
 
     async def test_a_club_manager_assigns_to_their_own_club(
         self, client, caplog

@@ -21,7 +21,7 @@ import {
   useUploadClubLogo,
 } from "../api/generated/sbl";
 import type { ClubAdmin, SeriesAdmin } from "../api/types";
-import { useAsync, useInvalidate, useAccount } from "../api/useApi";
+import { WHOLE_LIST, useAsyncRows, useInvalidate, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { AccountsAdmin } from "./AdminAccounts";
@@ -110,7 +110,9 @@ type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
 
 function Clubs() {
   const { t } = useTranslation("admin");
-  const { data, error, loading } = useAsync(useListAllClubs());
+  // Every club, not a page: this list is the master data screen and the source for the
+  // selects below it (Story A-13).
+  const { data, error, loading } = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
   const invalidate = useInvalidate();
   const [name, setName] = useState("");
   const [shortName, setShortName] = useState("");
@@ -345,8 +347,9 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
 
 function Series({ editorOnly }: { editorOnly: boolean }) {
   const { t } = useTranslation("admin");
-  const seriesList = useAsync(useListAllSeries());
-  const clubs = useAsync(useListAllClubs());
+  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
+  // A club selector has to offer every club, so it asks for the whole list.
+  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
   const invalidate = useInvalidate();
 
   const [name, setName] = useState("");
