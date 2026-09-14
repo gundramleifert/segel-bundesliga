@@ -3,6 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 
 import { useAccount } from "../api/useApi";
 import { WIDE_LAYOUT, useMediaQuery } from "../lib/useMediaQuery";
+import { DEV_TOOLS } from "../dev/devTools";
 import { RoleSwitcher } from "../dev/RoleSwitcher";
 import { Breadcrumb } from "./Breadcrumb";
 import { UserMenu } from "./UserMenu";
@@ -179,9 +180,9 @@ export function Layout() {
           } ${
             // Clearance for the dev role switcher, which is `fixed bottom-4 right-4 z-50`
             // and otherwise sits on top of whatever is at the foot of the page. The same
-            // `import.meta.env.DEV` as the switcher itself, so the two cannot disagree —
-            // they did once, and it covered the legal links.
-            import.meta.env.DEV ? "pb-28" : ""
+            // constant as the switcher itself, so the two cannot disagree — they did
+            // once, and it covered the legal links.
+            DEV_TOOLS ? "pb-28" : ""
           }`}
         >
           <div className="mx-auto w-full max-w-6xl">
@@ -189,14 +190,14 @@ export function Layout() {
           </div>
         </main>
 
-        {/* Development only, and gated on the *build* rather than on whether the
-            backend happens to answer `/api/dev`. Those two used to disagree: the switcher
-            showed itself whenever the backend offered dev login, while the footer's
-            clearance for it was `import.meta.env.DEV` — so in a built bundle against a
-            dev-login backend, which is exactly what the e2e suite runs, the switcher sat
-            on top of the legal links that § 5 DDG requires to be reachable. One
-            condition now. */}
-        {import.meta.env.DEV && <RoleSwitcher />}
+        {/* Gated on the *build* rather than on whether the backend happens to answer
+            `/api/dev`. Those two used to disagree: the switcher showed itself whenever the
+            backend offered dev login, while the footer's clearance for it was
+            `import.meta.env.DEV` — so in a built bundle against a dev-login backend, which
+            is exactly what the e2e suite runs, the switcher sat on top of the legal links
+            that § 5 DDG requires to be reachable. One condition now, shared with the
+            clearance above, and a build opts in with `VITE_DEV_TOOLS=true`. */}
+        {DEV_TOOLS && <RoleSwitcher />}
 
       </div>
     </div>

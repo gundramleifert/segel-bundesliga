@@ -179,6 +179,20 @@ needed to try out roles), but it means anyone who finds the URL is an admin. For
 private test URL that's usually an acceptable trade; once SMTP (and, later, an OIDC
 provider) is confirmed working, it can be turned off by editing `render.env`.
 
+**The role switcher needs a second switch, in the frontend.** `SBL_DEV_LOGIN=true` only
+opens `/api/dev`; whether the panel that uses it is *in the bundle* is a build-time
+decision, because a static build has no environment to ask at runtime. `sbl-web` therefore
+sets **`VITE_DEV_TOOLS=true`** in `render.yaml`, and `web/src/dev/devTools.ts` turns that
+plus `import.meta.env.DEV` into the one constant both the switcher and the clearance
+beneath it read. Without it the deployed site is an ordinary production build and shows no
+switcher, however open the backend is — which is what happened here, and looked like the
+test accounts had gone missing.
+
+Leave `VITE_DEV_TOOLS` unset for anything that is not a throwaway test URL. It is a
+separate switch from `SBL_DEV_LOGIN` on purpose: turning dev-login off on the API is what
+actually closes the door, and this one only decides whether the door has a handle painted
+on the wall next to it.
+
 **Getting the first real admin without `SBL_DEV_LOGIN`:** once dev-login is off, nothing
 in the interface can grant the very first `admin` role — every role-granting endpoint
 requires being `admin` already. `SBL_ADMIN_EMAILS` solves exactly that bootstrap problem:

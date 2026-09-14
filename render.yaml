@@ -43,6 +43,12 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # The role switcher, in a *built* bundle. This instance is the public test URL and
+      # its backend already runs with SBL_DEV_LOGIN=true (api/render.env), so the panel is
+      # the point of it — without this the site is a production build and hides it. Never
+      # set this for anything real: it signs anyone in as any role.
+      - key: VITE_DEV_TOOLS
+        value: "true"
     routes:
       # The SPA calls /api/... relative; proxy that to the backend so the browser stays
       # same-origin. Order matters — this must come before the catch-all.
