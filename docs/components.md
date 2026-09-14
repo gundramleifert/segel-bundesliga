@@ -17,7 +17,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | File | Holds |
 |---|---|
 | `Async.tsx` | `Async` — one request, rendered |
-| `Blocks.tsx` | `Loading`, `ErrorMessage`, `Empty`, `PageHeader`, `StatusBadge`, `TableFrame`, `MatchdayCard` |
+| `Blocks.tsx` | `Loading`, `ErrorMessage`, `Empty`, `PageHeader`, `StatusBadge`, `LiveBadge`, `TableFrame`, `MatchdayCard` |
 | `Layouts.tsx` | `Stack`, `CardGrid` |
 | `LinkCard.tsx` | `LinkCard` |
 | `Tip.tsx` | `Tip` — the tooltip, in place of `title` |
@@ -120,6 +120,31 @@ the top of the window on the breadcrumb before that.
 
 In an iterator, the `key` belongs on the `Tip`, not on the child — it is the outer element
 now.
+
+### `LiveBadge` and `useLive` — the page hears about changes
+
+```tsx
+const live = useLive(event.published ? `event:${id}` : null, [
+  getGetEventQueryKey(id),
+  `/api/events/${id}/`,
+]);
+…
+{event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
+```
+
+`useLive` (`web/src/api/useLive.ts`, Story B-5) opens one Server-Sent-Events stream on an
+event and, on every `change` frame, invalidates the targets it was given — the same
+generated keys and path prefixes `useInvalidate` takes after a mutation, so the page
+refetches through the client it always used and nothing arrives by a second path. It
+reports `"live"`, `"reconnecting"` or `"off"`; in the last state it polls every twenty
+seconds and retries the stream after a minute. Pass `null` as the topic for a draft: the
+server answers a draft's stream with 404, and the hook would otherwise poll for nothing.
+
+`LiveBadge` renders that state and nothing else. The rule it exists for: a lost connection
+is a **badge, never an empty page** — TanStack keeps the last table on screen, the badge
+says whether it is current. Show it only while something is actually live; a finished day
+with a "Live" badge is a lie, and a planned one has nothing to stream yet. The hook itself
+may stay mounted regardless, so the page hears the start.
 
 ### `TabbedView` — tabs, with the selection in the URL
 

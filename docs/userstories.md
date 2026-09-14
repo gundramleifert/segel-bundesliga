@@ -191,7 +191,7 @@ Tests: `api/tests/stories/test_visitor.py::TestMatchdayCrew`. The tab itself
 (`web/src/pages/Matchday.tsx`) has no automated test yet — same state as B-2's flight
 columns; Playwright coverage for this page is a separate, not-yet-started task.
 
-### B-5 ○ Follow live updates
+### B-5 ◐ Follow live updates
 As a **spectator** I want to **see current results on the page**,
 so that I **can follow along while racing**.
 
@@ -241,8 +241,22 @@ said "WebSocket with SSE as fallback" and is corrected):
   uvicorn process. Bounded queues, a slow subscriber loses the oldest frames rather than
   stalling the writer; a heartbeat comment every ~15 s keeps proxies from closing an idle
   stream. Never one poller per visitor against the data source.
+- **Live is an event.** The only topic is `event:{id}`: a series is never live, it has an
+  event that is, and a result changes the series table *because* it changes that event.
+  The series page therefore listens on its running event — or the next planned one, so it
+  hears the start — and refetches its own table.
 
-Tests: none yet
+What's done: the transport. `GET /api/live?topic=event:{id}` streams `change` frames
+(`api/app/live.py`, `routers/public.py`); a result, the draw and all six event transitions
+publish after their commit; `web/src/api/useLive.ts` opens the stream, invalidates the
+page's queries on each frame, and falls back to polling; `LiveBadge` shows the state on the
+matchday and the series page; `/live` redirects via `GET /api/live/now`. Still open: the
+"running race" view itself (it needs WL-3's `started_at`), and the production check that
+the static site's `/api/*` rewrite does not buffer the stream.
+
+Tests: `api/tests/unit/test_live_hub.py`,
+`api/tests/stories/test_live_updates.py`,
+`e2e/live.spec.ts::B-5: as a spectator I follow live updates`
 
 ### B-4 ◐ Find clubs and dates
 As a **visitor** I want to **find the participating clubs and dates**.

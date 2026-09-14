@@ -233,6 +233,19 @@ class SeriesStandingRow(BaseModel):
     events_sailed: int = 0
 
 
+class LiveNowOut(BaseModel):
+    """Where ``/live`` should lead right now (Story B-5).
+
+    The running event if there is one, otherwise the next published date — so the page
+    never opens on an empty table. ``event`` is ``None`` only when nothing at all lies
+    ahead.
+    """
+
+    event: EventOut | None
+    #: True when ``event`` is being sailed right now, false when it is the next date.
+    running: bool
+
+
 class SeriesTable(BaseModel):
     """The series standings including its matchdays."""
 

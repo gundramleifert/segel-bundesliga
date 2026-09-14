@@ -23,6 +23,7 @@ from sqlalchemy.orm import selectinload
 from app.auth import current_user, require_event_manager
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
+from app.live import event_topic, hub
 from app.models import (
     Boat,
     Club,
@@ -500,6 +501,7 @@ async def start_event(
 
     event.status = EventStatus.LIVE
     await session.commit()
+    hub.publish(event_topic(event.id))
     return _event_out(await _with_relationships(session, event.id))
 
 
@@ -610,6 +612,8 @@ async def _set_status(
     """
     event.status = status_value
     await session.commit()
+    # Every transition is something a live page must hear — after the commit (Story B-5).
+    hub.publish(event_topic(event.id))
     return _event_out(await _with_relationships(session, event.id))
 
 
@@ -617,6 +621,9 @@ async def _set_published(session: AsyncSession, event_id: int, published: bool) 
     event = await _event(session, event_id)
     event.published = published
     await session.commit()
+    # Visibility is a change too: a page showing this event has to learn that it is gone
+    # (or back), and the series table gains or loses a column.
+    hub.publish(event_topic(event.id))
     return _event_out(await _with_relationships(session, event.id))
 
 

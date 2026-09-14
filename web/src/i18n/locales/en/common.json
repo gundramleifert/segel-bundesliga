@@ -18,6 +18,11 @@
     "final": "final",
     "cancelled": "cancelled"
   },
+  "live": {
+    "live": "Live",
+    "reconnecting": "Reconnecting …",
+    "off": "Updates every {{seconds}} s"
+  },
   "crewRole": {
     "helm": "Helm",
     "crew": "Crew",

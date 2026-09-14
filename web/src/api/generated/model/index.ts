@@ -66,6 +66,7 @@ export * from './listPendingApplicationsParams';
 export * from './listSailorsParams';
 export * from './listSeriesParams';
 export * from './listUsersParams';
+export * from './liveNowOut';
 export * from './memberOut';
 export * from './membershipDecision';
 export * from './membershipInvitation';

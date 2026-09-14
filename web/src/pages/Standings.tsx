@@ -4,10 +4,16 @@ import { useTranslation } from "react-i18next";
 
 import { Tip } from "../components/Tip";
 
-import { useGetSeriesTable, useListSeries } from "../api/generated/sbl";
+import {
+  getGetSeriesTableQueryKey,
+  useGetSeriesTable,
+  useListSeries,
+} from "../api/generated/sbl";
 import { useAsync } from "../api/useApi";
+import { useLive } from "../api/useLive";
 import {
   ErrorMessage,
+  LiveBadge,
   Loading,
   Empty,
   MatchdayCard,
@@ -44,6 +50,16 @@ export function Standings() {
   const error = table.error ?? list.error;
   const data = table.data;
 
+  // Story B-5: live is an event, never a series. The table changes because one of its
+  // events does, so this page listens on the running event — or, with none running, on
+  // the next planned one, so it hears the start — and refetches its own table.
+  const runningEvent = data?.events.find((event) => event.status === "live");
+  const liveTopicEvent = runningEvent ?? data?.events.find((event) => event.status === "planned");
+  const live = useLive(
+    liveTopicEvent ? `event:${liveTopicEvent.id}` : null,
+    seriesId !== null ? [getGetSeriesTableQueryKey(seriesId)] : [],
+  );
+
   if (loading) return <Loading text={t("loading.text")} testId="standings-loading" />;
   if (error) return <ErrorMessage text={error} testId="standings-error" />;
   // No series at all this year: the list answered, it was empty, so there is nothing to
@@ -66,7 +82,16 @@ export function Standings() {
           read. */}
       <Stack gap={8}>
       <section data-testid="standings-results-section">
-      <SectionHeading>{t("resultsHeading")}</SectionHeading>
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
+        <SectionHeading>{t("resultsHeading")}</SectionHeading>
+        {/* Only while one of the series' events is being sailed: that is when this table
+            moves, and the only time "live" is true of anything here. */}
+        {runningEvent && (
+          <span className="mb-3">
+            <LiveBadge state={live} testId="standings-live-badge" />
+          </span>
+        )}
+      </div>
       {/* A series without a sailed event has no table — saying so plainly is clearer
           than showing an empty grid. */}
       {!data.rows.length ? (

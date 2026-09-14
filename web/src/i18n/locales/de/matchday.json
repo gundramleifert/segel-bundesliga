@@ -1,7 +1,6 @@
 {
   "loading": "Spieltag wird geladen…",
   "racesCount": "{{scored}} von {{total}} Wettfahrten gewertet",
-  "liveUpdate": "laufend aktualisiert",
   "viewLabel": "Ansicht",
   "standingsTab": "Ergebnisse",
   "pairingTab": "Pairing-Liste",

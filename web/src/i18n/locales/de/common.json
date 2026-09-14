@@ -18,6 +18,11 @@
     "final": "beendet",
     "cancelled": "abgesagt"
   },
+  "live": {
+    "live": "Live",
+    "reconnecting": "Verbindung wird wiederhergestellt …",
+    "off": "Aktualisiert alle {{seconds}} s"
+  },
   "crewRole": {
     "helm": "Steuermann",
     "crew": "Crew",

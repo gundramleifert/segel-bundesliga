@@ -13,9 +13,11 @@ included; that is where the work happens.
 from __future__ import annotations
 
 import logging
+import re
+from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import FileResponse, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -24,6 +26,7 @@ from app.auth import current_user
 from app.crests import crest_path
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
+from app.live import hub
 from app.models import (
     Boat,
     Club,
@@ -32,6 +35,7 @@ from app.models import (
     CrewRole,
     Event,
     EventCrew,
+    EventStatus,
     Flight,
     Race,
     RaceEntry,
@@ -56,6 +60,7 @@ from app.schemas.public import (
     EventDetail,
     EventOut,
     EventStandingRow,
+    LiveNowOut,
     MemberOut,
     MyClubOut,
     MySeriesOut,
@@ -205,6 +210,89 @@ async def get_series_table(
         rows=rows,
         events=[_event_out(event) for event in events],
     )
+
+
+# -------------------------------------------------------------------------- Live
+
+
+#: The one topic a browser may listen to. Live is an event — a series only has one that is.
+_LIVE_TOPIC = re.compile(r"^event:(?P<id>\d+)$")
+
+
+@router.get(
+    "/live",
+    summary="Live updates for one event",
+    # Deliberately kept out of the OpenAPI document: the generated client would turn a
+    # text/event-stream into a query hook that resolves once, with a body it cannot parse
+    # — a trap, not a convenience. The browser side is `EventSource` in
+    # `web/src/api/useLive.ts`, which is the one place this path is written by hand.
+    include_in_schema=False,
+)
+async def live_stream(
+    topic: str = Query(description="`event:{id}`"),
+    last_event_id: int | None = Header(default=None, alias="Last-Event-ID"),
+    session: AsyncSession = Depends(get_session),
+) -> StreamingResponse:
+    """Server-Sent Events: a ``change`` frame whenever the event's data changed — Story B-5.
+
+    The frame carries a version, never the data: the browser refetches through the
+    generated client, so this stream can never disagree with the tables it announces.
+
+    A draft has no stream, and "draft" is the public router's own predicate,
+    ``_only_public_events`` — the event published **and** its series not a draft — so
+    this endpoint cannot leak an event the calendar hides.
+    """
+    match = _LIVE_TOPIC.match(topic)
+    if match is None:
+        raise Problem(422, "live-topic-invalid", "A live topic is `event:{id}`.", topic=topic)
+    event_id = int(match["id"])
+    stmt = _only_public_events(select(Event.id).where(Event.id == event_id))
+    if (await session.execute(stmt)).scalar_one_or_none() is None:
+        raise Problem(404, "event-not-found", f"Event {event_id} not found.")
+
+    return StreamingResponse(
+        hub.stream(topic, last_event_id=last_event_id),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            # nginx-style proxies buffer responses by default, which turns a stream into
+            # a response that arrives when the connection closes. This header asks them
+            # not to; the browser's polling fallback covers the ones that ignore it.
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.get("/live/now", response_model=LiveNowOut, summary="Where /live should lead now")
+async def get_live_now(session: AsyncSession = Depends(get_session)) -> LiveNowOut:
+    """The running event, else the next published date — Story B-5.
+
+    The live page must never open on an empty table: if nothing is being sailed right
+    now, it leads to the next date instead. Published events only, as everywhere here.
+    """
+    public_events = _only_public_events(select(Event).options(*_EVENT_LOAD))
+    running = (
+        await session.execute(
+            public_events.where(Event.status == EventStatus.LIVE)
+            .order_by(Event.starts_on.nulls_last(), Event.id)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if running is not None:
+        return LiveNowOut(event=_event_out(running), running=True)
+
+    upcoming = (
+        await session.execute(
+            public_events.where(
+                Event.status == EventStatus.PLANNED,
+                Event.starts_on.is_not(None),
+                Event.starts_on >= date.today(),
+            )
+            .order_by(Event.starts_on, Event.id)
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    return LiveNowOut(event=_event_out(upcoming) if upcoming else None, running=False)
 
 
 # -------------------------------------------------------------------------- Clubs

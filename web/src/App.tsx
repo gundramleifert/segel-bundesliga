@@ -7,6 +7,7 @@ import { Account } from "./pages/Account";
 import { LegalNotice } from "./pages/LegalNotice";
 import { Privacy } from "./pages/Privacy";
 import { Sailor } from "./pages/Sailor";
+import { LiveNow } from "./pages/LiveNow";
 import { Matchday } from "./pages/Matchday";
 import { SeriesOverview } from "./pages/SeriesOverview";
 import { Start } from "./pages/Start";
@@ -29,6 +30,8 @@ export default function App() {
         <Route path="series/:id" element={<Standings />} />
         <Route path="events" element={<Events />} />
         <Route path="events/:id" element={<Matchday />} />
+        {/* Story B-5: the running event, else the next date. */}
+        <Route path="live" element={<LiveNow />} />
         <Route path="clubs" element={<Clubs />} />
         <Route path="clubs/:id" element={<Club />} />
         <Route path="sailors/:id" element={<Sailor />} />

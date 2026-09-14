@@ -103,7 +103,8 @@ function errorMessage(error: unknown, fallback: string): string {
  *   `/api/clubs/7` *and* `/api/clubs/7/members`. Generated keys start with the request
  *   path, so a prefix is the honest way to say "anything about clubs is now stale".
  *   Naming each affected page instead means the one that gets forgotten shows a stale
- *   club until the tab is reloaded.
+ *   club until the tab is reloaded. A prefix that ends in an id needs its trailing slash:
+ *   `"/api/events/1"` also matches `/api/events/12`, `"/api/events/1/"` does not.
  */
 export function useInvalidate() {
   const client = useQueryClient();

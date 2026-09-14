@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.jobs import jobs
+from app.live import hub
 from app.problems import CONTENT_TYPE, Problem, http_problem_body, problem_handler
 from app.routers import (
     admin,
@@ -31,8 +32,10 @@ from app.routers import (
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     yield
-    # Cancel running optimizations cleanly instead of cutting them off mid-run.
+    # Cancel running optimizations cleanly instead of cutting them off mid-run, and end
+    # every open live stream — otherwise the server waits on them before it stops.
     await jobs.shutdown()
+    await hub.shutdown()
 
 
 def _operation_id(route: APIRoute) -> str:

@@ -189,7 +189,7 @@ page says so. Retention beyond that is a later decision. Postgres-specific types
 ## 5. Modules and interfaces
 
 ```
-api/app/live.py               SSE hub; topics event:{id}, series:{id}, race:{id}
+api/app/live.py               SSE hub; the one topic is event:{id} — live is an event, a series only has one that is
 api/app/tracking/
   ingest.py                   POST /api/track/fixes — device token, batch, idempotent
   geo.py                      Projection: LocalTangentPlane; segment crossing, side of line
@@ -290,8 +290,10 @@ one recorded track so an algorithm change is *decided on data*, not argued.
 
 - `GET /api/live?topic=event:12` (public router; **404 for a draft** — and "draft" is the
   public router's own predicate `_only_public_events` (`Event.published` **and** the series
-  not a draft), reused, never restated per endpoint. The `series:{id}` topic checks the
-  series' flag the same way). Frames: `change {topic, version}`, `positions {race, t,
+  not a draft), reused, never restated per endpoint). **Live is an event**: `event:{id}` is
+  the only topic — a series is never live, it has an event that is, and the series table
+  page listens on that event (or the next planned one, so it hears the start) and
+  refetches its own table. Frames: `change {topic, version}`, `positions {race, t,
   boats:[…]}`, heartbeat comment every 15 s, `retry:` set.
 - Publishers: `put_race_result` (after commit), **all six** event transitions in
   `routers/events.py` (`publish`/`unpublish` included — they change who may see the event,

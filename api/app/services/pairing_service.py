@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.live import event_topic, hub
 from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus, Team, TeamStatus
 from app.pairing import BoatSpec, ImportedPairing, PairingSlot, logistics_report, pairing_report
 from app.pairing.pdf import PdfRequest, PrintSettings
@@ -206,6 +207,9 @@ async def publish_pairing(
         )
 
     await session.commit()
+    # A new pairing list changes who is on which boat — the running-race view and the
+    # pairing tab both read it. After the commit (Story B-5).
+    hub.publish(event_topic(event.id))
     return {
         "boats": len(boats),
         "flights": len(flights),

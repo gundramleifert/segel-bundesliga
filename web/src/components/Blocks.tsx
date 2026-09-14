@@ -3,6 +3,7 @@ import { useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { EventSummary } from "../api/types";
+import { POLL_MILLIS, type LiveState } from "../api/useLive";
 import { locationText, matchdaySubtitle, statusText, eventDates } from "../lib/format";
 import { setPageTitle } from "./breadcrumb";
 import { LinkCard } from "./LinkCard";
@@ -61,6 +62,36 @@ export function StatusBadge({ status, testId }: { status: string; testId?: strin
         <span className="size-1.5 animate-pulse rounded-full bg-emerald-600" aria-hidden />
       )}
       {statusText(status)}
+    </span>
+  );
+}
+
+const LIVE_STYLE: Record<LiveState, string> = {
+  live: "bg-emerald-100 text-emerald-800 ring-emerald-300",
+  reconnecting: "bg-amber-100 text-amber-800 ring-amber-300",
+  off: "bg-slate-100 text-slate-600 ring-slate-200",
+};
+
+/** What `useLive` reports, as a badge (Story B-5).
+ *
+ * The rule it renders: a lost connection is a badge, never an empty page. The table stays
+ * on screen while the stream reconnects, and if it falls back to polling the badge says
+ * how often — a reader must never take a stale table for a current one, and must never
+ * lose the one they had. `data-state` carries the state for the tests.
+ */
+export function LiveBadge({ state, testId }: { state: LiveState; testId?: string }) {
+  const { t } = useTranslation();
+  return (
+    <span
+      data-testid={testId ?? "live-badge"}
+      data-state={state}
+      role="status"
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${LIVE_STYLE[state]}`}
+    >
+      {state === "live" && (
+        <span className="size-1.5 animate-pulse rounded-full bg-emerald-600" aria-hidden />
+      )}
+      {t(`live.${state}`, { seconds: POLL_MILLIS / 1000 })}
     </span>
   );
 }

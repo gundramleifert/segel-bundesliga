@@ -17,11 +17,13 @@ import {
 } from "../api/generated/sbl";
 import type { AdminRace, BoatOut, EventSummary, StandingRow, TeamCrew } from "../api/types";
 import { useAsync, useInvalidate, useAccount } from "../api/useApi";
+import { useLive } from "../api/useLive";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { Async } from "../components/Async";
 import { CardGrid } from "../components/Layouts";
 import {
   ErrorMessage,
+  LiveBadge,
   Loading,
   Empty,
   PageHeader,
@@ -115,6 +117,16 @@ export function Matchday() {
 
   const matchday = useAsync(useGetEvent(Number(id)));
 
+  // Story B-5: hear about results and transitions while the page is open. Only for a
+  // published event — a draft has no stream (the server answers 404) and the hook would
+  // otherwise fall back to polling for nothing. The prefixes end in a slash on purpose:
+  // "/api/events/1" would also match "/api/events/12".
+  const live = useLive(matchday.data?.event.published ? `event:${id}` : null, [
+    getGetEventQueryKey(Number(id)),
+    `/api/events/${id}/`,
+    `/api/admin/events/${id}/`,
+  ]);
+
   if (matchday.loading) return <Loading text={t("loading")} testId="matchday-loading" />;
   if (matchday.error) return <ErrorMessage text={matchday.error} testId="matchday-error" />;
   if (!matchday.data) return null;
@@ -170,11 +182,14 @@ export function Matchday() {
         <p className="text-slate-600">
           {[locationText(event), eventDates(event)].filter(Boolean).join(" · ")}
         </p>
-        <p className="text-slate-500">
-          {t("racesCount", { scored: races_scored, total: races_total })}
-          {event.status === "live" && (
-            <span className="text-emerald-700"> · {t("liveUpdate")}</span>
-          )}
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500">
+          <span data-testid="matchday-races-count">
+            {t("racesCount", { scored: races_scored, total: races_total })}
+          </span>
+          {/* The badge only while racing: a finished day is not "live", and a planned one
+              has nothing to stream yet. The stream itself is open regardless, so the page
+              hears the start. */}
+          {event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
         </p>
       </div>
 

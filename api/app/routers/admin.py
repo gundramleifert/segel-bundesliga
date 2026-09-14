@@ -14,6 +14,7 @@ from app.auth import require_admin, require_race_officer
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.jobs import Job, JobStatus, jobs
+from app.live import event_topic, hub
 from app.models import AuditLog, Event
 from app.models.auth import User
 from app.models.org import Team, TeamStatus
@@ -614,6 +615,10 @@ async def put_race_result(
         await recompute_series(session, event.series_id)
 
     await session.commit()
+    # After the commit, never before it: a spectator's page refetches the moment this
+    # arrives, and inside the transaction it would read the standings from before this
+    # result (Story B-5, `app/live.py`).
+    hub.publish(event_topic(event.id))
 
     return RaceResultsOut(
         race_id=race.id,

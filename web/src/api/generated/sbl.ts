@@ -69,6 +69,7 @@ import type {
   ListSailorsParams,
   ListSeriesParams,
   ListUsersParams,
+  LiveNowOut,
   MembershipDecision,
   MembershipInvitation,
   MembershipOut,
@@ -794,6 +795,111 @@ export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTab
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSeriesTableQueryOptions(seriesId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetLiveNowUrl = () => {
+
+
+
+
+  return `/api/live/now`
+}
+
+/**
+ * The running event, else the next published date — Story B-5.
+ *
+ * The live page must never open on an empty table: if nothing is being sailed right
+ * now, it leads to the next date instead. Published events only, as everywhere here.
+ * @summary Where /live should lead now
+ */
+export const getLiveNow = async ( options?: RequestInit): Promise<LiveNowOut> => {
+
+  return http<LiveNowOut>(getGetLiveNowUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLiveNowQueryKey = () => {
+    return [
+    `/api/live/now`
+    ] as const;
+    }
+
+
+export const getGetLiveNowQueryOptions = <TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLiveNowQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLiveNow>>> = ({ signal }) => getLiveNow({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLiveNowQueryResult = NonNullable<Awaited<ReturnType<typeof getLiveNow>>>
+export type GetLiveNowQueryError = ErrorType<unknown>
+
+
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLiveNow>>,
+          TError,
+          Awaited<ReturnType<typeof getLiveNow>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLiveNow>>,
+          TError,
+          Awaited<ReturnType<typeof getLiveNow>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Where /live should lead now
+ */
+
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLiveNowQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
