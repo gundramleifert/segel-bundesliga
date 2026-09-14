@@ -3,7 +3,8 @@
 Here we collect what the system should be able to do — from the perspective of those who use it. Each story gets an identifier (`B-1`, `WL-3`, …); tests carry the same identifier in their docstring. This makes it possible to look in both directions: What is already covered by this story? And which story does this test belong to?
 
 **Roles:** `B` Visitor/Fan · `WL` Race Committee · `V` Club Manager ·
-`R` Editorial · `S` Sailor · `A` Administration
+`R` Editorial · `S` Sailor · `A` Administration · `L` Live and tracking (spectator, race
+committee and the phone on the boat share these; the plan is `docs/PLAN_LIVE_IMPLEMENTATION.md`)
 
 **Status:** ○ open · ◐ partial · ● implemented and tested
 
@@ -196,24 +197,50 @@ so that I **can follow along while racing**.
 
 Three views that must be current simultaneously:
 
-1. **Running race** — which race is running, who is on which boat, and once results arrive,
-   the finish.
+1. **Running race** — which race is running (WL-3 is what sets `started_at`), who is on
+   which boat, and once results arrive, the finish.
 2. **Live daily standings** — the standings of the running matchday, updated with each
    recorded race.
 3. **Live season standings** — the league table including the running matchday.
 
 Acceptance criteria:
-- After the race committee enters results, all three views are current within seconds, without
-  anyone reloading.
+- After the race committee enters a result, starts or recalls a race (WL-3), or changes the
+  event's state (VA-8, VA-10 — **all six** transitions, publish and unpublish included,
+  because they change who may see the event), every open page showing that event or its
+  series is current within seconds, without anyone reloading.
 - The page never starts empty: the last known standing is there immediately, updates come
   after.
 - If the connection drops, the page says so and continues showing the last standing, rather
-  than silently presenting stale data as current.
-- If there is no matchday now, the page leads to the next date instead of showing an empty view.
+  than silently presenting stale data as current. This is a **badge**, not an empty page —
+  the table stays on screen while the connection is re-established.
+- After repeated failed reconnects the page falls back to **polling** every ~20 s and says
+  so; a proxy that buffers streams must degrade the experience, never break it.
+- If there is no matchday now, `/live` leads to the next date instead of showing an empty
+  view (`GET /api/live/now` answers with the running event, else the next one).
+- A draft event has no live stream: the stream answers 404 by the same predicate the public
+  router uses everywhere (`Event.published` **and** the series not a draft), never a
+  restated copy of it.
 
-Technical: one poller **per event** on the server that distributes to all spectators —
-never one request per visitor to the data source. WebSocket with SSE as fallback, because
-WebSockets reliably fail on mobile networks and behind corporate proxies.
+How it works (decisions 1–4 in `docs/PLAN_LIVE_IMPLEMENTATION.md` §3; the earlier text here
+said "WebSocket with SSE as fallback" and is corrected):
+
+- **Server-Sent Events, not WebSocket.** Traffic is one-directional, `EventSource`
+  reconnects by itself, rides the plain HTTP path through every proxy, and needs no bearer
+  token — which it *cannot* send, and live spectator data is public anyway (B-6). The
+  fallback is polling, not a second transport.
+- **The stream carries a version token, not the payload.** `change {topic, version}` makes
+  the browser invalidate the TanStack Query keys it was given and refetch through the
+  generated client. Shipping standings down the stream would be a second serialization of
+  the same table that can disagree with the first and bypasses every error, i18n and cache
+  path the pages already have. Positions (L-1) are the one exception: six boats at 1 Hz is
+  where a refetch per tick would be absurd, so they travel inline.
+- **Publish after commit, never inside the transaction.** A subscriber that refetches while
+  the writer's transaction is still open reads the *old* standings and stays stale until the
+  next race. This is the one trap in the feature.
+- **Fan-out in-process** (`api/app/live.py`), the same stated cost as `app/jobs.py`: one
+  uvicorn process. Bounded queues, a slow subscriber loses the oldest frames rather than
+  stalling the writer; a heartbeat comment every ~15 s keeps proxies from closing an idle
+  stream. Never one poller per visitor against the data source.
 
 Tests: none yet
 
@@ -1903,11 +1930,110 @@ Tests: `api/tests/stories/test_club_crest.py`
 As **race committee** I want to **have a simple app with which I run the races**,
 so that I **work quickly and accurately on the water**.
 
+The screen itself — which race is next, who is on which boat, start, recall, finish, the
+progress through the day — is Story **WL-3**. What stays here is the part WL-3 deliberately
+leaves open:
+
 Acceptance criteria:
-- The app shows which race is next and who is on which boat.
-- It works **without network**: everything is stored locally and reconciled later.
-- Usable with wet hands on a rocking boat: large areas, no fiddling.
-- Progress through 16 flights is visible at any time.
+- It works **without network**: every tap is stored locally and reconciled when the
+  connection returns, with the same "later entry wins, the overridden state is logged"
+  rule as WL-2. WL-3's `localStorage` mirror of the finish order is *not* this: it survives a
+  reload, not a morning without coverage.
+- Usable with wet hands on a rocking boat: large areas, no fiddling (WL-3 states the sizes).
+
+Tests: none yet
+
+### WL-3 ○ Start, recall and finish races from one screen
+As **race committee** I want **one full-screen page that shows the current race and lets me
+start it, recall it, abandon it or record its finish with a few large taps**,
+so that **on the water I handle one race at a time and never hunt through three tables**.
+
+Today `RaceStatus.RUNNING` and `Race.started_at` exist and are **never set**: a race goes
+from `scheduled` straight to `finished` when a result is saved, and nothing in the system
+knows a race is *underway*. B-5's "which race is running" and everything in L-1…L-3 read
+`started_at`/`finished_at`, so this story comes first. Plan: `docs/PLAN_LIVE_IMPLEMENTATION.md`
+§7 (decision 14).
+
+Acceptance criteria:
+- **A page, not a Matchday tab:** `/events/:id/race-control`, gated to `admin` and
+  `race_officer`, linked from the manage screen and the results tab. The results tab stays
+  the *correction* screen — a protest heard weeks later belongs there, not here.
+- **One race on screen, the current one:** the first race that is neither `finished` nor
+  `abandoned` — the rule the results tab already uses to find the open race. Header names
+  the race and its flight, a progress bar shows races done over the event's total. Arrows
+  reach the previous race (to correct) and the next (to preview), nothing further.
+- **Everything is sized by the event** — `Event.boat_count` chips, `ceil(team_count /
+  boat_count)` races per flight, `flight_count` flights. A guest club's four-boat event works
+  exactly like a league day; no "six" and no "48" in the code.
+- **Scheduled:** the event's boats in their colours, each with the team the pairing list puts
+  on it. Buttons **Start** (the gun went now) and **Start sequence** (5-4-1-0 minutes per
+  RRS 26, fires Start at 0), and **AP** (see *Signals*).
+- **Running:** elapsed clock; one chip per boat as a finish pad — tap in finish order, tap
+  again to undo; codes (OCS, DNF, DSQ, RDG …) one tap below. Buttons **X** (individual
+  recall), **General recall** (First Substitute, back to `scheduled`), **Abandon → resail**
+  (N, the same reset), **Abandon → no resail** (`abandoned`, scores nothing), **Shorten**
+  (S), **Finish** — enabled once every boat has a position or a code.
+- **Signals are what the committee actually does on the water, so the screen speaks in
+  flags.** Two kinds, deliberately kept apart:
+  - **Transitions** are signals that change the race's status and are the endpoints above:
+    First Substitute is the recall, N is the abandonment (with or without resail), the gun
+    is the start. Nothing new.
+  - **Displayed signals** stay hoisted for a while and mean something to the boats and to
+    the spectators (B-5's running-race view shows them): **AP** (postponed — cancels a
+    running start sequence, the race stays `scheduled`; hauling it down means the warning
+    signal follows one minute later, which the screen counts), **X** (individual recall,
+    with the boats over the line), **S** (shortened course, the finish is at the next mark).
+    The one currently displayed is stored on the race (`Race.signal`, nullable) and cleared
+    when hauled down — a flag on the mast is state, its hoist is an audit row like every
+    other action here. `POST …/races/{race_id}/signal` with `{signal: "AP" | "X" | "S" |
+    null}`; AP is allowed only while `scheduled`, X and S only while `running`.
+  - **The preparatory flag decides the penalty.** The start sequence asks for it once —
+    **P** (default), **I**, **Z**, **U**, **black** — and stores it (`Race.preparatory`).
+    Tapping a boat under **X** gives it the code that flag prescribes: `OCS` under P and I
+    (the boat may return and start correctly, and the committee then clears the code with
+    one tap), `ZFP` under Z, `UFD` under U, `BFD` under black — codes that stay. `UFD` and
+    `BFD` are not in `ResultCode` today and are added here, scored like `OCS` (RRS A5.2:
+    starters + 1, discardable unless the sailing instructions say otherwise). An OCS mark
+    is nothing but a result code recorded early, so the finish pad already knows how to
+    show, change and clear it; no second per-boat state is invented.
+  - **AP over A**, **N over A** (no more racing today) and **AP over H**, **N over H** (back
+    to the harbour) are not race signals but the day's: they map to VA-10's finish or to
+    plain postponement, and the screen offers them where the event's own transitions are.
+- **Finished:** the result, read-only, then the next race slides in; **Correct** leads to
+  that row in the results tab.
+- **Races run strictly one at a time.** Starting a race while another is `running` is
+  refused with `race-already-running`; recalling or abandoning a race that is not running
+  with `race-not-running`; anything while the event is not `live` with `event-not-live`.
+  The event's own gate is reused: a `planned` event shows one button, **Start matchday**
+  (the existing `POST …/start`, VA-8 readiness applies); `final` or `cancelled` shows the
+  state and a link to VA-10's reopen. The page invents no state of its own.
+- **One service owns the transitions.** `app/services/race_state.py` implements start,
+  recall, abandon (both kinds) and finish — and the result PUT goes through it too. Until
+  now `put_race_result` set `finished` with no check at all, and neither the standings
+  service nor the scoring reads `Race.status`: a race is scored the moment its entries carry
+  codes, whatever its status says. Left as is, this state machine would be advisory — race
+  18 finished from the results tab while race 17 runs, an abandoned race still scoring. So:
+  the PUT refuses to finish a race while another one is running, and refuses an `abandoned`
+  race; **recall and abandon clear the race's entries** (code, position, redress) before
+  recomputing, which is what makes "scores nothing" true; a `finished` race stays editable
+  forever, which is the protest case.
+- **A recalled first race leaves the event frozen.** The configuration freeze (VA-8) counts
+  races no longer `scheduled` and recorded codes — both of which a general recall of race 1
+  undoes, un-freezing the event with the fleet on the water. Every transition writes an
+  `AuditLog` row anyway; the freeze predicate counts those too, so a race that has started
+  *once* keeps the event frozen.
+- **Start** sets `started_at` and stamps the race with the event's active course if one is
+  laid (L-2); **Finish** sets `finished_at`; recall clears `started_at`. Every transition is
+  idempotent (a second tap in a rocking boat is not an error) and publishes on the live
+  stream (B-5).
+- **Wet hands:** chips at least 64 px, no dropdowns on the main path. The finish order is
+  mirrored to `localStorage` per race so a reload or a dropped connection does not lose the
+  taps — not WL-1's offline sync, but it removes the likeliest way to lose a race.
+- The tap-to-finish chips leave `RaceResultRow` for a shared `FinishOrderPad` component, so
+  the results tab and this page cannot drift apart.
+
+Endpoints: `POST /api/admin/events/{event_id}/races/{race_id}/start`, `…/recall`,
+`…/abandon?resail=`, `…/signal`; finish is the existing `PUT …/result`.
 
 Tests: none yet
 
@@ -1960,12 +2086,151 @@ Tests: `api/tests/stories/test_result_entry.py::TestEnteringResults`
 
 ---
 
+## Live and Tracking
+
+The plan behind these four stories — make or buy against SAP Sailing Analytics, the
+module layout, the phases and their proofs — is `docs/PLAN_LIVE_IMPLEMENTATION.md`. The
+result in one line: results and positions are ours to build (a day's work each on top of
+B-5); the analytics that rank boats on the water are a small port of one-design ideas, not a
+self-hosted SAP instance; SAP is used **once, offline, as an oracle** to check our
+detectors against theirs on a recorded dataset. Decision numbers below refer to §3 of the
+plan.
+
+Data comes in three stages, and every story is built against the first: **emulated**
+tracks posted through the real ingest endpoint (the emulator knows its own ground truth —
+when it rounds, when it finishes — so it is the contract test for every detector), then
+SAP's recorded Mövenstein dataset, then our own phones on our own boats.
+
+### L-1 ○ See the boats move
+As a **spectator** I want to **see the boats of the running race move on a map**,
+so that I **follow the race from the shore, the club house or the sofa**.
+
+Acceptance criteria:
+- `/events/:id/live` shows a map with one marker per boat of the event, in the boat's colour
+  and carrying the team's name that the pairing list puts on it for the running race, a
+  short trail behind each, and a follow mode that keeps the fleet in view.
+- Markers move as fixes arrive, over B-5's stream, inline (`positions` frame) — the one
+  payload that does not go through a refetch.
+- **The tracker belongs to the boat, not the team** (decision 5). One phone per boat of the
+  event, `Event.boat_count` of them; who sails boat 3 in race 17 is what `RaceEntry` already
+  says. This is the largest simplification against SAP's competitor↔device mapping, and it is
+  available only because the pairing list is ours.
+- **The committee boat is a tracker too** (decision 6): its phone position *is* the boat end
+  of the start and finish lines. Nobody types coordinates on the water.
+- Ingest (`POST /api/track/fixes`) takes a device token issued from the race-control screen
+  and a batch of fixes; a fix is `(tracker, t, lat, lon, sog, cog)`, unique per tracker and
+  time, so a retried batch is idempotent. A wrong or expired token is refused.
+- A spectator gets positions for a published event only; a draft event **and a published
+  event in a draft series** answer 404 — the public router's predicate, reused (B-5).
+- **Where fixes live is decided in this story, not deferred.** The free test instance bakes
+  its SQLite file into the image and resets on every sleep and redeploy, so fixes written
+  there are gone before a replay (L-3) is watched; SQLite's default journal mode takes an
+  exclusive lock per ingest commit and would block the committee's result PUT. So: WAL and a
+  busy timeout in `app/db.py`; for a deployment meant to keep a matchday, a persistent disk
+  or Postgres plus an export of the day (`GET /api/races/{id}/track`), so a day never lives
+  only in a container's filesystem. On the test instance fixes are **ephemeral by design**
+  and the page says so.
+
+Tests: none yet
+
+### L-2 ○ Course, mark passings and a live ranking on the water
+As a **spectator** I want to **see which leg each boat is on and who is ahead**, and as
+**race committee** I want to **lay the course on the map with a few taps**,
+so that **the live page tells a story rather than showing six dots**.
+
+Acceptance criteria:
+- **One course family first: windward/leeward with a leeward gate** (decision 7). Waypoints
+  in order: `START` (line between committee boat and pin, **pin to port of the committee
+  boat**), `WINDWARD` (one mark, rounded to port), `GATE` (two marks, either one), repeated
+  per lap, `FINISH` (line between committee boat and pin, pin **left or right** — one flag).
+  Parameters: `laps`, finish upwind or downwind. Nothing else is modelled until real data
+  asks for it.
+- The race committee lays the course on the map: the committee boat follows its tracker
+  (L-1), the pin and the marks are set by holding a phone next to them or by tapping the
+  map. A re-lay creates a new course; races already started keep the one they were started
+  with (WL-3 stamps it).
+- The live page shows, per boat, the current leg, the gap to the boat ahead, and a rank;
+  after a race the detected finish order prefills the race-control pad (WL-3) as a
+  suggestion the committee confirms with one tap — the committee's word stays the result.
+- **Geometry lives in a local tangent plane** (decision 8): one projection turns lat/lon
+  into metres around the course centre and everything downstream is flat 2-D.
+- **Distance to go is the projection onto the course axis** (decision 9): for a boat at `p`
+  heading for waypoint `w` along unit vector `a`, `to_go = (w − p) · a`. Two boats on
+  opposite tacks at the same height rank equal — the "distance to windward" a commentator
+  means — and on a W/L course the axis from gate centre to windward mark *is* the wind axis,
+  so no wind estimate is needed.
+- **Ranking by time to go from a polar** (decision 10): remaining distance per leg divided
+  by the polar's best VMG at the wind speed, summed. An upwind and a downwind boat become
+  comparable in one number. Ranking depends on the polar's *shape*, not its speeds: scaling
+  the polar by 1.2 must change no rank (unit test). The first polar is the ORC J/70 data in
+  `api/tests/fixtures/polars/j70.csv`, in SAP's CSV shape so one loader reads their 49er and
+  505 files too; the optimum angles and their speeds come from the `beat …`/`jibe …` rows —
+  they must, because the beat angles lie below the table's first column.
+- **Interfaces only where a second implementation is already known** (decision 11): a
+  `Projection`, a `LegDistance` (axis projection, straight line; later wind- or
+  polar-based), a `PassingDetector` (sequential course order; later the SAP candidate-graph
+  port), a `Ranker` (time to go; leg then distance), a `WindSource` (course axis; manual;
+  later estimated from tracks) and a `FixSource` (emulated, recorded, live). Pure functions
+  over immutable inputs, no session, no ORM, so every one of them runs on a recorded track
+  without a server. `RaceAnalysis` plus `default_pipeline()` is the one place concrete
+  classes are named. Ingest, the hub and the map get **no** interface: one implementation
+  each.
+- **Mark passings need no candidate graph on this course family.** A line or gate is
+  passed when the track segment crosses it in the leg's direction; the windward mark when
+  the distance has a local minimum below about three boat lengths *and* the bearing from
+  mark to boat sweeps through a port rounding's arc. A passing counts only if it is the
+  **next expected waypoint** — the course order does the disambiguation SAP's Dijkstra does
+  for arbitrary courses. If real data breaks this, the port of SAP's `CandidateFinder` /
+  `CandidateChooser` (about a thousand lines of Python) is the fallback, not the start.
+- **Derived, never stored** (decision 12): leg per boat, passing times, distance and time
+  to go, rank. The same rule as points.
+- **Contract test for every implementation:** against the emulator's ground truth, passings
+  within ±3 s and a rank order that does not change when the boats' start order is permuted.
+  A new implementation is admitted when it passes the same suite; `compare.py` runs several
+  against one recorded track so an algorithm change is decided on data, not argued.
+
+Tests: none yet
+
+### L-3 ○ Replay a race
+As a **spectator** I want to **scrub through a race that is over**,
+so that I **can see how the leader got there**.
+
+Acceptance criteria:
+- A slider over the stored fixes of a race; the same map, markers and side panel as L-1 and
+  L-2, fed from `GET /api/races/{id}/track` instead of the stream. Nothing new on the
+  server.
+- Scrubbing to a passing time puts the boat at the mark (e2e).
+- On the test instance the replay says the day's fixes are ephemeral (L-1).
+
+Tests: none yet
+
+### L-4 ○ The phone on the boat is the tracker
+As the **crew of boat 3** I want to **open one page on the phone in the cockpit and forget
+about it**,
+so that **the boat is on the map all day without any app to install**.
+
+Acceptance criteria:
+- `/track/:token` — the token is issued per boat from the race-control screen and shown as
+  a QR code; the page requests a wake lock, watches the position, buffers fixes and posts a
+  batch every ~5 s to the ingest endpoint (L-1), retrying while there is no coverage.
+- It shows the boat's colour and name, the last fix's age, and the buffer size, so a crew
+  can tell at a glance it is working.
+- **The one open question is answered on the water, not on paper:** whether a browser page
+  keeps delivering positions with a locked screen in a pocket. One morning with two phones
+  decides whether a web page suffices or the boats need a native shell; L-2's shape may
+  change with that result, which is why this story comes before L-3.
+- The emulator (`python -m app.tracking.emulate`) is a client of the same endpoint
+  (decision 13): it exercises the path real phones use, tacks with the polar's angles and
+  speeds, picks a gate side at random, adds ±5 m of GPS noise, and is deterministic by seed.
+
+Tests: none yet
+
+---
+
 ## Still to Write
 
 Sensible next areas:
 
-- **B-…** Live: follow running race, see boats on map.
-- **S-…** Tracking: register mobile as tracker and record.
 - **A-…** Administration: set up seasons and leagues, maintain venues.
 - **File storage — decided for S-2 and V-3, still open for S-1.** Three stories need
   uploads: the scan of the consent (S-1), member photo (S-2), and club crest (V-3). S-2

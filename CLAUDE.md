@@ -229,6 +229,30 @@ These points were deliberately decided this way; bypassing them costs a lot late
   installation can print at all, so the page can leave the download out.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
+- **Live updates are Server-Sent Events carrying a version token, published after the
+  commit** (Story B-5, `api/app/live.py`). The browser invalidates the query keys it was
+  given and refetches through the generated client — the stream never carries a second
+  copy of a table, except boat positions. Publishing inside the transaction makes the
+  subscriber refetch the *old* data and stay stale; that is the one trap. The hub is
+  in-process, one uvicorn process, like `app/jobs.py`.
+- **Races run one at a time, and one service owns their transitions**
+  (`app/services/race_state.py`, Story WL-3). Recall and abandon **clear the race's
+  entries** — that is what makes "unscored" true, because scoring reads `RaceEntry`, never
+  `Race.status`. A race that has started once keeps the event frozen (the freeze counts
+  `AuditLog` rows, not only the current status).
+- **The tracker belongs to the boat, not the team, and the committee boat is a tracker
+  too** (Stories L-1, L-4). Who sails which boat is what the pairing list says; the
+  committee boat's phone *is* the boat end of the start and finish lines.
+- **One course family: windward/leeward with a leeward gate** (Story L-2) — start line pin
+  to port of the committee boat, port rounding at the windward mark, either gate mark,
+  finish pin left or right. Nothing else is modelled until real data asks for it.
+- **Legs, passings, distance to go and rank are derived, never stored** — the same rule as
+  points. The algorithms sit behind Protocols (`api/app/tracking/`) and are chosen in one
+  place, `default_pipeline()`, so a change is decided on recorded data with `compare.py`.
+- **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
+  boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
+  Mövenstein dataset and its detectors are used once, locally, to check ours
+  (`docs/PLAN_LIVE_IMPLEMENTATION.md` §2).
 
 ## Logged in or guest
 

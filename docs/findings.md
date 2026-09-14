@@ -154,6 +154,37 @@ Source: sparse clone at `reference/sailing-analytics`, path
 `java/com.sap.sailing.server.gateway/webservices/api/`. The user operates their own
 **instance** (Docker Compose, port 8888).
 
+### Make or buy — decided 2026-09-14
+
+Full reasoning in `docs/PLAN_LIVE_IMPLEMENTATION.md` §2; the facts, so nobody re-verifies
+them:
+
+- **Repository:** Apache 2.0, upstream of Eclipse Azimuth. Last push 2026-09-14 — it *is*
+  maintained, by essentially **one** person (bus factor 1). Java + MongoDB + RabbitMQ; the
+  documented sizing for a league event is 8 GB RAM and 4–8 CPUs, and it needs a Google Maps
+  key. The ATTRIBUTION/BRANDING clause below governs *use of the API*, not a port of
+  Apache-licensed code.
+- **Size of what a port would touch:** about 50k lines of Java overall, about 12k relevant
+  to mark passings, legs and ranking, which becomes an estimated 3–4k lines of Python —
+  most of it not needed for one course family. The `CandidateFinder`/`CandidateChooser`
+  pair (Dijkstra over a candidate graph, for arbitrary courses) is about a thousand lines
+  of Python and is the **fallback**, not the start: on a windward/leeward course the course
+  order disambiguates passings by itself.
+- **The `simulator` module is not a GPS emitter.** It is a routing and strategy simulator
+  (49er polars, a wind grid). Our emulator is our own and posts through our ingest endpoint.
+- **Reusable data in the repo:** `MoevensteinCompetitorPositions.json.gz` and
+  `MoevensteinMarkPositions.json.gz` (real tracks and mark positions — stage two of our
+  test data) and `PolarDiagram49*.csv`, `PolarDiagram505STG.csv`. Their CSV shape (`wind
+  speed` header, `beat angles`/`beat sog`, TWA rows, `jibe angles`/`jibe sog`) is the shape
+  of our own `api/tests/fixtures/polars/j70.csv`, so one loader reads both.
+- **Result:** results and positions are built here (SSE plus an ingest endpoint); the
+  analytics are a small port of the one-design ideas behind Protocols so the algorithms can
+  be swapped and decided on recorded data; SAP is run **once, locally, as an offline
+  oracle** against the Mövenstein dataset, never as a runtime dependency. Optionally, later,
+  as a *sink* for positions (`gps_fixes`, our backend as the gatekeeper).
+- **manage2sail:** `com.sap.sailing.manage2sail` holds a results parser — the reference for
+  Story VA-1.
+
 ### v2 — Exactly One Endpoint
 
 `GET /sailingserver/api/v2/leaderboards/{name}`
@@ -185,7 +216,10 @@ Confirmed via source code (`GPSFixesResource.java`, `LeaderboardsResource.postCh
    `speed` and `course` are **mandatory** in the deserializer. Recommended: gzip, batches of ~1000 Fixes.
 
 The server maps Fixes to the correct Race based on device mappings valid at that time.
-**This eliminates the need for our own position store and track evaluation.**
+~~This eliminates the need for our own position store and track evaluation.~~ **Reversed on
+2026-09-14** (see *Make or buy* above): self-hosting SAP for six boats is the wrong size,
+so positions are stored here and evaluated here (Stories L-1, L-2). Forwarding to a SAP
+instance stays possible as an optional sink.
 
 > **Security-relevant:** `gps_fixes` performs **no authentication** checking in the code. 
 > Handsets must never send directly to SAP Sailing. Our backend is the gatekeeper:

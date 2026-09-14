@@ -166,7 +166,7 @@ Numbered so stories can cite them.
 
 | Table | Fields | Note |
 |---|---|---|
-| `Race` | + `finished_at`, + `course_id` (nullable) | `started_at` exists and is never set — WL-3 sets both. `course_id` is stamped at **start** with the event's active course, which is what "old races keep theirs" means in the model |
+| `Race` | + `finished_at`, + `course_id` (nullable), + `signal` (nullable: `AP`, `X`, `S`), + `preparatory` (`P` default, `I`, `Z`, `U`, `BLACK`) | `started_at` exists and is never set — WL-3 sets both. `course_id` is stamped at **start** with the event's active course, which is what "old races keep theirs" means in the model. `signal` is the flag currently displayed, cleared when hauled down; `preparatory` decides which code an OCS tap produces (`OCS`/`ZFP`/`UFD`/`BFD`) |
 | `Course` | `event_id`, `laps`, `finish_upwind`, `finish_pin_side`, `created_at` | one active per event (the newest); a re-lay creates a new row, races already started keep their `course_id` |
 | `Mark` | `course_id`, `role` (`committee_boat`, `start_pin`, `windward`, `gate_left`, `gate_right`, `finish_pin`), `lat`, `lon`, `set_at` | the committee boat's position is also updated from its tracker |
 | `Tracker` | `event_id`, `boat_id` **or** `mark_role`, `device_token`, `active_from`, `active_to` | device→boat mapping; token issued from the RC screen |
@@ -329,8 +329,14 @@ work here exactly like a league day (`CLAUDE.md`: the Event defines the configur
 
 | Status | On screen | Buttons |
 |---|---|---|
-| `scheduled` | the event's boats in their colours, each with the team the pairing puts on it | **Start** (gun went now) · **Start sequence** (5-4-1-0 per RRS 26, fires Start at 0; **AP** cancels) |
-| `running` | elapsed clock; one chip per boat as a finish pad — tap in finish order, tap again to undo; codes (OCS, DNF, DSQ, RDG…) one tap below | **General recall** (→ `scheduled`, `started_at` cleared, audit row) · **Abandon → resail** (same reset) · **Abandon → no resail** (`abandoned`, unscored) · **Finish** — enabled once every boat has a position or a code |
+| `scheduled` | the event's boats in their colours, each with the team the pairing puts on it; **AP** badge while postponed | **Start** (gun went now) · **Start sequence** (asks for the preparatory flag P/I/Z/U/black, 5-4-1-0 per RRS 26, fires Start at 0) · **AP** (postpone; cancels the sequence, hauling down starts a one-minute count to the warning signal) |
+| `running` | elapsed clock; one chip per boat as a finish pad — tap in finish order, tap again to undo; codes (OCS, DNF, DSQ, RDG…) one tap below; **X**/**S** badge while displayed | **X** (individual recall: tap the boats over the line → the code the preparatory flag prescribes, `OCS` clearable under P/I) · **General recall** (First Substitute → `scheduled`, `started_at` cleared, audit row) · **Abandon → resail** (N, same reset) · **Abandon → no resail** (`abandoned`, unscored) · **Shorten** (S) · **Finish** — enabled once every boat has a position or a code |
+
+Signals are two kinds (Story WL-3): **transitions** (gun, First Substitute, N) are the
+endpoints below; **displayed signals** (AP, X, S) are state on the race — `Race.signal`,
+one at a time, `POST …/races/{race_id}/signal {signal | null}`, AP only while `scheduled`,
+X and S only while `running` — plus an audit row per hoist. AP/N over A or H are the day's
+signals and map to VA-10, not to race state.
 | `finished` | the result, read-only, two seconds, then the next race slides in | **Correct** → that row in the results tab |
 
 - **One race-state service, `app/services/race_state.py`, owns all five transitions** —
@@ -359,9 +365,10 @@ work here exactly like a league day (`CLAUDE.md`: the Event defines the configur
 - **Endpoints** (all publish to `race:{id}` and `event:{id}`):
   `POST …/races/{race_id}/start` (`scheduled → running`, `started_at`),
   `POST …/recall` (`running → scheduled`, audit row),
-  `POST …/abandon?resail=` (`running → scheduled | abandoned`).
+  `POST …/abandon?resail=` (`running → scheduled | abandoned`),
+  `POST …/signal` (`{signal: "AP" | "X" | "S" | null}`, sets `Race.signal`).
   Problems: `race-already-running` (races run strictly one at a time), `race-not-running`,
-  `event-not-live`.
+  `race-not-scheduled` (AP on a running race), `event-not-live`.
 - **Wet hands:** chips ≥ 64 px, no dropdowns on the main path. Finish order mirrored to
   `localStorage` per race id so a reload or a dropped connection does not lose the taps —
   *not* WL-1's offline sync (still open), but it removes the likeliest way to lose a race.
