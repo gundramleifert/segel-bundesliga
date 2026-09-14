@@ -61,3 +61,7 @@ web/sbl.css
 # Build input for the generated API client (scripts/gen-api-client.sh writes it).
 web/openapi.json
 api/e2e-*.db
+
+# Agent worktrees and runtime state: 418 MB of repo copies and locks, machine-local.
+.claude/worktrees/
+.claude/*.lock
