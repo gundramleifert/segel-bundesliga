@@ -62,6 +62,16 @@ web/sbl.css
 web/openapi.json
 api/e2e-*.db
 
-# Agent worktrees and runtime state: 418 MB of repo copies and locks, machine-local.
-.claude/worktrees/
-.claude/*.lock
+# Claude Code's local state.
+#
+# Two reasons, and the second is the one that bites: `.claude/worktrees/` holds a full
+# copy of this repository per agent run (418 MB across 36,000 files when this was
+# written), and most of the rest is **denied to the agent sandbox**, which presents a
+# denied path as an empty file — `git add .claude` stages `hooks`, `skills`, `agents`
+# and `settings.json` as 0-byte blobs, and a checkout elsewhere would then write
+# nothing over someone's real configuration. What is readable is kept: the command
+# definitions, and the local settings file.
+.claude/*
+!.claude/commands/
+!.claude/settings.local.json
+api/.claude/
