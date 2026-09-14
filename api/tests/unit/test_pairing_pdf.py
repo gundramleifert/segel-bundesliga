@@ -22,7 +22,6 @@ from app.pairing.pdf import (
     PairingPdfError,
     PdfRequest,
     PrintSettings,
-    default_font_size,
     render_pdf,
     renderer_available,
 )
@@ -125,30 +124,41 @@ async def test_a_team_outside_the_list_is_refused():
 
 
 @needs_jar
-async def test_the_organizers_font_size_wins_over_the_default():
-    """The organizer knows the venue's printer; the default only knows the configuration."""
-    request = request_for(teams=18, flights=16, settings=PrintSettings(font_size=12))
-    assert request.font_size == 12, "the derived size would be 8 for 48 rows"
-
+async def test_the_organizers_font_size_wins_over_the_tools_own():
+    """The organizer knows the venue's printer; the tool only knows the configuration."""
     small = await render_pdf(
         request_for(teams=18, flights=16, settings=PrintSettings(font_size=6))
     )
-    large = await render_pdf(request)
+    large = await render_pdf(
+        request_for(teams=18, flights=16, settings=PrintSettings(font_size=12))
+    )
 
     assert page_count(large) > page_count(small), "a bigger font needs more paper"
 
 
-def test_the_default_font_size_follows_the_sheets_that_were_printed():
-    """The table is read off 43 real events — these are their numbers, not invented ones."""
-    assert default_font_size(16 * 3) == 8, "a league matchday: 48 rows"
-    assert default_font_size(12 * 3) == 10, "a short cup: 36 rows"
-    assert default_font_size(16 * 4) == 7, "24 teams on 6 boats: 64 rows"
-    assert default_font_size(18 * 4) == 6, "the largest fleets: 72 rows"
+def test_no_font_size_is_sent_unless_the_organizer_chose_one():
+    """The size a sheet is printed at is the tool's decision, from the rows it has.
+
+    It used to be decided here, which meant a plain command-line run of the tool got a flat
+    10pt that does not fit a league matchday on one page. The table moved into
+    `DisplayConfig.fontsize`, so every caller gets it — and this sends nothing at all unless
+    somebody overruled it.
+    """
+    display = yaml.safe_load(request_for(teams=18, flights=16).files()["display_cfg.yml"])
+    assert "fontsize" not in display
+
+    chosen = request_for(settings=PrintSettings(font_size=11)).files()["display_cfg.yml"]
+    assert yaml.safe_load(chosen)["fontsize"] == 11
 
 
-def test_an_event_without_print_settings_uses_the_derived_size():
-    assert request_for(teams=18, flights=16).font_size == 8
-    assert request_for(teams=8, flights=12, boats=4).font_size == 10
+@needs_jar
+async def test_the_tool_sizes_a_league_matchday_onto_one_page():
+    """48 rows, nothing configured: the tool's own default has to be the small one."""
+    pdf = await render_pdf(
+        request_for(teams=18, flights=16, settings=PrintSettings(team_pages=False))
+    )
+
+    assert page_count(pdf) == 1
 
 
 def test_an_installation_without_the_tool_says_so_instead_of_pretending():
@@ -175,7 +185,12 @@ def test_a_stored_setting_that_makes_no_sense_still_prints():
 
 @needs_jar
 async def test_a_color_the_tool_does_not_know_still_renders():
-    """Our color picker yields hex values; the tool knows names only (Story VA-6)."""
+    """Hex and names both work; anything else prints in the default colour, with a warning.
+
+    A race committee hands this sheet out on the morning of an event, so one boat in the
+    wrong colour has to beat no sheet at all. The tool decides that now — it used to be
+    decided here, by sending it no colour at all (Story B-3).
+    """
     request = request_for(teams=6, boats=6)
     unknown = ["#123456", "#abc", "BLACK", "rebeccapurple", None, "GREEN"]
     request = PdfRequest(
@@ -253,7 +268,14 @@ def test_empty_seats_are_written_as_padding_indices():
     assert flights[0]["races"] == ["1,2,3,0,4,5"], "seats 4 and 5 are the empty ones"
 
 
-def test_a_hex_color_becomes_a_color_the_tool_can_resolve():
+def test_a_color_is_handed_over_exactly_as_it_is_stored():
+    """Hex included — the tool reads it (`PdfCreator.parseHexColor`).
+
+    This used to translate a hex value into an invented upper-case palette entry plus an
+    `additional_colors` map, because the tool knew named colors only. It knows hex now, so
+    there is nothing to translate: what the organizer picked is what the sheet is printed
+    with, and a command-line user can write `#1a2b3c` in their own configuration too.
+    """
     request = PdfRequest(
         teams=["A", "B"],
         boats=[BoatSpec(number=1, color="#123456"), BoatSpec(number=2, color="BLACK")],
@@ -263,7 +285,5 @@ def test_a_hex_color_becomes_a_color_the_tool_can_resolve():
     files = request.files()
 
     colors = [boat["color"] for boat in yaml.safe_load(files["schedule_cfg.yml"])["boats"]]
-    additional = yaml.safe_load(files["display_cfg.yml"])["additional_colors"]
-
-    assert colors[1] == "BLACK", "a name the tool knows is passed through"
-    assert additional[colors[0]] == [0x12, 0x34, 0x56]
+    assert colors == ["#123456", "BLACK"]
+    assert "additional_colors" not in yaml.safe_load(files["display_cfg.yml"])

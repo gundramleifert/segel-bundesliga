@@ -220,9 +220,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   there and is not reimplemented here. What varies per event is stored in
   `Event.print_settings` (JSON, like `Series.scoring`): the **organizer** sets font size,
   landscape and whether the per-team pages are included, because they know the venue and
-  the printer. Empty is the normal case and means the default derived from the
-  configuration — a table read off the 43 event directories in the tool's repository, not
-  invented. `?team=` renders one crew's own page.
+  the printer. Empty is the normal case and is then **not sent** — the tool picks the size
+  from the number of rows and reads the `#rrggbb` a color picker produced. Anything the
+  tool can decide for every caller belongs in the tool, not in an adapter here: a rule that
+  lives only in `pdf.py` gives the site a good sheet and a command-line run a bad one.
+  `?team=` renders one crew's own page, and `renderer_available()` says whether this
+  installation can print at all, so the page can leave the download out.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
 

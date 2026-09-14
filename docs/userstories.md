@@ -101,10 +101,12 @@ Acceptance criteria:
   PDF out. `Optimizer` printed PDFs only as a by-product of a draw, and `ReuseSchedule` writes
   a whole event directory. A second layout in Python would be a second thing to keep in step
   with the first, and the printed list has looked like this for years.
-- Our boats carry **any** color (Story VA-6 offers a color picker), the tool knows only
-  named ones — so a color it does not know is handed to it as an `additional_colors` entry
-  rather than being silently dropped. A color that is neither a known name nor a hex value
-  prints white, like a boat with no color at all.
+- Our boats carry **any** color (Story VA-6 offers a color picker), and the color is handed
+  over exactly as it is stored. The tool reads both a name it knows and the `#rrggbb` a
+  picker produces; anything else it prints in the default color with a warning, because a
+  sheet handed out on the morning of an event must not fail over a color name. That used to
+  be ~35 lines of translation here, inventing `additional_colors` entries — **the knowledge
+  belongs in the tool**, where a plain command-line run gets it too.
 - The rendering is **cached by its own content**: the same list, boats and title yield the
   same file. Nothing has to be invalidated when a draw is replaced — a different draw is a
   different key. Without it every visitor starts a JVM.
@@ -118,17 +120,20 @@ Acceptance criteria:
   The two can differ — a club entered after the draw has no seat in it — and naming a club
   the draw does not know would shift every index along it, putting whole flights on the wrong
   boat. This was a real 503 before it was a rule.
-- **Print settings belong to the organizer, defaults to the configuration** (`Event.print_settings`):
-  font size, landscape, and whether the per-team pages are included. The organizer knows the
-  venue, the printer and the paper; nobody else does. Left empty — the normal case — the font
-  size follows the number of rows (`flights × races`), from a table read off the **43 event
-  directories** in the tool's own repository, every one of them a sheet that was printed and
-  sailed by: up to 42 rows 10pt, up to 56 8pt, up to 64 7pt, beyond that 6pt. A league
-  matchday therefore still prints at 8pt, exactly as it always has. `factor_flight_race_width`
-  and the per-team pages are unanimous across all 43, so they are not offered as choices.
+- **Print settings belong to the organizer** (`Event.print_settings`): font size, landscape,
+  and whether the per-team pages are included. The organizer knows the venue, the printer and
+  the paper; nobody else does. `factor_flight_race_width` and the per-team pages are unanimous
+  across all 43 archived events, so they are not offered as choices.
+- **An unset font size is not sent at all** — the tool picks it from the number of rows
+  (`flights × races`): up to 42 rows 10pt, up to 56 8pt, up to 64 7pt, beyond that 6pt, a
+  table read off those same 43 events, every one a sheet that was printed and sailed by. A
+  league matchday still prints at 8pt, exactly as it always has. This was decided here once,
+  which meant the tool's own default stayed a flat 10pt that does not fit 48 rows on a page:
+  the site got a good sheet and everyone else got a bad one. It lives in
+  `DisplayConfig.fontsize` now.
 - A stored setting is **read back defensively**: anything unexpected in the column falls back
-  to the derived default. A sheet that will not print is worse than one printed at the wrong
-  size.
+  to letting the tool decide. A sheet that will not print is worse than one printed at the
+  wrong size.
 - **The download appears only where the server can print.** The renderer is a separate
   program, and an installation may not carry it — the free test image had no JRE at all
   until one was added, so the button sat there answering 503. The pairing response says

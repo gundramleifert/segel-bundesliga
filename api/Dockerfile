@@ -15,7 +15,10 @@
 # entirely once cached. Without it the API still runs: it answers the pairing download
 # with 503 and the site leaves the button out (`renderer_available`).
 FROM maven:3.9-eclipse-temurin-17 AS pairing
-ARG PAIRING_LIST_REF=838d20824cd51b665b20a92e3ca6caca5c5d4b6a
+# Must be at least 7ba9bec: from that commit the tool reads hex colours and picks the font
+# size itself, and `app/pairing/pdf.py` stopped sending either. An older jar would print
+# every colour-picker colour as an error.
+ARG PAIRING_LIST_REF=7ba9bec2eeb4934cacc976d59719dbc4472ce1a4
 ADD https://codeload.github.com/gundramleifert/PairingList/tar.gz/${PAIRING_LIST_REF} /src.tar.gz
 RUN mkdir /src \
  && tar -xzf /src.tar.gz --strip-components=1 -C /src \

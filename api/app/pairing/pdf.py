@@ -26,7 +26,6 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-import re
 import shutil
 import tempfile
 from collections import OrderedDict
@@ -50,42 +49,9 @@ RENDER_TIMEOUT_SECONDS = 120
 # people are currently looking at matter — a handful covers a race weekend.
 CACHE_SIZE = 8
 
-# The color names ``PdfCreator.defaultColorMap()`` knows, German and English mixed. Anything
-# else has to be handed over as an RGB triple under an invented name, or it is a hard error
-# in the tool ("cannot interpret key ...").
-KNOWN_COLORS = frozenset(
-    {
-        "BLACK", "DARK_GRAY", "GRAY", "LIGHT_GRAY", "WHITE", "BLUE", "CYAN", "GREEN",
-        "ORANGE", "PINK", "RED", "YELLOW", "HELLBLAU", "DUNKELBLAU", "LIGHTBLUE",
-        "DARKBLUE", "GELB", "LILA", "GRUEN", "GREY", "GRAU", "SCHWARZ", "WEISS", "BLAU",
-        "ROT",
-    }
-)
-
-_HEX_COLOR = re.compile(r"#?(?P<digits>[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\Z")
-
 
 class PairingPdfError(RuntimeError):
     """The pairing list could not be rendered."""
-
-
-#: Font size by the number of rows a sheet has (``flights * races_per_flight``), read off
-#: the 43 event directories in ``reference/PairingList/events`` — every one of them a sheet
-#: that was actually printed and sailed by. Their ``display_cfg.yml`` files vary in exactly
-#: two things, ``fontsize`` and (once) ``landscape``; ``factor_flight_race_width: 0.5`` and
-#: ``teamwise_list: true`` are unanimous across all 43. Read as: up to this many rows, that
-#: size. The table is the *default* — the organizer who knows the venue's printer overrides
-#: it on the event (Story B-3).
-FONT_SIZE_BY_ROWS = ((42, 10), (56, 8), (64, 7))
-SMALLEST_FONT_SIZE = 6
-
-
-def default_font_size(rows: int) -> int:
-    """The size the fleet would have chosen for a sheet of this many rows."""
-    for limit, size in FONT_SIZE_BY_ROWS:
-        if rows <= limit:
-            return size
-    return SMALLEST_FONT_SIZE
 
 
 @dataclass(frozen=True)
@@ -99,7 +65,9 @@ class PrintSettings:
     does have something to say — and this is where they say it.
     """
 
-    #: ``None`` means: whatever :func:`default_font_size` makes of the configuration.
+    #: ``None`` means: let the tool choose, from the number of rows the sheet has
+    #: (``DisplayConfig.fontsize``). The table it uses was read off the 43 events in its own
+    #: repository, and it belongs there — a plain command-line run deserves the same sheet.
     font_size: int | None = None
     #: A wide fleet reads better across the page. One event in the whole archive does this.
     landscape: bool = False
@@ -153,35 +121,21 @@ class PdfRequest:
     def flights(self) -> int:
         return max((slot.flight for slot in self.slots), default=0)
 
-    @property
-    def races_per_flight(self) -> int:
-        return max((slot.race_in_flight for slot in self.slots), default=0)
-
-    @property
-    def font_size(self) -> int:
-        """What the organizer set, or what a sheet of this many rows is printed at."""
-        return self.settings.font_size or default_font_size(
-            self.flights * self.races_per_flight
-        )
-
     def files(self) -> dict[str, str]:
         """The three input files of the tool, by name.
 
         Returned together rather than written out here, because they are also the cache
         key: two requests that produce the same files produce the same PDF.
         """
-        colors, additional = _resolve_colors(self.boats)
         schedule = {
             "flights": self.flights,
             "titles": [self.title],
             "teams": list(self.teams),
-            "boats": [
-                {"color": color, "name": boat.name}
-                for boat, color in zip(self.boats, colors, strict=True)
-            ],
+            # The colour goes over as it is stored — a name the tool knows, or the hex a
+            # colour picker produced, which the tool reads too (`PdfCreator.parseHexColor`).
+            "boats": [{"color": boat.color, "name": boat.name} for boat in self.boats],
         }
         display = {
-            "fontsize": self.font_size,
             # The flight and race columns carry a number, not a club name — half width.
             # Unanimous across every event in the archive, so not the organizer's business.
             "factor_flight_race_width": 0.5,
@@ -190,8 +144,11 @@ class PdfRequest:
             # Table width in points. 600 is what 41 of 43 archived events print at; across
             # a rotated A4 there is room for more.
             "width": 820 if self.settings.landscape else 600,
-            "additional_colors": additional,
         }
+        # Only when the organizer decided one: left out, the tool picks the size from the
+        # number of rows, which is the same table this used to carry.
+        if self.settings.font_size is not None:
+            display["fontsize"] = self.settings.font_size
         return {
             "schedule_cfg.yml": _yaml(schedule),
             "pairing_list.yml": _yaml({"flights": self._flight_rows()}),
@@ -346,43 +303,6 @@ async def _render(
         return out.read_bytes()
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
-
-
-def _resolve_colors(boats: list[BoatSpec]) -> tuple[list[str | None], dict[str, list[int]]]:
-    """Boat colors as the tool wants them, plus the palette entries it needs for ours.
-
-    Three cases, and the third is the one that matters: a name the tool knows goes through
-    untouched (its palette is the one the printed list has always used), a hex value — what
-    the color picker in Story VA-6 produces — becomes an invented, upper-case palette entry,
-    and anything else becomes no color at all. The tool would rather throw than guess, and a
-    matchday's sheet must not fail to print over a boat someone called "sea green".
-    """
-    names: list[str | None] = []
-    additional: dict[str, list[int]] = {}
-    for boat in boats:
-        raw = (boat.color or "").strip()
-        if raw.upper() in KNOWN_COLORS:
-            names.append(raw.upper())
-            continue
-        rgb = _rgb(raw)
-        if rgb is None:
-            names.append(None)
-            continue
-        # Upper case is not cosmetic: `PdfCreator.createColorMap` throws on anything else.
-        name = f"BOAT_{boat.number}"
-        additional[name] = rgb
-        names.append(name)
-    return names, additional
-
-
-def _rgb(color: str) -> list[int] | None:
-    match = _HEX_COLOR.match(color)
-    if match is None:
-        return None
-    digits = match.group("digits")
-    if len(digits) == 3:
-        digits = "".join(digit * 2 for digit in digits)
-    return [int(digits[index : index + 2], 16) for index in (0, 2, 4)]
 
 
 def _yaml(data: dict) -> str:
