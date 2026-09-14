@@ -4,19 +4,18 @@ Each test describes what someone wants to achieve — not what function is calle
 If one fails, something is broken that people will notice on the website.
 """
 
-import shutil
-from pathlib import Path
-
 import pytest
 
-from app.config import settings
+from app.pairing.pdf import renderer_available
 from tests.pages import all_items
 from tests.stories.test_create_event import admin, event_with_participants, league_clubs
 
-# Printing goes through the Java tool; without it the rest of the story still holds.
+# Printing goes through the Java tool; without it the rest of the story still holds. The
+# same function the API answers `pdf_available` with, so this suite is asking "can this
+# machine print?" exactly once rather than re-deriving it from a JAR path and a PATH scan.
+_RENDERER_HERE = renderer_available()
 needs_pairing_jar = pytest.mark.skipif(
-    not Path(settings.pairing_jar).is_file() or shutil.which(settings.java_binary) is None,
-    reason="Java runtime or pairing-list JAR not available",
+    not _RENDERER_HERE, reason="Java runtime or pairing-list JAR not available"
 )
 
 
@@ -172,6 +171,18 @@ class TestPairingList:
         ).json()
         assert pairing["event"]["status"] == "planned"
         assert all(race["status"] == "scheduled" for race in pairing["races"])
+
+    async def test_the_list_says_whether_it_can_be_printed_here(self, client, ids):
+        """Story B-3: a deployment may carry no renderer, and the page has to know.
+
+        Without this the site offers a download whose only possible answer is 503 — which
+        is what the free test instance did until Java was put in its image.
+        """
+        pairing = (
+            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")
+        ).json()
+
+        assert pairing["pdf_available"] is _RENDERER_HERE
 
     @needs_pairing_jar
     async def test_the_list_can_be_taken_to_the_dock_on_paper(self, client, ids):

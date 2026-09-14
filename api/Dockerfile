@@ -5,7 +5,38 @@
 # session survive until the container restarts, then reset. That is exactly what a test
 # deployment wants — see docs/deploy.md.
 
+# ----------------------------------------------------------------- the pairing tool
+# The printable pairing list is rendered by the Java tool (Story B-3, app/pairing/pdf.py),
+# which lives in its own repository. Built here from a pinned commit rather than carrying
+# a 13 MB binary in git or depending on a release that repository does not publish — the
+# build is reproducible, and bumping the tool is a one-line change with a diff to read.
+#
+# This stage costs a few minutes on a cold build (Maven fetching iText) and is skipped
+# entirely once cached. Without it the API still runs: it answers the pairing download
+# with 503 and the site leaves the button out (`renderer_available`).
+FROM maven:3.9-eclipse-temurin-17 AS pairing
+ARG PAIRING_LIST_REF=838d20824cd51b665b20a92e3ca6caca5c5d4b6a
+ADD https://codeload.github.com/gundramleifert/PairingList/tar.gz/${PAIRING_LIST_REF} /src.tar.gz
+RUN mkdir /src \
+ && tar -xzf /src.tar.gz --strip-components=1 -C /src \
+ && cd /src \
+ && mvn -B -q -DskipTests package
+
 FROM python:3.12-slim
+
+# A headless JRE for the pairing renderer above — Debian bookworm's default is 17, which
+# is what the tool needs. `--no-install-recommends` keeps the fonts and X11 bits out; the
+# renderer draws into a pdf and never touches a display.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends default-jre-headless \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=pairing \
+     /src/target/pairing-list-1.0-SNAPSHOT-jar-with-dependencies.jar \
+     /opt/pairing-list.jar
+# A property of this image, so it belongs here rather than in render.env — and a real
+# environment variable takes priority over that file anyway (app/config.py).
+ENV SBL_PAIRING_JAR=/opt/pairing-list.jar
 
 # uv, for installing the locked dependencies.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/

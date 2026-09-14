@@ -1,4 +1,12 @@
 {
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(timeout 30 curl -s https://api.github.com/repos/gundramleifert/PairingList/releases)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:codeload.github.com)"
+    ]
+  },
   "sandbox": {
     "allowUnsandboxedCommands": true
   }

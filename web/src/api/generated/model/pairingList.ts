@@ -13,4 +13,5 @@ export interface PairingList {
   event: EventOut;
   boats: BoatOut[];
   races: PairingRow[];
+  pdf_available?: boolean;
 }

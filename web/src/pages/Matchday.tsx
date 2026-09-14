@@ -538,7 +538,13 @@ function PairingList({ eventId }: { eventId: number }) {
           hook — the response is a PDF, and `api/http.ts` parses every response it handles
           as JSON. The picker narrows it to one crew's own page, which is what a crew at
           the dock wants; "all clubs" stays the default because the notice board wants the
-          whole thing. */}
+          whole thing.
+
+          Shown only where the server can actually print: the renderer is a Java tool, and
+          a deployment may carry no JRE (the free test image did for a while). The server
+          says so in `pdf_available`, because a button whose only possible answer is 503 is
+          worse than no button. */}
+      {data.pdf_available && (
       <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
         <label className="sr-only" htmlFor="pairing-pdf-club">
           {t("pairingPdfForClub")}
@@ -566,6 +572,7 @@ function PairingList({ eventId }: { eventId: number }) {
           {t("pairingPdf")}
         </a>
       </div>
+      )}
       <TableFrame testId="matchday-pairing-table-frame">
         {/* Centred throughout, heading over cell. Every column holds one short token — a
             race number, a flight number, a club abbreviation — so left alignment left each

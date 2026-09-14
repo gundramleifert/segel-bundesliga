@@ -35,8 +35,12 @@ If a service name is already taken, Render adds a suffix (`sbl-api-xyz`). Then e
 - Free web services **sleep after 15 minutes idle**; the next request wakes them (~1 min).
 - The SQLite database is inside the image → a redeploy or a wake-from-sleep **resets it to
   the seeded data**. Good for testing, useless as storage.
-- No Java in the image → pairing lists come from the **catalog** only
-  (`api/app/pairing/schedules/`); on-demand generation via the JAR is unavailable.
+- The image **does** carry a headless JRE and the pairing tool, built from a pinned commit
+  of its repository in a first build stage — so the printable pairing list works there
+  (Story B-3). It costs a few minutes on a cold build and ~190 MB in the image.
+- **Drawing** a new pairing list on the free instance is still a bad idea: an optimizer run
+  is minutes to half an hour (26 for 15 teams over 20 flights), and the service sleeps after
+  15 idle minutes. Lists come from the **catalog** (`api/app/pairing/schedules/`) there.
 
 ---
 

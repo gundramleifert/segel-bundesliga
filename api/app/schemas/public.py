@@ -266,6 +266,10 @@ class PairingList(BaseModel):
     event: EventOut
     boats: list[BoatOut]
     races: list[PairingRow]
+    # Whether this installation can render the printable sheet at all — the renderer is a
+    # Java tool that a deployment may not carry (Story B-3). The screen asks so it can
+    # leave the download out instead of offering a button whose only answer is 503.
+    pdf_available: bool = False
 
 
 class SailorTeamOut(BaseModel):

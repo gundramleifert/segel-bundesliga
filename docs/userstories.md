@@ -129,6 +129,13 @@ Acceptance criteria:
 - A stored setting is **read back defensively**: anything unexpected in the column falls back
   to the derived default. A sheet that will not print is worse than one printed at the wrong
   size.
+- **The download appears only where the server can print.** The renderer is a separate
+  program, and an installation may not carry it — the free test image had no JRE at all
+  until one was added, so the button sat there answering 503. The pairing response says
+  `pdf_available`, and the page leaves the picker and the link out when it is false: an
+  offer that cannot be honoured is worse than no offer. The deployment now builds the tool
+  from a pinned commit into its image (`api/Dockerfile`, `docs/deploy.md`), so the answer
+  there is yes.
 
 Endpoints: `GET /api/events/{id}/pairing` (JSON),
 `GET /api/events/{id}/pairing.pdf[?team={team_id}]`.

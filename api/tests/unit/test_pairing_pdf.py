@@ -24,6 +24,7 @@ from app.pairing.pdf import (
     PrintSettings,
     default_font_size,
     render_pdf,
+    renderer_available,
 )
 
 JAR = Path(settings.pairing_jar)
@@ -148,6 +149,20 @@ def test_the_default_font_size_follows_the_sheets_that_were_printed():
 def test_an_event_without_print_settings_uses_the_derived_size():
     assert request_for(teams=18, flights=16).font_size == 8
     assert request_for(teams=8, flights=12, boats=4).font_size == 10
+
+
+def test_an_installation_without_the_tool_says_so_instead_of_pretending():
+    """Story B-3: the screen asks this to leave the download out.
+
+    A deployment may carry no renderer at all — the free test image did until Java was
+    added to it — and a button whose only possible answer is 503 is worse than no button.
+    """
+    assert renderer_available(jar=Path("/does/not/exist.jar")) is False
+
+
+@needs_jar
+def test_an_installation_with_the_tool_offers_it():
+    assert renderer_available() is True
 
 
 def test_a_stored_setting_that_makes_no_sense_still_prints():

@@ -262,13 +262,26 @@ def _cache_key(files: dict[str, str], team_index: int | None) -> str:
     return digest.hexdigest()
 
 
-async def _render(
-    files: dict[str, str],
-    title: str,
-    team_index: int | None,
-    jar: Path | None,
-    timeout: int | None,
-) -> bytes:
+def renderer_available(jar: Path | None = None) -> bool:
+    """Whether this installation can print at all: the JAR is there and Java can run it.
+
+    A deployment may legitimately have neither — the test image on Render carries no JRE
+    for a long time, and a developer without the tool built still runs the whole site. The
+    screens ask this so they can leave the download out rather than offer a button whose
+    only possible answer is 503 (Story B-3).
+
+    Deliberately **not** cached: it is two stat-cheap checks, and a cached "no" would
+    outlive the deploy that added Java, which is exactly when someone is looking.
+    """
+    try:
+        _require_renderer(jar)
+    except PairingPdfError:
+        return False
+    return True
+
+
+def _require_renderer(jar: Path | None = None) -> Path:
+    """The JAR to run, or the reason there is none."""
     jar_path = Path(jar) if jar else Path(settings.pairing_jar)
     if not jar_path.is_file():
         raise PairingPdfError(
@@ -280,6 +293,17 @@ async def _render(
             f"Java was not found ('{settings.java_binary}'). "
             "Printing a pairing list needs a Java runtime version 17 or later."
         )
+    return jar_path
+
+
+async def _render(
+    files: dict[str, str],
+    title: str,
+    team_index: int | None,
+    jar: Path | None,
+    timeout: int | None,
+) -> bytes:
+    jar_path = _require_renderer(jar)
 
     workdir = Path(tempfile.mkdtemp(prefix="sbl-pairing-pdf-"))
     try:

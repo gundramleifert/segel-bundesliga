@@ -44,7 +44,7 @@ from app.models import (
 )
 from app.models.auth import User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
-from app.pairing.pdf import PairingPdfError, render_pdf
+from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
 from app.problems import Problem
 from app.schemas.public import (
     BoatOut,
@@ -747,6 +747,7 @@ async def get_pairing(
         event=_event_out(event),
         boats=[BoatOut.model_validate(boat) for boat in boats],
         races=[rows[key] for key in sorted(rows)],
+        pdf_available=renderer_available(),
     )
 
 
