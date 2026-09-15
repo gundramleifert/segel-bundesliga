@@ -53,5 +53,6 @@
   "waiver-scan-too-large": "The file is too large — at most 10 MB.",
   "waiver-scan-not-needed": "An adult confirms the waiver online; a signed form is only needed for a sailor under 18.",
   "waiver-scan-not-found": "No signed form is on file for this confirmation.",
-  "waiver-scan-forbidden": "The signed form is shown only to the sailor, their club's leadership, the event organizer and the league office."
+  "waiver-scan-forbidden": "The signed form is shown only to the sailor, their club's leadership, the event organizer and the league office.",
+  "active-club-not-mine": "You can only act for a club you belong to or organize."
 }

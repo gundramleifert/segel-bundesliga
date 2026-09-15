@@ -333,6 +333,29 @@ class MyTeamOut(BaseModel):
     squad_size: int
 
 
+class MyEventOut(BaseModel):
+    """One event entry of a club — what a lineup is set on (Stories V-2, V-12).
+
+    Two team ids on purpose: ``team_id`` is the entry to *this* event, where the crew is
+    recorded; ``squad_team_id`` is where the crew is drawn from — the series registration
+    for a matchday of a series, the entry itself for an event that stands alone.
+    """
+
+    event_id: int
+    slug: str
+    title: str
+    starts_on: date | None = None
+    ends_on: date | None = None
+    status: str
+    #: A draft is listed for its own participants — they line up before it goes public.
+    published: bool
+    matchday: int | None = None
+    crew_size: int
+    series: MySeriesOut | None = None
+    team_id: int
+    squad_team_id: int
+
+
 class MyClubOut(BaseModel):
     """A club this account has something to do with — Stories B-10 and V-12.
 
@@ -349,3 +372,5 @@ class MyClubOut(BaseModel):
     #: `club_manager` for this club — granted per club, never globally.
     may_manage: bool
     teams: list[MyTeamOut]
+    #: The club's event entries, next matchday first (Story V-12).
+    events: list[MyEventOut] = Field(default_factory=list)

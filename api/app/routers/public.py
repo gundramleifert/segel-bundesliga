@@ -63,6 +63,7 @@ from app.schemas.public import (
     LiveNowOut,
     MemberOut,
     MyClubOut,
+    MyEventOut,
     MySeriesOut,
     MyTeamOut,
     PairingList,
@@ -419,12 +420,56 @@ async def my_clubs(
     ).all()
 
     teams_by_club: dict[int, list[MyTeamOut]] = {}
+    registration_by_series: dict[tuple[int, int], int] = {}
     for team_id, club_id, series, squad_size in rows:
+        registration_by_series[(club_id, series.id)] = team_id
         teams_by_club.setdefault(club_id, []).append(
             MyTeamOut(
                 team_id=team_id,
                 series=MySeriesOut.model_validate(series, from_attributes=True),
                 squad_size=squad_size,
+            )
+        )
+
+    # Event entries — the rows a lineup is set on (Stories V-2, V-12). Drafts included:
+    # the participants of an unpublished event are exactly the people who have to line
+    # up before it is published, and a `club_manager` sees only their own clubs here.
+    entries = (
+        await session.execute(
+            select(Team.id, Team.club_id, Event, Series)
+            .join(Event, Team.event_id == Event.id)
+            .outerjoin(Series, Event.series_id == Series.id)
+            .where(Team.club_id.in_(club_ids), Team.status == TeamStatus.ACCEPTED)
+            .order_by(Event.starts_on.is_(None), Event.starts_on, Event.title)
+        )
+    ).all()
+    events_by_club: dict[int, list[MyEventOut]] = {}
+    for team_id, club_id, event, series in entries:
+        squad_team_id = (
+            registration_by_series.get((club_id, series.id)) if series is not None else None
+        )
+        if series is not None and squad_team_id is None:
+            # Entered in a series event without being registered for the series — the
+            # lineup endpoint refuses that anyway (`squad_team`); nothing to draw from.
+            continue
+        events_by_club.setdefault(club_id, []).append(
+            MyEventOut(
+                event_id=event.id,
+                slug=event.slug,
+                title=event.title,
+                starts_on=event.starts_on,
+                ends_on=event.ends_on,
+                status=event.status,
+                published=event.published,
+                matchday=event.matchday,
+                crew_size=event.crew_size,
+                series=(
+                    MySeriesOut.model_validate(series, from_attributes=True)
+                    if series is not None
+                    else None
+                ),
+                team_id=team_id,
+                squad_team_id=squad_team_id if squad_team_id is not None else team_id,
             )
         )
 
@@ -434,6 +479,7 @@ async def my_clubs(
             is_member=club.id in member_of,
             may_manage=club.id in manages,
             teams=teams_by_club.get(club.id, []),
+            events=events_by_club.get(club.id, []),
         )
         for club in clubs
     ]

@@ -53,5 +53,6 @@
   "waiver-scan-too-large": "Die Datei ist zu groß – höchstens 10 MB.",
   "waiver-scan-not-needed": "Erwachsene bestätigen den Haftungsausschluss online; ein unterschriebenes Formular braucht nur, wer unter 18 ist.",
   "waiver-scan-not-found": "Zu dieser Bestätigung liegt kein unterschriebenes Formular vor.",
-  "waiver-scan-forbidden": "Das unterschriebene Formular sehen nur die Person selbst, die Vereinsführung, der Ausrichter und die Ligaverwaltung."
+  "waiver-scan-forbidden": "Das unterschriebene Formular sehen nur die Person selbst, die Vereinsführung, der Ausrichter und die Ligaverwaltung.",
+  "active-club-not-mine": "Du kannst nur für einen Verein handeln, dem du angehörst oder den du organisierst."
 }

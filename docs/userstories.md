@@ -1648,9 +1648,32 @@ Acceptance criteria:
 - Administration keeps its own way in unchanged: `/admin?tab=sailors` still reaches every
   club's squad through the series, which is the right shape for someone whose job is all
   eighteen of them.
+- **Several clubs, one active.** A person can be a member of several clubs and organize
+  several — the two relationships are per club (`ClubMember`, `UserRole.club_id`). The
+  screen offers a dropdown when there is more than one, and the choice is **remembered on
+  the account** as `User.club_id` (`PATCH /api/auth/me`), which has meant "the club this
+  account acts for" since the model was written and had no way to be set. Only a club the
+  account belongs to or organizes is accepted (`/errors/active-club-not-mine`). The same
+  dropdown sits on the account page, where the club used to appear as a bare number; a
+  `?club=` in the URL still wins for the one visit, so links keep working.
+- **The club's matchdays are on the same screen, with the lineup** (Story V-2's door).
+  `GET /api/clubs/mine` lists each club's **event entries** alongside its series
+  registrations: every matchday of a series the club is registered in, and every
+  stand-alone event it is entered in — with the event's dates and status, the entry's
+  `team_id`, and the `squad_team_id` the lineup draws from (the series registration, or
+  the entry itself for a stand-alone event). An organizer opens a matchday and names the
+  crew from the squad, with roles; a member sees who is named. The endpoint is the one
+  Story V-2 always had, `PUT /api/admin/events/{event_id}/crew`, which lets a
+  `club_manager` line up their own club — the screen was the missing part, exactly as it
+  was for the squad.
+- A stand-alone event's squad hangs off the entry itself (`squad_team`), so the same
+  `SquadPanel` is shown for it under the matchday — otherwise a club running its own cup
+  here could enter it and never register anyone.
 
 Tests: `api/tests/stories/test_my_clubs.py`,
-`e2e/lifecycle.spec.ts::V-12: a club manager manages their own squad`
+`api/tests/stories/test_login_and_roles.py::TestActiveClub`,
+`e2e/lifecycle.spec.ts::V-12: a club manager manages their own squad`,
+`e2e/club.spec.ts`
 
 ### S-1 ● Submit the liability waiver for each competition I am entered in
 As a **sailor** I want to **submit the liability waiver once per series — or per event, when
@@ -1795,7 +1818,10 @@ Acceptance criteria:
 
 Endpoints: `PUT /api/admin/events/{slug}/crew`, `GET /api/admin/events/{slug}/crew/{team_id}`
 
-Tests: `api/tests/stories/test_lineup.py`
+Screen: `/club` lists the club's matchdays and opens the lineup under each one
+(`LineupPanel`, Story V-12); administration and race officers use the same endpoint.
+
+Tests: `api/tests/stories/test_lineup.py`, `e2e/club.spec.ts`
 
 Open: coupling to confirmed liability waiver (S-1, VA-5).
 

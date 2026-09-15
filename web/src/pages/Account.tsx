@@ -12,6 +12,7 @@ import {
   getMySailor,
   me,
   providers,
+  useMyClubs,
   registerAccount,
   updateMySailor,
   uploadMyPhoto,
@@ -22,6 +23,8 @@ import { getToken, onTokenChange, setToken } from "../api/session";
 import { ErrorMessage, Loading, PageHeader } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Waivers } from "./AccountWaivers";
+import { ActiveClubSelect } from "../components/ActiveClubSelect";
+import { useAsync } from "../api/useApi";
 
 /** Roles and what permissions they grant. Without this page, role switching would be invisible
  *  as long as there are no protected areas yet. */
@@ -111,7 +114,9 @@ export function Account() {
           <Card.Content>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
               <dt className="text-slate-500">{t("labels.club")}</dt>
-              <dd>{account.club_id ? `#${account.club_id}` : t("labels.notAssigned")}</dd>
+              <dd>
+                <MyClubLine clubId={account.club_id ?? null} />
+              </dd>
               <dt className="text-slate-500">{t("labels.signInMethods")}</dt>
               <dd>{account.identities.map((i) => i.provider).join(", ") || "—"}</dd>
               <dt className="text-slate-500">{t("labels.status")}</dt>
@@ -147,6 +152,28 @@ export function Account() {
       <Waivers />
       <DeleteAccount />
     </>
+  );
+}
+
+/** The club this account acts for, by name — and, with several, the choice (Story V-12).
+ *  `User.club_id` used to show here as a bare number. */
+function MyClubLine({ clubId }: { clubId: number | null }) {
+  const { t } = useTranslation("account");
+  const clubs = useAsync(useMyClubs());
+  const entries = clubs.data ?? [];
+  if (clubs.loading) return <span className="text-slate-400">…</span>;
+  if (!entries.length) {
+    return <span data-testid="account-active-club">{t("labels.notAssigned")}</span>;
+  }
+  const active =
+    entries.find((e) => e.club.id === clubId) ?? entries.find((e) => e.may_manage) ?? entries[0];
+  if (entries.length === 1) {
+    return <span data-testid="account-active-club">{active.club.name}</span>;
+  }
+  return (
+    <div data-testid="account-active-club">
+      <ActiveClubSelect entries={entries} value={active.club.id} testId="account-active-club-select" />
+    </div>
   );
 }
 

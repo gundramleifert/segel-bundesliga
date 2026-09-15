@@ -210,3 +210,100 @@ class TestMyClubs:
                 ).all()
             }
         assert {team["series"]["slug"] for team in teams} == named
+
+
+class TestMatchdays:
+    """Story V-12: the club's matchdays come with the clubs, so the lineup screen (Story
+    V-2) reaches an event entry without an admin-only list — the same defect the squad had."""
+
+    async def test_the_clubs_matchdays_come_with_their_entries(self, client, caplog):
+        club = await _club("kyc")
+        headers = await _as(
+            client, caplog, "mine-matchdays@example.com", Role.CLUB_MANAGER, club_id=club.id
+        )
+        response = await client.get(MINE, headers=headers)
+        assert response.status_code == 200, response.text
+        mine = next(e for e in response.json() if e["club"]["slug"] == "kyc")
+
+        registration = next(t for t in mine["teams"] if t["series"]["slug"] == "dsbl-1-2026")
+        acts = [e for e in mine["events"] if e["series"] and e["series"]["slug"] == "dsbl-1-2026"]
+        # The three seeded acts are there — "at least", not "exactly": other stories add
+        # events to this series, and the club is adopted into each (see docs/gotchas).
+        assert {"dsbl-1-2026-act-1", "dsbl-1-2026-act-2", "dsbl-1-2026-act-3"} <= {
+            a["slug"] for a in acts
+        }
+        for act in acts:
+            # The row names the *entry* to the matchday (what the lineup is set on) and the
+            # *registration* the crew is drawn from — two different teams of the same club.
+            assert act["team_id"] != registration["team_id"]
+            assert act["squad_team_id"] == registration["team_id"]
+            assert act["status"] in {"planned", "live", "final", "cancelled"}
+            assert act["crew_size"] == 4
+            assert act["title"]
+        seeded = [a for a in acts if a["slug"].startswith("dsbl-1-2026-act-")]
+        assert all(a["published"] for a in seeded)
+        # Chronological, so the next matchday is where the eye lands first.
+        dated = [a["starts_on"] for a in acts if a["starts_on"] is not None]
+        assert dated == sorted(dated)
+
+    async def test_a_stand_alone_event_carries_its_own_squad(self, client, caplog):
+        """An event in no series has no series registration, so its squad hangs off the
+        entry itself (`squad_team`) — and the row says so, or the club could enter its own
+        cup here and never register anyone for it."""
+        admin = await _as(client, caplog, "mine-admin@example.com", Role.ADMIN)
+        club = await _club("wyc")
+        created = await client.post(
+            "/api/admin/events",
+            headers=admin,
+            json={"title": "WYC Herbstcup", "starts_on": "2026-10-03"},
+        )
+        assert created.status_code == 201, created.text
+        event_id = created.json()["id"]
+        entered = await client.put(
+            f"/api/admin/events/{event_id}/clubs",
+            headers=admin,
+            json={"clubs": [club.id]},
+        )
+        assert entered.status_code == 200, entered.text
+
+        manager = await _as(
+            client, caplog, "mine-wyc@example.com", Role.CLUB_MANAGER, club_id=club.id
+        )
+        entries = (await client.get(MINE, headers=manager)).json()
+        mine = next(e for e in entries if e["club"]["slug"] == "wyc")
+        cup = next(e for e in mine["events"] if e["event_id"] == event_id)
+        assert cup["series"] is None
+        assert cup["squad_team_id"] == cup["team_id"]
+        # A draft is listed for its own participants — they are the ones who have to line
+        # up before it is published — and marked as such.
+        assert cup["published"] is False
+
+        # The squad really is reachable there for the club's organizer.
+        squad = await client.get(f"/api/admin/teams/{cup['team_id']}/members", headers=manager)
+        assert squad.status_code == 200, squad.text
+        assert squad.json()["team_id"] == cup["team_id"]
+
+
+class TestMemberReadsTheSquad:
+    async def test_a_plain_member_can_read_their_clubs_squad_but_not_change_it(
+        self, client, caplog
+    ):
+        """Story V-12 promises a member the read-only squad on `/club`. The panel reads
+        `/api/admin/teams/{id}/members`, so a member has to be allowed to — the squad is
+        public on the club page anyway. Writing stays with the leadership (Story V-1)."""
+        club = await _club("fsc")
+        email = "mine-reader@example.com"
+        headers = await _as(client, caplog, email)
+        await _make_member(email, club.id, ClubMemberStatus.ACTIVE)
+
+        entries = (await client.get(MINE, headers=headers)).json()
+        mine = next(e for e in entries if e["club"]["slug"] == "fsc")
+        team_id = mine["teams"][0]["team_id"]
+        seen = await client.get(f"/api/admin/teams/{team_id}/members", headers=headers)
+        assert seen.status_code == 200, seen.text
+        assert seen.json()["team_id"] == team_id
+
+        changed = await client.put(
+            f"/api/admin/teams/{team_id}/members", headers=headers, json={"members": []}
+        )
+        assert changed.status_code == 403

@@ -352,14 +352,21 @@ async def update_sailor(
 # ------------------------------------------------------------------------- Squad
 
 
-@router.get("/teams/{team_id}/members", response_model=SquadOut, summary="View squad")
+@router.get(
+    "/teams/{team_id}/members",
+    response_model=SquadOut,
+    dependencies=[Depends(current_user)],
+    summary="View squad",
+)
 async def get_squad(
     team_id: int,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(current_user),
 ) -> SquadOut:
+    """Any signed-in account may read a squad: participation is public (the club page
+    lists every squad, CLAUDE.md), so the only thing the old `_can_manage_squad` check
+    here achieved was to break `/club` for a club's plain member, who is promised the
+    read-only view (Story V-12). Writing still needs the club's leadership."""
     team = await _team(session, team_id)
-    _can_manage_squad(acting, team)
     return await _squad_out(session, team)
 
 

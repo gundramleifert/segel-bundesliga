@@ -230,6 +230,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
   installation can print at all, so the page can leave the download out.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
+- **A person can be in several clubs; `User.club_id` is the one they act for.** Membership
+  (`ClubMember`) and organizing (`club_manager`, per club in `UserRole.club_id`) are both
+  per club and independent. `User.club_id` is the person's own choice among those clubs
+  (`PATCH /api/auth/me`, Story V-12), never derived from them, and never a permission —
+  permissions come from the role rows. The club screen (`/club`) is where a club manager
+  registers squads (V-1) **and names the crews** for the club's matchdays (V-2), reached
+  through `GET /api/clubs/mine`, never through an admin-only list.
 - **The liability waiver is one statement per competition, and age picks the path**
   (Stories S-1, S-3, VA-5, `app/services/waivers.py`). A sailor signs once per **Series**
   they are registered in, which covers every event of it; an event that belongs to no

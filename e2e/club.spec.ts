@@ -1,0 +1,135 @@
+import type { APIRequestContext, Page } from "@playwright/test";
+
+import { expect, test } from "./fixtures";
+import { bearer, signIn } from "./session";
+
+/** Stories V-12 and V-2: the club manager's own screen, with the matchdays and the lineup.
+ *
+ * `api/tests/stories/test_lineup.py` proves the rule (the crew comes from the squad);
+ * `test_my_clubs.py` proves the list. What a browser adds: a club manager finds their
+ * club's matchdays on `/club` without any admin route, names a crew there, and the public
+ * matchday page shows it; and a person in two clubs picks the one they act for and the
+ * choice survives a reload, on `/club` and on `/account` alike.
+ */
+
+test.describe.configure({ mode: "serial" });
+
+const ADMIN = "admin@sbl.example.com";
+const PLANNED_ACT = 3; // dsbl-1-2026-act-3, planned — the one still to be lined up
+
+type Account = { id: number; email: string; roles: string[] };
+
+async function aClubManager(request: APIRequestContext): Promise<Account> {
+  const response = await request.get("/api/dev/users");
+  expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
+  const accounts = (await response.json()) as Account[];
+  // The seed creates one manager per club; NRV's is in every seeded series' squads too.
+  const manager = accounts.find(
+    (a) => a.roles.includes("club_manager") && a.email.endsWith("@nrv.example.com"),
+  );
+  expect(manager, "the seed creates one club_manager per club").toBeTruthy();
+  return manager!;
+}
+
+async function openMyClub(page: Page): Promise<void> {
+  await page.goto("/club");
+  await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
+  await expect(page.getByTestId("my-club-events-list")).toBeVisible();
+}
+
+test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /club", () => {
+  test("the matchdays are listed and a crew is named from the squad", async ({ page, request }) => {
+    const manager = await aClubManager(request);
+    // The second test below leaves the account acting for another club, and the two
+    // browser projects share one stack — so start from "no club chosen" explicitly.
+    const reset = await request.patch("/api/auth/me", {
+      headers: await bearer(request, manager.email),
+      data: { club_id: null },
+    });
+    expect(reset.ok(), await reset.text()).toBeTruthy();
+    await signIn(page, manager.email);
+    await openMyClub(page);
+
+    // Every seeded act of the first league is there — "these three", not "exactly three":
+    // the lifecycle spec adds events to this series on the same stack (see docs/gotchas).
+    for (const act of [1, 2, 3]) {
+      await expect(page.getByTestId(`my-club-event-${act}`)).toBeVisible();
+    }
+
+    await page.getByTestId(`my-club-event-toggle-${PLANNED_ACT}`).click();
+    const prefix = `my-club-lineup-${PLANNED_ACT}`;
+    await expect(page.getByTestId(prefix)).toBeVisible();
+    await expect(page.getByTestId(`${prefix}-size-hint`)).toBeVisible();
+
+    // Candidates are the squad, not a search over everyone — and naming one moves them up.
+    const candidates = page.getByTestId(`${prefix}-candidates`).getByRole("listitem");
+    await expect(candidates.first()).toBeVisible();
+    const before = await candidates.count();
+    const firstId = (await candidates.first().getAttribute("data-testid"))!.replace(
+      `${prefix}-candidate-`,
+      "",
+    );
+    await page.getByTestId(`${prefix}-add-${firstId}`).click();
+    await expect(page.getByTestId(`${prefix}-row-${firstId}`)).toBeVisible();
+    await expect(candidates).toHaveCount(before - 1);
+
+    // The lineup survives a reload — it was written, not kept in the page.
+    await page.reload();
+    await expect(page.getByTestId(`${prefix}-row-${firstId}`)).toBeVisible();
+
+    // And the public matchday page shows the same person in the crew tab.
+    const teams = (await (await request.get(`/api/events/${PLANNED_ACT}/crew`)).json()) as {
+      teams: { team: { id: number }; crew: { id: number }[] }[];
+    };
+    const named = teams.teams.find((t) => t.crew.some((c) => c.id === Number(firstId)));
+    expect(named, "the crew is on the public matchday").toBeTruthy();
+    await page.goto(`/events/${PLANNED_ACT}?view=crew`);
+    await expect(
+      page.getByTestId(`matchday-crew-row-${named!.team.id}-${firstId}`),
+    ).toBeVisible();
+  });
+
+  test("a person in two clubs picks the one they act for, and it is remembered", async ({
+    page,
+    request,
+  }) => {
+    const manager = await aClubManager(request);
+    // Make them a member of a second club as well. Membership is mutual consent (Story
+    // V-7): the club invites, the person accepts.
+    const admin = await bearer(request, ADMIN);
+    const clubs = (await (await request.get("/api/admin/clubs?limit=50", { headers: admin })).json()) as {
+      items: { id: number; slug: string; name: string }[];
+    };
+    const second = clubs.items.find((c) => c.slug === "kyc")!;
+    const invited = await request.post(`/api/admin/clubs/${second.id}/members`, {
+      headers: admin,
+      data: { email: manager.email },
+    });
+    if (invited.ok()) {
+      const membershipId = ((await invited.json()) as { id: number }).id;
+      const accepted = await request.post(`/api/club-memberships/${membershipId}/accept`, {
+        headers: await bearer(request, manager.email),
+      });
+      expect(accepted.ok(), await accepted.text()).toBeTruthy();
+    } else {
+      // The other browser project ran first on this stack and the membership exists.
+      expect(invited.status(), await invited.text()).toBe(409);
+    }
+
+    await signIn(page, manager.email);
+    await openMyClub(page);
+    const select = page.getByTestId("my-club-select");
+    await expect(select).toBeVisible();
+    await select.selectOption(String(second.id));
+    await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
+    // A member, not an organizer, of the second club: the squad is shown read-only.
+    await expect(page.getByTestId("admin-squad-management")).toBeVisible();
+    await expect(page.getByTestId("admin-squad-add-search-input")).toHaveCount(0);
+
+    // Remembered: a fresh visit without the URL parameter opens the chosen club.
+    await page.goto("/club");
+    await expect(page.getByTestId("my-club-select")).toHaveValue(String(second.id));
+    await page.goto("/account");
+    await expect(page.getByTestId("account-active-club-select")).toHaveValue(String(second.id));
+  });
+});

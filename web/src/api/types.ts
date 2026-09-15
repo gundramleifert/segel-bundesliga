@@ -64,6 +64,10 @@ export type { RaceResultIn as RaceResultInput } from "./generated/model/raceResu
 export type { RaceResultsIn as RaceResultsInput } from "./generated/model/raceResultsIn";
 export type { RaceResultsOut } from "./generated/model/raceResultsOut";
 
+// My clubs (Stories B-10, V-12)
+export type { MyClubOut as MyClub } from "./generated/model/myClubOut";
+export type { MyEventOut as MyEvent } from "./generated/model/myEventOut";
+
 // Liability waiver (Stories S-1, S-3, VA-5)
 export type { MyWaivers } from "./generated/model/myWaivers";
 export type { MyCompetitionWaiver } from "./generated/model/myCompetitionWaiver";

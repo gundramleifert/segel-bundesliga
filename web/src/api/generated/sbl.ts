@@ -134,6 +134,7 @@ import type {
   TestUserOut,
   TokenOut,
   TrackerOut,
+  UpdateMe,
   UserCreate,
   UserOut,
   WaiverConfirmationOut,
@@ -2727,6 +2728,98 @@ export const useDeleteMyAccount = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteMyAccountMutationOptions(options), queryClient);
+    }
+
+export const getUpdateMeUrl = () => {
+
+
+
+
+  return `/api/auth/me`
+}
+
+/**
+ * Sets `User.club_id`, which has meant "the club this account acts for" since the
+ * model was written and could not be set by the person. Only a club they are an active
+ * member of or organize is accepted — an account cannot declare itself to be acting for
+ * a club that never heard of it.
+ * @summary Choose the club I act for
+ */
+export const updateMe = async (updateMeBody: UpdateMe, options?: RequestInit): Promise<UserOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<UserOut>(getUpdateMeUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateMeBody)
+  }
+);}
+
+
+
+
+
+export const getUpdateMeMutationKey = () => ['updateMe'] as const;
+
+export const getUpdateMeMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMe>>, TError,UpdateMeMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateMe>>, TError,UpdateMeMutationVariables, TContext> => {
+
+const mutationKey = getUpdateMeMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMe>>, UpdateMeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateMe(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMeMutationResult = NonNullable<Awaited<ReturnType<typeof updateMe>>>
+    export type UpdateMeMutationBody = BodyType<UpdateMe>
+    export type UpdateMeMutationError = ErrorType<HTTPValidationError>
+    export type UpdateMeMutationVariables = {data: BodyType<UpdateMe>}
+
+    /**
+ * @summary Choose the club I act for
+ */
+export const useUpdateMe = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMe>>, TError,UpdateMeMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateMe>>,
+        TError,
+        UpdateMeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateMeMutationOptions(options), queryClient);
     }
 
 export const getListUsersUrl = (params?: ListUsersParams,) => {

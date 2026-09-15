@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClubOut } from './clubOut';
+import type { MyEventOut } from './myEventOut';
 import type { MyTeamOut } from './myTeamOut';
 
 /**
@@ -22,4 +23,5 @@ export interface MyClubOut {
   is_member: boolean;
   may_manage: boolean;
   teams: MyTeamOut[];
+  events?: MyEventOut[];
 }

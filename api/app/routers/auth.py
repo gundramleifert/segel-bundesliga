@@ -19,9 +19,10 @@ from app.auth import (
 )
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import AuditLog, Club, ClubMember, WaiverConfirmation
+from app.models import AuditLog, Club, ClubMember, ClubMemberStatus, WaiverConfirmation
 from app.models.auth import Role, User, UserRole
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.problems import Problem
 from app.services.login import (
     LoginError,
     login_with_oidc,
@@ -252,6 +253,50 @@ async def oidc_login(
 
 @router.get("/me", response_model=UserOut, summary="Get my account")
 async def me(user: User = Depends(current_user)) -> UserOut:
+    return UserOut.of(user)
+
+
+class UpdateMe(BaseModel):
+    """What a person may change about their own account: the club they act for."""
+
+    club_id: int | None = Field(
+        description=(
+            "The active club — one this account belongs to or organizes, or null. Story "
+            "V-12: a person in several clubs picks one, and the choice is remembered here."
+        )
+    )
+
+
+@router.patch("/me", response_model=UserOut, summary="Choose the club I act for")
+async def update_me(
+    request: UpdateMe,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(current_user),
+) -> UserOut:
+    """Sets `User.club_id`, which has meant "the club this account acts for" since the
+    model was written and could not be set by the person. Only a club they are an active
+    member of or organize is accepted — an account cannot declare itself to be acting for
+    a club that never heard of it."""
+    if request.club_id is not None:
+        member_of = set(
+            (
+                await session.execute(
+                    select(ClubMember.club_id).where(
+                        ClubMember.user_id == user.id,
+                        ClubMember.status == ClubMemberStatus.ACTIVE,
+                    )
+                )
+            ).scalars()
+        )
+        if request.club_id not in member_of | user.managed_club_ids:
+            raise Problem(
+                422,
+                "active-club-not-mine",
+                "You can only act for a club you belong to or organize.",
+                club_id=request.club_id,
+            )
+    user.club_id = request.club_id
+    await session.commit()
     return UserOut.of(user)
 
 

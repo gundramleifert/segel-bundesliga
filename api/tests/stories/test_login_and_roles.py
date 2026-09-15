@@ -562,3 +562,58 @@ class TestAssigningAClub:
         assert entry is not None
         assert entry.actor == "chef3@example.org"
         assert entry.payload["to"] == clubs[0]["id"]
+
+
+class TestActiveClub:
+    """Story V-12: a person in several clubs picks the one they act for, and the choice is
+    remembered on the account (`User.club_id`) instead of living in a URL."""
+
+    async def _club_ids(self, *slugs: str) -> list[int]:
+        from app.models import Club
+
+        async with SessionLocal() as session:
+            return [
+                (await session.execute(select(Club.id).where(Club.slug == slug))).scalar_one()
+                for slug in slugs
+            ]
+
+    async def test_the_chosen_club_is_remembered(self, client, caplog):
+        nrv, kyc, dtyc = await self._club_ids("nrv", "kyc", "dtyc")
+        email = "active-two-clubs@example.com"
+        user_id = await make_user(email, Role.CLUB_MANAGER, club_id=nrv)
+        async with SessionLocal() as session:
+            # Organizes a second club as well — `club_manager` is granted per club.
+            session.add(UserRole(user_id=user_id, role=Role.CLUB_MANAGER, club_id=kyc))
+            await session.commit()
+        headers = {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
+
+        assert (await client.get("/api/auth/me", headers=headers)).json()["club_id"] == nrv
+
+        chosen = await client.patch("/api/auth/me", headers=headers, json={"club_id": kyc})
+        assert chosen.status_code == 200, chosen.text
+        assert chosen.json()["club_id"] == kyc
+        assert (await client.get("/api/auth/me", headers=headers)).json()["club_id"] == kyc
+
+        # Not one of theirs: refused, and nothing moves.
+        refused = await client.patch("/api/auth/me", headers=headers, json={"club_id": dtyc})
+        assert refused.status_code == 422, refused.text
+        assert refused.json()["type"] == "/errors/active-club-not-mine"
+        assert (await client.get("/api/auth/me", headers=headers)).json()["club_id"] == kyc
+
+        cleared = await client.patch("/api/auth/me", headers=headers, json={"club_id": None})
+        assert cleared.status_code == 200, cleared.text
+        assert cleared.json()["club_id"] is None
+
+    async def test_a_plain_member_may_pick_their_club_too(self, client, caplog):
+        from app.models import ClubMemberStatus
+        from tests.stories.test_my_clubs import _make_member
+
+        (fsc,) = await self._club_ids("fsc")
+        email = "active-member@example.com"
+        await make_user(email)
+        headers = {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
+        await _make_member(email, fsc, ClubMemberStatus.ACTIVE)
+
+        chosen = await client.patch("/api/auth/me", headers=headers, json={"club_id": fsc})
+        assert chosen.status_code == 200, chosen.text
+        assert chosen.json()["club_id"] == fsc
