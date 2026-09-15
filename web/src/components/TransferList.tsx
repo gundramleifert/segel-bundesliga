@@ -25,6 +25,7 @@ export function TransferList<T extends { id: number }>({
   filterValue,
   onFilterChange,
   filterPlaceholder,
+  availableLoading = false,
   onSelect,
   onDeselect,
   selectedExtra,
@@ -49,6 +50,8 @@ export function TransferList<T extends { id: number }>({
   filterValue?: string;
   onFilterChange?: (value: string) => void;
   filterPlaceholder?: string;
+  /** The caller is still fetching what is available — say so instead of "no matches". */
+  availableLoading?: boolean;
   onSelect: (item: T) => void;
   onDeselect: (item: T) => void;
   selectedExtra?: (item: T) => ReactNode;
@@ -126,8 +129,11 @@ export function TransferList<T extends { id: number }>({
             );
           })}
           {!shown.length && (
-            <li data-testid={`${testId}-available-empty`} className="px-2 py-3 text-center text-sm text-slate-400">
-              {t("common:transferList.noneAvailable")}
+            <li
+              data-testid={`${testId}-available-${availableLoading ? "loading" : "empty"}`}
+              className="px-2 py-3 text-center text-sm text-slate-400"
+            >
+              {availableLoading ? t("common:transferList.loading") : t("common:transferList.noneAvailable")}
             </li>
           )}
         </ul>

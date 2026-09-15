@@ -188,6 +188,7 @@ export function SquadPanel({
             filterValue={search}
             onFilterChange={setSearch}
             filterPlaceholder={t("squad.addPlaceholder")}
+            availableLoading={results.loading}
             onSelect={(p) => setDraft([...draft, { sailor_id: p.id, role: "crew" }])}
             onDeselect={(p) => setDraft(draft.filter((d) => d.sailor_id !== p.id))}
             selectedExtra={(p) => (

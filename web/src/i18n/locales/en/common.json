@@ -51,7 +51,8 @@
     "selected": "Selected ({{count}})",
     "noneAvailable": "No matches.",
     "noneSelected": "None selected yet.",
-    "remove": "Remove"
+    "remove": "Remove",
+    "loading": "Loading …"
   },
   "errors": {
     "loadFailed": "The data could not be loaded. Is there a connection?",

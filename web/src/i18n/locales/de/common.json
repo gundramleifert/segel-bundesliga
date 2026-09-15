@@ -51,7 +51,8 @@
     "selected": "Ausgewählt ({{count}})",
     "noneAvailable": "Keine Treffer.",
     "noneSelected": "Noch nichts ausgewählt.",
-    "remove": "Entfernen"
+    "remove": "Entfernen",
+    "loading": "Wird geladen …"
   },
   "errors": {
     "loadFailed": "Die Daten konnten nicht geladen werden. Besteht eine Verbindung?",
