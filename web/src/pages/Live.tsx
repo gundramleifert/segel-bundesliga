@@ -141,6 +141,72 @@ function centre(a: LngLat, b: LngLat): LngLat {
   return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 }
 
+const METRES_PER_DEGREE = 111_320;
+
+/** A point `east`/`north` metres from `origin` — flat-earth, which over a course is exact
+ *  to the centimetre. The server does the real geometry; this only draws. */
+function offsetMetres(origin: LngLat, east: number, north: number): LngLat {
+  const lat = (origin[1] * Math.PI) / 180;
+  return [origin[0] + east / (METRES_PER_DEGREE * Math.cos(lat)), origin[1] + north / METRES_PER_DEGREE];
+}
+
+function circle(at: LngLat, radiusM: number, points = 48): LngLat[] {
+  const ring: LngLat[] = [];
+  for (let i = 0; i <= points; i += 1) {
+    const a = (2 * Math.PI * i) / points;
+    ring.push(offsetMetres(at, radiusM * Math.sin(a), radiusM * Math.cos(a)));
+  }
+  return ring;
+}
+
+/** The zone (RRS 18) — three hull lengths — around every mark boats round or finish at.
+ *  Not around the start line's ends: rule 18 does not apply at a starting mark, and the
+ *  committee boat gets its zone only when it is also the finish line's end. */
+function zones(course: Course, radiusM: number): Data {
+  const zoned = course.marks.filter(
+    (m) => m.role !== "start_pin" && !(m.role === "committee_boat" && course.finish_upwind),
+  );
+  return {
+    type: "FeatureCollection",
+    features: zoned.map((m) => ({
+      type: "Feature",
+      geometry: { type: "Polygon", coordinates: [circle(lngLat(m), radiusM)] },
+      properties: { role: m.role },
+    })),
+  } as Data;
+}
+
+/** Each boat as a hull polygon at its true size, bow on the course over ground — so the map
+ *  shows how a 7 m boat fits a 21 m zone. Below {@link HULL_ZOOM} it is a speck and the
+ *  arrow marker carries the boat instead. */
+function hulls(boats: LiveBoat[], lengthM: number, beamM: number): Data {
+  const half = lengthM / 2;
+  const shape: [number, number][] = [
+    [0, half],
+    [beamM / 2, half / 3],
+    [beamM * 0.4, -half],
+    [-beamM * 0.4, -half],
+    [-beamM / 2, half / 3],
+    [0, half],
+  ];
+  return {
+    type: "FeatureCollection",
+    features: boats.map((b) => {
+      const c = (b.cog * Math.PI) / 180;
+      const at: LngLat = [b.lon, b.lat];
+      const ring = shape.map(([x, y]) => offsetMetres(at, x * Math.cos(c) + y * Math.sin(c), -x * Math.sin(c) + y * Math.cos(c)));
+      return {
+        type: "Feature",
+        geometry: { type: "Polygon", coordinates: [ring] },
+        properties: { color: boatColor(b.color).hex },
+      };
+    }),
+  } as Data;
+}
+
+/** From this zoom a 7 m hull is about ten pixels long, and the drawn hull replaces the arrow. */
+const HULL_ZOOM = 17;
+
 /** The lines of the course: start, gate and finish lines, and the legs between them, dashed. */
 function courseLines(course: Course): Data {
   const at = (role: string) => {
@@ -244,8 +310,23 @@ function CourseMap({
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     map.on("load", () => {
-      map.addSource("course", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      map.addSource("trails", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      const empty = () => ({ type: "geojson" as const, data: { type: "FeatureCollection" as const, features: [] } });
+      map.addSource("zones", empty());
+      map.addSource("course", empty());
+      map.addSource("trails", empty());
+      map.addSource("hulls", empty());
+      map.addLayer({
+        id: "zones-fill",
+        type: "fill",
+        source: "zones",
+        paint: { "fill-color": "#ea580c", "fill-opacity": 0.1 },
+      });
+      map.addLayer({
+        id: "zones-line",
+        type: "line",
+        source: "zones",
+        paint: { "line-color": "#ea580c", "line-width": 1.5, "line-dasharray": [3, 2], "line-opacity": 0.8 },
+      });
       map.addLayer({
         id: "legs",
         type: "line",
@@ -269,7 +350,28 @@ function CourseMap({
         source: "trails",
         paint: { "line-color": ["get", "color"], "line-width": 2, "line-opacity": 0.7 },
       });
+      map.addLayer({
+        id: "hulls-fill",
+        type: "fill",
+        source: "hulls",
+        minzoom: HULL_ZOOM,
+        paint: { "fill-color": ["get", "color"], "fill-opacity": 0.9 },
+      });
+      map.addLayer({
+        id: "hulls-line",
+        type: "line",
+        source: "hulls",
+        minzoom: HULL_ZOOM,
+        paint: { "line-color": "#ffffff", "line-width": 1 },
+      });
       setReady(true);
+    });
+    // Once the hull is drawn at scale the arrow would sit on top of it; hide it there.
+    map.on("zoom", () => {
+      const scaled = map.getZoom() >= HULL_ZOOM;
+      for (const entry of boatMarkers.current.values()) {
+        entry.arrow.style.visibility = scaled ? "hidden" : "visible";
+      }
     });
     mapRef.current = map;
     return () => {
@@ -285,7 +387,13 @@ function CourseMap({
     (map.getSource("course") as GeoJSONSource | undefined)?.setData(
       course ? courseLines(course) : ({ type: "FeatureCollection", features: [] } as Data),
     );
+    (map.getSource("zones") as GeoJSONSource | undefined)?.setData(
+      course ? zones(course, snapshot.zone_radius_m) : ({ type: "FeatureCollection", features: [] } as Data),
+    );
     (map.getSource("trails") as GeoJSONSource | undefined)?.setData(trails(snapshot.boats));
+    (map.getSource("hulls") as GeoJSONSource | undefined)?.setData(
+      hulls(snapshot.boats, snapshot.boat_length_m, snapshot.boat_beam_m),
+    );
 
     // Marks: one marker per role, moved rather than recreated.
     const seenMarks = new Set<string>();
@@ -319,6 +427,7 @@ function CourseMap({
         const marker = new Marker({ element: el, anchor: "center" }).setLngLat([boat.lon, boat.lat]).addTo(map);
         el.dataset.testid = `live-boat-marker-${boat.boat_number}`;
         entry = { marker, arrow: el.children[0] as HTMLElement, text: el.children[1] as HTMLElement };
+        entry.arrow.style.visibility = map.getZoom() >= HULL_ZOOM ? "hidden" : "visible";
         boatMarkers.current.set(boat.boat_number, entry);
       }
       entry.marker.setLngLat([boat.lon, boat.lat]);
@@ -349,12 +458,25 @@ function CourseMap({
     }
   }, [snapshot, ready, follow, mapRef, t]);
 
+  // The "nothing to show yet" notices sit on the map, not in the panel: the panel is the
+  // narrow column, and a sentence there left the map with nothing to say either.
+  const notice = snapshot && !snapshot.course ? "noCourse" : snapshot && !snapshot.boats.length ? "noBoats" : null;
   return (
-    <div
-      ref={container}
-      data-testid="live-map"
-      className="h-[60vh] min-h-[320px] w-full overflow-hidden rounded-xl border border-slate-200"
-    />
+    <div className="relative">
+      <div
+        ref={container}
+        data-testid="live-map"
+        className="h-[60vh] min-h-[320px] w-full overflow-hidden rounded-xl border border-slate-200 lg:h-[72vh]"
+      />
+      {notice && (
+        <p
+          className="pointer-events-none absolute top-3 left-3 right-14 z-10 rounded-md bg-white/90 px-3 py-2 text-sm text-slate-700 shadow"
+          data-testid={notice === "noCourse" ? "live-no-course" : "live-no-boats"}
+        >
+          {t(notice)}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -370,9 +492,7 @@ function legKind(name: string | null | undefined): string | null {
 
 function Panel({ snapshot }: { snapshot: LiveRace | null }) {
   const { t, i18n } = useTranslation("live");
-  if (!snapshot) return null;
-  if (!snapshot.course) return <p className="text-sm text-slate-600" data-testid="live-no-course">{t("noCourse")}</p>;
-  if (!snapshot.boats.length) return <p className="text-sm text-slate-600" data-testid="live-no-boats">{t("noBoats")}</p>;
+  if (!snapshot?.course || !snapshot.boats.length) return null;
   const rows = [...snapshot.boats].sort(
     (a, b) => (a.rank ?? 99) - (b.rank ?? 99) || a.boat_number - b.boat_number,
   );

@@ -19,5 +19,8 @@ export interface LiveRaceOut {
   next_race: LiveRaceInfo | null;
   boats: LiveBoatOut[];
   detected_finish_order: number[];
+  boat_length_m: number;
+  boat_beam_m: number;
+  zone_radius_m: number;
   t: string;
 }

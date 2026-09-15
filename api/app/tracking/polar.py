@@ -1,7 +1,7 @@
 """A boat's polar: how fast it goes at a true wind angle and speed (decision 10).
 
 Reads SAP Sailing Analytics' CSV shape, so their 49er and 505 files and our J/70 file
-(``api/tests/fixtures/polars/j70.csv``, ORC data) go through one loader:
+(``api/app/tracking/polars/j70.csv``, ORC data) go through one loader:
 
     wind speed,4,6,8,...        the columns
     beat angles,45.8,...        optimum upwind angle per column
@@ -151,4 +151,6 @@ def _sog_from_vmg(vmg: tuple[float, ...], angles: tuple[float, ...]) -> tuple[fl
 
 
 #: The league's boat, for anything that has no better polar at hand.
-J70 = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "polars" / "j70.csv"
+#: Ships with the package, not with the tests: the emulator and the ranker read it at
+#: runtime, and the Docker image leaves ``tests/`` out.
+J70 = Path(__file__).resolve().parent / "polars" / "j70.csv"

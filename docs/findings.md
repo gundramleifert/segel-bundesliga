@@ -176,7 +176,7 @@ them:
   `MoevensteinMarkPositions.json.gz` (real tracks and mark positions — stage two of our
   test data) and `PolarDiagram49*.csv`, `PolarDiagram505STG.csv`. Their CSV shape (`wind
   speed` header, `beat angles`/`beat sog`, TWA rows, `jibe angles`/`jibe sog`) is the shape
-  of our own `api/tests/fixtures/polars/j70.csv`, so one loader reads both.
+  of our own `api/app/tracking/polars/j70.csv`, so one loader reads both.
 - **Result:** results and positions are built here (SSE plus an ingest endpoint); the
   analytics are a small port of the one-design ideas behind Protocols so the algorithms can
   be swapped and decided on recorded data; SAP is run **once, locally, as an offline

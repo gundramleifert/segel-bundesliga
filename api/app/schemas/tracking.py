@@ -135,5 +135,10 @@ class LiveRaceOut(BaseModel):
     boats: list[LiveBoatOut]
     #: Boat numbers in the order the analysis saw them finish — the committee's suggestion.
     detected_finish_order: list[int]
+    #: Hull length and beam of the class sailed, so the map draws boats at their true size.
+    boat_length_m: float
+    boat_beam_m: float
+    #: Radius of the zone around every rounding mark (RRS 18: three hull lengths).
+    zone_radius_m: float
     #: When this picture was taken.
     t: datetime

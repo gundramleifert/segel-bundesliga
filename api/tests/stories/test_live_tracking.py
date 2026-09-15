@@ -174,6 +174,16 @@ class TestTheLivePicture:
         assert boat["cog"] == 20.0
         assert len(boat["trail"]) == 3
 
+    async def test_the_picture_carries_hull_size_and_zone(self, client, caplog):
+        """The map draws boats at 7 m and a zone of three lengths around every rounding mark;
+        both numbers come from the server's settings, so the map never hard-codes a class."""
+        headers = await admin(client, caplog, "tr6b@example.com")
+        event_id = await live_event(client, headers, "Zone Cup", "2027-11-22")
+        body = (await client.get(f"/api/events/{event_id}/live")).json()
+        assert body["boat_length_m"] == 7.0
+        assert body["boat_beam_m"] > 0
+        assert body["zone_radius_m"] == 3 * body["boat_length_m"] == 21.0
+
     async def test_a_draft_event_shows_no_boats(self, client, caplog):
         headers = await admin(client, caplog, "tr7@example.com")
         created = await client.post(

@@ -19,9 +19,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class TrackingSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="SBL_TRACKING_", extra="ignore")
 
+    # ---------------------------------------------------------------- the boats
+    #: Hull length of the class sailed, in metres — the J/70 is 6.93 m, called 7. The map
+    #: draws the hulls at this size, and the zone is measured in it.
+    boat_length_m: float = 7.0
+    #: Beam, for the drawn hull only.
+    boat_beam_m: float = 2.25
+    #: The zone around a mark (RRS 18), in hull lengths: three under the racing rules.
+    zone_lengths: int = 3
+
     # ----------------------------------------------------------------- detection
-    #: Inside this distance a boat is "at" a mark — about three J/70 lengths.
-    mark_radius_m: float = 20.0
+    #: Inside this distance a boat is "at" a mark — the zone, three J/70 lengths.
+    mark_radius_m: float = 21.0
     #: A start or finish line counts this far beyond its ends: a boat crossing a metre
     #: outside the pin is a start to the tracking, and the position noise is this size.
     line_margin_m: float = 5.0
@@ -58,6 +67,11 @@ class TrackingSettings(BaseSettings):
     # ------------------------------------------------------------------- spectator
     #: How long a boat's trail on the map is.
     trail_seconds: int = 60
+
+    @property
+    def zone_radius_m(self) -> float:
+        """Radius of the three-length zone around a mark, in metres."""
+        return self.zone_lengths * self.boat_length_m
 
 
 tracking_settings = TrackingSettings()

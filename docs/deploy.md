@@ -183,6 +183,13 @@ needed to try out roles), but it means anyone who finds the URL is an admin. For
 private test URL that's usually an acceptable trade; once SMTP (and, later, an OIDC
 provider) is confirmed working, it can be turned off by editing `render.env`.
 
+**The simulated race works on the test instance too.** "Simulate a race" on an event's live
+page calls `POST /api/dev/emulate`, which exists only with `SBL_DEV_LOGIN=true`, and the
+button shows only with `VITE_DEV_TOOLS=true` — both already set for the test instance. The
+J/70 polar it needs ships inside the package (`api/app/tracking/polars/`), not under
+`tests/`, which the Docker image leaves out. The map's tiles come straight from
+OpenStreetMap to the browser, not through the `/api/*` rewrite.
+
 **The role switcher needs a second switch, in the frontend.** `SBL_DEV_LOGIN=true` only
 opens `/api/dev`; whether the panel that uses it is *in the bundle* is a build-time
 decision, because a static build has no environment to ask at runtime. `sbl-web` therefore

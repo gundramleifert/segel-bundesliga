@@ -267,8 +267,8 @@ one recorded track so an algorithm change is *decided on data*, not argued.
 
 - Loader reads SAP's CSV shape (`wind speed` header row, `beat angles`/`beat sog`,
   `jibe angles`/`jibe sog`, SOG rows per TWA). Their 49er and 505 files become fixtures in
-  `api/tests/fixtures/polars/`.
-- **J/70 polar: `api/tests/fixtures/polars/j70.csv`** — ORC rated velocities (4–24 kt TWS,
+  `api/app/tracking/polars/`.
+- **J/70 polar: `api/app/tracking/polars/j70.csv`** — ORC rated velocities (4–24 kt TWS,
   52°–150° TWA, beat/run VMG and angles), provided 2026-09-14, written in the SAP CSV shape.
   The `beat sog` / `jibe sog` rows are **derived** (`vmg / cos(angle)`) and say so in the
   file; the ORC rows are verbatim; row names follow SAP's spelling (`jibe angles`,
@@ -434,7 +434,7 @@ parser as reference; wind estimation.
 |---|---|---|
 | Static-site rewrite buffers SSE | *assumption* | test in phase 1; fallback described in §6 |
 | Phone background GPS with a locked screen | *unknown, biggest one* | phase D's on-water morning |
-| J/70 polar | ✅ ORC data in `api/tests/fixtures/polars/j70.csv` | `fit_polar` from own tracks later, for the league's real boats |
+| J/70 polar | ✅ ORC data in `api/app/tracking/polars/j70.csv` | `fit_polar` from own tracks later, for the league's real boats |
 | SAP branding clause on a self-hosted instance | verified present in both repos' API docs | irrelevant to a port; only matters if SAP ever becomes a runtime source |
 | SAP bus factor 1 | verified | reason not to self-host; no effect on the port or the oracle |
 | Fixes on the test deployment vanish on sleep/redeploy; SQLite exclusive locks on ingest | verified (`render.yaml`, `app/db.py` has no pragmas) | phase A storage decision, §4 |

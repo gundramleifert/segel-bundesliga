@@ -459,6 +459,9 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
         next_race=_race_info(*upcoming) if upcoming else None,
         boats=boats,
         detected_finish_order=[b.boat_number for b in finished],
+        boat_length_m=tracking_settings.boat_length_m,
+        boat_beam_m=tracking_settings.boat_beam_m,
+        zone_radius_m=tracking_settings.zone_radius_m,
         t=now,
     )
 

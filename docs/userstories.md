@@ -2196,7 +2196,7 @@ Acceptance criteria:
   by the polar's best VMG at the wind speed, summed. An upwind and a downwind boat become
   comparable in one number. Ranking depends on the polar's *shape*, not its speeds: scaling
   the polar by 1.2 must change no rank (unit test). The first polar is the ORC J/70 data in
-  `api/tests/fixtures/polars/j70.csv`, in SAP's CSV shape so one loader reads their 49er and
+  `api/app/tracking/polars/j70.csv`, in SAP's CSV shape so one loader reads their 49er and
   505 files too; the optimum angles and their speeds come from the `beat …`/`jibe …` rows —
   they must, because the beat angles lie below the table's first column.
 - **Interfaces only where a second implementation is already known** (decision 11): a
@@ -2226,18 +2226,29 @@ Acceptance criteria:
   sizes, the default wind and the emulator's noise — every one will be re-tuned on the
   first real tracks, and the same field list is what a committee's screen would edit once
   they move to the UI.
+- **The map draws the class at its true size and the zone around the marks.** The live
+  picture carries `boat_length_m` (7 m, the J/70's 6.93 called seven), `boat_beam_m` and
+  `zone_radius_m` (three hull lengths, RRS 18); the map draws each hull as a polygon of
+  that size, bow on its course over ground, from the zoom where a hull is about ten pixels
+  long — below that an arrow marker carries the boat — and a dashed circle of the zone's
+  radius around every mark boats round or finish at. Not around the start line's ends:
+  rule 18 does not apply at a starting mark, and the committee boat gets a zone only when
+  it is also the finish line's end. The numbers come from the server's settings, so the map
+  hard-codes no class; the "no course yet" and "no boat yet" notices sit on the map, not in
+  the side panel.
 
 What's done: the whole analysis (`app/tracking/`: geometry, polar loader, W/L course,
 sequential detector with the fix's own course over ground for direction, axis distance,
 time-to-go ranking, `default_pipeline`), `Course`/`Mark` with `Race.course_id` stamped at
 the start, the default course laid around the venue (`POST …/course/default`, also from
 the map page), the live rank, leg and distance to go in the picture and the panel, the
-detected finish order. Still open: laying the course mark by mark on the map, the detected
+detected finish order, hulls at true size and the three-length zones on the map. Still open: laying the course mark by mark on the map, the detected
 order prefilling the race-control pad, `compare.py`, the SAP oracle.
 
 Tests: `api/tests/unit/test_tracking_geo.py`, `api/tests/unit/test_polar.py`,
 `api/tests/unit/test_tracking_contract.py`,
 `api/tests/stories/test_live_tracking.py::TestLayingTheCourse`,
+`api/tests/stories/test_live_tracking.py::TestTheLivePicture::test_the_picture_carries_hull_size_and_zone`,
 `api/tests/stories/test_live_tracking.py::TestAWholeRaceSimulated`
 
 ### L-3 ○ Replay a race
