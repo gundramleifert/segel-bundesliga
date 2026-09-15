@@ -13,6 +13,10 @@ import { useTranslation } from "react-i18next";
  * caller can keep the helm first. Something a chosen row needs besides its label — a
  * role select — goes in `selectedExtra`; it is rendered *beside* the move-back button,
  * not inside it, so a click on the select does not unselect the person.
+ *
+ * Both lists have a **fixed** height, not a maximum. With a server-side search the left
+ * list is empty for a moment after every keystroke, and a max-height box collapsed to one
+ * line and sprang back with the answer — the whole panel below it jumping with it.
  */
 export function TransferList<T extends { id: number }>({
   available,
@@ -84,7 +88,7 @@ export function TransferList<T extends { id: number }>({
         <p className="px-2 pt-2 text-xs font-medium uppercase tracking-wide text-slate-500">
           {t("common:transferList.available", { count: shown.length })}
         </p>
-        <ul data-testid={`${testId}-available-list`} className="max-h-64 overflow-y-auto p-1">
+        <ul data-testid={`${testId}-available-list`} className="h-64 overflow-y-auto p-1">
           {shown.map((item) => {
             const reason = disabledReason?.(item);
             const inner = (
@@ -143,7 +147,7 @@ export function TransferList<T extends { id: number }>({
         <p className="border-b border-slate-200 px-2 py-2 text-xs font-medium uppercase tracking-wide text-slate-500">
           {t("common:transferList.selected", { count: selected.length })}
         </p>
-        <ul data-testid={`${testId}-selected-list`} className="max-h-64 overflow-y-auto p-1">
+        <ul data-testid={`${testId}-selected-list`} className="h-64 overflow-y-auto p-1">
           {selected.map((item) => (
             <li
               key={item.id}
