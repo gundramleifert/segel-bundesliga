@@ -9,14 +9,15 @@
     "none": "No race on the water",
     "next": "Next up: race {{sequence}}",
     "elapsed": "{{time}} sailed",
-    "signal": "Signal {{signal}}"
+    "signal": "Signal {{signal}}",
+    "wind": "Wind {{deg}}°"
   },
   "panel": {
     "rank": "#",
     "boat": "Boat",
     "leg": "Leg",
     "speed": "kn",
-    "toGo": "to go",
+    "toGo": "to go / gap",
     "finished": "finished",
     "detectedOrder": "Detected finish order: {{order}}"
   },
@@ -47,7 +48,10 @@
     "simulating": "Simulating…",
     "speed": "Speed ×{{factor}}",
     "simulateHint": "Six made-up boats sail the current race through the real ingest path; the finish order becomes the result and the next race is up. Development only.",
-    "raceControl": "Race control"
+    "raceControl": "Race control",
+    "finishLine": "Finish line",
+    "finishSeparate": "other side of the committee boat",
+    "finishCombined": "through the start line"
   },
   "attribution": "Map data © OpenStreetMap contributors"
 }

@@ -20,6 +20,7 @@ export interface LiveBoatOut {
   leg_name: string | null;
   to_go_m: number | null;
   time_to_go_s: number | null;
+  to_leader_m: number | null;
   rank: number | null;
   finished_at: string | null;
   trail: number[][];

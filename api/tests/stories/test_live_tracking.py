@@ -271,4 +271,14 @@ class TestAWholeRaceSimulated:
         ranks = sorted(b["rank"] for b in picture["boats"])
         assert ranks == [1, 2, 3, 4, 5, 6]
         assert all(b["leg_name"] is not None and b["sog_kn"] >= 0 for b in picture["boats"])
+        # What the panel and the map draw beside the boats: "leg 2/4", the gap to the
+        # leader, the wind, laylines from the polar, and the leader's line.
+        assert picture["leg_count"] == 4
+        assert picture["wind_from_deg"] is not None
+        assert len(picture["laylines"]) == 6
+        assert all(len(line["points"]) == 2 for line in picture["laylines"])
+        racing = [b for b in picture["boats"] if b["finished_at"] is None]
+        assert min(b["to_leader_m"] for b in racing) == 0
+        if any(0 < b["leg"] < 4 for b in racing):
+            assert picture["leader_line"] is not None and len(picture["leader_line"]) == 2
         assert picture["race"]["status"] == "running"

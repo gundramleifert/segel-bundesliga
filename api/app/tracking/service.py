@@ -35,6 +35,7 @@ from app.schemas.tracking import (
     CourseOut,
     DefaultCourseIn,
     FixIn,
+    LaylineOut,
     LiveBoatOut,
     LiveRaceInfo,
     LiveRaceOut,
@@ -44,10 +45,12 @@ from app.schemas.tracking import (
 from app.tracking.analysis import default_pipeline
 from app.tracking.course import Course as CourseGeometry
 from app.tracking.course import MarkRole, lay_course
-from app.tracking.geo import XY, LocalTangentPlane
+from app.tracking.geo import XY, LocalTangentPlane, bearing_deg
 from app.tracking.geo import Fix as GeoFix
 from app.tracking.polar import KNOT
+from app.tracking.ranking import metres_to_go
 from app.tracking.settings import tracking_settings
+from app.tracking.tactics import laylines, leader_line
 
 
 def _aware(value: datetime) -> datetime:
@@ -402,10 +405,27 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
     teams = await _teams_on_boats(session, race.id) if race else {}
     ranked = {}
     waypoint_names: list[str] = []
-    if course is not None and race is not None:
+    leg_count: int | None = None
+    wind_from: float | None = None
+    lines: list[LaylineOut] = []
+    leader: list[list[float]] | None = None
+    leader_boat: int | None = None
+    remaining: dict[int, float] = {}
+    if course is not None:
         geometry, projection = course_geometry(course)
-        waypoint_names = [w.name for w in geometry.waypoints()]
+        waypoints = geometry.waypoints()
+        waypoint_names = [w.name for w in waypoints]
+        leg_count = len(waypoints)
+        wind_from = round(bearing_deg(geometry.axis), 1)
         pipeline = default_pipeline(course_origin(course), tws=course.tws_kn)
+        polar = pipeline.ranker.polar  # type: ignore[attr-defined]
+        lines = [
+            LaylineOut(
+                mark=str(line.mark), points=[list(projection.to_geo(p)) for p in line.points]
+            )
+            for line in laylines(geometry, polar, pipeline.tws)
+        ]
+    if course is not None and race is not None:
         tracks = {
             boat.number: [
                 GeoFix(_aware(f.t), f.lat, f.lon, f.sog, f.cog) for f in by_tracker[tracker.id]
@@ -413,6 +433,25 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
             for tracker, boat in trackers
         }
         ranked = {r.state.boat: r for r in pipeline.analyse(tracks, geometry)}
+        remaining = {
+            n: metres_to_go(r.state, waypoints, geometry.axis)
+            for n, r in ranked.items()
+            if r.finished_at is None
+        }
+        racing = [
+            r for r in ranked.values() if r.finished_at is None and 0 < r.state.leg < leg_count
+        ]
+        if racing and race.status == RaceStatus.RUNNING:
+            first = min(racing, key=lambda r: r.rank)
+            ends = leader_line(
+                first.state.position,
+                waypoints[first.state.leg],
+                geometry.axis,
+                tracking_settings.leader_line_half_m,
+            )
+            leader = [list(projection.to_geo(p)) for p in ends]
+            leader_boat = first.state.boat
+    leader_remaining = min(remaining.values(), default=None)
 
     boats: list[LiveBoatOut] = []
     trail_from = now - timedelta(seconds=tracking_settings.trail_seconds)
@@ -443,6 +482,11 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
                 ),
                 to_go_m=round(r.state.to_go, 1) if r else None,
                 time_to_go_s=round(r.time_to_go, 1) if r and r.time_to_go is not None else None,
+                to_leader_m=(
+                    round(remaining[boat.number] - leader_remaining, 1)
+                    if boat.number in remaining and leader_remaining is not None
+                    else None
+                ),
                 rank=r.rank if r else None,
                 finished_at=r.finished_at if r else None,
                 trail=[[f.lat, f.lon] for f in trail[::step]],
@@ -455,6 +499,11 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
     return LiveRaceOut(
         event_id=event.id,
         course=course_out(course) if course else None,
+        leg_count=leg_count,
+        wind_from_deg=wind_from,
+        laylines=lines,
+        leader_line=leader,
+        leader_boat=leader_boat,
         race=_race_info(*running) if running else None,
         next_race=_race_info(*upcoming) if upcoming else None,
         boats=boats,

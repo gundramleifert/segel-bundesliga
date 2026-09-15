@@ -30,7 +30,7 @@ class Course(Base, TimestampMixin):
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), index=True)
     laps: Mapped[int] = mapped_column(default=1)
     finish_upwind: Mapped[bool] = mapped_column(default=False)
-    finish_pin_side: Mapped[str] = mapped_column(String(8), default="left")
+    finish_pin_side: Mapped[str] = mapped_column(String(8), default="right")
     #: The committee's wind, typed in or taken from the axis when laid — in knots and degrees.
     tws_kn: Mapped[float | None] = mapped_column(default=None)
     wind_from_deg: Mapped[float | None] = mapped_column(default=None)

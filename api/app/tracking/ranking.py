@@ -109,16 +109,18 @@ class ByTimeToGo:
         return _order(boats, waypoints, lambda b: self.seconds_to_go(b, waypoints, axis, tws))
 
 
+def metres_to_go(state: BoatState, waypoints: Sequence[Waypoint], axis: XY) -> float:
+    """Axis metres left to the finish: the rest of this leg plus every leg after it. Whole
+    legs ahead therefore count more than any distance within a leg — and the difference
+    between two boats' values is the gap the live page shows."""
+    if state.leg >= len(waypoints):
+        return 0.0
+    lengths = _leg_lengths(waypoints, axis)
+    return state.to_go + sum(lengths[state.leg + 1 :])
+
+
 class ByLegThenDistance:
     def rank(
         self, boats: Sequence[BoatState], waypoints: Sequence[Waypoint], axis: XY, tws: float
     ) -> list[Ranked]:
-        # Encoded as one number so `_order` can report it: whole legs ahead count more than
-        # any distance within a leg.
-        lengths = _leg_lengths(waypoints, axis)
-        remaining_after = [sum(lengths[i + 1 :]) for i in range(len(waypoints))]
-
-        def key(b: BoatState) -> float:
-            return b.to_go + (remaining_after[b.leg] if b.leg < len(waypoints) else 0.0)
-
-        return _order(boats, waypoints, key)
+        return _order(boats, waypoints, lambda b: metres_to_go(b, waypoints, axis))

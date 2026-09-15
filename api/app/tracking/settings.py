@@ -67,6 +67,9 @@ class TrackingSettings(BaseSettings):
     # ------------------------------------------------------------------- spectator
     #: How long a boat's trail on the map is.
     trail_seconds: int = 60
+    #: The leader's line — through the leading boat, square to its leg — reaches this far
+    #: to either side.
+    leader_line_half_m: float = 100.0
 
     @property
     def zone_radius_m(self) -> float:

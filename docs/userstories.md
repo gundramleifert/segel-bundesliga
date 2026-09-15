@@ -2177,7 +2177,10 @@ Acceptance criteria:
   boat**), `WINDWARD` (one mark, rounded to port), `GATE` (two marks, either one), repeated
   per lap, `FINISH` (line between committee boat and pin, pin **left or right** — one flag).
   Parameters: `laps`, finish upwind or downwind. Nothing else is modelled until real data
-  asks for it.
+  asks for it. **The finish pin sits on the other side of the committee boat by default**
+  (`finish_pin_side = "right"`, looking upwind): that is how most days are run, the finish
+  line separate from the start line. `"left"` puts it through the start line — the
+  combined mode — and the lay-course controls offer both.
 - The race committee lays the course on the map: the committee boat follows its tracker
   (L-1), the pin and the marks are set by holding a phone next to them or by tapping the
   map. A re-lay creates a new course; races already started keep the one they were started
@@ -2236,17 +2239,36 @@ Acceptance criteria:
   it is also the finish line's end. The numbers come from the server's settings, so the map
   hard-codes no class; the "no course yet" and "no boat yet" notices sit on the map, not in
   the side panel.
+- **What a tactician draws** (`app/tracking/tactics.py`, derived, never stored): **laylines**
+  from the windward mark down at the polar's best upwind angle either side of the wind,
+  and from each gate mark up at its best downwind angle — the wind being the course axis
+  until a wind source exists — and the **leader's line** through the leading boat square
+  to its leg's axis, everything behind it being behind in distance to windward. Nothing
+  joins the gate marks and no leg line is drawn. The panel shows the leg as **`2/4`**
+  (waypoints passed of waypoints on the course; a finished boat reads `4/4 finished`, no
+  time), and one **to go / gap** column: the leader's metres to its next mark, every other
+  boat as `+XX m` behind the leader in axis metres (`to_leader_m`, from
+  `ranking.metres_to_go`, whole legs counting more than any distance within one). The
+  race line names the wind direction.
+- **Positions are estimated between fixes, the way SAP Sailing Analytics does it.** A
+  marker that jumps to every fix is a slide show; the map draws each boat on every
+  animation frame at *now − 1.5 s* on the server's clock, interpolated between the fixes it
+  has (position linearly, heading along the shorter arc), and dead-reckons along course
+  and speed for at most three seconds when the stream is late — then the boat stops rather
+  than sailing off on a guess. The leader's line is shifted with its boat so it never runs
+  ahead of it.
 
 What's done: the whole analysis (`app/tracking/`: geometry, polar loader, W/L course,
 sequential detector with the fix's own course over ground for direction, axis distance,
 time-to-go ranking, `default_pipeline`), `Course`/`Mark` with `Race.course_id` stamped at
 the start, the default course laid around the venue (`POST …/course/default`, also from
 the map page), the live rank, leg and distance to go in the picture and the panel, the
-detected finish order, hulls at true size and the three-length zones on the map. Still open: laying the course mark by mark on the map, the detected
+detected finish order, hulls at true size and the three-length zones on the map, laylines
+and the leader's line, the gap column, smooth positions between fixes. Still open: laying the course mark by mark on the map, the detected
 order prefilling the race-control pad, `compare.py`, the SAP oracle.
 
 Tests: `api/tests/unit/test_tracking_geo.py`, `api/tests/unit/test_polar.py`,
-`api/tests/unit/test_tracking_contract.py`,
+`api/tests/unit/test_tracking_contract.py`, `api/tests/unit/test_tactics.py`,
 `api/tests/stories/test_live_tracking.py::TestLayingTheCourse`,
 `api/tests/stories/test_live_tracking.py::TestTheLivePicture::test_the_picture_carries_hull_size_and_zone`,
 `api/tests/stories/test_live_tracking.py::TestAWholeRaceSimulated`

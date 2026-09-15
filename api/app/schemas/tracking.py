@@ -26,7 +26,9 @@ class CourseIn(BaseModel):
     marks: list[MarkIn] = Field(min_length=6, max_length=6)
     laps: int = Field(default=1, ge=1, le=6)
     finish_upwind: bool = False
-    finish_pin_side: Literal["left", "right"] = "left"
+    #: "right": the finish pin on the other side of the committee boat than the start
+    #: pin — the usual case; "left": the finish through the start line.
+    finish_pin_side: Literal["left", "right"] = "right"
     tws_kn: float | None = Field(default=None, ge=0, le=60)
     wind_from_deg: float | None = Field(default=None, ge=0, lt=360)
 
@@ -40,7 +42,9 @@ class DefaultCourseIn(BaseModel):
     leg_length_m: float | None = Field(default=None, ge=50, le=5000)
     laps: int = Field(default=1, ge=1, le=6)
     finish_upwind: bool = False
-    finish_pin_side: Literal["left", "right"] = "left"
+    #: "right": the finish pin on the other side of the committee boat than the start
+    #: pin — the usual case; "left": the finish through the start line.
+    finish_pin_side: Literal["left", "right"] = "right"
 
 
 class MarkOut(BaseModel):
@@ -107,6 +111,8 @@ class LiveBoatOut(BaseModel):
     leg_name: str | None
     to_go_m: float | None
     time_to_go_s: float | None
+    #: Axis metres behind the leading boat: 0 for the leader, None once finished.
+    to_leader_m: float | None
     rank: int | None
     finished_at: datetime | None
     #: The last minute of positions, oldest first, as [lat, lon].
@@ -123,11 +129,27 @@ class LiveRaceInfo(BaseModel):
     signal: str | None
 
 
+class LaylineOut(BaseModel):
+    mark: str
+    #: From the mark outward, as [lat, lon].
+    points: list[list[float]]
+
+
 class LiveRaceOut(BaseModel):
     """Everything the live page draws, in one answer; also the payload of a `positions` frame."""
 
     event_id: int
     course: CourseOut | None
+    #: Waypoints on the course — the denominator of "leg 2/4"; None without a course.
+    leg_count: int | None
+    #: Where the wind comes from, degrees true — the course axis until a wind source exists.
+    wind_from_deg: float | None
+    #: Laylines to the windward mark and from the gate marks, from the polar's angles.
+    laylines: list[LaylineOut]
+    #: Through the leading boat, square to its leg, as two [lat, lon]; None between races.
+    leader_line: list[list[float]] | None
+    #: Whose line it is, so the map can keep it on the boat as the boat is animated.
+    leader_boat: int | None
     #: The race on the water, else None.
     race: LiveRaceInfo | None
     #: The first race not yet sailed — "next up".

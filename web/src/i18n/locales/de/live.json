@@ -9,14 +9,15 @@
     "none": "Keine Wettfahrt auf dem Wasser",
     "next": "Als Nächstes: Wettfahrt {{sequence}}",
     "elapsed": "{{time}} gesegelt",
-    "signal": "Signal {{signal}}"
+    "signal": "Signal {{signal}}",
+    "wind": "Wind {{deg}}°"
   },
   "panel": {
     "rank": "#",
     "boat": "Boot",
     "leg": "Schenkel",
     "speed": "kn",
-    "toGo": "verbleibend",
+    "toGo": "verbleibend / Abstand",
     "finished": "im Ziel",
     "detectedOrder": "Erkannte Zielreihenfolge: {{order}}"
   },
@@ -47,7 +48,10 @@
     "simulating": "Simulation läuft …",
     "speed": "Tempo ×{{factor}}",
     "simulateHint": "Sechs erfundene Boote segeln die aktuelle Wettfahrt über den echten Empfangsweg; die Zielreihenfolge wird das Ergebnis, und die nächste Wettfahrt steht an. Nur in der Entwicklung.",
-    "raceControl": "Wettfahrtleitung"
+    "raceControl": "Wettfahrtleitung",
+    "finishLine": "Ziellinie",
+    "finishSeparate": "andere Seite des Startschiffs",
+    "finishCombined": "durch die Startlinie"
   },
   "attribution": "Kartendaten © OpenStreetMap-Mitwirkende"
 }

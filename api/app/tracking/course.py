@@ -55,7 +55,7 @@ class Course:
     marks: dict[MarkRole, XY]
     laps: int = 1
     finish_upwind: bool = False
-    finish_pin_side: Literal["left", "right"] = "left"
+    finish_pin_side: Literal["left", "right"] = "right"
 
     @property
     def axis(self) -> XY:
@@ -111,7 +111,7 @@ def lay_course(
     gate_width: float | None = None,
     laps: int = 1,
     finish_upwind: bool = False,
-    finish_pin_side: Literal["left", "right"] = "left",
+    finish_pin_side: Literal["left", "right"] = "right",
 ) -> Course:
     """A textbook W/L course around ``centre``: what the emulator lays when nobody has.
 

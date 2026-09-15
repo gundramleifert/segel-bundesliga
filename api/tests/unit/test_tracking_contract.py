@@ -58,11 +58,22 @@ def test_the_default_pipeline_finds_every_passing_within_three_seconds(race):
             assert abs((found.t - real.t).total_seconds()) <= 3.0, (boat, found, real)
 
 
+def _same_order_where_it_is_decidable(found: list[int], emulation, tolerance: float = 3.0):
+    """The detected order must agree with the truth for every pair of boats whose true
+    finish times lie more than ``tolerance`` apart — the detector's contract is ±3 s, so two
+    boats finishing half a second apart may legitimately come out swapped."""
+    truth = {b: emulation.truth()[b][-1].t for b in BOATS}
+    position = {b: i for i, b in enumerate(found)}
+    for a in BOATS:
+        for b in BOATS:
+            if (truth[b] - truth[a]).total_seconds() > tolerance:
+                assert position[a] < position[b], (a, b, truth[a], truth[b], found)
+
+
 def test_the_final_ranking_is_the_finish_order(race):
     course, emulation, tracks = race
     ranked = default_pipeline(ORIGIN).analyse(tracks, course)
-    finish_order = sorted(BOATS, key=lambda b: emulation.truth()[b][-1].t)
-    assert [r.state.boat for r in ranked] == finish_order
+    _same_order_where_it_is_decidable([r.state.boat for r in ranked], emulation)
     assert [r.rank for r in ranked] == [1, 2, 3, 4, 5, 6]
     assert all(r.finished_at is not None and r.time_to_go is None for r in ranked)
 
@@ -104,8 +115,7 @@ def test_the_second_implementations_meet_the_same_contract(race, polar):
         ranker=ByLegThenDistance(),
     )
     ranked = alternative.analyse(tracks, course)
-    finish_order = sorted(BOATS, key=lambda b: emulation.truth()[b][-1].t)
-    assert [r.state.boat for r in ranked] == finish_order
+    _same_order_where_it_is_decidable([r.state.boat for r in ranked], emulation)
     # And the time-based ranker with the straight-line distance agrees on the finish too.
     mixed = RaceAnalysis(
         projection=LocalTangentPlane(*ORIGIN),
@@ -113,7 +123,9 @@ def test_the_second_implementations_meet_the_same_contract(race, polar):
         detector=default_pipeline(ORIGIN).detector,
         ranker=ByTimeToGo(polar),
     )
-    assert [r.state.boat for r in mixed.analyse(tracks, course)] == finish_order
+    _same_order_where_it_is_decidable(
+        [r.state.boat for r in mixed.analyse(tracks, course)], emulation
+    )
 
 
 def test_the_laid_course_has_the_pin_to_port_and_the_finish_where_asked():

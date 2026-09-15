@@ -68,6 +68,7 @@ export * from './identityOut';
 export * from './index200';
 export * from './jobOut';
 export * from './jobOutQuality';
+export * from './laylineOut';
 export * from './listAllClubsParams';
 export * from './listAllEventsParams';
 export * from './listAllSeriesParams';

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CourseOut } from './courseOut';
+import type { LaylineOut } from './laylineOut';
 import type { LiveBoatOut } from './liveBoatOut';
 import type { LiveRaceInfo } from './liveRaceInfo';
 
@@ -15,6 +16,11 @@ import type { LiveRaceInfo } from './liveRaceInfo';
 export interface LiveRaceOut {
   event_id: number;
   course: CourseOut | null;
+  leg_count: number | null;
+  wind_from_deg: number | null;
+  laylines: LaylineOut[];
+  leader_line: number[][] | null;
+  leader_boat: number | null;
   race: LiveRaceInfo | null;
   next_race: LiveRaceInfo | null;
   boats: LiveBoatOut[];
