@@ -12,7 +12,31 @@
   "stats": "{{count}} gemeldet · {{events}} Acts",
   "website": "Website des Vereins",
   "clubDescription": "{{short_name}} · {{city}}",
-  "members": "Mitglieder",
+  "members": {
+    "requestsTitle": "{{count}} Anfrage wartet auf eure Entscheidung",
+    "requestsTitle_other": "{{count}} Anfragen warten auf eure Entscheidung",
+    "requestsHint": "Personen, die beitreten möchten. Mit der Annahme werden sie Mitglied; Serien und Spieltage des Vereins stehen ihnen dann offen.",
+    "accept": "Annehmen",
+    "decline": "Ablehnen",
+    "listTitle": "{{count}} Mitglied",
+    "listTitle_other": "{{count}} Mitglieder",
+    "empty": "Noch niemand ist beigetreten. Lade unten Personen per E-Mail ein.",
+    "you": "du",
+    "makeOrganizer": "Zum Organisator machen",
+    "revokeOrganizer": "Organisator-Rolle entziehen",
+    "remove": "Entfernen",
+    "invitedTitle": "{{count}} Einladung wartet auf Antwort",
+    "invitedTitle_other": "{{count}} Einladungen warten auf Antwort",
+    "withdrawInvitation": "Zurückziehen",
+    "inviteTitle": "Jemanden einladen",
+    "inviteHint": "Die Person braucht ein Konto unter dieser E-Mail-Adresse und wird Mitglied, sobald sie auf der Vereinsseite annimmt.",
+    "inviteEmailLabel": "E-Mail-Adresse",
+    "inviteButton": "Einladen",
+    "inviteSent": "Einladung verschickt – sie steht oben, bis die Person antwortet.",
+    "leave": "Verein verlassen",
+    "leaveConfirm": "Diesen Verein verlassen? Deine Kadermeldungen bleiben, bis der Verein sie ändert.",
+    "leaveCancel": "Bleiben"
+  },
   "organizer": "Organisator:in",
   "mine": {
     "title": "Unser Verein",
@@ -32,7 +56,13 @@
     "openLineup": "Aufstellung",
     "closeLineup": "Schließen",
     "openEvent": "Spieltagsseite öffnen",
-    "standaloneSquad": "Kader für diese Veranstaltung"
+    "standaloneSquad": "Kader für diese Veranstaltung",
+    "tabsLabel": "Unser Verein",
+    "tabs": {
+      "members": "Mitglieder",
+      "events": "Spieltage",
+      "series": "Serien"
+    }
   },
   "lineup": {
     "title": "Crew für diesen Spieltag",
@@ -43,5 +73,18 @@
     "remove": "Entfernen",
     "allNamed": "Alle aus dem Kader sind aufgestellt.",
     "squadEmpty": "Der Kader ist leer – melde zuerst Personen für die Serie."
+  },
+  "join": {
+    "notMember": "Du bist kein Mitglied dieses Vereins.",
+    "ask": "Beitritt anfragen",
+    "askAgain": "Erneut anfragen",
+    "declined": "Der Verein hat deine Anfrage abgelehnt.",
+    "requested": "Du hast den Beitritt angefragt – der Verein entscheidet.",
+    "withdraw": "Zurückziehen",
+    "invited": "Dieser Verein hat dich eingeladen.",
+    "accept": "Annehmen",
+    "decline": "Ablehnen",
+    "member": "Du bist Mitglied dieses Vereins.",
+    "openClub": "„Unser Verein“ öffnen"
   }
 }

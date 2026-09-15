@@ -524,6 +524,9 @@ Acceptance criteria:
 Endpoints: `POST /api/club-memberships`, `GET /api/club-memberships`,
 `DELETE /api/club-memberships/{id}`
 
+
+Screen: the public club page (`/clubs/{id}`) for the request, the club's Members tab on
+`/club` for the invitation (Story V-12).
 Tests: `api/tests/stories/test_registration.py::TestRequestingClubMembership`,
 `api/tests/stories/test_club_membership.py::TestPersonApplies`
 
@@ -1310,6 +1313,9 @@ Endpoints: `POST /api/admin/clubs/{club_id}/members/{user_id}/organizer`,
 `DELETE /api/admin/clubs/{club_id}/members/{user_id}/organizer` (an organizer of that club,
 or administration). `MembershipOut.organizer` reports the current state.
 
+
+Screen: the Members tab on `/club` (Story V-12) — an organizer makes a member an
+organizer or revokes it; administration uses the same endpoints.
 Tests: `api/tests/stories/test_club_membership.py::TestOrganizerRole`
 
 ### Z-6 ● Removing an account deactivates it
@@ -1511,6 +1517,9 @@ Acceptance criteria:
 Endpoints: `GET /api/admin/clubs/{id}/members`,
 `POST /api/club-memberships/{id}/accept`, `POST /api/club-memberships/{id}/reject`
 
+
+Screen: the Members tab on `/club` (Story V-12) — requests waiting for the club with
+accept / reject; the invited person decides on the public club page.
 Tests: `api/tests/stories/test_club_membership.py::TestPersonApplies`
 
 ### V-9 ● Invite someone to club
@@ -1556,6 +1565,9 @@ Acceptance criteria:
 
 Endpoints: `GET /api/clubs/{id}/members`
 
+
+Screen: the Members tab on `/club` (Story V-12); the roster stays on the public club
+page for a signed-in member as well.
 Tests: `api/tests/stories/test_club_membership.py::TestMemberRoster`
 
 ### V-1 ● Register season squad
@@ -1616,7 +1628,7 @@ Endpoints: `GET /api/admin/teams/{team_id}/members`,
 Tests: `api/tests/stories/test_sailors_and_squads.py::TestRegisteringASquad`,
 `api/tests/stories/test_sailors_and_squads.py::TestSquadRefusalsAreTyped`
 
-### V-12 ● Reach our own squad without the admin screen
+### V-12 ● Our club: one screen for members, matchdays and squads
 As a **club manager** I want **my club's squad to be somewhere I can get to**,
 so that **I can register who may sail without asking an administrator to do it for me**.
 
@@ -1628,10 +1640,28 @@ never did: the only squad panel lives under `/admin`, which refuses anyone who i
 data and no door. This story is the door.
 
 Acceptance criteria:
-- **`/club` is the club manager's screen.** It shows the clubs the signed-in account may
-  act for (`GET /api/clubs/mine`, Story B-10), and for each of them that club's series
-  registrations. One club is the normal case and opens straight away; several are listed,
-  because a person can manage more than one.
+- **`/club` is the club's own screen, for everyone who belongs to it.** "Our club" is in
+  the navigation for anyone who is a member of a club or organizes one (`GET
+  /api/clubs/mine`, Story B-10) — not only for `club_manager`, since a member has things
+  to see there too. The screen has **three tabs**: **Members**, **Matchdays** and
+  **Series** (`?tab=members|events|series`; Members opens first).
+  - *Members*: the roster (Story V-10). For the club's organizer additionally the
+    requests waiting for a decision with accept/reject (V-8), the invitations sent and
+    an invite-by-email form (Z-5), and per member "make organizer" / "revoke" (A-8) and
+    "remove". A plain member sees the roster and can leave the club. Until here every one
+    of those endpoints existed without a page — the help text said so.
+  - *Matchdays*: the club's event entries with the lineup under each (Story V-2).
+  - *Series*: the series registrations, each with its squad (Story V-1).
+- **Several clubs choose themselves in the navigation, not on the page.** With more than
+  one club, "Our club" expands into one sub-entry per club (`layout-nav-myClub-{id}`);
+  picking one opens that club and **remembers it on the account** (`User.club_id`, `PATCH
+  /api/auth/me`, only a club the account belongs to or organizes —
+  `/errors/active-club-not-mine`). With nothing remembered, a club the person organizes
+  wins over one they merely belong to. One club is the normal case and has no sub-entries.
+  The account page names the club and offers the same choice.
+- **Joining starts on the public club page** (`/clubs/{id}`, Story Z-5): a signed-in
+  visitor who is not a member asks to join there; the same spot shows a pending request
+  (with withdraw), an invitation the club sent (accept / decline), or "you are a member".
 - **Nothing on the way in is admin-only.** The route reaches the squad through
   `/api/clubs/mine` and `/api/admin/teams/{team_id}/members`, both of which a
   `club_manager` may call for their own club. Needing an admin-only list to find your own
@@ -1648,15 +1678,13 @@ Acceptance criteria:
 - Administration keeps its own way in unchanged: `/admin?tab=sailors` still reaches every
   club's squad through the series, which is the right shape for someone whose job is all
   eighteen of them.
-- **Several clubs, one active.** A person can be a member of several clubs and organize
-  several — the two relationships are per club (`ClubMember`, `UserRole.club_id`). The
-  screen offers a dropdown when there is more than one, and the choice is **remembered on
-  the account** as `User.club_id` (`PATCH /api/auth/me`), which has meant "the club this
-  account acts for" since the model was written and had no way to be set. Only a club the
-  account belongs to or organizes is accepted (`/errors/active-club-not-mine`). The same
-  dropdown sits on the account page, where the club used to appear as a bare number; a
-  `?club=` in the URL still wins for the one visit, so links keep working.
-- **The club's matchdays are on the same screen, with the lineup** (Story V-2's door).
+- A person can be a member of several clubs and organize several — the two relationships
+  are per club (`ClubMember`, `UserRole.club_id`) and independent. `User.club_id` has
+  meant "the club this account acts for" since the model was written and had no way to be
+  set; the navigation's sub-entries are that way now. `?club=` in the URL names the club
+  being shown, so a link to one club keeps working and the sub-entry can show which is
+  open.
+- **The Matchdays tab** (Story V-2's door).
   `GET /api/clubs/mine` lists each club's **event entries** alongside its series
   registrations: every matchday of a series the club is registered in, and every
   stand-alone event it is entered in — with the event's dates and status, the entry's

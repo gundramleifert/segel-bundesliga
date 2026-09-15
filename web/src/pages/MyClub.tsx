@@ -1,29 +1,34 @@
 import { Button } from "@heroui/react";
+import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { Stack } from "../components/Layouts";
-import { useMyClubs } from "../api/generated/sbl";
+import { useMyClubs, useUpdateMe } from "../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../api/types";
-import { useAsync, useAccount } from "../api/useApi";
-import { ActiveClubSelect } from "../components/ActiveClubSelect";
+import { useAsync, useAccount, useInvalidate } from "../api/useApi";
+import { ClubMembersPanel } from "../components/ClubMembersPanel";
 import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
 import { LineupPanel } from "../components/LineupPanel";
 import { SquadPanel } from "../components/SquadPanel";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { eventDates } from "../lib/format";
 
-/** Story V-12: a club manager's own screen.
+/** Story V-12: "Our club" — one screen for whoever belongs to a club.
  *
- * V-1 has always said the squad may be registered "by the leadership of their **own**
- * club", and the endpoint has always allowed it. The screen did not: the only squad panel
- * sat under `/admin`, which refuses anyone who is not `admin` or `editor`, and it found a
- * team by first listing every series through an admin-only route. The permission existed
- * and there was no door.
+ * Three tabs: **Members** (the roster, and for the organizer the requests, invitations
+ * and organizer tools — Stories V-8, V-10, Z-5, A-8), **Matchdays** (the club's entries
+ * with their lineups — V-2) and **Series** (the registrations with their squads — V-1).
  *
- * So nothing on the way in here may be admin-only. `GET /api/clubs/mine` and
- * `/api/admin/teams/{id}/members` are both open to a club's own organizer, and borrowing
- * the admin page's queries would bring the defect straight back.
+ * Nothing on the way in here may be admin-only. The screen began as the door for V-1's
+ * permission: the endpoint had always let a club's leadership register its squad, and
+ * the only panel sat under `/admin`, which refuses them. `GET /api/clubs/mine` is what
+ * the whole screen navigates by, and borrowing the admin page's queries would bring
+ * that defect straight back.
+ *
+ * Which club, when there are several, is chosen in the **navigation** — "Our club"
+ * expands into one entry per club — not on the page; `?club=` names the one shown and
+ * the choice is remembered on the account (`ClubScreen`).
  */
 export function MyClub() {
   const { t } = useTranslation("club");
@@ -60,24 +65,21 @@ export function MyClub() {
         title={t("mine.title")}
         testId="my-club-header"
       />
-      <ClubChooser entries={entries} activeClubId={account.club_id ?? null} />
+      <ClubScreen entries={entries} activeClubId={account.club_id ?? null} />
     </>
   );
 }
 
-/** Which club, and what you are in it.
+/** The club being shown, and its three tabs.
  *
- * A dropdown rather than tabs: the two things a person needs to see here are the club's
- * name and their standing in it, and a tab strip can show one of those. Someone can be an
- * organizer of one club and merely a member of another — the same screen then offers
- * editing in one and not in the other, and the row has to say which without being asked.
- *
- * One club is still the normal case, so with one there is no chooser at all; the line
- * below states it. The choice is **remembered on the account** (`ActiveClubSelect`,
- * Story V-12), so the next visit and the account page open the same club; `?club=` in the
- * URL still wins for one visit, so a link to a particular club keeps working.
+ * `?club=` says which club; missing, the account's remembered club, else a club the
+ * person organizes over one they merely belong to — this is the screen for acting, and
+ * the organizer's club is where they can. The URL is then completed (`replace`), so the
+ * navigation's sub-entry for the open club can light up, and a club that was reached by
+ * URL or sub-entry becomes the remembered one (`PATCH /api/auth/me`), so the next visit
+ * and the account page agree with the navigation. One save per change, none on failure.
  */
-function ClubChooser({
+function ClubScreen({
   entries,
   activeClubId,
 }: {
@@ -86,51 +88,67 @@ function ClubChooser({
 }) {
   const { t } = useTranslation("club");
   const [params, setParams] = useSearchParams();
+  const invalidate = useInvalidate();
+  const remember = useUpdateMe({ mutation: { onSuccess: () => invalidate("/api/auth/me") } });
 
-  const requested = params.get("club") ?? (activeClubId == null ? null : String(activeClubId));
-  // Nothing chosen yet: a club the person organizes over one they merely belong to —
-  // this is the screen for acting, and the organizer's club is where they can.
+  const requested = params.get("club");
   const entry =
     entries.find((e) => String(e.club.id) === requested) ??
+    entries.find((e) => e.club.id === activeClubId) ??
     entries.find((e) => e.may_manage) ??
     entries[0];
+  const shown = entry.club.id;
+
+  useEffect(() => {
+    if (requested !== String(shown)) {
+      setParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          next.set("club", String(shown));
+          return next;
+        },
+        { replace: true },
+      );
+    }
+  }, [requested, shown, setParams]);
+
+  useEffect(() => {
+    if (requested === String(shown) && activeClubId !== shown && remember.isIdle) {
+      remember.mutate({ data: { club_id: shown } });
+    }
+    // `remember` is a stable mutation object; listing it would re-run on every state change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requested, shown, activeClubId]);
 
   const roleOf = (item: MyClubOut) =>
     item.may_manage ? t("mine.roleOrganizer") : t("mine.roleMember");
 
-  return (
-    <Stack gap={6}>
-      <div className="flex flex-wrap items-center gap-3">
-        {entries.length > 1 ? (
-          <ActiveClubSelect
-            entries={entries}
-            value={entry.club.id}
-            testId="my-club-select"
-            onChange={(clubId) =>
-              setParams((previous) => {
-                const next = new URLSearchParams(previous);
-                next.set("club", String(clubId));
-                // The chosen series and matchday belong to the club that was open;
-                // keeping them would point at a team of the club just left.
-                next.delete("team");
-                next.delete("event");
-                return next;
-              })
-            }
-          />
-        ) : (
-          <p data-testid={`my-club-role-${entry.club.id}`} className="text-sm text-slate-600">
-            <Link to={`/clubs/${entry.club.id}`} className="underline underline-offset-2">
-              {entry.club.name}
-            </Link>
-            {" · "}
-            {roleOf(entry)}
-          </p>
-        )}
-      </div>
+  const tabs: TabDef<"members" | "events" | "series">[] = [
+    {
+      key: "members",
+      label: t("mine.tabs.members"),
+      render: () => <ClubMembersPanel entry={entry} />,
+    },
+    { key: "events", label: t("mine.tabs.events"), render: () => <ClubEvents entry={entry} /> },
+    { key: "series", label: t("mine.tabs.series"), render: () => <ClubTeams entry={entry} /> },
+  ];
 
-      <ClubTeams entry={entry} />
-      <ClubEvents entry={entry} />
+  return (
+    <Stack gap={5}>
+      <p data-testid={`my-club-role-${shown}`} className="text-sm text-slate-600">
+        <Link to={`/clubs/${shown}`} className="underline underline-offset-2">
+          {entry.club.name}
+        </Link>
+        {" · "}
+        {roleOf(entry)}
+      </p>
+      <TabbedView
+        tabs={tabs}
+        param="tab"
+        testIdPrefix="my-club"
+        label={t("mine.tabsLabel")}
+        className="grid grid-cols-[minmax(0,1fr)]"
+      />
     </Stack>
   );
 }
@@ -159,10 +177,7 @@ function ClubEvents({ entry }: { entry: MyClubOut }) {
 
   return (
     <section data-testid={`my-club-events-${entry.club.id}`} className="grid grid-cols-[minmax(0,1fr)] gap-3">
-      <div>
-        <h2 className="text-lg font-semibold">{t("mine.eventsTitle")}</h2>
-        <p className="text-sm text-slate-600">{t("mine.eventsHint")}</p>
-      </div>
+      <p className="text-sm text-slate-600">{t("mine.eventsHint")}</p>
       {events.length ? (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-3" data-testid="my-club-events-list">
           {events.map((event) => {

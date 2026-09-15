@@ -1,6 +1,7 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { openNavigation } from "./layout";
 import { bearer, signIn } from "./session";
 
 /** Stories V-12 and V-2: the club manager's own screen, with the matchdays and the lineup.
@@ -31,10 +32,16 @@ async function aClubManager(request: APIRequestContext): Promise<Account> {
   return manager!;
 }
 
-async function openMyClub(page: Page): Promise<void> {
-  await page.goto("/club");
+async function openMyClub(
+  page: Page,
+  tab: "members" | "events" | "series" = "events",
+  clubId?: number,
+): Promise<void> {
+  // `club=` explicitly where it matters: the account remembers the last club chosen, and
+  // an earlier test may have left it on one where this person is a plain member.
+  await page.goto(`/club?tab=${tab}${clubId ? `&club=${clubId}` : ""}`);
   await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
-  await expect(page.getByTestId("my-club-events-list")).toBeVisible();
+  await expect(page.getByTestId(`my-club-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
 }
 
 test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /club", () => {
@@ -49,6 +56,7 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     expect(reset.ok(), await reset.text()).toBeTruthy();
     await signIn(page, manager.email);
     await openMyClub(page);
+    await expect(page.getByTestId("my-club-events-list")).toBeVisible();
 
     // Every seeded act of the first league is there — "these three", not "exactly three":
     // the lifecycle spec adds events to this series on the same stack (see docs/gotchas).
@@ -117,19 +125,85 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     }
 
     await signIn(page, manager.email);
-    await openMyClub(page);
-    const select = page.getByTestId("my-club-select");
-    await expect(select).toBeVisible();
-    await select.selectOption(String(second.id));
+    await openMyClub(page, "series");
+    // Two clubs: "Our club" in the navigation has one sub-entry per club (Story V-12).
+    await openNavigation(page);
+    const subEntry = page.getByTestId(`layout-nav-myClub-${second.id}`);
+    await expect(subEntry).toBeVisible();
+    await subEntry.click();
     await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
     // A member, not an organizer, of the second club: the squad is shown read-only.
+    await page.getByTestId("my-club-series-tab").click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-add-search-input")).toHaveCount(0);
 
-    // Remembered: a fresh visit without the URL parameter opens the chosen club.
+    // Remembered: a fresh visit without the URL parameter opens the chosen club, and
+    // the account page names it.
     await page.goto("/club");
-    await expect(page.getByTestId("my-club-select")).toHaveValue(String(second.id));
+    await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
+    await expect(page.getByTestId(`my-club-role-${second.id}`)).toBeVisible();
     await page.goto("/account");
     await expect(page.getByTestId("account-active-club-select")).toHaveValue(String(second.id));
+  });
+});
+
+test.describe("V-8/Z-5/A-8: the Members tab — invite, accept on the club page, make organizer", () => {
+  test("an organizer invites someone, they accept on the club page, and become an organizer", async ({
+    page,
+    request,
+  }) => {
+    const manager = await aClubManager(request);
+    const guest = "gast@sbl.example.com"; // seeded, no club, no role
+    const clubs = (await (await request.get("/api/clubs/mine", { headers: await bearer(request, manager.email) })).json()) as {
+      club: { id: number };
+      may_manage: boolean;
+    }[];
+    const club = clubs.find((c) => c.may_manage)!.club;
+
+    // Clean slate for the guest with this club, whatever an earlier project run left.
+    const guestHeaders = await bearer(request, guest);
+    const own = (await (await request.get("/api/club-memberships", { headers: guestHeaders })).json()) as {
+      id: number;
+      club: { id: number };
+    }[];
+    for (const row of own.filter((r) => r.club.id === club.id)) {
+      await request.delete(`/api/club-memberships/${row.id}`, { headers: guestHeaders });
+    }
+
+    // The organizer invites by email on the Members tab.
+    await signIn(page, manager.email);
+    await openMyClub(page, "members", club.id);
+    await expect(page.getByTestId("my-club-members")).toBeVisible();
+    await page.getByTestId("my-club-invite-email").fill(guest);
+    await page.getByTestId("my-club-invite-button").click();
+    await expect(page.getByTestId("my-club-invite-message-success")).toBeVisible();
+    await expect(page.locator('[data-testid^="my-club-invited-"]').filter({ hasText: guest })).toBeVisible();
+
+    // The guest finds the invitation on the club's public page and accepts.
+    await page.context().clearCookies();
+    await signIn(page, guest);
+    await page.goto(`/clubs/${club.id}`);
+    await expect(page.getByTestId("club-join-status")).toBeVisible();
+    await page.getByTestId("club-join-accept").click();
+    await expect(page.getByTestId("club-join-open")).toBeVisible();
+    // A member now: "Our club" is in the navigation and the roster lists them.
+    await page.getByTestId("club-join-open").click();
+    await expect(page.getByTestId("my-club-members-list")).toBeVisible();
+    const guestId = ((await (await request.get("/api/auth/me", { headers: guestHeaders })).json()) as { id: number }).id;
+    await expect(page.getByTestId(`my-club-member-${guestId}`)).toBeVisible();
+    // No invite form for a plain member, but the way out.
+    await expect(page.getByTestId("my-club-invite-email")).toHaveCount(0);
+    await expect(page.getByTestId("my-club-leave")).toBeVisible();
+
+    // Back as the organizer: promote them.
+    await signIn(page, manager.email);
+    await openMyClub(page, "members", club.id);
+    await page.getByTestId(`my-club-member-organizer-${guestId}`).click();
+    await expect(page.getByTestId(`my-club-member-organizer-badge-${guestId}`)).toBeVisible();
+    // And take it back, so the seed's one-manager-per-club still holds for other specs.
+    await page.getByTestId(`my-club-member-organizer-${guestId}`).click();
+    await expect(page.getByTestId(`my-club-member-organizer-badge-${guestId}`)).toHaveCount(0);
+    await page.getByTestId(`my-club-member-remove-${guestId}`).click();
+    await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
   });
 });

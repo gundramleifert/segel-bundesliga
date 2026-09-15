@@ -6,6 +6,7 @@ import { useGetClub, useListClubMembers } from "../api/generated/sbl";
 import type { ClubDetail, ClubMemberSummary, Member } from "../api/types";
 import { useAsync, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
+import { JoinClub } from "../components/JoinClub";
 import { locationText, roleText, eventDates } from "../lib/format";
 
 type ClubEvent = NonNullable<NonNullable<ClubDetail["teams"]>[number]["events"]>[number];
@@ -59,6 +60,7 @@ export function Club() {
           )}
         </div>
       </header>
+      <JoinClub clubId={Number(id)} />
 
       {data.description && (
         <p data-testid="club-description" className="mb-8 max-w-2xl text-slate-700">

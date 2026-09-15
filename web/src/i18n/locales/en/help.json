@@ -107,7 +107,7 @@
         "If both sides have already acted — an application meeting a standing invitation, or the reverse — membership becomes active right away.",
         "Either side can later end an active membership."
       ],
-      "note": "This differs from registering for a Series or an Event, which management can also do unilaterally. Club membership has no page in the interface yet — it exists only as API endpoints (apply, invite, accept, reject, withdraw)."
+      "note": "This differs from registering for a Series or an Event, which management can also do unilaterally. Asking to join happens on the club's public page; the club decides, invites and manages organizers on the Members tab of “Our club”."
     }
   }
 }

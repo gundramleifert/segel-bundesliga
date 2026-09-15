@@ -14,7 +14,10 @@ import { useLocation } from "react-router-dom";
  * asked for.
  */
 export function useDisclosure(panelId: string, { closeOnOutsideClick = true } = {}) {
-  const { pathname } = useLocation();
+  // Path *and* query: the navigation's club sub-entries change only `?club=` (Story
+  // V-12), and a menu that stayed open over the page after that click was the symptom.
+  const { pathname: path, search } = useLocation();
+  const pathname = path + search;
   const [openedAt, setOpenedAt] = useState<string | null>(null);
   const open = openedAt === pathname;
   const panel = useRef<HTMLDivElement>(null);

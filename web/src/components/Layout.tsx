@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 
+import { useMyClubs } from "../api/generated/sbl";
 import { useAccount } from "../api/useApi";
 import { WIDE_LAYOUT, useMediaQuery } from "../lib/useMediaQuery";
 import { DEV_TOOLS } from "../dev/devTools";
@@ -19,7 +20,8 @@ const NAV_ITEMS = [
   { path: "/clubs", key: "clubs", exact: false },
 ] as const;
 
-type NavItem = { path: string; key: string; exact: boolean };
+type NavChild = { path: string; key: string; label: string; clubId: number };
+type NavItem = { path: string; key: string; exact: boolean; children?: NavChild[] };
 
 /** The frame every page sits in — Story A-12.
  *
@@ -41,10 +43,31 @@ export function Layout() {
 
   // Both extra entries appear only when they actually lead somewhere — a link that ends
   // in a 403, or in "you belong to no club", is worse than no link. "Our club" is for
-  // whoever organizes one (Story V-12); administration keeps its own, wider way in.
+  // whoever belongs to a club or organizes one (Story V-12), and with several clubs it
+  // expands into one sub-entry per club — the club is chosen here, not on the page.
+  // Administration keeps its own, wider way in.
+  const clubs = useMyClubs({ query: { enabled: Boolean(account) } });
+  const mine = clubs.data ?? [];
   const navigation: NavItem[] = [
     ...NAV_ITEMS,
-    ...(hasRole("club_manager") ? [{ path: "/club", key: "myClub", exact: false }] : []),
+    ...(mine.length || hasRole("club_manager")
+      ? [
+          {
+            path: "/club",
+            key: "myClub",
+            exact: false,
+            children:
+              mine.length > 1
+                ? mine.map((entry) => ({
+                    path: `/club?club=${entry.club.id}`,
+                    key: `myClub-${entry.club.id}`,
+                    label: entry.club.short_name || entry.club.name,
+                    clubId: entry.club.id,
+                  }))
+                : undefined,
+          },
+        ]
+      : []),
     ...(hasRole("admin", "editor") ? [{ path: "/admin", key: "admin", exact: false }] : []),
   ];
 
@@ -241,6 +264,12 @@ function NavList({
   t: (key: string) => string;
   className?: string;
 }) {
+  // A sub-entry is a query string on the same path, which `NavLink` cannot tell apart —
+  // so which club is open is read off the URL here (`ClubScreen` completes it).
+  const location = useLocation();
+  const openClub = location.pathname.startsWith("/club")
+    ? new URLSearchParams(location.search).get("club")
+    : null;
   return (
     // `min-h-0` is not optional here, and it is not cosmetic. This nav is a flex child
     // with `overflow-y-auto`, and a flex child's minimum height is its *content* height
@@ -271,6 +300,29 @@ function NavList({
             >
               {t(`nav.${item.key}`)}
             </NavLink>
+            {item.children && (
+              <ul className="ml-3 mt-1 flex flex-col gap-0.5 border-l border-slate-200 pl-2">
+                {item.children.map((child) => {
+                  const active = openClub === String(child.clubId);
+                  return (
+                    <li key={child.key}>
+                      <NavLink
+                        to={child.path}
+                        data-testid={`layout-nav-${child.key}`}
+                        aria-current={active ? "page" : undefined}
+                        className={`block rounded-md px-3 py-1.5 text-sm transition-colors ${
+                          active
+                            ? "bg-brand-50 font-medium text-brand-800"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        }`}
+                      >
+                        {child.label}
+                      </NavLink>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </li>
         ))}
       </ul>

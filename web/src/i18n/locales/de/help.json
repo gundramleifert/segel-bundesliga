@@ -107,7 +107,7 @@
         "Haben beide Seiten bereits gehandelt — trifft ein Antrag auf eine bestehende Einladung oder umgekehrt —, wird die Mitgliedschaft sofort aktiv.",
         "Jede Seite kann eine aktive Mitgliedschaft später wieder beenden."
       ],
-      "note": "Das unterscheidet sich von der Meldung für eine Serie oder Veranstaltung, die die Verwaltung auch einseitig vornehmen kann. Für die Vereinsmitgliedschaft gibt es noch keine eigene Seite — sie existiert bislang nur als Programmierschnittstelle (beantragen, einladen, annehmen, ablehnen, austreten)."
+      "note": "Das unterscheidet sich von der Meldung für eine Serie oder Veranstaltung, die die Verwaltung auch einseitig vornehmen kann. Den Beitritt fragt man auf der öffentlichen Vereinsseite an; der Verein entscheidet, lädt ein und verwaltet die Organisatoren im Reiter „Mitglieder“ unter „Unser Verein“."
     }
   }
 }
