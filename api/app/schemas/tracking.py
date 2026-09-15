@@ -140,7 +140,7 @@ class LiveRaceOut(BaseModel):
 
     event_id: int
     course: CourseOut | None
-    #: Waypoints on the course — the denominator of "leg 2/4"; None without a course.
+    #: Legs between the waypoints — the denominator of "leg 2/4"; None without a course.
     leg_count: int | None
     #: Where the wind comes from, degrees true — the course axis until a wind source exists.
     wind_from_deg: float | None

@@ -415,7 +415,9 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
         geometry, projection = course_geometry(course)
         waypoints = geometry.waypoints()
         waypoint_names = [w.name for w in waypoints]
-        leg_count = len(waypoints)
+        # Legs are what lies *between* waypoints: start – W – G – W – finish is four legs,
+        # so the panel reads 1/4 … 4/4 and then "finished", never 5/5.
+        leg_count = len(waypoints) - 1
         wind_from = round(bearing_deg(geometry.axis), 1)
         pipeline = default_pipeline(course_origin(course), tws=course.tws_kn)
         polar = pipeline.ranker.polar  # type: ignore[attr-defined]
@@ -439,7 +441,7 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
             if r.finished_at is None
         }
         racing = [
-            r for r in ranked.values() if r.finished_at is None and 0 < r.state.leg < leg_count
+            r for r in ranked.values() if r.finished_at is None and 0 < r.state.leg <= leg_count
         ]
         if racing and race.status == RaceStatus.RUNNING:
             first = min(racing, key=lambda r: r.rank)

@@ -2299,8 +2299,8 @@ Acceptance criteria:
   until a wind source exists — and the **leader's line** through the leading boat square
   to its leg's axis, everything behind it being behind in distance to windward. Nothing
   joins the gate marks and no leg line is drawn. The panel shows the leg as **`2/4`**
-  (waypoints passed of waypoints on the course; a finished boat reads `5/5 finished`, no
-  time), and one **to go / gap** column: the leader's metres to its next mark, every other
+  (the leg being sailed of the legs between the waypoints — start – W – G – W – finish is
+  four; a finished boat reads just `finished`, no time), and one **to go / gap** column: the leader's metres to its next mark, every other
   boat as `+XX m` behind the leader in axis metres (`to_leader_m`, from
   `ranking.metres_to_go`, whole legs counting more than any distance within one). The
   race line names the wind direction.

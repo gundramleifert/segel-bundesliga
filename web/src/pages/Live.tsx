@@ -721,7 +721,9 @@ function Panel({ snapshot }: { snapshot: LiveRace | null }) {
                 >
                   {boat.leg == null || snapshot.leg_count == null
                     ? "–"
-                    : `${boat.leg}/${snapshot.leg_count}${boat.finished_at ? ` ${t("leg.finished")}` : ""}`}
+                    : boat.finished_at
+                      ? t("leg.finished")
+                      : `${Math.min(boat.leg, snapshot.leg_count)}/${snapshot.leg_count}`}
                 </td>
                 <td className="text-right tabular-nums" data-testid={`live-boat-speed-${boat.boat_number}`}>
                   {boat.sog_kn.toFixed(1)}
