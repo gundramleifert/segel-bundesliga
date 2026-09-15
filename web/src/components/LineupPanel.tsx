@@ -100,7 +100,7 @@ export function LineupPanel({
   return (
     <div
       data-testid={testIdPrefix}
-      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-slate-200 p-4"
+      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4"
     >
       <div>
         <h4 className="font-medium">{t("lineup.title")}</h4>

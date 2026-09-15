@@ -143,7 +143,7 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     await page.getByTestId("my-club-series-tab").click();
     await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
-    await expect(page.getByTestId("admin-squad-add-search-input")).toHaveCount(0);
+    await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
 
     // Remembered: a fresh visit without the URL parameter opens the chosen club, and
     // the account page names it.

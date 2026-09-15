@@ -137,7 +137,7 @@
     "teamEmptyText": "Für diese Mannschaft ist noch niemand gemeldet.",
     "addLabel": "Hinzufügen",
     "addHint": "Name suchen",
-    "addPlaceholder": "Nachname eingeben ...",
+    "addPlaceholder": "Nach Namen suchen …",
     "addButtonText": "In den Kader",
     "removeButton": "Entfernen",
     "loadingText": "Kader wird geladen ...",
@@ -149,7 +149,11 @@
     "manyHelmsHint": "{{count}} Steuerleute gemeldet — üblich ist einer.",
     "addRoleLabel": "Als",
     "alreadyInSeries": "Segelt in dieser Serie schon für {{club}}",
-    "noRegistrations": "Für keine Serie gemeldet"
+    "noRegistrations": "Für keine Serie gemeldet",
+    "save": "Kader speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Kader gespeichert.",
+    "unsaved": "Noch nicht gespeichert."
   },
   "auth": {
     "notSignedInError": "Für die Verwaltung müssen Sie angemeldet sein.",

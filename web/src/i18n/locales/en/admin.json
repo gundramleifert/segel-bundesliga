@@ -137,7 +137,7 @@
     "teamEmptyText": "No one has registered for this team yet.",
     "addLabel": "Add",
     "addHint": "Search name",
-    "addPlaceholder": "Enter last name ...",
+    "addPlaceholder": "Search by name …",
     "addButtonText": "Add to squad",
     "removeButton": "Remove",
     "loadingText": "Loading squad ...",
@@ -149,7 +149,11 @@
     "manyHelmsHint": "{{count}} helms registered — usually there is one.",
     "addRoleLabel": "As",
     "alreadyInSeries": "Already sailing for {{club}} in this series",
-    "noRegistrations": "Not registered for any series"
+    "noRegistrations": "Not registered for any series",
+    "save": "Save squad",
+    "saving": "Saving…",
+    "saved": "Squad saved.",
+    "unsaved": "Not saved yet."
   },
   "auth": {
     "notSignedInError": "You must be signed in to access administration.",

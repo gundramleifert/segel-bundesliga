@@ -480,38 +480,29 @@ test.describe("V-12: a club manager manages their own squad", () => {
     await page.getByTestId("my-club-series-tab").click();
     await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
-    await expect(page.getByTestId("admin-squad-members-list")).toBeVisible();
+    await expect(page.getByTestId("admin-squad-panes-selected-list")).toBeVisible();
 
     // Ten is guidance the screen shows, never a rule (Story V-1) — so the hint is there
     // and the panel is usable regardless of what it says.
     await expect(page.getByTestId("admin-squad-size-hint")).toBeVisible();
 
-    // Every candidate says where they already sail. Not decoration: a person may be
-    // registered in several clubs at once, eighteen people in this data share a surname,
-    // and the row is the only thing that tells them apart (Story V-1).
-    await page.getByTestId("admin-squad-add-search-input").fill("a");
-    const candidates = page.getByTestId("admin-squad-add-list").getByRole("listitem");
-    await expect(candidates.first()).toBeVisible();
-    const firstId = (await candidates.first().getAttribute("data-testid"))!.replace(
-      "admin-squad-candidate-",
-      "",
-    );
-    await expect(page.getByTestId(`admin-squad-candidate-clubs-${firstId}`)).toBeVisible();
-
-    // And it works: somebody is registered, in the role picked before adding. Whoever is
-    // already in this series for another club is offered without an add button, so the
-    // one that is clicked is deliberately an addable one.
-    const before = await page.getByTestId("admin-squad-members-list").getByRole("listitem").count();
-    const addable = page
-      .getByTestId("admin-squad-add-list")
-      .getByRole("listitem")
-      .filter({ has: page.getByRole("button") })
-      .first();
+    // The left pane is a search over the register, and every row says where the person
+    // already sails. Not decoration: a person may be registered in several clubs at once,
+    // eighteen people in this data share a surname, and the row is the only thing that
+    // tells them apart (Story V-1). Whoever is already in this series for another club is
+    // shown with that reason and cannot be moved, so the one clicked is an addable one.
+    await page.getByTestId("admin-squad-panes-filter-input").fill("a");
+    const addable = page.getByTestId("admin-squad-panes-available-list").locator("button").first();
     await expect(addable).toBeVisible();
-    await addable.getByRole("button").click();
+    const before = await page.getByTestId("admin-squad-panes-selected-list").getByRole("listitem").count();
+    await addable.click();
     await expect(
-      page.getByTestId("admin-squad-members-list").getByRole("listitem"),
+      page.getByTestId("admin-squad-panes-selected-list").getByRole("listitem"),
     ).toHaveCount(before + 1);
+    // Moved, not yet written — Save is what writes the list, as for the clubs of an event.
+    await expect(page.getByTestId("admin-squad-unsaved")).toBeVisible();
+    await page.getByTestId("admin-squad-save").click();
+    await expect(page.getByTestId("admin-squad-message-success")).toBeVisible();
 
     // Story A-10: this screen is used on a phone at least as often as the admin one.
     await expectNoSidewaysScroll(page, testInfo);

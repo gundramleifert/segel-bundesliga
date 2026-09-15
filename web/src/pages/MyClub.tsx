@@ -186,7 +186,7 @@ function ClubEvents({ entry }: { entry: MyClubOut }) {
               <li
                 key={event.event_id}
                 data-testid={`my-club-event-${event.event_id}`}
-                className="rounded-lg border border-slate-200 p-4"
+                className="rounded-lg border border-slate-200 bg-white p-4"
               >
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
@@ -292,7 +292,7 @@ function ClubTeams({ entry }: { entry: MyClubOut }) {
             <li
               key={team.team_id}
               data-testid={`my-club-team-${team.team_id}`}
-              className="rounded-lg border border-slate-200 p-4"
+              className="rounded-lg border border-slate-200 bg-white p-4"
             >
               <div className="flex flex-wrap items-center gap-3">
                 <div className="min-w-0 flex-1">

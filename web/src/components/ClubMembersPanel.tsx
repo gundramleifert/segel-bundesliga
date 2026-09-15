@@ -96,7 +96,7 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
           <section className="rounded-lg border border-amber-200 bg-amber-50 p-4">
             <h3 className="font-medium">{t("members.requestsTitle", { count: requests.length })}</h3>
             <p className="text-sm text-slate-600">{t("members.requestsHint")}</p>
-            <ul className="mt-2 divide-y divide-amber-100 text-sm">
+            <ul className="mt-2 divide-y divide-amber-100 rounded-lg bg-white px-3 text-sm">
               {requests.map((row) => (
                 <li
                   key={row.id}
@@ -130,7 +130,7 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
         <section>
           <h3 className="font-medium">{t("members.listTitle", { count: members.length })}</h3>
           {members.length ? (
-            <ul data-testid="my-club-members-list" className="mt-2 divide-y divide-slate-100 text-sm">
+            <ul data-testid="my-club-members-list" className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm">
               {members.map((row) => {
                 const self = row.user_id === account?.id;
                 return (
@@ -188,7 +188,7 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
         {invited.length > 0 && (
           <section>
             <h3 className="font-medium">{t("members.invitedTitle", { count: invited.length })}</h3>
-            <ul className="mt-2 divide-y divide-slate-100 text-sm">
+            <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm">
               {invited.map((row) => (
                 <li
                   key={row.id}
@@ -211,7 +211,7 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
           </section>
         )}
 
-        <form onSubmit={sendInvitation} className="rounded-lg border border-slate-200 p-4">
+        <form onSubmit={sendInvitation} className="rounded-lg border border-slate-200 bg-white p-4">
           <h3 className="font-medium">{t("members.inviteTitle")}</h3>
           <p className="text-sm text-slate-600">{t("members.inviteHint")}</p>
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -253,7 +253,7 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
       <section>
         <h3 className="font-medium">{t("members.listTitle", { count: roster.data?.length ?? 0 })}</h3>
         {roster.data?.length ? (
-          <ul data-testid="my-club-members-list" className="mt-2 divide-y divide-slate-100 text-sm">
+          <ul data-testid="my-club-members-list" className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm">
             {roster.data.map((member) => (
               <li
                 key={member.user_id}
