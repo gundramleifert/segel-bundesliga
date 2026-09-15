@@ -21,6 +21,7 @@ import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Bloc
 import { FinishOrderPad, useFinishOrder } from "../components/FinishOrderPad";
 import { Stack } from "../components/Layouts";
 import { errorText } from "../lib/admin";
+import { clock, useNow } from "../lib/useNow";
 import { boatColor } from "../lib/format";
 import {
   OVER_EARLY_CODE,
@@ -280,22 +281,6 @@ const SEQUENCE_MILLIS = 5 * 60_000;
 /** When AP comes down, the warning signal follows one minute later. */
 const AP_DOWN_MILLIS = 60_000;
 
-function clock(millis: number): string {
-  const total = Math.max(0, Math.round(millis / 1000));
-  const minutes = Math.floor(total / 60);
-  const seconds = total % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
-
-/** A ticking "now", once a second, for the countdown and the elapsed clock. */
-function useNow(): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return now;
-}
 
 function RaceCard({
   eventId,

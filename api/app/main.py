@@ -25,6 +25,7 @@ from app.routers import (
     public,
     sailors,
     series,
+    tracking,
     waivers,
 )
 
@@ -125,6 +126,8 @@ app.include_router(applications.router)
 app.include_router(club_members.router)
 app.include_router(sailors.router)
 app.include_router(waivers.router)
+app.include_router(tracking.router)
+app.include_router(tracking.admin_router)
 
 if settings.dev_login:
     # Development only: login without verification to try out roles.

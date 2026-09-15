@@ -30,6 +30,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |
+| `api/app/tracking/` | **Boats on the water** — geometry, polar, course, passings, ranking, the emulator; `settings.py` holds every tuned constant (`SBL_TRACKING_*`) |
 | `reference/` | Shallow clones of external repos for reference, not versioned |
 | `~/.claude/plans/iterative-jingling-willow.md` | The original overall plan — its Phase 5 (live, tracking) is superseded by `docs/PLAN_LIVE_IMPLEMENTATION.md` |
 

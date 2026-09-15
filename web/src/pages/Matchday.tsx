@@ -197,6 +197,16 @@ export function Matchday() {
               has nothing to stream yet. The stream itself is open regardless, so the page
               hears the start. */}
           {event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
+          {/* Stories L-1, L-2: the boats on the map, for a published event. */}
+          {event.published && (
+            <Link
+              to={`/events/${id}/live`}
+              data-testid="matchday-live-map-link"
+              className="font-medium text-brand-700 underline-offset-2 hover:underline"
+            >
+              {t("liveMap")}
+            </Link>
+          )}
         </p>
       </div>
 

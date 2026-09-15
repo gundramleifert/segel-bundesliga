@@ -24,10 +24,15 @@ from app.models.racing import (
     ResultCode,
 )
 from app.models.standings import EventStanding, SeriesStanding
+from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
     "AuditLog",
+    "Course",
+    "Fix",
+    "Mark",
+    "Tracker",
     "Base",
     "Boat",
     "Club",

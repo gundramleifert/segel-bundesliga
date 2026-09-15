@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 56606071562c
+Revision ID: 4f23105d643e
 Revises: 
-Create Date: 2026-09-15 00:25:45.462785
+Create Date: 2026-09-15 07:29:23.839025
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '56606071562c'
+revision: str = '4f23105d643e'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -247,6 +247,22 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_club_member_status'), ['status'], unique=False)
         batch_op.create_index(batch_op.f('ix_club_member_user_id'), ['user_id'], unique=False)
 
+    op.create_table('course',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=False),
+    sa.Column('laps', sa.Integer(), nullable=False),
+    sa.Column('finish_upwind', sa.Boolean(), nullable=False),
+    sa.Column('finish_pin_side', sa.String(length=8), nullable=False),
+    sa.Column('tws_kn', sa.Float(), nullable=True),
+    sa.Column('wind_from_deg', sa.Float(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_course_event_id_event')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_course'))
+    )
+    with op.batch_alter_table('course', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_course_event_id'), ['event_id'], unique=False)
+
     op.create_table('flight',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('event_id', sa.Integer(), nullable=False),
@@ -387,6 +403,22 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_event_standing_event_id'), ['event_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_event_standing_team_id'), ['team_id'], unique=False)
 
+    op.create_table('mark',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('course_id', sa.Integer(), nullable=False),
+    sa.Column('role', sa.String(length=16), nullable=False),
+    sa.Column('lat', sa.Float(), nullable=False),
+    sa.Column('lon', sa.Float(), nullable=False),
+    sa.Column('set_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['course_id'], ['course.id'], name=op.f('fk_mark_course_id_course')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_mark')),
+    sa.UniqueConstraint('course_id', 'role', name=op.f('uq_mark_course_id'))
+    )
+    with op.batch_alter_table('mark', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_mark_course_id'), ['course_id'], unique=False)
+
     op.create_table('race',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('flight_id', sa.Integer(), nullable=False),
@@ -397,9 +429,11 @@ def upgrade() -> None:
     sa.Column('finished_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('signal', sa.String(length=8), nullable=True),
     sa.Column('preparatory', sa.String(length=8), nullable=False),
+    sa.Column('course_id', sa.Integer(), nullable=True),
     sa.Column('version', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['course_id'], ['course.id'], name=op.f('fk_race_course_id_course')),
     sa.ForeignKeyConstraint(['flight_id'], ['flight.id'], name=op.f('fk_race_flight_id_flight')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_race')),
     sa.UniqueConstraint('flight_id', 'number_in_flight', name=op.f('uq_race_flight_id'))
@@ -445,6 +479,41 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_team_membership_sailor_id'), ['sailor_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_team_membership_team_id'), ['team_id'], unique=False)
 
+    op.create_table('tracker',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=False),
+    sa.Column('boat_id', sa.Integer(), nullable=True),
+    sa.Column('mark_role', sa.String(length=16), nullable=True),
+    sa.Column('device_token', sa.String(length=64), nullable=False),
+    sa.Column('active_from', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('active_to', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['boat_id'], ['boat.id'], name=op.f('fk_tracker_boat_id_boat')),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_tracker_event_id_event')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_tracker'))
+    )
+    with op.batch_alter_table('tracker', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_tracker_boat_id'), ['boat_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_tracker_device_token'), ['device_token'], unique=True)
+        batch_op.create_index(batch_op.f('ix_tracker_event_id'), ['event_id'], unique=False)
+
+    op.create_table('fix',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('tracker_id', sa.Integer(), nullable=False),
+    sa.Column('t', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('lat', sa.Float(), nullable=False),
+    sa.Column('lon', sa.Float(), nullable=False),
+    sa.Column('sog', sa.Float(), nullable=False),
+    sa.Column('cog', sa.Float(), nullable=False),
+    sa.ForeignKeyConstraint(['tracker_id'], ['tracker.id'], name=op.f('fk_fix_tracker_id_tracker')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_fix')),
+    sa.UniqueConstraint('tracker_id', 't', name=op.f('uq_fix_tracker_id'))
+    )
+    with op.batch_alter_table('fix', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_fix_t'), ['t'], unique=False)
+        batch_op.create_index(batch_op.f('ix_fix_tracker_id'), ['tracker_id'], unique=False)
+
     op.create_table('race_entry',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('race_id', sa.Integer(), nullable=False),
@@ -480,6 +549,17 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_race_entry_boat_id'))
 
     op.drop_table('race_entry')
+    with op.batch_alter_table('fix', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_fix_tracker_id'))
+        batch_op.drop_index(batch_op.f('ix_fix_t'))
+
+    op.drop_table('fix')
+    with op.batch_alter_table('tracker', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_tracker_event_id'))
+        batch_op.drop_index(batch_op.f('ix_tracker_device_token'))
+        batch_op.drop_index(batch_op.f('ix_tracker_boat_id'))
+
+    op.drop_table('tracker')
     with op.batch_alter_table('team_membership', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_team_membership_team_id'))
         batch_op.drop_index(batch_op.f('ix_team_membership_sailor_id'))
@@ -495,6 +575,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_race_flight_id'))
 
     op.drop_table('race')
+    with op.batch_alter_table('mark', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_mark_course_id'))
+
+    op.drop_table('mark')
     with op.batch_alter_table('event_standing', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_event_standing_team_id'))
         batch_op.drop_index(batch_op.f('ix_event_standing_event_id'))
@@ -538,6 +622,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_flight_event_id'))
 
     op.drop_table('flight')
+    with op.batch_alter_table('course', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_course_event_id'))
+
+    op.drop_table('course')
     with op.batch_alter_table('club_member', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_club_member_user_id'))
         batch_op.drop_index(batch_op.f('ix_club_member_status'))

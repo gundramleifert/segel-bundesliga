@@ -23,9 +23,11 @@ from app.auth import create_access_token
 from app.config import settings
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
+from app.jobs import jobs
 from app.mail import MailError, send_login_code
 from app.models import Club
 from app.models.auth import User
+from app.tracking.emulate_job import emulate_event
 
 router = APIRouter(prefix="/api/dev", tags=["development"])
 
@@ -258,3 +260,40 @@ async def network_probe(host: str | None = None, port: int | None = None) -> Net
 
     resolved = await asyncio.to_thread(_probe)
     return NetworkProbeOut(host=target_host, port=target_port, resolved=resolved)
+
+
+class EmulateIn(BaseModel):
+    """Sail the event's current race with made-up boats (Story L-4, the emulator)."""
+
+    event_id: int
+    #: Sailing seconds per real second: 10 sails a short course in half a minute.
+    speed: float = 10.0
+    races: int = 1
+    seed: int = 1
+    leg_length_m: float | None = None
+
+
+class EmulateOut(BaseModel):
+    job_id: str
+
+
+@router.post("/emulate", response_model=EmulateOut, summary="Simulate the current race")
+async def start_emulation(request: EmulateIn) -> EmulateOut:
+    """Lays the default course if none is laid, issues trackers, starts the current race,
+    streams emulated fixes through the real ingest path, and enters the finish order when
+    every boat is home — the whole race on the map, without a boat on the water.
+
+    Development only, like everything under ``/api/dev``: it writes results.
+    """
+    job = jobs.start(
+        "emulate",
+        lambda job: emulate_event(
+            request.event_id,
+            speed=request.speed,
+            races=request.races,
+            seed=request.seed,
+            leg_length_m=request.leg_length_m,
+            job=job,
+        ),
+    )
+    return EmulateOut(job_id=job.id)

@@ -14,7 +14,16 @@ first use is enough. What misled: the message says "invalid", the flake moved be
 unrelated tests, and bisecting by test file pointed at whichever file happened to make the
 run long enough.
 
-**Rule** — Verify tokens with a `leeway` (`app/auth.py`: 30 s). More generally: when a
+**The same clock bit a second time, the same day.** The emulation job stamped every batch
+of fixes with `datetime.now()`; at speed ×1000 two ticks are milliseconds apart, a step back
+reordered them, and the track *sorted by time* jumped back and forth between two stretches of
+the same boat's path — the detector then lost the finish crossing of one boat per race,
+while the identical code on simulated (monotonic) time found every one. Anything that stamps
+a sequence of events with the wall clock and later sorts by it has this problem here.
+
+**Rule** — Verify tokens with a `leeway` (`app/auth.py`: 30 s); stamp emitted sequences from
+a monotonic base (`app/tracking/emulate_job.py`: `loop.time()` offset from one wall-clock
+reading). More generally: when a
 "never happens" auth failure appears only in long runs and only on the request right after
 issuing something time-stamped, suspect the clock before the code — and check it with a
 wall-vs-monotonic loop, which takes fifteen seconds:

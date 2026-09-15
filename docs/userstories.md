@@ -2126,7 +2126,7 @@ tracks posted through the real ingest endpoint (the emulator knows its own groun
 when it rounds, when it finishes — so it is the contract test for every detector), then
 SAP's recorded Mövenstein dataset, then our own phones on our own boats.
 
-### L-1 ○ See the boats move
+### L-1 ◐ See the boats move
 As a **spectator** I want to **see the boats of the running race move on a map**,
 so that I **follow the race from the shore, the club house or the sofa**.
 
@@ -2156,9 +2156,17 @@ Acceptance criteria:
   only in a container's filesystem. On the test instance fixes are **ephemeral by design**
   and the page says so.
 
-Tests: none yet
+What's done: `Tracker`/`Fix`, `POST /api/track/fixes` (token-gated, idempotent), WAL and a
+busy timeout in `app/db.py`, `positions` frames inline on the stream, `GET
+/api/events/{id}/live` (published only), the map page `/events/:id/live` (MapLibre on
+OpenStreetMap, one rotated marker per boat with a minute of trail, follow mode). Still
+open: the export of a day, the committee boat's tracker moving the line on the map.
 
-### L-2 ○ Course, mark passings and a live ranking on the water
+Tests: `api/tests/stories/test_live_tracking.py::TestTrackersAndIngest`,
+`api/tests/stories/test_live_tracking.py::TestTheLivePicture`,
+`e2e/live-map.spec.ts::L-1/L-2: as a spectator I watch a simulated race on the map`
+
+### L-2 ◐ Course, mark passings and a live ranking on the water
 As a **spectator** I want to **see which leg each boat is on and who is ahead**, and as
 **race committee** I want to **lay the course on the map with a few taps**,
 so that **the live page tells a story rather than showing six dots**.
@@ -2213,8 +2221,24 @@ Acceptance criteria:
   within ±3 s and a rank order that does not change when the boats' start order is permuted.
   A new implementation is admitted when it passes the same suite; `compare.py` runs several
   against one recorded track so an algorithm change is decided on data, not argued.
+- **The tuned constants are settings**, not literals: `app/tracking/settings.py`
+  (`SBL_TRACKING_*`) holds the mark radius, the line and gate margins, the default course
+  sizes, the default wind and the emulator's noise — every one will be re-tuned on the
+  first real tracks, and the same field list is what a committee's screen would edit once
+  they move to the UI.
 
-Tests: none yet
+What's done: the whole analysis (`app/tracking/`: geometry, polar loader, W/L course,
+sequential detector with the fix's own course over ground for direction, axis distance,
+time-to-go ranking, `default_pipeline`), `Course`/`Mark` with `Race.course_id` stamped at
+the start, the default course laid around the venue (`POST …/course/default`, also from
+the map page), the live rank, leg and distance to go in the picture and the panel, the
+detected finish order. Still open: laying the course mark by mark on the map, the detected
+order prefilling the race-control pad, `compare.py`, the SAP oracle.
+
+Tests: `api/tests/unit/test_tracking_geo.py`, `api/tests/unit/test_polar.py`,
+`api/tests/unit/test_tracking_contract.py`,
+`api/tests/stories/test_live_tracking.py::TestLayingTheCourse`,
+`api/tests/stories/test_live_tracking.py::TestAWholeRaceSimulated`
 
 ### L-3 ○ Replay a race
 As a **spectator** I want to **scrub through a race that is over**,
@@ -2229,7 +2253,7 @@ Acceptance criteria:
 
 Tests: none yet
 
-### L-4 ○ The phone on the boat is the tracker
+### L-4 ◐ The phone on the boat is the tracker
 As the **crew of boat 3** I want to **open one page on the phone in the cockpit and forget
 about it**,
 so that **the boat is on the map all day without any app to install**.
@@ -2244,11 +2268,19 @@ Acceptance criteria:
   keeps delivering positions with a locked screen in a pocket. One morning with two phones
   decides whether a web page suffices or the boats need a native shell; L-2's shape may
   change with that result, which is why this story comes before L-3.
-- The emulator (`python -m app.tracking.emulate`) is a client of the same endpoint
-  (decision 13): it exercises the path real phones use, tacks with the polar's angles and
-  speeds, picks a gate side at random, adds ±5 m of GPS noise, and is deterministic by seed.
+- The emulator is a client of the same ingest path (decision 13): it exercises the path
+  real phones use, tacks with the polar's angles and speeds, picks a gate side at random,
+  adds GPS noise, sails on past the finish as a real boat does, and is deterministic by
+  seed. `POST /api/dev/emulate` (development only) runs it against a live event: it lays
+  the default course if none is laid, issues trackers, starts the current race, streams
+  the fixes, enters the finish order as the result and finishes the race — the whole race
+  on the map, which was the goal set on 2026-09-15.
 
-Tests: none yet
+What's done: the emulator and the emulation job. Still open: the phone page itself and the
+on-water morning that decides whether a web page suffices.
+
+Tests: `api/tests/unit/test_tracking_contract.py`,
+`api/tests/stories/test_live_tracking.py::TestAWholeRaceSimulated`
 
 ---
 

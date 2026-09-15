@@ -61,7 +61,15 @@ if [[ "$RESEED" == 1 ]]; then
   # Seeded once and copied, rather than seeded N times: the seed takes about ten seconds
   # and produces the same rows every time, so copying the file is the same result in
   # milliseconds.
+  #
+  # The database runs in WAL mode (app/db.py, Story L-1), so the freshly seeded rows may
+  # still sit in `e2e.db-wal` rather than in `e2e.db` — a copy of the main file alone is a
+  # database with the schema of an earlier checkpoint and none of the seed, and the workers
+  # that got one failed every sign-in with a 500 while worker 0 was fine
+  # (docs/gotchas). Checkpoint first, and clear a stale side file of the target.
+  (cd "$ROOT/api" && uv run python -c "import sqlite3; c = sqlite3.connect('e2e.db'); c.execute('PRAGMA wal_checkpoint(TRUNCATE)'); c.close()")
   for ((i = 1; i < WORKERS; i++)); do
+    rm -f "$ROOT/api/e2e-$i.db-wal" "$ROOT/api/e2e-$i.db-shm"
     cp "$ROOT/api/e2e.db" "$ROOT/api/e2e-$i.db"
   done
 fi

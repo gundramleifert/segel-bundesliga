@@ -24,6 +24,10 @@ export type { TeamCrewOut as TeamCrew } from "./generated/model/teamCrewOut";
 export type { PairingList } from "./generated/model/pairingList";
 export type { BoatOut } from "./generated/model/boatOut";
 export type { SailorDetail } from "./generated/model/sailorDetail";
+/** Stories L-1, L-2: the live picture of an event — course, running race, every boat. */
+export type { LiveRaceOut as LiveRace } from "./generated/model/liveRaceOut";
+export type { LiveBoatOut as LiveBoat } from "./generated/model/liveBoatOut";
+export type { CourseOut as Course } from "./generated/model/courseOut";
 
 /** Story S-2: a sailor's own profile — name, birthdate, and whether a photo exists. */
 export type { SailorMeOut as SailorMe } from "./generated/model/sailorMeOut";

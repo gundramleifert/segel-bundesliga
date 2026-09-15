@@ -42,12 +42,17 @@ import type {
   ClubMemberOut,
   ClubOut,
   ConfirmWaiver,
+  CourseIn,
+  CourseOut,
   CrewOut,
+  DefaultCourseIn,
   DevLogin,
   DownloadPairingPdfParams,
   EmailRequest,
   EmailRequest202,
   EmailVerify,
+  EmulateIn,
+  EmulateOut,
   EventCreate,
   EventCrewList,
   EventDetail,
@@ -55,6 +60,8 @@ import type {
   EventReadinessOut,
   EventUpdate,
   EventWaiverList,
+  FixBatchIn,
+  FixBatchOut,
   FromCatalogRequest,
   GetClubParams,
   GetSailorParams,
@@ -72,6 +79,7 @@ import type {
   ListSeriesParams,
   ListUsersParams,
   LiveNowOut,
+  LiveRaceOut,
   MembershipDecision,
   MembershipInvitation,
   MembershipOut,
@@ -122,6 +130,7 @@ import type {
   TestEmailOut,
   TestUserOut,
   TokenOut,
+  TrackerOut,
   UserCreate,
   UserOut,
   WaiverConfirmationOut,
@@ -9343,6 +9352,587 @@ export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>
 
 
 
+export const getPostFixesUrl = () => {
+
+
+
+
+  return `/api/track/fixes`
+}
+
+/**
+ * What a phone on a boat sends every few seconds (Story L-4), and what the emulator
+ * sends. Idempotent: a retried batch stores nothing twice and is not an error.
+ * @summary Post a batch of fixes
+ */
+export const postFixes = async (fixBatchIn: FixBatchIn, options?: RequestInit): Promise<FixBatchOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<FixBatchOut>(getPostFixesUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(fixBatchIn)
+  }
+);}
+
+
+
+
+
+export const getPostFixesMutationKey = () => ['postFixes'] as const;
+
+export const getPostFixesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postFixes>>, TError,PostFixesMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof postFixes>>, TError,PostFixesMutationVariables, TContext> => {
+
+const mutationKey = getPostFixesMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postFixes>>, PostFixesMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  postFixes(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PostFixesMutationResult = NonNullable<Awaited<ReturnType<typeof postFixes>>>
+    export type PostFixesMutationBody = BodyType<FixBatchIn>
+    export type PostFixesMutationError = ErrorType<HTTPValidationError>
+    export type PostFixesMutationVariables = {data: BodyType<FixBatchIn>}
+
+    /**
+ * @summary Post a batch of fixes
+ */
+export const usePostFixes = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postFixes>>, TError,PostFixesMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof postFixes>>,
+        TError,
+        PostFixesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPostFixesMutationOptions(options), queryClient);
+    }
+
+export const getGetEventLiveUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/live`
+}
+
+/**
+ * The course, the running race, every boat's position, speed, leg and rank — Story L-1.
+ *
+ * Published events only, by the public router's own predicate; a draft answers 404 here
+ * exactly as it does everywhere else.
+ * @summary The boats now
+ */
+export const getEventLive = async (eventId: number, options?: RequestInit): Promise<LiveRaceOut> => {
+
+  return http<LiveRaceOut>(getGetEventLiveUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEventLiveQueryKey = (eventId: number,) => {
+    return [
+    `/api/events/${eventId}/live`
+    ] as const;
+    }
+
+
+export const getGetEventLiveQueryOptions = <TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventLiveQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventLive>>> = ({ signal }) => getEventLive(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventLiveQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLive>>>
+export type GetEventLiveQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventLive>>,
+          TError,
+          Awaited<ReturnType<typeof getEventLive>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventLive>>,
+          TError,
+          Awaited<ReturnType<typeof getEventLive>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The boats now
+ */
+
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventLiveQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEventCourseUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/course`
+}
+
+/**
+ * @summary The course as laid
+ */
+export const getEventCourse = async (eventId: number, options?: RequestInit): Promise<CourseOut> => {
+
+  return http<CourseOut>(getGetEventCourseUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEventCourseQueryKey = (eventId: number,) => {
+    return [
+    `/api/admin/events/${eventId}/course`
+    ] as const;
+    }
+
+
+export const getGetEventCourseQueryOptions = <TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventCourseQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventCourse>>> = ({ signal }) => getEventCourse(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventCourseQueryResult = NonNullable<Awaited<ReturnType<typeof getEventCourse>>>
+export type GetEventCourseQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventCourse>>,
+          TError,
+          Awaited<ReturnType<typeof getEventCourse>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventCourse>>,
+          TError,
+          Awaited<ReturnType<typeof getEventCourse>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The course as laid
+ */
+
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventCourseQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLayEventCourseUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/course`
+}
+
+/**
+ * Six marks as the committee set them. A re-lay is a new course; races already
+ * started keep the one they were started on.
+ * @summary Lay the course
+ */
+export const layEventCourse = async (eventId: number,
+    courseIn: CourseIn, options?: RequestInit): Promise<CourseOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<CourseOut>(getLayEventCourseUrl(eventId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(courseIn)
+  }
+);}
+
+
+
+
+
+export const getLayEventCourseMutationKey = () => ['layEventCourse'] as const;
+
+export const getLayEventCourseMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layEventCourse>>, TError,LayEventCourseMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof layEventCourse>>, TError,LayEventCourseMutationVariables, TContext> => {
+
+const mutationKey = getLayEventCourseMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof layEventCourse>>, LayEventCourseMutationVariables> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  layEventCourse(eventId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LayEventCourseMutationResult = NonNullable<Awaited<ReturnType<typeof layEventCourse>>>
+    export type LayEventCourseMutationBody = BodyType<CourseIn>
+    export type LayEventCourseMutationError = ErrorType<HTTPValidationError>
+    export type LayEventCourseMutationVariables = {eventId: number;data: BodyType<CourseIn>}
+
+    /**
+ * @summary Lay the course
+ */
+export const useLayEventCourse = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layEventCourse>>, TError,LayEventCourseMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof layEventCourse>>,
+        TError,
+        LayEventCourseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLayEventCourseMutationOptions(options), queryClient);
+    }
+
+export const getLayDefaultEventCourseUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/course/default`
+}
+
+/**
+ * A windward/leeward course around the venue (or the given point), square to the
+ * given wind — the emulator's course, and a committee's starting point to drag from.
+ * @summary Lay the textbook course here
+ */
+export const layDefaultEventCourse = async (eventId: number,
+    defaultCourseInNull?: DefaultCourseIn | null, options?: RequestInit): Promise<CourseOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<CourseOut>(getLayDefaultEventCourseUrl(eventId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(defaultCourseInNull)
+  }
+);}
+
+
+
+
+
+export const getLayDefaultEventCourseMutationKey = () => ['layDefaultEventCourse'] as const;
+
+export const getLayDefaultEventCourseMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layDefaultEventCourse>>, TError,LayDefaultEventCourseMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof layDefaultEventCourse>>, TError,LayDefaultEventCourseMutationVariables, TContext> => {
+
+const mutationKey = getLayDefaultEventCourseMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof layDefaultEventCourse>>, LayDefaultEventCourseMutationVariables> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  layDefaultEventCourse(eventId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LayDefaultEventCourseMutationResult = NonNullable<Awaited<ReturnType<typeof layDefaultEventCourse>>>
+    export type LayDefaultEventCourseMutationBody = BodyType<DefaultCourseIn | null> | undefined
+    export type LayDefaultEventCourseMutationError = ErrorType<HTTPValidationError>
+    export type LayDefaultEventCourseMutationVariables = {eventId: number;data?: BodyType<DefaultCourseIn | null>}
+
+    /**
+ * @summary Lay the textbook course here
+ */
+export const useLayDefaultEventCourse = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layDefaultEventCourse>>, TError,LayDefaultEventCourseMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof layDefaultEventCourse>>,
+        TError,
+        LayDefaultEventCourseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLayDefaultEventCourseMutationOptions(options), queryClient);
+    }
+
+export const getListEventTrackersUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/trackers`
+}
+
+/**
+ * One per boat plus the committee boat, issued on first call. The tokens are what a
+ * phone sends with every batch; show them as QR codes, never type them.
+ * @summary The event's trackers
+ */
+export const listEventTrackers = async (eventId: number, options?: RequestInit): Promise<TrackerOut[]> => {
+
+  return http<TrackerOut[]>(getListEventTrackersUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEventTrackersQueryKey = (eventId: number,) => {
+    return [
+    `/api/admin/events/${eventId}/trackers`
+    ] as const;
+    }
+
+
+export const getListEventTrackersQueryOptions = <TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEventTrackersQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEventTrackers>>> = ({ signal }) => listEventTrackers(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEventTrackersQueryResult = NonNullable<Awaited<ReturnType<typeof listEventTrackers>>>
+export type ListEventTrackersQueryError = ErrorType<HTTPValidationError>
+
+
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventTrackers>>,
+          TError,
+          Awaited<ReturnType<typeof listEventTrackers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventTrackers>>,
+          TError,
+          Awaited<ReturnType<typeof listEventTrackers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The event's trackers
+ */
+
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEventTrackersQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListTestUsersUrl = () => {
 
 
@@ -9842,6 +10432,99 @@ export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>
 
 
 
+
+export const getStartEmulationUrl = () => {
+
+
+
+
+  return `/api/dev/emulate`
+}
+
+/**
+ * Lays the default course if none is laid, issues trackers, starts the current race,
+ * streams emulated fixes through the real ingest path, and enters the finish order when
+ * every boat is home — the whole race on the map, without a boat on the water.
+ *
+ * Development only, like everything under ``/api/dev``: it writes results.
+ * @summary Simulate the current race
+ */
+export const startEmulation = async (emulateIn: EmulateIn, options?: RequestInit): Promise<EmulateOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<EmulateOut>(getStartEmulationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(emulateIn)
+  }
+);}
+
+
+
+
+
+export const getStartEmulationMutationKey = () => ['startEmulation'] as const;
+
+export const getStartEmulationMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startEmulation>>, TError,StartEmulationMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof startEmulation>>, TError,StartEmulationMutationVariables, TContext> => {
+
+const mutationKey = getStartEmulationMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startEmulation>>, StartEmulationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  startEmulation(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartEmulationMutationResult = NonNullable<Awaited<ReturnType<typeof startEmulation>>>
+    export type StartEmulationMutationBody = BodyType<EmulateIn>
+    export type StartEmulationMutationError = ErrorType<HTTPValidationError>
+    export type StartEmulationMutationVariables = {data: BodyType<EmulateIn>}
+
+    /**
+ * @summary Simulate the current race
+ */
+export const useStartEmulation = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startEmulation>>, TError,StartEmulationMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startEmulation>>,
+        TError,
+        StartEmulationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartEmulationMutationOptions(options), queryClient);
+    }
 
 export const getIndexUrl = () => {
 

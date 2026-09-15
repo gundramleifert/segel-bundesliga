@@ -73,11 +73,13 @@ CLUBS: list[tuple[str, str, str]] = [
     ("Potsdamer Yacht Club", "PYC", "Potsdam"),
 ]
 
-VENUES: list[tuple[str, str, str]] = [
-    ("Tutzing", "Tutzing", "Starnberger See"),
-    ("Kiel", "Kiel", "Kieler Förde"),
-    ("Friedrichshafen", "Friedrichshafen", "Bodensee"),
-    ("Berlin-Wannsee", "Berlin", "Wannsee"),
+# Name, city, water, and where on the water the boats sail — real coordinates, so the
+# default course (Story L-2) lands on the real lake or fjord on the map.
+VENUES: list[tuple[str, str, str, float, float]] = [
+    ("Tutzing", "Tutzing", "Starnberger See", 47.912, 11.298),
+    ("Kiel", "Kiel", "Kieler Förde", 54.424, 10.190),
+    ("Friedrichshafen", "Friedrichshafen", "Bodensee", 47.648, 9.487),
+    ("Berlin-Wannsee", "Berlin", "Wannsee", 52.437, 13.170),
 ]
 
 # Sailor names are synthetic — a 30 x 30 pool of made-up names built from syllables, so
@@ -195,8 +197,8 @@ async def seed() -> None:
         )
 
         venues = [
-            Venue(slug=slugify(name), name=name, city=city, water=water)
-            for name, city, water in VENUES
+            Venue(slug=slugify(name), name=name, city=city, water=water, lat=lat, lon=lon)
+            for name, city, water, lat, lon in VENUES
         ]
         session.add_all(venues)
 

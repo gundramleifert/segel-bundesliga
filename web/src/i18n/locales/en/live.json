@@ -1,0 +1,53 @@
+{
+  "title": "Live",
+  "loading": "The map is loading…",
+  "noCourse": "No course has been laid yet — the boats appear once the committee lays one and the trackers report.",
+  "noBoats": "No boat has reported a position yet.",
+  "race": {
+    "running": "Race {{sequence}} · running",
+    "finished": "Race {{sequence}} · finished",
+    "none": "No race on the water",
+    "next": "Next up: race {{sequence}}",
+    "elapsed": "{{time}} sailed",
+    "signal": "Signal {{signal}}"
+  },
+  "panel": {
+    "rank": "#",
+    "boat": "Boat",
+    "leg": "Leg",
+    "speed": "kn",
+    "toGo": "to go",
+    "finished": "finished",
+    "detectedOrder": "Detected finish order: {{order}}"
+  },
+  "leg": {
+    "start": "to the start",
+    "windward": "upwind",
+    "gate": "downwind",
+    "finish": "to the finish",
+    "finished": "finished"
+  },
+  "marks": {
+    "committee_boat": "RC",
+    "start_pin": "Pin",
+    "windward": "W",
+    "gate_left": "G",
+    "gate_right": "G",
+    "finish_pin": "F"
+  },
+  "controls": {
+    "follow": "Follow the fleet",
+    "fitCourse": "Show the course",
+    "layCourse": "Lay a course here",
+    "layCourseHint": "A short windward/leeward course around the map's centre, square to the wind below.",
+    "wind": "Wind from (°)",
+    "legLength": "Leg (m)",
+    "laid": "Course laid.",
+    "simulate": "Simulate a race",
+    "simulating": "Simulating…",
+    "speed": "Speed ×{{factor}}",
+    "simulateHint": "Six made-up boats sail the current race through the real ingest path; the finish order becomes the result and the next race is up. Development only.",
+    "raceControl": "Race control"
+  },
+  "attribution": "Map data © OpenStreetMap contributors"
+}

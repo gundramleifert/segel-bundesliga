@@ -67,6 +67,7 @@ from app.services.pairing_service import (
     publish_pairing,
     teams_for_event,
 )
+from app.tracking.service import active_course
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -552,6 +553,10 @@ async def start_race(
     event, race = await _event_race(session, event_id, race_id)
     preparatory = PreparatoryFlag((request or RaceStartIn()).preparatory)
     await race_state.start_race(session, event, race, actor=acting.email, preparatory=preparatory)
+    # The course this race is sailed on (Story L-2): a re-lay between races must not move
+    # the marks under a race that is over.
+    course = await active_course(session, event.id)
+    race.course_id = course.id if course is not None else None
     return await _transition_done(session, event, race)
 
 

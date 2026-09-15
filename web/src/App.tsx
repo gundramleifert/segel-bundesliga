@@ -7,6 +7,7 @@ import { Account } from "./pages/Account";
 import { LegalNotice } from "./pages/LegalNotice";
 import { Privacy } from "./pages/Privacy";
 import { Sailor } from "./pages/Sailor";
+import { Live } from "./pages/Live";
 import { LiveNow } from "./pages/LiveNow";
 import { Matchday } from "./pages/Matchday";
 import { RaceControl } from "./pages/RaceControl";
@@ -33,6 +34,8 @@ export default function App() {
         <Route path="events/:id" element={<Matchday />} />
         {/* Story WL-3: the race committee's screen on the water — a page, not a tab. */}
         <Route path="events/:id/race-control" element={<RaceControl />} />
+        {/* Stories L-1, L-2: the boats on the map. */}
+        <Route path="events/:id/live" element={<Live />} />
         {/* Story B-5: the running event, else the next date. */}
         <Route path="live" element={<LiveNow />} />
         <Route path="clubs" element={<Clubs />} />

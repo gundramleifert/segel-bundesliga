@@ -1,0 +1,53 @@
+{
+  "title": "Live",
+  "loading": "Die Karte wird geladen …",
+  "noCourse": "Noch keine Bahn gelegt — die Boote erscheinen, sobald die Wettfahrtleitung eine legt und die Tracker melden.",
+  "noBoats": "Noch kein Boot hat eine Position gemeldet.",
+  "race": {
+    "running": "Wettfahrt {{sequence}} · läuft",
+    "finished": "Wettfahrt {{sequence}} · beendet",
+    "none": "Keine Wettfahrt auf dem Wasser",
+    "next": "Als Nächstes: Wettfahrt {{sequence}}",
+    "elapsed": "{{time}} gesegelt",
+    "signal": "Signal {{signal}}"
+  },
+  "panel": {
+    "rank": "#",
+    "boat": "Boot",
+    "leg": "Schenkel",
+    "speed": "kn",
+    "toGo": "verbleibend",
+    "finished": "im Ziel",
+    "detectedOrder": "Erkannte Zielreihenfolge: {{order}}"
+  },
+  "leg": {
+    "start": "zum Start",
+    "windward": "Kreuz",
+    "gate": "Vorwind",
+    "finish": "zum Ziel",
+    "finished": "im Ziel"
+  },
+  "marks": {
+    "committee_boat": "WL",
+    "start_pin": "Pin",
+    "windward": "L",
+    "gate_left": "G",
+    "gate_right": "G",
+    "finish_pin": "Z"
+  },
+  "controls": {
+    "follow": "Dem Feld folgen",
+    "fitCourse": "Bahn zeigen",
+    "layCourse": "Hier eine Bahn legen",
+    "layCourseHint": "Eine kurze Up-and-down-Bahn um die Kartenmitte, rechtwinklig zum Wind unten.",
+    "wind": "Wind aus (°)",
+    "legLength": "Schenkel (m)",
+    "laid": "Bahn gelegt.",
+    "simulate": "Wettfahrt simulieren",
+    "simulating": "Simulation läuft …",
+    "speed": "Tempo ×{{factor}}",
+    "simulateHint": "Sechs erfundene Boote segeln die aktuelle Wettfahrt über den echten Empfangsweg; die Zielreihenfolge wird das Ergebnis, und die nächste Wettfahrt steht an. Nur in der Entwicklung.",
+    "raceControl": "Wettfahrtleitung"
+  },
+  "attribution": "Kartendaten © OpenStreetMap-Mitwirkende"
+}

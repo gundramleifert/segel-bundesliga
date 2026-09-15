@@ -140,6 +140,10 @@ class Race(Base, TimestampMixin):
     # The preparatory flag of the start (``PreparatoryFlag``); decides which code a boat
     # over the line at the start gets.
     preparatory: Mapped[str] = mapped_column(String(8), default=PreparatoryFlag.P)
+    # The course this race was started on (Story L-2): stamped at the start with the
+    # event's active course, so a re-lay between races changes nothing about a race that
+    # is over. NULL until a course is laid — a race can be sailed without tracking.
+    course_id: Mapped[int | None] = mapped_column(ForeignKey("course.id"), default=None)
 
     # Optimistic lock for the race committee's offline sync.
     version: Mapped[int] = mapped_column(default=0)

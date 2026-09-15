@@ -36,7 +36,17 @@ export const POLL_MILLIS = 20_000;
 /** How long the hook polls before giving the stream another chance. */
 const RETRY_STREAM_MILLIS = 60_000;
 
-export function useLive(topic: string | null, targets: Target[]): LiveState {
+interface LiveOptions {
+  /** Called with the payload of every inline frame — today only `positions` (Story L-1),
+   *  the one payload that travels in the stream instead of behind a refetch. */
+  onPositions?: (payload: unknown) => void;
+}
+
+export function useLive(
+  topic: string | null,
+  targets: Target[],
+  options: LiveOptions = {},
+): LiveState {
   const invalidate = useInvalidate();
   const [state, setState] = useState<LiveState>(topic ? "reconnecting" : "off");
 
@@ -47,6 +57,8 @@ export function useLive(topic: string | null, targets: Target[]): LiveState {
   targetsRef.current = targets;
   const invalidateRef = useRef(invalidate);
   invalidateRef.current = invalidate;
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   useEffect(() => {
     if (!topic) {
@@ -95,6 +107,13 @@ export function useLive(topic: string | null, targets: Target[]): LiveState {
         everOpened = true;
       };
       stream.addEventListener("change", refetch);
+      stream.addEventListener("positions", (frame) => {
+        try {
+          optionsRef.current.onPositions?.(JSON.parse((frame as MessageEvent).data));
+        } catch {
+          // A frame that does not parse is dropped; the next one is a second away.
+        }
+      });
       stream.onerror = () => {
         failures += 1;
         // CLOSED means the browser gave up (a non-200 answer, a 404 for a draft); anything

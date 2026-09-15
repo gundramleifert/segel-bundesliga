@@ -20,6 +20,7 @@
     "@tanstack/react-table": "^9.2.4",
     "i18next": "^26.4.2",
     "i18next-browser-languagedetector": "^8.2.1",
+    "maplibre-gl": "^5.24.0",
     "react": "^19.2.8",
     "react-aria": "^3.52.0",
     "react-aria-components": "^1.21.0",

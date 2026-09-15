@@ -1,7 +1,8 @@
 # Live data on the site — implementation plan
 
-Status: **phases 0–2 built** (stories, SSE transport, race control — 2026-09-15); the map,
-the emulator and the analytics are next, as one goal (§9). Written 2026-09-14 from a review of the code, of
+Status: **phases 0–2 and the simulated race built** (stories, SSE transport, race control,
+the emulator sailing a course on a real map with a live rank — 2026-09-15); real phones
+(D), replay (C) and the SAP oracle (E) are next (§9). Written 2026-09-14 from a review of the code, of
 `reference/sailing-analytics`, and of the decisions taken in discussion. Everything marked
 *verified* was read in the code or measured; everything marked *assumption* has to be
 confirmed by the step named next to it.
