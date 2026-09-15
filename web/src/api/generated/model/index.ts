@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './abandonRaceParams';
 export * from './addressProbe';
 export * from './adminRaceOut';
 export * from './adminRacesOut';
@@ -103,6 +104,10 @@ export * from './raceEntryOut';
 export * from './raceResultIn';
 export * from './raceResultsIn';
 export * from './raceResultsOut';
+export * from './raceSignalIn';
+export * from './raceSignalInSignal';
+export * from './raceStartIn';
+export * from './raceStartInPreparatory';
 export * from './readinessReasonOut';
 export * from './readinessReasonOutDetails';
 export * from './registerAccount202';

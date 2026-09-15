@@ -4,7 +4,7 @@ enter and correct race results (Story WL-2).
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,16 @@ from app.live import event_topic, hub
 from app.models import AuditLog, Event
 from app.models.auth import User
 from app.models.org import Team, TeamStatus
-from app.models.racing import BOAT_COLORS, Boat, Flight, Race, RaceEntry, RaceStatus, ResultCode
+from app.models.racing import (
+    BOAT_COLORS,
+    Boat,
+    Flight,
+    PreparatoryFlag,
+    Race,
+    RaceEntry,
+    RaceSignal,
+    ResultCode,
+)
 from app.pairing import BoatSpec, load_pairing_yaml
 from app.pairing.catalog import CatalogError, catalog_entries, load_entry, shuffle_pairing
 from app.pairing.generator import (
@@ -40,10 +49,13 @@ from app.schemas.admin import (
     RaceEntryOut,
     RaceResultsIn,
     RaceResultsOut,
+    RaceSignalIn,
+    RaceStartIn,
 )
 from app.schemas.public import BoatOut, ClubOut, TeamOut
 from app.services import (
     CATALOG_REASON,
+    race_state,
     recompute_event,
     recompute_series,
     require_editable_configuration,
@@ -425,36 +437,188 @@ async def get_admin_races(
     for race, entry, flight, boat_number in (await session.execute(stmt)).all():
         row = races.get(race.id)
         if row is None:
-            row = AdminRaceOut(
-                id=race.id,
-                sequence=race.sequence,
-                flight=flight.number,
-                race_in_flight=race.number_in_flight,
-                status=race.status,
-                version=race.version,
-                entries=[],
-            )
+            row = _race_out(race, flight)
             races[race.id] = row
         team = teams.get(entry.team_id)
         if team is None:
             continue
-        row.entries.append(
-            RaceEntryOut(
-                boat_number=boat_number,
-                team=team,
-                code=entry.code,
-                finish_position=entry.finish_position,
-                redress_points=entry.redress_points,
-                points=entry.points,
-                is_discarded=entry.is_discarded,
-            )
-        )
+        row.entries.append(_entry_out(entry, boat_number, team))
 
     return AdminRacesOut(
         event_id=event.id,
         boats=[BoatOut.model_validate(boat) for boat in boats],
         races=[races[key] for key in sorted(races, key=lambda race_id: races[race_id].sequence)],
     )
+
+
+def _race_out(race: Race, flight: Flight) -> AdminRaceOut:
+    return AdminRaceOut(
+        id=race.id,
+        sequence=race.sequence,
+        flight=flight.number,
+        race_in_flight=race.number_in_flight,
+        status=race.status,
+        version=race.version,
+        started_at=race.started_at,
+        finished_at=race.finished_at,
+        signal=race.signal,
+        preparatory=race.preparatory,
+        entries=[],
+    )
+
+
+def _entry_out(entry: RaceEntry, boat_number: int, team: TeamOut) -> RaceEntryOut:
+    return RaceEntryOut(
+        boat_number=boat_number,
+        team=team,
+        code=entry.code,
+        finish_position=entry.finish_position,
+        redress_points=entry.redress_points,
+        points=entry.points,
+        is_discarded=entry.is_discarded,
+    )
+
+
+async def _admin_race(session: AsyncSession, event: Event, race_id: int) -> AdminRaceOut:
+    """One race in the shape of ``get_admin_races`` — what a transition answers with."""
+    teams = await _teams_of_event(session, event.id)
+    stmt = (
+        select(Race, RaceEntry, Flight, Boat.number)
+        .join(Flight, Race.flight_id == Flight.id)
+        .join(RaceEntry, RaceEntry.race_id == Race.id)
+        .join(Boat, RaceEntry.boat_id == Boat.id)
+        .where(Race.id == race_id)
+        .order_by(Boat.number)
+    )
+    out: AdminRaceOut | None = None
+    for race, entry, flight, boat_number in (await session.execute(stmt)).all():
+        if out is None:
+            out = _race_out(race, flight)
+        team = teams.get(entry.team_id)
+        if team is not None:
+            out.entries.append(_entry_out(entry, boat_number, team))
+    assert out is not None, f"race {race_id} has no entries"
+    return out
+
+
+async def _event_race(session: AsyncSession, event_id: int, race_id: int) -> tuple[Event, Race]:
+    """The event and one of its races, or a 404 that says which one is missing."""
+    event = await _event_by_id(session, event_id)
+    race = (
+        await session.execute(
+            select(Race)
+            .join(Flight, Race.flight_id == Flight.id)
+            .where(Race.id == race_id, Flight.event_id == event.id)
+        )
+    ).scalar_one_or_none()
+    if race is None:
+        raise Problem(
+            404,
+            "race-not-found",
+            f"Race {race_id} does not belong to event {event_id}.",
+        )
+    return event, race
+
+
+async def _transition_done(session: AsyncSession, event: Event, race: Race) -> AdminRaceOut:
+    """Commit, then tell the live pages — in that order (``app/live.py``)."""
+    await session.commit()
+    hub.publish(event_topic(event.id))
+    return await _admin_race(session, event, race.id)
+
+
+# ------------------------------------------------------------ race control (Story WL-3)
+
+
+@router.post(
+    "/events/{event_id}/races/{race_id}/start",
+    response_model=AdminRaceOut,
+    summary="The gun: start a race",
+)
+async def start_race(
+    event_id: int,
+    race_id: int,
+    request: RaceStartIn | None = None,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(require_race_officer),
+) -> AdminRaceOut:
+    """``scheduled`` → ``running`` — Story WL-3.
+
+    Races run one at a time: a second race cannot start while one is on the water
+    (``race-already-running``). The body names the preparatory flag that was flying, which
+    decides what a boat over the line at the start is scored as; ``P`` if left out. A
+    second tap on a running race answers with the race, unchanged.
+    """
+    event, race = await _event_race(session, event_id, race_id)
+    preparatory = PreparatoryFlag((request or RaceStartIn()).preparatory)
+    await race_state.start_race(session, event, race, actor=acting.email, preparatory=preparatory)
+    return await _transition_done(session, event, race)
+
+
+@router.post(
+    "/events/{event_id}/races/{race_id}/recall",
+    response_model=AdminRaceOut,
+    summary="First Substitute: general recall",
+)
+async def recall_race(
+    event_id: int,
+    race_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(require_race_officer),
+) -> AdminRaceOut:
+    """``running`` → ``scheduled``, with every boat's result cleared — Story WL-3.
+
+    The start stays on record (an audit row), so the event's configuration stays frozen
+    even if this was the day's first race.
+    """
+    event, race = await _event_race(session, event_id, race_id)
+    await race_state.recall_race(session, event, race, actor=acting.email)
+    return await _transition_done(session, event, race)
+
+
+@router.post(
+    "/events/{event_id}/races/{race_id}/abandon",
+    response_model=AdminRaceOut,
+    summary="N: abandon a race",
+)
+async def abandon_race(
+    event_id: int,
+    race_id: int,
+    resail: bool = Query(default=False, description="Sail it again later (N over …)"),
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(require_race_officer),
+) -> AdminRaceOut:
+    """``running`` → ``scheduled`` (resail) or ``abandoned`` — Story WL-3.
+
+    Either way every boat's result is cleared, which is what makes an abandoned race
+    score nothing: scoring reads the entries, never the status.
+    """
+    event, race = await _event_race(session, event_id, race_id)
+    await race_state.abandon_race(session, event, race, actor=acting.email, resail=resail)
+    return await _transition_done(session, event, race)
+
+
+@router.post(
+    "/events/{event_id}/races/{race_id}/signal",
+    response_model=AdminRaceOut,
+    summary="Hoist or haul down a displayed signal (AP, X, S)",
+)
+async def set_race_signal(
+    event_id: int,
+    race_id: int,
+    request: RaceSignalIn,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(require_race_officer),
+) -> AdminRaceOut:
+    """The flag currently on the mast — Story WL-3.
+
+    AP (postponed) only while the race is ``scheduled``; X (individual recall) and S
+    (shortened course) only while it is ``running``. One at a time; ``null`` hauls it down.
+    """
+    event, race = await _event_race(session, event_id, race_id)
+    signal = None if request.signal is None else RaceSignal(request.signal)
+    await race_state.set_signal(session, event, race, actor=acting.email, signal=signal)
+    return await _transition_done(session, event, race)
 
 
 @router.put(
@@ -478,22 +642,14 @@ async def put_race_result(
 
     A boat not mentioned in ``results`` keeps its current result — this also allows
     fixing a single entry after a protest without resubmitting the whole race.
-    """
-    event = await _event_by_id(session, event_id)
 
-    race = (
-        await session.execute(
-            select(Race)
-            .join(Flight, Race.flight_id == Flight.id)
-            .where(Race.id == race_id, Flight.event_id == event.id)
-        )
-    ).scalar_one_or_none()
-    if race is None:
-        raise Problem(
-            404,
-            "race-not-found",
-            f"Race {race_id} does not belong to event {event_id}.",
-        )
+    Two refusals come from the race state machine (Story WL-3, ``services/race_state.py``):
+    an ``abandoned`` race takes no result, and a ``scheduled`` race takes none while another
+    race is running. A ``finished`` race is always correctable — the protest case.
+    """
+    event, race = await _event_race(session, event_id, race_id)
+    race_state.guard_result_entry(session, event, race)
+    await race_state.refuse_if_another_is_running(session, event, race)
 
     entry_rows = (
         await session.execute(
@@ -608,7 +764,9 @@ async def put_race_result(
 
     race.version += 1
     if all(entry.code is not None for entry in entry_by_boat.values()):
-        race.status = RaceStatus.FINISHED
+        # Every boat has a result: the race is over. The fifth transition of Story WL-3,
+        # reached through this PUT rather than a button of its own.
+        race_state.finish_race(session, race, actor=acting.email)
 
     await recompute_event(session, event.id)
     if event.series_id is not None:

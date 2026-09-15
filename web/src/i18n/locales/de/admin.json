@@ -223,6 +223,7 @@
     "startedMessage": "Die Veranstaltung läuft.",
     "startNeedsHint": "Der Start braucht eine vollständige Konfiguration und eine Pairing-Liste — ohne sie gibt es nichts zu segeln.",
     "openResultsLink": "Ergebnisse erfassen",
+    "openRaceControlLink": "Wettfahrtleitung",
     "closingTitle": "Abschluss",
     "closingHint": "Ob ein Tag beendet oder abgesagt ist, entscheiden die Leute vor Ort — nie ein Datum. Beides lässt sich zurücknehmen, und beides löscht nichts.",
     "finishButton": "Wettfahrten sind beendet",

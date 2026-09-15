@@ -3,6 +3,7 @@ import type { Page, TestInfo } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { expectNoSidewaysScroll, openNavigation } from "./layout";
+import { signIn } from "./session";
 
 /** Story VA-9: running an event, in a real browser.
  *
@@ -13,10 +14,7 @@ import { expectNoSidewaysScroll, openNavigation } from "./layout";
  * exactly what this file covers, and it is the gap the manage panel was built to close:
  * before it, everything after "create" was reachable only with a REST client.
  *
- * Signing in goes straight to `/api/dev/login` and drops the token into `localStorage`,
- * the same key `web/src/api/session.ts` reads. Clicking through the role switcher would
- * test the role switcher, which is a development aid and not what these tests are about.
- * Needs `SBL_DEV_LOGIN=true` on the backend — the same prerequisite as the switcher itself.
+ * Signing in is `e2e/session.ts`'s `signIn` — straight to `/api/dev/login`, no role switcher.
  */
 
 const ADMIN = "admin@sbl.example.com";
@@ -27,21 +25,6 @@ const ADMIN = "admin@sbl.example.com";
  *  descending, so any series a previous run created for a later year sorts above this one —
  *  and picking it by position quietly tested an empty series instead. */
 const LEAGUE_SERIES = "1. Segel-Bundesliga 2026";
-
-/** A token for a seeded test account, put where the app looks for it. */
-async function signIn(page: Page, email: string): Promise<void> {
-  // Relative, so it goes through Vite's own /api proxy — the same path the app uses, and
-  // one fewer place that hardcodes the backend's port.
-  const response = await page.request.post("/api/dev/login", { data: { email } });
-  expect(response.ok(), `dev login failed for ${email} — is SBL_DEV_LOGIN=true?`).toBeTruthy();
-  const { access_token: token } = (await response.json()) as { access_token: string };
-  // addInitScript, not an evaluate after goto: the session module reads localStorage once,
-  // at import time, so the token has to be there before the bundle runs.
-  await page.addInitScript(
-    ([key, value]) => window.localStorage.setItem(key, value),
-    ["sbl.token", token],
-  );
-}
 
 /** A title nothing else in the database can collide with. */
 function uniqueTitle(prefix: string): string {

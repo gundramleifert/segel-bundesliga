@@ -20,7 +20,14 @@ import { useAsync, useInvalidate, useAccount } from "../api/useApi";
 import { useLive } from "../api/useLive";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { Async } from "../components/Async";
+import { FinishChip, useFinishOrder } from "../components/FinishOrderPad";
 import { CardGrid } from "../components/Layouts";
+import {
+  NOT_FINISHED_CODES,
+  SPECIAL_CODES,
+  needsOwnInput,
+  redressSuggestion,
+} from "../lib/results";
 import {
   ErrorMessage,
   LiveBadge,
@@ -687,66 +694,9 @@ function PairingList({ eventId }: { eventId: number }) {
 
 // ---------------------------------------------------------------- Story WL-2: results
 
-/** Every code except FINISHED — that one is picked as a finish position number directly in
- *  the merged dropdown (see `RaceResultRow`), not as its own entry in this list. */
-const SPECIAL_CODES = ["DNS", "DNF", "OCS", "DSQ", "DNE", "RET", "RDG", "ZFP", "SCP"] as const;
-
-function needsPosition(code: string): boolean {
-  return code === "FINISHED" || code === "ZFP" || code === "SCP";
-}
-
-/** Only ZFP/SCP still need their own position input — FINISHED's position comes directly
- *  from picking a number in the merged dropdown, so showing a second input for it would just
- *  be two controls for the same value. */
-function needsOwnInput(code: string): boolean {
-  return code === "ZFP" || code === "SCP";
-}
-
-/** Whether this row already carries a complete result: a finish position for
- *  FINISHED/ZFP/SCP, redress points for RDG, or — for the rest — simply having chosen the
- *  code at all. Drives the tap icon's in-progress/done flip: a boat that hasn't finished this
- *  race yet still reads "in progress" even once other boats in the same race already have a
- *  result recorded. */
-function resultComplete(row: ResultRow): boolean {
-  if (needsPosition(row.code)) return row.finish_position != null;
-  if (row.code === "RDG") return row.redress_points != null;
-  return true;
-}
-
-/** The tap fast-path only ever assigns/undoes a *FINISHED* position — once a special code has
- *  been chosen via the dropdown, tapping the icon would silently overwrite it back to a
- *  numbered finish, so it's disabled (still shown, just not clickable) for those rows. */
-function canBeTapped(row: ResultRow): boolean {
-  return row.code === "FINISHED";
-}
-
-/** `DID_NOT_FINISH_CODES` in `api/app/scoring/low_point.py`: all scored identically —
- *  starters + 1 points, worse than finishing last. Frontend copy of that fact for the
- *  tooltip text; the backend file is the source of truth and isn't touched here. */
-const NOT_FINISHED_CODES = new Set(["DNS", "DNF", "OCS", "DSQ", "DNE", "RET"]);
-
-/** RRS Appendix A10: nearest tenth, 0.05 rounds up — `Math.round` already rounds half away
- *  from zero for these non-negative point values, so this is exact for the RDG suggestion. */
-function roundToTenth(value: number): number {
-  return Math.round(value * 10) / 10;
-}
-
-/** RRS A10's suggested redress convention: the average of the team's points in this event's
- *  other already-scored races (this race's own sequence excluded). A suggestion the race
- *  officer can override, not something the app enforces — A10 allows alternatives too. */
-function redressSuggestion(
-  teamId: number,
-  excludedSequence: number,
-  standings: StandingRow[],
-): number | null {
-  const row = standings.find((z) => z.team.id === teamId);
-  if (!row) return null;
-  const values = Object.entries(row.points_by_race)
-    .filter(([sequenceText]) => Number(sequenceText) !== excludedSequence)
-    .map(([, value]) => value);
-  if (!values.length) return null;
-  return roundToTenth(values.reduce((sum, value) => sum + value, 0) / values.length);
-}
+// The codes, what "complete" means and the redress suggestion live in `lib/results.ts`, and
+// the tap state in `components/FinishOrderPad.tsx` — shared with the race-control page
+// (Story WL-3), so the two screens cannot drift apart on what a tap means.
 
 /** Only `admin`/`race_officer` can reach this (gated in `Matchday`) — the race committee's
  *  entry screen: the same pairing grid as the "pairing" tab, but editable and including
@@ -807,14 +757,25 @@ function ResultsEntry({
         <p className="text-sm text-slate-600" data-testid="matchday-results-focus-hint">
           {showAll ? t("resultsAllHint") : t("resultsFocusHint")}
         </p>
-        <button
-          type="button"
-          onClick={() => setShowAll((prev) => !prev)}
-          data-testid="matchday-results-show-all-toggle"
-          className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
-        >
-          {showAll ? t("resultsShowFocused") : t("resultsShowAll")}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Story WL-3: on the water the committee runs races from their own page; this
+              tab is the correction screen. */}
+          <Link
+            to={`/events/${eventId}/race-control`}
+            data-testid="matchday-results-race-control-link"
+            className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+          >
+            {t("openRaceControl")}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setShowAll((prev) => !prev)}
+            data-testid="matchday-results-show-all-toggle"
+            className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+          >
+            {showAll ? t("resultsShowFocused") : t("resultsShowAll")}
+          </button>
+        </div>
       </div>
       <TableFrame testId="matchday-results-table-frame">
         <table data-testid="matchday-results-table" className="data-table w-full min-w-[64rem] border-collapse text-sm">
@@ -865,33 +826,6 @@ function ResultsEntry({
   );
 }
 
-interface ResultRow {
-  boat_number: number;
-  code: string;
-  finish_position: number | null;
-  redress_points: number | null;
-  /** Only meaningful while `code === "RDG"`: RRS A10's recommended convention is the average
-   *  of the team's other scored races in this event, which covers the large majority of
-   *  redress cases — "auto" keeps `redress_points` pinned to that live average; "fixed" is a
-   *  jury figure entered by hand instead. Not a backend field — inferred on load by comparing
-   *  the stored value against the computed average, since only the raw points are persisted. */
-  redress_mode: "auto" | "fixed";
-}
-
-/** Smallest finish position not currently occupied by a tap-assigned (or manually entered)
- *  `FINISHED` boat — so the tap flow always continues 1, 2, 3, … even across a single-boat
- *  undo, without needing to renumber everyone else. */
-function nextFreePosition(rows: Record<number, ResultRow>): number {
-  const taken = new Set(
-    Object.values(rows)
-      .filter((row) => row.code === "FINISHED" && row.finish_position != null)
-      .map((row) => row.finish_position as number),
-  );
-  let position = 1;
-  while (taken.has(position)) position += 1;
-  return position;
-}
-
 function RaceResultRow({
   race,
   boats,
@@ -925,44 +859,6 @@ function RaceResultRow({
     return code;
   }
 
-  const [rows, setRows] = useState<Record<number, ResultRow>>(() =>
-    Object.fromEntries(
-      race.entries.map((entry) => {
-        const code = entry.code ?? "FINISHED";
-        const redress_points = entry.redress_points ?? null;
-        // No backend field says whether a stored RDG value was the auto-average or a jury's
-        // own figure — guess "auto" when it still matches today's average, "fixed" otherwise
-        // (e.g. the average has since shifted, or it never matched to begin with).
-        let redress_mode: "auto" | "fixed" = "auto";
-        if (code === "RDG" && redress_points != null) {
-          const suggestion = redressSuggestion(entry.team.id, race.sequence, standings);
-          redress_mode = suggestion != null && Math.abs(suggestion - redress_points) < 0.05 ? "auto" : "fixed";
-        }
-        return [
-          entry.boat_number,
-          {
-            boat_number: entry.boat_number,
-            code,
-            finish_position: entry.finish_position ?? null,
-            redress_points,
-            redress_mode,
-          },
-        ];
-      }),
-    ),
-  );
-
-  // In "auto" mode the stored `redress_points` can be stale (the average moves as other
-  // races get scored) — recompute fresh from the current `standings` at save time instead of
-  // trusting whatever was last written into state.
-  function effectiveRedressValue(row: ResultRow): number | null {
-    if (row.code !== "RDG") return null;
-    if (row.redress_mode === "fixed") return row.redress_points;
-    const teamId = byBoat.get(row.boat_number)?.team.id;
-    if (teamId == null) return row.redress_points;
-    return redressSuggestion(teamId, race.sequence, standings) ?? row.redress_points;
-  }
-
   // No Save button: every change writes straight through to the backend (still guarded by
   // the same duplicate check that used to just disable Save — an in-progress duplicate
   // simply doesn't save yet, rather than blocking a click that no longer exists).
@@ -977,70 +873,14 @@ function RaceResultRow({
     },
   });
 
-  /** The results of one race, in the shape the endpoint wants.
-   *
-   *  A row that is not a complete result is sent as `code: null` — "nothing recorded for
-   *  this boat" (Story WL-2). Every race starts as six of those and is filled in one boat
-   *  at a time; reporting such a row as `FINISHED` with no position instead earned a
-   *  correct-but-useless "Enter a finish position for boat 4" under the race on the way to
-   *  every hand-entered result. `null` is also what undoing a tap sends, so clearing a
-   *  boat and never having entered it are the same request. */
-  const resultsBody = (nextRows: Record<number, ResultRow>) => ({
-    results: Object.values(nextRows).map((row) =>
-      resultComplete(row)
-        ? {
-            boat_number: row.boat_number,
-            code: row.code,
-            finish_position: needsPosition(row.code) ? row.finish_position : null,
-            redress_points: effectiveRedressValue(row),
-          }
-        : { boat_number: row.boat_number, code: null },
-    ),
+  // The taps and codes of this race, shared with the race-control page (Story WL-3). This
+  // screen writes through on every change; `rows` stays the single source of truth — the
+  // <select> and position <input> below just read it back, so tap-assignment and manual
+  // entry can never drift apart.
+  const order = useFinishOrder(race, standings, {
+    onChange: (body) => save.mutate({ eventId, raceId: race.id, data: body }),
   });
-
-  function duplicatesIn(candidate: Record<number, ResultRow>): Set<number> {
-    const positionCounts = new Map<number, number>();
-    for (const row of Object.values(candidate)) {
-      if (needsPosition(row.code) && row.finish_position != null) {
-        positionCounts.set(row.finish_position, (positionCounts.get(row.finish_position) ?? 0) + 1);
-      }
-    }
-    return new Set(
-      Object.values(candidate)
-        .filter(
-          (row) =>
-            needsPosition(row.code) &&
-            row.finish_position != null &&
-            (positionCounts.get(row.finish_position) ?? 0) > 1,
-        )
-        .map((row) => row.boat_number),
-    );
-  }
-
-  function apply(nextRows: Record<number, ResultRow>) {
-    setRows(nextRows);
-    if (duplicatesIn(nextRows).size === 0) {
-      save.mutate({ eventId, raceId: race.id, data: resultsBody(nextRows) });
-    }
-  }
-
-  const setField = (boatNumber: number, patch: Partial<ResultRow>) =>
-    apply({ ...rows, [boatNumber]: { ...rows[boatNumber], ...patch } });
-
-  // Fast path (Story WL-2): tapping a boat assigns it FINISHED + the next unused finish
-  // position; tapping an already-assigned boat undoes just that one. `rows` stays the
-  // single source of truth — the <select> and position <input> below just read it back, so
-  // tap-assignment and manual entry can never drift apart.
-  function tap(boatNumber: number) {
-    const row = rows[boatNumber];
-    const nextRow =
-      row.code === "FINISHED" && row.finish_position != null
-        ? { ...row, finish_position: null }
-        : { ...row, code: "FINISHED", finish_position: nextFreePosition(rows) };
-    apply({ ...rows, [boatNumber]: nextRow });
-  }
-
-  const duplicateBoats = duplicatesIn(rows);
+  const { rows, setField, duplicateBoats } = order;
   const hasDuplicates = duplicateBoats.size > 0;
 
   return (
@@ -1075,8 +915,6 @@ function RaceResultRow({
           );
         }
         const color = boatColor(boat.color);
-        const complete = resultComplete(row);
-        const tappable = canBeTapped(row);
         const suggestion =
           row.code === "RDG" ? redressSuggestion(existing.team.id, race.sequence, standings) : null;
         // The merged dropdown's own value: a finish position shows as its number, every
@@ -1152,28 +990,13 @@ function RaceResultRow({
                   ))}
                 </select>
               </Tip>
-              <button
-                type="button"
-                onClick={() => tappable && tap(boat.number)}
-                disabled={!tappable}
-                aria-pressed={tappable ? complete : undefined}
-                aria-label={
-                  !tappable
-                    ? t("tapLockedLabel", { code: row.code })
-                    : complete
-                      ? t("tapUndoLabel", { position: row.finish_position })
-                      : t("tapInProgressLabel", { boat: color.name })
-                }
-                data-testid={`matchday-results-tap-${race.id}-${boat.number}`}
-                className={`flex size-9 shrink-0 items-center justify-center rounded-md border border-transparent text-base text-white shadow-sm transition ${
-                  tappable ? "hover:brightness-110" : "cursor-default opacity-90"
-                }`}
-                style={{ backgroundColor: color.hex }}
-              >
-                <span aria-hidden className="[text-shadow:0_1px_2px_rgb(0_0_0_/_55%)]">
-                  {complete ? "🏁" : "⏳"}
-                </span>
-              </button>
+              <FinishChip
+                boat={boat}
+                teamName={existing.team.club.short_name}
+                row={row}
+                onTap={() => order.tap(boat.number)}
+                testId={`matchday-results-tap-${race.id}-${boat.number}`}
+              />
             </div>
             {needsOwnInput(row.code) && (
               <input

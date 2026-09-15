@@ -27,6 +27,8 @@ class ResultCode(StrEnum):
     ZFP = "ZFP"  # 20% penalty
     SCP = "SCP"  # scoring penalty
     RET = "RET"  # retired
+    UFD = "UFD"  # U-flag disqualification (RRS 30.3)
+    BFD = "BFD"  # black-flag disqualification (RRS 30.4)
 
 
 # Order as in the pairing lists: boat 1 is black, boat 6 is orange.
@@ -38,6 +40,45 @@ class RaceStatus(StrEnum):
     RUNNING = "running"
     FINISHED = "finished"
     ABANDONED = "abandoned"
+
+
+class RaceSignal(StrEnum):
+    """A flag the committee keeps displayed for a while (Story WL-3).
+
+    Only these three are *state*: a postponement, an individual recall and a shortened
+    course stay hoisted and mean something to the boats and the spectators. The gun, the
+    general recall (First Substitute) and the abandonment (N) are transitions, not signals
+    that linger — they change ``RaceStatus`` instead.
+    """
+
+    AP = "AP"  # postponed — only while scheduled
+    X = "X"  # individual recall — only while running
+    S = "S"  # shortened course — only while running
+
+
+class PreparatoryFlag(StrEnum):
+    """The preparatory signal of the start (RRS 26, 30): decides what an OCS tap means.
+
+    Under P and I a boat over the line may return and start correctly, so the code is a
+    clearable ``OCS``; under Z, U and the black flag the penalty stands (``ZFP``, ``UFD``,
+    ``BFD``).
+    """
+
+    P = "P"
+    I = "I"  # noqa: E741 — the flag is called I
+    Z = "Z"
+    U = "U"
+    BLACK = "BLACK"
+
+    @property
+    def over_early_code(self) -> ResultCode:
+        return {
+            PreparatoryFlag.P: ResultCode.OCS,
+            PreparatoryFlag.I: ResultCode.OCS,
+            PreparatoryFlag.Z: ResultCode.ZFP,
+            PreparatoryFlag.U: ResultCode.UFD,
+            PreparatoryFlag.BLACK: ResultCode.BFD,
+        }[self]
 
 
 class Boat(Base, TimestampMixin):
@@ -87,7 +128,18 @@ class Race(Base, TimestampMixin):
     # sheets.
     sequence: Mapped[int] = mapped_column(index=True)
     status: Mapped[str] = mapped_column(String(16), default=RaceStatus.SCHEDULED)
+    # Set by the race committee's screen (Story WL-3, ``services/race_state.py``), never
+    # by result entry alone: a result recorded from the correction tab finishes a race
+    # that was never "running" here, and that is fine — ``finished_at`` is then the
+    # moment the result landed.
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # The signal currently displayed for this race (``RaceSignal``), None when nothing is
+    # up. A flag on the mast is state; its hoist is an ``AuditLog`` row.
+    signal: Mapped[str | None] = mapped_column(String(8), default=None)
+    # The preparatory flag of the start (``PreparatoryFlag``); decides which code a boat
+    # over the line at the start gets.
+    preparatory: Mapped[str] = mapped_column(String(8), default=PreparatoryFlag.P)
 
     # Optimistic lock for the race committee's offline sync.
     version: Mapped[int] = mapped_column(default=0)

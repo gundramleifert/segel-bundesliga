@@ -8,7 +8,7 @@
 import type { RaceEntryOut } from './raceEntryOut';
 
 /**
- * A single race with pairing and current result state — Story WL-2.
+ * A single race with pairing and current result state — Stories WL-2, WL-3.
  */
 export interface AdminRaceOut {
   id: number;
@@ -17,5 +17,9 @@ export interface AdminRaceOut {
   race_in_flight: number;
   status: string;
   version: number;
+  started_at?: string | null;
+  finished_at?: string | null;
+  signal?: string | null;
+  preparatory?: string;
   entries: RaceEntryOut[];
 }

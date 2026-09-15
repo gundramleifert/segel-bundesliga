@@ -60,7 +60,13 @@ async def current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     try:
-        payload = jwt.decode(credentials.credentials, _secret(), algorithms=[ALGORITHM])
+        # `leeway`: a token is checked against the clock of whatever host verifies it, and a
+        # clock that is stepped back a second by time sync (WSL2 does this) turns a token
+        # issued a moment ago into "not yet valid". Thirty seconds tolerates that and
+        # changes nothing about a genuinely expired session.
+        payload = jwt.decode(
+            credentials.credentials, _secret(), algorithms=[ALGORITHM], leeway=30
+        )
     except jwt.ExpiredSignatureError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

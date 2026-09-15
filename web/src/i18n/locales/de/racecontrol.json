@@ -1,0 +1,69 @@
+{
+  "title": "Wettfahrtleitung",
+  "loading": "Wettfahrtleitung wird geladen …",
+  "forbidden": "Dieser Bildschirm ist für die Wettfahrtleitung.",
+  "raceHeading": "Wettfahrt {{sequence}}",
+  "flightOf": "Flight {{flight}} von {{total}}",
+  "progress": "{{done}} von {{total}} Wettfahrten erledigt",
+  "previous": "Vorherige Wettfahrt",
+  "next": "Nächste Wettfahrt",
+  "backToCurrent": "Zurück zur aktuellen Wettfahrt",
+  "allDone": "Alle Wettfahrten dieses Tages sind erledigt.",
+  "noRaces": "Noch keine Pairing-Liste — zuerst auf der Verwaltungsseite auslosen.",
+  "event": {
+    "planned": "Der Spieltag hat noch nicht begonnen.",
+    "startMatchday": "Spieltag starten",
+    "startHint": "Der Start braucht eine vollständige Konfiguration und eine Pairing-Liste.",
+    "final": "Die Wettfahrten dieses Tages sind beendet.",
+    "cancelled": "Diese Veranstaltung wurde abgesagt.",
+    "manageLink": "Verwaltungsseite öffnen"
+  },
+  "status": {
+    "scheduled": "Geplant",
+    "running": "Läuft",
+    "finished": "Beendet",
+    "abandoned": "Abgebrochen"
+  },
+  "signal": {
+    "AP": "AP — verschoben",
+    "X": "X — Einzelrückruf",
+    "S": "S — Bahn verkürzt"
+  },
+  "buttons": {
+    "start": "Start",
+    "startSequence": "Startsequenz",
+    "cancelSequence": "Sequenz abbrechen",
+    "ap": "AP — verschieben",
+    "apDown": "AP nieder",
+    "x": "X — Einzelrückruf",
+    "xDown": "X nieder",
+    "shorten": "S — Bahn verkürzen",
+    "shortenDown": "S nieder",
+    "recall": "Allgemeiner Rückruf",
+    "abandonResail": "Abbrechen, später wiederholen",
+    "abandonVoid": "Abbrechen, keine Wiederholung",
+    "confirmAbandon": "Nochmal tippen zum Abbrechen",
+    "finish": "Wettfahrt beenden",
+    "correct": "Im Ergebnis-Tab korrigieren"
+  },
+  "sequence": {
+    "preparatory": "Vorbereitungssignal",
+    "startIn": "Start in {{time}}",
+    "warningIn": "Ankündigungssignal in {{time}}",
+    "hint": "5-4-1-0 nach WR 26. Der Startschuss fällt bei null von selbst; AP bricht ab."
+  },
+  "flags": {
+    "P": "P",
+    "I": "I",
+    "Z": "Z",
+    "U": "U",
+    "BLACK": "Schwarz"
+  },
+  "elapsed": "Gesegelt {{time}}",
+  "xHint": "X steht: ein Boot antippen, das über der Linie war — es bekommt {{code}}. Nochmal tippen löscht.",
+  "localHint": "Die Eingaben bleiben auf diesem Gerät, bis du die Wettfahrt beendest.",
+  "duplicateWarning": "Zwei Boote haben denselben Zielplatz.",
+  "codeLabel": "Code für {{boat}}",
+  "finishedBanner": "Wettfahrt {{sequence}} beendet.",
+  "position": "Platz {{position}}"
+}

@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { bearer } from "./session";
 
 /** Story B-5: follow live updates, in a real browser.
  *
@@ -24,13 +25,6 @@ interface AdminRace {
   entries: { boat_number: number; code: string | null }[];
 }
 
-async function committeeHeaders(api: APIRequestContext): Promise<Record<string, string>> {
-  const login = await api.post("/api/dev/login", { data: { email: COMMITTEE } });
-  expect(login.ok(), `dev login failed — is SBL_DEV_LOGIN=true?`).toBeTruthy();
-  const { access_token: token } = (await login.json()) as { access_token: string };
-  return { Authorization: `Bearer ${token}` };
-}
-
 test.describe("B-5: as a spectator I follow live updates", () => {
   test("a result entered elsewhere changes the page without a reload", async ({
     browser,
@@ -47,7 +41,7 @@ test.describe("B-5: as a spectator I follow live updates", () => {
     // The race committee, in a second browser context.
     const committee = await browser.newContext({ baseURL });
     const api = committee.request;
-    const headers = await committeeHeaders(api);
+    const headers = await bearer(api, COMMITTEE);
     const races = (await (
       await api.get(`/api/admin/events/${LIVE_EVENT}/races`, { headers })
     ).json()) as { races: AdminRace[] };

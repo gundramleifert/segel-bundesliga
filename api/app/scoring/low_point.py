@@ -20,6 +20,10 @@ DID_NOT_FINISH_CODES = frozenset(
         ResultCode.DSQ,
         ResultCode.DNE,
         ResultCode.RET,
+        # RRS A5.2: a U-flag or black-flag disqualification scores like OCS. Both stay
+        # discardable unless the sailing instructions say otherwise (A5.3).
+        ResultCode.UFD,
+        ResultCode.BFD,
     }
 )
 

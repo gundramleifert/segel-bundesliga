@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from app.schemas.public import BoatOut, TeamOut
 
@@ -109,7 +109,7 @@ class RaceEntryOut(BaseModel):
 
 
 class AdminRaceOut(BaseModel):
-    """A single race with pairing and current result state — Story WL-2."""
+    """A single race with pairing and current result state — Stories WL-2, WL-3."""
 
     id: int
     sequence: int
@@ -117,7 +117,38 @@ class AdminRaceOut(BaseModel):
     race_in_flight: int
     status: str
     version: int
+    # Set by the race committee's transitions (Story WL-3). A race finished from the
+    # correction tab without ever being started has `finished_at` and no `started_at`.
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    # The signal currently displayed: AP, X or S — None when nothing is up.
+    signal: str | None = None
+    # The preparatory flag of the start; decides what an over-early boat is scored as.
+    preparatory: str = "P"
     entries: list[RaceEntryOut]
+
+    @field_serializer("started_at", "finished_at")
+    def _utc(self, value: datetime | None) -> str | None:
+        # The columns are timezone-aware and written in UTC, but SQLite stores no zone and
+        # hands the value back naive — so the same start serialized as `…Z` from the
+        # session that wrote it and as `…` (no zone) once reloaded. One shape, always.
+        if value is None:
+            return None
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+        return value.isoformat().replace("+00:00", "Z")
+
+
+class RaceStartIn(BaseModel):
+    """What the gun needs to know: which preparatory flag was flying (RRS 26, 30)."""
+
+    preparatory: Literal["P", "I", "Z", "U", "BLACK"] = "P"
+
+
+class RaceSignalIn(BaseModel):
+    """Hoist a displayed signal, or haul it down with ``null``."""
+
+    signal: Literal["AP", "X", "S"] | None = None
 
 
 class AdminRacesOut(BaseModel):

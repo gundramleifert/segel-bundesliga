@@ -1957,7 +1957,7 @@ Acceptance criteria:
 
 Tests: none yet
 
-### WL-3 ○ Start, recall and finish races from one screen
+### WL-3 ◐ Start, recall and finish races from one screen
 As **race committee** I want **one full-screen page that shows the current race and lets me
 start it, recall it, abandon it or record its finish with a few large taps**,
 so that **on the water I handle one race at a time and never hunt through three tables**.
@@ -2049,7 +2049,18 @@ Acceptance criteria:
 Endpoints: `POST /api/admin/events/{event_id}/races/{race_id}/start`, `…/recall`,
 `…/abandon?resail=`, `…/signal`; finish is the existing `PUT …/result`.
 
-Tests: none yet
+What's done: the state machine (`app/services/race_state.py`) with the guarded PUT, the
+cleared entries, the audit-row freeze, `started_at`/`finished_at`, `Race.signal` and
+`Race.preparatory`, `UFD`/`BFD`; the page `/events/:id/race-control` with the start
+sequence, the signals, the two-tap abandon, the finish pad kept on the device until
+"Finish", and the codes below it; `FinishOrderPad`/`useFinishOrder` shared with the results
+tab. Still open: `Race.course_id` (there is no `Course` table until L-2), the detected
+finish order as a suggestion (L-2), and the day's signals AP/N over A or H, which map to
+VA-10 and are reached from the manage screen for now.
+
+Tests: `api/tests/stories/test_race_control.py`,
+`api/tests/unit/test_scoring.py::test_non_finishers_score_starters_plus_one`,
+`e2e/race-control.spec.ts::WL-3: as race committee I run one race at a time`
 
 ### WL-2 ◐ Enter and edit results easily
 As **race committee** I want to **enter and correct results easily**,

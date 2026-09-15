@@ -1065,6 +1065,14 @@ function EventPanel({
           >
             {t("manage.openResultsLink")}
           </Link>
+          {/* Story WL-3: the committee's screen on the water, a page of its own. */}
+          <Link
+            to={`/events/${event.id}/race-control`}
+            data-testid={`admin-manage-event-race-control-link-${event.id}`}
+            className="text-sm underline underline-offset-2"
+          >
+            {t("manage.openRaceControlLink")}
+          </Link>
         </div>
         {event.status !== "live" && (!ready || !hasPairing) && (
           <p className="text-sm text-slate-500">{t("manage.startNeedsHint")}</p>

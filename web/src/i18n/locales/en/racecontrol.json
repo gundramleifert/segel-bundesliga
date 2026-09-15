@@ -1,0 +1,69 @@
+{
+  "title": "Race control",
+  "loading": "Race control is loading…",
+  "forbidden": "This screen is for the race committee.",
+  "raceHeading": "Race {{sequence}}",
+  "flightOf": "Flight {{flight}} of {{total}}",
+  "progress": "{{done}} of {{total}} races done",
+  "previous": "Previous race",
+  "next": "Next race",
+  "backToCurrent": "Back to the current race",
+  "allDone": "Every race of this day is done.",
+  "noRaces": "No pairing list yet — draw one on the manage screen first.",
+  "event": {
+    "planned": "The matchday has not started yet.",
+    "startMatchday": "Start matchday",
+    "startHint": "Starting needs a complete setup and a pairing list.",
+    "final": "Racing is over for this day.",
+    "cancelled": "This event was called off.",
+    "manageLink": "Open the manage screen"
+  },
+  "status": {
+    "scheduled": "Scheduled",
+    "running": "Running",
+    "finished": "Finished",
+    "abandoned": "Abandoned"
+  },
+  "signal": {
+    "AP": "AP — postponed",
+    "X": "X — individual recall",
+    "S": "S — shortened course"
+  },
+  "buttons": {
+    "start": "Start",
+    "startSequence": "Start sequence",
+    "cancelSequence": "Cancel sequence",
+    "ap": "AP — postpone",
+    "apDown": "AP down",
+    "x": "X — individual recall",
+    "xDown": "X down",
+    "shorten": "S — shorten course",
+    "shortenDown": "S down",
+    "recall": "General recall",
+    "abandonResail": "Abandon, resail later",
+    "abandonVoid": "Abandon, no resail",
+    "confirmAbandon": "Tap again to abandon",
+    "finish": "Finish race",
+    "correct": "Correct in the results tab"
+  },
+  "sequence": {
+    "preparatory": "Preparatory flag",
+    "startIn": "Start in {{time}}",
+    "warningIn": "Warning signal in {{time}}",
+    "hint": "5-4-1-0 per RRS 26. The gun fires by itself at zero; AP cancels."
+  },
+  "flags": {
+    "P": "P",
+    "I": "I",
+    "Z": "Z",
+    "U": "U",
+    "BLACK": "Black"
+  },
+  "elapsed": "Elapsed {{time}}",
+  "xHint": "X is up: tap a boat that was over the line — it gets {{code}}. Tap again to clear.",
+  "localHint": "Taps stay on this device until you finish the race.",
+  "duplicateWarning": "Two boats have the same finish position.",
+  "codeLabel": "Code for {{boat}}",
+  "finishedBanner": "Race {{sequence}} finished.",
+  "position": "Place {{position}}"
+}

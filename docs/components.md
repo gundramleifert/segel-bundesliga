@@ -24,6 +24,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `Form.tsx` | `Section`, `Field`, `Message` |
 | `ClubSelector.tsx` | the two-pane club picker |
 | `Tabs.tsx` | `TabbedView` |
+| `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and `/club` |
 | `Layout.tsx`, `Breadcrumb.tsx` | the frame around every page (Story A-12) |
 
@@ -145,6 +146,25 @@ is a **badge, never an empty page** — TanStack keeps the last table on screen,
 says whether it is current. Show it only while something is actually live; a finished day
 with a "Live" badge is a lie, and a planned one has nothing to stream yet. The hook itself
 may stay mounted regardless, so the page hears the start.
+
+### `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps
+
+```tsx
+const order = useFinishOrder(race, standings, { onChange: (body) => save.mutate({ … data: body }) });
+<FinishChip boat={boat} teamName={team} row={order.rows[boat.number]} onTap={() => order.tap(boat.number)} />
+```
+
+Two screens record results — the results tab (WL-2, the correction screen) and the
+race-control page (WL-3, the one used on the water) — and they must not drift apart on
+what a tap means, which position comes next, or what is sent. The state is one hook; the
+chip is one component, compact in a table cell or large on the pad. The pure rules (codes,
+"complete", the redress suggestion) are `lib/results.ts`.
+
+The screens differ in *when* they write, and that is the one option: the results tab passes
+`onChange` and writes through on every change; the race-control page passes a `mirrorKey`
+instead, keeps taps in `localStorage` until "Finish", and so a mis-tap on the last boat does
+not end the race by itself. With flag X up, `tap(boat, overEarlyCode)` marks the boat over
+the line with the code the preparatory flag prescribes instead of giving it a place.
 
 ### `TabbedView` — tabs, with the selection in the URL
 

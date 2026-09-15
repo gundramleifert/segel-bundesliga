@@ -223,6 +223,7 @@
     "startedMessage": "The event is running.",
     "startNeedsHint": "Starting needs a complete setup and a pairing list — there is nothing to sail without one.",
     "openResultsLink": "Enter results",
+    "openRaceControlLink": "Race control",
     "closingTitle": "Closing",
     "closingHint": "Declaring a day over, or calling it off, is a decision by the people on site — never a date passing. Both are reversible and neither deletes anything.",
     "finishButton": "Racing is over",

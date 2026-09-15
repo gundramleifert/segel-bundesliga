@@ -20,7 +20,18 @@ def test_finish_position_is_the_score():
     assert race_points(finished(1, 3), ScoringConfig()) == 3.0
 
 
-@pytest.mark.parametrize("code", [ResultCode.DNS, ResultCode.DNF, ResultCode.OCS, ResultCode.DSQ])
+@pytest.mark.parametrize(
+    "code",
+    [
+        ResultCode.DNS,
+        ResultCode.DNF,
+        ResultCode.OCS,
+        ResultCode.DSQ,
+        # Story WL-3: a U-flag or black-flag start penalty scores like OCS (RRS A5.2).
+        ResultCode.UFD,
+        ResultCode.BFD,
+    ],
+)
 def test_non_finishers_score_starters_plus_one(code):
     result = RaceResult(race_id=1, sequence=1, starters=STARTERS, code=code)
     assert race_points(result, ScoringConfig()) == STARTERS + 1

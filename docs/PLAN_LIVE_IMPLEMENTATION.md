@@ -1,6 +1,7 @@
 # Live data on the site — implementation plan
 
-Status: **agreed plan, nothing built yet.** Written 2026-09-14 from a review of the code, of
+Status: **phases 0–2 built** (stories, SSE transport, race control — 2026-09-15); the map,
+the emulator and the analytics are next, as one goal (§9). Written 2026-09-14 from a review of the code, of
 `reference/sailing-analytics`, and of the decisions taken in discussion. Everything marked
 *verified* was read in the code or measured; everything marked *assumption* has to be
 confirmed by the step named next to it.
@@ -396,6 +397,14 @@ signals and map to VA-10, not to race state.
 ## 9. Phases, in order
 
 Each phase ends green in `scripts/check.sh` and is pushed on its own.
+
+**The goal set on 2026-09-15, after phases 0–2: simulate a whole race on a real map.** A
+short W/L course laid on the map, the start, the boats running the course with position
+*and heading* and speed, the marks, a live result while they sail, the finish detected,
+and the next race up — all driven by the emulator, all on a real map. That is phases A
+and B below pulled into one target and demonstrated end to end before any phone goes on
+a boat; D (real phones) and C (replay) follow it. Phase 2 is what its "start" and "next
+race" steps stand on.
 
 | # | Phase | Delivers | Proof |
 |---|---|---|---|

@@ -25,6 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AbandonRaceParams,
+  AdminRaceOut,
   AdminRacesOut,
   AppRoutersAuthClubUpdate,
   AppRoutersClubsClubUpdate,
@@ -94,6 +96,8 @@ import type {
   PublishResult,
   RaceResultsIn,
   RaceResultsOut,
+  RaceSignalIn,
+  RaceStartIn,
   RegisterAccount202,
   Registration,
   RolesUpdate,
@@ -3941,6 +3945,367 @@ export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces
 
 
 
+export const getStartRaceUrl = (eventId: number,
+    raceId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/races/${raceId}/start`
+}
+
+/**
+ * ``scheduled`` → ``running`` — Story WL-3.
+ *
+ * Races run one at a time: a second race cannot start while one is on the water
+ * (``race-already-running``). The body names the preparatory flag that was flying, which
+ * decides what a boat over the line at the start is scored as; ``P`` if left out. A
+ * second tap on a running race answers with the race, unchanged.
+ * @summary The gun: start a race
+ */
+export const startRace = async (eventId: number,
+    raceId: number,
+    raceStartInNull?: RaceStartIn | null, options?: RequestInit): Promise<AdminRaceOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<AdminRaceOut>(getStartRaceUrl(eventId,raceId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(raceStartInNull)
+  }
+);}
+
+
+
+
+
+export const getStartRaceMutationKey = () => ['startRace'] as const;
+
+export const getStartRaceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startRace>>, TError,StartRaceMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof startRace>>, TError,StartRaceMutationVariables, TContext> => {
+
+const mutationKey = getStartRaceMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startRace>>, StartRaceMutationVariables> = (props) => {
+          const {eventId,raceId,data} = props ?? {};
+
+          return  startRace(eventId,raceId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartRaceMutationResult = NonNullable<Awaited<ReturnType<typeof startRace>>>
+    export type StartRaceMutationBody = BodyType<RaceStartIn | null> | undefined
+    export type StartRaceMutationError = ErrorType<HTTPValidationError>
+    export type StartRaceMutationVariables = {eventId: number;raceId: number;data?: BodyType<RaceStartIn | null>}
+
+    /**
+ * @summary The gun: start a race
+ */
+export const useStartRace = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startRace>>, TError,StartRaceMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof startRace>>,
+        TError,
+        StartRaceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartRaceMutationOptions(options), queryClient);
+    }
+
+export const getRecallRaceUrl = (eventId: number,
+    raceId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/races/${raceId}/recall`
+}
+
+/**
+ * ``running`` → ``scheduled``, with every boat's result cleared — Story WL-3.
+ *
+ * The start stays on record (an audit row), so the event's configuration stays frozen
+ * even if this was the day's first race.
+ * @summary First Substitute: general recall
+ */
+export const recallRace = async (eventId: number,
+    raceId: number, options?: RequestInit): Promise<AdminRaceOut> => {
+
+  return http<AdminRaceOut>(getRecallRaceUrl(eventId,raceId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRecallRaceMutationKey = () => ['recallRace'] as const;
+
+export const getRecallRaceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recallRace>>, TError,RecallRaceMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof recallRace>>, TError,RecallRaceMutationVariables, TContext> => {
+
+const mutationKey = getRecallRaceMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recallRace>>, RecallRaceMutationVariables> = (props) => {
+          const {eventId,raceId} = props ?? {};
+
+          return  recallRace(eventId,raceId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecallRaceMutationResult = NonNullable<Awaited<ReturnType<typeof recallRace>>>
+
+    export type RecallRaceMutationError = ErrorType<HTTPValidationError>
+    export type RecallRaceMutationVariables = {eventId: number;raceId: number}
+
+    /**
+ * @summary First Substitute: general recall
+ */
+export const useRecallRace = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recallRace>>, TError,RecallRaceMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recallRace>>,
+        TError,
+        RecallRaceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecallRaceMutationOptions(options), queryClient);
+    }
+
+export const getAbandonRaceUrl = (eventId: number,
+    raceId: number,
+    params?: AbandonRaceParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/events/${eventId}/races/${raceId}/abandon?${stringifiedParams}` : `/api/admin/events/${eventId}/races/${raceId}/abandon`
+}
+
+/**
+ * ``running`` → ``scheduled`` (resail) or ``abandoned`` — Story WL-3.
+ *
+ * Either way every boat's result is cleared, which is what makes an abandoned race
+ * score nothing: scoring reads the entries, never the status.
+ * @summary N: abandon a race
+ */
+export const abandonRace = async (eventId: number,
+    raceId: number,
+    params?: AbandonRaceParams, options?: RequestInit): Promise<AdminRaceOut> => {
+
+  return http<AdminRaceOut>(getAbandonRaceUrl(eventId,raceId,params),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAbandonRaceMutationKey = () => ['abandonRace'] as const;
+
+export const getAbandonRaceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof abandonRace>>, TError,AbandonRaceMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof abandonRace>>, TError,AbandonRaceMutationVariables, TContext> => {
+
+const mutationKey = getAbandonRaceMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof abandonRace>>, AbandonRaceMutationVariables> = (props) => {
+          const {eventId,raceId,params} = props ?? {};
+
+          return  abandonRace(eventId,raceId,params,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AbandonRaceMutationResult = NonNullable<Awaited<ReturnType<typeof abandonRace>>>
+
+    export type AbandonRaceMutationError = ErrorType<HTTPValidationError>
+    export type AbandonRaceMutationVariables = {eventId: number;raceId: number;params?: AbandonRaceParams}
+
+    /**
+ * @summary N: abandon a race
+ */
+export const useAbandonRace = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof abandonRace>>, TError,AbandonRaceMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof abandonRace>>,
+        TError,
+        AbandonRaceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAbandonRaceMutationOptions(options), queryClient);
+    }
+
+export const getSetRaceSignalUrl = (eventId: number,
+    raceId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/races/${raceId}/signal`
+}
+
+/**
+ * The flag currently on the mast — Story WL-3.
+ *
+ * AP (postponed) only while the race is ``scheduled``; X (individual recall) and S
+ * (shortened course) only while it is ``running``. One at a time; ``null`` hauls it down.
+ * @summary Hoist or haul down a displayed signal (AP, X, S)
+ */
+export const setRaceSignal = async (eventId: number,
+    raceId: number,
+    raceSignalIn: RaceSignalIn, options?: RequestInit): Promise<AdminRaceOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<AdminRaceOut>(getSetRaceSignalUrl(eventId,raceId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(raceSignalIn)
+  }
+);}
+
+
+
+
+
+export const getSetRaceSignalMutationKey = () => ['setRaceSignal'] as const;
+
+export const getSetRaceSignalMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setRaceSignal>>, TError,SetRaceSignalMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setRaceSignal>>, TError,SetRaceSignalMutationVariables, TContext> => {
+
+const mutationKey = getSetRaceSignalMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setRaceSignal>>, SetRaceSignalMutationVariables> = (props) => {
+          const {eventId,raceId,data} = props ?? {};
+
+          return  setRaceSignal(eventId,raceId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetRaceSignalMutationResult = NonNullable<Awaited<ReturnType<typeof setRaceSignal>>>
+    export type SetRaceSignalMutationBody = BodyType<RaceSignalIn>
+    export type SetRaceSignalMutationError = ErrorType<HTTPValidationError>
+    export type SetRaceSignalMutationVariables = {eventId: number;raceId: number;data: BodyType<RaceSignalIn>}
+
+    /**
+ * @summary Hoist or haul down a displayed signal (AP, X, S)
+ */
+export const useSetRaceSignal = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setRaceSignal>>, TError,SetRaceSignalMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setRaceSignal>>,
+        TError,
+        SetRaceSignalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetRaceSignalMutationOptions(options), queryClient);
+    }
+
 export const getPutRaceResultUrl = (eventId: number,
     raceId: number,) => {
 
@@ -3960,6 +4325,10 @@ export const getPutRaceResultUrl = (eventId: number,
  *
  * A boat not mentioned in ``results`` keeps its current result — this also allows
  * fixing a single entry after a protest without resubmitting the whole race.
+ *
+ * Two refusals come from the race state machine (Story WL-3, ``services/race_state.py``):
+ * an ``abandoned`` race takes no result, and a ``scheduled`` race takes none while another
+ * race is running. A ``finished`` race is always correctable — the protest case.
  * @summary Enter or correct a race's result
  */
 export const putRaceResult = async (eventId: number,

@@ -31,6 +31,7 @@
   "resultsAllHint": "Alle Wettfahrten werden angezeigt — damit lässt sich ein älteres Ergebnis korrigieren.",
   "resultsShowAll": "Alle Wettfahrten anzeigen",
   "resultsShowFocused": "Nur vorherige / aktuelle / nächste anzeigen",
+  "openRaceControl": "Wettfahrtleitung",
   "raceRole": {
     "previous": "Vorherige",
     "current": "Aktuell",
@@ -65,6 +66,8 @@
     "DNS": "Nicht gestartet. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
     "DNF": "Nicht beendet. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
     "OCS": "Vorzeitig gestartet (On Course Side). Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
+    "UFD": "Disqualifikation unter Flagge U: in der letzten Minute vor dem Start über der Linie (WR 30.3). Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
+    "BFD": "Disqualifikation unter schwarzer Flagge: in der letzten Minute vor dem Start über der Linie (WR 30.4). Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
     "DSQ": "Disqualifiziert. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",
     "DNE": "Disqualifikation, nicht streichbar. Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz, und wird auch bei Streichungen nie gestrichen.",
     "RET": "Aufgegeben (Retired). Gewertet mit {{points}} Punkten (Starter + 1) — schlechter als der letzte Platz.",

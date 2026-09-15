@@ -25,7 +25,7 @@ from typing import Any
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus
+from app.models import AuditLog, Boat, Event, Flight, Race, RaceEntry, RaceStatus
 from app.pairing.catalog import CatalogError, catalog_entries, load_entry
 from app.problems import Problem
 from app.services.participation import event_entries
@@ -71,12 +71,23 @@ class FrozenConfiguration:
 
     races_started: int
     results_recorded: int
+    #: Starts the race committee has signalled, whatever the races' status is *now*
+    #: (Story WL-3): a general recall puts a race back to ``scheduled`` and clears its
+    #: entries, and without this the event would un-freeze with the fleet on the water.
+    races_started_once: int = 0
 
     def as_dict(self) -> dict[str, int]:
         return {
             "races_started": self.races_started,
             "results_recorded": self.results_recorded,
+            "races_started_once": self.races_started_once,
         }
+
+
+#: ``AuditLog.action`` of the row ``services/race_state.py`` writes for every start. Defined
+#: here rather than there because the freeze counts it and ``race_state`` imports from
+#: this package — the other direction would be a cycle.
+RACE_STARTED_ACTION = "start"
 
 
 async def event_readiness(session: AsyncSession, event: Event) -> list[ReadinessReason]:
@@ -153,9 +164,11 @@ async def configuration_frozen(
     """Whether racing has begun, so the setup must stay as it is.
 
     The trigger is precise and does not depend on ``Event.status``, which someone can set
-    by hand: **any race that has left ``scheduled``** (running, finished, abandoned) or
-    **any result already recorded**. Either one means the pairing list is being sailed, and
-    swapping boats or clubs underneath it would orphan results.
+    by hand: **any race that has left ``scheduled``** (running, finished, abandoned),
+    **any result already recorded**, or **any start ever signalled** (Story WL-3 — the
+    audit row a start writes outlives a general recall, which undoes the other two).
+    Any one means the pairing list is being sailed, and swapping boats or clubs underneath
+    it would orphan results.
 
     A redraw before the first start therefore keeps working — that is the point of drawing
     twice while the fleet is still at the dock.
@@ -179,8 +192,25 @@ async def configuration_frozen(
             )
         ).scalar_one()
     )
-    if started or recorded:
-        return FrozenConfiguration(races_started=started, results_recorded=recorded)
+    started_once = int(
+        (
+            await session.execute(
+                select(func.count(AuditLog.id)).where(
+                    AuditLog.entity_type == "race",
+                    AuditLog.action == RACE_STARTED_ACTION,
+                    AuditLog.entity_id.in_(
+                        select(Race.id)
+                        .join(Flight, Race.flight_id == Flight.id)
+                        .where(Flight.event_id == event_id)
+                    ),
+                )
+            )
+        ).scalar_one()
+    )
+    if started or recorded or started_once:
+        return FrozenConfiguration(
+            races_started=started, results_recorded=recorded, races_started_once=started_once
+        )
     return None
 
 

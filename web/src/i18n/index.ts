@@ -23,6 +23,7 @@ import eventsDe from "./locales/de/events.json";
 import helpDe from "./locales/de/help.json";
 import legalDe from "./locales/de/legal.json";
 import matchdayDe from "./locales/de/matchday.json";
+import racecontrolDe from "./locales/de/racecontrol.json";
 import sailorDe from "./locales/de/sailor.json";
 import standingsDe from "./locales/de/standings.json";
 import startDe from "./locales/de/start.json";
@@ -37,6 +38,7 @@ import eventsEn from "./locales/en/events.json";
 import helpEn from "./locales/en/help.json";
 import legalEn from "./locales/en/legal.json";
 import matchdayEn from "./locales/en/matchday.json";
+import racecontrolEn from "./locales/en/racecontrol.json";
 import sailorEn from "./locales/en/sailor.json";
 import standingsEn from "./locales/en/standings.json";
 import startEn from "./locales/en/start.json";
@@ -58,6 +60,7 @@ void i18n
         club: clubEn,
         sailor: sailorEn,
         matchday: matchdayEn,
+        racecontrol: racecontrolEn,
         account: accountEn,
         admin: adminEn,
         dev: devEn,
@@ -74,6 +77,7 @@ void i18n
         club: clubDe,
         sailor: sailorDe,
         matchday: matchdayDe,
+        racecontrol: racecontrolDe,
         account: accountDe,
         admin: adminDe,
         dev: devDe,
@@ -93,6 +97,7 @@ void i18n
       "club",
       "sailor",
       "matchday",
+      "racecontrol",
       "account",
       "admin",
       "dev",

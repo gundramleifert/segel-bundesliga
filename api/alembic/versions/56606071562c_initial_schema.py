@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 614384868b1b
+Revision ID: 56606071562c
 Revises: 
-Create Date: 2026-09-14 20:29:23.800045
+Create Date: 2026-09-15 00:25:45.462785
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '614384868b1b'
+revision: str = '56606071562c'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -394,6 +394,9 @@ def upgrade() -> None:
     sa.Column('sequence', sa.Integer(), nullable=False),
     sa.Column('status', sa.String(length=16), nullable=False),
     sa.Column('started_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('finished_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('signal', sa.String(length=8), nullable=True),
+    sa.Column('preparatory', sa.String(length=8), nullable=False),
     sa.Column('version', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
