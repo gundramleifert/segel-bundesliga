@@ -5,12 +5,17 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { MyCompetitionWaiverScope } from './myCompetitionWaiverScope';
 
-export interface SailorWaiverRow {
+/**
+ * One competition the signed-in sailor has to sign for, and where they stand.
+ */
+export interface MyCompetitionWaiver {
+  scope: MyCompetitionWaiverScope;
+  scope_id: number;
+  name: string;
+  reference_date: string;
   sailor_id: number;
-  first_name: string;
-  last_name: string;
-  club?: string | null;
   status: string;
   minor?: boolean | null;
   required_version?: number | null;

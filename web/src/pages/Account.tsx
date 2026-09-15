@@ -21,6 +21,7 @@ import type { Account as AccountData, SailorMe } from "../api/types";
 import { getToken, onTokenChange, setToken } from "../api/session";
 import { ErrorMessage, Loading, PageHeader } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
+import { Waivers } from "./AccountWaivers";
 
 /** Roles and what permissions they grant. Without this page, role switching would be invisible
  *  as long as there are no protected areas yet. */
@@ -143,6 +144,7 @@ export function Account() {
       </CardGrid>
 
       <Profile />
+      <Waivers />
       <DeleteAccount />
     </>
   );

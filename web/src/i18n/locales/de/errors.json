@@ -47,5 +47,11 @@
   "squad-sailor-in-another-club": "In dieser Serie schon für einen anderen Verein gemeldet: {{sailors}}. Eine Person tritt je Serie nur einmal an.",
   "squad-member-is-lined-up": "Schon für eine Veranstaltung aufgestellt: {{selections}}. Erst die Aufstellung ändern, dann den Kader.",
   "squad-needs-series-registration": "Ein Kader hängt an der Meldung für eine Serie, nicht am Antritt zu einer einzelnen Veranstaltung.",
-  "squad-unknown-sailor": "Einige dieser Personen gibt es nicht mehr. Bitte die Seite neu laden."
+  "squad-unknown-sailor": "Einige dieser Personen gibt es nicht mehr. Bitte die Seite neu laden.",
+  "waiver-scan-invalid-type": "Das unterschriebene Formular muss ein PDF, ein JPEG oder ein PNG sein.",
+  "waiver-scan-invalid": "Diese Datei ließ sich nicht als PDF oder Bild lesen.",
+  "waiver-scan-too-large": "Die Datei ist zu groß – höchstens 10 MB.",
+  "waiver-scan-not-needed": "Erwachsene bestätigen den Haftungsausschluss online; ein unterschriebenes Formular braucht nur, wer unter 18 ist.",
+  "waiver-scan-not-found": "Zu dieser Bestätigung liegt kein unterschriebenes Formular vor.",
+  "waiver-scan-forbidden": "Das unterschriebene Formular sehen nur die Person selbst, die Vereinsführung, der Ausrichter und die Ligaverwaltung."
 }

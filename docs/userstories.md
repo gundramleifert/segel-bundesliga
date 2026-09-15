@@ -1652,37 +1652,67 @@ Acceptance criteria:
 Tests: `api/tests/stories/test_my_clubs.py`,
 `e2e/lifecycle.spec.ts::V-12: a club manager manages their own squad`
 
-### S-1 ○ Submit liability waiver online for the season
-As a **sailor** I want to **submit the liability waiver once online for the whole season**,
-so that I **don't have to repeat it before every race**.
+### S-1 ● Submit the liability waiver for each competition I am entered in
+As a **sailor** I want to **submit the liability waiver once per series — or per event, when
+the event stands alone — from my own account**, so that I **don't have to repeat it before
+every race and know at a glance where I am still missing**.
+
+The rule: **one statement per competition.** A series confirmation covers every event of that
+series; an event that belongs to no series needs its own. Which competitions a sailor has to
+sign for follows from their squads: every series they are registered in, and every
+stand-alone event they are entered in (`GET /api/waiver/me`).
 
 Acceptance criteria:
-- Submission online, in time before the event. **A fixed deadline is not yet set** — series
-  and event each have a time range, from which it can be derived later.
-- A statement applies for the **entire season**, not per matchday.
-- The wording is shown and **version-tracked**: who confirmed which text version when must be
-  provable later. Changed text must not retroactively alter an old confirmation.
-- The person sees their own status and is reminded while missing.
+- The account page lists each of my competitions with its status — cleared, missing,
+  outdated version, waiting on the guardian's signature, or "add your date of birth first".
+  The status is computed exactly as the organizer's list computes it (`app/services/waivers.py`),
+  never a second rule.
+- **Adults confirm online.** The wording is shown in full, in the reader's language, and
+  must be actively accepted (checkbox + button). What is recorded is who, when, which
+  version, in which language, from which account — the same append-only row as S-3.
+- **Minors** (under 18 on the reference date) cannot confirm by their own click. The page
+  offers instead:
+  1. **Download the form** (`GET /api/waiver/form?scope=…&scope_id=…&sailor_id=…&locale=…`)
+     — a PDF with the wording in force, the sailor's name and date of birth, the
+     competition, and signature lines for the guardian. Built with reportlab from the
+     versioned text, so the paper always matches the version being confirmed.
+  2. **Upload the signed scan** (`POST /api/series/{id}/waiver/scan`,
+     `POST /api/events/{id}/waiver/scan`; multipart: `file`, `guardian_name`) — PDF, JPEG or
+     PNG, at most 10 MB. This creates the `guardian` confirmation (or completes one whose
+     name was recorded first) and clears the sailor; a second upload replaces the file and
+     is logged as such.
+  Uploading a scan for an adult is refused (`/errors/waiver-scan-not-needed`): an adult's
+  own click is their statement, and the scan path stays what it is for — a signature the
+  site cannot collect online.
+- The date of birth decides the path. Unknown, the page says so and points at the profile
+  form above it, where the sailor enters it themselves (S-2).
+- Whoever may record a confirmation (S-3) may also upload a scan and download a form for
+  that sailor: the sailor's own account, `admin`, `editor`, `club_manager`. So a club
+  manager can hand in the paper forms their club collected.
 
-**Minors:** The statement needs the signature of a guardian. Since that is not given digitally,
-there is an **upload for the scan** of the signed statement (image or PDF). Only with the scan
-present is the statement considered submitted; it is then confirmed like everyone else via
-VA-5.
+**The scan is the most sensitive document in the whole project**: it contains data on a
+minor and a signature. Therefore:
 
-The scan is the **most sensitive document in the whole project**: it contains data on a minor
-and a signature. Therefore:
+- **Stored** under `uploads/waivers/` with a random file name that only the confirmation
+  row knows (`guardian_signature_ref = "upload:<uuid>.<ext>"`), served by exactly one
+  endpoint, `GET /api/waiver/confirmations/{id}/scan`, which checks access on every
+  request — the sailor themselves, `admin`, `editor`, the leadership of the sailor's club,
+  and the organizer of the event (the host's `club_manager`, `race_officer`). Never a static
+  path, never public, never guessable.
+- **Every retrieval is logged** as an `AuditLog` row (`waiver_scan` / `viewed`, with the
+  actor), as is every upload and replacement.
+- **Deletion after the season** is not built yet — see Open.
 
-- visible only to the person affected, their club, and the organizer — never public, never
-  retrievable via a guessable address;
-- deletion deadline after season end, established and implemented, not just promised;
-- every retrieval is logged.
-
-Open: Does digital confirmation for adults meet the insurer's and league's requirements? If
-not, everyone needs the scan path.
+Open: whether an authenticated online confirmation meets the insurer's and league's
+requirements for adults (`docs/findings.md` §6). If not, the upload path is opened for
+adults by dropping one check. The deletion deadline for scans after season end is
+specified but not implemented; it needs the season's end date, which a series has and a
+stand-alone event has, and a job that nobody has written.
 
 Built on top of the versioned confirmation mechanism — see [S-3](#s-3--confirm-a-waiver-version-for-a-series-or-event).
 
-Tests: none yet
+Tests: `api/tests/stories/test_waiver.py::TestSelfService`,
+`api/tests/stories/test_waiver.py::TestScans`, `e2e/waiver.spec.ts`
 
 ### S-3 ● Confirm a waiver version for a series or event
 As a **sailor** (or an admin/club manager acting for one) I want to **confirm one specific
@@ -1707,8 +1737,9 @@ Acceptance criteria:
 its year):
 - An online self-confirmation is **not enough** (`/errors/guardian-confirmation-needed`).
 - The confirmation is recorded as `guardian` with the guardian's **name** and a reference to
-  the **signed statement** (`guardian_signature_ref` — a URL, an object key, or a note;
-  file storage itself is still open, see below). The name may be recorded first and the
+  the **signed statement** (`guardian_signature_ref` — an uploaded scan is
+  `upload:<uuid>.<ext>` under `uploads/waivers/`, see S-1; a paper form kept elsewhere is a
+  free note like "office folder #42"). The name may be recorded first and the
   scan reference attached later — until it is present the sailor is not cleared
   (`guardian_signature_missing`).
 - If the sailor's **date of birth is unknown**, confirmation is refused
@@ -1731,7 +1762,8 @@ so that I **don't have to collect anything on event day**.
 Acceptance criteria:
 - List of all people in the participating squads with their status: cleared, missing,
   outdated version, or (for a minor) waiting on the guardian's signature. **Built** —
-  `GET /api/admin/events/{event_id}/waivers` (see [S-3](#s-3--confirm-a-waiver-version-for-a-series-or-event)).
+  `GET /api/admin/events/{event_id}/waivers` (see [S-3](#s-3--confirm-a-waiver-version-for-a-series-or-event)),
+  shown on the event's admin panel with a link to a minor's uploaded scan (S-1).
 - Who is not cleared cannot be registered for a matchday — the lock applies in Story V-2,
   not on the water. **Not yet wired** into the V-2 lineup check.
 - Every confirmation is logged: who, when. **Built** — the confirmation row records it.
@@ -1739,7 +1771,8 @@ Acceptance criteria:
 Access: the event's host-club leadership, plus `admin`, `editor`, `race_officer`. No fifth
 role was added — the on-site organizer is a `race_officer` or the host `club_manager`.
 
-Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list)
+Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list),
+`e2e/waiver.spec.ts` (the organizer's panel)
 
 ### V-2 ● Select sailors for matchday
 As a **club manager** I want to **name the four sailors for a matchday in advance**,
@@ -2343,17 +2376,18 @@ Tests: `api/tests/unit/test_tracking_contract.py`,
 Sensible next areas:
 
 - **A-…** Administration: set up seasons and leagues, maintain venues.
-- **File storage — decided for S-2 and V-3, still open for S-1.** Three stories need
+- **File storage — decided for S-1, S-2 and V-3.** Three stories need
   uploads: the scan of the consent (S-1), member photo (S-2), and club crest (V-3). S-2
-  and V-3 now use a local directory (`api/uploads/sailors/{id}.jpg`,
+  and V-3 use a local directory (`api/uploads/sailors/{id}.jpg`,
   `api/uploads/clubs/{id}.png`; deterministic path, no database column, access control per
   request in `app/routers/sailors.py` and `app/routers/clubs.py`) — see their sections
   above for the reasoning, including why a crest keeps its alpha channel where a photo does
-  not. Still to be decided before S-1 is built, since a
-  consent scan is far more sensitive than a photo: local directory or S3-compatible
-  storage, size and type limits, virus scanning, and retention. **Access control differs
-  per story** — a crest and most photos are public, the scan from S-1 on no account —
-  which already rules out one shared static path for all three.
+  not. S-1 uses the same local directory (`api/uploads/waivers/`) but a **random file
+  name** known only to the confirmation row, one serving endpoint that checks access and
+  logs every retrieval, and type/size limits (PDF, JPEG, PNG; 10 MB). **Access control
+  differs per story** — a crest and most photos are public, the scan from S-1 on no
+  account — which is why the three never share a static path. Still open: virus scanning
+  and the retention job, and S3-compatible storage once the site leaves one machine.
 - **Deadlines:** deliberately left out for now. Series and event each have a **time range**
   (`starts_on`, `ends_on`); a deadline concept is derived from this if it becomes clear what
   is needed.

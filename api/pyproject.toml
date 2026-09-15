@@ -18,6 +18,7 @@ dependencies = [
     "argon2-cffi>=25.1.0",
     "pillow>=12.3.0",
     "python-multipart>=0.0.32",
+    "reportlab>=5.0.1",
 ]
 
 [dependency-groups]

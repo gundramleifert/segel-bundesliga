@@ -398,3 +398,292 @@ class TestProblemFormat:
         body = response.json()
         assert body["type"] == "/errors/validation"
         assert isinstance(body["detail"], list)
+
+
+# ------------------------------------------------------------------ Story S-1: self-service
+
+
+def _png() -> bytes:
+    """A real, tiny PNG — the upload is decoded, so the bytes have to be an image."""
+    import io
+
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (4, 4), "white").save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+async def _club_of(sailor_id: int) -> int:
+    async with SessionLocal() as session:
+        return (
+            await session.execute(
+                select(Team.club_id)
+                .join(TeamMembership, TeamMembership.team_id == Team.id)
+                .where(TeamMembership.sailor_id == sailor_id)
+                .limit(1)
+            )
+        ).scalar_one()
+
+
+def _mine(response, scope: str, scope_id: int) -> dict:
+    assert response.status_code == 200, response.text
+    return next(
+        r
+        for r in response.json()["competitions"]
+        if r["scope"] == scope and r["scope_id"] == scope_id
+    )
+
+
+class TestSelfService:
+    """Story S-1: a sailor sees, from their own account, what they still have to sign."""
+
+    async def test_my_list_names_every_competition_i_must_sign_for(self, client, caplog, ids):
+        sailor_id, email = await _squad_sailor("dsbl-1-2026", offset=60)
+        me = await _account_for(client, caplog, email)
+
+        response = await client.get("/api/waiver/me", headers=me)
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["sailor_id"] == sailor_id
+        assert body["required_version"] == 1
+        assert body["birth_date_known"] is True
+
+        row = _mine(response, "series", ids.series("dsbl-1-2026"))
+        assert row["status"] == "missing"
+        assert row["minor"] is False
+        assert row["name"].startswith("1.")
+        # Only competitions this sailor is entered in: no juniors series, no other league.
+        assert {r["scope_id"] for r in body["competitions"] if r["scope"] == "series"} == {
+            ids.series("dsbl-1-2026")
+        }
+
+    async def test_an_adult_confirms_online_from_their_own_account(self, client, caplog, ids):
+        sailor_id, email = await _squad_sailor("dsbl-1-2026", offset=63)
+        me = await _account_for(client, caplog, email)
+        series_id = ids.series("dsbl-1-2026")
+
+        confirmed = await client.post(
+            f"/api/series/{series_id}/waiver",
+            headers=me,
+            json={"sailor_id": sailor_id, "locale_shown": "de"},
+        )
+        assert confirmed.status_code == 201, confirmed.text
+
+        row = _mine(await client.get("/api/waiver/me", headers=me), "series", series_id)
+        assert row["status"] == "cleared"
+        assert row["method"] == "online"
+        assert row["confirmed_version"] == 1
+        assert row["scan_available"] is False
+
+    async def test_without_a_sailor_record_there_is_nothing_to_sign(self, client, caplog):
+        me = await _account_for(client, caplog, "wv-nobody@example.com")
+        response = await client.get("/api/waiver/me", headers=me)
+        assert response.status_code == 404
+        assert response.json()["type"] == "/errors/no-linked-sailor-record"
+
+    async def test_a_minor_is_told_the_guardian_has_to_sign(self, client, caplog, ids):
+        sailor_id, email = await _squad_sailor("junioren-2026", offset=30)
+        me = await _account_for(client, caplog, email)
+        row = _mine(
+            await client.get("/api/waiver/me", headers=me), "series", ids.series("junioren-2026")
+        )
+        assert row["status"] == "missing"
+        assert row["minor"] is True
+        assert row["sailor_id"] == sailor_id
+
+    async def test_the_form_is_a_pdf_carrying_the_sailor_and_the_wording(
+        self, client, caplog, ids
+    ):
+        sailor_id, email = await _squad_sailor("junioren-2026", offset=33)
+        me = await _account_for(client, caplog, email)
+        async with SessionLocal() as session:
+            sailor = (
+                await session.execute(select(Sailor).where(Sailor.id == sailor_id))
+            ).scalar_one()
+            first, last = sailor.first_name, sailor.last_name
+
+        response = await client.get(
+            "/api/waiver/form",
+            headers=me,
+            params={
+                "scope": "series",
+                "scope_id": ids.series("junioren-2026"),
+                "sailor_id": sailor_id,
+                "locale": "de",
+            },
+        )
+        assert response.status_code == 200, response.text
+        assert response.headers["content-type"] == "application/pdf"
+        assert "attachment" in response.headers["content-disposition"]
+        assert response.content.startswith(b"%PDF")
+        # The content stream is left uncompressed so the paper can be checked by eye here:
+        # the sailor's name and the German title are on it.
+        assert first.encode("latin-1") in response.content
+        assert last.encode("latin-1") in response.content
+        assert b"Haftungsausschluss" in response.content
+
+    async def test_a_stranger_gets_no_form_for_someone_else(self, client, caplog, ids):
+        sailor_id, _ = await _squad_sailor("junioren-2026", offset=33)
+        stranger = await _account_for(client, caplog, "wv-stranger@example.com")
+        response = await client.get(
+            "/api/waiver/form",
+            headers=stranger,
+            params={
+                "scope": "series",
+                "scope_id": ids.series("junioren-2026"),
+                "sailor_id": sailor_id,
+            },
+        )
+        assert response.status_code == 403
+        assert response.json()["type"] == "/errors/waiver-confirmation-forbidden"
+
+
+class TestScans:
+    """Story S-1: the guardian's signed form is uploaded, guarded, and every look is logged."""
+
+    async def _upload(self, client, headers, series_id, sailor_id, **fields):
+        data = {"sailor_id": str(sailor_id), "guardian_name": "R. Ver (parent)"}
+        data.update({k: str(v) for k, v in fields.items()})
+        return await client.post(
+            f"/api/series/{series_id}/waiver/scan",
+            headers=headers,
+            data=data,
+            files={"file": ("signed.png", _png(), "image/png")},
+        )
+
+    async def test_a_guardians_scan_clears_a_minor(self, client, caplog, ids):
+        sailor_id, email = await _squad_sailor("junioren-2026", offset=36)
+        me = await _account_for(client, caplog, email)
+        series_id = ids.series("junioren-2026")
+
+        uploaded = await self._upload(client, me, series_id, sailor_id)
+        assert uploaded.status_code == 201, uploaded.text
+        body = uploaded.json()
+        assert body["cleared"] is True
+        assert body["method"] == "guardian"
+        assert body["guardian_name"] == "R. Ver (parent)"
+
+        row = _mine(await client.get("/api/waiver/me", headers=me), "series", series_id)
+        assert row["status"] == "cleared"
+        assert row["scan_available"] is True
+        assert row["confirmation_id"] == body["id"]
+
+        scan = await client.get(f"/api/waiver/confirmations/{body['id']}/scan", headers=me)
+        assert scan.status_code == 200, scan.text
+        assert scan.headers["content-type"] == "image/png"
+        assert scan.content == _png()
+
+    async def test_a_scan_completes_a_confirmation_whose_name_came_first(
+        self, client, caplog, ids
+    ):
+        admin = await _admin(client, caplog)
+        sailor_id, email = await _squad_sailor("junioren-2026", offset=39)
+        series_id = ids.series("junioren-2026")
+
+        named = await client.post(
+            f"/api/series/{series_id}/waiver",
+            headers=admin,
+            json={"sailor_id": sailor_id, "method": "guardian", "guardian_name": "R. Ver"},
+        )
+        assert named.status_code == 201, named.text
+        assert named.json()["cleared"] is False
+
+        me = await _account_for(client, caplog, email)
+        uploaded = await self._upload(client, me, series_id, sailor_id)
+        assert uploaded.status_code == 201, uploaded.text
+        assert uploaded.json()["id"] == named.json()["id"]
+        assert uploaded.json()["cleared"] is True
+
+    async def test_only_a_real_document_is_accepted(self, client, caplog, ids):
+        sailor_id, email = await _squad_sailor("junioren-2026", offset=42)
+        me = await _account_for(client, caplog, email)
+        series_id = ids.series("junioren-2026")
+
+        text = await client.post(
+            f"/api/series/{series_id}/waiver/scan",
+            headers=me,
+            data={"sailor_id": str(sailor_id), "guardian_name": "R. Ver"},
+            files={"file": ("notes.txt", b"hello", "text/plain")},
+        )
+        assert text.status_code == 422
+        assert text.json()["type"] == "/errors/waiver-scan-invalid-type"
+
+        fake = await client.post(
+            f"/api/series/{series_id}/waiver/scan",
+            headers=me,
+            data={"sailor_id": str(sailor_id), "guardian_name": "R. Ver"},
+            files={"file": ("signed.png", b"not really a png", "image/png")},
+        )
+        assert fake.status_code == 422
+        assert fake.json()["type"] == "/errors/waiver-scan-invalid"
+
+        nameless = await client.post(
+            f"/api/series/{series_id}/waiver/scan",
+            headers=me,
+            data={"sailor_id": str(sailor_id)},
+            files={"file": ("signed.png", _png(), "image/png")},
+        )
+        assert nameless.status_code == 422
+        assert nameless.json()["type"] == "/errors/guardian-name-required"
+
+        # Nothing was recorded by the refused attempts.
+        row = _mine(await client.get("/api/waiver/me", headers=me), "series", series_id)
+        assert row["status"] == "missing"
+
+    async def test_an_adult_does_not_upload_a_scan(self, client, caplog, ids):
+        sailor_id, email = await _squad_sailor("dsbl-1-2026", offset=66)
+        me = await _account_for(client, caplog, email)
+        response = await self._upload(client, me, ids.series("dsbl-1-2026"), sailor_id)
+        assert response.status_code == 422
+        assert response.json()["type"] == "/errors/waiver-scan-not-needed"
+
+    async def test_the_scan_is_shown_only_to_connected_accounts_and_every_look_is_logged(
+        self, client, caplog, ids
+    ):
+        from app.models import AuditLog
+
+        sailor_id, email = await _squad_sailor("junioren-2026", offset=45)
+        me = await _account_for(client, caplog, email)
+        series_id = ids.series("junioren-2026")
+        confirmation_id = (await self._upload(client, me, series_id, sailor_id)).json()["id"]
+        url = f"/api/waiver/confirmations/{confirmation_id}/scan"
+
+        async def logged() -> int:
+            async with SessionLocal() as session:
+                return len(
+                    (
+                        await session.execute(
+                            select(AuditLog).where(
+                                AuditLog.entity_type == "waiver_scan",
+                                AuditLog.entity_id == confirmation_id,
+                                AuditLog.action == "viewed",
+                            )
+                        )
+                    ).scalars().all()
+                )
+
+        before = await logged()
+
+        stranger = await _account_for(client, caplog, "wv-peeper@example.com")
+        denied = await client.get(url, headers=stranger)
+        assert denied.status_code == 403
+        assert denied.json()["type"] == "/errors/waiver-scan-forbidden"
+
+        await make_user("wv-otherclub@example.com", Role.CLUB_MANAGER, club_id=ids.club("nrv"))
+        other_club = auth_headers(await login_as(client, "wv-otherclub@example.com", caplog))
+        assert (await client.get(url, headers=other_club)).status_code == 403
+
+        own_club = await _club_of(sailor_id)
+        await make_user("wv-ownclub@example.com", Role.CLUB_MANAGER, club_id=own_club)
+        leadership = auth_headers(await login_as(client, "wv-ownclub@example.com", caplog))
+        assert (await client.get(url, headers=leadership)).status_code == 200
+
+        admin = await _admin(client, caplog)
+        assert (await client.get(url, headers=admin)).status_code == 200
+
+        # Two successful retrievals, two log rows — the refusals are not "views".
+        assert await logged() == before + 2
+
+        anonymous = await client.get(url)
+        assert anonymous.status_code == 401

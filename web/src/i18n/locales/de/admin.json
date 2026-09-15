@@ -252,6 +252,25 @@
     "liveInternal": "interne Karte",
     "saveLiveButton": "Live-Ansicht speichern",
     "liveSavedExternal": "Live-Links führen jetzt zur externen Ansicht.",
-    "liveSavedInternal": "Die interne Karte ist wieder die Live-Ansicht."
+    "liveSavedInternal": "Die interne Karte ist wieder die Live-Ansicht.",
+    "waiversTitle": "Haftungsausschlüsse",
+    "waiversHint": "Alle Personen der gemeldeten Kader und ob ihr Haftungsausschluss vorliegt – eine Bestätigung für die Serie zählt auch für diese Veranstaltung. Am Steg wird nichts unterschrieben: Die Segler erledigen es auf ihrer Kontoseite, Minderjährige laden das unterschriebene Formular hoch.",
+    "waiversLoadingText": "Check-in-Liste wird geladen…",
+    "waiversEmpty": "Noch keine Kader gemeldet.",
+    "waiversSummary": "{{cleared}} erledigt, {{outstanding}} offen (Fassung {{version}})",
+    "waiversNoVersion": "Es ist noch kein Text veröffentlicht.",
+    "waiverColSailor": "Seglerin / Segler",
+    "waiverColClub": "Verein",
+    "waiverColStatus": "Status",
+    "waiverMinor": "unter 18",
+    "waiverOpenScan": "Unterschriebenes Formular öffnen",
+    "waiverStatus": {
+      "cleared": "Erledigt",
+      "missing": "Fehlt",
+      "version_outdated": "Veraltete Fassung",
+      "guardian_signature_missing": "Formular der Eltern fehlt",
+      "birth_date_unknown": "Geburtsdatum unbekannt",
+      "not_required": "Nicht erforderlich"
+    }
   }
 }

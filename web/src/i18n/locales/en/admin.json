@@ -252,6 +252,25 @@
     "liveInternal": "internal map",
     "saveLiveButton": "Save live view",
     "liveSavedExternal": "Live links now lead to the external view.",
-    "liveSavedInternal": "The internal map is the live view again."
+    "liveSavedInternal": "The internal map is the live view again.",
+    "waiversTitle": "Liability waivers",
+    "waiversHint": "Everyone in the participating squads and whether their waiver is on file — a series confirmation counts for this event too. Nothing is signed on the dock: the sailors do it from their own account page, minors upload the guardian's signed form.",
+    "waiversLoadingText": "Loading the check-in list…",
+    "waiversEmpty": "No squads are entered yet.",
+    "waiversSummary": "{{cleared}} cleared, {{outstanding}} outstanding (version {{version}})",
+    "waiversNoVersion": "No waiver text has been published yet.",
+    "waiverColSailor": "Sailor",
+    "waiverColClub": "Club",
+    "waiverColStatus": "Status",
+    "waiverMinor": "under 18",
+    "waiverOpenScan": "Open the signed form",
+    "waiverStatus": {
+      "cleared": "Cleared",
+      "missing": "Missing",
+      "version_outdated": "Outdated version",
+      "guardian_signature_missing": "Guardian's form missing",
+      "birth_date_unknown": "Date of birth unknown",
+      "not_required": "Not required"
+    }
   }
 }

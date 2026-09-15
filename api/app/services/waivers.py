@@ -10,14 +10,26 @@ Kept out of the router because two questions need answering in more than one pla
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 from datetime import date, datetime
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Event, Sailor, Series, WaiverConfirmation, WaiverText
+from app.config import settings
+from app.models import (
+    Event,
+    Sailor,
+    Series,
+    Team,
+    TeamMembership,
+    TeamStatus,
+    WaiverConfirmation,
+    WaiverText,
+)
 
 MAJORITY_AGE = 18
 
@@ -89,6 +101,11 @@ class SailorWaiver:
     confirmed_version: int | None = None
     confirmed_at: datetime | None = None
     method: str | None = None
+    # The row the status was read from — what a scan upload completes, and what the
+    # scan endpoint is addressed by. ``None`` when nothing was ever confirmed.
+    confirmation_id: int | None = None
+    guardian_name: str | None = None
+    scan_available: bool = False
 
 
 def _judge(
@@ -116,6 +133,9 @@ def _judge(
                 confirmed_version=latest.waiver_text.version,
                 confirmed_at=latest.confirmed_at,
                 method=latest.method,
+                confirmation_id=latest.id,
+                guardian_name=latest.guardian_name,
+                scan_available=scan_path(latest.guardian_signature_ref) is not None,
             )
         return SailorWaiver(**base, status=STATUS_MISSING)
 
@@ -124,6 +144,9 @@ def _judge(
         confirmed_version=required.version,
         confirmed_at=chosen.confirmed_at,
         method=chosen.method,
+        confirmation_id=chosen.id,
+        guardian_name=chosen.guardian_name,
+        scan_available=scan_path(chosen.guardian_signature_ref) is not None,
     )
 
     if minor is None:
@@ -177,3 +200,148 @@ async def event_waiver_status(
         )
         for sid in sailor_ids
     }
+
+
+async def series_waiver_status(
+    session: AsyncSession, series: Series, sailor: Sailor
+) -> SailorWaiver:
+    """Clearance of one sailor for a series — only series-scoped confirmations count.
+
+    An event confirmation covers that event alone, so it never clears the series; the
+    organizer's per-event list (`event_waiver_status`) is where it shows up.
+    """
+    required = await current_waiver_text(session)
+    rows = (
+        await session.execute(
+            select(WaiverConfirmation)
+            .options(selectinload(WaiverConfirmation.waiver_text))
+            .where(
+                WaiverConfirmation.sailor_id == sailor.id,
+                WaiverConfirmation.series_id == series.id,
+            )
+        )
+    ).scalars().all()
+    return _judge(
+        sailor_id=sailor.id,
+        minor=is_minor(sailor.birth_date, series_reference_date(series)),
+        required=required,
+        confirmations=list(rows),
+    )
+
+
+# ---------------------------------------------------------------- What must I sign?
+
+
+@dataclass
+class Competition:
+    """One thing a sailor has to sign for: a series, or an event that belongs to none."""
+
+    scope: str
+    scope_id: int
+    name: str
+    reference_date: date
+    series: Series | None = None
+    event: Event | None = None
+
+
+async def sailor_competitions(session: AsyncSession, sailor: Sailor) -> list[Competition]:
+    """Every competition this sailor is entered in — the list on their account page.
+
+    Series squads first (``Team.event_id`` empty, Story V-1), newest year first, then
+    stand-alone events they are entered in directly. An event *within* a series is never
+    listed on its own: the series confirmation covers it, and listing both would ask the
+    same person for the same signature twice.
+    """
+    memberships = (
+        select(Team).join(TeamMembership, TeamMembership.team_id == Team.id).where(
+            TeamMembership.sailor_id == sailor.id, Team.status == TeamStatus.ACCEPTED
+        )
+    )
+    series_rows = (
+        await session.execute(
+            select(Series)
+            .where(
+                Series.id.in_(
+                    memberships.with_only_columns(Team.series_id).where(
+                        Team.event_id.is_(None)
+                    )
+                )
+            )
+            .order_by(Series.year.desc(), Series.name)
+        )
+    ).scalars().all()
+    event_rows = (
+        await session.execute(
+            select(Event)
+            .where(
+                Event.id.in_(
+                    memberships.with_only_columns(Team.event_id).where(
+                        Team.series_id.is_(None)
+                    )
+                )
+            )
+            .order_by(Event.starts_on.desc(), Event.title)
+        )
+    ).scalars().all()
+    return [
+        Competition("series", s.id, s.name, series_reference_date(s), series=s)
+        for s in series_rows
+    ] + [
+        Competition("event", e.id, e.title, event_reference_date(e), event=e)
+        for e in event_rows
+    ]
+
+
+# ---------------------------------------------------------------- The scan on file
+
+# A `guardian_signature_ref` that names an uploaded file rather than a paper folder.
+SCAN_REF_PREFIX = "upload:"
+SCAN_MEDIA_TYPES = {
+    "application/pdf": "pdf",
+    "image/jpeg": "jpg",
+    "image/png": "png",
+}
+SCAN_MAX_BYTES = 10 * 1024 * 1024
+
+
+def _scan_dir() -> Path:
+    directory = Path(settings.uploads_dir) / "waivers"
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+def scan_path(ref: str | None) -> Path | None:
+    """Where an uploaded scan lives, or ``None`` when the reference is a note or absent.
+
+    The name is a UUID the confirmation row alone knows — a client never learns it, and
+    the only way to the bytes is `GET /api/waiver/confirmations/{id}/scan`, which checks
+    who is asking and logs the look (Story S-1). Missing file: ``None`` as well, so a
+    row whose file was cleaned up reads as "no scan" instead of a 500.
+    """
+    if not ref or not ref.startswith(SCAN_REF_PREFIX):
+        return None
+    name = ref[len(SCAN_REF_PREFIX) :]
+    if "/" in name or "\\" in name or name.startswith("."):
+        return None
+    path = _scan_dir() / name
+    return path if path.is_file() else None
+
+
+def scan_media_type(ref: str) -> str:
+    suffix = ref.rsplit(".", 1)[-1]
+    return next(
+        (m for m, ext in SCAN_MEDIA_TYPES.items() if ext == suffix), "application/octet-stream"
+    )
+
+
+def store_scan(raw: bytes, media_type: str) -> str:
+    """Writes a validated scan and returns its ``guardian_signature_ref``."""
+    name = f"{uuid.uuid4().hex}.{SCAN_MEDIA_TYPES[media_type]}"
+    (_scan_dir() / name).write_bytes(raw)
+    return SCAN_REF_PREFIX + name
+
+
+def discard_scan(ref: str | None) -> None:
+    path = scan_path(ref)
+    if path is not None:
+        path.unlink(missing_ok=True)

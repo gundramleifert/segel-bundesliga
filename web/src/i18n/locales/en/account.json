@@ -69,5 +69,42 @@
     "confirmButton": "Yes, delete permanently",
     "cancelButton": "Cancel",
     "deleting": "Deleting…"
+  },
+  "waiver": {
+    "title": "Liability waiver",
+    "description": "One statement per series — or per event, when the event belongs to no series. It covers every matchday of that competition; a new wording asks for a new confirmation.",
+    "none": "You are not entered in any competition yet, so there is nothing to sign.",
+    "forCompetition": "Reference date {{date}}",
+    "status": {
+      "cleared": "Cleared",
+      "missing": "Not yet confirmed",
+      "version_outdated": "New wording — please confirm again",
+      "guardian_signature_missing": "Waiting for the guardian's signed form",
+      "birth_date_unknown": "Date of birth missing",
+      "not_required": "No waiver published"
+    },
+    "confirmedOn": "Version {{version}}, confirmed {{date}}",
+    "methodOnline": "online",
+    "methodGuardian": "signed by {{name}}",
+    "viewScan": "Open the uploaded form",
+    "needBirthDate": "Enter your date of birth in the profile above first — it decides whether you confirm online or a parent has to sign.",
+    "adult": {
+      "read": "Read and confirm",
+      "hide": "Hide the text",
+      "agree": "I have read the statement above and agree to it for this competition.",
+      "confirm": "Confirm",
+      "confirming": "Confirming…",
+      "done": "Thank you — your confirmation is recorded."
+    },
+    "minor": {
+      "explain": "You are under 18 on the reference date, so a parent or legal guardian has to sign. Download the form, have it signed, and upload a photo or scan of it here (PDF, JPEG or PNG, up to 10 MB).",
+      "download": "Download the form (PDF)",
+      "downloading": "Preparing…",
+      "guardianName": "Name of the parent or guardian who signed",
+      "upload": "Upload the signed form",
+      "replace": "Upload a new scan",
+      "uploading": "Uploading…",
+      "done": "The signed form is on file — you are cleared."
+    }
   }
 }

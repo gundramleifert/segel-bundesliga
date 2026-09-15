@@ -47,5 +47,11 @@
   "squad-sailor-in-another-club": "Already sailing for another club in this series: {{sailors}}. A person competes only once per series.",
   "squad-member-is-lined-up": "Already lined up for a matchday: {{selections}}. Change the lineup first, then the squad.",
   "squad-needs-series-registration": "A squad belongs to a series registration, not to an entry in a single event.",
-  "squad-unknown-sailor": "Some of these people no longer exist. Reload the page."
+  "squad-unknown-sailor": "Some of these people no longer exist. Reload the page.",
+  "waiver-scan-invalid-type": "The signed form must be a PDF, a JPEG or a PNG.",
+  "waiver-scan-invalid": "This file could not be read as a PDF or image.",
+  "waiver-scan-too-large": "The file is too large — at most 10 MB.",
+  "waiver-scan-not-needed": "An adult confirms the waiver online; a signed form is only needed for a sailor under 18.",
+  "waiver-scan-not-found": "No signed form is on file for this confirmation.",
+  "waiver-scan-forbidden": "The signed form is shown only to the sailor, their club's leadership, the event organizer and the league office."
 }

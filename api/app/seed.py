@@ -169,7 +169,7 @@ async def seed() -> None:
                 version=1,
                 title_en="Liability waiver and assumption of risk",
                 body_en=(
-                    "I take part in the Sailing Bundesliga at my own risk. I confirm that "
+                    "I take part in this competition at my own risk. I confirm that "
                     "I am medically fit to sail, can swim, and will wear a personal "
                     "flotation device on the water. I am responsible for deciding whether "
                     "to start or continue in the prevailing conditions (RRS 3). Neither "
@@ -181,7 +181,7 @@ async def seed() -> None:
                 ),
                 title_de="Haftungsausschluss und Risikoübernahme",
                 body_de=(
-                    "Ich nehme auf eigenes Risiko an der Segel-Bundesliga teil. Ich "
+                    "Ich nehme auf eigenes Risiko an dieser Veranstaltung teil. Ich "
                     "bestätige, dass ich segeltauglich bin, schwimmen kann und auf dem "
                     "Wasser eine Rettungsweste trage. Die Entscheidung über Start und "
                     "Fortsetzung der Wettfahrt bei den herrschenden Bedingungen liegt bei "

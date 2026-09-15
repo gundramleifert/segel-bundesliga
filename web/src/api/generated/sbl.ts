@@ -34,7 +34,9 @@ import type {
   ApplicationDecision,
   ApplicationOut,
   BodyUploadClubLogo,
+  BodyUploadEventWaiverScan,
   BodyUploadMyPhoto,
+  BodyUploadSeriesWaiverScan,
   CatalogEntryOut,
   ClubAdminOut,
   ClubCreate,
@@ -85,6 +87,7 @@ import type {
   MembershipOut,
   MembershipRequest,
   MyClubOut,
+  MyWaivers,
   NetworkProbeOut,
   NetworkProbeParams,
   OidcLogin,
@@ -134,6 +137,7 @@ import type {
   UserCreate,
   UserOut,
   WaiverConfirmationOut,
+  WaiverFormParams,
   WaiverTextCreate,
   WaiverTextOut
 } from './model';
@@ -8875,6 +8879,223 @@ export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrent
 
 
 
+export const getMyWaiversUrl = () => {
+
+
+
+
+  return `/api/waiver/me`
+}
+
+/**
+ * Story S-1: the account page's list — one row per series the sailor is registered
+ * in and per stand-alone event they are entered in, each with the same status the
+ * organizer's list would show. 404 `no-linked-sailor-record` when the account has no
+ * sailor, exactly as the profile does.
+ * @summary What I have to sign, and where I stand
+ */
+export const myWaivers = async ( options?: RequestInit): Promise<MyWaivers> => {
+
+  return http<MyWaivers>(getMyWaiversUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getMyWaiversQueryKey = () => {
+    return [
+    `/api/waiver/me`
+    ] as const;
+    }
+
+
+export const getMyWaiversQueryOptions = <TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMyWaiversQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof myWaivers>>> = ({ signal }) => myWaivers({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MyWaiversQueryResult = NonNullable<Awaited<ReturnType<typeof myWaivers>>>
+export type MyWaiversQueryError = ErrorType<unknown>
+
+
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof myWaivers>>,
+          TError,
+          Awaited<ReturnType<typeof myWaivers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof myWaivers>>,
+          TError,
+          Awaited<ReturnType<typeof myWaivers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What I have to sign, and where I stand
+ */
+
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMyWaiversQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWaiverFormUrl = (params: WaiverFormParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/waiver/form?${stringifiedParams}` : `/api/waiver/form`
+}
+
+/**
+ * Story S-1: the paper a guardian signs — the wording in force, the sailor, the
+ * competition, and signature lines. Anyone who may record a confirmation for the sailor
+ * may print their form. An adult gets the same sheet with their own signature line, for
+ * whoever prefers paper.
+ * @summary The waiver as a printable form (PDF)
+ */
+export const waiverForm = async (params: WaiverFormParams, options?: RequestInit): Promise<unknown> => {
+
+  return http<unknown>(getWaiverFormUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getWaiverFormQueryKey = (params?: WaiverFormParams,) => {
+    return [
+    `/api/waiver/form`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getWaiverFormQueryOptions = <TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWaiverFormQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof waiverForm>>> = ({ signal }) => waiverForm(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type WaiverFormQueryResult = NonNullable<Awaited<ReturnType<typeof waiverForm>>>
+export type WaiverFormQueryError = ErrorType<HTTPValidationError>
+
+
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+ params: WaiverFormParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof waiverForm>>,
+          TError,
+          Awaited<ReturnType<typeof waiverForm>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+ params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof waiverForm>>,
+          TError,
+          Awaited<ReturnType<typeof waiverForm>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+ params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The waiver as a printable form (PDF)
+ */
+
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+ params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWaiverFormQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListWaiverTextsUrl = () => {
 
 
@@ -9246,6 +9467,282 @@ export const useConfirmForEvent = <TError = ErrorType<HTTPValidationError>,
       > => {
       return useMutation(getConfirmForEventMutationOptions(options), queryClient);
     }
+
+export const getUploadSeriesWaiverScanUrl = (seriesId: number,) => {
+
+
+
+
+  return `/api/series/${seriesId}/waiver/scan`
+}
+
+/**
+ * Story S-1, the minors' path: the scan of the signed form creates the `guardian`
+ * confirmation — or completes one whose name was recorded first — and clears the sailor
+ * for every event of the series.
+ * @summary Upload the guardian's signed form for a series
+ */
+export const uploadSeriesWaiverScan = async (seriesId: number,
+    bodyUploadSeriesWaiverScan: BodyUploadSeriesWaiverScan, options?: RequestInit): Promise<WaiverConfirmationOut> => {
+    const formData = new FormData();
+formData.append(`file`, bodyUploadSeriesWaiverScan.file);
+formData.append(`sailor_id`, bodyUploadSeriesWaiverScan.sailor_id.toString())
+if(bodyUploadSeriesWaiverScan.guardian_name !== undefined && bodyUploadSeriesWaiverScan.guardian_name !== null) {
+ formData.append(`guardian_name`, bodyUploadSeriesWaiverScan.guardian_name);
+ }
+if(bodyUploadSeriesWaiverScan.locale_shown !== undefined) {
+ formData.append(`locale_shown`, bodyUploadSeriesWaiverScan.locale_shown);
+ }
+
+  return http<WaiverConfirmationOut>(getUploadSeriesWaiverScanUrl(seriesId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadSeriesWaiverScanMutationKey = () => ['uploadSeriesWaiverScan'] as const;
+
+export const getUploadSeriesWaiverScanMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>, TError,UploadSeriesWaiverScanMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>, TError,UploadSeriesWaiverScanMutationVariables, TContext> => {
+
+const mutationKey = getUploadSeriesWaiverScanMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>, UploadSeriesWaiverScanMutationVariables> = (props) => {
+          const {seriesId,data} = props ?? {};
+
+          return  uploadSeriesWaiverScan(seriesId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadSeriesWaiverScanMutationResult = NonNullable<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>>
+    export type UploadSeriesWaiverScanMutationBody = BodyType<BodyUploadSeriesWaiverScan>
+    export type UploadSeriesWaiverScanMutationError = ErrorType<HTTPValidationError>
+    export type UploadSeriesWaiverScanMutationVariables = {seriesId: number;data: BodyType<BodyUploadSeriesWaiverScan>}
+
+    /**
+ * @summary Upload the guardian's signed form for a series
+ */
+export const useUploadSeriesWaiverScan = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>, TError,UploadSeriesWaiverScanMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadSeriesWaiverScan>>,
+        TError,
+        UploadSeriesWaiverScanMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUploadSeriesWaiverScanMutationOptions(options), queryClient);
+    }
+
+export const getUploadEventWaiverScanUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/waiver/scan`
+}
+
+/**
+ * @summary Upload the guardian's signed form for an event
+ */
+export const uploadEventWaiverScan = async (eventId: number,
+    bodyUploadEventWaiverScan: BodyUploadEventWaiverScan, options?: RequestInit): Promise<WaiverConfirmationOut> => {
+    const formData = new FormData();
+formData.append(`file`, bodyUploadEventWaiverScan.file);
+formData.append(`sailor_id`, bodyUploadEventWaiverScan.sailor_id.toString())
+if(bodyUploadEventWaiverScan.guardian_name !== undefined && bodyUploadEventWaiverScan.guardian_name !== null) {
+ formData.append(`guardian_name`, bodyUploadEventWaiverScan.guardian_name);
+ }
+if(bodyUploadEventWaiverScan.locale_shown !== undefined) {
+ formData.append(`locale_shown`, bodyUploadEventWaiverScan.locale_shown);
+ }
+
+  return http<WaiverConfirmationOut>(getUploadEventWaiverScanUrl(eventId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadEventWaiverScanMutationKey = () => ['uploadEventWaiverScan'] as const;
+
+export const getUploadEventWaiverScanMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadEventWaiverScan>>, TError,UploadEventWaiverScanMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof uploadEventWaiverScan>>, TError,UploadEventWaiverScanMutationVariables, TContext> => {
+
+const mutationKey = getUploadEventWaiverScanMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadEventWaiverScan>>, UploadEventWaiverScanMutationVariables> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  uploadEventWaiverScan(eventId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadEventWaiverScanMutationResult = NonNullable<Awaited<ReturnType<typeof uploadEventWaiverScan>>>
+    export type UploadEventWaiverScanMutationBody = BodyType<BodyUploadEventWaiverScan>
+    export type UploadEventWaiverScanMutationError = ErrorType<HTTPValidationError>
+    export type UploadEventWaiverScanMutationVariables = {eventId: number;data: BodyType<BodyUploadEventWaiverScan>}
+
+    /**
+ * @summary Upload the guardian's signed form for an event
+ */
+export const useUploadEventWaiverScan = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadEventWaiverScan>>, TError,UploadEventWaiverScanMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadEventWaiverScan>>,
+        TError,
+        UploadEventWaiverScanMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUploadEventWaiverScanMutationOptions(options), queryClient);
+    }
+
+export const getGetWaiverScanUrl = (confirmationId: number,) => {
+
+
+
+
+  return `/api/waiver/confirmations/${confirmationId}/scan`
+}
+
+/**
+ * The most sensitive file on the site (Story S-1): a minor's data and a signature.
+ * Served to the sailor themselves, to `admin`, `editor` and `race_officer`, to the
+ * leadership of the sailor's club, and to the host club of the event it was signed
+ * for — and every look is written to the audit log.
+ * @summary The uploaded scan of a signed form
+ */
+export const getWaiverScan = async (confirmationId: number, options?: RequestInit): Promise<unknown> => {
+
+  return http<unknown>(getGetWaiverScanUrl(confirmationId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWaiverScanQueryKey = (confirmationId: number,) => {
+    return [
+    `/api/waiver/confirmations/${confirmationId}/scan`
+    ] as const;
+    }
+
+
+export const getGetWaiverScanQueryOptions = <TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWaiverScanQueryKey(confirmationId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWaiverScan>>> = ({ signal }) => getWaiverScan(confirmationId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: confirmationId !== null && confirmationId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetWaiverScanQueryResult = NonNullable<Awaited<ReturnType<typeof getWaiverScan>>>
+export type GetWaiverScanQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+ confirmationId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWaiverScan>>,
+          TError,
+          Awaited<ReturnType<typeof getWaiverScan>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+ confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWaiverScan>>,
+          TError,
+          Awaited<ReturnType<typeof getWaiverScan>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+ confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The uploaded scan of a signed form
+ */
+
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+ confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetWaiverScanQueryOptions(confirmationId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getEventWaiversUrl = (eventId: number,) => {
 

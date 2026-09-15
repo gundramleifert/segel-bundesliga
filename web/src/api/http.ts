@@ -35,7 +35,7 @@ export class ApiError extends Error {
  * stable code the UI maps to a translation (see `./problems`). A non-problem body (an
  * old deployment, a proxy error page) still yields a readable message.
  */
-async function apiError(response: Response): Promise<ApiError> {
+export async function apiError(response: Response): Promise<ApiError> {
   let body: unknown;
   try {
     body = await response.json();

@@ -11,6 +11,7 @@ import {
   getListParticipantsQueryKey,
   useCancelEvent,
   useCreateEvent,
+  useEventWaivers,
   useFinishEvent,
   useGetReadiness,
   useListAllClubs,
@@ -25,6 +26,7 @@ import {
   useStartEvent,
   useUnpublishEvent,
   useUpdateEvent,
+  getGetWaiverScanUrl,
 } from "../api/generated/sbl";
 import { ApiError } from "../api/http";
 import type {
@@ -37,10 +39,11 @@ import type {
 import { WHOLE_LIST, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
 import { Pager } from "../components/Pager";
 import { useListParams } from "../lib/listParams";
-import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
+import { ErrorMessage, Loading, Empty, StatusBadge, TableFrame } from "../components/Blocks";
 import i18n from "../i18n";
 import { BOAT_COLORS, boatColor, eventDates } from "../lib/format";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
+import { openFile } from "../lib/files";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 
@@ -1072,6 +1075,9 @@ function EventPanel({
         />
       </Stack>
 
+      {/* 5c. Liability waivers (Stories VA-5, S-1) --------------------------- */}
+      <WaiverChecklist eventId={event.id} />
+
       {/* 6. Publication and start ------------------------------------------- */}
       <Stack gap={3}>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.lifecycleTitle")}</h3>
@@ -1210,6 +1216,98 @@ function EventPanel({
  * the wording lives in the `errors` namespace — the same key the matching API error uses.
  * A code this build doesn't know yet still reads as something rather than vanishing.
  */
+/** Story VA-5: the organizer's check-in list — who in the participating squads is cleared,
+ * and the guardian's uploaded form for a minor, opened with the token (Story S-1). */
+function WaiverChecklist({ eventId }: { eventId: number }) {
+  const { t } = useTranslation("admin");
+  const list = useAsync(useEventWaivers(eventId));
+  const [scanError, setScanError] = useState<string | null>(null);
+
+  return (
+    <Stack gap={3}>
+      <h3 className="text-sm font-semibold text-slate-700">{t("manage.waiversTitle")}</h3>
+      <p className="text-sm text-slate-600">{t("manage.waiversHint")}</p>
+      {list.loading ? (
+        <Loading text={t("manage.waiversLoadingText")} testId={`admin-manage-event-waivers-loading-${eventId}`} />
+      ) : list.error ? (
+        <ErrorMessage text={list.error} testId={`admin-manage-event-waivers-error-${eventId}`} />
+      ) : list.data ? (
+        list.data.sailors.length === 0 ? (
+          <p className="text-sm text-slate-600" data-testid={`admin-manage-event-waivers-empty-${eventId}`}>
+            {t("manage.waiversEmpty")}
+          </p>
+        ) : (
+          <>
+            <p className="text-sm" data-testid={`admin-manage-event-waivers-summary-${eventId}`}>
+              {list.data.required_version == null
+                ? t("manage.waiversNoVersion")
+                : t("manage.waiversSummary", {
+                    cleared: list.data.cleared,
+                    outstanding: list.data.outstanding,
+                    version: list.data.required_version,
+                  })}
+            </p>
+            <TableFrame testId={`admin-manage-event-waivers-${eventId}`}>
+              <table className="data-table w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+                    <th className="px-3 py-2">{t("manage.waiverColSailor")}</th>
+                    <th className="px-3 py-2">{t("manage.waiverColClub")}</th>
+                    <th className="px-3 py-2">{t("manage.waiverColStatus")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.data.sailors.map((row) => (
+                    <tr
+                      key={row.sailor_id}
+                      className="border-t border-slate-100"
+                      data-testid={`admin-manage-event-waiver-row-${eventId}-${row.sailor_id}`}
+                      data-status={row.status}
+                    >
+                      <td className="px-3 py-2">
+                        {row.first_name} {row.last_name}
+                        {row.minor && (
+                          <span className="ml-2 text-xs text-slate-500">{t("manage.waiverMinor")}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-slate-600">{row.club ?? "—"}</td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={
+                            row.status === "cleared" ? "text-emerald-700" : "font-medium text-amber-700"
+                          }
+                        >
+                          {t(`manage.waiverStatus.${row.status}`)}
+                        </span>
+                        {row.scan_available && row.confirmation_id != null && (
+                          <button
+                            type="button"
+                            className="ml-2 text-xs underline underline-offset-2"
+                            onClick={() => {
+                              setScanError(null);
+                              openFile(getGetWaiverScanUrl(row.confirmation_id!)).catch((err) =>
+                                setScanError(errorText(err)),
+                              );
+                            }}
+                            data-testid={`admin-manage-event-waiver-scan-${eventId}-${row.sailor_id}`}
+                          >
+                            {t("manage.waiverOpenScan")}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </TableFrame>
+            {scanError && <ErrorMessage text={scanError} />}
+          </>
+        )
+      ) : null}
+    </Stack>
+  );
+}
+
 function reasonText(reason: ReadinessReason): string {
   return i18n.t(`errors:${reason.code}`, {
     ...reason.details,

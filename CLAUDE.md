@@ -230,6 +230,19 @@ These points were deliberately decided this way; bypassing them costs a lot late
   installation can print at all, so the page can leave the download out.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
+- **The liability waiver is one statement per competition, and age picks the path**
+  (Stories S-1, S-3, VA-5, `app/services/waivers.py`). A sailor signs once per **Series**
+  they are registered in, which covers every event of it; an event that belongs to no
+  series needs its own. The text is versioned and frozen — a new wording is a new version
+  that everyone confirms again, never an edit. An **adult** confirms online from their
+  own account; a **minor** on the reference date (series start, else 1 January of its
+  year; event start) needs a guardian's wet-ink signature: the site prints the form
+  (`GET /api/waiver/form`, reportlab) and takes the scan back
+  (`POST …/waiver/scan`). The scan is the most sensitive file here: random name under
+  `uploads/waivers/`, one serving endpoint that checks who asks, every look in
+  `AuditLog`. Without a date of birth nothing can be confirmed — the status says so
+  instead of failing open. Status is **computed, never stored**, by the one function the
+  account page and the organizer's check-in list both use.
 - **Live updates are Server-Sent Events carrying a version token, published after the
   commit** (Story B-5, `api/app/live.py`). The browser invalidates the query keys it was
   given and refetches through the generated client — the stream never carries a second

@@ -64,6 +64,13 @@ export type { RaceResultIn as RaceResultInput } from "./generated/model/raceResu
 export type { RaceResultsIn as RaceResultsInput } from "./generated/model/raceResultsIn";
 export type { RaceResultsOut } from "./generated/model/raceResultsOut";
 
+// Liability waiver (Stories S-1, S-3, VA-5)
+export type { MyWaivers } from "./generated/model/myWaivers";
+export type { MyCompetitionWaiver } from "./generated/model/myCompetitionWaiver";
+export type { WaiverTextOut as WaiverText } from "./generated/model/waiverTextOut";
+export type { EventWaiverList } from "./generated/model/eventWaiverList";
+export type { SailorWaiverRow } from "./generated/model/sailorWaiverRow";
+
 // Accounts and sign-in
 export type { UserOut as Account } from "./generated/model/userOut";
 export type { TestUserOut as TestAccount } from "./generated/model/testUserOut";

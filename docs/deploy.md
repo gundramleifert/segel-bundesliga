@@ -35,6 +35,10 @@ If a service name is already taken, Render adds a suffix (`sbl-api-xyz`). Then e
 - Free web services **sleep after 15 minutes idle**; the next request wakes them (~1 min).
 - The SQLite database is inside the image → a redeploy or a wake-from-sleep **resets it to
   the seeded data**. Good for testing, useless as storage.
+- The same goes for **uploads** (`SBL_UPLOADS_DIR`: sailor photos, club crests, and the
+  guardians' signed waiver forms from Story S-1) — the container's disk is thrown away with
+  it. A real deployment needs a persistent disk or object storage for that directory
+  *before* anyone uploads a signed form they will not upload twice.
 - The image **does** carry a headless JRE and the pairing tool, built from a pinned commit
   of its repository in a first build stage — so the printable pairing list works there
   (Story B-3). It costs a few minutes on a cold build and ~190 MB in the image.
