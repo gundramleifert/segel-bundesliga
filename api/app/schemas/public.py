@@ -171,6 +171,8 @@ class EventOut(BaseModel):
     host_club: ClubOut | None = None
     # Event's own logo, otherwise the host club's crest.
     logo_url: str | None = None
+    # An external live view; None means the internal map is the live view (Story L-1).
+    live_url: str | None = None
     team_count: int
     boat_count: int
     flight_count: int

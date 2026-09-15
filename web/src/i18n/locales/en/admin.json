@@ -244,6 +244,14 @@
     "printSavedMessage": "Print settings saved.",
     "searchLabel": "Search",
     "searchHint": "Title, venue or host club.",
-    "searchPlaceholder": "Search events"
+    "searchPlaceholder": "Search events",
+    "liveTitle": "Where the live view is",
+    "liveHint": "Left empty, the live view is this site's own map. Enter a URL when the day is shown elsewhere — a SAP Sailing race board, a club's page — and every live link of this event leads there.",
+    "liveUrlLabel": "External live view",
+    "liveUrlHint": "A full https:// address, or empty for the internal map.",
+    "liveInternal": "internal map",
+    "saveLiveButton": "Save live view",
+    "liveSavedExternal": "Live links now lead to the external view.",
+    "liveSavedInternal": "The internal map is the live view again."
   }
 }

@@ -75,5 +75,6 @@
     "ZFP": "Wertungsstrafe: Zielplatz + 20 % der Starter (mind. 1 Punkt), gedeckelt bei {{cap}} Punkten (nie schlechter als DNF). Die Strafe in dieser Wettfahrt beträgt {{penalty}} Punkte.",
     "SCP": "Wertungsstrafe: Zielplatz + 20 % der Starter (mind. 1 Punkt), gedeckelt bei {{cap}} Punkten (nie schlechter als DNF). Die Strafe in dieser Wettfahrt beträgt {{penalty}} Punkte.",
     "RDG": "Redress: Die Jury trägt die zuerkannten Punkte direkt ein — sie werden nicht automatisch berechnet."
-  }
+  },
+  "liveExternal": "Live-Ansicht (extern)"
 }

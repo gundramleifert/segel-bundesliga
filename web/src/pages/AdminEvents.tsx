@@ -713,6 +713,8 @@ function EventPanel({
   const [fontSize, setFontSize] = useState(stored.fontSize === null ? "" : String(stored.fontSize));
   const [landscape, setLandscape] = useState(stored.landscape);
   const [teamPages, setTeamPages] = useState(stored.teamPages);
+  // Story L-1: the live view is the internal map unless the event names an external one.
+  const [liveUrl, setLiveUrl] = useState(event.live_url ?? "");
   const [selectedClubs, setSelectedClubs] = useState<Set<number> | null>(null);
 
   // Which clubs may be entered at all: the series' registered clubs when the event belongs
@@ -746,6 +748,7 @@ function EventPanel({
   // Its own mutation rather than sharing `saveDates`: two save buttons that report into one
   // message would each claim the other's success.
   const savePrint = useUpdateEvent({ mutation: { onSuccess: refresh } });
+  const saveLive = useUpdateEvent({ mutation: { onSuccess: refresh } });
 
   const saveClubs = useSetParticipants({
     mutation: {
@@ -1033,6 +1036,39 @@ function EventPanel({
           testId={`admin-manage-event-print-message-${event.id}`}
           error={savePrint.isError ? errorText(savePrint.error) : null}
           success={savePrint.isSuccess ? t("manage.printSavedMessage") : null}
+        />
+      </Stack>
+
+      {/* 5b. Where the live view is ------------------------------------------ */}
+      <Stack gap={3}>
+        <h3 className="text-sm font-semibold text-slate-700">{t("manage.liveTitle")}</h3>
+        <p className="text-sm text-slate-600">{t("manage.liveHint")}</p>
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <Field label={t("manage.liveUrlLabel")} hint={t("manage.liveUrlHint")}>
+            <input
+              className={INPUT_CLASS}
+              type="url"
+              value={liveUrl}
+              placeholder={t("manage.liveInternal")}
+              onChange={(e) => setLiveUrl(e.target.value)}
+              data-testid={`admin-manage-event-live-url-${event.id}`}
+            />
+          </Field>
+          <Button
+            size="sm"
+            isDisabled={saveLive.isPending}
+            onPress={() =>
+              saveLive.mutate({ eventId: event.id, data: { live_url: liveUrl.trim() || null } })
+            }
+            data-testid={`admin-manage-event-save-live-${event.id}`}
+          >
+            {saveLive.isPending ? t("manage.savingButton") : t("manage.saveLiveButton")}
+          </Button>
+        </div>
+        <Message
+          testId={`admin-manage-event-live-message-${event.id}`}
+          error={saveLive.isError ? errorText(saveLive.error) : null}
+          success={saveLive.isSuccess ? t(liveUrl.trim() ? "manage.liveSavedExternal" : "manage.liveSavedInternal") : null}
         />
       </Stack>
 

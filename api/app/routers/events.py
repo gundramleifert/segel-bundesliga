@@ -122,6 +122,15 @@ class EventCreate(BaseModel):
     logo_url: str | None = Field(
         default=None, description="Custom logo; otherwise the host club's emblem is used."
     )
+    live_url: str | None = Field(
+        default=None,
+        max_length=300,
+        pattern=r"^https?://",
+        description=(
+            "An external live view (e.g. SAP Sailing). Set, the site's live links lead "
+            "there; empty, the internal map is the live view."
+        ),
+    )
     venue_id: int | None = None
     matchday: int | None = Field(
         default=None,
@@ -172,6 +181,7 @@ class EventUpdate(BaseModel):
     published: bool | None = None
     host_club_id: int | None = None
     logo_url: str | None = None
+    live_url: str | None = Field(default=None, max_length=300, pattern=r"^https?://")
     venue_id: int | None = None
     series: int | None = None
     matchday: int | None = None
@@ -295,6 +305,7 @@ async def create_event(
         venue_id=request.venue_id,
         host_club_id=request.host_club_id,
         logo_url=request.logo_url,
+        live_url=request.live_url,
         team_count=request.team_count,
         boat_count=request.boat_count,
         flight_count=request.flight_count,

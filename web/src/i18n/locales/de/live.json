@@ -53,5 +53,9 @@
     "finishSeparate": "andere Seite des Startschiffs",
     "finishCombined": "durch die Startlinie"
   },
-  "attribution": "Kartendaten © OpenStreetMap-Mitwirkende"
+  "attribution": "Kartendaten © OpenStreetMap-Mitwirkende",
+  "external": {
+    "text": "Die Live-Ansicht dieses Events wird woanders gezeigt.",
+    "open": "Live-Ansicht öffnen"
+  }
 }

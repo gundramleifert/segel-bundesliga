@@ -18,6 +18,7 @@ export interface EventUpdate {
   published?: boolean | null;
   host_club_id?: number | null;
   logo_url?: string | null;
+  live_url?: string | null;
   venue_id?: number | null;
   series?: number | null;
   matchday?: number | null;

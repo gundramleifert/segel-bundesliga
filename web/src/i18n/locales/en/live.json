@@ -53,5 +53,9 @@
     "finishSeparate": "other side of the committee boat",
     "finishCombined": "through the start line"
   },
-  "attribution": "Map data © OpenStreetMap contributors"
+  "attribution": "Map data © OpenStreetMap contributors",
+  "external": {
+    "text": "This event's live view is hosted elsewhere.",
+    "open": "Open the live view"
+  }
 }

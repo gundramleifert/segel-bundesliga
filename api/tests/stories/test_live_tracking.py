@@ -185,7 +185,34 @@ class TestTheLivePicture:
         assert body["boat_beam_m"] > 0
         assert body["zone_radius_m"] == 3 * body["boat_length_m"] == 21.0
 
-    async def test_a_draft_event_shows_no_boats(self, client, caplog):
+    async def test_an_event_may_point_its_live_view_elsewhere(self, client, caplog):
+        """External or internal live view: a `live_url` on the event sends the site's live
+        links to a hosted viewer; cleared, the internal map is the live view again."""
+        headers = await admin(client, caplog, "tr6c@example.com")
+        event_id = await live_event(client, headers, "Hosted Cup", "2027-11-23")
+        assert (await client.get(f"/api/events/{event_id}")).json()["event"]["live_url"] is None
+
+        external = await client.patch(
+            f"/api/admin/events/{event_id}",
+            headers=headers,
+            json={"live_url": "https://example.sapsailing.com/gwt/RaceBoard.html?event=1"},
+        )
+        assert external.status_code == 200, external.text
+        shown = (await client.get(f"/api/events/{event_id}")).json()["event"]["live_url"]
+        assert shown == "https://example.sapsailing.com/gwt/RaceBoard.html?event=1"
+
+        not_a_url = await client.patch(
+            f"/api/admin/events/{event_id}", headers=headers, json={"live_url": "sapsailing"}
+        )
+        assert not_a_url.status_code == 422
+
+        internal = await client.patch(
+            f"/api/admin/events/{event_id}", headers=headers, json={"live_url": None}
+        )
+        assert internal.status_code == 200
+        assert (await client.get(f"/api/events/{event_id}")).json()["event"]["live_url"] is None
+
+
         headers = await admin(client, caplog, "tr7@example.com")
         created = await client.post(
             "/api/admin/events",

@@ -75,5 +75,6 @@
     "ZFP": "Scoring penalty: finish position + 20% of starters (min. 1 point), capped at {{cap}} points (never worse than DNF). This race's penalty is {{penalty}} points.",
     "SCP": "Scoring penalty: finish position + 20% of starters (min. 1 point), capped at {{cap}} points (never worse than DNF). This race's penalty is {{penalty}} points.",
     "RDG": "Redress: the jury enters the awarded points directly — they are not computed automatically."
-  }
+  },
+  "liveExternal": "Live view (external)"
 }

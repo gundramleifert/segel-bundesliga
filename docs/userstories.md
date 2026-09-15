@@ -533,14 +533,25 @@ Open: More roles will be needed later.
 
 ## Event Organizer
 
-### VA-1 ○ Import registrations from manage2sail
-As an **event organizer** I want to **import registrations from manage2sail**,
-so that I **don't have to type them in**.
+### VA-1 ○ Import registrations and sailors from manage2sail
+As an **event organizer** I want to **import registrations — clubs, teams and their
+sailors — from manage2sail**, so that I **don't have to type them in**.
 
 Acceptance criteria:
-- Import via M2S access **and** alternatively via file upload, so a missing token does not block.
-- Assignment to existing clubs and teams via `ExternalId`, never by name comparison.
-- The import is repeatable: a second run with unchanged data changes nothing.
+- **manage2sail is optional.** Nothing on this site requires it: clubs, sailors, squads
+  and lineups are created here directly (V-*, S-*), and an event with no M2S counterpart is
+  the normal case for a club's own regatta. The import is a per-event action the organizer
+  triggers, never a dependency.
+- Import via M2S access **and** alternatively via file upload (the CSV/XML export M2S
+  offers), so a missing token does not block.
+- Assignment to existing clubs, teams **and sailors** via `ExternalId` (source
+  `MANAGE2SAIL`), never by name comparison. A sailor unknown here is created without a
+  login and linked; a known one is updated; name spelling differences never create a
+  duplicate.
+- **Sync, not just import:** the run is repeatable — a second run with unchanged data
+  changes nothing — and a later run picks up crew changes M2S recorded since. Data the
+  club entered here (waivers, profile settings, `ClubMember` consent) is never overwritten
+  by a sync; only what M2S is the source of (registration, crew list) moves.
 - After the run, it is clear what was created, changed, skipped, and what could not be
   assigned.
 
@@ -2134,6 +2145,13 @@ Acceptance criteria:
 - `/events/:id/live` shows a map with one marker per boat of the event, in the boat's colour
   and carrying the team's name that the pairing list puts on it for the running race, a
   short trail behind each, and a follow mode that keeps the fleet in view.
+- **External or internal live view, per event.** `Event.live_url` empty means the internal
+  map is the live view. Set — a SAP Sailing race board, a club's own page — every live link
+  of the event (matchday page, `/events/:id/live`) leads there, in a new tab, and the map
+  page shows the link instead of an empty map: two live pictures of one race is one too
+  many. The organizer sets or clears it in the event editor; only `http(s)://` addresses
+  are accepted. The API keeps its own live picture and stream either way, so switching
+  back costs nothing.
 - Markers move as fixes arrive, over B-5's stream, inline (`positions` frame) — the one
   payload that does not go through a refetch.
 - **The tracker belongs to the boat, not the team** (decision 5). One phone per boat of the

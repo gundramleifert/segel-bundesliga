@@ -25,6 +25,8 @@ export interface EventCreate {
   host_club_id?: number | null;
   /** Custom logo; otherwise the host club's emblem is used. */
   logo_url?: string | null;
+  /** An external live view (e.g. SAP Sailing). Set, the site's live links lead there; empty, the internal map is the live view. */
+  live_url?: string | null;
   venue_id?: number | null;
   /** Which act of the series. If omitted, it will be incremented. */
   matchday?: number | null;

@@ -57,6 +57,29 @@ export function Live() {
   if (error) return <ErrorMessage text={error} testId="live-error" />;
   if (!detail.data) return null;
 
+  // Story L-1: an event whose live view is hosted elsewhere sends the reader there — the
+  // map here would be empty, and two live pictures of one race is one too many.
+  if (detail.data.event.live_url) {
+    return (
+      <>
+        <PageHeader title={`${detail.data.event.title} · ${t("title")}`} testId="live-header" />
+        <div className="rounded-xl border border-slate-200 p-4" data-testid="live-external">
+          <p className="text-sm text-slate-700">{t("external.text")}</p>
+          <a
+            href={detail.data.event.live_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-block rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+            data-testid="live-external-link"
+          >
+            {t("external.open")}
+          </a>
+          <p className="mt-2 break-all text-xs text-slate-500">{detail.data.event.live_url}</p>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader title={`${detail.data.event.title} · ${t("title")}`} testId="live-header" />

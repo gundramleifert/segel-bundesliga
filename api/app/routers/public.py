@@ -1124,6 +1124,7 @@ def _event_out(event: Event) -> EventOut:
         # serialized `ClubOut`, not the ORM column, so an uploaded crest (Story V-3,
         # `ClubOut._prefer_uploaded_crest`) wins here too.
         logo_url=event.logo_url or (host_club.logo_url if host_club else None),
+        live_url=event.live_url,
         team_count=event.team_count,
         boat_count=event.boat_count,
         flight_count=event.flight_count,

@@ -23,6 +23,7 @@ export interface EventOut {
   venue?: VenueOut | null;
   host_club?: ClubOut | null;
   logo_url?: string | null;
+  live_url?: string | null;
   team_count: number;
   boat_count: number;
   flight_count: number;

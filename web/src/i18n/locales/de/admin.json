@@ -244,6 +244,14 @@
     "printSavedMessage": "Druckeinstellungen gespeichert.",
     "searchLabel": "Suche",
     "searchHint": "Titel, Revier oder Ausrichter.",
-    "searchPlaceholder": "Veranstaltungen suchen"
+    "searchPlaceholder": "Veranstaltungen suchen",
+    "liveTitle": "Wo die Live-Ansicht ist",
+    "liveHint": "Leer bedeutet: die eigene Karte dieser Seite. Eine Adresse eintragen, wenn der Tag woanders gezeigt wird — ein SAP-Sailing-Raceboard, die Seite eines Vereins — dann führen alle Live-Links dieses Events dorthin.",
+    "liveUrlLabel": "Externe Live-Ansicht",
+    "liveUrlHint": "Vollständige https://-Adresse, oder leer für die interne Karte.",
+    "liveInternal": "interne Karte",
+    "saveLiveButton": "Live-Ansicht speichern",
+    "liveSavedExternal": "Live-Links führen jetzt zur externen Ansicht.",
+    "liveSavedInternal": "Die interne Karte ist wieder die Live-Ansicht."
   }
 }

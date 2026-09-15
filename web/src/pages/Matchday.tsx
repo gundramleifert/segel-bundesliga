@@ -197,8 +197,20 @@ export function Matchday() {
               has nothing to stream yet. The stream itself is open regardless, so the page
               hears the start. */}
           {event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
-          {/* Stories L-1, L-2: the boats on the map, for a published event. */}
-          {event.published && (
+          {/* Stories L-1, L-2: the boats on the map, for a published event — or the
+              external live view the event names instead. */}
+          {event.published && event.live_url && (
+            <a
+              href={event.live_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="matchday-live-external-link"
+              className="font-medium text-brand-700 underline-offset-2 hover:underline"
+            >
+              {t("liveExternal")}
+            </a>
+          )}
+          {event.published && !event.live_url && (
             <Link
               to={`/events/${id}/live`}
               data-testid="matchday-live-map-link"

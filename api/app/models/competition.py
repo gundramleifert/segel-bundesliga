@@ -151,6 +151,9 @@ class Event(Base, TimestampMixin):
     )
     # The event's own logo. If missing, the host club's crest is shown instead.
     logo_url: Mapped[str | None] = mapped_column(String(300), default=None)
+    #: Set when the live view is hosted elsewhere (SAP Sailing, a club's own page): the
+    #: site's live links lead there instead of to the internal map (Story L-1).
+    live_url: Mapped[str | None] = mapped_column(String(300), default=None)
 
     # How this event's pairing list is printed (Story B-3) — font size, landscape, whether
     # the per-team pages are included. JSON like ``Series.scoring``, and for the same
