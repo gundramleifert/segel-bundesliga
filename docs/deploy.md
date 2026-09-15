@@ -192,17 +192,25 @@ OpenStreetMap to the browser, not through the `/api/*` rewrite.
 
 **The role switcher needs a second switch, in the frontend.** `SBL_DEV_LOGIN=true` only
 opens `/api/dev`; whether the panel that uses it is *in the bundle* is a build-time
-decision, because a static build has no environment to ask at runtime. `sbl-web` therefore
-sets **`VITE_DEV_TOOLS=true`** in `render.yaml`, and `web/src/dev/devTools.ts` turns that
-plus `import.meta.env.DEV` into the one constant both the switcher and the clearance
-beneath it read. Without it the deployed site is an ordinary production build and shows no
-switcher, however open the backend is — which is what happened here, and looked like the
-test accounts had gone missing.
+decision, because a static build has no environment to ask at runtime. The switch is
+**`VITE_DEV_TOOLS=true`** at build time, and `web/src/dev/devTools.ts` turns that plus
+`import.meta.env.DEV` into the one constant both the switcher and the clearance beneath
+it read. Without it the deployed site is an ordinary production build and shows no
+switcher, however open the backend is — which is what happened here, twice, and looked
+like the test accounts had gone missing.
 
-Leave `VITE_DEV_TOOLS` unset for anything that is not a throwaway test URL. It is a
-separate switch from `SBL_DEV_LOGIN` on purpose: turning dev-login off on the API is what
-actually closes the door, and this one only decides whether the door has a handle painted
-on the wall next to it.
+The second time, `render.yaml` *did* declare `VITE_DEV_TOOLS` for `sbl-web` and the bundle
+still came out without it — the dashboard-variable problem above, on the static site. So
+the decision no longer depends on Render at all: `web/vite.config.ts` sets the flag itself
+when the service being built is named `sbl-web` (Render passes `RENDER_SERVICE_NAME` to
+every build), and `render.yaml` declares nothing. Whether a deployed bundle has the
+switcher is checked in seconds — the built JavaScript contains the string
+`dev-role-switcher` only when it does.
+
+Leave the flag off for anything that is not a throwaway test URL, which means: do not
+name a real deployment `sbl-web`. It is a separate switch from `SBL_DEV_LOGIN` on
+purpose: turning dev-login off on the API is what actually closes the door, and this one
+only decides whether the door has a handle painted on the wall next to it.
 
 **Getting the first real admin without `SBL_DEV_LOGIN`:** once dev-login is off, nothing
 in the interface can grant the very first `admin` role — every role-granting endpoint
