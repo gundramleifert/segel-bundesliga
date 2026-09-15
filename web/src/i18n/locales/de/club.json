@@ -46,7 +46,6 @@
     "noTeamsText": "Dieser Verein ist noch für keine Serie gemeldet, es gibt also keinen Kader aufzustellen.",
     "roleOrganizer": "Du organisierst diesen Verein",
     "roleMember": "Du bist Mitglied dieses Vereins",
-    "seriesTabsLabel": "Serie",
     "clubLabel": "Verein",
     "activeClubHint": "Der Verein, für den du handelst. Wird in deinem Konto gemerkt.",
     "eventsTitle": "Spieltage",
@@ -62,17 +61,23 @@
       "members": "Mitglieder",
       "events": "Spieltage",
       "series": "Serien"
-    }
+    },
+    "seriesHint": "Jede Serie, für die dieser Verein gemeldet ist. Öffne eine, um zu melden, wer für sie segeln darf – der Kader, aus dem die Spieltags-Crews kommen.",
+    "squadSize": "{{count}} gemeldet",
+    "openSquad": "Kader",
+    "closeSquad": "Schließen"
   },
   "lineup": {
     "title": "Crew für diesen Spieltag",
     "sizeHint": "{{count}} aufgestellt · üblich {{usual}}",
     "empty": "Noch keine Crew aufgestellt.",
-    "fromSquad": "Aus dem Kader",
-    "add": "Aufstellen",
-    "remove": "Entfernen",
-    "allNamed": "Alle aus dem Kader sind aufgestellt.",
-    "squadEmpty": "Der Kader ist leer – melde zuerst Personen für die Serie."
+    "squadEmpty": "Der Kader ist leer – melde zuerst Personen für die Serie.",
+    "noHelm": "noch kein Steuermann",
+    "roleLabel": "Rolle am Spieltag",
+    "save": "Aufstellung speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Aufstellung gespeichert.",
+    "unsaved": "Noch nicht gespeichert."
   },
   "join": {
     "notMember": "Du bist kein Mitglied dieses Vereins.",

@@ -478,6 +478,7 @@ test.describe("V-12: a club manager manages their own squad", () => {
     await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
     await expect(page.getByTestId("layout-nav-myClub-")).toHaveCount(0);
     await page.getByTestId("my-club-series-tab").click();
+    await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-members-list")).toBeVisible();
 

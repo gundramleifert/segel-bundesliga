@@ -256,43 +256,80 @@ function ClubEvents({ entry }: { entry: MyClubOut }) {
   );
 }
 
-/** One club's series registrations, each with its squad.
+/** One club's series registrations, each with its squad — a list, like the matchdays.
  *
- * A squad belongs to a series registration, never to a club as such (Story V-1) — a club
- * in the first league and the juniors has two, and they are different people.
+ * A row per registration, the squad opening under it on demand (`?team=` keeps the open
+ * one across a reload). Tabs were the first shape and did not scale: a club that sails
+ * ten series gets ten tab labels in a strip, and a strip says nothing about any of them,
+ * where a row can state the year and how many are registered before anyone opens it.
+ * A squad belongs to a series registration, never to a club as such (Story V-1).
  */
 function ClubTeams({ entry }: { entry: MyClubOut }) {
   const { t } = useTranslation("club");
+  const [params, setParams] = useSearchParams();
   const teams = entry.teams ?? [];
+  const open = params.get("team");
+
+  const toggle = (teamId: number) =>
+    setParams((previous) => {
+      const next = new URLSearchParams(previous);
+      if (open === String(teamId)) next.delete("team");
+      else next.set("team", String(teamId));
+      return next;
+    });
 
   if (!teams.length) {
     return <Empty testId={`my-club-no-teams-${entry.club.id}`}>{t("mine.noTeamsText")}</Empty>;
   }
 
   return (
-    <Stack gap={6}>
-      <TabbedView
-        tabs={teams.map(
-          (team): TabDef<string> => ({
-            key: String(team.team_id),
-            label: team.series.name,
-            render: () => (
-              <SquadPanel
-                teamId={team.team_id}
-                title={team.series.name}
-                // A member who is not this club's organizer sees the squad and cannot
-                // change it. The controls are absent rather than disabled: a disabled
-                // button is a promise the server would not keep anyway.
-                readOnly={!entry.may_manage}
-              />
-            ),
-          }),
-        )}
-        param="team"
-        testIdPrefix="my-club-team"
-        label={t("mine.seriesTabsLabel")}
-        className="grid grid-cols-[minmax(0,1fr)]"
-      />
-    </Stack>
+    <section data-testid={`my-club-teams-${entry.club.id}`} className="grid grid-cols-[minmax(0,1fr)] gap-3">
+      <p className="text-sm text-slate-600">{t("mine.seriesHint")}</p>
+      <ul className="grid grid-cols-[minmax(0,1fr)] gap-3" data-testid="my-club-teams-list">
+        {teams.map((team) => {
+          const isOpen = open === String(team.team_id);
+          return (
+            <li
+              key={team.team_id}
+              data-testid={`my-club-team-${team.team_id}`}
+              className="rounded-lg border border-slate-200 p-4"
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">
+                    <Link to={`/series/${team.series.id}`} className="underline-offset-2 hover:underline">
+                      {team.series.name}
+                    </Link>
+                  </p>
+                  <p className="text-sm text-slate-600" data-testid={`my-club-team-size-${team.team_id}`}>
+                    {t("mine.squadSize", { count: team.squad_size })}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant={isOpen ? "outline" : "primary"}
+                  onPress={() => toggle(team.team_id)}
+                  data-testid={`my-club-team-toggle-${team.team_id}`}
+                >
+                  {isOpen ? t("mine.closeSquad") : t("mine.openSquad")}
+                </Button>
+              </div>
+              {isOpen && (
+                <div className="mt-4">
+                  <SquadPanel
+                    teamId={team.team_id}
+                    title={team.series.name}
+                    // A member who is not this club's organizer sees the squad and cannot
+                    // change it. The controls are absent rather than disabled: a disabled
+                    // button is a promise the server would not keep anyway.
+                    readOnly={!entry.may_manage}
+                  />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }

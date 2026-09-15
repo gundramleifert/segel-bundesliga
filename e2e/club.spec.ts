@@ -69,21 +69,28 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     await expect(page.getByTestId(prefix)).toBeVisible();
     await expect(page.getByTestId(`${prefix}-size-hint`)).toBeVisible();
 
-    // Candidates are the squad, not a search over everyone — and naming one moves them up.
-    const candidates = page.getByTestId(`${prefix}-candidates`).getByRole("listitem");
-    await expect(candidates.first()).toBeVisible();
-    const before = await candidates.count();
-    const firstId = (await candidates.first().getAttribute("data-testid"))!.replace(
-      `${prefix}-candidate-`,
+    // The squad is on the left, not a search over everyone; a click moves a person to the
+    // right, where their role for the day sits beside them; Save writes the list.
+    const panes = `${prefix}-panes`;
+    const available = page.getByTestId(`${panes}-available-list`).getByRole("listitem");
+    await expect(available.first()).toBeVisible();
+    const before = await available.count();
+    const firstId = (await available.first().locator("button").getAttribute("data-testid"))!.replace(
+      `${panes}-available-`,
       "",
     );
-    await page.getByTestId(`${prefix}-add-${firstId}`).click();
-    await expect(page.getByTestId(`${prefix}-row-${firstId}`)).toBeVisible();
-    await expect(candidates).toHaveCount(before - 1);
+    await page.getByTestId(`${panes}-available-${firstId}`).click();
+    await expect(page.getByTestId(`${panes}-selected-${firstId}`)).toBeVisible();
+    await expect(available).toHaveCount(before - 1);
+    await page.getByTestId(`${prefix}-role-${firstId}`).selectOption("substitute");
+    await expect(page.getByTestId(`${prefix}-unsaved`)).toBeVisible();
+    await page.getByTestId(`${prefix}-save`).click();
+    await expect(page.getByTestId(`${prefix}-message-success`)).toBeVisible();
 
     // The lineup survives a reload — it was written, not kept in the page.
     await page.reload();
-    await expect(page.getByTestId(`${prefix}-row-${firstId}`)).toBeVisible();
+    await expect(page.getByTestId(`${panes}-selected-${firstId}`)).toBeVisible();
+    await expect(page.getByTestId(`${prefix}-role-${firstId}`)).toHaveValue("substitute");
 
     // And the public matchday page shows the same person in the crew tab.
     const teams = (await (await request.get(`/api/events/${PLANNED_ACT}/crew`)).json()) as {
@@ -134,6 +141,7 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
     // A member, not an organizer, of the second club: the squad is shown read-only.
     await page.getByTestId("my-club-series-tab").click();
+    await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-add-search-input")).toHaveCount(0);
 

@@ -26,7 +26,7 @@
   "crewRole": {
     "helm": "Steuermann",
     "crew": "Crew",
-    "substitute": "Ersatz"
+    "substitute": "Reserve"
   },
   "boatColor": {
     "BLACK": "Schwarz",
@@ -46,11 +46,12 @@
     "de": "Deutsch"
   },
   "transferList": {
-    "filterPlaceholder": "Vereine suchen …",
+    "filterPlaceholder": "Filtern …",
     "available": "Verfügbar ({{count}})",
     "selected": "Ausgewählt ({{count}})",
     "noneAvailable": "Keine Treffer.",
-    "noneSelected": "Noch nichts ausgewählt."
+    "noneSelected": "Noch nichts ausgewählt.",
+    "remove": "Entfernen"
   },
   "errors": {
     "loadFailed": "Die Daten konnten nicht geladen werden. Besteht eine Verbindung?",

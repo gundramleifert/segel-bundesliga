@@ -26,7 +26,7 @@
   "crewRole": {
     "helm": "Helm",
     "crew": "Crew",
-    "substitute": "Substitute"
+    "substitute": "Reserve"
   },
   "boatColor": {
     "BLACK": "Black",
@@ -46,11 +46,12 @@
     "de": "Deutsch"
   },
   "transferList": {
-    "filterPlaceholder": "Search clubs …",
+    "filterPlaceholder": "Filter …",
     "available": "Available ({{count}})",
     "selected": "Selected ({{count}})",
     "noneAvailable": "No matches.",
-    "noneSelected": "None selected yet."
+    "noneSelected": "None selected yet.",
+    "remove": "Remove"
   },
   "errors": {
     "loadFailed": "The data could not be loaded. Is there a connection?",

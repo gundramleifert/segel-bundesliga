@@ -22,7 +22,9 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `LinkCard.tsx` | `LinkCard` |
 | `Tip.tsx` | `Tip` — the tooltip, in place of `title` |
 | `Form.tsx` | `Section`, `Field`, `Message` |
-| `ClubSelector.tsx` | the two-pane club picker |
+| `TransferList.tsx` | `TransferList` — the two-pane "move it across" picker |
+| `ClubSelector.tsx` | `ClubSelector` — `TransferList` for clubs |
+| `LineupPanel.tsx` | `LineupPanel` — a matchday's crew from the squad, with roles (Story V-2) |
 | `Tabs.tsx` | `TabbedView` |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and `/club` |
