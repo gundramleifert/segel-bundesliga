@@ -31,7 +31,8 @@ def polar() -> Polar:
 @pytest.fixture(scope="module")
 def race(polar):
     projection = LocalTangentPlane(*ORIGIN)
-    course = lay_course(XY(0, 0), wind_from_deg=20.0, leg_length=300.0, laps=1)
+    # The league's course: start – W – G – W – finish.
+    course = lay_course(XY(0, 0), wind_from_deg=20.0, leg_length=300.0, laps=2)
     emulation = emulated_race(course, projection, boats=BOATS, start=START, polar=polar, seed=7)
     tracks = emulation.run()
     return course, emulation, tracks
@@ -137,14 +138,20 @@ def test_the_laid_course_has_the_pin_to_port_and_the_finish_where_asked():
     assert left.marks[MarkRole.FINISH_PIN].x < committee.x
     right = lay_course(XY(0, 0), wind_from_deg=0.0, finish_pin_side="right")
     assert right.marks[MarkRole.FINISH_PIN].x > committee.x
-    assert [w.name for w in left.waypoints()] == ["start", "windward 1", "gate 1", "finish"]
-    assert [
-        w.name
-        for w in lay_course(XY(0, 0), wind_from_deg=0.0, laps=2, finish_upwind=True).waypoints()
-    ] == [
+    # Two laps: the gate once, between the windward roundings; never on the way to the
+    # finish. One lap: no gate at all.
+    assert [w.name for w in left.waypoints()] == [
         "start",
         "windward 1",
         "gate 1",
         "windward 2",
         "finish",
     ]
+    assert [w.name for w in lay_course(XY(0, 0), wind_from_deg=0.0, laps=1).waypoints()] == [
+        "start",
+        "windward 1",
+        "finish",
+    ]
+    upwind = lay_course(XY(0, 0), wind_from_deg=0.0, laps=2, finish_upwind=True).waypoints()
+    assert [w.name for w in upwind] == ["start", "windward 1", "gate 1", "windward 2", "finish"]
+    assert upwind[-1].direction == +1

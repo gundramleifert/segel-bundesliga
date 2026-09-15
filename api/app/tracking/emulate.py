@@ -40,6 +40,10 @@ from app.tracking.wind import Wind
 
 #: Ticks a boat keeps sailing after the finish before its tracker goes quiet.
 SAIL_ON_TICKS = 10
+#: Ticks a boat holds its downwind heading after passing through a gate before it heads up:
+#: a boat cannot turn on the spot, and a rounding that turns on the line leaves a noised
+#: track that may never cross it.
+GATE_SAIL_ON_TICKS = 3
 
 
 @dataclass
@@ -57,6 +61,8 @@ class EmulatedBoat:
     sailed_on: int = 0
     #: How far past the layline this boat sails before tacking, in degrees.
     overstand: float = 0.0
+    #: Ticks left to hold the current heading (after a gate) before steering again.
+    hold_heading: int = 0
     #: The boat holds station below the line until this moment, then goes for it.
     go_at: datetime | None = None
     truth: list[Passing] = field(default_factory=list)
@@ -132,9 +138,12 @@ class EmulatedRace:
         if target.kind == "gate":
             mark = target.points[boat.gate_side]
             # Through the gate close to the chosen mark: the crossing has to be *between*
-            # the two marks to count, so the aim is a little inside of the mark.
+            # the two marks to count, so the aim is a little inside of the mark — and a
+            # boat length or two *below* the line, because a boat cannot turn on the spot:
+            # it is through the gate before it heads up for the next beat.
             inside = (target.centre - mark).unit()
-            return mark + inside.scale(self.rounding_offset)
+            below = self._axis.scale(-self.rounding_distance)
+            return mark + inside.scale(self.rounding_offset) + below
         if target.name == "start":
             committee, pin = target.points
             along = (self.boats.index(boat.number) + 0.5) / max(1, len(self.boats))
@@ -192,7 +201,11 @@ class EmulatedRace:
             # Holding station below the line: a fix with no speed, pointing upwind.
             boat.heading = bearing_deg(self._axis)
             return
-        heading = self._steer(boat)
+        if boat.hold_heading > 0:
+            boat.hold_heading -= 1
+            heading = boat.heading
+        else:
+            heading = self._steer(boat)
         twa = abs(angle_diff(heading, self.wind.twd))
         speed = self.polar.speed(self.wind.tws, twa) * KNOT * boat.skill
         speed *= 1.0 + self._random.gauss(0.0, 0.02)
@@ -222,6 +235,8 @@ class EmulatedRace:
         if not passed:
             return
         boat.truth.append(Passing(boat.target, when))
+        if target.kind == "gate":
+            boat.hold_heading = GATE_SAIL_ON_TICKS
         boat.target += 1
         if boat.target >= len(self._waypoints):
             boat.finished_at = t

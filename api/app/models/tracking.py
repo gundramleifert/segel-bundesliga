@@ -28,7 +28,7 @@ class Course(Base, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), index=True)
-    laps: Mapped[int] = mapped_column(default=1)
+    laps: Mapped[int] = mapped_column(default=2)
     finish_upwind: Mapped[bool] = mapped_column(default=False)
     finish_pin_side: Mapped[str] = mapped_column(String(8), default="right")
     #: The committee's wind, typed in or taken from the axis when laid — in knots and degrees.

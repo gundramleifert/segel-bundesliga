@@ -53,7 +53,7 @@ class Waypoint:
 @dataclass(frozen=True)
 class Course:
     marks: dict[MarkRole, XY]
-    laps: int = 1
+    laps: int = 2
     finish_upwind: bool = False
     finish_pin_side: Literal["left", "right"] = "right"
 
@@ -87,14 +87,18 @@ class Course:
         return self.marks[MarkRole.GATE_LEFT], self.marks[MarkRole.GATE_RIGHT]
 
     def waypoints(self) -> list[Waypoint]:
-        """START, then per lap WINDWARD and GATE, then FINISH — in the order they are passed."""
+        """START, WINDWARD, then GATE and WINDWARD again per further lap, then FINISH.
+
+        The gate is rounded *between* laps, never on the way to the finish: the league's
+        course is start – W – G – W – finish, and after the last windward mark the boats
+        run straight down to the line. So a one-lap course is start – W – finish and the
+        gate marks are on the water but not on the way.
+        """
         out = [Waypoint("start", "line", self.start_line, +1)]
         for lap in range(1, self.laps + 1):
+            if lap > 1:
+                out.append(Waypoint(f"gate {lap - 1}", "gate", self.gate, -1))
             out.append(Waypoint(f"windward {lap}", "mark", (self.marks[MarkRole.WINDWARD],), +1))
-            last = lap == self.laps
-            if last and self.finish_upwind:
-                break
-            out.append(Waypoint(f"gate {lap}", "gate", self.gate, -1))
         out.append(Waypoint("finish", "line", self.finish_line, +1 if self.finish_upwind else -1))
         return out
 
@@ -109,7 +113,7 @@ def lay_course(
     leg_length: float | None = None,
     line_length: float | None = None,
     gate_width: float | None = None,
-    laps: int = 1,
+    laps: int = 2,
     finish_upwind: bool = False,
     finish_pin_side: Literal["left", "right"] = "right",
 ) -> Course:

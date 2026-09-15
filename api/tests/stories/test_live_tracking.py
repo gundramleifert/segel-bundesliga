@@ -60,7 +60,7 @@ def batch(token: str, *, at: datetime, n: int = 3) -> dict:
 class TestLayingTheCourse:
     """L-2: As race committee I lay the course with a few taps."""
 
-    async def test_the_default_course_has_six_marks_and_four_waypoints(self, client, caplog):
+    async def test_the_default_course_has_six_marks_and_five_waypoints(self, client, caplog):
         headers = await admin(client, caplog, "tr1@example.com")
         event_id = await live_event(client, headers, "Course Cup", "2027-11-06")
 
@@ -78,7 +78,8 @@ class TestLayingTheCourse:
         assert sorted(m["role"] for m in body["marks"]) == sorted(
             ["committee_boat", "start_pin", "windward", "gate_left", "gate_right", "finish_pin"]
         )
-        assert body["waypoints"] == ["start", "windward 1", "gate 1", "finish"]
+        # The league's course, two laps: start – W – G – W – finish; no gate on the way in.
+        assert body["waypoints"] == ["start", "windward 1", "gate 1", "windward 2", "finish"]
         assert body["wind_from_deg"] == 20
 
         again = await client.get(f"/api/admin/events/{event_id}/course", headers=headers)
@@ -273,12 +274,12 @@ class TestAWholeRaceSimulated:
         assert all(b["leg_name"] is not None and b["sog_kn"] >= 0 for b in picture["boats"])
         # What the panel and the map draw beside the boats: "leg 2/4", the gap to the
         # leader, the wind, laylines from the polar, and the leader's line.
-        assert picture["leg_count"] == 4
+        assert picture["leg_count"] == 5
         assert picture["wind_from_deg"] is not None
         assert len(picture["laylines"]) == 6
         assert all(len(line["points"]) == 2 for line in picture["laylines"])
         racing = [b for b in picture["boats"] if b["finished_at"] is None]
         assert min(b["to_leader_m"] for b in racing) == 0
-        if any(0 < b["leg"] < 4 for b in racing):
+        if any(0 < b["leg"] < 5 for b in racing):
             assert picture["leader_line"] is not None and len(picture["leader_line"]) == 2
         assert picture["race"]["status"] == "running"

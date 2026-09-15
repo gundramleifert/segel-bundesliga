@@ -2174,9 +2174,12 @@ so that **the live page tells a story rather than showing six dots**.
 Acceptance criteria:
 - **One course family first: windward/leeward with a leeward gate** (decision 7). Waypoints
   in order: `START` (line between committee boat and pin, **pin to port of the committee
-  boat**), `WINDWARD` (one mark, rounded to port), `GATE` (two marks, either one), repeated
-  per lap, `FINISH` (line between committee boat and pin, pin **left or right** — one flag).
-  Parameters: `laps`, finish upwind or downwind. Nothing else is modelled until real data
+  boat**), `WINDWARD` (one mark, rounded to port), then per further lap `GATE` (two marks,
+  either one) and `WINDWARD` again, then `FINISH` (line between committee boat and pin,
+  pin **left or right** — one flag). **The gate is rounded between laps, never on the way
+  to the finish**: the league's course is start – W – G – W – finish (`laps = 2`, the
+  default), and after the last windward mark the boats run straight down to the line; the
+  second gate is not a mark of the course. Parameters: `laps`, finish upwind or downwind. Nothing else is modelled until real data
   asks for it. **The finish pin sits on the other side of the committee boat by default**
   (`finish_pin_side = "right"`, looking upwind): that is how most days are run, the finish
   line separate from the start line. `"left"` puts it through the start line — the
@@ -2245,7 +2248,7 @@ Acceptance criteria:
   until a wind source exists — and the **leader's line** through the leading boat square
   to its leg's axis, everything behind it being behind in distance to windward. Nothing
   joins the gate marks and no leg line is drawn. The panel shows the leg as **`2/4`**
-  (waypoints passed of waypoints on the course; a finished boat reads `4/4 finished`, no
+  (waypoints passed of waypoints on the course; a finished boat reads `5/5 finished`, no
   time), and one **to go / gap** column: the leader's metres to its next mark, every other
   boat as `+XX m` behind the leader in axis metres (`to_leader_m`, from
   `ranking.metres_to_go`, whole legs counting more than any distance within one). The

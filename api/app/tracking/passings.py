@@ -79,8 +79,11 @@ class SequentialCourseDetector:
                 break
             target = waypoints[expected]
             p0, p1 = track[i - 1].xy, track[i].xy
-            move = _direction(track[i], p1 - p0)
             if target.kind in ("line", "gate"):
+                # Judged by the heading the boat *approached* with: a boat through a gate
+                # rounds the mark at once, and at one fix a second the arrival fix's course
+                # is already upwind — read there, a clean crossing looks like the wrong way.
+                move = _direction(track[i - 1], p1 - p0)
                 margin = self.gate_margin if target.kind == "gate" else self.line_margin
                 a, b = _extended(target.points[0], target.points[1], margin)
                 if segment_crosses_line(p0, p1, a, b) and move.dot(axis) * target.direction > 0:
@@ -89,6 +92,7 @@ class SequentialCourseDetector:
                     t0, t1 = track[i - 1].t, track[i].t
                     passings.append(Passing(expected, t0 + (t1 - t0) * fraction))
             else:
+                move = _direction(track[i], p1 - p0)
                 near = distance(p1, target.centre) < self.mark_radius
                 turned_down = move.dot(axis) * target.direction < 0
                 if near and turned_down:

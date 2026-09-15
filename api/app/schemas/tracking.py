@@ -24,7 +24,7 @@ class CourseIn(BaseModel):
     """The course as the committee laid it: six marks, laps, where the finish is."""
 
     marks: list[MarkIn] = Field(min_length=6, max_length=6)
-    laps: int = Field(default=1, ge=1, le=6)
+    laps: int = Field(default=2, ge=1, le=6)
     finish_upwind: bool = False
     #: "right": the finish pin on the other side of the committee boat than the start
     #: pin — the usual case; "left": the finish through the start line.
@@ -40,7 +40,7 @@ class DefaultCourseIn(BaseModel):
     lon: float | None = None
     wind_from_deg: float | None = None
     leg_length_m: float | None = Field(default=None, ge=50, le=5000)
-    laps: int = Field(default=1, ge=1, le=6)
+    laps: int = Field(default=2, ge=1, le=6)
     finish_upwind: bool = False
     #: "right": the finish pin on the other side of the committee boat than the start
     #: pin — the usual case; "left": the finish through the start line.
