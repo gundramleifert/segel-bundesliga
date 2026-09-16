@@ -10,7 +10,8 @@
     "admin": "Verwaltung",
     "myClub": "Unser Verein",
     "menu": "Menü",
-    "label": "Hauptnavigation"
+    "label": "Hauptnavigation",
+    "myClubSelectLabel": "Welcher Verein"
   },
   "status": {
     "planned": "geplant",

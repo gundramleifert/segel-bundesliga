@@ -133,11 +133,11 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
 
     await signIn(page, manager.email);
     await openMyClub(page, "series");
-    // Two clubs: "Our club" in the navigation has one sub-entry per club (Story V-12).
+    // Two clubs: "Our club" in the navigation gets a dropdown to pick the club (Story V-12).
     await openNavigation(page);
-    const subEntry = page.getByTestId(`layout-nav-myClub-${second.id}`);
-    await expect(subEntry).toBeVisible();
-    await subEntry.click();
+    const select = page.getByTestId("layout-nav-myClub-select");
+    await expect(select).toBeVisible();
+    await select.selectOption(String(second.id));
     await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
     // A member, not an organizer, of the second club: the squad is shown read-only.
     await page.getByTestId("my-club-series-tab").click();
@@ -145,10 +145,12 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
 
-    // Remembered: a fresh visit without the URL parameter opens the chosen club, and
-    // the account page names it.
+    // Remembered: a fresh visit without the URL parameter opens the chosen club, the
+    // dropdown shows it, and the account page names it.
     await page.goto("/club");
     await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
+    await openNavigation(page);
+    await expect(page.getByTestId("layout-nav-myClub-select")).toHaveValue(String(second.id));
     await expect(page.getByTestId(`my-club-role-${second.id}`)).toBeVisible();
     await page.goto("/account");
     await expect(page.getByTestId("account-active-club-select")).toHaveValue(String(second.id));

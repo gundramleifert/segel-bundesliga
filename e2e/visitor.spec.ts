@@ -309,7 +309,12 @@ test.describe("A-12: the navigation moves with the viewport", () => {
     await page.goto("/series");
     await page.getByTestId("series-list").getByRole("link").first().click();
     await expect(crumb.getByRole("listitem")).toHaveCount(2);
-    const crumbs = await crumb.getByRole("listitem").allInnerTexts();
+    // Polled, not read once: the crumb re-renders as the page's own query resolves, and a
+    // read between two renders came back with one item after the count had seen two.
+    const crumbs = await expect
+      .poll(async () => crumb.getByRole("listitem").allInnerTexts(), { timeout: 10_000 })
+      .toHaveLength(2)
+      .then(() => crumb.getByRole("listitem").allInnerTexts());
     const page_name = crumbs[1].replace("›", "").trim();
     expect(page_name.length).toBeGreaterThan(0);
     expect(page_name).not.toEqual(crumbs[0].trim());

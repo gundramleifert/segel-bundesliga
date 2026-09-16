@@ -10,7 +10,8 @@
     "admin": "Admin",
     "myClub": "Our club",
     "menu": "Menu",
-    "label": "Main navigation"
+    "label": "Main navigation",
+    "myClubSelectLabel": "Which club"
   },
   "status": {
     "planned": "planned",

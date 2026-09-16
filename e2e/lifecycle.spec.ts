@@ -476,7 +476,7 @@ test.describe("V-12: a club manager manages their own squad", () => {
     // states its name now (Story A-12), so that is what says the right screen arrived;
     // the squads sit under the Series tab, Members opens first.
     await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
-    await expect(page.getByTestId("layout-nav-myClub-")).toHaveCount(0);
+    await expect(page.getByTestId("layout-nav-myClub-select")).toHaveCount(0);
     await page.getByTestId("my-club-series-tab").click();
     await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();

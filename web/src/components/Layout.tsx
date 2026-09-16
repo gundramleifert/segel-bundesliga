@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useMyClubs } from "../api/generated/sbl";
 import { useAccount } from "../api/useApi";
@@ -43,9 +43,9 @@ export function Layout() {
 
   // Both extra entries appear only when they actually lead somewhere — a link that ends
   // in a 403, or in "you belong to no club", is worse than no link. "Our club" is for
-  // whoever belongs to a club or organizes one (Story V-12), and with several clubs it
-  // expands into one sub-entry per club — the club is chosen here, not on the page.
-  // Administration keeps its own, wider way in.
+  // whoever belongs to a club or organizes one (Story V-12): the link opens the club the
+  // account acts for, and with several clubs a dropdown beneath it picks another — the
+  // club is chosen here, not on the page. Administration keeps its own, wider way in.
   const clubs = useMyClubs({ query: { enabled: Boolean(account) } });
   const mine = clubs.data ?? [];
   const navigation: NavItem[] = [
@@ -95,7 +95,12 @@ export function Layout() {
           className="sticky top-0 flex h-dvh w-60 shrink-0 flex-col bg-white"
         >
           <SiteLogo className="px-4 py-4" />
-          <NavList navigation={navigation} t={t} className="flex-1 overflow-y-auto px-3 py-2" />
+          <NavList
+            navigation={navigation}
+            t={t}
+            activeClubId={account?.club_id ?? null}
+            className="flex-1 overflow-y-auto px-3 py-2"
+          />
           <div className="flex items-center justify-end px-4 py-3">
             <UserMenu account={account} loading={loading} placement="top" />
           </div>
@@ -182,6 +187,7 @@ export function Layout() {
               <NavList
                 navigation={navigation}
                 t={t}
+                activeClubId={account?.club_id ?? null}
                 className="flex-1 overflow-y-auto px-3 py-2"
               />
             </div>
@@ -258,15 +264,18 @@ function SiteLogo({ className = "" }: { className?: string }) {
 function NavList({
   navigation,
   t,
+  activeClubId,
   className = "",
 }: {
   navigation: NavItem[];
   t: (key: string) => string;
+  activeClubId: number | null;
   className?: string;
 }) {
-  // A sub-entry is a query string on the same path, which `NavLink` cannot tell apart —
-  // so which club is open is read off the URL here (`ClubScreen` completes it).
+  // Which club the dropdown shows: the one open on `/club` (read off the URL, which
+  // `ClubScreen` completes), otherwise the one the account acts for.
   const location = useLocation();
+  const navigate = useNavigate();
   const openClub = location.pathname.startsWith("/club")
     ? new URLSearchParams(location.search).get("club")
     : null;
@@ -301,27 +310,32 @@ function NavList({
               {t(`nav.${item.key}`)}
             </NavLink>
             {item.children && (
-              <ul className="ml-3 mt-1 flex flex-col gap-0.5 border-l border-slate-200 pl-2">
-                {item.children.map((child) => {
-                  const active = openClub === String(child.clubId);
-                  return (
-                    <li key={child.key}>
-                      <NavLink
-                        to={child.path}
-                        data-testid={`layout-nav-${child.key}`}
-                        aria-current={active ? "page" : undefined}
-                        className={`block rounded-md px-3 py-1.5 text-sm transition-colors ${
-                          active
-                            ? "bg-brand-50 font-medium text-brand-800"
-                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                        }`}
-                      >
-                        {child.label}
-                      </NavLink>
-                    </li>
-                  );
-                })}
-              </ul>
+              // A dropdown, not one link per club: two clubs are rare, ten are possible
+              // for a person who organizes for a federation, and a strip of ten links
+              // would swallow the navigation. Choosing navigates; the page remembers.
+              <div className="ml-3 mt-1 border-l border-slate-200 pl-2">
+                <label className="sr-only" htmlFor="layout-nav-club-select">
+                  {t("nav.myClubSelectLabel")}
+                </label>
+                <select
+                  id="layout-nav-club-select"
+                  data-testid="layout-nav-myClub-select"
+                  className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700"
+                  value={
+                    openClub ??
+                    (activeClubId != null && item.children.some((c) => c.clubId === activeClubId)
+                      ? String(activeClubId)
+                      : String(item.children[0].clubId))
+                  }
+                  onChange={(e) => navigate(`/club?club=${e.target.value}`)}
+                >
+                  {item.children.map((child) => (
+                    <option key={child.key} value={child.clubId} data-testid={`layout-nav-${child.key}`}>
+                      {child.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
           </li>
         ))}

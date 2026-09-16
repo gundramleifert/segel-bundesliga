@@ -1656,9 +1656,11 @@ Acceptance criteria:
     of those endpoints existed without a page — the help text said so.
   - *Matchdays*: the club's event entries with the lineup under each (Story V-2).
   - *Series*: the series registrations, each with its squad (Story V-1).
-- **Several clubs choose themselves in the navigation, not on the page.** With more than
-  one club, "Our club" expands into one sub-entry per club (`layout-nav-myClub-{id}`);
-  picking one opens that club and **remembers it on the account** (`User.club_id`, `PATCH
+- **Several clubs choose themselves in the navigation, not on the page.** "Our club" opens
+  the club the account acts for. With more than one club, a **dropdown** beneath the
+  entry (`layout-nav-myClub-select`) picks another — a dropdown rather than one link per
+  club, because ten links would swallow the navigation; picking one opens that club and
+  **remembers it on the account** (`User.club_id`, `PATCH
   /api/auth/me`, only a club the account belongs to or organizes —
   `/errors/active-club-not-mine`). With nothing remembered, a club the person organizes
   wins over one they merely belong to. One club is the normal case and has no sub-entries.
