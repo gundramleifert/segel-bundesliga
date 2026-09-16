@@ -24,7 +24,12 @@ from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventStatus, Series, Team, TeamStatus
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.schemas.public import ClubOut, SeriesOut
-from app.services import adopt_series_registrations, delete_event_entries, has_results
+from app.services import (
+    adopt_series_registrations,
+    check_squad_limits,
+    delete_event_entries,
+    has_results,
+)
 from app.text import slugify
 
 router = APIRouter(
@@ -68,6 +73,10 @@ class SeriesCreate(BaseModel):
         max_length=4000,
         description="Markdown, shown on the public standings page.",
     )
+    squad_min: int = Field(default=4, ge=1, le=50, description="Fewest people a club registers.")
+    squad_max: int = Field(
+        default=10, ge=1, le=50, description="Most people a club registers — enforced on save."
+    )
 
 
 class SeriesUpdate(BaseModel):
@@ -80,6 +89,8 @@ class SeriesUpdate(BaseModel):
     scoring: dict[str, Any] | None = None
     published: bool | None = None
     description: str | None = Field(default=None, max_length=4000)
+    squad_min: int | None = Field(default=None, ge=1, le=50)
+    squad_max: int | None = Field(default=None, ge=1, le=50)
 
 
 class SetClubs(BaseModel):
@@ -199,6 +210,7 @@ async def create_series(
         )
 
     clubs = await _resolve_clubs(session, request.clubs, locale)
+    check_squad_limits(request.squad_min, request.squad_max)
 
     series = Series(
         slug=slug,
@@ -212,6 +224,8 @@ async def create_series(
         published=request.published,
         scoring=request.scoring if request.scoring is not None else dict(DEFAULT_SCORING),
         description=request.description.strip() if request.description else None,
+        squad_min=request.squad_min,
+        squad_max=request.squad_max,
     )
     session.add(series)
     await session.flush()
@@ -237,7 +251,11 @@ async def update_series(
     locale: Locale = Depends(resolve_locale),
 ) -> SeriesAdminOut:
     series = await _get_series(session, series_id, locale)
-    for field, value in request.model_dump(exclude_unset=True).items():
+    changes = request.model_dump(exclude_unset=True)
+    check_squad_limits(
+        changes.get("squad_min", series.squad_min), changes.get("squad_max", series.squad_max)
+    )
+    for field, value in changes.items():
         setattr(series, field, value.strip() if isinstance(value, str) else value)
     await session.commit()
     return await _series_out(session, series.id)

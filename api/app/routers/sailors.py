@@ -185,6 +185,10 @@ class SquadOut(BaseModel):
     team_id: int
     club_id: int
     series_id: int | None
+    # The size the series (or the stand-alone event) asks for — Story V-1. The panel reads
+    # them here, never off a constant.
+    squad_min: int
+    squad_max: int
     members: list[MemberOut] = Field(default_factory=list)
 
 
@@ -410,6 +414,16 @@ async def set_squad(
             "squad-duplicate-sailor",
             "A person appears twice in this squad.",
             sailor_ids=twice,
+        )
+
+    _, squad_max = await _squad_limits(session, team)
+    if len(desired) > squad_max:
+        raise Problem(
+            422,
+            "squad-too-large",
+            "More people than this competition allows in a squad.",
+            squad_max=squad_max,
+            registered=len(desired),
         )
 
     if desired:
@@ -810,7 +824,27 @@ async def _not_removing_lined_up(
         )
 
 
+async def _squad_limits(session: AsyncSession, team: Team) -> tuple[int, int]:
+    """The squad size the competition asks for: the series', or the stand-alone event's."""
+    if team.series_id is not None:
+        row = (
+            await session.execute(
+                select(Series.squad_min, Series.squad_max).where(Series.id == team.series_id)
+            )
+        ).one()
+    elif team.event_id is not None:
+        row = (
+            await session.execute(
+                select(Event.squad_min, Event.squad_max).where(Event.id == team.event_id)
+            )
+        ).one()
+    else:
+        return 4, 10
+    return int(row[0]), int(row[1])
+
+
 async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
+    squad_min, squad_max = await _squad_limits(session, team)
     rows = (
         await session.execute(
             select(TeamMembership, Sailor)
@@ -835,5 +869,7 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
         team_id=team.id,
         club_id=team.club_id,
         series_id=team.series_id,
+        squad_min=squad_min,
+        squad_max=squad_max,
         members=members,
     )

@@ -3,7 +3,7 @@ import type { Page, TestInfo } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { expectNoSidewaysScroll, openNavigation } from "./layout";
-import { signIn } from "./session";
+import { bearer, signIn } from "./session";
 
 /** Story VA-9: running an event, in a real browser.
  *
@@ -491,14 +491,29 @@ test.describe("V-12: a club manager manages their own squad", () => {
     // eighteen people in this data share a surname, and the row is the only thing that
     // tells them apart (Story V-1). Whoever is already in this series for another club is
     // shown with that reason and cannot be moved, so the one clicked is an addable one.
+    // The seeded squad sits at the series' maximum, so nobody on the left is addable —
+    // the limit is set per series and enforced (Story V-1). Raise it the way the league
+    // office would, then add one.
+    const selected = page.getByTestId("admin-squad-panes-selected-list").getByRole("listitem");
+    const squad = (await (
+      await page.request.get(
+        `/api/admin/teams/${new URL(page.url()).searchParams.get("team")}/members`,
+        { headers: await bearer(page.request, ADMIN) },
+      )
+    ).json()) as { series_id: number; squad_max: number; members: unknown[] };
+    const raised = await page.request.patch(`/api/admin/series/${squad.series_id}`, {
+      headers: await bearer(page.request, ADMIN),
+      data: { squad_max: squad.squad_max + 5 },
+    });
+    expect(raised.ok(), await raised.text()).toBeTruthy();
+    await page.reload();
+    await expect(selected.first()).toBeVisible();
+    const before = await selected.count();
     await page.getByTestId("admin-squad-panes-filter-input").fill("a");
     const addable = page.getByTestId("admin-squad-panes-available-list").locator("button").first();
     await expect(addable).toBeVisible();
-    const before = await page.getByTestId("admin-squad-panes-selected-list").getByRole("listitem").count();
     await addable.click();
-    await expect(
-      page.getByTestId("admin-squad-panes-selected-list").getByRole("listitem"),
-    ).toHaveCount(before + 1);
+    await expect(selected).toHaveCount(before + 1);
     // Moved, not yet written — Save is what writes the list, as for the clubs of an event.
     await expect(page.getByTestId("admin-squad-unsaved")).toBeVisible();
     await page.getByTestId("admin-squad-save").click();

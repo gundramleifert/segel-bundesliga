@@ -67,6 +67,10 @@ class Series(Base, TimestampMixin):
     # over. Publishing is therefore an explicit act — and it locks nothing, a published
     # series stays fully editable.
     published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # How many people a club registers for this series (Story V-1). The maximum is
+    # enforced when a squad is saved; the minimum is guidance the club screen shows.
+    squad_min: Mapped[int] = mapped_column(default=4, server_default="4")
+    squad_max: Mapped[int] = mapped_column(default=10, server_default="10")
     # Free-text description for the public standings page, written and rendered as
     # Markdown. Longer than a club's — this is where the scoring can be explained, sponsors
     # thanked, or a season recapped, so `Text` rather than a bounded `String`.
@@ -121,6 +125,11 @@ class Event(Base, TimestampMixin):
     # How many people a club fields for this matchday. They must come from the team's
     # squad (Story V-2). A guideline, not a hard limit.
     crew_size: Mapped[int] = mapped_column(default=4)
+    # The squad's size for an event that belongs to **no** series — its squad hangs off
+    # the entry itself (Story V-1). Ignored for an event within a series, whose series
+    # carries the limits.
+    squad_min: Mapped[int] = mapped_column(default=4, server_default="4")
+    squad_max: Mapped[int] = mapped_column(default=10, server_default="10")
 
     # Optional, like every other part of the setup: an event must be **savable while
     # incomplete** (a date still being negotiated with the host is the normal early

@@ -17,4 +17,6 @@ export interface SeriesUpdate {
   scoring?: SeriesUpdateScoring;
   published?: boolean | null;
   description?: string | null;
+  squad_min?: number | null;
+  squad_max?: number | null;
 }

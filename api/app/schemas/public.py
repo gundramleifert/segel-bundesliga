@@ -70,6 +70,9 @@ class SeriesOut(BaseModel):
     level: int | None = None
     starts_on: date | None = None
     ends_on: date | None = None
+    # How many people a club registers (Story V-1): the maximum is enforced, the minimum shown.
+    squad_min: int = 4
+    squad_max: int = 10
     # Whether the series is public. On public routes this is always true — they show
     # nothing else — but the admin views share these schemas and need to see the state.
     published: bool = False
@@ -177,6 +180,10 @@ class EventOut(BaseModel):
     boat_count: int
     flight_count: int
     crew_size: int
+    # The squad's size when the event stands alone (Story V-1); a series event uses its
+    # series' limits.
+    squad_min: int = 4
+    squad_max: int = 10
     # How the pairing list is printed (Story B-3). Empty is the normal case and means the
     # defaults the configuration implies; the organizer's screen shows what is set here.
     print_settings: dict[str, Any] | None = None
@@ -329,8 +336,10 @@ class MyTeamOut(BaseModel):
     team_id: int
     series: MySeriesOut
     #: How many people are registered. On the row so a screen listing several
-    #: registrations can show "7 of 10" without opening each squad in turn.
+    #: registrations can show "7 of 4–10" without opening each squad in turn.
     squad_size: int
+    squad_min: int = 4
+    squad_max: int = 10
 
 
 class MyEventOut(BaseModel):

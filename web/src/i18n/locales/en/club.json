@@ -63,7 +63,7 @@
       "series": "Series"
     },
     "seriesHint": "Every series this club is registered in. Open one to register who may sail for it — the squad the matchday crews are drawn from.",
-    "squadSize": "{{count}} registered",
+    "squadSize": "{{count}} of {{min}}–{{max}} registered",
     "openSquad": "Squad",
     "closeSquad": "Close"
   },

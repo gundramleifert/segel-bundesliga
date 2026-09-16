@@ -33,4 +33,16 @@ export interface SeriesCreate {
   slug?: string | null;
   /** Markdown, shown on the public standings page. */
   description?: string | null;
+  /**
+     * Fewest people a club registers.
+     * @minimum 1
+     * @maximum 50
+     */
+  squad_min?: number;
+  /**
+     * Most people a club registers — enforced on save.
+     * @minimum 1
+     * @maximum 50
+     */
+  squad_max?: number;
 }

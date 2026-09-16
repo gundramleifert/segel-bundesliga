@@ -14,4 +14,6 @@ export interface MyTeamOut {
   team_id: number;
   series: MySeriesOut;
   squad_size: number;
+  squad_min?: number;
+  squad_max?: number;
 }

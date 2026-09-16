@@ -39,10 +39,11 @@ const ROLES = ["helm", "crew", "substitute"] as const;
 type SquadRole = (typeof ROLES)[number];
 const ORDER: Record<SquadRole, number> = { helm: 0, crew: 1, substitute: 2 };
 
-/** What a squad is normally made of. Both numbers are **guidance the screen shows, never
- *  a rule it enforces** (Story V-1): illness and late registration have to get through,
- *  and a panel that refused the eleventh person would be wrong more often than right. */
-const USUAL_SQUAD_SIZE = 10;
+/** One helm is the usual shape — guidance the screen shows, never a rule (Story V-1). The
+ *  squad's *size* comes with the squad (`squad_min`, `squad_max`, set per series or per
+ *  stand-alone event): the maximum is enforced on save and the left pane offers nobody
+ *  once it is reached; the minimum is said in amber and saves anyway, because a squad is
+ *  built up over weeks. */
 const USUAL_HELM_COUNT = 1;
 
 type Entry = { sailor_id: number; role: SquadRole };
@@ -107,6 +108,8 @@ export function SquadPanel({
     .filter((p): p is Person => Boolean(p));
   const available = (results.data ?? []).filter((p) => !inDraft.has(p.id));
   const helmCount = draft.filter((d) => d.role === "helm").length;
+  const { squad_min: squadMin, squad_max: squadMax } = squad.data;
+  const full = draft.length >= squadMax;
   const dirty =
     draft.length !== saved.length ||
     draft.some((d) => saved.find((m) => m.id === d.sailor_id)?.role !== d.role);
@@ -140,7 +143,21 @@ export function SquadPanel({
         {/* Guidance, not validation — and said out loud, so that being at nine does not
             look like an oversight and being at eleven does not look like a bug. */}
         <p data-testid="admin-squad-size-hint" className="text-sm text-slate-500">
-          {t("squad.sizeHint", { count: draft.length, usual: USUAL_SQUAD_SIZE })}
+          {t("squad.sizeHint", { count: draft.length, min: squadMin, max: squadMax })}
+          {draft.length < squadMin && (
+            <>
+              {" · "}
+              <span data-testid="admin-squad-min-hint" className="text-amber-700">
+                {t("squad.belowMinHint", { min: squadMin })}
+              </span>
+            </>
+          )}
+          {full && (
+            <>
+              {" · "}
+              <span data-testid="admin-squad-max-hint">{t("squad.atMaxHint", { max: squadMax })}</span>
+            </>
+          )}
           {helmCount !== USUAL_HELM_COUNT && (
             <>
               {" · "}
@@ -183,7 +200,8 @@ export function SquadPanel({
             detail={sailsFor}
             disabledReason={(p) => {
               const taken = clash(p);
-              return taken ? t("squad.alreadyInSeries", { club: taken.club.name }) : null;
+              if (taken) return t("squad.alreadyInSeries", { club: taken.club.name });
+              return full ? t("squad.fullReason", { max: squadMax }) : null;
             }}
             filterValue={search}
             onFilterChange={setSearch}

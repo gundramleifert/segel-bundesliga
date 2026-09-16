@@ -46,10 +46,13 @@ async function openAccount(page: Page): Promise<void> {
 let adult: SailorRow;
 let junior: SailorRow;
 
-test.beforeAll(async ({ request }) => {
+test.beforeAll(async ({ request }, testInfo) => {
   const sailors = await sailorsOf(request, CLUB_DOMAIN);
-  adult = sailors.find((s) => bornIn(s) > 0 && bornIn(s) <= 2004)!;
-  junior = sailors.find((s) => bornIn(s) >= 2009)!;
+  // Each browser project takes its own pair: the two projects can share one stack, and a
+  // waiver confirmed by the first run would already be "cleared" for the second.
+  const nth = testInfo.project.name === "mobile" ? 1 : 0;
+  adult = sailors.filter((s) => bornIn(s) > 0 && bornIn(s) <= 2004)[nth]!;
+  junior = sailors.filter((s) => bornIn(s) >= 2009)[nth]!;
   expect(adult, "a seeded adult of the club").toBeTruthy();
   expect(junior, "a seeded junior of the club").toBeTruthy();
 });
@@ -113,7 +116,7 @@ test.describe("VA-5: as the organizer I only check off what is on file", () => {
   test("the event panel lists the squads' waivers and opens a minor's form", async ({
     page,
     request,
-  }) => {
+  }, testInfo) => {
     // A juniors event, so that the minor's row is on someone's check-in list. Creating it
     // adopts the series' registrations as participants (CLAUDE.md, Domain decisions).
     const headers = await bearer(request, ADMIN);
@@ -121,9 +124,17 @@ test.describe("VA-5: as the organizer I only check off what is on file", () => {
       items: { id: number; slug: string }[];
     };
     const juniors = series.items.find((s) => s.slug === "junioren-2026")!;
+    // One act per browser project: the two can share a stack, and an act number is unique
+    // within its series.
+    const matchday = testInfo.project.name === "mobile" ? 78 : 77;
     const created = await request.post("/api/admin/events", {
       headers,
-      data: { title: "Juniors check-in e2e", starts_on: "2026-08-15", series: juniors.id, matchday: 77 },
+      data: {
+        title: `Juniors check-in e2e ${matchday}`,
+        starts_on: "2026-08-15",
+        series: juniors.id,
+        matchday,
+      },
     });
     expect(created.ok(), await created.text()).toBeTruthy();
     const eventId = ((await created.json()) as { id: number }).id;

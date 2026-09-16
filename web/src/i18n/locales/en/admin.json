@@ -51,7 +51,13 @@
     "publishedBadge": "Public",
     "draftBadge": "Draft",
     "publishButton": "Publish",
-    "unpublishButton": "Unpublish"
+    "unpublishButton": "Unpublish",
+    "squadMinLabel": "Squad minimum",
+    "squadMinHint": "Shown to the clubs as a target.",
+    "squadMaxLabel": "Squad maximum",
+    "squadMaxHint": "Enforced when a club saves its squad.",
+    "saveSquadLimitsButton": "Save squad size",
+    "squadLimitsSavedMessage": "Squad size saved."
   },
   "events": {
     "title": "Events",
@@ -144,7 +150,7 @@
     "roleHelm": "Helm",
     "roleCrew": "Crew",
     "roleSubstitute": "Substitute",
-    "sizeHint": "{{count}} of usually {{usual}} — not a limit, and nothing is blocked either way.",
+    "sizeHint": "{{count}} of {{min}}–{{max}} registered",
     "noHelmHint": "No helm registered yet.",
     "manyHelmsHint": "{{count}} helms registered — usually there is one.",
     "addRoleLabel": "As",
@@ -153,7 +159,10 @@
     "save": "Save squad",
     "saving": "Saving…",
     "saved": "Squad saved.",
-    "unsaved": "Not saved yet."
+    "unsaved": "Not saved yet.",
+    "belowMinHint": "fewer than the {{min}} this competition asks for",
+    "atMaxHint": "the maximum of {{max}} is reached",
+    "fullReason": "Squad is full ({{max}})"
   },
   "auth": {
     "notSignedInError": "You must be signed in to access administration.",
@@ -275,6 +284,12 @@
       "guardian_signature_missing": "Guardian's form missing",
       "birth_date_unknown": "Date of birth unknown",
       "not_required": "Not required"
-    }
+    },
+    "squadLimitsTitle": "Squad size",
+    "squadLimitsHint": "This event belongs to no series, so its squad hangs off the entry itself. How many people may a club register for it? The maximum is enforced, the minimum shown to the club.",
+    "squadMinLabel": "Minimum",
+    "squadMaxLabel": "Maximum",
+    "saveSquadLimitsButton": "Save squad size",
+    "squadLimitsSavedMessage": "Squad size saved."
   }
 }

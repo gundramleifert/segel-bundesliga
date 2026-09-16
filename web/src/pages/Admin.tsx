@@ -524,6 +524,11 @@ function SeriesRow({
     () => new Set((series.clubs ?? []).map((c) => c.id)),
   );
   const [description, setDescription] = useState(series.description ?? "");
+  // Story V-1: how many people a club registers for this series. The maximum is enforced
+  // when a squad is saved, the minimum shown on the club screen.
+  const [squadMin, setSquadMin] = useState(String(series.squad_min));
+  const [squadMax, setSquadMax] = useState(String(series.squad_max));
+  const saveLimits = useUpdateSeries({ mutation: { onSuccess: () => onChanged() } });
 
   const save = useSetClubs({
     mutation: {
@@ -626,6 +631,49 @@ function SeriesRow({
               <ErrorMessage text={errorText(save.error)} testId={`admin-series-save-clubs-error-${series.id}`} />
             )}
           </Stack>
+
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[auto_auto_auto] sm:items-end">
+            <Field label={t("series.squadMinLabel")} hint={t("series.squadMinHint")}>
+              <input
+                type="number"
+                min={1}
+                max={50}
+                className={INPUT_CLASS}
+                value={squadMin}
+                onChange={(e) => setSquadMin(e.target.value)}
+                data-testid={`admin-series-squad-min-${series.id}`}
+              />
+            </Field>
+            <Field label={t("series.squadMaxLabel")} hint={t("series.squadMaxHint")}>
+              <input
+                type="number"
+                min={1}
+                max={50}
+                className={INPUT_CLASS}
+                value={squadMax}
+                onChange={(e) => setSquadMax(e.target.value)}
+                data-testid={`admin-series-squad-max-${series.id}`}
+              />
+            </Field>
+            <Button
+              size="sm"
+              isDisabled={saveLimits.isPending || !squadMin || !squadMax}
+              onPress={() =>
+                saveLimits.mutate({
+                  seriesId: series.id,
+                  data: { squad_min: Number(squadMin), squad_max: Number(squadMax) },
+                })
+              }
+              data-testid={`admin-series-save-squad-limits-${series.id}`}
+            >
+              {saveLimits.isPending ? t("series.savingButton") : t("series.saveSquadLimitsButton")}
+            </Button>
+          </div>
+          <Message
+            testId={`admin-series-squad-limits-message-${series.id}`}
+            error={saveLimits.isError ? errorText(saveLimits.error) : null}
+            success={saveLimits.isSuccess ? t("series.squadLimitsSavedMessage") : null}
+          />
 
           <Field label={t("series.descriptionLabel")} hint={t("series.descriptionHint")}>
             <textarea

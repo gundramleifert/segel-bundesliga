@@ -18,6 +18,8 @@ export interface SeriesOut {
   level?: number | null;
   starts_on?: string | null;
   ends_on?: string | null;
+  squad_min?: number;
+  squad_max?: number;
   published?: boolean;
   description?: string | null;
 }

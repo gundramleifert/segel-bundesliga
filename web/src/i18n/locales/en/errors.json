@@ -54,5 +54,7 @@
   "waiver-scan-not-needed": "An adult confirms the waiver online; a signed form is only needed for a sailor under 18.",
   "waiver-scan-not-found": "No signed form is on file for this confirmation.",
   "waiver-scan-forbidden": "The signed form is shown only to the sailor, their club's leadership, the event organizer and the league office.",
-  "active-club-not-mine": "You can only act for a club you belong to or organize."
+  "active-club-not-mine": "You can only act for a club you belong to or organize.",
+  "squad-too-large": "Too many people: this competition allows at most {{squad_max}} in a squad, {{registered}} were named.",
+  "squad-limits-invalid": "The squad's minimum cannot be larger than its maximum."
 }

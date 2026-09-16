@@ -1597,12 +1597,16 @@ Acceptance criteria:
     which one.
   - `squad-needs-series-registration` — this `Team` is an event entry, not a series
     registration, so it carries no squad.
-- **Ten is a target the screen shows, never a rule it enforces.** "7 of 10 registered" with
-  the usual size coming from the series, and nothing is blocked at eleven or at three. The
-  same goes for having exactly one helm: the screen says when there is none or more than
-  one, and saves anyway. Illness and late registration have to get through, which is why
-  this is guidance and not validation — and saying so on screen is what stops it from
-  looking like an oversight.
+- **The squad's size is set per series — or per event, when the event stands alone**
+  (`Series.squad_min` / `squad_max`, `Event.squad_min` / `squad_max`; defaults 4 and 10).
+  The **maximum is enforced** when the squad is saved (`squad-too-large`, naming the
+  limit) and the screen offers nobody once it is reached; the **minimum is guidance**
+  ("3 of 4–10 registered", said in amber), because a squad is built up over weeks and a
+  club must be able to save two names in March. A minimum above the maximum is refused
+  (`squad-limits-invalid`). The same goes for having exactly one helm: the screen says
+  when there is none or more than one, and saves anyway. The limits are edited on the
+  series' admin panel and, for a stand-alone event, on the event's; the squad panel
+  reads them off the squad itself (`SquadOut.squad_min/max`), never off a constant.
 - Somebody is added **in the role they will sail**, not always as crew to be corrected
   afterwards.
 - **The list to pick from says where each person already sails.** A name on its own does
@@ -1618,9 +1622,9 @@ Acceptance criteria:
   club too. The endpoint keeps refusing it (`squad-sailor-in-another-club`): the list is
   a courtesy, not the enforcement.
 
-Open: **Is it always exactly ten, or is ten a ceiling?** The number is deliberately not enforced
-— illness and late registration would not get through otherwise. Also open: until when the
-squad can be changed (see "Deadlines remain out for now").
+Open: until when the squad can be changed (see "Deadlines remain out for now"). Whether
+the minimum should also block something — a matchday start, say — is not decided; today it
+is a warning on the club screen only.
 
 Endpoints: `GET /api/admin/teams/{team_id}/members`,
 `PUT /api/admin/teams/{team_id}/members`

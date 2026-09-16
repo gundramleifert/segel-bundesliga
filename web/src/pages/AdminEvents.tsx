@@ -718,6 +718,13 @@ function EventPanel({
   const [teamPages, setTeamPages] = useState(stored.teamPages);
   // Story L-1: the live view is the internal map unless the event names an external one.
   const [liveUrl, setLiveUrl] = useState(event.live_url ?? "");
+  // Story V-1: a stand-alone event carries its own squad size; a series event uses its
+  // series' limits, so the block below appears only without a series.
+  const [squadMin, setSquadMin] = useState(String(event.squad_min));
+  const [squadMax, setSquadMax] = useState(String(event.squad_max));
+  const saveSquadLimits = useUpdateEvent({
+    mutation: { onSuccess: () => invalidate("/api/admin/events", "/api/events", "/api/clubs") },
+  });
   const [selectedClubs, setSelectedClubs] = useState<Set<number> | null>(null);
 
   // Which clubs may be entered at all: the series' registered clubs when the event belongs
@@ -1074,6 +1081,56 @@ function EventPanel({
           success={saveLive.isSuccess ? t(liveUrl.trim() ? "manage.liveSavedExternal" : "manage.liveSavedInternal") : null}
         />
       </Stack>
+
+      {/* 5b'. Squad size, stand-alone events only (Story V-1) ------------------- */}
+      {!event.series && (
+        <Stack gap={3}>
+          <h3 className="text-sm font-semibold text-slate-700">{t("manage.squadLimitsTitle")}</h3>
+          <p className="text-sm text-slate-600">{t("manage.squadLimitsHint")}</p>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[auto_auto_auto] sm:items-end">
+            <Field label={t("manage.squadMinLabel")}>
+              <input
+                type="number"
+                min={1}
+                max={50}
+                className={INPUT_CLASS}
+                value={squadMin}
+                onChange={(e) => setSquadMin(e.target.value)}
+                data-testid={`admin-manage-event-squad-min-${event.id}`}
+              />
+            </Field>
+            <Field label={t("manage.squadMaxLabel")}>
+              <input
+                type="number"
+                min={1}
+                max={50}
+                className={INPUT_CLASS}
+                value={squadMax}
+                onChange={(e) => setSquadMax(e.target.value)}
+                data-testid={`admin-manage-event-squad-max-${event.id}`}
+              />
+            </Field>
+            <Button
+              size="sm"
+              isDisabled={saveSquadLimits.isPending || !squadMin || !squadMax}
+              onPress={() =>
+                saveSquadLimits.mutate({
+                  eventId: event.id,
+                  data: { squad_min: Number(squadMin), squad_max: Number(squadMax) },
+                })
+              }
+              data-testid={`admin-manage-event-save-squad-limits-${event.id}`}
+            >
+              {saveSquadLimits.isPending ? t("manage.savingButton") : t("manage.saveSquadLimitsButton")}
+            </Button>
+          </div>
+          <Message
+            testId={`admin-manage-event-squad-limits-message-${event.id}`}
+            error={saveSquadLimits.isError ? errorText(saveSquadLimits.error) : null}
+            success={saveSquadLimits.isSuccess ? t("manage.squadLimitsSavedMessage") : null}
+          />
+        </Stack>
+      )}
 
       {/* 5c. Liability waivers (Stories VA-5, S-1) --------------------------- */}
       <WaiverChecklist eventId={event.id} />

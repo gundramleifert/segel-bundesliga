@@ -46,6 +46,7 @@ from app.services import (
     CATALOG_REASON,
     ParticipationError,
     adopt_series_registrations,
+    check_squad_limits,
     configuration_frozen,
     event_entries,
     event_readiness,
@@ -153,6 +154,9 @@ class EventCreate(BaseModel):
             "invisible until published; publishing locks nothing."
         ),
     )
+    # The squad's size, used only when the event stands alone (Story V-1).
+    squad_min: int = Field(default=4, ge=1, le=50)
+    squad_max: int = Field(default=10, ge=1, le=50)
     print_settings: PrintSettingsIn | None = Field(
         default=None, description="Print settings for the pairing list; empty for defaults."
     )
@@ -188,6 +192,8 @@ class EventUpdate(BaseModel):
     team_count: int | None = Field(default=None, ge=2, le=64)
     boat_count: int | None = Field(default=None, ge=2, le=20)
     flight_count: int | None = Field(default=None, ge=1, le=40)
+    squad_min: int | None = Field(default=None, ge=1, le=50)
+    squad_max: int | None = Field(default=None, ge=1, le=50)
     print_settings: PrintSettingsIn | None = None
 
 
@@ -293,6 +299,7 @@ async def create_event(
 
     slug = await _find_free_slug(session, desired)
 
+    check_squad_limits(request.squad_min, request.squad_max)
     event = Event(
         slug=slug,
         title=request.title.strip(),
@@ -309,6 +316,8 @@ async def create_event(
         team_count=request.team_count,
         boat_count=request.boat_count,
         flight_count=request.flight_count,
+        squad_min=request.squad_min,
+        squad_max=request.squad_max,
         print_settings=(
             request.print_settings.model_dump() if request.print_settings else None
         ),
@@ -346,6 +355,9 @@ async def update_event(
     changes = request.model_dump(exclude_unset=True)
     if _CONFIGURATION_FIELDS & changes.keys():
         await require_editable_configuration(session, event.id)
+    check_squad_limits(
+        changes.get("squad_min", event.squad_min), changes.get("squad_max", event.squad_max)
+    )
     if "series" in changes:
         series = changes.pop("series")
         if series is not None:

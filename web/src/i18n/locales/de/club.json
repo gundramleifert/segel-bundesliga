@@ -63,7 +63,7 @@
       "series": "Serien"
     },
     "seriesHint": "Jede Serie, für die dieser Verein gemeldet ist. Öffne eine, um zu melden, wer für sie segeln darf – der Kader, aus dem die Spieltags-Crews kommen.",
-    "squadSize": "{{count}} gemeldet",
+    "squadSize": "{{count}} von {{min}}–{{max}} gemeldet",
     "openSquad": "Kader",
     "closeSquad": "Schließen"
   },

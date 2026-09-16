@@ -51,7 +51,13 @@
     "publishedBadge": "Öffentlich",
     "draftBadge": "Entwurf",
     "publishButton": "Veröffentlichen",
-    "unpublishButton": "Zurückziehen"
+    "unpublishButton": "Zurückziehen",
+    "squadMinLabel": "Kader mindestens",
+    "squadMinHint": "Wird den Vereinen als Ziel angezeigt.",
+    "squadMaxLabel": "Kader höchstens",
+    "squadMaxHint": "Wird beim Speichern des Kaders durchgesetzt.",
+    "saveSquadLimitsButton": "Kadergröße speichern",
+    "squadLimitsSavedMessage": "Kadergröße gespeichert."
   },
   "events": {
     "title": "Veranstaltungen",
@@ -144,7 +150,7 @@
     "roleHelm": "Steuermann",
     "roleCrew": "Crew",
     "roleSubstitute": "Ersatz",
-    "sizeHint": "{{count}} von üblicherweise {{usual}} — keine Grenze, es wird in keine Richtung blockiert.",
+    "sizeHint": "{{count}} von {{min}}–{{max}} gemeldet",
     "noHelmHint": "Noch kein Steuermann gemeldet.",
     "manyHelmsHint": "{{count}} Steuerleute gemeldet — üblich ist einer.",
     "addRoleLabel": "Als",
@@ -153,7 +159,10 @@
     "save": "Kader speichern",
     "saving": "Wird gespeichert…",
     "saved": "Kader gespeichert.",
-    "unsaved": "Noch nicht gespeichert."
+    "unsaved": "Noch nicht gespeichert.",
+    "belowMinHint": "weniger als die {{min}}, die dieser Wettbewerb verlangt",
+    "atMaxHint": "das Maximum von {{max}} ist erreicht",
+    "fullReason": "Kader ist voll ({{max}})"
   },
   "auth": {
     "notSignedInError": "Für die Verwaltung müssen Sie angemeldet sein.",
@@ -275,6 +284,12 @@
       "guardian_signature_missing": "Formular der Eltern fehlt",
       "birth_date_unknown": "Geburtsdatum unbekannt",
       "not_required": "Nicht erforderlich"
-    }
+    },
+    "squadLimitsTitle": "Kadergröße",
+    "squadLimitsHint": "Diese Veranstaltung gehört zu keiner Serie, ihr Kader hängt also an der Meldung selbst. Wie viele Personen darf ein Verein melden? Das Maximum wird durchgesetzt, das Minimum dem Verein angezeigt.",
+    "squadMinLabel": "Mindestens",
+    "squadMaxLabel": "Höchstens",
+    "saveSquadLimitsButton": "Kadergröße speichern",
+    "squadLimitsSavedMessage": "Kadergröße gespeichert."
   }
 }

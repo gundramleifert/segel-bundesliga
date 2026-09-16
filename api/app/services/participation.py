@@ -182,3 +182,17 @@ async def delete_event_entries(session: AsyncSession, series_id: int, club_id: i
         )
     ).scalars():
         await session.delete(team)
+
+
+def check_squad_limits(squad_min: int | None, squad_max: int | None) -> None:
+    """A minimum above the maximum is a typo, not a rule — refused (Story V-1)."""
+    from app.problems import Problem
+
+    if squad_min is not None and squad_max is not None and squad_min > squad_max:
+        raise Problem(
+            422,
+            "squad-limits-invalid",
+            "The squad's minimum cannot be larger than its maximum.",
+            squad_min=squad_min,
+            squad_max=squad_max,
+        )

@@ -8678,6 +8678,10 @@ export const getGetSquadUrl = (teamId: number,) => {
 }
 
 /**
+ * Any signed-in account may read a squad: participation is public (the club page
+ * lists every squad, CLAUDE.md), so the only thing the old `_can_manage_squad` check
+ * here achieved was to break `/club` for a club's plain member, who is promised the
+ * read-only view (Story V-12). Writing still needs the club's leadership.
  * @summary View squad
  */
 export const getSquad = async (teamId: number, options?: RequestInit): Promise<SquadOut> => {

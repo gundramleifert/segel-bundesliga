@@ -239,6 +239,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
   (`/club`, three tabs) is where members are managed (V-8, Z-5, A-8), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
   `GET /api/clubs/mine`, never through an admin-only list.
+- **The squad's size belongs to the series, or to the event when it stands alone**
+  (`squad_min`/`squad_max`, Story V-1) — never a constant in code or in the screen. The
+  maximum is enforced when a squad is saved; the minimum is guidance the club screen
+  shows, because a squad is built up over weeks and a club must be able to save two
+  names in March.
 - **The liability waiver is one statement per competition, and age picks the path**
   (Stories S-1, S-3, VA-5, `app/services/waivers.py`). A sailor signs once per **Series**
   they are registered in, which covers every event of it; an event that belongs to no

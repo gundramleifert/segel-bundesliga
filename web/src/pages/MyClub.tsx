@@ -302,7 +302,11 @@ function ClubTeams({ entry }: { entry: MyClubOut }) {
                     </Link>
                   </p>
                   <p className="text-sm text-slate-600" data-testid={`my-club-team-size-${team.team_id}`}>
-                    {t("mine.squadSize", { count: team.squad_size })}
+                    {t("mine.squadSize", {
+                      count: team.squad_size,
+                      min: team.squad_min,
+                      max: team.squad_max,
+                    })}
                   </p>
                 </div>
                 <Button

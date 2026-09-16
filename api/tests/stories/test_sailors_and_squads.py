@@ -659,3 +659,120 @@ class TestFindingTheRightPerson:
                 await session.execute(select(Team).where(Team.id.in_(registered_teams)))
             ).scalars():
                 assert team.event_id is None
+
+
+class TestSquadLimits:
+    """Story V-1: the squad's size is set per series — or per event when it stands alone.
+    The maximum is enforced on save; the minimum is guidance the screen shows."""
+
+    async def _series_with_one_club(self, client, admin, name: str, **limits) -> tuple[int, int]:
+        """A fresh series with one club → (series_id, team_id). Fresh, because the seeded
+        series are what every other squad story registers into."""
+        async with SessionLocal() as session:
+            club_id = (
+                await session.execute(select(Club.id).where(Club.slug == "fsc"))
+            ).scalar_one()
+        created = await client.post(
+            "/api/admin/series",
+            headers=admin,
+            json={"name": name, "year": 2027, "clubs": [club_id], **limits},
+        )
+        assert created.status_code == 201, created.text
+        series_id = created.json()["id"]
+        async with SessionLocal() as session:
+            team_id = (
+                await session.execute(
+                    select(Team.id).where(Team.series_id == series_id, Team.club_id == club_id)
+                )
+            ).scalar_one()
+        return series_id, team_id
+
+    async def test_the_squad_carries_the_limits_of_its_series(self, client, caplog):
+        admin = await as_role(client, caplog, "lim-admin@example.com", Role.ADMIN)
+        series_id, team_id = await self._series_with_one_club(client, admin, "Limits League 2027")
+
+        squad = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
+        assert (squad["squad_min"], squad["squad_max"]) == (4, 10)  # the defaults
+
+        changed = await client.patch(
+            f"/api/admin/series/{series_id}",
+            headers=admin,
+            json={"squad_min": 3, "squad_max": 6},
+        )
+        assert changed.status_code == 200, changed.text
+        assert (changed.json()["squad_min"], changed.json()["squad_max"]) == (3, 6)
+        squad = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
+        assert (squad["squad_min"], squad["squad_max"]) == (3, 6)
+
+    async def test_the_maximum_is_enforced_and_the_minimum_is_not(self, client, caplog):
+        admin = await as_role(client, caplog, "lim-admin2@example.com", Role.ADMIN)
+        _, team_id = await self._series_with_one_club(
+            client, admin, "Small League 2027", squad_min=2, squad_max=3
+        )
+        sailors = await TestRegisteringASquad._new_sailors(self, client, admin, 4, "Li")
+        path = f"/api/admin/teams/{team_id}/members"
+
+        too_many = await client.put(
+            path,
+            headers=admin,
+            json={"members": [{"sailor_id": s, "role": "crew"} for s in sailors]},
+        )
+        assert too_many.status_code == 422, too_many.text
+        problem = too_many.json()
+        assert problem["type"] == "/errors/squad-too-large"
+        assert problem["squad_max"] == 3
+        assert problem["registered"] == 4
+
+        # Below the minimum saves: a squad is built up over weeks.
+        one = await client.put(
+            path, headers=admin, json={"members": [{"sailor_id": sailors[0], "role": "helm"}]}
+        )
+        assert one.status_code == 200, one.text
+        assert len(one.json()["members"]) == 1
+
+    async def test_a_minimum_above_the_maximum_is_refused(self, client, caplog):
+        admin = await as_role(client, caplog, "lim-admin3@example.com", Role.ADMIN)
+        series_id, _ = await self._series_with_one_club(client, admin, "Odd League 2027")
+        response = await client.patch(
+            f"/api/admin/series/{series_id}", headers=admin, json={"squad_min": 8, "squad_max": 5}
+        )
+        assert response.status_code == 422, response.text
+        assert response.json()["type"] == "/errors/squad-limits-invalid"
+
+        created = await client.post(
+            "/api/admin/series",
+            headers=admin,
+            json={"name": "Odder League 2027", "year": 2027, "squad_min": 8, "squad_max": 5},
+        )
+        assert created.status_code == 422
+        assert created.json()["type"] == "/errors/squad-limits-invalid"
+
+    async def test_a_stand_alone_event_has_its_own_limits(self, client, caplog):
+        admin = await as_role(client, caplog, "lim-admin4@example.com", Role.ADMIN)
+        async with SessionLocal() as session:
+            club_id = (
+                await session.execute(select(Club.id).where(Club.slug == "fsc"))
+            ).scalar_one()
+        created = await client.post(
+            "/api/admin/events",
+            headers=admin,
+            json={"title": "FSC Cup", "starts_on": "2027-05-01", "squad_min": 2, "squad_max": 5},
+        )
+        assert created.status_code == 201, created.text
+        event_id = created.json()["id"]
+        assert (created.json()["squad_min"], created.json()["squad_max"]) == (2, 5)
+        entered = await client.put(
+            f"/api/admin/events/{event_id}/clubs", headers=admin, json={"clubs": [club_id]}
+        )
+        assert entered.status_code == 200, entered.text
+        team_id = next(e["team_id"] for e in entered.json() if e["club"]["id"] == club_id)
+
+        squad = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
+        assert (squad["squad_min"], squad["squad_max"]) == (2, 5)
+
+        widened = await client.patch(
+            f"/api/admin/events/{event_id}", headers=admin, json={"squad_max": 6}
+        )
+        assert widened.status_code == 200, widened.text
+        squad = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
+        assert squad["squad_max"] == 6

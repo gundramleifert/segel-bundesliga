@@ -11,5 +11,7 @@ export interface SquadOut {
   team_id: number;
   club_id: number;
   series_id: number | null;
+  squad_min: number;
+  squad_max: number;
   members?: MemberOut[];
 }

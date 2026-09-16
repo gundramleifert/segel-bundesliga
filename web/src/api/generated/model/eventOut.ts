@@ -28,5 +28,7 @@ export interface EventOut {
   boat_count: number;
   flight_count: number;
   crew_size: number;
+  squad_min?: number;
+  squad_max?: number;
   print_settings?: EventOutPrintSettings;
 }

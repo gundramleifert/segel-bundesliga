@@ -49,6 +49,16 @@ export interface EventCreate {
   boats?: BoatSpec[];
   /** Whether the event is visible on the public site right away. A draft stays invisible until published; publishing locks nothing. */
   published?: boolean;
+  /**
+     * @minimum 1
+     * @maximum 50
+     */
+  squad_min?: number;
+  /**
+     * @minimum 1
+     * @maximum 50
+     */
+  squad_max?: number;
   /** Print settings for the pairing list; empty for defaults. */
   print_settings?: PrintSettingsIn | null;
 }

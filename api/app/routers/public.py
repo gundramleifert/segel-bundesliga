@@ -428,6 +428,8 @@ async def my_clubs(
                 team_id=team_id,
                 series=MySeriesOut.model_validate(series, from_attributes=True),
                 squad_size=squad_size,
+                squad_min=series.squad_min,
+                squad_max=series.squad_max,
             )
         )
 
@@ -1171,6 +1173,8 @@ def _event_out(event: Event) -> EventOut:
         # `ClubOut._prefer_uploaded_crest`) wins here too.
         logo_url=event.logo_url or (host_club.logo_url if host_club else None),
         live_url=event.live_url,
+        squad_min=event.squad_min,
+        squad_max=event.squad_max,
         team_count=event.team_count,
         boat_count=event.boat_count,
         flight_count=event.flight_count,
