@@ -31,7 +31,7 @@ type NavItem = { path: string; key: string; exact: boolean; children?: NavChild[
  * burger.
  *
  * One horizontal row used to serve both. On a wide screen it spent the full width on six
- * links and had nowhere left to say where you are; as the site gained "Our club" and the
+ * links and had nowhere left to say where you are; as the site gained "My club" and the
  * admin area it started competing with the language switcher for space. On a phone it
  * scrolled sideways, which is a navigation nobody finds.
  */
@@ -42,7 +42,7 @@ export function Layout() {
   const wide = useMediaQuery(WIDE_LAYOUT);
 
   // Both extra entries appear only when they actually lead somewhere — a link that ends
-  // in a 403, or in "you belong to no club", is worse than no link. "Our club" is for
+  // in a 403, or in "you belong to no club", is worse than no link. "My club" is for
   // whoever belongs to a club or organizes one (Story V-12): the link opens the club the
   // account acts for, and with several clubs a dropdown beneath it picks another — the
   // club is chosen here, not on the page. Administration keeps its own, wider way in.
@@ -307,7 +307,9 @@ function NavList({
                 }`
               }
             >
-              {t(`nav.${item.key}`)}
+              {/* "My clubs" once there is more than one to choose from — the private view,
+                  as against the public "Clubs" list above it. */}
+              {t(`nav.${item.key === "myClub" && item.children ? "myClubs" : item.key}`)}
             </NavLink>
             {item.children && (
               // A dropdown, not one link per club: two clubs are rare, ten are possible

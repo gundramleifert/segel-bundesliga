@@ -525,8 +525,9 @@ Endpoints: `POST /api/club-memberships`, `GET /api/club-memberships`,
 `DELETE /api/club-memberships/{id}`
 
 
-Screen: the public club page (`/clubs/{id}`) for the request, the club's Members tab on
-`/club` for the invitation (Story V-12).
+Screen: the club's Members tab on `/club` for the invitation (Story V-12); the invited
+person accepts on the public club page. The request path has no button in the interface
+— a club decides whom it invites (decision of 2026-09-16).
 Tests: `api/tests/stories/test_registration.py::TestRequestingClubMembership`,
 `api/tests/stories/test_club_membership.py::TestPersonApplies`
 
@@ -1064,7 +1065,7 @@ that device puts it**, so that **the screen is spent on what I came to read**.
 
 One horizontal bar served both and served neither well. On a laptop it wasted the full
 width of a wide screen on six links and left no room to say where you are; the site grew
-two more entries (Story V-12's "Our club", the admin area) and the row started competing
+two more entries (Story V-12's "My club", the admin area) and the row started competing
 for space with the language switcher and the account button. On a phone the same row had
 to scroll sideways, which is a navigation nobody discovers.
 
@@ -1135,7 +1136,7 @@ Acceptance criteria:
 - **Sections do not explain themselves.** `Section`'s `hint` is gone with them: a
   paragraph above every admin form describing what the form obviously does is read once
   and skipped forever after.
-- The navigation entries themselves do not change: `admin` and `Our club` still appear only
+- The navigation entries themselves do not change: `admin` and `My club` still appear only
   for the roles that can use them, because a link that ends in a 403 is worse than no link.
 
 Tests: `e2e/visitor.spec.ts::A-12: the navigation moves with the viewport`
@@ -1519,7 +1520,8 @@ Endpoints: `GET /api/admin/clubs/{id}/members`,
 
 
 Screen: the Members tab on `/club` (Story V-12) — requests waiting for the club with
-accept / reject; the invited person decides on the public club page.
+accept / reject, should any arrive through the API; the invited person decides on the
+public club page.
 Tests: `api/tests/stories/test_club_membership.py::TestPersonApplies`
 
 ### V-9 ● Invite someone to club
@@ -1632,7 +1634,7 @@ Endpoints: `GET /api/admin/teams/{team_id}/members`,
 Tests: `api/tests/stories/test_sailors_and_squads.py::TestRegisteringASquad`,
 `api/tests/stories/test_sailors_and_squads.py::TestSquadRefusalsAreTyped`
 
-### V-12 ● Our club: one screen for members, matchdays and squads
+### V-12 ● My club: one screen for members, matchdays and squads
 As a **club manager** I want **my club's squad to be somewhere I can get to**,
 so that **I can register who may sail without asking an administrator to do it for me**.
 
@@ -1644,7 +1646,8 @@ never did: the only squad panel lives under `/admin`, which refuses anyone who i
 data and no door. This story is the door.
 
 Acceptance criteria:
-- **`/club` is the club's own screen, for everyone who belongs to it.** "Our club" is in
+- **`/club` is the club's own screen, for everyone who belongs to it.** "My club" — "My
+  clubs" for a person in several, the private view beside the public "Clubs" list — is in
   the navigation for anyone who is a member of a club or organizes one (`GET
   /api/clubs/mine`, Story B-10) — not only for `club_manager`, since a member has things
   to see there too. The screen has **three tabs**: **Members**, **Matchdays** and
@@ -1656,7 +1659,7 @@ Acceptance criteria:
     of those endpoints existed without a page — the help text said so.
   - *Matchdays*: the club's event entries with the lineup under each (Story V-2).
   - *Series*: the series registrations, each with its squad (Story V-1).
-- **Several clubs choose themselves in the navigation, not on the page.** "Our club" opens
+- **Several clubs choose themselves in the navigation, not on the page.** "My club" opens
   the club the account acts for. With more than one club, a **dropdown** beneath the
   entry (`layout-nav-myClub-select`) picks another — a dropdown rather than one link per
   club, because ten links would swallow the navigation; picking one opens that club and
@@ -1665,9 +1668,12 @@ Acceptance criteria:
   `/errors/active-club-not-mine`). With nothing remembered, a club the person organizes
   wins over one they merely belong to. One club is the normal case and has no sub-entries.
   The account page names the club and offers the same choice.
-- **Joining starts on the public club page** (`/clubs/{id}`, Story Z-5): a signed-in
-  visitor who is not a member asks to join there; the same spot shows a pending request
-  (with withdraw), an invitation the club sent (accept / decline), or "you are a member".
+- **Joining starts with the club's invitation, never with a stranger's click.** The
+  public club page (`/clubs/{id}`) shows a signed-in visitor only what already exists
+  between them and the club: an invitation the club sent (accept / decline), a request
+  on file (with withdraw), or "you are a member" with the way to "My club". There is
+  deliberately **no open "ask to join"** on the public page; the request endpoint of
+  Story Z-5 stays, unused by the interface.
 - **Nothing on the way in is admin-only.** The route reaches the squad through
   `/api/clubs/mine` and `/api/admin/teams/{team_id}/members`, both of which a
   `club_manager` may call for their own club. Needing an admin-only list to find your own

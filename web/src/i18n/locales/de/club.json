@@ -39,7 +39,7 @@
   },
   "organizer": "Organisator:in",
   "mine": {
-    "title": "Unser Verein",
+    "title": "Mein Verein",
     "notSignedIn": "Zum Ansehen des eigenen Vereins bitte anmelden.",
     "noClubText": "Du gehörst noch zu keinem Verein.",
     "noClubLink": "Verein finden",
@@ -56,7 +56,7 @@
     "closeLineup": "Schließen",
     "openEvent": "Spieltagsseite öffnen",
     "standaloneSquad": "Kader für diese Veranstaltung",
-    "tabsLabel": "Unser Verein",
+    "tabsLabel": "Mein Verein",
     "tabs": {
       "members": "Mitglieder",
       "events": "Spieltage",
@@ -65,7 +65,8 @@
     "seriesHint": "Jede Serie, für die dieser Verein gemeldet ist. Öffne eine, um zu melden, wer für sie segeln darf – der Kader, aus dem die Spieltags-Crews kommen.",
     "squadSize": "{{count}} von {{min}}–{{max}} gemeldet",
     "openSquad": "Kader",
-    "closeSquad": "Schließen"
+    "closeSquad": "Schließen",
+    "titlePlural": "Meine Vereine"
   },
   "lineup": {
     "title": "Crew für diesen Spieltag",
@@ -80,16 +81,12 @@
     "unsaved": "Noch nicht gespeichert."
   },
   "join": {
-    "notMember": "Du bist kein Mitglied dieses Vereins.",
-    "ask": "Beitritt anfragen",
-    "askAgain": "Erneut anfragen",
-    "declined": "Der Verein hat deine Anfrage abgelehnt.",
     "requested": "Du hast den Beitritt angefragt – der Verein entscheidet.",
     "withdraw": "Zurückziehen",
     "invited": "Dieser Verein hat dich eingeladen.",
     "accept": "Annehmen",
     "decline": "Ablehnen",
     "member": "Du bist Mitglied dieses Vereins.",
-    "openClub": "„Unser Verein“ öffnen"
+    "openClub": "„Mein Verein“ öffnen"
   }
 }

@@ -8,10 +8,11 @@
     "events": "Veranstaltungen",
     "clubs": "Vereine",
     "admin": "Verwaltung",
-    "myClub": "Unser Verein",
+    "myClub": "Mein Verein",
     "menu": "Menü",
     "label": "Hauptnavigation",
-    "myClubSelectLabel": "Welcher Verein"
+    "myClubSelectLabel": "Welcher Verein",
+    "myClubs": "Meine Vereine"
   },
   "status": {
     "planned": "geplant",

@@ -62,7 +62,7 @@ export function MyClub() {
   return (
     <>
       <PageHeader
-        title={t("mine.title")}
+        title={entries.length > 1 ? t("mine.titlePlural") : t("mine.title")}
         testId="my-club-header"
       />
       <ClubScreen entries={entries} activeClubId={account.club_id ?? null} />

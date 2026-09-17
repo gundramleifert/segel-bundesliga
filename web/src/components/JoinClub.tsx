@@ -6,20 +6,19 @@ import {
   useAcceptMembership,
   useListOwnMemberships,
   useRejectMembership,
-  useRequestMembership,
   useWithdrawMembership,
 } from "../api/generated/sbl";
 import { useAccount, useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { ErrorMessage } from "./Blocks";
 
-/** Joining a club starts on its public page — Story Z-5, the person's half of V-8.
+/** Where the signed-in visitor stands with this club — the person's half of Story V-8.
  *
- * One line that says where the signed-in visitor stands with this club, and the one
- * action that follows from it: not a member → ask to join; asked → waiting for the club,
- * with withdraw; invited by the club → accept or decline; member → the way to "Our club".
- * Guests see nothing: joining needs an account, and the sign-in is behind the account
- * button like everything else about the reader.
+ * One line, shown only when there is something between the two: invited by the club →
+ * accept or decline; a request on file → waiting, with withdraw; member → the way to
+ * "My club". A visitor with no relationship sees nothing — deliberately **no "ask to
+ * join"** for anyone who happens by: membership starts with the club's invitation
+ * (Members tab, Story Z-5), not with a stranger's click on a public page.
  */
 export function JoinClub({ clubId }: { clubId: number }) {
   const { t } = useTranslation("club");
@@ -31,34 +30,18 @@ export function JoinClub({ clubId }: { clubId: number }) {
       onSuccess: () => invalidate("/api/club-memberships", "/api/clubs/mine", `/api/clubs/${clubId}/`),
     },
   };
-  const request = useRequestMembership(mutation);
   const accept = useAcceptMembership(mutation);
   const reject = useRejectMembership(mutation);
   const withdraw = useWithdrawMembership(mutation);
 
   if (!account || own.loading || own.error) return null;
   const mine = own.data?.find((m) => m.club.id === clubId);
-  const busy = request.isPending || accept.isPending || reject.isPending || withdraw.isPending;
-  const failure = [request, accept, reject, withdraw].find((m) => m.isError);
+  if (!mine || mine.status === "rejected") return null;
+  const busy = accept.isPending || reject.isPending || withdraw.isPending;
+  const failure = [accept, reject, withdraw].find((m) => m.isError);
 
   let body;
-  if (!mine || mine.status === "rejected") {
-    body = (
-      <>
-        <span data-testid="club-join-status">
-          {mine ? t("join.declined") : t("join.notMember")}
-        </span>
-        <Button
-          size="sm"
-          isDisabled={busy}
-          onPress={() => request.mutate({ data: { club_id: clubId } })}
-          data-testid="club-join-ask"
-        >
-          {mine ? t("join.askAgain") : t("join.ask")}
-        </Button>
-      </>
-    );
-  } else if (mine.status === "pending_club") {
+  if (mine.status === "pending_club") {
     body = (
       <>
         <span data-testid="club-join-status">{t("join.requested")}</span>

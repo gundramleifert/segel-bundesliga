@@ -8,10 +8,11 @@
     "events": "Events",
     "clubs": "Clubs",
     "admin": "Admin",
-    "myClub": "Our club",
+    "myClub": "My club",
     "menu": "Menu",
     "label": "Main navigation",
-    "myClubSelectLabel": "Which club"
+    "myClubSelectLabel": "Which club",
+    "myClubs": "My clubs"
   },
   "status": {
     "planned": "planned",

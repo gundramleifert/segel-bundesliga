@@ -133,7 +133,7 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
 
     await signIn(page, manager.email);
     await openMyClub(page, "series");
-    // Two clubs: "Our club" in the navigation gets a dropdown to pick the club (Story V-12).
+    // Two clubs: "My club" in the navigation gets a dropdown to pick the club (Story V-12).
     await openNavigation(page);
     const select = page.getByTestId("layout-nav-myClub-select");
     await expect(select).toBeVisible();
@@ -196,7 +196,7 @@ test.describe("V-8/Z-5/A-8: the Members tab — invite, accept on the club page,
     await expect(page.getByTestId("club-join-status")).toBeVisible();
     await page.getByTestId("club-join-accept").click();
     await expect(page.getByTestId("club-join-open")).toBeVisible();
-    // A member now: "Our club" is in the navigation and the roster lists them.
+    // A member now: "My club" is in the navigation and the roster lists them.
     await page.getByTestId("club-join-open").click();
     await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     const guestId = ((await (await request.get("/api/auth/me", { headers: guestHeaders })).json()) as { id: number }).id;

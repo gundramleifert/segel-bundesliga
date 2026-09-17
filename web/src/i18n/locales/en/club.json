@@ -39,7 +39,7 @@
   },
   "organizer": "Organizer",
   "mine": {
-    "title": "Our club",
+    "title": "My club",
     "notSignedIn": "Sign in to see your club.",
     "noClubText": "You are not in any club yet.",
     "noClubLink": "Find a club",
@@ -56,7 +56,7 @@
     "closeLineup": "Close",
     "openEvent": "Open matchday page",
     "standaloneSquad": "Squad for this event",
-    "tabsLabel": "Our club",
+    "tabsLabel": "My club",
     "tabs": {
       "members": "Members",
       "events": "Matchdays",
@@ -65,7 +65,8 @@
     "seriesHint": "Every series this club is registered in. Open one to register who may sail for it — the squad the matchday crews are drawn from.",
     "squadSize": "{{count}} of {{min}}–{{max}} registered",
     "openSquad": "Squad",
-    "closeSquad": "Close"
+    "closeSquad": "Close",
+    "titlePlural": "My clubs"
   },
   "lineup": {
     "title": "Crew for this matchday",
@@ -80,16 +81,12 @@
     "unsaved": "Not saved yet."
   },
   "join": {
-    "notMember": "You are not a member of this club.",
-    "ask": "Ask to join",
-    "askAgain": "Ask again",
-    "declined": "The club declined your request.",
     "requested": "You asked to join — waiting for the club.",
     "withdraw": "Withdraw",
     "invited": "This club invited you to join.",
     "accept": "Accept",
     "decline": "Decline",
     "member": "You are a member of this club.",
-    "openClub": "Open “Our club”"
+    "openClub": "Open “My club”"
   }
 }
