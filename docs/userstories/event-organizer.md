@@ -46,8 +46,10 @@ Acceptance criteria:
   ready 🚀 or what is still missing, offers publication, and — once published with a
   list — opens the pairing list and its PDF. The wizard never blocks on what a later step
   needs: a title alone still saves.
-  **The list of events comes first**, and the wizard opens from a "＋" top-right of it —
-  the screen opens on what exists, and the same plus adds a series on its tab.
+  **The wizard is a page of its own**, `/admin/events/new`, reached from the "＋" top-right
+  of the events list — the tab is the list, and creating anything (a club, a series, a
+  sailor, an event) is the same shape: the plus in the same corner, a page per entry, and
+  "Back to the list" when it is done.
 
 Endpoints: `POST /api/admin/events`
 

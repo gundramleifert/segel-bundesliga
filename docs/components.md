@@ -27,7 +27,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `LineupPanel.tsx` | `LineupPanel` — a matchday's crew from the squad, with roles (Story V-2) |
 | `Tabs.tsx` | `TabbedView` |
 | `Steps.tsx` | `Steps` — where you are in a short, ordered sequence (Story VA-6) |
-| `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, opening its create form |
+| `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, leading to its `/admin/<area>/new` page |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and `/club` |
 | `Layout.tsx`, `Breadcrumb.tsx` | the frame around every page (Story A-12) |
@@ -198,20 +198,20 @@ event is not a place to link to. Each step is `${testId}-${n}` with
 ### `AddButton` — the "＋" top-right of a list
 
 ```tsx
-<Section title={t("title")} action={!creating && (
-  <AddButton label={t("newButton")} onPress={() => setCreating(true)} testId="admin-series-new-button" />
-)}>
-  {creating && <CreateForm onClose={() => setCreating(false)} />}
+<Section title={t("title")} action={
+  <AddButton label={t("newButton")} to="/admin/series/new" testId="admin-series-new-button" />
+}>
   …the list…
 </Section>
 ```
 
-`Section`'s `action` slot sits beside the title. The screen opens on the list; the create
-form appears under the header, above the list, only while something is being created, and
-the plus is hidden meanwhile. A screen that opened on an empty form put the thing being
-worked on below the fold and asked for input before showing what was already there. Same
-corner, same sign on every admin list, so nobody has to find out where a screen hides its
-"new".
+`Section`'s `action` slot sits beside the title. The tab is the list; creating is a page of
+its own — `/admin/<area>/new`, built on `pages/AdminNewPage.tsx` (`NewEntryPage` for the
+access rule, breadcrumb and card; `AfterCreate` for "Back to the list" and "Create
+another"; `CancelButton`). A form embedded above the list put the thing being worked on
+below the fold, asked for input before showing what was already there, and could not be
+linked to or returned to with the back button. Same corner, same sign on every admin list,
+so nobody has to find out where a screen hides its "new".
 
 ### `Pager` — one page of a long list
 

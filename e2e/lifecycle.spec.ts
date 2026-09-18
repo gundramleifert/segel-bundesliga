@@ -44,7 +44,7 @@ type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
 const TAB_READY: Record<AdminTab, string> = {
   clubs: "admin-clubs-list",
   series: "admin-series-list",
-  // The list comes first and the wizard opens from the "＋" top-right of it, so the
+  // The tab is the list and the wizard is its own page behind the "＋" top-right, so the
   // button is the tab's own ready signal; `createEvent` waits for the wizard's catalog select.
   events: "admin-events-new-button",
   sailors: "admin-sailors-table",
@@ -105,10 +105,11 @@ async function createEvent(
   title: string,
   options: { series?: string; startsOn?: string } = {},
 ): Promise<void> {
-  // The wizard opens from the "＋" top-right of the list — unless it is already open, which is
-  // the case right after "Create another event".
+  // The wizard is its own page, reached from the "＋" top-right of the list — unless the
+  // test is already on it, which is the case right after "Create another event".
   if (!(await page.getByTestId("admin-events-title-input").isVisible())) {
     await page.getByTestId("admin-events-new-button").click();
+    await expect(page).toHaveURL(/\/admin\/events\/new$/);
   }
   // The catalog select is the "form is ready" signal: the create button cannot be used
   // as one, because it is also disabled while the title is empty.
@@ -131,18 +132,29 @@ async function skipToTheEnd(page: Page): Promise<void> {
   await expect(page.getByTestId("admin-events-ready")).toBeVisible();
 }
 
+/** From the wizard's closing screen back to the events tab, where the manage list is. */
+async function backToTheList(page: Page): Promise<void> {
+  await page.getByTestId("admin-events-back-button").click();
+  await expect(page).toHaveURL(/\/admin\?tab=events$/);
+  await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
+}
+
 test.describe("VA-6: creating an event in three steps", () => {
   test("the steps are walked in order, and each later one can be left for the panel", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Stepwise Cup");
 
     await openAdmin(page, testInfo);
-    // The list of events comes first; the wizard opens from the "＋" top-right, and until
-    // it is pressed no form is on the screen.
+    // The tab is the list; creating is a page of its own, reached from the "＋" top-right,
+    // so no form is on the tab itself.
     await expect(page.getByTestId("admin-events-title-input")).toHaveCount(0);
     await page.getByTestId("admin-events-new-button").click();
+    await expect(page).toHaveURL(/\/admin\/events\/new$/);
     // Before anything is typed: step 1 is current and the others are ahead.
     await expect(page.getByTestId("admin-events-steps-1")).toHaveAttribute("data-state", "current");
+    // The wizard's boat table is the widest thing in the admin area; the page must still
+    // fit a phone (Story A-10).
+    await expectNoSidewaysScroll(page, testInfo);
     await expect(page.getByTestId("admin-events-steps-3")).toHaveAttribute("data-state", "upcoming");
 
     await createEvent(page, title, { series: LEAGUE_SERIES, startsOn: "2027-08-21" });
@@ -170,10 +182,9 @@ test.describe("VA-6: creating an event in three steps", () => {
     await expect(page.getByTestId("admin-events-publication")).toHaveText("Public");
     await expect(page.getByTestId("admin-events-pairing-pdf-link")).toHaveCount(0);
 
-    // Back to the list closes the wizard and leaves the "＋" — and the event is in the
-    // list, where the draw is still offered.
-    await page.getByTestId("admin-events-close-button").click();
-    await expect(page.getByTestId("admin-events-new-button")).toBeVisible();
+    // Back to the list returns to the tab — and the event is in the list, where the draw
+    // is still offered.
+    await backToTheList(page);
     const eventId = await openPanel(page, title);
     await expect(page.getByTestId(`admin-readiness-ready-${eventId}`)).toBeVisible();
     await expect(page.getByTestId(`admin-manage-event-draw-${eventId}`)).toBeEnabled();
@@ -196,6 +207,7 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await expect(page.getByTestId("admin-events-ready")).toHaveAttribute("data-ready", "false");
     await expect(page.getByTestId("admin-events-ready-reason-event-dates-missing")).toBeVisible();
 
+    await backToTheList(page);
     const eventId = await openPanel(page, title);
 
     // The draft is on the admin list but not in the public calendar.
@@ -225,6 +237,7 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await openAdmin(page, testInfo);
     await createEvent(page, title);
     await skipToTheEnd(page);
+    await backToTheList(page);
 
     const eventId = await openPanel(page, title);
 
@@ -322,6 +335,7 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     const bytes = readFileSync(await download.path());
     expect(bytes.subarray(0, 4).toString()).toBe("%PDF");
 
+    await backToTheList(page);
     const eventId = await openPanel(page, title);
     await expect(page.getByTestId(`admin-readiness-ready-${eventId}`)).toBeVisible();
 
@@ -362,6 +376,7 @@ test.describe("VA-10: closing an event, and taking it back", () => {
     await page.getByTestId("admin-events-clubs-next-button").click();
     await page.getByTestId("admin-events-draw-button").click();
     await expect(page.getByTestId("admin-events-ready")).toHaveAttribute("data-ready", "true");
+    await backToTheList(page);
 
     const eventId = await openPanel(page, title);
 
@@ -401,6 +416,7 @@ test.describe("VA-10: closing an event, and taking it back", () => {
     await openAdmin(page, testInfo);
     await createEvent(page, title);
     await skipToTheEnd(page);
+    await backToTheList(page);
 
     const eventId = await openPanel(page, title);
 
@@ -612,6 +628,9 @@ test.describe("A-1/V-3: clubs and their crests", () => {
     const name = uniqueTitle("E2E Sailing Club");
 
     await openAdmin(page, testInfo, "clubs");
+    // Creating is its own page, reached from the "＋" top-right of the list.
+    await page.getByTestId("admin-clubs-new-button").click();
+    await expect(page).toHaveURL(/\/admin\/clubs\/new$/);
     await page.getByTestId("admin-clubs-name-input").fill(name);
     // Unique, because the club's URL is built from its abbreviation: a fixed one collides
     // with the club a previous run created and the create fails with a 409.
@@ -620,6 +639,9 @@ test.describe("A-1/V-3: clubs and their crests", () => {
     await page.getByTestId("admin-clubs-create-button").click();
 
     await expect(page.getByTestId("admin-clubs-create-message-success")).toBeVisible();
+    // Back on the tab, the new club is in the list.
+    await page.getByTestId("admin-clubs-back-button").click();
+    await expect(page).toHaveURL(/\/admin\?tab=clubs$/);
     const row = page
       .getByTestId("admin-clubs-list")
       .getByRole("listitem")
@@ -644,12 +666,16 @@ test.describe("VA-8: a series is published the same way", () => {
     const name = uniqueTitle("E2E Trophy");
 
     await openAdmin(page, testInfo, "series");
-    // The list first, the form from the "＋" top-right — the same shape as the events tab.
+    // Creating is its own page, reached from the "＋" top-right — the same shape as every
+    // admin list.
     await page.getByTestId("admin-series-new-button").click();
+    await expect(page).toHaveURL(/\/admin\/series\/new$/);
     await page.getByTestId("admin-series-name-input").fill(name);
     await page.getByTestId("admin-series-year-input").fill("2027");
     await page.getByTestId("admin-series-create-button").click();
     await expect(page.getByTestId("admin-series-create-message-success")).toBeVisible();
+    await page.getByTestId("admin-series-back-button").click();
+    await expect(page).toHaveURL(/\/admin\?tab=series$/);
 
     const row = page
       .getByTestId("admin-series-list")

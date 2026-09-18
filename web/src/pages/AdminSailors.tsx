@@ -1,25 +1,23 @@
-import { Button } from "@heroui/react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { createColumnHelper } from "@tanstack/react-table";
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
-  getListSailorsQueryKey,
-  useCreateSailor,
   useListAllSeries,
   useListSailors,
 } from "../api/generated/sbl";
 import type { SailorAdmin, SeriesAdmin } from "../api/types";
-import { WHOLE_LIST, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
+import { WHOLE_LIST, useAsync, useAsyncRows } from "../api/useApi";
 import { DataTable } from "../components/DataTable";
 import { TABLE_FEATURES } from "../lib/table";
 import { useListParams, type ListParams } from "../lib/listParams";
 import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { SquadPanel } from "../components/SquadPanel";
-import { INPUT_CLASS, errorText } from "../lib/admin";
-import { Section, Field, Message } from "../components/Form";
+import { INPUT_CLASS } from "../lib/admin";
+import { Section, Field } from "../components/Form";
+import { AddButton } from "../components/AddButton";
 
 /** Stories V-4 and V-1: Create sailors and register a squad for a series.
  *
@@ -30,7 +28,7 @@ import { Section, Field, Message } from "../components/Form";
 export function SailorsAdmin() {
   return (
     <>
-      <CreateSailor />
+      <Sailors />
       <Squad />
     </>
   );
@@ -38,12 +36,8 @@ export function SailorsAdmin() {
 
 // ------------------------------------------------------------------------ Person
 
-function CreateSailor() {
+function Sailors() {
   const { t } = useTranslation("admin");
-  const invalidate = useInvalidate();
-  const [vorname, setzeVorname] = useState("");
-  const [nachname, setzeNachname] = useState("");
-  const [email, setzeEmail] = useState("");
 
   // Every registered sailor has a row here — a couple of hundred, so paged, sorted and
   // searched on the server, with all three in the URL (Story A-13).
@@ -55,88 +49,12 @@ function CreateSailor() {
     ),
   );
 
-  const create = useCreateSailor({
-    mutation: {
-      onSuccess: () => {
-        setzeVorname("");
-        setzeNachname("");
-        setzeEmail("");
-        // No params: the generated key is `["/api/admin/sailors"]`, which is a prefix of
-        // every search variant, so one call clears them all.
-        invalidate(getListSailorsQueryKey());
-      },
-    },
-  });
-
   return (
     <Section
       title={t("sailors.title")}
       testId="admin-sailors-section"
+      action={<AddButton label={t("sailors.newButton")} to="/admin/sailors/new" testId="admin-sailors-new-button" />}
     >
-      <form
-        data-testid="admin-sailors-create-form"
-        className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_1fr_1.4fr_auto] sm:items-end"
-        onSubmit={(e: FormEvent) => {
-          e.preventDefault();
-          create.mutate({
-            data: {
-              first_name: vorname.trim(),
-              last_name: nachname.trim(),
-              email: email.trim(),
-            },
-          });
-        }}
-      >
-        <Field label={t("sailors.firstNameLabel")}>
-          <input
-            className={INPUT_CLASS}
-            value={vorname}
-            onChange={(e) => setzeVorname(e.target.value)}
-            required
-            data-testid="admin-sailors-first-name-input"
-          />
-        </Field>
-        <Field label={t("sailors.lastNameLabel")}>
-          <input
-            className={INPUT_CLASS}
-            value={nachname}
-            onChange={(e) => setzeNachname(e.target.value)}
-            required
-            data-testid="admin-sailors-last-name-input"
-          />
-        </Field>
-        <Field label={t("sailors.emailLabel")}>
-          <input
-            className={INPUT_CLASS}
-            type="email"
-            value={email}
-            onChange={(e) => setzeEmail(e.target.value)}
-            required
-            placeholder={t("sailors.emailPlaceholder")}
-            data-testid="admin-sailors-email-input"
-          />
-        </Field>
-        <Button
-          type="submit"
-          isDisabled={
-            create.isPending || !vorname.trim() || !nachname.trim() || !email.trim()
-          }
-          data-testid="admin-sailors-create-button"
-        >
-          {create.isPending ? t("sailors.creatingButton") : t("sailors.createButton")}
-        </Button>
-      </form>
-
-      <Message
-        testId="admin-sailors-create-message"
-        error={create.isError ? errorText(create.error) : null}
-        success={
-          create.isSuccess
-            ? t("sailors.createdMessage", { firstName: create.data?.first_name, lastName: create.data?.last_name })
-            : null
-        }
-      />
-
       <Field label={t("sailors.searchLabel")} hint={t("sailors.searchHint")}>
         <input
           className={INPUT_CLASS}

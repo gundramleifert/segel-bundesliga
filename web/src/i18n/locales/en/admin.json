@@ -17,7 +17,8 @@
     "emptyText": "No clubs have been created yet.",
     "crestRemoveButton": "Remove crest",
     "crestUploadLabel": "Upload crest",
-    "crestReplaceLabel": "Replace crest"
+    "crestReplaceLabel": "Replace crest",
+    "newButton": "New club"
   },
   "series": {
     "title": "Series",
@@ -58,8 +59,7 @@
     "squadMaxHint": "Enforced when a club saves its squad.",
     "saveSquadLimitsButton": "Save squad size",
     "squadLimitsSavedMessage": "Squad size saved.",
-    "newButton": "New series",
-    "cancelButton": "Cancel"
+    "newButton": "New series"
   },
   "events": {
     "title": "Events",
@@ -122,10 +122,7 @@
     "missingPairing": "No pairing list yet.",
     "finishLaterHint": "The event is saved. Everything still missing can be added later in the panel below.",
     "publishToShareHint": "Publish the event to open its pairing list and download the PDF.",
-    "pairingPdfLink": "Download the pairing list (PDF)",
-    "anotherButton": "Create another event",
-    "cancelButton": "Cancel",
-    "closeButton": "Back to the list"
+    "pairingPdfLink": "Download the pairing list (PDF)"
   },
   "sailors": {
     "title": "Sailors",
@@ -145,7 +142,8 @@
     "registrationsLabelPlural": "{{count}} registrations",
     "nameHeader": "Name",
     "emailHeader": "Email",
-    "squadsHeader": "Registrations"
+    "squadsHeader": "Registrations",
+    "newButton": "New sailor"
   },
   "squad": {
     "title": "Squad",
@@ -205,7 +203,10 @@
   },
   "page": {
     "title": "Administration",
-    "tabsLabel": "Area"
+    "tabsLabel": "Area",
+    "backButton": "Back to the list",
+    "cancelButton": "Cancel",
+    "anotherButton": "Create another"
   },
   "manage": {
     "title": "Run an event",

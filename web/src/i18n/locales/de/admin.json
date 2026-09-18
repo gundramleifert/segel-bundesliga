@@ -17,7 +17,8 @@
     "emptyText": "Es sind noch keine Vereine angelegt.",
     "crestRemoveButton": "Stander entfernen",
     "crestUploadLabel": "Stander hochladen",
-    "crestReplaceLabel": "Stander ersetzen"
+    "crestReplaceLabel": "Stander ersetzen",
+    "newButton": "Neuer Verein"
   },
   "series": {
     "title": "Serien",
@@ -58,8 +59,7 @@
     "squadMaxHint": "Wird beim Speichern des Kaders durchgesetzt.",
     "saveSquadLimitsButton": "Kadergröße speichern",
     "squadLimitsSavedMessage": "Kadergröße gespeichert.",
-    "newButton": "Neue Serie",
-    "cancelButton": "Abbrechen"
+    "newButton": "Neue Serie"
   },
   "events": {
     "title": "Veranstaltungen",
@@ -122,10 +122,7 @@
     "missingPairing": "Noch keine Pairing-Liste.",
     "finishLaterHint": "Die Veranstaltung ist gespeichert. Alles, was noch fehlt, kann später im Panel unten ergänzt werden.",
     "publishToShareHint": "Veranstaltung veröffentlichen, um die Pairing-Liste zu öffnen und das PDF herunterzuladen.",
-    "pairingPdfLink": "Pairing-Liste herunterladen (PDF)",
-    "anotherButton": "Weitere Veranstaltung anlegen",
-    "cancelButton": "Abbrechen",
-    "closeButton": "Zurück zur Liste"
+    "pairingPdfLink": "Pairing-Liste herunterladen (PDF)"
   },
   "sailors": {
     "title": "Segler",
@@ -145,7 +142,8 @@
     "registrationsLabelPlural": "{{count}} Meldungen",
     "nameHeader": "Name",
     "emailHeader": "E-Mail",
-    "squadsHeader": "Meldungen"
+    "squadsHeader": "Meldungen",
+    "newButton": "Neuer Segler"
   },
   "squad": {
     "title": "Kader",
@@ -205,7 +203,10 @@
   },
   "page": {
     "title": "Verwaltung",
-    "tabsLabel": "Bereich"
+    "tabsLabel": "Bereich",
+    "backButton": "Zurück zur Liste",
+    "cancelButton": "Abbrechen",
+    "anotherButton": "Noch eine anlegen"
   },
   "manage": {
     "title": "Veranstaltung durchführen",

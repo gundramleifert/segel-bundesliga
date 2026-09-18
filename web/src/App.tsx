@@ -16,6 +16,10 @@ import { Start } from "./pages/Start";
 import { Standings } from "./pages/Standings";
 import { Events } from "./pages/Events";
 import { Admin } from "./pages/Admin";
+import { AdminClubNew } from "./pages/AdminClubNew";
+import { AdminEventNew } from "./pages/AdminEventNew";
+import { AdminSailorNew } from "./pages/AdminSailorNew";
+import { AdminSeriesNew } from "./pages/AdminSeriesNew";
 import { MyClub } from "./pages/MyClub";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
@@ -46,6 +50,11 @@ export default function App() {
             whole point is that it needs no admin role. */}
         <Route path="club" element={<MyClub />} />
         <Route path="admin" element={<Admin />} />
+        {/* Creating is a page of its own per area, reached from the "＋" on its tab. */}
+        <Route path="admin/clubs/new" element={<AdminClubNew />} />
+        <Route path="admin/series/new" element={<AdminSeriesNew />} />
+        <Route path="admin/events/new" element={<AdminEventNew />} />
+        <Route path="admin/sailors/new" element={<AdminSailorNew />} />
         <Route path="help" element={<Help />} />
         <Route path="legal-notice" element={<LegalNotice />} />
         <Route path="privacy" element={<Privacy />} />

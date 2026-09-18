@@ -1,5 +1,5 @@
 import { Button, Spinner } from "@heroui/react";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -9,8 +9,6 @@ import { Stack } from "../components/Layouts";
 import {
   getListAllClubsQueryKey,
   getListAllSeriesQueryKey,
-  useCreateClub,
-  useCreateSeries,
   useDeleteClubLogo,
   useListAllClubs,
   useListAllSeries,
@@ -43,7 +41,15 @@ import { AddButton } from "../components/AddButton";
  * they were a page nobody read top to bottom, with the events area — the one used on a
  * jetty — several screens down. Tabs also mean one area's queries load instead of five.
  */
-export function Admin() {
+/** Who may be here: signed in, and `admin` or `editor` — or `admin` alone with `adminOnly`.
+ *  The same rule for `/admin` and for every `/admin/<area>/new` page (`AdminNewPage`). */
+export function AdminAccess({
+  adminOnly = false,
+  children,
+}: {
+  adminOnly?: boolean;
+  children: ReactNode;
+}) {
   const { t } = useTranslation("admin");
   const { account, loading, hasRole } = useAccount();
 
@@ -53,11 +59,25 @@ export function Admin() {
       <ErrorMessage text={t("auth.notSignedInError")} testId="admin-auth-error" />
     );
   }
-  if (!hasRole("admin", "editor")) {
+  if (!(adminOnly ? hasRole("admin") : hasRole("admin", "editor"))) {
     return (
       <ErrorMessage text={t("auth.noAccessError")} testId="admin-access-error" />
     );
   }
+  return <>{children}</>;
+}
+
+export function Admin() {
+  return (
+    <AdminAccess>
+      <AdminTabs />
+    </AdminAccess>
+  );
+}
+
+function AdminTabs() {
+  const { t } = useTranslation("admin");
+  const { hasRole } = useAccount();
 
   // `render` rather than a node: `TabbedView` mounts only the selected panel, so an area
   // nobody opened never issues its queries. Building the elements eagerly here would undo
@@ -105,7 +125,7 @@ export function Admin() {
 
 /** The areas of the admin screen. Also the values `?tab=` accepts — an unknown one falls
  *  back to the first tab rather than erroring (Story A-11). */
-type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
+export type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
 
 // ---------------------------------------------------------------------- Clubs
 
@@ -115,84 +135,13 @@ function Clubs() {
   // selects below it (Story A-13).
   const { data, error, loading } = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
   const invalidate = useInvalidate();
-  const [name, setName] = useState("");
-  const [shortName, setShortName] = useState("");
-  const [city, setCity] = useState("");
-
-  const create = useCreateClub({
-    mutation: {
-      onSuccess: () => {
-        setName("");
-        setShortName("");
-        setCity("");
-        invalidate(getListAllClubsQueryKey(), "/api/clubs");
-      },
-    },
-  });
 
   return (
     <Section
       title={t("clubs.title")}
       testId="admin-clubs-section"
+      action={<AddButton label={t("clubs.newButton")} to="/admin/clubs/new" testId="admin-clubs-new-button" />}
     >
-      <form
-        data-testid="admin-clubs-create-form"
-        className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end"
-        onSubmit={(e: FormEvent) => {
-          e.preventDefault();
-          create.mutate({
-            data: {
-              name: name.trim(),
-              short_name: shortName.trim() || null,
-              city: city.trim() || null,
-            },
-          });
-        }}
-      >
-        <Field label={t("clubs.nameLabel")}>
-          <input
-            className={INPUT_CLASS}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            minLength={3}
-            placeholder={t("clubs.namePlaceholder")}
-            data-testid="admin-clubs-name-input"
-          />
-        </Field>
-        <Field label={t("clubs.shortNameLabel")} hint={t("clubs.shortNameHint")}>
-          <input
-            className={INPUT_CLASS}
-            value={shortName}
-            onChange={(e) => setShortName(e.target.value)}
-            placeholder={t("clubs.shortNamePlaceholder")}
-            data-testid="admin-clubs-short-name-input"
-          />
-        </Field>
-        <Field label={t("clubs.cityLabel")} hint={t("clubs.cityHint")}>
-          <input
-            className={INPUT_CLASS}
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder={t("clubs.cityPlaceholder")}
-            data-testid="admin-clubs-city-input"
-          />
-        </Field>
-        <Button
-          type="submit"
-          isDisabled={create.isPending || name.trim().length < 3}
-          data-testid="admin-clubs-create-button"
-        >
-          {create.isPending ? t("clubs.creatingButton") : t("clubs.createButton")}
-        </Button>
-      </form>
-
-      <Message
-        testId="admin-clubs-create-message"
-        error={create.isError ? errorText(create.error) : null}
-        success={create.isSuccess ? t("clubs.createdMessage", { name: create.data?.name }) : null}
-      />
-
       {loading && <Loading text={t("clubs.loadingText")} testId="admin-clubs-loading" />}
       {error && <ErrorMessage text={error} testId="admin-clubs-error" />}
       {data && (
@@ -349,33 +298,9 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
 function Series({ editorOnly }: { editorOnly: boolean }) {
   const { t } = useTranslation("admin");
   const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
-  // A club selector has to offer every club, so it asks for the whole list.
+  // The rows' club selectors have to offer every club, so this asks for the whole list.
   const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
   const invalidate = useInvalidate();
-
-  const [name, setName] = useState("");
-  // No default: the year is optional, not implicitly "this year". An admin planning
-  // ahead should be able to leave it blank rather than having to clear a prefilled value.
-  const [year, setYear] = useState("");
-  const [startsOn, setStartsOn] = useState("");
-  const [endsOn, setEndsOn] = useState("");
-  const [selectedClubs, setSelectedClubs] = useState<Set<number>>(new Set());
-
-  const toggle = toggleSet(setSelectedClubs);
-  const [creating, setCreating] = useState(false);
-
-  const create = useCreateSeries({
-    mutation: {
-      onSuccess: () => {
-        setName("");
-        setYear("");
-        setStartsOn("");
-        setEndsOn("");
-        setSelectedClubs(new Set());
-        invalidate(getListAllSeriesQueryKey(), "/api/series", "/api/clubs");
-      },
-    },
-  });
 
   if (editorOnly) {
     return (
@@ -389,131 +314,8 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
     <Section
       title={t("series.title")}
       testId="admin-series-section"
-      action={
-        !creating && (
-          <AddButton
-            label={t("series.newButton")}
-            onPress={() => setCreating(true)}
-            testId="admin-series-new-button"
-          />
-        )
-      }
+      action={<AddButton label={t("series.newButton")} to="/admin/series/new" testId="admin-series-new-button" />}
     >
-      {/* The form opens under the header, above the list, only while a series is being
-          created; the "＋" that opens it is the section's `action`. */}
-      {creating && (
-        <>
-          <form
-            data-testid="admin-series-create-form"
-            className="grid grid-cols-[minmax(0,1fr)] gap-3"
-            onSubmit={(e: FormEvent) => {
-              e.preventDefault();
-              create.mutate({
-                data: {
-                  name: name.trim(),
-                  year: year ? Number(year) : null,
-                  starts_on: startsOn || null,
-                  ends_on: endsOn || null,
-                  clubs: [...selectedClubs],
-                  // A new series starts as a draft: clubs are still being assigned and the
-                  // name still argued over. The row's own Publish button makes it visible
-                  // (Story VA-8).
-                  published: false,
-                },
-              });
-            }}
-          >
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr]">
-              <Field label={t("series.nameLabel")}>
-                <input
-                  className={INPUT_CLASS}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  minLength={3}
-                  placeholder={t("series.namePlaceholder")}
-                  data-testid="admin-series-name-input"
-                />
-              </Field>
-              <Field label={t("series.yearLabel")} hint={t("series.yearHint")}>
-                <input
-                  className={INPUT_CLASS}
-                  type="number"
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  min={1900}
-                  max={2200}
-                  placeholder={String(new Date().getFullYear())}
-                  data-testid="admin-series-year-input"
-                />
-              </Field>
-            </div>
-
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
-              <Field label={t("series.startsLabel")} hint={t("series.startsHint")}>
-                <input
-                  className={INPUT_CLASS}
-                  type="date"
-                  value={startsOn}
-                  onChange={(e) => setStartsOn(e.target.value)}
-                  data-testid="admin-series-starts-input"
-                />
-              </Field>
-              <Field label={t("series.endsLabel")} hint={t("series.endsHint")}>
-                <input
-                  className={INPUT_CLASS}
-                  type="date"
-                  value={endsOn}
-                  onChange={(e) => setEndsOn(e.target.value)}
-                  data-testid="admin-series-ends-input"
-                />
-              </Field>
-            </div>
-
-            <Field label={t("series.clubsLabel")} hint={t("series.clubsHint", { count: selectedClubs.size })}>
-              {clubs.loading && <Loading text={t("clubs.loadingText")} testId="admin-series-clubs-loading" />}
-              {clubs.data && (
-                <ClubSelector
-                  clubs={clubs.data}
-                  selectedIds={selectedClubs}
-                  toggle={toggle}
-                  testId="admin-series-clubs-select"
-                />
-              )}
-            </Field>
-
-            <div>
-              <Button
-                type="submit"
-                isDisabled={create.isPending || name.trim().length < 3}
-                data-testid="admin-series-create-button"
-              >
-                {create.isPending ? t("series.creatingButton") : t("series.createButton")}
-              </Button>
-            </div>
-          </form>
-
-          <Message
-            testId="admin-series-create-message"
-            error={create.isError ? errorText(create.error) : null}
-            success={
-              create.isSuccess
-                ? t("series.createdMessage", { name: create.data?.name, count: create.data?.clubs?.length ?? 0 })
-                : null
-            }
-          />
-          <div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onPress={() => setCreating(false)}
-              data-testid="admin-series-cancel-button"
-            >
-              {t("series.cancelButton")}
-            </Button>
-          </div>
-        </>
-      )}
       {seriesList.loading && <Loading text={t("series.loadingText")} testId="admin-series-loading" />}
       {seriesList.error && <ErrorMessage text={seriesList.error} testId="admin-series-error" />}
       {seriesList.data &&

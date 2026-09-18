@@ -17,6 +17,8 @@ const SECTIONS: Record<string, { path: string; key: string }> = {
   series: { path: "/series", key: "series" },
   events: { path: "/events", key: "events" },
   clubs: { path: "/clubs", key: "clubs" },
+  // `Admin › New event`: the create pages live under /admin and lead back to it.
+  admin: { path: "/admin", key: "admin" },
 };
 
 /** Where you are, in the one place the eye already goes — Story A-12.

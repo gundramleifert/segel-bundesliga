@@ -163,16 +163,9 @@ function catalogKey(entry: { teams: number; boats: number; flights: number }): s
 }
 
 export function EventsAdmin() {
-  // The screen opens on the list; the "＋" top-right opens the wizard under the header,
-  // above the list, only while an event is being created (Story VA-6).
-  const [creating, setCreating] = useState(false);
-  return (
-    <ManageEvents
-      creating={creating}
-      onNew={() => setCreating(true)}
-      onClose={() => setCreating(false)}
-    />
-  );
+  // The tab is the list; creating is its own page, `/admin/events/new`, reached from the
+  // "＋" top-right of it (Story VA-6, `AdminEventNew`).
+  return <ManageEvents />;
 }
 
 // ------------------------------------------------------------------ Creating
@@ -180,23 +173,19 @@ export function EventsAdmin() {
 type WizardStep = 1 | 2 | 3 | "done";
 
 /** The three steps a new event is created in, in the order the work happens (Story VA-6):
- *  general data, the clubs that enter, the pairing list. The event **exists after step 1**
+ *  general data, the clubs that enter, the pairing list — on its own page,
+ *  `/admin/events/new` (`AdminEventNew`). The event **exists after step 1**
  *  — the create request is that step's submit — so everything after it works on a saved
  *  event through the same endpoints the manage panel uses, and each later step can be
  *  skipped and finished there. The closing screen says whether the event is ready and
  *  offers publication, because the calendar entry often precedes the field. */
-function CreateEventWizard({ onClose }: { onClose: () => void }) {
+export function CreateEventWizard({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation("admin");
   const [step, setStep] = useState<WizardStep>(1);
   const [event, setEvent] = useState<EventSummary | null>(null);
 
   return (
-    <Stack
-      gap={4}
-      testId="admin-events-section"
-      className="rounded-lg border border-brand-200 bg-brand-50/40 p-4"
-    >
-      <h3 className="text-base font-semibold">{t("events.wizardTitle")}</h3>
+    <Stack gap={4} testId="admin-events-wizard">
       <Steps
         testId="admin-events-steps"
         current={step === "done" ? 4 : step}
@@ -560,7 +549,7 @@ function GeneralDataStep({
             {create.isPending ? t("events.creatingButton") : t("events.createButton")}
           </Button>
           <Button size="sm" variant="ghost" onPress={onCancel} data-testid="admin-events-cancel-button">
-            {t("events.cancelButton")}
+            {t("page.cancelButton")}
           </Button>
         </StepActions>
       </form>
@@ -874,11 +863,11 @@ function ReadyStep({
       />
 
       <StepActions>
-        <Button size="sm" onPress={onClose} data-testid="admin-events-close-button">
-          {t("events.closeButton")}
+        <Button size="sm" onPress={onClose} data-testid="admin-events-back-button">
+          {t("page.backButton")}
         </Button>
         <Button size="sm" variant="ghost" onPress={onAnother} data-testid="admin-events-another-button">
-          {t("events.anotherButton")}
+          {t("page.anotherButton")}
         </Button>
       </StepActions>
     </Stack>
@@ -887,15 +876,7 @@ function ReadyStep({
 
 // ------------------------------------------------------------------ Managing
 
-function ManageEvents({
-  creating,
-  onNew,
-  onClose,
-}: {
-  creating: boolean;
-  onNew: () => void;
-  onClose: () => void;
-}) {
+function ManageEvents() {
   const { t } = useTranslation("admin");
   // The admin list, not the public one: a draft has to appear on the very screen whose
   // job is to finish and publish it.
@@ -918,16 +899,9 @@ function ManageEvents({
       title={t("manage.title")}
       testId="admin-manage-events-section"
       action={
-        !creating && (
-          <AddButton
-            label={t("events.wizardTitle")}
-            onPress={onNew}
-            testId="admin-events-new-button"
-          />
-        )
+        <AddButton label={t("events.wizardTitle")} to="/admin/events/new" testId="admin-events-new-button" />
       }
     >
-      {creating && <CreateEventWizard onClose={onClose} />}
       <Field label={t("manage.searchLabel")} hint={t("manage.searchHint")}>
         <input
           className={INPUT_CLASS}
