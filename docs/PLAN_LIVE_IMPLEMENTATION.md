@@ -446,7 +446,7 @@ parser as reference; wind estimation.
 
 ## 11. Documentation that changes with this plan
 
-- `docs/userstories.md`: B-5 rewritten; WL-3, L-1…L-4 added; WL-1 loses "start a race" to
+- `docs/userstories/` (then one file): B-5 rewritten; WL-3, L-1…L-4 added; WL-1 loses "start a race" to
   WL-3 and keeps offline sync.
 - `CLAUDE.md`, Domain decisions: SSE with version tokens and the after-commit rule; tracker
   belongs to the boat; committee boat is a tracker; W/L course family; derived-never-stored

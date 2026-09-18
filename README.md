@@ -27,7 +27,7 @@ same account; no passwords are stored.
 **Internationalization** — English and German throughout (UI and backend error messages), not
 German-only source text.
 
-See `docs/userstories.md` for the full, tested feature list, and `docs/concepts.md` for the
+See `docs/userstories/` for the full, tested feature list, and `docs/concepts.md` for the
 data model behind it (Series, Event, Team, Squad, Scoring, Errors).
 
 ## Repo layout
@@ -91,7 +91,7 @@ uv run pytest
 
 Organized in three levels:
 - `tests/unit/` — scoring logic, pairing quality, parsers
-- `tests/stories/` — one test per user story from `docs/userstories.md`, named for what someone
+- `tests/stories/` — one test per user story from `docs/userstories/`, named for what someone
   wants to achieve
 
 **Frontend** (`web/`):
@@ -113,7 +113,7 @@ External APIs are never called live in tests; recorded fixtures live under `api/
 | Doc | Content |
 |---|---|
 | `docs/concepts.md` | Terms and data model — start here |
-| `docs/userstories.md` | Features, by user story, each linked to its test |
+| `docs/userstories/` | Features, by user story, one file per role, each story linked to its test |
 | `docs/findings.md` | Research findings — external API formats, league format, open questions |
 | `docs/deploy.md` | Free test-instance deployment |
 | `CLAUDE.md` | The detailed engineering reference for this repo — layout, dev commands, domain decisions, auth model, testing and i18n/error-handling conventions. Doubles as the instructions file for AI coding assistants working in this repo. |

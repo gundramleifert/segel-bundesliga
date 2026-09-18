@@ -3,11 +3,14 @@
 
 Three jobs, all of them things that went wrong here before:
 
-1. **Every `Tests:` reference in `docs/userstories.md` must resolve.** Seventeen of them
+1. **Every `Tests:` reference in `docs/userstories/` must resolve.** Seventeen of them
    pointed at classes that had been renamed or deleted. A stale reference is worse than
    none: it makes a story look covered when nothing covers it.
 2. **Every story ID a test claims must exist.** Tests name their story in the docstring, so
    a story that is renamed without its tests leaves orphans that nobody will find again.
+   The stories are one file per role, so an ID must also appear in only one of them, and
+   every link from one file into another must land on a heading that exists — a story
+   moved to another role's file would otherwise leave a link that scrolls to nothing.
 3. **Every note in `docs/gotchas/` must carry its four sections**, Evidence included. A note
    without evidence is a rumour, and a rumour in a folder agents are told to trust is worse
    than an empty folder.
@@ -27,7 +30,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-STORIES = ROOT / "docs" / "userstories.md"
+STORIES = ROOT / "docs" / "userstories"
 GOTCHAS = ROOT / "docs" / "gotchas"
 INDEX = GOTCHAS / "INDEX.md"
 
@@ -56,27 +59,72 @@ you, in one line. That line is the point of this note.
 """
 
 
-def story_ids(text: str) -> set[str]:
-    return {m["id"] for m in STORY_HEADING.finditer(text)}
+# `[text](#anchor)` inside a file, `[text](other.md#anchor)` or `[text](other.md)` across files.
+LINK = re.compile(r"\]\((?P<file>[\w-]+\.md)?(?:#(?P<anchor>[\w-]+))?\)")
+HEADING = re.compile(r"^#{1,6} (?P<text>.+)$", re.M)
 
 
-def check_story_references(text: str) -> list[str]:
+FENCE = re.compile(r"^```.*?^```", re.M | re.S)
+
+
+def story_files() -> dict[str, str]:
+    """Filename → text, for every story file in the folder (README included: it links).
+
+    Fenced code is dropped first: the README shows the story format in a fence, and that
+    example would otherwise count as a second B-1."""
+    return {p.name: FENCE.sub("", p.read_text(encoding="utf-8")) for p in sorted(STORIES.glob("*.md"))}
+
+
+def story_ids(files: dict[str, str]) -> tuple[set[str], list[str]]:
+    """The IDs across all files, and a problem for any ID that appears in two of them."""
+    seen: dict[str, str] = {}
+    problems: list[str] = []
+    for name, text in files.items():
+        for m in STORY_HEADING.finditer(text):
+            if m["id"] in seen:
+                problems.append(f"{name}: story {m['id']} is also in {seen[m['id']]}")
+            seen[m["id"]] = name
+    return set(seen), problems
+
+
+def anchor(heading: str) -> str:
+    """GitHub's slug: lowercase, punctuation dropped, spaces to hyphens — `A-1 ● Create clubs`
+    becomes `a-1--create-clubs`, the double hyphen standing where the marker was."""
+    return re.sub(r"[^\w\- ]", "", heading.lower()).replace(" ", "-")
+
+
+def check_links(files: dict[str, str]) -> list[str]:
+    """Every link between the story files must land on a file, and on a heading in it."""
+    anchors = {name: {anchor(m["text"]) for m in HEADING.finditer(text)} for name, text in files.items()}
+    problems: list[str] = []
+    for name, text in files.items():
+        for m in LINK.finditer(text):
+            target = m["file"] or name
+            if target not in anchors:
+                problems.append(f"{name} links to {target}, which is not in docs/userstories/")
+            elif m["anchor"] and m["anchor"] not in anchors[target]:
+                problems.append(f"{name} links to {target}#{m['anchor']}, which is not a heading there")
+    return problems
+
+
+def check_story_references(files: dict[str, str]) -> list[str]:
     """Every `path::Node` under a `Tests:` line must exist on disk and in that file."""
     problems: list[str] = []
-    for match in TESTS_LINE.finditer(text):
-        for reference in REFERENCE.findall(match["body"]):
-            path_part, _, node = reference.partition("::")
-            path = ROOT / path_part
-            if not path.exists():
-                problems.append(f"userstories.md references a missing file: {reference}")
-                continue
-            if not node:
-                continue
-            # The last segment is the interesting one: a class or a test function.
-            leaf = node.split("::")[-1]
-            source = path.read_text(encoding="utf-8")
-            if not re.search(rf"\b(?:class|def|test)\b.*\b{re.escape(leaf)}\b", source):
-                problems.append(f"userstories.md references {reference}, but {leaf} is not in that file")
+    for name, text in files.items():
+        for match in TESTS_LINE.finditer(text):
+            for reference in REFERENCE.findall(match["body"]):
+                path_part, _, node = reference.partition("::")
+                path = ROOT / path_part
+                if not path.exists():
+                    problems.append(f"{name} references a missing file: {reference}")
+                    continue
+                if not node:
+                    continue
+                # The last segment is the interesting one: a class or a test function.
+                leaf = node.split("::")[-1]
+                source = path.read_text(encoding="utf-8")
+                if not re.search(rf"\b(?:class|def|test)\b.*\b{re.escape(leaf)}\b", source):
+                    problems.append(f"{name} references {reference}, but {leaf} is not in that file")
     return problems
 
 
@@ -89,7 +137,7 @@ def check_test_story_ids(known: set[str]) -> list[str]:
             for story in re.findall(r"[A-Z]+-\d+", group):
                 if story not in known:
                     rel = path.relative_to(ROOT)
-                    problems.append(f"{rel} names story {story}, which is not in userstories.md")
+                    problems.append(f"{rel} names story {story}, which is not in docs/userstories/")
     return problems
 
 
@@ -149,9 +197,10 @@ def main(argv: list[str]) -> int:
             return 2
         return scaffold(rule)
 
-    text = STORIES.read_text(encoding="utf-8")
-    known = story_ids(text)
-    problems = check_story_references(text)
+    files = story_files()
+    known, problems = story_ids(files)
+    problems += check_links(files)
+    problems += check_story_references(files)
     problems += check_test_story_ids(known)
     gotcha_problems, entries = check_gotchas()
     problems += gotcha_problems

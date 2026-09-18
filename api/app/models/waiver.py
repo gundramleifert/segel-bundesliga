@@ -148,7 +148,7 @@ class WaiverConfirmation(Base, TimestampMixin):
     # Minors only.
     guardian_name: Mapped[str | None] = mapped_column(String(160), default=None)
     # Pointer to the scan of the signed statement. File storage is not settled yet
-    # (see docs/userstories.md, "File storage — not yet decided"), so this is a free
+    # (see docs/userstories/README.md, "File storage"), so this is a free
     # string: a URL, an object key, or a note like "on file, office ref #214".
     guardian_signature_ref: Mapped[str | None] = mapped_column(String(500), default=None)
 

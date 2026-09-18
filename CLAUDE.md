@@ -23,7 +23,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `web/` | React frontend (Vite 8 + TypeScript, HeroUI 3, Tailwind 4) |
 | `e2e/` | Playwright tests against the running application |
 | `docs/concepts.md` | **Terms and data model** — Series, Event, Squad, Scoring. Start here. |
-| `docs/userstories.md` | What the system should do, with tests included |
+| `docs/userstories/` | What the system should do, with tests included — one file per role, `README.md` is the index |
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
 | `docs/components.md` | **The frontend's building blocks** — read before writing a page |
@@ -316,7 +316,7 @@ Three levels, all three are desired:
 - `api/tests/unit/` — Scoring logic, pairing quality, parsers.
 - `api/tests/stories/` — **User story level**: one story per test, named for what someone wants
   to achieve ("As a visitor I see the league table").
-Each story in `docs/userstories.md` lists the tests that cover it — and each story test names its
+Each story in `docs/userstories/` lists the tests that cover it — and each story test names its
 story ID in the docstring. New features are added to stories first, then tested.
 
 - `e2e/` — Playwright against the running application, also organized by stories.
@@ -433,7 +433,7 @@ each one caught. A check that has never failed has not been tested; it has only 
 
 Order matters, and it is the order the project already follows:
 
-1. **The story first** (`docs/userstories.md`). New behaviour is described before it is
+1. **The story first** (`docs/userstories/`, the file of the person who tells it). New behaviour is described before it is
    built — a story with acceptance criteria, and the reasoning for any decision that was
    not obvious. If you are changing existing behaviour, edit that story rather than adding
    a second one beside it.

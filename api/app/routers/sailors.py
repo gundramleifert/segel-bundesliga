@@ -594,7 +594,7 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
     **Storage**: a deterministic path (`uploads/sailors/{id}.jpg`) needs no database
     column — the file's existence *is* the "has a photo" state (`SailorMeOut.has_photo`,
     `_me_out`). Not versioned (see `.gitignore`); Postgres/S3-backed storage remains a
-    later option once this goes into production, see `docs/userstories.md`.
+    later option once this goes into production, see `docs/userstories/README.md`, "Still to Write".
 
     **Processing**: re-encoded as JPEG, EXIF-rotated upright first (phone cameras store
     orientation as metadata, not pixels — skipping this would show sideways photos),

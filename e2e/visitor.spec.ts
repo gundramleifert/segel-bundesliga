@@ -8,7 +8,7 @@ import {
   openUserMenu,
 } from "./layout";
 
-/** E2E cut along the user stories — see docs/userstories.md.
+/** E2E cut along the user stories — see docs/userstories/.
  *
  * These are the public pages, read as a visitor with no account. They address elements by
  * `data-testid` rather than by visible text wherever a test is about structure rather than
