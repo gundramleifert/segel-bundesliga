@@ -57,7 +57,9 @@
     "squadMaxLabel": "Kader höchstens",
     "squadMaxHint": "Wird beim Speichern des Kaders durchgesetzt.",
     "saveSquadLimitsButton": "Kadergröße speichern",
-    "squadLimitsSavedMessage": "Kadergröße gespeichert."
+    "squadLimitsSavedMessage": "Kadergröße gespeichert.",
+    "newButton": "Neue Serie",
+    "cancelButton": "Abbrechen"
   },
   "events": {
     "title": "Veranstaltungen",
@@ -121,7 +123,9 @@
     "finishLaterHint": "Die Veranstaltung ist gespeichert. Alles, was noch fehlt, kann später im Panel unten ergänzt werden.",
     "publishToShareHint": "Veranstaltung veröffentlichen, um die Pairing-Liste zu öffnen und das PDF herunterzuladen.",
     "pairingPdfLink": "Pairing-Liste herunterladen (PDF)",
-    "anotherButton": "Weitere Veranstaltung anlegen"
+    "anotherButton": "Weitere Veranstaltung anlegen",
+    "cancelButton": "Abbrechen",
+    "closeButton": "Zurück zur Liste"
   },
   "sailors": {
     "title": "Segler",

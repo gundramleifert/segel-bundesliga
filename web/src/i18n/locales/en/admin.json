@@ -57,7 +57,9 @@
     "squadMaxLabel": "Squad maximum",
     "squadMaxHint": "Enforced when a club saves its squad.",
     "saveSquadLimitsButton": "Save squad size",
-    "squadLimitsSavedMessage": "Squad size saved."
+    "squadLimitsSavedMessage": "Squad size saved.",
+    "newButton": "New series",
+    "cancelButton": "Cancel"
   },
   "events": {
     "title": "Events",
@@ -121,7 +123,9 @@
     "finishLaterHint": "The event is saved. Everything still missing can be added later in the panel below.",
     "publishToShareHint": "Publish the event to open its pairing list and download the PDF.",
     "pairingPdfLink": "Download the pairing list (PDF)",
-    "anotherButton": "Create another event"
+    "anotherButton": "Create another event",
+    "cancelButton": "Cancel",
+    "closeButton": "Back to the list"
   },
   "sailors": {
     "title": "Sailors",

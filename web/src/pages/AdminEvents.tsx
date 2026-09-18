@@ -48,6 +48,7 @@ import { openFile } from "../lib/files";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { Steps } from "../components/Steps";
+import { AddButton } from "../components/AddButton";
 
 /** Stories A-4, VA-6, VA-7 and VA-8: scheduling an event and taking it through its life.
  *
@@ -162,10 +163,22 @@ function catalogKey(entry: { teams: number; boats: number; flights: number }): s
 }
 
 export function EventsAdmin() {
+  const { t } = useTranslation("admin");
+  // The list first, then the "＋": the screen opens on what exists, and the wizard takes
+  // the space below it only while an event is being created (Story VA-6).
+  const [creating, setCreating] = useState(false);
   return (
     <>
-      <CreateEventWizard />
       <ManageEvents />
+      {creating ? (
+        <CreateEventWizard onClose={() => setCreating(false)} />
+      ) : (
+        <AddButton
+          label={t("events.wizardTitle")}
+          onPress={() => setCreating(true)}
+          testId="admin-events-new-button"
+        />
+      )}
     </>
   );
 }
@@ -180,7 +193,7 @@ type WizardStep = 1 | 2 | 3 | "done";
  *  event through the same endpoints the manage panel uses, and each later step can be
  *  skipped and finished there. The closing screen says whether the event is ready and
  *  offers publication, because the calendar entry often precedes the field. */
-function CreateEventWizard() {
+function CreateEventWizard({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation("admin");
   const [step, setStep] = useState<WizardStep>(1);
   const [event, setEvent] = useState<EventSummary | null>(null);
@@ -207,6 +220,7 @@ function CreateEventWizard() {
             setEvent(created);
             setStep(2);
           }}
+          onCancel={onClose}
         />
       )}
       {step === 2 && event && (
@@ -228,6 +242,7 @@ function CreateEventWizard() {
             setEvent(null);
             setStep(1);
           }}
+          onClose={onClose}
         />
       )}
     </Section>
@@ -243,7 +258,13 @@ function StepActions({ children }: { children: ReactNode }) {
  *  title and the boat names gate it: a missing date and the wrong number of clubs are the
  *  normal early state, which the next steps and the manage panel report and fix
  *  (Story VA-8). */
-function GeneralDataStep({ onCreated }: { onCreated: (event: EventSummary) => void }) {
+function GeneralDataStep({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (event: EventSummary) => void;
+  onCancel: () => void;
+}) {
   const { t } = useTranslation("admin");
   // Selectors, so the whole list rather than a page: a dropdown offering the first
   // twenty-five series is one that cannot pick the twenty-sixth (Story A-13).
@@ -541,6 +562,9 @@ function GeneralDataStep({ onCreated }: { onCreated: (event: EventSummary) => vo
           >
             {create.isPending ? t("events.creatingButton") : t("events.createButton")}
           </Button>
+          <Button size="sm" variant="ghost" onPress={onCancel} data-testid="admin-events-cancel-button">
+            {t("events.cancelButton")}
+          </Button>
         </StepActions>
       </form>
 
@@ -744,10 +768,12 @@ function ReadyStep({
   event,
   onChanged,
   onAnother,
+  onClose,
 }: {
   event: EventSummary;
   onChanged: (event: EventSummary) => void;
   onAnother: () => void;
+  onClose: () => void;
 }) {
   const { t } = useTranslation("admin");
   const invalidate = useInvalidate();
@@ -851,6 +877,9 @@ function ReadyStep({
       />
 
       <StepActions>
+        <Button size="sm" onPress={onClose} data-testid="admin-events-close-button">
+          {t("events.closeButton")}
+        </Button>
         <Button size="sm" variant="ghost" onPress={onAnother} data-testid="admin-events-another-button">
           {t("events.anotherButton")}
         </Button>
