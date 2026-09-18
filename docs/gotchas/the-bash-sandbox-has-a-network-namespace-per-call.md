@@ -25,7 +25,11 @@ of a failed run looks like a list of test names — no ✓, no summary, nothing 
 than the end of the output. The alternative to disabling the sandbox is to start the stack
 and run the suite **inside one call** — `dev-stack.sh --keep &`, wait for its `ready.` line,
 then `playwright test` — which keeps both in the same namespace.
+Stop the stack afterwards by the PID you started it with (`dev-stack.sh … & SP=$!` …
+`kill $SP`; its EXIT trap takes the servers down), **never** with `pkill -f` and a pattern
+that also occurs in your own command line — that kills the calling shell first, the call
+comes back as exit 143, and the suite's result looks lost although it is in the log file.
 
 **Evidence** — `scripts/dev-stack.sh` exists so this does not have to be re-derived.
 
-**Seen** — 2026-09-11, again 2026-09-13 (the exit-0 report).
+**Seen** — 2026-09-11, again 2026-09-13 (the exit-0 report), 2026-09-18 (the self-kill by `pkill -f`).

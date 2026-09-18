@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import type { Page, TestInfo } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
@@ -94,34 +96,90 @@ async function openPanel(page: Page, title: string): Promise<string> {
   return eventId;
 }
 
+/** Step 1 of the wizard: fills the general data, creates, and waits for step 2.
+ *
+ *  The event exists after this — the create request *is* step 1's submit (Story VA-6) —
+ *  so every test that only needs an event to exist stops here and skips the rest. */
+async function createEvent(
+  page: Page,
+  title: string,
+  options: { series?: string; startsOn?: string } = {},
+): Promise<void> {
+  await page.getByTestId("admin-events-title-input").fill(title);
+  if (options.startsOn) await page.getByTestId("admin-events-starts-input").fill(options.startsOn);
+  if (options.series) {
+    await page.getByTestId("admin-events-series-select").selectOption({ label: options.series });
+  }
+  const create = page.getByTestId("admin-events-create-button");
+  await expect(create).toBeEnabled();
+  await create.click();
+  await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
+  await expect(page.getByTestId("admin-events-steps-2")).toHaveAttribute("data-state", "current");
+}
+
+/** Leaves the wizard from step 2 without entering clubs or drawing: the closing screen. */
+async function skipToTheEnd(page: Page): Promise<void> {
+  await page.getByTestId("admin-events-clubs-skip-button").click();
+  await expect(page.getByTestId("admin-events-ready")).toBeVisible();
+}
+
+test.describe("VA-6: creating an event in three steps", () => {
+  test("the steps are walked in order, and each later one can be left for the panel", async ({ page }, testInfo) => {
+    await signIn(page, ADMIN);
+    const title = uniqueTitle("E2E Stepwise Cup");
+
+    await openAdmin(page, testInfo);
+    // Before anything is typed: step 1 is current and the others are ahead.
+    await expect(page.getByTestId("admin-events-steps-1")).toHaveAttribute("data-state", "current");
+    await expect(page.getByTestId("admin-events-steps-3")).toHaveAttribute("data-state", "upcoming");
+
+    await createEvent(page, title, { series: LEAGUE_SERIES, startsOn: "2027-08-21" });
+    await expect(page.getByTestId("admin-events-steps-1")).toHaveAttribute("data-state", "done");
+
+    // Step 2 → 3 saves the entries; 3 → 2 is a plain step back, nothing is lost.
+    await page.getByTestId("admin-events-clubs-next-button").click();
+    await expect(page.getByTestId("admin-events-steps-3")).toHaveAttribute("data-state", "current");
+    await page.getByTestId("admin-events-draw-back-button").click();
+    await expect(page.getByTestId("admin-events-steps-2")).toHaveAttribute("data-state", "current");
+    await page.getByTestId("admin-events-clubs-next-button").click();
+    await expect(page.getByTestId("admin-events-steps-3")).toHaveAttribute("data-state", "current");
+
+    // The draw can be left for later. The closing screen then says exactly that — and
+    // that is the only thing it says is missing, because the rest is complete.
+    await page.getByTestId("admin-events-draw-skip-button").click();
+    const ready = page.getByTestId("admin-events-ready");
+    await expect(ready).toHaveAttribute("data-ready", "false");
+    await expect(page.getByTestId("admin-events-ready-missing-pairing")).toBeVisible();
+    await expect(page.getByTestId("admin-events-ready-reasons").getByRole("listitem")).toHaveCount(1);
+
+    // Public after the general step, with the field and the draw still to come: the
+    // calendar entry precedes the pairing list (Story VA-8), and publishing locks nothing.
+    await page.getByTestId("admin-events-publish-button").click();
+    await expect(page.getByTestId("admin-events-publication")).toHaveText("Public");
+    await expect(page.getByTestId("admin-events-pairing-pdf-link")).toHaveCount(0);
+
+    // The same event is in the manage list below, where the draw is still offered.
+    const eventId = await openPanel(page, title);
+    await expect(page.getByTestId(`admin-readiness-ready-${eventId}`)).toBeVisible();
+    await expect(page.getByTestId(`admin-manage-event-draw-${eventId}`)).toBeEnabled();
+  });
+});
+
 test.describe("VA-8/VA-9: from a draft to a running event", () => {
   test("an event with only a title is savable, and the panel says what is missing", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Draft Cup");
 
     await openAdmin(page, testInfo);
-    await page.getByTestId("admin-events-title-input").fill(title);
     // Deliberately nothing else: no date, no series, no host. This is the normal early
     // state of an event, and the create button has to be enabled for it.
-    const create = page.getByTestId("admin-events-create-button");
-    await expect(create).toBeEnabled();
-    await create.click();
+    await createEvent(page, title);
 
-    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
-    // No clubs are entered yet, so the automatic draw reports the next step rather than
-    // an error — having no clubs right after creating an event is expected.
-    //
-    // The longer timeout is deliberate and measured, not padding. This notice is the end
-    // of a chain: the create succeeds, its `onSuccess` invalidates four queries *and*
-    // fires the draw, the server refuses it (409 in ~150ms — verified in the access log),
-    // and only the re-render after that shows the notice. Under the `mobile` project's
-    // device emulation that last render is repeatedly slower than the 5s default, so the
-    // assertion failed on roughly one run in five while the application was behaving
-    // correctly. The notice always arrives; what varies is when. If it genuinely never
-    // came, this still fails — just later.
-    await expect(page.getByTestId("admin-events-pairing-draw-pending")).toBeVisible({
-      timeout: 20_000,
-    });
+    // Step 3 is refused visibly while the setup is incomplete — the same reasons the
+    // server answers with — rather than fired blind and reported as an error.
+    await page.getByTestId("admin-events-clubs-skip-button").click();
+    await expect(page.getByTestId("admin-events-ready")).toHaveAttribute("data-ready", "false");
+    await expect(page.getByTestId("admin-events-ready-reason-event-dates-missing")).toBeVisible();
 
     const eventId = await openPanel(page, title);
 
@@ -150,9 +208,8 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     const title = uniqueTitle("E2E Dateless Cup");
 
     await openAdmin(page, testInfo);
-    await page.getByTestId("admin-events-title-input").fill(title);
-    await page.getByTestId("admin-events-create-button").click();
-    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
+    await createEvent(page, title);
+    await skipToTheEnd(page);
 
     const eventId = await openPanel(page, title);
 
@@ -185,28 +242,24 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     const standalone = uniqueTitle("E2E Open Regatta");
 
     await openAdmin(page, testInfo);
-    await page.getByTestId("admin-events-title-input").fill(standalone);
-    await page.getByTestId("admin-events-create-button").click();
-    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
-
-    let eventId = await openPanel(page, standalone);
+    await createEvent(page, standalone);
     // No series, so every club in the database is a candidate and none is entered yet.
     // That is the case that makes this site a service to clubs outside the association's
     // own series. The seed has 18 clubs; this spec may have added more on earlier runs, so
     // the claim is "at least the league's 18", not an exact count.
-    const openList = page.getByTestId(`admin-manage-event-clubs-${eventId}-available-list`);
+    const openList = page.getByTestId("admin-events-clubs-available-list");
     await expect(openList.getByRole("listitem").first()).toBeVisible();
     expect(await openList.getByRole("listitem").count()).toBeGreaterThanOrEqual(18);
+    await expect(page.getByTestId("admin-events-clubs-mismatch")).toBeVisible();
 
     // Now one inside a series. Its registrations were adopted at creation, so the clubs are
     // already on the selected side rather than waiting to be picked.
+    await skipToTheEnd(page);
+    await page.getByTestId("admin-events-another-button").click();
+    await expect(page.getByTestId("admin-events-steps-1")).toHaveAttribute("data-state", "current");
     const inSeries = uniqueTitle("E2E Series Act");
-    await page.getByTestId("admin-events-title-input").fill(inSeries);
-    await page.getByTestId("admin-events-series-select").selectOption({ label: LEAGUE_SERIES });
-    await page.getByTestId("admin-events-create-button").click();
-    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
+    await createEvent(page, inSeries, { series: LEAGUE_SERIES });
 
-    eventId = await openPanel(page, inSeries);
     // The precise claim, and the reason this test exists: the candidate pool for a series
     // event is the series' **own 18 registered clubs** and nothing else — never every club
     // in the database, which is the rule `app/services/participation.py` enforces on the
@@ -214,14 +267,13 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     // the available side is empty. `toHaveCount` auto-waits; a bare `count()` would read
     // the list mid-load.
     await expect(
-      page.getByTestId(`admin-manage-event-clubs-${eventId}-selected-list`).getByRole("listitem"),
+      page.getByTestId("admin-events-clubs-selected-list").getByRole("listitem"),
     ).toHaveCount(18);
     // ...and nothing is left to pick. Asserted via the empty-state row, not a count of 0:
     // `ClubSelector` renders one "none available" <li> when the side is empty, so the
     // listitem count is 1 even when there is no club in it.
-    await expect(
-      page.getByTestId(`admin-manage-event-clubs-${eventId}-available-empty`),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-events-clubs-available-empty")).toBeVisible();
+    await expect(page.getByTestId("admin-events-clubs-mismatch")).toHaveCount(0);
   });
 
   test("a complete event can be drawn, published and started", async ({ page }, testInfo) => {
@@ -229,23 +281,31 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     const title = uniqueTitle("E2E Ready Act");
 
     await openAdmin(page, testInfo);
-    await page.getByTestId("admin-events-title-input").fill(title);
-    await page.getByTestId("admin-events-starts-input").fill("2027-06-12");
     // This series has the league's own 18 clubs, so the default 18/6/16 setup and its
     // registrations agree with each other from the start.
-    await page.getByTestId("admin-events-series-select").selectOption({ label: LEAGUE_SERIES });
-    await page.getByTestId("admin-events-create-button").click();
-    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
-    // 18 clubs entered and a date: the automatic draw right after creation succeeds.
-    //
-    // A long timeout on purpose. The draw endpoint itself answers in well under a second
-    // (measured), but it is fired from the create mutation's `onSuccess` *after* four query
-    // invalidations, so in a dev build it lands behind their refetches and the confirmation
-    // can take several seconds to appear. Worth improving in the app — a user watching this
-    // line has no idea the work is already done — but it is latency, not a failure.
-    await expect(page.getByTestId("admin-events-pairing-draw-success")).toBeVisible({
-      timeout: 20_000,
-    });
+    await createEvent(page, title, { series: LEAGUE_SERIES, startsOn: "2027-06-12" });
+
+    // Step 2 confirms the 18 adopted clubs; step 3 draws — enabled, because the setup is
+    // complete, and the draw endpoint itself answers in well under a second.
+    await page.getByTestId("admin-events-clubs-next-button").click();
+    const draw = page.getByTestId("admin-events-draw-button");
+    await expect(draw).toBeEnabled();
+    await draw.click();
+    await expect(page.getByTestId("admin-events-ready")).toHaveAttribute("data-ready", "true");
+
+    // Publishing makes the list public — and only then can it be printed, because the
+    // PDF is a public page and a draft answers 404 there (Story VA-8). The link appears
+    // only where the server can print; a stack without Java fails here, loudly, rather
+    // than passing by skipping the download (Story B-3).
+    await page.getByTestId("admin-events-publish-button").click();
+    await expect(page.getByTestId("admin-events-publication")).toHaveText("Public");
+    const pdfLink = page.getByTestId("admin-events-pairing-pdf-link");
+    await expect(pdfLink).toBeVisible();
+    const [download] = await Promise.all([page.waitForEvent("download"), pdfLink.click()]);
+    expect(download.suggestedFilename()).toMatch(/pairing-list\.pdf$/);
+    expect(await download.failure()).toBeNull();
+    const bytes = readFileSync(await download.path());
+    expect(bytes.subarray(0, 4).toString()).toBe("%PDF");
 
     const eventId = await openPanel(page, title);
     await expect(page.getByTestId(`admin-readiness-ready-${eventId}`)).toBeVisible();
@@ -256,7 +316,7 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
     await page.getByTestId(`admin-manage-event-draw-${eventId}`).click();
     await expect(page.getByTestId(`admin-manage-event-draw-message-${eventId}-success`)).toBeVisible();
 
-    await page.getByTestId(`admin-manage-event-publish-${eventId}`).click();
+    // Published from the wizard already; the panel shows the same fact.
     await expect(page.getByTestId(`admin-manage-event-publication-${eventId}`)).toHaveText(
       "Public",
     );
@@ -283,14 +343,10 @@ test.describe("VA-10: closing an event, and taking it back", () => {
     const title = uniqueTitle("E2E Closing Act");
 
     await openAdmin(page, testInfo);
-    await page.getByTestId("admin-events-title-input").fill(title);
-    await page.getByTestId("admin-events-starts-input").fill("2027-07-03");
-    await page.getByTestId("admin-events-series-select").selectOption({ label: LEAGUE_SERIES });
-    await page.getByTestId("admin-events-create-button").click();
-    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
-    await expect(page.getByTestId("admin-events-pairing-draw-success")).toBeVisible({
-      timeout: 20_000,
-    });
+    await createEvent(page, title, { series: LEAGUE_SERIES, startsOn: "2027-07-03" });
+    await page.getByTestId("admin-events-clubs-next-button").click();
+    await page.getByTestId("admin-events-draw-button").click();
+    await expect(page.getByTestId("admin-events-ready")).toHaveAttribute("data-ready", "true");
 
     const eventId = await openPanel(page, title);
 
@@ -328,9 +384,8 @@ test.describe("VA-10: closing an event, and taking it back", () => {
     const title = uniqueTitle("E2E Called Off");
 
     await openAdmin(page, testInfo);
-    await page.getByTestId("admin-events-title-input").fill(title);
-    await page.getByTestId("admin-events-create-button").click();
-    await expect(page.getByTestId("admin-events-create-message-success")).toBeVisible();
+    await createEvent(page, title);
+    await skipToTheEnd(page);
 
     const eventId = await openPanel(page, title);
 

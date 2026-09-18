@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { keepPreviousData } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -13,6 +13,7 @@ import {
   useCreateEvent,
   useEventWaivers,
   useFinishEvent,
+  useGetPairing,
   useGetReadiness,
   useListAllClubs,
   useListAllEvents,
@@ -27,8 +28,8 @@ import {
   useUnpublishEvent,
   useUpdateEvent,
   getGetWaiverScanUrl,
+  getDownloadPairingPdfUrl,
 } from "../api/generated/sbl";
-import { ApiError } from "../api/http";
 import type {
   BoatSpec,
   ClubAdmin,
@@ -46,14 +47,17 @@ import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
 import { openFile } from "../lib/files";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
+import { Steps } from "../components/Steps";
 
-/** Stories A-4, VA-7 and VA-8: scheduling an event and taking it through its life.
+/** Stories A-4, VA-6, VA-7 and VA-8: scheduling an event and taking it through its life.
  *
- * Two sections, because they are two different jobs. **Creating** an event asks only for a
- * name — an event with no date, no clubs and the wrong boat count is the normal early
- * state, not an error (Story VA-8), so the form deliberately gates almost nothing.
- * **Managing** an event is where the rest arrives: the date once the host confirms it, the
- * clubs, the draw, publication, and finally the start. Those steps are ordered but not a
+ * Two sections, because they are two different jobs. **Creating** an event is three steps
+ * — general data, clubs, pairing list (Story VA-6) — of which only the first is required:
+ * an event with no date, no clubs and the wrong boat count is the normal early state, not
+ * an error (Story VA-8), so the first step deliberately gates almost nothing and the
+ * other two can be skipped. **Managing** an event is where the rest arrives or changes:
+ * the date once the host confirms it, the clubs, the draw, publication, and finally the
+ * start. Those steps are ordered but not a
  * state machine — publication is orthogonal to status, validity is computed rather than
  * stored, and only the first race freezes anything.
  */
@@ -85,25 +89,6 @@ function defaultColor(position: number): string {
  *  editable afterwards; a rename is never overwritten by a later resize. */
 function defaultName(position: number): string {
   return i18n.t("admin:events.boatDefaultName", { number: position });
-}
-
-/** Whether a failed draw is just "the setup isn't finished yet" rather than something wrong.
- *
- *  A newly created event has no clubs and often no date — they arrive afterwards — so this
- *  is the *expected* outcome of the automatic draw, not a fault to report in red.
- *
- *  Both codes have to be accepted. `pairing-team-count-mismatch` is what the draw refuses
- *  with when that is the **only** thing missing; as soon as a second reason applies — and
- *  for an event saved with a title alone, the missing date always does — readiness answers
- *  with `event-not-ready` carrying the reasons instead (see
- *  `app/services/event_readiness.py::require_ready`). Checking only the single-reason code
- *  meant the normal case, creating an event and filling it in later, reported a red error
- *  every time. */
-function isSetupIncompleteNotice(error: unknown): boolean {
-  return (
-    error instanceof ApiError &&
-    (error.code === "pairing-team-count-mismatch" || error.code === "event-not-ready")
-  );
 }
 
 /** A fresh row's `customColor` starts out matching its predefined default, not empty — the
@@ -179,7 +164,7 @@ function catalogKey(entry: { teams: number; boats: number; flights: number }): s
 export function EventsAdmin() {
   return (
     <>
-      <CreateEvent />
+      <CreateEventWizard />
       <ManageEvents />
     </>
   );
@@ -187,7 +172,78 @@ export function EventsAdmin() {
 
 // ------------------------------------------------------------------ Creating
 
-function CreateEvent() {
+type WizardStep = 1 | 2 | 3 | "done";
+
+/** The three steps a new event is created in, in the order the work happens (Story VA-6):
+ *  general data, the clubs that enter, the pairing list. The event **exists after step 1**
+ *  — the create request is that step's submit — so everything after it works on a saved
+ *  event through the same endpoints the manage panel uses, and each later step can be
+ *  skipped and finished there. The closing screen says whether the event is ready and
+ *  offers publication, because the calendar entry often precedes the field. */
+function CreateEventWizard() {
+  const { t } = useTranslation("admin");
+  const [step, setStep] = useState<WizardStep>(1);
+  const [event, setEvent] = useState<EventSummary | null>(null);
+
+  return (
+    <Section title={t("events.wizardTitle")} testId="admin-events-section">
+      <Steps
+        testId="admin-events-steps"
+        current={step === "done" ? 4 : step}
+        steps={[t("events.stepGeneral"), t("events.stepClubs"), t("events.stepPairing")]}
+      />
+      {/* The creation message stays up through the later steps: the event is saved, and
+          the steps that follow are refinements of it, not conditions on it. */}
+      {event && (
+        <Message
+          testId="admin-events-create-message"
+          error={null}
+          success={t("events.createdMessage", { title: event.title })}
+        />
+      )}
+      {step === 1 && (
+        <GeneralDataStep
+          onCreated={(created) => {
+            setEvent(created);
+            setStep(2);
+          }}
+        />
+      )}
+      {step === 2 && event && (
+        <ClubsStep event={event} onNext={() => setStep(3)} onSkip={() => setStep("done")} />
+      )}
+      {step === 3 && event && (
+        <PairingStep
+          event={event}
+          onDone={() => setStep("done")}
+          onBack={() => setStep(2)}
+          onSkip={() => setStep("done")}
+        />
+      )}
+      {step === "done" && event && (
+        <ReadyStep
+          event={event}
+          onChanged={setEvent}
+          onAnother={() => {
+            setEvent(null);
+            setStep(1);
+          }}
+        />
+      )}
+    </Section>
+  );
+}
+
+/** A row of the wizard's buttons: the way forward first, the ways out after it. */
+function StepActions({ children }: { children: ReactNode }) {
+  return <div className="flex flex-wrap items-center gap-3">{children}</div>;
+}
+
+/** Step 1: name, dates, series, host, size and boats — and the create request. Only the
+ *  title and the boat names gate it: a missing date and the wrong number of clubs are the
+ *  normal early state, which the next steps and the manage panel report and fix
+ *  (Story VA-8). */
+function GeneralDataStep({ onCreated }: { onCreated: (event: EventSummary) => void }) {
   const { t } = useTranslation("admin");
   // Selectors, so the whole list rather than a page: a dropdown offering the first
   // twenty-five series is one that cannot pick the twenty-sixth (Story A-13).
@@ -196,9 +252,6 @@ function CreateEvent() {
   // Only pre-computed sizes are offered here — picking a free combination of teams,
   // boats and flights would mean drawing a pairing list from scratch later, an
   // optimization run that takes minutes, not seconds (see app/pairing/catalog.py).
-  // What can still be varied per event without recomputing is the seed that shuffles
-  // starting positions — that's a separate step once the event exists, not part of
-  // creating it.
   const catalog = useAsync(useListPairingCatalog());
   const invalidate = useInvalidate();
 
@@ -210,9 +263,6 @@ function CreateEvent() {
   const [teams, setTeams] = useState("18");
   const [boats, setBoats] = useState("6");
   const [flights, setFlights] = useState("16");
-  // Default matches the backend's own default seed (`PairingJobRequest.seed` in
-  // app/schemas/admin.py) — same seed, same draw, reproducible if it ever needs proving.
-  const [seed, setSeed] = useState("1240");
   const [boatRows, setBoatRows] = useState<BoatRow[]>(() =>
     Array.from({ length: 6 }, (_, i) => emptyBoatRow(i + 1)),
   );
@@ -222,30 +272,17 @@ function CreateEvent() {
       prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     );
 
-  // Separate from event creation on purpose: the event exists either way, so a failed draw
-  // (e.g. a standalone event with no teams registered yet) must not read as "creation failed."
-  const drawPairing = usePairingFromCatalog({
-    mutation: { onSuccess: () => invalidate("/api/admin/events") },
-  });
-
   const create = useCreateEvent({
     mutation: {
       onSuccess: (event) => {
-        setTitle("");
-        setStartsOn("");
-        setEndsOn("");
-        setBoatRows(Array.from({ length: Number(boats) || 6 }, (_, i) => emptyBoatRow(i + 1)));
         invalidate("/api/admin/events", "/api/admin/series", "/api/events", "/api/series");
-        drawPairing.mutate({ eventId: event.id, data: { seed: Number(seed) || 1240 } });
+        onCreated(event);
       },
     },
   });
 
   return (
-    <Section
-      title={t("events.title")}
-      testId="admin-events-section"
-    >
+    <>
       <form
         data-testid="admin-events-create-form"
         className="grid grid-cols-[minmax(0,1fr)] gap-3"
@@ -264,8 +301,9 @@ function CreateEvent() {
               boat_count: Number(boats),
               flight_count: Number(flights),
               boats: boatSpecs(boatRows),
-              // Saved as a draft. Publication is a separate, reversible decision in the
-              // manage panel below — it changes only who can see the event (Story VA-8).
+              // Saved as a draft. Publication is a separate, reversible decision on the
+              // wizard's last screen and in the manage panel — it changes only who can
+              // see the event (Story VA-8).
               published: false,
             },
           });
@@ -375,16 +413,6 @@ function CreateEvent() {
         <p className="text-sm text-slate-500">
           {t("events.formatText", { teams, boats, races: Math.ceil(Number(teams) / Number(boats)) || 0 })}
         </p>
-
-        <Field label={t("events.seedLabel")} hint={t("events.seedHint")}>
-          <input
-            className={INPUT_CLASS}
-            type="number"
-            value={seed}
-            onChange={(e) => setSeed(e.target.value)}
-            data-testid="admin-events-seed-input"
-          />
-        </Field>
 
         <p className="text-sm text-slate-500">
           {t("events.catalogContactHint")}{" "}
@@ -496,11 +524,11 @@ function CreateEvent() {
           </div>
         </Field>
 
-        <div>
+        <StepActions>
           {/* Only the title and the boat names gate saving. A missing date, no clubs and a
-              boat count that doesn't match are all things the manage panel below reports
-              and fixes — refusing to save them would mean nothing could be written down
-              until everything was known (Story VA-8). */}
+              boat count that doesn't match are all things the next steps and the manage
+              panel report and fix — refusing to save them would mean nothing could be
+              written down until everything was known (Story VA-8). */}
           <Button
             type="submit"
             isDisabled={
@@ -513,40 +541,321 @@ function CreateEvent() {
           >
             {create.isPending ? t("events.creatingButton") : t("events.createButton")}
           </Button>
-        </div>
+        </StepActions>
       </form>
 
       <Message
         testId="admin-events-create-message"
         error={create.isError ? errorText(create.error) : null}
-        success={create.isSuccess ? t("events.createdMessage", { title: create.data?.title }) : null}
+        success={null}
       />
+    </>
+  );
+}
 
-      {/* Distinct from event-creation success/failure above: the event exists either way,
-       *  so a failed draw is reported as its own, clearly-labeled notice rather than looking
-       *  like creation itself failed.
-       *
-       *  Having no clubs and no date yet is the *normal* state right after creating an
-       *  event — both arrive afterwards — so a readiness refusal is not an error here at
-       *  all, it is the next step. Only a genuine failure is shown in red. */}
-      {create.isSuccess && drawPairing.isError && (
-        isSetupIncompleteNotice(drawPairing.error) ? (
-          <p data-testid="admin-events-pairing-draw-pending" className="text-sm text-slate-600">
-            {t("events.pairingDrawPendingMessage")}
-          </p>
-        ) : (
-          <ErrorMessage
-            text={t("events.pairingDrawFailedMessage", { error: errorText(drawPairing.error) })}
-            testId="admin-events-pairing-draw-error"
+/** Step 2: who enters. The candidates are the series' registered clubs when the event
+ *  belongs to one — the backend enforces exactly that (`app/services/participation.py`) —
+ *  and every club when it stands alone. A series' registrations were adopted at creation,
+ *  so they arrive pre-selected; the step is then a confirmation, not a search. */
+function ClubsStep({
+  event,
+  onNext,
+  onSkip,
+}: {
+  event: EventSummary;
+  onNext: () => void;
+  onSkip: () => void;
+}) {
+  const { t } = useTranslation("admin");
+  const invalidate = useInvalidate();
+  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
+  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
+  const participants = useAsync(useListParticipants(event.id));
+  const [selectedClubs, setSelectedClubs] = useState<Set<number> | null>(null);
+
+  const series = event.series ? seriesList.data?.find((s) => s.id === event.series?.id) : undefined;
+  const candidates = event.series ? (series?.clubs ?? []) : (clubs.data ?? []);
+  const loading = participants.loading || (event.series ? seriesList.loading : clubs.loading);
+
+  // Server state until the first click, the local set afterwards (see `EventPanel`).
+  const entered = new Set((participants.data ?? []).map((p) => p.club.id));
+  const selection = selectedClubs ?? entered;
+  const toggle = toggleSet((updater) => setSelectedClubs((prev) => updater(prev ?? entered)));
+
+  const save = useSetParticipants({
+    mutation: {
+      onSuccess: () => {
+        invalidate("/api/admin/events", "/api/events");
+        onNext();
+      },
+    },
+  });
+
+  return (
+    <Stack gap={3}>
+      <h3 className="text-sm font-semibold text-slate-700" data-testid="admin-events-clubs-count">
+        {t("manage.clubsTitle", { count: selection.size, configured: event.team_count })}
+      </h3>
+      <p className="text-sm text-slate-600">
+        {event.series
+          ? t("manage.clubsFromSeriesHint", { series: event.series.name })
+          : t("manage.clubsStandaloneHint")}
+      </p>
+      {loading && <Loading text={t("manage.clubsLoadingText")} testId="admin-events-clubs-loading" />}
+      {participants.error && <ErrorMessage text={participants.error} testId="admin-events-clubs-error" />}
+      {!loading && !candidates.length ? (
+        <Empty testId="admin-events-clubs-empty">
+          {event.series ? t("manage.seriesHasNoClubs") : t("manage.noClubsAtAll")}
+        </Empty>
+      ) : (
+        !loading && (
+          <ClubSelector
+            clubs={candidates}
+            selectedIds={selection}
+            toggle={toggle}
+            testId="admin-events-clubs"
           />
         )
       )}
-      {create.isSuccess && drawPairing.isSuccess && (
-        <p data-testid="admin-events-pairing-draw-success" className="text-sm text-emerald-700">
-          {t("events.pairingDrawSuccessMessage")}
+      {selection.size !== event.team_count && (
+        <p className="text-sm text-amber-800" data-testid="admin-events-clubs-mismatch">
+          {t("events.clubsCountHint", { expected: event.team_count, actual: selection.size })}
         </p>
       )}
-    </Section>
+      <StepActions>
+        <Button
+          size="sm"
+          isDisabled={save.isPending || loading}
+          onPress={() => save.mutate({ eventId: event.id, data: { clubs: [...selection] } })}
+          data-testid="admin-events-clubs-next-button"
+        >
+          {save.isPending
+            ? t("manage.savingButton")
+            : t("events.clubsNextButton", { count: selection.size })}
+        </Button>
+        {/* The field can be entered later — a standalone regatta collects its clubs over
+            weeks, and the manage panel has the same selector. */}
+        <Button size="sm" variant="ghost" onPress={onSkip} data-testid="admin-events-clubs-skip-button">
+          {t("events.skipButton")}
+        </Button>
+      </StepActions>
+      <Message
+        testId="admin-events-clubs-message"
+        error={save.isError ? errorText(save.error) : null}
+        success={null}
+      />
+    </Stack>
+  );
+}
+
+/** Step 3: the draw (Story VA-7). Refused visibly while the setup is incomplete — the
+ *  same readiness reasons the server would answer with — rather than fired blind the
+ *  way the old automatic draw was, which for a new event without clubs failed every time
+ *  and made that failure the first thing the organizer read. */
+function PairingStep({
+  event,
+  onDone,
+  onBack,
+  onSkip,
+}: {
+  event: EventSummary;
+  onDone: () => void;
+  onBack: () => void;
+  onSkip: () => void;
+}) {
+  const { t } = useTranslation("admin");
+  const invalidate = useInvalidate();
+  const readiness = useAsync(useGetReadiness(event.id));
+  // Default matches the backend's own default seed (`PairingJobRequest.seed` in
+  // app/schemas/admin.py) — same seed, same draw, reproducible if it ever needs proving.
+  const [seed, setSeed] = useState("1240");
+  const ready = readiness.data?.ready ?? false;
+
+  const draw = usePairingFromCatalog({
+    mutation: {
+      onSuccess: () => {
+        invalidate("/api/admin/events", "/api/events", getGetReadinessQueryKey(event.id));
+        onDone();
+      },
+    },
+  });
+
+  return (
+    <Stack gap={3}>
+      <h3 className="text-sm font-semibold text-slate-700">{t("manage.pairingTitle")}</h3>
+      <p className="text-sm text-slate-600">{t("manage.pairingMissingHint")}</p>
+      {readiness.loading && (
+        <Loading text={t("manage.readinessLoadingText")} testId="admin-events-draw-readiness-loading" />
+      )}
+      {readiness.error && <ErrorMessage text={readiness.error} testId="admin-events-draw-readiness-error" />}
+      {readiness.data && !ready && (
+        <div data-testid="admin-events-draw-blocked" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <p>{t("events.drawBlockedHint")}</p>
+          <ul data-testid="admin-events-draw-reasons" className="mt-1 grid grid-cols-[minmax(0,1fr)] gap-1">
+            {(readiness.data.reasons ?? []).map((reason) => (
+              <li key={reason.code} data-testid={`admin-events-draw-reason-${reason.code}`}>
+                · {reasonText(reason)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="flex flex-wrap items-end gap-3">
+        <Field label={t("events.seedLabel")} hint={t("events.seedHint")} testId="admin-events-draw-seed-field">
+          <input
+            className={`${INPUT_CLASS.replace("w-full", "w-28")}`}
+            type="number"
+            value={seed}
+            onChange={(e) => setSeed(e.target.value)}
+            data-testid="admin-events-draw-seed-input"
+          />
+        </Field>
+      </div>
+      <StepActions>
+        <Button
+          size="sm"
+          isDisabled={draw.isPending || !ready}
+          onPress={() => draw.mutate({ eventId: event.id, data: { seed: Number(seed) || 1240 } })}
+          data-testid="admin-events-draw-button"
+        >
+          {draw.isPending ? t("manage.drawingButton") : t("manage.drawButton")}
+        </Button>
+        <Button size="sm" variant="ghost" onPress={onBack} data-testid="admin-events-draw-back-button">
+          {t("events.backButton")}
+        </Button>
+        <Button size="sm" variant="ghost" onPress={onSkip} data-testid="admin-events-draw-skip-button">
+          {t("events.skipButton")}
+        </Button>
+      </StepActions>
+      <Message
+        testId="admin-events-draw-message"
+        error={draw.isError ? errorText(draw.error) : null}
+        success={null}
+      />
+    </Stack>
+  );
+}
+
+/** The closing screen: ready 🚀, or what is still missing and where it is finished. It
+ *  offers publication here because the calendar entry often precedes the field (Story
+ *  VA-8), and — once published with a list — the pairing list and its PDF, which are
+ *  public pages and therefore exist only for a published event. */
+function ReadyStep({
+  event,
+  onChanged,
+  onAnother,
+}: {
+  event: EventSummary;
+  onChanged: (event: EventSummary) => void;
+  onAnother: () => void;
+}) {
+  const { t } = useTranslation("admin");
+  const invalidate = useInvalidate();
+  const readiness = useAsync(useGetReadiness(event.id));
+  const ready = readiness.data?.ready ?? false;
+  const hasPairing = readiness.data?.has_pairing_list ?? false;
+  const complete = ready && hasPairing;
+  const published = event.published ?? false;
+  // The public pairing endpoint: a draft answers 404 there, so it is asked only once the
+  // event is published — and it is what says whether this server can print (Story B-3).
+  const pairing = useGetPairing(event.id, { query: { enabled: published && hasPairing } });
+  const pdfAvailable = pairing.data?.pdf_available ?? false;
+
+  const refresh = () => invalidate("/api/admin/events", "/api/events", "/api/series");
+  const publishEvent = usePublishEvent({
+    mutation: { onSuccess: (updated) => { refresh(); onChanged(updated); } },
+  });
+  const unpublishEvent = useUnpublishEvent({
+    mutation: { onSuccess: (updated) => { refresh(); onChanged(updated); } },
+  });
+  const publish = published ? unpublishEvent : publishEvent;
+
+  return (
+    <Stack gap={3}>
+      <div data-testid="admin-events-ready" data-ready={complete ? "true" : "false"}>
+        {readiness.loading && (
+          <Loading text={t("manage.readinessLoadingText")} testId="admin-events-ready-loading" />
+        )}
+        {readiness.error && <ErrorMessage text={readiness.error} testId="admin-events-ready-error" />}
+        {readiness.data && (
+          <>
+            <h3
+              data-testid="admin-events-ready-title"
+              className={`text-base font-semibold ${complete ? "text-emerald-700" : "text-slate-800"}`}
+            >
+              {complete ? t("events.readyTitle") : t("events.notReadyTitle")}
+            </h3>
+            {!complete && (
+              <>
+                <ul
+                  data-testid="admin-events-ready-reasons"
+                  className="mt-1 grid grid-cols-[minmax(0,1fr)] gap-1 text-sm text-amber-800"
+                >
+                  {(readiness.data.reasons ?? []).map((reason) => (
+                    <li key={reason.code} data-testid={`admin-events-ready-reason-${reason.code}`}>
+                      · {reasonText(reason)}
+                    </li>
+                  ))}
+                  {!hasPairing && (
+                    <li data-testid="admin-events-ready-missing-pairing">· {t("events.missingPairing")}</li>
+                  )}
+                </ul>
+                <p className="mt-2 text-sm text-slate-600">{t("events.finishLaterHint")}</p>
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <PublicationBadge published={published} eventId={event.id} testId="admin-events-publication" />
+        <Button
+          size="sm"
+          variant={published ? "ghost" : "primary"}
+          isDisabled={publish.isPending}
+          onPress={() => publish.mutate({ eventId: event.id })}
+          data-testid="admin-events-publish-button"
+        >
+          {published ? t("manage.unpublishButton") : t("manage.publishButton")}
+        </Button>
+        {published && hasPairing && (
+          <Link
+            to={`/events/${event.id}`}
+            data-testid="admin-events-pairing-link"
+            className="text-sm underline underline-offset-2"
+          >
+            {t("manage.openPairingLink")}
+          </Link>
+        )}
+        {/* A plain anchor, not a generated hook: the answer is a PDF, and `api/http.ts`
+            parses everything it handles as JSON (see `Matchday.tsx`). Shown only where the
+            server can print, because a link whose only answer is 503 is worse than none. */}
+        {published && hasPairing && pdfAvailable && (
+          <a
+            href={getDownloadPairingPdfUrl(event.id)}
+            download
+            data-testid="admin-events-pairing-pdf-link"
+            className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+          >
+            {t("events.pairingPdfLink")}
+          </a>
+        )}
+      </div>
+      <p className="text-sm text-slate-600">
+        {!published && hasPairing ? t("events.publishToShareHint") : t("manage.publishHint")}
+      </p>
+      <Message
+        testId="admin-events-publish-message"
+        error={publish.isError ? errorText(publish.error) : null}
+        success={null}
+      />
+
+      <StepActions>
+        <Button size="sm" variant="ghost" onPress={onAnother} data-testid="admin-events-another-button">
+          {t("events.anotherButton")}
+        </Button>
+      </StepActions>
+    </Stack>
   );
 }
 
@@ -671,11 +980,19 @@ function EventRow({
   );
 }
 
-function PublicationBadge({ published, eventId }: { published: boolean; eventId: number }) {
+function PublicationBadge({
+  published,
+  eventId,
+  testId,
+}: {
+  published: boolean;
+  eventId: number;
+  testId?: string;
+}) {
   const { t } = useTranslation("admin");
   return (
     <span
-      data-testid={`admin-manage-event-publication-${eventId}`}
+      data-testid={testId ?? `admin-manage-event-publication-${eventId}`}
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
         published
           ? "bg-brand-50 text-brand-800 ring-brand-200"

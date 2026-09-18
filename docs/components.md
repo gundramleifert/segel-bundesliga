@@ -26,6 +26,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `ClubSelector.tsx` | `ClubSelector` — `TransferList` for clubs |
 | `LineupPanel.tsx` | `LineupPanel` — a matchday's crew from the squad, with roles (Story V-2) |
 | `Tabs.tsx` | `TabbedView` |
+| `Steps.tsx` | `Steps` — where you are in a short, ordered sequence (Story VA-6) |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and `/club` |
 | `Layout.tsx`, `Breadcrumb.tsx` | the frame around every page (Story A-12) |
@@ -179,6 +180,19 @@ issues none of its queries. The selection lives in a query parameter, so a tab c
 linked, survives a reload, and the Back button steps between tabs. It owns the roving
 tabindex, the arrow keys, and the horizontal scroll guard — the parts that get dropped
 when a strip is copied.
+
+### `Steps` — where you are in a short, ordered sequence
+
+```tsx
+<Steps testId="admin-events-steps" current={step} steps={[t("stepGeneral"), t("stepClubs"), t("stepPairing")]} />
+```
+
+The marker row above a wizard: done steps carry a check, the current one is filled, the
+rest are outlined. `current` is 1-based, and a value past the last step means "all done".
+Not `TabbedView`: tabs let the reader jump anywhere and keep the choice in the URL, and
+neither is wanted where each step needs what the one before it produced — a half-created
+event is not a place to link to. Each step is `${testId}-${n}` with
+`data-state="done" | "current" | "upcoming"`, which is what a spec asserts on.
 
 ### `Pager` — one page of a long list
 

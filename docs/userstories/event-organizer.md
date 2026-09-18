@@ -36,10 +36,21 @@ Acceptance criteria:
   the draw: font size, landscape, per-team pages (`print_settings`). Empty means the sheet
   is printed the way its configuration implies — see [B-3](visitor.md#b-3--view-pairing-list), which
   owns the reasoning.
+- **Creating is three steps on one screen, in the order the work happens:** 1. general
+  data — name, dates, series, host, size and boats; 2. the clubs that enter; 3. the
+  pairing list. One form asking for all of it at once was too fat to read, and it hid the
+  fact that the clubs and the draw are decisions of their own. **The event exists after
+  step 1** and can be published right there — the calendar entry often precedes the field
+  — so steps 2 and 3 can each be skipped and finished later in the manage panel, which
+  offers the same clubs and the same draw. The last screen says whether the event is
+  ready 🚀 or what is still missing, offers publication, and — once published with a
+  list — opens the pairing list and its PDF. The wizard never blocks on what a later step
+  needs: a title alone still saves.
 
 Endpoints: `POST /api/admin/events`
 
-Tests: `api/tests/stories/test_create_event.py::TestCreateEvent`
+Tests: `api/tests/stories/test_create_event.py::TestCreateEvent`,
+`e2e/lifecycle.spec.ts::VA-6: creating an event in three steps`
 
 ### A-2 ● Create matchday
 As an **event organizer** I want to **create a matchday with name, date, and host**,
@@ -122,9 +133,9 @@ Endpoints: `GET /api/admin/events`, `GET /api/admin/events/{id}/readiness`,
 `POST /api/admin/series/{id}/unpublish`; `published` also on `POST /api/admin/events`,
 `PATCH /api/admin/events/{id}`, `POST /api/admin/series`, `PATCH /api/admin/series/{id}`.
 Computed in `api/app/services/event_readiness.py`. The admin screen is
-`web/src/pages/AdminEvents.tsx` — a create form that gates almost nothing, and a manage
-panel per event carrying the readiness reasons, the date, the entered clubs, the draw,
-publication and the start.
+`web/src/pages/AdminEvents.tsx` — a three-step creation whose first step gates almost
+nothing (VA-6), and a manage panel per event carrying the readiness reasons, the date, the
+entered clubs, the draw, publication and the start.
 
 Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
 `::TestPublication`, `::TestStarting`, `::TestFreezeAfterTheFirstRace`,
@@ -224,10 +235,12 @@ Acceptance criteria:
 - If no entry fits the configuration, the response says which ones are available; the way via
   the calculation job ([VA-3](#va-3--calculate-and-publish-pairing-list-in-the-interface))
   remains.
-- **Event creation applies this automatically:** the event-creation form (VA-6) takes a seed
-  (default `1240`, reproducible) and calls this endpoint right after the event is created, so a
-  new event has its pairing list immediately, without a separate manual step. A failed draw
-  (e.g. no teams registered yet) is reported as its own notice — the event exists either way.
+- **The draw is the third step of creating an event** ([VA-6](#va-6--create-event-with-its-configuration)):
+  the seed is prefilled (`1240`, reproducible) and one press draws. It used to fire
+  automatically right after creation, which for a new event without clubs always failed and
+  reported that failure as the first thing the organizer saw; now the step is refused
+  visibly, names the readiness reasons, and can be skipped — the manage panel offers the
+  same draw later. The event exists either way.
 
 Endpoints: `GET /api/admin/pairing/catalog`,
 `POST /api/admin/events/{id}/pairing/from-catalog`
@@ -370,5 +383,11 @@ Acceptance criteria:
   later, that a series' registrations gate who may enter its events, that the whole fleet's
   points add up to what 16 races hand out, and that a protest decision still lands after
   the configuration has frozen.
+- **The drawn list ends up on paper.** Once the event is published, the PDF endpoint
+  answers the sheet ([B-3](visitor.md#b-3--view-pairing-list)) — a real PDF where the
+  server can print, and a clear "cannot print here" where it cannot, so the test never
+  skips silently. The browser walk ends the same way: the wizard's last screen offers the
+  download and the file arrives.
 
-Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
+Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`,
+`e2e/lifecycle.spec.ts::VA-8/VA-9: from a draft to a running event`
