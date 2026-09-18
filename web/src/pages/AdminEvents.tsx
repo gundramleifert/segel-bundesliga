@@ -163,23 +163,15 @@ function catalogKey(entry: { teams: number; boats: number; flights: number }): s
 }
 
 export function EventsAdmin() {
-  const { t } = useTranslation("admin");
-  // The list first, then the "＋": the screen opens on what exists, and the wizard takes
-  // the space below it only while an event is being created (Story VA-6).
+  // The screen opens on the list; the "＋" top-right opens the wizard under the header,
+  // above the list, only while an event is being created (Story VA-6).
   const [creating, setCreating] = useState(false);
   return (
-    <>
-      <ManageEvents />
-      {creating ? (
-        <CreateEventWizard onClose={() => setCreating(false)} />
-      ) : (
-        <AddButton
-          label={t("events.wizardTitle")}
-          onPress={() => setCreating(true)}
-          testId="admin-events-new-button"
-        />
-      )}
-    </>
+    <ManageEvents
+      creating={creating}
+      onNew={() => setCreating(true)}
+      onClose={() => setCreating(false)}
+    />
   );
 }
 
@@ -199,7 +191,12 @@ function CreateEventWizard({ onClose }: { onClose: () => void }) {
   const [event, setEvent] = useState<EventSummary | null>(null);
 
   return (
-    <Section title={t("events.wizardTitle")} testId="admin-events-section">
+    <Stack
+      gap={4}
+      testId="admin-events-section"
+      className="rounded-lg border border-brand-200 bg-brand-50/40 p-4"
+    >
+      <h3 className="text-base font-semibold">{t("events.wizardTitle")}</h3>
       <Steps
         testId="admin-events-steps"
         current={step === "done" ? 4 : step}
@@ -245,7 +242,7 @@ function CreateEventWizard({ onClose }: { onClose: () => void }) {
           onClose={onClose}
         />
       )}
-    </Section>
+    </Stack>
   );
 }
 
@@ -890,7 +887,15 @@ function ReadyStep({
 
 // ------------------------------------------------------------------ Managing
 
-function ManageEvents() {
+function ManageEvents({
+  creating,
+  onNew,
+  onClose,
+}: {
+  creating: boolean;
+  onNew: () => void;
+  onClose: () => void;
+}) {
   const { t } = useTranslation("admin");
   // The admin list, not the public one: a draft has to appear on the very screen whose
   // job is to finish and publish it.
@@ -912,7 +917,17 @@ function ManageEvents() {
     <Section
       title={t("manage.title")}
       testId="admin-manage-events-section"
+      action={
+        !creating && (
+          <AddButton
+            label={t("events.wizardTitle")}
+            onPress={onNew}
+            testId="admin-events-new-button"
+          />
+        )
+      }
     >
+      {creating && <CreateEventWizard onClose={onClose} />}
       <Field label={t("manage.searchLabel")} hint={t("manage.searchHint")}>
         <input
           className={INPUT_CLASS}

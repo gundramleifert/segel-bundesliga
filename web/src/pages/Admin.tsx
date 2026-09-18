@@ -389,28 +389,19 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
     <Section
       title={t("series.title")}
       testId="admin-series-section"
+      action={
+        !creating && (
+          <AddButton
+            label={t("series.newButton")}
+            onPress={() => setCreating(true)}
+            testId="admin-series-new-button"
+          />
+        )
+      }
     >
-      {seriesList.loading && <Loading text={t("series.loadingText")} testId="admin-series-loading" />}
-      {seriesList.error && <ErrorMessage text={seriesList.error} testId="admin-series-error" />}
-      {seriesList.data &&
-        (seriesList.data.length ? (
-          <ul data-testid="admin-series-list" className="divide-y divide-slate-100 rounded-lg border border-slate-200">
-            {seriesList.data.map((series) => (
-              <SeriesRow
-                key={series.id}
-                series={series}
-                clubs={clubs.data ?? []}
-                onChanged={() => invalidate(getListAllSeriesQueryKey(), "/api/series", "/api/clubs")}
-              />
-            ))}
-          </ul>
-        ) : (
-          <Empty testId="admin-series-empty">{t("series.emptyText")}</Empty>
-        ))}
-
-      {/* What exists first, the "＋" after it; the form takes the space only while a series
-          is being created. */}
-      {creating ? (
+      {/* The form opens under the header, above the list, only while a series is being
+          created; the "＋" that opens it is the section's `action`. */}
+      {creating && (
         <>
           <form
             data-testid="admin-series-create-form"
@@ -522,13 +513,25 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
             </Button>
           </div>
         </>
-      ) : (
-        <AddButton
-          label={t("series.newButton")}
-          onPress={() => setCreating(true)}
-          testId="admin-series-new-button"
-        />
       )}
+      {seriesList.loading && <Loading text={t("series.loadingText")} testId="admin-series-loading" />}
+      {seriesList.error && <ErrorMessage text={seriesList.error} testId="admin-series-error" />}
+      {seriesList.data &&
+        (seriesList.data.length ? (
+          <ul data-testid="admin-series-list" className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            {seriesList.data.map((series) => (
+              <SeriesRow
+                key={series.id}
+                series={series}
+                clubs={clubs.data ?? []}
+                onChanged={() => invalidate(getListAllSeriesQueryKey(), "/api/series", "/api/clubs")}
+              />
+            ))}
+          </ul>
+        ) : (
+          <Empty testId="admin-series-empty">{t("series.emptyText")}</Empty>
+        ))}
+
     </Section>
   );
 }

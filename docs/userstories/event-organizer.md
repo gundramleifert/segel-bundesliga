@@ -46,8 +46,8 @@ Acceptance criteria:
   ready 🚀 or what is still missing, offers publication, and — once published with a
   list — opens the pairing list and its PDF. The wizard never blocks on what a later step
   needs: a title alone still saves.
-  **The list of events comes first**, and the wizard opens from a "＋" after it — the
-  screen opens on what exists, and the same plus adds a series on its tab.
+  **The list of events comes first**, and the wizard opens from a "＋" top-right of it —
+  the screen opens on what exists, and the same plus adds a series on its tab.
 
 Endpoints: `POST /api/admin/events`
 

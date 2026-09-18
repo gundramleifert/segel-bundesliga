@@ -27,7 +27,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `LineupPanel.tsx` | `LineupPanel` — a matchday's crew from the squad, with roles (Story V-2) |
 | `Tabs.tsx` | `TabbedView` |
 | `Steps.tsx` | `Steps` — where you are in a short, ordered sequence (Story VA-6) |
-| `AddButton.tsx` | `AddButton` — the "＋" after every admin list that opens its create form |
+| `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, opening its create form |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and `/club` |
 | `Layout.tsx`, `Breadcrumb.tsx` | the frame around every page (Story A-12) |
@@ -195,19 +195,23 @@ neither is wanted where each step needs what the one before it produced — a ha
 event is not a place to link to. Each step is `${testId}-${n}` with
 `data-state="done" | "current" | "upcoming"`, which is what a spec asserts on.
 
-### `AddButton` — the "＋" after a list
+### `AddButton` — the "＋" top-right of a list
 
 ```tsx
-{creating ? <CreateForm onClose={() => setCreating(false)} /> : (
+<Section title={t("title")} action={!creating && (
   <AddButton label={t("newButton")} onPress={() => setCreating(true)} testId="admin-series-new-button" />
-)}
+)}>
+  {creating && <CreateForm onClose={() => setCreating(false)} />}
+  …the list…
+</Section>
 ```
 
-What exists comes first, then the plus, and the create form takes the space below the
-list only while something is being created. A screen that opened on an empty form put the
-thing being worked on below the fold and asked for input before showing what was already
-there. Same place, same sign on every admin list, so nobody has to find out where a screen
-hides its "new".
+`Section`'s `action` slot sits beside the title. The screen opens on the list; the create
+form appears under the header, above the list, only while something is being created, and
+the plus is hidden meanwhile. A screen that opened on an empty form put the thing being
+worked on below the fold and asked for input before showing what was already there. Same
+corner, same sign on every admin list, so nobody has to find out where a screen hides its
+"new".
 
 ### `Pager` — one page of a long list
 

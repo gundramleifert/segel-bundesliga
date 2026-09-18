@@ -24,17 +24,23 @@ import { slugify } from "../lib/testids";
 
 export function Section({
   title,
+  action,
   children,
   testId,
 }: {
   title: string;
+  /** Sits top-right beside the title — the "＋" that adds to the list below (`AddButton`). */
+  action?: ReactNode;
   children: ReactNode;
   testId?: string;
 }) {
   const resolvedTestId = testId ?? `admin-section-${slugify(title)}`;
   return (
     <section data-testid={resolvedTestId}>
-      <h2 className="mb-3 text-lg font-semibold">{title}</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {action}
+      </div>
       <Card>
         {/* The explicit `minmax(0,1fr)` column matters on a narrow screen: a grid's `auto`
             column is sized by its items' min-content width, so one wide table or form row

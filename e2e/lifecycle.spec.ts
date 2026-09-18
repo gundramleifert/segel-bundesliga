@@ -44,8 +44,8 @@ type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
 const TAB_READY: Record<AdminTab, string> = {
   clubs: "admin-clubs-list",
   series: "admin-series-list",
-  // The list comes first and the wizard opens from the "＋" after it, so the button is
-  // the tab's own ready signal; `createEvent` waits for the wizard's catalog select.
+  // The list comes first and the wizard opens from the "＋" top-right of it, so the
+  // button is the tab's own ready signal; `createEvent` waits for the wizard's catalog select.
   events: "admin-events-new-button",
   sailors: "admin-sailors-table",
   accounts: "admin-accounts-table",
@@ -105,7 +105,7 @@ async function createEvent(
   title: string,
   options: { series?: string; startsOn?: string } = {},
 ): Promise<void> {
-  // The wizard opens from the "＋" after the list — unless it is already open, which is
+  // The wizard opens from the "＋" top-right of the list — unless it is already open, which is
   // the case right after "Create another event".
   if (!(await page.getByTestId("admin-events-title-input").isVisible())) {
     await page.getByTestId("admin-events-new-button").click();
@@ -137,7 +137,7 @@ test.describe("VA-6: creating an event in three steps", () => {
     const title = uniqueTitle("E2E Stepwise Cup");
 
     await openAdmin(page, testInfo);
-    // The list of events comes first; the wizard opens from the "＋" after it, and until
+    // The list of events comes first; the wizard opens from the "＋" top-right, and until
     // it is pressed no form is on the screen.
     await expect(page.getByTestId("admin-events-title-input")).toHaveCount(0);
     await page.getByTestId("admin-events-new-button").click();
@@ -644,7 +644,7 @@ test.describe("VA-8: a series is published the same way", () => {
     const name = uniqueTitle("E2E Trophy");
 
     await openAdmin(page, testInfo, "series");
-    // The list first, the form from the "＋" after it — the same shape as the events tab.
+    // The list first, the form from the "＋" top-right — the same shape as the events tab.
     await page.getByTestId("admin-series-new-button").click();
     await page.getByTestId("admin-series-name-input").fill(name);
     await page.getByTestId("admin-series-year-input").fill("2027");
