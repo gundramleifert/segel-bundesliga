@@ -16,7 +16,9 @@ so that **everything else follows from it**.
 Acceptance criteria:
 - Only **name and date** are required. Everything else has sensible defaults.
 - The configuration consists of **number of teams, number of boats, and number of flights**. From
-  it the number of races per flight is calculated — no constants in code.
+  it the number of races per flight is calculated — no constants in code. Teams and boats
+  are picked as one of the catalog's combinations, the flights then from 1 up to that
+  combination's stored length ([VA-7](#va-7--take-finished-pairing-list-from-catalog)).
 - **Boats** can be specified with **color and name**; on the water they are referred to by name,
   not number. Without specification, `boat_count` boats are created in league colors; with
   specification, their count determines `boat_count`.
@@ -229,9 +231,17 @@ ten minutes for an optimization run**.
 Acceptance criteria:
 - A pairing list depends only on **teams, boats, and flights**. For the usual configurations,
   it lies **pre-calculated** in the catalog.
-- **Exactly one file per configuration** is stored — the `out.yml` of the Java tool. It carries
-  all information; the configuration is read from its content, not from the filename. An
-  official draw can be deposited unchanged.
+- **Exactly one file per teams-and-boats combination** is stored — the `out.yml` of the
+  Java tool, computed for the **longest day** that combination is sailed on (18 teams on 6
+  boats: 16 flights). It carries all information; the configuration is read from its
+  content, not from the filename. An official draw can be deposited unchanged.
+- **A shorter day takes the first flights of the stored list.** The organizer picks the
+  teams-and-boats combination and then any number of flights from 1 up to the stored
+  length; the draw cuts the list after that flight. Every flight of a stored list has every
+  team exactly once, so a prefix is a valid draw. What it is *not* is re-optimized: the
+  boat distribution was balanced over the whole list, and a prefix is as balanced as its
+  first flights happen to be. Asking for more flights than the file holds is refused with
+  the sizes that exist.
 - A **seed value** shuffles the starting positions. That takes milliseconds.
 - **Shuffling does not change quality**: boat distribution, encounters, and boat changes depend
   on the structure of the list, not on which name is at which starting position.

@@ -157,9 +157,25 @@ function boatNamesComplete(rows: BoatRow[]): boolean {
   return rows.every((row) => row.name.trim().length > 0);
 }
 
-/** Identifies a catalog size for the <select> — teams, boats and flights together. */
-function catalogKey(entry: { teams: number; boats: number; flights: number }): string {
-  return `${entry.teams}-${entry.boats}-${entry.flights}`;
+/** Identifies a teams-and-boats combination for the <select>. */
+function sizeKey(entry: { teams: number; boats: number }): string {
+  return `${entry.teams}-${entry.boats}`;
+}
+
+/** The catalog as the form offers it: one row per teams-and-boats combination, with the
+ *  most flights any stored list of that size holds. The flights are then a second choice,
+ *  1 up to that (Story VA-7): a shorter day is the stored list cut after that flight. */
+function sizeOptions(
+  catalog: { teams: number; boats: number; flights: number }[],
+): { teams: number; boats: number; maxFlights: number }[] {
+  const bySize = new Map<string, { teams: number; boats: number; maxFlights: number }>();
+  for (const entry of catalog) {
+    const current = bySize.get(sizeKey(entry));
+    if (!current || entry.flights > current.maxFlights) {
+      bySize.set(sizeKey(entry), { teams: entry.teams, boats: entry.boats, maxFlights: entry.flights });
+    }
+  }
+  return [...bySize.values()];
 }
 
 export function EventsAdmin() {
@@ -279,6 +295,12 @@ function GeneralDataStep({
       prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     );
 
+  const sizes = sizeOptions(catalog.data ?? []);
+  const maxFlights =
+    sizes.find((size) => sizeKey(size) === sizeKey({ teams: Number(teams), boats: Number(boats) }))
+      ?.maxFlights ?? 0;
+  const racesPerFlight = Math.ceil(Number(teams) / Number(boats)) || 0;
+
   const create = useCreateEvent({
     mutation: {
       onSuccess: (event) => {
@@ -382,43 +404,65 @@ function GeneralDataStep({
           </Field>
         </div>
 
-        <Field label={t("events.setupLabel")} hint={t("events.setupHint")}>
-          {catalog.loading && <Loading text={t("events.catalogLoadingText")} testId="admin-events-catalog-loading" />}
-          {catalog.error && <ErrorMessage text={catalog.error} testId="admin-events-catalog-error" />}
-          {catalog.data && catalog.data.length > 0 && (
-            <select
-              className={INPUT_CLASS}
-              value={catalogKey({ teams: Number(teams), boats: Number(boats), flights: Number(flights) })}
-              onChange={(e) => {
-                const entry = catalog.data?.find(
-                  (candidate) => catalogKey(candidate) === e.target.value,
-                );
-                if (!entry) return;
-                setTeams(String(entry.teams));
-                setBoats(String(entry.boats));
-                setFlights(String(entry.flights));
-                setBoatRows((prev) => resizedBoatRows(prev, entry.boats));
-              }}
-              data-testid="admin-events-catalog-select"
-            >
-              {catalog.data.map((entry) => (
-                <option key={catalogKey(entry)} value={catalogKey(entry)}>
-                  {t("events.catalogOption", {
-                    teams: entry.teams,
-                    boats: entry.boats,
-                    flights: entry.flights,
-                  })}
-                </option>
-              ))}
-            </select>
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[2fr_1fr]">
+          <Field label={t("events.setupLabel")} hint={t("events.setupHint")}>
+            {catalog.loading && <Loading text={t("events.catalogLoadingText")} testId="admin-events-catalog-loading" />}
+            {catalog.error && <ErrorMessage text={catalog.error} testId="admin-events-catalog-error" />}
+            {sizes.length > 0 && (
+              <select
+                className={INPUT_CLASS}
+                value={sizeKey({ teams: Number(teams), boats: Number(boats) })}
+                onChange={(e) => {
+                  const size = sizes.find((candidate) => sizeKey(candidate) === e.target.value);
+                  if (!size) return;
+                  setTeams(String(size.teams));
+                  setBoats(String(size.boats));
+                  // A new combination starts at its full length; the flights are then
+                  // shortened on purpose, never left over from the previous size.
+                  setFlights(String(size.maxFlights));
+                  setBoatRows((prev) => resizedBoatRows(prev, size.boats));
+                }}
+                data-testid="admin-events-catalog-select"
+              >
+                {sizes.map((size) => (
+                  <option key={sizeKey(size)} value={sizeKey(size)}>
+                    {t("events.sizeOption", { teams: size.teams, boats: size.boats })}
+                  </option>
+                ))}
+              </select>
+            )}
+            {catalog.data && catalog.data.length === 0 && (
+              <ErrorMessage text={t("events.catalogEmptyText")} testId="admin-events-catalog-empty" />
+            )}
+          </Field>
+          {/* Flights are a choice of their own: the stored list is the longest day, and a
+              shorter one is its first flights (Story VA-7). */}
+          {maxFlights > 0 && (
+            <Field label={t("events.flightsLabel")} hint={t("events.flightsHint", { max: maxFlights })}>
+              <select
+                className={INPUT_CLASS}
+                value={flights}
+                onChange={(e) => setFlights(e.target.value)}
+                data-testid="admin-events-flights-select"
+              >
+                {Array.from({ length: maxFlights }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </Field>
           )}
-          {catalog.data && catalog.data.length === 0 && (
-            <ErrorMessage text={t("events.catalogEmptyText")} testId="admin-events-catalog-empty" />
-          )}
-        </Field>
+        </div>
 
-        <p className="text-sm text-slate-500">
-          {t("events.formatText", { teams, boats, races: Math.ceil(Number(teams) / Number(boats)) || 0 })}
+        <p className="text-sm text-slate-500" data-testid="admin-events-format-text">
+          {t("events.formatText", {
+            teams,
+            boats,
+            races: racesPerFlight,
+            flights,
+            total: racesPerFlight * (Number(flights) || 0),
+          })}
         </p>
 
         <p className="text-sm text-slate-500">

@@ -60,9 +60,31 @@ class TestTheCatalog:
         assert report["boat_changes"] == 0
         assert report["repeated_groups"] == 0
 
+    def test_a_shorter_day_takes_the_first_flights_of_the_stored_list(self):
+        """Story VA-7: 18 teams on 6 boats over 10 flights is the 16-flight list, cut after
+        flight 10 — every team still once per flight, the race numbers still contiguous."""
+        shorter = load_entry(18, 6, 10)
+        assert shorter.flights == 10
+        assert {slot.flight for slot in shorter.slots} == set(range(1, 11))
+        assert sorted(slot.sequence for slot in shorter.slots) == sorted(
+            [n for n in range(1, 31) for _ in range(6)]
+        )
+        for flight in range(1, 11):
+            teams = [slot.team_index for slot in shorter.slots if slot.flight == flight]
+            assert sorted(teams) == list(range(18))
+        full = load_entry(18, 6, 16)
+        assert shorter.slots == [slot for slot in full.slots if slot.flight <= 10]
+
+    def test_more_flights_than_stored_are_refused(self):
+        """Story VA-7: the stored list is the longest day; nothing is invented beyond it."""
+        with pytest.raises(CatalogError, match="18/6/16"):
+            load_entry(18, 6, 17)
+
     def test_an_unknown_configuration_says_which_ones_exist(self):
+        """20 teams on 7 boats is stored for no length at all — unlike 20 on 5, where 12
+        flights is simply the 16-flight list cut short (Story VA-7)."""
         with pytest.raises(CatalogError) as error:
-            load_entry(20, 5, 12)
+            load_entry(20, 7, 12)
         assert "20 teams" in str(error.value)
         assert "Available" in str(error.value)
 

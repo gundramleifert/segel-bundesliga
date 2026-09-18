@@ -136,13 +136,26 @@ def catalog_entries(base: Path | None = None) -> list[CatalogEntry]:
 def load_entry(
     teams: int, boats: int, flights: int, *, base: Path | None = None
 ) -> ImportedPairing:
-    """Fetches the finished list for this size."""
-    matching = [
-        entry
-        for entry in catalog_entries(base)
-        if (entry.teams, entry.boats, entry.flights) == (teams, boats, flights)
-    ]
-    if not matching:
+    """Fetches the finished list for this size — cut to ``flights`` if the stored one is longer.
+
+    The catalog holds one list per teams-and-boats combination, computed for the longest
+    day that combination is sailed on. A shorter day takes its **first** flights (Story
+    VA-7): every flight of a stored list has every team exactly once, so a prefix is a
+    valid draw. It is not re-optimized — the boat distribution was balanced over the whole
+    list — which is the price of answering in milliseconds rather than minutes. Should
+    several stored lists fit, the shortest one that is long enough is taken, so an exact
+    match wins. More flights than any stored list holds is a ``CatalogError``: nothing is
+    invented beyond the file.
+    """
+    fitting = sorted(
+        (
+            entry
+            for entry in catalog_entries(base)
+            if (entry.teams, entry.boats) == (teams, boats) and entry.flights >= flights
+        ),
+        key=lambda entry: entry.flights,
+    )
+    if not fitting:
         available = (
             ", ".join(
                 f"{e.teams}/{e.boats}/{e.flights}" for e in catalog_entries(base)
@@ -151,19 +164,32 @@ def load_entry(
         )
         raise CatalogError(
             f"For {teams} teams on {boats} boats over {flights} flights, no "
-            f"pre-computed pairing list is available. Available (Teams/Boats/Flights): {available}."
+            f"pre-computed pairing list is available. Available (Teams/Boats/Flights, the "
+            f"flights being the most a list holds): {available}."
         )
 
-    entry = matching[0]
+    entry = fitting[0]
     try:
-        return load_pairing_yaml(
-            _as_schedule_cfg(teams, boats, flights),
+        stored = load_pairing_yaml(
+            _as_schedule_cfg(teams, boats, entry.flights),
             entry.file.read_text(encoding="utf-8"),
         )
     except PairingImportError as error:
         raise CatalogError(
             f"Catalog entry {entry.name} is unusable: {error}"
         ) from error
+    return first_flights(stored, flights)
+
+
+def first_flights(pairing: ImportedPairing, flights: int) -> ImportedPairing:
+    """The list cut after ``flights`` flights — the same list when it is not longer."""
+    if flights >= pairing.flights:
+        return pairing
+    return replace(
+        pairing,
+        flights=flights,
+        slots=[slot for slot in pairing.slots if slot.flight <= flights],
+    )
 
 
 def shuffle_pairing(pairing: ImportedPairing, seed: int) -> ImportedPairing:

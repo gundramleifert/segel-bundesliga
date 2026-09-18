@@ -155,6 +155,15 @@ test.describe("VA-6: creating an event in three steps", () => {
     // The wizard's boat table is the widest thing in the admin area; the page must still
     // fit a phone (Story A-10).
     await expectNoSidewaysScroll(page, testInfo);
+
+    // Teams and boats are one choice, the flights another: the stored list is the
+    // longest day, and a shorter one sails its first flights (Story VA-7). The league's
+    // 18 on 6 offers 16, and picking 10 makes 30 races.
+    const flightsSelect = page.getByTestId("admin-events-flights-select");
+    await expect(flightsSelect.locator("option")).toHaveCount(16);
+    await flightsSelect.selectOption("10");
+    await expect(page.getByTestId("admin-events-format-text")).toContainText("30 races in 10 flights");
+    await flightsSelect.selectOption("16");
     await expect(page.getByTestId("admin-events-steps-3")).toHaveAttribute("data-state", "upcoming");
 
     await createEvent(page, title, { series: LEAGUE_SERIES, startsOn: "2027-08-21" });

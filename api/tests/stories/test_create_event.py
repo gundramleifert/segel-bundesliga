@@ -42,7 +42,9 @@ async def club_id(slug: str) -> int:
         ).scalar_one()
 
 
-async def event_with_participants(client, headers, title: str, date: str) -> int:
+async def event_with_participants(
+    client, headers, title: str, date: str, *, flights: int = 16
+) -> int:
     """Creates an event in league dimensions and registers 18 clubs as participants.
 
     Published right away, because these tests read the result back off the **public**
@@ -55,7 +57,7 @@ async def event_with_participants(client, headers, title: str, date: str) -> int
             "title": title,
             "starts_on": date,
             "team_count": 18,
-            "flight_count": 16,
+            "flight_count": flights,
             "boats": BOATS,
             "published": True,
         },
@@ -236,6 +238,41 @@ class TestPairingFromCatalog:
         assert len(pairing["races"]) == 48
         for race in pairing["races"]:
             assert sorted(int(n) for n in race["teams_by_boat"]) == [1, 2, 3, 4, 5, 6]
+
+    async def test_a_shorter_day_is_the_first_flights_of_the_stored_list(self, client, caplog):
+        """Story VA-7: 10 flights on the league's 18/6 is drawn from the 16-flight list."""
+        headers = await admin(client, caplog, "pk2b@example.com")
+        event_id = await event_with_participants(
+            client, headers, "Short Day Cup", "2026-11-29", flights=10
+        )
+        ready = (
+            await client.get(f"/api/admin/events/{event_id}/readiness", headers=headers)
+        ).json()
+        assert ready["ready"] is True, ready
+
+        response = await client.post(
+            f"/api/admin/events/{event_id}/pairing/from-catalog",
+            headers=headers,
+            json={"seed": 42},
+        )
+        assert response.status_code == 200, response.text
+        assert response.json()["races"] == 30
+
+        pairing = (await client.get(f"/api/events/{event_id}/pairing")).json()
+        assert [race["flight"] for race in pairing["races"]] == [
+            flight for flight in range(1, 11) for _ in range(3)
+        ]
+
+    async def test_more_flights_than_stored_are_not_ready(self, client, caplog):
+        """Story VA-7: 17 flights is longer than the stored list, and readiness says so."""
+        headers = await admin(client, caplog, "pk2c@example.com")
+        event_id = await event_with_participants(
+            client, headers, "Too Long Cup", "2026-11-30", flights=17
+        )
+        ready = (
+            await client.get(f"/api/admin/events/{event_id}/readiness", headers=headers)
+        ).json()
+        assert [reason["code"] for reason in ready["reasons"]] == ["pairing-catalog-missing"]
 
     async def test_quality_of_stored_list_is_preserved(self, client, caplog):
         """Only who sits where is shuffled — not the structure."""

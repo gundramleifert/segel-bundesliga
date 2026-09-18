@@ -275,8 +275,10 @@ class FromCatalogRequest(BaseModel):
 async def list_pairing_catalog() -> list[CatalogEntryOut]:
     """Which sizes are available without computing.
 
-    A size is completely determined by teams, boats, and flights — which club
-    sits at which starting position is decided only when shuffling.
+    One entry per teams-and-boats combination; its ``flights`` is the **most** a day of
+    that size can have — any number from 1 up to it is served by cutting the stored list
+    (Story VA-7). Which club sits at which starting position is decided only when
+    shuffling.
     """
     return [
         CatalogEntryOut(
