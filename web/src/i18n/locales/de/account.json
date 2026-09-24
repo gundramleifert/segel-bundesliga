@@ -27,24 +27,7 @@
     "resendCode": "Code erneut senden",
     "resent": "Ein neuer Code ist unterwegs."
   },
-  "permissions": "Was Sie dürfen",
-  "noPermissions": "Nichts über die öffentlichen Seiten hinaus. Rollen vergibt die Verwaltung.",
-  "signedInNoRole": "Angemeldet, aber ohne besondere Rolle",
-  "roles": {
-    "admin": "Stammdaten, Ligen, Spieltage, Konten und Rollen verwalten",
-    "admin_pairing": "Pairing-Listen berechnen und veröffentlichen",
-    "editor": "Nachrichten schreiben und Vereinsbeiträge freigeben",
-    "race_officer": "Ergebnisse erfassen und korrigieren",
-    "club_manager": "Nutzer dem eigenen Verein zuordnen",
-    "club_manager_squad": "Saisonkader und Spieltagsmeldung pflegen (geplant)",
-    "event_manager": "Eigene Veranstaltungen organisieren: Einrichtung und Vereine",
-    "jury": "Bekanntmachungen veröffentlichen und Proteste an eigenen Veranstaltungen verhandeln",
-    "club_admin": "Entscheiden, wer im Verein ist: Mitglieder, Organisation",
-    "series_manager": "Eigene Serien organisieren: Vereine, Veranstaltungen, Veröffentlichung"
-  },
   "labels": {
-    "club": "Verein",
-    "notAssigned": "keiner zugeordnet",
     "signInMethods": "Anmeldewege",
     "status": "Status",
     "active": "aktiv",

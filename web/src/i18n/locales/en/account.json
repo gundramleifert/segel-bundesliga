@@ -27,24 +27,7 @@
     "resendCode": "Resend code",
     "resent": "A new code is on its way."
   },
-  "permissions": "Your permissions",
-  "noPermissions": "Nothing beyond public pages. Roles are assigned by the admin.",
-  "signedInNoRole": "Signed in, but with no special role",
-  "roles": {
-    "admin": "Manage master data, series, matchdays, accounts and roles",
-    "admin_pairing": "Generate and publish pairing lists",
-    "editor": "Write posts and approve club contributions",
-    "race_officer": "Record and correct results",
-    "club_manager": "Assign users to your club",
-    "club_manager_squad": "Manage squad and matchday entry (planned)",
-    "event_manager": "Organize your own events: setup and clubs",
-    "jury": "Publish announcements and hear protests at your events",
-    "club_admin": "Decide who is in your club: members, organizers",
-    "series_manager": "Organize your own series: its clubs, its events, its publication"
-  },
   "labels": {
-    "club": "Club",
-    "notAssigned": "not assigned",
     "signInMethods": "Sign-in methods",
     "status": "Status",
     "active": "active",

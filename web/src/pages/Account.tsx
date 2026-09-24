@@ -24,23 +24,7 @@ import { getToken, onTokenChange, setToken } from "../api/session";
 import { ErrorMessage, Loading, PageHeader } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Waivers } from "./AccountWaivers";
-import { ActiveClubSelect } from "../components/ActiveClubSelect";
 import { useAsync } from "../api/useApi";
-
-/** Roles and what permissions they grant. Without this page, role switching would be invisible
- *  as long as there are no protected areas yet. */
-const PERMISSIONS: { role: string; key: string }[] = [
-  { role: "admin", key: "roles.admin" },
-  { role: "admin", key: "roles.admin_pairing" },
-  { role: "editor", key: "roles.editor" },
-  { role: "race_officer", key: "roles.race_officer" },
-  { role: "club_manager", key: "roles.club_manager" },
-  { role: "club_manager", key: "roles.club_manager_squad" },
-  { role: "club_admin", key: "roles.club_admin" },
-  { role: "series_manager", key: "roles.series_manager" },
-  { role: "event_manager", key: "roles.event_manager" },
-  { role: "jury", key: "roles.jury" },
-];
 
 export function Account() {
   const { t } = useTranslation("account");
@@ -93,9 +77,6 @@ export function Account() {
     );
   }
 
-  const myRoles = new Set(account.roles);
-  const allowed = PERMISSIONS.filter((entry) => myRoles.has(entry.role));
-
   return (
     <>
       <PageHeader
@@ -111,20 +92,13 @@ export function Account() {
       {/* One Stack owns the vertical rhythm: every block below is a card, and none of
           them carries its own top margin — that is how two rows once met with no gap. */}
       <Stack gap={4}>
-      <CardGrid as="div">
         <Card data-testid="account-info-card">
           <Card.Header>
             <Card.Title>{account.display_name}</Card.Title>
-            <Card.Description>
-              {account.roles.length ? account.roles.join(", ") : t("signedInNoRole")}
-            </Card.Description>
+            <Card.Description>{account.email}</Card.Description>
           </Card.Header>
           <Card.Content>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-              <dt className="text-slate-500">{t("labels.club")}</dt>
-              <dd>
-                <MyClubLine clubId={account.club_id ?? null} />
-              </dd>
               <dt className="text-slate-500">{t("labels.signInMethods")}</dt>
               <dd>{account.identities.map((i) => i.provider).join(", ") || "—"}</dd>
               <dt className="text-slate-500">{t("labels.status")}</dt>
@@ -133,30 +107,7 @@ export function Account() {
           </Card.Content>
         </Card>
 
-        <Card data-testid="account-permissions-card">
-          <Card.Header>
-            <Card.Title>{t("permissions")}</Card.Title>
-          </Card.Header>
-          <Card.Content>
-            {allowed.length ? (
-              <ul className="space-y-1.5 text-sm">
-                {allowed.map((entry) => (
-                  <li key={entry.key} className="flex gap-2">
-                    <span aria-hidden className="text-brand-600">
-                      ✓
-                    </span>
-                    {t(entry.key)}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-slate-600">{t("noPermissions")}</p>
-            )}
-          </Card.Content>
-        </Card>
-      </CardGrid>
-
-      <Mine account={account} />
+        <Mine account={account} />
       <Profile />
       <Waivers />
       <DeleteAccount />
@@ -231,28 +182,6 @@ function Mine({ account }: { account: AccountData }) {
       {section("series", seriesLines, (id) => `/series/${id}`, t("mine.noneSeries"))}
       {section("events", eventLines, (id) => `/events/${id}`, t("mine.noneEvents"))}
     </CardGrid>
-  );
-}
-
-/** The club this account acts for, by name — and, with several, the choice (Story V-12).
- *  `User.club_id` used to show here as a bare number. */
-function MyClubLine({ clubId }: { clubId: number | null }) {
-  const { t } = useTranslation("account");
-  const clubs = useAsync(useMyClubs());
-  const entries = clubs.data ?? [];
-  if (clubs.loading) return <span className="text-slate-400">…</span>;
-  if (!entries.length) {
-    return <span data-testid="account-active-club">{t("labels.notAssigned")}</span>;
-  }
-  const active =
-    entries.find((e) => e.club.id === clubId) ?? entries.find((e) => e.may_manage) ?? entries[0];
-  if (entries.length === 1) {
-    return <span data-testid="account-active-club">{active.club.name}</span>;
-  }
-  return (
-    <div data-testid="account-active-club">
-      <ActiveClubSelect entries={entries} value={active.club.id} testId="account-active-club-select" />
-    </div>
   );
 }
 

@@ -145,15 +145,14 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
 
-    // Remembered: a fresh visit without the URL parameter opens the chosen club, the
-    // dropdown shows it, and the account page names it.
+    // Remembered: a fresh visit without the URL parameter opens the chosen club and the
+    // dropdown shows it. (The account page no longer repeats the choice — the navigation
+    // is the one place it is made, Story V-12.)
     await page.goto("/club");
     await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
     await openNavigation(page);
     await expect(page.getByTestId("layout-nav-myClub-select")).toHaveValue(String(second.id));
     await expect(page.getByTestId(`my-club-role-${second.id}`)).toBeVisible();
-    await page.goto("/account");
-    await expect(page.getByTestId("account-active-club-select")).toHaveValue(String(second.id));
   });
 });
 

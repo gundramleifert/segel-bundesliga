@@ -315,7 +315,9 @@ Acceptance criteria:
   /api/auth/me`, only a club the account belongs to or organizes —
   `/errors/active-club-not-mine`). With nothing remembered, a club the person organizes
   wins over one they merely belong to. One club is the normal case and has no sub-entries.
-  The account page names the club and offers the same choice.
+  The account page does not repeat the choice — the navigation is the one place it is
+  made; what the account page lists is every club, series and event the person has
+  something to do with (Story Z-8).
 - **Joining starts with the club's invitation, never with a stranger's click.** The
   public club page (`/clubs/{id}`) shows a signed-in visitor only what already exists
   between them and the club: an invitation the club sent (accept / decline), a request
