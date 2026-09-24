@@ -44,9 +44,7 @@ class ApplicationCreate(BaseModel):
     @model_validator(mode="after")
     def _exactly_one(self) -> ApplicationCreate:
         if (self.series_id is None) == (self.event_id is None):
-            raise ValueError(
-                "Specify either a series or an event, not both."
-            )
+            raise ValueError("Specify either a series or an event, not both.")
         return self
 
 
@@ -142,9 +140,7 @@ async def list_own_applications(
     teams = (
         await session.execute(
             select(Team)
-            .options(
-                selectinload(Team.club), selectinload(Team.series), selectinload(Team.event)
-            )
+            .options(selectinload(Team.club), selectinload(Team.series), selectinload(Team.event))
             .where(Team.club_id.in_(club_ids))
             .order_by(Team.id)
         )
@@ -197,9 +193,7 @@ async def list_pending_applications(
 ) -> list[ApplicationOut]:
     stmt = (
         select(Team)
-        .options(
-            selectinload(Team.club), selectinload(Team.series), selectinload(Team.event)
-        )
+        .options(selectinload(Team.club), selectinload(Team.series), selectinload(Team.event))
         .where(Team.status == status_filter)
         .order_by(Team.id)
     )
@@ -280,9 +274,7 @@ def _can_apply(acting: User, club_id: int, locale: Locale) -> None:
 
 
 async def _get_club(session: AsyncSession, club_id: int, locale: Locale) -> Club:
-    club = (
-        await session.execute(select(Club).where(Club.id == club_id))
-    ).scalar_one_or_none()
+    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
     if club is None:
         raise HTTPException(
             status_code=404,
@@ -336,9 +328,7 @@ async def _apply_for_series(
 async def _apply_for_event(
     session: AsyncSession, club: Club, event_id: int, locale: Locale
 ) -> Team:
-    event = (
-        await session.execute(select(Event).where(Event.id == event_id))
-    ).scalar_one_or_none()
+    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
     if event is None:
         raise HTTPException(
             status_code=404,
@@ -374,10 +364,7 @@ def _retry_after_rejection(team: Team, where: str, locale: Locale) -> Team:
         status_code=409,
         detail=tr(
             locale,
-            en=(
-                f"This club already has a participation for {where} "
-                f"(status: {team.status})."
-            ),
+            en=(f"This club already has a participation for {where} (status: {team.status})."),
             de=(
                 f"Für diesen Verein liegt bei {where} bereits eine Teilnahme vor "
                 f"(Stand: {team.status})."
@@ -390,9 +377,7 @@ async def _with_relations(session: AsyncSession, team_id: int, locale: Locale) -
     team = (
         await session.execute(
             select(Team)
-            .options(
-                selectinload(Team.club), selectinload(Team.series), selectinload(Team.event)
-            )
+            .options(selectinload(Team.club), selectinload(Team.series), selectinload(Team.event))
             .where(Team.id == team_id)
         )
     ).scalar_one_or_none()
@@ -424,10 +409,7 @@ async def _decide(
                 status_code=409,
                 detail=tr(
                     locale,
-                    en=(
-                        "This participation cannot be revoked: race results already "
-                        "exist."
-                    ),
+                    en=("This participation cannot be revoked: race results already exist."),
                     de=(
                         "Diese Teilnahme lässt sich nicht widerrufen: es liegen bereits "
                         "Wettfahrtergebnisse vor."

@@ -102,9 +102,7 @@ class TestSavingAnIncompleteEvent:
         """VA-8: the organizer must see *what* is missing, not just that something is."""
         headers = await admin(client, caplog, "lc2@example.com")
         created = (
-            await client.post(
-                "/api/admin/events", headers=headers, json={"title": "Unready Cup"}
-            )
+            await client.post("/api/admin/events", headers=headers, json={"title": "Unready Cup"})
         ).json()
 
         report = await readiness(client, headers, created["id"])
@@ -112,9 +110,7 @@ class TestSavingAnIncompleteEvent:
         # No clubs entered yet, and no date.
         assert "pairing-team-count-mismatch" in codes(report)
         assert "event-dates-missing" in codes(report)
-        mismatch = next(
-            r for r in report["reasons"] if r["code"] == "pairing-team-count-mismatch"
-        )
+        mismatch = next(r for r in report["reasons"] if r["code"] == "pairing-team-count-mismatch")
         assert mismatch["details"] == {"registered": 0, "configured": 18}
         assert report["has_pairing_list"] is False
         assert report["configuration_frozen"] is False
@@ -151,9 +147,7 @@ class TestSavingAnIncompleteEvent:
 
     async def test_a_complete_setup_reports_ready(self, client, caplog):
         headers = await admin(client, caplog, "lc4@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Ready Cup", "2027-03-13"
-        )
+        event_id = await event_with_participants(client, headers, "Ready Cup", "2027-03-13")
         report = await readiness(client, headers, event_id)
         assert report["ready"] is True
         assert report["reasons"] == []
@@ -176,9 +170,7 @@ class TestPublication:
         calendar = {event["slug"] for event in await all_items(client, "/api/events")}
         assert created["slug"] not in calendar
 
-    async def test_publishing_shows_it_and_unpublishing_hides_it_again(
-        self, client, caplog
-    ):
+    async def test_publishing_shows_it_and_unpublishing_hides_it_again(self, client, caplog):
         headers = await admin(client, caplog, "lc6@example.com")
         created = (
             await client.post(
@@ -188,9 +180,7 @@ class TestPublication:
             )
         ).json()
 
-        published = await client.post(
-            f"/api/admin/events/{created['id']}/publish", headers=headers
-        )
+        published = await client.post(f"/api/admin/events/{created['id']}/publish", headers=headers)
         assert published.status_code == 200, published.text
         assert published.json()["published"] is True
         assert (await client.get(f"/api/events/{created['id']}")).status_code == 200
@@ -209,14 +199,10 @@ class TestPublication:
         """
         headers = await admin(client, caplog, "lc7@example.com")
         created = (
-            await client.post(
-                "/api/admin/events", headers=headers, json={"title": "Vague Cup"}
-            )
+            await client.post("/api/admin/events", headers=headers, json={"title": "Vague Cup"})
         ).json()
 
-        published = await client.post(
-            f"/api/admin/events/{created['id']}/publish", headers=headers
-        )
+        published = await client.post(f"/api/admin/events/{created['id']}/publish", headers=headers)
         assert published.status_code == 200, published.text
         assert published.json()["published"] is True
         # Published while plainly not ready — the two questions are unrelated.
@@ -240,13 +226,9 @@ class TestPublication:
     async def test_a_visitor_cannot_publish(self, client, caplog):
         headers = await admin(client, caplog, "lc8@example.com")
         created = (
-            await client.post(
-                "/api/admin/events", headers=headers, json={"title": "Guarded Cup"}
-            )
+            await client.post("/api/admin/events", headers=headers, json={"title": "Guarded Cup"})
         ).json()
-        assert (
-            await client.post(f"/api/admin/events/{created['id']}/publish")
-        ).status_code == 401
+        assert (await client.post(f"/api/admin/events/{created['id']}/publish")).status_code == 401
 
     async def test_a_series_is_published_the_same_way(self, client, caplog):
         """VA-8: a series is a draft until published, too — with its events."""
@@ -265,9 +247,7 @@ class TestPublication:
         assert series["id"] not in listed
         assert (await client.get(f"/api/series/{series['id']}/table")).status_code == 404
 
-        published = await client.post(
-            f"/api/admin/series/{series['id']}/publish", headers=headers
-        )
+        published = await client.post(f"/api/admin/series/{series['id']}/publish", headers=headers)
         assert published.status_code == 200, published.text
         assert published.json()["published"] is True
         assert (await client.get(f"/api/series/{series['id']}/table")).status_code == 200
@@ -310,14 +290,10 @@ class TestStarting:
     async def test_an_incomplete_event_cannot_be_started(self, client, caplog):
         headers = await admin(client, caplog, "ls1@example.com")
         created = (
-            await client.post(
-                "/api/admin/events", headers=headers, json={"title": "Nowhere Cup"}
-            )
+            await client.post("/api/admin/events", headers=headers, json={"title": "Nowhere Cup"})
         ).json()
 
-        response = await client.post(
-            f"/api/admin/events/{created['id']}/start", headers=headers
-        )
+        response = await client.post(f"/api/admin/events/{created['id']}/start", headers=headers)
         assert response.status_code == 409, response.text
         problem = response.json()
         # More than one thing is missing, so the reasons travel as a list — the same shape
@@ -342,18 +318,14 @@ class TestStarting:
             )
         ).json()
 
-        response = await client.post(
-            f"/api/admin/events/{created['id']}/start", headers=headers
-        )
+        response = await client.post(f"/api/admin/events/{created['id']}/start", headers=headers)
         assert response.status_code == 409, response.text
         assert response.json()["type"] == "/errors/pairing-team-count-mismatch"
         assert response.json()["registered"] == 0
 
     async def test_a_valid_event_still_needs_its_pairing_list(self, client, caplog):
         headers = await admin(client, caplog, "ls3@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Undrawn Cup", "2027-04-24"
-        )
+        event_id = await event_with_participants(client, headers, "Undrawn Cup", "2027-04-24")
 
         response = await client.post(f"/api/admin/events/{event_id}/start", headers=headers)
         assert response.status_code == 409, response.text
@@ -361,9 +333,7 @@ class TestStarting:
 
     async def test_starting_is_an_explicit_decision(self, client, caplog):
         headers = await admin(client, caplog, "ls4@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Start Cup", "2027-05-01"
-        )
+        event_id = await event_with_participants(client, headers, "Start Cup", "2027-05-01")
         await draw(client, headers, event_id)
 
         response = await client.post(f"/api/admin/events/{event_id}/start", headers=headers)
@@ -397,9 +367,7 @@ class TestStarting:
         )
         await draw(client, headers, created["id"])
 
-        started = await client.post(
-            f"/api/admin/events/{created['id']}/start", headers=headers
-        )
+        started = await client.post(f"/api/admin/events/{created['id']}/start", headers=headers)
         assert started.status_code == 200, started.text
         assert started.json()["status"] == "live"
         assert started.json()["published"] is False
@@ -412,9 +380,7 @@ class TestFreezeAfterTheFirstRace:
     async def test_a_redraw_before_the_first_race_is_fine(self, client, caplog):
         """Nothing freezes on a schedule — only on a race actually starting."""
         headers = await admin(client, caplog, "lf1@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Redraw Cup", "2027-05-15"
-        )
+        event_id = await event_with_participants(client, headers, "Redraw Cup", "2027-05-15")
         await draw(client, headers, event_id, seed=1)
         await draw(client, headers, event_id, seed=2)
 
@@ -424,9 +390,7 @@ class TestFreezeAfterTheFirstRace:
 
     async def test_a_recorded_result_freezes_the_configuration(self, client, caplog):
         headers = await admin(client, caplog, "lf2@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Frozen Cup", "2027-05-22"
-        )
+        event_id = await event_with_participants(client, headers, "Frozen Cup", "2027-05-22")
         await draw(client, headers, event_id)
         race_id, boats = await first_race(event_id)
         await enter_result(client, headers, event_id, race_id, boats)
@@ -468,9 +432,7 @@ class TestFreezeAfterTheFirstRace:
         (``docs/concepts.md``, "Points are derived, not entered").
         """
         headers = await admin(client, caplog, "lf3@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Protest Cup", "2027-05-29"
-        )
+        event_id = await event_with_participants(client, headers, "Protest Cup", "2027-05-29")
         await draw(client, headers, event_id)
         race_id, boats = await first_race(event_id)
         await enter_result(client, headers, event_id, race_id, boats)
@@ -497,9 +459,7 @@ class TestFreezeAfterTheFirstRace:
     async def test_the_title_and_the_venue_stay_editable_while_racing(self, client, caplog):
         """A typo or a moved venue has to be fixable on a race day too."""
         headers = await admin(client, caplog, "lf4@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Typo Cup", "2027-06-05"
-        )
+        event_id = await event_with_participants(client, headers, "Typo Cup", "2027-06-05")
         await draw(client, headers, event_id)
         race_id, boats = await first_race(event_id)
         await enter_result(client, headers, event_id, race_id, boats)
@@ -517,9 +477,7 @@ class TestFreezeAfterTheFirstRace:
         """The trigger is the first start, not the first result — a race under way already
         depends on the list it was drawn from."""
         headers = await admin(client, caplog, "lf5@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Under Way Cup", "2027-06-12"
-        )
+        event_id = await event_with_participants(client, headers, "Under Way Cup", "2027-06-12")
         await draw(client, headers, event_id)
         race_id, _ = await first_race(event_id)
 

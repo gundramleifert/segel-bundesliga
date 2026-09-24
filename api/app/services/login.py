@@ -30,7 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.mail import MailError, send_login_code
-from app.models.auth import Identity, IdentityProvider, LoginCode, Role, User, UserRole
+from app.models.auth import Grant, Identity, IdentityProvider, LoginCode, Relation, User
 
 _hasher = PasswordHasher()
 
@@ -58,8 +58,7 @@ def _providers() -> dict[str, OidcProvider]:
         IdentityProvider.MICROSOFT: OidcProvider(
             name=IdentityProvider.MICROSOFT,
             jwks_uri=(
-                f"https://login.microsoftonline.com/{settings.microsoft_tenant}"
-                "/discovery/v2.0/keys"
+                f"https://login.microsoftonline.com/{settings.microsoft_tenant}/discovery/v2.0/keys"
             ),
             # With tenant "common", the issuer depends on the signing-in user's own
             # tenant, so verification only checks signature and audience. Anyone who
@@ -236,8 +235,8 @@ def _grant_whitelisted_admin(user: User) -> None:
     (Story Z-2) without needing direct database access first. Checked on every sign-in, not
     just account creation, so adding an address to the list later still takes effect."""
     whitelist = {address.strip().lower() for address in settings.admin_emails}
-    if user.email in whitelist and Role.ADMIN not in user.roles:
-        user.role_rows.append(UserRole(user_id=user.id, role=Role.ADMIN))
+    if user.email in whitelist and not user.holds(Relation.ADMIN):
+        user.grants.append(Grant(user_id=user.id, relation=Relation.ADMIN))
 
 
 async def register(session: AsyncSession, email: str, display_name: str) -> None:

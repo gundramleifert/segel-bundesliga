@@ -20,16 +20,12 @@ CLUB_SLUG = "fsc"
 
 async def club_id(slug: str = CLUB_SLUG) -> int:
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(Club.id).where(Club.slug == slug))
-        ).scalar_one()
+        return (await session.execute(select(Club.id).where(Club.slug == slug))).scalar_one()
 
 
 async def account(email: str) -> User | None:
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(User).where(User.email == email))
-        ).scalar_one_or_none()
+        return (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
 
 
 async def register(client, caplog, email: str, name: str) -> str:
@@ -41,9 +37,7 @@ async def register(client, caplog, email: str, name: str) -> str:
     assert response.status_code == 202, response.text
 
     code = caplog.records[-1].args[-1]
-    eingeloest = await client.post(
-        "/api/auth/email/verify", json={"email": email, "code": code}
-    )
+    eingeloest = await client.post("/api/auth/email/verify", json={"email": email, "code": code})
     assert eingeloest.status_code == 200, eingeloest.text
     return eingeloest.json()["access_token"]
 
@@ -55,9 +49,7 @@ def auth_headers(token: str) -> dict[str, str]:
 class TestRegistering:
     """As a sailor, I want to create an account myself."""
 
-    async def test_registering_creates_an_account_for_my_address(
-        self, client, caplog
-    ):
+    async def test_registering_creates_an_account_for_my_address(self, client, caplog):
         """Registration creates an account with my email address."""
         with caplog.at_level(logging.WARNING, logger="app.mail"):
             response = await client.post(
@@ -70,9 +62,7 @@ class TestRegistering:
         assert person is not None
         assert person.display_name == "Anna Neu"
 
-    async def test_before_confirmation_the_address_is_merely_claimed(
-        self, client, caplog
-    ):
+    async def test_before_confirmation_the_address_is_merely_claimed(self, client, caplog):
         """Before confirmation, the address is only claimed — anyone could type someone else's."""
         with caplog.at_level(logging.WARNING, logger="app.mail"):
             await client.post(
@@ -117,9 +107,7 @@ class TestRegistering:
         assert bekannt.status_code == unbekannt.status_code == 202
         assert bekannt.json() == unbekannt.json()
 
-    async def test_registering_overwrites_no_existing_account(
-        self, client, caplog
-    ):
+    async def test_registering_overwrites_no_existing_account(self, client, caplog):
         """Registration does not overwrite an existing account."""
         await make_user("bestand@example.com")
         with caplog.at_level(logging.WARNING, logger="app.mail"):
@@ -164,9 +152,7 @@ class TestRequestingClubMembership:
         await make_user("ohnenachweis@example.com")
         async with SessionLocal() as session:
             person = (
-                await session.execute(
-                    select(User).where(User.email == "ohnenachweis@example.com")
-                )
+                await session.execute(select(User).where(User.email == "ohnenachweis@example.com"))
             ).scalar_one()
             person.email_verified = False
             await session.commit()
@@ -185,7 +171,5 @@ class TestRequestingClubMembership:
 
     async def test_not_at_all_without_signing_in(self, client):
         """Without sign-in, you cannot request membership."""
-        response = await client.post(
-            "/api/club-memberships", json={"club_id": await club_id()}
-        )
+        response = await client.post("/api/club-memberships", json={"club_id": await club_id()})
         assert response.status_code == 401

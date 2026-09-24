@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: acfd8b5bb607
+Revision ID: 75fa62d73421
 Revises: 
-Create Date: 2026-09-15 16:43:35.193333
+Create Date: 2026-09-24 22:10:20.581512
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'acfd8b5bb607'
+revision: str = '75fa62d73421'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -217,6 +217,30 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_event_slug'), ['slug'], unique=True)
         batch_op.create_index(batch_op.f('ix_event_venue_id'), ['venue_id'], unique=False)
 
+    op.create_table('access_grant',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('relation', sa.String(length=32), nullable=False),
+    sa.Column('club_id', sa.Integer(), nullable=True),
+    sa.Column('series_id', sa.Integer(), nullable=True),
+    sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL) <= 1', name=op.f('ck_access_grant_one_object')),
+    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_access_grant_club_id_club')),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_access_grant_event_id_event')),
+    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_access_grant_series_id_series')),
+    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_access_grant_user_id_app_user')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_access_grant')),
+    sa.UniqueConstraint('user_id', 'relation', 'club_id', 'series_id', 'event_id', name=op.f('uq_access_grant_user_id'))
+    )
+    with op.batch_alter_table('access_grant', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_access_grant_club_id'), ['club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_access_grant_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_access_grant_relation'), ['relation'], unique=False)
+        batch_op.create_index(batch_op.f('ix_access_grant_series_id'), ['series_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_access_grant_user_id'), ['user_id'], unique=False)
+
     op.create_table('boat',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('event_id', sa.Integer(), nullable=False),
@@ -320,23 +344,6 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_team_series_id'), ['series_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_team_status'), ['status'], unique=False)
         batch_op.create_index('uq_team_series_registration', ['club_id', 'series_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
-
-    op.create_table('user_role',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('role', sa.String(length=32), nullable=False),
-    sa.Column('club_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_user_role_club_id_club')),
-    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_user_role_user_id_app_user')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_user_role')),
-    sa.UniqueConstraint('user_id', 'role', 'club_id', name=op.f('uq_user_role_user_id'))
-    )
-    with op.batch_alter_table('user_role', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_user_role_club_id'), ['club_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_user_role_role'), ['role'], unique=False)
-        batch_op.create_index(batch_op.f('ix_user_role_user_id'), ['user_id'], unique=False)
 
     op.create_table('waiver_confirmation',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -604,12 +611,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_waiver_confirmation_event_id'))
 
     op.drop_table('waiver_confirmation')
-    with op.batch_alter_table('user_role', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_user_role_user_id'))
-        batch_op.drop_index(batch_op.f('ix_user_role_role'))
-        batch_op.drop_index(batch_op.f('ix_user_role_club_id'))
-
-    op.drop_table('user_role')
     with op.batch_alter_table('team', schema=None) as batch_op:
         batch_op.drop_index('uq_team_series_registration', sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
         batch_op.drop_index(batch_op.f('ix_team_status'))
@@ -641,6 +642,14 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_boat_event_id'))
 
     op.drop_table('boat')
+    with op.batch_alter_table('access_grant', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_access_grant_user_id'))
+        batch_op.drop_index(batch_op.f('ix_access_grant_series_id'))
+        batch_op.drop_index(batch_op.f('ix_access_grant_relation'))
+        batch_op.drop_index(batch_op.f('ix_access_grant_event_id'))
+        batch_op.drop_index(batch_op.f('ix_access_grant_club_id'))
+
+    op.drop_table('access_grant')
     with op.batch_alter_table('event', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_event_venue_id'))
         batch_op.drop_index(batch_op.f('ix_event_slug'))

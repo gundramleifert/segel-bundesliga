@@ -74,9 +74,7 @@ def event_reference_date(event: Event) -> date:
 async def current_waiver_text(session: AsyncSession) -> WaiverText | None:
     """The version in force — the highest one. ``None`` if none has been published."""
     return (
-        await session.execute(
-            select(WaiverText).order_by(WaiverText.version.desc()).limit(1)
-        )
+        await session.execute(select(WaiverText).order_by(WaiverText.version.desc()).limit(1))
     ).scalar_one_or_none()
 
 
@@ -181,12 +179,16 @@ async def event_waiver_status(
         scope = scope | (WaiverConfirmation.series_id == event.series_id)
 
     rows = (
-        await session.execute(
-            select(WaiverConfirmation)
-            .options(selectinload(WaiverConfirmation.waiver_text))
-            .where(WaiverConfirmation.sailor_id.in_(sailor_ids), scope)
+        (
+            await session.execute(
+                select(WaiverConfirmation)
+                .options(selectinload(WaiverConfirmation.waiver_text))
+                .where(WaiverConfirmation.sailor_id.in_(sailor_ids), scope)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     by_sailor: dict[int, list[WaiverConfirmation]] = {}
     for row in rows:
         by_sailor.setdefault(row.sailor_id, []).append(row)
@@ -212,15 +214,19 @@ async def series_waiver_status(
     """
     required = await current_waiver_text(session)
     rows = (
-        await session.execute(
-            select(WaiverConfirmation)
-            .options(selectinload(WaiverConfirmation.waiver_text))
-            .where(
-                WaiverConfirmation.sailor_id == sailor.id,
-                WaiverConfirmation.series_id == series.id,
+        (
+            await session.execute(
+                select(WaiverConfirmation)
+                .options(selectinload(WaiverConfirmation.waiver_text))
+                .where(
+                    WaiverConfirmation.sailor_id == sailor.id,
+                    WaiverConfirmation.series_id == series.id,
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return _judge(
         sailor_id=sailor.id,
         minor=is_minor(sailor.birth_date, series_reference_date(series)),
@@ -253,43 +259,43 @@ async def sailor_competitions(session: AsyncSession, sailor: Sailor) -> list[Com
     same person for the same signature twice.
     """
     memberships = (
-        select(Team).join(TeamMembership, TeamMembership.team_id == Team.id).where(
-            TeamMembership.sailor_id == sailor.id, Team.status == TeamStatus.ACCEPTED
-        )
+        select(Team)
+        .join(TeamMembership, TeamMembership.team_id == Team.id)
+        .where(TeamMembership.sailor_id == sailor.id, Team.status == TeamStatus.ACCEPTED)
     )
     series_rows = (
-        await session.execute(
-            select(Series)
-            .where(
-                Series.id.in_(
-                    memberships.with_only_columns(Team.series_id).where(
-                        Team.event_id.is_(None)
+        (
+            await session.execute(
+                select(Series)
+                .where(
+                    Series.id.in_(
+                        memberships.with_only_columns(Team.series_id).where(Team.event_id.is_(None))
                     )
                 )
+                .order_by(Series.year.desc(), Series.name)
             )
-            .order_by(Series.year.desc(), Series.name)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     event_rows = (
-        await session.execute(
-            select(Event)
-            .where(
-                Event.id.in_(
-                    memberships.with_only_columns(Team.event_id).where(
-                        Team.series_id.is_(None)
+        (
+            await session.execute(
+                select(Event)
+                .where(
+                    Event.id.in_(
+                        memberships.with_only_columns(Team.event_id).where(Team.series_id.is_(None))
                     )
                 )
+                .order_by(Event.starts_on.desc(), Event.title)
             )
-            .order_by(Event.starts_on.desc(), Event.title)
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     return [
-        Competition("series", s.id, s.name, series_reference_date(s), series=s)
-        for s in series_rows
-    ] + [
-        Competition("event", e.id, e.title, event_reference_date(e), event=e)
-        for e in event_rows
-    ]
+        Competition("series", s.id, s.name, series_reference_date(s), series=s) for s in series_rows
+    ] + [Competition("event", e.id, e.title, event_reference_date(e), event=e) for e in event_rows]
 
 
 # ---------------------------------------------------------------- The scan on file

@@ -23,9 +23,7 @@ SECOND_CLUB = "lsc"
 
 async def club_id(slug: str) -> int:
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(Club.id).where(Club.slug == slug))
-        ).scalar_one()
+        return (await session.execute(select(Club.id).where(Club.slug == slug))).scalar_one()
 
 
 async def club_leadership(client, caplog, email: str, slug: str = CLUB) -> dict[str, str]:
@@ -121,9 +119,7 @@ class TestPersonApplies:
         leadership = await club_leadership(client, caplog, "vml5@example.com")
         await client.post(f"/api/club-memberships/{request['id']}/reject", headers=leadership)
 
-        retry = await client.post(
-            "/api/club-memberships", headers=person, json={"club_id": c}
-        )
+        retry = await client.post("/api/club-memberships", headers=person, json={"club_id": c})
         assert retry.status_code == 201
         assert retry.json()["status"] == ClubMemberStatus.PENDING_CLUB
 
@@ -239,9 +235,7 @@ class TestClubInvites:
 class TestBothDirectionsMeet:
     """When both sides want the same thing, the matter is decided."""
 
-    async def test_application_and_invitation_together_create_membership(
-        self, client, caplog
-    ):
+    async def test_application_and_invitation_together_create_membership(self, client, caplog):
         person = auth_headers(await register(client, caplog, "bt1@example.com", "Tim Treffen"))
         c = await club_id(CLUB)
         await client.post("/api/club-memberships", headers=person, json={"club_id": c})
@@ -266,9 +260,7 @@ class TestBothDirectionsMeet:
         for slug, leadership_email in clubs_list:
             c = await club_id(slug)
             request = (
-                await client.post(
-                    "/api/club-memberships", headers=person, json={"club_id": c}
-                )
+                await client.post("/api/club-memberships", headers=person, json={"club_id": c})
             ).json()
             leadership = await club_leadership(client, caplog, leadership_email, slug)
             accepted = await client.post(
@@ -286,13 +278,10 @@ class TestBothDirectionsMeet:
         await client.post("/api/club-memberships", headers=person, json={"club_id": c})
 
         leadership = await club_leadership(client, caplog, "btl3@example.com", SECOND_CLUB)
-        members_response = await client.get(
-            f"/api/admin/clubs/{c}/members", headers=leadership
-        )
+        members_response = await client.get(f"/api/admin/clubs/{c}/members", headers=leadership)
         members_list = members_response.json()
         assert any(
-            entry["email"] == "bt3@example.com"
-            and entry["status"] == ClubMemberStatus.PENDING_CLUB
+            entry["email"] == "bt3@example.com" and entry["status"] == ClubMemberStatus.PENDING_CLUB
             for entry in members_list
         )
 
@@ -318,9 +307,7 @@ class TestOrganizerRole:
         request = (
             await client.post("/api/club-memberships", headers=person, json={"club_id": c})
         ).json()
-        accepted = await client.post(
-            f"/api/club-memberships/{request['id']}/accept", headers=admin
-        )
+        accepted = await client.post(f"/api/club-memberships/{request['id']}/accept", headers=admin)
         assert accepted.status_code == 200, accepted.text
         return request["user_id"], c
 
@@ -349,9 +336,9 @@ class TestOrganizerRole:
         c = await club_id("vsaw")
         stranger = auth_headers(await register(client, caplog, "stranger3@example.com", "Stranger"))
         await client.post("/api/club-memberships", headers=stranger, json={"club_id": c})
-        stranger_id = (
-            await client.get("/api/club-memberships", headers=stranger)
-        ).json()[0]["user_id"]
+        stranger_id = (await client.get("/api/club-memberships", headers=stranger)).json()[0][
+            "user_id"
+        ]
 
         response = await client.post(
             f"/api/admin/clubs/{c}/members/{stranger_id}/organizer", headers=admin
@@ -364,9 +351,7 @@ class TestOrganizerRole:
         p1, c = await self._active_member(client, caplog, admin, "orgm5a@example.com", "myc")
         p2, _ = await self._active_member(client, caplog, admin, "orgm5b@example.com", "myc")
         for pid in (p1, p2):
-            await client.post(
-                f"/api/admin/clubs/{c}/members/{pid}/organizer", headers=admin
-            )
+            await client.post(f"/api/admin/clubs/{c}/members/{pid}/organizer", headers=admin)
         # Two organizers now — revoking one leaves one, which is allowed.
         response = await client.delete(
             f"/api/admin/clubs/{c}/members/{p2}/organizer", headers=admin
@@ -409,17 +394,13 @@ class TestOrganizerRole:
 
         # A second organizer for cyc, so revoking org6b's grant there isn't blocked by
         # the unrelated "at least one organizer must remain" rule this test isn't about.
-        cyc_co_id, _ = await self._active_member(
-            client, caplog, admin, "org6c@example.com", "cyc"
-        )
+        cyc_co_id, _ = await self._active_member(client, caplog, admin, "org6c@example.com", "cyc")
         await client.post(f"/api/admin/clubs/{cyc}/members/{cyc_co_id}/organizer", headers=admin)
 
         def _organizer_of(members: list[dict], user_id: int) -> bool:
             return next(row["organizer"] for row in members if row["user_id"] == user_id)
 
-        svk_members = (
-            await client.get(f"/api/admin/clubs/{svk}/members", headers=admin)
-        ).json()
+        svk_members = (await client.get(f"/api/admin/clubs/{svk}/members", headers=admin)).json()
         assert _organizer_of(svk_members, svk_member_id) is True
 
         # Revoking the newly-granted club leaves the original one untouched.
@@ -429,9 +410,7 @@ class TestOrganizerRole:
         assert revoke.status_code == 200
         assert revoke.json()["organizer"] is False
 
-        svk_members = (
-            await client.get(f"/api/admin/clubs/{svk}/members", headers=admin)
-        ).json()
+        svk_members = (await client.get(f"/api/admin/clubs/{svk}/members", headers=admin)).json()
         assert _organizer_of(svk_members, svk_member_id) is True
 
 
@@ -457,9 +436,7 @@ class TestMemberRoster:
         request = (
             await client.post("/api/club-memberships", headers=person, json={"club_id": c})
         ).json()
-        accepted = await client.post(
-            f"/api/club-memberships/{request['id']}/accept", headers=admin
-        )
+        accepted = await client.post(f"/api/club-memberships/{request['id']}/accept", headers=admin)
         assert accepted.status_code == 200, accepted.text
         return person, request["user_id"], c
 

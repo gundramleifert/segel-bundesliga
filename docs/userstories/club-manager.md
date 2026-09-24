@@ -333,7 +333,7 @@ Acceptance criteria:
   club's squad through the series, which is the right shape for someone whose job is all
   eighteen of them.
 - A person can be a member of several clubs and organize several — the two relationships
-  are per club (`ClubMember`, `UserRole.club_id`) and independent. `User.club_id` has
+  are per club (`ClubMember`, a `manager` tuple on the club) and independent. `User.club_id` has
   meant "the club this account acts for" since the model was written and had no way to be
   set; the navigation's sub-entries are that way now. `?club=` in the URL names the club
   being shown, so a link to one club keeps working and the sub-entry can show which is

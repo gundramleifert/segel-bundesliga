@@ -25,9 +25,7 @@ MINE = "/api/clubs/mine"
 
 async def _club(slug: str) -> Club:
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(Club).where(Club.slug == slug))
-        ).scalar_one()
+        return (await session.execute(select(Club).where(Club.slug == slug))).scalar_one()
 
 
 async def _as(client, caplog, email: str, *roles: str, club_id: int | None = None):
@@ -40,9 +38,7 @@ async def _make_member(email: str, club_id: int, status: ClubMemberStatus) -> No
     from app.models.auth import User
 
     async with SessionLocal() as session:
-        user = (
-            await session.execute(select(User).where(User.email == email))
-        ).scalar_one()
+        user = (await session.execute(select(User).where(User.email == email))).scalar_one()
         session.add(ClubMember(club_id=club_id, user_id=user.id, status=status))
         await session.commit()
 
@@ -137,9 +133,7 @@ class TestMyClubs:
                 team_id
                 for (team_id,) in (
                     await session.execute(
-                        select(Team.id).where(
-                            Team.club_id == club.id, Team.event_id.is_(None)
-                        )
+                        select(Team.id).where(Team.club_id == club.id, Team.event_id.is_(None))
                     )
                 ).all()
             }
@@ -165,18 +159,14 @@ class TestMyClubs:
                 team_id
                 for (team_id,) in (
                     await session.execute(
-                        select(Team.id).where(
-                            Team.club_id == club.id, Team.event_id.is_not(None)
-                        )
+                        select(Team.id).where(Team.club_id == club.id, Team.event_id.is_not(None))
                     )
                 ).all()
             }
         assert event_team_ids, "the seed enters this club into events"
         assert not {t["team_id"] for t in entry["teams"]} & event_team_ids
 
-    async def test_an_admin_gets_the_clubs_they_belong_to_not_all_eighteen(
-        self, client, caplog
-    ):
+    async def test_an_admin_gets_the_clubs_they_belong_to_not_all_eighteen(self, client, caplog):
         """`admin` may manage every club, but this endpoint answers "mine", not "all".
 
         Handing an administrator all eighteen would make `/club` a second, worse copy of

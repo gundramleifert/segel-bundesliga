@@ -22,16 +22,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import create_access_token
 from app.db import SessionLocal
-from app.models import Club, ClubMember, ClubMemberStatus, Sailor, Team, TeamMembership
-from app.models.auth import Role, User, UserRole
+from app.models import Club, ClubMember, ClubMemberStatus, Event, Sailor, Team, TeamMembership
+from app.models.auth import Grant, Relation, Role, User
 
-# Accounts not linked to a club: (email, name, roles)
+# Accounts not linked to a club: (email, name, site relations)
 FUNCTIONAL_ACCOUNTS: list[tuple[str, str, list[str]]] = [
-    ("admin@sbl.example.com", "Alina Admin", [Role.ADMIN]),
-    ("redaktion@sbl.example.com", "Rudi Editor", [Role.EDITOR]),
-    ("wl@sbl.example.com", "Wanda Racecommittee", [Role.RACE_OFFICER]),
-    ("beides@sbl.example.com", "Bea Bothroles", [Role.EDITOR, Role.RACE_OFFICER]),
+    ("admin@sbl.example.com", "Alina Admin", [Relation.ADMIN]),
+    ("redaktion@sbl.example.com", "Rudi Editor", [Relation.EDITOR]),
+    ("wl@sbl.example.com", "Wanda Racecommittee", [Relation.RACE_OFFICER]),
+    ("beides@sbl.example.com", "Bea Bothroles", [Relation.EDITOR, Relation.RACE_OFFICER]),
     ("gast@sbl.example.com", "Gero Guest", []),
+]
+# Tuples on one event (Story Z-2) — written after the loop, because they name an event:
+# the person a club names to run its regatta, and the organizer of that event.
+EVENT_ACCOUNTS: list[tuple[str, str, str]] = [
+    ("regatta@sbl.example.com", "Regina Regatta", Relation.RACE_OFFICER),
+    ("orga@sbl.example.com", "Otto Organizer", Relation.MANAGER),
+    ("jury@sbl.example.com", "Jutta Jury", Relation.JURY),
 ]
 
 
@@ -49,15 +56,10 @@ async def _account(
         # Set roles before the flush: afterward the assignment would first want to reload the
         # collection, and a lazy load fails in async context.
         # Test accounts are considered verified — otherwise each would first need to redeem a code.
-        user = User(
-            email=email, display_name=name, club_id=club_id, email_verified=True
-        )
-        # club_manager is granted per club (UserRole.club_id); every other role is
-        # league-wide and keeps club_id unset.
-        user.role_rows = [
-            UserRole(role=role, club_id=club_id if role == Role.CLUB_MANAGER else None)
-            for role in roles
-        ]
+        user = User(email=email, display_name=name, club_id=club_id, email_verified=True)
+        # `Role.CLUB_MANAGER` here means "manager of this club"; everything else is a
+        # site relation.
+        user.grants = [_tuple(role, club_id) for role in roles]
         session.add(user)
         await session.flush()
         return user
@@ -66,34 +68,30 @@ async def _account(
     user.is_active = True
     user.email_verified = True
     user.club_id = club_id
-    # Replace existing roles via SQL instead of via the collection — for the same reason.
-    await session.execute(delete(UserRole).where(UserRole.user_id == user.id))
-    session.add_all(
-        UserRole(
-            user_id=user.id,
-            role=role,
-            club_id=club_id if role == Role.CLUB_MANAGER else None,
-        )
-        for role in roles
-    )
+    # Replace existing tuples via SQL instead of via the collection — for the same reason.
+    await session.execute(delete(Grant).where(Grant.user_id == user.id))
+    for role in roles:
+        row = _tuple(role, club_id)
+        row.user_id = user.id
+        session.add(row)
     await session.flush()
     return user
+
+
+def _tuple(role: str, club_id: int | None) -> Grant:
+    if role == Role.CLUB_MANAGER:
+        return Grant(relation=Relation.MANAGER, club_id=club_id)
+    return Grant(relation=Relation(role))
 
 
 async def _membership(session: AsyncSession, club_id: int, user_id: int) -> None:
     existing = (
         await session.execute(
-            select(ClubMember).where(
-                ClubMember.club_id == club_id, ClubMember.user_id == user_id
-            )
+            select(ClubMember).where(ClubMember.club_id == club_id, ClubMember.user_id == user_id)
         )
     ).scalar_one_or_none()
     if existing is None:
-        session.add(
-            ClubMember(
-                club_id=club_id, user_id=user_id, status=ClubMemberStatus.ACTIVE
-            )
-        )
+        session.add(ClubMember(club_id=club_id, user_id=user_id, status=ClubMemberStatus.ACTIVE))
     else:
         existing.status = ClubMemberStatus.ACTIVE
 
@@ -102,12 +100,20 @@ async def seed_users() -> None:
     async with SessionLocal() as session:
         clubs = (await session.execute(select(Club).order_by(Club.name))).scalars().all()
         if not clubs:
-            raise SystemExit(
-                "No clubs yet. Run 'uv run python -m app.seed' first."
-            )
+            raise SystemExit("No clubs yet. Run 'uv run python -m app.seed' first.")
 
         for email, name, roles in FUNCTIONAL_ACCOUNTS:
             await _account(session, email=email, name=name, roles=roles)
+
+        # The planned matchday, so results can still be entered and the setup changed.
+        planned = (
+            await session.execute(select(Event).where(Event.slug == "dsbl-1-2026-act-3"))
+        ).scalar_one_or_none()
+        if planned is not None:
+            for email, name, relation in EVENT_ACCOUNTS:
+                person = await _account(session, email=email, name=name, roles=[])
+                session.add(Grant(user_id=person.id, relation=relation, event_id=planned.id))
+            await session.flush()
 
         # All registered sailors with their club: via the team, not by name.
         rows = (
@@ -164,16 +170,22 @@ async def _report(
     print("Functional accounts:")
     for email, name, roles in FUNCTIONAL_ACCOUNTS:
         print(f"  {email:24s} {', '.join(roles) or 'no role':28s} {name}")
+    for email, name, relation in EVENT_ACCOUNTS:
+        print(f"  {email:24s} {relation + ' (one event)':28s} {name}")
 
     samples = (
-        await session.execute(
-            select(User)
-            .join(UserRole, UserRole.user_id == User.id)
-            .where(UserRole.role == Role.CLUB_MANAGER)
-            .order_by(User.id)
-            .limit(3)
+        (
+            await session.execute(
+                select(User)
+                .join(Grant, Grant.user_id == User.id)
+                .where(Grant.relation == Relation.MANAGER, Grant.club_id.is_not(None))
+                .order_by(User.id)
+                .limit(3)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     print("\nClub managers (sample):")
     for user in samples:
@@ -182,13 +194,17 @@ async def _report(
         print(f"  {user.email:34s} club_manager  {user.display_name} [{abbr}]")
 
     no_role = (
-        await session.execute(
-            select(User)
-            .where(User.club_id.is_not(None), ~User.role_rows.any())
-            .order_by(User.id)
-            .limit(2)
+        (
+            await session.execute(
+                select(User)
+                .where(User.club_id.is_not(None), ~User.grants.any())
+                .order_by(User.id)
+                .limit(2)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     print("\nParticipants with no role (sample):")
     for user in no_role:

@@ -8,7 +8,8 @@
       "admin": "Admin",
       "editor": "Editor",
       "raceOfficer": "Race committee",
-      "clubManager": "Club manager"
+      "clubManager": "Club manager",
+      "eventManager": "Event manager"
     },
     "areas": {
       "createClubsEnroll": "Create clubs and enroll them in a Series",
@@ -20,13 +21,15 @@
       "registerParticipants": "Register participants for a Series or Event",
       "maintainSailors": "Create and maintain sailor records",
       "registerSquad": "Register a Squad for a Series",
-      "acceptClubMembers": "Accept club membership requests"
+      "acceptClubMembers": "Accept club membership requests",
+      "namePeople": "Name an Event's race committee and jury"
     },
     "cells": {
       "yes": "Yes",
       "no": "—",
       "own": "Own club only",
-      "hostsCreate": "Only to create an Event their own club hosts"
+      "hostsCreate": "Only to create an Event their own club hosts",
+      "ownEvents": "Own Events and Series only"
     },
     "guestNote": "Without an account, or with no role assigned, you can still browse everything public — the league table, Events, clubs and sailor profiles. You just can't change anything."
   },

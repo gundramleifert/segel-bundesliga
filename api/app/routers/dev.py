@@ -56,6 +56,8 @@ DESCRIPTION: dict[str, str] = {
     "editor": "Editorial: write messages, approve club posts.",
     "race_officer": "Race officer: record and correct results.",
     "club_manager": "Club account: own roster, submit posts, club assignment.",
+    "event_manager": "Organizer of a series or an event: its setup, its clubs, its people.",
+    "jury": "Protest committee of an event: announcements, protest decisions.",
 }
 
 
@@ -64,13 +66,8 @@ async def list_test_users(
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
 ) -> list[TestUserOut]:
-    users = (
-        await session.execute(select(User).order_by(User.display_name))
-    ).scalars().all()
-    clubs = {
-        club.id: club.short_name
-        for club in (await session.execute(select(Club))).scalars()
-    }
+    users = (await session.execute(select(User).order_by(User.display_name))).scalars().all()
+    clubs = {club.id: club.short_name for club in (await session.execute(select(Club))).scalars()}
 
     return [
         TestUserOut(
@@ -81,13 +78,9 @@ async def list_test_users(
             club=clubs.get(user.club_id) if user.club_id else None,
             description=tr(
                 locale,
-                en=" ".join(
-                    DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION
-                )
+                en=" ".join(DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION)
                 or "Signed in, but no special permissions.",
-                de=" ".join(
-                    DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION
-                )
+                de=" ".join(DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION)
                 or "Angemeldet, aber ohne besondere Rechte.",
             ),
         )
@@ -108,10 +101,8 @@ async def dev_login(
         raise HTTPException(
             status_code=404,
             detail=tr(
-                locale,
-                en="This test account does not exist.",
-                de="Dieses Testkonto gibt es nicht."
-            )
+                locale, en="This test account does not exist.", de="Dieses Testkonto gibt es nicht."
+            ),
         )
 
     # Like a real sign-in: whoever passes through here is considered verified. Otherwise
@@ -149,9 +140,7 @@ class SmtpConfigOut(BaseModel):
     brevo_configured: bool
 
 
-@router.get(
-    "/smtp-config", response_model=SmtpConfigOut, summary="What mail config is resolved"
-)
+@router.get("/smtp-config", response_model=SmtpConfigOut, summary="What mail config is resolved")
 async def smtp_config() -> SmtpConfigOut:
     """Shows exactly what `app.config.settings` resolved to — from env vars, Secret
     Files, or defaults, whichever won — without exposing the password/API key itself.
@@ -180,9 +169,7 @@ class TestEmailOut(BaseModel):
     error: str | None = None
 
 
-@router.post(
-    "/test-email", response_model=TestEmailOut, summary="Attempt an actual send"
-)
+@router.post("/test-email", response_model=TestEmailOut, summary="Attempt an actual send")
 async def test_email(request: TestEmail) -> TestEmailOut:
     """Sends a real message with a throwaway code to the given address right now, and
     reports the outcome directly in the response — the same send path
@@ -216,9 +203,7 @@ class NetworkProbeOut(BaseModel):
     resolved: list[AddressProbe]
 
 
-@router.get(
-    "/network-probe", response_model=NetworkProbeOut, summary="Diagnose outbound TCP"
-)
+@router.get("/network-probe", response_model=NetworkProbeOut, summary="Diagnose outbound TCP")
 async def network_probe(host: str | None = None, port: int | None = None) -> NetworkProbeOut:
     """Resolves `host` (default: the configured SMTP host) and tries a raw TCP connect to
     *each* resolved address individually — this tells apart a common container gotcha
@@ -252,9 +237,7 @@ async def network_probe(host: str | None = None, port: int | None = None) -> Net
                 probes.append(AddressProbe(family=family_name, address=addr, connect_ok=True))
             except OSError as exc:
                 probes.append(
-                    AddressProbe(
-                        family=family_name, address=addr, connect_ok=False, error=str(exc)
-                    )
+                    AddressProbe(family=family_name, address=addr, connect_ok=False, error=str(exc))
                 )
         return probes
 

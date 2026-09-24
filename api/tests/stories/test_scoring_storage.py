@@ -81,12 +81,16 @@ class TestStoredPoints:
         event_id = await first_matchday()
         async with SessionLocal() as session:
             rows = (
-                await session.execute(
-                    select(EventStanding)
-                    .where(EventStanding.event_id == event_id)
-                    .order_by(EventStanding.rank)
+                (
+                    await session.execute(
+                        select(EventStanding)
+                        .where(EventStanding.event_id == event_id)
+                        .order_by(EventStanding.rank)
+                    )
                 )
-            ).scalars().all()
+                .scalars()
+                .all()
+            )
 
         assert len(rows) == 18
         assert [row.rank for row in rows] == list(range(1, 19))
@@ -154,9 +158,7 @@ class TestSeriesStanding:
             ).scalar_one()
 
     async def test_who_was_everywhere_stands_with_their_placements(self, client, ids):
-        table = (
-            await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")
-        ).json()
+        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
 
         assert len(table["rows"]) == 18
         for row in table["rows"]:
@@ -176,9 +178,7 @@ class TestSeriesStanding:
             json={"series": [ids.series("dsbl-1-2026")]},
         )
 
-        table = (
-            await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")
-        ).json()
+        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
         new_team = next(z for z in table["rows"] if z["team"]["club"]["slug"] == club["slug"])
 
         # 18 teams participated each time, so 19 per event.
@@ -189,9 +189,7 @@ class TestSeriesStanding:
 
     async def test_substitute_scoring_is_worse_than_last_place(self, client, ids):
         """The actual reason for the rule."""
-        table = (
-            await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")
-        ).json()
+        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
 
         sailed = [z for z in table["rows"] if not z["missed_matchdays"]]
         missed = [z for z in table["rows"] if z["missed_matchdays"]]
@@ -202,9 +200,7 @@ class TestSeriesStanding:
         assert min(z["points"] for z in missed) > worst_present
 
     async def test_table_is_sorted_by_points(self, client, ids):
-        table = (
-            await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")
-        ).json()
+        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
         points = [z["points"] for z in table["rows"]]
         assert points == sorted(points)
         assert [z["rank"] for z in table["rows"]] == list(range(1, len(points) + 1))

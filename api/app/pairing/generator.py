@@ -190,9 +190,7 @@ async def generate_pairing(
             display_config if display_config is not None else _DEFAULT_DISPLAY, encoding="utf-8"
         )
 
-        log = await _run_optimizer(
-            jar_path, workdir, timeout, request.flights, on_progress
-        )
+        log = await _run_optimizer(jar_path, workdir, timeout, request.flights, on_progress)
 
         out_yaml = workdir / "out.yml"
         if not out_yaml.is_file():
@@ -228,10 +226,14 @@ async def _run_optimizer(
         "-cp",
         str(jar.resolve()),
         MAIN_CLASS,
-        "-s", "schedule_cfg.yml",
-        "-oc", "opt_cfg.yml",
-        "-dc", "display_cfg.yml",
-        "-plo", "out.yml",
+        "-s",
+        "schedule_cfg.yml",
+        "-oc",
+        "opt_cfg.yml",
+        "-dc",
+        "display_cfg.yml",
+        "-plo",
+        "out.yml",
         cwd=workdir,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
@@ -281,9 +283,7 @@ async def _read_output(
             phase = "boats"
             on_progress(GenerationProgress(phase, None, total_flights, line))
         elif match := _FLIGHT_MARKER.search(line):
-            on_progress(
-                GenerationProgress(phase, int(match.group(1)), total_flights, line)
-            )
+            on_progress(GenerationProgress(phase, int(match.group(1)), total_flights, line))
 
     await process.wait()
     return "\n".join(lines)

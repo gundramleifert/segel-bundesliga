@@ -150,9 +150,7 @@ def load_pairing_csv(schedule_cfg: str, pairing_csv: str) -> ImportedPairing:
     reader = csv.DictReader(io.StringIO(pairing_csv), delimiter=";")
 
     if not reader.fieldnames or "Flight" not in reader.fieldnames:
-        raise PairingImportError(
-            "pairing_list.csv has no header with 'Flight' — wrong delimiter?"
-        )
+        raise PairingImportError("pairing_list.csv has no header with 'Flight' — wrong delimiter?")
     boat_columns = [name for name in reader.fieldnames if name and name.startswith("Boat ")]
     if not boat_columns:
         raise PairingImportError("pairing_list.csv contains no boat columns")
@@ -222,8 +220,7 @@ def _build(config: ScheduleConfig, grouped: list[list[list[int]]]) -> ImportedPa
 
         if len(races) != races_per_flight:
             raise PairingImportError(
-                f"Flight {flight_number} has {len(races)} races, "
-                f"flight 1 had {races_per_flight}"
+                f"Flight {flight_number} has {len(races)} races, flight 1 had {races_per_flight}"
             )
 
         seen: list[int] = []

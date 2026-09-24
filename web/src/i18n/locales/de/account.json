@@ -36,7 +36,9 @@
     "editor": "Nachrichten schreiben und Vereinsbeiträge freigeben",
     "race_officer": "Ergebnisse erfassen und korrigieren",
     "club_manager": "Nutzer dem eigenen Verein zuordnen",
-    "club_manager_squad": "Saisonkader und Spieltagsmeldung pflegen (geplant)"
+    "club_manager_squad": "Saisonkader und Spieltagsmeldung pflegen (geplant)",
+    "event_manager": "Eigene Serien und Veranstaltungen organisieren: Einrichtung, Vereine, Personen",
+    "jury": "Bekanntmachungen veröffentlichen und Proteste an eigenen Veranstaltungen verhandeln"
   },
   "labels": {
     "club": "Verein",

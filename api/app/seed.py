@@ -82,6 +82,7 @@ VENUES: list[tuple[str, str, str, float, float]] = [
     ("Berlin-Wannsee", "Berlin", "Wannsee", 52.437, 13.170),
 ]
 
+
 # Sailor names are synthetic — a 30 x 30 pool of made-up names built from syllables, so
 # 900 combinations cover the ~360 seeded sailors without a real person's name appearing.
 # Its own RNG with a fixed seed: reproducible, and independent of the main seed sequence.
@@ -209,8 +210,7 @@ async def seed() -> None:
                 short_name=short,
                 city=city,
                 description=(
-                    f"{name} segelt seit Jahren in der Segel-Bundesliga. "
-                    f"Heimatrevier ist {city}."
+                    f"{name} segelt seit Jahren in der Segel-Bundesliga. Heimatrevier ist {city}."
                 ),
             )
             for name, short, city in CLUBS
@@ -263,9 +263,7 @@ async def seed() -> None:
                     # is what makes the guardian path in Story S-2 testable against the
                     # seed. Everyone else is an adult.
                     birth_date=date(
-                        rng.randint(2009, 2011)
-                        if _series is juniors
-                        else rng.randint(1985, 2004),
+                        rng.randint(2009, 2011) if _series is juniors else rng.randint(1985, 2004),
                         rng.randint(1, 12),
                         rng.randint(1, 28),
                     ),
@@ -432,8 +430,20 @@ async def _wipe(session) -> None:
     # Order by foreign keys: Team points to Event and Series, so it must
     # be deleted before both.
     for model in (
-        RaceEntry, Race, Flight, Boat, EventCrew, EventStanding, SeriesStanding,
-        TeamMembership, Team, Event, Sailor, Club, Venue, Series,
+        RaceEntry,
+        Race,
+        Flight,
+        Boat,
+        EventCrew,
+        EventStanding,
+        SeriesStanding,
+        TeamMembership,
+        Team,
+        Event,
+        Sailor,
+        Club,
+        Venue,
+        Series,
     ):
         await session.execute(delete(model))
     await session.commit()

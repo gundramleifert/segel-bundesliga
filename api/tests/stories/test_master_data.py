@@ -242,8 +242,12 @@ class TestCreatingAMatchday:
             await client.post(
                 "/api/admin/events",
                 headers=headers,
-                json={"title": "Provisional", "starts_on": "2026-12-11", "league": "dsbl-1-2026",
-                      "season": 2026},
+                json={
+                    "title": "Provisional",
+                    "starts_on": "2026-12-11",
+                    "league": "dsbl-1-2026",
+                    "season": 2026,
+                },
             )
         ).json()
 

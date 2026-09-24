@@ -196,9 +196,7 @@ class TestCrestTransparency:
         assert stored.getpixel((10, 10))[3] == 0
         assert stored.getpixel((stored.width - 10, 10))[3] == 255
 
-    async def test_an_oversized_crest_is_downscaled_without_being_cropped(
-        self, client, caplog
-    ):
+    async def test_an_oversized_crest_is_downscaled_without_being_cropped(self, client, caplog):
         """No square crop, unlike a sailor photo: a pennant is not square, and the aspect
         ratio has to survive. Only the longest edge is bounded."""
         admin = await _headers(client, caplog, "crest-gross@example.com", Role.ADMIN)
@@ -277,9 +275,7 @@ class TestCrestAsEventLogo:
     """Appears in the matchday view too: an event without its own logo uses the host's
     crest (`public.py::_event_out`), and the upload feeds that chain unchanged."""
 
-    async def test_an_event_without_its_own_logo_uses_the_uploaded_crest(
-        self, client, caplog
-    ):
+    async def test_an_event_without_its_own_logo_uses_the_uploaded_crest(self, client, caplog):
         admin = await _headers(client, caplog, "crest-host_club@example.com", Role.ADMIN)
         club = await _new_club(client, admin, short_name="WPV")
         uploaded = await client.post(

@@ -50,9 +50,7 @@ class TestMultipleClubs:
 
             session.add_all(
                 [
-                    TeamMembership(
-                        team_id=first.id, sailor_id=person.id, role=CrewRole.SUBSTITUTE
-                    ),
+                    TeamMembership(team_id=first.id, sailor_id=person.id, role=CrewRole.SUBSTITUTE),
                     TeamMembership(
                         team_id=juniors.id, sailor_id=person.id, role=CrewRole.SUBSTITUTE
                     ),
@@ -93,18 +91,12 @@ class TestOncePerCompetition:
             f"(series, person, count): {duplicates}"
         )
 
-    async def test_database_rejects_second_lineup_in_same_event(
-        self, seeded
-    ):
+    async def test_database_rejects_second_lineup_in_same_event(self, seeded):
         """At the event level, the database enforces the rule."""
         async with SessionLocal() as session:
-            crew = (
-                await session.execute(select(EventCrew).limit(1))
-            ).scalar_one()
+            crew = (await session.execute(select(EventCrew).limit(1))).scalar_one()
             other_team = (
-                await session.execute(
-                    select(Team.id).where(Team.id != crew.team_id).limit(1)
-                )
+                await session.execute(select(Team.id).where(Team.id != crew.team_id).limit(1))
             ).scalar_one()
 
             session.add(

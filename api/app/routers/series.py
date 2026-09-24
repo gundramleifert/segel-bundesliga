@@ -55,9 +55,7 @@ class SeriesCreate(BaseModel):
     level: int | None = Field(
         default=None, description="Rank in the year: 1 for the first, 2 for the second league"
     )
-    clubs: list[int] = Field(
-        default_factory=list, description="Clubs participating in this series"
-    )
+    clubs: list[int] = Field(default_factory=list, description="Clubs participating in this series")
     scoring: dict[str, Any] | None = None
     published: bool = Field(
         default=False,
@@ -327,10 +325,7 @@ async def set_clubs(
                 status_code=409,
                 detail=tr(
                     locale,
-                    (
-                        "This club cannot be removed: this series already has"
-                        " race results for it."
-                    ),
+                    ("This club cannot be removed: this series already has race results for it."),
                     (
                         "Dieser Verein lässt sich nicht entfernen: in dieser Serie"
                         " liegen für ihn bereits Wettfahrtergebnisse vor."
@@ -368,9 +363,7 @@ async def _get_series(session: AsyncSession, series_id: int, locale: Locale) -> 
     if series is None:
         raise HTTPException(
             status_code=404,
-            detail=tr(
-                locale, f"Series {series_id} not found", f"Serie {series_id} nicht gefunden"
-            ),
+            detail=tr(locale, f"Series {series_id} not found", f"Serie {series_id} nicht gefunden"),
         )
     return series
 
@@ -383,9 +376,7 @@ async def _resolve_clubs(session: AsyncSession, club_ids: list[int], locale: Loc
 
     found = {
         club.id: club
-        for club in (
-            await session.execute(select(Club).where(Club.id.in_(unique)))
-        ).scalars()
+        for club in (await session.execute(select(Club).where(Club.id.in_(unique)))).scalars()
     }
     missing = [club_id for club_id in unique if club_id not in found]
     if missing:
@@ -402,9 +393,7 @@ async def _resolve_clubs(session: AsyncSession, club_ids: list[int], locale: Loc
 
 async def _slug_taken(session: AsyncSession, slug: str) -> bool:
     """Check if a slug is already taken."""
-    hit = (
-        await session.execute(select(Series.id).where(Series.slug == slug))
-    ).scalar_one_or_none()
+    hit = (await session.execute(select(Series.id).where(Series.slug == slug))).scalar_one_or_none()
     return hit is not None
 
 
@@ -423,11 +412,15 @@ async def _backfill_event_entries(session: AsyncSession, series_id: int) -> None
     started.
     """
     events = (
-        await session.execute(
-            select(Event).where(
-                Event.series_id == series_id, Event.status == EventStatus.PLANNED
+        (
+            await session.execute(
+                select(Event).where(
+                    Event.series_id == series_id, Event.status == EventStatus.PLANNED
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     for event in events:
         await adopt_series_registrations(session, event)

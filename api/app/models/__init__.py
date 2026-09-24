@@ -1,4 +1,4 @@
-from app.models.auth import Role, User, UserRole
+from app.models.auth import Grant, ObjectType, Relation, Role, User
 from app.models.base import Base, TimestampMixin
 from app.models.common import AuditLog, ExternalId, ImportRun, Source
 from app.models.competition import Event, EventStatus, Series, Venue
@@ -52,6 +52,9 @@ __all__ = [
     "RaceSignal",
     "RaceStatus",
     "ResultCode",
+    "Grant",
+    "ObjectType",
+    "Relation",
     "Role",
     "Sailor",
     "Series",
@@ -62,7 +65,6 @@ __all__ = [
     "TeamStatus",
     "TimestampMixin",
     "User",
-    "UserRole",
     "Venue",
     "WaiverConfirmation",
     "WaiverMethod",

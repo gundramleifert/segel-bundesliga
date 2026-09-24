@@ -84,8 +84,11 @@ class TestSeriesCreation:
             await client.post(
                 "/api/admin/series",
                 headers=headers,
-                json={"name": "Changing Series 2028", "year": 2028,
-                      "clubs": [all_clubs[0]["id"], all_clubs[1]["id"]]},
+                json={
+                    "name": "Changing Series 2028",
+                    "year": 2028,
+                    "clubs": [all_clubs[0]["id"], all_clubs[1]["id"]],
+                },
             )
         ).json()
 

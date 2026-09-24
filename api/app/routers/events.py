@@ -16,11 +16,11 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, model_validator
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import current_user, require_event_manager
+from app.auth import current_user, require_event_control, require_event_manager_for
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.live import event_topic, hub
@@ -36,7 +36,7 @@ from app.models import (
     TeamStatus,
     Venue,
 )
-from app.models.auth import Role, User
+from app.models.auth import Relation, Role, User
 from app.models.racing import BOAT_COLORS
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
@@ -94,9 +94,7 @@ class PrintSettingsIn(BaseModel):
     landscape: bool = Field(
         default=False, description="Rotate the sheet; a wide fleet reads better across it."
     )
-    team_pages: bool = Field(
-        default=True, description="One page per team after the overview."
-    )
+    team_pages: bool = Field(default=True, description="One page per team after the overview.")
 
 
 class EventCreate(BaseModel):
@@ -114,8 +112,7 @@ class EventCreate(BaseModel):
     series: int | None = Field(
         default=None,
         description=(
-            "Series ID. If not specified, the event stands alone and counts in no "
-            "series ranking."
+            "Series ID. If not specified, the event stands alone and counts in no series ranking."
         ),
     )
 
@@ -219,13 +216,13 @@ EVENT_SORT = {
 @router.get(
     "",
     response_model=Page[EventOut],
-    dependencies=[Depends(require_event_manager)],
     summary="All events, drafts included",
 )
 async def list_all_events(
     q: str | None = Query(default=None, description="Search in title, venue and host club"),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
 ) -> Page[EventOut]:
     """Everything that has been saved — deliberately *not* the public list.
 
@@ -238,10 +235,26 @@ async def list_all_events(
     Searched by the same fields as the public calendar, through the same function: the two
     lists differ in what they may show — drafts included here — not in what a search term
     means.
+
+    A race officer granted on one event, one series or one club (Story Z-2) sees the
+    events those grants reach and nothing else — the same list, narrowed, rather than a
+    tab that answers 403.
     """
+    stmt = search_events(select(Event).options(*_EVENT_LOAD), q)
+    if not acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
+        reach = _reach_of(acting)
+        if reach is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "You lack the permission for this. "
+                    "Required role(s): admin, editor, race_officer"
+                ),
+            )
+        stmt = stmt.where(reach)
     events, total = await paginate(
         session,
-        search_events(select(Event).options(*_EVENT_LOAD), q),
+        stmt,
         params,
         sortable=EVENT_SORT,
         default_order=[Event.starts_on.desc().nulls_first(), Event.id.desc()],
@@ -266,8 +279,8 @@ async def create_event(
     The **host club's** leadership can create events — they organize it, so they should be
     able to record the date — as well as administration, editorial, and race officers.
     """
-    _can_create(acting, request.host_club_id)
     series = await _series(session, request.series) if request.series else None
+    _can_create(acting, request.host_club_id, series.id if series else None)
     await _check_club(session, request.host_club_id)
     await _check_venue(session, request.venue_id)
 
@@ -318,9 +331,7 @@ async def create_event(
         flight_count=request.flight_count,
         squad_min=request.squad_min,
         squad_max=request.squad_max,
-        print_settings=(
-            request.print_settings.model_dump() if request.print_settings else None
-        ),
+        print_settings=(request.print_settings.model_dump() if request.print_settings else None),
     )
     session.add(event)
     await session.flush()
@@ -335,7 +346,7 @@ async def create_event(
 @router.patch(
     "/{event_id}",
     response_model=EventOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_manager_for)],
 )
 async def update_event(
     event_id: int,
@@ -432,7 +443,7 @@ class EventReadinessOut(BaseModel):
 @router.get(
     "/{event_id}/readiness",
     response_model=EventReadinessOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_manager_for)],
     summary="Is this event ready to be drawn and started?",
 )
 async def get_readiness(
@@ -461,12 +472,10 @@ async def get_readiness(
 @router.post(
     "/{event_id}/publish",
     response_model=EventOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_manager_for)],
     summary="Make the event publicly visible",
 )
-async def publish_event(
-    event_id: int, session: AsyncSession = Depends(get_session)
-) -> EventOut:
+async def publish_event(event_id: int, session: AsyncSession = Depends(get_session)) -> EventOut:
     """Publishing is **not** a lock — Story VA-8.
 
     A published event stays fully editable, and it does not have to be complete: the
@@ -479,12 +488,10 @@ async def publish_event(
 @router.post(
     "/{event_id}/unpublish",
     response_model=EventOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_manager_for)],
     summary="Withdraw the event from the public site",
 )
-async def unpublish_event(
-    event_id: int, session: AsyncSession = Depends(get_session)
-) -> EventOut:
+async def unpublish_event(event_id: int, session: AsyncSession = Depends(get_session)) -> EventOut:
     """Back to a draft. Results and pairing list stay untouched — only visibility ends."""
     return await _set_published(session, event_id, False)
 
@@ -492,12 +499,10 @@ async def unpublish_event(
 @router.post(
     "/{event_id}/start",
     response_model=EventOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_control)],
     summary="Start the event",
 )
-async def start_event(
-    event_id: int, session: AsyncSession = Depends(get_session)
-) -> EventOut:
+async def start_event(event_id: int, session: AsyncSession = Depends(get_session)) -> EventOut:
     """Moves the event to ``live`` — Story VA-8.
 
     An explicit decision by someone on site, deliberately **not** a side effect of a date
@@ -531,12 +536,10 @@ async def start_event(
 @router.post(
     "/{event_id}/finish",
     response_model=EventOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_control)],
     summary="Declare that racing is over",
 )
-async def finish_event(
-    event_id: int, session: AsyncSession = Depends(get_session)
-) -> EventOut:
+async def finish_event(event_id: int, session: AsyncSession = Depends(get_session)) -> EventOut:
     """Moves a **live** event to ``final`` — Story VA-10.
 
     Like the start, a declaration by the people on site rather than a consequence of
@@ -569,12 +572,10 @@ async def finish_event(
 @router.post(
     "/{event_id}/cancel",
     response_model=EventOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_control)],
     summary="Call the event off",
 )
-async def cancel_event(
-    event_id: int, session: AsyncSession = Depends(get_session)
-) -> EventOut:
+async def cancel_event(event_id: int, session: AsyncSession = Depends(get_session)) -> EventOut:
     """Moves the event to ``cancelled`` — Story VA-10.
 
     Available from ``planned`` **and** from ``live``: a day can be called off before anyone
@@ -598,12 +599,10 @@ async def cancel_event(
 @router.post(
     "/{event_id}/reopen",
     response_model=EventOut,
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_control)],
     summary="Undo a finish or a cancellation",
 )
-async def reopen_event(
-    event_id: int, session: AsyncSession = Depends(get_session)
-) -> EventOut:
+async def reopen_event(event_id: int, session: AsyncSession = Depends(get_session)) -> EventOut:
     """Takes a closed event back — Story VA-10.
 
     Both closings are judgements made in a hurry, on a jetty, so both undo. Where they go
@@ -625,9 +624,7 @@ async def reopen_event(
     )
 
 
-async def _set_status(
-    session: AsyncSession, event: Event, status_value: EventStatus
-) -> EventOut:
+async def _set_status(session: AsyncSession, event: Event, status_value: EventStatus) -> EventOut:
     """Writes a status and nothing else.
 
     Publication is deliberately untouched: ``published`` is the only thing that decides who
@@ -666,9 +663,7 @@ async def _has_pairing_list(session: AsyncSession, event_id: int) -> bool:
 
 
 async def _event(session: AsyncSession, event_id: int) -> Event:
-    event = (
-        await session.execute(select(Event).where(Event.id == event_id))
-    ).scalar_one_or_none()
+    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
     if event is None:
         raise HTTPException(status_code=404, detail=f"Matchday {event_id} not found")
     return event
@@ -707,9 +702,7 @@ async def _check_venue(session: AsyncSession, venue_id: int | None) -> None:
 async def _matchday_exists(session: AsyncSession, series_id: int, matchday: int) -> bool:
     match = (
         await session.execute(
-            select(Event.id).where(
-                Event.series_id == series_id, Event.matchday == matchday
-            )
+            select(Event.id).where(Event.series_id == series_id, Event.matchday == matchday)
         )
     ).scalar_one_or_none()
     return match is not None
@@ -744,9 +737,7 @@ async def _with_relationships(session: AsyncSession, event_id: int) -> Event:
 
 class ParticipantSetRequest(BaseModel):
     clubs: list[int] = Field(
-        description=(
-            "Clubs that enter this event. An empty list removes all."
-        )
+        description=("Clubs that enter this event. An empty list removes all.")
     )
 
 
@@ -761,7 +752,7 @@ class ParticipantOut(BaseModel):
 @router.get(
     "/{event_id}/clubs",
     response_model=list[ParticipantOut],
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_manager_for)],
     summary="Event participants",
 )
 async def list_participants(
@@ -775,7 +766,7 @@ async def list_participants(
 @router.put(
     "/{event_id}/clubs",
     response_model=list[ParticipantOut],
-    dependencies=[Depends(require_event_manager)],
+    dependencies=[Depends(require_event_manager_for)],
     summary="Set event participants",
 )
 async def set_participants(
@@ -854,9 +845,7 @@ async def _clubs(session: AsyncSession, club_ids: list[int]) -> list[Club]:
         return []
     found = {
         club.id: club
-        for club in (
-            await session.execute(select(Club).where(Club.id.in_(unique)))
-        ).scalars()
+        for club in (await session.execute(select(Club).where(Club.id.in_(unique)))).scalars()
     }
     missing = [club_id for club_id in unique if club_id not in found]
     if missing:
@@ -864,19 +853,39 @@ async def _clubs(session: AsyncSession, club_ids: list[int]) -> list[Club]:
     return [found[club_id] for club_id in unique]
 
 
-def _can_create(acting: User, host_club_id: int | None) -> None:
+def _reach_of(acting: User):
+    """The WHERE clause for the events a person's tuples reach, or None if none does: the
+    event itself, every event of a series they hold something on, every event a club they
+    hold something on hosts. Manager, race committee and jury alike — each has a screen
+    here."""
+    clauses = []
+    for g in acting.grants:
+        if g.relation not in {Relation.MANAGER, Relation.RACE_OFFICER, Relation.JURY}:
+            continue
+        if g.event_id is not None:
+            clauses.append(Event.id == g.event_id)
+        elif g.series_id is not None:
+            clauses.append(Event.series_id == g.series_id)
+        elif g.club_id is not None:
+            clauses.append(Event.host_club_id == g.club_id)
+    return or_(*clauses) if clauses else None
+
+
+def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -> None:
     """Who is permitted to create an event.
 
-    In addition to administration, editorial, and race officers, also the **host club's
-    leadership**: they organize the event, so they should be able to record the date without
-    waiting for someone else. For a foreign host, this is not possible — otherwise a club
-    would record dates for others.
+    The league office and its race committee; and the **organizers** — the manager of the
+    host club, because they run the event and should record the date without waiting for
+    someone else, and the manager of the series it belongs to (Story Z-2). For a foreign
+    host this is not possible — otherwise a club would record dates for others.
     """
-    if acting.has_any(Role.ADMIN, Role.EDITOR, Role.RACE_OFFICER):
+    if acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
+        return
+    if host_club_id is not None and acting.holds(Relation.MANAGER, club_id=host_club_id):
+        return
+    if series_id is not None and acting.holds(Relation.MANAGER, series_id=series_id):
         return
     if acting.has_any(Role.CLUB_MANAGER) and host_club_id is not None:
-        if acting.manages_club(host_club_id):
-            return
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only host events for your own club.",

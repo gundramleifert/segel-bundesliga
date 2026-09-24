@@ -77,7 +77,10 @@ async def send_login_code(email: str, code: str) -> None:
     except Exception as exc:
         logger.error(
             "Sending the login email to %s via %s:%s failed: %s",
-            email, settings.smtp_host, settings.smtp_port, exc,
+            email,
+            settings.smtp_host,
+            settings.smtp_port,
+            exc,
         )
         raise MailError(str(exc)) from exc
     logger.info("Login email sent to %s via %s:%s", email, settings.smtp_host, settings.smtp_port)

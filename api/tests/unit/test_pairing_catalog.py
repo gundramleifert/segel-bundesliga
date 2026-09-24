@@ -20,12 +20,12 @@ def quality(pairing) -> dict:
 
 class TestTheCatalog:
     def test_the_catalog_knows_the_league_configuration(self):
-        """""18 teams, 6 boats, 16 flights — the Bundesliga matchday."""""
+        """""18 teams, 6 boats, 16 flights — the Bundesliga matchday.""" ""
         zuschnitte = {(e.teams, e.boats, e.flights) for e in catalog_entries()}
         assert (18, 6, 16) in zuschnitte
 
     def test_the_configuration_is_read_from_the_file_not_from_its_name(self):
-        """""A file from the Java tool can be placed in unchanged."""""
+        """""A file from the Java tool can be placed in unchanged.""" ""
         for entry in catalog_entries():
             geladen = load_entry(entry.teams, entry.boats, entry.flights)
             assert geladen.flights == entry.flights
@@ -91,7 +91,7 @@ class TestTheCatalog:
 
 class TestShuffling:
     def test_shuffling_leaves_every_quality_metric_unchanged(self):
-        """""The metrics depend on the structure, not who sits where."""""
+        """""The metrics depend on the structure, not who sits where.""" ""
         pairing = load_entry(18, 6, 16)
         vorher = quality(pairing)
         for seed in (1, 42, 4711):
@@ -106,7 +106,7 @@ class TestShuffling:
             assert sorted(teams) == list(range(18))
 
     def test_derselbe_startwert_ergibt_dieselbe_auslosung(self):
-        """""A draw must be provable in case of dispute."""""
+        """""A draw must be provable in case of dispute.""" ""
         pairing = load_entry(18, 6, 16)
         assert shuffle_pairing(pairing, 42).slots == shuffle_pairing(pairing, 42).slots
 
@@ -115,7 +115,7 @@ class TestShuffling:
         assert shuffle_pairing(pairing, 1).slots != shuffle_pairing(pairing, 2).slots
 
     def test_shuffling_takes_milliseconds(self):
-        """""The whole point: seconds instead of minutes."""""
+        """""The whole point: seconds instead of minutes.""" ""
         import time
 
         pairing = load_entry(18, 6, 16)
@@ -127,7 +127,7 @@ class TestShuffling:
 
 class TestStoringACatalogEntry:
     def test_what_is_written_can_be_read_back(self, tmp_path):
-        """""Without this round, the catalog would only be as good as the file it contains."""""
+        """""Without this round, the catalog would only be as good as the file it contains.""" ""
         pairing = load_entry(12, 6, 8)
         datei = tmp_path / "t12-b6-f8.yml"
         datei.write_text(to_yaml(pairing.slots, pairing.flights), encoding="utf-8")

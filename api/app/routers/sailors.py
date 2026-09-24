@@ -221,9 +221,7 @@ async def list_sailors(
     """
     _can_manage_master_data(acting)
 
-    stmt = apply_search(
-        select(Sailor), q, Sailor.first_name, Sailor.last_name, Sailor.email
-    )
+    stmt = apply_search(select(Sailor), q, Sailor.first_name, Sailor.last_name, Sailor.email)
     sailors, total = await paginate(
         session,
         stmt,
@@ -432,9 +430,7 @@ async def set_squad(
 
     await _not_removing_lined_up(session, team, set(desired), locale)
 
-    await session.execute(
-        delete(TeamMembership).where(TeamMembership.team_id == team.id)
-    )
+    await session.execute(delete(TeamMembership).where(TeamMembership.team_id == team.id))
     session.add_all(
         TeamMembership(team_id=team.id, sailor_id=sailor_id, role=role)
         for sailor_id, role in desired.items()
@@ -496,9 +492,7 @@ async def upload_my_photo(
     return _me_out(sailor)
 
 
-@me_router.delete(
-    "/me/photo", status_code=status.HTTP_204_NO_CONTENT, summary="Remove my photo"
-)
+@me_router.delete("/me/photo", status_code=status.HTTP_204_NO_CONTENT, summary="Remove my photo")
 async def delete_my_photo(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
@@ -629,9 +623,7 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
         image = Image.open(io.BytesIO(raw))
         image.load()
     except Exception as exc:
-        raise Problem(
-            422, "sailor-photo-invalid", "This file is not a readable image."
-        ) from exc
+        raise Problem(422, "sailor-photo-invalid", "This file is not a readable image.") from exc
 
     image = ImageOps.exif_transpose(image) or image
     image = image.convert("RGB")
@@ -646,9 +638,7 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
     image.save(_photo_path(sailor_id), format="JPEG", quality=_JPEG_QUALITY)
 
 
-async def _may_view_minor_photo(
-    session: AsyncSession, acting: User | None, sailor: Sailor
-) -> bool:
+async def _may_view_minor_photo(session: AsyncSession, acting: User | None, sailor: Sailor) -> bool:
     """Who may see a photo that is not public — Story S-2's own open question, resolved here.
 
     An **adult's** photo is public: "so that people see who sails for the club" is the whole
@@ -719,17 +709,13 @@ async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
 
 
 async def _team(session: AsyncSession, team_id: int) -> Team:
-    team = (
-        await session.execute(select(Team).where(Team.id == team_id))
-    ).scalar_one_or_none()
+    team = (await session.execute(select(Team).where(Team.id == team_id))).scalar_one_or_none()
     if team is None:
         raise HTTPException(status_code=404, detail=f"Team {team_id} not found")
     return team
 
 
-async def _email_taken(
-    session: AsyncSession, email: str, *, except_id: int | None = None
-) -> bool:
+async def _email_taken(session: AsyncSession, email: str, *, except_id: int | None = None) -> bool:
     stmt = select(Sailor.id).where(Sailor.email == email)
     if except_id is not None:
         stmt = stmt.where(Sailor.id != except_id)
@@ -738,9 +724,7 @@ async def _email_taken(
 
 async def _all_exist(session: AsyncSession, sailor_ids: set[int]) -> None:
     found = set(
-        (
-            await session.execute(select(Sailor.id).where(Sailor.id.in_(sailor_ids)))
-        ).scalars()
+        (await session.execute(select(Sailor.id).where(Sailor.id.in_(sailor_ids)))).scalars()
     )
     missing = sorted(sailor_ids - found)
     if missing:
@@ -818,8 +802,7 @@ async def _not_removing_lined_up(
             "squad-member-is-lined-up",
             "Some of these people are lined up for a matchday.",
             selections=[
-                {"sailor": f"{first} {last}", "event": title}
-                for first, last, title in selected
+                {"sailor": f"{first} {last}", "event": title} for first, last, title in selected
             ],
         )
 

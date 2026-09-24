@@ -30,7 +30,12 @@ def test_schedule_config_reads_teams_and_boat_colours():
     assert "BYCÜ" in config.teams
     assert "BYC (BA)" in config.teams
     assert [b.color for b in config.boats] == [
-        "BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE"
+        "BLACK",
+        "GREEN",
+        "DARKBLUE",
+        "RED",
+        "GRAY",
+        "ORANGE",
     ]
     assert [b.number for b in config.boats] == [1, 2, 3, 4, 5, 6]
 
@@ -44,17 +49,15 @@ def test_yaml_import_yields_a_complete_matchday():
 
 
 def test_the_first_race_matches_the_printed_list():
-    ""# First line of the YAML file: "2,0,15,12,1,13" — position = boat number."""
+    ""  # First line of the YAML file: "2,0,15,12,1,13" — position = boat number."""
     pairing = load_pairing_yaml(SCHEDULE_CFG, PAIRING_YML)
-    first = sorted(
-        (s for s in pairing.slots if s.sequence == 1), key=lambda s: s.boat_number
-    )
+    first = sorted((s for s in pairing.slots if s.sequence == 1), key=lambda s: s.boat_number)
     assert [s.team_index for s in first] == [2, 0, 15, 12, 1, 13]
     assert pairing.team_name(first[0]) == pairing.teams[2]
 
 
 def test_csv_and_yaml_describe_the_same_draw():
-    ""# CSV is 1-based, YAML is 0-based — both must produce the same result.""
+    ""  # CSV is 1-based, YAML is 0-based — both must produce the same result.""
     from_yaml = load_pairing_yaml(SCHEDULE_CFG, PAIRING_YML)
     from_csv = load_pairing_csv(SCHEDULE_CFG, PAIRING_CSV)
     assert sorted(from_csv.slots, key=_slot_key) == sorted(from_yaml.slots, key=_slot_key)
@@ -68,7 +71,7 @@ def test_every_team_sails_exactly_once_per_flight():
 
 
 def test_the_official_draw_sets_the_quality_benchmark():
-    """""The actual draw sailed — the benchmark for our fallback.
+    """ ""The actual draw sailed — the benchmark for our fallback.
 
     With 16 flights and 6 boats, a team sails each boat on average 2.67 times; the Java
     tool allows a spread of 2 and thus gains a tighter
@@ -91,12 +94,8 @@ class TestAnIncompleteFleet:
     Fixture: Event ``2024-04-06_JSCL-Vilamoura``, Youth Sailing Champions League.
     """
 
-    CFG = (FIXTURES.parent / "pairing-17teams" / "schedule_cfg.yml").read_text(
-        encoding="utf-8"
-    )
-    YML = (FIXTURES.parent / "pairing-17teams" / "pairing_list.yml").read_text(
-        encoding="utf-8"
-    )
+    CFG = (FIXTURES.parent / "pairing-17teams" / "schedule_cfg.yml").read_text(encoding="utf-8")
+    YML = (FIXTURES.parent / "pairing-17teams" / "pairing_list.yml").read_text(encoding="utf-8")
 
     def test_the_roster_is_not_a_multiple_of_the_fleet(self):
         config = parse_schedule_config(self.CFG)

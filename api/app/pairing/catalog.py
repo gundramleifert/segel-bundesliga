@@ -127,9 +127,7 @@ def catalog_entries(base: Path | None = None) -> list[CatalogEntry]:
         except (PairingImportError, yaml.YAMLError, OSError):
             # An unreadable file must not make the catalog unusable.
             continue
-        entries.append(
-            CatalogEntry(teams=teams, boats=boats, flights=flights, file=path)
-        )
+        entries.append(CatalogEntry(teams=teams, boats=boats, flights=flights, file=path))
     return sorted(entries, key=lambda e: (e.teams, e.boats, e.flights))
 
 
@@ -157,10 +155,7 @@ def load_entry(
     )
     if not fitting:
         available = (
-            ", ".join(
-                f"{e.teams}/{e.boats}/{e.flights}" for e in catalog_entries(base)
-            )
-            or "none"
+            ", ".join(f"{e.teams}/{e.boats}/{e.flights}" for e in catalog_entries(base)) or "none"
         )
         raise CatalogError(
             f"For {teams} teams on {boats} boats over {flights} flights, no "
@@ -175,9 +170,7 @@ def load_entry(
             entry.file.read_text(encoding="utf-8"),
         )
     except PairingImportError as error:
-        raise CatalogError(
-            f"Catalog entry {entry.name} is unusable: {error}"
-        ) from error
+        raise CatalogError(f"Catalog entry {entry.name} is unusable: {error}") from error
     return first_flights(stored, flights)
 
 
@@ -204,9 +197,7 @@ def shuffle_pairing(pairing: ImportedPairing, seed: int) -> ImportedPairing:
     random.Random(seed).shuffle(permutation)
 
     slots = [
-        replace(slot, team_index=permutation[slot.team_index])
-        if slot.team_index < count
-        else slot
+        replace(slot, team_index=permutation[slot.team_index]) if slot.team_index < count else slot
         for slot in pairing.slots
     ]
     return replace(pairing, slots=slots)
@@ -295,9 +286,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    content = asyncio.run(
-        _generate(args.teams, args.boats, args.flights, args.seed, args.loops)
-    )
+    content = asyncio.run(_generate(args.teams, args.boats, args.flights, args.seed, args.loops))
     SCHEDULE_DIR.mkdir(parents=True, exist_ok=True)
     target = SCHEDULE_DIR / f"t{args.teams}-b{args.boats}-f{args.flights}.yml"
     target.write_text(content, encoding="utf-8")

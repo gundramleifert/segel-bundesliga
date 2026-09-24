@@ -145,14 +145,10 @@ class Event(Base, TimestampMixin):
     published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
     # Empty when the event stands on its own.
-    series_id: Mapped[int | None] = mapped_column(
-        ForeignKey("series.id"), index=True, default=None
-    )
+    series_id: Mapped[int | None] = mapped_column(ForeignKey("series.id"), index=True, default=None)
     # The venue is often not yet settled when creating an event — the host and date
     # usually already are.
-    venue_id: Mapped[int | None] = mapped_column(
-        ForeignKey("venue.id"), index=True, default=None
-    )
+    venue_id: Mapped[int | None] = mapped_column(ForeignKey("venue.id"), index=True, default=None)
     # The hosting club. Not the same as the venue: DTYC hosts in Tutzing, but a club can
     # also host elsewhere.
     host_club_id: Mapped[int | None] = mapped_column(

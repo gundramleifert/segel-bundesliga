@@ -126,9 +126,7 @@ async def test_a_team_outside_the_list_is_refused():
 @needs_jar
 async def test_the_organizers_font_size_wins_over_the_tools_own():
     """The organizer knows the venue's printer; the tool only knows the configuration."""
-    small = await render_pdf(
-        request_for(teams=18, flights=16, settings=PrintSettings(font_size=6))
-    )
+    small = await render_pdf(request_for(teams=18, flights=16, settings=PrintSettings(font_size=6)))
     large = await render_pdf(
         request_for(teams=18, flights=16, settings=PrintSettings(font_size=12))
     )

@@ -17,7 +17,7 @@ from app.auth import current_user
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Event, EventCrew, Sailor, Team, TeamMembership, TeamStatus
-from app.models.auth import Role, User
+from app.models.auth import Relation, Role, User
 from app.models.org import CrewRole
 from app.schemas.public import MemberOut
 from app.services import ParticipationError, event_entry, squad_team
@@ -81,7 +81,7 @@ async def set_crew(
     event = await _event(session, event_id)
     team = await _participation(session, event, request.team_id)
 
-    _check_permissions(acting, team)
+    _check_permissions(acting, team, event)
 
     desired = {member.sailor_id: member.role for member in request.members}
     if len(desired) != len(request.members):
@@ -103,9 +103,7 @@ async def set_crew(
         await _not_elsewhere_lined_up(session, event.id, team.id, set(desired))
 
     await session.execute(
-        delete(EventCrew).where(
-            EventCrew.event_id == event.id, EventCrew.team_id == team.id
-        )
+        delete(EventCrew).where(EventCrew.event_id == event.id, EventCrew.team_id == team.id)
     )
     session.add_all(
         EventCrew(event_id=event.id, team_id=team.id, sailor_id=sailor_id, role=role)
@@ -119,9 +117,7 @@ async def set_crew(
 
 
 async def _event(session: AsyncSession, event_id: int) -> Event:
-    event = (
-        await session.execute(select(Event).where(Event.id == event_id))
-    ).scalar_one_or_none()
+    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
     if event is None:
         raise HTTPException(status_code=404, detail=f"Matchday {event_id} not found")
     return event
@@ -133,9 +129,7 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
     Lineup is always at the entry, not at the series registration — the lineup applies to
     one matchday. Either can be specified: the club is what matters.
     """
-    team = (
-        await session.execute(select(Team).where(Team.id == team_id))
-    ).scalar_one_or_none()
+    team = (await session.execute(select(Team).where(Team.id == team_id))).scalar_one_or_none()
     if team is None:
         raise HTTPException(status_code=404, detail="This team does not exist.")
 
@@ -148,8 +142,10 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
     return found
 
 
-def _check_permissions(acting: User, team: Team) -> None:
-    if acting.has_any(Role.ADMIN, Role.RACE_OFFICER):
+def _check_permissions(acting: User, team: Team, event: Event) -> None:
+    # The event's organizer and race committee — held on the event, its series, its host
+    # club or the site (Story Z-2) — may line up a crew; one for a different event may not.
+    if acting.can(Relation.MANAGER, Relation.RACE_OFFICER, on=event):
         return
     if not acting.has_any(Role.CLUB_MANAGER):
         raise HTTPException(
@@ -163,9 +159,7 @@ def _check_permissions(acting: User, team: Team) -> None:
         )
 
 
-async def _from_squad(
-    session: AsyncSession, team_id: int, sailor_ids: set[int]
-) -> None:
+async def _from_squad(session: AsyncSession, team_id: int, sailor_ids: set[int]) -> None:
     """The core of the rule: only those registered for the series can be lined up.
 
     ``team_id`` is the team with the squad — for an act, the club's series registration,
@@ -187,19 +181,14 @@ async def _from_squad(
 
     names = (
         await session.execute(
-            select(Sailor.id, Sailor.first_name, Sailor.last_name).where(
-                Sailor.id.in_(external)
-            )
+            select(Sailor.id, Sailor.first_name, Sailor.last_name).where(Sailor.id.in_(external))
         )
     ).all()
     name_list = ", ".join(f"{first} {last}" for _, first, last in names)
     description = name_list or ", ".join(map(str, external))
     raise HTTPException(
         status_code=422,
-        detail=(
-            f"Not in this team's squad: {description}. "
-            "Register first, then line up."
-        ),
+        detail=(f"Not in this team's squad: {description}. Register first, then line up."),
     )
 
 
@@ -208,20 +197,22 @@ async def _not_elsewhere_lined_up(
 ) -> None:
     """No one sails for two teams in a single matchday."""
     duplicates = (
-        await session.execute(
-            select(EventCrew.sailor_id).where(
-                EventCrew.event_id == event_id,
-                EventCrew.team_id != team_id,
-                EventCrew.sailor_id.in_(sailor_ids),
+        (
+            await session.execute(
+                select(EventCrew.sailor_id).where(
+                    EventCrew.event_id == event_id,
+                    EventCrew.team_id != team_id,
+                    EventCrew.sailor_id.in_(sailor_ids),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     if duplicates:
         raise HTTPException(
             status_code=409,
-            detail=(
-                "This person is already lined up for another team in this matchday."
-            ),
+            detail=("This person is already lined up for another team in this matchday."),
         )
 
 

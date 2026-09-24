@@ -196,9 +196,7 @@ class TestDecidingOnApplications:
         admin, club, application = await self._antrag(
             client, caplog, "Zweiter Anlauf Segelclub", "tn11", ids
         )
-        await client.post(
-            f"/api/admin/applications/{application['team_id']}/reject", headers=admin
-        )
+        await client.post(f"/api/admin/applications/{application['team_id']}/reject", headers=admin)
 
         headers = {"Authorization": f"Bearer {await login_as(client, 'tn11@example.com', caplog)}"}
         retry = await client.post(
@@ -222,26 +220,26 @@ class TestDecidingOnApplications:
         admin, _club, application = await self._antrag(
             client, caplog, "Protokollierter Segelclub", "tn13", ids
         )
-        await client.post(
-            f"/api/admin/applications/{application['team_id']}/accept", headers=admin
-        )
+        await client.post(f"/api/admin/applications/{application['team_id']}/accept", headers=admin)
 
         async with SessionLocal() as session:
             entry = (
-                await session.execute(
-                    select(AuditLog).where(
-                        AuditLog.entity_type == "team",
-                        AuditLog.entity_id == application["team_id"],
+                (
+                    await session.execute(
+                        select(AuditLog).where(
+                            AuditLog.entity_type == "team",
+                            AuditLog.entity_id == application["team_id"],
+                        )
                     )
                 )
-            ).scalars().first()
+                .scalars()
+                .first()
+            )
         assert entry is not None
         assert entry.payload["to"] == "accepted"
         assert entry.actor == "tn13-adm@example.com"
 
-    async def test_an_entry_with_results_cannot_be_withdrawn(
-        self, client, caplog, ids
-    ):
+    async def test_an_entry_with_results_cannot_be_withdrawn(self, client, caplog, ids):
         """A team that has raced has results attached."""
         admin = await as_role(client, caplog, "tn14@example.com", Role.ADMIN)
         raced = (
@@ -278,9 +276,7 @@ class TestEnteringAnEvent:
     whoever participates must also be registered for the series.
     """
 
-    async def test_a_club_registers_for_a_standalone_event(
-        self, client, caplog, ids
-    ):
+    async def test_a_club_registers_for_a_standalone_event(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tv1a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Pokal Segelclub")
         event = (
@@ -368,9 +364,7 @@ class TestEnteringAnEvent:
         assert result.status_code == 200, result.text
         assert [z["status"] for z in result.json()] == ["accepted"]
 
-    async def test_an_approval_from_above_lifts_the_open_application(
-        self, client, caplog, ids
-    ):
+    async def test_an_approval_from_above_lifts_the_open_application(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tv5a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Doppelweg Segelclub")
         event = (
@@ -411,9 +405,7 @@ class TestEnteringAnEvent:
         ).json()
 
         participants = (
-            await client.get(
-                f"/api/admin/events/{created['id']}/clubs", headers=admin
-            )
+            await client.get(f"/api/admin/events/{created['id']}/clubs", headers=admin)
         ).json()
         # Intentionally checked against the series and not a fixed number: other stories
         # register clubs afterwards. The claim is that the act takes exactly its series' clubs.
@@ -423,9 +415,7 @@ class TestEnteringAnEvent:
         assert {z["club"]["id"] for z in participants} == {c["id"] for c in s["clubs"]}
         assert all(z["status"] == "accepted" for z in participants)
 
-    async def test_either_a_series_or_an_event_but_not_both(
-        self, client, caplog, ids
-    ):
+    async def test_either_a_series_or_an_event_but_not_both(self, client, caplog, ids):
         admin = await as_role(client, caplog, "tv7a@example.com", Role.ADMIN)
         club = await new_club(client, admin, "Zwiespaeltiger Segelclub")
         headers = await club_leadership(client, caplog, "tv7b@example.com", club["id"])
@@ -450,18 +440,16 @@ class TestOnlyTheClubOrganizerRegisters:
         club = await new_club(client, admin, "Mitglieder Segelclub")
 
         headers = await club_leadership(client, caplog, "nv1b@example.com", club["id"])
-        # Remove the role again: registration only works with club_manager.
+        # Delete the tuple again: registration only works for the club's manager.
         async with SessionLocal() as session:
             from sqlalchemy import delete
 
-            from app.models.auth import UserRole
+            from app.models.auth import Grant
 
             user = (
-                await session.execute(
-                    select(User).where(User.email == "nv1b@example.com")
-                )
+                await session.execute(select(User).where(User.email == "nv1b@example.com"))
             ).scalar_one()
-            await session.execute(delete(UserRole).where(UserRole.user_id == user.id))
+            await session.execute(delete(Grant).where(Grant.user_id == user.id))
             await session.commit()
 
         response = await client.post(

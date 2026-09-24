@@ -111,9 +111,7 @@ async def event_readiness(session: AsyncSession, event: Event) -> list[Readiness
 
     boats = int(
         (
-            await session.execute(
-                select(func.count(Boat.id)).where(Boat.event_id == event.id)
-            )
+            await session.execute(select(func.count(Boat.id)).where(Boat.event_id == event.id))
         ).scalar_one()
     )
     if boats != event.boat_count:
@@ -158,9 +156,7 @@ async def event_readiness(session: AsyncSession, event: Event) -> list[Readiness
     return reasons
 
 
-async def configuration_frozen(
-    session: AsyncSession, event_id: int
-) -> FrozenConfiguration | None:
+async def configuration_frozen(session: AsyncSession, event_id: int) -> FrozenConfiguration | None:
     """Whether racing has begun, so the setup must stay as it is.
 
     The trigger is precise and does not depend on ``Event.status``, which someone can set

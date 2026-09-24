@@ -196,12 +196,36 @@
       "admin": "Verwaltung",
       "editor": "Redaktion",
       "race_officer": "Wettfahrtleitung",
-      "club_manager": "Vereinsmanager"
+      "club_manager": "Vereinsmanager",
+      "event_manager": "Veranstaltungsleitung",
+      "jury": "Jury"
     },
     "nameHeader": "Name",
     "emailHeader": "E-Mail",
     "clubHeader": "Verein",
-    "rolesHeader": "Rollen"
+    "rolesHeader": "Zugriff",
+    "revoke": "Entziehen",
+    "tupleSite": "gesamte Seite",
+    "tupleNone": "kein Zugriff vergeben",
+    "tupleAdd": "Zugriff vergeben",
+    "tupleTypeLabel": "Für",
+    "tupleRelationLabel": "Als",
+    "tupleObjectLabel": "Welche",
+    "tupleButton": "Vergeben",
+    "tupleCancel": "Abbrechen",
+    "relationLabels": {
+      "admin": "Verwaltung",
+      "editor": "Redaktion",
+      "manager": "Organisation",
+      "race_officer": "Wettfahrtleitung",
+      "jury": "Jury"
+    },
+    "objectTypeLabels": {
+      "site": "Gesamte Seite",
+      "club": "Einen Verein",
+      "series": "Eine Serie",
+      "event": "Eine Veranstaltung"
+    }
   },
   "page": {
     "title": "Verwaltung",
@@ -310,5 +334,14 @@
     "squadMaxLabel": "Höchstens",
     "saveSquadLimitsButton": "Kadergröße speichern",
     "squadLimitsSavedMessage": "Kadergröße gespeichert."
+  },
+  "access": {
+    "title": "Personen",
+    "hint": "Wer diese Veranstaltung durchführt: Organisation, Wettfahrtleitung und Jury. Die Organisation kann hier Personen hinzufügen und entfernen.",
+    "empty": "Für diese Veranstaltung ist noch niemand benannt — Geschäftsstelle und die Organisation des ausrichtenden Vereins können trotzdem handeln.",
+    "emailLabel": "E-Mail eines bestehenden Kontos",
+    "relationLabel": "Als",
+    "addButton": "Hinzufügen",
+    "revoke": "Entfernen"
   }
 }

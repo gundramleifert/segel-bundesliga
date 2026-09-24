@@ -135,12 +135,20 @@ class TestOwnProfile:
         caller's own row. Editing my profile must leave a namesake untouched."""
         admin = await _admin(client, caplog)
         anna_id = await _new_sailor(
-            client, admin, email="profil.anna2@example.com", birth_date=_ADULT_BIRTH,
-            first="Anna", last="Eins",
+            client,
+            admin,
+            email="profil.anna2@example.com",
+            birth_date=_ADULT_BIRTH,
+            first="Anna",
+            last="Eins",
         )
         bea_id = await _new_sailor(
-            client, admin, email="profil.bea@example.com", birth_date=_ADULT_BIRTH,
-            first="Bea", last="Zwei",
+            client,
+            admin,
+            email="profil.bea@example.com",
+            birth_date=_ADULT_BIRTH,
+            first="Bea",
+            last="Zwei",
         )
         anna = await _account_for(client, caplog, "profil.anna2@example.com")
 
@@ -161,9 +169,7 @@ class TestOwnPhoto:
 
     async def test_upload_replace_and_delete_round_trip(self, client, caplog):
         admin = await _admin(client, caplog)
-        await _new_sailor(
-            client, admin, email="profil.foto@example.com", birth_date=_ADULT_BIRTH
-        )
+        await _new_sailor(client, admin, email="profil.foto@example.com", birth_date=_ADULT_BIRTH)
         account = await _account_for(client, caplog, "profil.foto@example.com")
 
         no_photo = await client.get("/api/sailors/me", headers=account)
@@ -221,9 +227,7 @@ class TestOwnPhoto:
 
     async def test_an_absurdly_large_upload_is_rejected_before_processing(self, client, caplog):
         admin = await _admin(client, caplog)
-        await _new_sailor(
-            client, admin, email="profil.riesig@example.com", birth_date=_ADULT_BIRTH
-        )
+        await _new_sailor(client, admin, email="profil.riesig@example.com", birth_date=_ADULT_BIRTH)
         account = await _account_for(client, caplog, "profil.riesig@example.com")
 
         oversized = b"\xff" * (5 * 1024 * 1024 + 1)

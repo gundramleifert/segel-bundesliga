@@ -64,15 +64,11 @@ class WaiverText(Base, TimestampMixin):
     body_de: Mapped[str] = mapped_column(Text)
 
     # When it went live. Set once, never moved — the text is frozen from here on.
-    published_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow
-    )
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # Internal changelog: "added engine-failure clause". Not shown to sailors.
     notes: Mapped[str | None] = mapped_column(String(500), default=None)
 
-    confirmations: Mapped[list[WaiverConfirmation]] = relationship(
-        back_populates="waiver_text"
-    )
+    confirmations: Mapped[list[WaiverConfirmation]] = relationship(back_populates="waiver_text")
 
     def title(self, locale: str) -> str:
         return self.title_de if locale == "de" else self.title_en
@@ -123,16 +119,10 @@ class WaiverConfirmation(Base, TimestampMixin):
     waiver_text_id: Mapped[int] = mapped_column(ForeignKey("waiver_text.id"), index=True)
 
     # Exactly one of these is set — the check constraint enforces it.
-    series_id: Mapped[int | None] = mapped_column(
-        ForeignKey("series.id"), index=True, default=None
-    )
-    event_id: Mapped[int | None] = mapped_column(
-        ForeignKey("event.id"), index=True, default=None
-    )
+    series_id: Mapped[int | None] = mapped_column(ForeignKey("series.id"), index=True, default=None)
+    event_id: Mapped[int | None] = mapped_column(ForeignKey("event.id"), index=True, default=None)
 
-    confirmed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utcnow
-    )
+    confirmed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     method: Mapped[str] = mapped_column(String(16), default=WaiverMethod.ONLINE)
     # The language of the text the sailor was actually shown.
     locale_shown: Mapped[str] = mapped_column(String(2), default="en")
@@ -140,9 +130,7 @@ class WaiverConfirmation(Base, TimestampMixin):
     # The signed-in account that recorded this — usually the sailor's own, but an admin or
     # club manager may enter a paper form. Kept for the audit trail; the account can later
     # be deactivated, so no cascade.
-    recorded_by_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("app_user.id"), default=None
-    )
+    recorded_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("app_user.id"), default=None)
     user_agent: Mapped[str | None] = mapped_column(String(400), default=None)
 
     # Minors only.
@@ -156,7 +144,4 @@ class WaiverConfirmation(Base, TimestampMixin):
 
     @property
     def is_guardian_signed(self) -> bool:
-        return (
-            self.method == WaiverMethod.GUARDIAN
-            and bool(self.guardian_signature_ref)
-        )
+        return self.method == WaiverMethod.GUARDIAN and bool(self.guardian_signature_ref)

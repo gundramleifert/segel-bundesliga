@@ -17,9 +17,7 @@ CLUB = "nrv"
 async def first_club() -> int:
     """The club ID — routes address via the primary key."""
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(Club.id).where(Club.slug == CLUB))
-        ).scalar_one()
+        return (await session.execute(select(Club.id).where(Club.slug == CLUB))).scalar_one()
 
 
 class TestClubPage:
@@ -64,9 +62,7 @@ class TestClubPage:
         assert set(member) == {"id", "first_name", "last_name", "role"}
 
     async def test_different_year_can_be_retrieved(self, client):
-        response = await client.get(
-            f"/api/clubs/{await first_club()}", params={"year": 1999}
-        )
+        response = await client.get(f"/api/clubs/{await first_club()}", params={"year": 1999})
         assert response.status_code == 200
         # 1999 the series didn't exist — the page is still retrievable.
         assert response.json()["teams"] == []

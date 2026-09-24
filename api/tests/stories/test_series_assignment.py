@@ -198,7 +198,7 @@ class TestYearTransition:
         assert {"dsbl-2-2026", "dsbl-1-2027"} <= series_slugs
 
     async def test_future_year_does_not_move_public_page(self, client, caplog):
-        """"DSBL 2099" is created for assignment.
+        """ "DSBL 2099" is created for assignment.
 
         It must not move the public page to a year where no one has registered yet —
         otherwise the website would be empty after creation.
@@ -228,15 +228,11 @@ class TestSeriesNaming:
         assert {"dsbl-1-2026", "dsbl-2-2026", "junioren-2026", "scl-2026"} <= series_slugs
 
     async def test_series_table_includes_year(self, client, ids):
-        table = (
-            await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")
-        ).json()
+        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
         assert table["series"]["name"] == "1. Segel-Bundesliga 2026"
 
     async def test_event_shows_its_series(self, client, ids):
-        detail = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")
-        ).json()
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
         assert detail["event"]["series"]["name"] == "1. Segel-Bundesliga 2026"
 
     async def test_assignment_shows_series_name(self, client, caplog, ids):

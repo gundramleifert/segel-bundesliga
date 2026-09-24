@@ -157,9 +157,7 @@ class TestVersioning:
 
 
 class TestConfirming:
-    async def test_a_series_confirmation_clears_every_event_of_it(
-        self, client, caplog, ids
-    ):
+    async def test_a_series_confirmation_clears_every_event_of_it(self, client, caplog, ids):
         admin = await _admin(client, caplog)
         sailor_id, email = await _squad_sailor("dsbl-1-2026", offset=10)
         sailor = await _account_for(client, caplog, email)
@@ -184,9 +182,7 @@ class TestConfirming:
             )
             assert _row(checklist, sailor_id)["status"] == "cleared"
 
-    async def test_an_event_confirmation_leaves_the_other_events_open(
-        self, client, caplog, ids
-    ):
+    async def test_an_event_confirmation_leaves_the_other_events_open(self, client, caplog, ids):
         admin = await _admin(client, caplog)
         sailor_id, email = await _squad_sailor("dsbl-1-2026", offset=20)
         sailor = await _account_for(client, caplog, email)
@@ -207,9 +203,7 @@ class TestConfirming:
         assert _row(first, sailor_id)["status"] == "cleared"
         assert _row(second, sailor_id)["status"] == "missing"
 
-    async def test_confirming_the_same_version_twice_is_rejected(
-        self, client, caplog, ids
-    ):
+    async def test_confirming_the_same_version_twice_is_rejected(self, client, caplog, ids):
         sailor_id, email = await _squad_sailor("dsbl-1-2026", offset=30)
         sailor = await _account_for(client, caplog, email)
         url = f"/api/series/{ids.series('dsbl-1-2026')}/waiver"
@@ -252,13 +246,9 @@ class TestMinors:
         assert response.status_code == 422
         assert response.json()["type"] == "/errors/guardian-confirmation-needed"
 
-    async def test_a_sailor_without_a_birth_date_cannot_be_confirmed(
-        self, client, caplog, ids
-    ):
+    async def test_a_sailor_without_a_birth_date_cannot_be_confirmed(self, client, caplog, ids):
         admin = await _admin(client, caplog)
-        sailor_id = await _new_sailor(
-            client, admin, email="wv-nodob@example.com", birth_date=None
-        )
+        sailor_id = await _new_sailor(client, admin, email="wv-nodob@example.com", birth_date=None)
         response = await client.post(
             f"/api/series/{ids.series('junioren-2026')}/waiver",
             headers=admin,
@@ -287,9 +277,7 @@ class TestMinors:
         assert confirmed.status_code == 201, confirmed.text
         assert confirmed.json()["cleared"] is True
 
-        checklist = await client.get(
-            f"/api/admin/events/{event_id}/waivers", headers=admin
-        )
+        checklist = await client.get(f"/api/admin/events/{event_id}/waivers", headers=admin)
         row = _row(checklist, sailor_id)
         assert row["status"] == "cleared"
         assert row["minor"] is True
@@ -314,9 +302,7 @@ class TestMinors:
         assert pending.json()["cleared"] is False
         assert (
             _row(
-                await client.get(
-                    f"/api/admin/events/{event_id}/waivers", headers=admin
-                ),
+                await client.get(f"/api/admin/events/{event_id}/waivers", headers=admin),
                 sailor_id,
             )["status"]
             == "guardian_signature_missing"
@@ -336,9 +322,7 @@ class TestMinors:
         admin = await _admin(client, caplog)
         event_id = await _junior_event(client, admin, ids.series("junioren-2026"))
 
-        summary = (
-            await client.get(f"/api/admin/events/{event_id}/waivers", headers=admin)
-        ).json()
+        summary = (await client.get(f"/api/admin/events/{event_id}/waivers", headers=admin)).json()
         assert summary["required_version"] == 1
         assert summary["cleared"] + summary["outstanding"] == len(summary["sailors"])
         # Nobody has confirmed for this fresh event yet.
@@ -492,9 +476,7 @@ class TestSelfService:
         assert row["minor"] is True
         assert row["sailor_id"] == sailor_id
 
-    async def test_the_form_is_a_pdf_carrying_the_sailor_and_the_wording(
-        self, client, caplog, ids
-    ):
+    async def test_the_form_is_a_pdf_carrying_the_sailor_and_the_wording(self, client, caplog, ids):
         sailor_id, email = await _squad_sailor("junioren-2026", offset=33)
         me = await _account_for(client, caplog, email)
         async with SessionLocal() as session:
@@ -574,9 +556,7 @@ class TestScans:
         assert scan.headers["content-type"] == "image/png"
         assert scan.content == _png()
 
-    async def test_a_scan_completes_a_confirmation_whose_name_came_first(
-        self, client, caplog, ids
-    ):
+    async def test_a_scan_completes_a_confirmation_whose_name_came_first(self, client, caplog, ids):
         admin = await _admin(client, caplog)
         sailor_id, email = await _squad_sailor("junioren-2026", offset=39)
         series_id = ids.series("junioren-2026")
@@ -660,7 +640,9 @@ class TestScans:
                                 AuditLog.action == "viewed",
                             )
                         )
-                    ).scalars().all()
+                    )
+                    .scalars()
+                    .all()
                 )
 
         before = await logged()

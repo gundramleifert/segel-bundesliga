@@ -43,9 +43,7 @@ async def compute_event(session: AsyncSession, event_id: int) -> list[TeamScore]
     #
     # A standalone event belongs to no series and thus has no scoring parameters — then
     # the defaults apply.
-    series = (
-        await session.get(Series, event.series_id) if event.series_id is not None else None
-    )
+    series = await session.get(Series, event.series_id) if event.series_id is not None else None
 
     rows = (
         await session.execute(
@@ -100,9 +98,7 @@ async def recompute_event(session: AsyncSession, event_id: int) -> list[TeamScor
         for score in scores
         for race_id, points in score.points_by_race.items()
     }
-    discarded = {
-        (score.team_id, race_id) for score in scores for race_id in score.discarded_races
-    }
+    discarded = {(score.team_id, race_id) for score in scores for race_id in score.discarded_races}
 
     for entry in entries:
         key = (entry.team_id, entry.race_id)
@@ -156,12 +152,16 @@ async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRo
     ``rank`` — the model already supports it.
     """
     events = (
-        await session.execute(
-            select(Event)
-            .where(Event.series_id == series_id)
-            .order_by(Event.matchday.nulls_last(), Event.starts_on)
+        (
+            await session.execute(
+                select(Event)
+                .where(Event.series_id == series_id)
+                .order_by(Event.matchday.nulls_last(), Event.starts_on)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     scored_events = [event for event in events if event.status in SCORED_STATES]
 
     # The series registrations — including clubs that missed an act. The series table
@@ -233,9 +233,7 @@ async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRo
 async def recompute_series(session: AsyncSession, series_id: int) -> list[SeriesRow]:
     """Rebuilds the series table and writes it forward."""
     events = (
-        await session.execute(
-            select(Event.id, Event.status).where(Event.series_id == series_id)
-        )
+        await session.execute(select(Event.id, Event.status).where(Event.series_id == series_id))
     ).all()
     for event_id, status in events:
         if status in SCORED_STATES:
@@ -244,9 +242,7 @@ async def recompute_series(session: AsyncSession, series_id: int) -> list[Series
     rows = await compute_series(session, series_id)
 
     now = datetime.now(UTC)
-    await session.execute(
-        delete(SeriesStanding).where(SeriesStanding.series_id == series_id)
-    )
+    await session.execute(delete(SeriesStanding).where(SeriesStanding.series_id == series_id))
     session.add_all(
         SeriesStanding(
             series_id=series_id,

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { IdentityOut } from './identityOut';
+import type { TupleOut } from './tupleOut';
 
 export interface UserOut {
   id: number;
@@ -14,6 +15,8 @@ export interface UserOut {
   is_active: boolean;
   email_verified: boolean;
   club_id: number | null;
+  /** The summary roles derived from the tuples — what the navigation shows tabs by */
   roles: string[];
+  tuples: TupleOut[];
   identities: IdentityOut[];
 }

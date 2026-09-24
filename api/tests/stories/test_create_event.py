@@ -37,9 +37,7 @@ async def league_clubs(client) -> list[int]:
 
 async def club_id(slug: str) -> int:
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(Club.id).where(Club.slug == slug))
-        ).scalar_one()
+        return (await session.execute(select(Club.id).where(Club.slug == slug))).scalar_one()
 
 
 async def event_with_participants(
@@ -90,9 +88,7 @@ class TestCreateEvent:
     async def test_boats_get_color_and_name(self, client, caplog):
         """On the water, people refer to color and name."""
         headers = await admin(client, caplog, "va2@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Boat Cup", "2026-10-10"
-        )
+        event_id = await event_with_participants(client, headers, "Boat Cup", "2026-10-10")
 
         pairing = (await client.get(f"/api/events/{event_id}/pairing")).json()
         assert [boat["color"] for boat in pairing["boats"]] == [b["color"] for b in BOATS]
@@ -143,7 +139,12 @@ class TestCreateEvent:
 
         pairing = (await client.get(f"/api/events/{created['id']}/pairing")).json()
         assert [boat["color"] for boat in pairing["boats"]] == [
-            "BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE"
+            "BLACK",
+            "GREEN",
+            "DARKBLUE",
+            "RED",
+            "GRAY",
+            "ORANGE",
         ]
 
     async def test_boat_count_derives_from_specified_boats(self, client, caplog):
@@ -161,9 +162,7 @@ class TestCreateEvent:
         ).json()
         assert created["boat_count"] == 4
 
-    async def test_club_leadership_can_host_for_own_club(
-        self, client, caplog
-    ):
+    async def test_club_leadership_can_host_for_own_club(self, client, caplog):
         """The host should be able to record the date without waiting for someone."""
         club = await club_id("kyc")
         await make_user("va5@example.com", Role.CLUB_MANAGER, club_id=club)
@@ -211,20 +210,12 @@ class TestPairingFromCatalog:
 
     async def test_catalog_lists_ready_dimensions(self, client, caplog):
         headers = await admin(client, caplog, "pk1@example.com")
-        entries = (
-            await client.get("/api/admin/pairing/catalog", headers=headers)
-        ).json()
-        assert any(
-            (e["teams"], e["boats"], e["flights"]) == (18, 6, 16) for e in entries
-        )
+        entries = (await client.get("/api/admin/pairing/catalog", headers=headers)).json()
+        assert any((e["teams"], e["boats"], e["flights"]) == (18, 6, 16) for e in entries)
 
-    async def test_catalog_produces_complete_pairing_list(
-        self, client, caplog
-    ):
+    async def test_catalog_produces_complete_pairing_list(self, client, caplog):
         headers = await admin(client, caplog, "pk2@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Catalog Cup", "2026-11-28"
-        )
+        event_id = await event_with_participants(client, headers, "Catalog Cup", "2026-11-28")
 
         response = await client.post(
             f"/api/admin/events/{event_id}/pairing/from-catalog",
@@ -277,9 +268,7 @@ class TestPairingFromCatalog:
     async def test_quality_of_stored_list_is_preserved(self, client, caplog):
         """Only who sits where is shuffled — not the structure."""
         headers = await admin(client, caplog, "pk3@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Quality Cup", "2026-12-05"
-        )
+        event_id = await event_with_participants(client, headers, "Quality Cup", "2026-12-05")
 
         report = (
             await client.post(
@@ -294,9 +283,7 @@ class TestPairingFromCatalog:
     async def test_same_seed_produces_same_draw(self, client, caplog):
         """In case of dispute, a draw must be reproducible."""
         headers = await admin(client, caplog, "pk4@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Repeat Cup", "2026-12-12"
-        )
+        event_id = await event_with_participants(client, headers, "Repeat Cup", "2026-12-12")
 
         async def draw(seed: int) -> list:
             await client.post(
@@ -314,14 +301,10 @@ class TestPairingFromCatalog:
         assert await draw(99) == first
         assert await draw(100) != first
 
-    async def test_event_boats_survive_redraw(
-        self, client, caplog
-    ):
+    async def test_event_boats_survive_redraw(self, client, caplog):
         """The same boats are at the dock, regardless of how often redrawing happens."""
         headers = await admin(client, caplog, "pk5@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Dock Cup", "2026-12-19"
-        )
+        event_id = await event_with_participants(client, headers, "Dock Cup", "2026-12-19")
 
         for seed in (1, 2):
             await client.post(

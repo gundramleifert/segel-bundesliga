@@ -156,9 +156,7 @@ def _discard_count(races_sailed: int, config: ScoringConfig) -> int:
     return sum(1 for threshold in config.discard_after if races_sailed >= threshold)
 
 
-def _pick_discards(
-    results: list[RaceResult], points: dict[int, float], count: int
-) -> set[int]:
+def _pick_discards(results: list[RaceResult], points: dict[int, float], count: int) -> set[int]:
     """Discards the worst results — non-discardable codes excluded."""
     if count <= 0:
         return set()

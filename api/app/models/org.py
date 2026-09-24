@@ -151,22 +151,16 @@ class Team(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(120))
     club_id: Mapped[int] = mapped_column(ForeignKey("club.id"), index=True)
     # Empty only for a standalone event that belongs to no series.
-    series_id: Mapped[int | None] = mapped_column(
-        ForeignKey("series.id"), index=True, default=None
-    )
+    series_id: Mapped[int | None] = mapped_column(ForeignKey("series.id"), index=True, default=None)
     # Empty for a series registration; set for an entry in an event.
-    event_id: Mapped[int | None] = mapped_column(
-        ForeignKey("event.id"), index=True, default=None
-    )
+    event_id: Mapped[int | None] = mapped_column(ForeignKey("event.id"), index=True, default=None)
 
     # Only an accepted participation counts: public, in the standings, for lineups.
     # A requested one is visible to the club and the admin, nowhere else.
     status: Mapped[str] = mapped_column(String(16), default=TeamStatus.ACCEPTED, index=True)
     # For a rejection: why. The club should find out.
     decision_note: Mapped[str | None] = mapped_column(String(500), default=None)
-    decided_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), default=None
-    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     club: Mapped[Club] = relationship(back_populates="teams")
     series: Mapped[Series | None] = relationship(back_populates="teams")
@@ -222,9 +216,7 @@ class ClubMember(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(16), index=True)
     # For a rejection: why. The rejected side should find out.
     decision_note: Mapped[str | None] = mapped_column(String(500), default=None)
-    decided_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), default=None
-    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     club: Mapped[Club] = relationship()
     user: Mapped[User] = relationship()

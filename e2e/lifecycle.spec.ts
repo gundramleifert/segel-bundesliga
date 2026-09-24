@@ -539,6 +539,47 @@ test.describe("A-13: every long list pages, sorts and searches — in the URL", 
   });
 });
 
+test.describe("Z-2: access is a relation tuple, written and deleted one at a time", () => {
+  test("a race officer for one event is granted from the Accounts tab and revoked again", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, ADMIN);
+    // The seeded guest holds nothing, so what this test writes is the only line there.
+    const listed = await page.request.get("/api/auth/users?q=gast%40sbl.example.com", {
+      headers: await bearer(page.request, ADMIN),
+    });
+    const guest = (await listed.json()).items[0] as { id: number; tuples: unknown[] };
+    expect(guest.tuples).toHaveLength(0);
+
+    await openAdmin(page, testInfo, "accounts");
+    await page.getByTestId("admin-accounts-search-input").fill("gast@sbl.example.com");
+    const tuples = page.getByTestId(`admin-accounts-tuples-${guest.id}`);
+    await expect(tuples).toBeVisible();
+
+    // Object type, then relation, then the object — and the relations offered are the
+    // ones the model defines for that type, so "race_officer" is there for an event.
+    await page.getByTestId(`admin-accounts-tuple-add-${guest.id}`).click();
+    await page.getByTestId(`admin-accounts-tuple-type-${guest.id}`).selectOption("event");
+    await page.getByTestId(`admin-accounts-tuple-relation-${guest.id}`).selectOption("race_officer");
+    const object = page.getByTestId(`admin-accounts-tuple-object-${guest.id}`);
+    await expect(object.locator("option")).not.toHaveCount(1);
+    await object.selectOption({ index: 1 });
+    await page.getByTestId(`admin-accounts-tuple-submit-${guest.id}`).click();
+
+    const line = tuples.locator('[data-testid^="admin-accounts-tuple-"]:not([data-testid*="-add-"]):not([data-testid*="-form-"])');
+    await expect(line).toHaveCount(1);
+    await expect(tuples.getByTestId(`admin-accounts-tuple-add-${guest.id}`)).toBeVisible();
+
+    // Deleting is per tuple — the line goes, and nothing else about the account changes.
+    await tuples.locator('[data-testid^="admin-accounts-revoke-"]').click();
+    await expect(line).toHaveCount(0);
+    const after = await page.request.get(`/api/auth/users/${guest.id}`, {
+      headers: await bearer(page.request, ADMIN),
+    });
+    expect(((await after.json()) as { tuples: unknown[] }).tuples).toHaveLength(0);
+  });
+});
+
 test.describe("V-12: a club manager manages their own squad", () => {
   /** A seeded account holding `club_manager`, found rather than hardcoded.
    *

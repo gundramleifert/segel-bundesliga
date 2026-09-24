@@ -39,8 +39,7 @@ class Settings(BaseSettings):
     # It optimizes boat swaps and shuttle runs, which the native Python generator cannot do yet
     # — see docs/findings.md, section 2.
     pairing_jar: str = (
-        "../reference/PairingList/target/"
-        "pairing-list-1.0-SNAPSHOT-jar-with-dependencies.jar"
+        "../reference/PairingList/target/pairing-list-1.0-SNAPSHOT-jar-with-dependencies.jar"
     )
     java_binary: str = "java"
     # A full run with production configuration takes many minutes.

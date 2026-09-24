@@ -78,6 +78,7 @@ export type { SailorWaiverRow } from "./generated/model/sailorWaiverRow";
 
 // Accounts and sign-in
 export type { UserOut as Account } from "./generated/model/userOut";
+export type { TupleOut as AccessTuple } from "./generated/model/tupleOut";
 export type { TestUserOut as TestAccount } from "./generated/model/testUserOut";
 export type { ProvidersOut as Providers } from "./generated/model/providersOut";
 export type { TokenOut } from "./generated/model/tokenOut";

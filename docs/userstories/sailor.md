@@ -333,7 +333,7 @@ Acceptance criteria:
 - Administrative rows that point at the account by id and have no ORM cascade are cleaned
   up explicitly: club memberships (`ClubMember`) are deleted; a waiver confirmation the
   account recorded for someone else keeps its row, with the reference cleared.
-- `UserRole` and `Identity` rows go with the account (already cascaded).
+- `Grant` (the tuples) and `Identity` rows go with the account (already cascaded).
 - The now-invalid token stops working immediately, same as any other removed account.
 
 Endpoints: `DELETE /api/auth/me`

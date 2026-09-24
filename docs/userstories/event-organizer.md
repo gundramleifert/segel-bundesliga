@@ -7,6 +7,10 @@ The organizer owns one event from its first draft to its closing: configuration,
 participants and their waivers, the draw, the day itself and the declaration that racing
 is over. The stories stand in that order; the last one walks the whole way in one test.
 
+Who the organizer *is*: whoever holds `manager` on the event — directly, through its
+series, or as manager of the host club — plus the league office (Story Z-2). The
+organizer also names the event's race officers and jury.
+
 ## Setting the event up
 
 ### VA-6 ● Create event with its configuration
@@ -405,3 +409,24 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`,
 `e2e/lifecycle.spec.ts::VA-8/VA-9: from a draft to a running event`
+
+## After the racing
+
+### VA-11 ○ Announcements from the event
+As the **organizer, race committee or jury of an event** I want to **publish an
+announcement on the website** — first warning signal at 10:30, last race of the day
+announced, protest hearing at 17:00, a decision — so that **sailors and spectators read
+it where they already look**.
+
+Acceptance criteria:
+- An announcement belongs to one event; it has a text, a time and the person who
+  published it. It appears on the event's public page and in the live view.
+- Publishing is open to the event's `manager`, `race_officer` and `jury` (Story Z-2) —
+  each held on the event, its series, its host club or the site through the model's
+  rewrite rules — and to nobody else.
+- The jury's announcements are marked as the jury's: a hearing notice reads
+  differently from the committee's "last race".
+- Live update through the existing Server-Sent Events stream (Story B-5): a published
+  announcement invalidates the event's public queries, it never carries a second copy.
+
+Tests: none yet.

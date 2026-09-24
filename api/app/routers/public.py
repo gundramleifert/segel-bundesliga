@@ -124,9 +124,7 @@ async def list_series(
     session: AsyncSession = Depends(get_session),
 ) -> list[Series]:
     """A series is a set of events that are scored together. Published ones only."""
-    effective_year = (
-        year if year is not None else await current_year(session, published_only=True)
-    )
+    effective_year = year if year is not None else await current_year(session, published_only=True)
     stmt = (
         select(Series)
         .where(Series.published.is_(True))
@@ -399,9 +397,7 @@ async def my_clubs(
 
     clubs = list(
         (
-            await session.execute(
-                select(Club).where(Club.id.in_(club_ids)).order_by(Club.name)
-            )
+            await session.execute(select(Club).where(Club.id.in_(club_ids)).order_by(Club.name))
         ).scalars()
     )
 
@@ -499,9 +495,7 @@ async def get_club(
     A club can participate in multiple series — so this is a list. The events of a series
     appear under their team; events hosted by the club without a series appear separately.
     """
-    club = (
-        await session.execute(select(Club).where(Club.id == club_id))
-    ).scalar_one_or_none()
+    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
     if club is None:
         raise HTTPException(
             status_code=404,
@@ -512,9 +506,7 @@ async def get_club(
             ),
         )
 
-    effective_year = (
-        year if year is not None else await current_year(session, published_only=True)
-    )
+    effective_year = year if year is not None else await current_year(session, published_only=True)
 
     teams: list[ClubTeamOut] = []
     if effective_year is not None:
@@ -617,9 +609,7 @@ async def get_sailor(
             ),
         )
 
-    effective_year = (
-        year if year is not None else await current_year(session, published_only=True)
-    )
+    effective_year = year if year is not None else await current_year(session, published_only=True)
     teams: list[SailorTeamOut] = []
     events: list[SailorEventOut] = []
 
@@ -915,9 +905,7 @@ async def download_pairing_pdf(
     event = await _event_by_id(session, event_id, locale)
 
     try:
-        request = await stored_pairing(
-            session, event, title=_pdf_title(event), team_id=team
-        )
+        request = await stored_pairing(session, event, title=_pdf_title(event), team_id=team)
     except TeamNotInPairing as error:
         raise Problem(
             404,
@@ -978,9 +966,7 @@ async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale) -> 
     """The event, if a visitor may see it — a draft is a 404 here, like anywhere public."""
     event = (
         await session.execute(
-            _only_public_events(
-                select(Event).options(*_EVENT_LOAD).where(Event.id == event_id)
-            )
+            _only_public_events(select(Event).options(*_EVENT_LOAD).where(Event.id == event_id))
         )
     ).scalar_one_or_none()
     if event is None:
@@ -995,17 +981,13 @@ async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale) -> 
     return event
 
 
-async def _teams_of_event(
-    session: AsyncSession, event_id: int
-) -> dict[int, TeamOut]:
+async def _teams_of_event(session: AsyncSession, event_id: int) -> dict[int, TeamOut]:
     """The teams participating in this event.
 
     Event standings and pairing list depend on the event — so do the teams in them.
     If no one participates, both remain empty.
     """
-    return await _as_teamout(
-        session, Team.event_id == event_id, Team.status == TeamStatus.ACCEPTED
-    )
+    return await _as_teamout(session, Team.event_id == event_id, Team.status == TeamStatus.ACCEPTED)
 
 
 async def _teams_of_series(session: AsyncSession, series_id: int) -> dict[int, TeamOut]:
@@ -1021,9 +1003,7 @@ async def _teams_of_series(session: AsyncSession, series_id: int) -> dict[int, T
 
 
 async def _as_teamout(session: AsyncSession, *conditions) -> dict[int, TeamOut]:
-    result = await session.execute(
-        select(Team).options(selectinload(Team.club)).where(*conditions)
-    )
+    result = await session.execute(select(Team).options(selectinload(Team.club)).where(*conditions))
     return {
         team.id: TeamOut(id=team.id, name=team.name, club=ClubOut.model_validate(team.club))
         for team in result.scalars()
@@ -1079,15 +1059,19 @@ async def _events_by_team(
         return {}
 
     events = (
-        await session.execute(
-            _only_public_events(
-                select(Event)
-                .options(*_EVENT_LOAD)
-                .where(Event.series_id.in_(series_ids))
-                .order_by(Event.starts_on)
+        (
+            await session.execute(
+                _only_public_events(
+                    select(Event)
+                    .options(*_EVENT_LOAD)
+                    .where(Event.series_id.in_(series_ids))
+                    .order_by(Event.starts_on)
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     lineups = (
         await session.execute(

@@ -33,9 +33,7 @@ class TestSeriesTable:
 
         table = response.json()
         assert len(table["rows"]) >= 18
-        assert [row["rank"] for row in table["rows"]] == list(
-            range(1, len(table["rows"]) + 1)
-        )
+        assert [row["rank"] for row in table["rows"]] == list(range(1, len(table["rows"]) + 1))
 
     async def test_fewer_points_means_higher_position(self, client, ids):
         """Sailing scoring is low-point scoring: lower is better."""
@@ -66,9 +64,7 @@ class TestMatchdayResult:
     """As a fan, I want to look up how a matchday turned out."""
 
     async def test_sailed_matchday_shows_complete_event_standing(self, client, ids):
-        detail = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")
-        ).json()
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
 
         assert detail["event"]["status"] == "final"
         assert detail["races_total"] == 48
@@ -76,17 +72,13 @@ class TestMatchdayResult:
         assert len(detail["standings"]) == 18
 
     async def test_each_team_sailed_once_in_each_of_sixteen_flights(self, client, ids):
-        detail = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")
-        ).json()
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
         for row in detail["standings"]:
             assert row["races_scored"] == 16, f"{row['team']['name']} is missing a race"
 
     async def test_points_per_race_are_traceable(self, client, ids):
         """When someone clicks on the table, they want to see where the points come from."""
-        detail = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")
-        ).json()
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
         row = detail["standings"][0]
 
         assert len(row["points_by_race"]) == 16
@@ -97,26 +89,20 @@ class TestMatchdayResult:
 
     async def test_without_discards_net_equals_total_points(self, client, ids):
         """At a Bundesliga matchday, races are sailed without discards."""
-        detail = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")
-        ).json()
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
         for row in detail["standings"]:
             assert row["net"] == row["total"]
             assert row["discarded_races"] == []
 
     async def test_live_matchday_shows_interim_standing(self, client, ids):
-        detail = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-2')}")
-        ).json()
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-2')}")).json()
 
         assert detail["event"]["status"] == "live"
         assert 0 < detail["races_scored"] < detail["races_total"]
         assert len(detail["standings"]) == 18
 
     async def test_planned_matchday_has_no_results_yet(self, client, ids):
-        detail = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}")
-        ).json()
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}")).json()
 
         assert detail["event"]["status"] == "planned"
         assert detail["races_scored"] == 0
@@ -127,32 +113,29 @@ class TestPairingList:
     """As a sailor, I want to know before the matchday when I sail on which boat."""
 
     async def test_pairing_list_covers_all_forty_eight_races(self, client, ids):
-        pairing = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")
-        ).json()
+        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
 
         assert len(pairing["races"]) == 48
         assert [r["sequence"] for r in pairing["races"]] == list(range(1, 49))
 
     async def test_boats_are_identified_by_their_color(self, client, ids):
-        pairing = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")
-        ).json()
+        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
         assert [b["color"] for b in pairing["boats"]] == [
-            "BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE"
+            "BLACK",
+            "GREEN",
+            "DARKBLUE",
+            "RED",
+            "GRAY",
+            "ORANGE",
         ]
 
     async def test_each_boat_is_assigned_exactly_once_in_each_race(self, client, ids):
-        pairing = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")
-        ).json()
+        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
         for race in pairing["races"]:
             assert sorted(int(n) for n in race["teams_by_boat"]) == [1, 2, 3, 4, 5, 6]
 
     async def test_each_team_sails_exactly_once_in_each_flight(self, client, ids):
-        pairing = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")
-        ).json()
+        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
 
         by_flight: dict[int, list[int]] = {}
         for race in pairing["races"]:
@@ -166,9 +149,7 @@ class TestPairingList:
 
     async def test_pairing_list_is_ready_before_matchday(self, client, ids):
         """Draw is one week prior — the list must be retrievable without results."""
-        pairing = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")
-        ).json()
+        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
         assert pairing["event"]["status"] == "planned"
         assert all(race["status"] == "scheduled" for race in pairing["races"])
 
@@ -178,18 +159,14 @@ class TestPairingList:
         Without this the site offers a download whose only possible answer is 503 — which
         is what the free test instance did until Java was put in its image.
         """
-        pairing = (
-            await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")
-        ).json()
+        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
 
         assert pairing["pdf_available"] is _RENDERER_HERE
 
     @needs_pairing_jar
     async def test_the_list_can_be_taken_to_the_dock_on_paper(self, client, ids):
         """The sheet that gets printed and pinned up — Story B-3."""
-        response = await client.get(
-            f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing.pdf"
-        )
+        response = await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing.pdf")
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/pdf"
@@ -197,9 +174,7 @@ class TestPairingList:
         assert response.content.startswith(b"%PDF")
 
     @needs_pairing_jar
-    async def test_a_club_entered_after_the_draw_does_not_break_the_sheet(
-        self, client, caplog
-    ):
+    async def test_a_club_entered_after_the_draw_does_not_break_the_sheet(self, client, caplog):
         """The sheet prints the teams that were **drawn**; the entry list can have moved on.
 
         A club entered afterwards has no seat in the list. Printing the current entry list
@@ -207,9 +182,7 @@ class TestPairingList:
         on the wrong boat, on the sheet people sail by.
         """
         headers = await admin(client, caplog, "latecomer@sbl.example.com")
-        event_id = await event_with_participants(
-            client, headers, "Late entry", "2026-08-22"
-        )
+        event_id = await event_with_participants(client, headers, "Late entry", "2026-08-22")
         drawn = await client.post(
             f"/api/admin/events/{event_id}/pairing/from-catalog",
             headers=headers,
@@ -264,9 +237,7 @@ class TestPairingList:
     async def test_a_matchday_without_a_draw_has_nothing_to_print(self, client, caplog):
         """An event whose list has not been drawn yet: no empty sheet."""
         headers = await admin(client, caplog, "print@sbl.example.com")
-        event_id = await event_with_participants(
-            client, headers, "Nothing drawn yet", "2026-08-15"
-        )
+        event_id = await event_with_participants(client, headers, "Nothing drawn yet", "2026-08-15")
 
         response = await client.get(f"/api/events/{event_id}/pairing.pdf")
 
@@ -289,9 +260,7 @@ class TestMatchdayCrew:
     async def test_every_team_sailing_today_is_listed_with_its_crew(self, client, ids):
         from app.seed import CREW
 
-        lineups = (
-            await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")
-        ).json()
+        lineups = (await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")).json()
 
         assert len(lineups["teams"]) == 18, "Every team entered in the event belongs here"
         for entry in lineups["teams"]:
@@ -300,18 +269,14 @@ class TestMatchdayCrew:
             # Helm first — the order a crew is announced, as in the squad.
             assert entry["crew"][0]["role"] == "helm"
 
-    async def test_a_team_without_a_lineup_is_listed_with_an_empty_crew(
-        self, client, caplog
-    ):
+    async def test_a_team_without_a_lineup_is_listed_with_an_empty_crew(self, client, caplog):
         """Nobody named yet is the answer, not a missing row.
 
         A team left out would read as "this club is not sailing here", which is false —
         it is entered, the crew is simply not set (same rule as the club page, B-7).
         """
         headers = await admin(client, caplog, "b12@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Crew Cup", "2026-09-05"
-        )
+        event_id = await event_with_participants(client, headers, "Crew Cup", "2026-09-05")
 
         lineups = (await client.get(f"/api/events/{event_id}/crew")).json()
 
@@ -327,9 +292,7 @@ class TestMatchdayCrew:
 
     async def test_the_lineup_reveals_no_contact_data(self, client, ids):
         """Names are on every results list; email and birth year are not."""
-        lineups = (
-            await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")
-        ).json()
+        lineups = (await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")).json()
 
         for entry in lineups["teams"]:
             for member in entry["crew"]:

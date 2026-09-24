@@ -41,7 +41,7 @@ from app.models import (
     WaiverMethod,
     WaiverText,
 )
-from app.models.auth import Role, User
+from app.models.auth import Relation, Role, User
 from app.problems import Problem
 from app.routers.sailors import _my_sailor as my_sailor
 from app.services import current_waiver_text, event_waiver_status, is_minor
@@ -192,9 +192,7 @@ async def get_current_waiver(
     """The version in force. Both languages are returned so the client can show either."""
     text_row = await current_waiver_text(session)
     if text_row is None:
-        raise Problem(
-            404, "no-waiver-published", "No liability waiver has been published yet."
-        )
+        raise Problem(404, "no-waiver-published", "No liability waiver has been published yet.")
     return WaiverTextOut.model_validate(text_row)
 
 
@@ -287,10 +285,10 @@ async def list_waiver_texts(
     session: AsyncSession = Depends(get_session),
 ) -> list[WaiverTextOut]:
     rows = (
-        await session.execute(
-            select(WaiverText).order_by(WaiverText.version.desc())
-        )
-    ).scalars().all()
+        (await session.execute(select(WaiverText).order_by(WaiverText.version.desc())))
+        .scalars()
+        .all()
+    )
     return [WaiverTextOut.model_validate(row) for row in rows]
 
 
@@ -368,9 +366,7 @@ async def confirm_for_event(
     acting: User = Depends(current_user),
     user_agent: str | None = Header(default=None),
 ) -> WaiverConfirmationOut:
-    event = (
-        await session.execute(select(Event).where(Event.id == event_id))
-    ).scalar_one_or_none()
+    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
     if event is None:
         raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
 
@@ -512,14 +508,12 @@ async def event_waivers(
     One row per person in the participating squads: cleared, missing, or (for a minor)
     waiting on the guardian's signature.
     """
-    event = (
-        await session.execute(select(Event).where(Event.id == event_id))
-    ).scalar_one_or_none()
+    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
     if event is None:
         raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
 
     if not (
-        acting.has_any(Role.ADMIN, Role.EDITOR, Role.RACE_OFFICER)
+        acting.can(Relation.MANAGER, Relation.RACE_OFFICER, on=event)
         or (acting.has_any(Role.CLUB_MANAGER) and acting.manages_club(event.host_club_id))
     ):
         raise Problem(
@@ -635,8 +629,7 @@ async def _confirm(
         raise Problem(
             409,
             "waiver-already-confirmed",
-            "This sailor has already confirmed the current waiver version for this "
-            "competition.",
+            "This sailor has already confirmed the current waiver version for this competition.",
             required_version=required.version,
             scope=scope,
         )
@@ -698,9 +691,7 @@ async def _scope(session: AsyncSession, scope: Scope, scope_id: int) -> tuple[st
         if series is None:
             raise HTTPException(status_code=404, detail=f"Series {scope_id} not found")
         return series.name, series_reference_date(series)
-    event = (
-        await session.execute(select(Event).where(Event.id == scope_id))
-    ).scalar_one_or_none()
+    event = (await session.execute(select(Event).where(Event.id == scope_id))).scalar_one_or_none()
     if event is None:
         raise HTTPException(status_code=404, detail=f"Event {scope_id} not found")
     return event.title, event_reference_date(event)
@@ -883,7 +874,13 @@ async def _may_view_scan(
     session: AsyncSession, acting: User, row: WaiverConfirmation, sailor: Sailor
 ) -> bool:
     """Who is connected closely enough to see a minor's signed form (Story S-1)."""
-    if acting.has_any(Role.ADMIN, Role.EDITOR, Role.RACE_OFFICER):
+    # The league office; an event's organizer or race committee only for that event's forms.
+    if acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
+        return True
+    if row.event_id is not None and (
+        acting.holds(Relation.MANAGER, event_id=row.event_id)
+        or acting.holds(Relation.RACE_OFFICER, event_id=row.event_id)
+    ):
         return True
     if (
         acting.email_verified
@@ -901,7 +898,9 @@ async def _may_view_scan(
                 .join(TeamMembership, TeamMembership.team_id == Team.id)
                 .where(TeamMembership.sailor_id == sailor.id)
             )
-        ).scalars().all()
+        )
+        .scalars()
+        .all()
     )
     if managed & sailor_clubs:
         return True
@@ -952,20 +951,22 @@ async def _squad_people(
     standalone event, off the event entry itself (same rule as the lineup).
     """
     entries = (
-        await session.execute(
-            select(Team.club_id).where(
-                Team.event_id == event.id, Team.status == TeamStatus.ACCEPTED
+        (
+            await session.execute(
+                select(Team.club_id).where(
+                    Team.event_id == event.id, Team.status == TeamStatus.ACCEPTED
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     if not entries:
         return []
 
     squad_teams = select(Team.id).where(Team.club_id.in_(entries))
     if event.series_id is not None:
-        squad_teams = squad_teams.where(
-            Team.series_id == event.series_id, Team.event_id.is_(None)
-        )
+        squad_teams = squad_teams.where(Team.series_id == event.series_id, Team.event_id.is_(None))
     else:
         squad_teams = squad_teams.where(Team.event_id == event.id)
 

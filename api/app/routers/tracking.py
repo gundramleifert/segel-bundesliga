@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import require_race_officer
+from app.auth import require_event_officer
 from app.db import get_session
 from app.live import event_topic, hub
 from app.models import Event
@@ -31,7 +31,7 @@ from app.tracking import service
 admin_router = APIRouter(
     prefix="/api/admin/events/{event_id}",
     tags=["tracking"],
-    dependencies=[Depends(require_race_officer)],
+    dependencies=[Depends(require_event_officer)],
 )
 router = APIRouter(prefix="/api", tags=["tracking"])
 

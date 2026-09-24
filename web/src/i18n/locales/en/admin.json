@@ -196,12 +196,36 @@
       "admin": "Admin",
       "editor": "Editor",
       "race_officer": "Race officer",
-      "club_manager": "Club manager"
+      "club_manager": "Club manager",
+      "event_manager": "Event manager",
+      "jury": "Jury"
     },
     "nameHeader": "Name",
     "emailHeader": "Email",
     "clubHeader": "Club",
-    "rolesHeader": "Roles"
+    "rolesHeader": "Access",
+    "revoke": "Revoke",
+    "tupleSite": "whole site",
+    "tupleNone": "no access granted",
+    "tupleAdd": "Grant access",
+    "tupleTypeLabel": "On",
+    "tupleRelationLabel": "As",
+    "tupleObjectLabel": "Which",
+    "tupleButton": "Grant",
+    "tupleCancel": "Cancel",
+    "relationLabels": {
+      "admin": "Admin",
+      "editor": "Editor",
+      "manager": "Manager",
+      "race_officer": "Race officer",
+      "jury": "Jury"
+    },
+    "objectTypeLabels": {
+      "site": "Whole site",
+      "club": "One club",
+      "series": "One series",
+      "event": "One event"
+    }
   },
   "page": {
     "title": "Administration",
@@ -310,5 +334,14 @@
     "squadMaxLabel": "Maximum",
     "saveSquadLimitsButton": "Save squad size",
     "squadLimitsSavedMessage": "Squad size saved."
+  },
+  "access": {
+    "title": "People",
+    "hint": "Who runs this event: its managers, its race committee and its jury. Managers may add and remove people here.",
+    "empty": "Nobody is named for this event yet — the league office and the host club's managers can still act.",
+    "emailLabel": "Email of an existing account",
+    "relationLabel": "As",
+    "addButton": "Add",
+    "revoke": "Remove"
   }
 }

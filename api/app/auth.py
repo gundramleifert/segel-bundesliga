@@ -19,7 +19,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_session
-from app.models.auth import Role, User
+from app.models import Event
+from app.models.auth import Relation, Role, User
 
 ALGORITHM = "HS256"
 
@@ -64,9 +65,7 @@ async def current_user(
         # clock that is stepped back a second by time sync (WSL2 does this) turns a token
         # issued a moment ago into "not yet valid". Thirty seconds tolerates that and
         # changes nothing about a genuinely expired session.
-        payload = jwt.decode(
-            credentials.credentials, _secret(), algorithms=[ALGORITHM], leeway=30
-        )
+        payload = jwt.decode(credentials.credentials, _secret(), algorithms=[ALGORITHM], leeway=30)
     except jwt.ExpiredSignatureError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -111,9 +110,32 @@ async def optional_user(
         return None
 
 
-def require_roles(*roles: Role | str):
-    """Creates a dependency that requires one of these roles."""
-    wanted = {str(role) for role in roles}
+def require_site(*relations: Relation | str):
+    """A dependency for the league office's screens: one of these relations **on the
+    site**, through the rewrite rules (an admin passes an editor gate). A tuple on one
+    club, series or event does not pass here — routes about *one* event use
+    :func:`require_on_event`.
+    """
+    wanted = tuple(Relation(r) for r in relations)
+
+    async def dependency(user: User = Depends(current_user)) -> User:
+        if not user.can(*wanted):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "You lack the permission for this. Required role(s): "
+                    + ", ".join(sorted(r.value for r in wanted))
+                ),
+            )
+        return user
+
+    return dependency
+
+
+def require_summary_roles(*roles: Role | str):
+    """Passes anyone whose **summary** roles include one of these — a navigation-level
+    gate for lists a person then narrows to their own objects (``managed_club_ids``)."""
+    wanted = {str(r) for r in roles}
 
     async def dependency(user: User = Depends(current_user)) -> User:
         if not user.has_any(*wanted):
@@ -129,12 +151,47 @@ def require_roles(*roles: Role | str):
     return dependency
 
 
-# Admin can be involved everywhere it needs to intervene.
-require_admin = require_roles(Role.ADMIN)
-require_race_officer = require_roles(Role.ADMIN, Role.RACE_OFFICER)
-require_editor = require_roles(Role.ADMIN, Role.EDITOR)
-require_club_manager = require_roles(Role.ADMIN, Role.CLUB_MANAGER)
-# Create and manage matchdays: all three roles that carry an event.
-require_event_manager = require_roles(Role.ADMIN, Role.EDITOR, Role.RACE_OFFICER)
+def require_on_event(*relations: Relation | str):
+    """A dependency for routes with ``{event_id}`` in their path: passes whoever holds one
+    of these relations on that event — directly, or through its series, its host club or
+    the site (:data:`app.models.auth.IMPLIED`). Reads ``event_id`` from the path, so the
+    handler need not repeat the check. An unknown event is a 404 here, before any
+    permission question.
+    """
+    wanted = tuple(Relation(r) for r in relations)
+
+    async def dependency(
+        event_id: int,
+        user: User = Depends(current_user),
+        session: AsyncSession = Depends(get_session),
+    ) -> User:
+        event = await session.get(Event, event_id)
+        if event is None:
+            raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+        if user.can(*wanted, on=event):
+            return user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "You lack the permission for this event. Required relation(s): "
+                + ", ".join(sorted(r.value for r in wanted))
+            ),
+        )
+
+    return dependency
+
+
+# The site's gates.
+require_admin = require_site(Relation.ADMIN)
+require_editor = require_site(Relation.EDITOR)
+require_race_officer = require_site(Relation.RACE_OFFICER)
+# "Organizes some club": the route narrows to the club itself with `manages_club(...)`.
+require_club_manager = require_summary_roles(Role.ADMIN, Role.CLUB_MANAGER)
+# One event: its race committee (results, race control, trackers) …
+require_event_officer = require_on_event(Relation.RACE_OFFICER)
+# … its organizer (dates, clubs, boats, publication, people) …
+require_event_manager_for = require_on_event(Relation.MANAGER)
+# … and the declarations both may make: start, finish, cancel, reopen (Story VA-10).
+require_event_control = require_on_event(Relation.MANAGER, Relation.RACE_OFFICER)
 # Master data like clubs: admin and editorial.
-require_master_data = require_roles(Role.ADMIN, Role.EDITOR)
+require_master_data = require_site(Relation.ADMIN, Relation.EDITOR)

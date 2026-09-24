@@ -183,9 +183,7 @@ async def set_series(
     if club is None:
         raise HTTPException(
             status_code=404,
-            detail=tr(
-                locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"
-            ),
+            detail=tr(locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"),
         )
 
     desired: dict[int, Series] = {}
@@ -295,15 +293,11 @@ async def update_club(
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
 ) -> Club:
-    club = (
-        await session.execute(select(Club).where(Club.id == club_id))
-    ).scalar_one_or_none()
+    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
     if club is None:
         raise HTTPException(
             status_code=404,
-            detail=tr(
-                locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"
-            ),
+            detail=tr(locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"),
         )
 
     for field, value in request.model_dump(exclude_unset=True).items():
@@ -373,15 +367,12 @@ def _can_manage_crest(acting: User, club_id: int) -> None:
     raise Problem(
         403,
         "club-crest-not-yours",
-        "The crest is maintained by administration, editorial staff, or the club's own "
-        "leadership.",
+        "The crest is maintained by administration, editorial staff, or the club's own leadership.",
     )
 
 
 async def _club(session: AsyncSession, club_id: int) -> Club:
-    club = (
-        await session.execute(select(Club).where(Club.id == club_id))
-    ).scalar_one_or_none()
+    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
     if club is None:
         raise Problem(404, "club-not-found", f"Club {club_id} not found.")
     return club
@@ -389,9 +380,7 @@ async def _club(session: AsyncSession, club_id: int) -> Club:
 
 async def _slug_taken(session: AsyncSession, slug: str) -> bool:
     """Check if a slug is already taken."""
-    hit = (
-        await session.execute(select(Club.id).where(Club.slug == slug))
-    ).scalar_one_or_none()
+    hit = (await session.execute(select(Club.id).where(Club.slug == slug))).scalar_one_or_none()
     return hit is not None
 
 
@@ -406,11 +395,15 @@ async def _backfill_event_entries(session: AsyncSession, series_ids) -> None:
 
     for series_id in series_ids:
         events = (
-            await session.execute(
-                select(Event).where(
-                    Event.series_id == series_id, Event.status == EventStatus.PLANNED
+            (
+                await session.execute(
+                    select(Event).where(
+                        Event.series_id == series_id, Event.status == EventStatus.PLANNED
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         for event in events:
             await adopt_series_registrations(session, event)

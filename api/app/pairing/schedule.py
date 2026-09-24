@@ -48,9 +48,7 @@ def build_pairing(
 ) -> list[PairingSlot]:
     """Generates the pairing list for a matchday."""
     if team_count % boats != 0:
-        raise ValueError(
-            f"{team_count} teams cannot be evenly distributed across {boats} boats"
-        )
+        raise ValueError(f"{team_count} teams cannot be evenly distributed across {boats} boats")
     if flights < 1:
         raise ValueError("A matchday needs at least one flight")
 
@@ -174,9 +172,7 @@ def _chunks(items: list[int], size: int):
 # ---------------------------------------------------------------------------- Boats
 
 
-def _assign_boats(
-    groups: list[list[list[int]]], team_count: int, boats: int
-) -> list[PairingSlot]:
+def _assign_boats(groups: list[list[list[int]]], team_count: int, boats: int) -> list[PairingSlot]:
     """Assigns boats to each group so usage is balanced across the matchday."""
     usage = [[0] * (boats + 1) for _ in range(team_count)]
     boat_numbers = list(range(1, boats + 1))

@@ -32,8 +32,12 @@ needs_jar = pytest.mark.skipif(
 
 BOAT_COLORS = ["BLACK", "GREEN", "DARKBLUE", "RED", "GRAY", "ORANGE"]
 FAST = OptimizerSettings(
-    loops=200, match_individuals=30, boat_individuals=40, swap_teams=15,
-    swap_boats=20, swap_races=10,
+    loops=200,
+    match_individuals=30,
+    boat_individuals=40,
+    swap_teams=15,
+    swap_boats=20,
+    swap_races=10,
 )
 
 
@@ -133,8 +137,7 @@ async def test_a_missing_jar_is_reported_helpfully():
 
 def test_the_optimizer_log_is_parsed():
     log = (
-        "costs = 3020.550 .. 3072.550\n"
-        "saved Shuttles: in habour: 8 at sea: 30 - boat changes: 3\n"
+        "costs = 3020.550 .. 3072.550\nsaved Shuttles: in habour: 8 at sea: 30 - boat changes: 3\n"
     )
     assert parse_optimizer_log(log) == {
         "saved_shuttles_harbour": 8,

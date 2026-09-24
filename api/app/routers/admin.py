@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import require_admin, require_race_officer
+from app.auth import require_admin, require_event_officer
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.jobs import Job, JobStatus, jobs
@@ -74,8 +74,12 @@ router = APIRouter(prefix="/api/admin", tags=["admin"])
 # Reduced settings for a quick preview. The default corresponds to the
 # configuration of actual matchdays and takes correspondingly long.
 FAST = OptimizerSettings(
-    loops=400, match_individuals=60, boat_individuals=100, swap_teams=30,
-    swap_boats=40, swap_races=20,
+    loops=400,
+    match_individuals=60,
+    boat_individuals=100,
+    swap_teams=30,
+    swap_boats=40,
+    swap_races=20,
 )
 
 
@@ -141,9 +145,7 @@ async def start_pairing_job(
         ],
         flights=request.flights,
         title=event.title,
-        optimizer=(
-            FAST if request.effort == "fast" else OptimizerSettings(seed=request.seed)
-        ),
+        optimizer=(FAST if request.effort == "fast" else OptimizerSettings(seed=request.seed)),
     )
 
     async def work(job: Job) -> PairingDraft:
@@ -402,7 +404,7 @@ _POSITION_CODES = (ResultCode.FINISHED, ResultCode.ZFP, ResultCode.SCP)
 @router.get(
     "/events/{event_id}/races",
     response_model=AdminRacesOut,
-    dependencies=[Depends(require_race_officer)],
+    dependencies=[Depends(require_event_officer)],
     summary="Pairing and current results, for the entry screen",
 )
 async def get_admin_races(
@@ -543,7 +545,7 @@ async def start_race(
     race_id: int,
     request: RaceStartIn | None = None,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_race_officer),
+    acting: User = Depends(require_event_officer),
 ) -> AdminRaceOut:
     """``scheduled`` → ``running`` — Story WL-3.
 
@@ -571,7 +573,7 @@ async def recall_race(
     event_id: int,
     race_id: int,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_race_officer),
+    acting: User = Depends(require_event_officer),
 ) -> AdminRaceOut:
     """``running`` → ``scheduled``, with every boat's result cleared — Story WL-3.
 
@@ -593,7 +595,7 @@ async def abandon_race(
     race_id: int,
     resail: bool = Query(default=False, description="Sail it again later (N over …)"),
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_race_officer),
+    acting: User = Depends(require_event_officer),
 ) -> AdminRaceOut:
     """``running`` → ``scheduled`` (resail) or ``abandoned`` — Story WL-3.
 
@@ -615,7 +617,7 @@ async def set_race_signal(
     race_id: int,
     request: RaceSignalIn,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_race_officer),
+    acting: User = Depends(require_event_officer),
 ) -> AdminRaceOut:
     """The flag currently on the mast — Story WL-3.
 
@@ -638,7 +640,7 @@ async def put_race_result(
     race_id: int,
     request: RaceResultsIn,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_race_officer),
+    acting: User = Depends(require_event_officer),
 ) -> RaceResultsOut:
     """Writes the raw result for every submitted boat in one race.
 
@@ -822,9 +824,7 @@ async def _publish(session: AsyncSession, event: Event, draft: PairingDraft) -> 
 
 
 async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale | None = None) -> Event:
-    event = (
-        await session.execute(select(Event).where(Event.id == event_id))
-    ).scalar_one_or_none()
+    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
     if event is None:
         if locale is not None:
             detail = tr(

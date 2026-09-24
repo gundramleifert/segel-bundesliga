@@ -244,8 +244,15 @@ otherwise a score could not be explained.
 provider's keys), or via a one-time code by email. Linked via verified email address, so all
 paths lead to the same account.
 
-**Roles are separate records** and rechecked with every request so revocation takes
-immediate effect: `admin`, `editor`, `race_officer`, `club_manager`.
+**Permissions are relation tuples** (Story Z-2): ``user:relation:object`` — this person
+is `manager` of club A, `race_officer` of event C, `admin` of the site. The model is
+written in OpenFGA's DSL in `app/models/auth.py` and interpreted there; there is no
+authorization server. `manager` is the organizer of a club, a series or an event;
+`race_officer` the race committee; `jury` the protest committee; `admin` and `editor` the
+league office on the site. Containers rewrite downwards — a series' people are its
+events', the host club's are its events'. Rechecked with every request so a deleted tuple
+takes immediate effect; the check is `User.can(relation, on=object)`. The "roles" the
+navigation shows are a derived summary of the tuples, never a permission.
 
 **Guest or logged in:** The public page serves both. `optional_user` returns `User | None`;
 an expired token does not make the page unusable, just makes the caller a guest.

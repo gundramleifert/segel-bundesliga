@@ -18,7 +18,6 @@ convenient direction:
   regatta that was called off must never be worse than staying home.
 """
 
-
 from app.db import SessionLocal
 from app.models import Event, EventStatus
 from app.models.auth import Role
@@ -77,9 +76,7 @@ class TestFinishingAnEvent:
             )
         ).json()
 
-        response = await client.post(
-            f"/api/admin/events/{created['id']}/finish", headers=headers
-        )
+        response = await client.post(f"/api/admin/events/{created['id']}/finish", headers=headers)
         assert response.status_code == 409, response.text
         assert response.json()["type"] == "/errors/event-not-started"
         assert response.json()["event_status"] == "planned"
@@ -121,9 +118,7 @@ class TestFinishingAnEvent:
             json={
                 "results": [
                     {"boat_number": boat, "code": "FINISHED", "finish_position": position}
-                    for position, boat in enumerate(
-                        [boats[1], boats[0], *boats[2:]], start=1
-                    )
+                    for position, boat in enumerate([boats[1], boats[0], *boats[2:]], start=1)
                 ]
             },
         )
@@ -135,9 +130,7 @@ class TestFinishingAnEvent:
         headers = await admin(client, caplog, "vc6@example.com")
         event_id = await live_event(client, headers, "Still Public Cup", "2027-07-03")
 
-        finished = await client.post(
-            f"/api/admin/events/{event_id}/finish", headers=headers
-        )
+        finished = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
         assert finished.json()["published"] is True
         assert (await client.get(f"/api/events/{event_id}")).status_code == 200
 
@@ -147,9 +140,7 @@ class TestCancellingAnEvent:
 
     async def test_a_planned_event_can_be_called_off(self, client, caplog):
         headers = await admin(client, caplog, "vx1@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Called Off Cup", "2027-07-10"
-        )
+        event_id = await event_with_participants(client, headers, "Called Off Cup", "2027-07-10")
 
         response = await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
         assert response.status_code == 200, response.text
@@ -240,9 +231,7 @@ class TestReopeningAnEvent:
     async def test_a_cancelled_event_goes_back_to_planned(self, client, caplog):
         """Not to `live`: a reinstated day is prepared again, not mid-race."""
         headers = await admin(client, caplog, "vr2@example.com")
-        event_id = await event_with_participants(
-            client, headers, "Reinstated Cup", "2027-08-21"
-        )
+        event_id = await event_with_participants(client, headers, "Reinstated Cup", "2027-08-21")
         await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
 
         response = await client.post(f"/api/admin/events/{event_id}/reopen", headers=headers)

@@ -86,6 +86,7 @@ import type {
   MembershipInvitation,
   MembershipOut,
   MembershipRequest,
+  ModelOut,
   MyClubOut,
   MyWaivers,
   NetworkProbeOut,
@@ -109,9 +110,9 @@ import type {
   RaceResultsOut,
   RaceSignalIn,
   RaceStartIn,
+  ReadTuplesParams,
   RegisterAccount202,
   Registration,
-  RolesUpdate,
   SailorAdminOut,
   SailorCreate,
   SailorDetail,
@@ -134,6 +135,8 @@ import type {
   TestUserOut,
   TokenOut,
   TrackerOut,
+  TupleOut,
+  TupleWrite,
   UpdateMe,
   UserCreate,
   UserOut,
@@ -3195,19 +3198,336 @@ export const useRemoveUser = <TError = ErrorType<HTTPValidationError>,
       return useMutation(getRemoveUserMutationOptions(options), queryClient);
     }
 
-export const getSetRolesUrl = (userId: number,) => {
+export const getGetUserUrl = (userId: number,) => {
 
 
 
 
-  return `/api/auth/users/${userId}/roles`
+  return `/api/auth/users/${userId}`
 }
 
 /**
- * @summary Grant or revoke roles
+ * @summary One account with its tuples
  */
-export const setRoles = async (userId: number,
-    rolesUpdate: RolesUpdate, options?: RequestInit): Promise<UserOut> => {
+export const getUser = async (userId: number, options?: RequestInit): Promise<UserOut> => {
+
+  return http<UserOut>(getGetUserUrl(userId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetUserQueryKey = (userId: number,) => {
+    return [
+    `/api/auth/users/${userId}`
+    ] as const;
+    }
+
+
+export const getGetUserQueryOptions = <TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetUserQueryKey(userId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getUser>>> = ({ signal }) => getUser(userId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: userId !== null && userId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetUserQueryResult = NonNullable<Awaited<ReturnType<typeof getUser>>>
+export type GetUserQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+ userId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUser>>,
+          TError,
+          Awaited<ReturnType<typeof getUser>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+ userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUser>>,
+          TError,
+          Awaited<ReturnType<typeof getUser>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+ userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One account with its tuples
+ */
+
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+ userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetUserQueryOptions(userId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetModelUrl = () => {
+
+
+
+
+  return `/api/auth/model`
+}
+
+/**
+ * One table, read here rather than copied into the frontend, so a relation added to
+ * a type is offered without a release there.
+ * @summary The authorization model (OpenFGA DSL)
+ */
+export const getModel = async ( options?: RequestInit): Promise<ModelOut> => {
+
+  return http<ModelOut>(getGetModelUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetModelQueryKey = () => {
+    return [
+    `/api/auth/model`
+    ] as const;
+    }
+
+
+export const getGetModelQueryOptions = <TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetModelQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getModel>>> = ({ signal }) => getModel({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetModelQueryResult = NonNullable<Awaited<ReturnType<typeof getModel>>>
+export type GetModelQueryError = ErrorType<unknown>
+
+
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getModel>>,
+          TError,
+          Awaited<ReturnType<typeof getModel>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getModel>>,
+          TError,
+          Awaited<ReturnType<typeof getModel>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The authorization model (OpenFGA DSL)
+ */
+
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetModelQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReadTuplesUrl = (params: ReadTuplesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/auth/tuples?${stringifiedParams}` : `/api/auth/tuples`
+}
+
+/**
+ * The access list of one object — the event panel shows its managers, race officers
+ * and jury here. Open to the site's admin and to the object's own managers.
+ * @summary Who holds what on one object (FGA read)
+ */
+export const readTuples = async (params: ReadTuplesParams, options?: RequestInit): Promise<TupleOut[]> => {
+
+  return http<TupleOut[]>(getReadTuplesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getReadTuplesQueryKey = (params?: ReadTuplesParams,) => {
+    return [
+    `/api/auth/tuples`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getReadTuplesQueryOptions = <TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReadTuplesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof readTuples>>> = ({ signal }) => readTuples(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReadTuplesQueryResult = NonNullable<Awaited<ReturnType<typeof readTuples>>>
+export type ReadTuplesQueryError = ErrorType<HTTPValidationError>
+
+
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+ params: ReadTuplesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof readTuples>>,
+          TError,
+          Awaited<ReturnType<typeof readTuples>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+ params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof readTuples>>,
+          TError,
+          Awaited<ReturnType<typeof readTuples>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+ params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Who holds what on one object (FGA read)
+ */
+
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+ params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReadTuplesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWriteTupleUrl = () => {
+
+
+
+
+  return `/api/auth/tuples`
+}
+
+/**
+ * Story Z-2. The rules — the schema, the object must exist, no duplicate — live in
+ * `app/services/grants.py`, shared with the club screen. The site's admin writes any
+ * tuple; an object's manager writes tuples on that object, so an organizer names the
+ * race officers and the jury of their own event without administration.
+ * @summary Write one tuple (FGA write)
+ */
+export const writeTuple = async (tupleWrite: TupleWrite, options?: RequestInit): Promise<TupleOut> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -3223,12 +3543,12 @@ export const setRoles = async (userId: number,
     }
     return headers;
   };
-return http<UserOut>(getSetRolesUrl(userId),
+return http<TupleOut>(getWriteTupleUrl(),
   {
     ...options,
-    method: 'PUT',
+    method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(rolesUpdate)
+    body: JSON.stringify(tupleWrite)
   }
 );}
 
@@ -3236,13 +3556,13 @@ return http<UserOut>(getSetRolesUrl(userId),
 
 
 
-export const getSetRolesMutationKey = () => ['setRoles'] as const;
+export const getWriteTupleMutationKey = () => ['writeTuple'] as const;
 
-export const getSetRolesMutationOptions = <TError = ErrorType<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setRoles>>, TError,SetRolesMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof setRoles>>, TError,SetRolesMutationVariables, TContext> => {
+export const getWriteTupleMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof writeTuple>>, TError,WriteTupleMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof writeTuple>>, TError,WriteTupleMutationVariables, TContext> => {
 
-const mutationKey = getSetRolesMutationKey();
+const mutationKey = getWriteTupleMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -3252,10 +3572,10 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setRoles>>, SetRolesMutationVariables> = (props) => {
-          const {userId,data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof writeTuple>>, WriteTupleMutationVariables> = (props) => {
+          const {data} = props ?? {};
 
-          return  setRoles(userId,data,)
+          return  writeTuple(data,)
         }
 
 
@@ -3265,23 +3585,99 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type SetRolesMutationResult = NonNullable<Awaited<ReturnType<typeof setRoles>>>
-    export type SetRolesMutationBody = BodyType<RolesUpdate>
-    export type SetRolesMutationError = ErrorType<HTTPValidationError>
-    export type SetRolesMutationVariables = {userId: number;data: BodyType<RolesUpdate>}
+    export type WriteTupleMutationResult = NonNullable<Awaited<ReturnType<typeof writeTuple>>>
+    export type WriteTupleMutationBody = BodyType<TupleWrite>
+    export type WriteTupleMutationError = ErrorType<HTTPValidationError>
+    export type WriteTupleMutationVariables = {data: BodyType<TupleWrite>}
 
     /**
- * @summary Grant or revoke roles
+ * @summary Write one tuple (FGA write)
  */
-export const useSetRoles = <TError = ErrorType<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setRoles>>, TError,SetRolesMutationVariables, TContext>, }
+export const useWriteTuple = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof writeTuple>>, TError,WriteTupleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof setRoles>>,
+        Awaited<ReturnType<typeof writeTuple>>,
         TError,
-        SetRolesMutationVariables,
+        WriteTupleMutationVariables,
         TContext
       > => {
-      return useMutation(getSetRolesMutationOptions(options), queryClient);
+      return useMutation(getWriteTupleMutationOptions(options), queryClient);
+    }
+
+export const getDeleteTupleUrl = (tupleId: number,) => {
+
+
+
+
+  return `/api/auth/tuples/${tupleId}`
+}
+
+/**
+ * Exactly this tuple goes; every other one the person holds stays. Refuses to delete
+ * the caller's own `admin` and a club's last organizer (Story A-8).
+ * @summary Delete one tuple (FGA delete)
+ */
+export const deleteTuple = async (tupleId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getDeleteTupleUrl(tupleId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteTupleMutationKey = () => ['deleteTuple'] as const;
+
+export const getDeleteTupleMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTuple>>, TError,DeleteTupleMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteTuple>>, TError,DeleteTupleMutationVariables, TContext> => {
+
+const mutationKey = getDeleteTupleMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTuple>>, DeleteTupleMutationVariables> = (props) => {
+          const {tupleId} = props ?? {};
+
+          return  deleteTuple(tupleId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteTupleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTuple>>>
+
+    export type DeleteTupleMutationError = ErrorType<HTTPValidationError>
+    export type DeleteTupleMutationVariables = {tupleId: number}
+
+    /**
+ * @summary Delete one tuple (FGA delete)
+ */
+export const useDeleteTuple = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTuple>>, TError,DeleteTupleMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteTuple>>,
+        TError,
+        DeleteTupleMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteTupleMutationOptions(options), queryClient);
     }
 
 export const getStartPairingJobUrl = (eventId: number,) => {
@@ -3657,8 +4053,10 @@ export const getListPairingCatalogUrl = () => {
 /**
  * Which sizes are available without computing.
  *
- * A size is completely determined by teams, boats, and flights — which club
- * sits at which starting position is decided only when shuffling.
+ * One entry per teams-and-boats combination; its ``flights`` is the **most** a day of
+ * that size can have — any number from 1 up to it is served by cutting the stored list
+ * (Story VA-7). Which club sits at which starting position is decided only when
+ * shuffling.
  * @summary Finished pairing lists
  */
 export const listPairingCatalog = async ( options?: RequestInit): Promise<CatalogEntryOut[]> => {
@@ -4543,6 +4941,10 @@ export const getListAllEventsUrl = (params?: ListAllEventsParams,) => {
  * Searched by the same fields as the public calendar, through the same function: the two
  * lists differ in what they may show — drafts included here — not in what a search term
  * means.
+ *
+ * A race officer granted on one event, one series or one club (Story Z-2) sees the
+ * events those grants reach and nothing else — the same list, narrowed, rather than a
+ * tab that answers 403.
  * @summary All events, drafts included
  */
 export const listAllEvents = async (params?: ListAllEventsParams, options?: RequestInit): Promise<PageEventOut> => {

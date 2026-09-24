@@ -95,9 +95,9 @@ failing build is the whole point, and is what a hand-written client could not gi
 
 **Authentication:** We store **no passwords**. Identity comes from Google, Microsoft
 (OIDC token verification against provider keys) or via one-time code by email. Accounts are
-linked via verified email address, so both methods lead to the same account. Roles (`admin`,
-`editor`, `race_officer`, `club_manager`) are separate records and are verified fresh on every
-request so revocation takes effect immediately. Accounts are created by explicit enrollment or
+linked via verified email address, so both methods lead to the same account. Permissions are
+relation tuples (`Grant`: user · relation · object, see Domain decisions), verified fresh on
+every request so a deleted tuple takes effect immediately. Accounts are created by explicit enrollment or
 import, not by signing up (`allow_self_signup`).
 
 ## Testing different roles
@@ -117,8 +117,9 @@ separate setting, not tied to `debug` — in a reachable environment this would 
 and the server warns on startup while it is on.
 
 `app.seed_users` creates: one account **per registered sailor** (180) — without login, no one can
-submit their waiver — one person per club with `club_manager`, plus `admin@`, `redaktion@`, `wl@`,
-`beides@`, and `gast@sbl.example.com`.
+submit their waiver — one person per club with `manager` on it, plus `admin@`, `redaktion@`, `wl@`,
+`beides@`, `gast@sbl.example.com`, and three people with one tuple on the planned matchday
+only: `regatta@` (race officer), `orga@` (manager), `jury@`.
 
 Test addresses use `example.com`: `.test` and `.example` are reserved domains that email validation
 rejects — including in real login flows.
@@ -230,11 +231,25 @@ These points were deliberately decided this way; bypassing them costs a lot late
   installation can print at all, so the page can leave the download out.
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
+- **Permissions are relation tuples, `user:relation:object`, and the model is OpenFGA's
+  DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`,
+  `app/services/grants.py`). Object types `site`, `club`, `series`, `event`; relations
+  `admin`/`editor` (site), `manager` (the organizer — club, series, event),
+  `race_officer` (all four), `jury` (series, event). `or … from …` lines say what
+  implies what: a series' people are its events', the host club's people are its events',
+  the site's editor and race committee are managers of every event. **The check is
+  `User.can(relation, on=obj)`**; `require_site` guards the league office's screens,
+  `require_on_event` a route about one event, `User.roles` is a **derived** summary for
+  the navigation and never a permission. The site's admin writes any tuple, an object's
+  manager writes tuples on that object. Write and delete one tuple at a time — never
+  rebuild a person's rows from a list of names, that is how every per-club grant was once
+  silently dropped. Club membership is not a tuple (consent). Three foreign keys and one
+  small interpreter are the whole model: no authorization service.
 - **A person can be in several clubs; `User.club_id` is the one they act for.** Membership
-  (`ClubMember`) and organizing (`club_manager`, per club in `UserRole.club_id`) are both
-  per club and independent. `User.club_id` is the person's own choice among those clubs
+  (`ClubMember`) and organizing (a `manager` tuple on the club) are both per club and
+  independent. `User.club_id` is the person's own choice among those clubs
   (`PATCH /api/auth/me`, Story V-12), never derived from them, and never a permission —
-  permissions come from the role rows. With several clubs the choice is made in the
+  permissions come from the tuples. With several clubs the choice is made in the
   navigation ("Our club" expands into one entry per club), not on a page. The club screen
   (`/club`, three tabs) is where members are managed (V-8, Z-5, A-8), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
@@ -296,15 +311,16 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 |---|---|
 | Create clubs and enroll in Series | `admin`, `editor` |
 | Create Series and set participants | `admin` |
-| Create and maintain Events | `admin`, `editor`, `race_officer` |
-| Pairing lists, accounts, roles | `admin` |
-| Enter results | `admin`, `race_officer` |
+| Create and maintain Events | `admin`, `editor`, site `race_officer`; the `manager` of the event, its series or its host club |
+| Pairing lists, accounts | `admin` |
+| Write and delete tuples | `admin` anywhere; the object's `manager` on that object |
+| Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
 | Assign user to club | `admin`, `club_manager` (own club only) |
 | Register participants for Series/Event | `club_manager` (own club), `admin` |
 | Create and maintain sailors | `admin`, `editor`, `club_manager` |
 | Register Squad for Series | `admin`, `club_manager` (own club only) |
 | Accept club members | `club_manager` (own club), `admin` |
-| **Create** Event | additionally `club_manager` if own club hosts |
+| **Create** Event | additionally the `manager` of the host club or of the series |
 
 Defined as dependencies in `api/app/auth.py`; roles are checked fresh from the database on
 **every** request so revocation takes effect immediately.

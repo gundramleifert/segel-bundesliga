@@ -45,8 +45,7 @@ class PairingDraft:
     def from_import(cls, pairing: ImportedPairing, team_ids: list[int]) -> PairingDraft:
         if len(team_ids) != len(pairing.teams):
             raise PairingPublishError(
-                f"The list names {len(pairing.teams)} teams, "
-                f"but {len(team_ids)} were mapped"
+                f"The list names {len(pairing.teams)} teams, but {len(team_ids)} were mapped"
             )
         return cls(
             team_ids=team_ids,
@@ -112,9 +111,7 @@ async def stored_pairing(
     if not rows or not boats:
         return None
 
-    teams = sorted(
-        {team.id: team for _, _, _, team in rows}.values(), key=lambda t: (t.name, t.id)
-    )
+    teams = sorted({team.id: team for _, _, _, team in rows}.values(), key=lambda t: (t.name, t.id))
     index_by_team = {team.id: index for index, team in enumerate(teams)}
     boat_number = {boat.id: boat.number for boat in boats}
 
@@ -125,9 +122,7 @@ async def stored_pairing(
 
     return PdfRequest(
         teams=[team.name for team in teams],
-        boats=[
-            BoatSpec(number=boat.number, color=boat.color, name=boat.name) for boat in boats
-        ],
+        boats=[BoatSpec(number=boat.number, color=boat.color, name=boat.name) for boat in boats],
         slots=[
             PairingSlot(
                 flight=flight.number,
@@ -169,9 +164,7 @@ async def publish_pairing(
     known_teams = {team.id for team in await teams_for_event(session, event)}
     unknown = [team_id for team_id in draft.team_ids if team_id not in known_teams]
     if unknown:
-        raise PairingPublishError(
-            f"These teams are not entered in this event: {unknown}"
-        )
+        raise PairingPublishError(f"These teams are not entered in this event: {unknown}")
 
     await _clear_pairing(session, event.id)
 
@@ -218,9 +211,7 @@ async def publish_pairing(
     }
 
 
-async def _boats(
-    session: AsyncSession, event: Event, specs: list[BoatSpec]
-) -> list[Boat]:
+async def _boats(session: AsyncSession, event: Event, specs: list[BoatSpec]) -> list[Boat]:
     """The event's boats, matched to the draw.
 
     **Existing boats stay.** They belong to the event, not to the draw: the organizer gave
@@ -230,9 +221,7 @@ async def _boats(
     """
     existing = {
         boat.number: boat
-        for boat in (
-            await session.execute(select(Boat).where(Boat.event_id == event.id))
-        ).scalars()
+        for boat in (await session.execute(select(Boat).where(Boat.event_id == event.id))).scalars()
     }
 
     boats: list[Boat] = []

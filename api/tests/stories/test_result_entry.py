@@ -89,18 +89,14 @@ def _finished_payload(boats: list[int]) -> dict:
 async def _entries(race_id: int) -> list[RaceEntry]:
     async with SessionLocal() as session:
         return list(
-            (
-                await session.execute(select(RaceEntry).where(RaceEntry.race_id == race_id))
-            ).scalars()
+            (await session.execute(select(RaceEntry).where(RaceEntry.race_id == race_id))).scalars()
         )
 
 
 class TestEnteringResults:
     """WL-2: race committee enters and corrects results."""
 
-    async def test_race_officer_can_enter_results_and_points_are_recomputed(
-        self, client, caplog
-    ):
+    async def test_race_officer_can_enter_results_and_points_are_recomputed(self, client, caplog):
         event_id, race_id, boats = await _unfinished_race(offset=0)
         headers = await _race_officer(client, caplog, "wl-ro1@example.com")
 
@@ -198,9 +194,7 @@ class TestEnteringResults:
         """A finished matchday's result is amended — points must move, not just the flag."""
         async with SessionLocal() as session:
             event_id = (
-                await session.execute(
-                    select(Event.id).where(Event.slug == FINISHED_MATCHDAY)
-                )
+                await session.execute(select(Event.id).where(Event.slug == FINISHED_MATCHDAY))
             ).scalar_one()
             # finish_position == 2, deliberately not 1: another test in this suite
             # (test_scoring_storage) independently disqualifies a race's *winner* — picking
@@ -230,11 +224,7 @@ class TestEnteringResults:
         response = await client.put(
             f"/api/admin/events/{event_id}/races/{race_id}/result",
             headers=headers,
-            json={
-                "results": [
-                    {"boat_number": boat_number, "code": "RDG", "redress_points": 2.5}
-                ]
-            },
+            json={"results": [{"boat_number": boat_number, "code": "RDG", "redress_points": 2.5}]},
         )
         assert response.status_code == 200, response.text
 
@@ -357,9 +347,7 @@ class TestABoatWithNoResultYet:
         # And the boats that were not mentioned keep what they had.
         assert after[boats[0]].finish_position == 1
 
-    async def test_a_code_that_needs_a_position_is_still_refused_without_one(
-        self, client, caplog
-    ):
+    async def test_a_code_that_needs_a_position_is_still_refused_without_one(self, client, caplog):
         """The refusal this makes room for must not disappear with it.
 
         `code: null` means "nothing recorded". `code: "FINISHED"` with no position means
@@ -372,9 +360,7 @@ class TestABoatWithNoResultYet:
             f"/api/admin/events/{event_id}/races/{race_id}/result",
             headers=headers,
             json={
-                "results": [
-                    {"boat_number": boats[0], "code": "FINISHED", "finish_position": None}
-                ]
+                "results": [{"boat_number": boats[0], "code": "FINISHED", "finish_position": None}]
             },
         )
         assert response.status_code == 422, response.text

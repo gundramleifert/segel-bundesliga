@@ -163,9 +163,7 @@ async def has_results(session: AsyncSession, team: Team) -> bool:
         )
 
     hit = (
-        await session.execute(
-            select(RaceEntry.id).where(RaceEntry.team_id.in_(team_ids)).limit(1)
-        )
+        await session.execute(select(RaceEntry.id).where(RaceEntry.team_id.in_(team_ids)).limit(1))
     ).scalar_one_or_none()
     return hit is not None
 

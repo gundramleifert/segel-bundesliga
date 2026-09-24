@@ -151,6 +151,7 @@ class TestEveryWriterPublishes:
 
         assert hub.version(f"event:{event_id}") == before + 1
 
+
 class TestWhereToGoNow:
     """B-5: if there is no matchday now, the page leads to the next date."""
 

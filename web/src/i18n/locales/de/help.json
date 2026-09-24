@@ -8,7 +8,8 @@
       "admin": "Geschäftsstelle",
       "editor": "Redaktion",
       "raceOfficer": "Wettfahrtleitung",
-      "clubManager": "Vereinsverwaltung"
+      "clubManager": "Vereinsverwaltung",
+      "eventManager": "Veranstaltungsleitung"
     },
     "areas": {
       "createClubsEnroll": "Vereine anlegen und einer Serie zuordnen",
@@ -20,13 +21,15 @@
       "registerParticipants": "Teilnehmer für eine Serie oder Veranstaltung melden",
       "maintainSailors": "Segler anlegen und pflegen",
       "registerSquad": "Den Kader für eine Serie melden",
-      "acceptClubMembers": "Aufnahmeanträge von Vereinsmitgliedern annehmen"
+      "acceptClubMembers": "Aufnahmeanträge von Vereinsmitgliedern annehmen",
+      "namePeople": "Wettfahrtleitung und Jury einer Veranstaltung benennen"
     },
     "cells": {
       "yes": "Ja",
       "no": "—",
       "own": "Nur der eigene Verein",
-      "hostsCreate": "Nur um eine Veranstaltung anzulegen, die der eigene Verein ausrichtet"
+      "hostsCreate": "Nur um eine Veranstaltung anzulegen, die der eigene Verein ausrichtet",
+      "ownEvents": "Nur eigene Veranstaltungen und Serien"
     },
     "guestNote": "Auch ohne Konto oder ohne zugewiesene Rolle lässt sich alles Öffentliche einsehen — Tabelle, Veranstaltungen, Vereine und Seglerprofile. Ändern lässt sich damit nur nichts."
   },

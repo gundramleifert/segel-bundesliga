@@ -93,9 +93,7 @@ def _not_running(race: Race) -> Problem:
 
 def _audit(session: AsyncSession, race: Race, action: str, actor: str, **payload: object) -> None:
     session.add(
-        AuditLog(
-            entity_type="race", entity_id=race.id, action=action, actor=actor, payload=payload
-        )
+        AuditLog(entity_type="race", entity_id=race.id, action=action, actor=actor, payload=payload)
     )
 
 

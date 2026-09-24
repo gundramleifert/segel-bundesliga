@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -25,9 +25,10 @@ from app.auth import current_user
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import AuditLog, Club, ClubMember, ClubMemberStatus
-from app.models.auth import Role, User, UserRole
+from app.models.auth import ObjectType, Relation, Role, User
 from app.problems import Problem
 from app.schemas.public import ClubMemberOut, ClubOut
+from app.services import grants
 
 router = APIRouter(tags=["membership"])
 
@@ -113,9 +114,7 @@ async def request_membership(
     row = await _get_existing_membership(session, club.id, acting.id)
 
     if row is None:
-        row = ClubMember(
-            club_id=club.id, user_id=acting.id, status=ClubMemberStatus.PENDING_CLUB
-        )
+        row = ClubMember(club_id=club.id, user_id=acting.id, status=ClubMemberStatus.PENDING_CLUB)
         session.add(row)
     elif row.status == ClubMemberStatus.REJECTED:
         # A new attempt after rejection is allowed.
@@ -154,8 +153,9 @@ async def list_own_memberships(
     """
     rows = (
         await session.execute(
-            _with_relations(select(ClubMember).where(ClubMember.user_id == acting.id))
-            .order_by(ClubMember.id)
+            _with_relations(select(ClubMember).where(ClubMember.user_id == acting.id)).order_by(
+                ClubMember.id
+            )
         )
     ).scalars()
     return [_format_membership(row) for row in rows]
@@ -255,8 +255,9 @@ async def list_club_members(
     _check_club_leadership(acting, club.id, locale)
     rows = (
         await session.execute(
-            _with_relations(select(ClubMember).where(ClubMember.club_id == club.id))
-            .order_by(ClubMember.id)
+            _with_relations(select(ClubMember).where(ClubMember.club_id == club.id)).order_by(
+                ClubMember.id
+            )
         )
     ).scalars()
     return [_format_membership(row) for row in rows]
@@ -345,23 +346,7 @@ async def grant_organizer(
                 de="Diese Person leitet diesen Verein bereits.",
             ),
         )
-
-    # Change the collection, not a bare INSERT — otherwise the in-memory user still
-    # looks role-less to the response we build below (expire_on_commit is off).
-    target.role_rows.append(UserRole(role=Role.CLUB_MANAGER, club_id=club.id))
-    if target.club_id is None:
-        # Populate the "represents" convention on someone's first grant — but it must
-        # never again be the thing that blocks or defines a (further) grant.
-        target.club_id = club.id
-    session.add(
-        AuditLog(
-            entity_type="user",
-            entity_id=target.id,
-            action="grant_organizer",
-            actor=acting.email,
-            payload={"club_id": club.id},
-        )
-    )
+    await grants.grant(session, target, Relation.MANAGER, ObjectType.CLUB, club.id, actor=acting)
     await session.commit()
     return _format_membership(await _load_with_relations(session, row.id))
 
@@ -397,32 +382,10 @@ async def revoke_organizer(
                 de="Diese Person ist keine Organisatorin oder kein Organisator dieses Vereins.",
             ),
         )
-
-    if await _organizer_count(session, club.id, excluding_user_id=target.id) < 1:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en="At least one organizer must remain for this club.",
-                de="Mindestens eine Person muss diesen Verein weiter organisieren.",
-            ),
-        )
-
-    # Reassign the collection so the in-memory user is consistent for the response;
-    # delete-orphan cascade removes the dropped row on flush. Only the grant for
-    # *this* club goes — other clubs this person organizes are untouched.
-    target.role_rows = [
-        r for r in target.role_rows if not (r.role == Role.CLUB_MANAGER and r.club_id == club.id)
-    ]
-    session.add(
-        AuditLog(
-            entity_type="user",
-            entity_id=target.id,
-            action="revoke_organizer",
-            actor=acting.email,
-            payload={"club_id": club.id},
-        )
-    )
+    # Only the grant for *this* club goes — other clubs this person organizes are
+    # untouched; the service also refuses to take a club's last organizer (Story A-8).
+    (grant,) = [g for g in target.grants if g.relation == Relation.MANAGER and g.club_id == club.id]
+    await grants.revoke(session, target, grant, actor=acting)
     await session.commit()
     return _format_membership(await _load_with_relations(session, row.id))
 
@@ -449,9 +412,7 @@ async def invite_member(
     _check_club_leadership(acting, club.id, locale)
 
     email = request.email.strip().lower()
-    person = (
-        await session.execute(select(User).where(User.email == email))
-    ).scalar_one_or_none()
+    person = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if person is None:
         raise HTTPException(
             status_code=404,
@@ -470,9 +431,7 @@ async def invite_member(
 
     row = await _get_existing_membership(session, club.id, person.id)
     if row is None:
-        row = ClubMember(
-            club_id=club.id, user_id=person.id, status=ClubMemberStatus.PENDING_USER
-        )
+        row = ClubMember(club_id=club.id, user_id=person.id, status=ClubMemberStatus.PENDING_USER)
         session.add(row)
     elif row.status == ClubMemberStatus.REJECTED:
         row.status = ClubMemberStatus.PENDING_USER
@@ -505,15 +464,11 @@ def _with_relations(stmt):
 
 async def _get_club(session: AsyncSession, club_id: int, locale: Locale) -> Club:
     """Fetch a club by ID, raising 404 if not found."""
-    club = (
-        await session.execute(select(Club).where(Club.id == club_id))
-    ).scalar_one_or_none()
+    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
     if club is None:
         raise HTTPException(
             status_code=404,
-            detail=tr(
-                locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"
-            ),
+            detail=tr(locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"),
         )
     return club
 
@@ -535,27 +490,13 @@ async def _active_membership(
     return await _load_with_relations(session, row.id, locale)
 
 
-async def _organizer_count(
-    session: AsyncSession, club_id: int, *, excluding_user_id: int | None = None
-) -> int:
-    """How many accounts organize this club — i.e. hold `club_manager` for it."""
-    stmt = select(func.count(func.distinct(UserRole.user_id))).where(
-        UserRole.role == Role.CLUB_MANAGER, UserRole.club_id == club_id
-    )
-    if excluding_user_id is not None:
-        stmt = stmt.where(UserRole.user_id != excluding_user_id)
-    return int((await session.execute(stmt)).scalar_one())
-
-
 async def _get_existing_membership(
     session: AsyncSession, club_id: int, user_id: int
 ) -> ClubMember | None:
     """Check if a membership record already exists for this club-user pair."""
     return (
         await session.execute(
-            select(ClubMember).where(
-                ClubMember.club_id == club_id, ClubMember.user_id == user_id
-            )
+            select(ClubMember).where(ClubMember.club_id == club_id, ClubMember.user_id == user_id)
         )
     ).scalar_one_or_none()
 

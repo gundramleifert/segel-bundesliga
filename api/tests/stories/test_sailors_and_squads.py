@@ -72,9 +72,7 @@ async def squad_of(club_slug: str, series_slug: str) -> tuple[int, list[int]]:
 
 async def act_id(slug: str) -> int:
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(Event.id).where(Event.slug == slug))
-        ).scalar_one()
+        return (await session.execute(select(Event.id).where(Event.slug == slug))).scalar_one()
 
 
 class TestCreatingSailors:
@@ -292,9 +290,7 @@ class TestRegisteringASquad:
         entry = {"members": [{"sailor_id": sailors[0], "role": "crew"}]}
 
         assert (
-            await client.put(
-                f"/api/admin/teams/{first_team}/members", headers=admin, json=entry
-            )
+            await client.put(f"/api/admin/teams/{first_team}/members", headers=admin, json=entry)
         ).status_code == 200
 
         second = await client.put(
@@ -332,9 +328,7 @@ class TestRegisteringASquad:
         admin = await as_role(client, caplog, "kd7@example.com", Role.ADMIN)
         async with SessionLocal() as session:
             entry = (
-                await session.execute(
-                    select(Team).where(Team.event_id.is_not(None)).limit(1)
-                )
+                await session.execute(select(Team).where(Team.event_id.is_not(None)).limit(1))
             ).scalar_one()
 
         response = await client.put(
@@ -428,9 +422,7 @@ class TestSquadRefusalsAreTyped:
         entry = {"members": [{"sailor_id": sailor, "role": "crew"}]}
 
         assert (
-            await client.put(
-                f"/api/admin/teams/{first_team}/members", headers=admin, json=entry
-            )
+            await client.put(f"/api/admin/teams/{first_team}/members", headers=admin, json=entry)
         ).status_code == 200
 
         response = await client.put(
@@ -447,9 +439,7 @@ class TestSquadRefusalsAreTyped:
         admin = await as_role(client, caplog, "typed3@example.com", Role.ADMIN)
         async with SessionLocal() as session:
             entry = (
-                await session.execute(
-                    select(Team).where(Team.event_id.is_not(None)).limit(1)
-                )
+                await session.execute(select(Team).where(Team.event_id.is_not(None)).limit(1))
             ).scalar_one()
 
         response = await client.put(
@@ -458,9 +448,7 @@ class TestSquadRefusalsAreTyped:
         assert response.status_code == 422, response.text
         assert response.json()["type"] == "/errors/squad-needs-series-registration"
 
-    async def test_dropping_someone_who_is_lined_up_names_the_matchday(
-        self, client, caplog
-    ):
+    async def test_dropping_someone_who_is_lined_up_names_the_matchday(self, client, caplog):
         admin = await as_role(client, caplog, "typed4@example.com", Role.ADMIN)
         team_id, squad = await squad_of("byc", "dsbl-1-2026")
         assert len(squad) >= 4
@@ -478,11 +466,7 @@ class TestSquadRefusalsAreTyped:
         response = await client.put(
             f"/api/admin/teams/{team_id}/members",
             headers=admin,
-            json={
-                "members": [
-                    {"sailor_id": sailor_id, "role": "crew"} for sailor_id in squad[4:]
-                ]
-            },
+            json={"members": [{"sailor_id": sailor_id, "role": "crew"} for sailor_id in squad[4:]]},
         )
         assert response.status_code == 409, response.text
         problem = response.json()
@@ -516,9 +500,7 @@ class TestFindingTheRightPerson:
     manager actually has: is this the right one, and can I add them at all.
     """
 
-    async def test_a_sailor_carries_the_clubs_and_series_they_sail_for(
-        self, client, caplog
-    ):
+    async def test_a_sailor_carries_the_clubs_and_series_they_sail_for(self, client, caplog):
         admin = await as_role(client, caplog, "who1@example.com", Role.ADMIN)
         team_id, club_id = await series_registration()
 
@@ -542,9 +524,7 @@ class TestFindingTheRightPerson:
             )
         ).status_code == 200
 
-        found = await client.get(
-            "/api/admin/sailors", headers=admin, params={"q": "Identifiable"}
-        )
+        found = await client.get("/api/admin/sailors", headers=admin, params={"q": "Identifiable"})
         assert found.status_code == 200, found.text
         person = next(p for p in found.json()["items"] if p["id"] == sailor_id)
 

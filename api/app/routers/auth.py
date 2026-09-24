@@ -6,7 +6,7 @@ with a session token that carries roles.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,9 +20,19 @@ from app.auth import (
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import AuditLog, Club, ClubMember, ClubMemberStatus, WaiverConfirmation
-from app.models.auth import Role, User, UserRole
+from app.models.auth import (
+    MODEL,
+    SCHEMA,
+    Grant,
+    ObjectType,
+    Relation,
+    Role,
+    User,
+    parse_object,
+)
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
+from app.services import grants
 from app.services.login import (
     LoginError,
     login_with_oidc,
@@ -89,6 +99,37 @@ class ProvidersOut(BaseModel):
     )
 
 
+class TupleOut(BaseModel):
+    """One relation tuple in FGA's notation — ``user`` · ``relation`` · ``object`` — plus
+    the names a screen shows without a lookup per row."""
+
+    id: int
+    user_id: int
+    user: str = Field(description="The account's email — the user identifier of the tuple")
+    user_name: str
+    relation: str
+    object: str = Field(description='"site", or "<type>:<id>" such as "event:3"')
+    object_type: ObjectType
+    object_id: int | None
+    object_name: str | None = Field(
+        default=None, description="Name of the club, series or event; null for the site"
+    )
+
+    @classmethod
+    def of(cls, row: Grant, user: User) -> TupleOut:
+        return cls(
+            id=row.id,
+            user_id=user.id,
+            user=user.email,
+            user_name=user.display_name,
+            relation=row.relation,
+            object=row.object,
+            object_type=row.object_type,
+            object_id=row.object_id,
+            object_name=row.object_name,
+        )
+
+
 class UserOut(BaseModel):
     id: int
     email: str
@@ -96,7 +137,10 @@ class UserOut(BaseModel):
     is_active: bool
     email_verified: bool
     club_id: int | None
-    roles: list[str]
+    roles: list[str] = Field(
+        description="The summary roles derived from the tuples — what the navigation shows tabs by"
+    )
+    tuples: list[TupleOut]
     identities: list[IdentityOut]
 
     @classmethod
@@ -109,9 +153,9 @@ class UserOut(BaseModel):
             email_verified=user.email_verified,
             club_id=user.club_id,
             roles=sorted(user.roles),
+            tuples=[TupleOut.of(row, user) for row in sorted(user.grants, key=lambda r: r.id)],
             identities=[
-                IdentityOut(provider=row.provider, subject=row.subject)
-                for row in user.identities
+                IdentityOut(provider=row.provider, subject=row.subject) for row in user.identities
             ],
         )
 
@@ -119,18 +163,23 @@ class UserOut(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     display_name: str
-    roles: list[Role] = Field(default_factory=list)
+    roles: list[Relation] = Field(
+        default_factory=list, description="Site relations to start with; object tuples come after"
+    )
     club_id: int | None = None
 
 
-class RolesUpdate(BaseModel):
-    roles: list[Role]
+class TupleWrite(BaseModel):
+    """FGA's write: ``user`` (the account's email), ``relation``, ``object`` (``site`` or
+    ``<type>:<id>``)."""
+
+    user: EmailStr
+    relation: Relation
+    object: str = Field(examples=["event:3", "club:7", "site"])
 
 
 class ClubUpdate(BaseModel):
-    club_id: int | None = Field(
-        default=None, description="Club, or null to remove the assignment"
-    )
+    club_id: int | None = Field(default=None, description="Club, or null to remove the assignment")
 
 
 @router.get(
@@ -187,7 +236,7 @@ async def register_account(
             en="We've sent a confirmation code. It's valid for ten minutes. "
             "If an account already existed for this address, it's the usual sign-in code.",
             de="Wir haben einen Bestätigungscode geschickt. Er gilt zehn Minuten. "
-            "Bestand zu dieser Adresse schon ein Konto, ist es der gewohnte Anmeldecode."
+            "Bestand zu dieser Adresse schon ein Konto, ist es der gewohnte Anmeldecode.",
         )
     }
 
@@ -394,7 +443,7 @@ async def set_club(
     if user is None:
         raise HTTPException(
             status_code=404,
-            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht.")
+            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht."),
         )
 
     if request.club_id is not None:
@@ -407,8 +456,8 @@ async def set_club(
                 detail=tr(
                     locale,
                     en=f"Club {request.club_id} is not known.",
-                    de=f"Verein {request.club_id} ist nicht bekannt."
-                )
+                    de=f"Verein {request.club_id} ist nicht bekannt.",
+                ),
             )
 
     if not acting.has_any(Role.ADMIN):
@@ -419,7 +468,7 @@ async def set_club(
                 detail=tr(
                     locale,
                     en="Your account does not organize any club.",
-                    de="Ihr Konto leitet keinen Verein."
+                    de="Ihr Konto leitet keinen Verein.",
                 ),
             )
         if request.club_id is not None and request.club_id not in managed:
@@ -428,8 +477,8 @@ async def set_club(
                 detail=tr(
                     locale,
                     en="You can only assign a club you organize.",
-                    de="Sie können nur einen Verein zuordnen, den Sie leiten."
-                )
+                    de="Sie können nur einen Verein zuordnen, den Sie leiten.",
+                ),
             )
         if user.club_id is not None and user.club_id not in managed:
             raise HTTPException(
@@ -437,7 +486,7 @@ async def set_club(
                 detail=tr(
                     locale,
                     en="This person already belongs to a different club.",
-                    de="Diese Person gehört bereits zu einem anderen Verein."
+                    de="Diese Person gehört bereits zu einem anderen Verein.",
                 ),
             )
 
@@ -482,8 +531,8 @@ async def create_user(
             detail=tr(
                 locale,
                 en="An account already exists for this address.",
-                de="Für diese Adresse gibt es schon ein Konto."
-            )
+                de="Für diese Adresse gibt es schon ein Konto.",
+            ),
         )
 
     # Created by administration: the address is considered verified because it comes from
@@ -494,7 +543,11 @@ async def create_user(
         club_id=request.club_id,
         email_verified=True,
     )
-    user.role_rows = [UserRole(role=role) for role in dict.fromkeys(request.roles)]
+    # Relations at creation are site tuples: a club or event tuple names an object, which
+    # the "＋" on the Accounts tab writes one at a time.
+    for relation in dict.fromkeys(request.roles):
+        grants.check_schema(relation, ObjectType.SITE)
+    user.grants = [Grant(relation=relation) for relation in dict.fromkeys(request.roles)]
     # A fresh account has no sign-in method yet — the identity is created only on first sign-in.
     # Explicitly empty, otherwise the response tries to load it.
     user.identities = []
@@ -524,7 +577,7 @@ async def remove_user(
     if user is None:
         raise HTTPException(
             status_code=404,
-            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht.")
+            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht."),
         )
     if user.id == acting.id:
         raise HTTPException(
@@ -532,7 +585,7 @@ async def remove_user(
             detail=tr(
                 locale,
                 en="You cannot remove your own account.",
-                de="Das eigene Konto lässt sich nicht entfernen."
+                de="Das eigene Konto lässt sich nicht entfernen.",
             ),
         )
 
@@ -541,38 +594,163 @@ async def remove_user(
     return UserOut.of(user)
 
 
-@router.put(
-    "/users/{user_id}/roles",
-    response_model=UserOut,
-    summary="Grant or revoke roles",
+class ModelTypeOut(BaseModel):
+    type: ObjectType
+    relations: list[Relation]
+
+
+class ModelOut(BaseModel):
+    """The authorization model: the DSL as written, and per object type the relations
+    that can be written on it — what the "＋" offers."""
+
+    dsl: str
+    types: list[ModelTypeOut]
+
+
+@router.get(
+    "/model",
+    response_model=ModelOut,
+    dependencies=[Depends(current_user)],
+    summary="The authorization model (OpenFGA DSL)",
 )
-async def set_roles(
+async def get_model() -> ModelOut:
+    """One table, read here rather than copied into the frontend, so a relation added to
+    a type is offered without a release there."""
+    return ModelOut(
+        dsl=MODEL.strip(),
+        types=[
+            ModelTypeOut(type=object_type, relations=sorted(relations, key=list(Relation).index))
+            for object_type, relations in SCHEMA.items()
+        ],
+    )
+
+
+@router.get(
+    "/users/{user_id}",
+    response_model=UserOut,
+    dependencies=[Depends(require_admin)],
+    summary="One account with its tuples",
+)
+async def get_user(
     user_id: int,
-    request: RolesUpdate,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_admin),
     locale: Locale = Depends(resolve_locale),
 ) -> UserOut:
+    return UserOut.of(await _user(session, user_id, locale))
+
+
+@router.get(
+    "/tuples",
+    response_model=list[TupleOut],
+    summary="Who holds what on one object (FGA read)",
+)
+async def read_tuples(
+    object: str = Query(description='"site" or "<type>:<id>", e.g. "event:3"'),
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> list[TupleOut]:
+    """The access list of one object — the event panel shows its managers, race officers
+    and jury here. Open to the site's admin and to the object's own managers."""
+    object_type, object_id = _object(object)
+    obj = await grants.resolve(session, object_type, object_id)
+    _may_administer(acting, object_type, obj)
+    rows = await grants.grants_on(session, object_type, object_id)
+    return [TupleOut.of(row, row.user) for row in rows]
+
+
+@router.post(
+    "/tuples",
+    response_model=TupleOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Write one tuple (FGA write)",
+)
+async def write_tuple(
+    request: TupleWrite,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+    locale: Locale = Depends(resolve_locale),
+) -> TupleOut:
+    """Story Z-2. The rules — the schema, the object must exist, no duplicate — live in
+    `app/services/grants.py`, shared with the club screen. The site's admin writes any
+    tuple; an object's manager writes tuples on that object, so an organizer names the
+    race officers and the jury of their own event without administration."""
+    object_type, object_id = _object(request.object)
+    obj = await grants.resolve(session, object_type, object_id)
+    _may_administer(acting, object_type, obj)
+    target = (
+        await session.execute(select(User).where(User.email == request.user.lower()))
+    ).scalar_one_or_none()
+    if target is None:
+        raise HTTPException(
+            status_code=404,
+            detail=tr(
+                locale,
+                en="No account with this address. Create it first.",
+                de="Kein Konto mit dieser Adresse. Bitte zuerst anlegen.",
+            ),
+        )
+    row = await grants.grant(
+        session, target, request.relation, object_type, object_id, actor=acting
+    )
+    await session.commit()
+    return TupleOut.of(row, target)
+
+
+@router.delete(
+    "/tuples/{tuple_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete one tuple (FGA delete)",
+)
+async def delete_tuple(
+    tuple_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+    locale: Locale = Depends(resolve_locale),
+) -> None:
+    """Exactly this tuple goes; every other one the person holds stays. Refuses to delete
+    the caller's own `admin` and a club's last organizer (Story A-8)."""
+    row = await session.get(Grant, tuple_id)
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail=tr(
+                locale, en="This tuple does not exist.", de="Diese Berechtigung gibt es nicht."
+            ),
+        )
+    obj = await grants.resolve(session, row.object_type, row.object_id)
+    _may_administer(acting, row.object_type, obj)
+    # The account through its own query, so its `grants` collection is loaded — reached
+    # through `row.user` it is not, and touching it would lazy-load outside the async
+    # context (docs/gotchas: a relationship on a row you just appended is not loaded).
+    target = await _user(session, row.user_id, locale)
+    # The row the user's collection holds is the one to drop (same identity map).
+    mine = next(g for g in target.grants if g.id == row.id)
+    await grants.revoke(session, target, mine, actor=acting)
+    await session.commit()
+
+
+def _object(text: str) -> tuple[ObjectType, int | None]:
+    try:
+        return parse_object(text)
+    except ValueError as exc:
+        raise Problem(422, "tuple-object-invalid", "Not an object.", detail=str(exc)) from exc
+
+
+def _may_administer(acting: User, object_type: ObjectType, obj) -> None:
+    if not grants.may_administer(acting, object_type, obj):
+        raise Problem(
+            403,
+            "tuple-forbidden",
+            "Only the site's admin or the object's manager may change who holds what on it.",
+            object=object_type.value,
+        )
+
+
+async def _user(session: AsyncSession, user_id: int, locale: Locale) -> User:
     user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
     if user is None:
         raise HTTPException(
             status_code=404,
-            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht.")
+            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht."),
         )
-
-    wanted = list(dict.fromkeys(request.roles))
-    # If someone revokes their own admin role, they might lock themselves out.
-    if user.id == acting.id and Role.ADMIN not in wanted:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en="You cannot revoke your own admin role.",
-                de="Die eigene Verwaltungsrolle lässt sich nicht selbst entziehen."
-            ),
-        )
-
-    user.role_rows = [UserRole(user_id=user.id, role=role) for role in wanted]
-    await session.commit()
-    await session.refresh(user)
-    return UserOut.of(user)
+    return user

@@ -223,9 +223,7 @@ class TestTheCompleteLifecycle:
         assert started.json()["status"] == "live"
 
         # ------------------------------------------------- 7. Sail all 16 races (WL-2)
-        races = (
-            await client.get(f"/api/admin/events/{event_id}/races", headers=headers)
-        ).json()
+        races = (await client.get(f"/api/admin/events/{event_id}/races", headers=headers)).json()
         assert len(races["races"]) == TOTAL_RACES, len(races["races"])
         assert len(races["boats"]) == BOATS
         # The custom hull colour survived creation as typed — the column is a free string.
@@ -329,9 +327,7 @@ class TestTheCompleteLifecycle:
         assert final.json()["status"] == "final"
 
         async with SessionLocal() as session:
-            stored = (
-                await session.execute(select(Event).where(Event.id == event_id))
-            ).scalar_one()
+            stored = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one()
         assert stored.status == EventStatus.FINAL
         assert stored.published is True
 
@@ -362,9 +358,18 @@ class TestTheAdminEventList:
         """Which events are being planned is not public — not even their titles."""
         assert (await client.get("/api/admin/events")).status_code == 401
 
-    async def test_a_club_account_without_a_role_cannot_read_it_either(self, client, caplog):
-        """A `club_manager` may create an event their own club hosts (Story VA-6), which
-        is deliberately *not* permission to read everyone else's planning."""
+    async def test_a_club_account_sees_only_what_its_club_hosts(self, client, caplog):
+        """A club's manager may create an event their own club hosts (Story VA-6), which
+        is deliberately *not* permission to read everyone else's planning: the list is
+        narrowed to the events their tuples reach (Story Z-2), so a fresh club's manager
+        sees only events their club hosts — and nothing of the league's."""
         await make_user("clubmanager-list@example.com", Role.CLUB_MANAGER)
         headers = auth_headers(await login_as(client, "clubmanager-list@example.com", caplog))
-        assert (await client.get("/api/admin/events", headers=headers)).status_code == 403
+        me = (await client.get("/api/auth/me", headers=headers)).json()
+        (mine,) = [t["object_id"] for t in me["tuples"]]
+        listed = await client.get("/api/admin/events", headers=headers)
+        assert listed.status_code == 200, listed.text
+        assert all(
+            event["host_club"] is not None and event["host_club"]["id"] == mine
+            for event in listed.json()["items"]
+        )

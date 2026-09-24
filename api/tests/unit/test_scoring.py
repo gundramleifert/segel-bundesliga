@@ -86,7 +86,7 @@ def test_event_ranking_orders_by_net_points():
 
 
 def test_tie_is_broken_by_the_better_series_then_the_last_race():
-    ""# Both teams have 3 points and each a first place — the last race decides.""
+    ""  # Both teams have 3 points and each a first place — the last race decides.""
     scores = score_event(
         {
             10: [finished(1, 1, sequence=1), finished(2, 2, sequence=2)],

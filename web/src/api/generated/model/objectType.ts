@@ -5,8 +5,13 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
-import type { Role } from './role';
 
-export interface RolesUpdate {
-  roles: Role[];
-}
+export type ObjectType = typeof ObjectType[keyof typeof ObjectType];
+
+
+export const ObjectType = {
+  site: 'site',
+  club: 'club',
+  series: 'series',
+  event: 'event',
+} as const;

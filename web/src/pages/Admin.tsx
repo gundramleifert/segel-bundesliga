@@ -42,7 +42,9 @@ import { AddButton } from "../components/AddButton";
  * jetty — several screens down. Tabs also mean one area's queries load instead of five.
  */
 /** Who may be here: signed in, and `admin` or `editor` — or `admin` alone with `adminOnly`.
- *  The same rule for `/admin` and for every `/admin/<area>/new` page (`AdminNewPage`). */
+ *  The same rule for `/admin` and for every `/admin/<area>/new` page (`AdminNewPage`).
+ *  An `event_manager` or `jury` (Story Z-2) is let in as well: the events tab is theirs,
+ *  the others do not exist for them (see `AdminTabs`). */
 export function AdminAccess({
   adminOnly = false,
   children,
@@ -59,7 +61,7 @@ export function AdminAccess({
       <ErrorMessage text={t("auth.notSignedInError")} testId="admin-auth-error" />
     );
   }
-  if (!(adminOnly ? hasRole("admin") : hasRole("admin", "editor"))) {
+  if (!(adminOnly ? hasRole("admin") : hasRole("admin", "editor", "event_manager", "jury"))) {
     return (
       <ErrorMessage text={t("auth.noAccessError")} testId="admin-access-error" />
     );
@@ -84,16 +86,21 @@ function AdminTabs() {
   // that — they would be created on every render of this component regardless.
   // The labels are each area's own section title, not a second set of strings: a tab whose
   // wording drifts from the heading it opens is a translation bug waiting to happen.
-  const tabs: TabDef<AdminTab>[] = [
-    { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
-    {
-      key: "series",
-      label: t("series.title"),
-      render: () => <Series editorOnly={!hasRole("admin")} />,
-    },
-    { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
-    { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
-  ];
+  // The league office sees every area; the organizer or jury of one event sees the
+  // events tab alone — a tab a role may not use does not exist for it (Story A-11).
+  const office = hasRole("admin", "editor");
+  const tabs: TabDef<AdminTab>[] = office
+    ? [
+        { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
+        {
+          key: "series",
+          label: t("series.title"),
+          render: () => <Series editorOnly={!hasRole("admin")} />,
+        },
+        { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
+        { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
+      ]
+    : [{ key: "events", label: t("events.title"), render: () => <EventsAdmin /> }];
   // Accounts is admin-only, so for an editor the tab does not exist rather than existing
   // and refusing — the same rule the section already followed.
   if (hasRole("admin")) {

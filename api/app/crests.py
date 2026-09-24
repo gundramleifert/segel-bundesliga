@@ -104,9 +104,7 @@ def save_crest(club_id: int, raw: bytes, *, content_type: str | None) -> None:
         image = Image.open(io.BytesIO(raw))
         image.load()
     except Exception as exc:
-        raise Problem(
-            422, "club-crest-invalid", "This file is not a readable image."
-        ) from exc
+        raise Problem(422, "club-crest-invalid", "This file is not a readable image.") from exc
 
     image = ImageOps.exif_transpose(image) or image
     image = image.convert("RGBA" if _has_alpha(image) else "RGB")

@@ -112,31 +112,102 @@ Tests: `api/tests/stories/test_participation.py::TestDecidingOnApplications`
 
 ## Accounts and roles
 
-### Z-2 ● Assign roles
-As a **administrator** I want to **assign and revoke roles**, so that **everyone can only do
-what they are responsible for**.
+### Z-2 ◐ Access is a relation tuple: user · relation · object
+As an **administrator** I want to **say who is what to which thing** — manager of club
+A and B, race officer of event C, admin of the site — so that **everyone can only do
+what they are responsible for, and a club running its own regatta here never holds the
+league's keys**.
+
+Permissions are **relation tuples** in the Zanzibar/OpenFGA sense, at the size this site
+needs and without the server: ``user:relation:object``. The model is written in
+OpenFGA's DSL (`MODEL` in `app/models/auth.py`) and that string *is* the definition —
+parsed at import, interpreted by `User.can(...)`. The tuples live in one table (`Grant`,
+`access_grant`) whose object is one of three foreign keys, all NULL for the site: the
+database cascades and joins, and a check needs no lookup.
+
+The model:
+- `site`: `admin`, `editor`, `race_officer` — the league office and its race committee.
+- `club`: `manager` (the organizer, Story A-8), `race_officer` (runs every event the club
+  hosts).
+- `series`: `manager`, `race_officer`, `jury` — a cup series run by someone other than
+  the league office has its own organizer, committee and jury.
+- `event`: `manager`, `race_officer`, `jury`. The **manager** is the organizer of the
+  event-organizer stories: setup, clubs, boats, publication, and the people. The
+  **race officer** runs the races: results, race control, trackers. The **jury** is the
+  protest committee; it will publish announcements (VA-11) and record decisions.
+
+The rewrite rules (`or … from …` in the DSL) say what implies what: a series' manager,
+race officer or jury is that of every event in the series; the host club's manager and
+race officer are those of every event it hosts; the site's admin is everything; the
+site's editor and race committee are managers of every event — the league's committee
+keeps the setup rights it always had, while a race officer appointed for one event only
+runs its races. Nothing else inherits.
 
 Acceptance criteria:
-- Roles: `admin`, `editor`, `race_officer`, `club_manager`; multiple per account possible.
-- A revoked role takes effect immediately, not when the token expires.
-- The administrator's own role cannot be self-revoked.
+- A tuple is written and deleted **one at a time**; deleting one leaves every other
+  tuple of the person in place. (The earlier "set roles" endpoint rebuilt the rows from
+  a list of names and silently dropped every per-club grant on any edit.)
+- One person holds as many tuples as they have responsibilities — manager of two clubs
+  and race officer of two events is four rows.
+- The **schema decides what can be written**: `manager` on the site or `admin` on a
+  club is refused (`tuple-relation-invalid`); an object that does not exist is a 404
+  (`tuple-object-missing`); a malformed object string a 422 (`tuple-object-invalid`);
+  a duplicate a 409 (`tuple-exists`).
+- **Who may write**: the site's admin writes any tuple; an object's `manager` writes
+  tuples **on that object** — so the organizer of an event names its race officers and
+  its jury without administration, and the host club's manager does so for the club's
+  events. Anyone else is refused (`tuple-forbidden`). Site tuples are the admin's alone.
+- A race officer of one event enters results there and is refused next door, cannot
+  change that event's setup, and the admin event list shows only the events their
+  tuples reach. The league office's gates (`require_site`) count site tuples only.
+- Deleting one's own `admin` is refused (`tuple-self-lockout`); deleting a club's last
+  `manager` follows A-8 (`last-organizer`).
+- A deleted tuple takes effect immediately, not when the token expires.
+- Every write and delete is written to the audit log with relation and object.
 - A blocked account cannot sign in.
 - **Bootstrap:** an address listed in `SBL_ADMIN_EMAILS` becomes `admin` automatically on
   its first successful sign-in (any provider) — otherwise a fresh deployment has no one
-  who can grant the first role at all. Checked on every sign-in, not just account
+  who can write the first tuple at all. Checked on every sign-in, not just account
   creation. See `docs/deploy.md`.
 
+**Summary roles.** The navigation and the help page still speak of roles; those are
+**derived** from the tuples (`User.roles`, `Role`): `admin`, `editor`, `race_officer`
+and `jury` for the relation held anywhere, `club_manager` for `manager` of some club,
+`event_manager` for `manager` of some series or event. Never a permission check —
+that is `User.can(relation, on=object)`.
+
+Club **membership** is not a tuple: it needs both sides' consent (`ClubMember`, Story Z-5).
+
+Screens: the **Accounts** tab of `/admin` lists each account's tuples — relation, then the
+object — with a delete on each and a "＋" that asks object type, relation and object, in
+that order, offering only what the model defines. The **event panel** carries the
+object's side, "People": who holds what on this event, with add-by-email and remove,
+for the site's admin and the event's managers.
+
+Endpoints (FGA's vocabulary): `GET /api/auth/model`, `GET /api/auth/tuples?object=event:3`
+(read), `POST /api/auth/tuples` (write: `{user, relation, object}`, user by email),
+`DELETE /api/auth/tuples/{id}`; `UserOut.tuples` lists a person's, `UserOut.roles` the
+summary roles.
+
+Open: the club screen does not yet show the club's own tuples (its race committee); the
+Accounts tab does not yet filter by relation or object.
+
 Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
-`api/tests/stories/test_login_and_roles.py::TestAdminWhitelist`
+`api/tests/stories/test_login_and_roles.py::TestTuples`,
+`api/tests/stories/test_login_and_roles.py::TestOrganizers`,
+`api/tests/stories/test_login_and_roles.py::TestAdminWhitelist`,
+`e2e/lifecycle.spec.ts` ("Z-2: access is a relation tuple, written and deleted one at a time")
 
 ### A-8 ● Set up club organizer
 As **administration** I want to **give a club an organizer**,
 so that **the club manages itself from then on**.
 
-The organizer is the account with the `club_manager` role for that club. `club_manager` is
-a **per-club** grant (`UserRole.club_id`) — a person can organize several clubs
-independently, each grant and revoke handled on its own. They maintain squads, lineups, and
-posts — and apply for participation (V-5).
+The organizer is the account with a `manager` tuple on that club (Story Z-2) — a person
+can organize several clubs independently, each tuple written and deleted on its own. They
+maintain squads, lineups, and posts — and apply for participation (V-5). The club screen
+and the Accounts tab go through the same `app/services/grants.py`, so the last-organizer
+rule below holds whichever screen is used. `club_manager` in the text below is the summary
+role for "manager of some club".
 
 Acceptance criteria:
 - Administration creates the account (name, email) and binds it to the club — the first

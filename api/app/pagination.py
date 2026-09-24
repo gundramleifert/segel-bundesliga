@@ -164,9 +164,7 @@ async def paginate(
 
     # `order_by(None)` clears whatever the caller put on the statement — the count does not
     # need it, and SQL Server-style backends refuse ORDER BY inside a subquery without TOP.
-    total = await session.scalar(
-        select(func.count()).select_from(stmt.order_by(None).subquery())
-    )
+    total = await session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery()))
 
     rows = (
         await session.execute(

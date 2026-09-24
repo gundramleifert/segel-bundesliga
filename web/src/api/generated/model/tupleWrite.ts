@@ -7,10 +7,12 @@
  */
 import type { Relation } from './relation';
 
-export interface UserCreate {
-  email: string;
-  display_name: string;
-  /** Site relations to start with; object tuples come after */
-  roles?: Relation[];
-  club_id?: number | null;
+/**
+ * FGA's write: ``user`` (the account's email), ``relation``, ``object`` (``site`` or
+ * ``<type>:<id>``).
+ */
+export interface TupleWrite {
+  user: string;
+  relation: Relation;
+  object: string;
 }

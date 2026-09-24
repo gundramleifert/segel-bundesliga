@@ -49,6 +49,7 @@ import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { Steps } from "../components/Steps";
 import { AddButton } from "../components/AddButton";
+import { AccessPanel } from "../components/AccessPanel";
 
 /** Stories A-4, VA-6, VA-7 and VA-8: scheduling an event and taking it through its life.
  *
@@ -1513,6 +1514,7 @@ function EventPanel({
 
       {/* 5c. Liability waivers (Stories VA-5, S-1) --------------------------- */}
       <WaiverChecklist eventId={event.id} />
+      <AccessPanel object={`event:${event.id}`} testId={`admin-event-access-${event.id}`} />
 
       {/* 6. Publication and start ------------------------------------------- */}
       <Stack gap={3}>

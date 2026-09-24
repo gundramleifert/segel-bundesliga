@@ -117,12 +117,16 @@ class TestSearchingAndSorting:
     async def test_sorting_reverses_with_a_minus(self, client, caplog):
         head = await as_role(client, caplog, "page-sort@example.com", Role.ADMIN)
 
-        up = (await client.get(
-            "/api/admin/sailors", params={"sort": "last_name", "limit": 50}, headers=head
-        )).json()
-        down = (await client.get(
-            "/api/admin/sailors", params={"sort": "-last_name", "limit": 50}, headers=head
-        )).json()
+        up = (
+            await client.get(
+                "/api/admin/sailors", params={"sort": "last_name", "limit": 50}, headers=head
+            )
+        ).json()
+        down = (
+            await client.get(
+                "/api/admin/sailors", params={"sort": "-last_name", "limit": 50}, headers=head
+            )
+        ).json()
 
         ascending = [s["last_name"] for s in up["items"]]
         descending = [s["last_name"] for s in down["items"]]
@@ -141,9 +145,11 @@ class TestSearchingAndSorting:
         seen: list[int] = []
         offset = 0
         while True:
-            page = (await client.get(
-                "/api/admin/sailors", params={"limit": 100, "offset": offset}, headers=head
-            )).json()
+            page = (
+                await client.get(
+                    "/api/admin/sailors", params={"limit": 100, "offset": offset}, headers=head
+                )
+            ).json()
             seen.extend(item["id"] for item in page["items"])
             offset += page["limit"]
             if offset >= page["total"]:
@@ -180,9 +186,7 @@ async def unique_club(client, headers, name: str, short: str, city: str) -> int:
 async def seed_id(model, slug: str) -> int:
     """The primary key of a seeded row, which the API offers no way to look up by slug."""
     async with SessionLocal() as session:
-        return (
-            await session.execute(select(model.id).where(model.slug == slug))
-        ).scalar_one()
+        return (await session.execute(select(model.id).where(model.slug == slug))).scalar_one()
 
 
 async def make_event(client, headers, title: str, **fields) -> int:
@@ -260,9 +264,7 @@ class TestSearchingTheClubList:
         assert "DTYC" in {club["short_name"] for club in page["items"]}
         assert all("tutzing" in club["city"].lower() for club in page["items"])
 
-    async def test_a_club_that_is_not_public_cannot_be_found_by_searching(
-        self, client, caplog
-    ):
+    async def test_a_club_that_is_not_public_cannot_be_found_by_searching(self, client, caplog):
         """Searching narrows what a visitor may see; it never widens it (Story VA-8).
 
         A club is public only once it is registered for a published series — and a search
@@ -282,9 +284,7 @@ class TestSearchingTheClubList:
 class TestSearchingTheEventCalendar:
     """As a visitor, I want to find a matchday by where it is sailed or who runs it."""
 
-    async def test_searching_the_calendar_finds_an_event_by_its_venue(
-        self, client, caplog, ids
-    ):
+    async def test_searching_the_calendar_finds_an_event_by_its_venue(self, client, caplog, ids):
         """The venue is not in the title, so only a join can find this one."""
         head = await as_role(client, caplog, "page-event-venue@example.com", Role.ADMIN)
         event_id = await make_event(
@@ -294,9 +294,12 @@ class TestSearchingTheEventCalendar:
             venue_id=await seed_id(Venue, "berlin-wannsee"),
         )
 
-        found = {event["id"] for event in (
-            await client.get("/api/events", params={"q": "wannsee", "limit": 100})
-        ).json()["items"]}
+        found = {
+            event["id"]
+            for event in (
+                await client.get("/api/events", params={"q": "wannsee", "limit": 100})
+            ).json()["items"]
+        }
         assert event_id in found
         # And the search narrows: an act sailed somewhere else is not in the answer.
         assert ids.event("dsbl-1-2026-act-1") not in found
@@ -312,9 +315,12 @@ class TestSearchingTheEventCalendar:
             host_club_id=await seed_id(Club, "fsc"),
         )
 
-        found = {event["id"] for event in (
-            await client.get("/api/events", params={"q": "flensburger", "limit": 100})
-        ).json()["items"]}
+        found = {
+            event["id"]
+            for event in (
+                await client.get("/api/events", params={"q": "flensburger", "limit": 100})
+            ).json()["items"]
+        }
         assert event_id in found
         assert ids.event("dsbl-1-2026-act-1") not in found
 
@@ -349,22 +355,16 @@ class TestSearchingTheEventCalendar:
 
         assert (await client.get("/api/events", params={"q": "numbat"})).json()["total"] == 0
 
-        admin = (
-            await client.get("/api/admin/events", params={"q": "numbat"}, headers=head)
-        ).json()
+        admin = (await client.get("/api/admin/events", params={"q": "numbat"}, headers=head)).json()
         assert [event["id"] for event in admin["items"]] == [event_id]
 
 
 class TestSearchingTheSeriesList:
     """As an administrator planning several years ahead, I want to find one series."""
 
-    async def test_searching_the_series_list_finds_a_series_by_its_short_name(
-        self, client, caplog
-    ):
+    async def test_searching_the_series_list_finds_a_series_by_its_short_name(self, client, caplog):
         """'SCL' is only in the short name; the series is called Sailing Champions League."""
         head = await as_role(client, caplog, "page-series@example.com", Role.ADMIN)
-        page = (
-            await client.get("/api/admin/series", params={"q": "scl"}, headers=head)
-        ).json()
+        page = (await client.get("/api/admin/series", params={"q": "scl"}, headers=head)).json()
 
         assert [series["short_name"] for series in page["items"]] == ["SCL 2026"]

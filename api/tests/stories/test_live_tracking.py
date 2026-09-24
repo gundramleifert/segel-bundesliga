@@ -212,7 +212,6 @@ class TestTheLivePicture:
         assert internal.status_code == 200
         assert (await client.get(f"/api/events/{event_id}")).json()["event"]["live_url"] is None
 
-
         headers = await admin(client, caplog, "tr7@example.com")
         created = await client.post(
             "/api/admin/events",

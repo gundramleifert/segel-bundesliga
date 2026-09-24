@@ -56,5 +56,12 @@
   "waiver-scan-forbidden": "Das unterschriebene Formular sehen nur die Person selbst, die Vereinsführung, der Ausrichter und die Ligaverwaltung.",
   "active-club-not-mine": "Du kannst nur für einen Verein handeln, dem du angehörst oder den du organisierst.",
   "squad-too-large": "Zu viele Personen: Dieser Wettbewerb erlaubt höchstens {{squad_max}} im Kader, {{registered}} wurden gemeldet.",
-  "squad-limits-invalid": "Das Kader-Minimum kann nicht größer sein als das Maximum."
+  "squad-limits-invalid": "Das Kader-Minimum kann nicht größer sein als das Maximum.",
+  "last-organizer": "Mindestens eine Person muss diesen Verein weiter organisieren.",
+  "tuple-relation-invalid": "Diese Rolle gibt es auf dieser Art von Objekt nicht.",
+  "tuple-object-invalid": "Das ist kein Verein, keine Serie und keine Veranstaltung.",
+  "tuple-object-missing": "Den Verein, die Serie oder die Veranstaltung gibt es nicht.",
+  "tuple-exists": "Diese Person hat diese Rolle dort bereits.",
+  "tuple-self-lockout": "Die eigene Verwaltungsrolle lässt sich nicht selbst entziehen.",
+  "tuple-forbidden": "Nur die Verwaltung oder die Organisation des Objekts kann ändern, wer Zugriff darauf hat."
 }

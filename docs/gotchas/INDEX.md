@@ -8,6 +8,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A card grid's 1fr track is floored at min-content, so the overflow only appears once test data is long enough](a-card-grid-s-1fr-track-is-floored-at-min-content-so-the-overflow-only-appears-o.md)
 - [A failed maven package leaves a truncated jar behind, and it fails because the sandbox denies /tmp](a-failed-maven-package-leaves-a-truncated-jar-behind-and-it-fails-because-the-sa.md)
 - [`require_ready` answers with a *different* code depending on how many things are missing](a-readiness-refusal-carries-two-different-codes.md)
+- [A relationship on a row you just appended is not loaded after the commit, and reading it in the response fails with MissingGreenlet](a-relationship-on-a-row-you-just-appended-is-not-loaded-after-the-commit-and-rea.md)
 - [A sandbox-denied file shows up as a 0-byte `/dev/null`, so `ls` and `stat` describe something that is not there](a-sandbox-denied-file-looks-like-an-empty-file.md)
 - [A story test asserting a count against a seed event is green alone and red in the full suite, because another story added a participant to that same event](a-story-test-asserting-a-count-against-a-seed-event-is-green-alone-and-red-in-th.md)
 - [A token issued a moment ago is rejected as "Invalid access token", because WSL2 steps the wall clock backwards](a-token-issued-a-moment-ago-is-rejected-as-invalid-because-wsl2-steps-the-wall-clock-back.md)
