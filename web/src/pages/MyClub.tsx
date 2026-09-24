@@ -8,6 +8,7 @@ import { useMyClubs, useUpdateMe } from "../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../api/types";
 import { useAsync, useAccount, useInvalidate } from "../api/useApi";
 import { ClubMembersPanel } from "../components/ClubMembersPanel";
+import { AccessPanel } from "../components/AccessPanel";
 import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
 import { LineupPanel } from "../components/LineupPanel";
 import { SquadPanel } from "../components/SquadPanel";
@@ -127,7 +128,14 @@ function ClubScreen({
     {
       key: "members",
       label: t("mine.tabs.members"),
-      render: () => <ClubMembersPanel entry={entry} />,
+      render: () => (
+        <>
+          <ClubMembersPanel entry={entry} />
+          {entry.may_admin && (
+            <AccessPanel object={`club:${entry.club.id}`} testId={`my-club-access-${entry.club.id}`} />
+          )}
+        </>
+      ),
     },
     { key: "events", label: t("mine.tabs.events"), render: () => <ClubEvents entry={entry} /> },
     { key: "series", label: t("mine.tabs.series"), render: () => <ClubTeams entry={entry} /> },

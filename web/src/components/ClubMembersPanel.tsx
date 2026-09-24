@@ -39,7 +39,9 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
   const { account } = useAccount();
   const invalidate = useInvalidate();
   const clubId = entry.club.id;
-  const manage = entry.may_manage;
+  // Who is *in* the club is the club admin's decision (Story Z-2); a manager decides who
+  // sails and sees the roster like any member.
+  const manage = entry.may_admin;
 
   const refresh = () =>
     invalidate(

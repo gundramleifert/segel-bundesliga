@@ -380,6 +380,7 @@ class MyClubOut(BaseModel):
     is_member: bool
     #: `club_manager` for this club — granted per club, never globally.
     may_manage: bool
+    may_admin: bool = False
     teams: list[MyTeamOut]
     #: The club's event entries, next matchday first (Story V-12).
     events: list[MyEventOut] = Field(default_factory=list)

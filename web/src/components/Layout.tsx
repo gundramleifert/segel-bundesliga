@@ -70,7 +70,7 @@ export function Layout() {
       : []),
     // The organizer of one event or series, and its jury, reach the admin area too — it
     // shows them their events and nothing else (Story Z-2).
-    ...(hasRole("admin", "editor", "event_manager", "jury")
+    ...(hasRole("admin", "editor", "series_manager", "event_manager", "jury")
       ? [{ path: "/admin", key: "admin", exact: false }]
       : []),
   ];

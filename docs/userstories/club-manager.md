@@ -7,6 +7,12 @@ These stories are connected: who joins a club can join its squad; the club regis
 squad, the registered sailors sign once for the season, the organizer checks them off, and
 before each matchday the club names the four who actually sail.
 
+Two people stand behind "the club" here (Story Z-2): the club's **admin** decides who is
+*in* the club — memberships, invitations, organizers, the crest — and the club's
+**manager** decides who *sails* — squads, lineups, registrations. Where a story below
+says `club_manager`, read the manager for sport and the admin for membership; an admin
+is a manager too.
+
 The path into a competition goes both ways. Administration assigns clubs to series
 ([A-3](administration.md#a-3--assign-clubs-to-series), [A-6](administration.md#a-6--create-series-and-select-clubs)); V-5
 and V-6 add the club's own application from below — **without** replacing the path from
@@ -399,11 +405,11 @@ As a **club manager** I want to **upload our club's crest**,
 so that **we are recognizable on the page**.
 
 Acceptance criteria:
-- The `club_manager` uploads it for their **own** club — the same restriction as club
-  assignment (Z-3). `admin` and `editor` may do it for any club, as with the rest of club
-  master data (A-1). The check is `User.manages_club(club_id)`: `club_manager` is granted
-  per club, so someone who organizes two clubs can maintain both crests, and merely
-  *representing* a club (`User.club_id`) grants nothing.
+- The club's **admin** uploads it for their **own** club — the crest is the club's
+  identity, like its members (Z-3). `admin` and `editor` may do it for any club, as with
+  the rest of club master data (A-1). The check is `User.administers_club(club_id)`: the
+  relation is held per club, so someone who administers two clubs can maintain both
+  crests, and merely *representing* a club (`User.club_id`) grants nothing.
 - Replacing and removing are possible (`POST` again replaces; `DELETE` on a club without
   an uploaded crest is a no-op, not an error).
 - Appears in table, club overview, and matchday view; without crest the abbreviation field

@@ -29,6 +29,7 @@ from app.models.auth import (
     Role,
     User,
     parse_object,
+    writable,
 )
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
@@ -461,7 +462,8 @@ async def set_club(
             )
 
     if not acting.has_any(Role.ADMIN):
-        managed = acting.managed_club_ids
+        # Who is *in* the club is the club admin's decision (Story Z-2).
+        managed = acting.administered_club_ids
         if not managed:
             raise HTTPException(
                 status_code=409,
@@ -619,8 +621,10 @@ async def get_model() -> ModelOut:
     return ModelOut(
         dsl=MODEL.strip(),
         types=[
-            ModelTypeOut(type=object_type, relations=sorted(relations, key=list(Relation).index))
-            for object_type, relations in SCHEMA.items()
+            ModelTypeOut(
+                type=object_type, relations=sorted(writable(object_type), key=list(Relation).index)
+            )
+            for object_type in SCHEMA
         ],
     )
 
@@ -689,6 +693,25 @@ async def write_tuple(
                 de="Kein Konto mit dieser Adresse. Bitte zuerst anlegen.",
             ),
         )
+    if object_type is ObjectType.CLUB and not acting.can(Relation.ADMIN):
+        # A club's manager names people *of the club* (Story A-8): an active member. The
+        # site's admin may name anyone — the first organizer of a club has no one yet.
+        member = (
+            await session.execute(
+                select(ClubMember).where(
+                    ClubMember.club_id == object_id,
+                    ClubMember.user_id == target.id,
+                    ClubMember.status == ClubMemberStatus.ACTIVE,
+                )
+            )
+        ).scalar_one_or_none()
+        if member is None:
+            raise Problem(
+                403,
+                "tuple-not-a-member",
+                "A club's manager can only name active members of the club.",
+                detail=f"{target.email} is not an active member of club {object_id}.",
+            )
     row = await grants.grant(
         session, target, request.relation, object_type, object_id, actor=acting
     )

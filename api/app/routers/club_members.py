@@ -58,6 +58,10 @@ class MembershipOut(BaseModel):
     # Whether this member also organizes the club (holds `club_manager` for it). Only
     # meaningful once the membership is active.
     organizer: bool = False
+    admin: bool = Field(
+        default=False,
+        description="Holds `admin` on the club — decides who is in it (Story Z-2)",
+    )
 
 
 def _format_membership(row: ClubMember) -> MembershipOut:
@@ -78,6 +82,7 @@ def _format_membership(row: ClubMember) -> MembershipOut:
             else None
         ),
         organizer=row.user.manages_club(row.club_id),
+        admin=row.user.administers_club(row.club_id),
     )
 
 
@@ -307,6 +312,7 @@ async def list_members_for_member(
             user_id=row.user_id,
             display_name=row.user.display_name,
             organizer=row.user.manages_club(row.club_id),
+            admin=row.user.administers_club(row.club_id),
         )
         for row in rows
     ]
@@ -384,7 +390,11 @@ async def revoke_organizer(
         )
     # Only the grant for *this* club goes — other clubs this person organizes are
     # untouched; the service also refuses to take a club's last organizer (Story A-8).
-    (grant,) = [g for g in target.grants if g.relation == Relation.MANAGER and g.club_id == club.id]
+    grant = next(
+        g
+        for g in target.grants
+        if g.relation in (Relation.MANAGER, Relation.ADMIN) and g.club_id == club.id
+    )
     await grants.revoke(session, target, grant, actor=acting)
     await session.commit()
     return _format_membership(await _load_with_relations(session, row.id))
@@ -524,17 +534,18 @@ def _is_the_user(acting: User, row: ClubMember) -> bool:
 
 
 def _is_club_leadership(acting: User, row: ClubMember) -> bool:
-    """Check if the acting user is leadership of the club in this membership."""
+    """Whether the acting user decides who is in the club of this membership: the club's
+    ``admin`` (Story Z-2 — the ``manager`` decides who sails, not who belongs)."""
     if acting.has_any(Role.ADMIN):
         return True
-    return acting.manages_club(row.club_id)
+    return acting.administers_club(row.club_id)
 
 
 def _check_club_leadership(acting: User, club_id: int, locale: Locale) -> None:
-    """Verify that the acting user can manage this club's members."""
+    """Verify that the acting user decides who is in this club: its ``admin``."""
     if acting.has_any(Role.ADMIN):
         return
-    if acting.manages_club(club_id):
+    if acting.administers_club(club_id):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

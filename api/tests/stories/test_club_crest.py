@@ -85,7 +85,7 @@ class TestUploadCrest:
         page = await client.get(f"/api/clubs/{club['id']}")
         assert page.json()["logo_url"] == logo_url
 
-    async def test_the_clubs_own_manager_can_upload_it(self, client, caplog):
+    async def test_the_clubs_own_admin_can_upload_it(self, client, caplog):
         """The same restriction as club assignment (Z-3): own club only."""
         admin = await _headers(client, caplog, "crest-admin2@example.com", Role.ADMIN)
         club = await _new_club(client, admin, short_name="WPE")
@@ -93,7 +93,7 @@ class TestUploadCrest:
             client,
             caplog,
             "crest-manager@example.com",
-            Role.CLUB_MANAGER,
+            Role.CLUB_ADMIN,
             club_id=club["id"],
         )
 
@@ -112,7 +112,7 @@ class TestUploadCrest:
             client,
             caplog,
             "crest-fremd@example.com",
-            Role.CLUB_MANAGER,
+            Role.CLUB_ADMIN,
             club_id=mine["id"],
         )
 

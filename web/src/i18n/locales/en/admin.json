@@ -198,7 +198,9 @@
       "race_officer": "Race officer",
       "club_manager": "Club manager",
       "event_manager": "Event manager",
-      "jury": "Jury"
+      "jury": "Jury",
+      "club_admin": "Club admin",
+      "series_manager": "Series manager"
     },
     "nameHeader": "Name",
     "emailHeader": "Email",

@@ -37,8 +37,10 @@
     "race_officer": "Ergebnisse erfassen und korrigieren",
     "club_manager": "Nutzer dem eigenen Verein zuordnen",
     "club_manager_squad": "Saisonkader und Spieltagsmeldung pflegen (geplant)",
-    "event_manager": "Eigene Serien und Veranstaltungen organisieren: Einrichtung, Vereine, Personen",
-    "jury": "Bekanntmachungen veröffentlichen und Proteste an eigenen Veranstaltungen verhandeln"
+    "event_manager": "Eigene Veranstaltungen organisieren: Einrichtung und Vereine",
+    "jury": "Bekanntmachungen veröffentlichen und Proteste an eigenen Veranstaltungen verhandeln",
+    "club_admin": "Entscheiden, wer im Verein ist: Mitglieder, Organisation",
+    "series_manager": "Eigene Serien organisieren: Vereine, Veranstaltungen, Veröffentlichung"
   },
   "labels": {
     "club": "Verein",

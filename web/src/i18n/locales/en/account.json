@@ -37,8 +37,10 @@
     "race_officer": "Record and correct results",
     "club_manager": "Assign users to your club",
     "club_manager_squad": "Manage squad and matchday entry (planned)",
-    "event_manager": "Organize your own series and events: setup, clubs, people",
-    "jury": "Publish announcements and hear protests at your events"
+    "event_manager": "Organize your own events: setup and clubs",
+    "jury": "Publish announcements and hear protests at your events",
+    "club_admin": "Decide who is in your club: members, organizers",
+    "series_manager": "Organize your own series: its clubs, its events, its publication"
   },
   "labels": {
     "club": "Club",

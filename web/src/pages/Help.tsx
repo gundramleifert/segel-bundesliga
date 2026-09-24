@@ -3,13 +3,21 @@ import { useTranslation } from "react-i18next";
 
 import { PageHeader, TableFrame } from "../components/Blocks";
 
-const ROLE_COLUMNS = ["admin", "editor", "raceOfficer", "eventManager", "clubManager"] as const;
+const ROLE_COLUMNS = [
+  "admin",
+  "editor",
+  "raceOfficer",
+  "seriesManager",
+  "eventManager",
+  "clubAdmin",
+  "clubManager",
+] as const;
 type RoleColumn = (typeof ROLE_COLUMNS)[number];
 
 /** What a role can do in one area: full access, none, only for its own club, only for
  *  the events and series it manages, or a narrower "may create, not maintain" case
  *  (hosting club creating its own Event). */
-type Access = "yes" | "no" | "own" | "ownEvents" | "hostsCreate";
+type Access = "yes" | "no" | "own" | "ownEvents" | "ownAdmin" | "hostsCreate";
 
 interface AreaRow {
   key: string;
@@ -22,11 +30,27 @@ interface AreaRow {
 const AREAS: AreaRow[] = [
   {
     key: "createClubsEnroll",
-    access: { admin: "yes", editor: "yes", raceOfficer: "no", eventManager: "no", clubManager: "no" },
+    access: {
+      admin: "yes",
+      editor: "yes",
+      raceOfficer: "no",
+      seriesManager: "ownEvents",
+      eventManager: "no",
+      clubAdmin: "no",
+      clubManager: "no",
+    },
   },
   {
     key: "createSeries",
-    access: { admin: "yes", editor: "no", raceOfficer: "no", eventManager: "no", clubManager: "no" },
+    access: {
+      admin: "yes",
+      editor: "no",
+      raceOfficer: "no",
+      seriesManager: "no",
+      eventManager: "no",
+      clubAdmin: "no",
+      clubManager: "no",
+    },
   },
   {
     key: "maintainEvents",
@@ -34,7 +58,9 @@ const AREAS: AreaRow[] = [
       admin: "yes",
       editor: "yes",
       raceOfficer: "yes",
+      seriesManager: "ownEvents",
       eventManager: "ownEvents",
+      clubAdmin: "ownEvents",
       clubManager: "hostsCreate",
     },
   },
@@ -44,37 +70,95 @@ const AREAS: AreaRow[] = [
       admin: "yes",
       editor: "no",
       raceOfficer: "no",
-      eventManager: "ownEvents",
-      clubManager: "ownEvents",
+      seriesManager: "ownAdmin",
+      eventManager: "ownAdmin",
+      clubAdmin: "ownEvents",
+      clubManager: "no",
     },
   },
   {
     key: "pairingAccountsRoles",
-    access: { admin: "yes", editor: "no", raceOfficer: "no", eventManager: "no", clubManager: "no" },
+    access: {
+      admin: "yes",
+      editor: "no",
+      raceOfficer: "no",
+      seriesManager: "no",
+      eventManager: "no",
+      clubAdmin: "no",
+      clubManager: "no",
+    },
   },
   {
     key: "enterResults",
-    access: { admin: "yes", editor: "no", raceOfficer: "yes", eventManager: "no", clubManager: "no" },
+    access: {
+      admin: "yes",
+      editor: "no",
+      raceOfficer: "yes",
+      seriesManager: "ownAdmin",
+      eventManager: "ownAdmin",
+      clubAdmin: "ownAdmin",
+      clubManager: "no",
+    },
   },
   {
     key: "assignUserToClub",
-    access: { admin: "yes", editor: "no", raceOfficer: "no", eventManager: "no", clubManager: "own" },
+    access: {
+      admin: "yes",
+      editor: "no",
+      raceOfficer: "no",
+      seriesManager: "no",
+      eventManager: "no",
+      clubAdmin: "own",
+      clubManager: "no",
+    },
   },
   {
     key: "registerParticipants",
-    access: { admin: "yes", editor: "no", raceOfficer: "no", eventManager: "no", clubManager: "own" },
+    access: {
+      admin: "yes",
+      editor: "no",
+      raceOfficer: "no",
+      seriesManager: "no",
+      eventManager: "no",
+      clubAdmin: "own",
+      clubManager: "own",
+    },
   },
   {
     key: "maintainSailors",
-    access: { admin: "yes", editor: "yes", raceOfficer: "no", eventManager: "no", clubManager: "own" },
+    access: {
+      admin: "yes",
+      editor: "yes",
+      raceOfficer: "no",
+      seriesManager: "no",
+      eventManager: "no",
+      clubAdmin: "own",
+      clubManager: "own",
+    },
   },
   {
     key: "registerSquad",
-    access: { admin: "yes", editor: "no", raceOfficer: "no", eventManager: "no", clubManager: "own" },
+    access: {
+      admin: "yes",
+      editor: "no",
+      raceOfficer: "no",
+      seriesManager: "no",
+      eventManager: "no",
+      clubAdmin: "own",
+      clubManager: "own",
+    },
   },
   {
     key: "acceptClubMembers",
-    access: { admin: "yes", editor: "no", raceOfficer: "no", eventManager: "no", clubManager: "own" },
+    access: {
+      admin: "yes",
+      editor: "no",
+      raceOfficer: "no",
+      seriesManager: "no",
+      eventManager: "no",
+      clubAdmin: "own",
+      clubManager: "no",
+    },
   },
 ];
 

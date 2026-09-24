@@ -6802,6 +6802,9 @@ export const getListAllSeriesUrl = (params?: ListAllSeriesParams,) => {
  *
  * Both names are searched because both are used: the list shows "1. Segel-Bundesliga
  * 2026", and the person looking for it types "1. Liga".
+ *
+ * The league office sees every series; whoever holds a tuple on one series (Story
+ * Z-2) sees that series and nothing else — the same list, narrowed.
  * @summary All series
  */
 export const listAllSeries = async (params?: ListAllSeriesParams, options?: RequestInit): Promise<PageSeriesAdminOut> => {

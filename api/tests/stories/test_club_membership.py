@@ -30,7 +30,8 @@ async def club_leadership(client, caplog, email: str, slug: str = CLUB) -> dict[
     """An account with ``club_manager`` role for this club."""
     from app.models.auth import Role
 
-    await make_user(email, Role.CLUB_MANAGER, club_id=await club_id(slug))
+    # Who is *in* the club is the club admin's decision (Story Z-2).
+    await make_user(email, Role.CLUB_ADMIN, club_id=await club_id(slug))
     return auth_headers(await login_as(client, email, caplog))
 
 

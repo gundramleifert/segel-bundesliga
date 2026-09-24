@@ -29,6 +29,7 @@ import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { AddButton } from "../components/AddButton";
+import { AccessPanel } from "../components/AccessPanel";
 
 /** Stories A-1, A-4, A-6 and A-11: create clubs, create series, schedule events.
  *
@@ -61,7 +62,10 @@ export function AdminAccess({
       <ErrorMessage text={t("auth.notSignedInError")} testId="admin-auth-error" />
     );
   }
-  if (!(adminOnly ? hasRole("admin") : hasRole("admin", "editor", "event_manager", "jury"))) {
+  const allowed = adminOnly
+    ? hasRole("admin")
+    : hasRole("admin", "editor", "series_manager", "event_manager", "jury");
+  if (!allowed) {
     return (
       <ErrorMessage text={t("auth.noAccessError")} testId="admin-access-error" />
     );
@@ -86,21 +90,30 @@ function AdminTabs() {
   // that — they would be created on every render of this component regardless.
   // The labels are each area's own section title, not a second set of strings: a tab whose
   // wording drifts from the heading it opens is a translation bug waiting to happen.
-  // The league office sees every area; the organizer or jury of one event sees the
-  // events tab alone — a tab a role may not use does not exist for it (Story A-11).
+  // The league office sees every area; a series' organizer its series and events; the
+  // organizer or jury of one event the events tab alone — a tab a role may not use does
+  // not exist for it (Story A-11).
   const office = hasRole("admin", "editor");
+  const seriesTab: TabDef<AdminTab> = {
+    key: "series",
+    label: t("series.title"),
+    render: () => <Series editorOnly={!hasRole("admin")} />,
+  };
+  const eventsTab: TabDef<AdminTab> = {
+    key: "events",
+    label: t("events.title"),
+    render: () => <EventsAdmin />,
+  };
   const tabs: TabDef<AdminTab>[] = office
     ? [
         { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
-        {
-          key: "series",
-          label: t("series.title"),
-          render: () => <Series editorOnly={!hasRole("admin")} />,
-        },
-        { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
+        seriesTab,
+        eventsTab,
         { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
       ]
-    : [{ key: "events", label: t("events.title"), render: () => <EventsAdmin /> }];
+    : hasRole("series_manager")
+      ? [seriesTab, eventsTab]
+      : [eventsTab];
   // Accounts is admin-only, so for an editor the tab does not exist rather than existing
   // and refusing — the same rule the section already followed.
   if (hasRole("admin")) {
@@ -443,6 +456,7 @@ function SeriesRow({
 
       {open && (
         <Stack className="mt-3">
+          <AccessPanel object={`series:${series.id}`} testId={`admin-series-access-${series.id}`} />
           <Stack gap={3}>
             <ClubSelector
               clubs={clubs}

@@ -362,7 +362,7 @@ def _can_manage_crest(acting: User, club_id: int) -> None:
     """
     if acting.has_any(Role.ADMIN, Role.EDITOR):
         return
-    if acting.manages_club(club_id):
+    if acting.administers_club(club_id):
         return
     raise Problem(
         403,

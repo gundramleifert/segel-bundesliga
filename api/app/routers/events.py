@@ -860,7 +860,12 @@ def _reach_of(acting: User):
     here."""
     clauses = []
     for g in acting.grants:
-        if g.relation not in {Relation.MANAGER, Relation.RACE_OFFICER, Relation.JURY}:
+        if g.relation not in {
+            Relation.ADMIN,
+            Relation.MANAGER,
+            Relation.RACE_OFFICER,
+            Relation.JURY,
+        }:
             continue
         if g.event_id is not None:
             clauses.append(Event.id == g.event_id)
@@ -883,8 +888,9 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
         return
     if host_club_id is not None and acting.holds(Relation.MANAGER, club_id=host_club_id):
         return
-    if series_id is not None and acting.holds(Relation.MANAGER, series_id=series_id):
-        return
+    for relation in (Relation.MANAGER, Relation.ADMIN):
+        if series_id is not None and acting.holds(relation, series_id=series_id):
+            return
     if acting.has_any(Role.CLUB_MANAGER) and host_club_id is not None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

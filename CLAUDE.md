@@ -235,13 +235,16 @@ These points were deliberately decided this way; bypassing them costs a lot late
   DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`,
   `app/services/grants.py`). Object types `site`, `club`, `series`, `event`; relations
   `admin`/`editor` (site), `manager` (the organizer — club, series, event),
-  `race_officer` (all four), `jury` (series, event). `or … from …` lines say what
-  implies what: a series' people are its events', the host club's people are its events',
-  the site's editor and race committee are managers of every event. **The check is
+  `race_officer` (all four), `jury` (series, event), and `admin` on every object —
+  everything within it, people included; on a club the `admin` decides who is *in* it
+  and the `manager` who *sails*. `or … from …` lines say what implies what: an object's
+  admin is each of its relations, a series' people are its events', the host club's
+  people are its events', the site's editor and race committee are managers of every
+  event. **The check is
   `User.can(relation, on=obj)`**; `require_site` guards the league office's screens,
   `require_on_event` a route about one event, `User.roles` is a **derived** summary for
-  the navigation and never a permission. The site's admin writes any tuple, an object's
-  manager writes tuples on that object. Write and delete one tuple at a time — never
+  the navigation and never a permission. An object's admin sees and writes its tuples
+  (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
   silently dropped. Club membership is not a tuple (consent). Three foreign keys and one
   small interpreter are the whole model: no authorization service.
@@ -310,16 +313,16 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Area | Roles |
 |---|---|
 | Create clubs and enroll in Series | `admin`, `editor` |
-| Create Series and set participants | `admin` |
+| Create Series | `admin` |
+| Set a Series' participants, dates, publication | `admin`; the series' `manager` |
 | Create and maintain Events | `admin`, `editor`, site `race_officer`; the `manager` of the event, its series or its host club |
 | Pairing lists, accounts | `admin` |
-| Write and delete tuples | `admin` anywhere; the object's `manager` on that object |
+| See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
-| Assign user to club | `admin`, `club_manager` (own club only) |
-| Register participants for Series/Event | `club_manager` (own club), `admin` |
+| Assign user to club, accept members, crest | `admin`; the club's `admin` (own club only) |
+| Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
 | Create and maintain sailors | `admin`, `editor`, `club_manager` |
 | Register Squad for Series | `admin`, `club_manager` (own club only) |
-| Accept club members | `club_manager` (own club), `admin` |
 | **Create** Event | additionally the `manager` of the host club or of the series |
 
 Defined as dependencies in `api/app/auth.py`; roles are checked fresh from the database on

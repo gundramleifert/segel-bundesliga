@@ -198,7 +198,9 @@
       "race_officer": "Wettfahrtleitung",
       "club_manager": "Vereinsmanager",
       "event_manager": "Veranstaltungsleitung",
-      "jury": "Jury"
+      "jury": "Jury",
+      "club_admin": "Vereinsverwaltung",
+      "series_manager": "Serienleitung"
     },
     "nameHeader": "Name",
     "emailHeader": "E-Mail",

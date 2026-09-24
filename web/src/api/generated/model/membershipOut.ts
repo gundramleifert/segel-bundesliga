@@ -17,4 +17,6 @@ export interface MembershipOut {
   email: string;
   waiting_for?: string | null;
   organizer?: boolean;
+  /** Holds `admin` on the club — decides who is in it (Story Z-2) */
+  admin?: boolean;
 }

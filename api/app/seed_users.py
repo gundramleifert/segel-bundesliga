@@ -79,8 +79,12 @@ async def _account(
 
 
 def _tuple(role: str, club_id: int | None) -> Grant:
+    """`Role.CLUB_MANAGER` → `manager` of the club; `admin`/`manager` with a club → on the
+    club; anything else is a site relation."""
     if role == Role.CLUB_MANAGER:
         return Grant(relation=Relation.MANAGER, club_id=club_id)
+    if club_id is not None and role in (Relation.ADMIN, Relation.MANAGER):
+        return Grant(relation=Relation(role), club_id=club_id)
     return Grant(relation=Relation(role))
 
 
@@ -148,7 +152,9 @@ async def seed_users() -> None:
                 session,
                 email=sailor.email,
                 name=f"{sailor.first_name} {sailor.last_name}",
-                roles=[Role.CLUB_MANAGER] if leads else [],
+                # The club's one seeded official is its *admin*: decides who is in the
+                # club and, the model making an admin a manager, who sails for it.
+                roles=[Relation.ADMIN] if leads else [],
                 club_id=club_id,
             )
             # Membership is mutually confirmed: registered sailors belong to the club.
@@ -178,7 +184,10 @@ async def _report(
             await session.execute(
                 select(User)
                 .join(Grant, Grant.user_id == User.id)
-                .where(Grant.relation == Relation.MANAGER, Grant.club_id.is_not(None))
+                .where(
+                    Grant.relation.in_([Relation.MANAGER, Relation.ADMIN]),
+                    Grant.club_id.is_not(None),
+                )
                 .order_by(User.id)
                 .limit(3)
             )

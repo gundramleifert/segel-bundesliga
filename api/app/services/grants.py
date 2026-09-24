@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import AuditLog, Club, Event, Series
-from app.models.auth import SCHEMA, Grant, ObjectType, Relation, User
+from app.models.auth import Grant, ObjectType, Relation, User, writable
 from app.problems import Problem
 
 _TABLES = {ObjectType.CLUB: Club, ObjectType.SERIES: Series, ObjectType.EVENT: Event}
@@ -28,16 +28,16 @@ _COLUMNS = {
 
 
 def check_schema(relation: Relation, object_type: ObjectType) -> None:
-    """A relation only exists on the object types the schema lists — ``manager`` has no
-    meaning on the site, ``admin`` none on a club."""
-    if relation not in SCHEMA[object_type]:
+    """A relation can only be written where the model gives it a ``[user]`` term —
+    ``manager`` has none on the site, ``admin`` none on a club (there it is derived)."""
+    if relation not in writable(object_type):
         raise Problem(
             422,
             "tuple-relation-invalid",
             "This relation does not exist on that kind of object.",
             detail=(
                 f"{object_type.value} has: "
-                + ", ".join(sorted(r.value for r in SCHEMA[object_type]))
+                + ", ".join(sorted(r.value for r in writable(object_type)))
                 + "."
             ),
             relation=str(relation),
@@ -135,7 +135,7 @@ async def revoke(session: AsyncSession, target: User, row: Grant, *, actor: User
             "You cannot revoke your own admin role.",
             detail="Ask another administrator to do it.",
         )
-    if row.relation == Relation.MANAGER and row.object_type is ObjectType.CLUB:
+    if row.relation in (Relation.MANAGER, Relation.ADMIN) and row.object_type is ObjectType.CLUB:
         assert row.club_id is not None
         if await organizer_count(session, row.club_id, excluding_user_id=target.id) < 1:
             # Story A-8: a club with no organizer left could no longer manage itself.
@@ -170,9 +170,9 @@ async def grants_on(
 async def organizer_count(
     session: AsyncSession, club_id: int, *, excluding_user_id: int | None = None
 ) -> int:
-    """How many accounts organize this club — i.e. hold ``manager`` on it."""
+    """How many accounts organize this club — i.e. hold ``manager`` or ``admin`` on it."""
     stmt = select(func.count(func.distinct(Grant.user_id))).where(
-        Grant.relation == Relation.MANAGER, Grant.club_id == club_id
+        Grant.relation.in_([Relation.MANAGER, Relation.ADMIN]), Grant.club_id == club_id
     )
     if excluding_user_id is not None:
         stmt = stmt.where(Grant.user_id != excluding_user_id)
@@ -182,14 +182,13 @@ async def organizer_count(
 def may_administer(
     acting: User, object_type: ObjectType, obj: Club | Series | Event | None
 ) -> bool:
-    """Who may write tuples on this object: the site's admin, and the object's own
-    manager — an organizer names the people of their club, series or event (Story Z-2).
-    Site tuples are the admin's alone."""
-    if acting.can(Relation.ADMIN):
-        return True
+    """Who may write tuples on this object: its ``admin`` — which the model resolves to
+    the site's admin for everything, a series' admin for its events, the host club's for
+    the events it hosts, and a club's manager for the club (Story Z-2). A manager sets
+    things up; naming people is the admin's. Site tuples are the site admin's alone."""
     if object_type is ObjectType.SITE or obj is None:
-        return False
-    return acting.can(Relation.MANAGER, on=obj)
+        return acting.can(Relation.ADMIN)
+    return acting.can(Relation.ADMIN, on=obj)
 
 
 def _audit(

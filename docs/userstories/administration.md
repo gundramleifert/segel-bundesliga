@@ -125,23 +125,27 @@ parsed at import, interpreted by `User.can(...)`. The tuples live in one table (
 `access_grant`) whose object is one of three foreign keys, all NULL for the site: the
 database cascades and joins, and a check needs no lookup.
 
-The model:
+The model — almost every relation is scoped by a club, a series or an event:
 - `site`: `admin`, `editor`, `race_officer` — the league office and its race committee.
-- `club`: `manager` (the organizer, Story A-8), `race_officer` (runs every event the club
-  hosts).
-- `series`: `manager`, `race_officer`, `jury` — a cup series run by someone other than
-  the league office has its own organizer, committee and jury.
-- `event`: `manager`, `race_officer`, `jury`. The **manager** is the organizer of the
-  event-organizer stories: setup, clubs, boats, publication, and the people. The
-  **race officer** runs the races: results, race control, trackers. The **jury** is the
-  protest committee; it will publish announcements (VA-11) and record decisions.
+  The site's admin is admin of everything.
+- `club`: `admin` decides who is **in** the club — members (V-8, V-9), organizers (A-8),
+  the club's crest (V-3), club assignment (Z-3), the club's tuples among its members;
+  `manager` decides who **sails** — squads (V-1), lineups (V-2), registrations (V-5,
+  V-6); `race_officer` runs every event the club hosts.
+- `series`: `admin` (everything within the series, its events included, and its people),
+  `manager` (participants, events, publication — a cup series run by someone other than
+  the league office), `race_officer`, `jury`.
+- `event`: `admin` (everything within the event: setup, results, and who holds what on
+  it), `manager` (the organizer of the event-organizer stories: setup, clubs, boats,
+  schedules, publication — not the people), `race_officer` (results, race control,
+  trackers), `jury` (the protest committee; announcements, VA-11).
 
-The rewrite rules (`or … from …` in the DSL) say what implies what: a series' manager,
-race officer or jury is that of every event in the series; the host club's manager and
-race officer are those of every event it hosts; the site's admin is everything; the
-site's editor and race committee are managers of every event — the league's committee
-keeps the setup rights it always had, while a race officer appointed for one event only
-runs its races. Nothing else inherits.
+The rewrite rules (`or … from …` in the DSL) say what implies what: an object's `admin`
+is each of its other relations; a series' admin, manager, race officer or jury is that of
+every event in the series; the host club's admin and race officer are those of every
+event it hosts; the site's editor and race committee are managers of every event — the
+league's committee keeps the setup rights it always had, while a race officer appointed
+for one event only runs its races. Nothing else inherits.
 
 Acceptance criteria:
 - A tuple is written and deleted **one at a time**; deleting one leaves every other
@@ -153,10 +157,12 @@ Acceptance criteria:
   club is refused (`tuple-relation-invalid`); an object that does not exist is a 404
   (`tuple-object-missing`); a malformed object string a 422 (`tuple-object-invalid`);
   a duplicate a 409 (`tuple-exists`).
-- **Who may write**: the site's admin writes any tuple; an object's `manager` writes
-  tuples **on that object** — so the organizer of an event names its race officers and
-  its jury without administration, and the host club's manager does so for the club's
-  events. Anyone else is refused (`tuple-forbidden`). Site tuples are the admin's alone.
+- **Who may see and write tuples on an object: its `admin`** — through the model, so the
+  site's admin everywhere, a series' admin on its events, the host club's admin on the
+  events it hosts. An event's manager sets it up but does not name its people. A club's
+  admin names only **active members** of the club (`tuple-not-a-member`), as A-8 always
+  said; the site's admin names anyone. Anyone else is refused (`tuple-forbidden`). Site
+  tuples are the site admin's alone.
 - A race officer of one event enters results there and is refused next door, cannot
   change that event's setup, and the admin event list shows only the events their
   tuples reach. The league office's gates (`require_site`) count site tuples only.
@@ -172,25 +178,28 @@ Acceptance criteria:
 
 **Summary roles.** The navigation and the help page still speak of roles; those are
 **derived** from the tuples (`User.roles`, `Role`): `admin`, `editor`, `race_officer`
-and `jury` for the relation held anywhere, `club_manager` for `manager` of some club,
-`event_manager` for `manager` of some series or event. Never a permission check —
+and `jury` for the relation held anywhere, `club_admin` for `admin` of some club,
+`club_manager`, `series_manager` and `event_manager` for `manager` **or** `admin` of some
+club, series or event (an admin is a manager, says the model). Never a permission check —
 that is `User.can(relation, on=object)`.
 
 Club **membership** is not a tuple: it needs both sides' consent (`ClubMember`, Story Z-5).
 
 Screens: the **Accounts** tab of `/admin` lists each account's tuples — relation, then the
 object — with a delete on each and a "＋" that asks object type, relation and object, in
-that order, offering only what the model defines. The **event panel** carries the
-object's side, "People": who holds what on this event, with add-by-email and remove,
-for the site's admin and the event's managers.
+that order, offering only what the model defines. Each object carries its own side,
+"People": who holds what on this event, series or club, with add-by-email and remove —
+on the event panel, the opened series row and the club screen's Members tab, for whoever
+is that object's admin. A series' organizer reaches `/admin` with the Series and Events
+tabs, narrowed to their series; an event's organizer or jury with the Events tab alone.
 
 Endpoints (FGA's vocabulary): `GET /api/auth/model`, `GET /api/auth/tuples?object=event:3`
 (read), `POST /api/auth/tuples` (write: `{user, relation, object}`, user by email),
 `DELETE /api/auth/tuples/{id}`; `UserOut.tuples` lists a person's, `UserOut.roles` the
 summary roles.
 
-Open: the club screen does not yet show the club's own tuples (its race committee); the
-Accounts tab does not yet filter by relation or object.
+Open: the Accounts tab does not yet filter by relation or object; applications to a
+series (A-9) are still decided by the site's admin alone, not yet by the series' manager.
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
 `api/tests/stories/test_login_and_roles.py::TestTuples`,
@@ -202,23 +211,27 @@ Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
 As **administration** I want to **give a club an organizer**,
 so that **the club manages itself from then on**.
 
-The organizer is the account with a `manager` tuple on that club (Story Z-2) — a person
-can organize several clubs independently, each tuple written and deleted on its own. They
-maintain squads, lineups, and posts — and apply for participation (V-5). The club screen
-and the Accounts tab go through the same `app/services/grants.py`, so the last-organizer
-rule below holds whichever screen is used. `club_manager` in the text below is the summary
-role for "manager of some club".
+A club has two organizer relations (Story Z-2): its **admin** decides who is *in* the
+club — members, organizers, crest, the club's tuples — and its **manager** decides who
+*sails* for it — squads, lineups, registrations. An admin is a manager too, says the
+model. A person can organize several clubs independently, each tuple written and deleted
+on its own. The club screen and the Accounts tab go through the same
+`app/services/grants.py`, so the last-organizer rule below holds whichever screen is used.
+"Organizer" below means either relation; `club_admin` and `club_manager` are the summary
+roles.
 
 Acceptance criteria:
-- Administration creates the account (name, email) and binds it to the club — the first
-  account of a club can only come from administration: who has no one cannot name anyone.
-- **An existing organizer may name more organizers for their own club.** Grant adds
-  `club_manager`, scoped to this club, to an **active member** of the club. **A person may
-  organize multiple clubs** — granting a second club no longer fails because they already
+- Administration creates the account (name, email) and makes it the club's **admin** —
+  the first account of a club can only come from administration: who has no one cannot
+  name anyone.
+- **The club's admin names more organizers for their own club.** "Make organizer" on the
+  Members tab writes `manager` on this club for an **active member**; the People panel
+  there writes `admin`, `manager` or `race_officer` the same way, members only. **A person
+  may organize multiple clubs** — a second club no longer fails because they already
   organize a different one; it fails only if they already organize *this* one.
-- Revoking `club_manager` for one club is allowed too — but **at least one organizer must
-  remain** for that specific club; the last one can't step down until someone else has
-  taken over. Revoking one club never touches a person's organizer status at any other
+- Revoking for one club is allowed too — but **at least one organizer (admin or manager)
+  must remain** for that specific club; the last one can't step down until someone else
+  has taken over. Revoking one club never touches a person's organizer status at any other
   club, and the account stays either way.
 - Every grant and revoke is written to the audit log.
 - `User.club_id` keeps its separate meaning — "the club this account represents" (e.g. a
@@ -226,10 +239,11 @@ Acceptance criteria:
   scope. Granting someone's first club populates it as a sensible default if it was unset.
 
 Endpoints: `POST /api/admin/clubs/{club_id}/members/{user_id}/organizer`,
-`DELETE /api/admin/clubs/{club_id}/members/{user_id}/organizer` (an organizer of that club,
-or administration). `MembershipOut.organizer` reports the current state.
+`DELETE /api/admin/clubs/{club_id}/members/{user_id}/organizer` (the club's admin, or
+administration). `MembershipOut.organizer` reports manager-or-admin, `MembershipOut.admin`
+the admin relation.
 
-Screen: the Members tab on `/club` (Story V-12) — an organizer makes a member an
+Screen: the Members tab on `/club` (Story V-12) — the club's admin makes a member an
 organizer or revokes it; administration uses the same endpoints.
 Tests: `api/tests/stories/test_club_membership.py::TestOrganizerRole`
 

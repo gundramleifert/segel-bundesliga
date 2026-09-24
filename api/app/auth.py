@@ -12,14 +12,14 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_session
-from app.models import Event
+from app.models import Event, Series
 from app.models.auth import Relation, Role, User
 
 ALGORITHM = "HS256"
@@ -151,34 +151,42 @@ def require_summary_roles(*roles: Role | str):
     return dependency
 
 
-def require_on_event(*relations: Relation | str):
-    """A dependency for routes with ``{event_id}`` in their path: passes whoever holds one
-    of these relations on that event — directly, or through its series, its host club or
-    the site (:data:`app.models.auth.IMPLIED`). Reads ``event_id`` from the path, so the
-    handler need not repeat the check. An unknown event is a 404 here, before any
-    permission question.
+def _on_object(model, path_param: str, *relations: Relation | str):
+    """A dependency for routes with ``{<path_param>}`` in their path: passes whoever holds
+    one of these relations on that object — directly, or through its containers and the
+    site (the model's rewrite rules). Reads the id from the path, so the handler need not
+    repeat the check. An unknown object is a 404 here, before any permission question.
     """
     wanted = tuple(Relation(r) for r in relations)
 
     async def dependency(
-        event_id: int,
+        request: Request,
         user: User = Depends(current_user),
         session: AsyncSession = Depends(get_session),
     ) -> User:
-        event = await session.get(Event, event_id)
-        if event is None:
-            raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
-        if user.can(*wanted, on=event):
+        object_id = int(request.path_params[path_param])
+        obj = await session.get(model, object_id)
+        if obj is None:
+            raise HTTPException(status_code=404, detail=f"{model.__name__} {object_id} not found")
+        if user.can(*wanted, on=obj):
             return user
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=(
-                "You lack the permission for this event. Required relation(s): "
-                + ", ".join(sorted(r.value for r in wanted))
+                f"You lack the permission for this {model.__name__.lower()}. "
+                "Required relation(s): " + ", ".join(sorted(r.value for r in wanted))
             ),
         )
 
     return dependency
+
+
+def require_on_event(*relations: Relation | str):
+    return _on_object(Event, "event_id", *relations)
+
+
+def require_on_series(*relations: Relation | str):
+    return _on_object(Series, "series_id", *relations)
 
 
 # The site's gates.
@@ -193,5 +201,7 @@ require_event_officer = require_on_event(Relation.RACE_OFFICER)
 require_event_manager_for = require_on_event(Relation.MANAGER)
 # … and the declarations both may make: start, finish, cancel, reopen (Story VA-10).
 require_event_control = require_on_event(Relation.MANAGER, Relation.RACE_OFFICER)
+# One series: its organizer sets participants, dates and publication.
+require_series_manager_for = require_on_series(Relation.MANAGER)
 # Master data like clubs: admin and editorial.
 require_master_data = require_site(Relation.ADMIN, Relation.EDITOR)

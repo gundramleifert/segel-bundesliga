@@ -18,10 +18,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import require_admin
+from app.auth import current_user, require_admin, require_series_manager_for
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventStatus, Series, Team, TeamStatus
+from app.models.auth import Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import (
@@ -32,11 +33,7 @@ from app.services import (
 )
 from app.text import slugify
 
-router = APIRouter(
-    prefix="/api/admin/series",
-    tags=["admin"],
-    dependencies=[Depends(require_admin)],
-)
+router = APIRouter(prefix="/api/admin/series", tags=["admin"])
 
 # At the matchday, racing without discards; percent penalty follows RRS 44.3.
 DEFAULT_SCORING: dict[str, Any] = {"discard_after": [], "penalty_percent": 20}
@@ -123,15 +120,28 @@ async def list_all_series(
     q: str | None = Query(default=None, description="Search in name and short name"),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
 ) -> Page[SeriesAdminOut]:
     """All years, not just the current one — admin plans ahead, so this grows every year.
 
     Both names are searched because both are used: the list shows "1. Segel-Bundesliga
     2026", and the person looking for it types "1. Liga".
+
+    The league office sees every series; whoever holds a tuple on one series (Story
+    Z-2) sees that series and nothing else — the same list, narrowed.
     """
+    stmt = apply_search(select(Series), q, Series.name, Series.short_name)
+    if not acting.can(Relation.ADMIN, Relation.EDITOR):
+        reach = {g.series_id for g in acting.grants if g.series_id is not None}
+        if not reach:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You lack the permission for this. Required role(s): admin",
+            )
+        stmt = stmt.where(Series.id.in_(reach))
     series, total = await paginate(
         session,
-        apply_search(select(Series), q, Series.name, Series.short_name),
+        stmt,
         params,
         sortable=SERIES_SORT,
         default_order=[Series.year.desc().nulls_last(), Series.level.nulls_last(), Series.id],
@@ -189,7 +199,12 @@ async def _compose(session: AsyncSession, series: list[Series]) -> list[SeriesAd
     ]
 
 
-@router.post("", response_model=SeriesAdminOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=SeriesAdminOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_admin)],
+)
 async def create_series(
     request: SeriesCreate,
     session: AsyncSession = Depends(get_session),
@@ -241,7 +256,11 @@ async def create_series(
     return await _series_out(session, series.id)
 
 
-@router.patch("/{series_id}", response_model=SeriesAdminOut)
+@router.patch(
+    "/{series_id}",
+    response_model=SeriesAdminOut,
+    dependencies=[Depends(require_series_manager_for)],
+)
 async def update_series(
     series_id: int,
     request: SeriesUpdate,
@@ -259,7 +278,12 @@ async def update_series(
     return await _series_out(session, series.id)
 
 
-@router.post("/{series_id}/publish", response_model=SeriesAdminOut, summary="Publish series")
+@router.post(
+    "/{series_id}/publish",
+    response_model=SeriesAdminOut,
+    dependencies=[Depends(require_series_manager_for)],
+    summary="Publish series",
+)
 async def publish_series(
     series_id: int,
     session: AsyncSession = Depends(get_session),
@@ -275,7 +299,12 @@ async def publish_series(
     return await _set_published(session, series_id, True, locale)
 
 
-@router.post("/{series_id}/unpublish", response_model=SeriesAdminOut, summary="Unpublish series")
+@router.post(
+    "/{series_id}/unpublish",
+    response_model=SeriesAdminOut,
+    dependencies=[Depends(require_series_manager_for)],
+    summary="Unpublish series",
+)
 async def unpublish_series(
     series_id: int,
     session: AsyncSession = Depends(get_session),
@@ -294,7 +323,12 @@ async def _set_published(
     return await _series_out(session, series.id)
 
 
-@router.put("/{series_id}/clubs", response_model=SeriesAdminOut, summary="Set participants")
+@router.put(
+    "/{series_id}/clubs",
+    response_model=SeriesAdminOut,
+    dependencies=[Depends(require_series_manager_for)],
+    summary="Set participants",
+)
 async def set_clubs(
     series_id: int,
     request: SetClubs,

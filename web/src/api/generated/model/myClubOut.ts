@@ -22,6 +22,7 @@ export interface MyClubOut {
   club: ClubOut;
   is_member: boolean;
   may_manage: boolean;
+  may_admin?: boolean;
   teams: MyTeamOut[];
   events?: MyEventOut[];
 }

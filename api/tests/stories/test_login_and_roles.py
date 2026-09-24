@@ -47,13 +47,15 @@ async def make_user(
         # the club; every other role here is a site relation (Story Z-2). A club manager
         # without a club named organizes the first seeded club: a manager tuple needs an
         # object, and these tests only care that the person organizes *some* club.
-        if Role.CLUB_MANAGER in roles and club_id is None:
+        if (Role.CLUB_MANAGER in roles or Role.CLUB_ADMIN in roles) and club_id is None:
             club_id = (
                 await session.execute(select(Club.id).order_by(Club.id).limit(1))
             ).scalar_one()
         user.grants = [
             Grant(relation=Relation.MANAGER, club_id=club_id)
             if role == Role.CLUB_MANAGER
+            else Grant(relation=Relation.ADMIN, club_id=club_id)
+            if role == Role.CLUB_ADMIN
             else Grant(relation=Relation(role))
             for role in roles
         ]
@@ -449,7 +451,7 @@ class TestAssigningAClub:
     async def test_a_club_manager_assigns_to_their_own_club(self, client, caplog):
         """A club manager can assign users to their own club."""
         clubs = await self._clubs(client)
-        await make_user("manager@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
+        await make_user("manager@example.org", Role.CLUB_ADMIN, club_id=clubs[0]["id"])
 
         token = await login_as(client, "manager@example.org", caplog)
         user_id = await make_user("crew@example.org")
@@ -465,7 +467,7 @@ class TestAssigningAClub:
     async def test_nobody_assigns_a_club_that_is_not_theirs(self, client, caplog):
         """A club manager cannot assign users to other clubs — else they could seize teams."""
         clubs = await self._clubs(client)
-        await make_user("manager2@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
+        await make_user("manager2@example.org", Role.CLUB_ADMIN, club_id=clubs[0]["id"])
 
         token = await login_as(client, "manager2@example.org", caplog)
         user_id = await make_user("fremd@example.org")
@@ -480,7 +482,7 @@ class TestAssigningAClub:
     async def test_someone_already_elsewhere_is_not_poached(self, client, caplog):
         """Users already assigned to another club cannot be poached."""
         clubs = await self._clubs(client)
-        await make_user("manager3@example.org", Role.CLUB_MANAGER, club_id=clubs[0]["id"])
+        await make_user("manager3@example.org", Role.CLUB_ADMIN, club_id=clubs[0]["id"])
         besetzt_id = await make_user("besetzt@example.org")
         async with SessionLocal() as session:
             besetzt = await session.get(User, besetzt_id)
@@ -649,7 +651,7 @@ class TestTuples:
         assert [t["relation"] for t in user["tuples"]] == ["race_officer"]
 
     async def test_the_model_decides_which_relations_an_object_has(self, client, caplog, ids):
-        """`manager` has no meaning on the site, `admin` none on a club (the schema)."""
+        """`manager` has no meaning on the site, `jury` none on a club (the schema)."""
         headers = await _admin_headers(client, caplog)
         await make_user("schema@example.org")
 
@@ -664,7 +666,7 @@ class TestTuples:
         assert response.status_code == 422, response.text
         assert _problem_code(response) == "tuple-relation-invalid"
 
-        response = await write("admin", f"club:{ids.club('nrv')}")
+        response = await write("jury", f"club:{ids.club('nrv')}")
         assert response.status_code == 422, response.text
         assert _problem_code(response) == "tuple-relation-invalid"
 
@@ -680,7 +682,7 @@ class TestTuples:
         assert "define manager: [user]" in model["dsl"]
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
         assert by_type["site"] == ["admin", "editor", "race_officer"]
-        assert by_type["event"] == ["manager", "race_officer", "jury"]
+        assert by_type["event"] == ["admin", "manager", "race_officer", "jury"]
 
     async def test_the_same_tuple_twice_is_refused(self, client, caplog, ids):
         headers = await _admin_headers(client, caplog)
@@ -842,11 +844,11 @@ class TestOrganizers:
         me = (await client.get("/api/auth/me", headers=orga)).json()
         assert me["roles"] == [Role.EVENT_MANAGER]
 
-    async def test_the_host_clubs_manager_is_the_events_manager_and_names_its_people(
+    async def test_the_host_clubs_admin_is_the_events_admin_and_names_its_people(
         self, client, caplog, ids
     ):
-        """No second tuple needed: `manager from host_club`. And the manager writes the
-        event's own tuples — the race officer for their regatta — but nothing elsewhere."""
+        """No second tuple needed: `admin from host_club` makes a club's admin the admin
+        of the events the club hosts — setup and people alike — but nothing elsewhere."""
         headers = await _admin_headers(client, caplog)
         host = ids.club("nrv")
         created = await client.post(
@@ -856,12 +858,14 @@ class TestOrganizers:
         )
         assert created.status_code == 201, created.text
         event_id = created.json()["id"]
-        await make_user("nrv-orga@example.org", Role.CLUB_MANAGER, club_id=host)
+        await make_user("nrv-orga@example.org", Role.CLUB_ADMIN, club_id=host)
         await make_user("nrv-wl@example.org")
         orga = await _headers(client, caplog, "nrv-orga@example.org")
 
         patched = await client.patch(
-            f"/api/admin/events/{event_id}", headers=orga, json={"title": "Z-2 club regatta, day 1"}
+            f"/api/admin/events/{event_id}",
+            headers=orga,
+            json={"title": "Z-2 club regatta, day 1"},
         )
         assert patched.status_code == 200, patched.text
 
@@ -873,11 +877,9 @@ class TestOrganizers:
         assert [(t["user"], t["relation"]) for t in listed.json()] == [
             ("nrv-wl@example.org", "race_officer")
         ]
+        officer = await _headers(client, caplog, "nrv-wl@example.org")
         assert (
-            await client.get(
-                f"/api/admin/events/{event_id}/races",
-                headers=await _headers(client, caplog, "nrv-wl@example.org"),
-            )
+            await client.get(f"/api/admin/events/{event_id}/races", headers=officer)
         ).status_code == 200
 
         foreign = ids.event("dsbl-1-2026-act-1")
@@ -898,6 +900,119 @@ class TestOrganizers:
 
         deleted = await client.delete(f"/api/auth/tuples/{written['id']}", headers=orga)
         assert deleted.status_code == 204, deleted.text
+
+    async def test_a_clubs_admin_names_only_people_of_the_club(self, client, caplog, ids):
+        """On the club itself its admin writes tuples — for active members only (A-8's
+        rule); the site's admin may name anyone. The manager decides who sails, not who
+        belongs, so they cannot write here at all."""
+        headers = await _admin_headers(client, caplog)
+        club = ids.club("byc")
+        await make_user("byc-orga@example.org", Role.CLUB_ADMIN, club_id=club)
+        await make_user("byc-sport@example.org", Role.CLUB_MANAGER, club_id=club)
+        await make_user("stranger@example.org")
+        orga = await _headers(client, caplog, "byc-orga@example.org")
+        sport = await _headers(client, caplog, "byc-sport@example.org")
+        body = {
+            "user": "stranger@example.org",
+            "relation": "race_officer",
+            "object": f"club:{club}",
+        }
+
+        refused = await client.post("/api/auth/tuples", headers=sport, json=body)
+        assert refused.status_code == 403, refused.text
+        assert _problem_code(refused) == "tuple-forbidden"
+
+        refused = await client.post("/api/auth/tuples", headers=orga, json=body)
+        assert refused.status_code == 403, refused.text
+        assert _problem_code(refused) == "tuple-not-a-member"
+
+        model = (await client.get("/api/auth/model", headers=headers)).json()
+        by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
+        assert by_type["club"] == ["admin", "manager", "race_officer"]
+        me = (await client.get("/api/auth/me", headers=orga)).json()
+        assert sorted(me["roles"]) == [Role.CLUB_ADMIN, Role.CLUB_MANAGER]
+
+    async def test_an_event_manager_sets_up_but_its_admin_names_the_people(
+        self, client, caplog, ids
+    ):
+        headers = await _admin_headers(client, caplog)
+        event_id = ids.event("dsbl-1-2026-act-3")
+        await make_user("ev-manager@example.org")
+        await make_user("ev-admin@example.org")
+        await make_user("ev-jury@example.org")
+        await _write(client, headers, "ev-manager@example.org", "manager", f"event:{event_id}")
+        await _write(client, headers, "ev-admin@example.org", "admin", f"event:{event_id}")
+        manager = await _headers(client, caplog, "ev-manager@example.org")
+        admin = await _headers(client, caplog, "ev-admin@example.org")
+
+        body = {"user": "ev-jury@example.org", "relation": "jury", "object": f"event:{event_id}"}
+        refused = await client.post("/api/auth/tuples", headers=manager, json=body)
+        assert refused.status_code == 403, refused.text
+        written = await client.post("/api/auth/tuples", headers=admin, json=body)
+        assert written.status_code == 201, written.text
+        # The event's admin is everything within it: setup and results as well.
+        assert (
+            await client.get(f"/api/admin/events/{event_id}/races", headers=admin)
+        ).status_code == 200
+        me = (await client.get("/api/auth/me", headers=admin)).json()
+        assert me["roles"] == [Role.EVENT_MANAGER]
+        await client.delete(f"/api/auth/tuples/{written.json()['id']}", headers=admin)
+
+    async def test_a_series_manager_sets_clubs_and_events_a_series_admin_everything(
+        self, client, caplog, ids
+    ):
+        headers = await _admin_headers(client, caplog)
+        series_id = ids.series("scl-2026")
+        await make_user("scl-manager@example.org")
+        await make_user("scl-admin@example.org")
+        await _write(client, headers, "scl-manager@example.org", "manager", f"series:{series_id}")
+        await _write(client, headers, "scl-admin@example.org", "admin", f"series:{series_id}")
+        manager = await _headers(client, caplog, "scl-manager@example.org")
+        admin = await _headers(client, caplog, "scl-admin@example.org")
+
+        # The manager: this series' participants and events, and only this series.
+        clubs = (await client.get(f"/api/admin/series/{series_id}", headers=headers)).status_code
+        assert clubs in (200, 405)
+        listed = await all_items(client, "/api/admin/series", headers=manager)
+        assert [entry["id"] for entry in listed] == [series_id]
+        patched = await client.patch(
+            f"/api/admin/series/{series_id}", headers=manager, json={"squad_max": 12}
+        )
+        assert patched.status_code == 200, patched.text
+        other = ids.series("dsbl-1-2026")
+        assert (
+            await client.patch(
+                f"/api/admin/series/{other}", headers=manager, json={"squad_max": 12}
+            )
+        ).status_code == 403
+        created = await client.post(
+            "/api/admin/events",
+            headers=manager,
+            json={"title": "Z-2 cup act", "series": series_id},
+        )
+        assert created.status_code == 201, created.text
+        event_id = created.json()["id"]
+        assert (
+            await client.post(
+                "/api/admin/series", headers=manager, json={"name": "x", "short_name": "x"}
+            )
+        ).status_code == 403
+
+        # The series' admin names the series' and its events' people, and runs races.
+        assert (
+            await client.get(f"/api/auth/tuples?object=series:{series_id}", headers=manager)
+        ).status_code == 403
+        assert (
+            await client.get(f"/api/auth/tuples?object=series:{series_id}", headers=admin)
+        ).status_code == 200
+        assert (
+            await client.get(f"/api/admin/events/{event_id}/races", headers=admin)
+        ).status_code == 200
+        assert (
+            await client.get(f"/api/admin/events/{event_id}/races", headers=manager)
+        ).status_code == 403
+        me = (await client.get("/api/auth/me", headers=admin)).json()
+        assert me["roles"] == [Role.SERIES_MANAGER]
 
 
 async def _lonely_club() -> int:

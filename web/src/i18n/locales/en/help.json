@@ -9,7 +9,9 @@
       "editor": "Editor",
       "raceOfficer": "Race committee",
       "clubManager": "Club manager",
-      "eventManager": "Event manager"
+      "eventManager": "Event manager",
+      "clubAdmin": "Club admin",
+      "seriesManager": "Series manager"
     },
     "areas": {
       "createClubsEnroll": "Create clubs and enroll them in a Series",
@@ -29,7 +31,8 @@
       "no": "—",
       "own": "Own club only",
       "hostsCreate": "Only to create an Event their own club hosts",
-      "ownEvents": "Own Events and Series only"
+      "ownEvents": "Own Events and Series only",
+      "ownAdmin": "As admin of the Series or Event only"
     },
     "guestNote": "Without an account, or with no role assigned, you can still browse everything public — the league table, Events, clubs and sailor profiles. You just can't change anything."
   },

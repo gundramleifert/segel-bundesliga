@@ -35,6 +35,8 @@ const PERMISSIONS: { role: string; key: string }[] = [
   { role: "race_officer", key: "roles.race_officer" },
   { role: "club_manager", key: "roles.club_manager" },
   { role: "club_manager", key: "roles.club_manager_squad" },
+  { role: "club_admin", key: "roles.club_admin" },
+  { role: "series_manager", key: "roles.series_manager" },
   { role: "event_manager", key: "roles.event_manager" },
   { role: "jury", key: "roles.jury" },
 ];

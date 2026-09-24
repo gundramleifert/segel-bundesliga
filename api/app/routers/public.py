@@ -391,6 +391,7 @@ async def my_clubs(
     # comes off the role rows and not off `User.club_id`, which is the separate and
     # narrower "this account represents that club".
     manages = acting.managed_club_ids
+    administers = acting.administered_club_ids
     club_ids = member_of | manages
     if not club_ids:
         return []
@@ -476,6 +477,7 @@ async def my_clubs(
             club=ClubOut.model_validate(club, from_attributes=True),
             is_member=club.id in member_of,
             may_manage=club.id in manages,
+            may_admin=club.id in administers,
             teams=teams_by_club.get(club.id, []),
             events=events_by_club.get(club.id, []),
         )

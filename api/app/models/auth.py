@@ -43,7 +43,8 @@ class Relation(StrEnum):
     """What a person can *be* to an object — the relation of a tuple (Story Z-2)."""
 
     ADMIN = "admin"
-    """Site: master data, series, accounts and every tuple."""
+    """Everything within the object — the site, or one club, series or event — including
+    who else holds what on it. The site's admin is admin of every object."""
 
     EDITOR = "editor"
     """Site: editorial — posts, club contributions, master data."""
@@ -77,9 +78,16 @@ class ObjectType(StrEnum):
 #: * A line starting with ``or`` continues the ``define`` above it (our one addition to
 #:   the DSL, so a long rule stays under the line length).
 #:
-#: Read: the league's site-wide race committee keeps the setup rights it always had
-#: (``manager: … or race_officer from site``); a race officer appointed for one event
-#: only runs its races. Club membership is not here — it needs both sides' consent.
+#: Read: almost every relation is scoped by a club, a series or an event. ``admin`` of an
+#: object is everything within it — including who else holds what on it — and a series'
+#: admin is admin of its events, the host club's admin of the events it hosts, the site's
+#: admin of all. ``manager`` is the setup work (clubs, events, schedules) without the
+#: people. On a club the split reads: the ``admin`` decides who is *in* the club —
+#: members, organizers, the club's tuples (among its members, Story A-8) — the ``manager``
+#: decides who *sails* — squads, lineups, registrations. The league's site-wide race
+#: committee keeps the setup rights it always had (``manager: … or race_officer from
+#: site``); a race officer appointed for one event only runs its races. Club membership is
+#: not here — it needs both sides' consent.
 MODEL = """
 model
   schema 1.1
@@ -94,22 +102,25 @@ type site
 
 type club
   relations
-    define manager: [user] or admin from site
-    define race_officer: [user] or race_officer from site
+    define admin: [user] or admin from site
+    define manager: [user] or admin
+    define race_officer: [user] or admin or race_officer from site
 
 type series
   relations
-    define manager: [user] or admin from site
-    define race_officer: [user] or race_officer from site
-    define jury: [user] or admin from site
+    define admin: [user] or admin from site
+    define manager: [user] or admin
+    define race_officer: [user] or admin or race_officer from site
+    define jury: [user] or admin
 
 type event
   relations
-    define manager: [user] or manager from series or manager from host_club
+    define admin: [user] or admin from series or admin from host_club or admin from site
+    define manager: [user] or admin or manager from series or manager from host_club
       or editor from site or race_officer from site
-    define race_officer: [user] or race_officer from series or race_officer from host_club
-      or race_officer from site
-    define jury: [user] or jury from series or admin from site
+    define race_officer: [user] or admin or race_officer from series
+      or race_officer from host_club or race_officer from site
+    define jury: [user] or admin or jury from series
 """
 
 #: One term of a ``define``: ``direct`` for ``[user]``, else the relation to check on
@@ -149,9 +160,18 @@ def _parse_model(text: str) -> dict[ObjectType, dict[Relation, tuple[Term, ...]]
     return schema
 
 
-#: ``SCHEMA[object_type][relation]`` — the parsed model. Also the table that decides
-#: whether a tuple may be written at all: a relation missing here does not exist there.
+#: ``SCHEMA[object_type][relation]`` — the parsed model.
 SCHEMA = _parse_model(MODEL)
+
+
+def writable(object_type: ObjectType) -> list[Relation]:
+    """The relations a tuple can name on this object type: those with a ``[user]`` term.
+    A relation that is only derived (a club's ``admin``) is not among them."""
+    return [
+        relation
+        for relation, terms in SCHEMA[object_type].items()
+        if any(term == "direct" for term, _ in terms)
+    ]
 
 
 def parse_object(text: str) -> tuple[ObjectType, int | None]:
@@ -167,15 +187,18 @@ def parse_object(text: str) -> tuple[ObjectType, int | None]:
 class Role(StrEnum):
     """The **summary** roles — what the navigation and the help page call a person.
 
-    Derived from the tuples, never stored: ``club_manager`` means "manager of some club",
-    ``event_manager`` "manager of some series or event", ``race_officer`` and ``jury``
-    "held on anything". The site relations keep their names.
+    Derived from the tuples, never stored: ``club_admin`` means "admin of some club",
+    ``club_manager`` "manager or admin of some club" (the model makes an admin a manager),
+    ``series_manager`` and ``event_manager`` the same for a series or an event,
+    ``race_officer`` and ``jury`` "held on anything". The site relations keep their names.
     """
 
     ADMIN = "admin"
     EDITOR = "editor"
     RACE_OFFICER = "race_officer"
+    CLUB_ADMIN = "club_admin"
     CLUB_MANAGER = "club_manager"
+    SERIES_MANAGER = "series_manager"
     EVENT_MANAGER = "event_manager"
     JURY = "jury"
 
@@ -287,13 +310,18 @@ class User(Base, TimestampMixin):
     def roles(self) -> set[str]:
         """The summary roles (:class:`Role`) — derived, for the navigation and the help."""
         out: set[str] = set()
+        organizer = {
+            ObjectType.CLUB: Role.CLUB_MANAGER,
+            ObjectType.SERIES: Role.SERIES_MANAGER,
+            ObjectType.EVENT: Role.EVENT_MANAGER,
+        }
         for g in self.grants:
             if g.object_type is ObjectType.SITE:
                 out.add(g.relation)
-            elif g.relation == Relation.MANAGER:
-                out.add(
-                    Role.CLUB_MANAGER if g.object_type is ObjectType.CLUB else Role.EVENT_MANAGER
-                )
+            elif g.relation in (Relation.MANAGER, Relation.ADMIN):
+                out.add(organizer[g.object_type])
+                if g.relation == Relation.ADMIN and g.object_type is ObjectType.CLUB:
+                    out.add(Role.CLUB_ADMIN)
             else:
                 out.add(g.relation)
         return out
@@ -307,14 +335,28 @@ class User(Base, TimestampMixin):
         return self.holds(Relation.ADMIN)
 
     def manages_club(self, club_id: int) -> bool:
-        """Directly holds ``manager`` on this club — the organizer listing (Story A-8).
-        For "may act as its manager" (which an admin may) use ``can(MANAGER, on=club)``."""
-        return self.holds(Relation.MANAGER, club_id=club_id)
+        """Directly holds ``manager`` or ``admin`` on this club — decides who *sails* for
+        it: squads, lineups, registrations (the model makes an admin a manager). For
+        "may act as its manager" including the site's admin use ``can(MANAGER, on=club)``."""
+        return self.holds(Relation.MANAGER, club_id=club_id) or self.holds(
+            Relation.ADMIN, club_id=club_id
+        )
+
+    def administers_club(self, club_id: int) -> bool:
+        """Directly holds ``admin`` on this club — decides who is *in* it: members,
+        organizers, the club's tuples (Stories A-8, Z-3, Z-5)."""
+        return self.holds(Relation.ADMIN, club_id=club_id)
 
     @property
     def managed_club_ids(self) -> set[int]:
         """Every club this account organizes — for "show me everything I manage" listings."""
-        return self.objects_of(Relation.MANAGER, ObjectType.CLUB)
+        return self.objects_of(Relation.MANAGER, ObjectType.CLUB) | self.objects_of(
+            Relation.ADMIN, ObjectType.CLUB
+        )
+
+    @property
+    def administered_club_ids(self) -> set[int]:
+        return self.objects_of(Relation.ADMIN, ObjectType.CLUB)
 
 
 def _ids(ref: tuple[ObjectType, int | None]) -> dict[str, int]:
