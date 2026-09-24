@@ -71,7 +71,7 @@ export function Waivers() {
   if (noRecord) return null;
 
   return (
-    <Card className="mt-4" data-testid="account-waivers-card">
+    <Card data-testid="account-waivers-card">
       <Card.Header>
         <Card.Title>{t("waiver.title")}</Card.Title>
         <Card.Description>{t("waiver.description")}</Card.Description>

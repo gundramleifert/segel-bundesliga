@@ -2,7 +2,7 @@ import { Button, Card } from "@heroui/react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { CardGrid } from "../components/Layouts";
+import { CardGrid, Stack } from "../components/Layouts";
 
 import {
   deleteMyAccount,
@@ -108,6 +108,9 @@ export function Account() {
         }
       />
 
+      {/* One Stack owns the vertical rhythm: every block below is a card, and none of
+          them carries its own top margin — that is how two rows once met with no gap. */}
+      <Stack gap={4}>
       <CardGrid as="div">
         <Card data-testid="account-info-card">
           <Card.Header>
@@ -157,6 +160,7 @@ export function Account() {
       <Profile />
       <Waivers />
       <DeleteAccount />
+      </Stack>
     </>
   );
 }
@@ -222,7 +226,7 @@ function Mine({ account }: { account: AccountData }) {
   );
 
   return (
-    <CardGrid as="div">
+    <CardGrid as="div" columns={3}>
       {section("clubs", clubLines, (id) => `/clubs/${id}`, t("mine.noneClubs"))}
       {section("series", seriesLines, (id) => `/series/${id}`, t("mine.noneSeries"))}
       {section("events", eventLines, (id) => `/events/${id}`, t("mine.noneEvents"))}
@@ -377,7 +381,7 @@ function Profile() {
   }
 
   return (
-    <Card className="mt-4" data-testid="account-profile-card">
+    <Card data-testid="account-profile-card">
       <Card.Header>
         <Card.Title>{t("profile.title")}</Card.Title>
         <Card.Description>{t("profile.description")}</Card.Description>
@@ -533,7 +537,7 @@ function DeleteAccount() {
   }
 
   return (
-    <Card className="mt-4 border-red-200" data-testid="account-delete-card">
+    <Card className="border-red-200" data-testid="account-delete-card">
       <Card.Header>
         <Card.Title>{t("deleteAccount.title")}</Card.Title>
         <Card.Description>{t("deleteAccount.description")}</Card.Description>
