@@ -1,5 +1,6 @@
 import { Button, Card } from "@heroui/react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { CardGrid } from "../components/Layouts";
 
@@ -152,10 +153,80 @@ export function Account() {
         </Card>
       </CardGrid>
 
+      <Mine account={account} />
       <Profile />
       <Waivers />
       <DeleteAccount />
     </>
+  );
+}
+
+/** Story Z-8: what this account has to do with — the clubs it belongs to or holds a
+ *  relation on, the series and events it holds one on — each with what it is to them.
+ *  A projection of the tuples (`/api/auth/me`) and the memberships (`/api/clubs/mine`);
+ *  site-wide relations belong to the permissions card, not here. */
+function Mine({ account }: { account: AccountData }) {
+  const { t } = useTranslation("account");
+  const clubs = useAsync(useMyClubs());
+
+  const relationsOn = (type: string) => {
+    const byObject = new Map<number, { name: string; relations: string[] }>();
+    for (const row of account.tuples) {
+      if (row.object_type !== type || row.object_id === null) continue;
+      const entry = byObject.get(row.object_id) ?? { name: row.object_name ?? String(row.object_id), relations: [] };
+      entry.relations.push(row.relation);
+      byObject.set(row.object_id, entry);
+    }
+    return byObject;
+  };
+
+  const clubLines = relationsOn("club");
+  for (const entry of clubs.data ?? []) {
+    if (!entry.is_member) continue;
+    const line = clubLines.get(entry.club.id) ?? { name: entry.club.name, relations: [] };
+    line.relations.unshift("member");
+    clubLines.set(entry.club.id, line);
+  }
+  const seriesLines = relationsOn("series");
+  const eventLines = relationsOn("event");
+
+  const section = (
+    key: "clubs" | "series" | "events",
+    lines: Map<number, { name: string; relations: string[] }>,
+    href: (id: number) => string,
+    empty: string,
+  ) => (
+    <Card data-testid={`account-mine-${key}`}>
+      <Card.Header>
+        <Card.Title>{t(`mine.${key}`)}</Card.Title>
+      </Card.Header>
+      <Card.Content>
+        {lines.size ? (
+          <ul className="space-y-1.5 text-sm">
+            {[...lines.entries()].map(([id, line]) => (
+              <li key={id} className="flex flex-wrap items-baseline gap-x-2" data-testid={`account-mine-${key}-${id}`}>
+                <Link to={href(id)} className="font-medium text-brand-700 hover:underline">
+                  {line.name}
+                </Link>
+                <span className="text-slate-500">
+                  {line.relations.map((r) => t(`mine.relations.${r}`, { defaultValue: r })).join(" · ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-600">{empty}</p>
+        )}
+      </Card.Content>
+    </Card>
+  );
+
+  return (
+    <CardGrid as="div">
+      {section("clubs", clubLines, (id) => `/clubs/${id}`, t("mine.noneClubs"))}
+      {section("series", seriesLines, (id) => `/series/${id}`, t("mine.noneSeries"))}
+      {section("events", eventLines, (id) => `/events/${id}`, t("mine.noneEvents"))}
+    </CardGrid>
   );
 }
 

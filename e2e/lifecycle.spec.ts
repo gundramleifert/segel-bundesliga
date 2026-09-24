@@ -580,6 +580,32 @@ test.describe("Z-2: access is a relation tuple, written and deleted one at a tim
   });
 });
 
+test.describe("Z-8: the account page lists my clubs, series and events", () => {
+  test("the one-event organizer sees that event, and empty club and series sections", async ({
+    page,
+  }) => {
+    // Seeded: manager of the planned matchday only — no club, no series.
+    await signIn(page, "orga@sbl.example.com");
+    await page.goto("/account");
+    await expect(page.getByTestId("account-mine-events").locator("li")).toHaveCount(1);
+    await expect(page.getByTestId("account-mine-events")).toContainText("manager");
+    await expect(page.getByTestId("account-mine-clubs").locator("li")).toHaveCount(0);
+    await expect(page.getByTestId("account-mine-series").locator("li")).toHaveCount(0);
+  });
+
+  test("a club's seeded admin sees the club with both what they are to it", async ({ page }) => {
+    const response = await page.request.get("/api/dev/users");
+    const accounts = (await response.json()) as { email: string; roles: string[] }[];
+    const admin = accounts.find((a) => a.roles.includes("club_admin"))!;
+    await signIn(page, admin.email);
+    await page.goto("/account");
+    const clubs = page.getByTestId("account-mine-clubs").locator("li");
+    await expect(clubs).toHaveCount(1);
+    await expect(clubs.first()).toContainText("member");
+    await expect(clubs.first()).toContainText("admin");
+  });
+});
+
 test.describe("V-12: a club manager manages their own squad", () => {
   /** A seeded account holding `club_manager`, found rather than hardcoded.
    *

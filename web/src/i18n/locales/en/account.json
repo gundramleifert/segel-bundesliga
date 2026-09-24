@@ -110,5 +110,20 @@
       "uploading": "Uploading…",
       "done": "The signed form is on file — you are cleared."
     }
+  },
+  "mine": {
+    "clubs": "My clubs",
+    "series": "My series",
+    "events": "My events",
+    "noneClubs": "You are not in any club yet.",
+    "noneSeries": "You hold nothing on a series.",
+    "noneEvents": "You hold nothing on an event.",
+    "relations": {
+      "member": "member",
+      "admin": "admin",
+      "manager": "manager",
+      "race_officer": "race officer",
+      "jury": "jury"
+    }
   }
 }

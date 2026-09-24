@@ -339,3 +339,27 @@ Acceptance criteria:
 Endpoints: `DELETE /api/auth/me`
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestDeleteMyAccount`
+
+### Z-8 ● My clubs, my series, my events on the account page
+
+As a **signed-in person** I want **my account page to list the clubs, series and events
+I have something to do with, and what I am to each**, so that **I see at a glance where I
+belong and where I am responsible — and reach each one in a click**.
+
+The tuples of Story Z-2 make this a projection, not a new record: every club, series or
+event the account holds a relation on, plus the clubs it is a member of (`ClubMember`,
+which is deliberately not a tuple). Site-wide relations are not "mine" in this sense;
+they stay in the permissions card.
+
+Acceptance criteria:
+- Three sections in that order — **My clubs**, **My series**, **My events** — each on
+  every account page, each saying so when it is empty rather than disappearing.
+- A club line names the club and what I am to it: *member* from the membership, and
+  *admin*, *manager* or *race officer* from the tuples; a person who is both member and
+  manager sees both. The name links to the club's page.
+- A series line names the series and my relations on it (admin, manager, race officer,
+  jury), linking to the series' standings; an event line the same, linking to the event.
+- The data is what `/api/auth/me` and `/api/clubs/mine` already return — no new endpoint.
+
+Screen: `/account`, below the account and permissions cards.
+Tests: `e2e/lifecycle.spec.ts` ("Z-8: the account page lists my clubs, series and events")

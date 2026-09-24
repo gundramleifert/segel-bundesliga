@@ -110,5 +110,20 @@
       "uploading": "Wird hochgeladen…",
       "done": "Das unterschriebene Formular liegt vor – du bist freigegeben."
     }
+  },
+  "mine": {
+    "clubs": "Meine Vereine",
+    "series": "Meine Serien",
+    "events": "Meine Veranstaltungen",
+    "noneClubs": "Sie sind noch in keinem Verein.",
+    "noneSeries": "Sie haben keine Rolle in einer Serie.",
+    "noneEvents": "Sie haben keine Rolle in einer Veranstaltung.",
+    "relations": {
+      "member": "Mitglied",
+      "admin": "Verwaltung",
+      "manager": "Organisation",
+      "race_officer": "Wettfahrtleitung",
+      "jury": "Jury"
+    }
   }
 }
