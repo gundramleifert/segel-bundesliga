@@ -8,6 +8,7 @@ import { DEV_TOOLS } from "../dev/devTools";
 import { RoleSwitcher } from "../dev/RoleSwitcher";
 import { Breadcrumb } from "./Breadcrumb";
 import { UserMenu } from "./UserMenu";
+import { readLastClub } from "../lib/lastClub";
 import { useDisclosure } from "../lib/useDisclosure";
 
 // What someone came to the site for, and nothing else. Help, the legal pages, the
@@ -102,7 +103,6 @@ export function Layout() {
           <NavList
             navigation={navigation}
             t={t}
-            activeClubId={account?.club_id ?? null}
             className="flex-1 overflow-y-auto px-3 py-2"
           />
           <div className="flex items-center justify-end px-4 py-3">
@@ -191,8 +191,7 @@ export function Layout() {
               <NavList
                 navigation={navigation}
                 t={t}
-                activeClubId={account?.club_id ?? null}
-                className="flex-1 overflow-y-auto px-3 py-2"
+                    className="flex-1 overflow-y-auto px-3 py-2"
               />
             </div>
           </>
@@ -259,6 +258,13 @@ function SiteLogo({ className = "" }: { className?: string }) {
   );
 }
 
+/** The dropdown's value: the open club, else the last one shown, else the first — and
+ *  only ever one of the options, or a controlled `<select>` would show none of them. */
+function selectedClub(openClub: string | null, children: NavChild[]): string {
+  const ids = children.map((c) => String(c.clubId));
+  return [openClub, readLastClub()].find((id) => id != null && ids.includes(id)) ?? ids[0];
+}
+
 /** The links, identical in the sidebar and behind the burger.
  *
  * One list rendered twice rather than two lists: the entries are role-dependent, and two
@@ -268,16 +274,15 @@ function SiteLogo({ className = "" }: { className?: string }) {
 function NavList({
   navigation,
   t,
-  activeClubId,
   className = "",
 }: {
   navigation: NavItem[];
   t: (key: string) => string;
-  activeClubId: number | null;
   className?: string;
 }) {
   // Which club the dropdown shows: the one open on `/club` (read off the URL, which
-  // `ClubScreen` completes), otherwise the one the account acts for.
+  // `ClubScreen` completes), otherwise the one this browser showed last (`lastClub`).
+  // Read on every render — a navigation re-renders this, and that is when it can change.
   const location = useLocation();
   const navigate = useNavigate();
   const openClub = location.pathname.startsWith("/club")
@@ -318,7 +323,7 @@ function NavList({
             {item.children && (
               // A dropdown, not one link per club: two clubs are rare, ten are possible
               // for a person who organizes for a federation, and a strip of ten links
-              // would swallow the navigation. Choosing navigates; the page remembers.
+              // would swallow the navigation. Choosing navigates; the browser remembers.
               <div className="ml-3 mt-1 border-l border-slate-200 pl-2">
                 <label className="sr-only" htmlFor="layout-nav-club-select">
                   {t("nav.myClubSelectLabel")}
@@ -327,12 +332,7 @@ function NavList({
                   id="layout-nav-club-select"
                   data-testid="layout-nav-myClub-select"
                   className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700"
-                  value={
-                    openClub ??
-                    (activeClubId != null && item.children.some((c) => c.clubId === activeClubId)
-                      ? String(activeClubId)
-                      : String(item.children[0].clubId))
-                  }
+                  value={selectedClub(openClub, item.children)}
                   onChange={(e) => navigate(`/club?club=${e.target.value}`)}
                 >
                   {item.children.map((child) => (

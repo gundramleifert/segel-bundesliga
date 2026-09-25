@@ -11,12 +11,11 @@ import {
   useListAllEvents,
   useListAllSeries,
   useListUsers,
-  useSetClub,
   useWriteTuple,
 } from "../api/generated/sbl";
 import { ObjectType } from "../api/generated/model/objectType";
 import type { Relation } from "../api/generated/model/relation";
-import type { Account, ClubAdmin } from "../api/types";
+import type { Account } from "../api/types";
 import { WHOLE_LIST, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
 import { DataTable } from "../components/DataTable";
 import { TABLE_FEATURES } from "../lib/table";
@@ -25,9 +24,8 @@ import { ErrorMessage, Loading } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Section, Field } from "../components/Form";
 
-/** Stories Z-2 and Z-3: search accounts, assign the club they act for, write and delete
- *  the relation tuples that give them access. Admin only — the accounts list is
- *  admin-exclusive on the backend, and showing this to an editor would just mean every
+/** Stories Z-2 and Z-3: search accounts, write and delete the relation tuples that give
+ *  them access. Admin only — the accounts list is admin-exclusive on the backend, and showing this to an editor would just mean every
  *  click ends in a 403. */
 export function AccountsAdmin() {
   const { t } = useTranslation("admin");
@@ -42,8 +40,6 @@ export function AccountsAdmin() {
       { query: { placeholderData: keepPreviousData } },
     ),
   );
-  // A club selector has to offer every club, so it asks for the whole list.
-  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
 
   return (
     <Section
@@ -66,7 +62,6 @@ export function AccountsAdmin() {
         <AccountTable
           page={accounts.data}
           params={list}
-          clubs={clubs.data ?? []}
           onChanged={() => invalidate("/api/auth/users")}
         />
       )}
@@ -79,12 +74,10 @@ const accountColumn = createColumnHelper<typeof TABLE_FEATURES, Account>();
 function AccountTable({
   page,
   params,
-  clubs,
   onChanged,
 }: {
   page: { items: Account[]; total: number; limit: number; offset: number };
   params: ListParams;
-  clubs: ClubAdmin[];
   onChanged: () => void;
 }) {
   const { t } = useTranslation("admin");
@@ -106,19 +99,12 @@ function AccountTable({
           cell: ({ row }) => <span className="text-slate-500">{row.original.email}</span>,
         }),
         accountColumn.display({
-          id: "club",
-          header: t("accounts.clubHeader"),
-          cell: ({ row }) => (
-            <ClubCell account={row.original} clubs={clubs} onChanged={onChanged} />
-          ),
-        }),
-        accountColumn.display({
           id: "roles",
           header: t("accounts.rolesHeader"),
           cell: ({ row }) => <TuplesCell account={row.original} onChanged={onChanged} />,
         }),
       ]),
-    [t, clubs, onChanged],
+    [t, onChanged],
   );
 
   return (
@@ -130,50 +116,6 @@ function AccountTable({
       empty={t("accounts.emptyText")}
       rowTestId={(account) => account.id}
     />
-  );
-}
-
-/** The club an account acts for. Its own component, because a cell that changes something
- *  needs the mutation's pending and error state next to the control that caused it. */
-function ClubCell({
-  account,
-  clubs,
-  onChanged,
-}: {
-  account: Account;
-  clubs: ClubAdmin[];
-  onChanged: () => void;
-}) {
-  const { t } = useTranslation("admin");
-  const setClubMutation = useSetClub({ mutation: { onSuccess: onChanged } });
-
-  return (
-    <>
-      <select
-        className={INPUT_CLASS}
-        value={account.club_id ?? ""}
-        disabled={setClubMutation.isPending}
-        onChange={(e) =>
-          setClubMutation.mutate({
-            userId: account.id,
-            data: { club_id: e.target.value ? Number(e.target.value) : null },
-          })
-        }
-        data-testid={`admin-accounts-club-select-${account.id}`}
-      >
-        <option value="">{t("accounts.clubNone")}</option>
-        {clubs.map((v) => (
-          <option key={v.id} value={v.id}>
-            {v.name}
-          </option>
-        ))}
-      </select>
-      {setClubMutation.error && (
-        <p data-testid={`admin-accounts-club-error-${account.id}`} className="text-red-700">
-          {errorText(setClubMutation.error)}
-        </p>
-      )}
-    </>
   );
 }
 

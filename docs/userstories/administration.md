@@ -234,9 +234,6 @@ Acceptance criteria:
   has taken over. Revoking one club never touches a person's organizer status at any other
   club, and the account stays either way.
 - Every grant and revoke is written to the audit log.
-- `User.club_id` keeps its separate meaning — "the club this account represents" (e.g. a
-  shared club account, Story VA-4) — and is no longer what defines or limits organizer
-  scope. Granting someone's first club populates it as a sensible default if it was unset.
 
 Endpoints: the tuple endpoints of Story Z-2 — `GET /api/auth/tuples?object=club:<id>`,
 `POST /api/auth/tuples`, `DELETE /api/auth/tuples/{id}`. `ClubMemberOut.relations` says

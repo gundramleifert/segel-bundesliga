@@ -251,12 +251,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
   silently dropped. Membership is the `member` tuple on a club, implying nothing else.
   Three foreign keys and one small interpreter are the whole model: no authorization
   service.
-- **A person can be in several clubs; `User.club_id` is the one they act for.** Membership
+- **A person can be in several clubs, and an account has no club of its own.** Membership
   (a `member` tuple on the club) and organizing (`manager` or `admin` on it) are both per
-  club and independent. `User.club_id` is the person's own choice among those clubs
-  (`PATCH /api/auth/me`, Story V-12), never derived from them, and never a permission —
-  permissions come from the tuples. With several clubs the choice is made in the
-  navigation ("Our club" expands into one entry per club), not on a page. The club screen
+  club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which
+  club a screen shows is the URL's business (`/club?club=`), the browser remembers the
+  last one as a convenience, the account remembers nothing. With several clubs the choice
+  is made in the navigation ("Our club" expands into one entry per club), not on a page.
+  The club screen
   (`/club`, three tabs) is where members are managed (V-8, Z-5, A-8), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
   `GET /api/clubs/mine`, never through an admin-only list.

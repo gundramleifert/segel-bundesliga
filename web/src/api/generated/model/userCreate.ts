@@ -12,5 +12,4 @@ export interface UserCreate {
   display_name: string;
   /** Site relations to start with; object tuples come after */
   roles?: Relation[];
-  club_id?: number | null;
 }

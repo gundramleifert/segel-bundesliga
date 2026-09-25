@@ -89,9 +89,8 @@ Acceptance criteria:
 - **"My clubs"** comes first: every club the signed-in account belongs to. Plural
   deliberately — a person can be an active member of more than one club (Story V-7), and a
   `club_manager` can manage several, so this is a list, never a single club.
-- What counts as "mine" is **active membership** (`ClubMember` with an accepted status), not
-  `User.club_id`. That field means "the club this account represents" and is a different,
-  narrower idea; a pending membership request does not put a club in this list either.
+- What counts as "mine" is the `member` tuple on the club (Story Z-5). An account has no
+  club field of its own, so there is nothing else this could read.
 - The **club search** sits beside it on a wide screen and **below it** on a phone — the
   section that matters most has to be the one that is above the fold on the small screen.
   It searches every club, exactly as it does now.

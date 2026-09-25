@@ -14,7 +14,6 @@ export interface UserOut {
   display_name: string;
   is_active: boolean;
   email_verified: boolean;
-  club_id: number | null;
   /** The summary roles derived from the tuples — what the navigation shows tabs by */
   roles: string[];
   tuples: TupleOut[];

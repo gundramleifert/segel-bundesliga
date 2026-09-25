@@ -9,8 +9,9 @@ import { bearer, signIn } from "./session";
  * `api/tests/stories/test_lineup.py` proves the rule (the crew comes from the squad);
  * `test_my_clubs.py` proves the list. What a browser adds: a club manager finds their
  * club's matchdays on `/club` without any admin route, names a crew there, and the public
- * matchday page shows it; and a person in two clubs picks the one they act for and the
- * choice survives a reload, on `/club` and on `/account` alike. Stories Z-5, V-8, V-9 and
+ * matchday page shows it; and a person in two clubs picks one in the navigation, which
+ * opens it (`?club=`), and a bare `/club` later opens the last one shown again — a
+ * per-browser convenience, since an account has no home club (Story Z-2). Stories Z-5, V-8, V-9 and
  * V-10: the club's admin adds a person as member on the Members tab, and they leave again.
  */
 
@@ -38,8 +39,8 @@ async function openMyClub(
   tab: "members" | "events" | "series" = "events",
   clubId?: number,
 ): Promise<void> {
-  // `club=` explicitly where it matters: the account remembers the last club chosen, and
-  // an earlier test may have left it on one where this person is a plain member.
+  // `club=` explicitly where it matters: without it the browser's last shown club is
+  // opened, and within one test that may be one where this person is a plain member.
   await page.goto(`/club?tab=${tab}${clubId ? `&club=${clubId}` : ""}`);
   await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
   await expect(page.getByTestId(`my-club-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
@@ -48,13 +49,8 @@ async function openMyClub(
 test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /club", () => {
   test("the matchdays are listed and a crew is named from the squad", async ({ page, request }) => {
     const manager = await aClubManager(request);
-    // The second test below leaves the account acting for another club, and the two
-    // browser projects share one stack — so start from "no club chosen" explicitly.
-    const reset = await request.patch("/api/auth/me", {
-      headers: await bearer(request, manager.email),
-      data: { club_id: null },
-    });
-    expect(reset.ok(), await reset.text()).toBeTruthy();
+    // A fresh browser context remembers no club, so a bare `/club` opens the one this
+    // person organizes.
     await signIn(page, manager.email);
     await openMyClub(page);
     await expect(page.getByTestId("my-club-events-list")).toBeVisible();
@@ -105,7 +101,7 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     ).toBeVisible();
   });
 
-  test("a person in two clubs picks the one they act for, and it is remembered", async ({
+  test("a person in two clubs picks one in the navigation, and a bare /club reopens it", async ({
     page,
     request,
   }) => {
@@ -141,9 +137,9 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
 
-    // Remembered: a fresh visit without the URL parameter opens the chosen club and the
-    // dropdown shows it. (The account page no longer repeats the choice — the navigation
-    // is the one place it is made, Story V-12.)
+    // A visit without the URL parameter opens the club this browser showed last (kept in
+    // `localStorage`, not on the account), and the dropdown shows it. `?club=` stays the
+    // source of truth; this is only the fallback.
     await page.goto("/club");
     await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
     await openNavigation(page);

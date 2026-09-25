@@ -77,7 +77,12 @@ async def list_test_users(
             email=user.email,
             display_name=user.display_name,
             roles=sorted(user.roles),
-            club=clubs.get(user.club_id) if user.club_id else None,
+            club=", ".join(
+                clubs[cid]
+                for cid in sorted({g.club_id for g in user.grants if g.club_id is not None})
+                if cid in clubs
+            )
+            or None,
             description=tr(
                 locale,
                 en=" ".join(DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION)

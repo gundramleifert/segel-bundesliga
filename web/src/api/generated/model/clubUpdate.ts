@@ -6,7 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface AppRoutersAuthClubUpdate {
-  /** Club, or null to remove the assignment */
-  club_id?: number | null;
+export interface ClubUpdate {
+  name?: string | null;
+  short_name?: string | null;
+  city?: string | null;
+  website?: string | null;
+  logo_url?: string | null;
+  description?: string | null;
 }

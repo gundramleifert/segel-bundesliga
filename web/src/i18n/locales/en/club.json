@@ -39,8 +39,6 @@
     "noTeamsText": "This club is not registered for any series yet, so there is no squad to put together.",
     "roleOrganizer": "You organize this club",
     "roleMember": "You are a member of this club",
-    "clubLabel": "Club",
-    "activeClubHint": "The club you act for. Remembered on your account.",
     "eventsTitle": "Matchdays",
     "eventsHint": "Every matchday of a series this club is registered in, and every event it is entered in on its own. Open one to name the crew — from the squad, in advance.",
     "eventsEmpty": "This club is not entered in any event yet.",

@@ -7,7 +7,6 @@
  */
 
 export type ListUsersParams = {
-club_id?: number | null;
 q?: string | null;
 /**
  * Rows per page

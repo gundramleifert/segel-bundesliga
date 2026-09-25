@@ -4,15 +4,16 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { Stack } from "../components/Layouts";
-import { useMyClubs, useUpdateMe } from "../api/generated/sbl";
+import { useMyClubs } from "../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../api/types";
-import { useAsync, useAccount, useInvalidate } from "../api/useApi";
+import { useAsync, useAccount } from "../api/useApi";
 import { ClubMembersPanel } from "../components/ClubMembersPanel";
 import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
 import { LineupPanel } from "../components/LineupPanel";
 import { SquadPanel } from "../components/SquadPanel";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { eventDates } from "../lib/format";
+import { readLastClub, writeLastClub } from "../lib/lastClub";
 
 /** Story V-12: "Our club" — one screen for whoever belongs to a club.
  *
@@ -28,8 +29,9 @@ import { eventDates } from "../lib/format";
  * that defect straight back.
  *
  * Which club, when there are several, is chosen in the **navigation** — "Our club"
- * expands into one entry per club — not on the page; `?club=` names the one shown and
- * the choice is remembered on the account (`ClubScreen`).
+ * expands into one entry per club — not on the page; `?club=` names the one shown, and
+ * this browser remembers the last one for a bare `/club` (`ClubScreen`). The account
+ * has no home club: a person's clubs are their grants (Story Z-2).
  */
 export function MyClub() {
   const { t } = useTranslation("club");
@@ -66,41 +68,35 @@ export function MyClub() {
         title={entries.length > 1 ? t("mine.titlePlural") : t("mine.title")}
         testId="my-club-header"
       />
-      <ClubScreen entries={entries} activeClubId={account.club_id ?? null} />
+      <ClubScreen entries={entries} />
     </>
   );
 }
 
 /** The club being shown, and its three tabs.
  *
- * `?club=` says which club; missing, the account's remembered club, else a club the
- * person organizes over one they merely belong to — this is the screen for acting, and
- * the organizer's club is where they can. The URL is then completed (`replace`), so the
- * navigation's sub-entry for the open club can light up, and a club that was reached by
- * URL or sub-entry becomes the remembered one (`PATCH /api/auth/me`), so the next visit
- * and the account page agree with the navigation. One save per change, none on failure.
+ * `?club=` says which club, and is the source of truth. Missing, the club this browser
+ * showed last (`lib/lastClub`, `localStorage` — a convenience, never a setting), else a
+ * club the person organizes over one they merely belong to — this is the screen for
+ * acting, and the organizer's club is where they can. The URL is then completed
+ * (`replace`), so the navigation's dropdown shows the open club, and the club shown
+ * becomes the one a later bare `/club` opens.
  */
-function ClubScreen({
-  entries,
-  activeClubId,
-}: {
-  entries: MyClubOut[];
-  activeClubId: number | null;
-}) {
+function ClubScreen({ entries }: { entries: MyClubOut[] }) {
   const { t } = useTranslation("club");
   const [params, setParams] = useSearchParams();
-  const invalidate = useInvalidate();
-  const remember = useUpdateMe({ mutation: { onSuccess: () => invalidate("/api/auth/me") } });
 
   const requested = params.get("club");
+  const last = requested == null ? readLastClub() : null;
   const entry =
     entries.find((e) => String(e.club.id) === requested) ??
-    entries.find((e) => e.club.id === activeClubId) ??
+    entries.find((e) => String(e.club.id) === last) ??
     entries.find((e) => e.may_manage) ??
     entries[0];
   const shown = entry.club.id;
 
   useEffect(() => {
+    writeLastClub(shown);
     if (requested !== String(shown)) {
       setParams(
         (previous) => {
@@ -112,14 +108,6 @@ function ClubScreen({
       );
     }
   }, [requested, shown, setParams]);
-
-  useEffect(() => {
-    if (requested === String(shown) && activeClubId !== shown && remember.isIdle) {
-      remember.mutate({ data: { club_id: shown } });
-    }
-    // `remember` is a stable mutation object; listing it would re-run on every state change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requested, shown, activeClubId]);
 
   const roleOf = (item: MyClubOut) =>
     item.may_manage ? t("mine.roleOrganizer") : t("mine.roleMember");

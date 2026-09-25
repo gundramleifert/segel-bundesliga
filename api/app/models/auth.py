@@ -226,10 +226,6 @@ class User(Base, TimestampMixin):
     # it initially; only a redeemed one-time code (or a provider token) proves it.
     # Without this verification, the account cannot request membership.
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
-    # The club this account represents — for a club account, their own.
-    # **Memberships** of a person are ``member`` tuples: someone can be in several clubs
-    # but always acts for only one.
-    club_id: Mapped[int | None] = mapped_column(ForeignKey("club.id"), default=None, index=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     grants: Mapped[list[Grant]] = relationship(

@@ -39,8 +39,6 @@
     "noTeamsText": "Dieser Verein ist noch für keine Serie gemeldet, es gibt also keinen Kader aufzustellen.",
     "roleOrganizer": "Du organisierst diesen Verein",
     "roleMember": "Du bist Mitglied dieses Vereins",
-    "clubLabel": "Verein",
-    "activeClubHint": "Der Verein, für den du handelst. Wird in deinem Konto gemerkt.",
     "eventsTitle": "Spieltage",
     "eventsHint": "Jeder Spieltag einer Serie, für die dieser Verein gemeldet ist, und jede Veranstaltung, für die er einzeln gemeldet ist. Öffne einen, um die Crew aufzustellen – aus dem Kader, im Voraus.",
     "eventsEmpty": "Dieser Verein ist noch für keine Veranstaltung gemeldet.",

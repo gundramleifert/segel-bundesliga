@@ -24,21 +24,18 @@ above — and [A-9](administration.md#a-9--accept-or-reject-participation) is ad
 As a **club admin** I want to **make an account a member of my club**,
 so that **registrations, posts, and check-in go to the right club**.
 
-Since Story Z-5's rewrite this *is* writing the `member` tuple: there is no separate
-assignment. What remains of the original story is the account-level "acting club"
-(`User.club_id`), which the person picks themselves in the navigation (V-12) among the
-clubs they are a member of or organize; administration may still set it directly
-(`PUT /api/auth/users/{id}/club`), for a shared club account.
+Since Story Z-5's rewrite this *is* writing the `member` tuple: an account has **no club
+of its own** — no "assigned" or "acting" club, no `User.club_id` (removed 2026-09-25).
+What ties a person to a club is what they hold on it: `member`, `manager`, `admin`
+(Story Z-2), each per club, any number of clubs. Which of several clubs a screen shows
+is the URL's business (`/club?club=`), not the account's.
 
 Acceptance criteria:
-- A club's admin writes `member` only on a club they administer (Story Z-2); the site's
-  admin on any.
-- Administration can set and remove the acting club of any account; a person can only
-  pick a club they belong to or organize (`active-club-not-mine`).
-- Every change is logged: who, when, which club.
+- A club's admin writes `member` only on a club they administer; the site's admin on any.
+- There is no account-level club field to set, by anyone; the account list does not show
+  one. Every change to who is in a club is a tuple write, logged.
 
-Tests: `api/tests/stories/test_login_and_roles.py::TestAssigningAClub`,
-`api/tests/stories/test_club_members.py::TestMembers`
+Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-8 ● Decide who is in the club
 As a **club admin** I want to **decide who is in our club**, so that **not everyone can
@@ -98,7 +95,7 @@ Acceptance criteria:
   unusable.
 - A name can be corrected; a typo should not force a second person.
 
-**Done: `User.club_id` is the club an account represents** — not membership. That is in
+**Done: an account has no club of its own** — only tuples on clubs. That is in
 the `member` tuples and can be multiple ([V-9](#v-9--add-someone-by-email)). This resolves the
 contradiction: a person sails for two clubs but always handles only one.
 
@@ -302,13 +299,13 @@ Acceptance criteria:
   - *Matchdays*: the club's event entries with the lineup under each (Story V-2).
   - *Series*: the series registrations, each with its squad (Story V-1).
 - **Several clubs choose themselves in the navigation, not on the page.** "My club" opens
-  the club the account acts for. With more than one club, a **dropdown** beneath the
-  entry (`layout-nav-myClub-select`) picks another — a dropdown rather than one link per
-  club, because ten links would swallow the navigation; picking one opens that club and
-  **remembers it on the account** (`User.club_id`, `PATCH
-  /api/auth/me`, only a club the account belongs to or organizes —
-  `/errors/active-club-not-mine`). With nothing remembered, a club the person organizes
-  wins over one they merely belong to. One club is the normal case and has no sub-entries.
+  one of the person's clubs. With more than one club, a **dropdown** beneath the entry
+  (`layout-nav-myClub-select`) picks another — a dropdown rather than one link per club,
+  because ten links would swallow the navigation; picking one opens that club (`?club=`
+  in the URL). The **browser** remembers the last club shown as a convenience
+  (`localStorage`); the account remembers nothing — it has no club of its own (Z-3).
+  With nothing remembered, a club the person organizes wins over one they merely belong
+  to. One club is the normal case and has no sub-entries.
   The account page does not repeat the choice — the navigation is the one place it is
   made; what the account page lists is every club, series and event the person has
   something to do with (Story Z-8).
@@ -331,12 +328,10 @@ Acceptance criteria:
 - Administration keeps its own way in unchanged: `/admin?tab=sailors` still reaches every
   club's squad through the series, which is the right shape for someone whose job is all
   eighteen of them.
-- A person can be a member of several clubs and organize several — the two relationships
-  are per club (`ClubMember`, a `manager` tuple on the club) and independent. `User.club_id` has
-  meant "the club this account acts for" since the model was written and had no way to be
-  set; the navigation's sub-entries are that way now. `?club=` in the URL names the club
-  being shown, so a link to one club keeps working and the sub-entry can show which is
-  open.
+- A person can be a member of several clubs and organize several — the relations
+  (`member`, `manager`, `admin`) are per club and independent. `?club=` in the URL names
+  the club being shown, so a link to one club keeps working and the sub-entry can show
+  which is open.
 - **The Matchdays tab** (Story V-2's door).
   `GET /api/clubs/mine` lists each club's **event entries** alongside its series
   registrations: every matchday of a series the club is registered in, and every
@@ -352,7 +347,6 @@ Acceptance criteria:
   here could enter it and never register anyone.
 
 Tests: `api/tests/stories/test_my_clubs.py`,
-`api/tests/stories/test_login_and_roles.py::TestActiveClub`,
 `e2e/lifecycle.spec.ts::V-12: a club manager manages their own squad`,
 `e2e/club.spec.ts`
 
@@ -402,7 +396,7 @@ Acceptance criteria:
   identity, like its members (Z-3). `admin` and `editor` may do it for any club, as with
   the rest of club master data (A-1). The check is `User.administers_club(club_id)`: the
   relation is held per club, so someone who administers two clubs can maintain both
-  crests, and merely *representing* a club (`User.club_id`) grants nothing.
+  crests.
 - Replacing and removing are possible (`POST` again replaces; `DELETE` on a club without
   an uploaded crest is a no-op, not an error).
 - Appears in table, club overview, and matchday view; without crest the abbreviation field

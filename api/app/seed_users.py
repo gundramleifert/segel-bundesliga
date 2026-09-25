@@ -56,7 +56,7 @@ async def _account(
         # Set roles before the flush: afterward the assignment would first want to reload the
         # collection, and a lazy load fails in async context.
         # Test accounts are considered verified — otherwise each would first need to redeem a code.
-        user = User(email=email, display_name=name, club_id=club_id, email_verified=True)
+        user = User(email=email, display_name=name, email_verified=True)
         # `Role.CLUB_MANAGER` here means "manager of this club"; everything else is a
         # site relation.
         user.grants = [_tuple(role, club_id) for role in roles]
@@ -67,7 +67,6 @@ async def _account(
     user.display_name = name
     user.is_active = True
     user.email_verified = True
-    user.club_id = club_id
     # Replace existing tuples via SQL instead of via the collection — for the same reason.
     await session.execute(delete(Grant).where(Grant.user_id == user.id))
     for role in roles:
@@ -199,17 +198,17 @@ async def _report(
         .all()
     )
 
-    print("\nClub managers (sample):")
+    print("\nClub organizers (sample):")
     for user in samples:
-        club = clubs.get(user.club_id) if user.club_id else None
-        abbr = club.short_name if club else "—"
-        print(f"  {user.email:34s} club_manager  {user.display_name} [{abbr}]")
+        abbr = ", ".join(clubs[cid].short_name for cid in sorted(user.managed_club_ids))
+        print(f"  {user.email:34s} club admin    {user.display_name} [{abbr}]")
 
     no_role = (
         (
             await session.execute(
                 select(User)
-                .where(User.club_id.is_not(None), ~User.grants.any())
+                .where(User.grants.any(Grant.relation == Relation.MEMBER))
+                .where(~User.grants.any(Grant.relation != Relation.MEMBER))
                 .order_by(User.id)
                 .limit(2)
             )
@@ -220,9 +219,8 @@ async def _report(
 
     print("\nParticipants with no role (sample):")
     for user in no_role:
-        club = clubs.get(user.club_id) if user.club_id else None
-        abbr = club.short_name if club else "—"
-        print(f"  {user.email:34s} —             {user.display_name} [{abbr}]")
+        abbr = ", ".join(clubs[cid].short_name for cid in sorted(user.member_club_ids))
+        print(f"  {user.email:34s} member        {user.display_name} [{abbr}]")
 
     admin = (
         await session.execute(select(User).where(User.email == "admin@sbl.example.com"))

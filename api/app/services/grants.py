@@ -111,10 +111,6 @@ async def grant(
     # Change the collection, not a bare INSERT — otherwise the in-memory user still
     # looks role-less to the response built afterwards (expire_on_commit is off).
     target.grants.append(row)
-    if object_type is ObjectType.CLUB and relation == Relation.MANAGER and target.club_id is None:
-        # Populate the "represents" convention on someone's first club — but it must
-        # never again be the thing that blocks or defines a (further) tuple.
-        target.club_id = object_id
     session.add(_audit("grant", target, relation, object_type, object_id, actor))
     return row
 

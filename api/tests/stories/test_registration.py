@@ -81,7 +81,7 @@ class TestRegistering:
         ich = (await client.get("/api/auth/me", headers=auth_headers(token))).json()
         assert ich["email_verified"] is True
         assert ich["roles"] == []
-        assert ich["club_id"] is None
+        assert ich["tuples"] == []
 
     async def test_a_name_is_required(self, client):
         """Registration requires a name."""

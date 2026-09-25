@@ -19,14 +19,13 @@ from app.auth import (
 )
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import AuditLog, Club, WaiverConfirmation
+from app.models import WaiverConfirmation
 from app.models.auth import (
     MODEL,
     SCHEMA,
     Grant,
     ObjectType,
     Relation,
-    Role,
     User,
     parse_object,
     writable,
@@ -137,7 +136,6 @@ class UserOut(BaseModel):
     display_name: str
     is_active: bool
     email_verified: bool
-    club_id: int | None
     roles: list[str] = Field(
         description="The summary roles derived from the tuples — what the navigation shows tabs by"
     )
@@ -152,7 +150,6 @@ class UserOut(BaseModel):
             display_name=user.display_name,
             is_active=user.is_active,
             email_verified=user.email_verified,
-            club_id=user.club_id,
             roles=sorted(user.roles),
             tuples=[TupleOut.of(row, user) for row in sorted(user.grants, key=lambda r: r.id)],
             identities=[
@@ -167,7 +164,6 @@ class UserCreate(BaseModel):
     roles: list[Relation] = Field(
         default_factory=list, description="Site relations to start with; object tuples come after"
     )
-    club_id: int | None = None
 
 
 class TupleWrite(BaseModel):
@@ -177,10 +173,6 @@ class TupleWrite(BaseModel):
     user: EmailStr
     relation: Relation
     object: str = Field(examples=["event:3", "club:7", "site"])
-
-
-class ClubUpdate(BaseModel):
-    club_id: int | None = Field(default=None, description="Club, or null to remove the assignment")
 
 
 @router.get(
@@ -306,41 +298,6 @@ async def me(user: User = Depends(current_user)) -> UserOut:
     return UserOut.of(user)
 
 
-class UpdateMe(BaseModel):
-    """What a person may change about their own account: the club they act for."""
-
-    club_id: int | None = Field(
-        description=(
-            "The active club — one this account belongs to or organizes, or null. Story "
-            "V-12: a person in several clubs picks one, and the choice is remembered here."
-        )
-    )
-
-
-@router.patch("/me", response_model=UserOut, summary="Choose the club I act for")
-async def update_me(
-    request: UpdateMe,
-    session: AsyncSession = Depends(get_session),
-    user: User = Depends(current_user),
-) -> UserOut:
-    """Sets `User.club_id`, which has meant "the club this account acts for" since the
-    model was written and could not be set by the person. Only a club they are an active
-    member of or organize is accepted — an account cannot declare itself to be acting for
-    a club that never heard of it."""
-    if request.club_id is not None:
-        member_of = user.member_club_ids
-        if request.club_id not in member_of | user.managed_club_ids:
-            raise Problem(
-                422,
-                "active-club-not-mine",
-                "You can only act for a club you belong to or organize.",
-                club_id=request.club_id,
-            )
-    user.club_id = request.club_id
-    await session.commit()
-    return UserOut.of(user)
-
-
 @router.delete(
     "/me",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -389,7 +346,6 @@ USER_SORT = {"display_name": User.display_name, "email": User.email}
     summary="List accounts",
 )
 async def list_users(
-    club_id: int | None = None,
     q: str | None = None,
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
@@ -400,8 +356,6 @@ async def list_users(
     as long as the sailor register and had no limit at all.
     """
     stmt = select(User)
-    if club_id is not None:
-        stmt = stmt.where(User.club_id == club_id)
     stmt = apply_search(stmt, q, User.display_name, User.email)
     users, total = await paginate(
         session,
@@ -411,93 +365,6 @@ async def list_users(
         default_order=[User.display_name, User.id],
     )
     return page_of([UserOut.of(user) for user in users], total, params)
-
-
-@router.put("/users/{user_id}/club", response_model=UserOut, summary="Assign a club")
-async def set_club(
-    user_id: int,
-    request: ClubUpdate,
-    session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_club_manager),
-    locale: Locale = Depends(resolve_locale),
-) -> UserOut:
-    """Assigns an account to a club — permanently, not per matchday.
-
-    A club manager may only assign a club **they organize** (Story A-8 — that can now be
-    more than one), and may only move people who have no club or are already assigned to
-    one of those clubs. Otherwise they could seize other teams. Administration is exempt
-    from these restrictions.
-    """
-    user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht."),
-        )
-
-    if request.club_id is not None:
-        club = (
-            await session.execute(select(Club).where(Club.id == request.club_id))
-        ).scalar_one_or_none()
-        if club is None:
-            raise HTTPException(
-                status_code=404,
-                detail=tr(
-                    locale,
-                    en=f"Club {request.club_id} is not known.",
-                    de=f"Verein {request.club_id} ist nicht bekannt.",
-                ),
-            )
-
-    if not acting.has_any(Role.ADMIN):
-        # Who is *in* the club is the club admin's decision (Story Z-2).
-        managed = acting.administered_club_ids
-        if not managed:
-            raise HTTPException(
-                status_code=409,
-                detail=tr(
-                    locale,
-                    en="Your account does not organize any club.",
-                    de="Ihr Konto leitet keinen Verein.",
-                ),
-            )
-        if request.club_id is not None and request.club_id not in managed:
-            raise HTTPException(
-                status_code=403,
-                detail=tr(
-                    locale,
-                    en="You can only assign a club you organize.",
-                    de="Sie können nur einen Verein zuordnen, den Sie leiten.",
-                ),
-            )
-        if user.club_id is not None and user.club_id not in managed:
-            raise HTTPException(
-                status_code=403,
-                detail=tr(
-                    locale,
-                    en="This person already belongs to a different club.",
-                    de="Diese Person gehört bereits zu einem anderen Verein.",
-                ),
-            )
-
-    vorher = user.club_id
-    if vorher == request.club_id:
-        return UserOut.of(user)
-
-    user.club_id = request.club_id
-    # Who assigned which club to whom must remain traceable: entries, contributions,
-    # and check-in depend on it.
-    session.add(
-        AuditLog(
-            entity_type="app_user",
-            entity_id=user.id,
-            action="set_club",
-            actor=acting.email,
-            payload={"from": vorher, "to": request.club_id},
-        )
-    )
-    await session.commit()
-    return UserOut.of(user)
 
 
 @router.post(
@@ -530,7 +397,6 @@ async def create_user(
     user = User(
         email=email,
         display_name=request.display_name,
-        club_id=request.club_id,
         email_verified=True,
     )
     # Relations at creation are site tuples: a club or event tuple names an object, which

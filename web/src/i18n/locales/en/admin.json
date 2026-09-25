@@ -191,7 +191,6 @@
     "searchPlaceholder": "Enter a name or address ...",
     "loadingText": "Loading accounts ...",
     "emptyText": "No account matches this search.",
-    "clubNone": "— none —",
     "roleLabels": {
       "admin": "Admin",
       "editor": "Editor",
@@ -204,7 +203,6 @@
     },
     "nameHeader": "Name",
     "emailHeader": "Email",
-    "clubHeader": "Club",
     "rolesHeader": "Access",
     "revoke": "Revoke",
     "tupleSite": "whole site",
