@@ -6,15 +6,13 @@ We do not manage passwords: identity comes from Google, Microsoft, or a one-time
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import delete, select
+from sqlalchemy import select
 
 from app.config import settings
 from app.db import SessionLocal
 from app.models import (
     AuditLog,
     Club,
-    ClubMember,
-    ClubMemberStatus,
     Sailor,
     WaiverConfirmation,
     WaiverText,
@@ -31,9 +29,8 @@ async def make_user(
             await session.execute(select(User).where(User.email == email))
         ).scalar_one_or_none()
         if existing is not None:
-            # Memberships point to the account. SQLite reuses deleted ids —
-            # if a row remains, it would suddenly belong to the next person.
-            await session.execute(delete(ClubMember).where(ClubMember.user_id == existing.id))
+            # The account's tuples go with it (ORM cascade on `User.grants`). SQLite
+            # reuses deleted ids — a row left behind would belong to the next person.
             await session.delete(existing)
             await session.commit()
 
@@ -338,16 +335,14 @@ class TestDeleteMyAccount:
         response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
 
-    async def test_club_membership_is_cleaned_up(self, client, caplog):
-        """ClubMember has no ORM cascade from User — deletion must remove it by hand."""
+    async def test_the_accounts_tuples_go_with_it(self, client, caplog, ids):
+        """Membership is a tuple now (Story Z-5), and every tuple of the account goes with
+        it — SQLite reuses ids, so a leftover row would belong to the next account."""
         user_id = await make_user("del-member@example.org")
         token = await login_as(client, "del-member@example.org", caplog)
-
         async with SessionLocal() as session:
-            club = (await session.execute(select(Club).limit(1))).scalars().first()
-            session.add(
-                ClubMember(club_id=club.id, user_id=user_id, status=ClubMemberStatus.ACTIVE)
-            )
+            session.add(Grant(user_id=user_id, relation=Relation.MEMBER, club_id=ids.club("fsc")))
+            session.add(Grant(user_id=user_id, relation=Relation.RACE_OFFICER))
             await session.commit()
 
         response = await client.delete("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
@@ -355,9 +350,11 @@ class TestDeleteMyAccount:
 
         async with SessionLocal() as session:
             leftover = (
-                await session.execute(select(ClubMember).where(ClubMember.user_id == user_id))
-            ).scalar_one_or_none()
-        assert leftover is None
+                (await session.execute(select(Grant).where(Grant.user_id == user_id)))
+                .scalars()
+                .all()
+            )
+        assert leftover == []
 
     async def test_waiver_confirmations_survive_with_recorder_cleared(self, client, caplog, ids):
         """A waiver confirmation is someone else's evidence — it must outlive the staff
@@ -597,14 +594,14 @@ class TestActiveClub:
         assert cleared.json()["club_id"] is None
 
     async def test_a_plain_member_may_pick_their_club_too(self, client, caplog):
-        from app.models import ClubMemberStatus
+        """A `member` tuple alone is enough to act for the club (Stories Z-5, V-12)."""
         from tests.stories.test_my_clubs import _make_member
 
         (fsc,) = await self._club_ids("fsc")
         email = "active-member@example.com"
         await make_user(email)
         headers = {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
-        await _make_member(email, fsc, ClubMemberStatus.ACTIVE)
+        await _make_member(email, fsc)
 
         chosen = await client.patch("/api/auth/me", headers=headers, json={"club_id": fsc})
         assert chosen.status_code == 200, chosen.text
@@ -901,10 +898,10 @@ class TestOrganizers:
         deleted = await client.delete(f"/api/auth/tuples/{written['id']}", headers=orga)
         assert deleted.status_code == 204, deleted.text
 
-    async def test_a_clubs_admin_names_only_people_of_the_club(self, client, caplog, ids):
-        """On the club itself its admin writes tuples — for active members only (A-8's
-        rule); the site's admin may name anyone. The manager decides who sails, not who
-        belongs, so they cannot write here at all."""
+    async def test_a_clubs_admin_names_anyone_its_manager_nobody(self, client, caplog, ids):
+        """On the club itself its admin writes tuples — for any account, member or not
+        (Story A-8: an organizer need not be a member). The manager decides who sails,
+        not who belongs, so they cannot write here at all."""
         headers = await _admin_headers(client, caplog)
         club = ids.club("byc")
         await make_user("byc-orga@example.org", Role.CLUB_ADMIN, club_id=club)
@@ -922,15 +919,16 @@ class TestOrganizers:
         assert refused.status_code == 403, refused.text
         assert _problem_code(refused) == "tuple-forbidden"
 
-        refused = await client.post("/api/auth/tuples", headers=orga, json=body)
-        assert refused.status_code == 403, refused.text
-        assert _problem_code(refused) == "tuple-not-a-member"
+        written = await client.post("/api/auth/tuples", headers=orga, json=body)
+        assert written.status_code == 201, written.text
+        assert written.json()["relation"] == "race_officer"
 
         model = (await client.get("/api/auth/model", headers=headers)).json()
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
-        assert by_type["club"] == ["admin", "manager", "race_officer"]
+        assert by_type["club"] == ["admin", "manager", "race_officer", "member"]
         me = (await client.get("/api/auth/me", headers=orga)).json()
         assert sorted(me["roles"]) == [Role.CLUB_ADMIN, Role.CLUB_MANAGER]
+        await client.delete(f"/api/auth/tuples/{written.json()['id']}", headers=orga)
 
     async def test_an_event_manager_sets_up_but_its_admin_names_the_people(
         self, client, caplog, ids

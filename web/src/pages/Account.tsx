@@ -13,7 +13,6 @@ import {
   getMySailor,
   me,
   providers,
-  useMyClubs,
   registerAccount,
   updateMySailor,
   uploadMyPhoto,
@@ -24,7 +23,6 @@ import { getToken, onTokenChange, setToken } from "../api/session";
 import { ErrorMessage, Loading, PageHeader } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Waivers } from "./AccountWaivers";
-import { useAsync } from "../api/useApi";
 
 export function Account() {
   const { t } = useTranslation("account");
@@ -118,11 +116,10 @@ export function Account() {
 
 /** Story Z-8: what this account has to do with — the clubs it belongs to or holds a
  *  relation on, the series and events it holds one on — each with what it is to them.
- *  A projection of the tuples (`/api/auth/me`) and the memberships (`/api/clubs/mine`);
+ *  A projection of the tuples (`/api/auth/me`) — membership is one of them (Z-5);
  *  site-wide relations belong to the permissions card, not here. */
 function Mine({ account }: { account: AccountData }) {
   const { t } = useTranslation("account");
-  const clubs = useAsync(useMyClubs());
 
   const relationsOn = (type: string) => {
     const byObject = new Map<number, { name: string; relations: string[] }>();
@@ -135,13 +132,9 @@ function Mine({ account }: { account: AccountData }) {
     return byObject;
   };
 
+  // Membership is a tuple like every other relation (Story Z-5), so the tuples alone say
+  // what the person is to each club.
   const clubLines = relationsOn("club");
-  for (const entry of clubs.data ?? []) {
-    if (!entry.is_member) continue;
-    const line = clubLines.get(entry.club.id) ?? { name: entry.club.name, relations: [] };
-    line.relations.unshift("member");
-    clubLines.set(entry.club.id, line);
-  }
   const seriesLines = relationsOn("series");
   const eventLines = relationsOn("event");
 

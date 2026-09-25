@@ -18,8 +18,8 @@ Acceptance criteria:
 - Only **email address and name** are required.
 - The address is initially just **claimed**; only when the one-time code is redeemed is it
   verified (`email_verified`). Anyone could type in someone else's address.
-- The new account has **neither role nor club**. It can do exactly one thing: request club
-  membership ([Z-5](#z-5--request-club-membership)).
+- The new account has **neither role nor club**. A club's admin can then make it a member
+  ([Z-5](#z-5--membership-is-a-tuple-the-clubs-admin-writes)).
 - The response is **identical** for known and unknown addresses — otherwise, it would be
   possible to query who has an account here.
 - Registration with an existing address **overwrites nothing**.
@@ -29,50 +29,53 @@ Endpoints: `POST /api/auth/register`, then `POST /api/auth/email/verify`
 
 Tests: `api/tests/stories/test_registration.py::TestRegistering`
 
-### Z-5 ● Request club membership
-As a **registered person** I want to **request membership in a club**, so that I **can sail
-for them**.
+### Z-5 ● Membership is a tuple the club's admin writes
+As a **registered person** I want to **be made a member of my club by its admin**, so that
+I **can sail for them** — and to leave again on my own.
+
+Membership is `user:member:club` (Story Z-2), nothing else: no request, no invitation,
+no acceptance. The club's admin knows who is in the club and writes the tuple, the way a
+club keeps its member list anyway. **Decision of 2026-09-24**, replacing the mutual
+consent of the first version (person applies, club approves, or vice versa): two states
+awaiting the other side, a rejection with a reason and a "both directions meet" rule were
+a lot of machinery for a fact the club already knows.
 
 Acceptance criteria:
-- The request visibly awaits **the club's decision** (`pending_club`).
-- A request does not yet make someone a member — that is precisely what it is about.
-- Without a verified address it is not possible; otherwise, someone could flood clubs with
-  requests using foreign addresses.
-- As long as open, the request can be withdrawn.
-- After rejection, a new attempt is possible; the person learns the reason.
+- The club's `admin` (or the site's) writes `member` on the club for any account —
+  `POST /api/auth/tuples` with `{user: <email>, relation: "member", object: "club:<id>"}`
+  — from the People panel on the club's Members tab, by email. Nobody else can.
+- A member **leaves** by deleting their own `member` tuple (`DELETE /api/auth/tuples/{id}`,
+  the one write a person may make on themselves); the club's admin removes a member the
+  same way. Everything else the person holds on the club stays.
+- Being a member implies no other relation: a member is not a manager, an admin is not
+  a member. "My clubs" on the account page lists both kinds (Z-8).
+- Every write and delete is in the audit log, as for every tuple.
 
-Endpoints: `POST /api/club-memberships`, `GET /api/club-memberships`,
-`DELETE /api/club-memberships/{id}`
-
-Screen: the club's Members tab on `/club` for the invitation (Story V-12); the invited
-person accepts on the public club page. The request path has no button in the interface
-— a club decides whom it invites (decision of 2026-09-16).
-Tests: `api/tests/stories/test_registration.py::TestRequestingClubMembership`,
-`api/tests/stories/test_club_membership.py::TestPersonApplies`
-
-Open: More roles will be needed later.
+Screen: the club's Members tab on `/club` (Story V-12) — the People panel for the admin,
+a "Leave" button for the member. The public club page offers no way in.
+Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-10 ● See fellow club members
 As an **active club member** I want to **see who else belongs to my club**, so that I
 **know who I'm sailing with** — without needing the leadership's admin view.
 
 Acceptance criteria:
-- Only **active** memberships are shown — pending requests and invitations stay the
-  leadership's business ([V-8](club-manager.md#v-8--decide-on-membership-requests)).
-- No email address and no decision notes: that stays reserved for the club's own
-  leadership and admin ([V-8](club-manager.md#v-8--decide-on-membership-requests)). Display name and
-  organizer status only.
-- Open to a signed-in **active member of that specific club**, or `admin`/`editor` staff.
-  A stranger, or a member of a *different* club, gets 403; signed-out gets 401.
+- Everyone with a `member` tuple on the club, with what else they are to it (manager,
+  admin, race officer) so the organizers are recognizable — display name only, no
+  email: contact data stays the club admin's business (the People panel,
+  [V-8](club-manager.md#v-8--decide-who-is-in-the-club)).
+- Open to a signed-in **member of that specific club**, to the club's admins and
+  managers, and to `admin`/`editor` staff. A stranger, or a member of a *different* club,
+  gets 403; signed-out gets 401.
 - **Not** the sporting roster: the squad and lineup (`ClubDetail.teams[].members`,
   `.events[].crew`) stay public with no login required, exactly as before — this is only
-  about `ClubMember`, the account-level affiliation.
+  about the account-level affiliation.
 
 Endpoints: `GET /api/clubs/{id}/members`
 
 Screen: the Members tab on `/club` (Story V-12); the roster stays on the public club
 page for a signed-in member as well.
-Tests: `api/tests/stories/test_club_membership.py::TestMemberRoster`
+Tests: `api/tests/stories/test_club_members.py::TestMemberRoster`
 
 ### B-10 ○ My clubs beside the club search
 As **someone who sails**, I want **the clubs I belong to at the top of the clubs page**,

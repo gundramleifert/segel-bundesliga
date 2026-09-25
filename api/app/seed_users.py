@@ -22,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import create_access_token
 from app.db import SessionLocal
-from app.models import Club, ClubMember, ClubMemberStatus, Event, Sailor, Team, TeamMembership
+from app.models import Club, Event, Sailor, Team, TeamMembership
 from app.models.auth import Grant, Relation, Role, User
 
 # Accounts not linked to a club: (email, name, site relations)
@@ -89,15 +89,18 @@ def _tuple(role: str, club_id: int | None) -> Grant:
 
 
 async def _membership(session: AsyncSession, club_id: int, user_id: int) -> None:
+    """The ``member`` tuple on the club (Story Z-5), once."""
     existing = (
         await session.execute(
-            select(ClubMember).where(ClubMember.club_id == club_id, ClubMember.user_id == user_id)
+            select(Grant).where(
+                Grant.club_id == club_id,
+                Grant.user_id == user_id,
+                Grant.relation == Relation.MEMBER,
+            )
         )
     ).scalar_one_or_none()
     if existing is None:
-        session.add(ClubMember(club_id=club_id, user_id=user_id, status=ClubMemberStatus.ACTIVE))
-    else:
-        existing.status = ClubMemberStatus.ACTIVE
+        session.add(Grant(club_id=club_id, user_id=user_id, relation=Relation.MEMBER))
 
 
 async def seed_users() -> None:

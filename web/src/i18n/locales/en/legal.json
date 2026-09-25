@@ -109,7 +109,7 @@
           "Sign-in data: which method you use (Google, Microsoft, or a code by email) and the provider's identifier for you; one-time codes, stored only as a hash.",
           "Sailor master data: first and last name, date of birth, optionally an email address linking the profile to an account, and a federation number where one is on file.",
           "A profile photo, where the sailor uploads one themselves.",
-          "Membership and role data: which club you belong to, the status of a membership request, any note on that decision, and which roles your account holds.",
+          "Membership and role data: which club you belong to and what you are to each club, series and event your account holds a relation on (member, manager, admin, race officer, jury).",
           "Sporting data: squad and lineup entries, boat assignments, and race results per team.",
           "Waiver records: which version of the waiver text was confirmed, when, in which language, from which account, the browser identifier of that confirmation, and for minors the guardian's name and a reference to their signature.",
           "Technical data: the IP address your device uses to reach the site, processed by our hosting provider in order to deliver the pages."
@@ -236,7 +236,7 @@
       {
         "heading": "Club membership and roles",
         "paragraphs": [
-          "Membership of a club needs both sides to agree: you apply and the club approves, or the club invites you by email address and you accept. We store which club it concerns, the status of the request, when it was decided, and any note the deciding side added.",
+          "Membership of a club is a record the club's admin writes: which club it concerns, that you are a member, and when it was written. You can end it yourself at any time. Every such record, and its deletion, is logged with the acting account and the time.",
           "Your email address is visible to your club's leadership and to the administration, not to other members. Fellow members see your display name and whether you are an organiser."
         ]
       },

@@ -137,7 +137,18 @@ async def revoke(session: AsyncSession, target: User, row: Grant, *, actor: User
         )
     if row.relation in (Relation.MANAGER, Relation.ADMIN) and row.object_type is ObjectType.CLUB:
         assert row.club_id is not None
-        if await organizer_count(session, row.club_id, excluding_user_id=target.id) < 1:
+        # Someone who is both admin and manager of the club stays an organizer after one
+        # of the two goes, so only the last organizer *relation* of the last person counts.
+        remains_organizer = any(
+            g is not row
+            and g.relation in (Relation.MANAGER, Relation.ADMIN)
+            and g.club_id == row.club_id
+            for g in target.grants
+        )
+        if (
+            not remains_organizer
+            and await organizer_count(session, row.club_id, excluding_user_id=target.id) < 1
+        ):
             # Story A-8: a club with no organizer left could no longer manage itself.
             raise Problem(
                 409,

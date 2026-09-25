@@ -19,8 +19,7 @@ Zanzibar/OpenFGA model at the size this site needs: a schema of which relations 
 object type has (:data:`SCHEMA`), rewrite rules for what implies what (:data:`IMPLIED`),
 and the tuples themselves (:class:`Grant`) in three foreign-key columns. One person holds
 as many tuples as they have responsibilities: manager of two clubs and race officer of two
-events is four rows. Club **membership** is not a tuple — it needs both sides' consent
-(``ClubMember``).
+events is four rows. Club **membership** is the ``member`` tuple on the club (Story Z-5).
 """
 
 from __future__ import annotations
@@ -58,6 +57,9 @@ class Relation(StrEnum):
     JURY = "jury"
     """Series or event: the protest committee. Publishes announcements, hears protests."""
 
+    MEMBER = "member"
+    """Club: belongs to it. Implies nothing else, and nothing implies it."""
+
 
 class ObjectType(StrEnum):
     SITE = "site"
@@ -86,8 +88,9 @@ class ObjectType(StrEnum):
 #: members, organizers, the club's tuples (among its members, Story A-8) — the ``manager``
 #: decides who *sails* — squads, lineups, registrations. The league's site-wide race
 #: committee keeps the setup rights it always had (``manager: … or race_officer from
-#: site``); a race officer appointed for one event only runs its races. Club membership is
-#: not here — it needs both sides' consent.
+#: site``); a race officer appointed for one event only runs its races. Membership is the
+#: ``member`` tuple on a club — written by the club's admin, deleted by the member to
+#: leave — and implies nothing else.
 MODEL = """
 model
   schema 1.1
@@ -105,6 +108,7 @@ type club
     define admin: [user] or admin from site
     define manager: [user] or admin
     define race_officer: [user] or admin or race_officer from site
+    define member: [user]
 
 type series
   relations
@@ -223,8 +227,8 @@ class User(Base, TimestampMixin):
     # Without this verification, the account cannot request membership.
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     # The club this account represents — for a club account, their own.
-    # **Memberships** of a person are instead in ``ClubMember``: someone can be in
-    # several clubs but always acts for only one.
+    # **Memberships** of a person are ``member`` tuples: someone can be in several clubs
+    # but always acts for only one.
     club_id: Mapped[int | None] = mapped_column(ForeignKey("club.id"), default=None, index=True)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
@@ -316,6 +320,8 @@ class User(Base, TimestampMixin):
             ObjectType.EVENT: Role.EVENT_MANAGER,
         }
         for g in self.grants:
+            if g.relation == Relation.MEMBER:
+                continue
             if g.object_type is ObjectType.SITE:
                 out.add(g.relation)
             elif g.relation in (Relation.MANAGER, Relation.ADMIN):
@@ -357,6 +363,14 @@ class User(Base, TimestampMixin):
     @property
     def administered_club_ids(self) -> set[int]:
         return self.objects_of(Relation.ADMIN, ObjectType.CLUB)
+
+    def is_member_of(self, club_id: int) -> bool:
+        """Holds ``member`` on this club (Story Z-5)."""
+        return self.holds(Relation.MEMBER, club_id=club_id)
+
+    @property
+    def member_club_ids(self) -> set[int]:
+        return self.objects_of(Relation.MEMBER, ObjectType.CLUB)
 
 
 def _ids(ref: tuple[ObjectType, int | None]) -> dict[str, int]:

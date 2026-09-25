@@ -19,11 +19,10 @@
       "maintainEvents": "Veranstaltungen anlegen und pflegen",
       "pairingAccountsRoles": "Pairing-Listen berechnen; Konten und Rollen verwalten",
       "enterResults": "Wettfahrtergebnisse erfassen",
-      "assignUserToClub": "Eine Person einem Verein zuordnen",
+      "assignUserToClub": "Mitglieder in den Verein aufnehmen",
       "registerParticipants": "Teilnehmer für eine Serie oder Veranstaltung melden",
       "maintainSailors": "Segler anlegen und pflegen",
       "registerSquad": "Den Kader für eine Serie melden",
-      "acceptClubMembers": "Aufnahmeanträge von Vereinsmitgliedern annehmen",
       "namePeople": "Wettfahrtleitung und Jury einer Veranstaltung benennen"
     },
     "cells": {
@@ -106,14 +105,13 @@
     },
     "joinClub": {
       "title": "Einem Verein beitreten (Mitgliedschaft)",
-      "who": "Erfordert die Zustimmung beider Seiten — eine Seite schlägt vor, die andere entscheidet.",
+      "who": "Das entscheidet der Admin des Vereins — es gibt keinen Antrag und keine Einladung, die jemand beantworten müsste.",
       "steps": [
-        "Eine Person beantragt die Mitgliedschaft bei einem Verein; die Vereinsleitung nimmt den Antrag an oder lehnt ihn ab.",
-        "Oder umgekehrt: Ein Verein lädt jemanden über dessen E-Mail-Adresse ein; diese Person nimmt die Einladung an oder lehnt sie ab.",
-        "Haben beide Seiten bereits gehandelt — trifft ein Antrag auf eine bestehende Einladung oder umgekehrt —, wird die Mitgliedschaft sofort aktiv.",
-        "Jede Seite kann eine aktive Mitgliedschaft später wieder beenden."
+        "Die Person braucht ein Konto; wer keins hat, registriert sich zuerst.",
+        "Der Admin des Vereins öffnet „Mein Verein“, Reiter „Mitglieder“, und nimmt die Person über die E-Mail-Adresse ihres Kontos als „Mitglied“ auf. Sie ist sofort Mitglied.",
+        "Dort entfernt der Admin ein Mitglied auch wieder; ein Mitglied kann den Verein im selben Reiter selbst verlassen."
       ],
-      "note": "Das unterscheidet sich von der Meldung für eine Serie oder Veranstaltung, die die Verwaltung auch einseitig vornehmen kann. Der Verein lädt Personen per E-Mail im Reiter „Mitglieder“ unter „Mein Verein“ ein; die eingeladene Person nimmt auf der öffentlichen Vereinsseite an. Ein offenes „Beitritt anfragen“ für Besucher gibt es nicht."
+      "note": "Anders als die Meldung für eine Serie oder Veranstaltung geht es hier darum, wer zum Verein gehört, nicht wer segelt. Die öffentliche Vereinsseite bietet keinen Weg zum Beitritt."
     }
   }
 }

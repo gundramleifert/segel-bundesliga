@@ -8,10 +8,10 @@ squad, the registered sailors sign once for the season, the organizer checks the
 before each matchday the club names the four who actually sail.
 
 Two people stand behind "the club" here (Story Z-2): the club's **admin** decides who is
-*in* the club — memberships, invitations, organizers, the crest — and the club's
-**manager** decides who *sails* — squads, lineups, registrations. Where a story below
-says `club_manager`, read the manager for sport and the admin for membership; an admin
-is a manager too.
+*in* the club — members, organizers, the crest — and the club's **manager** decides who
+*sails* — squads, lineups, registrations. Where a story below says `club_manager`, read
+the manager for sport and the admin for membership; an admin is a manager too.
+Membership itself is a tuple, `user:member:club`, written by the admin (Z-5).
 
 The path into a competition goes both ways. Administration assigns clubs to series
 ([A-3](administration.md#a-3--assign-clubs-to-series), [A-6](administration.md#a-6--create-series-and-select-clubs)); V-5
@@ -21,64 +21,58 @@ above — and [A-9](administration.md#a-9--accept-or-reject-participation) is ad
 ## Members
 
 ### Z-3 ● Assign user to club
-As a **club manager** I want to **assign a user to a club**,
+As a **club admin** I want to **make an account a member of my club**,
 so that **registrations, posts, and check-in go to the right club**.
 
-Acceptance criteria:
-- The assignment is tied to the account, not the matchday — it applies **across matchdays**.
-- A club manager assigns only a club **they organize** (Story A-8 — that can now be more
-  than one) and moves only people who are not yet assigned or already assigned to one of
-  those clubs. Otherwise, other teams could be taken over.
-- Administration is exempt and can set and remove any assignment.
-- People are discoverable by name and email so the assignment is practical.
-- Every change is logged: who, when, from which club to which.
-
-Tests: `api/tests/stories/test_login_and_roles.py::TestAssigningAClub`
-
-### V-8 ● Decide on membership requests
-As a **club manager** I want to **decide on requests**, so that **not everyone can join
-our club**.
+Since Story Z-5's rewrite this *is* writing the `member` tuple: there is no separate
+assignment. What remains of the original story is the account-level "acting club"
+(`User.club_id`), which the person picks themselves in the navigation (V-12) among the
+clubs they are a member of or organize; administration may still set it directly
+(`PUT /api/auth/users/{id}/club`), for a shared club account.
 
 Acceptance criteria:
-- The club sees its open requests with the requester.
-- **Accepting** makes the person a member; **rejecting** can include a reason the person will
-  see.
-- Only the **requested club** decides on a request — who requested cannot accept themselves,
-  and a different club does not decide.
-- Every decision is logged.
+- A club's admin writes `member` only on a club they administer (Story Z-2); the site's
+  admin on any.
+- Administration can set and remove the acting club of any account; a person can only
+  pick a club they belong to or organize (`active-club-not-mine`).
+- Every change is logged: who, when, which club.
 
-Endpoints: `GET /api/admin/clubs/{id}/members`,
-`POST /api/club-memberships/{id}/accept`, `POST /api/club-memberships/{id}/reject`
+Tests: `api/tests/stories/test_login_and_roles.py::TestAssigningAClub`,
+`api/tests/stories/test_club_members.py::TestMembers`
 
-Screen: the Members tab on `/club` (Story V-12) — requests waiting for the club with
-accept / reject, should any arrive through the API; the invited person decides on the
-public club page.
-Tests: `api/tests/stories/test_club_membership.py::TestPersonApplies`
+### V-8 ● Decide who is in the club
+As a **club admin** I want to **decide who is in our club**, so that **not everyone can
+join** — and so that nobody has to wait for a decision.
 
-### V-9 ● Invite someone to club
-As a **club manager** I want to **invite someone**, so that I **can register our sailors
-myself, instead of waiting for their request**.
+Acceptance criteria:
+- The club's admin sees the club's people on the Members tab: the roster, and the People
+  panel with every tuple on the club — who is member, manager, admin, race officer.
+- Adding is by **email** of an existing account (V-9); removing is deleting the tuple.
+  There are no requests and no invitations awaiting anyone (Z-5).
+- A manager sees the roster like any member and cannot change who is in the club.
+- Every write and delete is logged.
+
+Endpoints: `GET /api/auth/tuples?object=club:<id>`, `POST /api/auth/tuples`,
+`DELETE /api/auth/tuples/{id}` (Story Z-2)
+
+Screen: the Members tab on `/club` (Story V-12).
+Tests: `api/tests/stories/test_club_members.py::TestMembers`
+
+### V-9 ● Add someone by email
+As a **club admin** I want to **add a person by their email address**, so that I **can
+register our sailors myself**.
 
 Acceptance criteria:
 - Contact is via **email address** — the identifier a person knows about themselves. An
-  account must exist for it; those without one register first ([Z-4](sailor.md#z-4--register-yourself)).
-- The invitation visibly awaits **the person's decision** (`pending_user`).
-- **The club cannot accept for them.** Otherwise, it could claim members who don't know about it.
-- The person can refuse.
-- If both sides want the same — request meets invitation — the matter is decided without a
-  third step.
+  account must exist for it; those without one register first ([Z-4](sailor.md#z-4--register-yourself)),
+  and the panel says so (404).
+- The person is a member at once — no acceptance step (Z-5). They can leave again.
 - A person may be in **multiple clubs**; the constraint "only once" applies first per series
   and event, not for membership.
 
-Endpoints: `POST /api/admin/clubs/{id}/members`
+Endpoints: `POST /api/auth/tuples`
 
-Tests: `api/tests/stories/test_club_membership.py::TestClubInvites`,
-`::TestBeideRichtungenTreffenSich`
-
-**Difference from competition participation.** Here two equal sides face each other: **both**
-must consent, in whatever direction it begins. With series and event it is different — there
-administration also assigns **unilaterally**, because it runs the competition, and only the
-opposite direction (club applies) needs their consent. See [V-6](#v-6--request-participation-in-an-event).
+Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-4 ● Create sailors
 As a **club manager** I want to **create sailors in my club**,
@@ -105,7 +99,7 @@ Acceptance criteria:
 - A name can be corrected; a typo should not force a second person.
 
 **Done: `User.club_id` is the club an account represents** — not membership. That is in
-`ClubMember` and can be multiple ([V-9](#v-9--invite-someone-to-club)). This resolves the
+the `member` tuples and can be multiple ([V-9](#v-9--add-someone-by-email)). This resolves the
 contradiction: a person sails for two clubs but always handles only one.
 
 Still open: The **account** is not created automatically with the person. Those who should be
@@ -300,10 +294,10 @@ Acceptance criteria:
   /api/clubs/mine`, Story B-10) — not only for `club_manager`, since a member has things
   to see there too. The screen has **three tabs**: **Members**, **Matchdays** and
   **Series** (`?tab=members|events|series`; Members opens first).
-  - *Members*: the roster (Story V-10). For the club's organizer additionally the
-    requests waiting for a decision with accept/reject (V-8), the invitations sent and
-    an invite-by-email form (Z-5), and per member "make organizer" / "revoke" (A-8) and
-    "remove". A plain member sees the roster and can leave the club. Until here every one
+  - *Members*: the roster (Story V-10). For the club's admin additionally the People
+    panel — every tuple on the club, add by email as member, manager, admin or race
+    officer, remove (V-8, V-9, A-8). A plain member sees the roster and can leave the
+    club (Z-5). Until here every one
     of those endpoints existed without a page — the help text said so.
   - *Matchdays*: the club's event entries with the lineup under each (Story V-2).
   - *Series*: the series registrations, each with its squad (Story V-1).
@@ -318,12 +312,9 @@ Acceptance criteria:
   The account page does not repeat the choice — the navigation is the one place it is
   made; what the account page lists is every club, series and event the person has
   something to do with (Story Z-8).
-- **Joining starts with the club's invitation, never with a stranger's click.** The
-  public club page (`/clubs/{id}`) shows a signed-in visitor only what already exists
-  between them and the club: an invitation the club sent (accept / decline), a request
-  on file (with withdraw), or "you are a member" with the way to "My club". There is
-  deliberately **no open "ask to join"** on the public page; the request endpoint of
-  Story Z-5 stays, unused by the interface.
+- **Joining is the club's doing, never a stranger's click.** The public club page
+  (`/clubs/{id}`) offers no way in: the club's admin writes the `member` tuple (Z-5).
+  A signed-in member sees the roster there and the way to "My club".
 - **Nothing on the way in is admin-only.** The route reaches the squad through
   `/api/clubs/mine` and `/api/admin/teams/{team_id}/members`, both of which a
   `club_manager` may call for their own club. Needing an admin-only list to find your own

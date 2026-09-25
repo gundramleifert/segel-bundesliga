@@ -63,6 +63,5 @@
   "tuple-object-missing": "The club, series or event does not exist.",
   "tuple-exists": "This person already holds this role there.",
   "tuple-self-lockout": "You cannot revoke your own admin role.",
-  "tuple-forbidden": "Only administration or the object's managers may change who has access to it.",
-  "tuple-not-a-member": "A club's admin can only name active members of the club."
+  "tuple-forbidden": "Only administration or the object's managers may change who has access to it."
 }

@@ -7,17 +7,18 @@
  */
 
 /**
- * A fellow member of the club, as seen by another active member.
+ * A fellow member of the club, as seen by another member (Story V-10).
  *
  * Not to be confused with `MemberOut`: that one is the sporting roster (squad/lineup)
- * and is public to everyone. This describes `ClubMember` — the account's affiliation
- * with the club — and is only ever shown to that club's own active members or staff.
- * Deliberately without email or decision notes, and only active memberships: contact
- * data and pending requests stay the club leadership's business (see `MembershipOut`
- * in `app.routers.club_members`), not something every peer should see.
+ * and is public to everyone. This is the account-level affiliation — the ``member``
+ * tuple — and is only ever shown to the club's own people or staff. Deliberately
+ * without email: contact data stays the club admin's business.
  */
 export interface ClubMemberOut {
   user_id: number;
   display_name: string;
+  /** What this person is to the club: member, manager, … */
+  relations?: string[];
   organizer?: boolean;
+  admin?: boolean;
 }

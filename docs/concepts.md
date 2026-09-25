@@ -83,8 +83,7 @@ under which racing has already occurred cannot be revoked.
 
 **Consent is unilateral — and intentionally so.** The administration runs the competition;
 it assigns a club without asking. Only the opposite direction — the club applying — requires
-consent. This distinguishes entry from **club membership**, where two equal parties face each
-other and both must always consent (see below).
+consent. Club **membership** is simpler still: the club's admin writes it (see below).
 
 **Only club leadership can register.** An ordinary member cannot register a club, nor can
 the race committee.
@@ -159,31 +158,16 @@ up. The endpoint must check when the squad is registered; a test maintains the i
 
 ---
 
-## Club Membership — Both Sides Must Consent
+## Club Membership — a tuple the club writes
 
-**Who belongs to which club.** Model: `ClubMember` (club × account).
+**Who belongs to which club.** Model: the `member` tuple on the club (`Grant`, Story
+Z-2) — `user:member:club`. The club's admin writes it, a member deletes their own to
+leave. No request, no invitation, no acceptance (Story Z-5, decision of 2026-09-24).
 
-Not to be confused with `Team`: `ClubMember` says who is a **member**; `Team` says where the
+Not to be confused with `Team`: `member` says who is a **member**; `Team` says where the
 **club competes**. A person can be in multiple clubs — the limit "once" applies only per
-series and event.
-
-Membership arises in two ways, and **both require consent from the other party**:
-
-| Status | Meaning | Who acts |
-|---|---|---|
-| `pending_club` | The person has applied | the club |
-| `pending_user` | The club has invited | the person |
-| `active` | Member | — |
-| `rejected` | Rejected, with reason; new attempt possible | — |
-
-No one becomes a member of a club without being asked, and no club gets members without
-asking. If both sides want the same — application meets invitation — the matter is decided
-without a third step.
-
-`User.club_id` is something else: the club **for which an account acts**. A person can be
-in multiple clubs but always acts for only one.
-
----
+series and event. Membership implies no other relation: a member is not a manager, an
+admin need not be a member.
 
 ## Pairing Catalog
 

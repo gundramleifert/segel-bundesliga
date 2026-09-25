@@ -18,4 +18,5 @@ export const Relation = {
   manager: 'manager',
   race_officer: 'race_officer',
   jury: 'jury',
+  member: 'member',
 } as const;

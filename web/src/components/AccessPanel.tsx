@@ -23,7 +23,17 @@ import { Empty, ErrorMessage, Loading } from "./Blocks";
  *  object type, read from the server rather than copied here. Shown to whoever may see the
  *  object's admin panel; the backend lets only the site's admin and the object's managers
  *  write, and the error text says so to everyone else. */
-export function AccessPanel({ object, testId }: { object: string; testId: string }) {
+export function AccessPanel({
+  object,
+  testId,
+  onChange,
+}: {
+  object: string;
+  testId: string;
+  /** Called after a tuple was written or removed — for a screen that shows a projection of
+   *  them (a club's roster) and has to refetch it. */
+  onChange?: () => void;
+}) {
   const { t } = useTranslation("admin");
   const invalidate = useInvalidate();
   const tuples = useAsync(useReadTuples({ object }));
@@ -31,7 +41,10 @@ export function AccessPanel({ object, testId }: { object: string; testId: string
   const objectType = object.split(":")[0] as ObjectType;
   const relations: Relation[] =
     model.data?.types.find((entry) => entry.type === objectType)?.relations ?? [];
-  const refresh = () => invalidate(getReadTuplesQueryKey({ object }), "/api/auth/users");
+  const refresh = () => {
+    invalidate(getReadTuplesQueryKey({ object }), "/api/auth/users");
+    onChange?.();
+  };
   const remove = useDeleteTuple({ mutation: { onSuccess: refresh } });
   const write = useWriteTuple({ mutation: { onSuccess: () => { setEmail(""); refresh(); } } });
 

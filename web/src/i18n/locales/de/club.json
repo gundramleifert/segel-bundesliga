@@ -13,29 +13,22 @@
   "website": "Website des Vereins",
   "clubDescription": "{{short_name}} · {{city}}",
   "members": {
-    "requestsTitle": "{{count}} Anfrage wartet auf eure Entscheidung",
-    "requestsTitle_other": "{{count}} Anfragen warten auf eure Entscheidung",
-    "requestsHint": "Personen, die beitreten möchten. Mit der Annahme werden sie Mitglied; Serien und Spieltage des Vereins stehen ihnen dann offen.",
-    "accept": "Annehmen",
-    "decline": "Ablehnen",
+    "title": "Mitglieder",
     "listTitle": "{{count}} Mitglied",
     "listTitle_other": "{{count}} Mitglieder",
-    "empty": "Noch niemand ist beigetreten. Lade unten Personen per E-Mail ein.",
+    "empty": "Noch niemand ist Mitglied.",
     "you": "du",
-    "makeOrganizer": "Zum Organisator machen",
-    "revokeOrganizer": "Organisator-Rolle entziehen",
-    "remove": "Entfernen",
-    "invitedTitle": "{{count}} Einladung wartet auf Antwort",
-    "invitedTitle_other": "{{count}} Einladungen warten auf Antwort",
-    "withdrawInvitation": "Zurückziehen",
-    "inviteTitle": "Jemanden einladen",
-    "inviteHint": "Die Person braucht ein Konto unter dieser E-Mail-Adresse und wird Mitglied, sobald sie auf der Vereinsseite annimmt.",
-    "inviteEmailLabel": "E-Mail-Adresse",
-    "inviteButton": "Einladen",
-    "inviteSent": "Einladung verschickt – sie steht oben, bis die Person antwortet.",
+    "relations": {
+      "admin": "Admin",
+      "manager": "Organisator:in",
+      "race_officer": "Wettfahrtleitung",
+      "jury": "Jury",
+      "editor": "Redaktion"
+    },
     "leave": "Verein verlassen",
     "leaveConfirm": "Diesen Verein verlassen? Deine Kadermeldungen bleiben, bis der Verein sie ändert.",
-    "leaveCancel": "Bleiben"
+    "leaveCancel": "Bleiben",
+    "addHint": "Nimm ein Mitglied über die E-Mail-Adresse seines Kontos auf — es ist sofort Mitglied, ohne Bestätigung. Wer kein Konto hat, registriert sich zuerst. Das ✕ neben einer Zeile entfernt sie wieder."
   },
   "organizer": "Organisator:in",
   "mine": {
@@ -79,14 +72,5 @@
     "saving": "Wird gespeichert…",
     "saved": "Aufstellung gespeichert.",
     "unsaved": "Noch nicht gespeichert."
-  },
-  "join": {
-    "requested": "Du hast den Beitritt angefragt – der Verein entscheidet.",
-    "withdraw": "Zurückziehen",
-    "invited": "Dieser Verein hat dich eingeladen.",
-    "accept": "Annehmen",
-    "decline": "Ablehnen",
-    "member": "Du bist Mitglied dieses Vereins.",
-    "openClub": "„Mein Verein“ öffnen"
   }
 }

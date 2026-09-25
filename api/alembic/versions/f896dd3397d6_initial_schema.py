@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 75fa62d73421
+Revision ID: f896dd3397d6
 Revises: 
-Create Date: 2026-09-24 22:10:20.581512
+Create Date: 2026-09-25 07:15:42.426321
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '75fa62d73421'
+revision: str = 'f896dd3397d6'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -256,25 +256,6 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('boat', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_boat_event_id'), ['event_id'], unique=False)
-
-    op.create_table('club_member',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('club_id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('status', sa.String(length=16), nullable=False),
-    sa.Column('decision_note', sa.String(length=500), nullable=True),
-    sa.Column('decided_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_club_member_club_id_club')),
-    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_club_member_user_id_app_user')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_club_member')),
-    sa.UniqueConstraint('club_id', 'user_id', name=op.f('uq_club_member_club_id'))
-    )
-    with op.batch_alter_table('club_member', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_club_member_club_id'), ['club_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_club_member_status'), ['status'], unique=False)
-        batch_op.create_index(batch_op.f('ix_club_member_user_id'), ['user_id'], unique=False)
 
     op.create_table('course',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -632,12 +613,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_course_event_id'))
 
     op.drop_table('course')
-    with op.batch_alter_table('club_member', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_club_member_user_id'))
-        batch_op.drop_index(batch_op.f('ix_club_member_status'))
-        batch_op.drop_index(batch_op.f('ix_club_member_club_id'))
-
-    op.drop_table('club_member')
     with op.batch_alter_table('boat', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_boat_event_id'))
 

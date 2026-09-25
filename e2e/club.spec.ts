@@ -10,7 +10,8 @@ import { bearer, signIn } from "./session";
  * `test_my_clubs.py` proves the list. What a browser adds: a club manager finds their
  * club's matchdays on `/club` without any admin route, names a crew there, and the public
  * matchday page shows it; and a person in two clubs picks the one they act for and the
- * choice survives a reload, on `/club` and on `/account` alike.
+ * choice survives a reload, on `/club` and on `/account` alike. Stories Z-5, V-8, V-9 and
+ * V-10: the club's admin adds a person as member on the Members tab, and they leave again.
  */
 
 test.describe.configure({ mode: "serial" });
@@ -109,26 +110,21 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
     request,
   }) => {
     const manager = await aClubManager(request);
-    // Make them a member of a second club as well. Membership is mutual consent (Story
-    // V-7): the club invites, the person accepts.
+    // Make them a member of a second club as well. Membership is a tuple the club's
+    // admin — or the site's — writes (Story Z-5); nobody has to accept it.
     const admin = await bearer(request, ADMIN);
     const clubs = (await (await request.get("/api/admin/clubs?limit=50", { headers: admin })).json()) as {
       items: { id: number; slug: string; name: string }[];
     };
     const second = clubs.items.find((c) => c.slug === "kyc")!;
-    const invited = await request.post(`/api/admin/clubs/${second.id}/members`, {
+    const added = await request.post("/api/auth/tuples", {
       headers: admin,
-      data: { email: manager.email },
+      data: { user: manager.email, relation: "member", object: `club:${second.id}` },
     });
-    if (invited.ok()) {
-      const membershipId = ((await invited.json()) as { id: number }).id;
-      const accepted = await request.post(`/api/club-memberships/${membershipId}/accept`, {
-        headers: await bearer(request, manager.email),
-      });
-      expect(accepted.ok(), await accepted.text()).toBeTruthy();
-    } else {
+    if (!added.ok()) {
       // The other browser project ran first on this stack and the membership exists.
-      expect(invited.status(), await invited.text()).toBe(409);
+      expect(added.status(), await added.text()).toBe(409);
+      expect(await added.text()).toContain("tuple-exists");
     }
 
     await signIn(page, manager.email);
@@ -156,63 +152,68 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
   });
 });
 
-test.describe("V-8/Z-5/A-8: the Members tab — invite, accept on the club page, make organizer", () => {
-  test("an organizer invites someone, they accept on the club page, and become an organizer", async ({
+test.describe("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, the member leaves", () => {
+  test("the club's admin adds someone as member, they see the roster and leave again", async ({
     page,
     request,
   }) => {
-    const manager = await aClubManager(request);
+    // The seed's one official per club is its admin; NRV's is the manager used above.
+    const clubAdmin = await aClubManager(request);
+    expect(clubAdmin.roles, "the seeded official is the club's admin").toContain("club_admin");
     const guest = "gast@sbl.example.com"; // seeded, no club, no role
-    const clubs = (await (await request.get("/api/clubs/mine", { headers: await bearer(request, manager.email) })).json()) as {
+    const clubs = (await (await request.get("/api/clubs/mine", { headers: await bearer(request, clubAdmin.email) })).json()) as {
       club: { id: number };
-      may_manage: boolean;
+      may_admin: boolean;
     }[];
-    const club = clubs.find((c) => c.may_manage)!.club;
+    const club = clubs.find((c) => c.may_admin)!.club;
+    const object = `club:${club.id}`;
+    const panel = `my-club-access-${club.id}`;
 
     // Clean slate for the guest with this club, whatever an earlier project run left.
-    const guestHeaders = await bearer(request, guest);
-    const own = (await (await request.get("/api/club-memberships", { headers: guestHeaders })).json()) as {
+    const admin = await bearer(request, ADMIN);
+    const tuples = (await (await request.get(`/api/auth/tuples?object=${object}`, { headers: admin })).json()) as {
       id: number;
-      club: { id: number };
+      user: string;
+      relation: string;
     }[];
-    for (const row of own.filter((r) => r.club.id === club.id)) {
-      await request.delete(`/api/club-memberships/${row.id}`, { headers: guestHeaders });
+    for (const row of tuples.filter((r) => r.user === guest && r.relation === "member")) {
+      const removed = await request.delete(`/api/auth/tuples/${row.id}`, { headers: admin });
+      expect(removed.ok(), await removed.text()).toBeTruthy();
     }
-
-    // The organizer invites by email on the Members tab.
-    await signIn(page, manager.email);
-    await openMyClub(page, "members", club.id);
-    await expect(page.getByTestId("my-club-members")).toBeVisible();
-    await page.getByTestId("my-club-invite-email").fill(guest);
-    await page.getByTestId("my-club-invite-button").click();
-    await expect(page.getByTestId("my-club-invite-message-success")).toBeVisible();
-    await expect(page.locator('[data-testid^="my-club-invited-"]').filter({ hasText: guest })).toBeVisible();
-
-    // The guest finds the invitation on the club's public page and accepts.
-    await page.context().clearCookies();
-    await signIn(page, guest);
-    await page.goto(`/clubs/${club.id}`);
-    await expect(page.getByTestId("club-join-status")).toBeVisible();
-    await page.getByTestId("club-join-accept").click();
-    await expect(page.getByTestId("club-join-open")).toBeVisible();
-    // A member now: "My club" is in the navigation and the roster lists them.
-    await page.getByTestId("club-join-open").click();
-    await expect(page.getByTestId("my-club-members-list")).toBeVisible();
+    const guestHeaders = await bearer(request, guest);
     const guestId = ((await (await request.get("/api/auth/me", { headers: guestHeaders })).json()) as { id: number }).id;
-    await expect(page.getByTestId(`my-club-member-${guestId}`)).toBeVisible();
-    // No invite form for a plain member, but the way out.
-    await expect(page.getByTestId("my-club-invite-email")).toHaveCount(0);
-    await expect(page.getByTestId("my-club-leave")).toBeVisible();
 
-    // Back as the organizer: promote them.
-    await signIn(page, manager.email);
+    // The club's admin adds the guest by email in the People panel of the Members tab.
+    await signIn(page, clubAdmin.email);
     await openMyClub(page, "members", club.id);
-    await page.getByTestId(`my-club-member-organizer-${guestId}`).click();
-    await expect(page.getByTestId(`my-club-member-organizer-badge-${guestId}`)).toBeVisible();
-    // And take it back, so the seed's one-manager-per-club still holds for other specs.
-    await page.getByTestId(`my-club-member-organizer-${guestId}`).click();
-    await expect(page.getByTestId(`my-club-member-organizer-badge-${guestId}`)).toHaveCount(0);
-    await page.getByTestId(`my-club-member-remove-${guestId}`).click();
+    await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
+    await page.getByTestId(`${panel}-email`).fill(guest);
+    await page.getByTestId(`${panel}-relation`).selectOption("member");
+    await page.getByTestId(`${panel}-add`).click();
+    await expect(page.locator(`[data-testid^="${panel}-tuple-"]`).filter({ hasText: guest })).toBeVisible();
+    // A member at once — no acceptance step — so the roster lists them straight away.
+    await expect(page.getByTestId(`my-club-member-${guestId}`)).toBeVisible();
+
+    // The guest now has "My club": the roster, themselves in it, and the way out — but
+    // not the People panel, which is the admin's.
+    await signIn(page, guest);
+    await page.goto("/club?tab=members");
+    await expect(page.getByTestId("my-club-members-list")).toBeVisible();
+    await expect(page.getByTestId(`my-club-member-${guestId}`)).toBeVisible();
+    await expect(page.getByTestId(`my-club-member-${clubAdmin.id}`)).toBeVisible();
+    await expect(page.getByTestId(panel)).toHaveCount(0);
+    await page.getByTestId("my-club-leave").click();
+    await page.getByTestId("my-club-leave-confirm").click();
+    // Their only club gone, the screen says there is none.
+    await expect(page.getByTestId("my-club-empty")).toBeVisible();
+
+    // Back as the admin: the guest is no longer on the roster, nor in the People panel.
+    await signIn(page, clubAdmin.email);
+    await openMyClub(page, "members", club.id);
+    await expect(page.getByTestId("my-club-members-list")).toBeVisible();
+    await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
+    await expect(page.getByTestId(`${panel}-list`)).toBeVisible();
+    await expect(page.locator(`[data-testid^="${panel}-tuple-"]`).filter({ hasText: guest })).toHaveCount(0);
   });
 });

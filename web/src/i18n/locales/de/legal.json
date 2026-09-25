@@ -109,7 +109,7 @@
           "Anmeldedaten: welchen Weg Sie nutzen (Google, Microsoft oder ein Code per E-Mail) und die Kennung, die der Anbieter für Sie führt; Einmalcodes, gespeichert nur als Hash.",
           "Segler-Stammdaten: Vor- und Nachname, Geburtsdatum, optional eine E-Mail-Adresse, die das Profil mit einem Konto verbindet, und eine Verbandsnummer, sofern erfasst.",
           "Ein Profilfoto, wenn der Segler selbst eines hochlädt.",
-          "Mitgliedschafts- und Rollendaten: zu welchem Verein Sie gehören, der Status eines Aufnahmeantrags, ein etwaiger Vermerk zur Entscheidung und welche Rollen Ihr Konto hat.",
+          "Mitgliedschafts- und Rollendaten: zu welchem Verein Sie gehören und was Sie für jeden Verein, jede Serie und jede Veranstaltung sind, auf die Ihr Konto eine Beziehung hält (Mitglied, Organisation, Verwaltung, Wettfahrtleitung, Jury).",
           "Sportliche Daten: Kader- und Aufstellungseinträge, Bootszuordnungen und Wettfahrtergebnisse je Team.",
           "Haftungserklärungen: welche Fassung des Textes bestätigt wurde, wann, in welcher Sprache, von welchem Konto aus, die Browser-Kennung dieser Bestätigung und bei Minderjährigen der Name der erziehungsberechtigten Person sowie ein Verweis auf deren Unterschrift.",
           "Technische Daten: die IP-Adresse, mit der Ihr Gerät die Seite abruft; sie wird von unserem Hosting-Anbieter verarbeitet, um die Seiten ausliefern zu können."
@@ -236,7 +236,7 @@
       {
         "heading": "Vereinsmitgliedschaft und Rollen",
         "paragraphs": [
-          "Die Mitgliedschaft in einem Verein setzt die Zustimmung beider Seiten voraus: Sie beantragen und der Verein nimmt an, oder der Verein lädt Sie über Ihre E-Mail-Adresse ein und Sie nehmen an. Gespeichert werden der betroffene Verein, der Status des Antrags, der Zeitpunkt der Entscheidung und ein etwaiger Vermerk der entscheidenden Seite.",
+          "Die Mitgliedschaft in einem Verein ist ein Eintrag, den die Vereinsverwaltung schreibt: der betroffene Verein, dass Sie Mitglied sind, und wann der Eintrag geschrieben wurde. Sie können ihn jederzeit selbst beenden. Jeder Eintrag und jede Löschung wird mit handelndem Konto und Zeitpunkt protokolliert.",
           "Ihre E-Mail-Adresse sehen die Vereinsverwaltung und die Geschäftsstelle, nicht die übrigen Mitglieder. Mitglieder desselben Vereins sehen Ihren Anzeigenamen und ob Sie eine Verwaltungsrolle haben."
         ]
       },

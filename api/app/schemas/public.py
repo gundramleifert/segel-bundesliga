@@ -110,21 +110,21 @@ class MemberOut(BaseModel):
 
 
 class ClubMemberOut(BaseModel):
-    """A fellow member of the club, as seen by another active member.
+    """A fellow member of the club, as seen by another member (Story V-10).
 
     Not to be confused with `MemberOut`: that one is the sporting roster (squad/lineup)
-    and is public to everyone. This describes `ClubMember` — the account's affiliation
-    with the club — and is only ever shown to that club's own active members or staff.
-    Deliberately without email or decision notes, and only active memberships: contact
-    data and pending requests stay the club leadership's business (see `MembershipOut`
-    in `app.routers.club_members`), not something every peer should see.
+    and is public to everyone. This is the account-level affiliation — the ``member``
+    tuple — and is only ever shown to the club's own people or staff. Deliberately
+    without email: contact data stays the club admin's business.
     """
 
     user_id: int
     display_name: str
-    # Whether this member also organizes the club (holds `club_manager` for it) — same
-    # logic as `MembershipOut.organizer`.
+    relations: list[str] = Field(
+        default_factory=list, description="What this person is to the club: member, manager, …"
+    )
     organizer: bool = False
+    admin: bool = False
 
 
 class ClubEventOut(BaseModel):
@@ -376,7 +376,7 @@ class MyClubOut(BaseModel):
     """
 
     club: ClubOut
-    #: An accepted `ClubMember`. A pending request is not membership.
+    #: Holds `member` on the club (Story Z-5).
     is_member: bool
     #: `club_manager` for this club — granted per club, never globally.
     may_manage: bool

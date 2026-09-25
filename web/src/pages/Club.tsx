@@ -6,7 +6,6 @@ import { useGetClub, useListClubMembers } from "../api/generated/sbl";
 import type { ClubDetail, ClubMemberSummary, Member } from "../api/types";
 import { useAsync, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
-import { JoinClub } from "../components/JoinClub";
 import { locationText, roleText, eventDates } from "../lib/format";
 
 type ClubEvent = NonNullable<NonNullable<ClubDetail["teams"]>[number]["events"]>[number];
@@ -60,7 +59,6 @@ export function Club() {
           )}
         </div>
       </header>
-      <JoinClub clubId={Number(id)} />
 
       {data.description && (
         <p data-testid="club-description" className="mb-8 max-w-2xl text-slate-700">
@@ -132,7 +130,7 @@ function Members({ clubId }: { clubId: number }) {
 
   return (
     <section data-testid="club-members-section" className="mt-8">
-      <h2 className="mb-2 text-lg font-semibold">{t("members")}</h2>
+      <h2 className="mb-2 text-lg font-semibold">{t("members.title")}</h2>
       <Card>
         <Card.Content>
           <ul className="divide-y divide-slate-100 text-sm">
@@ -143,7 +141,7 @@ function Members({ clubId }: { clubId: number }) {
                 className="flex items-center justify-between gap-3 py-2"
               >
                 <span>{member.display_name}</span>
-                {member.organizer && (
+                {isOrganizer(member) && (
                   <span className="shrink-0 text-slate-500">{t("organizer")}</span>
                 )}
               </li>
@@ -153,6 +151,12 @@ function Members({ clubId }: { clubId: number }) {
       </Card>
     </section>
   );
+}
+
+/** Who runs the club, as the roster shows it: a manager or admin tuple on it (Z-2). */
+function isOrganizer(member: ClubMemberSummary): boolean {
+  const relations = member.relations ?? [];
+  return Boolean(member.organizer) || relations.includes("manager") || relations.includes("admin");
 }
 
 /** Matchdays of a team, with crew members sailing for the club. */

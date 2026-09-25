@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import delete, select, update
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import (
@@ -19,7 +19,7 @@ from app.auth import (
 )
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import AuditLog, Club, ClubMember, ClubMemberStatus, WaiverConfirmation
+from app.models import AuditLog, Club, WaiverConfirmation
 from app.models.auth import (
     MODEL,
     SCHEMA,
@@ -224,8 +224,8 @@ async def register_account(
     ``POST /api/auth/email/verify``. Before confirmation, the address is considered
     merely claimed.
 
-    The account initially has neither role nor club. The next step is to request
-    membership in a club (``POST /api/club-memberships``), which the club decides on.
+    The account initially has neither role nor club. A club's admin then makes it a
+    member by writing the ``member`` tuple on the club (Story Z-5).
     """
     try:
         await register(session, request.email, request.display_name)
@@ -328,16 +328,7 @@ async def update_me(
     member of or organize is accepted — an account cannot declare itself to be acting for
     a club that never heard of it."""
     if request.club_id is not None:
-        member_of = set(
-            (
-                await session.execute(
-                    select(ClubMember.club_id).where(
-                        ClubMember.user_id == user.id,
-                        ClubMember.status == ClubMemberStatus.ACTIVE,
-                    )
-                )
-            ).scalars()
-        )
+        member_of = user.member_club_ids
         if request.club_id not in member_of | user.managed_club_ids:
             raise Problem(
                 422,
@@ -374,9 +365,6 @@ async def delete_my_account(
     deleting the account never touches squad, series, or event history — only the account
     row and the administrative records that point at it by id.
     """
-    # ClubMember has no ORM relationship back from User (one-directional), so it is not
-    # cascaded automatically — remove it explicitly.
-    await session.execute(delete(ClubMember).where(ClubMember.user_id == acting.id))
     # A waiver confirmation is someone else's evidence that they agreed to the waiver —
     # it must not disappear just because the staff member who recorded it deleted their
     # own account. Drop the reference, keep the confirmation.
@@ -693,25 +681,6 @@ async def write_tuple(
                 de="Kein Konto mit dieser Adresse. Bitte zuerst anlegen.",
             ),
         )
-    if object_type is ObjectType.CLUB and not acting.can(Relation.ADMIN):
-        # A club's manager names people *of the club* (Story A-8): an active member. The
-        # site's admin may name anyone — the first organizer of a club has no one yet.
-        member = (
-            await session.execute(
-                select(ClubMember).where(
-                    ClubMember.club_id == object_id,
-                    ClubMember.user_id == target.id,
-                    ClubMember.status == ClubMemberStatus.ACTIVE,
-                )
-            )
-        ).scalar_one_or_none()
-        if member is None:
-            raise Problem(
-                403,
-                "tuple-not-a-member",
-                "A club's manager can only name active members of the club.",
-                detail=f"{target.email} is not an active member of club {object_id}.",
-            )
     row = await grants.grant(
         session, target, request.relation, object_type, object_id, actor=acting
     )
@@ -741,7 +710,11 @@ async def delete_tuple(
             ),
         )
     obj = await grants.resolve(session, row.object_type, row.object_id)
-    _may_administer(acting, row.object_type, obj)
+    # Leaving a club is the one write a person makes on themselves (Story Z-5): their
+    # own `member` tuple. Everything else needs the object's admin.
+    leaving = row.relation == Relation.MEMBER and row.user_id == acting.id
+    if not leaving:
+        _may_administer(acting, row.object_type, obj)
     # The account through its own query, so its `grants` collection is loaded — reached
     # through `row.user` it is not, and touching it would lazy-load outside the async
     # context (docs/gotchas: a relationship on a row you just appended is not loaded).

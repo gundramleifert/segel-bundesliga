@@ -13,29 +13,22 @@
   "website": "Club website",
   "clubDescription": "{{short_name}} · {{city}}",
   "members": {
-    "requestsTitle": "{{count}} request waiting for your decision",
-    "requestsTitle_other": "{{count}} requests waiting for your decision",
-    "requestsHint": "People who asked to join. Accepting makes them a member; the club's series and matchdays open for them.",
-    "accept": "Accept",
-    "decline": "Decline",
+    "title": "Members",
     "listTitle": "{{count}} member",
     "listTitle_other": "{{count}} members",
-    "empty": "Nobody has joined yet. Invite people by email below.",
+    "empty": "Nobody is a member yet.",
     "you": "you",
-    "makeOrganizer": "Make organizer",
-    "revokeOrganizer": "Revoke organizer",
-    "remove": "Remove",
-    "invitedTitle": "{{count}} invitation waiting for an answer",
-    "invitedTitle_other": "{{count}} invitations waiting for an answer",
-    "withdrawInvitation": "Withdraw",
-    "inviteTitle": "Invite someone",
-    "inviteHint": "They need an account under this email address, and become a member once they accept on the club page.",
-    "inviteEmailLabel": "Email address",
-    "inviteButton": "Invite",
-    "inviteSent": "Invitation sent — it appears above until they answer.",
+    "relations": {
+      "admin": "admin",
+      "manager": "organizer",
+      "race_officer": "race officer",
+      "jury": "jury",
+      "editor": "editor"
+    },
     "leave": "Leave the club",
     "leaveConfirm": "Leave this club? Your registrations in its squads stay until the club changes them.",
-    "leaveCancel": "Stay"
+    "leaveCancel": "Stay",
+    "addHint": "Add a member by the email address of their account — they are a member at once, no acceptance needed. Whoever has no account registers first. The ✕ beside a line removes it again."
   },
   "organizer": "Organizer",
   "mine": {
@@ -79,14 +72,5 @@
     "saving": "Saving…",
     "saved": "Lineup saved.",
     "unsaved": "Not saved yet."
-  },
-  "join": {
-    "requested": "You asked to join — waiting for the club.",
-    "withdraw": "Withdraw",
-    "invited": "This club invited you to join.",
-    "accept": "Accept",
-    "decline": "Decline",
-    "member": "You are a member of this club.",
-    "openClub": "Open “My club”"
   }
 }

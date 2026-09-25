@@ -170,7 +170,7 @@ Acceptance criteria:
   duplicate.
 - **Sync, not just import:** the run is repeatable — a second run with unchanged data
   changes nothing — and a later run picks up crew changes M2S recorded since. Data the
-  club entered here (waivers, profile settings, `ClubMember` consent) is never overwritten
+  club entered here (waivers, profile settings, club membership) is never overwritten
   by a sync; only what M2S is the source of (registration, crew list) moves.
 - After the run, it is clear what was created, changed, skipped, and what could not be
   assigned.

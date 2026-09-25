@@ -30,8 +30,6 @@ from app.live import hub
 from app.models import (
     Boat,
     Club,
-    ClubMember,
-    ClubMemberStatus,
     CrewRole,
     Event,
     EventCrew,
@@ -377,16 +375,7 @@ async def my_clubs(
     order, so "mine" would otherwise be read as a club id (the same reason
     `sailors.me_router` is included before `public.router` in `app/main.py`).
     """
-    member_of = set(
-        (
-            await session.execute(
-                select(ClubMember.club_id).where(
-                    ClubMember.user_id == acting.id,
-                    ClubMember.status == ClubMemberStatus.ACTIVE,
-                )
-            )
-        ).scalars()
-    )
+    member_of = acting.member_club_ids
     # `club_manager` is granted per club (`UserRole.club_id`), never globally — so this
     # comes off the role rows and not off `User.club_id`, which is the separate and
     # narrower "this account represents that club".

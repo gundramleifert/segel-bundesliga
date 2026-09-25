@@ -19,11 +19,10 @@
       "maintainEvents": "Create and maintain Events",
       "pairingAccountsRoles": "Generate pairing lists; manage accounts and roles",
       "enterResults": "Enter race results",
-      "assignUserToClub": "Assign a person to a club",
+      "assignUserToClub": "Add members to the club",
       "registerParticipants": "Register participants for a Series or Event",
       "maintainSailors": "Create and maintain sailor records",
       "registerSquad": "Register a Squad for a Series",
-      "acceptClubMembers": "Accept club membership requests",
       "namePeople": "Name an Event's race committee and jury"
     },
     "cells": {
@@ -106,14 +105,13 @@
     },
     "joinClub": {
       "title": "Join a Club (Club Membership)",
-      "who": "Requires mutual consent — one side proposes, the other side decides.",
+      "who": "The club's admin decides — there is no request and no invitation to answer.",
       "steps": [
-        "A person applies to a club; the club's leadership then approves or rejects the request.",
-        "Or the other way around: a club invites someone by their email address; that person then accepts or declines.",
-        "If both sides have already acted — an application meeting a standing invitation, or the reverse — membership becomes active right away.",
-        "Either side can later end an active membership."
+        "The person needs an account; without one, they register first.",
+        "The club's admin opens “My club”, tab “Members”, and adds the person by the email address of their account as “member”. They are a member at once.",
+        "The admin removes a member there the same way; a member can leave the club on their own from the same tab."
       ],
-      "note": "This differs from registering for a Series or an Event, which management can also do unilaterally. The club invites people by email on the Members tab of “My club”; the invited person accepts on the club's public page. There is no open “ask to join” for visitors."
+      "note": "Unlike registration for a Series or Event, this is about who belongs to the club, not who sails. The public club page offers no way to join."
     }
   }
 }

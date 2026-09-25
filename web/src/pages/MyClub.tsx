@@ -8,7 +8,6 @@ import { useMyClubs, useUpdateMe } from "../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../api/types";
 import { useAsync, useAccount, useInvalidate } from "../api/useApi";
 import { ClubMembersPanel } from "../components/ClubMembersPanel";
-import { AccessPanel } from "../components/AccessPanel";
 import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
 import { LineupPanel } from "../components/LineupPanel";
 import { SquadPanel } from "../components/SquadPanel";
@@ -17,9 +16,10 @@ import { eventDates } from "../lib/format";
 
 /** Story V-12: "Our club" — one screen for whoever belongs to a club.
  *
- * Three tabs: **Members** (the roster, and for the organizer the requests, invitations
- * and organizer tools — Stories V-8, V-10, Z-5, A-8), **Matchdays** (the club's entries
- * with their lineups — V-2) and **Series** (the registrations with their squads — V-1).
+ * Three tabs: **Members** (the roster, a member's "leave", and for the club's admin the
+ * People panel that adds and removes — Stories V-8, V-9, V-10, Z-5), **Matchdays** (the
+ * club's entries with their lineups — V-2) and **Series** (the registrations with their
+ * squads — V-1).
  *
  * Nothing on the way in here may be admin-only. The screen began as the door for V-1's
  * permission: the endpoint had always let a club's leadership register its squad, and
@@ -128,14 +128,7 @@ function ClubScreen({
     {
       key: "members",
       label: t("mine.tabs.members"),
-      render: () => (
-        <>
-          <ClubMembersPanel entry={entry} />
-          {entry.may_admin && (
-            <AccessPanel object={`club:${entry.club.id}`} testId={`my-club-access-${entry.club.id}`} />
-          )}
-        </>
-      ),
+      render: () => <ClubMembersPanel entry={entry} />,
     },
     { key: "events", label: t("mine.tabs.events"), render: () => <ClubEvents entry={entry} /> },
     { key: "series", label: t("mine.tabs.series"), render: () => <ClubTeams entry={entry} /> },

@@ -4,8 +4,6 @@ from app.models.common import AuditLog, ExternalId, ImportRun, Source
 from app.models.competition import Event, EventStatus, Series, Venue
 from app.models.org import (
     Club,
-    ClubMember,
-    ClubMemberStatus,
     CrewRole,
     Sailor,
     Team,
@@ -36,8 +34,6 @@ __all__ = [
     "Base",
     "Boat",
     "Club",
-    "ClubMember",
-    "ClubMemberStatus",
     "CrewRole",
     "Event",
     "EventCrew",

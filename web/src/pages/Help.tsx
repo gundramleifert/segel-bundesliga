@@ -148,18 +148,6 @@ const AREAS: AreaRow[] = [
       clubManager: "own",
     },
   },
-  {
-    key: "acceptClubMembers",
-    access: {
-      admin: "yes",
-      editor: "no",
-      raceOfficer: "no",
-      seriesManager: "no",
-      eventManager: "no",
-      clubAdmin: "own",
-      clubManager: "no",
-    },
-  },
 ];
 
 const HOWTO_KEYS = [

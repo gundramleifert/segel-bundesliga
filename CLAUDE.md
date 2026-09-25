@@ -108,15 +108,16 @@ cannot request club membership. Such an account has neither role nor club. Contr
 `SBL_ALLOW_REGISTRATION`; distinct from `allow_self_signup`, which only controls **silent**
 account creation when logging in with an unknown address.
 
-**Club membership (`ClubMember`) requires mutual consent** — person applies, club approves, or
-vice versa. This differs from series and event participation, where management can add unilaterally.
+**Club membership is a tuple, `user:member:club`, written by the club's admin** (Story Z-5,
+decision of 2026-09-24). No request, no invitation, no acceptance: the club knows who is in it.
+A member leaves by deleting their own tuple — the one write a person may make on themselves.
 
 `SBL_DEV_LOGIN=true` enables `/api/dev`: there you can list test accounts and issue access tokens
 **without verification**. A role switcher then appears in the UI (bottom right). Deliberately a
 separate setting, not tied to `debug` — in a reachable environment this would be a security hole,
 and the server warns on startup while it is on.
 
-`app.seed_users` creates: one account **per registered sailor** (180) — without login, no one can
+`app.seed_users` creates: one account **per registered sailor** (360 across the three seeded series) — without login, no one can
 submit their waiver — one person per club with `manager` on it, plus `admin@`, `redaktion@`, `wl@`,
 `beides@`, `gast@sbl.example.com`, and three people with one tuple on the planned matchday
 only: `regatta@` (race officer), `orga@` (manager), `jury@`.
@@ -152,8 +153,9 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Participation is public, affiliation is not.** Whoever is registered for a Series or
   entered into an Event is named publicly — the pairing list, the results and the standings
   carry that name anyway, so hiding it on the club page would be theatre. Plain club
-  **membership** (`ClubMember`) is different: it is shown only to that club's own active
-  members and to `admin`/`editor` (`GET /api/clubs/{id}/members`, Story V-10). Never widen
+  **membership** (the `member` tuple) is different: it is shown only to that club's own
+  members and organizers and to `admin`/`editor` (`GET /api/clubs/{id}/members`, Story
+  V-10). Never widen
   the roster to guests, and never gate a squad or a lineup behind a login.
   A sailor may additionally switch off their own **profile page** (`Sailor.profile_public`,
   Story S-4) — that hides the collection (photo, club and matchday history, the page
@@ -246,11 +248,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   the navigation and never a permission. An object's admin sees and writes its tuples
   (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
-  silently dropped. Club membership is not a tuple (consent). Three foreign keys and one
-  small interpreter are the whole model: no authorization service.
+  silently dropped. Membership is the `member` tuple on a club, implying nothing else.
+  Three foreign keys and one small interpreter are the whole model: no authorization
+  service.
 - **A person can be in several clubs; `User.club_id` is the one they act for.** Membership
-  (`ClubMember`) and organizing (a `manager` tuple on the club) are both per club and
-  independent. `User.club_id` is the person's own choice among those clubs
+  (a `member` tuple on the club) and organizing (`manager` or `admin` on it) are both per
+  club and independent. `User.club_id` is the person's own choice among those clubs
   (`PATCH /api/auth/me`, Story V-12), never derived from them, and never a permission —
   permissions come from the tuples. With several clubs the choice is made in the
   navigation ("Our club" expands into one entry per club), not on a page. The club screen

@@ -183,7 +183,7 @@ and `jury` for the relation held anywhere, `club_admin` for `admin` of some club
 club, series or event (an admin is a manager, says the model). Never a permission check —
 that is `User.can(relation, on=object)`.
 
-Club **membership** is not a tuple: it needs both sides' consent (`ClubMember`, Story Z-5).
+Club **membership** is the `member` tuple on the club, written by the club's admin (Story Z-5).
 
 Screens: the **Accounts** tab of `/admin` lists each account's tuples — relation, then the
 object — with a delete on each and a "＋" that asks object type, relation and object, in
@@ -224,11 +224,11 @@ Acceptance criteria:
 - Administration creates the account (name, email) and makes it the club's **admin** —
   the first account of a club can only come from administration: who has no one cannot
   name anyone.
-- **The club's admin names more organizers for their own club.** "Make organizer" on the
-  Members tab writes `manager` on this club for an **active member**; the People panel
-  there writes `admin`, `manager` or `race_officer` the same way, members only. **A person
-  may organize multiple clubs** — a second club no longer fails because they already
-  organize a different one; it fails only if they already organize *this* one.
+- **The club's admin names more organizers for their own club.** The People panel on
+  the Members tab writes `admin`, `manager`, `race_officer` or `member` on this club for
+  any account, by email — an organizer need not be a member. **A person may organize
+  multiple clubs** — a second club no longer fails because they already organize a
+  different one; it fails only if they already hold *this* relation on *this* one.
 - Revoking for one club is allowed too — but **at least one organizer (admin or manager)
   must remain** for that specific club; the last one can't step down until someone else
   has taken over. Revoking one club never touches a person's organizer status at any other
@@ -238,14 +238,14 @@ Acceptance criteria:
   shared club account, Story VA-4) — and is no longer what defines or limits organizer
   scope. Granting someone's first club populates it as a sensible default if it was unset.
 
-Endpoints: `POST /api/admin/clubs/{club_id}/members/{user_id}/organizer`,
-`DELETE /api/admin/clubs/{club_id}/members/{user_id}/organizer` (the club's admin, or
-administration). `MembershipOut.organizer` reports manager-or-admin, `MembershipOut.admin`
-the admin relation.
+Endpoints: the tuple endpoints of Story Z-2 — `GET /api/auth/tuples?object=club:<id>`,
+`POST /api/auth/tuples`, `DELETE /api/auth/tuples/{id}`. `ClubMemberOut.relations` says
+what each member is to the club.
 
-Screen: the Members tab on `/club` (Story V-12) — the club's admin makes a member an
-organizer or revokes it; administration uses the same endpoints.
-Tests: `api/tests/stories/test_club_membership.py::TestOrganizerRole`
+Screen: the Members tab on `/club` (Story V-12), People panel; administration uses the
+Accounts tab or the same panel.
+Tests: `api/tests/stories/test_club_members.py::TestOrganizers`,
+`api/tests/stories/test_login_and_roles.py::TestTuples`
 
 ### Z-6 ● Removing an account deactivates it
 As **administration** I want **removing an account to leave the row in place**,

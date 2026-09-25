@@ -3,8 +3,9 @@
 Two relationships that are deliberately not the same thing, and that this endpoint keeps
 apart because the two screens reading it need different ones:
 
-* **member** — an accepted `ClubMember`. That is what "my clubs" means on `/clubs` (B-10).
-* **organizer** — `club_manager` for that club. That is what `/club` needs (V-12), and it
+* **member** — the `member` tuple on the club (Story Z-5). That is what "my clubs" means
+  on `/clubs` (B-10).
+* **organizer** — `manager` or `admin` of that club. That is what `/club` needs (V-12), and it
   is often held by someone who never sails and is no member at all.
 
 Neither implies the other, so an account appears here when either is true and each entry
@@ -15,8 +16,8 @@ them, and fetching them separately would mean a request per club.
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import Club, ClubMember, ClubMemberStatus, Series, Team
-from app.models.auth import Role
+from app.models import Club, Series, Team
+from app.models.auth import Grant, Relation, Role
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
@@ -33,13 +34,13 @@ async def _as(client, caplog, email: str, *roles: str, club_id: int | None = Non
     return auth_headers(await login_as(client, email, caplog))
 
 
-async def _make_member(email: str, club_id: int, status: ClubMemberStatus) -> None:
-    """Puts an existing account into a club's roster at the given status."""
+async def _make_member(email: str, club_id: int) -> None:
+    """Writes the ``member`` tuple on the club for an existing account (Story Z-5)."""
     from app.models.auth import User
 
     async with SessionLocal() as session:
         user = (await session.execute(select(User).where(User.email == email))).scalar_one()
-        session.add(ClubMember(club_id=club_id, user_id=user.id, status=status))
+        session.add(Grant(relation=Relation.MEMBER, club_id=club_id, user_id=user.id))
         await session.commit()
 
 
@@ -59,14 +60,14 @@ class TestMyClubs:
         assert response.status_code == 200, response.text
         assert response.json() == []
 
-    async def test_an_active_member_sees_their_club_as_a_member(self, client, caplog):
+    async def test_a_member_sees_their_club_as_a_member(self, client, caplog):
         club = await _club("nrv")
         email = "mine-member@example.com"
-        # Signed in *before* the membership is added, and the token kept: `make_user`
-        # deletes an existing account and its memberships with it, so calling it a second
-        # time for the same address would quietly undo the row this test is about.
+        # Signed in *before* the tuple is written, and the token kept: `make_user` deletes
+        # an existing account and its tuples with it, so calling it a second time for the
+        # same address would quietly undo the row this test is about.
         headers = await _as(client, caplog, email)
-        await _make_member(email, club.id, ClubMemberStatus.ACTIVE)
+        await _make_member(email, club.id)
 
         response = await client.get(MINE, headers=headers)
         assert response.status_code == 200, response.text
@@ -75,18 +76,6 @@ class TestMyClubs:
         assert entries[0]["is_member"] is True
         # A member is not thereby an organizer — that is the whole point of two fields.
         assert entries[0]["may_manage"] is False
-
-    async def test_a_pending_request_is_not_a_club_of_mine(self, client, caplog):
-        """Asking to join is not belonging. B-10 says so about the list; the endpoint has
-        to say it, or the page would show a club the person was merely hoping for."""
-        club = await _club("dtyc")
-        email = "mine-pending@example.com"
-        headers = await _as(client, caplog, email)
-        await _make_member(email, club.id, ClubMemberStatus.PENDING_CLUB)
-
-        response = await client.get(MINE, headers=headers)
-        assert response.status_code == 200, response.text
-        assert response.json() == []
 
     async def test_an_organizer_sees_the_club_they_manage_without_being_a_member(
         self, client, caplog
@@ -285,7 +274,7 @@ class TestMemberReadsTheSquad:
         club = await _club("fsc")
         email = "mine-reader@example.com"
         headers = await _as(client, caplog, email)
-        await _make_member(email, club.id, ClubMemberStatus.ACTIVE)
+        await _make_member(email, club.id)
 
         entries = (await client.get(MINE, headers=headers)).json()
         mine = next(e for e in entries if e["club"]["slug"] == "fsc")

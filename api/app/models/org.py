@@ -20,7 +20,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
-    from app.models.auth import User
     from app.models.competition import Event, Series
     from app.models.racing import RaceEntry
 
@@ -36,24 +35,6 @@ class TeamStatus(StrEnum):
 
     REQUESTED = "requested"
     ACCEPTED = "accepted"
-    REJECTED = "rejected"
-
-
-class ClubMemberStatus(StrEnum):
-    """Where a club membership stands — and whose turn it is to act next.
-
-    Both directions need the other side's consent: nobody becomes a member of a club
-    unasked, and no club gets members unasked. The status therefore says not just "open",
-    but **who** still needs to agree.
-    """
-
-    PENDING_CLUB = "pending_club"
-    """The person has asked — the club needs to accept."""
-
-    PENDING_USER = "pending_user"
-    """The club has invited — the person needs to accept."""
-
-    ACTIVE = "active"
     REJECTED = "rejected"
 
 
@@ -188,43 +169,3 @@ class TeamMembership(Base, TimestampMixin):
 
     team: Mapped[Team] = relationship(back_populates="memberships")
     sailor: Mapped[Sailor] = relationship(back_populates="memberships")
-
-
-class ClubMember(Base, TimestampMixin):
-    """Who belongs to which club — and whether both sides have agreed.
-
-    A person can be in multiple clubs (Story V-7); the "only once per competition"
-    restriction only kicks in for series and events, not here.
-
-    A membership comes about in one of two ways, and **both need the other side's
-    consent**:
-
-    * The person asks (``PENDING_CLUB``) — the club's leadership accepts.
-    * The club invites (``PENDING_USER``) — the person accepts.
-
-    That's what sets membership apart from participation in a series or event
-    (``Team``): there, the admin also assigns it **unilaterally**, because it runs the
-    competition. The reverse direction there needs the admin's approval.
-    """
-
-    __tablename__ = "club_member"
-    __table_args__ = (UniqueConstraint("club_id", "user_id"),)
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    club_id: Mapped[int] = mapped_column(ForeignKey("club.id"), index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("app_user.id"), index=True)
-    status: Mapped[str] = mapped_column(String(16), index=True)
-    # For a rejection: why. The rejected side should find out.
-    decision_note: Mapped[str | None] = mapped_column(String(500), default=None)
-    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
-
-    club: Mapped[Club] = relationship()
-    user: Mapped[User] = relationship()
-
-    @property
-    def awaiting_club(self) -> bool:
-        return self.status == ClubMemberStatus.PENDING_CLUB
-
-    @property
-    def awaiting_person(self) -> bool:
-        return self.status == ClubMemberStatus.PENDING_USER

@@ -63,6 +63,5 @@
   "tuple-object-missing": "Den Verein, die Serie oder die Veranstaltung gibt es nicht.",
   "tuple-exists": "Diese Person hat diese Rolle dort bereits.",
   "tuple-self-lockout": "Die eigene Verwaltungsrolle lässt sich nicht selbst entziehen.",
-  "tuple-forbidden": "Nur die Verwaltung oder die Organisation des Objekts kann ändern, wer Zugriff darauf hat.",
-  "tuple-not-a-member": "Die Vereinsverwaltung kann nur aktive Mitglieder des Vereins benennen."
+  "tuple-forbidden": "Nur die Verwaltung oder die Organisation des Objekts kann ändern, wer Zugriff darauf hat."
 }

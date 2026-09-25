@@ -1,7 +1,8 @@
-"""User stories Z-4 and Z-5: register and get accepted into a club.
+"""User story Z-4: register yourself.
 
-Two steps that must not be confused: **Registration** creates an account and verifies the
-email address. It does not make anyone a club member — the club decides that.
+Registration creates an account and verifies the email address. It does not make anyone
+a club member — that is the club admin's `member` tuple (Story Z-5,
+`test_club_members.py`).
 """
 
 import logging
@@ -9,7 +10,7 @@ import logging
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import Club, ClubMemberStatus
+from app.models import Club
 from app.models.auth import User
 from tests.stories.test_login_and_roles import make_user
 
@@ -118,58 +119,3 @@ class TestRegistering:
         person = await account("bestand@example.com")
         assert person is not None
         assert person.display_name == "bestand"
-
-
-class TestRequestingClubMembership:
-    """As a registered person, I want to request membership in a club."""
-
-    async def test_the_request_waits_for_the_club(self, client, caplog):
-        """The request waits for the club's decision."""
-        token = await register(client, caplog, "antrag1@example.com", "Anne Antrag")
-        club = await club_id()
-
-        response = await client.post(
-            "/api/club-memberships", headers=auth_headers(token), json={"club_id": club}
-        )
-        assert response.status_code == 201, response.text
-        assert response.json()["status"] == ClubMemberStatus.PENDING_CLUB
-        assert response.json()["waiting_for"] == "club"
-
-    async def test_a_request_alone_makes_nobody_a_member(self, client, caplog):
-        """A request doesn't make you a member yet — the other side must agree."""
-        token = await register(client, caplog, "antrag2@example.com", "Bert Antrag")
-        club = await club_id()
-        await client.post(
-            "/api/club-memberships", headers=auth_headers(token), json={"club_id": club}
-        )
-
-        ich = (await client.get("/api/auth/me", headers=auth_headers(token))).json()
-        assert ich["club_id"] is None
-
-    async def test_this_needs_a_confirmed_address(self, client, caplog):
-        """Without a verified address, you cannot request membership — else someone
-        could flood clubs with requests using fake addresses."""
-        await make_user("ohnenachweis@example.com")
-        async with SessionLocal() as session:
-            person = (
-                await session.execute(select(User).where(User.email == "ohnenachweis@example.com"))
-            ).scalar_one()
-            person.email_verified = False
-            await session.commit()
-
-        # Deliberately not via the sign-in path: that would verify the address right away.
-        from app.auth import create_access_token
-
-        token, _ = create_access_token(person)
-        response = await client.post(
-            "/api/club-memberships",
-            headers=auth_headers(token),
-            json={"club_id": await club_id()},
-        )
-        assert response.status_code == 403
-        assert "verify" in response.json()["detail"].lower()
-
-    async def test_not_at_all_without_signing_in(self, client):
-        """Without sign-in, you cannot request membership."""
-        response = await client.post("/api/club-memberships", json={"club_id": await club_id()})
-        assert response.status_code == 401
