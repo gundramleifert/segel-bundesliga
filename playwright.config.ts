@@ -12,7 +12,9 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * **Evidence mode** (`EVIDENCE=1`, or `pnpm e2e:evidence`): every test records a video, a
  * final screenshot and a full trace, and the run writes an HTML report to
- * `e2e-evidence/report/` — what was shown, step by step, for each story a test names.
+ * `e2e-evidence/report/` plus Allure results to `allure-results/` — what was shown, step
+ * by step, for each story a test names. `scripts/allure-report.sh` adds the backend's
+ * results and renders both into one report.
  * Off by default because it roughly doubles the run and writes hundreds of megabytes; a
  * normal run keeps only a trace of a retried failure.
  */
@@ -34,7 +36,14 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: evidence
-    ? [["list"], ["html", { outputFolder: "e2e-evidence/report", open: "never" }]]
+    ? [
+        ["list"],
+        ["html", { outputFolder: "e2e-evidence/report", open: "never" }],
+        // The same results for Allure, beside the backend's (`scripts/allure-report.sh`):
+        // stories come from the describe helpers in `e2e/fixtures.ts`, videos, screenshots
+        // and traces are attached as they are recorded.
+        ["allure-playwright", { resultsDir: "allure-results", detail: true }],
+      ]
     : process.env.CI
       ? "github"
       : [["list"]],

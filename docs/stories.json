@@ -1,0 +1,578 @@
+{
+ "A-1": {
+  "title": "Create clubs",
+  "status": "●",
+  "role": "Administration",
+  "phase": "Master data",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-1--create-clubs"
+ },
+ "A-10": {
+  "title": "The admin screens have to work on a phone",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The admin screens",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-10--the-admin-screens-have-to-work-on-a-phone"
+ },
+ "A-11": {
+  "title": "The admin screen in tabs",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The admin screens",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-11--the-admin-screen-in-tabs"
+ },
+ "A-12": {
+  "title": "Navigation beside the page, not above it",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The admin screens",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-12--navigation-beside-the-page-not-above-it"
+ },
+ "A-13": {
+  "title": "One list mechanism, and every long list is paged",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The admin screens",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-13--one-list-mechanism-and-every-long-list-is-paged"
+ },
+ "A-2": {
+  "title": "Create matchday",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "Setting the event up",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "a-2--create-matchday"
+ },
+ "A-3": {
+  "title": "Assign clubs to series",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The series and who sails in it",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-3--assign-clubs-to-series"
+ },
+ "A-4": {
+  "title": "Series includes its year",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "Standings and results",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "a-4--series-includes-its-year"
+ },
+ "A-5": {
+  "title": "Series standings with substitute score",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "Standings and results",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "a-5--series-standings-with-substitute-score"
+ },
+ "A-6": {
+  "title": "Create series and select clubs",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The series and who sails in it",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-6--create-series-and-select-clubs"
+ },
+ "A-7": {
+  "title": "Club can exist without competition",
+  "status": "●",
+  "role": "Administration",
+  "phase": "Master data",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-7--club-can-exist-without-competition"
+ },
+ "A-8": {
+  "title": "Set up club organizer",
+  "status": "●",
+  "role": "Administration",
+  "phase": "Accounts and roles",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-8--set-up-club-organizer"
+ },
+ "A-9": {
+  "title": "Accept or reject participation",
+  "status": "●",
+  "role": "Administration",
+  "phase": "The series and who sails in it",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-9--accept-or-reject-participation"
+ },
+ "B-1": {
+  "title": "View league standings",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "Standings and results",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-1--view-league-standings"
+ },
+ "B-10": {
+  "title": "My clubs beside the club search",
+  "status": "○",
+  "role": "Sailor",
+  "phase": "Account and club",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "b-10--my-clubs-beside-the-club-search"
+ },
+ "B-11": {
+  "title": "Club page in tabs",
+  "status": "○",
+  "role": "Visitor and Fans",
+  "phase": "Clubs and sailors",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-11--club-page-in-tabs"
+ },
+ "B-12": {
+  "title": "See who sails for each team at a matchday",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The matchday",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-12--see-who-sails-for-each-team-at-a-matchday"
+ },
+ "B-2": {
+  "title": "Review matchday results",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "Standings and results",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-2--review-matchday-results"
+ },
+ "B-3": {
+  "title": "View pairing list",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The matchday",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-3--view-pairing-list"
+ },
+ "B-4": {
+  "title": "Find clubs and dates",
+  "status": "◐",
+  "role": "Visitor and Fans",
+  "phase": "Clubs and sailors",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-4--find-clubs-and-dates"
+ },
+ "B-5": {
+  "title": "Follow live updates",
+  "status": "◐",
+  "role": "Visitor and Fans",
+  "phase": "The matchday",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-5--follow-live-updates"
+ },
+ "B-6": {
+  "title": "Read as guest without login",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The site",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-6--read-as-guest-without-login"
+ },
+ "B-7": {
+  "title": "View club page",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "Clubs and sailors",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-7--view-club-page"
+ },
+ "B-8": {
+  "title": "View sailor page",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "Clubs and sailors",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-8--view-sailor-page"
+ },
+ "B-9": {
+  "title": "Find legal notice and privacy policy",
+  "status": "◐",
+  "role": "Visitor and Fans",
+  "phase": "The site",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-9--find-legal-notice-and-privacy-policy"
+ },
+ "F-1": {
+  "title": "The event's treasurer is a tuple, and the host club's treasurer is it for every event the club hosts",
+  "status": "●",
+  "role": "Treasurer",
+  "phase": "Who holds the money",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-1--the-events-treasurer-is-a-tuple-and-the-host-clubs-treasurer-is-it-for-every-event-the-club-hosts"
+ },
+ "F-2": {
+  "title": "File an expense claim for an event",
+  "status": "◐",
+  "role": "Treasurer",
+  "phase": "Expense claims",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-2--file-an-expense-claim-for-an-event"
+ },
+ "F-3": {
+  "title": "The treasurer approves, returns or rejects a claim",
+  "status": "○",
+  "role": "Treasurer",
+  "phase": "Expense claims",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-3--the-treasurer-approves-returns-or-rejects-a-claim"
+ },
+ "F-4": {
+  "title": "The treasurer pays and exports",
+  "status": "◐",
+  "role": "Treasurer",
+  "phase": "Expense claims",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-4--the-treasurer-pays-and-exports"
+ },
+ "F-5": {
+  "title": "Upload documents to a claim, readable only by the claimant and the treasurer",
+  "status": "◐",
+  "role": "Treasurer",
+  "phase": "Expense claims",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-5--upload-documents-to-a-claim-readable-only-by-the-claimant-and-the-treasurer"
+ },
+ "J-1": {
+  "title": "From an empty series to a scored matchday",
+  "status": "◐",
+  "role": "Journeys",
+  "phase": "Running an event",
+  "file": "docs/userstories/journeys.md",
+  "anchor": "j-1--from-an-empty-series-to-a-scored-matchday"
+ },
+ "L-1": {
+  "title": "See the boats move",
+  "status": "◐",
+  "role": "Live and Tracking",
+  "phase": "In the order of the plan's phases (A, B, D, C)",
+  "file": "docs/userstories/live.md",
+  "anchor": "l-1--see-the-boats-move"
+ },
+ "L-2": {
+  "title": "Course, mark passings and a live ranking on the water",
+  "status": "◐",
+  "role": "Live and Tracking",
+  "phase": "In the order of the plan's phases (A, B, D, C)",
+  "file": "docs/userstories/live.md",
+  "anchor": "l-2--course-mark-passings-and-a-live-ranking-on-the-water"
+ },
+ "L-3": {
+  "title": "Replay a race",
+  "status": "○",
+  "role": "Live and Tracking",
+  "phase": "In the order of the plan's phases (A, B, D, C)",
+  "file": "docs/userstories/live.md",
+  "anchor": "l-3--replay-a-race"
+ },
+ "L-4": {
+  "title": "The phone on the boat is the tracker",
+  "status": "◐",
+  "role": "Live and Tracking",
+  "phase": "In the order of the plan's phases (A, B, D, C)",
+  "file": "docs/userstories/live.md",
+  "anchor": "l-4--the-phone-on-the-boat-is-the-tracker"
+ },
+ "S-1": {
+  "title": "Submit the liability waiver for each competition I am entered in",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "Before the season: the waiver",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-1--submit-the-liability-waiver-for-each-competition-i-am-entered-in"
+ },
+ "S-2": {
+  "title": "Upload own photo, edit own name and birthdate",
+  "status": "◐",
+  "role": "Sailor",
+  "phase": "My profile",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-2--upload-own-photo-edit-own-name-and-birthdate"
+ },
+ "S-3": {
+  "title": "Confirm a waiver version for a series or event",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "Before the season: the waiver",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-3--confirm-a-waiver-version-for-a-series-or-event"
+ },
+ "S-4": {
+  "title": "Decide whether my own profile is public",
+  "status": "○",
+  "role": "Sailor",
+  "phase": "My profile",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-4--decide-whether-my-own-profile-is-public"
+ },
+ "V-1": {
+  "title": "Register season squad",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Squad and lineup",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-1--register-season-squad"
+ },
+ "V-10": {
+  "title": "See fellow club members",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "Account and club",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "v-10--see-fellow-club-members"
+ },
+ "V-11": {
+  "title": "Manage our own club page",
+  "status": "○",
+  "role": "Club Manager",
+  "phase": "The club's page",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-11--manage-our-own-club-page"
+ },
+ "V-12": {
+  "title": "My club: one screen for members, matchdays and squads",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Squad and lineup",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-12--my-club-one-screen-for-members-matchdays-and-squads"
+ },
+ "V-2": {
+  "title": "Select sailors for matchday",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Squad and lineup",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-2--select-sailors-for-matchday"
+ },
+ "V-3": {
+  "title": "Upload club crest",
+  "status": "◐",
+  "role": "Club Manager",
+  "phase": "The club's page",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-3--upload-club-crest"
+ },
+ "V-4": {
+  "title": "Create sailors",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Members",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-4--create-sailors"
+ },
+ "V-5": {
+  "title": "Request participation",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Entering competitions",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-5--request-participation"
+ },
+ "V-6": {
+  "title": "Request participation in an event",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Entering competitions",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-6--request-participation-in-an-event"
+ },
+ "V-8": {
+  "title": "Decide who is in the club",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Members",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-8--decide-who-is-in-the-club"
+ },
+ "V-9": {
+  "title": "Add someone by email",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Members",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-9--add-someone-by-email"
+ },
+ "VA-1": {
+  "title": "Import registrations and sailors from manage2sail",
+  "status": "○",
+  "role": "Event Organizer",
+  "phase": "Participants and their waivers",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-1--import-registrations-and-sailors-from-manage2sail"
+ },
+ "VA-10": {
+  "title": "Close an event, or call it off",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "The matchday and after it",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-10--close-an-event-or-call-it-off"
+ },
+ "VA-11": {
+  "title": "Announcements from the event",
+  "status": "○",
+  "role": "Event Organizer",
+  "phase": "After the racing",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-11--announcements-from-the-event"
+ },
+ "VA-2": {
+  "title": "Self check-in with liability waiver",
+  "status": "○",
+  "role": "Event Organizer",
+  "phase": "Participants and their waivers",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-2--self-check-in-with-liability-waiver"
+ },
+ "VA-3": {
+  "title": "Calculate and publish pairing list in the interface",
+  "status": "○",
+  "role": "Event Organizer",
+  "phase": "The draw",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-3--calculate-and-publish-pairing-list-in-the-interface"
+ },
+ "VA-4": {
+  "title": "Participants write posts on the homepage",
+  "status": "○",
+  "role": "Event Organizer",
+  "phase": "The matchday and after it",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-4--participants-write-posts-on-the-homepage"
+ },
+ "VA-5": {
+  "title": "Confirm liability waivers",
+  "status": "◐",
+  "role": "Event Organizer",
+  "phase": "Participants and their waivers",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-5--confirm-liability-waivers"
+ },
+ "VA-6": {
+  "title": "Create event with its configuration",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "Setting the event up",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-6--create-event-with-its-configuration"
+ },
+ "VA-7": {
+  "title": "Take finished pairing list from catalog",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "The draw",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-7--take-finished-pairing-list-from-catalog"
+ },
+ "VA-8": {
+  "title": "Save a draft, publish it, start it",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "Setting the event up",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-8--save-a-draft-publish-it-start-it"
+ },
+ "VA-9": {
+  "title": "Run one event from end to end",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "The whole way",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-9--run-one-event-from-end-to-end"
+ },
+ "WL-1": {
+  "title": "Run races",
+  "status": "○",
+  "role": "Race Committee",
+  "phase": "On the water",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "wl-1--run-races"
+ },
+ "WL-2": {
+  "title": "Enter and edit results easily",
+  "status": "◐",
+  "role": "Race Committee",
+  "phase": "Results",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "wl-2--enter-and-edit-results-easily"
+ },
+ "WL-3": {
+  "title": "Start, recall and finish races from one screen",
+  "status": "◐",
+  "role": "Race Committee",
+  "phase": "On the water",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "wl-3--start-recall-and-finish-races-from-one-screen"
+ },
+ "Z-1": {
+  "title": "Sign in without password",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The site",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "z-1--sign-in-without-password"
+ },
+ "Z-2": {
+  "title": "Access is a relation tuple: user · relation · object",
+  "status": "◐",
+  "role": "Administration",
+  "phase": "Accounts and roles",
+  "file": "docs/userstories/administration.md",
+  "anchor": "z-2--access-is-a-relation-tuple-user--relation--object"
+ },
+ "Z-3": {
+  "title": "Assign user to club",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "Members",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "z-3--assign-user-to-club"
+ },
+ "Z-4": {
+  "title": "Register yourself",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "Account and club",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "z-4--register-yourself"
+ },
+ "Z-5": {
+  "title": "Membership is a tuple the club's admin writes",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "Account and club",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "z-5--membership-is-a-tuple-the-clubs-admin-writes"
+ },
+ "Z-6": {
+  "title": "Removing an account deactivates it",
+  "status": "●",
+  "role": "Administration",
+  "phase": "Accounts and roles",
+  "file": "docs/userstories/administration.md",
+  "anchor": "z-6--removing-an-account-deactivates-it"
+ },
+ "Z-7": {
+  "title": "Delete my own account",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "My profile",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "z-7--delete-my-own-account"
+ },
+ "Z-8": {
+  "title": "My clubs, my series, my events on the account page",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "My profile",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "z-8--my-clubs-my-series-my-events-on-the-account-page"
+ }
+}

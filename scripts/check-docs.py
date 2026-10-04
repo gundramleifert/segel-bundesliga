@@ -16,15 +16,19 @@ Three jobs, all of them things that went wrong here before:
    than an empty folder.
 
 It also regenerates `docs/gotchas/INDEX.md`, which exists so an agent can load ten one-line
-rules instead of ten files and still know which one to open.
+rules instead of ten files and still know which one to open, and `docs/traceability.md`:
+every story with its status, the backend tests that cover it, the browser test groups
+tagged with it and the journeys that walk it — the one page that answers "what proves
+this story?", and the gaps where nothing does.
 
     scripts/check-docs.py         # report, exit 1 on problems
-    scripts/check-docs.py --fix   # also rewrite the index
+    scripts/check-docs.py --fix   # also rewrite the generated pages and docs/stories.json
     scripts/check-docs.py --new "a sentence stating the rule"
 """
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -33,6 +37,8 @@ ROOT = Path(__file__).resolve().parent.parent
 STORIES = ROOT / "docs" / "userstories"
 GOTCHAS = ROOT / "docs" / "gotchas"
 INDEX = GOTCHAS / "INDEX.md"
+TRACEABILITY = ROOT / "docs" / "traceability.md"
+STORIES_JSON = ROOT / "docs" / "stories.json"
 
 STORY_HEADING = re.compile(r"^### (?P<id>[A-Z]+-\d+) (?P<marker>[○◐●]) (?P<title>.+)$", re.M)
 # A reference looks like `path/to/test.py::Class::test_name`, in backticks, and a line can
@@ -271,6 +277,139 @@ def scaffold(rule: str) -> int:
     return 0
 
 
+# A `describeStory("VA-8/VA-9: rest", …)` or `describeJourney("J-1: rest", …)` call, whole.
+E2E_GROUP = re.compile(r"describe(?P<kind>Story|Journey)\(\s*\"(?P<title>(?P<ids>[A-Z]+-\d+(?:/[A-Z]+-\d+)*): [^\"]*)\"")
+TICKED = re.compile(r"`([^`]+)`")
+
+
+def _tests_line_references(section: str) -> list[str]:
+    """The references under a `Tests:` line, a bare `::TestX` continuing the path before it."""
+    match = TESTS_LINE.search(section)
+    out: list[str] = []
+    path = ""
+    for token in TICKED.findall(match["body"]) if match else []:
+        if token.startswith("::") and path:
+            out.append(path + token)
+        elif token.startswith(("api/", "e2e/")):
+            path = token.partition("::")[0]
+            out.append(token)
+    return out
+
+
+def _short(reference: str) -> str:
+    """`api/tests/stories/test_x.py::TestY` → `test_x.py::TestY`; an e2e title stays whole."""
+    path, _, node = reference.partition("::")
+    return f"{Path(path).name}::{node}" if node else Path(path).name
+
+
+def render_traceability(files: dict[str, str]) -> str:
+    """docs/traceability.md: one row per story — status, backend tests, browser groups,
+    journeys — grouped by the file the story is told in, in the README's order."""
+    order = re.findall(r"^\| \[([\w-]+\.md)\]", (STORIES / "README.md").read_text(encoding="utf-8"), re.M)
+    names = [n for n in order if n in files] + [n for n in files if n not in order and n != "README.md"]
+
+    browser: dict[str, list[str]] = {}
+    journeys: dict[str, list[str]] = {}
+    for path in sorted((ROOT / "e2e").glob("*.spec.ts")):
+        source = path.read_text(encoding="utf-8")
+        for m in E2E_GROUP.finditer(source):
+            label = f"{path.name}::{m['title']}"
+            for sid in m["ids"].split("/"):
+                browser.setdefault(sid, []).append(label)
+            if m["kind"] == "Journey":
+                region = _test_region(f"e2e/{path.name}::{m['title']}") or ""
+                for c in STEP_CALL.finditer(region):
+                    browser.setdefault(c["id"], []).append(f"{label} (step)")
+    for text in files.values():
+        for m in STORY_HEADING.finditer(text):
+            if m["id"].startswith("J-"):
+                following = re.search(r"^### ", text[m.end():], re.M)
+                section = text[m.end(): m.end() + following.start()] if following else text[m.end():]
+                for step in JOURNEY_STEP.finditer(section):
+                    entry = m["id"] if not step["variant"] else f"{m['id']} (variation)"
+                    if entry not in journeys.setdefault(step["id"], []):
+                        journeys[step["id"]].append(entry)
+
+    rows: dict[str, list[str]] = {}
+    totals = {"●": 0, "◐": 0, "○": 0}
+    covered = {"backend": 0, "browser": 0, "journey": 0, "none": 0}
+    for name in names:
+        text = files[name]
+        for m in STORY_HEADING.finditer(text):
+            sid = m["id"]
+            following = re.search(r"^### ", text[m.end():], re.M)
+            section = text[m.end(): m.end() + following.start()] if following else text[m.end():]
+            references = _tests_line_references(section)
+            backend = list(dict.fromkeys(_short(r) for r in references if r.startswith("api/")))
+            groups = list(dict.fromkeys(
+                [_short(r) for r in references if r.startswith("e2e/")] + browser.get(sid, [])
+            ))
+            walked = journeys.get(sid, [])
+            totals[m["marker"]] += 1
+            covered["backend"] += bool(backend)
+            covered["browser"] += bool(groups)
+            covered["journey"] += bool(walked)
+            covered["none"] += not (backend or groups)
+            link = f"[{sid}](userstories/{name}#{anchor(m.group(0)[4:])})"
+            cell = lambda items: "<br>".join(f"`{i}`" for i in items) or "—"  # noqa: E731
+            rows.setdefault(name, []).append(
+                f"| {link} | {m['marker']} | {m['title']} | {cell(backend)} | {cell(groups)} | {', '.join(walked) or '—'} |"
+            )
+
+    lines = [
+        "# Traceability",
+        "",
+        "Generated by `scripts/check-docs.py --fix` — do not edit by hand; `scripts/check.sh`",
+        "fails when it is stale.",
+        "",
+        "Every story, and what proves it: the backend tests its `Tests:` line names, the browser",
+        "test groups tagged with it (`describeStory` / `describeJourney` in `e2e/`), and the",
+        "journeys that walk it. The recordings are not here — they exist only after an evidence",
+        "run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the",
+        "same stories with each test's result, video and trace.",
+        "",
+        f"**{sum(totals.values())} stories** — ● {totals['●']} implemented and tested · "
+        f"◐ {totals['◐']} partial · ○ {totals['○']} open. "
+        f"With backend tests: {covered['backend']} · with browser tests: {covered['browser']} · "
+        f"walked by a journey: {covered['journey']} · **with no test at all: {covered['none']}**.",
+    ]
+    for name in names:
+        if name not in rows:
+            continue
+        lines += [
+            "",
+            f"## [{name}](userstories/{name})",
+            "",
+            "| Story | | Title | Backend tests | Browser tests | Journeys |",
+            "|---|---|---|---|---|---|",
+            *rows[name],
+        ]
+    return "\n".join(lines) + "\n"
+
+
+def render_stories_json(files: dict[str, str]) -> str:
+    """docs/stories.json: every story's title, status and place — the file's `#` heading
+    (the role) and the `##` heading above it (the phase). Read by the Allure hooks
+    (`api/tests/conftest.py`, `e2e/fixtures.ts`) so the report's Behaviors tree is
+    role → phase → story without either side parsing Markdown."""
+    out: dict[str, dict[str, str]] = {}
+    for name, text in files.items():
+        if name == "README.md":
+            continue
+        role = next((m["text"] for m in HEADING.finditer(text) if text[m.start():].startswith("# ")), name)
+        for m in STORY_HEADING.finditer(text):
+            phases = [h for h in re.finditer(r"^## (?P<text>.+)$", text[: m.start()], re.M)]
+            out[m["id"]] = {
+                "title": m["title"],
+                "status": m["marker"],
+                "role": role,
+                "phase": phases[-1]["text"] if phases else role,
+                "file": f"docs/userstories/{name}",
+                "anchor": anchor(m.group(0)[4:]),
+            }
+    return json.dumps(dict(sorted(out.items())), ensure_ascii=False, indent=1) + "\n"
+
+
 def main(argv: list[str]) -> int:
     if "--new" in argv:
         rule = " ".join(argv[argv.index("--new") + 1:]).strip()
@@ -288,11 +427,22 @@ def main(argv: list[str]) -> int:
     gotcha_problems, entries = check_gotchas()
     problems += gotcha_problems
 
+    traceability = render_traceability(files)
+    stories_json = render_stories_json(files)
     if "--fix" in argv:
+        STORIES_JSON.write_text(stories_json, encoding="utf-8")
+        print(f"wrote {STORIES_JSON.relative_to(ROOT)}")
         INDEX.write_text(render_index(entries), encoding="utf-8")
         print(f"wrote {INDEX.relative_to(ROOT)} ({len(entries)} notes)")
-    elif INDEX.exists() and INDEX.read_text(encoding="utf-8") != render_index(entries):
-        problems.append("docs/gotchas/INDEX.md is out of date — run scripts/check-docs.py --fix")
+        TRACEABILITY.write_text(traceability, encoding="utf-8")
+        print(f"wrote {TRACEABILITY.relative_to(ROOT)}")
+    else:
+        if INDEX.exists() and INDEX.read_text(encoding="utf-8") != render_index(entries):
+            problems.append("docs/gotchas/INDEX.md is out of date — run scripts/check-docs.py --fix")
+        if not STORIES_JSON.exists() or STORIES_JSON.read_text(encoding="utf-8") != stories_json:
+            problems.append("docs/stories.json is out of date — run scripts/check-docs.py --fix")
+        if not TRACEABILITY.exists() or TRACEABILITY.read_text(encoding="utf-8") != traceability:
+            problems.append("docs/traceability.md is out of date — run scripts/check-docs.py --fix")
 
     print(f"{len(known)} stories, {len(entries)} gotchas")
     for problem in problems:

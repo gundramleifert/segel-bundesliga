@@ -394,6 +394,21 @@ story ID in the docstring. New features are added to stories first, then tested.
   slower run, and that is useful in itself: it is what exposed a duplicate `h1` a fast
   run never saw (docs/gotchas).
 
+  **One report over both suites: Allure** — `scripts/allure-report.sh` (`--no-e2e` for the
+  backend alone) runs pytest with `--alluredir`, the browser suite in evidence mode, and
+  renders `allure-report/` grouped by **story** (`allurerc.mjs`). No test carries an
+  Allure decorator: `api/tests/conftest.py` reads the story IDs from the docstrings,
+  `e2e/fixtures.ts` from the `describeStory` titles, both take titles, roles and phases
+  from `docs/stories.json`. A journey's `step()`s are Allure steps; videos, screenshots
+  and traces are attached. Chosen over ReportPortal (a server of ~11 containers) and the
+  test-management SaaS tools (a second home for the stories) on 2026-10-04.
+
+  **`docs/traceability.md`** is the static half: every story with the tests its `Tests:`
+  line names, the browser groups tagged with it and the journeys that walk it — including
+  the stories no test covers, which a test report cannot show. Generated with
+  `docs/stories.json` by `scripts/check-docs.py --fix`; `check.sh` fails when either is
+  stale.
+
   **One-time setup:** `sudo pnpm exec playwright install-deps chromium` (or
   `sudo apt install -y libnss3 libnspr4 libasound2t64`). Chromium will not start without these
   system libraries.

@@ -350,7 +350,7 @@ class TestTheCompleteLifecycle:
 
 
 class TestTheAdminEventList:
-    """As an organizer I want to see my drafts on the screen that finishes them."""
+    """Story VA-8: as an organizer I want to see my drafts on the screen that finishes them."""
 
     async def test_the_admin_list_shows_drafts_the_public_one_hides(self, client, caplog):
         """Story VA-8: the public list is the wrong list for the publishing screen.

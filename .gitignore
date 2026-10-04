@@ -51,6 +51,9 @@ test-results/
 /playwright-report/
 # Evidence mode (EVIDENCE=1): videos, screenshots, traces and the HTML report.
 /e2e-evidence/
+# Allure (scripts/allure-report.sh): raw results of both suites, and the rendered report.
+/allure-results/
+/allure-report/
 
 # Stale artifacts — not part of the project
 *.bak

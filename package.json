@@ -8,9 +8,13 @@
     "e2e:list": "playwright test --list",
     "e2e:evidence": "EVIDENCE=1 playwright test",
     "e2e:evidence:show": "playwright show-report e2e-evidence/report",
+    "report": "scripts/allure-report.sh",
     "typecheck": "web/node_modules/.bin/tsc -p tsconfig.json"
   },
   "devDependencies": {
-    "@playwright/test": "^1.62.1"
+    "@playwright/test": "^1.62.1",
+    "allure": "^3.20.0",
+    "allure-js-commons": "^3.13.0",
+    "allure-playwright": "^3.13.0"
   }
 }

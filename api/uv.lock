@@ -30,6 +30,32 @@ wheels = [
 ]
 
 [[package]]
+name = "allure-pytest"
+version = "2.16.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "allure-python-commons" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/12/e1/bf366fd5e97ac0d94584bbb5fdc0476741de8262ca401ac12b720451d7cf/allure_pytest-2.16.2.tar.gz", hash = "sha256:19912ee41c298e080ea4dbffaa3a2cbbc9ca93da14a664056192fc4609ec8eed", size = 17768, upload-time = "2026-09-29T14:06:31.457Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ba/57/29f41ee6f00e4d860f260b10d4672ffa781e97effe7d5c6c47fc1664c47b/allure_pytest-2.16.2-py3-none-any.whl", hash = "sha256:b16790e2f3749ffb2d3737ba443ba2eede8efba5226978847358fe2fd3e31303", size = 12496, upload-time = "2026-09-29T14:06:30.613Z" },
+]
+
+[[package]]
+name = "allure-python-commons"
+version = "2.16.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "pluggy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/84/91/2da69e393261aa9486d5c41543df4013a199d27911e27ec8de9da95e62d6/allure_python_commons-2.16.2.tar.gz", hash = "sha256:2df87131ae5cbd941e656a56261000189862ebcb71e4c4435879ee2a7c07daa1", size = 15780, upload-time = "2026-09-29T14:06:22.96Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8f/9c/9fdf49dd9652ae7bfade74e811a961b8461797a3325a6ba35652f3206013/allure_python_commons-2.16.2-py3-none-any.whl", hash = "sha256:0445f2745dfa8af70da1d3261cde2c83d44e7278c105f113ed050b61252f79bd", size = 16932, upload-time = "2026-09-29T14:06:21.875Z" },
+]
+
+[[package]]
 name = "annotated-doc"
 version = "0.0.5"
 source = { registry = "https://pypi.org/simple" }
@@ -153,6 +179,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ba/7a/15e37d45e7f7c94facc1e9148c0e455e8f33c08f0b8a0b1deb2c5171771b/asyncpg-0.31.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:8df714dba348efcc162d2adf02d213e5fab1bd9f557e1305633e851a61814a7a", size = 3429426, upload-time = "2025-11-24T23:26:41.032Z" },
     { url = "https://files.pythonhosted.org/packages/13/d5/71437c5f6ae5f307828710efbe62163974e71237d5d46ebd2869ea052d10/asyncpg-0.31.0-cp314-cp314t-win32.whl", hash = "sha256:1b41f1afb1033f2b44f3234993b15096ddc9cd71b21a42dbd87fc6a57b43d65d", size = 614495, upload-time = "2025-11-24T23:26:42.659Z" },
     { url = "https://files.pythonhosted.org/packages/3c/d7/8fb3044eaef08a310acfe23dae9a8e2e07d305edc29a53497e52bc76eca7/asyncpg-0.31.0-cp314-cp314t-win_amd64.whl", hash = "sha256:bd4107bb7cdd0e9e65fae66a62afd3a249663b844fa34d479f6d5b3bef9c04c3", size = 706062, upload-time = "2025-11-24T23:26:44.086Z" },
+]
+
+[[package]]
+name = "attrs"
+version = "26.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9a/8e/82a0fe20a541c03148528be8cac2408564a6c9a0cc7e9171802bc1d26985/attrs-26.1.0.tar.gz", hash = "sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32", size = 952055, upload-time = "2026-03-19T14:22:25.026Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl", hash = "sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309", size = 67548, upload-time = "2026-03-19T14:22:23.645Z" },
 ]
 
 [[package]]
@@ -1037,6 +1072,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "allure-pytest" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -1063,6 +1099,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "allure-pytest", specifier = ">=2.16.2" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
     { name = "ruff", specifier = ">=0.8" },
