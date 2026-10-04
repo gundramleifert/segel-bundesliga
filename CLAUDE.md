@@ -381,6 +381,12 @@ story ID in the docstring. New features are added to stories first, then tested.
   `scripts/check-docs.py` checks each ID is a real story. Only a group that covers no
   story ("Foundations") stays a plain `test.describe`.
 
+  **Journeys** (`docs/userstories/journeys.md`, `J-…`) are several stories in the order
+  they really happen, walked by one long test whose stretches are named with
+  `step("VA-7", "…")` — `tests/journeys.py` in pytest, `describeJourney` + `step` from
+  `e2e/fixtures.ts` in Playwright. `check-docs.py` holds the test to the journey's
+  numbered main steps, in order, and a journey is ● only when every story it walks is.
+
   **Evidence mode** — `EVIDENCE=1 playwright test` (`pnpm e2e:evidence`) records a video,
   a final screenshot and a full trace of every test, and writes an HTML report to
   `e2e-evidence/report/` (`pnpm e2e:evidence:show`): what each story's test actually

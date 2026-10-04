@@ -50,3 +50,33 @@ export function describeStory(title: string, body: () => void): void {
   }
   test.describe(title, { tag: match[1].split("/").map((id) => `@${id}`) }, body);
 }
+
+/** `test.describe` for a **journey** (`docs/userstories/journeys.md`): several stories in
+ * the order they really happen, walked by one long test.
+ *
+ * Tagged `@J-1` like a story group, so the report and `--grep "@J-1\b"` find it. Inside it,
+ * every stretch of the walk is a `step()`, and `scripts/check-docs.py` checks that those
+ * steps are the journey's numbered main steps, in order.
+ */
+export function describeJourney(title: string, body: () => void): void {
+  const match = /^(J-\d+): /.exec(title);
+  if (!match) {
+    throw new Error(`describeJourney: "${title}" must start with its journey ID, e.g. "J-1: …"`);
+  }
+  test.describe(title, { tag: [`@${match[1]}`] }, body);
+}
+
+/** One step of a journey: the story it walks through, and what happens in it.
+ *
+ * Playwright's `test.step` underneath, titled "VA-7: organizer draws the pairing list" —
+ * so the step is a chapter of the trace (evidence mode, `EVIDENCE=1`) and a failure names
+ * the step it happened in. The story is also recorded as an annotation, which puts it in
+ * the HTML report beside the test.
+ */
+export async function step<T>(story: string, what: string, body: () => Promise<T>): Promise<T> {
+  if (!/^[A-Z]+-\d+$/.test(story)) {
+    throw new Error(`step: "${story}" is not a story ID, e.g. "VA-7"`);
+  }
+  test.info().annotations.push({ type: "story", description: story });
+  return test.step(`${story}: ${what}`, body);
+}

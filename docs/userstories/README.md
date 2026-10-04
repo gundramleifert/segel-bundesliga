@@ -16,11 +16,12 @@ per phase.
 | [sailor.md](sailor.md) | Sailor: account, club, waiver, profile |
 | [visitor.md](visitor.md) | Visitor and fans: everything that is public |
 | [treasurer.md](treasurer.md) | Treasurer: the expense claims of an event, paid by its host club |
+| [journeys.md](journeys.md) | Journeys: several stories in the order they really happen, walked by one test |
 | [live.md](live.md) | Live and tracking — spectator, race committee and the phone on the boat share these; the plan is `docs/PLAN_LIVE_IMPLEMENTATION.md` |
 
 **Identifiers are permanent, files are not.** The letter records where a story was
 first told (`B` Visitor/Fan · `WL` Race Committee · `VA` Event Organizer · `V` Club Manager
-· `S` Sailor · `Z` Access · `A` Administration · `L` Live and tracking · `R` Editorial · `F` Finance) and
+· `S` Sailor · `Z` Access · `A` Administration · `L` Live and tracking · `R` Editorial · `F` Finance · `J` Journey) and
 never changes, because tests carry it. A story sits in the file of the person who tells
 it, so `A-5` is read in `visitor.md` and `Z-2` in `administration.md`. `scripts/check-docs.py`
 reads the whole folder: every `Tests:` reference must resolve, every story a test names

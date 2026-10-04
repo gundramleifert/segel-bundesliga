@@ -200,7 +200,7 @@ describeStory("VA-6: creating an event in three steps", () => {
   });
 });
 
-describeStory("VA-8/VA-9: from a draft to a running event", () => {
+describeStory("VA-8: from a draft to a running event", () => {
   test("an event with only a title is savable, and the panel says what is missing", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Draft Cup");

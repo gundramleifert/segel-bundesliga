@@ -149,7 +149,8 @@ entered clubs, the draw, publication and the start.
 
 Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
 `::TestPublication`, `::TestStarting`, `::TestFreezeAfterTheFirstRace`,
-`api/tests/stories/test_complete_lifecycle.py::TestTheAdminEventList`
+`api/tests/stories/test_complete_lifecycle.py::TestTheAdminEventList`,
+`e2e/lifecycle.spec.ts::VA-8: from a draft to a running event`
 
 ## Participants and their waivers
 
@@ -383,32 +384,11 @@ Tests: `api/tests/stories/test_event_closing.py`,
 
 ### VA-9 ● Run one event from end to end
 
-As the **association** I want **one test that walks the whole way — clubs, series, event,
-boats, clubs entered, draw, start, all races sailed, standings, freeze, protest** — so that
-**the steps are proven to fit together in the order they actually happen**.
+Moved: this is now **Journey [J-1](journeys.md#j-1--from-an-empty-series-to-a-scored-matchday)**
+— the same test, its steps named and checked in order. The ID stays, because tests and
+history carry it.
 
-Acceptance criteria:
-- Every individual step is already covered by its own story test. What this adds is the
-  **sequence**: each step's output really is the next step's input, through the HTTP API
-  only, with nothing reached around into the database.
-- It runs the catalog's **smallest** configuration (12 clubs, 6 boats, 8 flights = 16
-  races), not the league's 48 — small enough to sail to the end in a test, large enough to
-  be a real pairing list rather than a hand-made fixture.
-- Deliberately **one long test**, not several: a step that only makes sense after the
-  previous one has happened cannot be a test that runs on its own.
-- It asserts the things that are wrong only *in sequence*: that a draw refuses while the
-  clubs are still being added, that an event saves with no date because the date is agreed
-  later, that a series' registrations gate who may enter its events, that the whole fleet's
-  points add up to what 16 races hand out, and that a protest decision still lands after
-  the configuration has frozen.
-- **The drawn list ends up on paper.** Once the event is published, the PDF endpoint
-  answers the sheet ([B-3](visitor.md#b-3--view-pairing-list)) — a real PDF where the
-  server can print, and a clear "cannot print here" where it cannot, so the test never
-  skips silently. The browser walk ends the same way: the wizard's last screen offers the
-  download and the file arrives.
-
-Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`,
-`e2e/lifecycle.spec.ts::VA-8/VA-9: from a draft to a running event`
+Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
 
 ## After the racing
 

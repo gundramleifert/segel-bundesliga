@@ -15,7 +15,9 @@ happened does not belong in a test that can run on its own.
 
 The configuration is the catalog's smallest: **12 clubs, 6 boats, 8 flights** — two races
 per flight, 16 races in all, small enough to actually sail to the end here and still a
-real pairing list. Stories A-1, A-4, VA-6, VA-7, VA-8, WL-2, B-1.
+real pairing list. Journey J-1 (``docs/userstories/journeys.md``) — each ``step(...)`` below
+is one of its numbered steps, in order; Stories A-1, A-6, VA-6, VA-7, VA-8, B-3, WL-2,
+B-1, VA-10.
 """
 
 from sqlalchemy import select
@@ -23,6 +25,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import Event, EventStatus
 from app.models.auth import Role
+from tests.journeys import step
 from tests.pages import all_items
 from tests.stories.test_create_event import admin
 from tests.stories.test_login_and_roles import login_as, make_user
@@ -56,6 +59,7 @@ class TestTheCompleteLifecycle:
         headers = await admin(client, caplog, "lifecycle@example.com")
 
         # ---------------------------------------------------------- 1. Clubs (A-1)
+        step("A-1", "admin creates 12 clubs; none is public yet")
         club_ids: list[int] = []
         for index in range(TEAMS):
             created = await client.post(
@@ -75,7 +79,8 @@ class TestTheCompleteLifecycle:
         public_clubs = {club["id"] for club in await all_items(client, "/api/clubs")}
         assert not set(club_ids) & public_clubs
 
-        # ------------------------------------------------- 2. A series, as a draft (A-4)
+        # ------------------------------------------------- 2. A series, as a draft (A-6)
+        step("A-6", "admin creates the series with the 12 clubs, as a draft")
         series = await client.post(
             "/api/admin/series",
             headers=headers,
@@ -96,6 +101,7 @@ class TestTheCompleteLifecycle:
         assert series_id not in listed
         assert (await client.get(f"/api/series/{series_id}/table")).status_code == 404
 
+        step("VA-8", "admin publishes the series")
         published = await client.post(f"/api/admin/series/{series_id}/publish", headers=headers)
         assert published.status_code == 200, published.text
         assert published.json()["published"] is True
@@ -103,6 +109,7 @@ class TestTheCompleteLifecycle:
         assert series_id in listed
 
         # ------------------------------- 3. An event with nothing but a name (VA-6, VA-8)
+        step("VA-6", "organizer creates the event with a title and boats only")
         # Deliberately no date and the wrong dimensions: the host has not confirmed the
         # weekend yet, and this is what an organizer actually has at this point.
         event = await client.post(
@@ -125,6 +132,7 @@ class TestTheCompleteLifecycle:
         assert event_id not in {row["id"] for row in await all_items(client, "/api/events")}
 
         # ------------------------------------------- 4. What is missing, and fixing it
+        step("VA-8", "the readiness says what is missing, and the organizer fixes it")
         report = (
             await client.get(f"/api/admin/events/{event_id}/readiness", headers=headers)
         ).json()
@@ -171,6 +179,7 @@ class TestTheCompleteLifecycle:
         assert report["configuration_frozen"] is False
 
         # ------------------------------------------------------ 5. The draw (VA-7)
+        step("VA-7", "organizer draws the pairing list from the catalog, and again")
         drawn = await client.post(
             f"/api/admin/events/{event_id}/pairing/from-catalog",
             headers=headers,
@@ -193,11 +202,13 @@ class TestTheCompleteLifecycle:
         ).status_code == 200
 
         # ------------------------------------------- 6. Publish, then start (VA-8)
+        step("VA-8", "organizer publishes the event")
         assert (
             await client.post(f"/api/admin/events/{event_id}/publish", headers=headers)
         ).status_code == 200
         assert event_id in {row["id"] for row in await all_items(client, "/api/events")}
 
+        step("B-3", "the pairing list prints, or the server says it cannot")
         # The drawn list ends up on paper (B-3): the sheet is public now, and the same
         # endpoint says whether this server can print. Asserted either way rather than
         # skipped, so an installation without Java still proves the endpoint answers
@@ -218,11 +229,13 @@ class TestTheCompleteLifecycle:
             assert sheet.status_code == 503
             assert sheet.json()["type"].endswith("/pairing-pdf-unavailable")
 
+        step("VA-8", "organizer starts the event")
         started = await client.post(f"/api/admin/events/{event_id}/start", headers=headers)
         assert started.status_code == 200, started.text
         assert started.json()["status"] == "live"
 
         # ------------------------------------------------- 7. Sail all 16 races (WL-2)
+        step("WL-2", "race committee enters all 16 races")
         races = (await client.get(f"/api/admin/events/{event_id}/races", headers=headers)).json()
         assert len(races["races"]) == TOTAL_RACES, len(races["races"])
         assert len(races["boats"]) == BOATS
@@ -260,6 +273,7 @@ class TestTheCompleteLifecycle:
         assert sum(row["total"] for row in standings) == TOTAL_RACES * sum(range(1, BOATS + 1))
         assert [row["rank"] for row in standings] == list(range(1, TEAMS + 1))
 
+        step("B-1", "the series table has the act in it")
         # ...and the series table now has this act in it (Story B-1). The series scores
         # *placements*, not race points: one act, so every club's series points are its
         # rank in it, and nobody missed the act.
@@ -272,6 +286,7 @@ class TestTheCompleteLifecycle:
         assert all(not row["missed_matchdays"] for row in table["rows"])
 
         # -------------------------------------- 8. The configuration is frozen (VA-8)
+        step("VA-8", "the configuration is frozen, the title is not")
         frozen = await client.patch(
             f"/api/admin/events/{event_id}",
             headers=headers,
@@ -298,6 +313,7 @@ class TestTheCompleteLifecycle:
         assert renamed.status_code == 200, renamed.text
 
         # ------------------------------- 9. A protest decision, months later (WL-2)
+        step("WL-2", "the jury disqualifies a winner months later")
         # The freeze deliberately never covers results. This is the whole purpose of the
         # race-committee screens, so it has to work after the event is over.
         first_race = races["races"][0]
@@ -320,6 +336,7 @@ class TestTheCompleteLifecycle:
         assert disqualified["total"] > 1 * FLIGHTS
 
         # ------------------------------------------------------- 10. Wrapping up
+        step("VA-10", "the race committee declares the event final")
         final = await client.patch(
             f"/api/admin/events/{event_id}", headers=headers, json={"status": "final"}
         )

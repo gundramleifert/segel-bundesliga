@@ -44,6 +44,12 @@ STORY_MENTION = re.compile(r"\b(?:Stor(?:y|ies)\s+)((?:[A-Z]+-\d+)(?:[,\s]+(?:an
 # An e2e spec names its stories in the title it hands `describeStory` ("VA-8/VA-9: …");
 # `e2e/fixtures.ts` turns them into tags, so an unknown one would be a tag for nothing.
 E2E_STORY_TITLE = re.compile(r"describeStory\(\s*\"(?P<ids>[A-Z]+-\d+(?:/[A-Z]+-\d+)*):")
+# A journey test's steps: `step("VA-7", …)` in pytest (`api/tests/journeys.py`) and in a
+# Playwright `describeJourney` (`e2e/fixtures.ts`) — never Playwright's own `test.step`.
+STEP_CALL = re.compile(r"(?<![.\w])step\(\s*\"(?P<id>[A-Z]+-\d+)\"")
+E2E_JOURNEY_TITLE = re.compile(r"describeJourney\(\s*\"(?P<ids>J-\d+):")
+# In a journey's section: "3. VA-8  …" is a main step, "5a. VA-8  …" a variation.
+JOURNEY_STEP = re.compile(r"^(?P<number>\d+)(?P<variant>[a-z]?)\.\s+(?P<id>[A-Z]+-\d+)\s", re.M)
 
 REQUIRED_SECTIONS = ("**Symptom**", "**Cause**", "**Rule**", "**Evidence**")
 
@@ -139,11 +145,81 @@ def check_test_story_ids(known: set[str]) -> list[str]:
         groups = STORY_MENTION.findall(text)
         if path.suffix == ".ts":
             groups += [m.group("ids") for m in E2E_STORY_TITLE.finditer(text)]
+            groups += [m.group("ids") for m in E2E_JOURNEY_TITLE.finditer(text)]
+        groups += [m.group("id") for m in STEP_CALL.finditer(text)]
         for group in groups:
             for story in re.findall(r"[A-Z]+-\d+", group):
                 if story not in known:
                     rel = path.relative_to(ROOT)
                     problems.append(f"{rel} names story {story}, which is not in docs/userstories/")
+    return problems
+
+
+def _test_region(reference: str) -> str | None:
+    """The source of the one test a `Tests:` reference names — a pytest function
+    (`path::Class::test_x`) or a Playwright journey (`e2e/x.spec.ts::J-1: title`)."""
+    path, _, node = reference.partition("::")
+    file = ROOT / path
+    if not file.is_file() or not node:
+        return None
+    source = file.read_text(encoding="utf-8")
+    if path.endswith(".py"):
+        leaf = node.split("::")[-1]
+        m = re.search(rf"^(?P<indent>[ \t]*)(?:async )?def {re.escape(leaf)}\(", source, re.M)
+        if not m:
+            return None
+        rest = source[m.end():]
+        end = re.search(rf"^[ \t]{{0,{len(m['indent'])}}}(?:async def|def|class) ", rest, re.M)
+        return rest[: end.start()] if end else rest
+    start = source.find(f'describeJourney("{node}"')
+    if start < 0:
+        return None
+    rest = source[start + 1:]
+    end = re.search(r"^(?:describeJourney|describeStory|test\.describe)\(", rest, re.M)
+    return rest[: end.start()] if end else rest
+
+
+def check_journeys(files: dict[str, str]) -> list[str]:
+    """A journey (`J-…`, docs/userstories/journeys.md) is walked by its tests step by step:
+    each test's `step(...)` IDs are the main steps, in order; every step is a real story;
+    and the journey is ● only when it has a test and every main step's story is ●."""
+    markers = {m["id"]: m["marker"] for text in files.values() for m in STORY_HEADING.finditer(text)}
+    problems: list[str] = []
+    for name, text in files.items():
+        for m in STORY_HEADING.finditer(text):
+            if not m["id"].startswith("J-"):
+                continue
+            journey = m["id"]
+            following = re.search(r"^### ", text[m.end():], re.M)
+            section = text[m.end(): m.end() + following.start()] if following else text[m.end():]
+            steps = list(JOURNEY_STEP.finditer(section))
+            main = [s["id"] for s in steps if not s["variant"]]
+            if not main:
+                problems.append(f"{name}: journey {journey} has no numbered steps")
+            for step in steps:
+                if step["id"] not in markers:
+                    problems.append(f"{name}: journey {journey} step {step['number']}{step['variant']} names {step['id']}, which is not a story")
+            tests_line = TESTS_LINE.search(section)
+            references = REFERENCE.findall(tests_line["body"]) if tests_line else []
+            for reference in references:
+                region = _test_region(reference)
+                if region is None:
+                    continue  # check_story_references reports a reference that does not resolve
+                walked = [c["id"] for c in STEP_CALL.finditer(region)]
+                if walked != main:
+                    problems.append(
+                        f"{name}: journey {journey} has steps {' → '.join(main)}, "
+                        f"but {reference} walks {' → '.join(walked) or 'no step(...) at all'}"
+                    )
+            weakest = [sid for sid in dict.fromkeys(main) if markers.get(sid) != "●"]
+            expected = "○" if not references else ("◐" if weakest else "●")
+            if m["marker"] != expected:
+                why = (
+                    "it has no test" if not references
+                    else f"{', '.join(f'{sid} is {markers.get(sid, '?')}' for sid in weakest)}" if weakest
+                    else "it has a test and every step is ●"
+                )
+                problems.append(f"{name}: journey {journey} is marked {m['marker']}, but must be {expected} — {why}")
     return problems
 
 
@@ -208,6 +284,7 @@ def main(argv: list[str]) -> int:
     problems += check_links(files)
     problems += check_story_references(files)
     problems += check_test_story_ids(known)
+    problems += check_journeys(files)
     gotcha_problems, entries = check_gotchas()
     problems += gotcha_problems
 
