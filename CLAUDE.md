@@ -373,6 +373,13 @@ story ID in the docstring. New features are added to stories first, then tested.
   `pnpm e2e:list` loads and enumerates every spec without starting a browser — the quickest
   check that a spec still parses.
 
+  **Evidence mode** — `EVIDENCE=1 playwright test` (`pnpm e2e:evidence`) records a video,
+  a final screenshot and a full trace of every test, and writes an HTML report to
+  `e2e-evidence/report/` (`pnpm e2e:evidence:show`): what each story's test actually
+  showed. Off by default — it about doubles the run and writes ~450 MB. It is also a
+  slower run, and that is useful in itself: it is what exposed a duplicate `h1` a fast
+  run never saw (docs/gotchas).
+
   **One-time setup:** `sudo pnpm exec playwright install-deps chromium` (or
   `sudo apt install -y libnss3 libnspr4 libasound2t64`). Chromium will not start without these
   system libraries.

@@ -49,6 +49,8 @@ playwright-report/
 test-results/
 /test-results/
 /playwright-report/
+# Evidence mode (EVIDENCE=1): videos, screenshots, traces and the HTML report.
+/e2e-evidence/
 
 # Stale artifacts — not part of the project
 *.bak

@@ -210,7 +210,11 @@ test.describe("B-4: as a visitor I find clubs and dates", () => {
 test.describe("Foundations", () => {
   test("the home page leads into a series", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    // One page, one name — counted only once the page has loaded. Checked straight after
+    // `goto`, a fast run saw the breadcrumb's heading alone and passed, while the hero
+    // rendered a second `h1` a moment later; only a slower run (video recording) caught it.
+    await expect(page.getByTestId("start-series-card-1")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
 
     await page.getByTestId("start-series-card-1").click();
     await expect(page).toHaveURL(/\/series\/1$/);

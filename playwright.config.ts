@@ -9,7 +9,15 @@ import { defineConfig, devices } from "@playwright/test";
  * The locale is pinned to `en-US`. English is the source language, so pinning it keeps the
  * assertions comparing against strings that live in `en/*.json` rather than against a
  * translation; the language switcher gets its own test instead (`visitor.spec.ts`).
+ *
+ * **Evidence mode** (`EVIDENCE=1`, or `pnpm e2e:evidence`): every test records a video, a
+ * final screenshot and a full trace, and the run writes an HTML report to
+ * `e2e-evidence/report/` — what was shown, step by step, for each story a test names.
+ * Off by default because it roughly doubles the run and writes hundreds of megabytes; a
+ * normal run keeps only a trace of a retried failure.
  */
+const evidence = !!process.env.EVIDENCE;
+
 export default defineConfig({
   testDir: "./e2e",
   // Parallel, with **one stack per worker**. The shared data was the problem — every spec
@@ -25,7 +33,13 @@ export default defineConfig({
   workers: 4,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? "github" : [["list"]],
+  reporter: evidence
+    ? [["list"], ["html", { outputFolder: "e2e-evidence/report", open: "never" }]]
+    : process.env.CI
+      ? "github"
+      : [["list"]],
+  // Beside the report, not inside it: the HTML reporter empties its own folder first.
+  outputDir: evidence ? "e2e-evidence/artifacts" : "test-results",
   use: {
     baseURL: "http://127.0.0.1:5173",
     locale: "en-US",
@@ -37,7 +51,9 @@ export default defineConfig({
     // Under `contextOptions`: as of Playwright 1.62 that is where this lives, and a
     // top-level `reducedMotion` is accepted by the config loader but has no effect.
     contextOptions: { reducedMotion: "reduce" },
-    trace: "on-first-retry",
+    trace: evidence ? "on" : "on-first-retry",
+    video: evidence ? "on" : "off",
+    screenshot: evidence ? "on" : "off",
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
