@@ -198,6 +198,7 @@
       "club_manager": "Vereinsmanager",
       "event_manager": "Veranstaltungsleitung",
       "jury": "Jury",
+      "treasurer": "Kassenwart",
       "club_admin": "Vereinsverwaltung",
       "series_manager": "Serienleitung"
     },
@@ -218,7 +219,8 @@
       "editor": "Redaktion",
       "manager": "Organisation",
       "race_officer": "Wettfahrtleitung",
-      "jury": "Jury"
+      "jury": "Jury",
+      "treasurer": "Kassenwart"
     },
     "objectTypeLabels": {
       "site": "Gesamte Seite",

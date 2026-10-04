@@ -198,6 +198,7 @@
       "club_manager": "Club manager",
       "event_manager": "Event manager",
       "jury": "Jury",
+      "treasurer": "Treasurer",
       "club_admin": "Club admin",
       "series_manager": "Series manager"
     },
@@ -218,7 +219,8 @@
       "editor": "Editor",
       "manager": "Manager",
       "race_officer": "Race officer",
-      "jury": "Jury"
+      "jury": "Jury",
+      "treasurer": "Treasurer"
     },
     "objectTypeLabels": {
       "site": "Whole site",

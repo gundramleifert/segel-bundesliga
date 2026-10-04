@@ -199,12 +199,12 @@ class TestMemberRoster:
         hanna = await _headers(client, caplog, "cm-hanna@example.org")
         await _write(client, admin, "cm-hanna@example.org", "member", f"club:{club}")
         await _write(client, admin, "cm-ingo@example.org", "member", f"club:{club}")
-        await _write(client, admin, "cm-ingo@example.org", "race_officer", f"club:{club}")
+        await _write(client, admin, "cm-ingo@example.org", "manager", f"club:{club}")
 
         roster = await _roster(client, hanna, club)
         assert [(m["display_name"], m["relations"]) for m in roster] == [
             ("cm-hanna", ["member"]),
-            ("cm-ingo", ["race_officer", "member"]),
+            ("cm-ingo", ["manager", "member"]),
         ]
         assert all("email" not in m for m in roster)
 

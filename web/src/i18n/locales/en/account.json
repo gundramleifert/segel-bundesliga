@@ -106,7 +106,8 @@
       "admin": "admin",
       "manager": "manager",
       "race_officer": "race officer",
-      "jury": "jury"
+      "jury": "jury",
+      "treasurer": "treasurer"
     }
   }
 }

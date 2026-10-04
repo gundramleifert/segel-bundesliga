@@ -487,7 +487,7 @@ class TestTuples:
         assert "define manager: [user]" in model["dsl"]
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
         assert by_type["site"] == ["admin", "editor", "race_officer"]
-        assert by_type["event"] == ["admin", "manager", "race_officer", "jury"]
+        assert by_type["event"] == ["admin", "manager", "race_officer", "jury", "treasurer"]
 
     async def test_the_same_tuple_twice_is_refused(self, client, caplog, ids):
         headers = await _admin_headers(client, caplog)
@@ -552,8 +552,10 @@ class TestTuples:
             f"/api/admin/events/{act_2}", headers=headers, json={"host_club_id": host}
         )
         assert patched.status_code == 200, patched.text
+        # A club has no race committee of its own; its admin is the event's admin, and the
+        # event's admin is its race committee.
         await make_user("gastgeber@example.org")
-        await _write(client, headers, "gastgeber@example.org", "race_officer", f"club:{host}")
+        await _write(client, headers, "gastgeber@example.org", "admin", f"club:{host}")
         response = await client.get(
             f"/api/admin/events/{act_2}/races",
             headers=await _headers(client, caplog, "gastgeber@example.org"),
@@ -719,7 +721,7 @@ class TestOrganizers:
         sport = await _headers(client, caplog, "byc-sport@example.org")
         body = {
             "user": "stranger@example.org",
-            "relation": "race_officer",
+            "relation": "treasurer",
             "object": f"club:{club}",
         }
 
@@ -729,11 +731,11 @@ class TestOrganizers:
 
         written = await client.post("/api/auth/tuples", headers=orga, json=body)
         assert written.status_code == 201, written.text
-        assert written.json()["relation"] == "race_officer"
+        assert written.json()["relation"] == "treasurer"
 
         model = (await client.get("/api/auth/model", headers=headers)).json()
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
-        assert by_type["club"] == ["admin", "manager", "race_officer", "member"]
+        assert by_type["club"] == ["admin", "manager", "member", "treasurer"]
         me = (await client.get("/api/auth/me", headers=orga)).json()
         assert sorted(me["roles"]) == [Role.CLUB_ADMIN, Role.CLUB_MANAGER]
         await client.delete(f"/api/auth/tuples/{written.json()['id']}", headers=orga)

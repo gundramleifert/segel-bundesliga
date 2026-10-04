@@ -131,19 +131,22 @@ The model — almost every relation is scoped by a club, a series or an event:
 - `club`: `admin` decides who is **in** the club — members (V-8, V-9), organizers (A-8),
   the club's crest (V-3), club assignment (Z-3), the club's tuples among its members;
   `manager` decides who **sails** — squads (V-1), lineups (V-2), registrations (V-5,
-  V-6); `race_officer` runs every event the club hosts.
+  V-6); `treasurer` pays the costs of every event the club hosts (Story F-1). A club
+  has no race committee of its own: the events it hosts get theirs from the event, the
+  series or the site, or from the club's admin, who is admin of those events.
 - `series`: `admin` (everything within the series, its events included, and its people),
   `manager` (participants, events, publication — a cup series run by someone other than
   the league office), `race_officer`, `jury`.
 - `event`: `admin` (everything within the event: setup, results, and who holds what on
   it), `manager` (the organizer of the event-organizer stories: setup, clubs, boats,
   schedules, publication — not the people), `race_officer` (results, race control,
-  trackers), `jury` (the protest committee; announcements, VA-11).
+  trackers), `jury` (the protest committee; announcements, VA-11), `treasurer` (checks
+  and pays the event's expense claims, F-1).
 
 The rewrite rules (`or … from …` in the DSL) say what implies what: an object's `admin`
 is each of its other relations; a series' admin, manager, race officer or jury is that of
-every event in the series; the host club's admin and race officer are those of every
-event it hosts; the site's editor and race committee are managers of every event — the
+every event in the series; the host club's admin, manager and treasurer are those of
+every event it hosts; the site's editor and race committee are managers of every event — the
 league's committee keeps the setup rights it always had, while a race officer appointed
 for one event only runs its races. Nothing else inherits.
 
@@ -177,8 +180,8 @@ Acceptance criteria:
   creation. See `docs/deploy.md`.
 
 **Summary roles.** The navigation and the help page still speak of roles; those are
-**derived** from the tuples (`User.roles`, `Role`): `admin`, `editor`, `race_officer`
-and `jury` for the relation held anywhere, `club_admin` for `admin` of some club,
+**derived** from the tuples (`User.roles`, `Role`): `admin`, `editor`, `race_officer`,
+`jury` and `treasurer` for the relation held anywhere, `club_admin` for `admin` of some club,
 `club_manager`, `series_manager` and `event_manager` for `manager` **or** `admin` of some
 club, series or event (an admin is a manager, says the model). Never a permission check —
 that is `User.can(relation, on=object)`.

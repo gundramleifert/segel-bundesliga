@@ -106,7 +106,8 @@
       "admin": "Verwaltung",
       "manager": "Organisation",
       "race_officer": "Wettfahrtleitung",
-      "jury": "Jury"
+      "jury": "Jury",
+      "treasurer": "Kassenwart"
     }
   }
 }

@@ -52,13 +52,20 @@ class Relation(StrEnum):
     """Club, series or event: the organizer. Runs the thing, names its people."""
 
     RACE_OFFICER = "race_officer"
-    """Site, club, series or event: the race committee — results, race control, trackers."""
+    """Site, series or event: the race committee — results, race control, trackers. A
+    club has none of its own: the events it hosts get theirs from the event, the series
+    or the site."""
 
     JURY = "jury"
     """Series or event: the protest committee. Publishes announcements, hears protests."""
 
     MEMBER = "member"
     """Club: belongs to it. Implies nothing else, and nothing implies it."""
+
+    TREASURER = "treasurer"
+    """Club or event: holds the money — checks and pays the expense claims of an event
+    (Story F-1). The host club pays its events' costs, so the host club's treasurer is
+    the treasurer of every event it hosts. Neither a series nor the site pays."""
 
 
 class ObjectType(StrEnum):
@@ -90,7 +97,8 @@ class ObjectType(StrEnum):
 #: committee keeps the setup rights it always had (``manager: … or race_officer from
 #: site``); a race officer appointed for one event only runs its races. Membership is the
 #: ``member`` tuple on a club — written by the club's admin, deleted by the member to
-#: leave — and implies nothing else.
+#: leave — and implies nothing else. ``treasurer`` holds the money: the host club pays its
+#: events' costs, so the club's treasurer is that of every event it hosts (Story F-1).
 MODEL = """
 model
   schema 1.1
@@ -107,8 +115,8 @@ type club
   relations
     define admin: [user] or admin from site
     define manager: [user] or admin
-    define race_officer: [user] or admin or race_officer from site
     define member: [user]
+    define treasurer: [user] or admin
 
 type series
   relations
@@ -123,8 +131,9 @@ type event
     define manager: [user] or admin or manager from series or manager from host_club
       or editor from site or race_officer from site
     define race_officer: [user] or admin or race_officer from series
-      or race_officer from host_club or race_officer from site
+      or race_officer from site
     define jury: [user] or admin or jury from series
+    define treasurer: [user] or admin or treasurer from host_club
 """
 
 #: One term of a ``define``: ``direct`` for ``[user]``, else the relation to check on
@@ -194,7 +203,8 @@ class Role(StrEnum):
     Derived from the tuples, never stored: ``club_admin`` means "admin of some club",
     ``club_manager`` "manager or admin of some club" (the model makes an admin a manager),
     ``series_manager`` and ``event_manager`` the same for a series or an event,
-    ``race_officer`` and ``jury`` "held on anything". The site relations keep their names.
+    ``race_officer``, ``jury`` and ``treasurer`` "held on anything". The site relations keep
+    their names.
     """
 
     ADMIN = "admin"
@@ -205,6 +215,7 @@ class Role(StrEnum):
     SERIES_MANAGER = "series_manager"
     EVENT_MANAGER = "event_manager"
     JURY = "jury"
+    TREASURER = "treasurer"
 
 
 class IdentityProvider(StrEnum):

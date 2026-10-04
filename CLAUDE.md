@@ -237,7 +237,9 @@ These points were deliberately decided this way; bypassing them costs a lot late
   DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`,
   `app/services/grants.py`). Object types `site`, `club`, `series`, `event`; relations
   `admin`/`editor` (site), `manager` (the organizer — club, series, event),
-  `race_officer` (all four), `jury` (series, event), and `admin` on every object —
+  `race_officer` (site, series, event), `jury` (series, event), `treasurer` (club,
+  event — the host club pays its events' costs, so its treasurer is every hosted event's,
+  Story F-1), and `admin` on every object —
   everything within it, people included; on a club the `admin` decides who is *in* it
   and the `manager` who *sails*. `or … from …` lines say what implies what: an object's
   admin is each of its relations, a series' people are its events', the host club's
