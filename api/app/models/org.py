@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
+    JSON,
     CheckConstraint,
     Date,
     DateTime,
@@ -59,6 +60,11 @@ class Club(Base, TimestampMixin):
     description: Mapped[str | None] = mapped_column(String(2000), default=None)
     lat: Mapped[float | None] = mapped_column(Numeric(9, 6), default=None)
     lon: Mapped[float | None] = mapped_column(Numeric(9, 6), default=None)
+    # The rates this club reimburses for the events it hosts — km rate, per-diem, which
+    # costs need a document, who may claim (Stories F-2, F-5). JSON like
+    # ``Series.scoring``: rates differ between clubs and change between years, and nothing
+    # queries them. Empty is the normal case and means the site's default.
+    expense_policy: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
 
     teams: Mapped[list[Team]] = relationship(back_populates="club")
 

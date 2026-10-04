@@ -2,6 +2,18 @@ from app.models.auth import Grant, ObjectType, Relation, Role, User
 from app.models.base import Base, TimestampMixin
 from app.models.common import AuditLog, ExternalId, ImportRun, Source
 from app.models.competition import Event, EventStatus, Series, Venue
+from app.models.finance import (
+    ClaimStatus,
+    ExpenseClaim,
+    ExpenseDocument,
+    ExpenseItem,
+    ExpenseKind,
+    Payment,
+    PaymentAllocation,
+    PaymentMethod,
+    PaymentState,
+    PaymentStatus,
+)
 from app.models.org import (
     Club,
     CrewRole,
@@ -26,6 +38,16 @@ from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "PaymentStatus",
+    "PaymentState",
+    "PaymentMethod",
+    "PaymentAllocation",
+    "Payment",
+    "ExpenseKind",
+    "ExpenseItem",
+    "ExpenseDocument",
+    "ExpenseClaim",
+    "ClaimStatus",
     "AuditLog",
     "Course",
     "Fix",

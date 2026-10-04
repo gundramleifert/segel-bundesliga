@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 64c7606ccd58
+Revision ID: 2337859c5222
 Revises: 
-Create Date: 2026-09-25 21:44:13.936958
+Create Date: 2026-10-04 20:49:25.126311
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '64c7606ccd58'
+revision: str = '2337859c5222'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -57,6 +57,7 @@ def upgrade() -> None:
     sa.Column('description', sa.String(length=2000), nullable=True),
     sa.Column('lat', sa.Numeric(precision=9, scale=6), nullable=True),
     sa.Column('lon', sa.Numeric(precision=9, scale=6), nullable=True),
+    sa.Column('expense_policy', sa.JSON(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_club'))
@@ -229,6 +230,31 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_identity_provider'), ['provider'], unique=False)
         batch_op.create_index(batch_op.f('ix_identity_user_id'), ['user_id'], unique=False)
 
+    op.create_table('payment',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('payer_club_id', sa.Integer(), nullable=False),
+    sa.Column('payee_user_id', sa.Integer(), nullable=True),
+    sa.Column('payee_name', sa.String(length=160), nullable=False),
+    sa.Column('iban', sa.String(length=34), nullable=True),
+    sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('method', sa.String(length=16), nullable=False),
+    sa.Column('reference', sa.String(length=140), nullable=True),
+    sa.Column('issued_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('issued_on', sa.Date(), nullable=True),
+    sa.Column('settled_on', sa.Date(), nullable=True),
+    sa.Column('failure_reason', sa.String(length=200), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['issued_by_user_id'], ['app_user.id'], name=op.f('fk_payment_issued_by_user_id_app_user')),
+    sa.ForeignKeyConstraint(['payee_user_id'], ['app_user.id'], name=op.f('fk_payment_payee_user_id_app_user')),
+    sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_payment_payer_club_id_club')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_payment'))
+    )
+    with op.batch_alter_table('payment', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_payment_payee_user_id'), ['payee_user_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_payer_club_id'), ['payer_club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_status'), ['status'], unique=False)
+
     op.create_table('access_grant',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -284,6 +310,34 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('course', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_course_event_id'), ['event_id'], unique=False)
+
+    op.create_table('expense_claim',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=False),
+    sa.Column('claimant_user_id', sa.Integer(), nullable=True),
+    sa.Column('claimant_name', sa.String(length=160), nullable=False),
+    sa.Column('payer_club_id', sa.Integer(), nullable=True),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('payee_name', sa.String(length=160), nullable=True),
+    sa.Column('iban', sa.String(length=34), nullable=True),
+    sa.Column('submitted_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('decided_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('decided_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('decision_note', sa.String(length=1000), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['claimant_user_id'], ['app_user.id'], name=op.f('fk_expense_claim_claimant_user_id_app_user')),
+    sa.ForeignKeyConstraint(['decided_by_user_id'], ['app_user.id'], name=op.f('fk_expense_claim_decided_by_user_id_app_user')),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_expense_claim_event_id_event')),
+    sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_expense_claim_payer_club_id_club')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_expense_claim'))
+    )
+    with op.batch_alter_table('expense_claim', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_expense_claim_claimant_user_id'), ['claimant_user_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_expense_claim_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_expense_claim_payer_club_id'), ['payer_club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_expense_claim_status'), ['status'], unique=False)
 
     op.create_table('flight',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -393,6 +447,27 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_event_standing_event_id'), ['event_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_event_standing_team_id'), ['team_id'], unique=False)
 
+    op.create_table('expense_item',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('claim_id', sa.Integer(), nullable=False),
+    sa.Column('kind', sa.String(length=24), nullable=False),
+    sa.Column('incurred_on', sa.Date(), nullable=False),
+    sa.Column('description', sa.String(length=300), nullable=False),
+    sa.Column('distance_km', sa.Integer(), nullable=True),
+    sa.Column('rate_cents', sa.Integer(), nullable=True),
+    sa.Column('amount_cents', sa.Integer(), nullable=False),
+    sa.Column('approved_cents', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint("kind <> 'travel_car' OR (distance_km IS NOT NULL AND rate_cents IS NOT NULL AND amount_cents = distance_km * rate_cents)", name=op.f('ck_expense_item_car_is_distance_times_rate')),
+    sa.CheckConstraint('amount_cents >= 0', name=op.f('ck_expense_item_amount_not_negative')),
+    sa.CheckConstraint('approved_cents IS NULL OR (approved_cents >= 0 AND approved_cents <= amount_cents)', name=op.f('ck_expense_item_approved_within_claimed')),
+    sa.ForeignKeyConstraint(['claim_id'], ['expense_claim.id'], name=op.f('fk_expense_item_claim_id_expense_claim')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_expense_item'))
+    )
+    with op.batch_alter_table('expense_item', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_expense_item_claim_id'), ['claim_id'], unique=False)
+
     op.create_table('mark',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('course_id', sa.Integer(), nullable=False),
@@ -408,6 +483,23 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('mark', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_mark_course_id'), ['course_id'], unique=False)
+
+    op.create_table('payment_allocation',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('payment_id', sa.Integer(), nullable=False),
+    sa.Column('claim_id', sa.Integer(), nullable=False),
+    sa.Column('amount_cents', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('amount_cents > 0', name=op.f('ck_payment_allocation_amount_positive')),
+    sa.ForeignKeyConstraint(['claim_id'], ['expense_claim.id'], name=op.f('fk_payment_allocation_claim_id_expense_claim')),
+    sa.ForeignKeyConstraint(['payment_id'], ['payment.id'], name=op.f('fk_payment_allocation_payment_id_payment')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_payment_allocation')),
+    sa.UniqueConstraint('payment_id', 'claim_id', name=op.f('uq_payment_allocation_payment_id'))
+    )
+    with op.batch_alter_table('payment_allocation', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_payment_allocation_claim_id'), ['claim_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_allocation_payment_id'), ['payment_id'], unique=False)
 
     op.create_table('race',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -488,6 +580,28 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_tracker_device_token'), ['device_token'], unique=True)
         batch_op.create_index(batch_op.f('ix_tracker_event_id'), ['event_id'], unique=False)
 
+    op.create_table('expense_document',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('claim_id', sa.Integer(), nullable=False),
+    sa.Column('item_id', sa.Integer(), nullable=True),
+    sa.Column('stored_name', sa.String(length=64), nullable=False),
+    sa.Column('original_name', sa.String(length=255), nullable=False),
+    sa.Column('content_type', sa.String(length=64), nullable=False),
+    sa.Column('size_bytes', sa.Integer(), nullable=False),
+    sa.Column('uploaded_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('size_bytes > 0 AND size_bytes <= 10485760', name=op.f('ck_expense_document_size_within_limit')),
+    sa.ForeignKeyConstraint(['claim_id'], ['expense_claim.id'], name=op.f('fk_expense_document_claim_id_expense_claim')),
+    sa.ForeignKeyConstraint(['item_id'], ['expense_item.id'], name=op.f('fk_expense_document_item_id_expense_item'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['uploaded_by_user_id'], ['app_user.id'], name=op.f('fk_expense_document_uploaded_by_user_id_app_user')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_expense_document')),
+    sa.UniqueConstraint('stored_name', name=op.f('uq_expense_document_stored_name'))
+    )
+    with op.batch_alter_table('expense_document', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_expense_document_claim_id'), ['claim_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_expense_document_item_id'), ['item_id'], unique=False)
+
     op.create_table('fix',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('tracker_id', sa.Integer(), nullable=False),
@@ -544,6 +658,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_fix_t'))
 
     op.drop_table('fix')
+    with op.batch_alter_table('expense_document', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_expense_document_item_id'))
+        batch_op.drop_index(batch_op.f('ix_expense_document_claim_id'))
+
+    op.drop_table('expense_document')
     with op.batch_alter_table('tracker', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_tracker_event_id'))
         batch_op.drop_index(batch_op.f('ix_tracker_device_token'))
@@ -565,10 +684,19 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_race_flight_id'))
 
     op.drop_table('race')
+    with op.batch_alter_table('payment_allocation', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_payment_allocation_payment_id'))
+        batch_op.drop_index(batch_op.f('ix_payment_allocation_claim_id'))
+
+    op.drop_table('payment_allocation')
     with op.batch_alter_table('mark', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_mark_course_id'))
 
     op.drop_table('mark')
+    with op.batch_alter_table('expense_item', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_expense_item_claim_id'))
+
+    op.drop_table('expense_item')
     with op.batch_alter_table('event_standing', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_event_standing_team_id'))
         batch_op.drop_index(batch_op.f('ix_event_standing_event_id'))
@@ -601,6 +729,13 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_flight_event_id'))
 
     op.drop_table('flight')
+    with op.batch_alter_table('expense_claim', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_expense_claim_status'))
+        batch_op.drop_index(batch_op.f('ix_expense_claim_payer_club_id'))
+        batch_op.drop_index(batch_op.f('ix_expense_claim_event_id'))
+        batch_op.drop_index(batch_op.f('ix_expense_claim_claimant_user_id'))
+
+    op.drop_table('expense_claim')
     with op.batch_alter_table('course', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_course_event_id'))
 
@@ -617,6 +752,12 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_access_grant_club_id'))
 
     op.drop_table('access_grant')
+    with op.batch_alter_table('payment', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_payment_status'))
+        batch_op.drop_index(batch_op.f('ix_payment_payer_club_id'))
+        batch_op.drop_index(batch_op.f('ix_payment_payee_user_id'))
+
+    op.drop_table('payment')
     with op.batch_alter_table('identity', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_identity_user_id'))
         batch_op.drop_index(batch_op.f('ix_identity_provider'))
