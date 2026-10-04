@@ -41,6 +41,9 @@ REFERENCE = re.compile(r"`((?:api|e2e)/[\w./-]+(?:::[\w:]+)?)`")
 TESTS_LINE = re.compile(r"^Tests: (?P<body>.+?)(?=\n\n|\n### |\Z)", re.M | re.S)
 # "Story VA-8", "Stories A-1, A-4 and VA-6", "VA-10:" at the start of a docstring line.
 STORY_MENTION = re.compile(r"\b(?:Stor(?:y|ies)\s+)((?:[A-Z]+-\d+)(?:[,\s]+(?:and\s+)?[A-Z]+-\d+)*)")
+# An e2e spec names its stories in the title it hands `describeStory` ("VA-8/VA-9: …");
+# `e2e/fixtures.ts` turns them into tags, so an unknown one would be a tag for nothing.
+E2E_STORY_TITLE = re.compile(r"describeStory\(\s*\"(?P<ids>[A-Z]+-\d+(?:/[A-Z]+-\d+)*):")
 
 REQUIRED_SECTIONS = ("**Symptom**", "**Cause**", "**Rule**", "**Evidence**")
 
@@ -133,7 +136,10 @@ def check_test_story_ids(known: set[str]) -> list[str]:
     problems: list[str] = []
     for path in sorted((ROOT / "api" / "tests").rglob("test_*.py")) + sorted((ROOT / "e2e").glob("*.spec.ts")):
         text = path.read_text(encoding="utf-8")
-        for group in STORY_MENTION.findall(text):
+        groups = STORY_MENTION.findall(text)
+        if path.suffix == ".ts":
+            groups += [m.group("ids") for m in E2E_STORY_TITLE.finditer(text)]
+        for group in groups:
             for story in re.findall(r"[A-Z]+-\d+", group):
                 if story not in known:
                     rel = path.relative_to(ROOT)

@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { describeStory, expect, test } from "./fixtures";
 
 /** Stories L-1, L-2 and the goal of 2026-09-15: a whole race, simulated, on a real map.
  *
@@ -14,7 +14,7 @@ import { expect, test } from "./fixtures";
 
 const LIVE_EVENT = 2; // dsbl-1-2026-act-2, live and two-thirds sailed
 
-test.describe("L-1/L-2: as a spectator I watch a simulated race on the map", () => {
+describeStory("L-1/L-2: as a spectator I watch a simulated race on the map", () => {
   test("the boats move, are ranked with a speed, finish, and the next race is up", async ({
     page,
     request,

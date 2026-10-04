@@ -373,6 +373,14 @@ story ID in the docstring. New features are added to stories first, then tested.
   `pnpm e2e:list` loads and enumerates every spec without starting a browser — the quickest
   check that a spec still parses.
 
+  **Every group of tests that covers a story is a `describeStory("VA-8/VA-9: …", …)`**
+  (`e2e/fixtures.ts`), not a bare `test.describe`: the IDs at the start of the title become
+  Playwright tags, so the HTML report filters by story and `playwright test --grep
+  "@VA-8\b"` runs one story's tests (the `\b` matters — `--grep` is a regex, and `@V-1`
+  alone also matches `@V-10`). A title without IDs is refused at load, and
+  `scripts/check-docs.py` checks each ID is a real story. Only a group that covers no
+  story ("Foundations") stays a plain `test.describe`.
+
   **Evidence mode** — `EVIDENCE=1 playwright test` (`pnpm e2e:evidence`) records a video,
   a final screenshot and a full trace of every test, and writes an HTML report to
   `e2e-evidence/report/` (`pnpm e2e:evidence:show`): what each story's test actually

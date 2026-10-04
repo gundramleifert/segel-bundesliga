@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import type { Page, TestInfo } from "@playwright/test";
 
-import { expect, test } from "./fixtures";
+import { describeStory, expect, test } from "./fixtures";
 
 import { expectNoSidewaysScroll, openNavigation } from "./layout";
 import { bearer, signIn } from "./session";
@@ -139,7 +139,7 @@ async function backToTheList(page: Page): Promise<void> {
   await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
 }
 
-test.describe("VA-6: creating an event in three steps", () => {
+describeStory("VA-6: creating an event in three steps", () => {
   test("the steps are walked in order, and each later one can be left for the panel", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Stepwise Cup");
@@ -200,7 +200,7 @@ test.describe("VA-6: creating an event in three steps", () => {
   });
 });
 
-test.describe("VA-8/VA-9: from a draft to a running event", () => {
+describeStory("VA-8/VA-9: from a draft to a running event", () => {
   test("an event with only a title is savable, and the panel says what is missing", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Draft Cup");
@@ -375,7 +375,7 @@ test.describe("VA-8/VA-9: from a draft to a running event", () => {
   });
 });
 
-test.describe("VA-10: closing an event, and taking it back", () => {
+describeStory("VA-10: closing an event, and taking it back", () => {
   test("a running event is declared over, then resumed", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Closing Act");
@@ -442,7 +442,7 @@ test.describe("VA-10: closing an event, and taking it back", () => {
   });
 });
 
-test.describe("A-11: the admin screen is organized in tabs", () => {
+describeStory("A-11: the admin screen is organized in tabs", () => {
   test("the tab is in the URL, survives a reload, and mounts only its own area", async ({
     page,
   }, testInfo) => {
@@ -481,7 +481,7 @@ test.describe("A-11: the admin screen is organized in tabs", () => {
   });
 });
 
-test.describe("A-13: every long list pages, sorts and searches — in the URL", () => {
+describeStory("A-13: every long list pages, sorts and searches — in the URL", () => {
   test("a page, a sort and a search can be linked and survive a reload", async ({
     page,
   }, testInfo) => {
@@ -539,7 +539,7 @@ test.describe("A-13: every long list pages, sorts and searches — in the URL", 
   });
 });
 
-test.describe("Z-2: access is a relation tuple, written and deleted one at a time", () => {
+describeStory("Z-2: access is a relation tuple, written and deleted one at a time", () => {
   test("a race officer for one event is granted from the Accounts tab and revoked again", async ({
     page,
   }, testInfo) => {
@@ -580,7 +580,7 @@ test.describe("Z-2: access is a relation tuple, written and deleted one at a tim
   });
 });
 
-test.describe("Z-8: the account page lists my clubs, series and events", () => {
+describeStory("Z-8: the account page lists my clubs, series and events", () => {
   test("the one-event organizer sees that event, and empty club and series sections", async ({
     page,
   }) => {
@@ -606,7 +606,7 @@ test.describe("Z-8: the account page lists my clubs, series and events", () => {
   });
 });
 
-test.describe("V-12: a club manager manages their own squad", () => {
+describeStory("V-12: a club manager manages their own squad", () => {
   /** A seeded account holding `club_manager`, found rather than hardcoded.
    *
    *  The seed builds its names from a generated list, so `roden.nanisberg1@nrv.example.com`
@@ -698,7 +698,7 @@ test.describe("V-12: a club manager manages their own squad", () => {
   });
 });
 
-test.describe("A-1/V-3: clubs and their crests", () => {
+describeStory("A-1/V-3: clubs and their crests", () => {
   test("a created club appears in the admin list and is not public yet", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Sailing Club");
@@ -736,7 +736,7 @@ test.describe("A-1/V-3: clubs and their crests", () => {
   });
 });
 
-test.describe("VA-8: a series is published the same way", () => {
+describeStory("VA-8: a series is published the same way", () => {
   test("a new series starts as a draft and the row publishes it", async ({ page }, testInfo) => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Trophy");

@@ -1,6 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
-import { expect, test } from "./fixtures";
+import { describeStory, expect, test } from "./fixtures";
 import { bearer, signIn } from "./session";
 
 /** Stories S-1 and VA-5: the liability waiver, from the sailor's own account.
@@ -57,7 +57,7 @@ test.beforeAll(async ({ request }, testInfo) => {
   expect(junior, "a seeded junior of the club").toBeTruthy();
 });
 
-test.describe("S-1: as a sailor I submit the liability waiver from my account", () => {
+describeStory("S-1: as a sailor I submit the liability waiver from my account", () => {
   test("an adult reads the wording and confirms it online", async ({ page }) => {
     await signIn(page, adult.email!);
     await openAccount(page);
@@ -112,7 +112,7 @@ test.describe("S-1: as a sailor I submit the liability waiver from my account", 
   });
 });
 
-test.describe("VA-5: as the organizer I only check off what is on file", () => {
+describeStory("VA-5: as the organizer I only check off what is on file", () => {
   test("the event panel lists the squads' waivers and opens a minor's form", async ({
     page,
     request,

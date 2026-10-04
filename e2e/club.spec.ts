@@ -1,6 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
-import { expect, test } from "./fixtures";
+import { describeStory, expect, test } from "./fixtures";
 import { openNavigation } from "./layout";
 import { bearer, signIn } from "./session";
 
@@ -46,7 +46,7 @@ async function openMyClub(
   await expect(page.getByTestId(`my-club-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
 }
 
-test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /club", () => {
+describeStory("V-2/V-12: as a club manager I name the crew for a matchday from /club", () => {
   test("the matchdays are listed and a crew is named from the squad", async ({ page, request }) => {
     const manager = await aClubManager(request);
     // A fresh browser context remembers no club, so a bare `/club` opens the one this
@@ -148,7 +148,7 @@ test.describe("V-2/V-12: as a club manager I name the crew for a matchday from /
   });
 });
 
-test.describe("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, the member leaves", () => {
+describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, the member leaves", () => {
   test("the club's admin adds someone as member, they see the roster and leave again", async ({
     page,
     request,

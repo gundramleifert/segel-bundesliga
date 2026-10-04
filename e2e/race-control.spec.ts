@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { describeStory, expect, test } from "./fixtures";
 import { bearer, signIn } from "./session";
 
 /** Story WL-3: start, recall and finish races from one screen, in a real browser.
@@ -17,7 +17,7 @@ import { bearer, signIn } from "./session";
 const LIVE_EVENT = 2; // dsbl-1-2026-act-2
 const COMMITTEE = "admin@sbl.example.com";
 
-test.describe("WL-3: as race committee I run one race at a time", () => {
+describeStory("WL-3: as race committee I run one race at a time", () => {
   test("start, tap every boat in finish order, finish — and the next race is up", async ({
     page,
   }) => {

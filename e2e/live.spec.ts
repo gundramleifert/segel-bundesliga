@@ -1,6 +1,6 @@
 import type { APIRequestContext } from "@playwright/test";
 
-import { expect, test } from "./fixtures";
+import { describeStory, expect, test } from "./fixtures";
 import { bearer } from "./session";
 
 /** Story B-5: follow live updates, in a real browser.
@@ -25,7 +25,7 @@ interface AdminRace {
   entries: { boat_number: number; code: string | null }[];
 }
 
-test.describe("B-5: as a spectator I follow live updates", () => {
+describeStory("B-5: as a spectator I follow live updates", () => {
   test("a result entered elsewhere changes the page without a reload", async ({
     browser,
     page,

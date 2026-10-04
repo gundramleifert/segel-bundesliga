@@ -30,3 +30,23 @@ export const test = base.extend<object, { stackBaseURL: string }>({
 });
 
 export { expect } from "@playwright/test";
+
+/** The story IDs at the start of a describe title: "VA-8/VA-9: from a draft …". */
+const STORY_TITLE = /^([A-Z]+-\d+(?:\/[A-Z]+-\d+)*): /;
+
+/** `test.describe` for a group of tests that covers user stories — tagged with them.
+ *
+ * The title stays the one place a spec names its stories, as it always did; this turns
+ * those IDs into Playwright tags (`@VA-8`, `@VA-9`). The HTML report then filters by story
+ * (one click on a tag), `--grep @VA-8` runs one story's tests, and the evidence report
+ * (`EVIDENCE=1`) shows each story's videos together. A title without IDs is refused
+ * rather than quietly left untagged, and `scripts/check-docs.py` checks every ID is a
+ * real story. A group that covers no story ("Foundations") uses plain `test.describe`.
+ */
+export function describeStory(title: string, body: () => void): void {
+  const match = STORY_TITLE.exec(title);
+  if (!match) {
+    throw new Error(`describeStory: "${title}" must start with its story IDs, e.g. "VA-8/VA-9: …"`);
+  }
+  test.describe(title, { tag: match[1].split("/").map((id) => `@${id}`) }, body);
+}

@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { describeStory, expect, test } from "./fixtures";
 
 import {
   chooseLanguage,
@@ -42,7 +42,7 @@ const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/privacy", "privacy-last-updated"],
 ];
 
-test.describe("B-1: as a fan I see the series standings", () => {
+describeStory("B-1: as a fan I see the series standings", () => {
   test("the table lists all 18 clubs in ranks 1 to 18", async ({ page }) => {
     await page.goto(FIRST_SERIES);
 
@@ -123,7 +123,7 @@ test.describe("B-1: as a fan I see the series standings", () => {
   });
 });
 
-test.describe("B-2: as a fan I read up on how a matchday went", () => {
+describeStory("B-2: as a fan I read up on how a matchday went", () => {
   test("the finished matchday shows a complete set of results", async ({ page }) => {
     await page.goto(FINISHED_EVENT);
 
@@ -140,7 +140,7 @@ test.describe("B-2: as a fan I read up on how a matchday went", () => {
   });
 });
 
-test.describe("B-3: as a sailor I see when I am on which boat", () => {
+describeStory("B-3: as a sailor I see when I am on which boat", () => {
   test("the pairing list names the boats by their colour", async ({ page }) => {
     await page.goto(PLANNED_EVENT);
     await page.getByTestId("matchday-pairing-tab").click();
@@ -192,7 +192,7 @@ test.describe("B-3: as a sailor I see when I am on which boat", () => {
   });
 });
 
-test.describe("B-4: as a visitor I find clubs and dates", () => {
+describeStory("B-4: as a visitor I find clubs and dates", () => {
   test("all 18 clubs are listed", async ({ page }) => {
     await page.goto("/clubs");
     await expect(page.getByTestId("clubs-list").getByRole("listitem")).toHaveCount(18);
@@ -286,7 +286,7 @@ test.describe("Foundations", () => {
   });
 });
 
-test.describe("A-12: the navigation moves with the viewport", () => {
+describeStory("A-12: the navigation moves with the viewport", () => {
   test("wide screens get a left column and a breadcrumb, phones get a burger", async ({
     page,
   }, testInfo) => {
