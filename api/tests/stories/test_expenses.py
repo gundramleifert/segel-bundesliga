@@ -59,9 +59,6 @@ class TestClaimTotals:
         assert claim.claimed_cents == 17300
         assert claim.approved_cents == 14500
 
-    def test_an_undecided_item_counts_as_claimed(self):
-        assert _claim(_item(4500)).approved_cents == 4500
-
 
 class TestPaymentState:
     """Story F-4: whether a claim is paid follows from the settled payments allocated

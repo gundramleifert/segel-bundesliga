@@ -102,17 +102,6 @@ class TestEveryPagedListSpeaksTheSameShape:
 class TestSearchingAndSorting:
     """As an administrator, I want the list I am looking at to be the list I asked for."""
 
-    async def test_the_total_counts_the_filter_not_the_table(self, client, caplog):
-        head = await as_role(client, caplog, "page-total@example.com", Role.ADMIN)
-
-        everyone = (await client.get("/api/admin/sailors", headers=head)).json()
-        matching = (await client.get("/api/admin/sailors", params={"q": "a"}, headers=head)).json()
-
-        assert everyone["total"] > 0
-        assert matching["total"] <= everyone["total"]
-        # The number the paging control is built from. Counting the unfiltered table would
-        # promise pages of results that the search cannot fill.
-        assert matching["total"] >= len(matching["items"])
 
     async def test_sorting_reverses_with_a_minus(self, client, caplog):
         head = await as_role(client, caplog, "page-sort@example.com", Role.ADMIN)

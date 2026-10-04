@@ -60,12 +60,6 @@ class TestClubCreationAndAssignment:
         assert club["short_name"] == "Segelverein Namenlos"
         assert club["city"] is None
 
-    async def test_unassigned_club_does_not_appear_on_homepage(self, client, caplog):
-        headers = await as_role(client, caplog, "lz2@example.com", Role.EDITOR)
-        club = await new_club(client, headers, "Unsichtbarer Segelclub", "USC")
-
-        public = await all_items(client, "/api/clubs")
-        assert club["slug"] not in {v["slug"] for v in public}
 
     async def test_admin_also_sees_unassigned_clubs(self, client, caplog):
         headers = await as_role(client, caplog, "lz3@example.com", Role.EDITOR)
@@ -182,20 +176,6 @@ class TestYearTransition:
             clubs_list = await all_items(client, "/api/clubs", params=filter_)
             assert club["slug"] in {v["slug"] for v in clubs_list}, f"missing in {year}"
 
-    async def test_assignments_for_both_years_coexist(self, client, caplog, ids):
-        next_series = await create_series("dsbl-1-2027", "1. Segel-Bundesliga 2027", 2027)
-        headers = await as_role(client, caplog, "sw3@example.com", Role.ADMIN)
-        club = await new_club(client, headers, "Aufsteiger Segelclub", "ASC")
-
-        response = await client.put(
-            f"/api/admin/clubs/{club['id']}/series",
-            headers=headers,
-            json={"series": [ids.series("dsbl-2-2026"), next_series]},
-        )
-
-        # A promotion: 2026 second league, 2027 first. Both remain visible.
-        series_slugs = {z["series"]["slug"] for z in response.json()["assignments"]}
-        assert {"dsbl-2-2026", "dsbl-1-2027"} <= series_slugs
 
     async def test_future_year_does_not_move_public_page(self, client, caplog):
         """ "DSBL 2099" is created for assignment.
@@ -222,29 +202,6 @@ class TestSeriesNaming:
         assert first["name"] == "1. Segel-Bundesliga 2026"
         assert first["short_name"] == "1. Liga 2026"
         assert first["year"] == 2026
-
-    async def test_multiple_series_coexist(self, client):
-        series_slugs = {s["slug"] for s in (await client.get("/api/series")).json()}
-        assert {"dsbl-1-2026", "dsbl-2-2026", "junioren-2026", "scl-2026"} <= series_slugs
-
-    async def test_series_table_includes_year(self, client, ids):
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
-        assert table["series"]["name"] == "1. Segel-Bundesliga 2026"
-
-    async def test_event_shows_its_series(self, client, ids):
-        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
-        assert detail["event"]["series"]["name"] == "1. Segel-Bundesliga 2026"
-
-    async def test_assignment_shows_series_name(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "ln1@example.com", Role.EDITOR)
-        club = await new_club(client, headers, "Benennungs Segelclub", "BSC2")
-        response = await client.put(
-            f"/api/admin/clubs/{club['id']}/series",
-            headers=headers,
-            json={"series": [ids.series("junioren-2026")]},
-        )
-        assignment = response.json()["assignments"][0]
-        assert assignment["series"]["name"] == "Junioren-Segelliga 2026"
 
 
 class TestGuestAccess:

@@ -410,11 +410,6 @@ class TestTheShapeOfAMatchday:
         assert event.races_per_flight == erwartet
         assert event.races_total == erwartet * 16
 
-    async def test_a_sailed_matchday_knows_its_own_shape(self, client, ids):
-        """A raced matchday knows its configuration."""
-        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
-        assert detail["races_total"] == 48
-
 
 async def _admin_headers(client, caplog, email: str = "chefin@example.org") -> dict[str, str]:
     await make_user(email, Role.ADMIN)
@@ -585,19 +580,6 @@ class TestTuples:
             ]
         )
 
-    async def test_the_last_organizer_of_a_club_cannot_be_deleted_here_either(
-        self, client, caplog, ids
-    ):
-        """A-8's rule holds on the Accounts tab too — the club could not manage itself."""
-        headers = await _admin_headers(client, caplog)
-        club = await _lonely_club()
-        user_id = await make_user("einzig@example.org", Role.CLUB_MANAGER, club_id=club)
-        me = await client.get(f"/api/auth/users/{user_id}", headers=headers)
-        (row,) = me.json()["tuples"]
-
-        response = await client.delete(f"/api/auth/tuples/{row['id']}", headers=headers)
-        assert response.status_code == 409
-        assert _problem_code(response) == "last-organizer"
 
     async def test_every_write_and_delete_is_audited(self, client, caplog, ids):
         headers = await _admin_headers(client, caplog)

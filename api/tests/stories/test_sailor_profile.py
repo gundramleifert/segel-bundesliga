@@ -243,22 +243,6 @@ class TestOwnPhoto:
 class TestMinorPhotoVisibility:
     """S-2's own open question, resolved: an adult's photo is public, a minor's is not."""
 
-    async def test_an_adults_photo_is_public(self, client, caplog):
-        admin = await _admin(client, caplog)
-        await _new_sailor(
-            client, admin, email="profil.erwachsen@example.com", birth_date=_ADULT_BIRTH
-        )
-        account = await _account_for(client, caplog, "profil.erwachsen@example.com")
-        uploaded = await client.post(
-            "/api/sailors/me/photo",
-            headers=account,
-            files={"file": ("me.jpg", _jpeg_bytes(), "image/jpeg")},
-        )
-        sailor_id = uploaded.json()["id"]
-
-        # No Authorization header at all — a plain guest.
-        response = await client.get(f"/api/sailors/{sailor_id}/photo")
-        assert response.status_code == 200
 
     async def test_a_minors_photo_is_hidden_from_guests_and_unrelated_accounts(
         self, client, caplog

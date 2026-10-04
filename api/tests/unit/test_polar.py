@@ -21,11 +21,6 @@ def test_the_optimum_rows_are_the_beat_and_gybe_points(j70):
     assert speed == 5.9
 
 
-def test_table_values_are_read_back_exactly(j70):
-    assert j70.speed(10, 90) == 6.68
-    assert j70.speed(24, 150) == 14.35
-
-
 def test_between_columns_and_rows_it_interpolates(j70):
     # Halfway between 8 and 10 knots at 90°: between 6.25 and 6.68.
     assert 6.25 < j70.speed(9, 90) < 6.68

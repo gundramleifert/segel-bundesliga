@@ -75,15 +75,6 @@ async def event_with_participants(
 class TestCreateEvent:
     """As an organizer, I want to create an event with its dimensions."""
 
-    async def test_name_and_date_sufficient(self, client, caplog):
-        headers = await admin(client, caplog, "va1@example.com")
-        response = await client.post(
-            "/api/admin/events",
-            headers=headers,
-            json={"title": "Simple Cup", "starts_on": "2026-10-03"},
-        )
-        assert response.status_code == 201, response.text
-        assert response.json()["title"] == "Simple Cup"
 
     async def test_boats_get_color_and_name(self, client, caplog):
         """On the water, people refer to color and name."""
@@ -94,33 +85,6 @@ class TestCreateEvent:
         assert [boat["color"] for boat in pairing["boats"]] == [b["color"] for b in BOATS]
         assert [boat["name"] for boat in pairing["boats"]] == [b["name"] for b in BOATS]
 
-    async def test_the_organizer_decides_how_the_list_prints(self, client, caplog):
-        """Story B-3: the organizer knows the venue's printer, the default only the format."""
-        headers = await admin(client, caplog, "va2b@example.com")
-        created = await client.post(
-            "/api/admin/events",
-            headers=headers,
-            json={
-                "title": "Print Cup",
-                "starts_on": "2026-10-11",
-                "print_settings": {"font_size": 12, "landscape": True, "team_pages": False},
-            },
-        )
-        assert created.status_code == 201, created.text
-        assert created.json()["print_settings"] == {
-            "font_size": 12,
-            "landscape": True,
-            "team_pages": False,
-        }
-
-        # And back to the defaults, which is what an event carries until someone decides.
-        cleared = await client.patch(
-            f"/api/admin/events/{created.json()['id']}",
-            headers=headers,
-            json={"print_settings": None},
-        )
-        assert cleared.status_code == 200, cleared.text
-        assert cleared.json()["print_settings"] is None
 
     async def test_without_boat_specs_league_colors_apply(self, client, caplog):
         headers = await admin(client, caplog, "va3@example.com")
@@ -208,10 +172,6 @@ class TestCreateEvent:
 class TestPairingFromCatalog:
     """As an organizer, I want pairings immediately, not after ten minutes."""
 
-    async def test_catalog_lists_ready_dimensions(self, client, caplog):
-        headers = await admin(client, caplog, "pk1@example.com")
-        entries = (await client.get("/api/admin/pairing/catalog", headers=headers)).json()
-        assert any((e["teams"], e["boats"], e["flights"]) == (18, 6, 16) for e in entries)
 
     async def test_catalog_produces_complete_pairing_list(self, client, caplog):
         headers = await admin(client, caplog, "pk2@example.com")

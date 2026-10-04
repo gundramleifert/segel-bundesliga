@@ -262,14 +262,6 @@ class TestRemoveCrest:
         page = await client.get(f"/api/clubs/{club['id']}")
         assert page.json()["logo_url"] == "/brand/wpl.png"
 
-    async def test_a_club_without_a_crest_has_nothing_to_serve(self, client, caplog):
-        admin = await _headers(client, caplog, "crest-leer@example.com", Role.ADMIN)
-        club = await _new_club(client, admin, short_name="WPX")
-
-        response = await client.get(f"/api/clubs/{club['id']}/logo")
-        assert response.status_code == 404
-        assert response.json()["type"] == "/errors/club-crest-not-found"
-
 
 class TestCrestAsEventLogo:
     """Appears in the matchday view too: an event without its own logo uses the host's

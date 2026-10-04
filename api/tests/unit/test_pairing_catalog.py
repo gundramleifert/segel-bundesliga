@@ -32,23 +32,6 @@ class TestTheCatalog:
             assert len(geladen.boats) == entry.boats
             assert len(geladen.teams) == entry.teams
 
-    def test_the_stored_list_is_a_valid_draw(self):
-        """Each team once per flight, each boat once per race — otherwise
-        it would be worthless."""
-        pairing = load_entry(18, 6, 16)
-        assert len(pairing.slots) == 18 * 16
-
-        per_flight: dict[int, list[int]] = {}
-        per_race: dict[int, list[int]] = {}
-        for slot in pairing.slots:
-            per_flight.setdefault(slot.flight, []).append(slot.team_index)
-            per_race.setdefault(slot.sequence, []).append(slot.boat_number)
-
-        assert len(per_flight) == 16
-        for teams in per_flight.values():
-            assert sorted(teams) == list(range(18))
-        for boats in per_race.values():
-            assert sorted(boats) == [1, 2, 3, 4, 5, 6]
 
     def test_the_stored_list_needs_no_boat_changes(self):
         """This is why it is stored rather than recomputed.

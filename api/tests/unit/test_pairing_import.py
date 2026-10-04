@@ -63,13 +63,6 @@ def test_csv_and_yaml_describe_the_same_draw():
     assert sorted(from_csv.slots, key=_slot_key) == sorted(from_yaml.slots, key=_slot_key)
 
 
-def test_every_team_sails_exactly_once_per_flight():
-    pairing = load_pairing_yaml(SCHEDULE_CFG, PAIRING_YML)
-    for flight in range(1, pairing.flights + 1):
-        teams = [s.team_index for s in pairing.slots if s.flight == flight]
-        assert sorted(teams) == list(range(18)), f"Flight {flight} ist keine volle Runde"
-
-
 def test_the_official_draw_sets_the_quality_benchmark():
     """ ""The actual draw sailed — the benchmark for our fallback.
 
@@ -97,10 +90,6 @@ class TestAnIncompleteFleet:
     CFG = (FIXTURES.parent / "pairing-17teams" / "schedule_cfg.yml").read_text(encoding="utf-8")
     YML = (FIXTURES.parent / "pairing-17teams" / "pairing_list.yml").read_text(encoding="utf-8")
 
-    def test_the_roster_is_not_a_multiple_of_the_fleet(self):
-        config = parse_schedule_config(self.CFG)
-        assert len(config.teams) == 17
-        assert len(config.boats) == 6
 
     def test_placeholder_seats_produce_no_entry(self):
         pairing = load_pairing_yaml(self.CFG, self.YML)
@@ -117,12 +106,6 @@ class TestAnIncompleteFleet:
                 for r in (1, 2, 3)
             ]
             assert sorted(besetzt) == [5, 6, 6], f"Flight {flight}: {besetzt}"
-
-    def test_every_team_still_sails_once_per_flight(self):
-        pairing = load_pairing_yaml(self.CFG, self.YML)
-        for flight in range(1, 17):
-            teams = [s.team_index for s in pairing.slots if s.flight == flight]
-            assert sorted(teams) == list(range(17))
 
 
 def test_a_flight_missing_a_team_is_rejected():

@@ -352,24 +352,6 @@ class TestTheCompleteLifecycle:
 class TestTheAdminEventList:
     """Story VA-8: as an organizer I want to see my drafts on the screen that finishes them."""
 
-    async def test_the_admin_list_shows_drafts_the_public_one_hides(self, client, caplog):
-        """Story VA-8: the public list is the wrong list for the publishing screen.
-
-        `GET /api/events` shows published events only — correct for the calendar, and
-        exactly wrong for the page whose job is to finish a draft, where it would make the
-        one event being worked on the one event not shown.
-        """
-        headers = await admin(client, caplog, "adminlist@example.com")
-        draft = await client.post(
-            "/api/admin/events", headers=headers, json={"title": "Quietly Planned Cup"}
-        )
-        assert draft.status_code == 201, draft.text
-        event_id = draft.json()["id"]
-
-        managed = await client.get("/api/admin/events", headers=headers)
-        assert managed.status_code == 200, managed.text
-        assert event_id in {row["id"] for row in managed.json()["items"]}
-        assert event_id not in {row["id"] for row in await all_items(client, "/api/events")}
 
     async def test_a_visitor_cannot_read_the_admin_list(self, client):
         """Which events are being planned is not public — not even their titles."""

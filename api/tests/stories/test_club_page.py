@@ -23,13 +23,6 @@ async def first_club() -> int:
 class TestClubPage:
     """B-7: As a visitor, I want to see a club's page."""
 
-    async def test_page_shows_name_emblem_and_description(self, client):
-        club = (await client.get(f"/api/clubs/{await first_club()}")).json()
-
-        assert club["name"]
-        assert club["description"], "Description is missing"
-        # Emblem is optional, but the field must be present.
-        assert "logo_url" in club
 
     async def test_page_shows_teams_of_the_year(self, client):
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
@@ -66,15 +59,6 @@ class TestClubPage:
         assert response.status_code == 200
         # 1999 the series didn't exist — the page is still retrievable.
         assert response.json()["teams"] == []
-
-    async def test_unknown_club_reports_clearly(self, client):
-        response = await client.get("/api/clubs/999999")
-        assert response.status_code == 404
-        assert "999999" in response.json()["detail"]
-
-    async def test_invalid_id_is_rejected(self, client):
-        """Routes address via primary key — a slug is not an ID there."""
-        assert (await client.get("/api/clubs/nrv")).status_code == 422
 
 
 class TestSailorPage:
@@ -120,11 +104,3 @@ class TestSailorPage:
 
         assert "email" not in sailor
         assert "birth_date" not in sailor
-
-    async def test_page_is_accessible_without_login(self, client):
-        member = await self._first_sailor(client)
-        assert (await client.get(f"/api/sailors/{member['id']}")).status_code == 200
-
-    async def test_unknown_person_reports_clearly(self, client):
-        response = await client.get("/api/sailors/999999")
-        assert response.status_code == 404

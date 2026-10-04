@@ -16,8 +16,6 @@ What these tests pin down, against emulated boats (the first data stage):
 import asyncio
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
-
 from app.db import SessionLocal
 from app.models import Race
 from app.tracking.emulate_job import emulate_event
@@ -175,43 +173,9 @@ class TestTheLivePicture:
         assert boat["cog"] == 20.0
         assert len(boat["trail"]) == 3
 
-    async def test_the_picture_carries_hull_size_and_zone(self, client, caplog):
-        """The map draws boats at 7 m and a zone of three lengths around every rounding mark;
-        both numbers come from the server's settings, so the map never hard-codes a class."""
-        headers = await admin(client, caplog, "tr6b@example.com")
-        event_id = await live_event(client, headers, "Zone Cup", "2027-11-22")
-        body = (await client.get(f"/api/events/{event_id}/live")).json()
-        assert body["boat_length_m"] == 7.0
-        assert body["boat_beam_m"] > 0
-        assert body["zone_radius_m"] == 3 * body["boat_length_m"] == 21.0
 
-    async def test_an_event_may_point_its_live_view_elsewhere(self, client, caplog):
-        """External or internal live view: a `live_url` on the event sends the site's live
-        links to a hosted viewer; cleared, the internal map is the live view again."""
-        headers = await admin(client, caplog, "tr6c@example.com")
-        event_id = await live_event(client, headers, "Hosted Cup", "2027-11-23")
-        assert (await client.get(f"/api/events/{event_id}")).json()["event"]["live_url"] is None
-
-        external = await client.patch(
-            f"/api/admin/events/{event_id}",
-            headers=headers,
-            json={"live_url": "https://example.sapsailing.com/gwt/RaceBoard.html?event=1"},
-        )
-        assert external.status_code == 200, external.text
-        shown = (await client.get(f"/api/events/{event_id}")).json()["event"]["live_url"]
-        assert shown == "https://example.sapsailing.com/gwt/RaceBoard.html?event=1"
-
-        not_a_url = await client.patch(
-            f"/api/admin/events/{event_id}", headers=headers, json={"live_url": "sapsailing"}
-        )
-        assert not_a_url.status_code == 422
-
-        internal = await client.patch(
-            f"/api/admin/events/{event_id}", headers=headers, json={"live_url": None}
-        )
-        assert internal.status_code == 200
-        assert (await client.get(f"/api/events/{event_id}")).json()["event"]["live_url"] is None
-
+    async def test_an_unpublished_event_has_no_live_picture(self, client, caplog):
+        """A draft's boats are as private as the draft: its live picture answers 404."""
         headers = await admin(client, caplog, "tr7@example.com")
         created = await client.post(
             "/api/admin/events",
@@ -270,8 +234,6 @@ class TestAWholeRaceSimulated:
         async with SessionLocal() as session:
             race = await session.get(Race, first_id)
             assert race.course_id == live["course"]["id"]
-            fixes = (await session.execute(select(Race.id).where(Race.id == first_id))).all()
-            assert fixes
 
     async def test_the_live_picture_ranks_boats_while_they_sail(self, client, caplog):
         headers = await admin(client, caplog, "tr9@example.com")

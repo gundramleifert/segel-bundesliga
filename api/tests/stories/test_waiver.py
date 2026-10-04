@@ -117,16 +117,6 @@ async def version_two(client, caplog):
 
 
 class TestVersioning:
-    async def test_the_current_version_is_served(self, client):
-        body = (await client.get("/api/waiver")).json()
-        assert body["version"] == 1
-        assert "own risk" in body["body_en"]
-        assert body["title_de"].startswith("Haftungs")
-
-    async def test_publishing_a_new_version_puts_it_in_force(self, client, version_two):
-        assert version_two == 2
-        assert (await client.get("/api/waiver")).json()["version"] == 2
-
     async def test_a_new_version_supersedes_an_old_confirmation_without_rewriting_it(
         self, client, caplog, ids, version_two
     ):

@@ -164,7 +164,6 @@ The organizer sets the print settings through `POST`/`PATCH /api/admin/events/{i
 
 Tests: `api/tests/stories/test_visitor.py::TestPairingList`,
 `api/tests/unit/test_pairing_pdf.py`,
-`api/tests/stories/test_create_event.py::TestCreateEvent::test_the_organizer_decides_how_the_list_prints`,
 `e2e/visitor.spec.ts::B-3: as a sailor I see when I am on which boat`
 
 ### B-12 ● See who sails for each team at a matchday

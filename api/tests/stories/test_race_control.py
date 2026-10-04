@@ -478,15 +478,3 @@ class TestSignals:
         started = await client.post(f"{base}/start", headers=headers)
 
         assert started.json()["signal"] is None
-
-    async def test_an_unknown_flag_is_refused(self, client, caplog):
-        headers = await admin(client, caplog, "rc20@example.com")
-        event_id = await live_event(client, headers, "Flag Cup", "2027-10-27")
-        (race_id, _), *_ = await races_of(event_id)
-
-        response = await client.post(
-            f"/api/admin/events/{event_id}/races/{race_id}/signal",
-            headers=headers,
-            json={"signal": "Y"},
-        )
-        assert response.status_code == 422

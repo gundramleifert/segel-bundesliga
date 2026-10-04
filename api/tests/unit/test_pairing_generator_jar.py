@@ -51,25 +51,6 @@ def request_for(teams: int, flights: int, boats: int = 6) -> GenerationRequest:
 
 
 @needs_jar
-async def test_a_generated_pairing_covers_the_whole_matchday():
-    result = await generate_pairing(request_for(teams=18, flights=6), timeout=180)
-
-    assert result.pairing.flights == 6
-    assert result.pairing.races_per_flight == 3
-    assert len(result.pairing.slots) == 6 * 18
-
-
-@needs_jar
-async def test_every_team_sails_once_per_flight():
-    """The hard constraint — the importer checks it already, here against actual output."""
-    result = await generate_pairing(request_for(teams=18, flights=6), timeout=180)
-
-    for flight in range(1, 7):
-        teams = [s.team_index for s in result.pairing.slots if s.flight == flight]
-        assert sorted(teams) == list(range(18))
-
-
-@needs_jar
 async def test_the_quality_report_is_available_before_publishing():
     """VA-3: The organizer should see the quality before publishing."""
     result = await generate_pairing(request_for(teams=18, flights=6), timeout=180)

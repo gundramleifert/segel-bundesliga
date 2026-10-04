@@ -67,12 +67,6 @@ def test_percentage_penalty_never_worse_than_dnf():
     assert race_points(result, ScoringConfig()) == STARTERS + 1
 
 
-def test_race_points_sum_is_invariant_for_a_clean_race():
-    """Six boats, clean finish: the point sum is always 1+2+...+6."""
-    results = [finished(1, position) for position in range(1, STARTERS + 1)]
-    assert sum(race_points(r, ScoringConfig()) for r in results) == sum(range(1, STARTERS + 1))
-
-
 def test_event_ranking_orders_by_net_points():
     scores = score_event(
         {

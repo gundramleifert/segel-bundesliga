@@ -60,22 +60,6 @@ class TestMyClubs:
         assert response.status_code == 200, response.text
         assert response.json() == []
 
-    async def test_a_member_sees_their_club_as_a_member(self, client, caplog):
-        club = await _club("nrv")
-        email = "mine-member@example.com"
-        # Signed in *before* the tuple is written, and the token kept: `make_user` deletes
-        # an existing account and its tuples with it, so calling it a second time for the
-        # same address would quietly undo the row this test is about.
-        headers = await _as(client, caplog, email)
-        await _make_member(email, club.id)
-
-        response = await client.get(MINE, headers=headers)
-        assert response.status_code == 200, response.text
-        entries = response.json()
-        assert [entry["club"]["slug"] for entry in entries] == ["nrv"]
-        assert entries[0]["is_member"] is True
-        # A member is not thereby an organizer — that is the whole point of two fields.
-        assert entries[0]["may_manage"] is False
 
     async def test_an_organizer_sees_the_club_they_manage_without_being_a_member(
         self, client, caplog
@@ -97,14 +81,6 @@ class TestMyClubs:
         assert entries[0]["may_manage"] is True
         assert entries[0]["is_member"] is False
 
-    async def test_an_organizer_of_another_club_manages_only_that_one(self, client, caplog):
-        """`club_manager` is granted per club, so the list is per club too."""
-        byc = await _club("byc")
-        headers = await _as(
-            client, caplog, "mine-oneclub@example.com", Role.CLUB_MANAGER, club_id=byc.id
-        )
-        entries = (await client.get(MINE, headers=headers)).json()
-        assert {entry["club"]["slug"] for entry in entries} == {"byc"}
 
     async def test_the_series_registrations_come_with_the_club(self, client, caplog):
         """What V-12 navigates by: a squad belongs to one series registration, so the

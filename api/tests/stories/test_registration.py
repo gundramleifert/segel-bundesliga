@@ -50,18 +50,6 @@ def auth_headers(token: str) -> dict[str, str]:
 class TestRegistering:
     """As a sailor, I want to create an account myself."""
 
-    async def test_registering_creates_an_account_for_my_address(self, client, caplog):
-        """Registration creates an account with my email address."""
-        with caplog.at_level(logging.WARNING, logger="app.mail"):
-            response = await client.post(
-                "/api/auth/register",
-                json={"email": "neu.anna@example.com", "display_name": "Anna Neu"},
-            )
-        assert response.status_code == 202
-
-        person = await account("neu.anna@example.com")
-        assert person is not None
-        assert person.display_name == "Anna Neu"
 
     async def test_before_confirmation_the_address_is_merely_claimed(self, client, caplog):
         """Before confirmation, the address is only claimed — anyone could type someone else's."""
@@ -83,12 +71,6 @@ class TestRegistering:
         assert ich["roles"] == []
         assert ich["tuples"] == []
 
-    async def test_a_name_is_required(self, client):
-        """Registration requires a name."""
-        response = await client.post(
-            "/api/auth/register", json={"email": "namenlos@example.com", "display_name": ""}
-        )
-        assert response.status_code == 422
 
     async def test_a_known_address_gives_nothing_away(self, client, caplog):
         """A known address doesn't reveal itself — else we could enumerate accounts

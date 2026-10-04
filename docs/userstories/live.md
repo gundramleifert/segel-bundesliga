@@ -172,7 +172,6 @@ order prefilling the race-control pad, `compare.py`, the SAP oracle.
 Tests: `api/tests/unit/test_tracking_geo.py`, `api/tests/unit/test_polar.py`,
 `api/tests/unit/test_tracking_contract.py`, `api/tests/unit/test_tactics.py`,
 `api/tests/stories/test_live_tracking.py::TestLayingTheCourse`,
-`api/tests/stories/test_live_tracking.py::TestTheLivePicture::test_the_picture_carries_hull_size_and_zone`,
 `api/tests/stories/test_live_tracking.py::TestAWholeRaceSimulated`
 
 ### L-4 ◐ The phone on the boat is the tracker

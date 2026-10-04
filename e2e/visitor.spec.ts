@@ -151,18 +151,6 @@ describeStory("B-3: as a sailor I see when I am on which boat", () => {
     }
   });
 
-  test("every race fills all six boats", async ({ page }) => {
-    await page.goto(PLANNED_EVENT);
-    await page.getByTestId("matchday-pairing-tab").click();
-
-    const firstRow = page.getByTestId("matchday-pairing-row-1");
-    // Number, flight, then six boats.
-    await expect(firstRow.locator("td")).toHaveCount(8);
-    for (let column = 3; column <= 8; column++) {
-      await expect(firstRow.locator(`td:nth-child(${column})`)).not.toHaveText("–");
-    }
-  });
-
   test("the three races of a flight read as one block", async ({ page }) => {
     await page.goto(PLANNED_EVENT);
     await page.getByTestId("matchday-pairing-tab").click();

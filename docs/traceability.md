@@ -92,7 +92,7 @@ same stories with each test's result, video and trace.
 | [A-5](userstories/visitor.md#a-5--series-standings-with-substitute-score) | ● | Series standings with substitute score | `test_scoring_storage.py::TestSeriesStanding` | — | — |
 | [A-4](userstories/visitor.md#a-4--series-includes-its-year) | ● | Series includes its year | `test_series_assignment.py::TestSeriesNaming` | — | — |
 | [B-2](userstories/visitor.md#b-2--review-matchday-results) | ● | Review matchday results | `test_visitor.py::TestMatchdayResult` | `visitor.spec.ts::B-2: as a fan I read up on how a matchday went` | — |
-| [B-3](userstories/visitor.md#b-3--view-pairing-list) | ● | View pairing list | `test_visitor.py::TestPairingList`<br>`test_pairing_pdf.py`<br>`test_create_event.py::TestCreateEvent::test_the_organizer_decides_how_the_list_prints` | `visitor.spec.ts::B-3: as a sailor I see when I am on which boat` | J-1 |
+| [B-3](userstories/visitor.md#b-3--view-pairing-list) | ● | View pairing list | `test_visitor.py::TestPairingList`<br>`test_pairing_pdf.py` | `visitor.spec.ts::B-3: as a sailor I see when I am on which boat` | J-1 |
 | [B-12](userstories/visitor.md#b-12--see-who-sails-for-each-team-at-a-matchday) | ● | See who sails for each team at a matchday | `test_visitor.py::TestMatchdayCrew` | — | — |
 | [B-5](userstories/visitor.md#b-5--follow-live-updates) | ◐ | Follow live updates | `test_live_hub.py`<br>`test_live_updates.py` | `live.spec.ts::B-5: as a spectator I follow live updates` | — |
 | [B-4](userstories/visitor.md#b-4--find-clubs-and-dates) | ◐ | Find clubs and dates | `test_visitor.py::TestClubs` | `visitor.spec.ts::B-4: as a visitor I find clubs and dates` | — |
@@ -124,6 +124,6 @@ same stories with each test's result, video and trace.
 | Story | | Title | Backend tests | Browser tests | Journeys |
 |---|---|---|---|---|---|
 | [L-1](userstories/live.md#l-1--see-the-boats-move) | ◐ | See the boats move | `test_live_tracking.py::TestTrackersAndIngest`<br>`test_live_tracking.py::TestTheLivePicture` | `live-map.spec.ts::L-1/L-2: as a spectator I watch a simulated race on the map` | — |
-| [L-2](userstories/live.md#l-2--course-mark-passings-and-a-live-ranking-on-the-water) | ◐ | Course, mark passings and a live ranking on the water | `test_tracking_geo.py`<br>`test_polar.py`<br>`test_tracking_contract.py`<br>`test_tactics.py`<br>`test_live_tracking.py::TestLayingTheCourse`<br>`test_live_tracking.py::TestTheLivePicture::test_the_picture_carries_hull_size_and_zone`<br>`test_live_tracking.py::TestAWholeRaceSimulated` | `live-map.spec.ts::L-1/L-2: as a spectator I watch a simulated race on the map` | — |
+| [L-2](userstories/live.md#l-2--course-mark-passings-and-a-live-ranking-on-the-water) | ◐ | Course, mark passings and a live ranking on the water | `test_tracking_geo.py`<br>`test_polar.py`<br>`test_tracking_contract.py`<br>`test_tactics.py`<br>`test_live_tracking.py::TestLayingTheCourse`<br>`test_live_tracking.py::TestAWholeRaceSimulated` | `live-map.spec.ts::L-1/L-2: as a spectator I watch a simulated race on the map` | — |
 | [L-4](userstories/live.md#l-4--the-phone-on-the-boat-is-the-tracker) | ◐ | The phone on the boat is the tracker | `test_tracking_contract.py`<br>`test_live_tracking.py::TestAWholeRaceSimulated` | — | — |
 | [L-3](userstories/live.md#l-3--replay-a-race) | ○ | Replay a race | — | — | — |

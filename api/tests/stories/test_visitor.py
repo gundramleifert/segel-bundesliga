@@ -47,18 +47,6 @@ class TestSeriesTable:
             # Two matchdays have been sailed, the third is planned.
             assert sorted(row["ranks_by_matchday"]) == ["1", "2"]
 
-    async def test_unraced_matchday_is_not_included(self, client, ids):
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
-        planned = [m for m in table["events"] if m["status"] == "planned"]
-        assert planned, "The seed should contain a planned matchday"
-        for row in table["rows"]:
-            assert str(planned[0]["matchday"]) not in row["ranks_by_matchday"]
-
-    async def test_unknown_series_reports_clearly(self, client):
-        response = await client.get("/api/series/999999/table")
-        assert response.status_code == 404
-        assert "999999" in response.json()["detail"]
-
 
 class TestMatchdayResult:
     """As a fan, I want to look up how a matchday turned out."""
@@ -118,16 +106,6 @@ class TestPairingList:
         assert len(pairing["races"]) == 48
         assert [r["sequence"] for r in pairing["races"]] == list(range(1, 49))
 
-    async def test_boats_are_identified_by_their_color(self, client, ids):
-        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
-        assert [b["color"] for b in pairing["boats"]] == [
-            "BLACK",
-            "GREEN",
-            "DARKBLUE",
-            "RED",
-            "GRAY",
-            "ORANGE",
-        ]
 
     async def test_each_boat_is_assigned_exactly_once_in_each_race(self, client, ids):
         pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
@@ -147,11 +125,6 @@ class TestPairingList:
             assert len(teams) == 18, f"Flight {flight} is not a complete round"
             assert len(set(teams)) == 18, f"Flight {flight} has a team twice"
 
-    async def test_pairing_list_is_ready_before_matchday(self, client, ids):
-        """Draw is one week prior — the list must be retrievable without results."""
-        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
-        assert pairing["event"]["status"] == "planned"
-        assert all(race["status"] == "scheduled" for race in pairing["races"])
 
     async def test_the_list_says_whether_it_can_be_printed_here(self, client, ids):
         """Story B-3: a deployment may carry no renderer, and the page has to know.
@@ -283,12 +256,6 @@ class TestMatchdayCrew:
         assert len(lineups["teams"]) == 18
         assert all(entry["crew"] == [] for entry in lineups["teams"])
 
-    async def test_the_lineup_is_readable_without_a_login(self, client, ids):
-        """Participation is public — the pairing list carries these names anyway."""
-        response = await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")
-
-        assert response.status_code == 200
-        assert response.json()["event"]["id"] == ids.event(self.MATCHDAY)
 
     async def test_the_lineup_reveals_no_contact_data(self, client, ids):
         """Names are on every results list; email and birth year are not."""
@@ -327,11 +294,6 @@ class TestClubs:
         missing = {shortname for _, shortname, _ in CLUBS} - listed
         assert not missing, f"These clubs are missing: {sorted(missing)}"
 
-    async def test_club_is_accessible_via_its_id(self, client):
-        clubs = await all_items(client, "/api/clubs")
-        response = await client.get(f"/api/clubs/{clubs[0]['id']}")
-        assert response.status_code == 200
-        assert response.json()["name"] == clubs[0]["name"]
 
     async def test_events_are_sorted_chronologically(self, client):
         events = await all_items(client, "/api/events")

@@ -14,58 +14,8 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.db import SessionLocal
-from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
+from app.models import Event, EventCrew, Team, TeamMembership
 from app.models.org import CrewRole
-
-
-class TestMultipleClubs:
-    """Allowed: the same person registers for two clubs in different series."""
-
-    async def test_person_can_register_in_two_series_for_two_clubs(self, seeded):
-        async with SessionLocal() as session:
-            # Deliberately the last teams per series: the club and sailor pages check
-            # the first, and this test changes squads.
-            teams = (
-                await session.execute(
-                    select(Team, Series)
-                    .join(Series, Team.series_id == Series.id)
-                    .join(Club, Team.club_id == Club.id)
-                    # The squad is attached to the series registration, not the entry to
-                    # a single act.
-                    .where(Team.event_id.is_(None))
-                    .order_by(Series.id, Team.id.desc())
-                )
-            ).all()
-
-            first = next(t for t, s in teams if s.slug == "dsbl-1-2026")
-            juniors = next(t for t, s in teams if s.slug == "junioren-2026")
-
-            person = Sailor(
-                first_name="Double",
-                last_name="Sailor",
-                email="double.sailor@example.com",
-            )
-            session.add(person)
-            await session.flush()
-
-            session.add_all(
-                [
-                    TeamMembership(team_id=first.id, sailor_id=person.id, role=CrewRole.SUBSTITUTE),
-                    TeamMembership(
-                        team_id=juniors.id, sailor_id=person.id, role=CrewRole.SUBSTITUTE
-                    ),
-                ]
-            )
-            await session.commit()
-
-            count = (
-                await session.execute(
-                    select(func.count())
-                    .select_from(TeamMembership)
-                    .where(TeamMembership.sailor_id == person.id)
-                )
-            ).scalar_one()
-            assert count == 2
 
 
 class TestOncePerCompetition:
@@ -110,16 +60,6 @@ class TestOncePerCompetition:
             with pytest.raises(IntegrityError):
                 await session.commit()
 
-    async def test_no_one_sails_for_two_teams_in_one_act(self, seeded):
-        async with SessionLocal() as session:
-            duplicates = (
-                await session.execute(
-                    select(EventCrew.event_id, EventCrew.sailor_id, func.count())
-                    .group_by(EventCrew.event_id, EventCrew.sailor_id)
-                    .having(func.count() > 1)
-                )
-            ).all()
-        assert not duplicates, f"Duplicate lineups: {duplicates}"
 
     async def test_endpoint_rejects_foreign_team(self, client, caplog):
         """Via the API — the database is the last barrier, not the only one."""

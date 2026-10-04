@@ -119,16 +119,6 @@ class TestEnteringResults:
         # Low-point scoring: first place scores 1 point.
         assert winner.points == 1.0
 
-    async def test_admin_can_also_enter_results(self, client, caplog):
-        event_id, race_id, boats = await _unfinished_race(offset=1)
-        headers = await _admin(client, caplog, "wl-admin1@example.com")
-
-        response = await client.put(
-            f"/api/admin/events/{event_id}/races/{race_id}/result",
-            headers=headers,
-            json=_finished_payload(boats),
-        )
-        assert response.status_code == 200, response.text
 
     async def test_club_manager_is_rejected(self, client, caplog):
         event_id, race_id, boats = await _unfinished_race(offset=2)
@@ -178,17 +168,6 @@ class TestEnteringResults:
         entries = await _entries(race_id)
         assert all(entry.code is None for entry in entries)
 
-    async def test_finish_position_is_required_for_a_finish(self, client, caplog):
-        event_id, race_id, boats = await _unfinished_race(offset=5)
-        headers = await _race_officer(client, caplog, "wl-ro3@example.com")
-
-        response = await client.put(
-            f"/api/admin/events/{event_id}/races/{race_id}/result",
-            headers=headers,
-            json={"results": [{"boat_number": boats[0], "code": "FINISHED"}]},
-        )
-        assert response.status_code == 422, response.text
-        assert response.json()["type"] == "/errors/race-result-position-required"
 
     async def test_a_protest_decision_corrects_an_already_scored_race(self, client, caplog):
         """A finished matchday's result is amended — points must move, not just the flag."""

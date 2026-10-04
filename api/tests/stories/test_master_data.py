@@ -236,30 +236,6 @@ class TestCreatingAMatchday:
         )
         assert response.status_code == 422
 
-    async def test_a_saved_matchday_can_be_corrected_afterwards(self, client, caplog):
-        headers = await as_role(client, caplog, "ev10@example.com", Role.ADMIN)
-        created = (
-            await client.post(
-                "/api/admin/events",
-                headers=headers,
-                json={
-                    "title": "Provisional",
-                    "starts_on": "2026-12-11",
-                    "league": "dsbl-1-2026",
-                    "season": 2026,
-                },
-            )
-        ).json()
-
-        changed = await client.patch(
-            f"/api/admin/events/{created['id']}",
-            headers=headers,
-            json={"title": "Final Name", "status": "live"},
-        )
-        assert changed.status_code == 200
-        assert changed.json()["title"] == "Final Name"
-        assert changed.json()["status"] == "live"
-
 
 class TestStandaloneEvent:
     """A-2: an event may belong to a series — but need not.

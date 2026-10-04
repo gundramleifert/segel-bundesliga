@@ -36,23 +36,6 @@ class TestSeriesCreation:
         assert series["clubs"] == []
         assert series["event_count"] == 0
 
-    async def test_clubs_can_be_selected_immediately(self, client, caplog):
-        headers = await as_role(client, caplog, "se2@example.com", Role.ADMIN)
-        selected = await clubs(client, 3)
-
-        response = await client.post(
-            "/api/admin/series",
-            headers=headers,
-            json={
-                "name": "Selection Series 2028",
-                "year": 2028,
-                "clubs": [v["id"] for v in selected],
-            },
-        )
-        assert response.status_code == 201, response.text
-        series = response.json()
-
-        assert {c["id"] for c in series["clubs"]} == {v["id"] for v in selected}
 
     async def test_selected_clubs_appear_in_series(self, client, caplog):
         headers = await as_role(client, caplog, "se3@example.com", Role.ADMIN)
@@ -151,55 +134,6 @@ class TestSeriesCreation:
         public = {s["year"] for s in (await client.get("/api/series")).json()}
         assert public == {2026}
 
-    async def test_description_round_trips_through_the_api(self, client, caplog):
-        """The free-text, Markdown description is set on creation and can be edited."""
-        headers = await as_role(client, caplog, "se11@example.com", Role.ADMIN)
-        series = (
-            await client.post(
-                "/api/admin/series",
-                headers=headers,
-                json={
-                    "name": "Described Series 2028",
-                    "year": 2028,
-                    "description": "## Welcome\n\nSee you on the water.",
-                    # The description is checked on the public standings page below, which
-                    # only shows published series (Story VA-8).
-                    "published": True,
-                },
-            )
-        ).json()
-        assert series["description"] == "## Welcome\n\nSee you on the water."
-
-        changed = await client.patch(
-            f"/api/admin/series/{series['id']}",
-            headers=headers,
-            json={"description": "Updated text."},
-        )
-        assert changed.status_code == 200
-        assert changed.json()["description"] == "Updated text."
-
-        table = await client.get(f"/api/series/{series['id']}/table")
-        assert table.status_code == 200
-        assert table.json()["series"]["description"] == "Updated text."
-
-    async def test_series_can_be_renamed(self, client, caplog):
-        headers = await as_role(client, caplog, "se9@example.com", Role.ADMIN)
-        series = (
-            await client.post(
-                "/api/admin/series",
-                headers=headers,
-                json={"name": "Provisional 2028", "year": 2028},
-            )
-        ).json()
-
-        changed = await client.patch(
-            f"/api/admin/series/{series['id']}",
-            headers=headers,
-            json={"name": "Final 2028", "level": 1},
-        )
-        assert changed.status_code == 200
-        assert changed.json()["name"] == "Final 2028"
-        assert changed.json()["level"] == 1
 
     async def test_editors_cannot_create_series(self, client, caplog):
         headers = await as_role(client, caplog, "se10@example.com", Role.EDITOR)

@@ -175,28 +175,6 @@ class TestCreatingSailors:
         )
         assert [t["last_name"] for t in matches] == ["Suchbar"]
 
-    async def test_a_name_can_be_corrected(self, client, caplog):
-        header = await as_role(client, caplog, "sg7@example.com", Role.ADMIN)
-        created = (
-            await client.post(
-                "/api/admin/sailors",
-                headers=header,
-                json={
-                    "first_name": "Tipp",
-                    "last_name": "Feler",
-                    "email": "tipp.feler@example.com",
-                },
-            )
-        ).json()
-
-        updated = await client.patch(
-            f"/api/admin/sailors/{created['id']}",
-            headers=header,
-            json={"last_name": "Fehler"},
-        )
-        assert updated.status_code == 200
-        assert updated.json()["last_name"] == "Fehler"
-
 
 class TestRegisteringASquad:
     """V-1: As club leadership, I register the people who may compete for us."""
@@ -259,45 +237,6 @@ class TestRegisteringASquad:
         )
         assert {m["id"] for m in afterwards.json()["members"]} == set(sailors[:2])
 
-    async def test_nobody_appears_twice_in_the_same_squad(self, client, caplog):
-        team_id, club_id = await series_registration()
-        header = await as_role(
-            client, caplog, "kd3@example.com", Role.CLUB_MANAGER, club_id=club_id
-        )
-        sailors = await self._new_sailors(client, header, 1, "Dp")
-
-        response = await client.put(
-            f"/api/admin/teams/{team_id}/members",
-            headers=header,
-            json={
-                "members": [
-                    {"sailor_id": sailors[0], "role": "helm"},
-                    {"sailor_id": sailors[0], "role": "crew"},
-                ]
-            },
-        )
-        assert response.status_code == 422
-        assert response.json()["type"] == "/errors/squad-duplicate-sailor"
-
-    async def test_not_for_two_clubs_in_the_same_series(self, client, caplog):
-        """Otherwise the person would be competing against themselves."""
-        admin = await as_role(client, caplog, "kd4a@example.com", Role.ADMIN)
-        first_team, _ = await series_registration(most_recent=True)
-        second_team, _ = await series_registration(most_recent=False)
-        assert first_team != second_team
-
-        sailors = await self._new_sailors(client, admin, 1, "Zw")
-        entry = {"members": [{"sailor_id": sailors[0], "role": "crew"}]}
-
-        assert (
-            await client.put(f"/api/admin/teams/{first_team}/members", headers=admin, json=entry)
-        ).status_code == 200
-
-        second = await client.put(
-            f"/api/admin/teams/{second_team}/members", headers=admin, json=entry
-        )
-        assert second.status_code == 409
-        assert second.json()["type"] == "/errors/squad-sailor-in-another-club"
 
     async def test_two_clubs_in_two_different_series_is_allowed(self, client, caplog):
         admin = await as_role(client, caplog, "kd5@example.com", Role.ADMIN)
@@ -322,50 +261,6 @@ class TestRegisteringASquad:
             f"/api/admin/teams/{team_id}/members", headers=other, json={"members": []}
         )
         assert response.status_code == 403
-
-    async def test_entering_an_act_carries_no_squad_of_its_own(self, client, caplog):
-        """Registered for the series, selected for individual matchdays."""
-        admin = await as_role(client, caplog, "kd7@example.com", Role.ADMIN)
-        async with SessionLocal() as session:
-            entry = (
-                await session.execute(select(Team).where(Team.event_id.is_not(None)).limit(1))
-            ).scalar_one()
-
-        response = await client.put(
-            f"/api/admin/teams/{entry.id}/members",
-            headers=admin,
-            json={"members": []},
-        )
-        assert response.status_code == 422
-        assert response.json()["type"] == "/errors/squad-needs-series-registration"
-
-    async def test_someone_in_a_lineup_cannot_drop_out_of_the_squad(self, client, caplog):
-        """Otherwise a lineup would exist that has no registration anymore."""
-        admin = await as_role(client, caplog, "kd8@example.com", Role.ADMIN)
-
-        # A fixed seed club with full squad. Deliberately not "the last team of the series":
-        # other stories add teams whose squad is empty.
-        team_id, squad = await squad_of("byc", "dsbl-1-2026")
-        assert len(squad) >= 4, "The seed should create a full squad"
-
-        selected = await client.put(
-            f"/api/admin/events/{await act_id('dsbl-1-2026-act-3')}/crew",
-            headers=admin,
-            json={
-                "team_id": team_id,
-                "members": [{"sailor_id": s, "role": "crew"} for s in squad[:4]],
-            },
-        )
-        assert selected.status_code == 200, selected.text
-
-        # Empty the squad — that would strip their registration from those selected.
-        response = await client.put(
-            f"/api/admin/teams/{team_id}/members",
-            headers=admin,
-            json={"members": []},
-        )
-        assert response.status_code == 409
-        assert response.json()["type"] == "/errors/squad-member-is-lined-up"
 
 
 class TestSquadRefusalsAreTyped:

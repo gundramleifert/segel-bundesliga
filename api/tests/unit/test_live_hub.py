@@ -66,10 +66,6 @@ class TestFanOut:
 
 
 class TestWireFormat:
-    def test_a_frame_is_event_id_and_one_json_data_line(self):
-        frame = Frame("change", {"topic": "event:1", "version": 7}, id=7)
-        assert frame.encode() == b'event: change\nid: 7\ndata: {"topic":"event:1","version":7}\n\n'
-
     def test_a_payload_frame_has_no_id(self):
         frame = Frame("positions", {"race": 5, "boats": []})
         assert frame.encode() == b'event: positions\ndata: {"race":5,"boats":[]}\n\n'

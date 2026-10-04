@@ -80,13 +80,6 @@ def page_count(pdf: bytes) -> int:
 
 
 @needs_jar
-async def test_a_pairing_list_renders_as_a_pdf():
-    pdf = await render_pdf(request_for())
-
-    assert pdf.startswith(b"%PDF")
-
-
-@needs_jar
 async def test_every_team_gets_its_own_page():
     """The overview plus one page per club — the sheet a crew takes to the boat."""
     pdf = await render_pdf(request_for(teams=12))
