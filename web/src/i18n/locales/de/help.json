@@ -78,7 +78,7 @@
         "Weg über die Geschäftsstelle: Eine Verwaltungsperson legt das Konto mit E-Mail-Adresse, Anzeigename und den gewünschten Startrollen an. Ein so angelegtes Konto gilt als bereits bestätigt, weil die Adresse aus einer Erfassung oder einem Import stammt und nicht von der Person selbst beansprucht wurde.",
         "Weg über Selbstregistrierung: Ist dies freigeschaltet, gibt eine Person ihre eigene E-Mail-Adresse und ihren Namen an und erhält per E-Mail einen zehn Minuten gültigen Bestätigungscode. Mit dessen Eingabe gilt die Adresse als bestätigt.",
         "In beiden Fällen startet ein frisches Konto ohne Rolle und ohne Verein — nützlich wird es erst, sobald es mit einem Verein verknüpft ist (siehe \"Einem Verein beitreten\" weiter unten).",
-        "Die Anmeldung selbst kommt ganz ohne gespeichertes Passwort aus: Sie läuft über Google, Microsoft oder einen per E-Mail verschickten Einmalcode."
+        "Die Anmeldung läuft über Google, Microsoft, einen per E-Mail verschickten Einmalcode oder ein Passwort, das die Person nach bestätigter Adresse auf ihrer Kontoseite festlegt."
       ],
       "note": "Für beide Wege gibt es noch keine eigene Seite in der Oberfläche — Konto anlegen, Selbstregistrierung und die eigentliche Anmeldung sind derzeit nur über die Programmierschnittstelle erreichbar. In der Entwicklungsumgebung übernimmt der Rollenschalter unten rechts ersatzweise die Anmeldung mit einem beliebigen Testkonto."
     },

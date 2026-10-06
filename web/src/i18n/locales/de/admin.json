@@ -227,7 +227,9 @@
       "club": "Einen Verein",
       "series": "Eine Serie",
       "event": "Eine Veranstaltung"
-    }
+    },
+    "clearPassword": "Passwort löschen",
+    "clearPasswordHint": "Die Person meldet sich dann mit einem Code an und setzt ein neues."
   },
   "page": {
     "title": "Verwaltung",

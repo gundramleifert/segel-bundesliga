@@ -93,9 +93,12 @@ failing build is the whole point, and is what a hand-written client could not gi
   club's members in one. Never a key written out by hand: one that matches no query
   invalidates nothing, silently.
 
-**Authentication:** We store **no passwords**. Identity comes from Google, Microsoft
-(OIDC token verification against provider keys) or via one-time code by email. Accounts are
-linked via verified email address, so both methods lead to the same account. Permissions are
+**Authentication:** Identity comes from Google, Microsoft (OIDC token verification against
+provider keys), a one-time code by email, or a **password** (Story Z-9, since 2026-10-05 —
+not every sailor has or wants a Google/Microsoft account, and a code on every sign-in is
+slow on a pontoon). Accounts are linked via verified email address, so every method leads
+to the same account. Passwords are Argon2id in their own table (`PasswordCredential`, never
+read by a serializer), only for a verified address, and the one-time code *is* the reset. Permissions are
 relation tuples (`Grant`: user · relation · object, see Domain decisions), verified fresh on
 every request so a deleted tuple takes effect immediately. Accounts are created by explicit enrollment or
 import, not by signing up (`allow_self_signup`).

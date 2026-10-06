@@ -63,5 +63,10 @@
   "tuple-object-missing": "The club, series or event does not exist.",
   "tuple-exists": "This person already holds this role there.",
   "tuple-self-lockout": "You cannot revoke your own admin role.",
-  "tuple-forbidden": "Only administration or the object's managers may change who has access to it."
+  "tuple-forbidden": "Only administration or the object's managers may change who has access to it.",
+  "login-failed": "Email address or password is not correct.",
+  "password-length": "A password needs {{min_length}} to {{max_length}} characters.",
+  "password-email-unverified": "Confirm your email address with a one-time code before setting a password.",
+  "password-current-wrong": "The current password is not correct.",
+  "password-login-disabled": "Signing in with a password is switched off on this site."
 }

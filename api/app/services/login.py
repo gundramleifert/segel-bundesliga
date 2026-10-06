@@ -1,12 +1,14 @@
-"""Sign-in via identity provider or one-time code.
+"""Sign-in via identity provider, one-time code or password.
 
-We store no passwords. Whoever signs in proves their identity through
+Whoever signs in proves their identity through
 
 * **Google** or **Microsoft** — we verify their ID token against the provider's public
-  keys, or
-* **Email** — we send a six-digit code valid for ten minutes.
+  keys,
+* **Email** — we send a six-digit code valid for ten minutes, or
+* **Password** — one the person set on a verified account (Story Z-9,
+  `app/services/passwords.py`).
 
-Both paths are linked via the **verified** email address: signing in with Google today
+All paths are linked via the **verified** email address: signing in with Google today
 and by code tomorrow lands in the same account.
 
 Accounts don't spring into existence on their own here. Whoever shows up must already
@@ -31,6 +33,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.mail import MailError, send_login_code
 from app.models.auth import Grant, Identity, IdentityProvider, LoginCode, Relation, User
+from app.services import passwords
 
 _hasher = PasswordHasher()
 
@@ -184,6 +187,29 @@ async def verify_email_code(session: AsyncSession, email: str, code: str) -> Use
         provider=IdentityProvider.EMAIL,
         subject=email,
         display_name=email,
+    )
+    # Proving the address lifts a password lock — that is the reset path (Story Z-9).
+    credential = await passwords.credential_of(session, user.id)
+    if credential is not None:
+        passwords.clear_failures(credential)
+    await session.commit()
+    return user
+
+
+async def login_with_password(session: AsyncSession, email: str, password: str) -> User:
+    """Story Z-9. Raises :class:`passwords.LoginFailed` — one answer for every wrong
+    combination — and commits either way, because a failure counts towards the lock."""
+    try:
+        user = await passwords.login(session, email, password)
+    except passwords.LoginFailed:
+        await session.commit()
+        raise
+    user = await _resolve_user(
+        session,
+        email=user.email,
+        provider=IdentityProvider.PASSWORD,
+        subject=user.email,
+        display_name=user.display_name,
     )
     await session.commit()
     return user

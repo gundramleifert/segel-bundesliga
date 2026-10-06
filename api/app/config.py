@@ -73,6 +73,9 @@ class Settings(BaseSettings):
     # this way has no role and no club: it can only request admission to a club. Everything
     # else depends on this admission.
     allow_registration: bool = True
+    # Whether someone can set a password and sign in with it (Story Z-9). On by default;
+    # off closes login and setting alike, and the sign-in card stops offering the tab.
+    allow_password_login: bool = True
 
     # Addresses that automatically become `admin` the moment they successfully sign in
     # (any provider) — a fresh deployment otherwise has no admin at all and nothing else

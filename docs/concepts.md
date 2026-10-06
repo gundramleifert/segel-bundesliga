@@ -224,9 +224,13 @@ otherwise a score could not be explained.
 
 ## Identity and Rights
 
-**No passwords.** Identity comes from Google, Microsoft (checking the ID token against the
-provider's keys), or via a one-time code by email. Linked via verified email address, so all
-paths lead to the same account.
+**Identity** comes from Google, Microsoft (checking the ID token against the provider's
+keys), a one-time code by email, or a password (Story Z-9). Linked via verified email
+address, so all paths lead to the same account; each is an `Identity` row. Passwords were
+long ruled out and were added on 2026-10-05 because not every sailor has a Google or
+Microsoft account and a code on every sign-in is slow on a pontoon. The hash (Argon2id)
+lives in `PasswordCredential`, apart from `Identity`, so nothing that lists a person's
+identities can carry it; the one-time code doubles as the reset.
 
 **Permissions are relation tuples** (Story Z-2): ``user:relation:object`` — this person
 is `manager` of club A, `race_officer` of event C, `admin` of the site. The model is

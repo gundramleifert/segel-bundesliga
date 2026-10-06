@@ -12,8 +12,11 @@ import {
   getGetSailorPhotoUrl,
   getMySailor,
   me,
+  passwordLogin,
   providers,
   registerAccount,
+  removeMyPassword,
+  setMyPassword,
   updateMySailor,
   uploadMyPhoto,
 } from "../api/generated/sbl";
@@ -97,13 +100,13 @@ export function Account() {
           </Card.Header>
           <Card.Content>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-              <dt className="text-slate-500">{t("labels.signInMethods")}</dt>
-              <dd>{account.identities.map((i) => i.provider).join(", ") || "—"}</dd>
               <dt className="text-slate-500">{t("labels.status")}</dt>
               <dd>{account.is_active ? t("labels.active") : t("labels.disabled")}</dd>
             </dl>
           </Card.Content>
         </Card>
+
+        <SignInMethods account={account} onChanged={() => me().then(setAccount)} />
 
         <Mine account={account} />
       <Profile />
@@ -111,6 +114,133 @@ export function Account() {
       <DeleteAccount />
       </Stack>
     </>
+  );
+}
+
+/** Story Z-9: the ways into this account — Google, Microsoft, code, password — and the
+ *  password itself: set a first one, change it (the current one is required), or remove
+ *  it. Removing is never refused, because the one-time code is always a way in; it is
+ *  also the reset, so there is no "forgot password" flow here. */
+function SignInMethods({ account, onChanged }: { account: AccountData; onChanged: () => void }) {
+  const { t } = useTranslation("account");
+  const providerNames = [...new Set(account.identities.map((i) => i.provider))];
+  const hasPassword = providerNames.includes("password");
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function run(action: () => Promise<void>, done: string) {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await action();
+      setCurrent("");
+      setNext("");
+      setNotice(done);
+      onChanged();
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function save(e: FormEvent) {
+    e.preventDefault();
+    void run(
+      () => setMyPassword({ current_password: hasPassword ? current : null, new_password: next }),
+      hasPassword ? t("password.changed") : t("password.set"),
+    );
+  }
+
+  return (
+    <Card data-testid="account-signin-methods-card">
+      <Card.Header>
+        <Card.Title>{t("labels.signInMethods")}</Card.Title>
+        <Card.Description>{t("password.description")}</Card.Description>
+      </Card.Header>
+      <Card.Content>
+        <div className="space-y-4">
+          <ul className="flex flex-wrap gap-2 text-sm" data-testid="account-signin-methods">
+            {providerNames.length ? (
+              providerNames.map((name) => (
+                <li
+                  key={name}
+                  data-testid={`account-signin-method-${name}`}
+                  className="rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-700"
+                >
+                  {t(`password.providers.${name}`, { defaultValue: name })}
+                </li>
+              ))
+            ) : (
+              <li className="text-slate-500">—</li>
+            )}
+          </ul>
+
+          <form onSubmit={save} data-testid="account-password-form" className="space-y-3">
+            {hasPassword && (
+              <div>
+                <label htmlFor="password-current" className="mb-1 block text-sm font-medium text-slate-700">
+                  {t("password.currentLabel")}
+                </label>
+                <input
+                  id="password-current"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={current}
+                  onChange={(e) => setCurrent(e.target.value)}
+                  className={INPUT_CLASS}
+                  data-testid="account-password-current-input"
+                />
+              </div>
+            )}
+            <div>
+              <label htmlFor="password-new" className="mb-1 block text-sm font-medium text-slate-700">
+                {hasPassword ? t("password.newLabel") : t("password.firstLabel")}
+              </label>
+              <input
+                id="password-new"
+                type="password"
+                required
+                minLength={12}
+                maxLength={128}
+                autoComplete="new-password"
+                value={next}
+                onChange={(e) => setNext(e.target.value)}
+                className={INPUT_CLASS}
+                data-testid="account-password-new-input"
+              />
+              <p className="mt-1 text-sm text-slate-500">{t("password.rule")}</p>
+            </div>
+            {error && <ErrorMessage text={error} testId="account-password-error" />}
+            {notice && (
+              <p data-testid="account-password-message" className="text-sm text-emerald-700">
+                {notice}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" isDisabled={busy || !next} data-testid="account-password-save-button">
+                {hasPassword ? t("password.change") : t("password.setButton")}
+              </Button>
+              {hasPassword && (
+                <Button
+                  variant="outline"
+                  isDisabled={busy}
+                  onPress={() => void run(() => removeMyPassword(), t("password.removed"))}
+                  data-testid="account-password-remove-button"
+                >
+                  {t("password.remove")}
+                </Button>
+              )}
+            </div>
+          </form>
+        </div>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -515,8 +645,10 @@ function DeleteAccount() {
  */
 function SignIn() {
   const { t } = useTranslation("account");
-  const [mode, setMode] = useState<"signin" | "register">("signin");
+  const [mode, setMode] = useState<"password" | "signin" | "register">("signin");
   const [registrationOffered, setRegistrationOffered] = useState(false);
+  const [passwordOffered, setPasswordOffered] = useState(false);
+  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [code, setCode] = useState("");
@@ -529,7 +661,13 @@ function SignIn() {
     // A registration tab is a nice-to-have — sign-in must keep working even if this
     // (or the network) fails, so no error state here, just leave the tab hidden.
     providers()
-      .then((p) => setRegistrationOffered(p.allow_registration))
+      .then((p) => {
+        setRegistrationOffered(p.allow_registration);
+        setPasswordOffered(p.password.available);
+        // Story Z-9: where passwords are open, they are the first tab — the code stays
+        // one click away, and is also what "forgot password" leads to.
+        if (p.password.available) setMode((current) => (current === "signin" ? "password" : current));
+      })
       .catch(() => {});
   }, []);
 
@@ -549,6 +687,11 @@ function SignIn() {
     setBusy(true);
     setError(null);
     try {
+      if (mode === "password") {
+        const result = await passwordLogin({ email: email.trim().toLowerCase(), password });
+        setToken(result.access_token);
+        return;
+      }
       await requestCode();
       setStep("code");
     } catch (err) {
@@ -586,40 +729,30 @@ function SignIn() {
     }
   }
 
-  function switchMode(next: "signin" | "register") {
+  function switchMode(next: "password" | "signin" | "register") {
     setMode(next);
     setError(null);
   }
 
+  const tab = (key: "password" | "signin" | "register", label: string) => (
+    <button
+      type="button"
+      onClick={() => switchMode(key)}
+      data-testid={`account-signin-tab-${key}`}
+      className={mode === key ? "font-semibold text-brand-700" : "text-slate-500 hover:text-slate-700"}
+    >
+      {label}
+    </button>
+  );
+
   if (step === "email") {
     return (
       <form onSubmit={submitEmail} data-testid="account-signin-form" className="space-y-3">
-        {registrationOffered && (
-          <div className="flex gap-4 border-b border-slate-200 pb-2 text-sm">
-            <button
-              type="button"
-              onClick={() => switchMode("signin")}
-              data-testid="account-signin-tab-signin"
-              className={
-                mode === "signin"
-                  ? "font-semibold text-brand-700"
-                  : "text-slate-500 hover:text-slate-700"
-              }
-            >
-              {t("signIn.tabSignIn")}
-            </button>
-            <button
-              type="button"
-              onClick={() => switchMode("register")}
-              data-testid="account-signin-tab-register"
-              className={
-                mode === "register"
-                  ? "font-semibold text-brand-700"
-                  : "text-slate-500 hover:text-slate-700"
-              }
-            >
-              {t("signIn.tabRegister")}
-            </button>
+        {(registrationOffered || passwordOffered) && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-slate-200 pb-2 text-sm">
+            {passwordOffered && tab("password", t("signIn.tabPassword"))}
+            {tab("signin", passwordOffered ? t("signIn.tabCode") : t("signIn.tabSignIn"))}
+            {registrationOffered && tab("register", t("signIn.tabRegister"))}
           </div>
         )}
 
@@ -662,19 +795,56 @@ function SignIn() {
             data-testid="account-signin-email-input"
           />
         </div>
+        {mode === "password" && (
+          <div>
+            <label htmlFor="signin-password" className="mb-1 block text-sm font-medium text-slate-700">
+              {t("signIn.passwordLabel")}
+            </label>
+            <input
+              id="signin-password"
+              type="password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={INPUT_CLASS}
+              data-testid="account-signin-password-input"
+            />
+          </div>
+        )}
         {mode === "register" && <p className="text-sm text-slate-500">{t("signIn.registerHint")}</p>}
         {error && <ErrorMessage text={error} testId="account-signin-error" />}
-        <Button
-          type="submit"
-          isDisabled={busy || !email.trim() || (mode === "register" && !displayName.trim())}
-          data-testid="account-signin-send-code-button"
-        >
-          {busy
-            ? t("signIn.sending")
-            : mode === "register"
-              ? t("signIn.sendCodeRegister")
-              : t("signIn.sendCode")}
-        </Button>
+        {mode === "password" ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="submit"
+              isDisabled={busy || !email.trim() || !password}
+              data-testid="account-signin-password-button"
+            >
+              {busy ? t("signIn.verifying") : t("signIn.verify")}
+            </Button>
+            <button
+              type="button"
+              onClick={() => switchMode("signin")}
+              data-testid="account-signin-forgot-button"
+              className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900"
+            >
+              {t("signIn.forgotPassword")}
+            </button>
+          </div>
+        ) : (
+          <Button
+            type="submit"
+            isDisabled={busy || !email.trim() || (mode === "register" && !displayName.trim())}
+            data-testid="account-signin-send-code-button"
+          >
+            {busy
+              ? t("signIn.sending")
+              : mode === "register"
+                ? t("signIn.sendCodeRegister")
+                : t("signIn.sendCode")}
+          </Button>
+        )}
       </form>
     );
   }

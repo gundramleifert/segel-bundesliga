@@ -382,7 +382,7 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_series_assignment.py::TestGuestAccess`
 
-### Z-1 ● Sign in without password
+### Z-1 ● Sign in with Google, Microsoft or a one-time code
 As a **user** I want to **use an identity provider of my choice** (Google, Microsoft,
 or email), so that **the operator does not have to manage identities**.
 
@@ -391,11 +391,50 @@ Acceptance criteria:
 - The code is valid for ten minutes, can be used only once, and is locked after five failed
   attempts.
 - It is stored only as a hash in the database.
-- All paths lead to the **same** account, linked via the verified email address.
+- All paths lead to the **same** account, linked via the verified email address — a
+  password ([Z-9](#z-9--sign-in-with-a-password)) is one more path to it.
 - The response does not reveal whether an account exists for an address.
 - Accounts are created by creation, import, or **explicit registration** ([Z-4](sailor.md#z-4--register-yourself)) — not silently when signing in with an unknown address.
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestSigningIn`
+
+### Z-9 ● Sign in with a password
+As a **sailor** I want to **sign in with a password I set myself**, so that **I am not
+waiting for a code by email on a pontoon, and need no Google or Microsoft account**.
+
+This reverses an earlier decision ("we store no passwords", 2026-10-05). The one-time
+code stays: it is how an address is proven, and it is the reset — "forgot password" means
+signing in with a code and setting a new one, so there is no reset-token table.
+
+Acceptance criteria:
+- **Only a verified address gets a password** (`User.email_verified`). Setting one never
+  creates an account; accounts still come from creation, import or registration.
+- **Length is the only rule:** 12 to 128 characters, no "one digit, one symbol". The text
+  is Unicode-normalized (NFKC) first, so an umlaut typed on a Mac and on a phone is the
+  same password.
+- **Argon2id** (`argon2-cffi`). A hash made with older parameters is re-hashed on the
+  next successful sign-in.
+- **Every wrong combination answers the same:** unknown address, no password set, wrong
+  password, a locked or suspended account — one 401 problem, `login-failed`, with the
+  same body. An unknown address still verifies against a dummy hash, so timing does not
+  tell either.
+- **After 5 failures the account locks**, for 1, then 5, then 15 minutes. A wrong current
+  password when changing it counts too. A successful sign-in by password or by code
+  clears the count.
+- **Changing** a password requires the current one; **removing** it leaves the one-time
+  code as the way in — which is why removing is never refused as "the last way in": the
+  code is always one.
+- The site's **admin can clear** someone's password (decision D3); the person then signs
+  in by code and sets a new one.
+- Setting, changing, removing, clearing and locking each write an `AuditLog` row. The
+  password is never logged or echoed, and the hash never appears in any response — it
+  lives in its own table, `PasswordCredential`, which no account serializer reads.
+- A password is an `Identity` (`provider = "password"`), so the account page lists it
+  beside Google, Microsoft and email.
+- `SBL_ALLOW_PASSWORD_LOGIN` (default on) closes the path; `GET /api/auth/providers`
+  says whether it is open, and the sign-in card only offers the tab then.
+
+Tests: `api/tests/stories/test_password_login.py`
 
 ### B-9 ◐ Find legal notice and privacy policy
 As a **visitor** I want to **reach the legal notice and the privacy policy from every page**,
@@ -417,7 +456,7 @@ Acceptance criteria:
   for editorial content under § 18 Abs. 2 MStV. It names **no** EU online dispute
   resolution platform — that platform was shut down in July 2025.
 - The privacy policy follows Art. 13 DSGVO and describes what this application actually
-  stores: accounts without passwords, OIDC identities, sailor profiles with birth dates
+  stores: accounts, OIDC identities, password hashes (Z-9), sailor profiles with birth dates
   and photos including the minors rule, waivers, club membership. No cookie-consent
   section, because the app sets no cookies and runs no analytics.
 - Values nobody has yet — register court, association register number — appear as visibly

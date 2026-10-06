@@ -16,6 +16,7 @@ export interface ProvidersOut {
   google: ProviderInfo;
   microsoft: MicrosoftProviderInfo;
   email: ProviderInfo;
+  password: ProviderInfo;
   /** Whether POST /api/auth/register is open, i.e. a 'create an account' link makes sense to show */
   allow_registration: boolean;
 }

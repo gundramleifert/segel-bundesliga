@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**72 stories** — ● 44 implemented and tested · ◐ 16 partial · ○ 12 open. With backend tests: 57 · with browser tests: 27 · walked by a journey: 9 · **with no test at all: 11**.
+**73 stories** — ● 45 implemented and tested · ◐ 16 partial · ○ 12 open. With backend tests: 58 · with browser tests: 28 · walked by a journey: 9 · **with no test at all: 11**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -100,7 +100,8 @@ same stories with each test's result, video and trace.
 | [B-11](userstories/visitor.md#b-11--club-page-in-tabs) | ○ | Club page in tabs | — | — | — |
 | [B-8](userstories/visitor.md#b-8--view-sailor-page) | ● | View sailor page | `test_club_page.py::TestSailorPage` | — | — |
 | [B-6](userstories/visitor.md#b-6--read-as-guest-without-login) | ● | Read as guest without login | `test_series_assignment.py::TestGuestAccess` | — | — |
-| [Z-1](userstories/visitor.md#z-1--sign-in-without-password) | ● | Sign in without password | `test_login_and_roles.py::TestSigningIn` | — | — |
+| [Z-1](userstories/visitor.md#z-1--sign-in-with-google-microsoft-or-a-one-time-code) | ● | Sign in with Google, Microsoft or a one-time code | `test_login_and_roles.py::TestSigningIn` | — | — |
+| [Z-9](userstories/visitor.md#z-9--sign-in-with-a-password) | ● | Sign in with a password | `test_password_login.py` | `account.spec.ts::Z-9: as a sailor I sign in with a password I set myself` | — |
 | [B-9](userstories/visitor.md#b-9--find-legal-notice-and-privacy-policy) | ◐ | Find legal notice and privacy policy | — | — | — |
 
 ## [treasurer.md](userstories/treasurer.md)

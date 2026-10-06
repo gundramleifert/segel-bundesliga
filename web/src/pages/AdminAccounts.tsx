@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  useClearPassword,
   useDeleteTuple,
   useGetModel,
   useListAllClubs,
@@ -96,7 +97,7 @@ function AccountTable({
         accountColumn.accessor("email", {
           header: t("accounts.emailHeader"),
           enableSorting: true,
-          cell: ({ row }) => <span className="text-slate-500">{row.original.email}</span>,
+          cell: ({ row }) => <EmailCell account={row.original} onChanged={onChanged} />,
         }),
         accountColumn.display({
           id: "roles",
@@ -116,6 +117,36 @@ function AccountTable({
       empty={t("accounts.emptyText")}
       rowTestId={(account) => account.id}
     />
+  );
+}
+
+/** The address, and — where the account has a password — the admin's "clear" (Story
+ *  Z-9, decision D3): the person then signs in by code and sets a new one. */
+function EmailCell({ account, onChanged }: { account: Account; onChanged: () => void }) {
+  const { t } = useTranslation("admin");
+  const clear = useClearPassword({ mutation: { onSuccess: onChanged } });
+  const hasPassword = account.identities.some((i) => i.provider === "password");
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <span className="text-slate-500">{account.email}</span>
+      {hasPassword && (
+        <button
+          type="button"
+          title={t("accounts.clearPasswordHint")}
+          disabled={clear.isPending}
+          onClick={() => clear.mutate({ userId: account.id })}
+          data-testid={`admin-accounts-clear-password-${account.id}`}
+          className="text-xs text-slate-600 underline underline-offset-2 hover:text-slate-900"
+        >
+          {t("accounts.clearPassword")}
+        </button>
+      )}
+      {clear.error && (
+        <span className="text-xs text-red-700" data-testid={`admin-accounts-clear-password-error-${account.id}`}>
+          {errorText(clear.error)}
+        </span>
+      )}
+    </div>
   );
 }
 

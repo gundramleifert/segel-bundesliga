@@ -227,7 +227,9 @@
       "club": "One club",
       "series": "One series",
       "event": "One event"
-    }
+    },
+    "clearPassword": "Clear password",
+    "clearPasswordHint": "The person then signs in with a code and sets a new one."
   },
   "page": {
     "title": "Administration",

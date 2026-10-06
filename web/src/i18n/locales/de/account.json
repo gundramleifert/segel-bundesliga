@@ -25,13 +25,36 @@
     "verifying": "Anmeldung läuft…",
     "changeEmail": "Andere Adresse verwenden",
     "resendCode": "Code erneut senden",
-    "resent": "Ein neuer Code ist unterwegs."
+    "resent": "Ein neuer Code ist unterwegs.",
+    "tabPassword": "Passwort",
+    "tabCode": "Code per E-Mail",
+    "passwordLabel": "Passwort",
+    "forgotPassword": "Passwort vergessen? Mit Code anmelden"
   },
   "labels": {
     "signInMethods": "Anmeldewege",
     "status": "Status",
     "active": "aktiv",
     "disabled": "gesperrt"
+  },
+  "password": {
+    "description": "Wie Sie sich anmelden können. Ein Passwort ist freiwillig — der Einmalcode per E-Mail funktioniert immer und ist auch der Weg, ein vergessenes Passwort neu zu setzen.",
+    "providers": {
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "email": "Code per E-Mail",
+      "password": "Passwort"
+    },
+    "firstLabel": "Passwort festlegen",
+    "currentLabel": "Aktuelles Passwort",
+    "newLabel": "Neues Passwort",
+    "rule": "Mindestens 12 Zeichen. Ein paar Wörter hintereinander sind leicht zu merken und schwer zu erraten.",
+    "setButton": "Passwort festlegen",
+    "change": "Passwort ändern",
+    "remove": "Passwort entfernen",
+    "set": "Passwort festgelegt. Sie können sich jetzt damit anmelden.",
+    "changed": "Passwort geändert.",
+    "removed": "Passwort entfernt. Melden Sie sich mit einem Code per E-Mail an."
   },
   "profile": {
     "title": "Mein Segler-Profil",

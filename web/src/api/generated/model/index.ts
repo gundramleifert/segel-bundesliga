@@ -117,6 +117,8 @@ export * from './pairingRow';
 export * from './pairingRowTeamsByBoat';
 export * from './participantOut';
 export * from './participantSetRequest';
+export * from './passwordLogin';
+export * from './passwordSet';
 export * from './printSettingsIn';
 export * from './providerInfo';
 export * from './providersOut';

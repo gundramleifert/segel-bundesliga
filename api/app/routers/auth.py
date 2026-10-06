@@ -1,7 +1,7 @@
 """Sign-in and account management.
 
-Three paths to the same account: Google, Microsoft, or a one-time code via email. All end
-with a session token that carries roles.
+Four paths to the same account: Google, Microsoft, a one-time code via email, or a
+password (Story Z-9). All end with a session token that carries roles.
 """
 
 from __future__ import annotations
@@ -32,10 +32,11 @@ from app.models.auth import (
 )
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services import grants
+from app.services import grants, passwords
 from app.services.login import (
     LoginError,
     login_with_oidc,
+    login_with_password,
     register,
     request_email_code,
     verify_email_code,
@@ -62,6 +63,25 @@ class Registration(BaseModel):
 class EmailVerify(BaseModel):
     email: EmailStr
     code: str
+
+
+class PasswordLogin(BaseModel):
+    email: EmailStr
+    # Bounded only so nobody makes the server hash a megabyte; the rule is on setting.
+    password: str = Field(max_length=1024)
+
+
+class PasswordSet(BaseModel):
+    current_password: str | None = Field(
+        default=None,
+        max_length=1024,
+        description="Required when the account already has a password",
+    )
+    new_password: str = Field(
+        max_length=1024,
+        description=f"{passwords.MIN_LENGTH} to {passwords.MAX_LENGTH} characters; "
+        "no other rule",
+    )
 
 
 class OidcLogin(BaseModel):
@@ -93,6 +113,7 @@ class ProvidersOut(BaseModel):
     google: ProviderInfo
     microsoft: MicrosoftProviderInfo
     email: ProviderInfo
+    password: ProviderInfo
     allow_registration: bool = Field(
         description="Whether POST /api/auth/register is open, i.e. a 'create an account' "
         "link makes sense to show"
@@ -196,6 +217,7 @@ async def providers() -> ProvidersOut:
             tenant=settings.microsoft_tenant if settings.microsoft_client_id else None,
         ),
         email=ProviderInfo(available=True),
+        password=ProviderInfo(available=settings.allow_password_login),
         allow_registration=settings.allow_registration,
     )
 
@@ -293,6 +315,86 @@ async def oidc_login(
     return TokenOut(access_token=token, expires_in=expires_in)
 
 
+def _password_login_open() -> None:
+    from app.config import settings
+
+    if not settings.allow_password_login:
+        raise Problem(403, "password-login-disabled", "Password sign-in is switched off here.")
+
+
+@router.post(
+    "/password/login",
+    response_model=TokenOut,
+    responses={401: {"description": "login-failed — the same for every wrong combination"}},
+    summary="Sign in with a password",
+)
+async def password_login(
+    request: PasswordLogin, session: AsyncSession = Depends(get_session)
+) -> TokenOut:
+    """Story Z-9. Unknown address, no password set, wrong password, a locked or suspended
+    account: one answer, ``login-failed``, so the endpoint cannot enumerate accounts."""
+    _password_login_open()
+    try:
+        user = await login_with_password(session, request.email, request.password)
+    except passwords.LoginFailed as exc:
+        raise Problem(401, "login-failed", "Email address or password is not correct.") from exc
+    token, expires_in = create_access_token(user)
+    return TokenOut(access_token=token, expires_in=expires_in)
+
+
+@router.put(
+    "/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Set or change my password",
+)
+async def set_my_password(
+    request: PasswordSet,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(current_user),
+) -> None:
+    """Story Z-9. Only for a verified address. Changing needs the current password, and
+    a wrong one counts towards the lock like a failed sign-in."""
+    _password_login_open()
+    try:
+        await passwords.set_password(
+            session, user, request.new_password, request.current_password
+        )
+    except passwords.EmailUnverified as exc:
+        raise Problem(
+            403,
+            "password-email-unverified",
+            "Confirm your email address with a one-time code before setting a password.",
+        ) from exc
+    except passwords.PasswordRejected as exc:
+        raise Problem(
+            422,
+            "password-length",
+            "A password needs a certain length.",
+            min_length=passwords.MIN_LENGTH,
+            max_length=passwords.MAX_LENGTH,
+        ) from exc
+    except passwords.CurrentPasswordWrong as exc:
+        await session.commit()  # the failure counted
+        raise Problem(
+            403, "password-current-wrong", "The current password is not correct."
+        ) from exc
+    await session.commit()
+
+
+@router.delete(
+    "/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove my password",
+)
+async def remove_my_password(
+    session: AsyncSession = Depends(get_session), user: User = Depends(current_user)
+) -> None:
+    """Story Z-9. Never refused as "the last way in": the one-time code always is one.
+    Removing a password that is not there is not an error."""
+    await passwords.remove_password(session, user)
+    await session.commit()
+
+
 @router.get("/me", response_model=UserOut, summary="Get my account")
 async def me(user: User = Depends(current_user)) -> UserOut:
     return UserOut.of(user)
@@ -330,7 +432,8 @@ async def delete_my_account(
         .where(WaiverConfirmation.recorded_by_user_id == acting.id)
         .values(recorded_by_user_id=None)
     )
-    # UserRole and Identity cascade via the ORM relationship (cascade="all, delete-orphan").
+    # Grants, identities and the password credential cascade via the ORM relationships
+    # (cascade="all, delete-orphan").
     await session.delete(acting)
     await session.commit()
 
@@ -448,6 +551,24 @@ async def remove_user(
     user.is_active = False
     await session.commit()
     return UserOut.of(user)
+
+
+@router.delete(
+    "/users/{user_id}/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Clear someone's password",
+)
+async def clear_password(
+    user_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(require_admin),
+    locale: Locale = Depends(resolve_locale),
+) -> None:
+    """Story Z-9 (decision D3): the site's admin clears a password, audited. The person
+    then signs in by code and sets a new one — there is no reset flow of its own."""
+    user = await _user(session, user_id, locale)
+    await passwords.remove_password(session, user, actor=acting)
+    await session.commit()
 
 
 class ModelTypeOut(BaseModel):

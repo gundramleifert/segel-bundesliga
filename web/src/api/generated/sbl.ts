@@ -98,6 +98,8 @@ import type {
   PairingList,
   ParticipantOut,
   ParticipantSetRequest,
+  PasswordLogin,
+  PasswordSet,
   ProvidersOut,
   PublishRequest,
   PublishResult,
@@ -2538,6 +2540,262 @@ export const useOidcLogin = <TError = ErrorType<HTTPValidationError>,
       return useMutation(getOidcLoginMutationOptions(options), queryClient);
     }
 
+export const getPasswordLoginUrl = () => {
+
+
+
+
+  return `/api/auth/password/login`
+}
+
+/**
+ * Story Z-9. Unknown address, no password set, wrong password, a locked or suspended
+ * account: one answer, ``login-failed``, so the endpoint cannot enumerate accounts.
+ * @summary Sign in with a password
+ */
+export const passwordLogin = async (passwordLoginBody: PasswordLogin, options?: RequestInit): Promise<TokenOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<TokenOut>(getPasswordLoginUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(passwordLoginBody)
+  }
+);}
+
+
+
+
+
+export const getPasswordLoginMutationKey = () => ['passwordLogin'] as const;
+
+export const getPasswordLoginMutationOptions = <TError = ErrorType<void | HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof passwordLogin>>, TError,PasswordLoginMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof passwordLogin>>, TError,PasswordLoginMutationVariables, TContext> => {
+
+const mutationKey = getPasswordLoginMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof passwordLogin>>, PasswordLoginMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  passwordLogin(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PasswordLoginMutationResult = NonNullable<Awaited<ReturnType<typeof passwordLogin>>>
+    export type PasswordLoginMutationBody = BodyType<PasswordLogin>
+    export type PasswordLoginMutationError = ErrorType<void | HTTPValidationError>
+    export type PasswordLoginMutationVariables = {data: BodyType<PasswordLogin>}
+
+    /**
+ * @summary Sign in with a password
+ */
+export const usePasswordLogin = <TError = ErrorType<void | HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof passwordLogin>>, TError,PasswordLoginMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof passwordLogin>>,
+        TError,
+        PasswordLoginMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPasswordLoginMutationOptions(options), queryClient);
+    }
+
+export const getSetMyPasswordUrl = () => {
+
+
+
+
+  return `/api/auth/password`
+}
+
+/**
+ * Story Z-9. Only for a verified address. Changing needs the current password, and
+ * a wrong one counts towards the lock like a failed sign-in.
+ * @summary Set or change my password
+ */
+export const setMyPassword = async (passwordSet: PasswordSet, options?: RequestInit): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<void>(getSetMyPasswordUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(passwordSet)
+  }
+);}
+
+
+
+
+
+export const getSetMyPasswordMutationKey = () => ['setMyPassword'] as const;
+
+export const getSetMyPasswordMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyPassword>>, TError,SetMyPasswordMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setMyPassword>>, TError,SetMyPasswordMutationVariables, TContext> => {
+
+const mutationKey = getSetMyPasswordMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setMyPassword>>, SetMyPasswordMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  setMyPassword(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetMyPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof setMyPassword>>>
+    export type SetMyPasswordMutationBody = BodyType<PasswordSet>
+    export type SetMyPasswordMutationError = ErrorType<HTTPValidationError>
+    export type SetMyPasswordMutationVariables = {data: BodyType<PasswordSet>}
+
+    /**
+ * @summary Set or change my password
+ */
+export const useSetMyPassword = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyPassword>>, TError,SetMyPasswordMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setMyPassword>>,
+        TError,
+        SetMyPasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetMyPasswordMutationOptions(options), queryClient);
+    }
+
+export const getRemoveMyPasswordUrl = () => {
+
+
+
+
+  return `/api/auth/password`
+}
+
+/**
+ * Story Z-9. Never refused as "the last way in": the one-time code always is one.
+ * Removing a password that is not there is not an error.
+ * @summary Remove my password
+ */
+export const removeMyPassword = async ( options?: RequestInit): Promise<void> => {
+
+  return http<void>(getRemoveMyPasswordUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveMyPasswordMutationKey = () => ['removeMyPassword'] as const;
+
+export const getRemoveMyPasswordMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeMyPassword>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof removeMyPassword>>, TError,void, TContext> => {
+
+const mutationKey = getRemoveMyPasswordMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeMyPassword>>, void> = () => {
+
+
+          return  removeMyPassword()
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveMyPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof removeMyPassword>>>
+
+    export type RemoveMyPasswordMutationError = ErrorType<unknown>
+
+
+    /**
+ * @summary Remove my password
+ */
+export const useRemoveMyPassword = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeMyPassword>>, TError,void, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof removeMyPassword>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRemoveMyPasswordMutationOptions(options), queryClient);
+    }
+
 export const getMeUrl = () => {
 
 
@@ -3105,6 +3363,82 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
 
 
 
+
+export const getClearPasswordUrl = (userId: number,) => {
+
+
+
+
+  return `/api/auth/users/${userId}/password`
+}
+
+/**
+ * Story Z-9 (decision D3): the site's admin clears a password, audited. The person
+ * then signs in by code and sets a new one — there is no reset flow of its own.
+ * @summary Clear someone's password
+ */
+export const clearPassword = async (userId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getClearPasswordUrl(userId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getClearPasswordMutationKey = () => ['clearPassword'] as const;
+
+export const getClearPasswordMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearPassword>>, TError,ClearPasswordMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof clearPassword>>, TError,ClearPasswordMutationVariables, TContext> => {
+
+const mutationKey = getClearPasswordMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clearPassword>>, ClearPasswordMutationVariables> = (props) => {
+          const {userId} = props ?? {};
+
+          return  clearPassword(userId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClearPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof clearPassword>>>
+
+    export type ClearPasswordMutationError = ErrorType<HTTPValidationError>
+    export type ClearPasswordMutationVariables = {userId: number}
+
+    /**
+ * @summary Clear someone's password
+ */
+export const useClearPassword = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearPassword>>, TError,ClearPasswordMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof clearPassword>>,
+        TError,
+        ClearPasswordMutationVariables,
+        TContext
+      > => {
+      return useMutation(getClearPasswordMutationOptions(options), queryClient);
+    }
 
 export const getGetModelUrl = () => {
 

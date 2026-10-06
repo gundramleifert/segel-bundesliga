@@ -512,12 +512,12 @@
   "anchor": "wl-3--start-recall-and-finish-races-from-one-screen"
  },
  "Z-1": {
-  "title": "Sign in without password",
+  "title": "Sign in with Google, Microsoft or a one-time code",
   "status": "●",
   "role": "Visitor and Fans",
   "phase": "The site",
   "file": "docs/userstories/visitor.md",
-  "anchor": "z-1--sign-in-without-password"
+  "anchor": "z-1--sign-in-with-google-microsoft-or-a-one-time-code"
  },
  "Z-2": {
   "title": "Access is a relation tuple: user · relation · object",
@@ -574,5 +574,13 @@
   "phase": "My profile",
   "file": "docs/userstories/sailor.md",
   "anchor": "z-8--my-clubs-my-series-my-events-on-the-account-page"
+ },
+ "Z-9": {
+  "title": "Sign in with a password",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The site",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "z-9--sign-in-with-a-password"
  }
 }

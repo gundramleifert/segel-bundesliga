@@ -1,9 +1,10 @@
 """User accounts, identities and roles.
 
-**We don't manage passwords.** Whoever signs in proves themselves via an identity
-provider (Google, Microsoft) or a one-time code to their email address. That saves us
-password hashes, reset flows, password rules, and liability for stolen credentials — for
-a league site with a few dozen accounts total, that's clearly the better trade.
+Whoever signs in proves themselves via an identity provider (Google, Microsoft), a
+one-time code to their email address, or a password (Story Z-9). Passwords were long
+kept out — no hashes, no reset flow, no liability — and came in on 2026-10-05 because not
+every sailor has a Google or Microsoft account and a code on every sign-in is slow on a
+pontoon. The code stays the reset, so there is still no reset flow of its own.
 
 An account (``User``) can have several ``Identity`` entries: the same person signs in
 with Google one day and by email code the next, landing in the same account. Linked via
@@ -223,6 +224,8 @@ class IdentityProvider(StrEnum):
     MICROSOFT = "microsoft"
     EMAIL = "email"
     """One-time code to the email address — for anyone without a Google or Microsoft account."""
+    PASSWORD = "password"
+    """A password the person set themselves (Story Z-9); the hash is a ``PasswordCredential``."""
 
 
 class User(Base, TimestampMixin):
@@ -244,6 +247,13 @@ class User(Base, TimestampMixin):
     )
     identities: Mapped[list[Identity]] = relationship(
         back_populates="user", cascade="all, delete-orphan", lazy="selectin"
+    )
+    # Only so the credential goes with a deleted account: SQLite enforces no foreign keys
+    # and reuses ids, so a row left behind would belong to the next account. Plain lazy
+    # loading on purpose — the delete cascade loads it inside the flush, and nothing else
+    # ever reads it through here (`app/services/passwords.py` queries it by `user_id`).
+    password_credential: Mapped[PasswordCredential | None] = relationship(
+        cascade="all, delete-orphan"
     )
 
     # ---- the check ------------------------------------------------------------------
@@ -511,3 +521,22 @@ class LoginCode(Base, TimestampMixin):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     attempts: Mapped[int] = mapped_column(default=0)
     consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+
+class PasswordCredential(Base, TimestampMixin):
+    """The password of one account (Story Z-9) — an Argon2id hash, never the password.
+
+    Its own table rather than a column on ``User`` or ``Identity``: every serializer that
+    lists an account or its identities reads those, and none of them can carry a hash it
+    never sees. ``failed_attempts`` and ``locked_until`` slow guessing per account
+    (`app/services/passwords.py`).
+    """
+
+    __tablename__ = "password_credential"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("app_user.id"), unique=True)
+    hash: Mapped[str] = mapped_column(String(255))
+    changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    failed_attempts: Mapped[int] = mapped_column(default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)

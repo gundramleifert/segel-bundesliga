@@ -147,7 +147,7 @@
           "We take technical and organisational measures appropriate to the risk, and consider data protection when choosing and building the software itself. In particular:"
         ],
         "items": [
-          "No password is stored anywhere. Identity comes from Google, Microsoft, or a one-time code sent by email.",
+          "Identity comes from Google, Microsoft, a one-time code sent by email, or a password you chose to set. A password is stored only as an Argon2id hash — never in readable form — and an account locks for a growing period after five wrong attempts.",
           "One-time codes are stored only as an Argon2 hash, expire after ten minutes, allow five attempts, and can be used once.",
           "All traffic runs over HTTPS (TLS).",
           "Roles are checked against the database on every single request, so withdrawing a permission takes effect immediately rather than at the next sign-in.",
@@ -221,8 +221,8 @@
       {
         "heading": "Account and sign-in",
         "paragraphs": [
-          "An account holds your email address (stored in lower case), your display name, whether that address is verified, the time of your last sign-in, your club, and your roles. There is deliberately no password field.",
-          "If you sign in with a code by email, we store the address, a hash of the code, its expiry, the number of attempts and whether it has been used. After a successful sign-in, your browser holds an access token valid for twelve hours; it is not stored on our servers."
+          "An account holds your email address (stored in lower case), your display name, whether that address is verified, the time of your last sign-in, your club, and your roles.",
+          "If you sign in with a code by email, we store the address, a hash of the code, its expiry, the number of attempts and whether it has been used. If you set a password, we store its Argon2id hash, when it was last changed, and the number of failed attempts and any lock that followed; setting, changing and removing it are logged without the password. After a successful sign-in, your browser holds an access token valid for twelve hours; it is not stored on our servers."
         ],
         "open": "Used and expired sign-in code records are currently not purged. A short deletion period — days, not years — should be set and implemented."
       },

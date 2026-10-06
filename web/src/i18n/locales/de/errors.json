@@ -63,5 +63,10 @@
   "tuple-object-missing": "Den Verein, die Serie oder die Veranstaltung gibt es nicht.",
   "tuple-exists": "Diese Person hat diese Rolle dort bereits.",
   "tuple-self-lockout": "Die eigene Verwaltungsrolle lässt sich nicht selbst entziehen.",
-  "tuple-forbidden": "Nur die Verwaltung oder die Organisation des Objekts kann ändern, wer Zugriff darauf hat."
+  "tuple-forbidden": "Nur die Verwaltung oder die Organisation des Objekts kann ändern, wer Zugriff darauf hat.",
+  "login-failed": "E-Mail-Adresse oder Passwort stimmen nicht.",
+  "password-length": "Ein Passwort braucht {{min_length}} bis {{max_length}} Zeichen.",
+  "password-email-unverified": "Bestätigen Sie Ihre E-Mail-Adresse mit einem Einmalcode, bevor Sie ein Passwort festlegen.",
+  "password-current-wrong": "Das aktuelle Passwort stimmt nicht.",
+  "password-login-disabled": "Die Anmeldung mit Passwort ist auf dieser Seite abgeschaltet."
 }

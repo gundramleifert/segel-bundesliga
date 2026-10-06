@@ -78,7 +78,7 @@
         "Admin path: an administrator creates the account with an email address, a display name and any roles it should start with. Such an account counts as already verified, since the address came from an entry or import rather than being claimed by the person themselves.",
         "Self-registration path: where enabled, a person submits their own email and name and receives a confirmation code by email, valid for ten minutes. Entering that code verifies the address.",
         "Either way, a fresh account starts with no role and no club — it becomes useful once it is linked to a club (see \"Join a Club\" below).",
-        "Signing in itself never uses a stored password: it happens via Google, Microsoft, or a one-time code sent by email."
+        "Signing in happens via Google, Microsoft, a one-time code sent by email, or a password the person sets on their account page once the address is verified."
       ],
       "note": "Neither path has a page in the interface yet — account creation, self-registration and real sign-in are currently reachable only through the API. In development, the role switcher in the bottom-right corner stands in for signing in as any test account."
     },

@@ -25,13 +25,36 @@
     "verifying": "Signing in…",
     "changeEmail": "Use a different address",
     "resendCode": "Resend code",
-    "resent": "A new code is on its way."
+    "resent": "A new code is on its way.",
+    "tabPassword": "Password",
+    "tabCode": "Code by email",
+    "passwordLabel": "Password",
+    "forgotPassword": "Forgot your password? Sign in with a code"
   },
   "labels": {
     "signInMethods": "Sign-in methods",
     "status": "Status",
     "active": "active",
     "disabled": "disabled"
+  },
+  "password": {
+    "description": "How you can sign in. A password is optional — the one-time code by email always works, and is also how you reset a forgotten password.",
+    "providers": {
+      "google": "Google",
+      "microsoft": "Microsoft",
+      "email": "Code by email",
+      "password": "Password"
+    },
+    "firstLabel": "Set a password",
+    "currentLabel": "Current password",
+    "newLabel": "New password",
+    "rule": "At least 12 characters. A few words in a row are easy to remember and hard to guess.",
+    "setButton": "Set password",
+    "change": "Change password",
+    "remove": "Remove password",
+    "set": "Password set. You can now sign in with it.",
+    "changed": "Password changed.",
+    "removed": "Password removed. Sign in with a code by email."
   },
   "profile": {
     "title": "My sailor profile",

@@ -147,7 +147,7 @@
           "Wir treffen technische und organisatorische Maßnahmen, die dem Risiko angemessen sind, und berücksichtigen den Datenschutz bereits bei Auswahl und Entwicklung der Software. Insbesondere:"
         ],
         "items": [
-          "Es wird kein Passwort gespeichert. Die Identität kommt von Google, Microsoft oder über einen Einmalcode per E-Mail.",
+          "Die Identität kommt von Google, Microsoft, über einen Einmalcode per E-Mail oder über ein Passwort, das Sie selbst festgelegt haben. Ein Passwort wird nur als Argon2id-Hash gespeichert — nie lesbar —, und nach fünf Fehlversuchen wird das Konto für eine wachsende Dauer gesperrt.",
           "Einmalcodes werden nur als Argon2-Hash gespeichert, verfallen nach zehn Minuten, erlauben fünf Versuche und sind einmal verwendbar.",
           "Der gesamte Datenverkehr läuft über HTTPS (TLS).",
           "Rollen werden bei jeder einzelnen Anfrage gegen die Datenbank geprüft; ein entzogenes Recht wirkt damit sofort und nicht erst bei der nächsten Anmeldung.",
@@ -221,8 +221,8 @@
       {
         "heading": "Konto und Anmeldung",
         "paragraphs": [
-          "Ein Konto enthält Ihre E-Mail-Adresse (klein geschrieben gespeichert), Ihren Anzeigenamen, ob diese Adresse bestätigt ist, den Zeitpunkt der letzten Anmeldung, Ihren Verein und Ihre Rollen. Ein Passwortfeld gibt es bewusst nicht.",
-          "Melden Sie sich mit einem Code per E-Mail an, speichern wir die Adresse, einen Hash des Codes, dessen Ablaufzeitpunkt, die Zahl der Versuche und ob er verbraucht ist. Nach erfolgreicher Anmeldung hält Ihr Browser ein zwölf Stunden gültiges Zugangstoken; auf unseren Servern wird es nicht gespeichert."
+          "Ein Konto enthält Ihre E-Mail-Adresse (klein geschrieben gespeichert), Ihren Anzeigenamen, ob diese Adresse bestätigt ist, den Zeitpunkt der letzten Anmeldung, Ihren Verein und Ihre Rollen.",
+          "Melden Sie sich mit einem Code per E-Mail an, speichern wir die Adresse, einen Hash des Codes, dessen Ablaufzeitpunkt, die Zahl der Versuche und ob er verbraucht ist. Legen Sie ein Passwort fest, speichern wir dessen Argon2id-Hash, den Zeitpunkt der letzten Änderung sowie die Zahl der Fehlversuche und eine daraus folgende Sperre; Festlegen, Ändern und Entfernen werden ohne das Passwort protokolliert. Nach erfolgreicher Anmeldung hält Ihr Browser ein zwölf Stunden gültiges Zugangstoken; auf unseren Servern wird es nicht gespeichert."
         ],
         "open": "Verbrauchte und abgelaufene Anmeldecodes werden derzeit nicht aufgeräumt. Hier sollte eine kurze Löschfrist — Tage, nicht Jahre — festgelegt und umgesetzt werden."
       },

@@ -2,7 +2,7 @@
 
 Revision ID: 2337859c5222
 Revises: 
-Create Date: 2026-10-04 20:49:25.126311
+Create Date: 2026-10-05 07:52:32.888833
 """
 from collections.abc import Sequence
 
@@ -230,6 +230,19 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_identity_provider'), ['provider'], unique=False)
         batch_op.create_index(batch_op.f('ix_identity_user_id'), ['user_id'], unique=False)
 
+    op.create_table('password_credential',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('hash', sa.String(length=255), nullable=False),
+    sa.Column('changed_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('failed_attempts', sa.Integer(), nullable=False),
+    sa.Column('locked_until', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_password_credential_user_id_app_user')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_password_credential')),
+    sa.UniqueConstraint('user_id', name=op.f('uq_password_credential_user_id'))
+    )
     op.create_table('payment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('payer_club_id', sa.Integer(), nullable=False),
@@ -758,6 +771,7 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_payment_payee_user_id'))
 
     op.drop_table('payment')
+    op.drop_table('password_credential')
     with op.batch_alter_table('identity', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_identity_user_id'))
         batch_op.drop_index(batch_op.f('ix_identity_provider'))
