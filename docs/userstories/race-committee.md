@@ -49,8 +49,8 @@ Acceptance criteria:
   boat_count)` races per flight, `flight_count` flights. A guest club's four-boat event works
   exactly like a league day; no "six" and no "48" in the code.
 - **Scheduled:** the event's boats in their colours, each with the team the pairing list puts
-  on it. Buttons **Start** (the gun went now), **Start sequence** — **in 15 s**, or **at
-  the next full minute** at least 15 s away (tapped at 14:04:52 → 14:06:00), so the signals
+  on it. Buttons **Start** (the gun went now), **Start sequence** — **in 10 s**, or **at
+  the next full minute** at least 10 s away (tapped at 14:04:52 → 14:06:00), so the signals
   fall on the clock — and **AP** (see *Signals*).
 - **The sequence is a state machine** (`web/src/lib/startSequence.ts`): idle → armed
   (its one piece of state is when the first signal is) → the start. Starting again while
@@ -66,14 +66,15 @@ Acceptance criteria:
   and that is the start, which the screen records by itself. The screen shows which flag
   is up and counts down to the next signal.
 - **AP is part of the same machine.** With no sequence running, AP goes up at the tap
-  (two sounds). During a sequence it goes up 15 s after the tap, at the latest 3 s before
+  (two sounds). During a sequence it goes up 10 s after the tap, at the latest 3 s before
   the start, and not at all in the last 8 s (5 s to get the flag ready, plus 3); the
   sequence runs on until AP is up. While AP is up, the two sequence buttons are the way
-  down — **AP down in 15 s** or **at the next full minute** — and AP comes down then,
+  down — **AP down in 10 s** or **at the next full minute** — and AP comes down then,
   counted in like any signal (one sound), with the club flag a minute later. The screen
   hauls AP down and records the start by itself when the clock reaches them.
-- **The phone sounds the signals** — before each, a ping at ten seconds to go and low
-  beeps at three, two and one; then the signal's own tone, an octave higher, short or long
+- **The phone sounds the signals** — before each, a ping at ten seconds to go (at the tap
+  itself when the signal is ten seconds away or less, as after "in 10 s") and low beeps at
+  three, two and one; then the signal's own tone, an octave higher, short or long
   as the rules count it (AP up and a recall are two, a second apart). Booked on the audio
   clock, not the page's timers, so the countdown on the screen turns with the beep. A cue
   for whoever works the real horn, not a replacement for it. Any tap on the screen

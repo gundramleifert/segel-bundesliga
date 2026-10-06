@@ -1,11 +1,11 @@
 /** The league's start sequence as a state machine (Story WL-3): 3-2-1-0.
  *
- *   idle ──start (in 15 s | next full minute)──▶ armed(warningAt)
+ *   idle ──start (in 10 s | next full minute)──▶ armed(warningAt)
  *   armed ──start──▶ armed(new warningAt)      restart: the same event again
  *   armed ──abort──▶ idle                      also what hoisting AP does
- *   idle  ──AP down (in 15 s | full minute)──▶ armed(postponed)
+ *   idle  ──AP down (in 10 s | full minute)──▶ armed(postponed)
  *                                              AP down then, the club flag a minute later
- *   armed ──AP up──▶ armed(apUpAt)             AP in 15 s, at the latest 3 s before the
+ *   armed ──AP up──▶ armed(apUpAt)             AP in 10 s, at the latest 3 s before the
  *                                              start; refused in the last 8 s (5 s to get
  *                                              ready, 3 s before the start)
  *   armed ──clock reaches apUpAt──▶ idle       the screen hoists AP and aborts
@@ -25,7 +25,7 @@ import type { PreparatoryFlag } from "./results";
 export const MINUTE = 60_000;
 /** A sequence never begins sooner than this after the tap — time to reach the flags, and
  *  room for the count-in. */
-export const LEAD = 15_000;
+export const LEAD = 10_000;
 /** Before each signal, so the horn is ready on time: a ping at ten seconds to go, then a
  *  beep at three, two and one. */
 const PING_BEFORE = 10_000;
@@ -46,6 +46,10 @@ export type SequenceState =
       postponed: boolean;
       /** AP was tapped during the sequence: it goes up at this time, ending it. */
       apUpAt: number | null;
+      /** When the committee last tapped this plan into being: a ping that would fall at
+       *  or before it plays at the tap instead — "a flag in ten seconds or less" is
+       *  announced at once. */
+      tappedAt: number;
     };
 export type ArmedSequence = Extract<SequenceState, { kind: "armed" }>;
 
@@ -56,8 +60,8 @@ export type SequenceEvent =
   | { type: "postponementDown"; now: number; at: "now" | "minute" }
   | { type: "postpone"; now: number };
 
-/** When a sequence tapped at `now` sends its first signal: 15 s later, or on the first
- *  full minute of the clock that is at least 15 s away (tapped at 14:04:52 → 14:06:00). */
+/** When a sequence tapped at `now` sends its first signal: 10 s later, or on the first
+ *  full minute of the clock that is at least 10 s away (tapped at 14:04:52 → 14:06:00). */
 export function warningTime(now: number, at: "now" | "minute"): number {
   return at === "now" ? now + LEAD : Math.ceil((now + LEAD) / MINUTE) * MINUTE;
 }
@@ -74,6 +78,7 @@ export function sequenceReducer(state: SequenceState, event: SequenceEvent): Seq
         warningAt: warningTime(event.now, event.at),
         postponed: false,
         apUpAt: null,
+        tappedAt: event.now,
       };
     case "abort":
       return { kind: "idle", preparatory };
@@ -85,20 +90,21 @@ export function sequenceReducer(state: SequenceState, event: SequenceEvent): Seq
         warningAt: warningTime(event.now, event.at) + MINUTE,
         postponed: true,
         apUpAt: null,
+        tappedAt: event.now,
       };
     case "postpone": {
       const at = state.kind === "armed" ? apUpTime(state, event.now) : null;
       return state.kind === "armed" && at !== null && state.apUpAt === null
-        ? { ...state, apUpAt: at }
+        ? { ...state, apUpAt: at, tappedAt: event.now }
         : state;
     }
   }
   return state;
 }
 
-/** When AP tapped at `now` would go up during this sequence: 15 s later, but at the latest
+/** When AP tapped at `now` would go up during this sequence: 10 s later, but at the latest
  *  3 s before the start — and null when that leaves less than 5 s to get ready, i.e. in the
- *  last 8 s. Between 18 and 8 s before the start, AP goes up 3 s before it. */
+ *  last 8 s. Between 13 and 8 s before the start, AP goes up 3 s before it. */
 export function apUpTime(sequence: ArmedSequence, now: number): number | null {
   const at = Math.min(now + LEAD, sequence.warningAt + SEQUENCE_LENGTH - AP_UP_BEFORE_START);
   return at >= now + AP_UP_PREPARE ? at : null;
@@ -196,7 +202,10 @@ export function tonesBetween(
   for (const signal of signalsOf(sequence)) {
     const at = sequence.warningAt + signal.after;
     const apUp = signal.action === "apUp";
-    tones.push({ at: at - PING_BEFORE, tone: "ping", apUp });
+    // A signal ten seconds or less after the tap gets its ping at the tap.
+    if (at > sequence.tappedAt) {
+      tones.push({ at: Math.max(at - PING_BEFORE, sequence.tappedAt), tone: "ping", apUp });
+    }
     for (const before of BEEPS_BEFORE) tones.push({ at: at - before, tone: "beep", apUp });
     for (let i = 0; i < signal.sounds; i += 1) {
       tones.push({ at: at + i * soundSpacing(signal.tone) * 1000, tone: signal.tone, apUp });
@@ -204,7 +213,8 @@ export function tonesBetween(
   }
   // Once AP is coming, its count-in owns the last seconds: the sequence's own beeps from
   // then on would only blur it.
-  const cutoff = sequence.apUpAt === null ? Infinity : sequence.apUpAt - PING_BEFORE;
+  const cutoff =
+    sequence.apUpAt === null ? Infinity : Math.min(sequence.apUpAt - PING_BEFORE, sequence.tappedAt);
   return tones
     .filter((t) => (t.apUp || t.at < cutoff) && t.at > from && t.at <= to)
     .map(({ at, tone }) => ({ at, tone }));
@@ -245,7 +255,9 @@ function restore(key: string, scheduled: boolean): SequenceState {
     if (stored?.preparatory) {
       const live =
         scheduled && stored.kind === "armed" && Date.now() < stored.warningAt + SEQUENCE_LENGTH;
-      return live ? stored : { kind: "idle", preparatory: stored.preparatory };
+      // Saved by a version without `tappedAt`: no tap to ping at.
+      if (live) return { ...stored, tappedAt: stored.tappedAt ?? 0 };
+      return { kind: "idle", preparatory: stored.preparatory };
     }
   } catch {
     // unreadable: start from idle

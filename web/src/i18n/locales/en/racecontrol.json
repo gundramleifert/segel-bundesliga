@@ -31,7 +31,7 @@
   },
   "buttons": {
     "start": "Start",
-    "startSequence": "Sequence in 15 s",
+    "startSequence": "Sequence in 10 s",
     "cancelSequence": "Abort sequence",
     "ap": "AP — postpone",
     "x": "X — individual recall",
@@ -45,19 +45,19 @@
     "finish": "Finish race",
     "correct": "Correct in the results tab",
     "sequenceAt": "Sequence at {{time}}",
-    "restartNow": "Restart in 15 s",
+    "restartNow": "Restart in 10 s",
     "restartAt": "Restart at {{time}}",
     "soundOn": "Sound on — tap to mute",
     "soundOff": "Sound muted — tap to turn on",
     "soundLocked": "Sound is off on this device — tap here to turn it on",
     "soundTest": "Test sound",
-    "apDownNow": "AP down in 15 s",
+    "apDownNow": "AP down in 10 s",
     "apDownAt": "AP down at {{time}}",
     "apIsUp": "AP is up — lower it with a sequence above"
   },
   "sequence": {
     "preparatory": "Preparatory flag",
-    "hint": "3-2-1-0 with the club flag. The start is recorded by itself at zero. AP during the sequence goes up in 15 s, at the latest 3 s before the start.",
+    "hint": "3-2-1-0 with the club flag. The start is recorded by itself at zero. AP during the sequence goes up in 10 s, at the latest 3 s before the start.",
     "clubFlag": "Club flag",
     "startAt": "Start {{time}}",
     "actions": {

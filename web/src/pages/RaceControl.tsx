@@ -484,20 +484,22 @@ function RaceCard({
   }, [now, sequence, dispatch, start, signal, eventId, race.id, race.signal]);
   // Aborting (and restarting) cancels the tones already booked; reaching zero does not —
   // that would cut off the start's own sound.
-  // A change of plan cancels the tones booked ahead and books again from now, on the next
-  // tick, from whatever the sequence has become.
-  const rebook = () => {
+  // A change of plan cancels the tones booked ahead and books again, on the next tick, from
+  // whatever the sequence has become — from just before the tap, so a ping due at the tap
+  // itself is booked too.
+  const rebook = (tap = Date.now()) => {
     silenceHorn();
-    booked.current = Date.now();
+    booked.current = tap - 1;
+    return tap;
   };
   const abortSequence = () => {
     rebook();
     dispatch({ type: "abort" });
   };
   const beginSequence = (at: "now" | "minute") => {
-    rebook();
+    const tap = rebook();
     unlockHorn(); // the tap is what lets the browser play the signals
-    dispatch({ type: "start", now: Date.now(), at });
+    dispatch({ type: "start", now: tap, at });
   };
 
   // Abandoning is two taps: the first arms the button, the second does it.
@@ -514,14 +516,14 @@ function RaceCard({
     race.signal === "AP"
       ? false
       : sequence.kind !== "armed" || (sequence.apUpAt === null && apUpTime(sequence, now) !== null);
-  // While AP is up, a sequence starts by hauling it down: in 15 s or at the full minute,
+  // While AP is up, a sequence starts by hauling it down: in 10 s or at the full minute,
   // counted in like any signal, the club flag a minute after. Tapped again, it re-times.
   const postponed = race.signal === "AP";
   const sequenceFrom = (at: "now" | "minute") => {
     if (!postponed) return beginSequence(at);
-    rebook();
+    const tap = rebook();
     unlockHorn();
-    dispatch({ type: "postponementDown", now: Date.now(), at });
+    dispatch({ type: "postponementDown", now: tap, at });
   };
 
   const busy =
@@ -652,11 +654,11 @@ function RaceCard({
             disabled={busy || !apPossible}
             onClick={() => {
               if (sequence.kind === "armed") {
-                // AP during a sequence: in 15 s, counted in — at the latest 3 s before the
+                // AP during a sequence: in 10 s, counted in — at the latest 3 s before the
                 // start; the sequence runs on until then.
-                rebook();
+                const tap = rebook();
                 unlockHorn();
-                dispatch({ type: "postpone", now: Date.now() });
+                dispatch({ type: "postpone", now: tap });
               } else {
                 // AP up: two sounds, now — and any running sequence is off.
                 abortSequence();

@@ -31,7 +31,7 @@
   },
   "buttons": {
     "start": "Start",
-    "startSequence": "Startfolge in 15 s",
+    "startSequence": "Startfolge in 10 s",
     "cancelSequence": "Startfolge abbrechen",
     "ap": "AP — verschieben",
     "x": "X — Einzelrückruf",
@@ -45,19 +45,19 @@
     "finish": "Wettfahrt beenden",
     "correct": "Im Ergebnis-Tab korrigieren",
     "sequenceAt": "Startfolge um {{time}}",
-    "restartNow": "Neu in 15 s",
+    "restartNow": "Neu in 10 s",
     "restartAt": "Neu um {{time}}",
     "soundOn": "Ton an — tippen zum Stummschalten",
     "soundOff": "Ton stumm — tippen zum Einschalten",
     "soundLocked": "Ton ist auf diesem Gerät aus — hier tippen zum Einschalten",
     "soundTest": "Ton testen",
-    "apDownNow": "AP runter in 15 s",
+    "apDownNow": "AP runter in 10 s",
     "apDownAt": "AP runter um {{time}}",
     "apIsUp": "AP ist oben — runter mit einer Startfolge oben"
   },
   "sequence": {
     "preparatory": "Vorbereitungssignal",
-    "hint": "3-2-1-0 mit der Clubflagge. Der Start wird bei null von selbst erfasst. AP während der Startfolge geht in 15 s hoch, spätestens 3 s vor dem Start.",
+    "hint": "3-2-1-0 mit der Clubflagge. Der Start wird bei null von selbst erfasst. AP während der Startfolge geht in 10 s hoch, spätestens 3 s vor dem Start.",
     "clubFlag": "Clubflagge",
     "startAt": "Start {{time}}",
     "actions": {
