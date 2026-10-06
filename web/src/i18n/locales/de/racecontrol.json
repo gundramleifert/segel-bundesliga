@@ -31,10 +31,9 @@
   },
   "buttons": {
     "start": "Start",
-    "startSequence": "Startsequenz",
-    "cancelSequence": "Sequenz abbrechen",
+    "startSequence": "Startfolge in 15 s",
+    "cancelSequence": "Startfolge abbrechen",
     "ap": "AP — verschieben",
-    "apDown": "AP nieder",
     "x": "X — Einzelrückruf",
     "xDown": "X nieder",
     "shorten": "S — Bahn verkürzen",
@@ -44,13 +43,37 @@
     "abandonVoid": "Abbrechen, keine Wiederholung",
     "confirmAbandon": "Nochmal tippen zum Abbrechen",
     "finish": "Wettfahrt beenden",
-    "correct": "Im Ergebnis-Tab korrigieren"
+    "correct": "Im Ergebnis-Tab korrigieren",
+    "sequenceAt": "Startfolge um {{time}}",
+    "restartNow": "Neu in 15 s",
+    "restartAt": "Neu um {{time}}",
+    "soundOn": "Ton an — tippen zum Stummschalten",
+    "soundOff": "Ton stumm — tippen zum Einschalten",
+    "soundLocked": "Ton ist auf diesem Gerät aus — hier tippen zum Einschalten",
+    "soundTest": "Ton testen",
+    "apDownNow": "AP runter in 15 s",
+    "apDownAt": "AP runter um {{time}}",
+    "apIsUp": "AP ist oben — runter mit einer Startfolge oben"
   },
   "sequence": {
     "preparatory": "Vorbereitungssignal",
-    "startIn": "Start in {{time}}",
-    "warningIn": "Ankündigungssignal in {{time}}",
-    "hint": "5-4-1-0 nach WR 26. Der Startschuss fällt bei null von selbst; AP bricht ab."
+    "hint": "3-2-1-0 mit der Clubflagge. Der Start wird bei null von selbst erfasst. AP während der Startfolge geht in 15 s hoch, spätestens 3 s vor dem Start.",
+    "clubFlag": "Clubflagge",
+    "startAt": "Start {{time}}",
+    "actions": {
+      "apUp": "AP HOCH",
+      "apDown": "AP RUNTER",
+      "clubUp": "Clubflagge HOCH",
+      "preparatoryUp": "{{flag}} HOCH",
+      "preparatoryDown": "{{flag}} RUNTER",
+      "start": "Clubflagge RUNTER — Start"
+    },
+    "tones": {
+      "short_one": "+ ein kurzer Ton",
+      "short_other": "+ {{count}} kurze Töne",
+      "long_one": "+ ein langer Ton",
+      "long_other": "+ {{count}} lange Töne"
+    }
   },
   "flags": {
     "P": "P",

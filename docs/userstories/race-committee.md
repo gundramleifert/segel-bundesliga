@@ -49,8 +49,37 @@ Acceptance criteria:
   boat_count)` races per flight, `flight_count` flights. A guest club's four-boat event works
   exactly like a league day; no "six" and no "48" in the code.
 - **Scheduled:** the event's boats in their colours, each with the team the pairing list puts
-  on it. Buttons **Start** (the gun went now) and **Start sequence** (5-4-1-0 minutes per
-  RRS 26, fires Start at 0), and **AP** (see *Signals*).
+  on it. Buttons **Start** (the gun went now), **Start sequence** — **in 15 s**, or **at
+  the next full minute** at least 15 s away (tapped at 14:04:52 → 14:06:00), so the signals
+  fall on the clock — and **AP** (see *Signals*).
+- **The sequence is a state machine** (`web/src/lib/startSequence.ts`): idle → armed
+  (its one piece of state is when the first signal is) → the start. Starting again while
+  armed is the **restart**, **Abort** goes back to idle. Which flag is up, the next signal
+  and the gun are derived from the clock. The armed sequence and its preparatory flag are mirrored per race
+  on the device, because the card remounts on every change of the race and a phone
+  reloads; a sequence whose start has passed is dropped, never fired late.
+- **The screen says what to do next**, biggest: "P UP + one short sound" and the countdown
+  to it; below, which flags are up and the start time.
+- **The start sequence is the league's 3-2-1-0**, not RRS 26's 5-4-1-0: at 3 minutes the
+  **club flag** goes up (one sound), at 2 the **preparatory flag** (one sound), at 1 the
+  preparatory flag comes down (one long sound), at 0 the club flag comes down (one sound)
+  and that is the start, which the screen records by itself. The screen shows which flag
+  is up and counts down to the next signal.
+- **AP is part of the same machine.** With no sequence running, AP goes up at the tap
+  (two sounds). During a sequence it goes up 15 s after the tap, at the latest 3 s before
+  the start, and not at all in the last 8 s (5 s to get the flag ready, plus 3); the
+  sequence runs on until AP is up. While AP is up, the two sequence buttons are the way
+  down — **AP down in 15 s** or **at the next full minute** — and AP comes down then,
+  counted in like any signal (one sound), with the club flag a minute later. The screen
+  hauls AP down and records the start by itself when the clock reaches them.
+- **The phone sounds the signals** — before each, a ping at ten seconds to go and low
+  beeps at three, two and one; then the signal's own tone, an octave higher, short or long
+  as the rules count it (AP up and a recall are two, a second apart). Booked on the audio
+  clock, not the page's timers, so the countdown on the screen turns with the beep. A cue
+  for whoever works the real horn, not a replacement for it. Any tap on the screen
+  switches the sound on (a browser plays nothing without one); a sequence restored after a
+  reload shows "tap to turn the sound on" until then. A speaker button mutes it, the choice
+  stays on the device, and "Test sound" plays a shortened count-in to check the volume.
 - **Running:** elapsed clock; one chip per boat as a finish pad — tap in finish order, tap
   again to undo; codes (OCS, DNF, DSQ, RDG …) one tap below. Buttons **X** (individual
   recall), **General recall** (First Substitute, back to `scheduled`), **Abandon → resail**

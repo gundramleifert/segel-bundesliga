@@ -7,6 +7,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 
 - [A card grid's 1fr track is floored at min-content, so the overflow only appears once test data is long enough](a-card-grid-s-1fr-track-is-floored-at-min-content-so-the-overflow-only-appears-o.md)
 - [A failed maven package leaves a truncated jar behind, and it fails because the sandbox denies /tmp](a-failed-maven-package-leaves-a-truncated-jar-behind-and-it-fails-because-the-sa.md)
+- [A mutation fired from a ticking effect repeats until its refetch lands, and each repeat's invalidation cancels that refetch](a-mutation-fired-from-a-ticking-effect-repeats-until-its-refetch-lands-and-each-.md)
 - [`require_ready` answers with a *different* code depending on how many things are missing](a-readiness-refusal-carries-two-different-codes.md)
 - [A relationship on a row you just appended is not loaded after the commit, and reading it in the response fails with MissingGreenlet](a-relationship-on-a-row-you-just-appended-is-not-loaded-after-the-commit-and-rea.md)
 - [A sandbox-denied file shows up as a 0-byte `/dev/null`, so `ls` and `stat` describe something that is not there](a-sandbox-denied-file-looks-like-an-empty-file.md)
@@ -28,4 +29,5 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [pnpm runs a store-writing lockfile check before every script, so `pnpm <script>` fails where the store is read-only](pnpm-runs-a-store-writing-lockfile-check-before-every-script-so-pnpm-script-fail.md)
 - [An RFC 9457 extension member may not be named `status`, `title`, `code` or `type`](problem-extension-members-cannot-shadow-its-parameters.md)
 - [A public endpoint answers 404 for a draft — including in tests you just set up](public-endpoints-answer-404-for-unpublished-things.md)
+- [State inside the race-control card is lost on every change of the race, because the card is keyed by the race's version](state-inside-the-race-control-card-is-lost-on-every-change-of-the-race-because-t.md)
 - [A server started in one sandboxed Bash call is unreachable from the next one](the-bash-sandbox-has-a-network-namespace-per-call.md)

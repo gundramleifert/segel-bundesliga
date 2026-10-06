@@ -49,6 +49,11 @@ uv run uvicorn app.main:app --reload
 uv run pytest
 ```
 
+Or **`tilt up`** at the repo root (`Tiltfile`): backend with `SBL_DEV_LOGIN=true` and
+frontend in one dashboard, the API client regenerated when a route or schema changes, and
+buttons for `reset-db` and `check`. It uses the real `api/sbl.db`; the e2e stacks stay
+`scripts/dev-stack.sh`'s job.
+
 `app.seed_test_setup` sets up a **fresh installation** completely: migrations,
 reference data (`app.seed`), accounts (`app.seed_users`). Repeatable; `--reset` drops all
 tables and migration state first. Individual steps still work.

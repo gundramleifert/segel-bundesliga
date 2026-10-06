@@ -21,7 +21,24 @@ import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Bloc
 import { FinishOrderPad, useFinishOrder } from "../components/FinishOrderPad";
 import { Stack } from "../components/Layouts";
 import { errorText } from "../lib/admin";
-import { clock, useNow } from "../lib/useNow";
+import { clock, countdown, useNow } from "../lib/useNow";
+import {
+  horn,
+  hornMuted,
+  hornReady,
+  hornSounds,
+  setHornMuted,
+  silenceHorn,
+  unlockHorn,
+} from "../lib/horn";
+import {
+  LOOKAHEAD,
+  apUpTime,
+  phaseAt,
+  warningTime,
+  tonesBetween,
+  useStartSequence,
+} from "../lib/startSequence";
 import { boatColor } from "../lib/format";
 import {
   OVER_EARLY_CODE,
@@ -276,11 +293,105 @@ const BIG_DANGER = `${BIG} border-2 border-red-300 bg-red-50 text-red-900 hover:
  *  and belong in the results tab. */
 const ON_WATER_CODES = ["OCS", "UFD", "BFD", "DNF", "DNS", "DSQ", "DNE", "RET"] as const;
 
-/** RRS 26: warning signal 5 minutes before the start. */
-const SEQUENCE_MILLIS = 5 * 60_000;
-/** When AP comes down, the warning signal follows one minute later. */
-const AP_DOWN_MILLIS = 60_000;
+/** A wall-clock time as the committee reads it off a watch: 14:05. */
+function hhmm(millis: number): string {
+  return new Date(millis).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
 
+/** The start time to the second — a "now" sequence does not start on a full minute. */
+function hhmmss(millis: number): string {
+  return new Date(millis).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+
+/** The sound toggle's symbol: a speaker with sound waves, or crossed out when muted. */
+function SpeakerIcon({ muted, className }: { muted: boolean; className?: string }) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M11 5 6 9H2v6h4l5 4V5z" />
+      {muted ? (
+        <path d="m22 9-6 6M16 9l6 6" />
+      ) : (
+        <path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" />
+      )}
+    </svg>
+  );
+}
+
+/** A running sequence: which flags are up, the countdown to the next signal and to the
+ *  start, and the abort. Everything shown is derived from the clock (`phaseAt`). */
+function SequencePanel({
+  phase,
+  preparatory,
+  now,
+  onAbort,
+}: {
+  phase: ReturnType<typeof phaseAt>;
+  preparatory: PreparatoryFlag;
+  now: number;
+  onAbort: () => void;
+}) {
+  const { t } = useTranslation("racecontrol");
+  const flag = (key: "club" | "preparatory", label: string, up: boolean) => (
+    <span
+      data-testid={`race-control-flag-up-${key}`}
+      data-up={String(up)}
+      className={`rounded-lg border-2 px-3 py-1.5 text-sm font-semibold ${
+        up ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 text-slate-400"
+      }`}
+    >
+      {label} {up ? "▲" : "▼"}
+    </span>
+  );
+  const next = phase.next;
+  return (
+    <div className="rounded-xl border border-slate-200 p-4 text-center" data-testid="race-control-sequence">
+      {/* What to do next is the biggest thing on the screen, then how long until it. */}
+      {next && phase.nextAt !== null && (
+        <div data-testid="race-control-next-signal" data-action={next.action}>
+          <p className="text-xl font-bold text-slate-900">
+            {t(`sequence.actions.${next.action}`, { flag: t(`flags.${preparatory}`) })}
+          </p>
+          <p className="text-sm text-slate-600">
+            {t(`sequence.tones.${next.tone}`, { count: next.sounds })}
+          </p>
+          <p className="my-2 text-6xl font-bold tabular-nums" data-testid="race-control-countdown">
+            {countdown(phase.nextAt - now)}
+          </p>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+        {flag("club", t("sequence.clubFlag"), phase.club)}
+        {flag("preparatory", t(`flags.${preparatory}`), phase.preparatory)}
+        <span className="text-slate-600 tabular-nums" data-testid="race-control-start-time">
+          {t("sequence.startAt", { time: hhmmss(phase.startAt) })}
+        </span>
+      </div>
+      <p className="mt-1 text-sm text-slate-500">{t("sequence.hint")}</p>
+      <button
+        type="button"
+        className={`${BIG_SECONDARY} mt-3`}
+        onClick={onAbort}
+        data-testid="race-control-cancel-sequence"
+      >
+        {t("buttons.cancelSequence")}
+      </button>
+    </div>
+  );
+}
 
 function RaceCard({
   eventId,
@@ -298,7 +409,18 @@ function RaceCard({
   const { t } = useTranslation("racecontrol");
   const invalidate = useInvalidate();
   const refresh = () => invalidate(getGetEventQueryKey(eventId), getGetAdminRacesQueryKey(eventId));
-  const now = useNow();
+  // The start sequence (lib/startSequence.ts): its state, mirrored per race on the device.
+  const [sequence, dispatch] = useStartSequence(race.id, race.status === "scheduled");
+  // Any tap on this screen unlocks the sound — not only the sequence buttons: a sequence
+  // restored after a reload has had no tap yet, and would run silently.
+  useEffect(() => {
+    document.addEventListener("pointerdown", unlockHorn);
+    return () => document.removeEventListener("pointerdown", unlockHorn);
+  }, []);
+  // Fast ticks while a sequence runs, so the countdown turns within a frame or two of the
+  // tone booked for that moment.
+  const now = useNow(sequence.kind === "armed" ? 50 : 1000);
+  const [muted, setMuted] = useState(hornMuted);
 
   const start = useStartRace({ mutation: { onSuccess: refresh } });
   const recall = useRecallRace({ mutation: { onSuccess: refresh } });
@@ -315,17 +437,68 @@ function RaceCard({
     },
   });
 
-  const [preparatory, setPreparatory] = useState<PreparatoryFlag>("P");
-  // A running start sequence: when the gun is due. The gun fires by itself at zero.
-  const [sequence, setSequence] = useState<{ startsAt: number } | null>(null);
-  const fired = useRef(false);
+  // The chosen flag lives in the sequence state, mirrored with it: plain state here would
+  // fall back to P whenever the card remounts (docs/gotchas). Once armed it is fixed.
+  const preparatory = sequence.preparatory;
+  const setPreparatory = (flag: PreparatoryFlag) => dispatch({ type: "choose", preparatory: flag });
+  // Each tick books the tones of the next moments on the audio clock, at their exact times
+  // (`horn(tone, inSeconds)`, measured from `Date.now()` at the booking, not from the tick
+  // that triggered it); `booked` is how far ahead that already happened, so no tone is
+  // booked twice. A tone more than half a second overdue — a phone waking from sleep — is
+  // skipped rather than blown late. When the clock reaches them, the screen hauls AP down
+  // (a postponed sequence) and records the start.
+  const booked = useRef(now);
+  // AP down is sent once. Fired from a ticking effect, it would otherwise go again on every
+  // tick until the refetch shows AP gone — and each repeat's invalidation cancelled that
+  // very refetch, so the screen never saw it (docs/gotchas). A failure allows a retry.
+  const apDownSent = useRef(false);
   useEffect(() => {
-    if (sequence && now >= sequence.startsAt && !fired.current) {
-      fired.current = true;
-      setSequence(null);
-      start.mutate({ eventId, raceId: race.id, data: { preparatory } });
+    if (sequence.kind !== "armed") {
+      booked.current = now;
+      return;
     }
-  }, [now, sequence, start, eventId, race.id, preparatory]);
+    const from = Math.max(booked.current, now - 500);
+    booked.current = now + LOOKAHEAD;
+    for (const { at, tone } of tonesBetween(sequence, from, booked.current)) {
+      horn(tone, (at - Date.now()) / 1000);
+    }
+    const phase = phaseAt(sequence, now);
+    if (phase.apUp) {
+      // AP tapped during the sequence, and its time has come: up it goes — its two sounds
+      // are already booked — and the sequence is over.
+      dispatch({ type: "abort" });
+      signal.mutate({ eventId, raceId: race.id, data: { signal: "AP" } });
+      return;
+    }
+    if (phase.apDown && race.signal === "AP" && !apDownSent.current) {
+      apDownSent.current = true;
+      signal.mutate(
+        { eventId, raceId: race.id, data: { signal: null } },
+        { onError: () => (apDownSent.current = false) },
+      );
+    }
+    if (now >= phase.startAt) {
+      dispatch({ type: "abort" });
+      start.mutate({ eventId, raceId: race.id, data: { preparatory: sequence.preparatory } });
+    }
+  }, [now, sequence, dispatch, start, signal, eventId, race.id, race.signal]);
+  // Aborting (and restarting) cancels the tones already booked; reaching zero does not —
+  // that would cut off the start's own sound.
+  // A change of plan cancels the tones booked ahead and books again from now, on the next
+  // tick, from whatever the sequence has become.
+  const rebook = () => {
+    silenceHorn();
+    booked.current = Date.now();
+  };
+  const abortSequence = () => {
+    rebook();
+    dispatch({ type: "abort" });
+  };
+  const beginSequence = (at: "now" | "minute") => {
+    rebook();
+    unlockHorn(); // the tap is what lets the browser play the signals
+    dispatch({ type: "start", now: Date.now(), at });
+  };
 
   // Abandoning is two taps: the first arms the button, the second does it.
   const [armed, setArmed] = useState<"resail" | "void" | null>(null);
@@ -334,6 +507,22 @@ function RaceCard({
     const timer = window.setTimeout(() => setArmed(null), 4000);
     return () => window.clearTimeout(timer);
   }, [armed]);
+
+  // The AP button only hoists: while AP is up, the two sequence buttons are the way down.
+  // AP up during a sequence is refused once tapped, and in the last 8 s (`apUpTime`).
+  const apPossible =
+    race.signal === "AP"
+      ? false
+      : sequence.kind !== "armed" || (sequence.apUpAt === null && apUpTime(sequence, now) !== null);
+  // While AP is up, a sequence starts by hauling it down: in 15 s or at the full minute,
+  // counted in like any signal, the club flag a minute after. Tapped again, it re-times.
+  const postponed = race.signal === "AP";
+  const sequenceFrom = (at: "now" | "minute") => {
+    if (!postponed) return beginSequence(at);
+    rebook();
+    unlockHorn();
+    dispatch({ type: "postponementDown", now: Date.now(), at });
+  };
 
   const busy =
     start.isPending || recall.isPending || abandon.isPending || signal.isPending || finish.isPending;
@@ -372,23 +561,26 @@ function RaceCard({
         {statusLine}
         <FinishOrderPad race={race} boats={boats} order={order} disabled testIdPrefix="race-control" />
 
-        {sequence ? (
-          <div className="rounded-xl border border-slate-200 p-4 text-center" data-testid="race-control-sequence">
-            <p className="text-4xl font-bold tabular-nums">
-              {sequence.startsAt - now > SEQUENCE_MILLIS
-                ? t("sequence.warningIn", { time: clock(sequence.startsAt - now - SEQUENCE_MILLIS) })
-                : t("sequence.startIn", { time: clock(sequence.startsAt - now) })}
-            </p>
-            <p className="mt-1 text-sm text-slate-500">{t("sequence.hint")}</p>
-            <button
-              type="button"
-              className={`${BIG_SECONDARY} mt-3`}
-              onClick={() => setSequence(null)}
-              data-testid="race-control-cancel-sequence"
-            >
-              {t("buttons.cancelSequence")}
-            </button>
-          </div>
+        {sequence.kind === "armed" ? (
+          <>
+            {!muted && !hornReady() && (
+              <button
+                type="button"
+                onClick={unlockHorn}
+                data-testid="race-control-sound-locked"
+                className={`${BIG_WARN} flex w-full items-center justify-center gap-3`}
+              >
+                <SpeakerIcon muted className="size-6 shrink-0" />
+                {t("buttons.soundLocked")}
+              </button>
+            )}
+            <SequencePanel
+              phase={phaseAt(sequence, now)}
+              preparatory={sequence.preparatory}
+              now={now}
+              onAbort={abortSequence}
+            />
+          </>
         ) : (
           <fieldset className="flex flex-wrap items-center gap-2">
             <legend className="mb-1 text-sm text-slate-600">{t("sequence.preparatory")}</legend>
@@ -414,43 +606,105 @@ function RaceCard({
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
-            className={BIG_PRIMARY}
+            className={`${BIG_PRIMARY} col-span-2`}
             disabled={busy || race.signal === "AP"}
-            onClick={() => start.mutate({ eventId, raceId: race.id, data: { preparatory } })}
+            onClick={() => {
+              abortSequence();
+              start.mutate({ eventId, raceId: race.id, data: { preparatory } });
+            }}
             data-testid="race-control-start"
           >
             {t("buttons.start")}
           </button>
+          {/* Starting a sequence while one runs is the restart: the same event again. */}
           <button
             type="button"
             className={BIG_SECONDARY}
-            disabled={busy || sequence !== null || race.signal === "AP"}
-            onClick={() => {
-              fired.current = false;
-              setSequence({ startsAt: Date.now() + SEQUENCE_MILLIS });
-            }}
+            disabled={busy}
+            onClick={() => sequenceFrom("now")}
             data-testid="race-control-start-sequence"
           >
-            {t("buttons.startSequence")}
+            {postponed
+              ? t("buttons.apDownNow")
+              : sequence.kind === "armed"
+                ? t("buttons.restartNow")
+                : t("buttons.startSequence")}
+          </button>
+          <button
+            type="button"
+            className={BIG_SECONDARY}
+            disabled={busy}
+            onClick={() => sequenceFrom("minute")}
+            data-testid="race-control-sequence-minute"
+          >
+            {t(
+              postponed
+                ? "buttons.apDownAt"
+                : sequence.kind === "armed"
+                  ? "buttons.restartAt"
+                  : "buttons.sequenceAt",
+              { time: hhmm(warningTime(now, "minute")) },
+            )}
           </button>
           <button
             type="button"
             className={`${BIG_WARN} col-span-2`}
-            disabled={busy}
+            disabled={busy || !apPossible}
             onClick={() => {
-              if (race.signal === "AP") {
-                // AP down: the warning signal follows in one minute, the gun five after.
-                setSignal(null);
-                fired.current = false;
-                setSequence({ startsAt: Date.now() + AP_DOWN_MILLIS + SEQUENCE_MILLIS });
+              if (sequence.kind === "armed") {
+                // AP during a sequence: in 15 s, counted in — at the latest 3 s before the
+                // start; the sequence runs on until then.
+                rebook();
+                unlockHorn();
+                dispatch({ type: "postpone", now: Date.now() });
               } else {
-                setSequence(null);
+                // AP up: two sounds, now — and any running sequence is off.
+                abortSequence();
+                unlockHorn();
+                hornSounds("short", 2);
                 setSignal("AP");
               }
             }}
             data-testid="race-control-ap"
           >
-            {race.signal === "AP" ? t("buttons.apDown") : t("buttons.ap")}
+            {postponed ? t("buttons.apIsUp") : t("buttons.ap")}
+          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button
+            type="button"
+            onClick={() => {
+              setHornMuted(!muted);
+              setMuted(!muted);
+            }}
+            aria-pressed={!muted}
+            aria-label={muted ? t("buttons.soundOff") : t("buttons.soundOn")}
+            title={muted ? t("buttons.soundOff") : t("buttons.soundOn")}
+            data-testid="race-control-sound"
+            className={`flex size-12 items-center justify-center rounded-lg border-2 ${
+              muted
+                ? "border-red-300 bg-red-50 text-red-700"
+                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <SpeakerIcon muted={muted} className="size-6" />
+          </button>
+          {/* Check the volume before racing, not at the first signal. */}
+          <button
+            type="button"
+            disabled={muted}
+            onClick={() => {
+              // What a signal sounds like, ten seconds shortened to two: the ping, the
+              // three low beeps, the high signal.
+              unlockHorn();
+              horn("ping", 0);
+              for (const second of [2, 3, 4]) horn("beep", second);
+              horn("short", 5);
+            }}
+            data-testid="race-control-sound-test"
+            className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900 disabled:opacity-40"
+          >
+            {t("buttons.soundTest")}
           </button>
         </div>
         {failure && <ErrorMessage text={errorText(failure.error)} testId="race-control-error" />}
@@ -537,7 +791,13 @@ function RaceCard({
             type="button"
             className={BIG_WARN}
             disabled={busy}
-            onClick={() => setSignal(race.signal === "X" ? null : "X")}
+            onClick={() => {
+              if (race.signal !== "X") {
+                unlockHorn();
+                hornSounds("long", 2); // X up: two long sounds
+              }
+              setSignal(race.signal === "X" ? null : "X");
+            }}
             data-testid="race-control-x"
           >
             {race.signal === "X" ? t("buttons.xDown") : t("buttons.x")}
@@ -555,7 +815,11 @@ function RaceCard({
             type="button"
             className={BIG_WARN}
             disabled={busy}
-            onClick={() => recall.mutate({ eventId, raceId: race.id })}
+            onClick={() => {
+              unlockHorn();
+              hornSounds("long", 2); // general recall: two long sounds
+              recall.mutate({ eventId, raceId: race.id });
+            }}
             data-testid="race-control-recall"
           >
             {t("buttons.recall")}
