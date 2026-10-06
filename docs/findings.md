@@ -275,6 +275,12 @@ and regatta structure import, and an Integration tab for export to external syst
 business office is not blocked if the token path does not work out. Token and export scope 
 must be requested from the business office.
 
+**Sign-in with Manage2Sail: not available** (checked 2026-10-05). No public OAuth/OIDC
+"Sign in with Manage2Sail" could be found — the access token above is for importing data,
+not for identifying a person. If they offer OIDC, it plugs into a configured OIDC
+verifier (Story Z-9). The site must **never** ask for or store someone's Manage2Sail
+password. Open: the league office asks Manage2Sail whether they offer OAuth/OIDC.
+
 ---
 
 ## 5. Environment

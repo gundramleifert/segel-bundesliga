@@ -424,7 +424,7 @@ Acceptance criteria:
 - **Changing** a password requires the current one; **removing** it leaves the one-time
   code as the way in — which is why removing is never refused as "the last way in": the
   code is always one.
-- The site's **admin can clear** someone's password (decision D3); the person then signs
+- The site's **admin can clear** someone's password; the person then signs
   in by code and sets a new one.
 - Setting, changing, removing, clearing and locking each write an `AuditLog` row. The
   password is never logged or echoed, and the hash never appears in any response — it
@@ -433,6 +433,13 @@ Acceptance criteria:
   beside Google, Microsoft and email.
 - `SBL_ALLOW_PASSWORD_LOGIN` (default on) closes the path; `GET /api/auth/providers`
   says whether it is open, and the sign-in card only offers the tab then.
+
+Later, when there is a reason: an **OpenID Connect verifier driven by configuration**
+(issuer + client id per entry, `PyJWKClient` already a dependency), so a DSV, a club's
+Keycloak or Apple is one setting instead of code; **passkeys** (py_webauthn) as a
+`PasskeyCredential` beside `PasswordCredential`; rejecting known-breached passwords
+(HIBP range API, never live in tests); per-IP limits if deployment shows the need.
+Manage2Sail sign-in: see `docs/findings.md` §4.
 
 Tests: `api/tests/stories/test_password_login.py`
 

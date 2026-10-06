@@ -3373,7 +3373,7 @@ export const getClearPasswordUrl = (userId: number,) => {
 }
 
 /**
- * Story Z-9 (decision D3): the site's admin clears a password, audited. The person
+ * Story Z-9: the site's admin clears a password, audited. The person
  * then signs in by code and sets a new one — there is no reset flow of its own.
  * @summary Clear someone's password
  */

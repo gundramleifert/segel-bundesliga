@@ -564,7 +564,7 @@ async def clear_password(
     acting: User = Depends(require_admin),
     locale: Locale = Depends(resolve_locale),
 ) -> None:
-    """Story Z-9 (decision D3): the site's admin clears a password, audited. The person
+    """Story Z-9: the site's admin clears a password, audited. The person
     then signs in by code and sets a new one — there is no reset flow of its own."""
     user = await _user(session, user_id, locale)
     await passwords.remove_password(session, user, actor=acting)

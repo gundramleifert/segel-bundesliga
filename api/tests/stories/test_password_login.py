@@ -276,7 +276,7 @@ class TestChangingAndRemoving:
         await login_as(client, "pw-remove@example.com", caplog)
 
     async def test_the_admin_can_clear_a_password(self, client, caplog):
-        """Z-9 (D3): administration clears a password; the person signs in by code and
+        """Z-9: administration clears a password; the person signs in by code and
         sets a new one. Nobody else may."""
         await with_password(client, caplog, "pw-cleared@example.com")
         admin = await signed_in(client, caplog, "pw-clear-admin@example.com", Role.ADMIN)

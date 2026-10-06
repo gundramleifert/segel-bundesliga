@@ -121,7 +121,7 @@ function AccountTable({
 }
 
 /** The address, and — where the account has a password — the admin's "clear" (Story
- *  Z-9, decision D3): the person then signs in by code and sets a new one. */
+ *  Z-9): the person then signs in by code and sets a new one. */
 function EmailCell({ account, onChanged }: { account: Account; onChanged: () => void }) {
   const { t } = useTranslation("admin");
   const clear = useClearPassword({ mutation: { onSuccess: onChanged } });
