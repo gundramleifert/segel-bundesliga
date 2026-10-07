@@ -20,6 +20,22 @@ const LIVE_EVENT = 2; // dsbl-1-2026-act-2
 const COMMITTEE = "admin@sbl.example.com";
 
 describeStory("WL-3: as race committee I run one race at a time", () => {
+  // The specs share one live race. Whatever a test leaves behind — AP hoisted, a race
+  // running — would make every later one fail at its first button, so it is cleared here.
+  test.afterEach(async ({ request }) => {
+    const headers = await bearer(request, COMMITTEE);
+    const base = `/api/admin/events/${LIVE_EVENT}/races`;
+    const { races } = (await (await request.get(base, { headers })).json()) as {
+      races: { id: number; status: string; signal: string | null }[];
+    };
+    for (const race of races) {
+      if (race.signal === "AP") {
+        await request.post(`${base}/${race.id}/signal`, { headers, data: { signal: null } });
+      }
+      if (race.status === "running") await request.post(`${base}/${race.id}/recall`, { headers });
+    }
+  });
+
   test("start, tap every boat in finish order, finish — and the next race is up", async ({
     page,
   }) => {
@@ -99,54 +115,58 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
     const prep = page.getByTestId("race-control-flag-up-preparatory");
     const next = page.getByTestId("race-control-next-signal");
     const countdown = page.getByTestId("race-control-countdown");
-    const signals = async () => (await tones(page)).filter((t) => t.length > 0.3).map((t) => t.length);
-    const beeps = async () => (await tones(page)).filter((t) => t.length <= 0.3);
-    // One second at a time, so the page renders between ticks as it does on a real phone.
-    const advance = async (seconds: number) => {
-      for (let i = 0; i < seconds; i += 1) await page.clock.runFor(1000);
-    };
 
-    // In 15 s, then abort: back to choosing.
+    // In 10 s: the club flag is ten seconds away, so its ping sounds at the tap. Then abort.
     await page.getByTestId("race-control-start-sequence").click();
     await expect(next).toHaveAttribute("data-action", "clubUp");
-    await expect(countdown).toHaveText("0:15");
+    await expect(countdown).toHaveText("0:10");
+    await expect.poll(() => kinds(page)).toEqual(["ping"]);
     await page.getByTestId("race-control-cancel-sequence").click();
     await expect(page.getByTestId("race-control-sequence")).toHaveCount(0);
+    await forgetTones(page);
 
+    // At the next full minute: the club flag on the minute, at least 10 s from now. The fake
+    // clock also runs on by itself, so each step is measured from the sequence's own start.
     await page.getByTestId("race-control-sequence-minute").click();
     await expect(next).toHaveAttribute("data-action", "clubUp");
     await expect(club).toHaveAttribute("data-up", "false");
+    const clubUpAt = await page.evaluate(() => {
+      const key = Object.keys(window.localStorage).find((k) => k.startsWith("sbl.start-sequence."));
+      return (JSON.parse(window.localStorage.getItem(key!)!) as { warningAt: number }).warningAt;
+    });
+    expect(clubUpAt % 60_000).toBe(0);
 
-    await advance(30); // 3: club flag up, after a count-in of five beeps
+    // Every signal: a ping at ten seconds to go, low beeps at three, two, one, the signal.
+    const countIn = ["ping", "beep", "beep", "beep", "signal"];
+
+    await advanceTo(page, -180_000 + 500); // 3: club flag up
     await expect(club).toHaveAttribute("data-up", "true");
     await expect(prep).toHaveAttribute("data-up", "false");
     await expect(next).toHaveAttribute("data-action", "preparatoryUp");
-    await expect.poll(async () => (await signals()).length).toBe(1);
-    expect(await beeps()).toHaveLength(5);
+    await expect.poll(() => kinds(page)).toEqual(countIn);
 
-    await advance(60); // 2: preparatory flag up
+    await advanceTo(page, -120_000 + 500); // 2: preparatory flag up
     await expect(prep).toHaveAttribute("data-up", "true");
     await expect(next).toHaveAttribute("data-action", "preparatoryDown");
-    await expect.poll(async () => (await signals()).length).toBe(2);
 
-    await advance(60); // 1: preparatory flag down, one long sound
+    await advanceTo(page, -60_000 + 500); // 1: preparatory flag down, the long sound
     await expect(prep).toHaveAttribute("data-up", "false");
     await expect(next).toHaveAttribute("data-action", "start");
-    await expect.poll(async () => (await signals()).length).toBe(3);
-    const [short, , long] = await signals();
-    expect(long).toBeGreaterThan(short * 2);
 
-    await advance(60); // 0: club flag down — the start, recorded by itself
+    await advanceTo(page, 500); // 0: club flag down — the start, recorded by itself
     await expect(page.getByTestId("race-control-status")).toHaveAttribute("data-status", "running");
-    await expect.poll(async () => (await signals()).length).toBe(4);
-    expect(await beeps()).toHaveLength(20);
+    await expect.poll(() => kinds(page)).toEqual([...countIn, ...countIn, ...countIn, ...countIn]);
+    const signals = (await tones(page)).filter((t) => kindOf(t) === "signal");
+    expect(signals.map((t) => (t.length > 1 ? "long" : "short"))).toEqual([
+      "short", "short", "long", "short",
+    ]);
 
     // Nothing left running — the other specs rely on that.
     await page.getByTestId("race-control-recall").click();
     await expect(page.getByTestId("race-control-status")).toHaveAttribute("data-status", "scheduled");
   });
 
-  test("the count-in keeps time: beeps one second apart, the signal on the second", async ({
+  test("the count-in keeps time on a busy phone: ping at the tap, beeps a second apart", async ({
     page,
   }) => {
     // Real time, no fake clock: what is checked is when the tones sound on the audio clock.
@@ -156,7 +176,7 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
     await page.goto(`/events/${LIVE_EVENT}/race-control`);
     await expect(page.getByTestId("race-control-status")).toHaveAttribute("data-status", "scheduled");
 
-    await page.getByTestId("race-control-start-sequence").click(); // first signal in 15 s
+    await page.getByTestId("race-control-start-sequence").click(); // the club flag in 10 s
     // A busy phone: the page's main thread blocked for 300 ms out of every 700. A tone
     // played when a timer gets round to it comes out late; one booked ahead does not.
     await page.evaluate(() => {
@@ -167,20 +187,22 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
         }
       }, 700);
     });
-    await expect
-      .poll(async () => (await tones(page)).filter((t) => t.length > 0.3).length, { timeout: 20_000 })
-      .toBe(1);
+    await expect.poll(() => kinds(page), { timeout: 15_000 }).toContain("signal");
     await page.getByTestId("race-control-cancel-sequence").click();
 
     const played = await tones(page);
-    expect(played.map((t) => (t.length > 0.3 ? "signal" : "beep"))).toEqual([
-      "beep", "beep", "beep", "beep", "beep", "signal",
-    ]);
-    const gaps = played.slice(1).map((t, i) => t.at - played[i].at);
-    for (const gap of gaps) expect(Math.abs(gap - 1)).toBeLessThan(0.02);
+    const described = played.map((t) => `${kindOf(t)}@${t.at.toFixed(3)}`).join(" ");
+    expect(played.map(kindOf), described).toEqual(["ping", "beep", "beep", "beep", "signal"]);
+    // The ping at the tap may come a little late: the first tap may be what starts the
+    // device's audio. From then on there is no slack — beeps at 3-2-1 and the signal at 0,
+    // exactly a second apart, busy phone or not.
+    const countIn = played.slice(1);
+    const gaps = countIn.slice(1).map((t, i) => t.at - countIn[i].at);
+    const off = Math.max(...gaps.map((gap) => Math.abs(gap - 1)));
+    expect(off, `gaps ${gaps.map((g) => g.toFixed(3)).join(", ")}`).toBeLessThan(0.02);
   });
 
-  test("AP: up now with two sounds; down in 15 s with one; the club flag a minute after", async ({
+  test("AP: up at the tap with two sounds; down by a sequence button, the club flag a minute after", async ({
     page,
   }) => {
     await spyOnTones(page);
@@ -189,30 +211,36 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
     await page.goto(`/events/${LIVE_EVENT}/race-control`);
     await expect(page.getByTestId("race-control-status")).toHaveAttribute("data-status", "scheduled");
     await page.getByTestId("race-control-flag-I").click();
-    const signals = async () => (await tones(page)).filter((t) => t.length > 0.3);
 
     const ap = page.getByTestId("race-control-ap");
     const hoisted = page.getByTestId("race-control-signal");
-    await ap.click(); // AP up, no sequence running: now, two sounds
+    await ap.click(); // AP up, no sequence running: at the tap, two sounds a second apart
     await expect(hoisted).toBeVisible();
-    expect(await signals()).toHaveLength(2);
+    await expect.poll(() => kinds(page)).toEqual(["signal", "signal"]);
+    const [first, second] = await tones(page);
+    expect(Math.abs(second.at - first.at - 1.6)).toBeLessThan(0.01); // 0.6 s tone + 1 s gap
 
     // Hoisting AP changed the race and the card remounted: the I chosen before survived.
     await expect(page.getByTestId("race-control-flag-I")).toHaveAttribute("aria-pressed", "true");
 
-    await ap.click(); // AP down: a signal of the sequence, 15 s away
+    // While AP is up, the AP button only says so; the sequence buttons are the way down.
+    await expect(ap).toBeDisabled();
+    const down = page.getByTestId("race-control-start-sequence");
+    await expect(down).toContainText("AP down in 10 s");
+    await forgetTones(page);
+    await down.click();
     const next = page.getByTestId("race-control-next-signal");
     await expect(next).toHaveAttribute("data-action", "apDown");
-    await expect(page.getByTestId("race-control-countdown")).toHaveText("0:15");
+    await expect(page.getByTestId("race-control-countdown")).toHaveText("0:10");
     await expect(hoisted).toBeVisible();
-    await expect(ap).toBeDisabled(); // the screen hauls it down itself
+    await expect.poll(() => kinds(page)).toEqual(["ping"]); // ten seconds away: at the tap
 
-    await advance(page, 15);
+    await advance(page, 10); // AP down, one sound — the screen hauls it down itself
     await expect(hoisted).toHaveCount(0);
     await expect(next).toHaveAttribute("data-action", "clubUp");
     await expect(page.getByTestId("race-control-countdown")).toHaveText("1:00");
     await expect(page.getByTestId("race-control-flag-up-preparatory")).toContainText("I");
-    await expect.poll(async () => (await signals()).length).toBe(3);
+    await expect.poll(() => kinds(page)).toEqual(["ping", "beep", "beep", "beep", "signal"]);
 
     await advance(page, 60);
     await expect(page.getByTestId("race-control-flag-up-club")).toHaveAttribute("data-up", "true");
@@ -223,6 +251,8 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
   test("AP during a sequence: at the latest 3 s before the start, not at all in the last 8 s", async ({
     page,
   }) => {
+    // Two sequences of more than three minutes, walked a second at a time.
+    test.setTimeout(120_000);
     await spyOnTones(page);
     await page.clock.install({ time: new Date(Math.floor(Date.now() / 60_000) * 60_000 + 10_000) });
     await signIn(page, COMMITTEE);
@@ -241,25 +271,30 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
     await page.clock.runFor(1000);
     await expect(ap).toBeDisabled();
 
-    // Again, and AP at 10 s to go: it goes up 3 s before the start, not 15 s after the tap.
+    // Again, and AP at 10 s to go: it goes up 3 s before the start, not 10 s after the tap,
+    // and its ping sounds at the tap.
     await page.getByTestId("race-control-start-sequence").click();
     await advanceTo(page, -10_000);
+    await forgetTones(page);
     await ap.click();
     await expect(next).toHaveAttribute("data-action", "apUp");
     await expect(page.getByTestId("race-control-countdown")).toHaveText("0:07");
     await expect(page.getByTestId("race-control-flag-up-club")).toHaveAttribute("data-up", "true");
+    await expect.poll(() => kinds(page)).toEqual(["ping"]);
 
     await advance(page, 7);
     await expect(hoisted).toBeVisible();
     await expect(page.getByTestId("race-control-sequence")).toHaveCount(0);
     await advance(page, 5);
     await expect(page.getByTestId("race-control-status")).toHaveAttribute("data-status", "scheduled");
-    const last = (await tones(page)).filter((t) => t.length > 0.3).slice(-2);
-    expect(last.map((t) => t.length < 1)).toEqual([true, true]); // two short sounds
+    // AP's own count-in and its two sounds — nothing of the start that did not happen.
+    await expect
+      .poll(() => kinds(page))
+      .toEqual(["ping", "beep", "beep", "beep", "signal", "signal"]);
 
-    // Leave AP down for the other specs: down in 15 s, then abort the sequence it starts.
-    await ap.click();
-    await advance(page, 15);
+    // Leave AP down for the other specs: down in 10 s, then abort the sequence it starts.
+    await page.getByTestId("race-control-start-sequence").click();
+    await advance(page, 10);
     await expect(hoisted).toHaveCount(0);
     await page.getByTestId("race-control-cancel-sequence").click();
   });
@@ -270,11 +305,13 @@ describeStory("WL-3: as race committee I run one race at a time", () => {
   });
 });
 
-/** Every tone the page plays — when it sounds on the audio clock and for how long, in
- *  seconds — by spying on the horn's oscillators. */
+type Played = { at: number; length: number; hz: number };
+
+/** Every tone the page plays — when it sounds on the audio clock, for how long in
+ *  seconds, and its pitch — by spying on the horn's oscillators. */
 async function spyOnTones(page: Page): Promise<void> {
   await page.addInitScript(() => {
-    const played: { at: number; length: number }[] = [];
+    const played: { at: number; length: number; hz: number }[] = [];
     (window as unknown as { __tones: typeof played }).__tones = played;
     const start = OscillatorNode.prototype.start;
     const stop = OscillatorNode.prototype.stop;
@@ -286,10 +323,26 @@ async function spyOnTones(page: Page): Promise<void> {
       // Only the booking counts; a stop() without a time is an abort cancelling it.
       if (when !== undefined) {
         const at = (this as unknown as { __at: number }).__at;
-        played.push({ at, length: when - at });
+        played.push({ at, length: when - at, hz: this.frequency.value });
       }
       return stop.call(this, when);
     };
+  });
+}
+
+/** What a tone is, by its pitch (`web/src/lib/horn.ts`): the ping, a count-in beep, or a
+ *  signal an octave above the beeps. */
+function kindOf(tone: Played): "ping" | "beep" | "signal" {
+  return tone.hz > 1000 ? "ping" : tone.hz < 600 ? "beep" : "signal";
+}
+
+async function kinds(page: Page): Promise<string[]> {
+  return (await tones(page)).map(kindOf);
+}
+
+async function forgetTones(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    (window as unknown as { __tones: unknown[] }).__tones.length = 0;
   });
 }
 
@@ -319,6 +372,6 @@ async function advanceTo(page: Page, offset: number): Promise<void> {
   await page.clock.runFor(Math.max(0, Math.round(remaining - whole * 1000)));
 }
 
-async function tones(page: Page): Promise<{ at: number; length: number }[]> {
-  return page.evaluate(() => (window as unknown as { __tones: { at: number; length: number }[] }).__tones);
+async function tones(page: Page): Promise<Played[]> {
+  return page.evaluate(() => (window as unknown as { __tones: Played[] }).__tones);
 }

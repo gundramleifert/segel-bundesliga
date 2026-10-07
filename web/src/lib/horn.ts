@@ -36,6 +36,8 @@ const MUTE_KEY = "sbl.race-control.muted";
 let context: AudioContext | null = null;
 /** Tones booked but not yet over — what `silenceHorn()` cancels when a sequence aborts. */
 const pending = new Set<OscillatorNode>();
+/** The keys of the tones booked through `hornOnce`, so none is booked twice. */
+const bookedKeys = new Set<string>();
 
 /** Call from a tap. Creates (or wakes) the audio context the tones play through. */
 export function unlockHorn(): void {
@@ -80,8 +82,7 @@ export function setHornMuted(muted: boolean): void {
  *  the tone is *heard* when the countdown on the screen turns. */
 export function horn(tone: Tone, inSeconds = 0): void {
   if (!context || hornMuted()) return;
-  const latency = context.outputLatency || context.baseLatency || 0;
-  const at = context.currentTime + Math.max(0, inSeconds - latency);
+  const at = context.currentTime + Math.max(0, inSeconds - outputLatency());
   const { seconds: length, hertz, volume, wave, fade } = SOUND[tone];
   const oscillator = context.createOscillator();
   const gain = context.createGain();
@@ -104,14 +105,33 @@ export function horn(tone: Tone, inSeconds = 0): void {
   oscillator.stop(at + length);
 }
 
+/** The device's output delay, in seconds — booked away so a tone is *heard* on time. */
+function outputLatency(): number {
+  return context ? context.outputLatency || context.baseLatency || 0 : 0;
+}
+
 /** A signal of several sounds, as the racing rules count them — AP up is two, a recall
- *  two long ones — a second apart. */
+ *  two long ones — a second apart. Sounding *now*, the first cannot be moved earlier by
+ *  the output delay; so all of them are booked as if it could not, or only the later ones
+ *  would shift and the spacing come out short. */
 export function hornSounds(tone: Tone, count: number): void {
-  for (let i = 0; i < count; i += 1) horn(tone, i * soundSpacing(tone));
+  const latency = outputLatency();
+  for (let i = 0; i < count; i += 1) horn(tone, latency + i * soundSpacing(tone));
 }
 
 /** Cancels every booked tone — an aborted sequence must not beep on for another second. */
+/** `horn`, but at most once per `key` — a sequence's tone is its exact time and kind. The
+ *  look-ahead books each window once, yet a remounted card or a re-run effect starts with no
+ *  memory of what was booked; this is the one place that remembers, so a beep is never
+ *  heard twice. `silenceHorn` forgets, so a re-timed sequence can book again. */
+export function hornOnce(key: string, tone: Tone, inSeconds: number): void {
+  if (bookedKeys.has(key)) return;
+  bookedKeys.add(key);
+  horn(tone, inSeconds);
+}
+
 export function silenceHorn(): void {
+  bookedKeys.clear();
   for (const oscillator of pending) {
     try {
       oscillator.stop();

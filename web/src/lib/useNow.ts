@@ -15,6 +15,38 @@ export function useNow(intervalMs = 1000): number {
   return now;
 }
 
+/** "Now", re-rendered exactly when a countdown to `anchor` turns a second — at
+ *  `anchor − n·1000` — instead of many times a second. A start sequence's signals, its
+ *  beeps and every digit change all fall on those instants, so one render a second is
+ *  both enough and on time; rendering the whole race-control page twenty times a second
+ *  is what made a slow phone fall behind. Without an anchor, once a second. */
+export function useAlignedNow(anchor: number | null): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (anchor === null) {
+      const timer = window.setInterval(() => setNow(Date.now()), 1000);
+      return () => window.clearInterval(timer);
+    }
+    let timer: number;
+    const next = () => {
+      const intoSecond = (((Date.now() - anchor) % 1000) + 1000) % 1000;
+      // A millisecond past the boundary, so the digit has certainly turned.
+      timer = window.setTimeout(() => {
+        setNow(Date.now());
+        next();
+      }, 1000 - intoSecond + 1);
+    };
+    // Right away too: a sequence just tapped must not show the second before it.
+    const fresh = window.setTimeout(() => setNow(Date.now()), 0);
+    next();
+    return () => {
+      window.clearTimeout(fresh);
+      window.clearTimeout(timer);
+    };
+  }, [anchor]);
+  return now;
+}
+
 export function clock(millis: number): string {
   const total = Math.max(0, Math.round(millis / 1000));
   const minutes = Math.floor(total / 60);

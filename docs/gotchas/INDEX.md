@@ -18,6 +18,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [An account reached through selectinload(Grant.user) has no grants loaded, and a test with only the caller in the result hides it](an-account-reached-through-selectinload-grant-user-has-no-grants-loaded-and-a-te.md)
 - [An exists() subquery over a table the outer query also joins correlates itself away, and fails with 'no FROM clauses' instead of returning nothing](an-exists-subquery-over-a-table-the-outer-query-also-joins-correlates-itself-awa.md)
 - [A "page doesn't scroll sideways" assertion passes while the page is unusably zoomed out](an-overflow-assertion-cannot-see-its-own-symptom.md)
+- [Appending a Tailwind class to override one in a shared class string does nothing when the shared one comes later in the stylesheet](appending-a-tailwind-class-to-override-one-in-a-shared-class-string-does-nothing.md)
 - [Copying a WAL-mode SQLite file copies half the database](copying-a-wal-mode-sqlite-file-copies-half-the-database.md)
 - [A Tailwind `grid gap-*` column is sized by its widest item's min-content — and that can zoom the whole page out](grid-auto-columns-can-zoom-the-whole-page-out.md)
 - [HeroUI owns `--color-surface`; naming our own token that overrode it made every card invisible](heroui-owns-the-surface-color-token.md)
@@ -31,3 +32,4 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A public endpoint answers 404 for a draft — including in tests you just set up](public-endpoints-answer-404-for-unpublished-things.md)
 - [State inside the race-control card is lost on every change of the race, because the card is keyed by the race's version](state-inside-the-race-control-card-is-lost-on-every-change-of-the-race-because-t.md)
 - [A server started in one sandboxed Bash call is unreachable from the next one](the-bash-sandbox-has-a-network-namespace-per-call.md)
+- [Tones booked from a React effect come out late or twice when the page falls behind; sound needs its own timer](tones-booked-from-a-react-effect-come-out-late-or-twice-when-the-page-falls-behi.md)

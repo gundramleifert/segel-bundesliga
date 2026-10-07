@@ -21,7 +21,8 @@ import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Bloc
 import { FinishOrderPad, useFinishOrder } from "../components/FinishOrderPad";
 import { Stack } from "../components/Layouts";
 import { errorText } from "../lib/admin";
-import { clock, countdown, useNow } from "../lib/useNow";
+import { clock, countdown, useAlignedNow } from "../lib/useNow";
+import { playSequence } from "../lib/sequenceSound";
 import {
   horn,
   hornMuted,
@@ -32,11 +33,9 @@ import {
   unlockHorn,
 } from "../lib/horn";
 import {
-  LOOKAHEAD,
   apUpTime,
   phaseAt,
   warningTime,
-  tonesBetween,
   useStartSequence,
 } from "../lib/startSequence";
 import { boatColor } from "../lib/format";
@@ -73,6 +72,9 @@ export function RaceControl() {
     getGetEventQueryKey(eventId),
     getGetAdminRacesQueryKey(eventId),
   ]);
+
+  // The sequence's sound outlives a remounted card on purpose — but not the page.
+  useEffect(() => () => playSequence(null), []);
 
   // Which race is on screen, relative to the current one: −1 to correct the previous,
   // +1 to preview the next, nothing further.
@@ -417,9 +419,13 @@ function RaceCard({
     document.addEventListener("pointerdown", unlockHorn);
     return () => document.removeEventListener("pointerdown", unlockHorn);
   }, []);
-  // Fast ticks while a sequence runs, so the countdown turns within a frame or two of the
-  // tone booked for that moment.
-  const now = useNow(sequence.kind === "armed" ? 50 : 1000);
+  // One render a second, exactly when the countdown turns — the signal times are its
+  // anchor (AP's time when AP is coming, else the club flag's).
+  const now = useAlignedNow(
+    sequence.kind === "armed" ? (sequence.apUpAt ?? sequence.warningAt) : null,
+  );
+  // The sound has its own player (lib/sequenceSound.ts): the card only says what is armed.
+  useEffect(() => playSequence(sequence.kind === "armed" ? sequence : null), [sequence]);
   const [muted, setMuted] = useState(hornMuted);
 
   const start = useStartRace({ mutation: { onSuccess: refresh } });
@@ -441,31 +447,18 @@ function RaceCard({
   // fall back to P whenever the card remounts (docs/gotchas). Once armed it is fixed.
   const preparatory = sequence.preparatory;
   const setPreparatory = (flag: PreparatoryFlag) => dispatch({ type: "choose", preparatory: flag });
-  // Each tick books the tones of the next moments on the audio clock, at their exact times
-  // (`horn(tone, inSeconds)`, measured from `Date.now()` at the booking, not from the tick
-  // that triggered it); `booked` is how far ahead that already happened, so no tone is
-  // booked twice. A tone more than half a second overdue — a phone waking from sleep — is
-  // skipped rather than blown late. When the clock reaches them, the screen hauls AP down
-  // (a postponed sequence) and records the start.
-  const booked = useRef(now);
+  // When the clock reaches them, the screen hauls AP down (a postponed sequence), hoists AP
+  // (tapped during a sequence) and records the start.
   // AP down is sent once. Fired from a ticking effect, it would otherwise go again on every
   // tick until the refetch shows AP gone — and each repeat's invalidation cancelled that
   // very refetch, so the screen never saw it (docs/gotchas). A failure allows a retry.
   const apDownSent = useRef(false);
   useEffect(() => {
-    if (sequence.kind !== "armed") {
-      booked.current = now;
-      return;
-    }
-    const from = Math.max(booked.current, now - 500);
-    booked.current = now + LOOKAHEAD;
-    for (const { at, tone } of tonesBetween(sequence, from, booked.current)) {
-      horn(tone, (at - Date.now()) / 1000);
-    }
+    if (sequence.kind !== "armed") return;
     const phase = phaseAt(sequence, now);
     if (phase.apUp) {
-      // AP tapped during the sequence, and its time has come: up it goes — its two sounds
-      // are already booked — and the sequence is over.
+      // AP tapped during the sequence, and its time has come: up it goes — its sounds are
+      // already booked by the player — and the sequence is over.
       dispatch({ type: "abort" });
       signal.mutate({ eventId, raceId: race.id, data: { signal: "AP" } });
       return;
@@ -484,12 +477,10 @@ function RaceCard({
   }, [now, sequence, dispatch, start, signal, eventId, race.id, race.signal]);
   // Aborting (and restarting) cancels the tones already booked; reaching zero does not —
   // that would cut off the start's own sound.
-  // A change of plan cancels the tones booked ahead and books again, on the next tick, from
-  // whatever the sequence has become — from just before the tap, so a ping due at the tap
-  // itself is booked too.
+  // A change of plan cancels the tones booked ahead; the player then books from whatever
+  // the sequence has become, from the tap on.
   const rebook = (tap = Date.now()) => {
     silenceHorn();
-    booked.current = tap - 1;
     return tap;
   };
   const abortSequence = () => {

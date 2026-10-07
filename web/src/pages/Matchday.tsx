@@ -598,7 +598,13 @@ function PairingList({ eventId }: { eventId: number }) {
           value={club}
           onChange={(event) => setClub(event.target.value)}
           data-testid="matchday-pairing-pdf-club"
-          className={`${INPUT_CLASS} w-auto py-1 text-sm`}
+          // Its own classes, not INPUT_CLASS plus overrides: that one carries `w-full` and
+          // `py-2`, and a conflicting Tailwind class wins by its place in the stylesheet,
+          // not in this list — `w-auto` lost, and the picker spanned the whole page.
+          className={
+            "w-auto max-w-full rounded-md border border-slate-300 px-2 py-1 text-sm outline-none " +
+            "focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
+          }
         >
           <option value="">{t("pairingPdfAllClubs")}</option>
           {teams.map((team) => (
