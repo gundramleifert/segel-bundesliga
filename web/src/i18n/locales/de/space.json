@@ -131,7 +131,10 @@
     "referenceLabel": "Verwendungszweck",
     "pay": "Als gezahlt markieren",
     "done": "Gespeichert.",
-    "payByHandHint": "Eine Überweisung selbst im Online-Banking gemacht? Hier eintragen. Für mehrere Abrechnungen geht die SEPA-Datei oben schneller."
+    "payByHandHint": "Eine Überweisung selbst im Online-Banking gemacht? Hier eintragen. Für mehrere Abrechnungen geht die SEPA-Datei oben schneller.",
+    "girocodeShow": "GiroCode anzeigen",
+    "girocodeAlt": "GiroCode für diese Abrechnung",
+    "girocodeHint": "Mit der Fotoüberweisung der Banking-App scannen: Empfänger, IBAN, Betrag und Verwendungszweck sind ausgefüllt, die TAN zahlt. Danach „Als gezahlt markieren“ drücken."
   },
   "personDocuments": {
     "button": "Dokumente",

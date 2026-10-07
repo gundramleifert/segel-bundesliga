@@ -255,6 +255,14 @@
   "file": "docs/userstories/treasurer.md",
   "anchor": "f-7--export-the-approved-claims-as-one-sepa-file-for-the-clubs-bank"
  },
+ "F-8": {
+  "title": "Pay one claim by scanning a GiroCode",
+  "status": "●",
+  "role": "Treasurer",
+  "phase": "Paying through the bank",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-8--pay-one-claim-by-scanning-a-girocode"
+ },
  "J-1": {
   "title": "From an empty series to a scored matchday",
   "status": "◐",

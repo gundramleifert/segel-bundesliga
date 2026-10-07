@@ -290,3 +290,46 @@ def _rows(content: bytes) -> list[list]:
 
     sheet = load_workbook(BytesIO(content), read_only=True).active
     return [list(row) for row in sheet.iter_rows(values_only=True)]
+
+
+class TestGiroCode:
+    """Story F-8: one claim as an EPC QR code — the bank data from the claim's copy of the
+    claimant's account, the amount and the line from the claim."""
+
+    async def test_the_code_carries_the_claims_payee_open_amount_and_line(self, client, caplog):
+        from decimal import Decimal
+
+        import segno.helpers
+
+        w, treasurer, _, claims = await setup(client, caplog)
+        ben = claims[2]
+        response = await client.get(f"/api/claims/{ben['id']}/girocode", headers=treasurer)
+        assert response.status_code == 200, response.text
+        assert response.headers["content-type"].startswith("image/svg+xml")
+
+        expected = segno.helpers.make_epc_qr(
+            name="Hel Per",
+            iban=SECOND_IBAN,
+            amount=Decimal("12.50"),
+            text=f"C-{ben['id']} Travel",
+            bic="INGDDEFFXXX",
+            encoding=1,
+        )
+        assert response.content == _svg(expected)
+
+    async def test_only_while_something_is_open_and_never_for_ones_own(self, client, caplog):
+        w, treasurer, anna, claims = await setup(client, caplog)
+        own = await client.get(f"/api/claims/{claims[0]['id']}/girocode", headers=anna)
+        assert _problem_code(own) == "claim-own-decision"
+
+        await client.post(f"/api/clubs/{w.club}/payment-runs", headers=treasurer, json={})
+        in_run = await client.get(f"/api/claims/{claims[0]['id']}/girocode", headers=treasurer)
+        assert _problem_code(in_run) == "claim-not-payable"
+
+
+def _svg(qr) -> bytes:
+    from io import BytesIO
+
+    out = BytesIO()
+    qr.save(out, kind="svg", scale=4, border=2)
+    return out.getvalue()

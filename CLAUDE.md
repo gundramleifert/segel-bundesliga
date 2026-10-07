@@ -329,7 +329,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
   treasurer uploads to the club's online banking; "booked" settles the run, a return fails
   one payment and its claims open again. The run keeps its message id, so the bank
   refuses the same file twice. Formats come from libraries — `sepaxml`, `schwifty` (IBAN,
-  BIC), `openpyxl` (the spreadsheets) — never written by hand.
+  BIC), `openpyxl` (the spreadsheets), `segno` (the GiroCode for one claim, Story F-8) —
+  never written by hand.
 - **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
   boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
   Mövenstein dataset and its detectors are used once, locally, to check ours

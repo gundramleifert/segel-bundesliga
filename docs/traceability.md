@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**78 stories** — ● 54 implemented and tested · ◐ 13 partial · ○ 11 open. With backend tests: 64 · with browser tests: 29 · walked by a journey: 9 · **with no test at all: 10**.
+**79 stories** — ● 55 implemented and tested · ◐ 13 partial · ○ 11 open. With backend tests: 65 · with browser tests: 29 · walked by a journey: 9 · **with no test at all: 10**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -118,6 +118,7 @@ same stories with each test's result, video and trace.
 | [F-5](userstories/treasurer.md#f-5--upload-documents-to-a-claim-readable-only-by-the-claimant-and-whoever-decides-it) | ● | Upload documents to a claim, readable only by the claimant and whoever decides it | `test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_document_is_at_most_ten_megabytes`<br>`test_reimbursements.py::TestClaimDocuments` | — | — |
 | [F-6](userstories/treasurer.md#f-6--pending-reimbursements-in-one-list) | ● | Pending reimbursements in one list | `test_reimbursements.py::TestPendingList` | — | — |
 | [F-7](userstories/treasurer.md#f-7--export-the-approved-claims-as-one-sepa-file-for-the-clubs-bank) | ● | Export the approved claims as one SEPA file for the club's bank | `test_payment_runs.py` | — | — |
+| [F-8](userstories/treasurer.md#f-8--pay-one-claim-by-scanning-a-girocode) | ● | Pay one claim by scanning a GiroCode | `test_payment_runs.py::TestGiroCode` | — | — |
 
 ## [journeys.md](userstories/journeys.md)
 

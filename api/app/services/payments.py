@@ -13,7 +13,9 @@ import io
 import uuid
 from collections import defaultdict
 from datetime import date, datetime
+from decimal import Decimal
 
+import segno.helpers
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from schwifty import IBAN
@@ -246,6 +248,37 @@ def sepa_file(run: PaymentRun) -> bytes:
             }
         )
     return transfer.export(validate=True)
+
+
+# ---------------------------------------------------------------------- one claim by phone
+
+
+def girocode_svg(user: User, claim: ExpenseClaim) -> bytes:
+    """One claim as a GiroCode — the EPC QR code a banking app turns into a filled-in
+    transfer (Story F-8), drawn by ``segno``. The bank data are the claim's copy of the
+    claimant's account; amount and line are the claim's, the same line a run writes.
+    Only while something is open: a code for a claim already in a run would pay it twice.
+    """
+    if claim.claimant_user_id == user.id:
+        raise Problem(403, "claim-own-decision", "Nobody decides or pays their own claim.")
+    if claim.open_cents <= 0 or claim.iban is None:
+        raise Problem(
+            422,
+            "claim-not-payable",
+            "Only an approved claim with something left open is paid.",
+            claim_id=claim.id,
+        )
+    qr = segno.helpers.make_epc_qr(
+        name=claim.payee_name or claim.claimant_name,
+        iban=claim.iban,
+        amount=Decimal(claim.open_cents) / 100,
+        text=remittance([claim]),
+        bic=_bic(claim.iban),
+        encoding=1,  # UTF-8: a payee called Jürgen stays Jürgen
+    )
+    out = io.BytesIO()
+    qr.save(out, kind="svg", scale=4, border=2)
+    return out.getvalue()
 
 
 # ---------------------------------------------------------------------- the bank's answer

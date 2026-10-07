@@ -1,9 +1,10 @@
 import { Button } from "@heroui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   getDownloadClubClaimsXlsxUrl,
+  getGetClaimGirocodeUrl,
   getDownloadPaymentRunSepaUrl,
   getDownloadPaymentRunXlsxUrl,
   useApproveClaim,
@@ -29,7 +30,7 @@ import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../co
 import { Field, Message, Section } from "../components/Form";
 import { Stack } from "../components/Layouts";
 import { INPUT_CLASS, errorText } from "../lib/admin";
-import { downloadFile } from "../lib/files";
+import { downloadFile, fetchFileUrl } from "../lib/files";
 import { formatDate, formatMoney, parseCents } from "../lib/format";
 
 /** Reimbursements — what waits for the manager or treasurer (Stories F-3, F-4, F-6).
@@ -670,6 +671,7 @@ function Pay({ claim }: { claim: Claim }) {
     <div className="flex flex-col gap-3 rounded-lg bg-slate-50 p-3" data-testid={`${id}-pay`}>
       <p className="text-xs text-slate-500">{t("pending.payByHandHint")}</p>
       <p className="text-sm font-medium tabular-nums">{formatMoney(claim.approved_cents - claim.paid_cents)}</p>
+      <GiroCode claimId={claim.id} />
       <div className="flex flex-wrap gap-3">
         <div className="min-w-40 flex-1">
           <Field label={t("pending.paidOnLabel")} hint={t("pending.paidOnHint")} testId={`${id}-paid-on-field`}>
@@ -709,6 +711,58 @@ function Pay({ claim }: { claim: Claim }) {
         </Button>
       </div>
       <Message error={pay.error ? errorText(pay.error) : null} testId={`${id}-pay-message`} />
+    </div>
+  );
+}
+
+/** The claim as a GiroCode (Story F-8): scanned with a banking app's photo transfer, it
+ *  fills in payee, IBAN, amount and line — the app's own TAN pays, and "Mark as paid"
+ *  records it. Fetched with the token, as a plain `<img src>` would not send it. */
+function GiroCode({ claimId }: { claimId: number }) {
+  const { t } = useTranslation("space");
+  const id = `reimbursements-claim-${claimId}-girocode`;
+  const [shown, setShown] = useState(false);
+  const [url, setUrl] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
+
+  useEffect(() => {
+    if (!shown) return;
+    let objectUrl: string | null = null;
+    let live = true;
+    fetchFileUrl(getGetClaimGirocodeUrl(claimId))
+      .then((made) => {
+        objectUrl = made;
+        if (live) setUrl(made);
+        else URL.revokeObjectURL(made);
+      })
+      .catch((caught: unknown) => live && setError(caught));
+    return () => {
+      live = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [shown, claimId]);
+
+  if (!shown) {
+    return (
+      <div>
+        <Button variant="secondary" size="sm" onPress={() => setShown(true)} data-testid={`${id}-show`}>
+          {t("pending.girocodeShow")}
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col items-start gap-2" data-testid={id}>
+      {url && (
+        <img
+          src={url}
+          alt={t("pending.girocodeAlt")}
+          className="size-48 rounded-md bg-white p-1"
+          data-testid={`${id}-image`}
+        />
+      )}
+      <p className="text-xs text-slate-500">{t("pending.girocodeHint")}</p>
+      <Message error={error ? errorText(error) : null} testId={`${id}-message`} />
     </div>
   );
 }

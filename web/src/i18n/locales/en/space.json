@@ -131,7 +131,10 @@
     "referenceLabel": "Reference",
     "pay": "Mark as paid",
     "done": "Saved.",
-    "payByHandHint": "Paid one transfer by hand in your own banking? Record it here. For several claims, the SEPA file above is quicker."
+    "payByHandHint": "Paid one transfer by hand in your own banking? Record it here. For several claims, the SEPA file above is quicker.",
+    "girocodeShow": "Show GiroCode",
+    "girocodeAlt": "GiroCode for this claim",
+    "girocodeHint": "Scan it with your banking app's photo transfer: payee, IBAN, amount and reference are filled in, and your TAN pays. Then press “Mark as paid”."
   },
   "personDocuments": {
     "button": "Documents",
