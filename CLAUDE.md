@@ -323,6 +323,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
   and of clubs they are members of. Private uploads — waiver scans, receipts, personal
   documents — share one validator and store (`app/services/uploads.py`): checked by
   content, random names, one serving endpoint each.
+- **Money goes to the bank as a file, never through a bank login** (Story F-7,
+  `app/services/payments.py`). A payment run turns approved claims into one `issued`
+  payment per payee and one SEPA file (pain.001.001.09, `sepaxml`, XSD-validated) the
+  treasurer uploads to the club's online banking; "booked" settles the run, a return fails
+  one payment and its claims open again. The run keeps its message id, so the bank
+  refuses the same file twice. Formats come from libraries — `sepaxml`, `schwifty` (IBAN,
+  BIC), `openpyxl` (the spreadsheets) — never written by hand.
 - **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
   boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
   Mövenstein dataset and its detectors are used once, locally, to check ours
@@ -356,6 +363,7 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Decide and pay a claim | the event's direct `manager`, the host club's `manager`, `treasurer` of event or club; never the claimant |
 | See a person's documents | the person; `manager` of an event they work at directly or of a club they are a member of |
 | Bank account | its owner only |
+| Club's bank account, payment runs, SEPA and Excel exports | the club's `manager` or `treasurer` (and their admins) |
 
 Defined as dependencies in `api/app/auth.py`; roles are checked fresh from the database on
 **every** request so revocation takes effect immediately.

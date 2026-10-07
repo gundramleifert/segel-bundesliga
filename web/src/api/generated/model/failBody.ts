@@ -6,18 +6,11 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface BankAccountIn {
+export interface FailBody {
   /**
+     * The bank's reason code, or a sentence.
      * @minLength 1
-     * @maxLength 160
+     * @maxLength 200
      */
-  holder: string;
-  /**
-     * Spaces are allowed.
-     * @minLength 15
-     * @maxLength 50
-     */
-  iban: string;
-  /** Empty: taken from the IBAN's bank code. */
-  bic?: string | null;
+  reason: string;
 }

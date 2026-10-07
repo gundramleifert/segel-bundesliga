@@ -46,6 +46,7 @@ import type {
   ClaimTarget,
   ClaimUpdate,
   ClubAdminOut,
+  ClubBankAccountOut,
   ClubCreate,
   ClubDetail,
   ClubMemberOut,
@@ -57,6 +58,7 @@ import type {
   CrewOut,
   DefaultCourseIn,
   DevLogin,
+  DownloadClubClaimsXlsxParams,
   DownloadPairingPdfParams,
   EmailRequest,
   EmailRequest202,
@@ -70,6 +72,7 @@ import type {
   EventReadinessOut,
   EventUpdate,
   EventWaiverList,
+  FailBody,
   FixBatchIn,
   FixBatchOut,
   FromCatalogRequest,
@@ -123,6 +126,8 @@ import type {
   ReadTuplesParams,
   RegisterAccount202,
   Registration,
+  RunCreate,
+  RunOut,
   SailorAdminOut,
   SailorCreate,
   SailorDetail,
@@ -137,6 +142,7 @@ import type {
   SeriesUpdate,
   SetClubs,
   SetCrewRequest,
+  SettleBody,
   SmtpConfigOut,
   SquadOut,
   SquadSetRequest,
@@ -12125,6 +12131,882 @@ export const usePayClaim = <TError = ErrorType<HTTPValidationError>,
       > => {
       return useMutation(getPayClaimMutationOptions(options), queryClient);
     }
+
+export const getGetClubBankAccountUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/bank-account`
+}
+
+/**
+ * @summary The account the club pays from
+ */
+export const getClubBankAccount = async (clubId: number, options?: RequestInit): Promise<ClubBankAccountOut | null> => {
+
+  return http<ClubBankAccountOut | null>(getGetClubBankAccountUrl(clubId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetClubBankAccountQueryKey = (clubId: number,) => {
+    return [
+    `/api/clubs/${clubId}/bank-account`
+    ] as const;
+    }
+
+
+export const getGetClubBankAccountQueryOptions = <TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetClubBankAccountQueryKey(clubId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClubBankAccount>>> = ({ signal }) => getClubBankAccount(clubId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: clubId !== null && clubId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetClubBankAccountQueryResult = NonNullable<Awaited<ReturnType<typeof getClubBankAccount>>>
+export type GetClubBankAccountQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getClubBankAccount>>,
+          TError,
+          Awaited<ReturnType<typeof getClubBankAccount>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getClubBankAccount>>,
+          TError,
+          Awaited<ReturnType<typeof getClubBankAccount>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The account the club pays from
+ */
+
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetClubBankAccountQueryOptions(clubId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveClubBankAccountUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/bank-account`
+}
+
+/**
+ * @summary Save the account the club pays from
+ */
+export const saveClubBankAccount = async (clubId: number,
+    bankAccountIn: BankAccountIn, options?: RequestInit): Promise<ClubBankAccountOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<ClubBankAccountOut>(getSaveClubBankAccountUrl(clubId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(bankAccountIn)
+  }
+);}
+
+
+
+
+
+export const getSaveClubBankAccountMutationKey = () => ['saveClubBankAccount'] as const;
+
+export const getSaveClubBankAccountMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveClubBankAccount>>, TError,SaveClubBankAccountMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof saveClubBankAccount>>, TError,SaveClubBankAccountMutationVariables, TContext> => {
+
+const mutationKey = getSaveClubBankAccountMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveClubBankAccount>>, SaveClubBankAccountMutationVariables> = (props) => {
+          const {clubId,data} = props ?? {};
+
+          return  saveClubBankAccount(clubId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveClubBankAccountMutationResult = NonNullable<Awaited<ReturnType<typeof saveClubBankAccount>>>
+    export type SaveClubBankAccountMutationBody = BodyType<BankAccountIn>
+    export type SaveClubBankAccountMutationError = ErrorType<HTTPValidationError>
+    export type SaveClubBankAccountMutationVariables = {clubId: number;data: BodyType<BankAccountIn>}
+
+    /**
+ * @summary Save the account the club pays from
+ */
+export const useSaveClubBankAccount = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveClubBankAccount>>, TError,SaveClubBankAccountMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveClubBankAccount>>,
+        TError,
+        SaveClubBankAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveClubBankAccountMutationOptions(options), queryClient);
+    }
+
+export const getListOpenPaymentRunsUrl = () => {
+
+
+
+
+  return `/api/payment-runs`
+}
+
+/**
+ * @summary Runs waiting for the bank
+ */
+export const listOpenPaymentRuns = async ( options?: RequestInit): Promise<RunOut[]> => {
+
+  return http<RunOut[]>(getListOpenPaymentRunsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOpenPaymentRunsQueryKey = () => {
+    return [
+    `/api/payment-runs`
+    ] as const;
+    }
+
+
+export const getListOpenPaymentRunsQueryOptions = <TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOpenPaymentRunsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOpenPaymentRuns>>> = ({ signal }) => listOpenPaymentRuns({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOpenPaymentRunsQueryResult = NonNullable<Awaited<ReturnType<typeof listOpenPaymentRuns>>>
+export type ListOpenPaymentRunsQueryError = ErrorType<unknown>
+
+
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOpenPaymentRuns>>,
+          TError,
+          Awaited<ReturnType<typeof listOpenPaymentRuns>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOpenPaymentRuns>>,
+          TError,
+          Awaited<ReturnType<typeof listOpenPaymentRuns>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Runs waiting for the bank
+ */
+
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOpenPaymentRunsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePaymentRunUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/payment-runs`
+}
+
+/**
+ * @summary Pay approved claims through one SEPA file
+ */
+export const createPaymentRun = async (clubId: number,
+    runCreate: RunCreate, options?: RequestInit): Promise<RunOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<RunOut>(getCreatePaymentRunUrl(clubId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(runCreate)
+  }
+);}
+
+
+
+
+
+export const getCreatePaymentRunMutationKey = () => ['createPaymentRun'] as const;
+
+export const getCreatePaymentRunMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentRun>>, TError,CreatePaymentRunMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createPaymentRun>>, TError,CreatePaymentRunMutationVariables, TContext> => {
+
+const mutationKey = getCreatePaymentRunMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPaymentRun>>, CreatePaymentRunMutationVariables> = (props) => {
+          const {clubId,data} = props ?? {};
+
+          return  createPaymentRun(clubId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePaymentRunMutationResult = NonNullable<Awaited<ReturnType<typeof createPaymentRun>>>
+    export type CreatePaymentRunMutationBody = BodyType<RunCreate>
+    export type CreatePaymentRunMutationError = ErrorType<HTTPValidationError>
+    export type CreatePaymentRunMutationVariables = {clubId: number;data: BodyType<RunCreate>}
+
+    /**
+ * @summary Pay approved claims through one SEPA file
+ */
+export const useCreatePaymentRun = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentRun>>, TError,CreatePaymentRunMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPaymentRun>>,
+        TError,
+        CreatePaymentRunMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePaymentRunMutationOptions(options), queryClient);
+    }
+
+export const getDownloadPaymentRunSepaUrl = (runId: number,) => {
+
+
+
+
+  return `/api/payment-runs/${runId}/sepa`
+}
+
+/**
+ * @summary The run as a SEPA file (pain.001.001.09) for online banking
+ */
+export const downloadPaymentRunSepa = async (runId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getDownloadPaymentRunSepaUrl(runId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadPaymentRunSepaQueryKey = (runId: number,) => {
+    return [
+    `/api/payment-runs/${runId}/sepa`
+    ] as const;
+    }
+
+
+export const getDownloadPaymentRunSepaQueryOptions = <TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadPaymentRunSepaQueryKey(runId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadPaymentRunSepa>>> = ({ signal }) => downloadPaymentRunSepa(runId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: runId !== null && runId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadPaymentRunSepaQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPaymentRunSepa>>>
+export type DownloadPaymentRunSepaQueryError = ErrorType<HTTPValidationError>
+
+
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPaymentRunSepa>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPaymentRunSepa>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPaymentRunSepa>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPaymentRunSepa>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The run as a SEPA file (pain.001.001.09) for online banking
+ */
+
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadPaymentRunSepaQueryOptions(runId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDownloadPaymentRunXlsxUrl = (runId: number,) => {
+
+
+
+
+  return `/api/payment-runs/${runId}/xlsx`
+}
+
+/**
+ * @summary The run as a spreadsheet
+ */
+export const downloadPaymentRunXlsx = async (runId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getDownloadPaymentRunXlsxUrl(runId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadPaymentRunXlsxQueryKey = (runId: number,) => {
+    return [
+    `/api/payment-runs/${runId}/xlsx`
+    ] as const;
+    }
+
+
+export const getDownloadPaymentRunXlsxQueryOptions = <TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadPaymentRunXlsxQueryKey(runId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>> = ({ signal }) => downloadPaymentRunXlsx(runId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: runId !== null && runId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadPaymentRunXlsxQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>>
+export type DownloadPaymentRunXlsxQueryError = ErrorType<HTTPValidationError>
+
+
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPaymentRunXlsx>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPaymentRunXlsx>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadPaymentRunXlsx>>,
+          TError,
+          Awaited<ReturnType<typeof downloadPaymentRunXlsx>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The run as a spreadsheet
+ */
+
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadPaymentRunXlsxQueryOptions(runId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSettlePaymentRunUrl = (runId: number,) => {
+
+
+
+
+  return `/api/payment-runs/${runId}/settle`
+}
+
+/**
+ * @summary The bank booked the run
+ */
+export const settlePaymentRun = async (runId: number,
+    settleBodyNull?: SettleBody | null, options?: RequestInit): Promise<RunOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<RunOut>(getSettlePaymentRunUrl(runId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(settleBodyNull)
+  }
+);}
+
+
+
+
+
+export const getSettlePaymentRunMutationKey = () => ['settlePaymentRun'] as const;
+
+export const getSettlePaymentRunMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settlePaymentRun>>, TError,SettlePaymentRunMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof settlePaymentRun>>, TError,SettlePaymentRunMutationVariables, TContext> => {
+
+const mutationKey = getSettlePaymentRunMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof settlePaymentRun>>, SettlePaymentRunMutationVariables> = (props) => {
+          const {runId,data} = props ?? {};
+
+          return  settlePaymentRun(runId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SettlePaymentRunMutationResult = NonNullable<Awaited<ReturnType<typeof settlePaymentRun>>>
+    export type SettlePaymentRunMutationBody = BodyType<SettleBody | null> | undefined
+    export type SettlePaymentRunMutationError = ErrorType<HTTPValidationError>
+    export type SettlePaymentRunMutationVariables = {runId: number;data?: BodyType<SettleBody | null>}
+
+    /**
+ * @summary The bank booked the run
+ */
+export const useSettlePaymentRun = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settlePaymentRun>>, TError,SettlePaymentRunMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof settlePaymentRun>>,
+        TError,
+        SettlePaymentRunMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSettlePaymentRunMutationOptions(options), queryClient);
+    }
+
+export const getFailPaymentUrl = (paymentId: number,) => {
+
+
+
+
+  return `/api/payments/${paymentId}/fail`
+}
+
+/**
+ * @summary The bank returned a payment
+ */
+export const failPayment = async (paymentId: number,
+    failBody: FailBody, options?: RequestInit): Promise<RunOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<RunOut>(getFailPaymentUrl(paymentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(failBody)
+  }
+);}
+
+
+
+
+
+export const getFailPaymentMutationKey = () => ['failPayment'] as const;
+
+export const getFailPaymentMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof failPayment>>, TError,FailPaymentMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof failPayment>>, TError,FailPaymentMutationVariables, TContext> => {
+
+const mutationKey = getFailPaymentMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof failPayment>>, FailPaymentMutationVariables> = (props) => {
+          const {paymentId,data} = props ?? {};
+
+          return  failPayment(paymentId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FailPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof failPayment>>>
+    export type FailPaymentMutationBody = BodyType<FailBody>
+    export type FailPaymentMutationError = ErrorType<HTTPValidationError>
+    export type FailPaymentMutationVariables = {paymentId: number;data: BodyType<FailBody>}
+
+    /**
+ * @summary The bank returned a payment
+ */
+export const useFailPayment = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof failPayment>>, TError,FailPaymentMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof failPayment>>,
+        TError,
+        FailPaymentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getFailPaymentMutationOptions(options), queryClient);
+    }
+
+export const getDownloadClubClaimsXlsxUrl = (clubId: number,
+    params?: DownloadClubClaimsXlsxParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/clubs/${clubId}/claims.xlsx?${stringifiedParams}` : `/api/clubs/${clubId}/claims.xlsx`
+}
+
+/**
+ * @summary A year's claims of the club as a spreadsheet
+ */
+export const downloadClubClaimsXlsx = async (clubId: number,
+    params?: DownloadClubClaimsXlsxParams, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getDownloadClubClaimsXlsxUrl(clubId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadClubClaimsXlsxQueryKey = (clubId: number,
+    params?: DownloadClubClaimsXlsxParams,) => {
+    return [
+    `/api/clubs/${clubId}/claims.xlsx`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getDownloadClubClaimsXlsxQueryOptions = <TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(clubId: number,
+    params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadClubClaimsXlsxQueryKey(clubId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>> = ({ signal }) => downloadClubClaimsXlsx(clubId,params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: clubId !== null && clubId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadClubClaimsXlsxQueryResult = NonNullable<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>>
+export type DownloadClubClaimsXlsxQueryError = ErrorType<HTTPValidationError>
+
+
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number,
+    params: undefined |  DownloadClubClaimsXlsxParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadClubClaimsXlsx>>,
+          TError,
+          Awaited<ReturnType<typeof downloadClubClaimsXlsx>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number,
+    params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadClubClaimsXlsx>>,
+          TError,
+          Awaited<ReturnType<typeof downloadClubClaimsXlsx>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number,
+    params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A year's claims of the club as a spreadsheet
+ */
+
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number,
+    params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadClubClaimsXlsxQueryOptions(clubId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getPostFixesUrl = () => {
 

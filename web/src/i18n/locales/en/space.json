@@ -130,11 +130,51 @@
     "paidOnHint": "empty: today",
     "referenceLabel": "Reference",
     "pay": "Mark as paid",
-    "done": "Saved."
+    "done": "Saved.",
+    "payByHandHint": "Paid one transfer by hand in your own banking? Record it here. For several claims, the SEPA file above is quicker."
   },
   "personDocuments": {
     "button": "Documents",
     "empty": "No documents.",
     "title": "Documents of {{name}}"
+  },
+  "bankRun": {
+    "clubTitle": "Paying for {{name}}",
+    "claimsTitle": "Approved, to pay",
+    "accountTitle": "The club's account",
+    "accountHint": "The account the club pays from. Only the club's manager and treasurer see it here.",
+    "bicHint": "optional — filled in from the IBAN",
+    "accountSaved": "The club's account is saved.",
+    "sepaTitle": "Pay by SEPA file",
+    "sepaHint": "One file for the club's online banking: upload it there as a collective transfer and confirm it with one TAN. The claims stay \"in payment\" until you mark the run as booked.",
+    "noAccount": "Save the club's account first — it is the account the transfers leave from.",
+    "toAccount": "To the account",
+    "sum_one": "{{count}} claim, {{amount}}",
+    "sum_other": "{{count}} claims, {{amount}}",
+    "executionDate": "Execution date",
+    "create": "Create SEPA file",
+    "created": "The file is created and downloading. Upload it in the club's online banking.",
+    "runTitle": "At the bank: {{date}}, {{amount}}",
+    "runHint": "Upload the file in the club's online banking (one TAN). When the transfers show on the statement, press \"Booked\". A transfer the bank returned is marked one by one. Uploading the same file twice is refused by the bank.",
+    "messageId": "Message id {{id}}",
+    "downloadSepa": "SEPA file (.xml)",
+    "downloadXlsx": "Excel (.xlsx)",
+    "settle": "Booked by the bank",
+    "paymentStatus": {
+      "draft": "draft",
+      "issued": "sent to the bank",
+      "settled": "booked",
+      "failed": "returned",
+      "cancelled": "cancelled"
+    },
+    "returned": "Returned…",
+    "returnReason": "Reason",
+    "returnReasonHint": "e.g. AC04 account closed",
+    "markReturned": "Mark as returned",
+    "cancel": "Cancel",
+    "booksTitle": "Books",
+    "booksHint": "Every claim the club paid or owes in a year, one row per item — for the cash audit.",
+    "year": "Year",
+    "downloadBooks": "Download claims (Excel)"
   }
 }

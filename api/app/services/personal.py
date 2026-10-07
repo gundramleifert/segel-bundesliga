@@ -4,6 +4,8 @@ what goes with the account when it is deleted.
 
 from __future__ import annotations
 
+from schwifty import BIC, IBAN
+from schwifty.exceptions import SchwiftyException
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,24 +34,34 @@ RECEIPTS = "expenses"
 WORKS_THE_EVENT = (Relation.HELPER, Relation.JURY, Relation.RACE_OFFICER, Relation.MANAGER)
 
 
-def normalised_iban(raw: str) -> str:
-    """The IBAN without spaces, upper case, its check digits verified (ISO 13616: move
-    the first four characters to the end, letters to numbers, the result mod 97 is 1) —
-    or ``iban-invalid``. Catches a mistyped digit before a transfer bounces."""
-    iban = "".join(raw.split()).upper()
-    if not (15 <= len(iban) <= 34) or not iban[:2].isalpha() or not iban[2:4].isdigit():
-        raise Problem(422, "iban-invalid", "This is not a valid IBAN.")
-    if not iban.isalnum():
-        raise Problem(422, "iban-invalid", "This is not a valid IBAN.")
-    digits = "".join(str(int(c, 36)) for c in iban[4:] + iban[:4])
-    if int(digits) % 97 != 1:
+def checked_iban(raw: str) -> IBAN:
+    """The IBAN, validated by ``schwifty`` — length and check digits per country, and
+    the bank code where the country publishes a register — or ``iban-invalid``. Catches a
+    mistyped digit before a transfer bounces. ``.compact`` is the stored form, ``.bic``
+    the bank's BIC where the register knows it."""
+    try:
+        return IBAN(raw)
+    except SchwiftyException as error:
         raise Problem(
-            422,
-            "iban-invalid",
-            "This is not a valid IBAN.",
-            detail="The check digits do not match.",
-        )
-    return iban
+            422, "iban-invalid", "This is not a valid IBAN.", detail=str(error)
+        ) from error
+
+
+def bic_for(iban: IBAN, given: str | None) -> str | None:
+    """The BIC as typed, else the one the IBAN's bank code points to — a SEPA transfer
+    needs none inside the EEA, but a bank shows it, and a wrong one is caught here."""
+    typed = "".join((given or "").split()).upper()
+    if typed:
+        try:
+            return str(BIC(typed))
+        except SchwiftyException as error:
+            raise Problem(
+                422, "bic-invalid", "This is not a valid BIC.", detail=str(error)
+            ) from error
+    try:
+        return str(iban.bic) if iban.bic is not None else None
+    except SchwiftyException:
+        return None
 
 
 async def may_see_documents(session: AsyncSession, viewer: User, owner_id: int) -> bool:

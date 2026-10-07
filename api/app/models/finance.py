@@ -192,6 +192,19 @@ class ExpenseClaim(Base, TimestampMixin):
         )
 
     @property
+    def open_cents(self) -> int:
+        """What is still to be paid: approved, less what an issued or settled payment
+        already covers. A failed or cancelled payment covers nothing."""
+        if self.status != ClaimStatus.APPROVED:
+            return 0
+        committed = sum(
+            a.amount_cents
+            for a in self.allocations
+            if a.payment.status in (PaymentStatus.ISSUED, PaymentStatus.SETTLED)
+        )
+        return max(self.approved_cents - committed, 0)
+
+    @property
     def payment_state(self) -> PaymentState | None:
         """``None`` until approved: nothing is owed on a claim that is not."""
         if self.status != ClaimStatus.APPROVED:
@@ -278,6 +291,60 @@ class ExpenseDocument(Base, TimestampMixin):
     claim: Mapped[ExpenseClaim] = relationship(back_populates="documents")
 
 
+class ClubBankAccount(Base, TimestampMixin):
+    """The account a club pays from (Story F-7) — the debtor of its SEPA files.
+
+    Its own table, not columns on ``Club``: a club is read by the public site, and no
+    public serializer can carry an IBAN it never sees. Read and written by the club's
+    manager or treasurer only.
+    """
+
+    __tablename__ = "club_bank_account"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    club_id: Mapped[int] = mapped_column(ForeignKey("club.id"), unique=True)
+    holder: Mapped[str] = mapped_column(String(160))
+    iban: Mapped[str] = mapped_column(String(34))
+    bic: Mapped[str | None] = mapped_column(String(11), default=None)
+
+
+class PaymentRun(Base, TimestampMixin):
+    """One SEPA file: the payments a club exported together (Story F-7).
+
+    The debtor account is copied here when the run is made, so downloading the file again
+    weeks later gives the same file — and the same message id, which a bank refuses to
+    book twice. Whether the run is still *open* (a payment still ``issued``) is derived.
+    """
+
+    __tablename__ = "payment_run"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    payer_club_id: Mapped[int] = mapped_column(ForeignKey("club.id"), index=True)
+    created_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("app_user.id"), default=None)
+    execution_date: Mapped[date] = mapped_column(Date)
+    # SEPA ``MsgId``: at most 35 characters, unique per debtor at the bank.
+    message_id: Mapped[str] = mapped_column(String(35), unique=True)
+    debtor_name: Mapped[str] = mapped_column(String(160))
+    debtor_iban: Mapped[str] = mapped_column(String(34))
+    debtor_bic: Mapped[str | None] = mapped_column(String(11), default=None)
+
+    payments: Mapped[list[Payment]] = relationship(
+        back_populates="run", lazy="selectin", order_by="Payment.id"
+    )
+
+    @property
+    def open(self) -> bool:
+        return any(p.status == PaymentStatus.ISSUED for p in self.payments)
+
+    @property
+    def total_cents(self) -> int:
+        return sum(
+            p.amount_cents
+            for p in self.payments
+            if p.status in (PaymentStatus.ISSUED, PaymentStatus.SETTLED)
+        )
+
+
 class Payment(Base, TimestampMixin):
     """One transfer from a club to one payee.
 
@@ -307,9 +374,15 @@ class Payment(Base, TimestampMixin):
     # A SEPA reason code (``AC04`` closed account) or a sentence.
     failure_reason: Mapped[str | None] = mapped_column(String(200), default=None)
 
+    # The SEPA file it went out in; empty for a payment marked paid by hand.
+    run_id: Mapped[int | None] = mapped_column(
+        ForeignKey("payment_run.id"), index=True, default=None
+    )
+
     allocations: Mapped[list[PaymentAllocation]] = relationship(
         back_populates="payment", cascade="all, delete-orphan", lazy="selectin"
     )
+    run: Mapped[PaymentRun | None] = relationship(back_populates="payments")
 
     @property
     def amount_cents(self) -> int:

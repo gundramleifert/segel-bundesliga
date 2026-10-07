@@ -22,7 +22,7 @@ from app.models import AuditLog, BankAccount, DocumentKind, PersonalDocument
 from app.models.auth import User
 from app.problems import Problem
 from app.services import uploads
-from app.services.personal import DOCUMENTS, may_see_documents, normalised_iban
+from app.services.personal import DOCUMENTS, bic_for, checked_iban, may_see_documents
 
 router = APIRouter(tags=["personal"])
 
@@ -44,7 +44,9 @@ class PersonalDocumentOut(BaseModel):
 class BankAccountIn(BaseModel):
     holder: str = Field(min_length=1, max_length=160)
     iban: str = Field(min_length=15, max_length=50, description="Spaces are allowed.")
-    bic: str | None = Field(default=None, max_length=11)
+    bic: str | None = Field(
+        default=None, max_length=11, description="Empty: taken from the IBAN's bank code."
+    )
 
 
 class BankAccountOut(BaseModel):
@@ -229,14 +231,15 @@ async def save_my_bank_account(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> BankAccount:
-    iban = normalised_iban(body.iban)
+    iban = checked_iban(body.iban)
+    bic = bic_for(iban, body.bic)
     account = await _bank_account(session, acting.id)
     if account is None:
         account = BankAccount(user_id=acting.id, holder="", iban="")
         session.add(account)
     account.holder = body.holder.strip()
-    account.iban = iban
-    account.bic = "".join((body.bic or "").split()).upper() or None
+    account.iban = iban.compact
+    account.bic = bic
     await session.commit()
     return account
 

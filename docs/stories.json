@@ -225,7 +225,7 @@
  },
  "F-4": {
   "title": "The manager or treasurer pays and exports",
-  "status": "◐",
+  "status": "●",
   "role": "Treasurer",
   "phase": "Expense claims",
   "file": "docs/userstories/treasurer.md",
@@ -246,6 +246,14 @@
   "phase": "Expense claims",
   "file": "docs/userstories/treasurer.md",
   "anchor": "f-6--pending-reimbursements-in-one-list"
+ },
+ "F-7": {
+  "title": "Export the approved claims as one SEPA file for the club's bank",
+  "status": "●",
+  "role": "Treasurer",
+  "phase": "Paying through the bank",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-7--export-the-approved-claims-as-one-sepa-file-for-the-clubs-bank"
  },
  "J-1": {
   "title": "From an empty series to a scored matchday",

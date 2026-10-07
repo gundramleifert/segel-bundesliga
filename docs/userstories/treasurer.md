@@ -97,7 +97,7 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_reimbursements.py::TestDecidingAClaim`
 
-### F-4 ◐ The manager or treasurer pays and exports
+### F-4 ● The manager or treasurer pays and exports
 As the **manager or treasurer** I want to **mark approved claims as paid and export them**,
 so that **the club's bookkeeping gets one list with payee, IBAN, amount and reference**.
 
@@ -115,12 +115,14 @@ Acceptance criteria:
   own online banking: one settled payment over what is still open on that claim, to the
   IBAN copied onto it, with the date and an optional reference.
 
-Done: the data model, the computed payment state and "mark as paid". Open: payments over
-several claims, `issued` → `failed`, the export.
+Done: the data model, the computed payment state, "mark as paid", and payments over
+several claims with `issued` → `settled` / `failed` through the SEPA export (Story F-7).
+Open: a payment cancelled before it was issued, partial payments by hand.
 
 Tests: `api/tests/stories/test_expenses.py::TestPaymentState`,
 `api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once`,
-`api/tests/stories/test_reimbursements.py::TestPayingAClaim`
+`api/tests/stories/test_reimbursements.py::TestPayingAClaim`,
+`api/tests/stories/test_payment_runs.py::TestSettlingARun`
 
 ### F-5 ● Upload documents to a claim, readable only by the claimant and whoever decides it
 As a **claimant** I want to **attach receipts, invoices and tickets to my claim**, so that
@@ -151,3 +153,52 @@ Acceptance criteria:
 - Each row names the claimant, the event or club, the amounts and what is to be done.
 
 Tests: `api/tests/stories/test_reimbursements.py::TestPendingList`
+
+## Paying through the bank
+
+### F-7 ● Export the approved claims as one SEPA file for the club's bank
+As the **manager or treasurer of a club** I want to **turn every approved claim the club
+owes into one transfer file and upload it to the club's online banking**, so that **a
+season's reimbursements cost one TAN instead of one typed-in transfer per person**.
+
+The site never talks to the bank: the file goes *to* the bank through the treasurer's
+own online banking, where the bank asks for its TAN as for any batch. No bank login is
+stored here (decision of 2026-10-07; a live connection is `docs/findings.md` material for
+later).
+
+Acceptance criteria:
+- **The club's account.** The club's manager or treasurer (and their admins) save the
+  account the club pays from — holder, IBAN (checked as in S-6), BIC optional
+  (`/api/clubs/{id}/bank-account`). Nobody else reads it, not even the club's members.
+- **A payment run** (`POST /api/clubs/{id}/payment-runs`) takes approved claims the club
+  pays — by default every one with something left open — and the execution date
+  (default today). Per payee and IBAN it makes **one** payment over all their claims, so
+  a person with three claims gets one transfer naming all three. The payments are
+  `issued` (`method = sepa_file`), so the claims read `in_payment` and leave the "to pay"
+  list.
+- Refused: no saved club account (`club-bank-account-missing`); a claim not approved, of
+  another payer, or with nothing left open (`claim-not-payable`); one's own claim among
+  them (`claim-own-decision`) — four eyes hold for the file too; nothing to pay
+  (`payment-run-empty`).
+- **The file** (`GET /api/payment-runs/{id}/sepa`) is pain.001.001.09, the format German
+  banks take since the SEPA 2025 changes, validated against its XSD before it leaves.
+  Debtor is the club's account as it was when the run was made; each transfer names the
+  claims in its remittance line and carries the payment's id as end-to-end reference.
+  Downloading again gives the same message id, so **a bank refuses the same run uploaded
+  twice**.
+- **After the bank booked it:** "Booked" (`POST /api/payment-runs/{id}/settle`) settles
+  every still-issued payment of the run, and the claims become `paid`. A transfer the
+  bank returned is marked `failed` with its reason (`POST /api/payments/{id}/fail`) — the
+  claim is open again and goes into the next run (Story F-4).
+- The open runs of every club the person pays for are listed
+  (`GET /api/payment-runs`) on the Reimbursements page.
+- **The same run as a spreadsheet** (`GET /api/payment-runs/{id}/xlsx`): one row per
+  claim — payee, IBAN, BIC, amount, remittance line, claim, event or club, execution date,
+  payment state — for the club's bookkeeping, or a bank that takes no XML.
+- **The year's books as a spreadsheet** (`GET /api/clubs/{id}/claims.xlsx?year=`): every
+  claim the club paid or owes that year (by submission), one row per item, with claimant,
+  event or club, kind, claimed and approved amount, decision and payment state — what the
+  club's cash audit (*Kassenprüfung*) asks for. Drafts are the claimant's own and are not
+  in it.
+
+Tests: `api/tests/stories/test_payment_runs.py`

@@ -92,6 +92,6 @@ class BankAccount(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("app_user.id"), unique=True)
     holder: Mapped[str] = mapped_column(String(160))
-    # Normalised: no spaces, upper case, check digits verified (ISO 13616).
+    # Compact form, validated by schwifty (country length, check digits, bank code).
     iban: Mapped[str] = mapped_column(String(34))
     bic: Mapped[str | None] = mapped_column(String(11), default=None)

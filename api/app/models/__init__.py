@@ -4,6 +4,7 @@ from app.models.common import AuditLog, ExternalId, ImportRun, Source
 from app.models.competition import Event, EventStatus, Series, Venue
 from app.models.finance import (
     ClaimStatus,
+    ClubBankAccount,
     ExpenseClaim,
     ExpenseDocument,
     ExpenseItem,
@@ -11,6 +12,7 @@ from app.models.finance import (
     Payment,
     PaymentAllocation,
     PaymentMethod,
+    PaymentRun,
     PaymentState,
     PaymentStatus,
 )
@@ -44,6 +46,8 @@ from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "ClubBankAccount",
+    "PaymentRun",
     "BankAccount",
     "DocumentKind",
     "PERSONAL_DOCUMENT_MAX_BYTES",

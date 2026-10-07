@@ -6,18 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface BankAccountIn {
-  /**
-     * @minLength 1
-     * @maxLength 160
-     */
+export interface ClubBankAccountOut {
   holder: string;
-  /**
-     * Spaces are allowed.
-     * @minLength 15
-     * @maxLength 50
-     */
   iban: string;
-  /** Empty: taken from the IBAN's bank code. */
-  bic?: string | null;
+  bic: string | null;
 }

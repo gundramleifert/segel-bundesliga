@@ -130,11 +130,51 @@
     "paidOnHint": "leer: heute",
     "referenceLabel": "Verwendungszweck",
     "pay": "Als gezahlt markieren",
-    "done": "Gespeichert."
+    "done": "Gespeichert.",
+    "payByHandHint": "Eine Überweisung selbst im Online-Banking gemacht? Hier eintragen. Für mehrere Abrechnungen geht die SEPA-Datei oben schneller."
   },
   "personDocuments": {
     "button": "Dokumente",
     "empty": "Keine Dokumente.",
     "title": "Dokumente von {{name}}"
+  },
+  "bankRun": {
+    "clubTitle": "Zahlungen für {{name}}",
+    "claimsTitle": "Freigegeben, zu zahlen",
+    "accountTitle": "Konto des Vereins",
+    "accountHint": "Das Konto, von dem der Verein zahlt. Hier sehen es nur Vereinsmanager und Kassenwart des Vereins.",
+    "bicHint": "optional – wird aus der IBAN ergänzt",
+    "accountSaved": "Das Vereinskonto ist gespeichert.",
+    "sepaTitle": "Per SEPA-Datei zahlen",
+    "sepaHint": "Eine Datei für das Online-Banking des Vereins: dort als Sammelüberweisung hochladen und mit einer TAN freigeben. Die Abrechnungen bleiben „in Zahlung“, bis der Lauf als gebucht markiert ist.",
+    "noAccount": "Zuerst das Vereinskonto speichern – von ihm gehen die Überweisungen ab.",
+    "toAccount": "Zum Konto",
+    "sum_one": "{{count}} Abrechnung, {{amount}}",
+    "sum_other": "{{count}} Abrechnungen, {{amount}}",
+    "executionDate": "Ausführungsdatum",
+    "create": "SEPA-Datei erstellen",
+    "created": "Die Datei ist erstellt und wird heruntergeladen. Im Online-Banking des Vereins hochladen.",
+    "runTitle": "Bei der Bank: {{date}}, {{amount}}",
+    "runHint": "Die Datei im Online-Banking des Vereins hochladen (eine TAN). Sobald die Überweisungen auf dem Kontoauszug stehen, „Gebucht“ drücken. Eine von der Bank zurückgegebene Überweisung wird einzeln markiert. Dieselbe Datei ein zweites Mal lehnt die Bank ab.",
+    "messageId": "Nachrichten-ID {{id}}",
+    "downloadSepa": "SEPA-Datei (.xml)",
+    "downloadXlsx": "Excel (.xlsx)",
+    "settle": "Von der Bank gebucht",
+    "paymentStatus": {
+      "draft": "Entwurf",
+      "issued": "an die Bank übergeben",
+      "settled": "gebucht",
+      "failed": "zurückgegeben",
+      "cancelled": "storniert"
+    },
+    "returned": "Zurückgegeben…",
+    "returnReason": "Grund",
+    "returnReasonHint": "z. B. AC04 Konto erloschen",
+    "markReturned": "Als zurückgegeben markieren",
+    "cancel": "Abbrechen",
+    "booksTitle": "Buchhaltung",
+    "booksHint": "Alle Abrechnungen eines Jahres, die der Verein gezahlt hat oder schuldet, eine Zeile je Posten – für die Kassenprüfung.",
+    "year": "Jahr",
+    "downloadBooks": "Abrechnungen herunterladen (Excel)"
   }
 }

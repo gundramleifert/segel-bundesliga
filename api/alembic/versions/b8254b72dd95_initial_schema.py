@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 312e21431be0
+Revision ID: b8254b72dd95
 Revises: 
-Create Date: 2026-10-07 21:08:25.200316
+Create Date: 2026-10-07 21:57:15.282885
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '312e21431be0'
+revision: str = 'b8254b72dd95'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -191,6 +191,18 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_bank_account')),
     sa.UniqueConstraint('user_id', name=op.f('uq_bank_account_user_id'))
     )
+    op.create_table('club_bank_account',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('club_id', sa.Integer(), nullable=False),
+    sa.Column('holder', sa.String(length=160), nullable=False),
+    sa.Column('iban', sa.String(length=34), nullable=False),
+    sa.Column('bic', sa.String(length=11), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_club_bank_account_club_id_club')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_club_bank_account')),
+    sa.UniqueConstraint('club_id', name=op.f('uq_club_bank_account_club_id'))
+    )
     op.create_table('event',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('slug', sa.String(length=120), nullable=False),
@@ -255,30 +267,24 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_password_credential')),
     sa.UniqueConstraint('user_id', name=op.f('uq_password_credential_user_id'))
     )
-    op.create_table('payment',
+    op.create_table('payment_run',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('payer_club_id', sa.Integer(), nullable=False),
-    sa.Column('payee_user_id', sa.Integer(), nullable=True),
-    sa.Column('payee_name', sa.String(length=160), nullable=False),
-    sa.Column('iban', sa.String(length=34), nullable=True),
-    sa.Column('status', sa.String(length=16), nullable=False),
-    sa.Column('method', sa.String(length=16), nullable=False),
-    sa.Column('reference', sa.String(length=140), nullable=True),
-    sa.Column('issued_by_user_id', sa.Integer(), nullable=True),
-    sa.Column('issued_on', sa.Date(), nullable=True),
-    sa.Column('settled_on', sa.Date(), nullable=True),
-    sa.Column('failure_reason', sa.String(length=200), nullable=True),
+    sa.Column('created_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('execution_date', sa.Date(), nullable=False),
+    sa.Column('message_id', sa.String(length=35), nullable=False),
+    sa.Column('debtor_name', sa.String(length=160), nullable=False),
+    sa.Column('debtor_iban', sa.String(length=34), nullable=False),
+    sa.Column('debtor_bic', sa.String(length=11), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['issued_by_user_id'], ['app_user.id'], name=op.f('fk_payment_issued_by_user_id_app_user')),
-    sa.ForeignKeyConstraint(['payee_user_id'], ['app_user.id'], name=op.f('fk_payment_payee_user_id_app_user')),
-    sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_payment_payer_club_id_club')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_payment'))
+    sa.ForeignKeyConstraint(['created_by_user_id'], ['app_user.id'], name=op.f('fk_payment_run_created_by_user_id_app_user')),
+    sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_payment_run_payer_club_id_club')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_payment_run')),
+    sa.UniqueConstraint('message_id', name=op.f('uq_payment_run_message_id'))
     )
-    with op.batch_alter_table('payment', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_payment_payee_user_id'), ['payee_user_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_payment_payer_club_id'), ['payer_club_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_payment_status'), ['status'], unique=False)
+    with op.batch_alter_table('payment_run', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_payment_run_payer_club_id'), ['payer_club_id'], unique=False)
 
     op.create_table('personal_document',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -400,6 +406,34 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('flight', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_flight_event_id'), ['event_id'], unique=False)
+
+    op.create_table('payment',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('payer_club_id', sa.Integer(), nullable=False),
+    sa.Column('payee_user_id', sa.Integer(), nullable=True),
+    sa.Column('payee_name', sa.String(length=160), nullable=False),
+    sa.Column('iban', sa.String(length=34), nullable=True),
+    sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('method', sa.String(length=16), nullable=False),
+    sa.Column('reference', sa.String(length=140), nullable=True),
+    sa.Column('issued_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('issued_on', sa.Date(), nullable=True),
+    sa.Column('settled_on', sa.Date(), nullable=True),
+    sa.Column('failure_reason', sa.String(length=200), nullable=True),
+    sa.Column('run_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['issued_by_user_id'], ['app_user.id'], name=op.f('fk_payment_issued_by_user_id_app_user')),
+    sa.ForeignKeyConstraint(['payee_user_id'], ['app_user.id'], name=op.f('fk_payment_payee_user_id_app_user')),
+    sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_payment_payer_club_id_club')),
+    sa.ForeignKeyConstraint(['run_id'], ['payment_run.id'], name=op.f('fk_payment_run_id_payment_run')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_payment'))
+    )
+    with op.batch_alter_table('payment', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_payment_payee_user_id'), ['payee_user_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_payer_club_id'), ['payer_club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_run_id'), ['run_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_status'), ['status'], unique=False)
 
     op.create_table('team',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -775,6 +809,13 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_team_club_id'))
 
     op.drop_table('team')
+    with op.batch_alter_table('payment', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_payment_status'))
+        batch_op.drop_index(batch_op.f('ix_payment_run_id'))
+        batch_op.drop_index(batch_op.f('ix_payment_payer_club_id'))
+        batch_op.drop_index(batch_op.f('ix_payment_payee_user_id'))
+
+    op.drop_table('payment')
     with op.batch_alter_table('flight', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_flight_event_id'))
 
@@ -807,12 +848,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
 
     op.drop_table('personal_document')
-    with op.batch_alter_table('payment', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_payment_status'))
-        batch_op.drop_index(batch_op.f('ix_payment_payer_club_id'))
-        batch_op.drop_index(batch_op.f('ix_payment_payee_user_id'))
+    with op.batch_alter_table('payment_run', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_payment_run_payer_club_id'))
 
-    op.drop_table('payment')
+    op.drop_table('payment_run')
     op.drop_table('password_credential')
     with op.batch_alter_table('identity', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_identity_user_id'))
@@ -826,6 +865,7 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_event_host_club_id'))
 
     op.drop_table('event')
+    op.drop_table('club_bank_account')
     op.drop_table('bank_account')
     with op.batch_alter_table('waiver_text', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_waiver_text_version'))

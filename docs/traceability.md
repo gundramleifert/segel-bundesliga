@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**77 stories** — ● 52 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 63 · with browser tests: 29 · walked by a journey: 9 · **with no test at all: 10**.
+**78 stories** — ● 54 implemented and tested · ◐ 13 partial · ○ 11 open. With backend tests: 64 · with browser tests: 29 · walked by a journey: 9 · **with no test at all: 10**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -114,9 +114,10 @@ same stories with each test's result, video and trace.
 | [F-1](userstories/treasurer.md#f-1--the-events-treasurer-is-a-tuple-and-the-host-clubs-treasurer-is-it-for-every-event-the-club-hosts) | ● | The event's treasurer is a tuple, and the host club's treasurer is it for every event the club hosts | `test_treasurer.py::TestTreasurerRelation` | — | — |
 | [F-2](userstories/treasurer.md#f-2--file-an-expense-claim-for-an-event-or-for-my-club) | ● | File an expense claim for an event or for my club | `test_expenses.py::TestClaimTotals`<br>`test_expenses.py::TestTheDatabaseKeepsTheBooksStraight`<br>`test_reimbursements.py::TestFilingAClaim` | — | — |
 | [F-3](userstories/treasurer.md#f-3--the-manager-or-the-treasurer-approves-returns-or-rejects-a-claim) | ● | The manager or the treasurer approves, returns or rejects a claim | `test_reimbursements.py::TestDecidingAClaim` | — | — |
-| [F-4](userstories/treasurer.md#f-4--the-manager-or-treasurer-pays-and-exports) | ◐ | The manager or treasurer pays and exports | `test_expenses.py::TestPaymentState`<br>`test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once`<br>`test_reimbursements.py::TestPayingAClaim` | — | — |
+| [F-4](userstories/treasurer.md#f-4--the-manager-or-treasurer-pays-and-exports) | ● | The manager or treasurer pays and exports | `test_expenses.py::TestPaymentState`<br>`test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once`<br>`test_reimbursements.py::TestPayingAClaim`<br>`test_payment_runs.py::TestSettlingARun` | — | — |
 | [F-5](userstories/treasurer.md#f-5--upload-documents-to-a-claim-readable-only-by-the-claimant-and-whoever-decides-it) | ● | Upload documents to a claim, readable only by the claimant and whoever decides it | `test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_document_is_at_most_ten_megabytes`<br>`test_reimbursements.py::TestClaimDocuments` | — | — |
 | [F-6](userstories/treasurer.md#f-6--pending-reimbursements-in-one-list) | ● | Pending reimbursements in one list | `test_reimbursements.py::TestPendingList` | — | — |
+| [F-7](userstories/treasurer.md#f-7--export-the-approved-claims-as-one-sepa-file-for-the-clubs-bank) | ● | Export the approved claims as one SEPA file for the club's bank | `test_payment_runs.py` | — | — |
 
 ## [journeys.md](userstories/journeys.md)
 

@@ -93,5 +93,13 @@
   "document-too-large": "The document is too large (at most 10 MB).",
   "expense-document-invalid": "This receipt could not be read.",
   "expense-document-invalid-type": "A receipt must be a PDF, a JPEG or a PNG.",
-  "expense-document-too-large": "The receipt is too large (at most 10 MB)."
+  "expense-document-too-large": "The receipt is too large (at most 10 MB).",
+  "club-bank-account-missing": "Save the club's account first — the transfers leave from it.",
+  "club-money-forbidden": "Only the club's manager or treasurer handles its account and payments.",
+  "claim-not-payable": "One of the claims is not approved, belongs to another club, or has nothing left to pay.",
+  "payment-run-empty": "There is nothing to pay.",
+  "payment-run-not-found": "This payment run does not exist.",
+  "payment-not-failable": "Only a payment sent to the bank or booked can come back.",
+  "payment-not-found": "This payment does not exist.",
+  "bic-invalid": "This BIC is not valid — leave it empty to take it from the IBAN."
 }

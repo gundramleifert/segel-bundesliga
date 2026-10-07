@@ -19,6 +19,9 @@ dependencies = [
     "pillow>=12.3.0",
     "python-multipart>=0.0.32",
     "reportlab>=5.0.1",
+    "sepaxml>=2.7.0",
+    "schwifty>=2026.7.3",
+    "openpyxl>=3.1.5",
 ]
 
 [dependency-groups]

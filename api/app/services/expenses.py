@@ -33,7 +33,6 @@ from app.models import (
     Payment,
     PaymentAllocation,
     PaymentMethod,
-    PaymentState,
     PaymentStatus,
 )
 from app.models.auth import Relation, User
@@ -209,8 +208,8 @@ async def _clubs(session: AsyncSession, ids: set[int]) -> dict[int, Club]:
 
 async def pending(session: AsyncSession, user: User) -> list[ExpenseClaim]:
     """What waits for this person (Story F-6): ``submitted`` claims to decide and
-    ``approved`` ones not yet paid, on whatever they hold the money of — never their own,
-    never a draft."""
+    ``approved`` ones with something still open, on whatever they hold the money of —
+    never their own, never a draft."""
     candidates = (
         (
             await session.execute(
@@ -226,18 +225,16 @@ async def pending(session: AsyncSession, user: User) -> list[ExpenseClaim]:
         .scalars()
         .all()
     )
-    return [
-        claim
-        for claim in candidates
-        if may_decide(user, claim) and claim.payment_state is not PaymentState.PAID
-    ]
+    return [claim for claim in candidates if may_decide(user, claim) and action(claim)]
 
 
 def action(claim: ExpenseClaim) -> str | None:
     """What the decider is to do with it: ``decide``, ``pay``, or nothing."""
     if claim.status == ClaimStatus.SUBMITTED:
         return "decide"
-    if claim.status == ClaimStatus.APPROVED and claim.payment_state is not PaymentState.PAID:
+    if claim.open_cents > 0:
+        # Approved, and not covered by a payment already issued — one in an exported
+        # SEPA run is waiting for the bank, not for the decider (Story F-7).
         return "pay"
     return None
 
@@ -485,12 +482,7 @@ def pay(
     require_decider(user, claim)
     if claim.status != ClaimStatus.APPROVED:
         raise Problem(409, "claim-not-approved", "Only an approved claim is paid.")
-    committed = sum(
-        a.amount_cents
-        for a in claim.allocations
-        if a.payment.status in (PaymentStatus.ISSUED, PaymentStatus.SETTLED)
-    )
-    open_cents = claim.approved_cents - committed
+    open_cents = claim.open_cents
     if open_cents <= 0:
         raise Problem(409, "claim-already-paid", "Nothing is left to pay on this claim.")
     assert claim.payer_club_id is not None

@@ -406,8 +406,10 @@ so that **I do not type an IBAN into every claim**.
 
 Acceptance criteria:
 - One account per person: account holder and IBAN, the BIC optional (`/api/me/bank-account`).
-- The IBAN is normalised (spaces removed, upper case) and checked by its check digits
-  (ISO 13616, mod 97); a wrong one is refused (`iban-invalid`) before anything is saved.
+- The IBAN is normalised (spaces removed, upper case) and checked with `schwifty` —
+  length and check digits per country, the bank code where the country publishes a
+  register; a wrong one is refused (`iban-invalid`) before anything is saved. An empty
+  BIC is filled in from the IBAN's bank code; a typed one is checked (`bic-invalid`).
 - **Read by the owner alone.** It is its own table, not a column on the account, so no
   serializer of accounts can carry it. Whoever decides a claim sees the copy taken onto
   the claim at submission (Story F-2), never the profile.

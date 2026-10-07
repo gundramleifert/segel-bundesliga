@@ -77,11 +77,11 @@ async def login(client, caplog, email: str, *grants: Grant) -> dict[str, str]:
     return await _headers(client, caplog, email)
 
 
-async def bank(client, headers) -> None:
+async def bank(client, headers, iban: str = IBAN) -> None:
     response = await client.put(
         "/api/me/bank-account",
         headers=headers,
-        json={"holder": "Hel Per", "iban": IBAN},
+        json={"holder": "Hel Per", "iban": iban},
     )
     assert response.status_code == 200, response.text
 
@@ -100,9 +100,11 @@ async def add_item(client, headers, claim_id: int, **fields) -> dict:
     return response.json()
 
 
-async def submitted(client, headers, *, event: int | None = None, club: int | None = None) -> dict:
+async def submitted(
+    client, headers, *, event: int | None = None, club: int | None = None, iban: str = IBAN
+) -> dict:
     """A claim of 12.50 € in meals, submitted."""
-    await bank(client, headers)
+    await bank(client, headers, iban)
     claim = await draft(client, headers, event=event, club=club)
     await add_item(client, headers, claim["id"], amount_cents=1250)
     response = await client.post(f"/api/claims/{claim['id']}/submit", headers=headers)
