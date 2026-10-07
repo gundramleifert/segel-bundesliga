@@ -1,6 +1,6 @@
 ---
 name: issue
-description: The whole life of a GitHub issue in this repository, as CLAUDE.md's "From issue to merge" lays it down — start work on an issue (read it, story first, branch), open the PR (rebase, checks, "Refs #N"), merge only on the user's word, hand over on staging with the in-stakeholder-review label, and close only when the stakeholder accepted. Also files new issues for work found on the way and shows what waits on whom. Use for "work on issue 42", "start #42", "open/finish the PR", "ship it", "merge it", "hand it over", "it was accepted", "make an issue for this", "what is waiting", or any commit-and-push of work that is not on main yet.
+description: The whole life of a GitHub issue in this repository, as CLAUDE.md's "From issue to merge" lays it down — start work on an issue (read it, story first, branch), open the PR (rebase, checks, "Refs #N"), merge only on the user's word, hand over on staging with the in-stakeholder-review label and the board's Review column, and close only when the stakeholder accepted. Also files new issues for work found on the way and shows what waits on whom. Use for "work on issue 42", "start #42", "open/finish the PR", "ship it", "merge it", "hand it over", "it was accepted", "make an issue for this", "what is waiting", or any commit-and-push of work that is not on main yet.
 argument-hint: "start <N> | pr [N] | merge [PR] | handover <N> | accepted <N> | rejected <N> | new <title> | status"
 ---
 
@@ -47,6 +47,29 @@ install packages or sign in, and there is no token to go around it:
 
 Never fall back to pushing to `main`, or opening anything some other way.
 
+**The board.** Every issue is a card on the project board
+[MVP Segel-Bundesliga Webpage](https://github.com/users/gundramleifert/projects/1)
+(user project 1, linked to the repository). Its **Status** field is the column:
+**Todo → In Progress → Review → Done**, where Review means what the
+`in-stakeholder-review` label means — merged, on staging, waiting for the stakeholder.
+The phases below move the card; label and column always change together. Moving it:
+
+```bash
+# the card's item id (add the issue first if it is not on the board yet)
+gh project item-add 1 --owner gundramleifert --url "$(gh issue view <N> --json url -q .url)" --format json -q .id
+# the ids of the project, the Status field and the wanted option — looked up by name,
+# so a renamed or re-created option never sends a card to the wrong column
+gh project view 1 --owner gundramleifert --format json -q .id
+gh project field-list 1 --owner gundramleifert --format json \
+  -q '.fields[] | select(.name=="Status") | .id, (.options[] | "\(.name)=\(.id)")'
+gh project item-edit --project-id <project id> --id <item id> \
+  --field-id <Status field id> --single-select-option-id <option id>
+```
+
+`item-add` is idempotent: for a card already on the board it returns the existing item.
+Needs the token's `project` scope (`gh auth status`); without it, say so and leave the
+column to the user rather than skipping the label.
+
 **The phantom change.** The sandbox cannot read `**/.env*`, so `git status` may list
 `api/.env.example` as modified when nothing changed (docs/gotchas: a sandbox-denied file
 looks like an empty file). Never stage it. If it makes `git switch`, `git pull`,
@@ -83,7 +106,8 @@ outside the sandbox with `!`.
    outlives the story → a gotcha if you were wrong on the way. Commit on the branch,
    staging paths explicitly — never `git add -A`, never `git add .claude`. Mention `#N` in
    the commit body where it helps.
-7. When it is done, go on with `pr`.
+7. Card → **In Progress** (see The board) once the branch exists.
+8. When it is done, go on with `pr`.
 
 ## `pr [N]` — from branch to pull request
 
@@ -172,6 +196,7 @@ minutes and **resets to the seeded data** on every deploy.
      --description "Merged and on staging, waiting for the stakeholder's acceptance" 2>/dev/null
    gh issue edit <N> --add-label in-stakeholder-review
    ```
+   and the card → **Review** (see The board).
 3. **Comment** (`gh issue comment <N>`), written for the stakeholder, not a developer —
    in the language the issue was written in: the staging URL of the page; which seeded
    account to pick in the role switcher (CLAUDE.md, Testing different roles); the steps
@@ -181,8 +206,11 @@ minutes and **resets to the seeded data** on every deploy.
 ## `accepted <N>` / `rejected <N>`
 
 - **Accepted** (the stakeholder said so, on the issue or to the user):
-  `gh issue close <N> --comment "Accepted on staging"`, after removing the label.
-- **Not accepted:** `gh issue edit <N> --remove-label in-stakeholder-review`. Feedback on
+  `gh issue close <N> --comment "Accepted on staging"`, after removing the label; the
+  card → **Done** (the board's "Item closed" workflow may already have moved it — check,
+  don't assume).
+- **Not accepted:** `gh issue edit <N> --remove-label in-stakeholder-review`, and the
+  card back → **In Progress** when the next round starts (**Todo** until then). Feedback on
   *this* request is a new branch `<N>-<slug>-2` for the same issue — back to `start`, from
   step 3. Feedback that is really a new wish becomes a new issue (`new`); this one stays
   open until it is accepted.
@@ -190,10 +218,14 @@ minutes and **resets to the seeded data** on every deploy.
 ## `new <title>` — something found on the way
 
 `gh issue create --title "…" --body "…"`: what someone cannot do today, where it was
-noticed (file, story ID), and why it is not part of the current issue. Give the user its
+noticed (file, story ID), and why it is not part of the current issue. Add it to the
+board in **Todo** (`gh project item-add`, then the Status as in The board). Give the user its
 number; don't start it unasked.
 
 ## `status` — what waits on whom
+
+The board shows the same at a glance:
+<https://github.com/users/gundramleifert/projects/1>.
 
 ```bash
 gh issue list --label in-stakeholder-review     # waiting on stakeholders
