@@ -12,7 +12,8 @@
     "boat_licence_inland": "Sportbootführerschein Binnen",
     "radio_certificate": "Funkzeugnis (SRC/UBI)",
     "first_aid": "Erste Hilfe",
-    "official_licence": "Schiedsrichter-/Wettfahrtleiter-Lizenz",
+    "jury_licence": "Schiedsrichter-Lizenz (Jury, Umpire)",
+    "race_officer_licence": "Wettfahrtleiter-Lizenz",
     "other": "Sonstiges"
   },
   "documents": {

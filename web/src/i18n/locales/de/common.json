@@ -86,5 +86,9 @@
     "sortBy": "Nach dieser Spalte sortieren",
     "sortedAscending": "Aufsteigend sortiert",
     "sortedDescending": "Absteigend sortiert"
+  },
+  "dropzone": {
+    "prompt": "Datei hier ablegen oder tippen, um eine auszuwählen",
+    "refused": "„{{name}}“ hat einen Dateityp, der hier nicht angenommen wird."
   }
 }

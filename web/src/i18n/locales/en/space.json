@@ -12,7 +12,8 @@
     "boat_licence_inland": "Boat licence (inland)",
     "radio_certificate": "Radio certificate (SRC/UBI)",
     "first_aid": "First aid",
-    "official_licence": "Official's licence",
+    "jury_licence": "Jury licence (judge, umpire)",
+    "race_officer_licence": "Race officer licence",
     "other": "Other"
   },
   "documents": {

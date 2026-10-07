@@ -1,5 +1,5 @@
 import { Button, Card } from "@heroui/react";
-import { useCallback, useEffect, useState, type ChangeEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -15,6 +15,7 @@ import {
 import { ApiError } from "../api/http";
 import type { MyCompetitionWaiver, MyWaivers, WaiverText } from "../api/types";
 import { ErrorMessage, Loading } from "../components/Blocks";
+import { FileDropzone } from "../components/FileDropzone";
 import { Message } from "../components/Form";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { downloadFile, openFile } from "../lib/files";
@@ -181,10 +182,7 @@ function CompetitionRow({
       ),
     );
 
-  const upload = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
+  const upload = (file: File) => {
     void run(
       "upload",
       async () => {
@@ -327,30 +325,19 @@ function CompetitionRow({
                 data-testid={`account-waiver-guardian-${id}`}
               />
             </div>
-            <div className="self-end">
-              <label
-                data-testid={`account-waiver-upload-label-${id}`}
-                className={
-                  "inline-flex cursor-pointer items-center justify-center rounded-md " +
-                  "border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50 " +
-                  (busy !== null ? "pointer-events-none opacity-60" : "")
-                }
-              >
-                {busy === "upload"
+            <FileDropzone
+              accept="application/pdf,image/jpeg,image/png"
+              disabled={busy !== null}
+              onFile={upload}
+              hint={
+                busy === "upload"
                   ? t("waiver.minor.uploading")
                   : row.scan_available
                     ? t("waiver.minor.replace")
-                    : t("waiver.minor.upload")}
-                <input
-                  type="file"
-                  accept="application/pdf,image/jpeg,image/png"
-                  className="hidden"
-                  disabled={busy !== null}
-                  onChange={upload}
-                  data-testid={`account-waiver-upload-${id}`}
-                />
-              </label>
-            </div>
+                    : t("waiver.minor.upload")
+              }
+              testId={`account-waiver-upload-${id}`}
+            />
           </div>
         </div>
       )}

@@ -18,6 +18,7 @@ export const DocumentKind = {
   boat_licence_inland: 'boat_licence_inland',
   radio_certificate: 'radio_certificate',
   first_aid: 'first_aid',
-  official_licence: 'official_licence',
+  jury_licence: 'jury_licence',
+  race_officer_licence: 'race_officer_licence',
   other: 'other',
 } as const;

@@ -69,6 +69,20 @@ class TestMyDocuments:
             "title"
         ] == "Crane licence"
 
+    async def test_jury_and_race_officer_licences_are_labels_of_their_own(self, client, caplog):
+        """S-5: a judge's and a race officer's licence are two labels — an organizer looking
+        for the jury does not want the race officers — and the old combined one is gone."""
+        me = await login(client, caplog, f"o-{uuid4().hex[:6]}@example.org")
+        assert (await upload(client, me, "jury_licence"))["kind"] == "jury_licence"
+        assert (await upload(client, me, "race_officer_licence"))["kind"] == "race_officer_licence"
+        combined = await client.post(
+            "/api/me/documents",
+            headers=me,
+            data={"kind": "official_licence"},
+            files={"file": ("x.png", _png(), "image/png")},
+        )
+        assert combined.status_code == 422
+
     async def test_the_file_must_be_what_it_claims(self, client, caplog):
         me = await login(client, caplog, f"t-{uuid4().hex[:6]}@example.org")
         response = await client.post(

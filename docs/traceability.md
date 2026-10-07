@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**77 stories** — ● 52 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 63 · with browser tests: 28 · walked by a journey: 9 · **with no test at all: 10**.
+**77 stories** — ● 52 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 63 · with browser tests: 29 · walked by a journey: 9 · **with no test at all: 10**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -84,7 +84,7 @@ same stories with each test's result, video and trace.
 | [S-4](userstories/sailor.md#s-4--decide-whether-my-own-profile-is-public) | ○ | Decide whether my own profile is public | — | — | — |
 | [Z-7](userstories/sailor.md#z-7--delete-my-own-account) | ● | Delete my own account | `test_login_and_roles.py::TestDeleteMyAccount` | — | — |
 | [Z-8](userstories/sailor.md#z-8--my-clubs-my-series-my-events-on-the-account-page) | ● | My clubs, my series, my events on the account page | — | `lifecycle.spec.ts`<br>`lifecycle.spec.ts::Z-8: the account page lists my clubs, series and events` | — |
-| [S-5](userstories/sailor.md#s-5--keep-my-documents-and-show-them-to-my-organizers) | ● | Keep my documents, and show them to my organizers | `test_personal_space.py::TestMyDocuments`<br>`test_personal_space.py::TestOrganizersSeeDocuments` | — | — |
+| [S-5](userstories/sailor.md#s-5--keep-my-documents-and-show-them-to-my-organizers) | ● | Keep my documents, and show them to my organizers | `test_personal_space.py::TestMyDocuments`<br>`test_personal_space.py::TestOrganizersSeeDocuments` | `my-space.spec.ts::S-5: as a sailor I drop my licences onto my space` | — |
 | [S-6](userstories/sailor.md#s-6--save-my-bank-account-once) | ● | Save my bank account once | `test_personal_space.py::TestBankAccount` | — | — |
 
 ## [visitor.md](userstories/visitor.md)

@@ -381,7 +381,7 @@ me for a scan before every event**.
 Acceptance criteria:
 - A document has a **label** from a fixed list — boat licence sea (*Sportbootführerschein
   See*), boat licence inland (*Binnen*), radio certificate (SRC/UBI), first aid,
-  official's licence (umpire, race officer), other — an optional title (required for
+  jury licence (judge, umpire), race officer licence, other — an optional title (required for
   *other*) and an optional **valid until** date. A fixed list, not free text, so an
   organizer can look for "boat licence" across people.
 - PDF, JPEG or PNG by content, at most 10 MB, stored under a random name, any number per

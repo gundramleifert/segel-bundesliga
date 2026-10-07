@@ -30,6 +30,7 @@ import { PageHeader } from "../components/Blocks";
 import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../components/ClaimParts";
 import { Field, Message, Section } from "../components/Form";
 import { Stack } from "../components/Layouts";
+import { FileDropzone } from "../components/FileDropzone";
 import { ExpiredBadge } from "../components/PersonDocuments";
 import { TabbedView } from "../components/Tabs";
 import { INPUT_CLASS, errorText } from "../lib/admin";
@@ -163,15 +164,12 @@ function UploadDocument() {
   const [title, setTitle] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  // Bumped after a save, so the file input is remounted empty — it cannot be cleared by value.
-  const [round, setRound] = useState(0);
   const upload = useUploadMyDocument({
     mutation: {
       onSuccess: () => {
         setTitle("");
         setValidUntil("");
         setFile(null);
-        setRound((n) => n + 1);
         invalidate("/api/me/documents");
       },
     },
@@ -226,13 +224,11 @@ function UploadDocument() {
           />
         </Field>
         <Field label={t("documents.fileLabel")} hint={t("documents.fileHint")} testId="my-space-document-file-field">
-          <input
-            key={round}
-            type="file"
+          <FileDropzone
             accept="application/pdf,image/jpeg,image/png"
-            className="block w-full text-sm"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            data-testid="my-space-document-file"
+            selected={file}
+            onFile={setFile}
+            testId="my-space-document-file"
           />
         </Field>
         <div>
@@ -734,11 +730,9 @@ function UploadReceipt({ claim }: { claim: Claim }) {
   const invalidate = useInvalidate();
   const id = `my-space-claim-${claim.id}-receipt`;
   const [itemId, setItemId] = useState("");
-  const [round, setRound] = useState(0);
   const upload = useUploadClaimDocument({
     mutation: {
       onSuccess: () => {
-        setRound((n) => n + 1);
         invalidate("/api/me/claims", "/api/claims");
       },
     },
@@ -766,21 +760,16 @@ function UploadReceipt({ claim }: { claim: Claim }) {
         </div>
         <div className="min-w-40 flex-1">
           <Field label={t("claims.uploadReceipt")} hint={t("documents.fileHint")} testId={`${id}-file-field`}>
-            <input
-              key={round}
-              type="file"
+            <FileDropzone
               accept="application/pdf,image/jpeg,image/png"
-              className="block w-full text-sm"
               disabled={upload.isPending}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
+              onFile={(file) =>
                 upload.mutate({
                   claimId: claim.id,
                   data: { file, item_id: itemId ? Number(itemId) : null },
-                });
-              }}
-              data-testid={`${id}-file`}
+                })
+              }
+              testId={`${id}-file`}
             />
           </Field>
         </div>

@@ -33,8 +33,13 @@ class DocumentKind(StrEnum):
 
     FIRST_AID = "first_aid"
 
-    OFFICIAL_LICENCE = "official_licence"
-    """An umpire's, judge's or race officer's licence."""
+    JURY_LICENCE = "jury_licence"
+    """A judge's or umpire's licence (DSV, World Sailing)."""
+
+    RACE_OFFICER_LICENCE = "race_officer_licence"
+    """A race officer's licence (DSV, World Sailing). Its own label, not one "official's
+    licence" with the jury's: an organizer looking for the jury does not want the race
+    officers."""
 
     OTHER = "other"
     """Anything else — then the title says what it is."""
