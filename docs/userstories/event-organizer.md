@@ -9,7 +9,7 @@ is over. The stories stand in that order; the last one walks the whole way in on
 
 Who the organizer *is*: whoever holds `manager` on the event — directly, through its
 series, or as manager of the host club — plus the league office (Story Z-2). The
-organizer also names the event's race officers and jury.
+organizer also names the event's race officers, jury and helpers.
 
 ## Setting the event up
 
@@ -391,6 +391,23 @@ history carry it.
 Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle`
 
 ## After the racing
+
+### VA-12 ● Name the event's helpers
+As the **organizer of an event** I want to **name the helpers of the day — the RIB
+drivers, the people on the pontoon, the boat handlers — next to its race officers and
+jury**, so that **I know who works the event, and they can claim their costs**.
+
+Acceptance criteria:
+- `helper` is a relation on an event (Story Z-2), written by the event's admin on its
+  access list like the jury: one tuple, `user:helper:event:<id>`.
+- It grants **no** power on the event — no setup, no results, no announcements. What it
+  does: the helper may file an expense claim on the event (Story F-2), and the event's
+  organizers may see the helper's documents (Story S-5) — a RIB driver's boat licence.
+- Not on a series or the site: helpers are named per day. Writing one there is refused
+  (`tuple-relation-invalid`).
+- Holding it shows up as the summary role `helper`.
+
+Tests: `api/tests/stories/test_reimbursements.py::TestHelperRelation`
 
 ### VA-11 ○ Announcements from the event
 As the **organizer, race committee or jury of an event** I want to **publish an

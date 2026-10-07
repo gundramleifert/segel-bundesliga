@@ -1,8 +1,9 @@
 """Expense claims and the payments that settle them (Stories F-2 to F-5).
 
-Race officers, jury and umpires travel to an event, and **the club hosting it pays their
-costs** — so a claim belongs to one event, and the event's ``treasurer`` (Story F-1)
-decides and pays it. The plan is ``docs/PLAN_DATA_MODEL.md``.
+Race officers, jury, umpires and helpers travel to an event, and **the club hosting it pays
+their costs**; a club also pays back what its members spend for it. So a claim belongs to
+one event **or** one club, and that event's or club's manager or treasurer (Stories F-1,
+F-3) decides and pays it. The plan is ``docs/PLAN_DATA_MODEL.md``.
 
 Three rules shape the model:
 
@@ -40,6 +41,7 @@ from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.competition import Event
+    from app.models.org import Club
 
 #: The largest document a claim takes (Story F-5) — the same limit as a waiver scan.
 DOCUMENT_MAX_BYTES = 10 * 1024 * 1024
@@ -105,20 +107,31 @@ class PaymentState(StrEnum):
 
 
 class ExpenseClaim(Base, TimestampMixin):
-    """What one person claims for one event.
+    """What one person claims for one event, or for one club.
 
-    The payer is the event's host club, recorded at submission (``payer_club_id``): if
-    the host changes afterwards, the claim stays with the club it was addressed to. The
-    permission check is ``can(TREASURER, on=claim.event)`` regardless.
+    Exactly one of ``event_id`` and ``club_id`` is set — the database says so. The payer
+    is the event's host club, or the club itself, recorded at submission
+    (``payer_club_id``): if the host changes afterwards, the claim stays with the club it
+    was addressed to. Who may decide is checked on the event or the club regardless
+    (``app/services/expenses.py::may_decide``).
 
     The claimant's name is kept beside the account link: the books must stay readable
     after the account is deleted (Story Z-7), which clears ``claimant_user_id``.
     """
 
     __tablename__ = "expense_claim"
+    __table_args__ = (
+        CheckConstraint(
+            "(event_id IS NOT NULL) + (club_id IS NOT NULL) = 1", name="event_or_club"
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), index=True)
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("event.id"), index=True, default=None
+    )
+    # A claim on the club itself (Story F-2): what a member spent for it.
+    club_id: Mapped[int | None] = mapped_column(ForeignKey("club.id"), index=True, default=None)
     claimant_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("app_user.id"), index=True, default=None
     )
@@ -145,7 +158,9 @@ class ExpenseClaim(Base, TimestampMixin):
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     decision_note: Mapped[str | None] = mapped_column(String(1000), default=None)
 
-    event: Mapped[Event] = relationship()
+    event: Mapped[Event | None] = relationship(lazy="selectin")
+    club: Mapped[Club | None] = relationship(foreign_keys=[club_id], lazy="selectin")
+    payer_club: Mapped[Club | None] = relationship(foreign_keys=[payer_club_id], lazy="selectin")
     # Loaded eagerly: the totals and the payment state read them, and a claim has a
     # handful of each.
     items: Mapped[list[ExpenseItem]] = relationship(

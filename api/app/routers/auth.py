@@ -32,7 +32,7 @@ from app.models.auth import (
 )
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services import grants, passwords
+from app.services import grants, passwords, personal
 from app.services.login import (
     LoginError,
     login_with_oidc,
@@ -432,6 +432,9 @@ async def delete_my_account(
         .where(WaiverConfirmation.recorded_by_user_id == acting.id)
         .values(recorded_by_user_id=None)
     )
+    # Documents and their files, the bank account and unsent claims go; a submitted
+    # claim stays with the club that pays it, unlinked (Stories S-5, S-6, F-2).
+    await personal.forget(session, acting)
     # Grants, identities and the password credential cascade via the ORM relationships
     # (cascade="all, delete-orphan").
     await session.delete(acting)

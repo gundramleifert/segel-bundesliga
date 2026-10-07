@@ -208,36 +208,44 @@
   "anchor": "f-1--the-events-treasurer-is-a-tuple-and-the-host-clubs-treasurer-is-it-for-every-event-the-club-hosts"
  },
  "F-2": {
-  "title": "File an expense claim for an event",
-  "status": "◐",
+  "title": "File an expense claim for an event or for my club",
+  "status": "●",
   "role": "Treasurer",
   "phase": "Expense claims",
   "file": "docs/userstories/treasurer.md",
-  "anchor": "f-2--file-an-expense-claim-for-an-event"
+  "anchor": "f-2--file-an-expense-claim-for-an-event-or-for-my-club"
  },
  "F-3": {
-  "title": "The treasurer approves, returns or rejects a claim",
-  "status": "○",
+  "title": "The manager or the treasurer approves, returns or rejects a claim",
+  "status": "●",
   "role": "Treasurer",
   "phase": "Expense claims",
   "file": "docs/userstories/treasurer.md",
-  "anchor": "f-3--the-treasurer-approves-returns-or-rejects-a-claim"
+  "anchor": "f-3--the-manager-or-the-treasurer-approves-returns-or-rejects-a-claim"
  },
  "F-4": {
-  "title": "The treasurer pays and exports",
+  "title": "The manager or treasurer pays and exports",
   "status": "◐",
   "role": "Treasurer",
   "phase": "Expense claims",
   "file": "docs/userstories/treasurer.md",
-  "anchor": "f-4--the-treasurer-pays-and-exports"
+  "anchor": "f-4--the-manager-or-treasurer-pays-and-exports"
  },
  "F-5": {
-  "title": "Upload documents to a claim, readable only by the claimant and the treasurer",
-  "status": "◐",
+  "title": "Upload documents to a claim, readable only by the claimant and whoever decides it",
+  "status": "●",
   "role": "Treasurer",
   "phase": "Expense claims",
   "file": "docs/userstories/treasurer.md",
-  "anchor": "f-5--upload-documents-to-a-claim-readable-only-by-the-claimant-and-the-treasurer"
+  "anchor": "f-5--upload-documents-to-a-claim-readable-only-by-the-claimant-and-whoever-decides-it"
+ },
+ "F-6": {
+  "title": "Pending reimbursements in one list",
+  "status": "●",
+  "role": "Treasurer",
+  "phase": "Expense claims",
+  "file": "docs/userstories/treasurer.md",
+  "anchor": "f-6--pending-reimbursements-in-one-list"
  },
  "J-1": {
   "title": "From an empty series to a scored matchday",
@@ -310,6 +318,22 @@
   "phase": "My profile",
   "file": "docs/userstories/sailor.md",
   "anchor": "s-4--decide-whether-my-own-profile-is-public"
+ },
+ "S-5": {
+  "title": "Keep my documents, and show them to my organizers",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "My space",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-5--keep-my-documents-and-show-them-to-my-organizers"
+ },
+ "S-6": {
+  "title": "Save my bank account once",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "My space",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-6--save-my-bank-account-once"
  },
  "V-1": {
   "title": "Register season squad",
@@ -422,6 +446,14 @@
   "phase": "After the racing",
   "file": "docs/userstories/event-organizer.md",
   "anchor": "va-11--announcements-from-the-event"
+ },
+ "VA-12": {
+  "title": "Name the event's helpers",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "After the racing",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-12--name-the-events-helpers"
  },
  "VA-2": {
   "title": "Self check-in with liability waiver",

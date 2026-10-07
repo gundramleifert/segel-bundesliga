@@ -22,6 +22,8 @@ from app.routers import (
     crew,
     dev,
     events,
+    expenses,
+    personal,
     public,
     sailors,
     series,
@@ -124,6 +126,8 @@ app.include_router(applications.router)
 app.include_router(club_members.router)
 app.include_router(sailors.router)
 app.include_router(waivers.router)
+app.include_router(personal.router)
+app.include_router(expenses.router)
 app.include_router(tracking.router)
 app.include_router(tracking.admin_router)
 

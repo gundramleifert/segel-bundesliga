@@ -63,6 +63,11 @@ class Relation(StrEnum):
     MEMBER = "member"
     """Club: belongs to it. Implies nothing else, and nothing implies it."""
 
+    HELPER = "helper"
+    """Event: works the day — RIB driver, pontoon, boat handling (Story VA-12). Grants no
+    power on the event; it entitles the person to an expense claim on it (Story F-2) and
+    lets the event's organizers see their documents (Story S-5)."""
+
     TREASURER = "treasurer"
     """Club or event: holds the money — checks and pays the expense claims of an event
     (Story F-1). The host club pays its events' costs, so the host club's treasurer is
@@ -100,6 +105,7 @@ class ObjectType(StrEnum):
 #: ``member`` tuple on a club — written by the club's admin, deleted by the member to
 #: leave — and implies nothing else. ``treasurer`` holds the money: the host club pays its
 #: events' costs, so the club's treasurer is that of every event it hosts (Story F-1).
+#: ``helper`` works one event's day and holds no power on it (Story VA-12).
 MODEL = """
 model
   schema 1.1
@@ -134,6 +140,7 @@ type event
     define race_officer: [user] or admin or race_officer from series
       or race_officer from site
     define jury: [user] or admin or jury from series
+    define helper: [user] or admin
     define treasurer: [user] or admin or treasurer from host_club
 """
 
@@ -204,8 +211,8 @@ class Role(StrEnum):
     Derived from the tuples, never stored: ``club_admin`` means "admin of some club",
     ``club_manager`` "manager or admin of some club" (the model makes an admin a manager),
     ``series_manager`` and ``event_manager`` the same for a series or an event,
-    ``race_officer``, ``jury`` and ``treasurer`` "held on anything". The site relations keep
-    their names.
+    ``race_officer``, ``jury``, ``treasurer`` and ``helper`` "held on anything". The site
+    relations keep their names.
     """
 
     ADMIN = "admin"
@@ -217,6 +224,7 @@ class Role(StrEnum):
     EVENT_MANAGER = "event_manager"
     JURY = "jury"
     TREASURER = "treasurer"
+    HELPER = "helper"
 
 
 class IdentityProvider(StrEnum):

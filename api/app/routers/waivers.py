@@ -15,7 +15,6 @@ with the guardian's name and a reference to the signed statement on file.
 
 from __future__ import annotations
 
-import io
 from datetime import date, datetime
 from typing import Literal
 
@@ -44,11 +43,9 @@ from app.models import (
 from app.models.auth import Relation, Role, User
 from app.problems import Problem
 from app.routers.sailors import _my_sailor as my_sailor
-from app.services import current_waiver_text, event_waiver_status, is_minor
+from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
-    SCAN_MAX_BYTES,
-    SCAN_MEDIA_TYPES,
     STATUS_CLEARED,
     SailorWaiver,
     discard_scan,
@@ -713,50 +710,9 @@ def _status_fields(judged: SailorWaiver) -> dict:
 
 
 def _validated_scan(raw: bytes, content_type: str | None) -> str:
-    """The media type the bytes really are — or a typed refusal.
-
-    The declared type is checked first (cheap), then the bytes themselves: a PDF starts
-    with its magic, an image must decode in Pillow and be the format it claims. A file
-    that lies about its type is refused, not renamed — a guardian's signature is not the
-    place to guess.
-    """
-    if content_type not in SCAN_MEDIA_TYPES:
-        raise Problem(
-            422,
-            "waiver-scan-invalid-type",
-            "The signed form must be a PDF, a JPEG or a PNG.",
-            detail=f"Got content type '{content_type}'.",
-        )
-    if not raw:
-        raise Problem(422, "waiver-scan-invalid", "The upload is empty.")
-    if len(raw) > SCAN_MAX_BYTES:
-        raise Problem(
-            422,
-            "waiver-scan-too-large",
-            "The signed form is too large.",
-            detail=f"At most {SCAN_MAX_BYTES // (1024 * 1024)} MB.",
-        )
-    if content_type == "application/pdf":
-        if not raw.startswith(b"%PDF"):
-            raise Problem(422, "waiver-scan-invalid", "This file is not a readable PDF.")
-        return content_type
-    from PIL import Image, UnidentifiedImageError
-
-    try:
-        with Image.open(io.BytesIO(raw)) as image:
-            image.verify()
-            detected = image.format
-    except (UnidentifiedImageError, OSError, SyntaxError) as error:
-        raise Problem(422, "waiver-scan-invalid", "This file is not a readable image.") from error
-    real = {"PNG": "image/png", "JPEG": "image/jpeg"}.get(detected or "")
-    if real != content_type:
-        raise Problem(
-            422,
-            "waiver-scan-invalid",
-            "This file is not the kind of image it claims to be.",
-            detail=f"Declared {content_type}, found {detected or 'nothing readable'}.",
-        )
-    return content_type
+    """The media type the bytes really are — or a ``waiver-scan-…`` refusal
+    (``app/services/uploads.py``). A guardian's signature is not the place to guess."""
+    return uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
 
 
 async def _attach_scan(

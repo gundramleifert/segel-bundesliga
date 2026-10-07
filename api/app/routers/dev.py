@@ -61,6 +61,7 @@ DESCRIPTION: dict[str, str] = {
     "event_manager": "Organizer of an event: its setup and its clubs.",
     "jury": "Protest committee of an event: announcements, protest decisions.",
     "treasurer": "Holds a club's money: checks and pays the expense claims of the events it hosts.",
+    "helper": "Works an event's day (RIB, pontoon): may claim costs, nothing else.",
 }
 
 

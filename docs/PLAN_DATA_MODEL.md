@@ -1,8 +1,22 @@
 # Plan: permissions, states, finance
 
-Status: **proposal, 2026-10-04** — nothing below is built yet unless it says "exists".
-Decisions still open are collected at the end; answer those before the stories are
-written.
+Status: **proposal, 2026-10-04**, partly built — nothing below is built yet unless it
+says "exists". Decisions still open are collected at the end.
+
+**Changed on 2026-10-07** (Stories F-2, F-3, F-6, S-5, S-6, VA-12), and where this plan
+says otherwise below, the stories win:
+
+- A claim is on an **event or a club** (`ExpenseClaim.club_id`, exactly one of the two).
+  A club pays back its own members; any `member` of it may file.
+- **The manager or the treasurer decides and pays** — the event's direct `manager` and
+  the host club's `manager` beside the `treasurer` (answers Q2: no separate confirmation
+  step; the four-eyes rule stays "never the claimant").
+- **`helper`** is a new relation on an event: eligible to claim, no power (answers Q3 in
+  part: officials and helpers claim on an event; sailors claim only on their own club).
+- The bank account is **saved once per person** (`BankAccount`, Story S-6) and copied
+  onto the claim at submission, as §3.2 planned for the snapshot.
+- "Mark as paid" is the first payment path: one settled `Payment` per claim. Batches,
+  `issued`/`failed` and the export are still open (F-4).
 
 **Scope: authorization, not authentication.** How a person proves who they are (login,
 identities, tokens) is out of scope here and comes later. This plan is about what an

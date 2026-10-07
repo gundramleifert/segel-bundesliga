@@ -365,3 +365,53 @@ Acceptance criteria:
 
 Screen: `/account`, below the account and permissions cards.
 Tests: `e2e/lifecycle.spec.ts` ("Z-8: the account page lists my clubs, series and events")
+
+## My space
+
+A signed-in person's own corner of the site (`/me`): papers they will be asked for, the
+bank account their costs are paid back to, and the claims they filed (Stories F-2, F-5).
+Everything here is about the **account**, not the sailor record — a helper or a jury
+member may never have sailed in a result.
+
+### S-5 ● Keep my documents, and show them to my organizers
+As a **signed-in person** I want to **upload my licences and certificates once, each with
+a label**, so that **an organizer who needs to see my boat licence finds it without asking
+me for a scan before every event**.
+
+Acceptance criteria:
+- A document has a **label** from a fixed list — boat licence sea (*Sportbootführerschein
+  See*), boat licence inland (*Binnen*), radio certificate (SRC/UBI), first aid,
+  official's licence (umpire, race officer), other — an optional title (required for
+  *other*) and an optional **valid until** date. A fixed list, not free text, so an
+  organizer can look for "boat licence" across people.
+- PDF, JPEG or PNG by content, at most 10 MB, stored under a random name, any number per
+  person. Uploaded and deleted by the owner only (`/api/me/documents`).
+- **Who else sees them** (decision of 2026-10-07): the **organizers** of the person —
+  whoever is `manager` (by the model) of an event the person holds a relation on directly
+  (helper, jury, race officer, manager), and whoever is `manager` of a club the person is
+  a member of. Nobody else: not another member, not another event's organizer. A look
+  by anyone but the owner is written to the audit log.
+- The organizer reaches them from the person's row — the event's access list, the club's
+  member list (`GET /api/people/{user_id}/documents`).
+- A document past its *valid until* date is shown as expired, not hidden: an organizer
+  must see that the licence ran out, not that there is none.
+- Deleting the account deletes the documents and their files.
+
+Tests: `api/tests/stories/test_personal_space.py::TestMyDocuments`,
+`api/tests/stories/test_personal_space.py::TestOrganizersSeeDocuments`
+
+### S-6 ● Save my bank account once
+As a **signed-in person** I want to **save the account my costs are paid back to**,
+so that **I do not type an IBAN into every claim**.
+
+Acceptance criteria:
+- One account per person: account holder and IBAN, the BIC optional (`/api/me/bank-account`).
+- The IBAN is normalised (spaces removed, upper case) and checked by its check digits
+  (ISO 13616, mod 97); a wrong one is refused (`iban-invalid`) before anything is saved.
+- **Read by the owner alone.** It is its own table, not a column on the account, so no
+  serializer of accounts can carry it. Whoever decides a claim sees the copy taken onto
+  the claim at submission (Story F-2), never the profile.
+- Changing it later changes no claim already submitted.
+- Deleting the account deletes it.
+
+Tests: `api/tests/stories/test_personal_space.py::TestBankAccount`

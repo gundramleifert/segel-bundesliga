@@ -39,6 +39,7 @@ EVENT_ACCOUNTS: list[tuple[str, str, str]] = [
     ("regatta@sbl.example.com", "Regina Regatta", Relation.RACE_OFFICER),
     ("orga@sbl.example.com", "Otto Organizer", Relation.MANAGER),
     ("jury@sbl.example.com", "Jutta Jury", Relation.JURY),
+    ("helfer@sbl.example.com", "Hanna Helper", Relation.HELPER),
 ]
 
 

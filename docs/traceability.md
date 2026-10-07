@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**73 stories** — ● 45 implemented and tested · ◐ 16 partial · ○ 12 open. With backend tests: 58 · with browser tests: 28 · walked by a journey: 9 · **with no test at all: 11**.
+**77 stories** — ● 52 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 63 · with browser tests: 28 · walked by a journey: 9 · **with no test at all: 10**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -51,6 +51,7 @@ same stories with each test's result, video and trace.
 | [VA-4](userstories/event-organizer.md#va-4--participants-write-posts-on-the-homepage) | ○ | Participants write posts on the homepage | — | — | — |
 | [VA-10](userstories/event-organizer.md#va-10--close-an-event-or-call-it-off) | ● | Close an event, or call it off | `test_event_closing.py` | `lifecycle.spec.ts::VA-10: closing an event, and taking it back` | J-1 |
 | [VA-9](userstories/event-organizer.md#va-9--run-one-event-from-end-to-end) | ● | Run one event from end to end | `test_complete_lifecycle.py::TestTheCompleteLifecycle` | — | — |
+| [VA-12](userstories/event-organizer.md#va-12--name-the-events-helpers) | ● | Name the event's helpers | `test_reimbursements.py::TestHelperRelation` | — | — |
 | [VA-11](userstories/event-organizer.md#va-11--announcements-from-the-event) | ○ | Announcements from the event | — | — | — |
 
 ## [club-manager.md](userstories/club-manager.md)
@@ -83,6 +84,8 @@ same stories with each test's result, video and trace.
 | [S-4](userstories/sailor.md#s-4--decide-whether-my-own-profile-is-public) | ○ | Decide whether my own profile is public | — | — | — |
 | [Z-7](userstories/sailor.md#z-7--delete-my-own-account) | ● | Delete my own account | `test_login_and_roles.py::TestDeleteMyAccount` | — | — |
 | [Z-8](userstories/sailor.md#z-8--my-clubs-my-series-my-events-on-the-account-page) | ● | My clubs, my series, my events on the account page | — | `lifecycle.spec.ts`<br>`lifecycle.spec.ts::Z-8: the account page lists my clubs, series and events` | — |
+| [S-5](userstories/sailor.md#s-5--keep-my-documents-and-show-them-to-my-organizers) | ● | Keep my documents, and show them to my organizers | `test_personal_space.py::TestMyDocuments`<br>`test_personal_space.py::TestOrganizersSeeDocuments` | — | — |
+| [S-6](userstories/sailor.md#s-6--save-my-bank-account-once) | ● | Save my bank account once | `test_personal_space.py::TestBankAccount` | — | — |
 
 ## [visitor.md](userstories/visitor.md)
 
@@ -109,10 +112,11 @@ same stories with each test's result, video and trace.
 | Story | | Title | Backend tests | Browser tests | Journeys |
 |---|---|---|---|---|---|
 | [F-1](userstories/treasurer.md#f-1--the-events-treasurer-is-a-tuple-and-the-host-clubs-treasurer-is-it-for-every-event-the-club-hosts) | ● | The event's treasurer is a tuple, and the host club's treasurer is it for every event the club hosts | `test_treasurer.py::TestTreasurerRelation` | — | — |
-| [F-2](userstories/treasurer.md#f-2--file-an-expense-claim-for-an-event) | ◐ | File an expense claim for an event | `test_expenses.py::TestClaimTotals`<br>`test_expenses.py::TestTheDatabaseKeepsTheBooksStraight` | — | — |
-| [F-3](userstories/treasurer.md#f-3--the-treasurer-approves-returns-or-rejects-a-claim) | ○ | The treasurer approves, returns or rejects a claim | — | — | — |
-| [F-4](userstories/treasurer.md#f-4--the-treasurer-pays-and-exports) | ◐ | The treasurer pays and exports | `test_expenses.py::TestPaymentState`<br>`test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once` | — | — |
-| [F-5](userstories/treasurer.md#f-5--upload-documents-to-a-claim-readable-only-by-the-claimant-and-the-treasurer) | ◐ | Upload documents to a claim, readable only by the claimant and the treasurer | `test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_document_is_at_most_ten_megabytes` | — | — |
+| [F-2](userstories/treasurer.md#f-2--file-an-expense-claim-for-an-event-or-for-my-club) | ● | File an expense claim for an event or for my club | `test_expenses.py::TestClaimTotals`<br>`test_expenses.py::TestTheDatabaseKeepsTheBooksStraight`<br>`test_reimbursements.py::TestFilingAClaim` | — | — |
+| [F-3](userstories/treasurer.md#f-3--the-manager-or-the-treasurer-approves-returns-or-rejects-a-claim) | ● | The manager or the treasurer approves, returns or rejects a claim | `test_reimbursements.py::TestDecidingAClaim` | — | — |
+| [F-4](userstories/treasurer.md#f-4--the-manager-or-treasurer-pays-and-exports) | ◐ | The manager or treasurer pays and exports | `test_expenses.py::TestPaymentState`<br>`test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once`<br>`test_reimbursements.py::TestPayingAClaim` | — | — |
+| [F-5](userstories/treasurer.md#f-5--upload-documents-to-a-claim-readable-only-by-the-claimant-and-whoever-decides-it) | ● | Upload documents to a claim, readable only by the claimant and whoever decides it | `test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_document_is_at_most_ten_megabytes`<br>`test_reimbursements.py::TestClaimDocuments` | — | — |
+| [F-6](userstories/treasurer.md#f-6--pending-reimbursements-in-one-list) | ● | Pending reimbursements in one list | `test_reimbursements.py::TestPendingList` | — | — |
 
 ## [journeys.md](userstories/journeys.md)
 

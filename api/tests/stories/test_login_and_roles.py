@@ -482,7 +482,9 @@ class TestTuples:
         assert "define manager: [user]" in model["dsl"]
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
         assert by_type["site"] == ["admin", "editor", "race_officer"]
-        assert by_type["event"] == ["admin", "manager", "race_officer", "jury", "treasurer"]
+        assert by_type["event"] == [
+            "admin", "manager", "race_officer", "jury", "helper", "treasurer"
+        ]
 
     async def test_the_same_tuple_twice_is_refused(self, client, caplog, ids):
         headers = await _admin_headers(client, caplog)

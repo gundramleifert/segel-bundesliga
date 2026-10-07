@@ -22,6 +22,12 @@ from app.models.org import (
     TeamMembership,
     TeamStatus,
 )
+from app.models.personal import (
+    PERSONAL_DOCUMENT_MAX_BYTES,
+    BankAccount,
+    DocumentKind,
+    PersonalDocument,
+)
 from app.models.racing import (
     Boat,
     EventCrew,
@@ -38,6 +44,10 @@ from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "BankAccount",
+    "DocumentKind",
+    "PERSONAL_DOCUMENT_MAX_BYTES",
+    "PersonalDocument",
     "PaymentStatus",
     "PaymentState",
     "PaymentMethod",

@@ -127,8 +127,8 @@ and the server warns on startup while it is on.
 
 `app.seed_users` creates: one account **per registered sailor** (360 across the three seeded series) — without login, no one can
 submit their waiver — one person per club with `manager` on it, plus `admin@`, `redaktion@`, `wl@`,
-`beides@`, `gast@sbl.example.com`, and three people with one tuple on the planned matchday
-only: `regatta@` (race officer), `orga@` (manager), `jury@`.
+`beides@`, `gast@sbl.example.com`, and four people with one tuple on the planned matchday
+only: `regatta@` (race officer), `orga@` (manager), `jury@`, `helfer@` (helper).
 
 Test addresses use `example.com`: `.test` and `.example` are reserved domains that email validation
 rejects — including in real login flows.
@@ -245,7 +245,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
   DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`,
   `app/services/grants.py`). Object types `site`, `club`, `series`, `event`; relations
   `admin`/`editor` (site), `manager` (the organizer — club, series, event),
-  `race_officer` (site, series, event), `jury` (series, event), `treasurer` (club,
+  `race_officer` (site, series, event), `jury` (series, event), `helper` (event — works
+  the day, holds no power on it, Story VA-12), `treasurer` (club,
   event — the host club pays its events' costs, so its treasurer is every hosted event's,
   Story F-1), and `admin` on every object —
   everything within it, people included; on a club the `admin` decides who is *in* it
@@ -309,6 +310,19 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Legs, passings, distance to go and rank are derived, never stored** — the same rule as
   points. The algorithms sit behind Protocols (`api/app/tracking/`) and are chosen in one
   place, `default_pipeline()`, so a change is decided on recorded data with `compare.py`.
+- **A claim is on an event or on a club, and its manager or treasurer settles it**
+  (Stories F-2, F-3, decision of 2026-10-07, `app/services/expenses.py`). On an event the
+  host club pays and those holding a relation *directly* on it (or its series) file; on a
+  club the club pays and its members file. Who decides is checked on the **tuple** — the
+  event's own manager, the host club's manager, the treasurer by the model — never
+  `can(manager)`, which would hand every event's purse to the site's editors. Nobody
+  decides their own claim. Holder and IBAN are **copied onto the claim at submission**
+  from the person's saved bank account (Story S-6), which only its owner ever reads.
+- **A person's documents are seen by their organizers, and every look is logged**
+  (Story S-5, `app/services/personal.py`): the managers of events they work at directly
+  and of clubs they are members of. Private uploads — waiver scans, receipts, personal
+  documents — share one validator and store (`app/services/uploads.py`): checked by
+  content, random names, one serving endpoint each.
 - **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
   boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
   Mövenstein dataset and its detectors are used once, locally, to check ours
@@ -338,6 +352,10 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Create and maintain sailors | `admin`, `editor`, `club_manager` |
 | Register Squad for Series | `admin`, `club_manager` (own club only) |
 | **Create** Event | additionally the `manager` of the host club or of the series |
+| File an expense claim | `race_officer`/`jury`/`manager`/`helper` held directly on the event (or the first three on its series); `member` of the club |
+| Decide and pay a claim | the event's direct `manager`, the host club's `manager`, `treasurer` of event or club; never the claimant |
+| See a person's documents | the person; `manager` of an event they work at directly or of a club they are a member of |
+| Bank account | its owner only |
 
 Defined as dependencies in `api/app/auth.py`; roles are checked fresh from the database on
 **every** request so revocation takes effect immediately.

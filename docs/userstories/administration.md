@@ -141,7 +141,8 @@ The model — almost every relation is scoped by a club, a series or an event:
   it), `manager` (the organizer of the event-organizer stories: setup, clubs, boats,
   schedules, publication — not the people), `race_officer` (results, race control,
   trackers), `jury` (the protest committee; announcements, VA-11), `treasurer` (checks
-  and pays the event's expense claims, F-1).
+  and pays the event's expense claims, F-1), `helper` (works the day — no power on the
+  event, but a claim on its costs and their documents seen by its organizers, VA-12).
 
 The rewrite rules (`or … from …` in the DSL) say what implies what: an object's `admin`
 is each of its other relations; a series' admin, manager, race officer or jury is that of
@@ -181,7 +182,7 @@ Acceptance criteria:
 
 **Summary roles.** The navigation and the help page still speak of roles; those are
 **derived** from the tuples (`User.roles`, `Role`): `admin`, `editor`, `race_officer`,
-`jury` and `treasurer` for the relation held anywhere, `club_admin` for `admin` of some club,
+`jury`, `treasurer` and `helper` for the relation held anywhere, `club_admin` for `admin` of some club,
 `club_manager`, `series_manager` and `event_manager` for `manager` **or** `admin` of some
 club, series or event (an admin is a manager, says the model). Never a permission check —
 that is `User.can(relation, on=object)`.

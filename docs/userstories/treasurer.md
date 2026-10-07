@@ -3,10 +3,12 @@
 Part of the [user stories](README.md); the format, the status marks and the
 identifier rule are explained there.
 
-Race officers, jury and umpires travel to an event, and **the club hosting it pays their
-costs** (decision of 2026-10-04). The event therefore has a treasurer: the person who
-checks the claims filed for it, approves or returns them, and pays. The plan these stories
-follow is `docs/PLAN_DATA_MODEL.md`.
+Race officers, jury, umpires and helpers travel to an event, and **the club hosting it pays
+their costs** (decision of 2026-10-04). A club also pays back what its own members spend
+for it — a trip to a meeting, a new set of sail numbers. So a claim is filed against an
+**event** or a **club**, and the one who settles it is that event's or club's **manager or
+treasurer** (decision of 2026-10-07): a small club often has no treasurer, and its
+organizer pays. The plan these stories follow is `docs/PLAN_DATA_MODEL.md`.
 
 ## Who holds the money
 
@@ -48,41 +50,55 @@ Tests: `api/tests/stories/test_treasurer.py::TestTreasurerRelation`
 
 ## Expense claims
 
-### F-2 ◐ File an expense claim for an event
-As a **race officer, jury member or umpire** I want to **claim my travel, accommodation
-and meal costs for an event I worked at**, so that **the host club pays them back**.
+### F-2 ● File an expense claim for an event or for my club
+As a **race officer, jury member, umpire or helper** I want to **claim my travel,
+accommodation and meal costs for an event I worked at**, and as a **club member** what I
+spent for my club, so that **the event's host club, or my club, pays them back**.
 
 Acceptance criteria:
-- A claim belongs to exactly one event; the payer is that event's host club, recorded at
-  submission. An event without a host club takes no claim
-  (`event-has-no-host-club`).
-- Only someone holding `race_officer`, `jury` or `manager` **directly** on the event or
-  its series may file (the club's policy names the eligible relations). A relation
-  inherited from the site does not entitle anyone to travel costs.
-- Items: car (km × the club's rate, frozen at submission), public transport,
+- A claim belongs to exactly one event **or** exactly one club — never both, never
+  neither; the database refuses either.
+- **On an event:** the payer is its host club, recorded at submission. An event without
+  a host club takes no claim (`event-has-no-host-club`). Only someone holding
+  `race_officer`, `jury`, `manager` or `helper` **directly** on the event, or
+  `race_officer`, `jury` or `manager` directly on its series, may file (the club's policy
+  names the eligible relations). A relation inherited from the site does not entitle
+  anyone to travel costs.
+- **On a club:** the payer is the club. Any **member** of the club may file
+  (`user:member:club`); the manager or treasurer decides whether it was justified.
+- Anyone else is refused (`claim-not-eligible`). The account page offers the events and
+  clubs one may claim on (`GET /api/me/claim-targets`), and nothing else.
+- Items: car (km × the paying club's rate, frozen at submission), public transport,
   accommodation, per-diem, meals, other. Amounts in whole cents.
-- `draft` → `submitted`; the claimant can withdraw until it is decided.
-
-Done: the data model — `ExpenseClaim` and `ExpenseItem` in `app/models/finance.py`, the
-totals computed, and the database refusing a car item whose amount is not distance × rate,
-a negative amount, or an approval above the claim. Open: the endpoints and the screen.
+- `draft` → `submitted`. Submitting needs at least one item and a saved bank account
+  (Story S-6, `bank-account-missing`); the account holder and IBAN are **copied onto the
+  claim** then, so a payout goes where the claimant said at the time. The claimant can
+  withdraw until it is decided, and edit again once it is returned.
 
 Tests: `api/tests/stories/test_expenses.py::TestClaimTotals`,
-`api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight`
+`api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight`,
+`api/tests/stories/test_reimbursements.py::TestFilingAClaim`
 
-### F-3 ○ The treasurer approves, returns or rejects a claim
-As the **event's treasurer** I want to **check each claim and decide it**, so that **only
-justified costs are paid**.
+### F-3 ● The manager or the treasurer approves, returns or rejects a claim
+As the **manager or treasurer of the event or club a claim is filed against** I want to
+**check each claim and decide it**, so that **only justified costs are paid**.
 
 Acceptance criteria:
-- Approve (optionally lowering single items), return with a note, or reject with a note.
-- **Nobody decides their own claim**, whatever relations they hold.
+- **Who decides:** on an event, its `treasurer` (Story F-1), whoever holds `manager`
+  **directly** on the event, and the host club's manager; on a club, its manager or
+  treasurer (and their admins, who are both). A series' manager, the site's editor and
+  the site's race committee are managers of events by the model's rewrite, but **not**
+  of their money: the check is on the tuple, not on `can(manager)`.
+- Approve (optionally lowering single items, never raising them), return with a note, or
+  reject with a note. Only a `submitted` claim is decided.
+- **Nobody decides their own claim**, whatever relations they hold
+  (`claim-own-decision`).
 - Every transition is in the audit log with who and when.
 
-Tests: none yet
+Tests: `api/tests/stories/test_reimbursements.py::TestDecidingAClaim`
 
-### F-4 ◐ The treasurer pays and exports
-As the **event's treasurer** I want to **mark approved claims as paid and export them**,
+### F-4 ◐ The manager or treasurer pays and exports
+As the **manager or treasurer** I want to **mark approved claims as paid and export them**,
 so that **the club's bookkeeping gets one list with payee, IBAN, amount and reference**.
 
 Acceptance criteria:
@@ -95,16 +111,20 @@ Acceptance criteria:
   from the settled allocations, never stored. A failed payment is kept as it is and stops
   counting; a new payment is made.
 - Whoever issues a payment is recorded, and is never the payee.
+- **"Mark as paid"** is the short way for the transfer the decider has just made in their
+  own online banking: one settled payment over what is still open on that claim, to the
+  IBAN copied onto it, with the date and an optional reference.
 
-Done: the data model and the computed payment state. Open: the endpoints, the export, the
-screen.
+Done: the data model, the computed payment state and "mark as paid". Open: payments over
+several claims, `issued` → `failed`, the export.
 
 Tests: `api/tests/stories/test_expenses.py::TestPaymentState`,
-`api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once`
+`api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_claim_is_allocated_to_a_payment_once`,
+`api/tests/stories/test_reimbursements.py::TestPayingAClaim`
 
-### F-5 ◐ Upload documents to a claim, readable only by the claimant and the treasurer
+### F-5 ● Upload documents to a claim, readable only by the claimant and whoever decides it
 As a **claimant** I want to **attach receipts, invoices and tickets to my claim**, so that
-**the treasurer can check what I paid**.
+**the manager or treasurer can check what I paid**.
 
 Acceptance criteria:
 - Any number of documents per claim, each optionally tied to one item.
@@ -112,9 +132,22 @@ Acceptance criteria:
 - The club's policy names the kinds that need a document; submitting without one is
   refused (`expense-document-missing`) and names the items.
 - PDF, JPEG or PNG by content, at most 10 MB, stored under a random name. Read through one
-  endpoint that admits the claimant and the event's treasurer, and logs every look.
+  endpoint that admits the claimant and whoever may decide the claim (Story F-3), and
+  logs every look by someone else.
 
-Done: `ExpenseDocument`, with the size limit in the database. Open: the upload, the
-serving endpoint, the check by content.
+Tests: `api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_document_is_at_most_ten_megabytes`,
+`api/tests/stories/test_reimbursements.py::TestClaimDocuments`
 
-Tests: `api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight::test_a_document_is_at_most_ten_megabytes`
+### F-6 ● Pending reimbursements in one list
+As the **manager or treasurer of an event or a club** I want to **see every claim waiting
+for me in one place**, so that **nothing is forgotten between matchdays**.
+
+Acceptance criteria:
+- One list (`GET /api/claims/pending`, the page "Reimbursements") of the claims the
+  person may decide (Story F-3) that are `submitted` (to decide) or `approved` and not yet
+  paid (to pay) — across every event and club they hold the money of.
+- Never the person's own claims, which they cannot decide, and never a draft: a draft is
+  the claimant's own until submitted.
+- Each row names the claimant, the event or club, the amounts and what is to be done.
+
+Tests: `api/tests/stories/test_reimbursements.py::TestPendingList`

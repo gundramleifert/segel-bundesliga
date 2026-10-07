@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 2337859c5222
+Revision ID: 312e21431be0
 Revises: 
-Create Date: 2026-10-05 07:52:32.888833
+Create Date: 2026-10-07 21:08:25.200316
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '2337859c5222'
+revision: str = '312e21431be0'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -179,6 +179,18 @@ def upgrade() -> None:
     with op.batch_alter_table('waiver_text', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_waiver_text_version'), ['version'], unique=True)
 
+    op.create_table('bank_account',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('holder', sa.String(length=160), nullable=False),
+    sa.Column('iban', sa.String(length=34), nullable=False),
+    sa.Column('bic', sa.String(length=11), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_bank_account_user_id_app_user')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_bank_account')),
+    sa.UniqueConstraint('user_id', name=op.f('uq_bank_account_user_id'))
+    )
     op.create_table('event',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('slug', sa.String(length=120), nullable=False),
@@ -268,6 +280,26 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_payment_payer_club_id'), ['payer_club_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_payment_status'), ['status'], unique=False)
 
+    op.create_table('personal_document',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('kind', sa.String(length=32), nullable=False),
+    sa.Column('title', sa.String(length=200), nullable=True),
+    sa.Column('valid_until', sa.Date(), nullable=True),
+    sa.Column('stored_name', sa.String(length=64), nullable=False),
+    sa.Column('original_name', sa.String(length=255), nullable=False),
+    sa.Column('content_type', sa.String(length=64), nullable=False),
+    sa.Column('size_bytes', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('size_bytes > 0 AND size_bytes <= 10485760', name=op.f('ck_personal_document_size_within_limit')),
+    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_personal_document_user_id_app_user')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_personal_document')),
+    sa.UniqueConstraint('stored_name', name=op.f('uq_personal_document_stored_name'))
+    )
+    with op.batch_alter_table('personal_document', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_personal_document_user_id'), ['user_id'], unique=False)
+
     op.create_table('access_grant',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -326,7 +358,8 @@ def upgrade() -> None:
 
     op.create_table('expense_claim',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('event_id', sa.Integer(), nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('club_id', sa.Integer(), nullable=True),
     sa.Column('claimant_user_id', sa.Integer(), nullable=True),
     sa.Column('claimant_name', sa.String(length=160), nullable=False),
     sa.Column('payer_club_id', sa.Integer(), nullable=True),
@@ -340,7 +373,9 @@ def upgrade() -> None:
     sa.Column('decision_note', sa.String(length=1000), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('(event_id IS NOT NULL) + (club_id IS NOT NULL) = 1', name=op.f('ck_expense_claim_event_or_club')),
     sa.ForeignKeyConstraint(['claimant_user_id'], ['app_user.id'], name=op.f('fk_expense_claim_claimant_user_id_app_user')),
+    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_expense_claim_club_id_club')),
     sa.ForeignKeyConstraint(['decided_by_user_id'], ['app_user.id'], name=op.f('fk_expense_claim_decided_by_user_id_app_user')),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_expense_claim_event_id_event')),
     sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_expense_claim_payer_club_id_club')),
@@ -348,6 +383,7 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('expense_claim', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_expense_claim_claimant_user_id'), ['claimant_user_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_expense_claim_club_id'), ['club_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_expense_claim_event_id'), ['event_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_expense_claim_payer_club_id'), ['payer_club_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_expense_claim_status'), ['status'], unique=False)
@@ -746,6 +782,7 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_expense_claim_status'))
         batch_op.drop_index(batch_op.f('ix_expense_claim_payer_club_id'))
         batch_op.drop_index(batch_op.f('ix_expense_claim_event_id'))
+        batch_op.drop_index(batch_op.f('ix_expense_claim_club_id'))
         batch_op.drop_index(batch_op.f('ix_expense_claim_claimant_user_id'))
 
     op.drop_table('expense_claim')
@@ -765,6 +802,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_access_grant_club_id'))
 
     op.drop_table('access_grant')
+    with op.batch_alter_table('personal_document', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
+
+    op.drop_table('personal_document')
     with op.batch_alter_table('payment', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_payment_status'))
         batch_op.drop_index(batch_op.f('ix_payment_payer_club_id'))
@@ -784,6 +825,7 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_event_host_club_id'))
 
     op.drop_table('event')
+    op.drop_table('bank_account')
     with op.batch_alter_table('waiver_text', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_waiver_text_version'))
 
