@@ -152,6 +152,7 @@ async def start_race(
     race.finished_at = None
     race.signal = None
     race.preparatory = preparatory
+    race.start_sequence = None
     race.version += 1
     _audit(session, race, RACE_STARTED_ACTION, actor, preparatory=str(preparatory))
     return race
@@ -190,6 +191,16 @@ async def abandon_race(
     race.version += 1
     _audit(session, race, "abandon", actor, resail=resail, cleared_entries=cleared)
     await _recompute(session, event)
+    return race
+
+
+def store_start_sequence(event: Event, race: Race, sequence: dict | None) -> Race:
+    """What the committee's screen holds of the start sequence, for the live page (WL-3,
+    B-5). Not a transition: no audit row, and deliberately no ``version`` bump — the
+    committee's card is keyed by the version and would remount on every tap. The start
+    clears it (``start_race``)."""
+    require_live(event)
+    race.start_sequence = sequence
     return race
 
 

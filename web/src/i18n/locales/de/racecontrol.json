@@ -27,7 +27,8 @@
   "signal": {
     "AP": "AP — verschoben",
     "X": "X — Einzelrückruf",
-    "S": "S — Bahn verkürzt"
+    "S": "S — Bahn verkürzt",
+    "firstSubstitute": "1. Hilfsstander — allgemeiner Rückruf"
   },
   "buttons": {
     "start": "Start",
@@ -51,9 +52,9 @@
     "soundOff": "Ton stumm — tippen zum Einschalten",
     "soundLocked": "Ton ist auf diesem Gerät aus — hier tippen zum Einschalten",
     "soundTest": "Ton testen",
-    "apDownNow": "AP runter in 10 s",
-    "apDownAt": "AP runter um {{time}}",
-    "apIsUp": "AP ist oben — runter mit einer Startfolge oben"
+    "apIsUp": "AP ist oben — runter mit einer Startfolge oben",
+    "lowerNow": "{{flag}} runter in 10 s",
+    "lowerAt": "{{flag}} runter um {{time}}"
   },
   "sequence": {
     "preparatory": "Vorbereitungssignal",
@@ -66,7 +67,8 @@
       "clubUp": "Clubflagge HOCH",
       "preparatoryUp": "{{flag}} HOCH",
       "preparatoryDown": "{{flag}} RUNTER",
-      "start": "Clubflagge RUNTER — Start"
+      "start": "Clubflagge RUNTER — Start",
+      "firstSubstituteDown": "1. Hilfsstander RUNTER"
     },
     "tones": {
       "short_one": "+ ein kurzer Ton",
@@ -88,5 +90,9 @@
   "duplicateWarning": "Zwei Boote haben denselben Zielplatz.",
   "codeLabel": "Code für {{boat}}",
   "finishedBanner": "Wettfahrt {{sequence}} beendet.",
-  "position": "Platz {{position}}"
+  "position": "Platz {{position}}",
+  "lowering": {
+    "AP": "AP",
+    "firstSubstitute": "1. Hilfsstander"
+  }
 }

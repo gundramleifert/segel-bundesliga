@@ -3,8 +3,10 @@
  *   idle ──start (in 10 s | next full minute)──▶ armed(warningAt)
  *   armed ──start──▶ armed(new warningAt)      restart: the same event again
  *   armed ──abort──▶ idle                      also what hoisting AP does
- *   idle  ──AP down (in 10 s | full minute)──▶ armed(postponed)
- *                                              AP down then, the club flag a minute later
+ *   any   ──general recall──▶ idle(1st Sub)    the First Substitute is up
+ *   idle  ──lower AP or 1st Substitute (in 10 s | full minute)──▶ armed(lowering)
+ *                                              the flag down then, the club flag a minute
+ *                                              later
  *   armed ──AP up──▶ armed(apUpAt)             AP in 10 s, at the latest 3 s before the
  *                                              start; refused in the last 8 s (5 s to get
  *                                              ready, 3 s before the start)
@@ -19,6 +21,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 
+import type { StartSequence } from "../api/generated/model/startSequence";
 import { soundSpacing, type Tone } from "./horn";
 import type { PreparatoryFlag } from "./results";
 
@@ -35,15 +38,25 @@ const AP_UP_BEFORE_START = 3000;
 /** … and never sooner than this after the tap — the time to get the flag ready. */
 const AP_UP_PREPARE = 5000;
 
+/** A flag that stops the sequence and is lowered to start it again, one minute before the
+ *  club flag: AP after a postponement, the First Substitute after a general recall. */
+export type Lowering = "AP" | "firstSubstitute";
+
 export type SequenceState =
-  | { kind: "idle"; preparatory: PreparatoryFlag }
+  | {
+      kind: "idle";
+      preparatory: PreparatoryFlag;
+      /** A general recall left the First Substitute up. Not a race signal on the server:
+       *  the recall is the transition, the flag is the committee's next step. */
+      firstSubstitute: boolean;
+    }
   | {
       kind: "armed";
       preparatory: PreparatoryFlag;
       /** When the club flag goes up — the first signal of 3-2-1-0. */
       warningAt: number;
-      /** Started by hauling AP down: AP comes down one minute before `warningAt`. */
-      postponed: boolean;
+      /** Started by lowering AP or the First Substitute, one minute before `warningAt`. */
+      lowering: Lowering | null;
       /** AP was tapped during the sequence: it goes up at this time, ending it. */
       apUpAt: number | null;
       /** When the committee last tapped this plan into being: a ping that would fall at
@@ -57,8 +70,9 @@ export type SequenceEvent =
   | { type: "choose"; preparatory: PreparatoryFlag }
   | { type: "start"; now: number; at: "now" | "minute" }
   | { type: "abort" }
-  | { type: "postponementDown"; now: number; at: "now" | "minute" }
-  | { type: "postpone"; now: number };
+  | { type: "lower"; flag: Lowering; now: number; at: "now" | "minute" }
+  | { type: "postpone"; now: number }
+  | { type: "recall" };
 
 /** When a sequence tapped at `now` sends its first signal: 10 s later, or on the first
  *  full minute of the clock that is at least 10 s away (tapped at 14:04:52 → 14:06:00). */
@@ -70,28 +84,36 @@ export function sequenceReducer(state: SequenceState, event: SequenceEvent): Seq
   const preparatory = state.preparatory;
   switch (event.type) {
     case "choose":
-      return state.kind === "idle" ? { kind: "idle", preparatory: event.preparatory } : state;
+      return state.kind === "idle" ? { ...state, preparatory: event.preparatory } : state;
     case "start":
       return {
         kind: "armed",
         preparatory,
         warningAt: warningTime(event.now, event.at),
-        postponed: false,
+        lowering: null,
         apUpAt: null,
         tappedAt: event.now,
       };
     case "abort":
-      return { kind: "idle", preparatory };
-    case "postponementDown":
+      // Aborting the lowering of the First Substitute leaves it up; anything else ends
+      // with no flag of ours up (hoisting AP over it hands the lead to AP).
+      return {
+        kind: "idle",
+        preparatory,
+        firstSubstitute: state.kind === "armed" && state.lowering === "firstSubstitute",
+      };
+    case "lower":
       return {
         kind: "armed",
         preparatory,
-        // AP comes down when a sequence would have begun; the club flag a minute later.
+        // The flag comes down when a sequence would have begun; the club flag a minute later.
         warningAt: warningTime(event.now, event.at) + MINUTE,
-        postponed: true,
+        lowering: event.flag,
         apUpAt: null,
         tappedAt: event.now,
       };
+    case "recall":
+      return { kind: "idle", preparatory, firstSubstitute: true };
     case "postpone": {
       const at = state.kind === "armed" ? apUpTime(state, event.now) : null;
       return state.kind === "armed" && at !== null && state.apUpAt === null
@@ -114,21 +136,31 @@ export function apUpTime(sequence: ArmedSequence, now: number): number | null {
  *  sound and how many of it, and the flags that are up from then on. */
 export interface Signal {
   after: number;
-  action: "apUp" | "apDown" | "clubUp" | "preparatoryUp" | "preparatoryDown" | "start";
+  action:
+    | "apUp"
+    | "apDown"
+    | "firstSubstituteDown"
+    | "clubUp"
+    | "preparatoryUp"
+    | "preparatoryDown"
+    | "start";
   tone: "short" | "long";
   sounds: number;
   club: boolean;
   preparatory: boolean;
 }
 
-const AP_DOWN: Signal = {
-  after: -MINUTE,
-  action: "apDown",
-  tone: "short",
-  sounds: 1,
-  club: false,
-  preparatory: false,
-};
+/** Lowering AP or the First Substitute: one sound, a minute before the club flag. */
+function lowered(flag: Lowering): Signal {
+  return {
+    after: -MINUTE,
+    action: flag === "AP" ? "apDown" : "firstSubstituteDown",
+    tone: "short",
+    sounds: 1,
+    club: false,
+    preparatory: false,
+  };
+}
 
 const SEQUENCE: readonly Signal[] = [
   { after: 0, action: "clubUp", tone: "short", sounds: 1, club: true, preparatory: false },
@@ -146,10 +178,10 @@ const SEQUENCE: readonly Signal[] = [
 
 export const SEQUENCE_LENGTH = 3 * MINUTE;
 
-/** The signals this sequence will still make: AP down first for a postponed one; and once
+/** The signals this sequence will still make: the lowered flag first, if any; and once
  *  AP is tapped, everything from its count-in on gives way to AP up, two sounds. */
 function signalsOf(sequence: ArmedSequence): readonly Signal[] {
-  const all = sequence.postponed ? [AP_DOWN, ...SEQUENCE] : [...SEQUENCE];
+  const all = sequence.lowering ? [lowered(sequence.lowering), ...SEQUENCE] : [...SEQUENCE];
   if (sequence.apUpAt === null) return all;
   const apUp: Signal = {
     after: sequence.apUpAt - sequence.warningAt,
@@ -169,7 +201,7 @@ export interface Phase {
   next: Signal | null;
   nextAt: number | null;
   startAt: number;
-  /** A postponed sequence whose AP is due down. */
+  /** A sequence lowering AP whose time to haul it down has come. */
   apDown: boolean;
   /** AP tapped during the sequence, and its time to go up has come. */
   apUp: boolean;
@@ -186,7 +218,7 @@ export function phaseAt(sequence: ArmedSequence, now: number): Phase {
     next: next ?? null,
     nextAt: next ? sequence.warningAt + next.after : null,
     startAt: sequence.warningAt + SEQUENCE_LENGTH,
-    apDown: sequence.postponed && now >= sequence.warningAt - MINUTE,
+    apDown: sequence.lowering === "AP" && now >= sequence.warningAt - MINUTE,
     apUp: sequence.apUpAt !== null && now >= sequence.apUpAt,
   };
 }
@@ -224,6 +256,43 @@ export function tonesBetween(
  *  background tab's timers may be throttled to, so no tone is booked late. */
 export const LOOKAHEAD = 1500;
 
+/** What the server keeps of a sequence, for the live page (Stories WL-3, B-5): the armed
+ *  sequence, or the First Substitute left up by a recall — null when neither. */
+export function toServer(state: SequenceState): StartSequence | null {
+  if (state.kind === "armed") {
+    return {
+      preparatory: state.preparatory,
+      first_signal_at: state.warningAt,
+      lowering: state.lowering,
+      ap_up_at: state.apUpAt,
+      first_substitute: false,
+    };
+  }
+  if (!state.firstSubstitute) return null;
+  return {
+    preparatory: state.preparatory,
+    first_signal_at: null,
+    lowering: null,
+    ap_up_at: null,
+    first_substitute: true,
+  };
+}
+
+/** The live page's side: the stored sequence as one the clock can be read against —
+ *  `phaseAt` then says which flags are up and what comes next, exactly as it does on the
+ *  committee's screen. Null when nothing is armed. */
+export function fromServer(stored: StartSequence | null | undefined): ArmedSequence | null {
+  if (!stored?.first_signal_at) return null;
+  return {
+    kind: "armed",
+    preparatory: stored.preparatory,
+    warningAt: stored.first_signal_at,
+    lowering: stored.lowering ?? null,
+    apUpAt: stored.ap_up_at ?? null,
+    tappedAt: 0,
+  };
+}
+
 /** The sequence of one race, mirrored to this device — the chosen flag included. The
  *  race-control card remounts on every change of the race (hoisting AP is one), and a phone
  *  on a boat reloads; without the mirror either would silently drop a running sequence or
@@ -251,16 +320,27 @@ export function useStartSequence(
 
 function restore(key: string, scheduled: boolean): SequenceState {
   try {
-    const stored = JSON.parse(window.localStorage.getItem(key) ?? "null") as SequenceState | null;
+    // Older versions saved `postponed` instead of `lowering`, and no `tappedAt`.
+    const stored = JSON.parse(window.localStorage.getItem(key) ?? "null") as
+      | (SequenceState & { postponed?: boolean })
+      | null;
     if (stored?.preparatory) {
-      const live =
-        scheduled && stored.kind === "armed" && Date.now() < stored.warningAt + SEQUENCE_LENGTH;
-      // Saved by a version without `tappedAt`: no tap to ping at.
-      if (live) return { ...stored, tappedAt: stored.tappedAt ?? 0 };
-      return { kind: "idle", preparatory: stored.preparatory };
+      if (stored.kind === "armed") {
+        const live = scheduled && Date.now() < stored.warningAt + SEQUENCE_LENGTH;
+        if (live) {
+          return {
+            ...stored,
+            lowering: stored.lowering ?? (stored.postponed ? "AP" : null),
+            tappedAt: stored.tappedAt ?? 0,
+          };
+        }
+      }
+      // The First Substitute stays up across a reload — while the race waits for its start.
+      const firstSubstitute = scheduled && stored.kind === "idle" && Boolean(stored.firstSubstitute);
+      return { kind: "idle", preparatory: stored.preparatory, firstSubstitute };
     }
   } catch {
     // unreadable: start from idle
   }
-  return { kind: "idle", preparatory: "P" };
+  return { kind: "idle", preparatory: "P", firstSubstitute: false };
 }

@@ -140,6 +140,7 @@ import type {
   SmtpConfigOut,
   SquadOut,
   SquadSetRequest,
+  StartSequence,
   TestEmail,
   TestEmailOut,
   TestUserOut,
@@ -4962,6 +4963,100 @@ export const useSetRaceSignal = <TError = ErrorType<HTTPValidationError>,
         TContext
       > => {
       return useMutation(getSetRaceSignalMutationOptions(options), queryClient);
+    }
+
+export const getStoreStartSequenceUrl = (eventId: number,
+    raceId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/races/${raceId}/sequence`
+}
+
+/**
+ * Stories WL-3 and B-5: the committee's screen sends its start sequence whenever it
+ * changes — ``null`` when nothing is armed — so spectators see the flags and the
+ * countdown. The phone runs the sequence; the server only passes it on.
+ * @summary Store the start sequence the race committee runs
+ */
+export const storeStartSequence = async (eventId: number,
+    raceId: number,
+    startSequenceNull?: StartSequence | null, options?: RequestInit): Promise<AdminRaceOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<AdminRaceOut>(getStoreStartSequenceUrl(eventId,raceId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(startSequenceNull)
+  }
+);}
+
+
+
+
+
+export const getStoreStartSequenceMutationKey = () => ['storeStartSequence'] as const;
+
+export const getStoreStartSequenceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeStartSequence>>, TError,StoreStartSequenceMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof storeStartSequence>>, TError,StoreStartSequenceMutationVariables, TContext> => {
+
+const mutationKey = getStoreStartSequenceMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof storeStartSequence>>, StoreStartSequenceMutationVariables> = (props) => {
+          const {eventId,raceId,data} = props ?? {};
+
+          return  storeStartSequence(eventId,raceId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StoreStartSequenceMutationResult = NonNullable<Awaited<ReturnType<typeof storeStartSequence>>>
+    export type StoreStartSequenceMutationBody = BodyType<StartSequence | null> | undefined
+    export type StoreStartSequenceMutationError = ErrorType<HTTPValidationError>
+    export type StoreStartSequenceMutationVariables = {eventId: number;raceId: number;data?: BodyType<StartSequence | null>}
+
+    /**
+ * @summary Store the start sequence the race committee runs
+ */
+export const useStoreStartSequence = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeStartSequence>>, TError,StoreStartSequenceMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof storeStartSequence>>,
+        TError,
+        StoreStartSequenceMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStoreStartSequenceMutationOptions(options), queryClient);
     }
 
 export const getPutRaceResultUrl = (eventId: number,

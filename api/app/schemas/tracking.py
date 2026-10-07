@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.schemas.public import TeamOut
+from app.schemas.public import StartSequence, TeamOut
 
 MarkRoleName = Literal[
     "committee_boat", "start_pin", "windward", "gate_left", "gate_right", "finish_pin"
@@ -127,6 +127,8 @@ class LiveRaceInfo(BaseModel):
     started_at: datetime | None
     finished_at: datetime | None
     signal: str | None
+    #: The start sequence as the committee runs it — flags and countdown for spectators.
+    start_sequence: StartSequence | None = None
 
 
 class LaylineOut(BaseModel):

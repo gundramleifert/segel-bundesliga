@@ -72,6 +72,12 @@ Acceptance criteria:
   down — **AP down in 10 s** or **at the next full minute** — and AP comes down then,
   counted in like any signal (one sound), with the club flag a minute later. The screen
   hauls AP down and records the start by itself when the clock reaches them.
+- **A general recall works the same way.** It puts the race back to `scheduled` with the
+  **First Substitute** up (two long sounds). The screen shows it, and the sequence buttons
+  become **1st Substitute down in 10 s** / **at the next full minute**: it comes down then,
+  counted in, one sound, and the club flag goes up a minute later. The First Substitute is
+  not a race signal on the server — the recall itself is the transition — so it lives in
+  the sequence state, mirrored with it.
 - **The phone sounds the signals** — before each, a ping at ten seconds to go (at the tap
   itself when the signal is ten seconds away or less, as after "in 10 s") and low beeps at
   three, two and one; then the signal's own tone, an octave higher, short or long

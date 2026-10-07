@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -140,6 +140,11 @@ class Race(Base, TimestampMixin):
     # The preparatory flag of the start (``PreparatoryFlag``); decides which code a boat
     # over the line at the start gets.
     preparatory: Mapped[str] = mapped_column(String(8), default=PreparatoryFlag.P)
+    # The start sequence as the race committee's screen holds it (``StartSequence``,
+    # Stories WL-3, B-5): stored so the live page can show flags and countdown, never read
+    # back to drive anything — the committee's phone runs the sequence. A JSON value like
+    # ``Event.print_settings``: a handful of fields nobody queries. The start clears it.
+    start_sequence: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     # The course this race was started on (Story L-2): stamped at the start with the
     # event's active course, so a re-lay between races changes nothing about a race that
     # is over. NULL until a course is laid — a race can be sailed without tracking.

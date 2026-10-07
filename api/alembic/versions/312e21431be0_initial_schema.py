@@ -560,6 +560,7 @@ def upgrade() -> None:
     sa.Column('finished_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('signal', sa.String(length=8), nullable=True),
     sa.Column('preparatory', sa.String(length=8), nullable=False),
+    sa.Column('start_sequence', sa.JSON(), nullable=True),
     sa.Column('course_id', sa.Integer(), nullable=True),
     sa.Column('version', sa.Integer(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),

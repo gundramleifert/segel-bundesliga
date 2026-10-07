@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_serializer
 
-from app.schemas.public import BoatOut, TeamOut
+from app.schemas.public import BoatOut, StartSequence, TeamOut
 
 
 class PairingJobRequest(BaseModel):
@@ -125,6 +125,8 @@ class AdminRaceOut(BaseModel):
     signal: str | None = None
     # The preparatory flag of the start; decides what an over-early boat is scored as.
     preparatory: str = "P"
+    # The start sequence the committee's screen stored, for the live page (B-5).
+    start_sequence: StartSequence | None = None
     entries: list[RaceEntryOut]
 
     @field_serializer("started_at", "finished_at")

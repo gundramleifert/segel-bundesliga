@@ -7,7 +7,7 @@
  * interval books ahead on the audio clock (`LOOKAHEAD`), the card only says which sequence
  * is armed, and a remount saying the same thing again changes nothing.
  */
-import { hornOnce } from "./horn";
+import { audioTime, hornOnce } from "./horn";
 import { LOOKAHEAD, tonesBetween, type ArmedSequence } from "./startSequence";
 
 /** Often enough that the look-ahead never runs dry, even with a background tab's timers
@@ -49,7 +49,9 @@ function book(): void {
     until = Math.max(until, current.apUpAt + AP_UP_TAIL);
   }
   bookedUntil = Math.max(bookedUntil, until);
+  // One reading of each clock for the whole batch, so the tones keep their spacing.
+  const base = audioTime();
   for (const { at, tone } of tonesBetween(current, from, until)) {
-    hornOnce(`${at}:${tone}`, tone, (at - now) / 1000);
+    hornOnce(`${at}:${tone}`, tone, (at - now) / 1000, base);
   }
 }

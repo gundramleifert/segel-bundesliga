@@ -4,7 +4,7 @@ enter and correct race results (Story WL-2).
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,7 +52,7 @@ from app.schemas.admin import (
     RaceSignalIn,
     RaceStartIn,
 )
-from app.schemas.public import BoatOut, ClubOut, TeamOut
+from app.schemas.public import BoatOut, ClubOut, StartSequence, TeamOut
 from app.services import (
     CATALOG_REASON,
     race_state,
@@ -468,6 +468,7 @@ def _race_out(race: Race, flight: Flight) -> AdminRaceOut:
         finished_at=race.finished_at,
         signal=race.signal,
         preparatory=race.preparatory,
+        start_sequence=race.start_sequence,
         entries=[],
     )
 
@@ -627,6 +628,28 @@ async def set_race_signal(
     event, race = await _event_race(session, event_id, race_id)
     signal = None if request.signal is None else RaceSignal(request.signal)
     await race_state.set_signal(session, event, race, actor=acting.email, signal=signal)
+    return await _transition_done(session, event, race)
+
+
+@router.put(
+    "/events/{event_id}/races/{race_id}/sequence",
+    response_model=AdminRaceOut,
+    summary="Store the start sequence the race committee runs",
+)
+async def store_start_sequence(
+    event_id: int,
+    race_id: int,
+    request: StartSequence | None = Body(default=None),
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_event_officer),
+) -> AdminRaceOut:
+    """Stories WL-3 and B-5: the committee's screen sends its start sequence whenever it
+    changes — ``null`` when nothing is armed — so spectators see the flags and the
+    countdown. The phone runs the sequence; the server only passes it on."""
+    event, race = await _event_race(session, event_id, race_id)
+    race_state.store_start_sequence(
+        event, race, None if request is None else request.model_dump(mode="json")
+    )
     return await _transition_done(session, event, race)
 
 

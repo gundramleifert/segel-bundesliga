@@ -27,7 +27,8 @@
   "signal": {
     "AP": "AP — postponed",
     "X": "X — individual recall",
-    "S": "S — shortened course"
+    "S": "S — shortened course",
+    "firstSubstitute": "1st Substitute — general recall"
   },
   "buttons": {
     "start": "Start",
@@ -51,9 +52,9 @@
     "soundOff": "Sound muted — tap to turn on",
     "soundLocked": "Sound is off on this device — tap here to turn it on",
     "soundTest": "Test sound",
-    "apDownNow": "AP down in 10 s",
-    "apDownAt": "AP down at {{time}}",
-    "apIsUp": "AP is up — lower it with a sequence above"
+    "apIsUp": "AP is up — lower it with a sequence above",
+    "lowerNow": "{{flag}} down in 10 s",
+    "lowerAt": "{{flag}} down at {{time}}"
   },
   "sequence": {
     "preparatory": "Preparatory flag",
@@ -66,7 +67,8 @@
       "clubUp": "Club flag UP",
       "preparatoryUp": "{{flag}} UP",
       "preparatoryDown": "{{flag}} DOWN",
-      "start": "Club flag DOWN — start"
+      "start": "Club flag DOWN — start",
+      "firstSubstituteDown": "1st Substitute DOWN"
     },
     "tones": {
       "short_one": "+ one short sound",
@@ -88,5 +90,9 @@
   "duplicateWarning": "Two boats have the same finish position.",
   "codeLabel": "Code for {{boat}}",
   "finishedBanner": "Race {{sequence}} finished.",
-  "position": "Place {{position}}"
+  "position": "Place {{position}}",
+  "lowering": {
+    "AP": "AP",
+    "firstSubstitute": "1st Substitute"
+  }
 }

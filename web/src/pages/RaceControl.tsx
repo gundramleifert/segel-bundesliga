@@ -11,6 +11,7 @@ import {
   usePutRaceResult,
   useRecallRace,
   useSetRaceSignal,
+  useStoreStartSequence,
   useStartEvent,
   useStartRace,
 } from "../api/generated/sbl";
@@ -33,7 +34,10 @@ import {
   unlockHorn,
 } from "../lib/horn";
 import {
+  MINUTE,
+  type Lowering,
   apUpTime,
+  toServer,
   phaseAt,
   warningTime,
   useStartSequence,
@@ -432,6 +436,21 @@ function RaceCard({
   const recall = useRecallRace({ mutation: { onSuccess: refresh } });
   const abandon = useAbandonRace({ mutation: { onSuccess: refresh } });
   const signal = useSetRaceSignal({ mutation: { onSuccess: refresh } });
+  // The sequence goes to the server whenever it changes, so spectators see it (B-5). Sent
+  // once per change: the effect re-runs on every render, and the race shows the stored
+  // value only after the refetch (docs/gotchas: a mutation fired from a ticking effect).
+  const store = useStoreStartSequence();
+  const wanted = JSON.stringify(toServer(sequence));
+  const stored = JSON.stringify(race.start_sequence ?? null);
+  const lastSent = useRef(stored);
+  useEffect(() => {
+    if (wanted === stored || wanted === lastSent.current) return;
+    lastSent.current = wanted;
+    store.mutate(
+      { eventId, raceId: race.id, data: JSON.parse(wanted) },
+      { onError: () => (lastSent.current = stored) },
+    );
+  }, [wanted, stored, store, eventId, race.id]);
   const order = useFinishOrder(race, standings, { mirrorKey: `sbl.finish-order.${race.id}` });
   const finish = usePutRaceResult({
     mutation: {
@@ -507,14 +526,22 @@ function RaceCard({
     race.signal === "AP"
       ? false
       : sequence.kind !== "armed" || (sequence.apUpAt === null && apUpTime(sequence, now) !== null);
-  // While AP is up, a sequence starts by hauling it down: in 10 s or at the full minute,
-  // counted in like any signal, the club flag a minute after. Tapped again, it re-times.
-  const postponed = race.signal === "AP";
+  // The First Substitute is up after a general recall, until its lowering comes due.
+  const firstSubstituteUp =
+    (sequence.kind === "idle" && sequence.firstSubstitute) ||
+    (sequence.kind === "armed" &&
+      sequence.lowering === "firstSubstitute" &&
+      now < sequence.warningAt - MINUTE);
+  // While AP or the First Substitute is up, a sequence starts by lowering it: in 10 s or at
+  // the full minute, counted in like any signal, the club flag a minute after. Tapped
+  // again, it re-times.
+  const flagUp: Lowering | null =
+    race.signal === "AP" ? "AP" : firstSubstituteUp ? "firstSubstitute" : null;
   const sequenceFrom = (at: "now" | "minute") => {
-    if (!postponed) return beginSequence(at);
+    if (!flagUp) return beginSequence(at);
     const tap = rebook();
     unlockHorn();
-    dispatch({ type: "postponementDown", now: tap, at });
+    dispatch({ type: "lower", flag: flagUp, now: tap, at });
   };
 
   const busy =
@@ -538,6 +565,14 @@ function RaceCard({
           className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-inset ring-amber-300"
         >
           {t(`signal.${race.signal}`)}
+        </span>
+      )}
+      {firstSubstituteUp && (
+        <span
+          data-testid="race-control-first-substitute"
+          className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-inset ring-amber-300"
+        >
+          {t("signal.firstSubstitute")}
         </span>
       )}
       {race.status === "running" && race.started_at && (
@@ -600,7 +635,7 @@ function RaceCard({
           <button
             type="button"
             className={`${BIG_PRIMARY} col-span-2`}
-            disabled={busy || race.signal === "AP"}
+            disabled={busy || flagUp !== null}
             onClick={() => {
               abortSequence();
               start.mutate({ eventId, raceId: race.id, data: { preparatory } });
@@ -617,8 +652,8 @@ function RaceCard({
             onClick={() => sequenceFrom("now")}
             data-testid="race-control-start-sequence"
           >
-            {postponed
-              ? t("buttons.apDownNow")
+            {flagUp
+              ? t("buttons.lowerNow", { flag: t(`lowering.${flagUp}`) })
               : sequence.kind === "armed"
                 ? t("buttons.restartNow")
                 : t("buttons.startSequence")}
@@ -631,12 +666,12 @@ function RaceCard({
             data-testid="race-control-sequence-minute"
           >
             {t(
-              postponed
-                ? "buttons.apDownAt"
+              flagUp
+                ? "buttons.lowerAt"
                 : sequence.kind === "armed"
                   ? "buttons.restartAt"
                   : "buttons.sequenceAt",
-              { time: hhmm(warningTime(now, "minute")) },
+              { time: hhmm(warningTime(now, "minute")), flag: flagUp && t(`lowering.${flagUp}`) },
             )}
           </button>
           <button
@@ -660,7 +695,7 @@ function RaceCard({
             }}
             data-testid="race-control-ap"
           >
-            {postponed ? t("buttons.apIsUp") : t("buttons.ap")}
+            {race.signal === "AP" ? t("buttons.apIsUp") : t("buttons.ap")}
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -811,6 +846,8 @@ function RaceCard({
             onClick={() => {
               unlockHorn();
               hornSounds("long", 2); // general recall: two long sounds
+              // The First Substitute is up now; lowering it starts the next sequence.
+              dispatch({ type: "recall" });
               recall.mutate({ eventId, raceId: race.id });
             }}
             data-testid="race-control-recall"

@@ -80,9 +80,11 @@ export function setHornMuted(muted: boolean): void {
  *  tone played "when the timer noticed" turned an even count-in into an uneven one. The
  *  device's output delay (a Bluetooth speaker adds a fifth of a second) is booked away, so
  *  the tone is *heard* when the countdown on the screen turns. */
-export function horn(tone: Tone, inSeconds = 0): void {
+export function horn(tone: Tone, inSeconds = 0, base?: number): void {
   if (!context || hornMuted()) return;
-  const at = context.currentTime + Math.max(0, inSeconds - outputLatency());
+  // `base` is the audio clock read once for a batch of tones: read per tone, it can move a
+  // whole render block (~12 ms) between two tones booked "together".
+  const at = (base ?? context.currentTime) + Math.max(0, inSeconds - outputLatency());
   const { seconds: length, hertz, volume, wave, fade } = SOUND[tone];
   const oscillator = context.createOscillator();
   const gain = context.createGain();
@@ -105,6 +107,11 @@ export function horn(tone: Tone, inSeconds = 0): void {
   oscillator.stop(at + length);
 }
 
+/** The audio clock now — read once and passed as `base` to tones booked together. */
+export function audioTime(): number | undefined {
+  return context?.currentTime;
+}
+
 /** The device's output delay, in seconds — booked away so a tone is *heard* on time. */
 function outputLatency(): number {
   return context ? context.outputLatency || context.baseLatency || 0 : 0;
@@ -116,7 +123,8 @@ function outputLatency(): number {
  *  would shift and the spacing come out short. */
 export function hornSounds(tone: Tone, count: number): void {
   const latency = outputLatency();
-  for (let i = 0; i < count; i += 1) horn(tone, latency + i * soundSpacing(tone));
+  const base = audioTime();
+  for (let i = 0; i < count; i += 1) horn(tone, latency + i * soundSpacing(tone), base);
 }
 
 /** Cancels every booked tone — an aborted sequence must not beep on for another second. */
@@ -124,10 +132,10 @@ export function hornSounds(tone: Tone, count: number): void {
  *  look-ahead books each window once, yet a remounted card or a re-run effect starts with no
  *  memory of what was booked; this is the one place that remembers, so a beep is never
  *  heard twice. `silenceHorn` forgets, so a re-timed sequence can book again. */
-export function hornOnce(key: string, tone: Tone, inSeconds: number): void {
+export function hornOnce(key: string, tone: Tone, inSeconds: number, base?: number): void {
   if (bookedKeys.has(key)) return;
   bookedKeys.add(key);
-  horn(tone, inSeconds);
+  horn(tone, inSeconds, base);
 }
 
 export function silenceHorn(): void {

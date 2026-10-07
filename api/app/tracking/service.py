@@ -299,6 +299,7 @@ def _race_info(race: Race, flight: Flight) -> LiveRaceInfo:
         started_at=_aware(race.started_at) if race.started_at else None,
         finished_at=_aware(race.finished_at) if race.finished_at else None,
         signal=race.signal,
+        start_sequence=race.start_sequence,
     )
 
 

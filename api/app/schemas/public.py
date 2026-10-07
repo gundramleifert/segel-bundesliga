@@ -8,7 +8,7 @@ API client is generated (``scripts/gen-api-client.sh``).
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -261,6 +261,32 @@ class SeriesTable(BaseModel):
     series: SeriesOut
     rows: list[SeriesStandingRow]
     events: list[EventOut]
+
+
+class StartSequence(BaseModel):
+    """The start sequence as the race committee's screen holds it — Stories WL-3, B-5.
+
+    Times are milliseconds since the epoch on the committee phone's clock, because that is
+    what the screen computes with; the live page derives flags, next signal and countdown
+    from them with the same code (`web/src/lib/startSequence.ts`).
+    """
+
+    preparatory: Literal["P", "I", "Z", "U", "BLACK"]
+    first_signal_at: int | None = Field(
+        default=None,
+        description="When the club flag goes up (3 minutes to go), ms since the epoch; "
+        "null while no sequence is armed",
+    )
+    lowering: Literal["AP", "firstSubstitute"] | None = Field(
+        default=None,
+        description="The flag lowered one minute before the club flag goes up, if any",
+    )
+    ap_up_at: int | None = Field(
+        default=None, description="AP was tapped during the sequence and goes up then"
+    )
+    first_substitute: bool = Field(
+        default=False, description="A general recall left the First Substitute up"
+    )
 
 
 class BoatOut(BaseModel):

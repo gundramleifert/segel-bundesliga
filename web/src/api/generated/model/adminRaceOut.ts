@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { RaceEntryOut } from './raceEntryOut';
+import type { StartSequence } from './startSequence';
 
 /**
  * A single race with pairing and current result state — Stories WL-2, WL-3.
@@ -21,5 +22,6 @@ export interface AdminRaceOut {
   finished_at?: string | null;
   signal?: string | null;
   preparatory?: string;
+  start_sequence?: StartSequence | null;
   entries: RaceEntryOut[];
 }

@@ -478,3 +478,74 @@ class TestSignals:
         started = await client.post(f"{base}/start", headers=headers)
 
         assert started.json()["signal"] is None
+
+
+class TestTheStartSequenceForSpectators:
+    """WL-3 and B-5: the committee's screen stores its start sequence on the race; the live
+    page shows it; the start clears it."""
+
+    SEQUENCE = {
+        "preparatory": "I",
+        "first_signal_at": 1_800_000_000_000,
+        "lowering": "AP",
+        "ap_up_at": None,
+        "first_substitute": False,
+    }
+
+    async def test_the_sequence_reaches_the_live_page_without_remounting_the_committee(
+        self, client, caplog
+    ):
+        """WL-3/B-5: stored on the race, published on the stream, shown on the public live
+        picture — and the race's version stays, so the committee's card does not remount
+        on every tap."""
+        headers = await admin(client, caplog, "rc30@example.com")
+        event_id = await live_event(client, headers, "Sequence Cup", "2027-10-30")
+        (race_id, _), *_ = await races_of(event_id)
+        before = await race_row(race_id)
+        version_before = hub.version(f"event:{event_id}")
+
+        stored = await client.put(
+            f"/api/admin/events/{event_id}/races/{race_id}/sequence",
+            headers=headers,
+            json=self.SEQUENCE,
+        )
+
+        assert stored.status_code == 200, stored.text
+        assert stored.json()["start_sequence"] == self.SEQUENCE
+        assert stored.json()["version"] == before.version
+        assert hub.version(f"event:{event_id}") == version_before + 1
+        live = (await client.get(f"/api/events/{event_id}/live")).json()
+        assert live["next_race"]["id"] == race_id
+        assert live["next_race"]["start_sequence"] == self.SEQUENCE
+
+    async def test_null_clears_it_and_the_start_clears_it(self, client, caplog):
+        """WL-3: the screen sends null when nothing is armed; the gun clears it anyway."""
+        headers = await admin(client, caplog, "rc31@example.com")
+        event_id = await live_event(client, headers, "Clear Cup", "2027-10-31")
+        (race_id, _), (second_id, _), *_ = await races_of(event_id)
+        base = f"/api/admin/events/{event_id}/races"
+
+        await client.put(f"{base}/{race_id}/sequence", headers=headers, json=self.SEQUENCE)
+        cleared = await client.put(f"{base}/{race_id}/sequence", headers=headers, json=None)
+        assert cleared.json()["start_sequence"] is None
+
+        await client.put(f"{base}/{race_id}/sequence", headers=headers, json=self.SEQUENCE)
+        started = await client.post(f"{base}/{race_id}/start", headers=headers)
+        assert started.json()["start_sequence"] is None
+
+        # After a general recall the First Substitute is up: no sequence armed, the flag is.
+        recalled = {**self.SEQUENCE, "first_signal_at": None, "lowering": None,
+                    "first_substitute": True}
+        stored = await client.put(f"{base}/{second_id}/sequence", headers=headers, json=recalled)
+        assert stored.json()["start_sequence"] == recalled
+
+    async def test_only_the_race_committee_stores_it(self, client, caplog):
+        """WL-3: the sequence is the race committee's — a guest or an editor may not set it."""
+        headers = await admin(client, caplog, "rc32@example.com")
+        event_id = await live_event(client, headers, "Guarded Sequence Cup", "2027-11-01")
+        (race_id, _), *_ = await races_of(event_id)
+        url = f"/api/admin/events/{event_id}/races/{race_id}/sequence"
+        editor = await as_role(client, caplog, "rc32-editor@example.com", Role.EDITOR)
+
+        assert (await client.put(url, json=self.SEQUENCE)).status_code == 401
+        assert (await client.put(url, headers=editor, json=self.SEQUENCE)).status_code == 403

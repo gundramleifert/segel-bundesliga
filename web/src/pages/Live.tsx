@@ -12,6 +12,7 @@ import {
   useLayDefaultEventCourse,
   useStartEmulation,
 } from "../api/generated/sbl";
+import type { StartSequence } from "../api/generated/model/startSequence";
 import type { Course, LiveBoat, LiveRace } from "../api/types";
 import { useAccount, useAsync, useInvalidate } from "../api/useApi";
 import { useLive } from "../api/useLive";
@@ -19,7 +20,8 @@ import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Bloc
 import { DEV_TOOLS } from "../dev/devTools";
 import { errorText } from "../lib/admin";
 import { boatColor } from "../lib/format";
-import { clock, useNow } from "../lib/useNow";
+import { fromServer, phaseAt } from "../lib/startSequence";
+import { clock, countdown, useAlignedNow, useNow } from "../lib/useNow";
 
 /** Stories L-1 and L-2: the boats on a real map, with the course, their legs and a live rank.
  *
@@ -86,6 +88,7 @@ export function Live() {
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="min-w-0">
           <RaceLine snapshot={snapshot} state={state} />
+          <StartSequenceLine stored={snapshot?.next_race?.start_sequence} />
           <CourseMap snapshot={snapshot} follow={follow} mapRef={mapRef} />
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
             <label className="flex items-center gap-2">
@@ -108,6 +111,52 @@ export function Live() {
         </div>
       </div>
     </>
+  );
+}
+
+/** WL-3 and B-5: the start sequence the committee runs, as a spectator sees it — which flags
+ *  are up, what comes next and the countdown to it; or the First Substitute after a general
+ *  recall. Derived from the stored sequence with the committee screen's own code
+ *  (`lib/startSequence.ts`), and re-rendered when the countdown turns. */
+function StartSequenceLine({ stored }: { stored: StartSequence | null | undefined }) {
+  const { t } = useTranslation("racecontrol");
+  const sequence = fromServer(stored);
+  const now = useAlignedNow(sequence ? (sequence.apUpAt ?? sequence.warningAt) : null);
+  const box =
+    "mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-amber-300 " +
+    "bg-amber-50 px-3 py-2 text-sm text-amber-950";
+  if (stored?.first_substitute) {
+    return (
+      <div className={box} data-testid="live-first-substitute">
+        {t("signal.firstSubstitute")}
+      </div>
+    );
+  }
+  if (!sequence) return null;
+  const phase = phaseAt(sequence, now);
+  if (!phase.next || phase.nextAt === null) return null;
+  const flag = (testId: string, label: string, up: boolean) => (
+    <span
+      data-testid={testId}
+      data-up={String(up)}
+      className={`rounded-md border px-2 py-0.5 font-semibold ${
+        up ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 text-slate-400"
+      }`}
+    >
+      {label} {up ? "▲" : "▼"}
+    </span>
+  );
+  return (
+    <div className={box} data-testid="live-start-sequence">
+      {flag("live-flag-club", t("sequence.clubFlag"), phase.club)}
+      {flag("live-flag-preparatory", t(`flags.${sequence.preparatory}`), phase.preparatory)}
+      <span data-testid="live-next-signal" data-action={phase.next.action}>
+        {t(`sequence.actions.${phase.next.action}`, { flag: t(`flags.${sequence.preparatory}`) })}
+      </span>
+      <span className="text-lg font-bold tabular-nums" data-testid="live-countdown">
+        {countdown(phase.nextAt - now)}
+      </span>
+    </div>
   );
 }
 

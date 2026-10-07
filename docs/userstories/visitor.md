@@ -233,6 +233,14 @@ Acceptance criteria:
 - A draft event has no live stream: the stream answers 404 by the same predicate the public
   router uses everywhere (`Event.published` **and** the series not a draft), never a
   restated copy of it.
+- **The start sequence is on the live page too** (WL-3): while the committee runs one, the
+  spectator sees which flags are up, what comes next and the countdown to it — and after a
+  general recall, that the First Substitute is up. The committee's screen stores the
+  sequence on the race (`Race.start_sequence`, `PUT …/races/{id}/sequence`) whenever it
+  changes; the live page derives flags and countdown from it with the very code the
+  committee's screen uses (`web/src/lib/startSequence.ts`). Times are the committee
+  phone's clock: a spectator's phone that is off by a second shows the countdown off by a
+  second. The start clears it.
 
 How it works (decisions 1–4 in `docs/PLAN_LIVE_IMPLEMENTATION.md` §3; the earlier text here
 said "WebSocket with SSE as fallback" and is corrected):
