@@ -75,8 +75,12 @@ api/e2e-*.db
 # denied path as an empty file — `git add .claude` stages `hooks`, `skills`, `agents`
 # and `settings.json` as 0-byte blobs, and a checkout elsewhere would then write
 # nothing over someone's real configuration. What is readable is kept: the command
-# definitions, and the local settings file.
+# definitions, the local settings file, and the skills this repository wrote itself —
+# each named here, never `.claude/skills/` wholesale, for the same 0-byte reason.
 .claude/*
 !.claude/commands/
 !.claude/settings.local.json
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/issue/
 api/.claude/
