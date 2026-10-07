@@ -82,5 +82,5 @@ api/e2e-*.db
 !.claude/settings.local.json
 !.claude/skills/
 .claude/skills/*
-!.claude/skills/finish-pr/
+!.claude/skills/issue/
 api/.claude/
