@@ -1,6 +1,6 @@
 ---
 name: issue
-description: The whole life of a GitHub issue in this repository, as CLAUDE.md's "From issue to merge" lays it down — start work on an issue (read it, story first, branch), open the PR (rebase, checks, "Refs #N"), merge only on the user's word, hand over on staging with the in-stakeholder-review label and the board's Review column, and close only when the stakeholder accepted. Also files new issues for work found on the way and shows what waits on whom. Use for "work on issue 42", "start #42", "open/finish the PR", "ship it", "merge it", "hand it over", "it was accepted", "make an issue for this", "what is waiting", or any commit-and-push of work that is not on main yet.
+description: The whole life of a GitHub issue in this repository, as CLAUDE.md's "From issue to merge" lays it down — start work on an issue (read it, story first, branch), open the PR (rebase, checks, "Refs #N"), merge only on the user's word, hand over on staging with the in-stakeholder-review label and the board's Stakeholder Review column, and close only when the stakeholder accepted. Also files new issues for work found on the way and shows what waits on whom. Use for "work on issue 42", "start #42", "open/finish the PR", "ship it", "merge it", "hand it over", "it was accepted", "make an issue for this", "what is waiting", or any commit-and-push of work that is not on main yet.
 argument-hint: "start <N> | pr [N] | merge [PR] | handover <N> | accepted <N> | rejected <N> | new <title> | status"
 ---
 
@@ -50,7 +50,7 @@ Never fall back to pushing to `main`, or opening anything some other way.
 **The board.** Every issue is a card on the project board
 [MVP Segel-Bundesliga Webpage](https://github.com/users/gundramleifert/projects/1)
 (user project 1, linked to the repository). Its **Status** field is the column:
-**Todo → In Progress → Review → Done**, where Review means what the
+**Todo → In Progress → Stakeholder Review → Done**, where Stakeholder Review means what the
 `in-stakeholder-review` label means — merged, on staging, waiting for the stakeholder.
 The phases below move the card; label and column always change together. Moving it:
 
@@ -196,7 +196,7 @@ minutes and **resets to the seeded data** on every deploy.
      --description "Merged and on staging, waiting for the stakeholder's acceptance" 2>/dev/null
    gh issue edit <N> --add-label in-stakeholder-review
    ```
-   and the card → **Review** (see The board).
+   and the card → **Stakeholder Review** (see The board).
 3. **Comment** (`gh issue comment <N>`), written for the stakeholder, not a developer —
    in the language the issue was written in: the staging URL of the page; which seeded
    account to pick in the role switcher (CLAUDE.md, Testing different roles); the steps
