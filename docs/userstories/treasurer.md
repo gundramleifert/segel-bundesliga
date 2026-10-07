@@ -202,3 +202,27 @@ Acceptance criteria:
   in it.
 
 Tests: `api/tests/stories/test_payment_runs.py`
+
+### F-8 ● Pay one claim by scanning a GiroCode
+As the **manager or treasurer** I want to **pay a single claim by scanning a code with my
+banking app**, so that **I never type someone's IBAN by hand**.
+
+A GiroCode is the EPC QR code (European Payments Council, EPC069-12): a few lines of
+text — recipient, IBAN, amount, remittance line — that every German banking app reads
+through its photo transfer, fills into a transfer form, and pays only after the user's
+own TAN. Nothing is paid by the code itself; it is the one-claim counterpart of the SEPA
+file (Story F-7).
+
+Acceptance criteria:
+- `GET /api/claims/{id}/girocode` returns the code as SVG, drawn by `segno`.
+- **The bank data come from the claim's bank details** — holder and IBAN copied from the
+  claimant's bank account at submission (Stories S-6, F-2), never the profile as it is
+  today; the BIC from the IBAN's bank code where it is known. **The rest from the
+  claim:** the amount still open (approved, less what an issued or settled payment
+  covers) and the same remittance line a SEPA run would write (`C-<id> <title>`).
+- Only for whoever may pay the claim (Story F-3), never the claimant
+  (`claim-own-decision`), and only while something is open (`claim-not-payable`) — a
+  code for a claim already in a SEPA run would pay it twice.
+- After paying, "Mark as paid" (Story F-4) records it; the code changes nothing by itself.
+
+Tests: `api/tests/stories/test_payment_runs.py::TestGiroCode`

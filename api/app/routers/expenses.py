@@ -8,7 +8,7 @@ from datetime import date, datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +27,7 @@ from app.models import (
 )
 from app.models.auth import User
 from app.problems import Problem
-from app.services import expenses, uploads
+from app.services import expenses, payments, uploads
 from app.services.personal import RECEIPTS
 
 router = APIRouter(tags=["expenses"])
@@ -533,3 +533,25 @@ async def pay_claim(
         session, acting, claim, paid_on=body.paid_on, reference=body.reference, method=body.method
     )
     return await _saved(session, claim_id, acting)
+
+
+@router.get(
+    "/api/claims/{claim_id}/girocode",
+    summary="The claim as a GiroCode (EPC QR) for a banking app",
+    response_class=Response,
+)
+async def get_claim_girocode(
+    claim_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> Response:
+    """Scanned with a banking app's photo transfer, it fills in payee, IBAN, amount and
+    line; the app's own TAN pays (Story F-8). "Mark as paid" records it afterwards."""
+    claim = await expenses.load(session, claim_id)
+    if claim.claimant_user_id != acting.id:
+        expenses.require_decider(acting, claim)
+    return Response(
+        payments.girocode_svg(acting, claim),
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "private, no-store"},
+    )

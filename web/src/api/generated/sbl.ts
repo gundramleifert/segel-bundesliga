@@ -12132,6 +12132,109 @@ export const usePayClaim = <TError = ErrorType<HTTPValidationError>,
       return useMutation(getPayClaimMutationOptions(options), queryClient);
     }
 
+export const getGetClaimGirocodeUrl = (claimId: number,) => {
+
+
+
+
+  return `/api/claims/${claimId}/girocode`
+}
+
+/**
+ * Scanned with a banking app's photo transfer, it fills in payee, IBAN, amount and
+ * line; the app's own TAN pays (Story F-8). "Mark as paid" records it afterwards.
+ * @summary The claim as a GiroCode (EPC QR) for a banking app
+ */
+export const getClaimGirocode = async (claimId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getGetClaimGirocodeUrl(claimId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetClaimGirocodeQueryKey = (claimId: number,) => {
+    return [
+    `/api/claims/${claimId}/girocode`
+    ] as const;
+    }
+
+
+export const getGetClaimGirocodeQueryOptions = <TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetClaimGirocodeQueryKey(claimId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClaimGirocode>>> = ({ signal }) => getClaimGirocode(claimId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: claimId !== null && claimId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetClaimGirocodeQueryResult = NonNullable<Awaited<ReturnType<typeof getClaimGirocode>>>
+export type GetClaimGirocodeQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+ claimId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getClaimGirocode>>,
+          TError,
+          Awaited<ReturnType<typeof getClaimGirocode>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+ claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getClaimGirocode>>,
+          TError,
+          Awaited<ReturnType<typeof getClaimGirocode>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+ claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The claim as a GiroCode (EPC QR) for a banking app
+ */
+
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+ claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetClaimGirocodeQueryOptions(claimId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetClubBankAccountUrl = (clubId: number,) => {
 
 
