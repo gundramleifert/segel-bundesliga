@@ -83,3 +83,12 @@ export type { ProvidersOut as Providers } from "./generated/model/providersOut";
 export type { TokenOut } from "./generated/model/tokenOut";
 
 export { ApiError } from "./http";
+/** Stories S-5, S-6: a person's own documents and bank account. */
+export type { PersonalDocumentOut as PersonalDocument } from "./generated/model/personalDocumentOut";
+export type { DocumentKind } from "./generated/model/documentKind";
+export type { BankAccountOut as BankAccount } from "./generated/model/bankAccountOut";
+/** Stories F-2 to F-6: an expense claim, its items, and what it may be filed on. */
+export type { ClaimOut as Claim } from "./generated/model/claimOut";
+export type { ItemOut as ClaimItem } from "./generated/model/itemOut";
+export type { ClaimTarget } from "./generated/model/claimTarget";
+export type { ExpenseKind } from "./generated/model/expenseKind";

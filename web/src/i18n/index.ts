@@ -26,6 +26,7 @@ import liveDe from "./locales/de/live.json";
 import matchdayDe from "./locales/de/matchday.json";
 import racecontrolDe from "./locales/de/racecontrol.json";
 import sailorDe from "./locales/de/sailor.json";
+import spaceDe from "./locales/de/space.json";
 import standingsDe from "./locales/de/standings.json";
 import startDe from "./locales/de/start.json";
 import accountEn from "./locales/en/account.json";
@@ -42,6 +43,7 @@ import liveEn from "./locales/en/live.json";
 import matchdayEn from "./locales/en/matchday.json";
 import racecontrolEn from "./locales/en/racecontrol.json";
 import sailorEn from "./locales/en/sailor.json";
+import spaceEn from "./locales/en/space.json";
 import standingsEn from "./locales/en/standings.json";
 import startEn from "./locales/en/start.json";
 
@@ -70,6 +72,7 @@ void i18n
         help: helpEn,
         legal: legalEn,
         live: liveEn,
+        space: spaceEn,
       },
       de: {
         common: commonDe,
@@ -88,6 +91,7 @@ void i18n
         help: helpDe,
         legal: legalDe,
         live: liveDe,
+        space: spaceDe,
       },
     },
     fallbackLng: "en",
@@ -109,6 +113,7 @@ void i18n
       "help",
       "legal",
       "live",
+      "space",
     ],
     defaultNS: "common",
     interpolation: { escapeValue: false },

@@ -12,7 +12,8 @@
     "menu": "Menü",
     "label": "Hauptnavigation",
     "myClubSelectLabel": "Welcher Verein",
-    "myClubs": "Meine Vereine"
+    "myClubs": "Meine Vereine",
+    "reimbursements": "Erstattungen"
   },
   "status": {
     "planned": "geplant",
@@ -70,6 +71,7 @@
   "userMenu": {
     "label": "Konto und Einstellungen",
     "profile": "Profil",
+    "mySpace": "Mein Bereich",
     "help": "Hilfe",
     "legalNotice": "Impressum",
     "privacy": "Datenschutz"

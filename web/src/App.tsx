@@ -23,6 +23,8 @@ import { AdminSeriesNew } from "./pages/AdminSeriesNew";
 import { MyClub } from "./pages/MyClub";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
+import { MySpace } from "./pages/MySpace";
+import { Reimbursements } from "./pages/Reimbursements";
 
 export default function App() {
   return (
@@ -46,6 +48,10 @@ export default function App() {
         <Route path="clubs/:id" element={<Club />} />
         <Route path="sailors/:id" element={<Sailor />} />
         <Route path="account" element={<Account />} />
+        {/* Stories S-5, S-6, F-2: a person's documents, bank account and claims. */}
+        <Route path="me" element={<MySpace />} />
+        {/* Story F-6: the claims waiting for a manager or treasurer. */}
+        <Route path="reimbursements" element={<Reimbursements />} />
         {/* Story V-12: the club manager's own screen. Deliberately not under /admin — the
             whole point is that it needs no admin role. */}
         <Route path="club" element={<MyClub />} />

@@ -30,6 +30,8 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, leading to its `/admin/<area>/new` page |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and `/club` |
+| `PersonDocuments.tsx` | `PersonDocuments` — a person's licences on demand, for their organizers, on a person's row (Story S-5); hides itself on `documents-forbidden`. `ExpiredBadge` |
+| `ClaimParts.tsx` | `ClaimStatusBadge`, `ClaimSummary`, `ClaimItems`, `ClaimReceipts` — one expense claim as both the claimant (`/me`) and the decider (`/reimbursements`) see it (Stories F-2 to F-6) |
 | `Layout.tsx`, `Breadcrumb.tsx` | the frame around every page (Story A-12) |
 
 ## The pieces

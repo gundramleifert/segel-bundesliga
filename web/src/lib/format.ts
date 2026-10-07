@@ -107,3 +107,21 @@ export function matchdaySubtitle(event: {
 export function roleText(value: string): string {
   return i18n.t(`common:crewRole.${value}`, { defaultValue: value });
 }
+
+/** "12,50 €" / "€12.50" — money arrives as whole cents (Stories F-2 to F-6), never a float,
+ *  and is turned into euros only here, for display. */
+export function formatMoney(cents: number): string {
+  return new Intl.NumberFormat(i18n.language, { style: "currency", currency: "EUR" }).format(
+    cents / 100,
+  );
+}
+
+/** What someone typed into an amount field — "12,50", "12.5", "12" — as whole cents, or
+ *  `null` when it is not an amount. Both separators are accepted whatever the language: a
+ *  German keyboard on an English page still types a comma. Parsed as text, not through
+ *  `parseFloat` × 100, which turns "0.29" into 28.999…  */
+export function parseCents(text: string): number | null {
+  const match = /^\s*(\d{1,7})(?:[.,](\d{0,2}))?\s*$/.exec(text);
+  if (!match) return null;
+  return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
+}

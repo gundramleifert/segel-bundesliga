@@ -15,6 +15,7 @@ import { useAsync, useInvalidate } from "../api/useApi";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Section } from "./Form";
 import { Empty, ErrorMessage, Loading } from "./Blocks";
+import { PersonDocuments } from "./PersonDocuments";
 
 /** Story Z-2: who holds what on one object — FGA's "read" for `object`, e.g. `event:3`.
  *
@@ -63,11 +64,12 @@ export function AccessPanel({
       {tuples.data && tuples.data.length > 0 && (
         <ul className="flex flex-col gap-1.5" data-testid={`${testId}-list`}>
           {tuples.data.map((row) => (
-            <li key={row.id} className="flex items-center gap-2" data-testid={`${testId}-tuple-${row.id}`}>
+            <li key={row.id} className="flex flex-wrap items-center gap-2" data-testid={`${testId}-tuple-${row.id}`}>
               <span className="font-medium">{t(`accounts.relationLabels.${row.relation}`, { defaultValue: row.relation })}</span>
               <span>
                 {row.user_name} <span className="text-slate-500">({row.user})</span>
               </span>
+              <PersonDocuments userId={row.user_id} name={row.user_name} testId={`${testId}-documents-${row.id}`} />
               <button
                 type="button"
                 className="text-slate-400 hover:text-red-700"

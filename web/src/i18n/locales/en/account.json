@@ -130,7 +130,8 @@
       "manager": "manager",
       "race_officer": "race officer",
       "jury": "jury",
-      "treasurer": "treasurer"
+      "treasurer": "treasurer",
+      "helper": "helper"
     }
   }
 }

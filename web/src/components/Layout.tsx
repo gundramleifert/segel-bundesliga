@@ -69,6 +69,11 @@ export function Layout() {
           },
         ]
       : []),
+    // Whoever may hold an event's or a club's money sees what waits for them (Story F-6);
+    // an empty list there is an answer, not a dead end.
+    ...(hasRole("admin", "treasurer", "club_manager", "club_admin", "event_manager")
+      ? [{ path: "/reimbursements", key: "reimbursements", exact: false }]
+      : []),
     // The organizer of one event or series, and its jury, reach the admin area too — it
     // shows them their events and nothing else (Story Z-2).
     ...(hasRole("admin", "editor", "series_manager", "event_manager", "jury")

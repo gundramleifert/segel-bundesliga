@@ -8,6 +8,7 @@ import { useAccount, useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { AccessPanel } from "./AccessPanel";
 import { Empty, ErrorMessage, Loading } from "./Blocks";
+import { PersonDocuments } from "./PersonDocuments";
 
 /** The Members tab of "Our club" — Stories V-10, Z-5, V-8, V-9 on one screen (V-12).
  *
@@ -74,8 +75,14 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
                           {t(`members.relations.${relation}`, { defaultValue: relation })}
                         </span>
                       ))}
-                    {member.user_id === account?.id && (
+                    {member.user_id === account?.id ? (
                       <span className="text-xs text-slate-500">{t("members.you")}</span>
+                    ) : (
+                      <PersonDocuments
+                        userId={member.user_id}
+                        name={member.display_name}
+                        testId={`my-club-member-documents-${member.user_id}`}
+                      />
                     )}
                   </li>
                 ))}

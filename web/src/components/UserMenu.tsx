@@ -33,6 +33,7 @@ export function UserMenu({
 
   const links = [
     { to: "/account", key: "profile" },
+    { to: "/me", key: "mySpace" },
     { to: "/help", key: "help" },
     { to: "/legal-notice", key: "legalNotice" },
     { to: "/privacy", key: "privacy" },
