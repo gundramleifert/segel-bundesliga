@@ -452,7 +452,9 @@ External APIs are never called live in tests; we test against recorded fixtures 
 ## From issue to merge
 
 Work is tracked as **GitHub issues** on `gundramleifert/segel-bundesliga` and reaches
-`main` only through a pull request. One issue, one branch, one PR — never commit to
+`main` only through a pull request. **`/finish-pr`** (`.claude/skills/finish-pr/`) walks
+the steps below for work already on a branch — issue, rebase, checks, PR — and merges
+only on `/finish-pr merge`. One issue, one branch, one PR — never commit to
 `main` directly. The tool is the `gh` CLI (`gh auth login` once; in the sandbox it needs
 `api.github.com` and `github.com`).
 
