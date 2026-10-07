@@ -108,6 +108,33 @@ missing server shows up as a failure rather than being masked. One-time setup:
 
 External APIs are never called live in tests; recorded fixtures live under `api/tests/fixtures/`.
 
+## Contributing
+
+Work is tracked as [GitHub issues](https://github.com/gundramleifert/segel-bundesliga/issues)
+and reaches `main` only through a pull request: **issue → branch → PR → merge → staging →
+stakeholder review → close**. `main` deploys to the staging instance
+(`https://sbl-web.onrender.com`); an issue is done when its stakeholder accepts it there,
+so a PR refers to its issue and never closes it.
+
+```bash
+gh issue view 42                                   # 1. read the issue
+git switch main && git pull
+gh issue develop 42 --name 42-short-slug --checkout   # 2. branch, linked to the issue
+# ... commit ...
+scripts/check.sh                                   # 3. everything must be green
+git push -u origin HEAD
+gh pr create --base main                           # 4. body starts with "Refs #42", not "Closes"
+gh pr merge --squash --delete-branch               # 5. merge → staging redeploys
+gh issue edit 42 --add-label in-stakeholder-review # 6. once it is live: label + comment
+gh issue comment 42                                #    (where to look, what to try)
+gh issue close 42 --comment "Accepted on staging"  # 7. accepted → close
+```
+
+Not accepted: the label comes off and the feedback is a new branch for the same issue.
+`gh issue list --label in-stakeholder-review` shows what waits on stakeholders.
+One issue per branch and per PR; anything else found along the way becomes a new issue.
+`CLAUDE.md` ("From issue to merge") has the details.
+
 ## Documentation
 
 | Doc | Content |

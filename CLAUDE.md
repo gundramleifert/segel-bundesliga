@@ -449,6 +449,57 @@ story ID in the docstring. New features are added to stories first, then tested.
 
 External APIs are never called live in tests; we test against recorded fixtures (`api/tests/fixtures/`).
 
+## From issue to merge
+
+Work is tracked as **GitHub issues** on `gundramleifert/segel-bundesliga` and reaches
+`main` only through a pull request. One issue, one branch, one PR — never commit to
+`main` directly. The tool is the `gh` CLI (`gh auth login` once; in the sandbox it needs
+`api.github.com` and `github.com`).
+
+**An issue is done when its stakeholder accepts it on staging, not when its PR merges.**
+Many issues come from stakeholders, and they judge a change by using it, not by reading a
+diff — and the only place they can use it is **staging**: the Render instance
+(`https://sbl-web.onrender.com`, `docs/deploy.md`), which redeploys from `main`. So the
+PR **refers** to the issue and never closes it, and between merge and close the issue
+carries the label **`in-stakeholder-review`**. While nothing is in production, `main` is
+allowed to hold changes not yet accepted; that changes when there is a production.
+
+1. **Read the issue** — `gh issue view <N> --comments`. If it describes new or changed
+   behaviour, its acceptance criteria become a story (or an edit to one) in
+   `docs/userstories/`, as below; the story is the lasting record, the issue the request.
+   Ask on the issue (`gh issue comment <N>`) rather than guessing when it is ambiguous.
+2. **Branch from a fresh `main`** — `git switch main && git pull`, then
+   `gh issue develop <N> --name <N>-<short-slug> --checkout`, which also links the branch
+   to the issue. English, kebab-case: `42-waiver-reminder-mail`.
+3. **Commit on the branch** as usual — the story, test, code order below still holds.
+   Mention `#<N>` in the message body where it helps; the PR carries the link anyway.
+4. **`scripts/check.sh` green, then push and open the PR** —
+   `git push -u origin HEAD`, then `gh pr create --base main` with a title saying what
+   changed and a body that starts with **`Refs #<N>`** — never `Closes`/`Fixes`/`Resolves`,
+   which would close the issue on merge, before anyone has seen it — followed by what
+   changed, why, and how it was tested.
+5. **Merge only when the user says so** — `gh pr merge <PR> --squash --delete-branch`.
+   Squash keeps `main` one commit per PR; its message is the PR title. Then
+   `git switch main && git pull` and delete the local branch.
+6. **Hand over to the stakeholder once staging runs the change** — the deploy takes a
+   few minutes; check the change is visible there first. Then
+   `gh issue edit <N> --add-label in-stakeholder-review` and comment on the issue
+   (`gh issue comment <N>`): the staging URL, which test account or role to pick in the
+   role switcher, and what to try. Staging resets to the seeded data on every deploy, so
+   say how to get to the state the change is about.
+7. **Accepted → close** — `gh issue close <N> --comment "Accepted on staging"` (or the
+   stakeholder closes it). **Not accepted** → remove the label, and the feedback is a new
+   branch for the **same** issue (`<N>-<slug>-2`) from step 2; the issue stays open until
+   it is accepted. Feedback that is really a new wish becomes a new issue.
+
+`gh issue list --label in-stakeholder-review` is the list of what waits on stakeholders.
+The label is created once: `gh label create in-stakeholder-review --color FBCA04
+--description "Merged and on staging, waiting for the stakeholder's acceptance"`.
+
+Work found along the way that is not this issue's becomes **a new issue**
+(`gh issue create`), not an extra commit on this branch — a PR about one issue is one a
+reviewer can read.
+
 ## Working here
 
 Three habits. They exist because each one was learned the expensive way, and the cost of
