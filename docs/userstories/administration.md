@@ -243,7 +243,7 @@ Endpoints: the tuple endpoints of Story Z-2 — `GET /api/auth/tuples?object=clu
 `POST /api/auth/tuples`, `DELETE /api/auth/tuples/{id}`. `ClubMemberOut.relations` says
 what each member is to the club.
 
-Screen: the Members tab on `/club` (Story V-12), People panel; administration uses the
+Screen: the Members tab on `/me/club/:id` (Stories V-12, S-7), People panel; administration uses the
 Accounts tab or the same panel.
 Tests: `api/tests/stories/test_club_members.py::TestOrganizers`,
 `api/tests/stories/test_login_and_roles.py::TestTuples`
@@ -543,7 +543,8 @@ Acceptance criteria:
 - **Sections do not explain themselves.** `Section`'s `hint` is gone with them: a
   paragraph above every admin form describing what the form obviously does is read once
   and skipped forever after.
-- The navigation entries themselves do not change: `admin` and `My club` still appear only
-  for the roles that can use them, because a link that ends in a 403 is worse than no link.
+- The navigation entries themselves do not change: `admin` still appears only for the roles
+  that can use it, because a link that ends in a 403 is worse than no link, and *My space*
+  for anyone signed in (Story Z-8 — it replaced "My club" and "Reimbursements").
 
 Tests: `e2e/visitor.spec.ts::A-12: the navigation moves with the viewport`

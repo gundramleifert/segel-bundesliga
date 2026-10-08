@@ -48,10 +48,10 @@ Acceptance criteria:
   the one write a person may make on themselves); the club's admin removes a member the
   same way. Everything else the person holds on the club stays.
 - Being a member implies no other relation: a member is not a manager, an admin is not
-  a member. "My clubs" on the account page lists both kinds (Z-8).
+  a member. My space lists both kinds (Z-8).
 - Every write and delete is in the audit log, as for every tuple.
 
-Screen: the club's Members tab on `/club` (Story V-12) — the People panel for the admin,
+Screen: the club's Members tab on `/me/club/:id` (Stories V-12, S-7) — the People panel for the admin,
 a "Leave" button for the member. The public club page offers no way in.
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
@@ -73,7 +73,7 @@ Acceptance criteria:
 
 Endpoints: `GET /api/clubs/{id}/members`
 
-Screen: the Members tab on `/club` (Story V-12); the roster stays on the public club
+Screen: the Members tab on `/me/club/:id` (Stories V-12, S-7); the roster stays on the public club
 page for a signed-in member as well.
 Tests: `api/tests/stories/test_club_members.py::TestMemberRoster`
 
@@ -342,7 +342,7 @@ Endpoints: `DELETE /api/auth/me`
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestDeleteMyAccount`
 
-### Z-8 ○ My space: everything I am part of, on one page
+### Z-8 ● My space: everything I am part of, on one page
 Issue #10.
 
 As a **signed-in person** I want **one page listing every club, series and event I am part
@@ -379,9 +379,10 @@ Acceptance criteria:
   club(s)", "Reimbursements" and "Profile"; their old addresses lead to the new pages.
 
 Screen: `/me`.
-Tests: —
+Tests: `api/tests/stories/test_my_space.py::TestMySpace`,
+`e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it")
 
-### S-7 ○ My page in a club, a series or an event
+### S-7 ● My page in a club, a series or an event
 Issue #10.
 
 As a **signed-in person** I want **a page of my own for each club, series and event I am
@@ -414,7 +415,8 @@ Acceptance criteria:
   → `/me/club/N`, `/reimbursements` → `/me`; `/account` signed out stays the sign-in page.
 
 Screen: `/me/profile`, `/me/club/:id`, `/me/series/:id`, `/me/event/:id`.
-Tests: —
+Tests: `e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it"),
+`e2e/club.spec.ts`
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with

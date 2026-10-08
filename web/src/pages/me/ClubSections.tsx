@@ -1,146 +1,17 @@
 import { Button } from "@heroui/react";
-import { useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { Stack } from "../components/Layouts";
-import { useMyClubs } from "../api/generated/sbl";
-import type { MyClub as MyClubOut, MyEvent } from "../api/types";
-import { useAsync, useAccount } from "../api/useApi";
-import { ClubMembersPanel } from "../components/ClubMembersPanel";
-import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
-import { LineupPanel } from "../components/LineupPanel";
-import { SquadPanel } from "../components/SquadPanel";
-import { TabbedView, type TabDef } from "../components/Tabs";
-import { eventDates } from "../lib/format";
-import { readLastClub, writeLastClub } from "../lib/lastClub";
+import type { MyClub as MyClubOut, MyEvent } from "../../api/types";
+import { Empty, StatusBadge } from "../../components/Blocks";
+import { LineupPanel } from "../../components/LineupPanel";
+import { SquadPanel } from "../../components/SquadPanel";
+import { eventDates } from "../../lib/format";
 
-/** Story V-12: "Our club" — one screen for whoever belongs to a club.
- *
- * Three tabs: **Members** (the roster, a member's "leave", and for the club's admin the
- * People panel that adds and removes — Stories V-8, V-9, V-10, Z-5), **Matchdays** (the
- * club's entries with their lineups — V-2) and **Series** (the registrations with their
- * squads — V-1).
- *
- * Nothing on the way in here may be admin-only. The screen began as the door for V-1's
- * permission: the endpoint had always let a club's leadership register its squad, and
- * the only panel sat under `/admin`, which refuses them. `GET /api/clubs/mine` is what
- * the whole screen navigates by, and borrowing the admin page's queries would bring
- * that defect straight back.
- *
- * Which club, when there are several, is chosen in the **navigation** — "Our club"
- * expands into one entry per club — not on the page; `?club=` names the one shown, and
- * this browser remembers the last one for a bare `/club` (`ClubScreen`). The account
- * has no home club: a person's clubs are their grants (Story Z-2).
+/** Story V-12's two lists, now sections of a club's page in my space (Story S-7):
+ * the club's matchdays with their crews, and its series registrations with their squads.
+ * Both are editable for the club's organizer and read-only for a member.
  */
-export function MyClub() {
-  const { t } = useTranslation("club");
-  const { account, loading: accountLoading } = useAccount();
-  const clubs = useAsync(useMyClubs({ query: { enabled: Boolean(account) } }));
-
-  if (accountLoading) return <Loading testId="my-club-loading" />;
-  if (!account) {
-    return <ErrorMessage text={t("mine.notSignedIn")} testId="my-club-auth-error" />;
-  }
-  if (clubs.loading) return <Loading testId="my-club-loading" />;
-  if (clubs.error) return <ErrorMessage text={clubs.error} testId="my-club-error" />;
-
-  const entries = clubs.data ?? [];
-  if (!entries.length) {
-    // Not an empty box: a person with no club needs to know where joining one starts
-    // (Story V-7), and this is the only screen that can tell them.
-    return (
-      <>
-        <PageHeader title={t("mine.title")} testId="my-club-header" />
-        <Empty testId="my-club-empty">
-          {t("mine.noClubText")}{" "}
-          <Link to="/clubs" className="underline underline-offset-2">
-            {t("mine.noClubLink")}
-          </Link>
-        </Empty>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <PageHeader
-        title={entries.length > 1 ? t("mine.titlePlural") : t("mine.title")}
-        testId="my-club-header"
-      />
-      <ClubScreen entries={entries} />
-    </>
-  );
-}
-
-/** The club being shown, and its three tabs.
- *
- * `?club=` says which club, and is the source of truth. Missing, the club this browser
- * showed last (`lib/lastClub`, `localStorage` — a convenience, never a setting), else a
- * club the person organizes over one they merely belong to — this is the screen for
- * acting, and the organizer's club is where they can. The URL is then completed
- * (`replace`), so the navigation's dropdown shows the open club, and the club shown
- * becomes the one a later bare `/club` opens.
- */
-function ClubScreen({ entries }: { entries: MyClubOut[] }) {
-  const { t } = useTranslation("club");
-  const [params, setParams] = useSearchParams();
-
-  const requested = params.get("club");
-  const last = requested == null ? readLastClub() : null;
-  const entry =
-    entries.find((e) => String(e.club.id) === requested) ??
-    entries.find((e) => String(e.club.id) === last) ??
-    entries.find((e) => e.may_manage) ??
-    entries[0];
-  const shown = entry.club.id;
-
-  useEffect(() => {
-    writeLastClub(shown);
-    if (requested !== String(shown)) {
-      setParams(
-        (previous) => {
-          const next = new URLSearchParams(previous);
-          next.set("club", String(shown));
-          return next;
-        },
-        { replace: true },
-      );
-    }
-  }, [requested, shown, setParams]);
-
-  const roleOf = (item: MyClubOut) =>
-    item.may_manage ? t("mine.roleOrganizer") : t("mine.roleMember");
-
-  const tabs: TabDef<"members" | "events" | "series">[] = [
-    {
-      key: "members",
-      label: t("mine.tabs.members"),
-      render: () => <ClubMembersPanel entry={entry} />,
-    },
-    { key: "events", label: t("mine.tabs.events"), render: () => <ClubEvents entry={entry} /> },
-    { key: "series", label: t("mine.tabs.series"), render: () => <ClubTeams entry={entry} /> },
-  ];
-
-  return (
-    <Stack gap={5}>
-      <p data-testid={`my-club-role-${shown}`} className="text-sm text-slate-600">
-        <Link to={`/clubs/${shown}`} className="underline underline-offset-2">
-          {entry.club.name}
-        </Link>
-        {" · "}
-        {roleOf(entry)}
-      </p>
-      <TabbedView
-        tabs={tabs}
-        param="tab"
-        testIdPrefix="my-club"
-        label={t("mine.tabsLabel")}
-        className="grid grid-cols-[minmax(0,1fr)]"
-      />
-    </Stack>
-  );
-}
 
 /** The club's matchdays, each with its lineup — Story V-2's door (Story V-12).
  *
@@ -150,7 +21,7 @@ function ClubScreen({ entries }: { entries: MyClubOut[] }) {
  * its own cup here could enter it and never register anyone. `?event=` keeps the open row
  * across a reload.
  */
-function ClubEvents({ entry }: { entry: MyClubOut }) {
+export function ClubEvents({ entry }: { entry: MyClubOut }) {
   const { t } = useTranslation("club");
   const [params, setParams] = useSearchParams();
   const events = entry.events ?? [];
@@ -253,7 +124,7 @@ function ClubEvents({ entry }: { entry: MyClubOut }) {
  * where a row can state the year and how many are registered before anyone opens it.
  * A squad belongs to a series registration, never to a club as such (Story V-1).
  */
-function ClubTeams({ entry }: { entry: MyClubOut }) {
+export function ClubTeams({ entry }: { entry: MyClubOut }) {
   const { t } = useTranslation("club");
   const [params, setParams] = useSearchParams();
   const teams = entry.teams ?? [];

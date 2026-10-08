@@ -20,11 +20,10 @@ import { AdminClubNew } from "./pages/AdminClubNew";
 import { AdminEventNew } from "./pages/AdminEventNew";
 import { AdminSailorNew } from "./pages/AdminSailorNew";
 import { AdminSeriesNew } from "./pages/AdminSeriesNew";
-import { MyClub } from "./pages/MyClub";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
-import { MySpace } from "./pages/MySpace";
-import { Reimbursements } from "./pages/Reimbursements";
+import { ClubPage, EventPage, ProfilePage, SeriesPage } from "./pages/me/Contexts";
+import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
 
 export default function App() {
   return (
@@ -47,14 +46,17 @@ export default function App() {
         <Route path="clubs" element={<Clubs />} />
         <Route path="clubs/:id" element={<Club />} />
         <Route path="sailors/:id" element={<Sailor />} />
+        {/* Signed out: the sign-in page. Signed in, it forwards to /me/profile. */}
         <Route path="account" element={<Account />} />
-        {/* Stories S-5, S-6, F-2: a person's documents, bank account and claims. */}
-        <Route path="me" element={<MySpace />} />
-        {/* Story F-6: the claims waiting for a manager or treasurer. */}
-        <Route path="reimbursements" element={<Reimbursements />} />
-        {/* Story V-12: the club manager's own screen. Deliberately not under /admin — the
-            whole point is that it needs no admin role. */}
-        <Route path="club" element={<MyClub />} />
+        {/* Stories Z-8, S-7: my space — everything I am part of, and my page in each. */}
+        <Route path="me" element={<MeIndex />} />
+        <Route path="me/profile" element={<ProfilePage />} />
+        <Route path="me/club/:id" element={<ClubPage />} />
+        <Route path="me/series/:id" element={<SeriesPage />} />
+        <Route path="me/event/:id" element={<EventPage />} />
+        {/* The screens my space replaced, kept as redirects (Story S-7). */}
+        <Route path="club" element={<ClubRedirect />} />
+        <Route path="reimbursements" element={<Navigate to="/me" replace />} />
         <Route path="admin" element={<Admin />} />
         {/* Creating is a page of its own per area, reached from the "＋" on its tab. */}
         <Route path="admin/clubs/new" element={<AdminClubNew />} />

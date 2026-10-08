@@ -18,115 +18,104 @@ import {
   useReturnClaim,
   useSaveClubBankAccount,
   useSettlePaymentRun,
-} from "../api/generated/sbl";
-import type { RunOut } from "../api/generated/model/runOut";
-import type { RunPaymentOut } from "../api/generated/model/runPaymentOut";
-import { ApiError } from "../api/http";
-import type { Claim } from "../api/types";
-import { useAccount, useAsync, useInvalidate } from "../api/useApi";
-import { Async } from "../components/Async";
-import { PageHeader } from "../components/Blocks";
-import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../components/ClaimParts";
-import { Field, Message, Section } from "../components/Form";
-import { Stack } from "../components/Layouts";
-import { INPUT_CLASS, errorText } from "../lib/admin";
-import { downloadFile, fetchFileUrl } from "../lib/files";
-import { formatDate, formatMoney, parseCents } from "../lib/format";
+} from "../../api/generated/sbl";
+import type { RunOut } from "../../api/generated/model/runOut";
+import type { RunPaymentOut } from "../../api/generated/model/runPaymentOut";
+import { ApiError } from "../../api/http";
+import type { Claim } from "../../api/types";
+import { useAsync, useInvalidate } from "../../api/useApi";
+import { Async } from "../../components/Async";
+import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../../components/ClaimParts";
+import { Field, Message, Section } from "../../components/Form";
+import { Stack } from "../../components/Layouts";
+import { INPUT_CLASS, errorText } from "../../lib/admin";
+import { downloadFile, fetchFileUrl } from "../../lib/files";
+import { formatDate, formatMoney, parseCents } from "../../lib/format";
 
-/** Reimbursements — what waits for the manager or treasurer (Stories F-3, F-4, F-6).
+/** Money — what waits for a manager or treasurer (Stories F-3, F-4, F-6, F-7), as
+ * sections of a club's and an event's page in my space (Story S-7).
  *
- * One list over every event and club whose money the person holds, because claims arrive
- * between matchdays and a list per event is a list nobody opens. Each row is either to
- * **decide** (approve, return, reject) or, once approved, to **pay**; which one is the
- * server's `action`, so this page never re-derives who may do what. The claimant's own
- * claims never appear here — four eyes (F-3).
+ * Each claim is either to **decide** (approve, return, reject) or, once approved, to
+ * **pay**; which one is the server's `action`, so nothing here re-derives who may do what.
+ * The claimant's own claims never appear — four eyes (F-3).
  *
- * Paying is per **club**, because the money leaves one club's account (Story F-7): each
- * club the person pays for gets a section with its account, the SEPA file over its
- * approved claims, the runs still waiting for the bank and the year's books.
+ * Paying is per **club**, because the money leaves one club's account (Story F-7): the
+ * club's money tab carries its account, the SEPA file over its approved claims, the runs
+ * still waiting for the bank and the year's books.
  */
-export function Reimbursements() {
+
+/** A club's money: claims it pays that wait for a decision, then everything paying needs. */
+export function ClubMoneyTab({ clubId, clubName }: { clubId: number; clubName: string }) {
   const { t } = useTranslation("space");
-  const { account } = useAccount();
-  const enabled = { query: { enabled: Boolean(account) } };
-  const pending = useAsync(useListPendingClaims(enabled));
-  const runs = useListOpenPaymentRuns(enabled);
+  const pending = useAsync(useListPendingClaims());
+  const runs = useListOpenPaymentRuns();
 
   return (
-    <Stack gap={6} testId="reimbursements">
-      <PageHeader title={t("pending.title")} />
-      <p className="text-sm text-slate-600">{t("pending.hint")}</p>
-      <Async state={pending} testId="reimbursements">
-        {(rows) => {
-          const toDecide = rows.filter((claim) => claim.action === "decide");
-          const clubs = payingClubs(rows, runs.data ?? [], account?.tuples ?? []);
-          if (!toDecide.length && !clubs.length) {
-            return (
+    <Async state={pending} testId="reimbursements">
+      {(rows) => {
+        const ours = rows.filter((claim) => claim.payer_club_id === clubId);
+        const toDecide = ours.filter((claim) => claim.action === "decide");
+        return (
+          <Stack gap={8}>
+            <ToDecide claims={toDecide} />
+            <ClubMoney
+              club={{ id: clubId, name: clubName }}
+              toPay={ours.filter((claim) => claim.action === "pay")}
+              runs={(runs.data ?? []).filter((run) => run.payer_club_id === clubId)}
+            />
+            {!toDecide.length && (
               <p className="text-sm text-slate-500" data-testid="reimbursements-empty">
                 {t("pending.empty")}
               </p>
-            );
-          }
-          return (
-            <Stack gap={8}>
-              {toDecide.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  <h2 className="text-lg font-semibold">{t("pending.toDecide")}</h2>
-                  <ul data-testid="reimbursements-list" className="flex flex-col gap-4">
-                    {toDecide.map((claim) => (
-                      <PendingClaim key={claim.id} claim={claim} />
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {clubs.map((club) => (
-                <ClubMoney
-                  key={club.id}
-                  club={club}
-                  toPay={rows.filter(
-                    (claim) => claim.action === "pay" && claim.payer_club_id === club.id,
-                  )}
-                  runs={(runs.data ?? []).filter((run) => run.payer_club_id === club.id)}
-                />
-              ))}
-            </Stack>
-          );
-        }}
-      </Async>
-    </Stack>
+            )}
+          </Stack>
+        );
+      }}
+    </Async>
+  );
+}
+
+/** An event's claims waiting for me — to decide, or to pay — for its own manager or
+ *  treasurer, who may hold nothing on the club that pays. */
+export function EventClaimsTab({ eventId }: { eventId: number }) {
+  const { t } = useTranslation("space");
+  const pending = useAsync(useListPendingClaims());
+  return (
+    <Async state={pending} testId="reimbursements">
+      {(rows) => {
+        const ours = rows.filter((claim) => claim.event_id === eventId);
+        return ours.length ? (
+          <ul data-testid="reimbursements-list" className="flex flex-col gap-4">
+            {ours.map((claim) => (
+              <PendingClaim key={claim.id} claim={claim} />
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-500" data-testid="reimbursements-empty">
+            {t("pending.empty")}
+          </p>
+        );
+      }}
+    </Async>
+  );
+}
+
+function ToDecide({ claims }: { claims: Claim[] }) {
+  const { t } = useTranslation("space");
+  if (!claims.length) return null;
+  return (
+    <div className="flex flex-col gap-3">
+      <h2 className="text-lg font-semibold">{t("pending.toDecide")}</h2>
+      <ul data-testid="reimbursements-list" className="flex flex-col gap-4">
+        {claims.map((claim) => (
+          <PendingClaim key={claim.id} claim={claim} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
 type PayingClub = { id: number; name: string };
-
-/** The clubs this person pays for: those with a claim to pay or a run at the bank, and
- *  those they hold `manager`, `admin` or `treasurer` on directly — so a treasurer with
- *  nothing pending can still save the account and download the books. The server decides
- *  each card again; one it refuses (`club-money-forbidden`) hides itself. */
-function payingClubs(
-  claims: Claim[],
-  runs: RunOut[],
-  tuples: { relation: string; object_type: string; object_id: number | null; object_name?: string | null }[],
-): PayingClub[] {
-  const found = new Map<number, string>();
-  for (const claim of claims) {
-    if (claim.action === "pay" && claim.payer_club_id != null) {
-      found.set(claim.payer_club_id, claim.payer_club_name ?? "");
-    }
-  }
-  for (const run of runs) found.set(run.payer_club_id, run.payer_club_name);
-  for (const tuple of tuples) {
-    if (
-      tuple.object_type === "club" &&
-      tuple.object_id != null &&
-      ["manager", "admin", "treasurer"].includes(tuple.relation) &&
-      !found.has(tuple.object_id)
-    ) {
-      found.set(tuple.object_id, tuple.object_name ?? "");
-    }
-  }
-  return [...found].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-}
 
 /** One club's money: its account, the SEPA file, the runs at the bank, the books. */
 function ClubMoney({ club, toPay, runs }: { club: PayingClub; toPay: Claim[]; runs: RunOut[] }) {
@@ -161,7 +150,7 @@ function ClubMoney({ club, toPay, runs }: { club: PayingClub; toPay: Claim[]; ru
 
 function useMoneyRefresh() {
   const invalidate = useInvalidate();
-  return () => invalidate("/api/claims", "/api/me/claims", "/api/payment-runs", "/api/clubs");
+  return () => invalidate("/api/claims", "/api/me/claims", "/api/payment-runs", "/api/clubs", "/api/me/contexts");
 }
 
 /** The account the club pays from — the debtor of its SEPA files (Story F-7). */
@@ -567,7 +556,7 @@ function PendingClaim({ claim }: { claim: Claim }) {
 function useRefresh() {
   const invalidate = useInvalidate();
   return {
-    mutation: { onSuccess: () => invalidate("/api/claims", "/api/me/claims", "/api/payment-runs") },
+    mutation: { onSuccess: () => invalidate("/api/claims", "/api/me/claims", "/api/payment-runs", "/api/me/contexts") },
   };
 }
 

@@ -8,12 +8,9 @@
     "events": "Veranstaltungen",
     "clubs": "Vereine",
     "admin": "Verwaltung",
-    "myClub": "Mein Verein",
     "menu": "Menü",
     "label": "Hauptnavigation",
-    "myClubSelectLabel": "Welcher Verein",
-    "myClubs": "Meine Vereine",
-    "reimbursements": "Erstattungen"
+    "mySpace": "Mein Bereich"
   },
   "status": {
     "planned": "geplant",
@@ -70,11 +67,12 @@
   },
   "userMenu": {
     "label": "Konto und Einstellungen",
-    "profile": "Profil",
+    "profile": "Mein Profil",
     "mySpace": "Mein Bereich",
     "help": "Hilfe",
     "legalNotice": "Impressum",
-    "privacy": "Datenschutz"
+    "privacy": "Datenschutz",
+    "signIn": "Anmelden"
   },
   "pager": {
     "range": "{{first}}–{{last}} von {{total}}",

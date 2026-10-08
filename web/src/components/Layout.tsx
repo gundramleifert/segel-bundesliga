@@ -1,14 +1,12 @@
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 
-import { useMyClubs } from "../api/generated/sbl";
 import { useAccount } from "../api/useApi";
 import { WIDE_LAYOUT, useMediaQuery } from "../lib/useMediaQuery";
 import { DEV_TOOLS } from "../dev/devTools";
 import { RoleSwitcher } from "../dev/RoleSwitcher";
 import { Breadcrumb } from "./Breadcrumb";
 import { UserMenu } from "./UserMenu";
-import { readLastClub } from "../lib/lastClub";
 import { useDisclosure } from "../lib/useDisclosure";
 
 // What someone came to the site for, and nothing else. Help, the legal pages, the
@@ -21,8 +19,7 @@ const NAV_ITEMS = [
   { path: "/clubs", key: "clubs", exact: false },
 ] as const;
 
-type NavChild = { path: string; key: string; label: string; clubId: number };
-type NavItem = { path: string; key: string; exact: boolean; children?: NavChild[] };
+type NavItem = { path: string; key: string; exact: boolean };
 
 /** The frame every page sits in — Story A-12.
  *
@@ -42,38 +39,13 @@ export function Layout() {
   const menu = useDisclosure("site-menu");
   const wide = useMediaQuery(WIDE_LAYOUT);
 
-  // Both extra entries appear only when they actually lead somewhere — a link that ends
-  // in a 403, or in "you belong to no club", is worse than no link. "My club" is for
-  // whoever belongs to a club or organizes one (Story V-12): the link opens the club the
-  // account acts for, and with several clubs a dropdown beneath it picks another — the
-  // club is chosen here, not on the page. Administration keeps its own, wider way in.
-  const clubs = useMyClubs({ query: { enabled: Boolean(account) } });
-  const mine = clubs.data ?? [];
+  // "My space" is everything the person is part of — clubs, series, events, their own
+  // papers (Stories Z-8, S-7). One entry for every role: "My club", its club dropdown and
+  // "Reimbursements" each knew one role, and a helper or a club's treasurer had none.
+  // Administration keeps its own, wider way in — the league office's.
   const navigation: NavItem[] = [
     ...NAV_ITEMS,
-    ...(mine.length || hasRole("club_manager")
-      ? [
-          {
-            path: "/club",
-            key: "myClub",
-            exact: false,
-            children:
-              mine.length > 1
-                ? mine.map((entry) => ({
-                    path: `/club?club=${entry.club.id}`,
-                    key: `myClub-${entry.club.id}`,
-                    label: entry.club.short_name || entry.club.name,
-                    clubId: entry.club.id,
-                  }))
-                : undefined,
-          },
-        ]
-      : []),
-    // Whoever may hold an event's or a club's money sees what waits for them (Story F-6);
-    // an empty list there is an answer, not a dead end.
-    ...(hasRole("admin", "treasurer", "club_manager", "club_admin", "event_manager")
-      ? [{ path: "/reimbursements", key: "reimbursements", exact: false }]
-      : []),
+    ...(account ? [{ path: "/me", key: "mySpace", exact: false }] : []),
     // The organizer of one event or series, and its jury, reach the admin area too — it
     // shows them their events and nothing else (Story Z-2).
     ...(hasRole("admin", "editor", "series_manager", "event_manager", "jury")
@@ -263,13 +235,6 @@ function SiteLogo({ className = "" }: { className?: string }) {
   );
 }
 
-/** The dropdown's value: the open club, else the last one shown, else the first — and
- *  only ever one of the options, or a controlled `<select>` would show none of them. */
-function selectedClub(openClub: string | null, children: NavChild[]): string {
-  const ids = children.map((c) => String(c.clubId));
-  return [openClub, readLastClub()].find((id) => id != null && ids.includes(id)) ?? ids[0];
-}
-
 /** The links, identical in the sidebar and behind the burger.
  *
  * One list rendered twice rather than two lists: the entries are role-dependent, and two
@@ -285,14 +250,6 @@ function NavList({
   t: (key: string) => string;
   className?: string;
 }) {
-  // Which club the dropdown shows: the one open on `/club` (read off the URL, which
-  // `ClubScreen` completes), otherwise the one this browser showed last (`lastClub`).
-  // Read on every render — a navigation re-renders this, and that is when it can change.
-  const location = useLocation();
-  const navigate = useNavigate();
-  const openClub = location.pathname.startsWith("/club")
-    ? new URLSearchParams(location.search).get("club")
-    : null;
   return (
     // `min-h-0` is not optional here, and it is not cosmetic. This nav is a flex child
     // with `overflow-y-auto`, and a flex child's minimum height is its *content* height
@@ -321,33 +278,8 @@ function NavList({
                 }`
               }
             >
-              {/* "My clubs" once there is more than one to choose from — the private view,
-                  as against the public "Clubs" list above it. */}
-              {t(`nav.${item.key === "myClub" && item.children ? "myClubs" : item.key}`)}
+              {t(`nav.${item.key}`)}
             </NavLink>
-            {item.children && (
-              // A dropdown, not one link per club: two clubs are rare, ten are possible
-              // for a person who organizes for a federation, and a strip of ten links
-              // would swallow the navigation. Choosing navigates; the browser remembers.
-              <div className="ml-3 mt-1 border-l border-slate-200 pl-2">
-                <label className="sr-only" htmlFor="layout-nav-club-select">
-                  {t("nav.myClubSelectLabel")}
-                </label>
-                <select
-                  id="layout-nav-club-select"
-                  data-testid="layout-nav-myClub-select"
-                  className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-700"
-                  value={selectedClub(openClub, item.children)}
-                  onChange={(e) => navigate(`/club?club=${e.target.value}`)}
-                >
-                  {item.children.map((child) => (
-                    <option key={child.key} value={child.clubId} data-testid={`layout-nav-${child.key}`}>
-                      {child.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </li>
         ))}
       </ul>

@@ -31,9 +31,15 @@ export function UserMenu({
   const { t } = useTranslation();
   const menu = useDisclosure("user-menu");
 
+  // Signed in, my space and my own page in it (Stories Z-8, S-7); signed out, the way in.
+  const own = account
+    ? [
+        { to: "/me", key: "mySpace" },
+        { to: "/me/profile", key: "profile" },
+      ]
+    : [{ to: "/account", key: "signIn" }];
   const links = [
-    { to: "/account", key: "profile" },
-    { to: "/me", key: "mySpace" },
+    ...own,
     { to: "/help", key: "help" },
     { to: "/legal-notice", key: "legalNotice" },
     { to: "/privacy", key: "privacy" },

@@ -1,6 +1,6 @@
 {
   "title": "My space",
-  "notSignedIn": "Sign in to see your documents, bank account and claims.",
+  "notSignedIn": "Sign in to see your space: your clubs, series and events, and your own papers.",
   "tabsLabel": "Section",
   "tabs": {
     "documents": "Documents",
@@ -179,5 +179,72 @@
     "booksHint": "Every claim the club paid or owes in a year, one row per item — for the cash audit.",
     "year": "Year",
     "downloadBooks": "Download claims (Excel)"
+  },
+  "relations": {
+    "member": "Member",
+    "sailor": "Sailor",
+    "admin": "Admin",
+    "manager": "Organizer",
+    "treasurer": "Treasurer",
+    "race_officer": "Race officer",
+    "jury": "Jury",
+    "helper": "Helper"
+  },
+  "needs": {
+    "waiver_one": "Your liability waiver is not signed yet",
+    "waiver_other": "{{count}} liability waivers not signed yet",
+    "claims_one": "1 claim waits for you",
+    "claims_other": "{{count}} claims wait for you",
+    "squad_below_min_one": "1 squad is below its minimum",
+    "squad_below_min_other": "{{count}} squads are below their minimum",
+    "crew_missing_one": "1 upcoming entry has no crew named",
+    "crew_missing_other": "{{count}} upcoming entries have no crew named",
+    "documents_expired_one": "1 document has expired",
+    "documents_expired_other": "{{count}} documents have expired"
+  },
+  "overview": {
+    "me": "Me",
+    "meDescription": "Account, documents, bank account, waivers and claims",
+    "clubs": "Clubs",
+    "series": "Series",
+    "upcoming": "Events",
+    "pastShow_one": "Show 1 past event",
+    "pastShow_other": "Show {{count}} past events",
+    "pastHide": "Hide past events",
+    "none": "You are not part of any club, series or event yet.",
+    "noneLink": "Find your club"
+  },
+  "context": {
+    "back": "My space",
+    "notFound": "This is not part of your space — or it does not exist.",
+    "tabsLabel": "Sections",
+    "publicPage": "Public page",
+    "nothingHere": "Nothing of yours to see or do here.",
+    "sailsFor": "You sail for",
+    "crewsAndPairings": "Crews and pairing list on the event page",
+    "noEvents": "No events published in this series yet.",
+    "waiverInSeries": "This event belongs to a series — your waiver for the series covers it.",
+    "waiverInSeriesLink": "Your waiver for the series",
+    "raceControl": "Start, recall and finish races, and enter results.",
+    "raceControlLink": "Open race control",
+    "organizeSeries": "Edit the series, its events and its participants on the organizer screen.",
+    "organizeEvent": "Edit the event, its boats, pairing list and people on the organizer screen.",
+    "organizeLink": "Open the organizer screen",
+    "tabs": {
+      "account": "Account",
+      "waivers": "Waivers",
+      "members": "Members",
+      "matchdays": "Matchdays",
+      "squads": "Series & squads",
+      "myClaims": "My claims",
+      "money": "Money",
+      "waiver": "Waiver",
+      "team": "My team",
+      "events": "Events",
+      "crew": "My crew",
+      "toDecide": "Claims to decide",
+      "raceControl": "Race control",
+      "organize": "Organize"
+    }
   }
 }

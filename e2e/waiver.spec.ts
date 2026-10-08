@@ -38,7 +38,8 @@ function bornIn(row: SailorRow): number {
 }
 
 async function openAccount(page: Page): Promise<void> {
-  await page.goto("/account");
+  // My waivers are a tab of my own page in my space (Story S-7).
+  await page.goto("/me/profile?tab=waivers");
   await expect(page.getByTestId("account-waivers-card")).toBeVisible();
   await expect(page.getByTestId("account-waivers-list")).toBeVisible();
 }

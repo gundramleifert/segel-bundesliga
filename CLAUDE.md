@@ -265,13 +265,21 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   (a `member` tuple on the club) and organizing (`manager` or `admin` on it) are both per
   club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which
-  club a screen shows is the URL's business (`/club?club=`), the browser remembers the
-  last one as a convenience, the account remembers nothing. With several clubs the choice
-  is made in the navigation ("Our club" expands into one entry per club), not on a page.
-  The club screen
-  (`/club`, three tabs) is where members are managed (V-8, Z-5, A-8), squads registered
+  club a screen shows is the URL's business (`/me/club/:id`), the account remembers
+  nothing; several clubs are several cards in my space, not a choice in the navigation.
+  The club's page there is where members are managed (V-8, Z-5, A-8), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
   `GET /api/clubs/mine`, never through an admin-only list.
+- **"Mine" has one answer, and my space is assembled from it** (Stories Z-8, S-7,
+  `app/services/contexts.py`, `web/src/pages/me/`). `GET /api/me/contexts` lists every
+  club, series and event a person is part of: a relation held **directly** on it, or
+  **sailing** there (a squad → series, a crew → event — no tuple, reported as `sailor`).
+  Site relations are not "mine" — that is `/admin`. What needs the person there comes back
+  as **codes with counts**, worded by the page. Each context page is built from sections
+  that declare which relations show them, so a new role or panel is a line in that list,
+  never a new screen per role — the screens per role (`/club`, `/reimbursements`) are what
+  this replaced, and each knew only one role. A mutation that changes what needs someone
+  invalidates `/api/me/contexts` along with its own data.
 - **The squad's size belongs to the series, or to the event when it stands alone**
   (`squad_min`/`squad_max`, Story V-1) — never a constant in code or in the screen. The
   maximum is enforced when a squad is saved; the minimum is guidance the club screen

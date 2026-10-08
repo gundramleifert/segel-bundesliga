@@ -23,7 +23,14 @@ import { PersonDocuments } from "./PersonDocuments";
  *   added by email and removed (V-8, V-9). No separate invite form: it would be a second
  *   copy of that panel with fewer relations.
  */
-export function ClubMembersPanel({ entry }: { entry: MyClub }) {
+export function ClubMembersPanel({
+  entry,
+  onLeft,
+}: {
+  entry: MyClub;
+  /** After the person left the club — the page they were on is no longer theirs. */
+  onLeft?: () => void;
+}) {
   const { t } = useTranslation("club");
   const { account } = useAccount();
   const invalidate = useInvalidate();
@@ -34,12 +41,13 @@ export function ClubMembersPanel({ entry }: { entry: MyClub }) {
   const own = account?.tuples.find(
     (row) => row.object_type === "club" && row.object_id === clubId && row.relation === "member",
   );
-  const refresh = () => invalidate("/api/clubs/mine", `/api/clubs/${clubId}/members`, "/api/auth/me");
+  const refresh = () => invalidate("/api/clubs/mine", `/api/clubs/${clubId}/members`, "/api/auth/me", "/api/me/contexts");
   const leave = useDeleteTuple({
     mutation: {
       onSuccess: () => {
         setLeaving(false);
         refresh();
+        onLeft?.();
       },
     },
   });

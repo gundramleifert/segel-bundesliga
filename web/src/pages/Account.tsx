@@ -1,8 +1,8 @@
 import { Button, Card } from "@heroui/react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
+import { CardGrid } from "../components/Layouts";
 import { useTranslation } from "react-i18next";
-import { CardGrid, Stack } from "../components/Layouts";
 
 import {
   deleteMyAccount,
@@ -25,7 +25,6 @@ import type { Account as AccountData, SailorMe } from "../api/types";
 import { getToken, onTokenChange, setToken } from "../api/session";
 import { ErrorMessage, Loading, PageHeader } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
-import { Waivers } from "./AccountWaivers";
 
 export function Account() {
   const { t } = useTranslation("account");
@@ -78,42 +77,42 @@ export function Account() {
     );
   }
 
-  return (
-    <>
-      <PageHeader
-        title={t("title")}
-        testId="account-header"
-        right={
-          <Button variant="outline" onPress={() => setToken(null)} data-testid="account-signout-button">
-            {t("signOut")}
-          </Button>
-        }
-      />
+  // Signed in, the account lives in my space (Story S-7); this address stays the
+  // sign-in page, and a bookmark of it still lands somewhere sensible.
+  return <Navigate to="/me/profile" replace />;
+}
 
-      {/* One Stack owns the vertical rhythm: every block below is a card, and none of
-          them carries its own top margin — that is how two rows once met with no gap. */}
-      <Stack gap={4}>
-        <Card data-testid="account-info-card">
-          <Card.Header>
+/** Who is signed in, and the way out — the head of `/me/profile`. */
+export function AccountInfo({ account }: { account: AccountData }) {
+  const { t } = useTranslation("account");
+  const navigate = useNavigate();
+  return (
+    <Card data-testid="account-info-card">
+      <Card.Header>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
             <Card.Title>{account.display_name}</Card.Title>
             <Card.Description>{account.email}</Card.Description>
-          </Card.Header>
-          <Card.Content>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-              <dt className="text-slate-500">{t("labels.status")}</dt>
-              <dd>{account.is_active ? t("labels.active") : t("labels.disabled")}</dd>
-            </dl>
-          </Card.Content>
-        </Card>
-
-        <SignInMethods account={account} onChanged={() => me().then(setAccount)} />
-
-        <Mine account={account} />
-      <Profile />
-      <Waivers />
-      <DeleteAccount />
-      </Stack>
-    </>
+          </div>
+          <Button
+            variant="outline"
+            onPress={() => {
+              setToken(null);
+              navigate("/account");
+            }}
+            data-testid="account-signout-button"
+          >
+            {t("signOut")}
+          </Button>
+        </div>
+      </Card.Header>
+      <Card.Content>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+          <dt className="text-slate-500">{t("labels.status")}</dt>
+          <dd>{account.is_active ? t("labels.active") : t("labels.disabled")}</dd>
+        </dl>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -121,7 +120,7 @@ export function Account() {
  *  password itself: set a first one, change it (the current one is required), or remove
  *  it. Removing is never refused, because the one-time code is always a way in; it is
  *  also the reset, so there is no "forgot password" flow here. */
-function SignInMethods({ account, onChanged }: { account: AccountData; onChanged: () => void }) {
+export function SignInMethods({ account, onChanged }: { account: AccountData; onChanged: () => void }) {
   const { t } = useTranslation("account");
   const providerNames = [...new Set(account.identities.map((i) => i.provider))];
   const hasPassword = providerNames.includes("password");
@@ -244,70 +243,6 @@ function SignInMethods({ account, onChanged }: { account: AccountData; onChanged
   );
 }
 
-/** Story Z-8: what this account has to do with — the clubs it belongs to or holds a
- *  relation on, the series and events it holds one on — each with what it is to them.
- *  A projection of the tuples (`/api/auth/me`) — membership is one of them (Z-5);
- *  site-wide relations belong to the permissions card, not here. */
-function Mine({ account }: { account: AccountData }) {
-  const { t } = useTranslation("account");
-
-  const relationsOn = (type: string) => {
-    const byObject = new Map<number, { name: string; relations: string[] }>();
-    for (const row of account.tuples) {
-      if (row.object_type !== type || row.object_id === null) continue;
-      const entry = byObject.get(row.object_id) ?? { name: row.object_name ?? String(row.object_id), relations: [] };
-      entry.relations.push(row.relation);
-      byObject.set(row.object_id, entry);
-    }
-    return byObject;
-  };
-
-  // Membership is a tuple like every other relation (Story Z-5), so the tuples alone say
-  // what the person is to each club.
-  const clubLines = relationsOn("club");
-  const seriesLines = relationsOn("series");
-  const eventLines = relationsOn("event");
-
-  const section = (
-    key: "clubs" | "series" | "events",
-    lines: Map<number, { name: string; relations: string[] }>,
-    href: (id: number) => string,
-    empty: string,
-  ) => (
-    <Card data-testid={`account-mine-${key}`}>
-      <Card.Header>
-        <Card.Title>{t(`mine.${key}`)}</Card.Title>
-      </Card.Header>
-      <Card.Content>
-        {lines.size ? (
-          <ul className="space-y-1.5 text-sm">
-            {[...lines.entries()].map(([id, line]) => (
-              <li key={id} className="flex flex-wrap items-baseline gap-x-2" data-testid={`account-mine-${key}-${id}`}>
-                <Link to={href(id)} className="font-medium text-brand-700 hover:underline">
-                  {line.name}
-                </Link>
-                <span className="text-slate-500">
-                  {line.relations.map((r) => t(`mine.relations.${r}`, { defaultValue: r })).join(" · ")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-slate-600">{empty}</p>
-        )}
-      </Card.Content>
-    </Card>
-  );
-
-  return (
-    <CardGrid as="div" columns={3}>
-      {section("clubs", clubLines, (id) => `/clubs/${id}`, t("mine.noneClubs"))}
-      {section("series", seriesLines, (id) => `/series/${id}`, t("mine.noneSeries"))}
-      {section("events", eventLines, (id) => `/events/${id}`, t("mine.noneEvents"))}
-    </CardGrid>
-  );
-}
-
 /** Story S-2: a sailor's self-service profile — own name, birthdate, and photo.
  *
  * Not every account has a linked `Sailor` row (an admin-only test account, for
@@ -315,7 +250,7 @@ function Mine({ account }: { account: AccountData }) {
  * sends for it (`no-linked-sailor-record`) gets its own quiet message instead of the
  * generic error banner.
  */
-function Profile() {
+export function SailorProfile() {
   const { t } = useTranslation("account");
   const [sailor, setSailor] = useState<SailorMe | null>(null);
   const [noRecord, setNoRecord] = useState(false);
@@ -570,7 +505,7 @@ function Profile() {
  *  the permanent behavior (see the endpoint's docstring and docs/userstories.md). A plain
  *  two-step confirm instead of a modal: this project has no dialog primitive elsewhere,
  *  and a destructive action deserves an explicit second click regardless. */
-function DeleteAccount() {
+export function DeleteAccount() {
   const { t } = useTranslation("account");
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);

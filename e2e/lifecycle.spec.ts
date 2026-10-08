@@ -580,32 +580,6 @@ describeStory("Z-2: access is a relation tuple, written and deleted one at a tim
   });
 });
 
-describeStory("Z-8: the account page lists my clubs, series and events", () => {
-  test("the one-event organizer sees that event, and empty club and series sections", async ({
-    page,
-  }) => {
-    // Seeded: manager of the planned matchday only — no club, no series.
-    await signIn(page, "orga@sbl.example.com");
-    await page.goto("/account");
-    await expect(page.getByTestId("account-mine-events").locator("li")).toHaveCount(1);
-    await expect(page.getByTestId("account-mine-events")).toContainText("manager");
-    await expect(page.getByTestId("account-mine-clubs").locator("li")).toHaveCount(0);
-    await expect(page.getByTestId("account-mine-series").locator("li")).toHaveCount(0);
-  });
-
-  test("a club's seeded admin sees the club with both what they are to it", async ({ page }) => {
-    const response = await page.request.get("/api/dev/users");
-    const accounts = (await response.json()) as { email: string; roles: string[] }[];
-    const admin = accounts.find((a) => a.roles.includes("club_admin"))!;
-    await signIn(page, admin.email);
-    await page.goto("/account");
-    const clubs = page.getByTestId("account-mine-clubs").locator("li");
-    await expect(clubs).toHaveCount(1);
-    await expect(clubs.first()).toContainText("member");
-    await expect(clubs.first()).toContainText("admin");
-  });
-});
-
 describeStory("V-12: a club manager manages their own squad", () => {
   /** A seeded account holding `club_manager`, found rather than hardcoded.
    *
@@ -629,17 +603,18 @@ describeStory("V-12: a club manager manages their own squad", () => {
     // claim is about the nav, not about typing a URL.
     await page.goto("/");
     await openNavigation(page);
-    const link = page.getByTestId("layout-nav-myClub");
+    // "My space" is the way in (Story Z-8), the club's card the way on (Story S-7).
+    const link = page.getByTestId("layout-nav-mySpace");
     await expect(link).toBeVisible();
     await link.click();
-    await expect(page).toHaveURL(/\/club/);
+    await expect(page).toHaveURL(/\/me$/);
+    await page.locator('a[data-testid^="me-card-club-"]').first().click();
+    await expect(page).toHaveURL(/\/me\/club\/\d+/);
 
-    // One club, so no sub-entries in the navigation. The breadcrumb is where a page
-    // states its name now (Story A-12), so that is what says the right screen arrived;
-    // the squads sit under the Series tab, Members opens first.
+    // The breadcrumb is where a page states its name now (Story A-12), so that is what
+    // says the right screen arrived; the squads sit under their tab, Members opens first.
     await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
-    await expect(page.getByTestId("layout-nav-myClub-select")).toHaveCount(0);
-    await page.getByTestId("my-club-series-tab").click();
+    await page.getByTestId("me-context-series-tab").click();
     await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes-selected-list")).toBeVisible();

@@ -29,6 +29,11 @@ export type { LiveRaceOut as LiveRace } from "./generated/model/liveRaceOut";
 export type { LiveBoatOut as LiveBoat } from "./generated/model/liveBoatOut";
 export type { CourseOut as Course } from "./generated/model/courseOut";
 
+/** Story Z-8: everything I am part of, and what needs me there. */
+export type { MySpaceOut as MySpace } from "./generated/model/mySpaceOut";
+export type { MyContextOut as MyContext } from "./generated/model/myContextOut";
+export type { NeedOut as Need } from "./generated/model/needOut";
+
 /** Story S-2: a sailor's own profile — name, birthdate, and whether a photo exists. */
 export type { SailorMeOut as SailorMe } from "./generated/model/sailorMeOut";
 export type { SailorMeUpdate } from "./generated/model/sailorMeUpdate";

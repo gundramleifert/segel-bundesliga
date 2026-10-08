@@ -8,12 +8,9 @@
     "events": "Events",
     "clubs": "Clubs",
     "admin": "Admin",
-    "myClub": "My club",
     "menu": "Menu",
     "label": "Main navigation",
-    "myClubSelectLabel": "Which club",
-    "myClubs": "My clubs",
-    "reimbursements": "Reimbursements"
+    "mySpace": "My space"
   },
   "status": {
     "planned": "planned",
@@ -70,11 +67,12 @@
   },
   "userMenu": {
     "label": "Account and settings",
-    "profile": "Profile",
+    "profile": "My profile",
     "mySpace": "My space",
     "help": "Help",
     "legalNotice": "Legal notice",
-    "privacy": "Privacy"
+    "privacy": "Privacy",
+    "signIn": "Sign in"
   },
   "pager": {
     "range": "{{first}}–{{last}} of {{total}}",

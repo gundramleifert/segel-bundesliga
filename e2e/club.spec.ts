@@ -1,7 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
-import { openNavigation } from "./layout";
 import { bearer, signIn } from "./session";
 
 /** Stories V-12 and V-2: the club manager's own screen, with the matchdays and the lineup.
@@ -34,25 +33,31 @@ async function aClubManager(request: APIRequestContext): Promise<Account> {
   return manager!;
 }
 
-async function openMyClub(
-  page: Page,
-  tab: "members" | "events" | "series" = "events",
-  clubId?: number,
-): Promise<void> {
-  // `club=` explicitly where it matters: without it the browser's last shown club is
-  // opened, and within one test that may be one where this person is a plain member.
-  await page.goto(`/club?tab=${tab}${clubId ? `&club=${clubId}` : ""}`);
-  await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
-  await expect(page.getByTestId(`my-club-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
+/** The club this person organizes — the one the club screen is about for them. */
+async function managedClub(request: APIRequestContext, email: string): Promise<number> {
+  const clubs = (await (await request.get("/api/clubs/mine", { headers: await bearer(request, email) })).json()) as {
+    club: { id: number };
+    may_manage: boolean;
+  }[];
+  return clubs.find((c) => c.may_manage)!.club.id;
 }
 
-describeStory("V-2/V-12: as a club manager I name the crew for a matchday from /club", () => {
+/** The club's page in my space (Story S-7), on one of the club screen's tabs. */
+async function openMyClub(
+  page: Page,
+  clubId: number,
+  tab: "members" | "events" | "series" = "events",
+): Promise<void> {
+  await page.goto(`/me/club/${clubId}?tab=${tab}`);
+  await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
+  await expect(page.getByTestId(`me-context-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
+}
+
+describeStory("V-2/V-12/S-7: as a club manager I name the crew for a matchday from my club's page", () => {
   test("the matchdays are listed and a crew is named from the squad", async ({ page, request }) => {
     const manager = await aClubManager(request);
-    // A fresh browser context remembers no club, so a bare `/club` opens the one this
-    // person organizes.
     await signIn(page, manager.email);
-    await openMyClub(page);
+    await openMyClub(page, await managedClub(request, manager.email));
     await expect(page.getByTestId("my-club-events-list")).toBeVisible();
 
     // Every seeded act of the first league is there — "these three", not "exactly three":
@@ -101,7 +106,7 @@ describeStory("V-2/V-12: as a club manager I name the crew for a matchday from /
     ).toBeVisible();
   });
 
-  test("a person in two clubs picks one in the navigation, and a bare /club reopens it", async ({
+  test("a person in two clubs finds both in my space, and is an organizer in only one", async ({
     page,
     request,
   }) => {
@@ -124,27 +129,24 @@ describeStory("V-2/V-12: as a club manager I name the crew for a matchday from /
     }
 
     await signIn(page, manager.email);
-    await openMyClub(page, "series");
-    // Two clubs: "My club" in the navigation gets a dropdown to pick the club (Story V-12).
-    await openNavigation(page);
-    const select = page.getByTestId("layout-nav-myClub-select");
-    await expect(select).toBeVisible();
-    await select.selectOption(String(second.id));
-    await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
-    // A member, not an organizer, of the second club: the squad is shown read-only.
-    await page.getByTestId("my-club-series-tab").click();
+    // Both clubs are cards in my space (Story Z-8) — a member of the second, the
+    // organizer of the first. Which club is open is the URL's business, nothing else.
+    await page.goto("/me");
+    const own = await managedClub(request, manager.email);
+    await expect(page.getByTestId(`me-card-club-${own}-relations-admin`)).toBeVisible();
+    const card = page.getByTestId(`me-card-club-${second.id}`);
+    await expect(card.getByTestId(`me-card-club-${second.id}-relations-member`)).toBeVisible();
+    await expect(card.getByTestId(`me-card-club-${second.id}-relations-admin`)).toHaveCount(0);
+    await card.click();
+    await expect(page).toHaveURL(new RegExp(`/me/club/${second.id}`));
+
+    // A member, not an organizer, of the second club: the squad is shown read-only, and
+    // the club's money is not theirs to see.
+    await page.getByTestId("me-context-series-tab").click();
     await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
-
-    // A visit without the URL parameter opens the club this browser showed last (kept in
-    // `localStorage`, not on the account), and the dropdown shows it. `?club=` stays the
-    // source of truth; this is only the fallback.
-    await page.goto("/club");
-    await expect(page).toHaveURL(new RegExp(`club=${second.id}`));
-    await openNavigation(page);
-    await expect(page.getByTestId("layout-nav-myClub-select")).toHaveValue(String(second.id));
-    await expect(page.getByTestId(`my-club-role-${second.id}`)).toBeVisible();
+    await expect(page.getByTestId("me-context-money-tab")).toHaveCount(0);
   });
 });
 
@@ -181,7 +183,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
 
     // The club's admin adds the guest by email in the People panel of the Members tab.
     await signIn(page, clubAdmin.email);
-    await openMyClub(page, "members", club.id);
+    await openMyClub(page, club.id, "members");
     await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
     await page.getByTestId(`${panel}-email`).fill(guest);
@@ -194,19 +196,20 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     // The guest now has "My club": the roster, themselves in it, and the way out — but
     // not the People panel, which is the admin's.
     await signIn(page, guest);
-    await page.goto("/club?tab=members");
+    await openMyClub(page, club.id, "members");
     await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${clubAdmin.id}`)).toBeVisible();
     await expect(page.getByTestId(panel)).toHaveCount(0);
     await page.getByTestId("my-club-leave").click();
     await page.getByTestId("my-club-leave-confirm").click();
-    // Their only club gone, the screen says there is none.
-    await expect(page.getByTestId("my-club-empty")).toBeVisible();
+    // The club is no longer theirs: back on my space, without it.
+    await expect(page.getByTestId("me-overview")).toBeVisible();
+    await expect(page.getByTestId(`me-card-club-${club.id}`)).toHaveCount(0);
 
     // Back as the admin: the guest is no longer on the roster, nor in the People panel.
     await signIn(page, clubAdmin.email);
-    await openMyClub(page, "members", club.id);
+    await openMyClub(page, club.id, "members");
     await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
     await expect(page.getByTestId(`${panel}-list`)).toBeVisible();

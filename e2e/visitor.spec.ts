@@ -329,7 +329,8 @@ describeStory("A-12: the navigation moves with the viewport", () => {
     );
 
     await openUserMenu(page);
-    for (const key of ["language", "profile", "help", "legalNotice", "privacy"]) {
+    // A guest's way in is "Sign in"; my space and my profile are for the signed-in.
+    for (const key of ["language", "signIn", "help", "legalNotice", "privacy"]) {
       await expect(page.getByTestId(`layout-user-menu-${key}`)).toBeVisible();
     }
 
