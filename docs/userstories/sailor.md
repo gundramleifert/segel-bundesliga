@@ -342,36 +342,79 @@ Endpoints: `DELETE /api/auth/me`
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestDeleteMyAccount`
 
-### Z-8 ● My clubs, my series, my events on the account page
+### Z-8 ○ My space: everything I am part of, on one page
+Issue #10.
 
-As a **signed-in person** I want **my account page to list the clubs, series and events
-I have something to do with, and what I am to each**, so that **I see at a glance where I
-belong and where I am responsible — and reach each one in a click**.
+As a **signed-in person** I want **one page listing every club, series and event I am part
+of, what I am to each, and what waits for me there**, so that **I see at a glance where I
+belong and where I am needed — and reach each one in a tap**.
 
-The tuples of Story Z-2 make this a projection, not a new record: every club, series or
-event the account holds a relation on, plus the clubs it is a member of (`ClubMember`,
-which is deliberately not a tuple). Site-wide relations are not "mine" in this sense;
-they stay in the permissions card.
+"Part of" is two things, and the page needs both. A **relation** I hold — any tuple of
+Story Z-2 on a club, series or event (member, admin, manager, race officer, jury, helper,
+treasurer). And **sailing** — a squad puts me in a series, a crew in an event (Stories V-1,
+V-2) — which is no tuple at all, and so was invisible on the account page this replaces.
+Site-wide relations are not "mine" in this sense: the league office's work stays on
+`/admin`.
 
 Acceptance criteria:
-- Three sections in that order — **My clubs**, **My series**, **My events** — each on
-  every account page, each saying so when it is empty rather than disappearing.
-- A club line names the club and what I am to it: *member* from the membership, and
-  *admin*, *manager* or *race officer* from the tuples; a person who is both member and
-  manager sees both. The name links to the club's page.
-- A series line names the series and my relations on it (admin, manager, race officer,
-  jury), linking to the series' standings; an event line the same, linking to the event.
-- The data is what `/api/auth/me` and `/api/clubs/mine` already return — no new endpoint.
+- `/me`, signed in. Groups in this order: **Me** (always one card: my own profile and
+  papers), **Clubs**, **Series**, **Events** — events split into *upcoming* and *past*, the
+  past folded away behind its count. A group with nothing in it is left out; with nothing
+  at all, the page says how one joins a club (Story V-7).
+- One card per club, series or event: its name, dates where it has them, and my relations
+  as chips — *sailor* among them when I sail there. A person who is both member and
+  manager sees both.
+- A card says what **needs me** there, in words, only when something does:
+  - a liability waiver of mine that is not cleared (series, or an event in no series);
+  - claims waiting for my decision or payment (on the event when I hold the event, else
+    on the club that pays);
+  - as a club's organizer: a series squad below its minimum, an upcoming entry with no crew
+    named;
+  - on *Me*: a document of mine that has expired.
+- Tapping a card opens my page for it (Story S-7).
+- One request: `GET /api/me/contexts`. It is the one answer to "which clubs, series and
+  events are mine" — the account page, the club screen and the reimbursements page each
+  had their own, and the three disagreed (a treasurer had no club, a helper no event).
+- One way in: **My space** in the navigation and in the account menu. It replaces "My
+  club(s)", "Reimbursements" and "Profile"; their old addresses lead to the new pages.
 
-Screen: `/account`, below the account and permissions cards.
-Tests: `e2e/lifecycle.spec.ts` ("Z-8: the account page lists my clubs, series and events")
+Screen: `/me`.
+Tests: —
 
-## My space
+### S-7 ○ My page in a club, a series or an event
+Issue #10.
 
-A signed-in person's own corner of the site (`/me`): papers they will be asked for, the
-bank account their costs are paid back to, and the claims they filed (Stories F-2, F-5).
-Everything here is about the **account**, not the sailor record — a helper or a jury
-member may never have sailed in a result.
+As a **signed-in person** I want **a page of my own for each club, series and event I am
+part of, holding exactly what is mine to see and do there**, so that **I never hunt
+through screens built for other roles**.
+
+The page is assembled, not written per role: each section says which relations show it,
+and the page shows the sections my relations allow — so a club treasurer who sails sees
+both the money and their squad, and a helper sees only their claims. The sections are the
+panels the separate screens had; this story moves them, it does not change what they do.
+
+Acceptance criteria:
+- `/me/profile` — **Me**: account and sign-in methods (Z-9), sailor profile (S-2),
+  documents and licences (S-5), bank account (S-6), my waivers (S-1), deleting the account
+  (Z-7).
+- `/me/club/:id` — **members** (every member; adding, removing and access for the club's
+  admin, Z-5, V-8, A-8), **matchdays** with their crews and **series** with their squads
+  (V-1, V-2; editable for the club's organizer, read-only for a member), **my claims** to
+  the club (member, F-2), **money** — claims to decide and pay, the club's bank account,
+  payment runs and the books (manager, treasurer; F-3, F-4, F-7).
+- `/me/series/:id` — **my waiver** and **my squad** (sailor), the series' **events**, and
+  for its organizer the way to the organizer screen.
+- `/me/event/:id` — **my crew** and **my waiver** (sailor), **my claims** for the event
+  (anyone holding a relation on it, F-2), **claims to decide** (its manager, treasurer),
+  **race control** (race officer), and for its organizer the way to the organizer screen.
+- Tabs keep their selection in the URL (`?tab=`), like every tabbed screen. A tab that
+  needs me says so on its label.
+- A page I am not part of answers *not found*, not an empty shell.
+- The old addresses keep working: `/account` (signed in) → `/me/profile`, `/club?club=N`
+  → `/me/club/N`, `/reimbursements` → `/me`; `/account` signed out stays the sign-in page.
+
+Screen: `/me/profile`, `/me/club/:id`, `/me/series/:id`, `/me/event/:id`.
+Tests: —
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with
