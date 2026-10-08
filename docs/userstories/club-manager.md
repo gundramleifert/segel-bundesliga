@@ -28,7 +28,7 @@ Since Story Z-5's rewrite this *is* writing the `member` tuple: an account has *
 of its own** — no "assigned" or "acting" club, no `User.club_id` (removed 2026-09-25).
 What ties a person to a club is what they hold on it: `member`, `manager`, `admin`
 (Story Z-2), each per club, any number of clubs. Which of several clubs a screen shows
-is the URL's business (`/club?club=`), not the account's.
+is the URL's business (`/me/club/:id`, Story S-7), not the account's.
 
 Acceptance criteria:
 - A club's admin writes `member` only on a club they administer; the site's admin on any.
@@ -52,7 +52,7 @@ Acceptance criteria:
 Endpoints: `GET /api/auth/tuples?object=club:<id>`, `POST /api/auth/tuples`,
 `DELETE /api/auth/tuples/{id}` (Story Z-2)
 
-Screen: the Members tab on `/club` (Story V-12).
+Screen: the Members tab of the club's page in my space, `/me/club/:id` (Stories V-12, S-7).
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-9 ● Add someone by email
@@ -266,7 +266,7 @@ Acceptance criteria:
 
 Endpoints: `PUT /api/admin/events/{slug}/crew`, `GET /api/admin/events/{slug}/crew/{team_id}`
 
-Screen: `/club` lists the club's matchdays and opens the lineup under each one
+Screen: the Matchdays tab of `/me/club/:id` lists the club's matchdays and opens the lineup under each one
 (`LineupPanel`, Story V-12); administration and race officers use the same endpoint.
 
 Tests: `api/tests/stories/test_lineup.py`, `e2e/club.spec.ts`
@@ -285,12 +285,13 @@ never did: the only squad panel lives under `/admin`, which refuses anyone who i
 data and no door. This story is the door.
 
 Acceptance criteria:
-- **`/club` is the club's own screen, for everyone who belongs to it.** "My club" — "My
-  clubs" for a person in several, the private view beside the public "Clubs" list — is in
-  the navigation for anyone who is a member of a club or organizes one (`GET
-  /api/clubs/mine`, Story B-10) — not only for `club_manager`, since a member has things
-  to see there too. The screen has **three tabs**: **Members**, **Matchdays** and
-  **Series** (`?tab=members|events|series`; Members opens first).
+- **The club's page in my space is the club's own screen, for everyone who belongs to
+  it** — `/me/club/:id` (Story S-7; it was `/club` until Issue #10, and that address
+  redirects). Every club a person is a member of or organizes is a card in *My space*
+  (Story Z-8), not only for `club_manager`, since a member has things to see there too.
+  The club screen's part of it is **three tabs**: **Members**, **Matchdays** and
+  **Series & squads** (`?tab=members|events|series`; Members opens first), beside the
+  person's claims and, for its organizer or treasurer, the club's money (S-7).
   - *Members*: the roster (Story V-10). For the club's admin additionally the People
     panel — every tuple on the club, add by email as member, manager, admin or race
     officer, remove (V-8, V-9, A-8). A plain member sees the roster and can leave the
@@ -298,40 +299,36 @@ Acceptance criteria:
     of those endpoints existed without a page — the help text said so.
   - *Matchdays*: the club's event entries with the lineup under each (Story V-2).
   - *Series*: the series registrations, each with its squad (Story V-1).
-- **Several clubs choose themselves in the navigation, not on the page.** "My club" opens
-  one of the person's clubs. With more than one club, a **dropdown** beneath the entry
-  (`layout-nav-myClub-select`) picks another — a dropdown rather than one link per club,
-  because ten links would swallow the navigation; picking one opens that club (`?club=`
-  in the URL). The **browser** remembers the last club shown as a convenience
-  (`localStorage`); the account remembers nothing — it has no club of its own (Z-3).
-  With nothing remembered, a club the person organizes wins over one they merely belong
-  to. One club is the normal case and has no sub-entries.
-  The account page does not repeat the choice — the navigation is the one place it is
-  made; what the account page lists is every club, series and event the person has
-  something to do with (Story Z-8).
+- **Several clubs are several cards, not a choice in the navigation.** Each club is its
+  own card in my space, saying what the person is to it before it is opened, and the URL
+  names the club shown; the account remembers nothing — it has no club of its own (Z-3).
+  Until Issue #10 the navigation carried a "My club" entry with a dropdown of clubs and
+  the browser remembered the last one; a card per club replaced both, because a dropdown
+  could not say which club was the person's to organize and which merely theirs to sail
+  for.
 - **Joining is the club's doing, never a stranger's click.** The public club page
   (`/clubs/{id}`) offers no way in: the club's admin writes the `member` tuple (Z-5).
-  A signed-in member sees the roster there and the way to "My club".
+  A signed-in member sees the roster there; their own way in is *My space*.
 - **Nothing on the way in is admin-only.** The route reaches the squad through
   `/api/clubs/mine` and `/api/admin/teams/{team_id}/members`, both of which a
   `club_manager` may call for their own club. Needing an admin-only list to find your own
   team was the actual defect, and it would come straight back if this screen borrowed the
   admin page's queries.
-- **The squad panel is the same component in both places.** `SquadPanel` is used by `/club`
-  and by the admin screen; two copies would drift, and the rules it displays — the ten, the
+- **The squad panel is the same component in both places.** `SquadPanel` is used by the club's
+  page in my space and by the admin screen; two copies would drift, and the rules it displays — the ten, the
   one helm, the typed refusals — are the ones that took the longest to get right.
 - **The screen never offers what the account may not do.** A member who is not an organizer
   of that club sees the squad and cannot change it; the buttons are absent, not disabled
   and refused on click.
-- **A signed-in account with no club does not get an empty screen.** `/club` says so in a
-  sentence and links to the clubs page, which is where joining one starts (Story V-7).
+- **A signed-in account with no club does not get an empty screen.** My space says so in a
+  sentence and links to the clubs page, which is where joining one starts (Stories V-7,
+  Z-8).
 - Administration keeps its own way in unchanged: `/admin?tab=sailors` still reaches every
   club's squad through the series, which is the right shape for someone whose job is all
   eighteen of them.
 - A person can be a member of several clubs and organize several — the relations
-  (`member`, `manager`, `admin`) are per club and independent. `?club=` in the URL names
-  the club being shown, so a link to one club keeps working and the sub-entry can show
-  which is open.
+  (`member`, `manager`, `admin`) are per club and independent. The URL (`/me/club/:id`)
+  names the club being shown, so a link to one club keeps working.
 - **The Matchdays tab** (Story V-2's door).
   `GET /api/clubs/mine` lists each club's **event entries** alongside its series
   registrations: every matchday of a series the club is registered in, and every

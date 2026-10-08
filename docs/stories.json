@@ -339,7 +339,7 @@
   "title": "Keep my documents, and show them to my organizers",
   "status": "●",
   "role": "Sailor",
-  "phase": "My space",
+  "phase": "My profile",
   "file": "docs/userstories/sailor.md",
   "anchor": "s-5--keep-my-documents-and-show-them-to-my-organizers"
  },
@@ -347,9 +347,17 @@
   "title": "Save my bank account once",
   "status": "●",
   "role": "Sailor",
-  "phase": "My space",
+  "phase": "My profile",
   "file": "docs/userstories/sailor.md",
   "anchor": "s-6--save-my-bank-account-once"
+ },
+ "S-7": {
+  "title": "My page in a club, a series or an event",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "My profile",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-7--my-page-in-a-club-a-series-or-an-event"
  },
  "V-1": {
   "title": "Register season squad",
@@ -616,12 +624,12 @@
   "anchor": "z-7--delete-my-own-account"
  },
  "Z-8": {
-  "title": "My clubs, my series, my events on the account page",
+  "title": "My space: everything I am part of, on one page",
   "status": "●",
   "role": "Sailor",
   "phase": "My profile",
   "file": "docs/userstories/sailor.md",
-  "anchor": "z-8--my-clubs-my-series-my-events-on-the-account-page"
+  "anchor": "z-8--my-space-everything-i-am-part-of-on-one-page"
  },
  "Z-9": {
   "title": "Sign in with a password",

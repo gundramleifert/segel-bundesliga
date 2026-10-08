@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**79 stories** — ● 55 implemented and tested · ◐ 13 partial · ○ 11 open. With backend tests: 65 · with browser tests: 29 · walked by a journey: 9 · **with no test at all: 10**.
+**80 stories** — ● 56 implemented and tested · ◐ 13 partial · ○ 11 open. With backend tests: 66 · with browser tests: 30 · walked by a journey: 9 · **with no test at all: 10**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -65,8 +65,8 @@ same stories with each test's result, video and trace.
 | [V-5](userstories/club-manager.md#v-5--request-participation) | ● | Request participation | `test_participation.py::TestApplying` | — | — |
 | [V-6](userstories/club-manager.md#v-6--request-participation-in-an-event) | ● | Request participation in an event | `test_participation.py::TestEnteringAnEvent`<br>`test_participation.py::TestOnlyTheClubOrganizerRegisters` | — | — |
 | [V-1](userstories/club-manager.md#v-1--register-season-squad) | ● | Register season squad | `test_sailors_and_squads.py::TestRegisteringASquad`<br>`test_sailors_and_squads.py::TestSquadRefusalsAreTyped` | — | — |
-| [V-2](userstories/club-manager.md#v-2--select-sailors-for-matchday) | ● | Select sailors for matchday | `test_lineup.py` | `club.spec.ts`<br>`club.spec.ts::V-2/V-12: as a club manager I name the crew for a matchday from /club` | — |
-| [V-12](userstories/club-manager.md#v-12--my-club-one-screen-for-members-matchdays-and-squads) | ● | My club: one screen for members, matchdays and squads | `test_my_clubs.py` | `lifecycle.spec.ts::V-12: a club manager manages their own squad`<br>`club.spec.ts`<br>`club.spec.ts::V-2/V-12: as a club manager I name the crew for a matchday from /club` | — |
+| [V-2](userstories/club-manager.md#v-2--select-sailors-for-matchday) | ● | Select sailors for matchday | `test_lineup.py` | `club.spec.ts`<br>`club.spec.ts::V-2/V-12/S-7: as a club manager I name the crew for a matchday from my club's page` | — |
+| [V-12](userstories/club-manager.md#v-12--my-club-one-screen-for-members-matchdays-and-squads) | ● | My club: one screen for members, matchdays and squads | `test_my_clubs.py` | `lifecycle.spec.ts::V-12: a club manager manages their own squad`<br>`club.spec.ts`<br>`club.spec.ts::V-2/V-12/S-7: as a club manager I name the crew for a matchday from my club's page` | — |
 | [V-11](userstories/club-manager.md#v-11--manage-our-own-club-page) | ○ | Manage our own club page | — | — | — |
 | [V-3](userstories/club-manager.md#v-3--upload-club-crest) | ◐ | Upload club crest | `test_club_crest.py` | `lifecycle.spec.ts::A-1/V-3: clubs and their crests` | — |
 
@@ -83,7 +83,8 @@ same stories with each test's result, video and trace.
 | [S-2](userstories/sailor.md#s-2--upload-own-photo-edit-own-name-and-birthdate) | ◐ | Upload own photo, edit own name and birthdate | `test_sailor_profile.py` | — | — |
 | [S-4](userstories/sailor.md#s-4--decide-whether-my-own-profile-is-public) | ○ | Decide whether my own profile is public | — | — | — |
 | [Z-7](userstories/sailor.md#z-7--delete-my-own-account) | ● | Delete my own account | `test_login_and_roles.py::TestDeleteMyAccount` | — | — |
-| [Z-8](userstories/sailor.md#z-8--my-clubs-my-series-my-events-on-the-account-page) | ● | My clubs, my series, my events on the account page | — | `lifecycle.spec.ts`<br>`lifecycle.spec.ts::Z-8: the account page lists my clubs, series and events` | — |
+| [Z-8](userstories/sailor.md#z-8--my-space-everything-i-am-part-of-on-one-page) | ● | My space: everything I am part of, on one page | `test_my_space.py::TestMySpace` | `my-space.spec.ts`<br>`my-space.spec.ts::Z-8/S-7: my space — one card per thing I am part of, and my page in it` | — |
+| [S-7](userstories/sailor.md#s-7--my-page-in-a-club-a-series-or-an-event) | ● | My page in a club, a series or an event | — | `my-space.spec.ts`<br>`club.spec.ts`<br>`club.spec.ts::V-2/V-12/S-7: as a club manager I name the crew for a matchday from my club's page`<br>`my-space.spec.ts::Z-8/S-7: my space — one card per thing I am part of, and my page in it` | — |
 | [S-5](userstories/sailor.md#s-5--keep-my-documents-and-show-them-to-my-organizers) | ● | Keep my documents, and show them to my organizers | `test_personal_space.py::TestMyDocuments`<br>`test_personal_space.py::TestOrganizersSeeDocuments` | `my-space.spec.ts::S-5: as a sailor I drop my licences onto my space` | — |
 | [S-6](userstories/sailor.md#s-6--save-my-bank-account-once) | ● | Save my bank account once | `test_personal_space.py::TestBankAccount` | — | — |
 

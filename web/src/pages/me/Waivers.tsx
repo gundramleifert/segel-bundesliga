@@ -11,15 +11,16 @@ import {
   myWaivers,
   uploadEventWaiverScan,
   uploadSeriesWaiverScan,
-} from "../api/generated/sbl";
-import { ApiError } from "../api/http";
-import type { MyCompetitionWaiver, MyWaivers, WaiverText } from "../api/types";
-import { ErrorMessage, Loading } from "../components/Blocks";
-import { FileDropzone } from "../components/FileDropzone";
-import { Message } from "../components/Form";
-import { INPUT_CLASS, errorText } from "../lib/admin";
-import { downloadFile, openFile } from "../lib/files";
-import { formatDate } from "../lib/format";
+} from "../../api/generated/sbl";
+import { ApiError } from "../../api/http";
+import { useInvalidate } from "../../api/useApi";
+import type { MyCompetitionWaiver, MyWaivers, WaiverText } from "../../api/types";
+import { ErrorMessage, Loading } from "../../components/Blocks";
+import { FileDropzone } from "../../components/FileDropzone";
+import { Message } from "../../components/Form";
+import { INPUT_CLASS, errorText } from "../../lib/admin";
+import { downloadFile, openFile } from "../../lib/files";
+import { formatDate } from "../../lib/format";
 
 /** Story S-1: the liability waiver, one statement per competition, from the sailor's own
  * account.
@@ -31,11 +32,13 @@ import { formatDate } from "../lib/format";
  * form, has a guardian sign it, and uploads the scan. Without a date of birth neither is
  * offered — the row points at the profile form above instead, where the sailor enters it.
  *
- * The card renders nothing when the account has no sailor record: the profile card right
- * above already says so, and saying it twice helps nobody.
+ * The card renders nothing when the account has no sailor record: the profile card
+ * already says so, and saying it twice helps nobody. With `only`, it shows one
+ * competition's row — the waiver section of a series' or an event's page (Story S-7).
  */
-export function Waivers() {
+export function Waivers({ only }: { only?: { scope: "series" | "event"; id: number } } = {}) {
   const { t, i18n } = useTranslation("account");
+  const invalidate = useInvalidate();
   const lang: "en" | "de" = i18n.language.startsWith("de") ? "de" : "en";
   const [data, setData] = useState<MyWaivers | null>(null);
   const [text, setText] = useState<WaiverText | null>(null);
@@ -71,6 +74,10 @@ export function Waivers() {
 
   if (noRecord) return null;
 
+  // On a series' or an event's page, its own row only (Story S-7).
+  const shown = (mine: MyWaivers) =>
+    only ? mine.competitions.filter((row) => row.scope === only.scope && row.scope_id === only.id) : mine.competitions;
+
   return (
     <Card data-testid="account-waivers-card">
       <Card.Header>
@@ -82,20 +89,23 @@ export function Waivers() {
           <Loading testId="account-waivers-loading" />
         ) : loadError ? (
           <ErrorMessage text={loadError} testId="account-waivers-error" />
-        ) : data && data.competitions.length === 0 ? (
+        ) : data && shown(data).length === 0 ? (
           <p className="text-sm text-slate-600" data-testid="account-waivers-empty">
             {t("waiver.none")}
           </p>
         ) : data ? (
           <ul className="grid grid-cols-[minmax(0,1fr)] gap-4" data-testid="account-waivers-list">
-            {data.competitions.map((row) => (
+            {shown(data).map((row) => (
               <li key={`${row.scope}-${row.scope_id}`}>
                 <CompetitionRow
                   row={row}
                   text={text}
                   lang={lang}
                   birthDateKnown={data.birth_date_known}
-                  onChanged={load}
+                  onChanged={() => {
+                    load();
+                    invalidate("/api/me/contexts");
+                  }}
                 />
               </li>
             ))}

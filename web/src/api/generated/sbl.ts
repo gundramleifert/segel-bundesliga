@@ -96,6 +96,7 @@ import type {
   LiveRaceOut,
   ModelOut,
   MyClubOut,
+  MySpaceOut,
   MyWaivers,
   NetworkProbeOut,
   NetworkProbeParams,
@@ -10538,6 +10539,110 @@ export const useDeleteMyBankAccount = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getDeleteMyBankAccountMutationOptions(options), queryClient);
     }
+
+export const getMyContextsUrl = () => {
+
+
+
+
+  return `/api/me/contexts`
+}
+
+/**
+ * Every club, series and event I hold a relation on or sail in, with what waits for
+ * me there (Story Z-8). Site relations are not "mine" — the league office's reach is
+ * `/admin`.
+ * @summary Everything I am part of
+ */
+export const myContexts = async ( options?: RequestInit): Promise<MySpaceOut> => {
+
+  return http<MySpaceOut>(getMyContextsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getMyContextsQueryKey = () => {
+    return [
+    `/api/me/contexts`
+    ] as const;
+    }
+
+
+export const getMyContextsQueryOptions = <TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMyContextsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof myContexts>>> = ({ signal }) => myContexts({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MyContextsQueryResult = NonNullable<Awaited<ReturnType<typeof myContexts>>>
+export type MyContextsQueryError = ErrorType<unknown>
+
+
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof myContexts>>,
+          TError,
+          Awaited<ReturnType<typeof myContexts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof myContexts>>,
+          TError,
+          Awaited<ReturnType<typeof myContexts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Everything I am part of
+ */
+
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMyContextsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListMyClaimTargetsUrl = () => {
 

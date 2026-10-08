@@ -62,7 +62,7 @@ export function LineupPanel({
     mutation: {
       // The public matchday page shows the crews too (`/api/events/{id}/crew`).
       onSuccess: () =>
-        invalidate(getGetCrewQueryKey(eventId, teamId), `/api/events/${eventId}/`, "/api/clubs"),
+        invalidate(getGetCrewQueryKey(eventId, teamId), `/api/events/${eventId}/`, "/api/clubs", "/api/me/contexts"),
     },
   });
 

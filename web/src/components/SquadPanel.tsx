@@ -76,7 +76,7 @@ export function SquadPanel({
     mutation: {
       // The squad shows up on every club page and on each member's sailor page, so both
       // are stale the moment it changes — hence the path prefixes rather than one key.
-      onSuccess: () => invalidate(getGetSquadQueryKey(teamId), "/api/clubs", "/api/sailors"),
+      onSuccess: () => invalidate(getGetSquadQueryKey(teamId), "/api/clubs", "/api/sailors", "/api/me/contexts"),
     },
   });
 

@@ -2,8 +2,8 @@ import { Button } from "@heroui/react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DocumentKind } from "../api/generated/model/documentKind";
-import { ExpenseKind } from "../api/generated/model/expenseKind";
+import { DocumentKind } from "../../api/generated/model/documentKind";
+import { ExpenseKind } from "../../api/generated/model/expenseKind";
 import {
   getGetDocumentFileUrl,
   useAddClaimItem,
@@ -22,58 +22,33 @@ import {
   useUploadClaimDocument,
   useUploadMyDocument,
   useWithdrawClaim,
-} from "../api/generated/sbl";
-import type { BankAccount, Claim, ClaimTarget, PersonalDocument } from "../api/types";
-import { useAccount, useAsync, useInvalidate } from "../api/useApi";
-import { Async } from "../components/Async";
-import { PageHeader } from "../components/Blocks";
-import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../components/ClaimParts";
-import { Field, Message, Section } from "../components/Form";
-import { Stack } from "../components/Layouts";
-import { FileDropzone } from "../components/FileDropzone";
-import { ExpiredBadge } from "../components/PersonDocuments";
-import { TabbedView } from "../components/Tabs";
-import { INPUT_CLASS, errorText } from "../lib/admin";
-import { openFile } from "../lib/files";
-import { formatDate, formatMoney, parseCents } from "../lib/format";
+} from "../../api/generated/sbl";
+import type { BankAccount, Claim, ClaimTarget, PersonalDocument } from "../../api/types";
+import { useAsync, useInvalidate } from "../../api/useApi";
+import { Async } from "../../components/Async";
+import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../../components/ClaimParts";
+import { Field, Message, Section } from "../../components/Form";
+import { Stack } from "../../components/Layouts";
+import { FileDropzone } from "../../components/FileDropzone";
+import { ExpiredBadge } from "../../components/PersonDocuments";
+import { INPUT_CLASS, errorText } from "../../lib/admin";
+import { openFile } from "../../lib/files";
+import { formatDate, formatMoney, parseCents } from "../../lib/format";
 
-/** My space — a signed-in person's own corner (Stories S-5, S-6, F-2, F-5).
+/** The papers of my space (Stories S-5, S-6, F-2, F-5): documents and licences, the bank
+ * account costs go back to, and claims. Sections of `/me/profile` — and the claims, with
+ * a fixed target, of an event's or a club's page (Story S-7).
  *
- * Three things that belong to the account rather than to a sailor record: the papers
- * someone may be asked for, the bank account their costs go back to, and the claims they
- * filed. A helper or a jury member may never have sailed in a result, so none of this
- * hangs off the profile page.
+ * All three belong to the account rather than to a sailor record: a helper or a jury
+ * member may never have sailed in a result.
  */
-export function MySpace() {
-  const { t } = useTranslation("space");
-  const { account, loading } = useAccount();
 
-  return (
-    <Stack gap={6} testId="my-space">
-      <PageHeader title={t("title")} />
-      {!loading && !account ? (
-        <p data-testid="my-space-not-signed-in" className="text-slate-600">
-          {t("notSignedIn")}
-        </p>
-      ) : account ? (
-        <TabbedView
-          param="tab"
-          testIdPrefix="my-space"
-          label={t("tabsLabel")}
-          tabs={[
-            { key: "documents", label: t("tabs.documents"), render: () => <DocumentsTab /> },
-            { key: "bank", label: t("tabs.bank"), render: () => <BankTab /> },
-            { key: "claims", label: t("tabs.claims"), render: () => <ClaimsTab /> },
-          ]}
-        />
-      ) : null}
-    </Stack>
-  );
-}
+/** Where a claim is filed: an event, or a club. */
+export type ClaimTargetRef = { kind: "event" | "club"; id: number };
 
 // ------------------------------------------------------------------ documents (S-5)
 
-function DocumentsTab() {
+export function DocumentsTab() {
   const { t } = useTranslation("space");
   const documents = useAsync(useListMyDocuments());
 
@@ -104,7 +79,7 @@ function DocumentRow({ doc }: { doc: PersonalDocument }) {
   const invalidate = useInvalidate();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const remove = useDeleteMyDocument({ mutation: { onSuccess: () => invalidate("/api/me/documents") } });
+  const remove = useDeleteMyDocument({ mutation: { onSuccess: () => invalidate("/api/me/documents", "/api/me/contexts") } });
 
   return (
     <li data-testid={`my-space-document-${doc.id}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
@@ -170,7 +145,7 @@ function UploadDocument() {
         setTitle("");
         setValidUntil("");
         setFile(null);
-        invalidate("/api/me/documents");
+        invalidate("/api/me/documents", "/api/me/contexts");
       },
     },
   });
@@ -248,7 +223,7 @@ function UploadDocument() {
 
 // ------------------------------------------------------------------ bank account (S-6)
 
-function BankTab() {
+export function BankTab() {
   const { t } = useTranslation("space");
   const account = useAsync(useGetMyBankAccount());
 
@@ -360,17 +335,27 @@ function BankForm({ saved }: { saved: BankAccount | null }) {
 
 // ------------------------------------------------------------------ claims (F-2, F-5)
 
-function ClaimsTab() {
+/** My claims — all of them, or (with `target`) those on one event or club, where a new
+ *  one is then filed without asking where. */
+export function ClaimsTab({ target }: { target?: ClaimTargetRef }) {
   const { t } = useTranslation("space");
   const claims = useAsync(useListMyClaims());
   const [openId, setOpenId] = useState<number | null>(null);
+  const mine = (rows: Claim[]) =>
+    target
+      ? rows.filter((claim) =>
+          target.kind === "event" ? claim.event_id === target.id : claim.event_id == null && claim.club_id === target.id,
+        )
+      : rows;
 
   return (
     <Stack gap={6}>
-      <NewClaim onCreated={setOpenId} />
+      <NewClaim onCreated={setOpenId} target={target} />
       <Section title={t("claims.listTitle")} testId="my-space-claims">
         <Async state={claims} testId="my-space-claims" empty={t("claims.empty")}>
-          {(rows) => (
+          {(all) => {
+            const rows = mine(all);
+            return rows.length ? (
             <ul data-testid="my-space-claims-list" className="flex flex-col gap-3">
               {rows.map((claim) => (
                 <ClaimCard
@@ -381,7 +366,12 @@ function ClaimsTab() {
                 />
               ))}
             </ul>
-          )}
+            ) : (
+              <p className="text-sm text-slate-500" data-testid="my-space-claims-none">
+                {t("claims.empty")}
+              </p>
+            );
+          }}
         </Async>
       </Section>
     </Stack>
@@ -392,7 +382,7 @@ function targetKey(target: Pick<ClaimTarget, "kind" | "id">): string {
   return `${target.kind}:${target.id}`;
 }
 
-function NewClaim({ onCreated }: { onCreated: (id: number) => void }) {
+function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => void; target?: ClaimTargetRef }) {
   const { t } = useTranslation("space");
   const invalidate = useInvalidate();
   const targets = useAsync(useListMyClaimTargets());
@@ -412,7 +402,17 @@ function NewClaim({ onCreated }: { onCreated: (id: number) => void }) {
     <Section title={t("claims.newTitle")} testId="my-space-claim-new">
       <p className="text-sm text-slate-600">{t("claims.newHint")}</p>
       <Async state={targets} testId="my-space-claim-targets" empty={t("claims.noTargets")}>
-        {(rows) => {
+        {(all) => {
+          // On an event's or a club's page the claim goes there — if it may (the server
+          // lists only what I may claim on), else there is nothing to file here.
+          const rows = fixed ? all.filter((row) => targetKey(row) === targetKey(fixed)) : all;
+          if (!rows.length) {
+            return (
+              <p className="text-sm text-slate-500" data-testid="my-space-claim-targets-empty">
+                {t("claims.noTargets")}
+              </p>
+            );
+          }
           const target = rows.find((row) => targetKey(row) === chosen) ?? rows[0];
           const events = rows.filter((row) => row.kind === "event");
           const clubs = rows.filter((row) => row.kind === "club");
@@ -428,6 +428,7 @@ function NewClaim({ onCreated }: { onCreated: (id: number) => void }) {
           };
           return (
             <form onSubmit={submit} className="flex flex-col gap-3">
+              {!fixed && (
               <Field label={t("claims.targetLabel")} testId="my-space-claim-target-field">
                 <select
                   className={INPUT_CLASS}
@@ -455,6 +456,7 @@ function NewClaim({ onCreated }: { onCreated: (id: number) => void }) {
                   )}
                 </select>
               </Field>
+              )}
               <Field label={t("claims.titleLabel")} testId="my-space-claim-title-field">
                 <input
                   className={INPUT_CLASS}
@@ -513,7 +515,7 @@ function ClaimDetail({ claim }: { claim: Claim }) {
   const { t } = useTranslation("space");
   const invalidate = useInvalidate();
   const id = `my-space-claim-${claim.id}`;
-  const refresh = { mutation: { onSuccess: () => invalidate("/api/me/claims", "/api/claims") } };
+  const refresh = { mutation: { onSuccess: () => invalidate("/api/me/claims", "/api/claims", "/api/me/contexts") } };
   const removeItem = useDeleteClaimItem(refresh);
   const removeReceipt = useDeleteClaimDocument(refresh);
   const submit = useSubmitClaim(refresh);
@@ -618,7 +620,7 @@ function AddItem({ claim }: { claim: Claim }) {
         setDescription("");
         setDistance("");
         setAmount("");
-        invalidate("/api/me/claims", "/api/claims");
+        invalidate("/api/me/claims", "/api/claims", "/api/me/contexts");
       },
     },
   });
@@ -733,7 +735,7 @@ function UploadReceipt({ claim }: { claim: Claim }) {
   const upload = useUploadClaimDocument({
     mutation: {
       onSuccess: () => {
-        invalidate("/api/me/claims", "/api/claims");
+        invalidate("/api/me/claims", "/api/claims", "/api/me/contexts");
       },
     },
   });

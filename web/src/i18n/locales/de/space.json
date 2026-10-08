@@ -1,6 +1,6 @@
 {
   "title": "Mein Bereich",
-  "notSignedIn": "Melden Sie sich an, um Ihre Dokumente, Ihre Bankverbindung und Ihre Abrechnungen zu sehen.",
+  "notSignedIn": "Melden Sie sich an, um Ihren Bereich zu sehen: Ihre Vereine, Serien und Veranstaltungen und Ihre eigenen Unterlagen.",
   "tabsLabel": "Bereich",
   "tabs": {
     "documents": "Dokumente",
@@ -179,5 +179,72 @@
     "booksHint": "Alle Abrechnungen eines Jahres, die der Verein gezahlt hat oder schuldet, eine Zeile je Posten – für die Kassenprüfung.",
     "year": "Jahr",
     "downloadBooks": "Abrechnungen herunterladen (Excel)"
+  },
+  "relations": {
+    "member": "Mitglied",
+    "sailor": "Segler",
+    "admin": "Verwaltung",
+    "manager": "Organisation",
+    "treasurer": "Kassenwart",
+    "race_officer": "Wettfahrtleitung",
+    "jury": "Jury",
+    "helper": "Helfer"
+  },
+  "needs": {
+    "waiver_one": "Ihr Haftungsausschluss ist noch nicht unterschrieben",
+    "waiver_other": "{{count}} Haftungsausschlüsse sind noch nicht unterschrieben",
+    "claims_one": "1 Abrechnung wartet auf Sie",
+    "claims_other": "{{count}} Abrechnungen warten auf Sie",
+    "squad_below_min_one": "1 Kader liegt unter seinem Minimum",
+    "squad_below_min_other": "{{count}} Kader liegen unter ihrem Minimum",
+    "crew_missing_one": "Für 1 kommende Meldung ist keine Crew benannt",
+    "crew_missing_other": "Für {{count}} kommende Meldungen ist keine Crew benannt",
+    "documents_expired_one": "1 Dokument ist abgelaufen",
+    "documents_expired_other": "{{count}} Dokumente sind abgelaufen"
+  },
+  "overview": {
+    "me": "Ich",
+    "meDescription": "Konto, Dokumente, Bankverbindung, Haftungsausschlüsse und Abrechnungen",
+    "clubs": "Vereine",
+    "series": "Serien",
+    "upcoming": "Veranstaltungen",
+    "pastShow_one": "1 vergangene Veranstaltung zeigen",
+    "pastShow_other": "{{count}} vergangene Veranstaltungen zeigen",
+    "pastHide": "Vergangene Veranstaltungen ausblenden",
+    "none": "Sie gehören noch zu keinem Verein, keiner Serie und keiner Veranstaltung.",
+    "noneLink": "Ihren Verein finden"
+  },
+  "context": {
+    "back": "Mein Bereich",
+    "notFound": "Das gehört nicht zu Ihrem Bereich – oder es existiert nicht.",
+    "tabsLabel": "Bereiche",
+    "publicPage": "Öffentliche Seite",
+    "nothingHere": "Hier gibt es für Sie nichts zu sehen oder zu tun.",
+    "sailsFor": "Sie segeln für",
+    "crewsAndPairings": "Crews und Pairing-Liste auf der Veranstaltungsseite",
+    "noEvents": "In dieser Serie sind noch keine Veranstaltungen veröffentlicht.",
+    "waiverInSeries": "Diese Veranstaltung gehört zu einer Serie – Ihr Haftungsausschluss für die Serie gilt auch hier.",
+    "waiverInSeriesLink": "Ihr Haftungsausschluss für die Serie",
+    "raceControl": "Wettfahrten starten, zurückrufen und beenden und Ergebnisse eintragen.",
+    "raceControlLink": "Wettfahrtleitung öffnen",
+    "organizeSeries": "Serie, Veranstaltungen und Teilnehmer bearbeiten Sie in der Verwaltung.",
+    "organizeEvent": "Veranstaltung, Boote, Pairing-Liste und Personen bearbeiten Sie in der Verwaltung.",
+    "organizeLink": "Verwaltung öffnen",
+    "tabs": {
+      "account": "Konto",
+      "waivers": "Haftungsausschlüsse",
+      "members": "Mitglieder",
+      "matchdays": "Spieltage",
+      "squads": "Serien & Kader",
+      "myClaims": "Meine Abrechnungen",
+      "money": "Finanzen",
+      "waiver": "Haftungsausschluss",
+      "team": "Mein Team",
+      "events": "Veranstaltungen",
+      "crew": "Meine Crew",
+      "toDecide": "Zu entscheiden",
+      "raceControl": "Wettfahrtleitung",
+      "organize": "Organisieren"
+    }
   }
 }
