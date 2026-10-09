@@ -117,17 +117,18 @@ export function useWireframe() {
 export const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
-/** What the big picture areas show: the still photo, a slideshow, or a silent video loop.
+/** What the big picture areas show: the still photo, a slideshow — cross-fading, or
+ *  pushed in from the right — or a silent video loop.
  *  One setting for every option, so it survives switching between them, and remembered
  *  in this browser — a convenience, so a failing storage just means "photo". */
-export type MediaMode = "photo" | "slideshow" | "video";
+export type MediaMode = "photo" | "slideshow" | "slide" | "video";
 
 const MEDIA_KEY = "wireframes.media";
 const mediaListeners = new Set<() => void>();
 let mediaMode: MediaMode = (() => {
   try {
     const saved = localStorage.getItem(MEDIA_KEY);
-    return saved === "slideshow" || saved === "video" ? saved : "photo";
+    return saved === "slideshow" || saved === "slide" || saved === "video" ? saved : "photo";
   } catch {
     return "photo";
   }

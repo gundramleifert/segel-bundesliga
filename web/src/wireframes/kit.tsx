@@ -33,7 +33,8 @@ export function Img({ photo, className = "" }: { photo: Photo; className?: strin
   );
 }
 
-/** A big picture area: the photo, a slideshow starting from it, or a silent video loop —
+/** A big picture area: the photo, a slideshow starting from it (fading or sliding), or a
+ *  silent video loop —
  *  whichever the switcher's media setting says. Sized and placed by `className` exactly
  *  like `Img`, so a page swaps one for the other without changing its layout. */
 export function HeroMedia({ photo, className = "" }: { photo: Photo; className?: string }) {
@@ -58,11 +59,14 @@ export function HeroMedia({ photo, className = "" }: { photo: Photo; className?:
       />
     );
   }
-  if (mode === "slideshow") return <Slideshow photo={photo} className={box} />;
+  // Keyed by kind, so switching between the two starts afresh instead of carrying one
+  // transition's half-finished state into the other.
+  if (mode === "slideshow") return <Slideshow key="fade" photo={photo} className={box} kind="fade" />;
+  if (mode === "slide") return <Slideshow key="push" photo={photo} className={box} kind="push" />;
   return <Img photo={photo} className={className} />;
 }
 
-function Slideshow({ photo, className }: { photo: Photo; className: string }) {
+function Slideshow({ photo, className, kind }: { photo: Photo; className: string; kind: "fade" | "push" }) {
   const slides = [photo, ...SLIDESHOW.filter((p) => p.src !== photo.src)].slice(0, 4);
   const [index, setIndex] = useState(0);
   useEffect(() => {
@@ -79,17 +83,32 @@ function Slideshow({ photo, className }: { photo: Photo; className: string }) {
   }, [photo.src, slides.length]);
   return (
     <div className={className}>
-      {slides.map((slide, i) => (
-        // Cross-fade, and a slow zoom on the one showing (Ken Burns).
-        <div
-          key={slide.src}
-          className={`absolute inset-0 transition-[opacity,transform] ease-out ${
-            i === index ? "scale-110 opacity-100 duration-[6000ms]" : "scale-100 opacity-0 duration-1000"
-          }`}
-        >
-          <Img photo={slide} />
-        </div>
-      ))}
+      {slides.map((slide, i) => {
+        let place: string;
+        if (kind === "fade") {
+          // Cross-fade, and a slow zoom on the one showing (Ken Burns).
+          place = i === index ? "scale-110 opacity-100 duration-[6000ms]" : "scale-100 opacity-0 duration-1000";
+        } else {
+          // A push from right to left: the one showing sits at 0 and the one before it
+          // slides out to the left, both animated; every other slide waits off the right
+          // edge without animating, so the jump from far left back to the right is never seen.
+          const previous = (index - 1 + slides.length) % slides.length;
+          place =
+            i === index
+              ? "translate-x-0 duration-700"
+              : i === previous
+                ? "-translate-x-full duration-700"
+                : "translate-x-full duration-0";
+        }
+        return (
+          <div
+            key={slide.src}
+            className={`absolute inset-0 ease-in-out ${kind === "fade" ? "transition-[opacity,transform]" : "transition-transform"} ${place}`}
+          >
+            <Img photo={slide} />
+          </div>
+        );
+      })}
       <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1.5">
         {slides.map((slide, i) => (
           <span key={slide.src} className={`h-1 rounded-full bg-white transition-all ${i === index ? "w-6" : "w-1.5 opacity-50"}`} />
@@ -535,11 +554,12 @@ export function TopBar({
 
 const MEDIA_MODES: [MediaMode, string][] = [
   ["photo", "Photo"],
-  ["slideshow", "Slides"],
+  ["slideshow", "Fade"],
+  ["slide", "Slide"],
   ["video", "Video"],
 ];
 
-/** Photo, slideshow or video for every big picture area — part of the switcher, so it is
+/** Photo, fading or sliding slideshow, or video for every big picture area — part of the switcher, so it is
  *  set once and kept while stepping through the options. */
 function MediaToggle() {
   const mode = useMediaMode();
