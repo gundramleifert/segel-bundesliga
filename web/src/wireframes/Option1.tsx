@@ -72,7 +72,7 @@ function Home() {
       </div>
 
       <div className="mx-auto max-w-7xl space-y-16 px-4 py-12 lg:px-8">
-        <section className="grid items-center gap-8 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 lg:grid-cols-2">
+        <section className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 lg:grid-cols-2">
           <div className="aspect-[16/10] lg:aspect-auto lg:h-full">
             <Img photo={NEWS[0].photo} />
           </div>
@@ -86,7 +86,7 @@ function Home() {
 
         <section>
           <SectionTitle>Our leagues</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
             {LEAGUES.map((league, i) => (
               <Link key={league.slug} to={to(league.slug)} className="group relative block aspect-[4/5] overflow-hidden rounded-2xl bg-slate-900">
                 <Img photo={[PHOTOS.helgaNrv, PHOTOS.helga2022, PHOTOS.stMoritz][i]} className="opacity-75 transition group-hover:scale-105" />
@@ -101,7 +101,7 @@ function Home() {
 
         <section>
           <SectionTitle more="All news">Latest news</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {NEWS.slice(1, 4).map((item) => (
               <NewsCard key={item.title} item={item} />
             ))}
@@ -120,7 +120,7 @@ function Home() {
           ))}
         </section>
 
-        <section className="grid gap-10 lg:grid-cols-2">
+        <section className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-2">
           <div>
             <SectionTitle more="Full calendar">Matchdays</SectionTitle>
             <MatchdayList />
@@ -133,7 +133,7 @@ function Home() {
 
         <section>
           <SectionTitle more="YouTube">Videos</SectionTitle>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-3">
             {VIDEOS.slice(0, 3).map((video) => (
               <VideoTile key={video.src} video={video} />
             ))}

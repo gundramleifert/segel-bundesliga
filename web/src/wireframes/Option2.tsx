@@ -71,7 +71,7 @@ function Home() {
           {PATHS.map(([icon, label]) => (
             <li key={label}>
               <a href="#" className="group flex flex-col items-center gap-2 text-center text-sm font-semibold">
-                <span className="grid size-16 place-items-center rounded-full bg-slate-100 text-2xl transition group-hover:bg-brand-50 sm:size-20">{icon}</span>
+                <span className="grid grid-cols-[minmax(0,1fr)] size-16 place-items-center rounded-full bg-slate-100 text-2xl transition group-hover:bg-brand-50 sm:size-20">{icon}</span>
                 {label}
               </a>
             </li>
@@ -128,12 +128,12 @@ function Home() {
 
       <section>
         <SectionTitle more="Media library">Media</SectionTitle>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
           {VIDEOS.slice(0, 2).map((video) => <VideoTile key={video.src} video={video} />)}
         </div>
       </section>
 
-      <section className="grid gap-6 rounded-3xl bg-slate-50 p-8 sm:grid-cols-3">
+      <section className="grid grid-cols-[minmax(0,1fr)] gap-6 rounded-3xl bg-slate-50 p-8 sm:grid-cols-3">
         {[
           ["Results & tables", ["DSBL: 1. and 2. Liga", "Junioren-Liga", "DSL-Pokal", "Archive"]],
           ["Media & press", ["Press releases", "Press kit", "Photo galleries", "Accreditation"]],

@@ -75,8 +75,7 @@ export function MyArea({ tone = "light", compact = false }: { tone?: "light" | "
         }`}
       >
         <span
-          className={`grid size-7 place-items-center rounded-full text-xs font-semibold ${
-            dark ? "bg-white text-brand-800" : "bg-brand-600 text-white"
+          className={`grid grid-cols-[minmax(0,1fr)] size-7 place-items-center rounded-full text-xs font-semibold ${ dark ?"bg-white text-brand-800" : "bg-brand-600 text-white"
           }`}
         >
           AS
@@ -232,8 +231,7 @@ export function PressList({ dark = false }: { dark?: boolean }) {
       {PRESS.map((item) => (
         <li key={item.title} className="flex items-center gap-3 px-4 py-3">
           <span
-            className={`grid size-9 shrink-0 place-items-center rounded-md text-[10px] font-bold ${
-              dark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-600"
+            className={`grid grid-cols-[minmax(0,1fr)] size-9 shrink-0 place-items-center rounded-md text-[10px] font-bold ${ dark ?"bg-white/10 text-white" : "bg-slate-100 text-slate-600"
             }`}
           >
             {item.kind === "Photos" ? "ZIP" : "PDF"}
@@ -258,7 +256,7 @@ export function Footer() {
   const { to } = useWireframe();
   return (
     <footer className="mt-16 bg-slate-900 text-slate-300">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <p className="font-semibold text-white">Leagues</p>
           <ul className="mt-3 space-y-2 text-sm">
@@ -325,7 +323,7 @@ export function Switcher() {
           to={wireHref(o.n, league?.slug)}
           title={o.name}
           data-testid={`wf-switch-${o.n}`}
-          className={`grid size-8 place-items-center rounded-full ${o.n === option ? "bg-white font-semibold text-slate-900" : "hover:bg-white/10"}`}
+          className={`grid grid-cols-[minmax(0,1fr)] size-8 place-items-center rounded-full ${o.n === option ?"bg-white font-semibold text-slate-900" : "hover:bg-white/10"}`}
         >
           {o.n}
         </Link>
@@ -353,6 +351,13 @@ const TAB_STYLES = {
     item: "rounded-full px-4 py-1.5 hover:bg-slate-100",
     active: "bg-slate-900 text-white font-semibold",
     logoOnDark: false,
+  },
+  // Option 6: no bar of its own — the top bar lies over the picture the page opens with.
+  overlay: {
+    bar: "absolute inset-x-0 top-0 bg-gradient-to-b from-slate-950/70 to-transparent text-white/80",
+    item: "rounded-full px-4 py-1.5 hover:bg-white/15 hover:text-white",
+    active: "bg-white text-slate-900 font-semibold",
+    logoOnDark: true,
   },
   editorial: {
     bar: "bg-white text-slate-600 border-b border-slate-200",
@@ -382,7 +387,7 @@ export function TopBar({
   const { league, to } = useWireframe();
   const style = TAB_STYLES[variant];
   return (
-    <header className={`relative z-40 text-sm ${style.bar}`} data-testid="wf-top-bar">
+    <header className={`z-40 text-sm ${variant === "overlay" ? "" : "relative"} ${style.bar}`} data-testid="wf-top-bar">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-3 lg:px-6">
         <Logo light={style.logoOnDark} />
         <nav aria-label="Leagues" className="scrollbar-none min-w-0 flex-1 overflow-x-auto lg:overflow-visible">

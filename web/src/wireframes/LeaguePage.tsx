@@ -65,7 +65,7 @@ export function LeaguePage({ league }: { league: League }) {
       </nav>
 
       <div className="mx-auto max-w-7xl space-y-14 px-4 py-10 lg:px-8">
-        <section id="overview" className="grid gap-6 lg:grid-cols-3">
+        <section id="overview" className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-3">
           <div className="rounded-2xl bg-brand-700 p-6 text-white lg:col-span-2">
             <p className="text-sm uppercase tracking-wide text-white/70">{live?.state === "live" ? "Racing now" : "Coming up"}</p>
             <h2 className="mt-1 text-2xl font-bold">{live ? `${live.title} · ${live.venue}` : "Season complete"}</h2>
@@ -91,7 +91,7 @@ export function LeaguePage({ league }: { league: League }) {
 
         <section id="standings">
           <SectionTitle more="Full table & race-by-race">Standings</SectionTitle>
-          <div className={several ? "grid gap-6 lg:grid-cols-2" : ""}>
+          <div className={several ? "grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2" : ""}>
             {divisions.map((division) => (
               <div key={division.slug} className="min-w-0">
                 {several && <h3 className="mb-2 text-lg font-semibold">{division.name}</h3>}
@@ -116,7 +116,7 @@ export function LeaguePage({ league }: { league: League }) {
                   <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                     {division.rows.map((row) => (
                       <li key={row.short} className="flex flex-col items-center gap-2 rounded-xl bg-white p-4 text-center ring-1 ring-slate-200">
-                        <span className="grid size-12 place-items-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{row.short}</span>
+                        <span className="grid grid-cols-[minmax(0,1fr)] size-12 place-items-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{row.short}</span>
                         <span className="line-clamp-2 text-xs text-slate-600">{row.club}</span>
                       </li>
                     ))}
@@ -131,7 +131,7 @@ export function LeaguePage({ league }: { league: League }) {
 
         <section id="media">
           <SectionTitle more="Media library">Media</SectionTitle>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
             <VideoTile video={VIDEOS[0]} />
             <div className="grid grid-cols-2 gap-2">
               {[PHOTOS.helgaNrv, PHOTOS.helgaBahn, PHOTOS.kiel12, PHOTOS.alster].map((p) => (
@@ -145,7 +145,7 @@ export function LeaguePage({ league }: { league: League }) {
 
         <section id="news">
           <SectionTitle more="All news">News</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {(news.length ? news : NEWS.slice(0, 3)).map((item) => (
               <NewsCard key={item.title} item={item} />
             ))}

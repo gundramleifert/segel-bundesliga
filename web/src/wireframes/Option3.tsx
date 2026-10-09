@@ -60,7 +60,7 @@ function Ticker() {
 function Home() {
   const [tab, setTab] = useState(DIVISIONS[0].slug);
   return (
-    <main className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-3 lg:px-8">
+    <main className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-7xl gap-8 px-4 py-8 lg:grid-cols-3 lg:px-8">
       <div className="min-w-0 space-y-10 lg:col-span-2">
         <section>
           <SectionTitle more="All tables">Standings</SectionTitle>
@@ -81,7 +81,7 @@ function Home() {
 
         <section>
           <SectionTitle more="Race by race">Last result · 1. Liga Act 4 Tutzing</SectionTitle>
-          <ol className="grid gap-3 sm:grid-cols-3">
+          <ol className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-3">
             {(STANDINGS["1-liga"] ?? []).slice(0, 3).map((row, i) => (
               <li key={row.short} className={`rounded-xl p-5 text-center ${i === 0 ? "bg-amber-100" : "bg-white ring-1 ring-slate-200"}`}>
                 <p className="text-3xl font-extrabold">{i + 1}.</p>

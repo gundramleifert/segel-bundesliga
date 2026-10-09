@@ -61,16 +61,21 @@ export const findLeague = (slug: string | undefined) =>
 
 export type Photo = { src: string; alt: string; credit: string; license: string; page: string };
 
-const thumb = (path: string, file: string, width = 1280) =>
-  `https://upload.wikimedia.org/wikipedia/commons/thumb/${path}/${width}px-${file}`;
 const commons = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
 
-function photo(path: string, file: string, alt: string, credit: string, license: string): Photo {
-  return { src: thumb(path, file), alt, credit, license, page: commons(file) };
+/** Where a downloaded copy lives under `public/wireframe-media/` — the Commons file name
+ *  with everything but letters, digits, `.`, `_` and `-` turned into `_`. */
+const local = (file: string) =>
+  `/wireframe-media/${decodeURIComponent(file).replace(/[^A-Za-z0-9._-]/g, "_")}`;
+
+// `path` is the file's hash directory on Commons; kept so the source can be found again.
+function photo(_path: string, file: string, alt: string, credit: string, license: string): Photo {
+  return { src: local(file), alt, credit, license, page: commons(file) };
 }
 
-// Freely licensed photos from Wikimedia Commons, hotlinked — Commons allows that, with the
-// attribution the credits list on the wireframe index carries.
+// Freely licensed photos from Wikimedia Commons, credited on the wireframe index. Served
+// from `public/wireframe-media/` (960 px copies), not hotlinked: loaded straight from
+// upload.wikimedia.org they did not show up in the browser at all.
 export const PHOTOS = {
   alster: photo(
     "3/33",
@@ -160,11 +165,12 @@ export const PHOTOS = {
 
 export type Video = { src: string; poster: string; title: string; credit: string; license: string; page: string };
 
-function video(path: string, file: string, title: string, credit: string, license: string): Video {
+function video(path: string, file: string, title: string, credit: string, license: string, poster?: Photo): Video {
   return {
-    // The 480p transcode: the originals are ~90 MB each.
+    // The 480p transcode, streamed from Commons — too big to keep here (10–90 MB each).
+    // Only the poster is a local copy, so the tile shows a picture before anyone presses play.
     src: `https://upload.wikimedia.org/wikipedia/commons/transcoded/${path}/${file}/${file}.480p.vp9.webm`,
-    poster: `https://upload.wikimedia.org/wikipedia/commons/thumb/${path}/${file}/960px--${file}.jpg`,
+    poster: poster?.src ?? `${local(file)}.jpg`,
     title,
     credit,
     license,
@@ -200,6 +206,8 @@ export const VIDEOS: Video[] = [
     "Onboard: a start from the committee boat",
     "Blaž Režabek",
     "CC BY 3.0",
+    // Commons has no 960 px still of this one.
+    PHOTOS.kiel10,
   ),
 ];
 

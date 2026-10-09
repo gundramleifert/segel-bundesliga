@@ -45,6 +45,15 @@ export const OPTIONS = [
       "The top bar is the main navigation. Home is one card per league with leader, " +
       "next date and live state; news, media and press sit in tabs below.",
   },
+  {
+    n: 6,
+    name: "Open water",
+    inspiredBy: "none — the water itself",
+    summary:
+      "The picture starts at the very top, the bar lies over it. The three leagues are the " +
+      "hero, side by side; the season is a course with its matchdays as marks; huge " +
+      "typographic standings, news as a logbook, media as a film strip.",
+  },
 ] as const;
 
 export const wireHref = (option: number, league?: string | null) =>

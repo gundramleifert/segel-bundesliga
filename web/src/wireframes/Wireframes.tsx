@@ -8,9 +8,10 @@ import { Option2 } from "./Option2";
 import { Option3 } from "./Option3";
 import { Option4 } from "./Option4";
 import { Option5 } from "./Option5";
+import { Option6 } from "./Option6";
 
-const PAGES = { 1: Option1, 2: Option2, 3: Option3, 4: Option4, 5: Option5 } as const;
-const PREVIEW = [PHOTOS.alster, PHOTOS.helga2022, PHOTOS.helgaBahn, PHOTOS.stMoritz, PHOTOS.helgaNrv];
+const PAGES = { 1: Option1, 2: Option2, 3: Option3, 4: Option4, 5: Option5, 6: Option6 } as const;
+const PREVIEW = [PHOTOS.alster, PHOTOS.helga2022, PHOTOS.helgaBahn, PHOTOS.stMoritz, PHOTOS.helgaNrv, PHOTOS.kiel4];
 
 /** Five homepage options to compare in the browser (issue #13). Outside the site's
  *  `Layout` on purpose: the header is what is being compared. Throwaway — the chosen
@@ -33,13 +34,13 @@ export function WireframeIndex() {
       <div className="mx-auto max-w-5xl">
         <h1 className="text-3xl font-extrabold tracking-tight">Homepage wireframes</h1>
         <p className="mt-2 max-w-3xl text-slate-600">
-          Five options for the new site structure: a thin bar at the very top switches between the leagues — DSBL (1. and 2. Liga on one page), Junioren-Liga, DSL-Pokal —
+          Six options for the new site structure: a thin bar at the very top switches between the leagues — DSBL (1. and 2. Liga on one page), Junioren-Liga, DSL-Pokal —
           every league is one page with its own URL, the logo leads home, and the personal area sits top right. Each option has the
           homepage and a league page — click a league in the top bar. Content is invented; photos and videos are freely
           licensed from Wikimedia Commons.
         </p>
 
-        <ul className="mt-8 grid gap-5 sm:grid-cols-2">
+        <ul className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-5 sm:grid-cols-2">
           {OPTIONS.map((o, i) => (
             <li key={o.n}>
               <Link to={wireHref(o.n)} data-testid={`wf-option-${o.n}`} className="group block overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 hover:shadow-md">

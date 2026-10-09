@@ -27,7 +27,7 @@ function Home() {
   const [lead, ...rest] = NEWS;
   return (
     <main>
-      <section className="mx-auto grid max-w-7xl gap-2 px-4 py-6 lg:grid-cols-2 lg:px-8">
+      <section className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-7xl gap-2 px-4 py-6 lg:grid-cols-2 lg:px-8">
         <a href="#" className="group relative block aspect-[4/3] overflow-hidden rounded-xl bg-slate-900 lg:aspect-auto lg:min-h-[32rem]">
           <Img photo={lead.photo} className="transition group-hover:scale-105" />
           <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-slate-950/90 via-transparent p-6 text-white">
@@ -51,9 +51,9 @@ function Home() {
       <section className="bg-slate-950 py-12 text-white">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <SectionTitle light more="YouTube">Videos</SectionTitle>
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-3">
             <VideoTile video={VIDEOS[0]} className="lg:col-span-2" />
-            <div className="grid gap-4">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
               {VIDEOS.slice(1, 3).map((video) => <VideoTile key={video.src} video={video} />)}
             </div>
           </div>
@@ -63,7 +63,7 @@ function Home() {
       <div className="mx-auto max-w-7xl space-y-16 px-4 py-12 lg:px-8">
         <section>
           <SectionTitle>Standings at a glance</SectionTitle>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-3">
             {DIVISIONS.filter((l) => (STANDINGS[l.slug] ?? []).length).map((l) => (
               <div key={l.slug}>
                 <p className="mb-2 font-semibold">{l.short}</p>
@@ -84,7 +84,7 @@ function Home() {
           </div>
         </section>
 
-        <section className="grid gap-8 rounded-2xl bg-slate-900 p-6 text-white lg:grid-cols-3 lg:p-10">
+        <section className="grid grid-cols-[minmax(0,1fr)] gap-8 rounded-2xl bg-slate-900 p-6 text-white lg:grid-cols-3 lg:p-10">
           <div className="lg:col-span-2">
             <SectionTitle light more="Archive">Press centre</SectionTitle>
             <PressList dark />

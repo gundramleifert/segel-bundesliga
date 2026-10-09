@@ -33,7 +33,7 @@ function Home() {
         <p className="mt-1 text-slate-600">Three competitions, one association. Pick your league.</p>
       </section>
 
-      <section className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <section className="grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2 lg:grid-cols-3">
         {LEAGUES.map((league, i) => {
           const several = league.divisions.length > 1;
           const day = MATCHDAYS.find((d) => inLeague(league, d.league) && d.state !== "done");
@@ -100,10 +100,10 @@ function Home() {
           ))}
         </div>
         {tab === "News" && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{NEWS.slice(0, 6).map((n) => <NewsCard key={n.title} item={n} />)}</div>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2 lg:grid-cols-3">{NEWS.slice(0, 6).map((n) => <NewsCard key={n.title} item={n} />)}</div>
         )}
         {tab === "Media" && (
-          <div className="grid gap-4 md:grid-cols-2">{VIDEOS.map((v) => <VideoTile key={v.src} video={v} />)}</div>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">{VIDEOS.map((v) => <VideoTile key={v.src} video={v} />)}</div>
         )}
         {tab === "Press" && <PressList />}
         {tab === "Calendar" && <MatchdayList />}
