@@ -179,7 +179,7 @@ function BigStandings() {
           </div>
         ))}
       </div>
-      <Link to="/wireframes/6/dsbl" className="mt-8 inline-block text-white/80 underline-offset-4 hover:underline">Full tables →</Link>
+      <Link to="#" className="mt-8 inline-block text-white/80 underline-offset-4 hover:underline">Full tables →</Link>
     </section>
   );
 }

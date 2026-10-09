@@ -306,11 +306,11 @@ export function Footer() {
 
 /** The floating bar to step between the options while comparing them. */
 export function Switcher() {
-  const { option, league } = useWireframe();
+  const { option } = useWireframe();
   const navigate = useNavigate();
   const current = OPTIONS.find((o) => o.n === option);
 
-  // ← / → step through the options, wrapping round, on the same league. Not while typing,
+  // ← / → step through the options' home pages, wrapping round. Not while typing,
   // and not with a modifier held — Alt+← is the browser's own "back".
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -322,12 +322,12 @@ export function Switcher() {
       const step = event.key === "ArrowRight" ? 1 : -1;
       const next = OPTIONS[(index + step + OPTIONS.length) % OPTIONS.length];
       event.preventDefault();
-      navigate(wireHref(next.n, league?.slug));
+      navigate(wireHref(next.n));
       window.scrollTo(0, 0);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [option, league, navigate]);
+  }, [option, navigate]);
 
   return (
     <nav
@@ -341,7 +341,7 @@ export function Switcher() {
       {OPTIONS.map((o) => (
         <Link
           key={o.n}
-          to={wireHref(o.n, league?.slug)}
+          to={wireHref(o.n)}
           title={o.name}
           data-testid={`wf-switch-${o.n}`}
           className={`grid size-8 shrink-0 place-items-center rounded-full ${o.n === option ? "bg-white font-semibold text-slate-900" : "hover:bg-white/10"}`}

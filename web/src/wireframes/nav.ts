@@ -106,7 +106,11 @@ export function useWireframe() {
   const params = useParams();
   const option = Number(params.option ?? 0);
   const league = findLeague(params.league);
-  return { option, league, home: wireHref(option), to: (slug: string | null) => wireHref(option, slug) };
+  // `to` deliberately ignores the league: while the options are being compared, every
+  // link stays on the option's home page. The league pages still answer at their URL
+  // (/wireframes/<n>/<league>), but a stray click no longer lands on one — stepping
+  // through the options from there showed the shared league page eleven times.
+  return { option, league, home: wireHref(option), to: (_slug: string | null) => wireHref(option) };
 }
 
 export const formatDate = (iso: string) =>
