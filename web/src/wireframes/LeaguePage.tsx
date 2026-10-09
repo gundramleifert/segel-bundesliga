@@ -1,9 +1,8 @@
-import { LEAGUES, MATCHDAYS, NEWS, PHOTOS, STANDINGS, VIDEOS, type League } from "./data";
+import { LEAGUES, MATCHDAYS, NEWS, PHOTOS, STANDINGS, VIDEOS, inLeague, type League } from "./data";
 import { Img, LiveDot, MatchdayList, NewsCard, PressList, SectionTitle, StandingsTable, VideoTile } from "./kit";
 
 const HERO: Record<string, keyof typeof PHOTOS> = {
-  "1-liga": "alster",
-  "2-liga": "helgaBahn",
+  dsbl: "alster",
   junioren: "helga2022",
   pokal: "stMoritz",
 };
@@ -19,12 +18,14 @@ const SECTIONS = [
 ] as const;
 
 /** A league is one page (issue #13): everything about it on one URL, the sections reached
- *  by a sticky row of anchors rather than by sub-pages. Shared by all five options — they
+ *  by a sticky row of anchors rather than by sub-pages. The DSBL's page carries both of its
+ *  divisions — two tables side by side, not two pages. Shared by all five options — they
  *  differ in how you *get* here, not in what a league is. */
 export function LeaguePage({ league }: { league: League }) {
-  const live = MATCHDAYS.find((day) => day.league === league.short && (day.state === "live" || day.state === "next"));
-  const rows = STANDINGS[league.slug] ?? [];
-  const news = NEWS.filter((item) => item.league === league.short);
+  const live = MATCHDAYS.find((day) => inLeague(league, day.league) && (day.state === "live" || day.state === "next"));
+  const divisions = league.divisions.map((division) => ({ ...division, rows: STANDINGS[division.slug] ?? [] }));
+  const several = divisions.length > 1;
+  const news = NEWS.filter((item) => inLeague(league, item.league));
 
   return (
     <div data-testid={`wf-league-${league.slug}`}>
@@ -77,33 +78,55 @@ export function LeaguePage({ league }: { league: League }) {
               ))}
             </div>
           </div>
-          <div className="rounded-2xl bg-white p-6 ring-1 ring-slate-200">
-            <p className="text-sm text-slate-500">Leader</p>
-            <p className="mt-1 text-2xl font-bold">{rows[0]?.club ?? "—"}</p>
-            <p className="text-slate-600">{rows[0] ? `${rows[0].points} points after ${league.events - 2} acts` : "No races yet"}</p>
+          <div className="space-y-4 rounded-2xl bg-white p-6 ring-1 ring-slate-200">
+            {divisions.map((division) => (
+              <div key={division.slug}>
+                <p className="text-sm text-slate-500">Leader{several && ` ${division.short}`}</p>
+                <p className={`mt-1 font-bold ${several ? "text-lg" : "text-2xl"}`}>{division.rows[0]?.club ?? "—"}</p>
+                <p className="text-slate-600">{division.rows[0] ? `${division.rows[0].points} points` : "No races yet"}</p>
+              </div>
+            ))}
           </div>
         </section>
 
         <section id="standings">
           <SectionTitle more="Full table & race-by-race">Standings</SectionTitle>
-          <StandingsTable slug={league.slug} limit={12} />
+          <div className={several ? "grid gap-6 lg:grid-cols-2" : ""}>
+            {divisions.map((division) => (
+              <div key={division.slug} className="min-w-0">
+                {several && <h3 className="mb-2 text-lg font-semibold">{division.name}</h3>}
+                <StandingsTable slug={division.slug} limit={12} />
+              </div>
+            ))}
+          </div>
         </section>
 
         <section id="matchdays">
           <SectionTitle more="Add to calendar">Matchdays</SectionTitle>
-          <MatchdayList league={league.short} />
+          <MatchdayList league={league} />
         </section>
 
         <section id="clubs">
           <SectionTitle>Clubs</SectionTitle>
-          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {(rows.length ? rows : (STANDINGS["1-liga"] ?? [])).map((row) => (
-              <li key={row.short} className="flex flex-col items-center gap-2 rounded-xl bg-white p-4 text-center ring-1 ring-slate-200">
-                <span className="grid size-12 place-items-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{row.short}</span>
-                <span className="line-clamp-2 text-xs text-slate-600">{row.club}</span>
-              </li>
+          <div className="space-y-6">
+            {divisions.map((division) => (
+              <div key={division.slug}>
+                {several && <h3 className="mb-2 text-lg font-semibold">{division.short}</h3>}
+                {division.rows.length ? (
+                  <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                    {division.rows.map((row) => (
+                      <li key={row.short} className="flex flex-col items-center gap-2 rounded-xl bg-white p-4 text-center ring-1 ring-slate-200">
+                        <span className="grid size-12 place-items-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{row.short}</span>
+                        <span className="line-clamp-2 text-xs text-slate-600">{row.club}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-500">Entries open until 31 January.</p>
+                )}
+              </div>
             ))}
-          </ul>
+          </div>
         </section>
 
         <section id="media">

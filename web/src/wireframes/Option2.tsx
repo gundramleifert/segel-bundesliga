@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { MATCHDAYS, NEWS, PHOTOS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, LeagueTabs, LiveDot, Logo, MyArea, NewsCard, SectionTitle, VideoTile } from "./kit";
+import { Footer, Img, TopBar, LiveDot, MyArea, NewsCard, SectionTitle, VideoTile } from "./kit";
 import { useWireframe } from "./nav";
 
 const SLIDES = [
@@ -25,27 +25,13 @@ const CARD_PHOTOS = [PHOTOS.helgaBahn, PHOTOS.kiel10, PHOTOS.helgaNrv, PHOTOS.al
 
 /** Option 2 — "Pathfinder", after vodafone.de: segment tabs on a light bar with the
  *  personal area at its end ("MeinVodafone"), a hero carousel, round entry tiles, and
- *  rows of cards that scroll sideways on a phone. */
+ *  rows of cards that scroll sideways on a phone. The tiles *are* the menu — a menu row
+ *  in the header beside them listed the same six entries twice. */
 export function Option2() {
   const { league } = useWireframe();
   return (
     <div className="min-h-dvh bg-white text-ink">
-      <LeagueTabs variant="light" right={<><span className="hidden text-slate-500 sm:inline">Help</span><MyArea compact /></>} />
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 lg:px-8">
-          <Logo />
-          <nav className="hidden flex-1 md:block">
-            <ul className="flex gap-5 text-[15px] font-semibold">
-              {["Results", "Live", "Calendar", "Media", "Press", "Clubs"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="border-b-2 border-transparent pb-1 hover:border-brand-600">{item}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <span className="ml-auto text-sm text-slate-500">Search</span>
-        </div>
-      </header>
+      <TopBar variant="light" right={<><span className="hidden text-slate-500 sm:inline">Search</span><MyArea /></>} />
       {league ? <LeaguePage league={league} /> : <Home />}
       <Footer />
     </div>
@@ -149,7 +135,7 @@ function Home() {
 
       <section className="grid gap-6 rounded-3xl bg-slate-50 p-8 sm:grid-cols-3">
         {[
-          ["Results & tables", ["Standings 1. Liga", "Standings 2. Liga", "Junioren-Liga", "Archive"]],
+          ["Results & tables", ["DSBL: 1. and 2. Liga", "Junioren-Liga", "DSL-Pokal", "Archive"]],
           ["Media & press", ["Press releases", "Press kit", "Photo galleries", "Accreditation"]],
           ["Clubs & sailors", ["All clubs", "Sailor profiles", "Waiver", "Organise an event"]],
         ].map(([title, links]) => (

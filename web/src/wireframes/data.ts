@@ -2,6 +2,11 @@
 // purpose: the wireframes compare *layouts*, and fixed content keeps the five options
 // comparable side by side. Throwaway — the chosen option is rebuilt on real data.
 
+/** What is scored as one table: the 1. and 2. Liga are two divisions of the DSBL. */
+export type Division = { slug: string; short: string; name: string };
+
+/** What the top bar offers — one URL each. The DSBL holds both of its divisions on one
+ *  page; the others are a single division of their own. */
 export type League = {
   slug: string;
   short: string;
@@ -9,24 +14,21 @@ export type League = {
   teams: number;
   events: number;
   tagline: string;
+  divisions: Division[];
 };
 
 export const LEAGUES: League[] = [
   {
-    slug: "1-liga",
-    short: "1. Liga",
-    name: "1. Segel-Bundesliga 2026",
-    teams: 18,
-    events: 6,
-    tagline: "18 clubs, six acts, one champion.",
-  },
-  {
-    slug: "2-liga",
-    short: "2. Liga",
-    name: "2. Segel-Bundesliga 2026",
-    teams: 18,
-    events: 5,
-    tagline: "The race for promotion.",
+    slug: "dsbl",
+    short: "DSBL",
+    name: "Deutsche Segel-Bundesliga 2026",
+    teams: 36,
+    events: 11,
+    tagline: "Two divisions, 36 clubs, promotion and relegation.",
+    divisions: [
+      { slug: "1-liga", short: "1. Liga", name: "1. Segel-Bundesliga" },
+      { slug: "2-liga", short: "2. Liga", name: "2. Segel-Bundesliga" },
+    ],
   },
   {
     slug: "junioren",
@@ -35,6 +37,7 @@ export const LEAGUES: League[] = [
     teams: 12,
     events: 3,
     tagline: "Under 23, same boats, same pressure.",
+    divisions: [{ slug: "junioren", short: "Junioren-Liga", name: "Junioren-Segel-Liga" }],
   },
   {
     slug: "pokal",
@@ -43,8 +46,15 @@ export const LEAGUES: League[] = [
     teams: 24,
     events: 1,
     tagline: "One weekend, every club can enter.",
+    divisions: [{ slug: "pokal", short: "DSL-Pokal", name: "DSL-Pokal" }],
   },
 ];
+
+export const DIVISIONS: Division[] = LEAGUES.flatMap((league) => league.divisions);
+
+/** Whether a matchday or a news item tagged with a division's short name belongs here. */
+export const inLeague = (league: League, tag: string) =>
+  league.divisions.some((division) => division.short === tag);
 
 export const findLeague = (slug: string | undefined) =>
   LEAGUES.find((league) => league.slug === slug) ?? null;

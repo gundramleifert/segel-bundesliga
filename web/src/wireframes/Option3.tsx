@@ -1,14 +1,13 @@
 import { useState } from "react";
 
-import { LEAGUES, NEWS, PHOTOS, STANDINGS, VIDEOS } from "./data";
+import { DIVISIONS, NEWS, PHOTOS, STANDINGS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
 import {
   Footer,
   Img,
   LanguageToggle,
-  LeagueTabs,
+  TopBar,
   LiveDot,
-  Logo,
   MatchdayList,
   MyArea,
   PressList,
@@ -33,22 +32,8 @@ export function Option3() {
   const { league } = useWireframe();
   return (
     <div className="min-h-dvh bg-slate-100 text-ink">
-      <LeagueTabs variant="brand" status right={<><LanguageToggle dark /><MyArea tone="dark" compact /></>} />
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 lg:px-8">
-          <Logo />
-          <nav className="scrollbar-none min-w-0 flex-1 overflow-x-auto">
-            <ul className="flex gap-1 text-sm font-semibold">
-              {["Live", "Results", "Tables", "Calendar", "News", "Media", "Press"].map((item) => (
-                <li key={item}>
-                  <a href="#" className="block whitespace-nowrap rounded-md px-3 py-2 hover:bg-slate-100">{item}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      </header>
       <Ticker />
+      <TopBar variant="brand" status right={<><LanguageToggle dark /><MyArea tone="dark" compact /></>} />
       {league ? <LeaguePage league={league} /> : <Home />}
       <Footer />
     </div>
@@ -73,14 +58,14 @@ function Ticker() {
 }
 
 function Home() {
-  const [tab, setTab] = useState(LEAGUES[0].slug);
+  const [tab, setTab] = useState(DIVISIONS[0].slug);
   return (
     <main className="mx-auto grid max-w-7xl gap-8 px-4 py-8 lg:grid-cols-3 lg:px-8">
       <div className="min-w-0 space-y-10 lg:col-span-2">
         <section>
           <SectionTitle more="All tables">Standings</SectionTitle>
           <div className="mb-3 flex flex-wrap gap-2">
-            {LEAGUES.filter((l) => (STANDINGS[l.slug] ?? []).length).map((l) => (
+            {DIVISIONS.filter((l) => (STANDINGS[l.slug] ?? []).length).map((l) => (
               <button
                 key={l.slug}
                 type="button"

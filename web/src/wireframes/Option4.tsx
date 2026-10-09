@@ -1,8 +1,7 @@
-import { Link } from "react-router-dom";
 
-import { LEAGUES, NEWS, PHOTOS, STANDINGS, VIDEOS } from "./data";
+import { DIVISIONS, NEWS, PHOTOS, STANDINGS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, LeagueTabs, MyArea, PressList, SectionTitle, StandingsTable, VideoTile } from "./kit";
+import { Footer, Img, TopBar, MyArea, PressList, SectionTitle, StandingsTable, VideoTile } from "./kit";
 import { formatDate, useWireframe } from "./nav";
 
 const GALLERY = [
@@ -11,27 +10,13 @@ const GALLERY = [
 ];
 
 /** Option 4 — "Magazine", after deutsche-segelbundesliga.de: pictures carry the page. A
- *  centred masthead, an editorial mosaic, a dark video band, a gallery and a press centre;
+ *  quiet editorial bar, an editorial mosaic, a dark video band, a gallery and a press centre;
  *  the tables shrink to a widget. */
 export function Option4() {
-  const { league, home } = useWireframe();
+  const { league } = useWireframe();
   return (
     <div className="min-h-dvh bg-white text-ink">
-      <LeagueTabs variant="dark" right={<MyArea tone="dark" />} />
-      <header className="border-b border-slate-200">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 pb-3 pt-5">
-          <Link to={home}>
-            <img src="/brand/deutsche-segelliga-logo.jpg" alt="Deutsche Segel-Liga" className="h-12 w-auto sm:h-14" width={200} height={58} />
-          </Link>
-          <nav className="scrollbar-none max-w-full overflow-x-auto">
-            <ul className="flex gap-6 text-sm font-semibold uppercase tracking-widest text-slate-700">
-              {["Results", "Calendar", "Stories", "Videos", "Photos", "Press", "About"].map((item) => (
-                <li key={item}><a href="#" className="whitespace-nowrap hover:text-brand-700">{item}</a></li>
-              ))}
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <TopBar variant="editorial" right={<MyArea />} />
       {league ? <LeaguePage league={league} /> : <Home />}
       <Footer />
     </div>
@@ -79,7 +64,7 @@ function Home() {
         <section>
           <SectionTitle>Standings at a glance</SectionTitle>
           <div className="grid gap-4 md:grid-cols-3">
-            {LEAGUES.filter((l) => (STANDINGS[l.slug] ?? []).length).map((l) => (
+            {DIVISIONS.filter((l) => (STANDINGS[l.slug] ?? []).length).map((l) => (
               <div key={l.slug}>
                 <p className="mb-2 font-semibold">{l.short}</p>
                 <StandingsTable slug={l.slug} limit={3} dense />

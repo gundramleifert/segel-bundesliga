@@ -6,6 +6,8 @@ import {
   MATCHDAYS,
   PRESS,
   STANDINGS,
+  inLeague,
+  type League,
   type Matchday,
   type NewsItem,
   type Photo,
@@ -184,8 +186,8 @@ export function MatchdayRow({ day }: { day: Matchday }) {
   );
 }
 
-export function MatchdayList({ league }: { league?: string }) {
-  const days = league ? MATCHDAYS.filter((day) => day.league === league) : MATCHDAYS;
+export function MatchdayList({ league }: { league?: League }) {
+  const days = league ? MATCHDAYS.filter((day) => inLeague(league, day.league)) : MATCHDAYS;
   return <ul className="rounded-xl bg-white px-4 ring-1 ring-slate-200">{days.map((day) => <MatchdayRow key={`${day.league}-${day.title}`} day={day} />)}</ul>;
 }
 
@@ -335,60 +337,88 @@ export function Switcher() {
 
 const TAB_STYLES = {
   dark: {
-    bar: "bg-slate-900 text-white/70",
-    item: "border-b-2 border-transparent px-3 py-2 hover:text-white",
+    bar: "bg-slate-900 text-white/75",
+    item: "border-b-2 border-transparent px-3 py-4 hover:text-white",
     active: "border-white text-white font-semibold",
+    logoOnDark: true,
   },
   brand: {
-    bar: "bg-brand-800 text-white/70",
-    item: "px-3 py-2 hover:text-white",
+    bar: "bg-brand-800 text-white/75",
+    item: "rounded-md px-3 py-1.5 hover:text-white",
     active: "bg-white/15 text-white font-semibold",
+    logoOnDark: true,
   },
   light: {
-    bar: "bg-slate-100 text-slate-600",
-    item: "rounded-full px-3 py-1 my-1 hover:bg-white",
-    active: "bg-white text-slate-900 font-semibold shadow-sm",
+    bar: "bg-white text-slate-600 border-b border-slate-200",
+    item: "rounded-full px-4 py-1.5 hover:bg-slate-100",
+    active: "bg-slate-900 text-white font-semibold",
+    logoOnDark: false,
+  },
+  editorial: {
+    bar: "bg-white text-slate-600 border-b border-slate-200",
+    item: "border-b-2 border-transparent px-3 py-4 uppercase tracking-widest text-xs hover:text-slate-900",
+    active: "border-brand-600 text-slate-900 font-semibold",
+    logoOnDark: false,
   },
 } as const;
 
-/** The thin bar at the very top: the association next to every league, each its own URL
- *  (issue #13). `right` is what sits at its far end — the personal area on most options. */
-export function LeagueTabs({
+/** The site's one navigation row (issue #13): logo, then DSBL · Junioren-Liga · DSL-Pokal —
+ *  each its own URL — and the personal area at the far end. The logo is the way home.
+ *
+ *  One row, not two: a thin league bar above a main menu made two navigation rows, and
+ *  the main menu's entries (results, media, press) are on the pages themselves anyway.
+ *  `menus` hangs a drop-down under a league tab — option 1's mega menu. */
+export function TopBar({
   variant,
   right,
   status = false,
+  menus,
 }: {
   variant: keyof typeof TAB_STYLES;
   right?: ReactNode;
   status?: boolean;
+  menus?: Record<string, string[]>;
 }) {
   const { league, to } = useWireframe();
   const style = TAB_STYLES[variant];
-  const tabs = [{ slug: null, short: "Deutsche Segel-Liga" }, ...LEAGUES];
   return (
-    <div className={`text-xs ${style.bar}`} data-testid="wf-league-tabs">
-      <div className="mx-auto flex max-w-7xl items-center gap-2 px-2 lg:px-6">
-        <ul className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto">
-          {tabs.map((tab) => {
-            const active = (league?.slug ?? null) === tab.slug;
-            const isLive = status && MATCHDAYS.some((d) => d.league === tab.short && d.state === "live");
-            return (
-              <li key={tab.short} className="shrink-0">
-                <Link
-                  to={to(tab.slug)}
-                  data-testid={`wf-tab-${tab.slug ?? "home"}`}
-                  aria-current={active ? "page" : undefined}
-                  className={`inline-flex items-center gap-1.5 whitespace-nowrap ${style.item} ${active ? style.active : ""}`}
-                >
-                  {tab.short}
-                  {isLive && <LiveDot />}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+    <header className={`relative z-40 text-sm ${style.bar}`} data-testid="wf-top-bar">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-3 lg:px-6">
+        <Logo light={style.logoOnDark} />
+        <nav aria-label="Leagues" className="scrollbar-none min-w-0 flex-1 overflow-x-auto lg:overflow-visible">
+          <ul className="flex items-center">
+            {LEAGUES.map((tab) => {
+              const active = league?.slug === tab.slug;
+              const isLive = status && MATCHDAYS.some((d) => inLeague(tab, d.league) && d.state === "live");
+              const menu = menus?.[tab.slug];
+              return (
+                <li key={tab.slug} className="group relative shrink-0">
+                  <Link
+                    to={to(tab.slug)}
+                    data-testid={`wf-tab-${tab.slug}`}
+                    aria-current={active ? "page" : undefined}
+                    className={`inline-flex items-center gap-1.5 whitespace-nowrap ${style.item} ${active ? style.active : ""}`}
+                  >
+                    {tab.short}
+                    {isLive && <LiveDot />}
+                    {menu && <span aria-hidden className="text-[10px] opacity-60">▾</span>}
+                  </Link>
+                  {menu && (
+                    <div className="invisible absolute left-0 top-full z-50 hidden w-60 rounded-b-xl border border-slate-200 bg-white p-2 text-slate-700 opacity-0 shadow-xl transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100 lg:block">
+                      {menu.map((item) => (
+                        <Link key={item} to={`${to(tab.slug)}#${item.toLowerCase().split(" ")[0]}`} className="block rounded-md px-3 py-1.5 hover:bg-slate-100">
+                          {item}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
         {right && <div className="flex shrink-0 items-center gap-3">{right}</div>}
       </div>
-    </div>
+    </header>
   );
 }

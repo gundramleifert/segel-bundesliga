@@ -33,8 +33,8 @@ export function WireframeIndex() {
       <div className="mx-auto max-w-5xl">
         <h1 className="text-3xl font-extrabold tracking-tight">Homepage wireframes</h1>
         <p className="mt-2 max-w-3xl text-slate-600">
-          Five options for the new site structure: a thin bar at the very top switches between the association and each
-          league, every league is one page with its own URL, and the personal area sits top right. Each option has the
+          Five options for the new site structure: a thin bar at the very top switches between the leagues — DSBL (1. and 2. Liga on one page), Junioren-Liga, DSL-Pokal —
+          every league is one page with its own URL, the logo leads home, and the personal area sits top right. Each option has the
           homepage and a league page — click a league in the top bar. Content is invented; photos and videos are freely
           licensed from Wikimedia Commons.
         </p>
@@ -49,7 +49,7 @@ export function WireframeIndex() {
                   <h2 className="mt-1 text-xl font-bold">{o.name}</h2>
                   <p className="mt-1 text-sm text-slate-600">{o.summary}</p>
                   <p className="mt-3 text-sm font-semibold text-brand-700">
-                    Home → · <span className="font-normal">league page: {wireHref(o.n, "1-liga")}</span>
+                    Home → · <span className="font-normal">league page: {wireHref(o.n, "dsbl")}</span>
                   </p>
                 </div>
               </Link>
