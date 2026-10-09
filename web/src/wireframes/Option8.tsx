@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { LEAGUES, NEWS, PHOTOS, VIDEOS, type Photo } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, LanguageToggle, LiveDot, MatchdayList, MyArea, PressList, StandingsTable, TopBar, VideoTile } from "./kit";
+import { Footer, HeroMedia, LanguageToggle, LiveDot, MatchdayList, MyArea, PressList, StandingsTable, TopBar, VideoTile } from "./kit";
 import { useWireframe } from "./nav";
 
 const CHAPTERS = [
@@ -184,7 +184,7 @@ function ChapterDots({ active }: { active: string }) {
 function Chapter({ id, n, photo, title, children }: { id: string; n: string; photo: Photo; title: string; children: ReactNode }) {
   return (
     <section id={id} data-chapter={id} className="relative flex min-h-dvh snap-start items-end overflow-hidden">
-      <Img photo={photo} className="absolute inset-0" />
+      <HeroMedia photo={photo} className="absolute inset-0" />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/20" />
       <div className="relative mx-auto w-full max-w-7xl px-4 pb-16 pr-12 pt-24 lg:px-8 lg:pr-24">
         <p className="font-mono text-sm text-white/60">{n} / 07</p>

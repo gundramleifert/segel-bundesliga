@@ -65,6 +65,7 @@ export function WireframeIndex() {
 
         <section id="credits" className="mt-12 break-all text-xs text-slate-500">
           <h2 className="mb-2 text-sm font-semibold text-slate-700">Credits</h2>
+          <p className="mb-2">The silent video loops (switcher: Video) are short cuts from the videos listed here.</p>
           <ul className="space-y-1">
             {[...Object.values(PHOTOS), ...VIDEOS].map((m) => (
               <li key={m.page}>

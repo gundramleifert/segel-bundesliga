@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { MATCHDAYS, NEWS, PHOTOS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, TopBar, LiveDot, MyArea, NewsCard, SectionTitle, VideoTile } from "./kit";
+import { Footer, HeroMedia, Img, LiveDot, MyArea, NewsCard, SectionTitle, TopBar, VideoTile } from "./kit";
 import { useWireframe } from "./nav";
 
 const SLIDES = [
@@ -45,7 +45,7 @@ function Home() {
     <main className="mx-auto max-w-7xl space-y-14 px-4 py-6 lg:px-8">
       <section>
         <div className="relative h-80 overflow-hidden rounded-3xl bg-slate-900 sm:h-[26rem]">
-          <Img photo={current.photo} className="opacity-85" />
+          <HeroMedia photo={current.photo} className="opacity-85" />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 to-transparent" />
           <div className="absolute inset-y-0 left-0 flex max-w-lg flex-col justify-center px-6 text-white sm:px-12">
             <p className="text-sm font-semibold text-white/75">{current.kicker}</p>

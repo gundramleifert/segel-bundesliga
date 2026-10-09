@@ -1,8 +1,10 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import {
+  CLIPS,
   LEAGUES,
+  SLIDESHOW,
   MATCHDAYS,
   PRESS,
   STANDINGS,
@@ -13,7 +15,7 @@ import {
   type Photo,
   type Video,
 } from "./data";
-import { OPTIONS, formatDate, useWireframe, wireHref } from "./nav";
+import { OPTIONS, formatDate, pick, setMediaMode, useMediaMode, useWireframe, wireHref, type MediaMode } from "./nav";
 
 // The building blocks the five wireframes share (issue #13). What differs between the
 // options is the arrangement — header, order, emphasis — so the parts stay identical and
@@ -28,6 +30,72 @@ export function Img({ photo, className = "" }: { photo: Photo; className?: strin
       loading="lazy"
       className={`block h-full w-full object-cover ${className}`}
     />
+  );
+}
+
+/** A big picture area: the photo, a slideshow starting from it, or a silent video loop —
+ *  whichever the switcher's media setting says. Sized and placed by `className` exactly
+ *  like `Img`, so a page swaps one for the other without changing its layout. */
+export function HeroMedia({ photo, className = "" }: { photo: Photo; className?: string }) {
+  const mode = useMediaMode();
+  // The slides and the video are stacked inside, so the box must be positioned — unless
+  // the caller already places it absolutely.
+  const box = `${className.includes("absolute") ? "" : "relative"} block h-full w-full overflow-hidden ${className}`;
+  if (mode === "video") {
+    const clip = CLIPS[pick(photo.src, CLIPS.length)];
+    return (
+      <video
+        key={clip.src}
+        className={`${box} object-cover`}
+        src={clip.src}
+        poster={clip.poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-label={photo.alt}
+        title={`Video: ${clip.credit}, ${clip.license}`}
+      />
+    );
+  }
+  if (mode === "slideshow") return <Slideshow photo={photo} className={box} />;
+  return <Img photo={photo} className={className} />;
+}
+
+function Slideshow({ photo, className }: { photo: Photo; className: string }) {
+  const slides = [photo, ...SLIDESHOW.filter((p) => p.src !== photo.src)].slice(0, 4);
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    // Staggered by picture, so three slideshows on one page do not all change at once.
+    let timer: number | undefined;
+    const start = window.setTimeout(() => {
+      setIndex((i) => (i + 1) % slides.length);
+      timer = window.setInterval(() => setIndex((i) => (i + 1) % slides.length), 5000);
+    }, 3000 + pick(photo.src, 5) * 400);
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(timer);
+    };
+  }, [photo.src, slides.length]);
+  return (
+    <div className={className}>
+      {slides.map((slide, i) => (
+        // Cross-fade, and a slow zoom on the one showing (Ken Burns).
+        <div
+          key={slide.src}
+          className={`absolute inset-0 transition-[opacity,transform] ease-out ${
+            i === index ? "scale-110 opacity-100 duration-[6000ms]" : "scale-100 opacity-0 duration-1000"
+          }`}
+        >
+          <Img photo={slide} />
+        </div>
+      ))}
+      <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1.5">
+        {slides.map((slide, i) => (
+          <span key={slide.src} className={`h-1 rounded-full bg-white transition-all ${i === index ? "w-6" : "w-1.5 opacity-50"}`} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -350,7 +418,8 @@ export function Switcher() {
         </Link>
       ))}
       {current && <span className="hidden shrink-0 px-3 text-white/70 sm:inline">{current.name}</span>}
-      <span className="hidden shrink-0 pr-3 text-xs text-white/40 lg:inline" title="Use the arrow keys">← →</span>
+      <span className="hidden shrink-0 pr-1 text-xs text-white/40 lg:inline" title="Use the arrow keys">← →</span>
+      <MediaToggle />
     </nav>
   );
 }
@@ -461,5 +530,34 @@ export function TopBar({
         {right && <div className="flex shrink-0 items-center gap-3">{right}</div>}
       </div>
     </header>
+  );
+}
+
+const MEDIA_MODES: [MediaMode, string][] = [
+  ["photo", "Photo"],
+  ["slideshow", "Slides"],
+  ["video", "Video"],
+];
+
+/** Photo, slideshow or video for every big picture area — part of the switcher, so it is
+ *  set once and kept while stepping through the options. */
+function MediaToggle() {
+  const mode = useMediaMode();
+  return (
+    <div role="radiogroup" aria-label="Big pictures as" className="ml-1 flex shrink-0 rounded-full bg-white/10 p-0.5" data-testid="wf-media-toggle">
+      {MEDIA_MODES.map(([value, label]) => (
+        <button
+          key={value}
+          type="button"
+          role="radio"
+          aria-checked={mode === value}
+          onClick={() => setMediaMode(value)}
+          data-testid={`wf-media-${value}`}
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${mode === value ? "bg-white text-slate-900" : "text-white/70 hover:text-white"}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }

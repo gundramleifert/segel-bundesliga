@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { LEAGUES, MATCHDAYS, NEWS, PHOTOS, STANDINGS, VIDEOS, inLeague } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, LanguageToggle, LiveDot, MyArea, PressList, TopBar, VideoTile } from "./kit";
+import { Footer, HeroMedia, Img, LanguageToggle, LiveDot, MyArea, PressList, TopBar, VideoTile } from "./kit";
 import { formatDate, useWireframe } from "./nav";
 
 const PANEL_PHOTO = [PHOTOS.alster, PHOTOS.helga2022, PHOTOS.stMoritz];
@@ -88,7 +88,7 @@ function LeaguePanels() {
             onClick={() => setOpen(i)}
             className={`relative min-h-0 cursor-pointer overflow-hidden transition-[flex-grow] duration-700 ease-out ${isOpen ? "grow-[5]" : "grow"} basis-0`}
           >
-            <Img photo={PANEL_PHOTO[i]} className={`absolute inset-0 transition duration-700 ${isOpen ? "scale-100 opacity-90" : "scale-110 opacity-40 grayscale"}`} />
+            <HeroMedia photo={PANEL_PHOTO[i]} className={`absolute inset-0 transition duration-700 ${isOpen ? "scale-100 opacity-90" : "scale-110 opacity-40 grayscale"}`} />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-slate-950/30" />
             {!isOpen && (
               <p className="absolute bottom-6 left-6 text-xl font-black uppercase tracking-widest lg:bottom-10 lg:left-1/2 lg:-translate-x-1/2 lg:rotate-180 lg:[writing-mode:vertical-rl]">

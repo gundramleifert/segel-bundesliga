@@ -1,5 +1,5 @@
 import { LEAGUES, MATCHDAYS, NEWS, PHOTOS, STANDINGS, VIDEOS, inLeague, type League } from "./data";
-import { Img, LiveDot, MatchdayList, NewsCard, PressList, SectionTitle, StandingsTable, VideoTile } from "./kit";
+import { HeroMedia, Img, LiveDot, MatchdayList, NewsCard, PressList, SectionTitle, StandingsTable, VideoTile } from "./kit";
 
 const HERO: Record<string, keyof typeof PHOTOS> = {
   dsbl: "alster",
@@ -30,7 +30,7 @@ export function LeaguePage({ league }: { league: League }) {
   return (
     <div data-testid={`wf-league-${league.slug}`}>
       <section className="relative h-72 overflow-hidden bg-slate-900 sm:h-96">
-        <Img photo={PHOTOS[HERO[league.slug] ?? "alster"]} className="opacity-70" />
+        <HeroMedia photo={PHOTOS[HERO[league.slug] ?? "alster"]} className="opacity-70" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 mx-auto max-w-7xl px-4 pb-8 text-white lg:px-8">
           <p className="text-sm font-semibold uppercase tracking-widest text-white/70">Season 2026</p>

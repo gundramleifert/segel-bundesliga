@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import { LEAGUES, NEWS, PHOTOS, PRESS, STANDINGS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, MyArea, TopBar, VideoTile } from "./kit";
+import { Footer, HeroMedia, Img, MyArea, TopBar, VideoTile } from "./kit";
 import { formatDate, useWireframe } from "./nav";
 
 const INK = "border-[3px] border-black";
@@ -43,7 +43,7 @@ function Home() {
           </div>
         </div>
         <div className="relative">
-          <div className={`${INK} ${HARD} aspect-[4/3] rotate-2 overflow-hidden bg-white`}><Img photo={PHOTOS.helgaBahn} /></div>
+          <div className={`${INK} ${HARD} aspect-[4/3] rotate-2 overflow-hidden bg-white`}><HeroMedia photo={PHOTOS.helgaBahn} /></div>
           <span className={`${INK} absolute -left-3 -top-5 grid size-28 -rotate-12 place-items-center rounded-full bg-[#ff6ad5] text-center text-lg font-black uppercase leading-none`}>
             Live<br />now!
           </span>

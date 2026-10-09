@@ -3,18 +3,7 @@ import { Link } from "react-router-dom";
 
 import { FACTS, LEAGUES, NEWS, PHOTOS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import {
-  Footer,
-  Img,
-  LanguageToggle,
-  TopBar,
-  MatchdayList,
-  MyArea,
-  NewsCard,
-  PressList,
-  SectionTitle,
-  VideoTile,
-} from "./kit";
+import { Footer, HeroMedia, Img, LanguageToggle, MatchdayList, MyArea, NewsCard, PressList, SectionTitle, TopBar, VideoTile } from "./kit";
 import { useWireframe } from "./nav";
 
 const SECTIONS = ["Overview", "Standings", "Matchdays", "Clubs", "Media", "News", "Press"];
@@ -43,7 +32,7 @@ function Home() {
   return (
     <main>
       <section className="relative h-[28rem] overflow-hidden bg-slate-900 sm:h-[34rem]">
-        <Img photo={PHOTOS.alster} className="opacity-80" />
+        <HeroMedia photo={PHOTOS.alster} className="opacity-80" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/30 to-transparent" />
         <div className="absolute inset-0 mx-auto flex max-w-7xl flex-col justify-end px-4 pb-14 text-white lg:px-8">
           <p className="text-sm font-semibold uppercase tracking-widest text-white/70">Season 2026 · Act 5 live</p>
@@ -74,7 +63,7 @@ function Home() {
       <div className="mx-auto max-w-7xl space-y-16 px-4 py-12 lg:px-8">
         <section className="grid grid-cols-[minmax(0,1fr)] items-center gap-8 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200 lg:grid-cols-2">
           <div className="aspect-[16/10] lg:aspect-auto lg:h-full">
-            <Img photo={NEWS[0].photo} />
+            <HeroMedia photo={NEWS[0].photo} />
           </div>
           <div className="p-6 lg:p-10">
             <p className="text-sm font-semibold uppercase tracking-wide text-brand-600">Top story · {NEWS[0].league}</p>

@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from "react";
 import { useParams } from "react-router-dom";
 
 import { findLeague } from "./data";
@@ -115,3 +116,44 @@ export function useWireframe() {
 
 export const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+/** What the big picture areas show: the still photo, a slideshow, or a silent video loop.
+ *  One setting for every option, so it survives switching between them, and remembered
+ *  in this browser — a convenience, so a failing storage just means "photo". */
+export type MediaMode = "photo" | "slideshow" | "video";
+
+const MEDIA_KEY = "wireframes.media";
+const mediaListeners = new Set<() => void>();
+let mediaMode: MediaMode = (() => {
+  try {
+    const saved = localStorage.getItem(MEDIA_KEY);
+    return saved === "slideshow" || saved === "video" ? saved : "photo";
+  } catch {
+    return "photo";
+  }
+})();
+
+export function setMediaMode(mode: MediaMode) {
+  mediaMode = mode;
+  try {
+    localStorage.setItem(MEDIA_KEY, mode);
+  } catch {
+    // Not remembered — the setting still holds until the page is reloaded.
+  }
+  mediaListeners.forEach((listener) => listener());
+}
+
+export function useMediaMode(): MediaMode {
+  return useSyncExternalStore(
+    (listener) => {
+      mediaListeners.add(listener);
+      return () => mediaListeners.delete(listener);
+    },
+    () => mediaMode,
+  );
+}
+
+/** A stable small number per picture, so each area picks "its" clip and starts its
+ *  slideshow at its own moment instead of all of them changing in step. */
+export const pick = (key: string, count: number) =>
+  [...key].reduce((sum, char) => sum + char.charCodeAt(0), 0) % count;

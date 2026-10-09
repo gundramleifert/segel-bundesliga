@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { LEAGUES, MATCHDAYS, NEWS, PHOTOS, STANDINGS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, LanguageToggle, LiveDot, MyArea, PressList, TopBar, VideoTile } from "./kit";
+import { Footer, HeroMedia, Img, LanguageToggle, LiveDot, MyArea, PressList, TopBar, VideoTile } from "./kit";
 import { formatDate, useWireframe } from "./nav";
 
 const KEYFRAMES =
@@ -68,7 +68,7 @@ function Home() {
           </div>
         </div>
         <div className="relative">
-          <div className="aspect-[4/5] overflow-hidden rounded-[3rem] ring-1 ring-white/20"><Img photo={PHOTOS.stMoritz} /></div>
+          <div className="aspect-[4/5] overflow-hidden rounded-[3rem] ring-1 ring-white/20"><HeroMedia photo={PHOTOS.stMoritz} /></div>
           <Glass className="absolute -bottom-6 -left-4 right-8 !p-4 sm:-left-10">
             <p className="text-xs uppercase tracking-widest text-white/50">Leading the DSBL</p>
             <div className="mt-2 flex items-end justify-between">

@@ -1,7 +1,7 @@
 
 import { DIVISIONS, NEWS, PHOTOS, STANDINGS, VIDEOS } from "./data";
 import { LeaguePage } from "./LeaguePage";
-import { Footer, Img, TopBar, MyArea, PressList, SectionTitle, StandingsTable, VideoTile } from "./kit";
+import { Footer, HeroMedia, Img, MyArea, PressList, SectionTitle, StandingsTable, TopBar, VideoTile } from "./kit";
 import { formatDate, useWireframe } from "./nav";
 
 const GALLERY = [
@@ -29,7 +29,7 @@ function Home() {
     <main>
       <section className="mx-auto grid grid-cols-[minmax(0,1fr)] max-w-7xl gap-2 px-4 py-6 lg:grid-cols-2 lg:px-8">
         <a href="#" className="group relative block aspect-[4/3] overflow-hidden rounded-xl bg-slate-900 lg:aspect-auto lg:min-h-[32rem]">
-          <Img photo={lead.photo} className="transition group-hover:scale-105" />
+          <HeroMedia photo={lead.photo} className="transition group-hover:scale-105" />
           <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-slate-950/90 via-transparent p-6 text-white">
             <p className="text-xs font-semibold uppercase tracking-widest text-white/70">{lead.league}</p>
             <h1 className="mt-1 text-3xl font-extrabold leading-tight sm:text-4xl">{lead.title}</h1>

@@ -319,3 +319,38 @@ export const FACTS = [
   { value: "15", label: "matchdays in 2026" },
   { value: "≈ 900", label: "races sailed" },
 ];
+
+export type Clip = { src: string; poster: string; credit: string; license: string; page: string };
+
+// Seven-to-eight-second silent loops cut from the Commons videos above (480p, H.264 so
+// they autoplay on an iPhone too), for the "video" setting of the big picture areas.
+// ≈1 MB each, kept here for the same reason as the photos.
+const clip = (name: string, file: string, credit: string, license: string): Clip => ({
+  src: `/wireframe-media/clips/${name}.mp4`,
+  poster: `/wireframe-media/clips/${name}.jpg`,
+  credit,
+  license,
+  page: commons(file),
+});
+
+export const CLIPS: Clip[] = [
+  clip("fleet", "Fireball_EC-WC_2013_Portoro%C5%BE%2C_Slovenia.webm", "Blaž Režabek", "CC BY 3.0"),
+  clip("reach", "Fireball_EC-WC_2013_Portoro%C5%BE%2C_Slovenia.webm", "Blaž Režabek", "CC BY 3.0"),
+  clip("onboard", "Fireball_EC-WC_2013_Portoro%C5%BE%2C_Slovenia.webm", "Blaž Režabek", "CC BY 3.0"),
+  clip(
+    "jclass",
+    "Final_day_of_racing_for_the_2017_J_Class_World_Championships_by_Don_Ramey_Logan.webm",
+    "Don Ramey Logan",
+    "CC BY-SA 4.0",
+  ),
+];
+
+/** The pictures a slideshow cycles through, after the area's own photo. */
+export const SLIDESHOW: Photo[] = [
+  PHOTOS.alster,
+  PHOTOS.helgaBahn,
+  PHOTOS.stMoritz,
+  PHOTOS.helgaNrv,
+  PHOTOS.helga2022,
+  PHOTOS.kiel4,
+];
