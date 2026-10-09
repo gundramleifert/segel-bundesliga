@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   LEAGUES,
@@ -307,7 +307,28 @@ export function Footer() {
 /** The floating bar to step between the options while comparing them. */
 export function Switcher() {
   const { option, league } = useWireframe();
+  const navigate = useNavigate();
   const current = OPTIONS.find((o) => o.n === option);
+
+  // ← / → step through the options, wrapping round, on the same league. Not while typing,
+  // and not with a modifier held — Alt+← is the browser's own "back".
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable], video")) return;
+      const index = OPTIONS.findIndex((o) => o.n === option);
+      const step = event.key === "ArrowRight" ? 1 : -1;
+      const next = OPTIONS[(index + step + OPTIONS.length) % OPTIONS.length];
+      event.preventDefault();
+      navigate(wireHref(next.n, league?.slug));
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [option, league, navigate]);
+
   return (
     <nav
       aria-label="Wireframe options"
@@ -329,6 +350,7 @@ export function Switcher() {
         </Link>
       ))}
       {current && <span className="hidden shrink-0 px-3 text-white/70 sm:inline">{current.name}</span>}
+      <span className="hidden shrink-0 pr-3 text-xs text-white/40 lg:inline" title="Use the arrow keys">← →</span>
     </nav>
   );
 }
