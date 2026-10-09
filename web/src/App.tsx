@@ -24,10 +24,16 @@ import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
 import { ClubPage, EventPage, ProfilePage, SeriesPage } from "./pages/me/Contexts";
 import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
+import { WireframeIndex, WireframeOption } from "./wireframes/Wireframes";
 
 export default function App() {
   return (
     <Routes>
+      {/* Issue #13: five homepage options to compare, each with its own header — so
+          outside the site's Layout. Throwaway until one is chosen. */}
+      <Route path="wireframes" element={<WireframeIndex />} />
+      <Route path="wireframes/:option" element={<WireframeOption />} />
+      <Route path="wireframes/:option/:league" element={<WireframeOption />} />
       <Route element={<Layout />}>
         <Route index element={<Start />} />
         {/* Several series run at once, so the way in is the overview; a single series'
