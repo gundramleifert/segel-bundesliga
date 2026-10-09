@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type PointerEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { LEAGUES, NEWS, PHOTOS, VIDEOS, type Photo } from "./data";
@@ -40,24 +40,16 @@ function Story() {
   const active = useActiveChapter();
   const { to } = useWireframe();
   return (
-    // The scroller is this box, not the document, so the snapping stays on this page.
-    <div className="h-dvh snap-y snap-mandatory overflow-y-auto bg-slate-950 text-white">
+    // The scroller is this box, not the document, so the snapping stays on this page. Fixed
+    // over the whole screen, so the document behind it has nothing left to scroll — two
+    // scrollbars otherwise, the box's and the page's. Its own bar is hidden too: the dots
+    // on the right are this page's scrollbar.
+    <div className="scrollbar-none fixed inset-0 snap-y snap-mandatory overflow-y-auto bg-slate-950 text-white">
       <div className="fixed inset-x-0 top-0 z-40">
         <TopBar variant="overlay" status right={<><LanguageToggle dark /><MyArea tone="dark" /></>} />
       </div>
 
-      <nav aria-label="Chapters" className="fixed right-3 top-1/2 z-40 -translate-y-1/2 lg:right-6">
-        <ol className="flex flex-col gap-3">
-          {CHAPTERS.map(([id, label]) => (
-            <li key={id}>
-              <a href={`#${id}`} className="group flex items-center justify-end gap-3">
-                <span className="hidden text-xs font-semibold uppercase tracking-widest text-white/0 transition group-hover:text-white/80 lg:inline">{label}</span>
-                <span className={`block rounded-full transition-all ${active === id ? "h-6 w-2 bg-white" : "size-2 bg-white/40 group-hover:bg-white/80"}`} />
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <ChapterDots active={active} />
 
       <Chapter id="now" n="01" photo={PHOTOS.alster} title="Racing now.">
         <p className="inline-flex items-center gap-2 rounded-full bg-red-600 px-3 py-1 text-sm font-bold"><LiveDot /> DSBL · Act 5 · Glücksburg</p>
@@ -120,6 +112,72 @@ function Story() {
 
       <div className="snap-start"><Footer /></div>
     </div>
+  );
+}
+
+/** The column of dots on the right. With a mouse, hovering shows a dot's name. With a
+ *  thumb there is no hover, so it works like the letter index of a phone's contacts:
+ *  put the thumb on the dots and slide — every chapter's name appears, the one under the
+ *  thumb lights up, and the page follows it. Letting go keeps you there. */
+function ChapterDots({ active }: { active: string }) {
+  const [scrub, setScrub] = useState<string | null>(null);
+
+  const chapterAt = (event: PointerEvent) =>
+    (document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-dot]") as HTMLElement | null)?.dataset.dot ?? null;
+
+  const follow = (event: PointerEvent) => {
+    const id = chapterAt(event);
+    if (!id || id === scrub) return;
+    setScrub(id);
+    document.getElementById(id)?.scrollIntoView({ block: "start" });
+  };
+
+  return (
+    <nav
+      aria-label="Chapters"
+      // `touch-none`: sliding along the dots is this control's gesture, not a page scroll.
+      // While sliding, a dark band behind the names keeps them readable over the chapter.
+      className={`fixed right-0 top-1/2 z-40 -translate-y-1/2 touch-none select-none rounded-l-3xl py-2 pl-6 pr-3 transition-colors lg:pr-6 ${
+        scrub ? "bg-gradient-to-l from-slate-950/95 via-slate-950/80 to-slate-950/0" : ""
+      }`}
+      onPointerDown={(event) => {
+        if (event.pointerType === "mouse") return;
+        // Keeps the slide on the dots even when the thumb drifts off the column.
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        } catch {
+          // A pointer the browser no longer tracks — the slide still works, uncaptured.
+        }
+        follow(event);
+      }}
+      onPointerMove={(event) => scrub && follow(event)}
+      onPointerUp={() => setScrub(null)}
+      onPointerCancel={() => setScrub(null)}
+    >
+      <ol className="flex flex-col">
+        {CHAPTERS.map(([id, label]) => {
+          const current = (scrub ?? active) === id;
+          return (
+            <li key={id}>
+              <a href={`#${id}`} data-dot={id} className="group flex items-center justify-end gap-3 py-1.5">
+                <span
+                  className={`whitespace-nowrap rounded-full text-xs font-semibold uppercase tracking-widest transition ${
+                    scrub
+                      ? current
+                        ? "bg-white px-3 py-1 text-sm text-slate-950"
+                        : "text-white/70"
+                      : "text-white/0 group-hover:text-white/80"
+                  }`}
+                >
+                  {label}
+                </span>
+                <span className={`block shrink-0 rounded-full transition-all ${current ? "h-6 w-2 bg-white" : "size-2 bg-white/40 group-hover:bg-white/80"}`} />
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }
 
