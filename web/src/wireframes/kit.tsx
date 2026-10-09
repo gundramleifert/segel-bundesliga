@@ -75,7 +75,7 @@ export function MyArea({ tone = "light", compact = false }: { tone?: "light" | "
         }`}
       >
         <span
-          className={`grid grid-cols-[minmax(0,1fr)] size-7 place-items-center rounded-full text-xs font-semibold ${ dark ?"bg-white text-brand-800" : "bg-brand-600 text-white"
+          className={`grid size-7 place-items-center rounded-full text-xs font-semibold ${dark ? "bg-white text-brand-800" : "bg-brand-600 text-white"
           }`}
         >
           AS
@@ -231,7 +231,7 @@ export function PressList({ dark = false }: { dark?: boolean }) {
       {PRESS.map((item) => (
         <li key={item.title} className="flex items-center gap-3 px-4 py-3">
           <span
-            className={`grid grid-cols-[minmax(0,1fr)] size-9 shrink-0 place-items-center rounded-md text-[10px] font-bold ${ dark ?"bg-white/10 text-white" : "bg-slate-100 text-slate-600"
+            className={`grid size-9 shrink-0 place-items-center rounded-md text-[10px] font-bold ${dark ? "bg-white/10 text-white" : "bg-slate-100 text-slate-600"
             }`}
           >
             {item.kind === "Photos" ? "ZIP" : "PDF"}
@@ -312,9 +312,9 @@ export function Switcher() {
     <nav
       aria-label="Wireframe options"
       data-testid="wf-switcher"
-      className="fixed inset-x-0 bottom-3 z-50 mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] items-center gap-1 rounded-full bg-slate-900/90 p-1 text-sm text-white shadow-2xl backdrop-blur"
+      className="scrollbar-none fixed inset-x-0 bottom-3 z-50 mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] items-center gap-1 overflow-x-auto rounded-full bg-slate-900/90 p-1 text-sm text-white shadow-2xl backdrop-blur"
     >
-      <Link to="/wireframes" className="rounded-full px-3 py-1.5 hover:bg-white/10">
+      <Link to="/wireframes" className="shrink-0 rounded-full px-3 py-1.5 hover:bg-white/10">
         All
       </Link>
       {OPTIONS.map((o) => (
@@ -323,12 +323,12 @@ export function Switcher() {
           to={wireHref(o.n, league?.slug)}
           title={o.name}
           data-testid={`wf-switch-${o.n}`}
-          className={`grid grid-cols-[minmax(0,1fr)] size-8 place-items-center rounded-full ${o.n === option ?"bg-white font-semibold text-slate-900" : "hover:bg-white/10"}`}
+          className={`grid size-8 shrink-0 place-items-center rounded-full ${o.n === option ? "bg-white font-semibold text-slate-900" : "hover:bg-white/10"}`}
         >
           {o.n}
         </Link>
       ))}
-      {current && <span className="hidden px-3 text-white/70 sm:inline">{current.name}</span>}
+      {current && <span className="hidden shrink-0 px-3 text-white/70 sm:inline">{current.name}</span>}
     </nav>
   );
 }
@@ -359,6 +359,20 @@ const TAB_STYLES = {
     active: "bg-white text-slate-900 font-semibold",
     logoOnDark: true,
   },
+  // Option 10: neo-brutalism — a lime bar, a heavy rule, black type.
+  brutal: {
+    bar: "bg-[#c6f432] border-b-4 border-black text-black",
+    item: "border-2 border-transparent px-3 py-1 font-black uppercase hover:border-black",
+    active: "border-black bg-black text-[#c6f432]",
+    logoOnDark: false,
+  },
+  // Option 11: a floating pill of frosted glass over the page.
+  glass: {
+    bar: "absolute inset-x-3 top-3 rounded-full bg-white/10 text-white/80 ring-1 ring-white/15 backdrop-blur-xl",
+    item: "rounded-full px-4 py-1.5 hover:bg-white/10 hover:text-white",
+    active: "bg-white/90 text-slate-950 font-semibold",
+    logoOnDark: true,
+  },
   editorial: {
     bar: "bg-white text-slate-600 border-b border-slate-200",
     item: "border-b-2 border-transparent px-3 py-4 uppercase tracking-widest text-xs hover:text-slate-900",
@@ -387,7 +401,7 @@ export function TopBar({
   const { league, to } = useWireframe();
   const style = TAB_STYLES[variant];
   return (
-    <header className={`z-40 text-sm ${variant === "overlay" ? "" : "relative"} ${style.bar}`} data-testid="wf-top-bar">
+    <header className={`z-40 text-sm ${variant === "overlay" || variant === "glass" ? "" : "relative"} ${style.bar}`} data-testid="wf-top-bar">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-3 lg:px-6">
         <Logo light={style.logoOnDark} />
         <nav aria-label="Leagues" className="scrollbar-none min-w-0 flex-1 overflow-x-auto lg:overflow-visible">

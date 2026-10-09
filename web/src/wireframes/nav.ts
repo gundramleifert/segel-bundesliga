@@ -72,6 +72,30 @@ export const OPTIONS = [
       "season, leagues, stories, media, press — each over its own picture, with a column " +
       "of dots on the right to jump between them.",
   },
+  {
+    n: 9,
+    name: "Bento",
+    inspiredBy: "Apple / Linear product pages",
+    summary:
+      "The first screen is a grid of rounded tiles of different sizes — live act, top 5, " +
+      "countdown, wind, leagues, video, story, press kit, gallery. Light and quiet.",
+  },
+  {
+    n: 10,
+    name: "Neo-brutal",
+    inspiredBy: "neo-brutalism",
+    summary:
+      "Loud on purpose: cream paper, heavy black rules, hard shadows, lime/pink/cyan, " +
+      "chunky uppercase type, a results ticker running across and a LIVE sticker.",
+  },
+  {
+    n: 11,
+    name: "Aurora glass",
+    inspiredBy: "\"liquid glass\"",
+    summary:
+      "Dark, with slow coloured light drifting behind frosted glass panes; a floating " +
+      "glass pill as navigation and a huge thin headline fading out.",
+  },
 ] as const;
 
 export const wireHref = (option: number, league?: string | null) =>

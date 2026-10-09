@@ -136,7 +136,7 @@ function Course() {
             <li key={mark.title} className={`relative flex w-28 flex-col items-center text-center ${i % 2 ? "pt-0" : ""}`}>
               <span className="text-xs font-semibold uppercase tracking-widest text-white/50">{mark.month}</span>
               <span
-                className={`relative mt-6 grid grid-cols-[minmax(0,1fr)] size-6 place-items-center rounded-full ${ mark.state ==="done"
+                className={`relative mt-6 grid size-6 place-items-center rounded-full ${mark.state === "done"
                     ? "bg-orange-500"
                     : mark.state === "live"
                       ? "bg-red-600 ring-8 ring-red-600/30"

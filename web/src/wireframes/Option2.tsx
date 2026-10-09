@@ -71,7 +71,7 @@ function Home() {
           {PATHS.map(([icon, label]) => (
             <li key={label}>
               <a href="#" className="group flex flex-col items-center gap-2 text-center text-sm font-semibold">
-                <span className="grid grid-cols-[minmax(0,1fr)] size-16 place-items-center rounded-full bg-slate-100 text-2xl transition group-hover:bg-brand-50 sm:size-20">{icon}</span>
+                <span className="grid size-16 place-items-center rounded-full bg-slate-100 text-2xl transition group-hover:bg-brand-50 sm:size-20">{icon}</span>
                 {label}
               </a>
             </li>

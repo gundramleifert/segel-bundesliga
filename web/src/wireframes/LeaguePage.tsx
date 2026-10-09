@@ -116,7 +116,7 @@ export function LeaguePage({ league }: { league: League }) {
                   <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                     {division.rows.map((row) => (
                       <li key={row.short} className="flex flex-col items-center gap-2 rounded-xl bg-white p-4 text-center ring-1 ring-slate-200">
-                        <span className="grid grid-cols-[minmax(0,1fr)] size-12 place-items-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{row.short}</span>
+                        <span className="grid size-12 place-items-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{row.short}</span>
                         <span className="line-clamp-2 text-xs text-slate-600">{row.club}</span>
                       </li>
                     ))}
