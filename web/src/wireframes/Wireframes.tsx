@@ -9,9 +9,11 @@ import { Option3 } from "./Option3";
 import { Option4 } from "./Option4";
 import { Option5 } from "./Option5";
 import { Option6 } from "./Option6";
+import { Option7 } from "./Option7";
+import { Option8 } from "./Option8";
 
-const PAGES = { 1: Option1, 2: Option2, 3: Option3, 4: Option4, 5: Option5, 6: Option6 } as const;
-const PREVIEW = [PHOTOS.alster, PHOTOS.helga2022, PHOTOS.helgaBahn, PHOTOS.stMoritz, PHOTOS.helgaNrv, PHOTOS.kiel4];
+const PAGES = { 1: Option1, 2: Option2, 3: Option3, 4: Option4, 5: Option5, 6: Option6, 7: Option7, 8: Option8 } as const;
+const PREVIEW = [PHOTOS.alster, PHOTOS.helga2022, PHOTOS.helgaBahn, PHOTOS.stMoritz, PHOTOS.helgaNrv, PHOTOS.kiel4, PHOTOS.kiel10, PHOTOS.kiel7];
 
 /** Five homepage options to compare in the browser (issue #13). Outside the site's
  *  `Layout` on purpose: the header is what is being compared. Throwaway — the chosen
@@ -34,7 +36,7 @@ export function WireframeIndex() {
       <div className="mx-auto max-w-5xl">
         <h1 className="text-3xl font-extrabold tracking-tight">Homepage wireframes</h1>
         <p className="mt-2 max-w-3xl text-slate-600">
-          Six options for the new site structure: a thin bar at the very top switches between the leagues — DSBL (1. and 2. Liga on one page), Junioren-Liga, DSL-Pokal —
+          Eight options for the new site structure: a thin bar at the very top switches between the leagues — DSBL (1. and 2. Liga on one page), Junioren-Liga, DSL-Pokal —
           every league is one page with its own URL, the logo leads home, and the personal area sits top right. Each option has the
           homepage and a league page — click a league in the top bar. Content is invented; photos and videos are freely
           licensed from Wikimedia Commons.
@@ -58,7 +60,7 @@ export function WireframeIndex() {
           ))}
         </ul>
 
-        <section id="credits" className="mt-12 text-xs text-slate-500">
+        <section id="credits" className="mt-12 break-all text-xs text-slate-500">
           <h2 className="mb-2 text-sm font-semibold text-slate-700">Credits</h2>
           <ul className="space-y-1">
             {[...Object.values(PHOTOS), ...VIDEOS].map((m) => (

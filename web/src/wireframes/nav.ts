@@ -54,6 +54,24 @@ export const OPTIONS = [
       "hero, side by side; the season is a course with its matchdays as marks; huge " +
       "typographic standings, news as a logbook, media as a film strip.",
   },
+  {
+    n: 7,
+    name: "Broadcast",
+    inspiredBy: "TV sports graphics (a variant of 6)",
+    summary:
+      "Opens on the water itself: a chart with the six boats lapping the course in their " +
+      "event colours, wind and live ranking. Standings as lower thirds, the calendar as a " +
+      "departures board, videos as replays.",
+  },
+  {
+    n: 8,
+    name: "Chapters",
+    inspiredBy: "scroll stories (a variant of 6)",
+    summary:
+      "The home page as a story in full-screen chapters that snap into place — now, table, " +
+      "season, leagues, stories, media, press — each over its own picture, with a column " +
+      "of dots on the right to jump between them.",
+  },
 ] as const;
 
 export const wireHref = (option: number, league?: string | null) =>
