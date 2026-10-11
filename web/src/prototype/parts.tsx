@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 import { Img, MyArea, Slideshow } from "../wireframes/kit";
 import type { Photo } from "../wireframes/data";
 import { setMediaMode, useMediaMode, type MediaMode } from "../wireframes/nav";
 import { LEAGUES, SLIDES, VIDEOS, type ProtoLeague } from "./data";
-import { href, setChapterMode, useChapterMode, type ChapterMode } from "./state";
+import { href, setChapterMode, setDetailMode, useChapterMode, useDetailMode, type ChapterMode, type DetailMode } from "./state";
 
 // The building blocks of the option-E prototype (issue #14). Clean on purpose: white and
 // slate, one accent (the brand blue), generous space, type doing the work.
@@ -64,8 +64,10 @@ export function TopBar({ overlay = false, active }: { overlay?: boolean; active?
 export function Picture({ photo, className = "", play = true, video = 0 }: { photo: Photo; className?: string; play?: boolean; video?: number }) {
   const mode = useMediaMode();
   const box = `absolute inset-0 overflow-hidden ${className}`;
-  if (mode === "slideshow") return <Slideshow key="fade" photo={photo} slides={SLIDES} className={box} kind="fade" />;
-  if (mode === "slide") return <Slideshow key="push" photo={photo} slides={SLIDES} className={box} kind="push" />;
+  // No slide marks: on a chapter they read as a second set of dots beside the chapter
+  // dots, and on a depth page's band they say nothing anyone needs.
+  if (mode === "slideshow") return <Slideshow key="fade" photo={photo} slides={SLIDES} className={box} kind="fade" indicator={false} />;
+  if (mode === "slide") return <Slideshow key="push" photo={photo} slides={SLIDES} className={box} kind="push" indicator={false} />;
   if (mode === "video" && play) return <YouTubeBackground video={video} photo={photo} className={box} />;
   return <Img photo={photo} className={box} />;
 }
@@ -164,42 +166,159 @@ export function Chapter({
   );
 }
 
-/** The frame of a depth page: solid bar, a slim picture band with the title and the way
- *  back to the league's page, then the content on white. */
-export function DepthPage({
-  league,
-  title,
-  kicker,
-  photo,
-  children,
-}: {
+type DepthProps = {
   league: ProtoLeague | null;
   title: string;
   kicker?: string;
   photo?: Photo;
   children: ReactNode;
-}) {
+};
+
+/** The frame of a depth page, in the layout the development switch picks (A band, B
+ *  sheet, C split). The content is the same in all three — only the frame differs. */
+export function DepthPage(props: DepthProps) {
+  const mode = useDetailMode();
+  const Frame = mode === "sheet" ? SheetFrame : mode === "split" ? SplitFrame : BandFrame;
   return (
     <div className="min-h-dvh bg-white text-slate-900">
-      <TopBar active={league?.slug} />
+      <TopBar active={props.league?.slug} />
+      <Frame {...props} />
+      <Footer />
+    </div>
+  );
+}
+
+/** The pages beside this one — what the league's chapters lead to. */
+function siblings(league: ProtoLeague | null) {
+  if (!league) return [{ to: href.home(), label: "Home" }, { to: href.about(), label: "About" }];
+  const l = league.slug;
+  return [
+    { to: href.league(l), label: "Overview" },
+    { to: href.standings(l), label: "Standings" },
+    { to: href.season(l), label: "Season" },
+    { to: href.noticeBoard(l), label: "Notice board" },
+    { to: href.clubs(l), label: "Clubs" },
+    { to: href.news(l), label: "News" },
+    { to: href.media(l), label: "Media" },
+    { to: href.press(l), label: "Press" },
+    { to: href.about(l), label: "About" },
+  ];
+}
+
+/** Which sibling the current page belongs to: the longest one its path starts with,
+ *  so a matchday or an article lights up its section rather than nothing. */
+function useCurrentSibling(league: ProtoLeague | null) {
+  const { pathname } = useLocation();
+  // A matchday lives under /:league/:year/… — it belongs to the season, not the overview
+  // whose path it happens to start with.
+  if (league && /\/\d{4}\//.test(pathname)) return href.season(league.slug);
+  const matches = siblings(league).filter((s) => pathname === s.to || pathname.startsWith(`${s.to}/`));
+  return matches.sort((x, y) => y.to.length - x.to.length)[0]?.to ?? null;
+}
+
+function Crumbs({ league, light = true }: { league: ProtoLeague | null; light?: boolean }) {
+  const tone = light ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-900";
+  return (
+    <nav aria-label="Breadcrumb" className={`text-sm ${light ? "text-white/70" : "text-slate-500"}`}>
+      <Link to={href.home()} className={tone}>Deutsche Segel-Liga</Link>
+      {league && (
+        <>
+          {" "}› <Link to={href.league(league.slug)} className={tone}>{league.short}</Link>
+        </>
+      )}
+    </nav>
+  );
+}
+
+/** A · Band — a slim picture band with the title, then the content on white. */
+function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
+  return (
+    <>
       <header className="relative h-56 overflow-hidden bg-slate-900 sm:h-72">
         <Picture photo={photo ?? league?.photo ?? SLIDES[0]} className="opacity-70" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 to-slate-950/10" />
         <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-6 text-white">
-          <nav aria-label="Breadcrumb" className="text-sm text-white/70">
-            <Link to={href.home()} className="hover:text-white">Deutsche Segel-Liga</Link>
-            {league && (
-              <>
-                {" "}› <Link to={href.league(league.slug)} className="hover:text-white">{league.short}</Link>
-              </>
-            )}
-          </nav>
+          <Crumbs league={league} />
           {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/60">{kicker}</p>}
           <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
-      <Footer />
+    </>
+  );
+}
+
+/** B · Sheet — the chapter goes on: a big picture with a big title, and the content as a
+ *  white sheet sliding up over it, the sibling pages as pills at its top edge. */
+function SheetFrame({ league, title, kicker, photo, children }: DepthProps) {
+  const current = useCurrentSibling(league);
+  return (
+    <>
+      <header className="relative h-[62vh] min-h-[22rem] overflow-hidden bg-slate-950">
+        <Picture photo={photo ?? league?.photo ?? SLIDES[0]} />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-slate-950/20" />
+        <div className="absolute inset-x-0 bottom-24 mx-auto max-w-6xl px-4 text-white">
+          <Crumbs league={league} />
+          {kicker && <p className="mt-4 font-mono text-xs tracking-widest text-white/60">{kicker}</p>}
+          <h1 className="mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-7xl">{title}</h1>
+        </div>
+      </header>
+      <main className="relative z-10 -mt-16 rounded-t-[2rem] bg-white shadow-[0_-12px_40px_rgba(2,6,23,0.25)]">
+        <nav aria-label="Pages" className="scrollbar-none sticky top-14 z-20 overflow-x-auto rounded-t-[2rem] border-b border-slate-100 bg-white/95 backdrop-blur">
+          <ul className="mx-auto flex max-w-6xl gap-1 px-4 py-3">
+            {siblings(league).map((s) => (
+              <li key={s.to} className="shrink-0">
+                <Link
+                  to={s.to}
+                  className={`block rounded-full px-3.5 py-1.5 text-sm font-medium transition ${current === s.to ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+                >
+                  {s.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="mx-auto max-w-6xl px-4 py-10">{children}</div>
+      </main>
+    </>
+  );
+}
+
+/** C · Split — the page's picture, title and its siblings fixed on the left, the content
+ *  scrolling on the right; on a phone the left column becomes a compact head with pills. */
+function SplitFrame({ league, title, kicker, photo, children }: DepthProps) {
+  const current = useCurrentSibling(league);
+  const pages = siblings(league);
+  return (
+    <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] lg:grid-cols-[19rem_minmax(0,1fr)] lg:gap-10 lg:px-6">
+      <aside className="lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto lg:py-8">
+        <div className="relative h-40 overflow-hidden bg-slate-900 lg:aspect-[4/3] lg:h-auto lg:rounded-2xl">
+          <Picture photo={photo ?? league?.photo ?? SLIDES[0]} />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 to-transparent lg:hidden" />
+        </div>
+        <div className="px-4 pt-5 lg:px-0">
+          <Crumbs league={league} light={false} />
+          {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600">{kicker}</p>}
+          <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight">{title}</h1>
+        </div>
+        <nav aria-label="Pages" className="scrollbar-none mt-5 overflow-x-auto px-4 lg:mt-8 lg:overflow-visible lg:px-0">
+          <ul className="flex gap-1 pb-1 lg:flex-col lg:gap-0.5">
+            {pages.map((s) => (
+              <li key={s.to} className="shrink-0">
+                <Link
+                  to={s.to}
+                  className={`block rounded-full px-3.5 py-1.5 text-sm font-medium transition lg:rounded-lg lg:px-3 lg:py-2 ${
+                    current === s.to ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  {s.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+      <main className="min-w-0 border-t border-slate-100 px-4 py-8 lg:border-0 lg:px-0 lg:py-10">{children}</main>
     </div>
   );
 }
@@ -268,18 +387,26 @@ const MEDIA_MODES: [MediaMode, string][] = [
   ["video", "Video"],
 ];
 
+const DETAIL_MODES: [DetailMode, string][] = [
+  ["band", "A Band"],
+  ["sheet", "B Sheet"],
+  ["split", "C Split"],
+];
+
 /** The development switch: a small button that opens the variants still being decided —
  *  chapters snapping or scrolling freely, pictures as photo, fade, slide or video. */
 export function DevSwitch() {
   const [open, setOpen] = useState(false);
   const chapters = useChapterMode();
   const media = useMediaMode();
+  const detail = useDetailMode();
   return (
     <div className="fixed bottom-4 left-4 z-50 text-sm" data-testid="proto-dev">
       {open && (
         <div className="mb-2 w-64 rounded-2xl bg-slate-900/95 p-4 text-white shadow-2xl backdrop-blur">
           <Segment label="Chapters" value={chapters} options={CHAPTER_MODES} onChange={setChapterMode} testId="proto-dev-chapters" />
           <Segment label="Pictures" value={media} options={MEDIA_MODES} onChange={setMediaMode} testId="proto-dev-media" />
+          <Segment label="Detail page" value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="proto-dev-detail" />
           <div className="mt-3 border-t border-white/10 pt-3 text-xs text-white/60">
             <Link to={href.home()} className="hover:text-white">Prototype home</Link> ·{" "}
             <Link to="/wireframes" className="hover:text-white">Wireframes</Link>

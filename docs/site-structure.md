@@ -123,8 +123,10 @@ C's idea, kept inside E.
 ## Design
 
 Clean: white and slate, one accent (the brand blue), generous space, type doing the work.
-Pictures carry the chapter pages. The depth pages are white, with a slim picture band
-under the bar, a breadcrumb back to the league and the title on it.
+Pictures carry the chapter pages. The depth pages are white; how their picture, title and
+the way to the sibling pages are framed is still open (variant "Detail page" below). A
+slideshow shows no slide marks: on a chapter they read as a second set of dots beside the
+chapter dots.
 
 ## Variants still open
 
@@ -135,6 +137,7 @@ Each is to be decided on the real device, not argued in the abstract:
 |---|---|
 | Chapters | **snap** — every chapter fills the screen and clicks into place; **free** — chapters keep their height but scroll freely |
 | Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays) |
+| Detail page | **A band** — a slim picture band with the title, content on white · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the sibling pages as pills at its top · **C split** — picture, title and the sibling pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
 
 ## Content sources
 

@@ -74,11 +74,14 @@ export function Slideshow({
   className,
   kind,
   slides: given,
+  indicator = true,
 }: {
   photo: Photo;
   className: string;
   kind: "fade" | "push";
   slides?: Photo[];
+  /** The row of marks at the bottom saying which slide is showing. */
+  indicator?: boolean;
 }) {
   const pool = given ?? SLIDESHOW;
   const slides = [photo, ...pool.filter((p) => p.src !== photo.src)].slice(0, 4);
@@ -123,11 +126,11 @@ export function Slideshow({
           </div>
         );
       })}
-      <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1.5">
+      {indicator && <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center gap-1.5">
         {slides.map((slide, i) => (
           <span key={slide.src} className={`h-1 rounded-full bg-white transition-all ${i === index ? "w-6" : "w-1.5 opacity-50"}`} />
         ))}
-      </div>
+      </div>}
     </div>
   );
 }

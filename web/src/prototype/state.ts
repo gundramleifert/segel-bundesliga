@@ -29,39 +29,47 @@ export function useLeague() {
   return findLeague(league);
 }
 
-/** Development switch: do the chapters snap into place, or scroll freely? One setting for
- *  the whole prototype, remembered in this browser (a convenience — storage may fail). */
+/** A development setting: one value for the whole prototype, shared by every component
+ *  that reads it, remembered in this browser (a convenience — storage may fail, and then
+ *  the setting holds until reload). */
+function setting<T extends string>(key: string, values: readonly T[], fallback: T) {
+  const listeners = new Set<() => void>();
+  let value: T = (() => {
+    try {
+      const saved = localStorage.getItem(key);
+      return values.includes(saved as T) ? (saved as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  })();
+  const set = (next: T) => {
+    value = next;
+    try {
+      localStorage.setItem(key, next);
+    } catch {
+      // Not remembered; holds until reload.
+    }
+    listeners.forEach((listener) => listener());
+  };
+  const use = () =>
+    useSyncExternalStore(
+      (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      () => value,
+    );
+  return [use, set] as const;
+}
+
+/** Do the chapters snap into place, or scroll freely? */
 export type ChapterMode = "snap" | "free";
+export const [useChapterMode, setChapterMode] = setting<ChapterMode>("prototype.chapters", ["snap", "free"], "snap");
 
-const KEY = "prototype.chapters";
-const listeners = new Set<() => void>();
-let chapterMode: ChapterMode = (() => {
-  try {
-    return localStorage.getItem(KEY) === "free" ? "free" : "snap";
-  } catch {
-    return "snap";
-  }
-})();
-
-export function setChapterMode(mode: ChapterMode) {
-  chapterMode = mode;
-  try {
-    localStorage.setItem(KEY, mode);
-  } catch {
-    // Not remembered; holds until reload.
-  }
-  listeners.forEach((listener) => listener());
-}
-
-export function useChapterMode(): ChapterMode {
-  return useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    () => chapterMode,
-  );
-}
+/** How a depth page is laid out: a slim picture band, a sheet over a big picture, or a
+ *  split with the page's picture and its siblings fixed on the left. */
+export type DetailMode = "band" | "sheet" | "split";
+export const [useDetailMode, setDetailMode] = setting<DetailMode>("prototype.detail", ["band", "sheet", "split"], "band");
 
 /** Which chapter fills most of the screen — for the dots, and so only that chapter plays
  *  a video. `key` re-runs the observer when the set of chapters (or their layout) changes. */
