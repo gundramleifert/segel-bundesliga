@@ -5,7 +5,7 @@ import { Img, MyArea, Slideshow } from "../wireframes/kit";
 import type { Photo } from "../wireframes/data";
 import { setMediaMode, useMediaMode, type MediaMode } from "../wireframes/nav";
 import { LEAGUES, SLIDES, VIDEOS, type ProtoLeague } from "./data";
-import { href, setChapterMode, setDetailMode, setTitleMode, useChapterMode, useDetailMode, useTitleMode, type ChapterMode, type DetailMode, type TitleMode } from "./state";
+import { href, setChapterMode, setDetailMode, useChapterMode, useDetailMode, type ChapterMode, type DetailMode } from "./state";
 
 // The building blocks of the option-E prototype (issue #14). Clean on purpose: white and
 // slate, one accent (the brand blue), generous space, type doing the work.
@@ -294,39 +294,22 @@ function Crumbs({ league, light = true }: { league: ProtoLeague | null; light?: 
   );
 }
 
-/** A · Band — a slim picture band with the title, the sibling pages as sticky pills under
- *  it, then the content on white. Square edges: no sheet, no overlap. */
+/** A · Band — a big picture with the kicker and title on it, then the content on white;
+ *  the league's pages are in the top row. Square edges: no sheet, no overlap. */
 function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
-  const mode = useTitleMode();
-  const picture = photo ?? league?.photo ?? SLIDES[0];
+  // The title lies on the picture, so the picture can be big: about half the screen.
   // Under a league the top row already says where you are; a breadcrumb would repeat it.
-  if (mode === "picture") {
-    return (
-      <>
-        <header className="relative h-56 overflow-hidden bg-slate-900 sm:h-72">
-          <Picture photo={picture} className="opacity-70" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 to-slate-950/10" />
-          <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-6 text-white">
-            {!league && <Crumbs league={league} />}
-            {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/60">{kicker}</p>}
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
-          </div>
-        </header>
-        <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
-      </>
-    );
-  }
-  // "below": the picture is mood only, the title dark on white under it.
   return (
     <>
-      <header className="relative h-40 overflow-hidden bg-slate-900 sm:h-56">
-        <Picture photo={picture} />
+      <header className="relative h-[52vh] min-h-72 max-h-[34rem] overflow-hidden bg-slate-900">
+        <Picture photo={photo ?? league?.photo ?? SLIDES[0]} className="opacity-80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-8 text-white">
+          {!league && <Crumbs league={league} />}
+          {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/70">{kicker}</p>}
+          <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-6xl">{title}</h1>
+        </div>
       </header>
-      <div className="mx-auto max-w-6xl px-4 pt-7">
-        {!league && <Crumbs league={league} light={false} />}
-        {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600">{kicker}</p>}
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
-      </div>
       <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
     </>
   );
@@ -485,11 +468,6 @@ const DETAIL_MODES: [DetailMode, string][] = [
   ["split", "C Split"],
 ];
 
-const TITLE_MODES: [TitleMode, string][] = [
-  ["picture", "On picture"],
-  ["below", "Below"],
-];
-
 /** The development switch: a small button that opens the variants still being decided —
  *  chapters snapping or scrolling freely, pictures as photo, fade, slide or video. */
 export function DevSwitch() {
@@ -497,7 +475,6 @@ export function DevSwitch() {
   const chapters = useChapterMode();
   const media = useMediaMode();
   const detail = useDetailMode();
-  const titleMode = useTitleMode();
   return (
     <div className="fixed bottom-4 left-4 z-50 text-sm" data-testid="proto-dev">
       {open && (
@@ -505,7 +482,6 @@ export function DevSwitch() {
           <Segment label="Chapters" value={chapters} options={CHAPTER_MODES} onChange={setChapterMode} testId="proto-dev-chapters" />
           <Segment label="Pictures" value={media} options={MEDIA_MODES} onChange={setMediaMode} testId="proto-dev-media" />
           <Segment label="Detail page" value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="proto-dev-detail" />
-          {detail === "band" && <Segment label="Title (A)" value={titleMode} options={TITLE_MODES} onChange={setTitleMode} testId="proto-dev-title" />}
           <div className="mt-3 border-t border-white/10 pt-3 text-xs text-white/60">
             <Link to={href.home()} className="hover:text-white">Prototype home</Link> ·{" "}
             <Link to="/wireframes" className="hover:text-white">Wireframes</Link>

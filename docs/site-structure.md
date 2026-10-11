@@ -133,8 +133,10 @@ C's idea, kept inside E.
 ## Design
 
 Clean: white and slate, one accent (the brand blue), generous space, type doing the work.
-Pictures carry the chapter pages. The depth pages are white; how their picture, title and
-the way to the sibling pages are framed is still open (variant "Detail page" below). A
+Pictures carry the chapter pages. A depth page opens on a big picture with its kicker
+(*"DSBL · 15–17 Oct 2026 · Wannsee"*) and title (*"Final · Berlin"*) on it — decided
+2026-10-11; the title below the picture made the picture a thin strip. The content follows
+on white. How the frame looks otherwise is still open (variant "Detail page" below). A
 slideshow shows no slide marks: on a chapter they read as a second set of dots beside the
 chapter dots.
 
@@ -147,8 +149,7 @@ Each is to be decided on the real device, not argued in the abstract:
 |---|---|
 | Chapters | **snap** — every chapter fills the screen and clicks into place; **free** — chapters keep their height but scroll freely |
 | Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays) |
-| Detail page | **A band** — a slim picture band, content on white, the league's pages in the top row · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the league's pages as sticky pills at its top edge (three rows on a matchday page) · **C split** — picture, title and the league's pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
-| Title (in A) | **on picture** — white on the band · **below** — the band is mood only, the title dark on white under it |
+| Detail page | **A band** — a big picture (about half the screen) with the kicker and title on it, content on white, the league's pages in the top row · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the league's pages as sticky pills at its top edge (three rows on a matchday page) · **C split** — picture, title and the league's pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
 
 ## Content sources
 
