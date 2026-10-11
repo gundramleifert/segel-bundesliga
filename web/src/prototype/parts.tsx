@@ -1,11 +1,11 @@
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
 import { Img, MyArea, Slideshow } from "../wireframes/kit";
 import type { Photo } from "../wireframes/data";
 import { setMediaMode, useMediaMode, type MediaMode } from "../wireframes/nav";
 import { LEAGUES, SLIDES, VIDEOS, type ProtoLeague } from "./data";
-import { href, setChapterMode, setDetailMode, useChapterMode, useDetailMode, type ChapterMode, type DetailMode } from "./state";
+import { href, setChapterMode, setDetailMode, setTitleMode, useChapterMode, useDetailMode, useTitleMode, type ChapterMode, type DetailMode, type TitleMode } from "./state";
 
 // The building blocks of the option-E prototype (issue #14). Clean on purpose: white and
 // slate, one accent (the brand blue), generous space, type doing the work.
@@ -230,28 +230,87 @@ function Crumbs({ league, light = true }: { league: ProtoLeague | null; light?: 
   );
 }
 
-/** A · Band — a slim picture band with the title, then the content on white. */
+/** A · Band — a slim picture band with the title, the sibling pages as sticky pills under
+ *  it, then the content on white. Square edges: no sheet, no overlap. */
 function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
+  const mode = useTitleMode();
+  // For "bar": is the big title scrolled out of view? Then the pills row shows it small.
+  const [titleGone, setTitleGone] = useState(false);
+  const watch = useCallback((node: HTMLHeadingElement | null) => {
+    if (!node) return;
+    // 3.5rem bar + ~3.5rem pills: the title counts as gone once it is behind them.
+    const observer = new IntersectionObserver(([entry]) => setTitleGone(!entry.isIntersecting), { rootMargin: "-112px 0px 0px 0px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  const picture = photo ?? league?.photo ?? SLIDES[0];
+
+  if (mode === "picture") {
+    return (
+      <>
+        <header className="relative h-56 overflow-hidden bg-slate-900 sm:h-72">
+          <Picture photo={picture} className="opacity-70" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 to-slate-950/10" />
+          <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-6 text-white">
+            <Crumbs league={league} />
+            {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/60">{kicker}</p>}
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
+          </div>
+        </header>
+        <SiblingPills league={league} />
+        <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
+      </>
+    );
+  }
+
+  // "below" and "bar": the picture is mood only, the title is dark on white under it.
   return (
     <>
-      <header className="relative h-56 overflow-hidden bg-slate-900 sm:h-72">
-        <Picture photo={photo ?? league?.photo ?? SLIDES[0]} className="opacity-70" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 to-slate-950/10" />
-        <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-6 text-white">
-          <Crumbs league={league} />
-          {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/60">{kicker}</p>}
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
-        </div>
+      <header className="relative h-40 overflow-hidden bg-slate-900 sm:h-56">
+        <Picture photo={picture} />
       </header>
+      <div className="mx-auto max-w-6xl px-4 pb-6 pt-7">
+        <Crumbs league={league} light={false} />
+        {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600">{kicker}</p>}
+        <h1 ref={mode === "bar" ? watch : undefined} className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
+      </div>
+      <SiblingPills league={league} title={mode === "bar" && titleGone ? title : undefined} />
       <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
     </>
+  );
+}
+
+/** The sibling pages as a row of pills that sticks under the top bar while the page
+ *  scrolls — A's and B's way to the league's other pages. */
+function SiblingPills({ league, className = "", title }: { league: ProtoLeague | null; className?: string; title?: string }) {
+  const current = useCurrentSibling(league);
+  return (
+    <nav aria-label="Pages" className={`scrollbar-none sticky top-14 z-20 overflow-x-auto border-b border-slate-100 bg-white/95 backdrop-blur ${className}`}>
+      <ul className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-3">
+        {title && (
+          // The page's title, small, once the big one has scrolled away (title "bar").
+          <li className="mr-2 flex max-w-[45%] shrink-0 items-center border-r border-slate-200 pr-4" data-testid="proto-bar-title">
+            <span className="truncate text-sm font-semibold text-slate-900">{title}</span>
+          </li>
+        )}
+        {siblings(league).map((s) => (
+          <li key={s.to} className="shrink-0">
+            <Link
+              to={s.to}
+              className={`block rounded-full px-3.5 py-1.5 text-sm font-medium transition ${current === s.to ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+            >
+              {s.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
 /** B · Sheet — the chapter goes on: a big picture with a big title, and the content as a
  *  white sheet sliding up over it, the sibling pages as pills at its top edge. */
 function SheetFrame({ league, title, kicker, photo, children }: DepthProps) {
-  const current = useCurrentSibling(league);
   return (
     <>
       <header className="relative h-[62vh] min-h-[22rem] overflow-hidden bg-slate-950">
@@ -264,20 +323,7 @@ function SheetFrame({ league, title, kicker, photo, children }: DepthProps) {
         </div>
       </header>
       <main className="relative z-10 -mt-16 rounded-t-[2rem] bg-white shadow-[0_-12px_40px_rgba(2,6,23,0.25)]">
-        <nav aria-label="Pages" className="scrollbar-none sticky top-14 z-20 overflow-x-auto rounded-t-[2rem] border-b border-slate-100 bg-white/95 backdrop-blur">
-          <ul className="mx-auto flex max-w-6xl gap-1 px-4 py-3">
-            {siblings(league).map((s) => (
-              <li key={s.to} className="shrink-0">
-                <Link
-                  to={s.to}
-                  className={`block rounded-full px-3.5 py-1.5 text-sm font-medium transition ${current === s.to ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
-                >
-                  {s.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <SiblingPills league={league} className="rounded-t-[2rem]" />
         <div className="mx-auto max-w-6xl px-4 py-10">{children}</div>
       </main>
     </>
@@ -393,6 +439,12 @@ const DETAIL_MODES: [DetailMode, string][] = [
   ["split", "C Split"],
 ];
 
+const TITLE_MODES: [TitleMode, string][] = [
+  ["picture", "On picture"],
+  ["below", "Below"],
+  ["bar", "Into bar"],
+];
+
 /** The development switch: a small button that opens the variants still being decided —
  *  chapters snapping or scrolling freely, pictures as photo, fade, slide or video. */
 export function DevSwitch() {
@@ -400,6 +452,7 @@ export function DevSwitch() {
   const chapters = useChapterMode();
   const media = useMediaMode();
   const detail = useDetailMode();
+  const titleMode = useTitleMode();
   return (
     <div className="fixed bottom-4 left-4 z-50 text-sm" data-testid="proto-dev">
       {open && (
@@ -407,6 +460,7 @@ export function DevSwitch() {
           <Segment label="Chapters" value={chapters} options={CHAPTER_MODES} onChange={setChapterMode} testId="proto-dev-chapters" />
           <Segment label="Pictures" value={media} options={MEDIA_MODES} onChange={setMediaMode} testId="proto-dev-media" />
           <Segment label="Detail page" value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="proto-dev-detail" />
+          {detail === "band" && <Segment label="Title (A)" value={titleMode} options={TITLE_MODES} onChange={setTitleMode} testId="proto-dev-title" />}
           <div className="mt-3 border-t border-white/10 pt-3 text-xs text-white/60">
             <Link to={href.home()} className="hover:text-white">Prototype home</Link> ·{" "}
             <Link to="/wireframes" className="hover:text-white">Wireframes</Link>

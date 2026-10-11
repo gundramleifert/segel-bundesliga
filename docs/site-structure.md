@@ -137,7 +137,8 @@ Each is to be decided on the real device, not argued in the abstract:
 |---|---|
 | Chapters | **snap** — every chapter fills the screen and clicks into place; **free** — chapters keep their height but scroll freely |
 | Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays) |
-| Detail page | **A band** — a slim picture band with the title, content on white · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the sibling pages as pills at its top · **C split** — picture, title and the sibling pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
+| Detail page | **A band** — a slim picture band, the sibling pages as sticky pills under it (as in B, but with A's square edges), content on white · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the sibling pages as pills at its top · **C split** — picture, title and the sibling pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
+| Title (in A) | **on picture** — white on the band · **below** — the band is mood only, breadcrumb and title dark on white under it · **into bar** — as *below*, and once the big title has scrolled away it reappears small at the start of the sticky pills |
 
 ## Content sources
 
