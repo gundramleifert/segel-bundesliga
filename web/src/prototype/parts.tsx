@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
 import { Img, MyArea, Slideshow } from "../wireframes/kit";
@@ -12,7 +12,16 @@ import { href, setChapterMode, setDetailMode, setTitleMode, useChapterMode, useD
 
 /** The one navigation row: logo (the association's home), the three leagues, the
  *  personal area. Over the picture on a chapter page, solid on a depth page. */
-export function TopBar({ overlay = false, active }: { overlay?: boolean; active?: string }) {
+export function TopBar({
+  overlay = false,
+  active,
+  league,
+}: {
+  overlay?: boolean;
+  active?: string;
+  /** With a league: the row offers that league's pages, and the leagues behind a switch. */
+  league?: ProtoLeague | null;
+}) {
   return (
     <header
       className={`z-40 text-sm ${
@@ -26,35 +35,88 @@ export function TopBar({ overlay = false, active }: { overlay?: boolean; active?
         <Link to={href.home()} className="shrink-0" data-testid="proto-logo">
           <img src="/brand/deutsche-segelliga-logo.jpg" alt="Deutsche Segel-Liga" className="h-7 w-auto rounded bg-white p-0.5 sm:h-8" width={200} height={58} />
         </Link>
-        <nav aria-label="Leagues" className="scrollbar-none min-w-0 flex-1 overflow-x-auto">
-          <ul className="flex">
-            {LEAGUES.map((league) => (
-              <li key={league.slug} className="shrink-0">
-                <NavLink
-                  to={href.league(league.slug)}
-                  data-testid={`proto-tab-${league.slug}`}
-                  className={({ isActive }) => {
-                    const on = isActive || active === league.slug;
-                    return `block whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium transition sm:px-3 sm:text-sm ${
-                      on
-                        ? overlay
-                          ? "bg-white text-slate-950"
-                          : "bg-slate-900 text-white"
-                        : overlay
-                          ? "hover:text-white"
-                          : "hover:text-slate-950"
-                    }`;
-                  }}
-                >
-                  {league.short}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        {league ? (
+          <>
+            <LeagueSwitch league={league} />
+            <LeaguePages league={league} />
+          </>
+        ) : (
+          <nav aria-label="Leagues" className="scrollbar-none min-w-0 flex-1 overflow-x-auto">
+            <ul className="flex">
+              {LEAGUES.map((l) => (
+                <li key={l.slug} className="shrink-0">
+                  <NavLink
+                    to={href.league(l.slug)}
+                    data-testid={`proto-tab-${l.slug}`}
+                    className={({ isActive }) => {
+                      const on = isActive || active === l.slug;
+                      return `block whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium transition sm:px-3 sm:text-sm ${
+                        on
+                          ? overlay
+                            ? "bg-white text-slate-950"
+                            : "bg-slate-900 text-white"
+                          : overlay
+                            ? "hover:text-white"
+                            : "hover:text-slate-950"
+                      }`;
+                    }}
+                  >
+                    {l.short}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
         <MyArea tone={overlay ? "dark" : "light"} />
       </div>
     </header>
+  );
+}
+
+/** The current league as a pill that opens the other two — so the row has room for the
+ *  league's own pages beside it. */
+function LeagueSwitch({ league }: { league: ProtoLeague }) {
+  return (
+    <details className="relative shrink-0" data-testid="proto-league-switch">
+      <summary className="flex cursor-pointer list-none items-center gap-1 rounded-full bg-slate-900 px-3 py-1.5 text-[13px] font-semibold text-white sm:text-sm [&::-webkit-details-marker]:hidden">
+        {league.short} <span aria-hidden className="text-[10px] opacity-70">▾</span>
+      </summary>
+      <ul className="absolute left-0 z-50 mt-2 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+        {LEAGUES.map((l) => (
+          <li key={l.slug}>
+            <Link to={href.league(l.slug)} className={`block rounded-lg px-3 py-2 ${l.slug === league.slug ? "font-semibold text-slate-950" : "text-slate-600 hover:bg-slate-100"}`}>
+              {l.short}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+/** The league's pages, in the top row. */
+function LeaguePages({ league }: { league: ProtoLeague }) {
+  const current = useCurrentSibling(league);
+  return (
+    <nav aria-label="Pages" className="scrollbar-none min-w-0 flex-1 overflow-x-auto" data-testid="proto-league-pages">
+      <ul className="flex">
+        {siblings(league)
+          .filter((s) => s.label !== "Overview")
+          .map((s) => (
+            <li key={s.to} className="shrink-0">
+              <Link
+                to={s.to}
+                className={`block whitespace-nowrap px-2.5 py-1.5 text-[13px] transition sm:text-sm ${
+                  current === s.to ? "font-semibold text-slate-950" : "text-slate-500 hover:text-slate-950"
+                }`}
+              >
+                {s.label}
+              </Link>
+            </li>
+          ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -181,7 +243,9 @@ export function DepthPage(props: DepthProps) {
   const Frame = mode === "sheet" ? SheetFrame : mode === "split" ? SplitFrame : BandFrame;
   return (
     <div className="min-h-dvh bg-white text-slate-900">
-      <TopBar active={props.league?.slug} />
+      {/* A: one row — the league's pages sit in the top bar, no second row of pills.
+          B and C show the pages in their own place (the sheet's edge, the left column). */}
+      <TopBar active={props.league?.slug} league={mode === "band" ? props.league : null} />
       <Frame {...props} />
       <Footer />
     </div>
@@ -234,17 +298,8 @@ function Crumbs({ league, light = true }: { league: ProtoLeague | null; light?: 
  *  it, then the content on white. Square edges: no sheet, no overlap. */
 function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
   const mode = useTitleMode();
-  // For "bar": is the big title scrolled out of view? Then the pills row shows it small.
-  const [titleGone, setTitleGone] = useState(false);
-  const watch = useCallback((node: HTMLHeadingElement | null) => {
-    if (!node) return;
-    // 3.5rem bar + ~3.5rem pills: the title counts as gone once it is behind them.
-    const observer = new IntersectionObserver(([entry]) => setTitleGone(!entry.isIntersecting), { rootMargin: "-112px 0px 0px 0px" });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
   const picture = photo ?? league?.photo ?? SLIDES[0];
-
+  // Under a league the top row already says where you are; a breadcrumb would repeat it.
   if (mode === "picture") {
     return (
       <>
@@ -252,47 +307,38 @@ function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
           <Picture photo={picture} className="opacity-70" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 to-slate-950/10" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-6 text-white">
-            <Crumbs league={league} />
+            {!league && <Crumbs league={league} />}
             {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/60">{kicker}</p>}
             <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
           </div>
         </header>
-        <SiblingPills league={league} />
         <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
       </>
     );
   }
-
-  // "below" and "bar": the picture is mood only, the title is dark on white under it.
+  // "below": the picture is mood only, the title dark on white under it.
   return (
     <>
       <header className="relative h-40 overflow-hidden bg-slate-900 sm:h-56">
         <Picture photo={picture} />
       </header>
-      <div className="mx-auto max-w-6xl px-4 pb-6 pt-7">
-        <Crumbs league={league} light={false} />
+      <div className="mx-auto max-w-6xl px-4 pt-7">
+        {!league && <Crumbs league={league} light={false} />}
         {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600">{kicker}</p>}
-        <h1 ref={mode === "bar" ? watch : undefined} className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{title}</h1>
       </div>
-      <SiblingPills league={league} title={mode === "bar" && titleGone ? title : undefined} />
       <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
     </>
   );
 }
 
 /** The sibling pages as a row of pills that sticks under the top bar while the page
- *  scrolls — A's and B's way to the league's other pages. */
-function SiblingPills({ league, className = "", title }: { league: ProtoLeague | null; className?: string; title?: string }) {
+ *  scrolls — B's way to the league's other pages (A has them in the top row). */
+function SiblingPills({ league, className = "" }: { league: ProtoLeague | null; className?: string }) {
   const current = useCurrentSibling(league);
   return (
     <nav aria-label="Pages" className={`scrollbar-none sticky top-14 z-20 overflow-x-auto border-b border-slate-100 bg-white/95 backdrop-blur ${className}`}>
       <ul className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-3">
-        {title && (
-          // The page's title, small, once the big one has scrolled away (title "bar").
-          <li className="mr-2 flex max-w-[45%] shrink-0 items-center border-r border-slate-200 pr-4" data-testid="proto-bar-title">
-            <span className="truncate text-sm font-semibold text-slate-900">{title}</span>
-          </li>
-        )}
         {siblings(league).map((s) => (
           <li key={s.to} className="shrink-0">
             <Link
@@ -442,7 +488,6 @@ const DETAIL_MODES: [DetailMode, string][] = [
 const TITLE_MODES: [TitleMode, string][] = [
   ["picture", "On picture"],
   ["below", "Below"],
-  ["bar", "Into bar"],
 ];
 
 /** The development switch: a small button that opens the variants still being decided —

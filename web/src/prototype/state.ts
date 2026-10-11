@@ -71,10 +71,11 @@ export const [useChapterMode, setChapterMode] = setting<ChapterMode>("prototype.
 export type DetailMode = "band" | "sheet" | "split";
 export const [useDetailMode, setDetailMode] = setting<DetailMode>("prototype.detail", ["band", "sheet", "split"], "band");
 
-/** Where layout A puts a depth page's breadcrumb and title: on the picture, on white
- *  below it, or below it and — once scrolled past — small in the sticky row of pills. */
-export type TitleMode = "picture" | "below" | "bar";
-export const [useTitleMode, setTitleMode] = setting<TitleMode>("prototype.title", ["picture", "below", "bar"], "picture");
+/** Where layout A puts a depth page's title: on the picture, or on white below it. (A
+ *  third place, collapsing into a sticky row, went when that row did — three rows of
+ *  navigation were too many.) */
+export type TitleMode = "picture" | "below";
+export const [useTitleMode, setTitleMode] = setting<TitleMode>("prototype.title", ["picture", "below"], "picture");
 
 /** Which chapter fills most of the screen — for the dots, and so only that chapter plays
  *  a video. `key` re-runs the observer when the set of chapters (or their layout) changes. */

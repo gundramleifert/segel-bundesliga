@@ -30,7 +30,17 @@ results, media and press are not in the row. Each one is a chapter of the league
 and has a full page behind that chapter. An earlier row of topics under the league bar
 made two navigation rows and was dropped (#13).
 
-On a chapter page the row lies over the picture. On a depth page it is solid and sticky.
+On a chapter page the row lies over the picture. On a depth page it is solid and sticky,
+and (layout A) it carries the league's pages itself: **logo · DSBL ▾ · Standings · Season ·
+Notice board · Clubs · News · Media · Press · About · My area**. The league becomes a
+switch, so there is room for its pages beside it.
+
+**At most two rows of navigation, ever.** The second exists only on a matchday page: it
+names the matchday (*"Act 5 · Berlin, 18–20 Sep"*) and lists what it has (*notice board,
+results, pairing list, crews, live, media*). It sticks under the first, so which matchday
+you are on and what else it has stay in view while you scroll. A separate row of the
+league's pages under the bar made three rows on a matchday page and was dropped
+(2026-10-11), and so was the breadcrumb: the top row already says where you are.
 
 ## The league's page: chapters
 
@@ -137,8 +147,8 @@ Each is to be decided on the real device, not argued in the abstract:
 |---|---|
 | Chapters | **snap** — every chapter fills the screen and clicks into place; **free** — chapters keep their height but scroll freely |
 | Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays) |
-| Detail page | **A band** — a slim picture band, the sibling pages as sticky pills under it (as in B, but with A's square edges), content on white · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the sibling pages as pills at its top · **C split** — picture, title and the sibling pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
-| Title (in A) | **on picture** — white on the band · **below** — the band is mood only, breadcrumb and title dark on white under it · **into bar** — as *below*, and once the big title has scrolled away it reappears small at the start of the sticky pills |
+| Detail page | **A band** — a slim picture band, content on white, the league's pages in the top row · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the league's pages as sticky pills at its top edge (three rows on a matchday page) · **C split** — picture, title and the league's pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
+| Title (in A) | **on picture** — white on the band · **below** — the band is mood only, the title dark on white under it |
 
 ## Content sources
 

@@ -27,7 +27,7 @@ import {
   type ProtoLeague,
 } from "./data";
 import { Block, Chapter, DepthPage, DevSwitch, Expand, Footer, TopBar, YouTubePlayer } from "./parts";
-import { href, useActiveChapter, useChapterMode, useLeague } from "./state";
+import { href, useActiveChapter, useChapterMode, useDetailMode, useLeague } from "./state";
 
 // ---------------------------------------------------------------- the chapter pages
 
@@ -590,6 +590,7 @@ const TAB_LABELS: Record<Tab, string> = {
 
 export function ActPage() {
   const league = useLeague();
+  const detail = useDetailMode();
   const { act: actSlug, tab: tabParam } = useParams();
   const act = league?.acts.find((a) => a.slug === actSlug);
   if (!league || !act) return <Navigate to={league ? href.season(league.slug) : href.home()} replace />;
@@ -599,13 +600,24 @@ export function ActPage() {
 
   return (
     <DepthPage league={league} title={`${act.title} · ${act.venue}`} kicker={`${league.short} · ${act.dates} ${YEAR} · ${act.water}`} photo={act.state === "done" ? DSBL_PHOTOS.podium : DSBL_PHOTOS.race}>
-      <nav aria-label="Matchday" className="scrollbar-none -mx-4 mb-8 overflow-x-auto border-b border-slate-200 px-4">
-        <ul className="flex gap-1">
+      {/* Which matchday this is and what it has, in one row that stays under the top bar
+          while the page scrolls — the second and last row of navigation. In layout B the
+          sheet's own row of pills already sits under the bar, so this one sits under that. */}
+      <nav
+        aria-label="Matchday"
+        data-testid="proto-act-bar"
+        className={`scrollbar-none sticky z-10 -mx-4 mb-8 overflow-x-auto border-b border-slate-200 bg-white/95 px-4 backdrop-blur ${detail === "sheet" ? "top-[113px]" : "top-14"}`}
+      >
+        <ul className="flex items-center gap-1">
+          <li className="mr-2 shrink-0 border-r border-slate-200 py-2 pr-4">
+            <p className="text-sm font-semibold text-slate-900">{act.title} · {act.venue}</p>
+            <p className="text-xs text-slate-500">{act.dates}</p>
+          </li>
           {TABS.map((t) => (
-            <li key={t}>
+            <li key={t} className="shrink-0">
               <NavLink
                 to={href.act(league.slug, YEAR, act.slug, t)}
-                className={`-mb-px block whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-medium ${t === tab ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"}`}
+                className={`-mb-px block whitespace-nowrap border-b-2 px-3 py-4 text-sm font-medium ${t === tab ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"}`}
               >
                 {TAB_LABELS[t]}
               </NavLink>
