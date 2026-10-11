@@ -30,6 +30,33 @@ class EventStatus(StrEnum):
     CANCELLED = "cancelled"
 
 
+class League(Base, TimestampMixin):
+    """A competition that runs year after year: DSBL, Junioren-Liga, DSL-Pokal.
+
+    The public site is built around it (``docs/site-structure.md``): ``/dsbl`` is the
+    league's page, and what it shows is the league's series of the current year — for the
+    DSBL two of them, the 1. and 2. Liga, sailed at the same acts. A series names its year;
+    the league is what links the years together.
+
+    A series need not belong to one: a club's own competition has no league, and neither
+    has a standalone event.
+    """
+
+    __tablename__ = "league"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # The address on the public site — `/dsbl`, `/junioren-liga` — so it is stable.
+    slug: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    short_name: Mapped[str] = mapped_column(String(48))
+    name: Mapped[str] = mapped_column(String(160))
+    # One line under the league's name where the leagues are listed side by side.
+    tagline: Mapped[str | None] = mapped_column(String(200), default=None)
+    # The order of the top navigation row.
+    position: Mapped[int] = mapped_column(default=0, server_default="0")
+
+    series: Mapped[list[Series]] = relationship(back_populates="league")
+
+
 class Series(Base, TimestampMixin):
     """A series: a set of events that are scored together.
 
@@ -62,6 +89,8 @@ class Series(Base, TimestampMixin):
     # Rank within a year: 1 for the top division, 2 for the second.
     level: Mapped[int | None] = mapped_column(default=None)
     scoring: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    # The league this is a year of. Empty for a competition that belongs to none.
+    league_id: Mapped[int | None] = mapped_column(ForeignKey("league.id"), index=True, default=None)
     # Whether the series is visible on the public site. A series is planned long before
     # anyone should see it: clubs get assigned, dates move, the name is still being argued
     # over. Publishing is therefore an explicit act — and it locks nothing, a published
@@ -76,6 +105,7 @@ class Series(Base, TimestampMixin):
     # thanked, or a season recapped, so `Text` rather than a bounded `String`.
     description: Mapped[str | None] = mapped_column(Text, default=None)
 
+    league: Mapped[League | None] = relationship(back_populates="series")
     events: Mapped[list[Event]] = relationship(back_populates="series")
     teams: Mapped[list[Team]] = relationship(back_populates="series")
 

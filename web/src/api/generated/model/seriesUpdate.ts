@@ -14,6 +14,7 @@ export interface SeriesUpdate {
   starts_on?: string | null;
   ends_on?: string | null;
   level?: number | null;
+  league_id?: number | null;
   scoring?: SeriesUpdateScoring;
   published?: boolean | null;
   description?: string | null;

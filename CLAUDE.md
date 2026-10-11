@@ -27,7 +27,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
 | `docs/components.md` | **The frontend's building blocks** — read before writing a page |
-| `docs/site-structure.md` | **The decided site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14); prototype under `/prototype`, wireframes under `/wireframes` |
+| `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |
@@ -176,6 +176,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **The current year is the newest one not in the future** — not simply the highest ID. Otherwise
   creating "DSBL 2027" would immediately switch the public page to a year where no one is registered
   yet (`app/services/series.py`).
+- **A League is what links the years: `/dsbl` is the league, its series are its years**
+  (issue #14, Story B-14, `docs/site-structure.md`). A year's series of one league are its
+  divisions (the DSBL's 1. and 2. Liga), and an **act** is the events of that year sharing
+  a matchday number — one page, `/:league/:year/act-:n`. `Series.league_id` is optional:
+  a series or event in no league keeps its own page at `/series/:id` / `/events/:id`.
+  The current year is asked **per league**. News, press, media and documents are static
+  content behind hooks (`web/src/content/`) until they have a backend.
 - **An Event can belong to a Series, but need not.** `series_id` and `matchday`
   are optional. The normal case is an Event within a Series; a cup or training weekend stands
   alone, appears in the calendar, and scores in no Series ranking. The **Event number belongs to

@@ -21,9 +21,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import current_user, require_admin, require_series_manager_for
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import Club, Event, EventStatus, Series, Team, TeamStatus
+from app.models import Club, Event, EventStatus, League, Series, Team, TeamStatus
 from app.models.auth import Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import (
     adopt_series_registrations,
@@ -51,6 +52,10 @@ class SeriesCreate(BaseModel):
     ends_on: date | None = None
     level: int | None = Field(
         default=None, description="Rank in the year: 1 for the first, 2 for the second league"
+    )
+    league_id: int | None = Field(
+        default=None,
+        description="The league this is a year of; without one it is not on a league's page",
     )
     clubs: list[int] = Field(default_factory=list, description="Clubs participating in this series")
     scoring: dict[str, Any] | None = None
@@ -81,6 +86,7 @@ class SeriesUpdate(BaseModel):
     starts_on: date | None = None
     ends_on: date | None = None
     level: int | None = None
+    league_id: int | None = None
     scoring: dict[str, Any] | None = None
     published: bool | None = None
     description: str | None = Field(default=None, max_length=4000)
@@ -224,6 +230,7 @@ async def create_series(
 
     clubs = await _resolve_clubs(session, request.clubs, locale)
     check_squad_limits(request.squad_min, request.squad_max)
+    await _check_league(session, request.league_id)
 
     series = Series(
         slug=slug,
@@ -234,6 +241,7 @@ async def create_series(
         starts_on=request.starts_on,
         ends_on=request.ends_on,
         level=request.level,
+        league_id=request.league_id,
         published=request.published,
         scoring=request.scoring if request.scoring is not None else dict(DEFAULT_SCORING),
         description=request.description.strip() if request.description else None,
@@ -272,6 +280,7 @@ async def update_series(
     check_squad_limits(
         changes.get("squad_min", series.squad_min), changes.get("squad_max", series.squad_max)
     )
+    await _check_league(session, changes.get("league_id"))
     for field, value in changes.items():
         setattr(series, field, value.strip() if isinstance(value, str) else value)
     await session.commit()
@@ -458,3 +467,11 @@ async def _backfill_event_entries(session: AsyncSession, series_id: int) -> None
     )
     for event in events:
         await adopt_series_registrations(session, event)
+
+
+async def _check_league(session: AsyncSession, league_id: int | None) -> None:
+    """A series names an existing league, or none."""
+    if league_id is not None and await session.get(League, league_id) is None:
+        raise Problem(
+            422, "league-not-found", f"League {league_id} not found.", league_id=league_id
+        )

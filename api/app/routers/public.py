@@ -35,6 +35,7 @@ from app.models import (
     EventCrew,
     EventStatus,
     Flight,
+    League,
     Race,
     RaceEntry,
     Sailor,
@@ -58,6 +59,8 @@ from app.schemas.public import (
     EventDetail,
     EventOut,
     EventStandingRow,
+    LeagueOut,
+    LeagueSeason,
     LiveNowOut,
     MemberOut,
     MyClubOut,
@@ -111,6 +114,89 @@ def _only_public_events(stmt):
         .exists()
     )
     return stmt.where(Event.published.is_(True), ~draft_series)
+
+
+# -------------------------------------------------------------------------- Leagues
+
+
+@router.get("/leagues", response_model=list[LeagueOut], summary="The leagues")
+async def list_leagues(session: AsyncSession = Depends(get_session)) -> list[League]:
+    """Every league, in the order of the site's top row."""
+    stmt = select(League).order_by(League.position, League.id)
+    return list((await session.execute(stmt)).scalars())
+
+
+@router.get("/leagues/{slug}", response_model=LeagueSeason, summary="One year of a league")
+async def get_league_season(
+    slug: str,
+    year: int | None = Query(default=None, description="Year; otherwise the league's current one"),
+    session: AsyncSession = Depends(get_session),
+) -> LeagueSeason:
+    """A league's series of one year and their events — what `/dsbl` is built from.
+
+    Addressed by **slug**, unlike the rest of this router: the league's path is the
+    public URL (`docs/site-structure.md`), stable across years, and the slug is data an
+    admin chooses once. Published series and events only, as everywhere here.
+    """
+    league = (await session.execute(select(League).where(League.slug == slug))).scalar_one_or_none()
+    if league is None:
+        raise Problem(404, "league-not-found", f"League {slug} not found.", league=slug)
+
+    years = list(
+        (
+            await session.execute(
+                select(Series.year)
+                .where(
+                    Series.league_id == league.id,
+                    Series.published.is_(True),
+                    Series.year.is_not(None),
+                )
+                .distinct()
+                .order_by(Series.year.desc())
+            )
+        ).scalars()
+    )
+    effective_year = (
+        year
+        if year is not None
+        else await current_year(session, published_only=True, league_id=league.id)
+    )
+    series = list(
+        (
+            await session.execute(
+                select(Series)
+                .where(
+                    Series.league_id == league.id,
+                    Series.published.is_(True),
+                    Series.year == effective_year,
+                )
+                .order_by(Series.level.nulls_last(), Series.name)
+            )
+        ).scalars()
+    )
+    events = (
+        list(
+            (
+                await session.execute(
+                    _only_public_events(
+                        select(Event)
+                        .options(*_EVENT_LOAD)
+                        .where(Event.series_id.in_([s.id for s in series]))
+                        .order_by(Event.starts_on.nulls_last(), Event.matchday, Event.id)
+                    )
+                )
+            ).scalars()
+        )
+        if series
+        else []
+    )
+    return LeagueSeason(
+        league=LeagueOut.model_validate(league),
+        year=effective_year,
+        years=years,
+        series=[SeriesOut.model_validate(s) for s in series],
+        events=[_event_out(e) for e in events],
+    )
 
 
 # -------------------------------------------------------------------------- Series

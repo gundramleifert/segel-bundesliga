@@ -100,7 +100,7 @@ describeStory("V-2/V-12/S-7: as a club manager I name the crew for a matchday fr
     };
     const named = teams.teams.find((t) => t.crew.some((c) => c.id === Number(firstId)));
     expect(named, "the crew is on the public matchday").toBeTruthy();
-    await page.goto(`/events/${PLANNED_ACT}?view=crew`);
+    await page.goto(`/events/${PLANNED_ACT}/crews`);
     await expect(
       page.getByTestId(`matchday-crew-row-${named!.team.id}-${firstId}`),
     ).toBeVisible();

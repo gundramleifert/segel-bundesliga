@@ -466,38 +466,19 @@ one person out of a couple of hundred and opens the whole state as a deep link. 
 still untested: the `Pager` arithmetic at its edges ("26–50 of 180", the disabled buttons)
 has no test of its own.
 
-### A-12 ● Navigation beside the page, not above it
+### A-12 ● The account menu, and the page's name
 As **someone who uses this site on a laptop and on a phone**, I want **the navigation where
-that device puts it**, so that **the screen is spent on what I came to read**.
+I expect it**, so that **the screen is spent on what I came to read**.
 
-One horizontal bar served both and served neither well. On a laptop it wasted the full
-width of a wide screen on six links and left no room to say where you are; the site grew
-two more entries (Story V-12's "My club", the admin area) and the row started competing
-for space with the language switcher and the account button. On a phone the same row had
-to scroll sideways, which is a navigation nobody discovers.
+**Superseded in part by Story B-13 (2026-10-11).** This story first put the navigation in a
+column on the left on a wide screen, and behind a burger on a phone. The site structure of
+issue #14 replaced both with **one row on top** — logo, the leagues, the account button —
+on every device, because the leagues *are* the navigation now and three names fit a phone's
+row. What is left of this story is the account menu and the page's name.
 
 Acceptance criteria:
-- **Wide screens (`lg` and up) put the navigation in a column on the left.** It holds the
-  logo, the links, the language switcher and the account button — everything that is about
-  the site rather than about the page.
-- **The top bar then carries a breadcrumb and nothing else**, small: `Series`, or
-  `Series › 1. Segel-Bundesliga 2026`. It answers "where am I" in the place the eye
-  already goes, and it is the only thing in the header, so it can stay quiet.
-  - The first crumb comes from the route and links to that section. The second is the
-    page's own title, which every page already declares through `PageHeader` — so a page
-    contributes its crumb by existing, and none of them needed changing.
-  - A section's own landing page shows one crumb, not the same word twice.
-- **Narrow screens keep a top bar**, in the arrangement a phone user expects: **burger on
-  the left, logo in the middle, account on the right**. The burger opens the same links as
-  a panel.
-  - The panel closes when a link in it is followed, and on `Escape`. A menu that stays open
-    over the page it just navigated to reads as a broken link.
-  - While it is open it is the only thing the tab key reaches, and the burger says so
-    (`aria-expanded`).
-- **Neither layout may widen the page** (Story A-10). The sidebar is a fixed column that
-  does not shrink and the content column may be narrower than its content; on a phone the
-  panel is an overlay, so it adds no width at all.
-- **The account button opens a menu**, in both arrangements, holding everything that is
+- **Neither the row nor the menu may widen the page** (Story A-10).
+- **The account button opens a menu**, on every device, holding everything that is
   about the *reader* rather than the page: the language, Profile, Help, and the two legal
   pages. Each of those is used rarely, and as separate items in the frame they
   competed with the navigation for room — Help was a main nav entry beside Series and
@@ -519,18 +500,15 @@ Acceptance criteria:
   - On a phone it sits **top right**, where a phone's account button belongs, and opens
     downward pinned to that edge.
   - Escape closes it, a click outside closes it, following a link in it closes it —
-    the same three rules as the burger panel, which is why both use `useDisclosure`.
-  - The legal pages are **only** here. The footer that used to carry them is gone: it was
-    a strip of chrome on every page holding two links and one line of copy. § 5 DDG wants
-    them reachable from every page, and this menu is on every page — so the requirement is
-    met by the menu, which is why the footer could go at all.
-- **No hairlines, and no footer.** The frame is white and the page is a tinted panel
-  inside it, so the regions are told apart by colour rather than by 1px borders — and the
-  panel's **top-left corner is rounded**, at the point where the navigation, the
-  breadcrumb and the page meet, so the frame reads as wrapping around the page rather
-  than being ruled off from it. On a phone there is no sidebar, so both top corners are
-  rounded.
-- **The page states its name once, and that place is its `<h1>`.** The breadcrumb's last
+    the three rules `useDisclosure` gives every panel on this site.
+  - The legal pages are here on every page, and in the footer that the site structure
+    brought back (it also lists each league's pages) — § 5 DDG wants them reachable from
+    every page, and the menu is what guarantees that.
+  - *Administration* is in this menu too, for the roles that can use it: the row on top
+    has room for the leagues and nothing else.
+- **The page states its name once, and that place is its `<h1>`.** On the pages outside
+  the leagues (my space, administration, a club, a sailor) a breadcrumb under the row
+  names the page. The breadcrumb's last
   crumb — where you are — is the heading element, small type and all. A page with no `h1`
   has no outline for anyone reading it with a screen reader, and moving the name into the
   breadcrumb must not cost that. `PageHeader` no longer
@@ -543,8 +521,8 @@ Acceptance criteria:
 - **Sections do not explain themselves.** `Section`'s `hint` is gone with them: a
   paragraph above every admin form describing what the form obviously does is read once
   and skipped forever after.
-- The navigation entries themselves do not change: `admin` still appears only for the roles
-  that can use it, because a link that ends in a 403 is worse than no link, and *My space*
-  for anyone signed in (Story Z-8 — it replaced "My club" and "Reimbursements").
+- `admin` still appears only for the roles that can use it, because a link that ends in a
+  403 is worse than no link, and *My space* for anyone signed in (Story Z-8 — it replaced
+  "My club" and "Reimbursements").
 
-Tests: `e2e/visitor.spec.ts::A-12: the navigation moves with the viewport`
+Tests: `e2e/visitor.spec.ts::A-12: the account menu and the page's name`

@@ -19,10 +19,14 @@ import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
 export function UserMenu({
   account,
   loading,
+  admin = false,
   placement = "bottom",
 }: {
   account: Account | null;
   loading: boolean;
+  /** Whether the administration is offered — only to the roles that can use it, because a
+   *  link that ends in a 403 is worse than no link (Story A-12). */
+  admin?: boolean;
   /** Which way the panel opens. The button sits at the **foot** of the sidebar on a wide
    *  screen, so a panel below it falls off the bottom of the window — there it opens
    *  upward. On a phone the button is in the top bar and it opens downward. */
@@ -40,6 +44,7 @@ export function UserMenu({
     : [{ to: "/account", key: "signIn" }];
   const links = [
     ...own,
+    ...(admin ? [{ to: "/admin", key: "admin" }] : []),
     { to: "/help", key: "help" },
     { to: "/legal-notice", key: "legalNotice" },
     { to: "/privacy", key: "privacy" },

@@ -77,46 +77,10 @@ export async function expectNoSidewaysScroll(page: Page, testInfo: TestInfo): Pr
   }
 }
 
-/** Makes the navigation links reachable, whichever layout this viewport gets.
- *
- * Story A-12: from `lg` up the links sit in a column on the left and are simply there;
- * below that they are behind the burger. Every spec that clicks a nav link runs in both
- * projects, so each of them would otherwise need the same two-line conditional — and the
- * one that forgets it fails only in the `mobile` project, with "element is not visible",
- * which reads like a broken link rather than a closed menu.
- */
-export async function openNavigation(page: Page): Promise<void> {
-  // Decided from the **viewport**, not from the DOM. `isVisible()` does not auto-wait
-  // (the same trap as `count()`, see docs/gotchas/playwright-count-does-not-auto-wait.md):
-  // asked before the layout has painted it answers `false`, the burger is never clicked,
-  // and the next line then waits thirty seconds for a navigation that is sitting behind a
-  // closed menu. Intermittent, and it reads as the page being broken rather than the
-  // helper being wrong. The viewport width is known and settled before the first render.
-  if ((page.viewportSize()?.width ?? 0) < 1024) {
-    // `click()` does auto-wait, so this also waits for the burger to exist.
-    await page.getByTestId("layout-menu-button").click();
-    await expect(page.getByTestId("layout-menu")).toBeVisible();
-  }
-  await expect(page.getByTestId("layout-nav")).toBeVisible();
-}
-
-/** Closes the burger panel again, if this viewport has one.
- *
- *  Needed before touching anything else in the frame: while the drawer is open its
- *  backdrop covers the rest of the page on purpose, so a click on the account button is
- *  correctly refused with "backdrop intercepts pointer events".
- */
-export async function closeNavigation(page: Page): Promise<void> {
-  const menu = page.getByTestId("layout-menu");
-  if ((await menu.count()) === 0) return;
-  await page.keyboard.press("Escape");
-  await expect(menu).toHaveCount(0);
-}
-
 /** Opens the account menu — language, profile, help and the legal pages live behind it.
  *
- * The same button in both arrangements (Story A-12), so unlike `openNavigation` this
- * needs no viewport check: the account button is in the frame at every width.
+ * The account button is in the one row on top at every width (Stories A-12, B-13), so
+ * this needs no viewport check.
  */
 export async function openUserMenu(page: Page): Promise<void> {
   await page.getByTestId("layout-profile-button").click();

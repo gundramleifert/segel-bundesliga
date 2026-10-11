@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
-import { Layout } from "./components/Layout";
+import { Layout, SiteShell } from "./components/Layout";
 import { LegacyRedirect } from "./components/LegacyRedirect";
 import { Help } from "./pages/Help";
 import { Account } from "./pages/Account";
@@ -9,11 +9,7 @@ import { Privacy } from "./pages/Privacy";
 import { Sailor } from "./pages/Sailor";
 import { Live } from "./pages/Live";
 import { LiveNow } from "./pages/LiveNow";
-import { Matchday } from "./pages/Matchday";
 import { RaceControl } from "./pages/RaceControl";
-import { SeriesOverview } from "./pages/SeriesOverview";
-import { Start } from "./pages/Start";
-import { Standings } from "./pages/Standings";
 import { Events } from "./pages/Events";
 import { Admin } from "./pages/Admin";
 import { AdminClubNew } from "./pages/AdminClubNew";
@@ -22,10 +18,25 @@ import { AdminSailorNew } from "./pages/AdminSailorNew";
 import { AdminSeriesNew } from "./pages/AdminSeriesNew";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
-import { ClubPage, EventPage, ProfilePage, SeriesPage } from "./pages/me/Contexts";
+import { ClubPage, EventPage as MyEventPage, ProfilePage, SeriesPage as MySeriesPage } from "./pages/me/Contexts";
 import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
 import { WireframeIndex, WireframeOption } from "./wireframes/Wireframes";
 import { Prototype } from "./prototype/Prototype";
+import { ActPage, EventPage, LiveRedirect, ResultsRedirect } from "./pages/league/Act";
+import {
+  ArticlePage,
+  ClubsPage,
+  LeagueAboutPage,
+  MediaPage,
+  NewsPage,
+  NoticeBoardPage,
+  PressPage,
+  SeasonPage,
+  StandingsPage,
+} from "./pages/league/Depth";
+import { AssociationAboutPage, AssociationHome } from "./pages/league/Home";
+import { LeagueHome } from "./pages/league/LeagueHome";
+import { SeriesPage } from "./pages/league/SeriesPage";
 
 export default function App() {
   return (
@@ -37,15 +48,38 @@ export default function App() {
       <Route path="wireframes/:option/:league" element={<WireframeOption />} />
       {/* Issue #14: option E as a clickable prototype — the chosen structure, mock data. */}
       <Route path="prototype/*" element={<Prototype />} />
+      <Route element={<SiteShell />}>
+      {/* The site's structure (issue #14, docs/site-structure.md, Stories B-13–B-16): the
+          association's home, each league's chapter page and the depth pages behind it.
+          They draw their own frame. A league's path is one free segment, so the static
+          routes below (`/me`, `/admin`, …) win over it by react-router's ranking. */}
+      <Route index element={<AssociationHome />} />
+      <Route path="about" element={<AssociationAboutPage />} />
+      <Route path=":league" element={<LeagueHome />} />
+      <Route path=":league/about" element={<LeagueAboutPage />} />
+      <Route path=":league/standings" element={<StandingsPage />} />
+      <Route path=":league/:year/standings" element={<StandingsPage />} />
+      <Route path=":league/season" element={<SeasonPage />} />
+      <Route path=":league/:year/season" element={<SeasonPage />} />
+      <Route path=":league/notice-board" element={<NoticeBoardPage />} />
+      <Route path=":league/clubs" element={<ClubsPage />} />
+      <Route path=":league/news" element={<NewsPage />} />
+      <Route path=":league/news/:slug" element={<ArticlePage />} />
+      <Route path=":league/media" element={<MediaPage />} />
+      <Route path=":league/press" element={<PressPage />} />
+      <Route path=":league/live" element={<LiveRedirect />} />
+      <Route path=":league/results" element={<ResultsRedirect />} />
+      <Route path=":league/:year/:act" element={<ActPage />} />
+      <Route path=":league/:year/:act/:tab" element={<ActPage />} />
+      {/* An event in no league keeps its page; one in a league goes to its act (B-15, B-16). */}
+      <Route path="events/:id" element={<EventPage />} />
+      <Route path="events/:id/:tab" element={<EventPage />} />
       <Route element={<Layout />}>
-        <Route index element={<Start />} />
-        {/* Several series run at once, so the way in is the overview; a single series'
-            table hangs below it. There is deliberately no bare "standings" page — it could
-            only ever have shown one arbitrary series of several. */}
-        <Route path="series" element={<SeriesOverview />} />
-        <Route path="series/:id" element={<Standings />} />
+        {/* A series in a league goes to its league's standings; one in no league keeps
+            its own table (Story B-16). The overview of every series is the leagues now. */}
+        <Route path="series" element={<Navigate to="/" replace />} />
+        <Route path="series/:id" element={<SeriesPage />} />
         <Route path="events" element={<Events />} />
-        <Route path="events/:id" element={<Matchday />} />
         {/* Story WL-3: the race committee's screen on the water — a page, not a tab. */}
         <Route path="events/:id/race-control" element={<RaceControl />} />
         {/* Stories L-1, L-2: the boats on the map. */}
@@ -61,8 +95,8 @@ export default function App() {
         <Route path="me" element={<MeIndex />} />
         <Route path="me/profile" element={<ProfilePage />} />
         <Route path="me/club/:id" element={<ClubPage />} />
-        <Route path="me/series/:id" element={<SeriesPage />} />
-        <Route path="me/event/:id" element={<EventPage />} />
+        <Route path="me/series/:id" element={<MySeriesPage />} />
+        <Route path="me/event/:id" element={<MyEventPage />} />
         {/* The screens my space replaced, kept as redirects (Story S-7). */}
         <Route path="club" element={<ClubRedirect />} />
         <Route path="reimbursements" element={<Navigate to="/me" replace />} />
@@ -85,9 +119,10 @@ export default function App() {
             deliberately gone: German is a language this site is *translated into*, never a
             second set of identifiers. The catch-all below answers anyone who still tries
             one. */}
-        <Route path="standings" element={<Navigate to="/series" replace />} />
+        <Route path="standings" element={<Navigate to="/" replace />} />
         <Route path="standings/:id" element={<LegacyRedirect to="/series/:id" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
       </Route>
     </Routes>
   );

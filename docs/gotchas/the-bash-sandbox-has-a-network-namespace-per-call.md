@@ -26,10 +26,20 @@ than the end of the output. The alternative to disabling the sandbox is to start
 and run the suite **inside one call** — `dev-stack.sh --keep &`, wait for its `ready.` line,
 then `playwright test` — which keeps both in the same namespace.
 Stop the stack afterwards by the PID you started it with (`dev-stack.sh … & SP=$!` …
-`kill $SP`; its EXIT trap takes the servers down), **never** with `pkill -f` and a pattern
+`kill -TERM $SP`; its EXIT trap takes the servers down — **not** `kill -INT`, which a
+background job of a non-interactive shell ignores), **never** with `pkill -f` and a pattern
 that also occurs in your own command line — that kills the calling shell first, the call
 comes back as exit 143, and the suite's result looks lost although it is in the log file.
 
-**Evidence** — `scripts/dev-stack.sh` exists so this does not have to be re-derived.
+**And a stack you stopped may still be running.** Until 2026-10-12 the trap killed the
+subshells around `uv run` and `vite preview`, not the servers, so they lived on holding
+ports 8000+/5173+. The next run's servers failed to bind, its readiness check was answered
+by the old ones, and the suite ran against databases this run had just replaced under
+them: 37 unrelated failures, `database disk image is malformed` in the API log — which
+pointed at the WAL copy note, not at the leftovers. What misled: "ready." was printed.
+`dev-stack.sh` now `exec`s the servers and refuses to start while a port answers.
 
-**Seen** — 2026-09-11, again 2026-09-13 (the exit-0 report), 2026-09-18 (the self-kill by `pkill -f`), 2026-10-08 (a background `dev-stack.sh`, then Playwright from the next call).
+**Evidence** — `scripts/dev-stack.sh` exists so this does not have to be re-derived;
+`Errno 98 … address already in use` in `$LOGS/api-*.log` is the leftover's signature.
+
+**Seen** — 2026-09-11, again 2026-09-13 (the exit-0 report), 2026-09-18 (the self-kill by `pkill -f`), 2026-10-08 (a background `dev-stack.sh`, then Playwright from the next call), 2026-10-12 (orphaned servers answering the next run).

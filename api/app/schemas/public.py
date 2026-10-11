@@ -57,6 +57,31 @@ class ClubOut(BaseModel):
         return self
 
 
+class LeagueOut(BaseModel):
+    """A competition that runs year after year — the public site's top level."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    slug: str
+    short_name: str
+    name: str
+    tagline: str | None = None
+
+
+class LeagueSeason(BaseModel):
+    """One year of a league: its series and their events, the league's page's data."""
+
+    league: LeagueOut
+    #: The year shown — the one asked for, else the league's current year.
+    year: int | None
+    #: Every year the league has published series in, newest first — the archive.
+    years: list[int]
+    series: list[SeriesOut]
+    #: The events of those series in date order; an act is the events sharing a matchday.
+    events: list[EventOut]
+
+
 class SeriesOut(BaseModel):
     """A Series — the name already carries the year ("DSBL 2026")."""
 
@@ -68,6 +93,8 @@ class SeriesOut(BaseModel):
     short_name: str
     year: int | None = None
     level: int | None = None
+    #: The league this series is a year of — ``LeagueOut.id``; empty for none.
+    league_id: int | None = None
     starts_on: date | None = None
     ends_on: date | None = None
     # How many people a club registers (Story V-1): the maximum is enforced, the minimum shown.

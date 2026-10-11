@@ -77,12 +77,15 @@ import type {
   FixBatchOut,
   FromCatalogRequest,
   GetClubParams,
+  GetLeagueSeasonParams,
   GetSailorParams,
   HTTPValidationError,
   Health200,
   Index200,
   ItemCreate,
   JobOut,
+  LeagueOut,
+  LeagueSeason,
   ListAllClubsParams,
   ListAllEventsParams,
   ListAllSeriesParams,
@@ -619,6 +622,229 @@ export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPho
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSailorPhotoQueryOptions(sailorId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListLeaguesUrl = () => {
+
+
+
+
+  return `/api/leagues`
+}
+
+/**
+ * Every league, in the order of the site's top row.
+ * @summary The leagues
+ */
+export const listLeagues = async ( options?: RequestInit): Promise<LeagueOut[]> => {
+
+  return http<LeagueOut[]>(getListLeaguesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLeaguesQueryKey = () => {
+    return [
+    `/api/leagues`
+    ] as const;
+    }
+
+
+export const getListLeaguesQueryOptions = <TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLeaguesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLeagues>>> = ({ signal }) => listLeagues({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLeaguesQueryResult = NonNullable<Awaited<ReturnType<typeof listLeagues>>>
+export type ListLeaguesQueryError = ErrorType<unknown>
+
+
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeagues>>,
+          TError,
+          Awaited<ReturnType<typeof listLeagues>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeagues>>,
+          TError,
+          Awaited<ReturnType<typeof listLeagues>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The leagues
+ */
+
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLeaguesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetLeagueSeasonUrl = (slug: string,
+    params?: GetLeagueSeasonParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/leagues/${slug}?${stringifiedParams}` : `/api/leagues/${slug}`
+}
+
+/**
+ * A league's series of one year and their events — what `/dsbl` is built from.
+ *
+ * Addressed by **slug**, unlike the rest of this router: the league's path is the
+ * public URL (`docs/site-structure.md`), stable across years, and the slug is data an
+ * admin chooses once. Published series and events only, as everywhere here.
+ * @summary One year of a league
+ */
+export const getLeagueSeason = async (slug: string,
+    params?: GetLeagueSeasonParams, options?: RequestInit): Promise<LeagueSeason> => {
+
+  return http<LeagueSeason>(getGetLeagueSeasonUrl(slug,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLeagueSeasonQueryKey = (slug: string,
+    params?: GetLeagueSeasonParams,) => {
+    return [
+    `/api/leagues/${slug}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLeagueSeasonQueryOptions = <TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(slug: string,
+    params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLeagueSeasonQueryKey(slug,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLeagueSeason>>> = ({ signal }) => getLeagueSeason(slug,params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: slug !== null && slug !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetLeagueSeasonQueryResult = NonNullable<Awaited<ReturnType<typeof getLeagueSeason>>>
+export type GetLeagueSeasonQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+ slug: string,
+    params: undefined |  GetLeagueSeasonParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLeagueSeason>>,
+          TError,
+          Awaited<ReturnType<typeof getLeagueSeason>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+ slug: string,
+    params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getLeagueSeason>>,
+          TError,
+          Awaited<ReturnType<typeof getLeagueSeason>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+ slug: string,
+    params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One year of a league
+ */
+
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+ slug: string,
+    params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetLeagueSeasonQueryOptions(slug,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

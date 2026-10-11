@@ -16,6 +16,7 @@ export interface SeriesOut {
   short_name: string;
   year?: number | null;
   level?: number | null;
+  league_id?: number | null;
   starts_on?: string | null;
   ends_on?: string | null;
   squad_min?: number;

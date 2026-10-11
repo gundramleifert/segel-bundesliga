@@ -296,3 +296,24 @@ Two rules, both from `CLAUDE.md`:
   the reasoning inside the extracted thing, where the next person will read it.
 - **Put the new piece in `components/` and add a row above.** A shared component nobody
   knows about is a component that gets written again.
+
+## The site frame (issue #14, Stories B-13–B-16)
+
+The public site's pages draw their own frame from `web/src/components/site/`; everything
+else sits in `Layout`, which uses the same top row.
+
+- **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu. Over
+  the picture on a chapter page (`overlay`), solid and sticky elsewhere; given a `league`,
+  that league becomes a switch and its pages sit beside it.
+- **`ChapterScroller`** — a league's (or the association's) page: full-screen chapters, the
+  dots on the right, each chapter ending in its own page. Only the first chapter's title
+  is an `h1`.
+- **`DepthPage`** — the frame of a page behind a chapter, in variant A band, B sheet or
+  C split as the DEV switch says; the title is the page's `h1`. `Block` and `Expand` are
+  its section heading and its row that opens in place; `useSecondRow` says where a
+  sticky second row (the matchday's) sits.
+- **`Picture`** — a big picture as photo, fade, slide or muted video (`settings.ts`).
+- **`DevSwitch`** — the open variants, mounted by `SiteShell` wherever `DEV_TOOLS` is.
+- Content without a backend comes from **`web/src/content/`**, through hooks that return
+  an `AsyncState` like a generated query — render it with `Async`, and the page does not
+  change when the endpoint arrives.

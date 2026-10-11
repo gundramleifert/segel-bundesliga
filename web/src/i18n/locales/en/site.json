@@ -1,0 +1,172 @@
+{
+  "nav": {
+    "leagues": "Leagues",
+    "pages": "Pages",
+    "chapters": "Chapters"
+  },
+  "pages": {
+    "home": "Home",
+    "overview": "Overview",
+    "standings": "Standings",
+    "season": "Season",
+    "noticeBoard": "Notice board",
+    "clubs": "Clubs",
+    "news": "News",
+    "media": "Media",
+    "press": "Press",
+    "about": "About"
+  },
+  "chapters": {
+    "now": "Now",
+    "standings": "Standings",
+    "season": "Season",
+    "clubs": "Clubs",
+    "news": "News",
+    "media": "Media",
+    "press": "Press",
+    "about": "About",
+    "leagues": "Leagues",
+    "forClubs": "For clubs"
+  },
+  "state": {
+    "done": "Results",
+    "live": "Live",
+    "next": "Next",
+    "planned": "Planned",
+    "cancelled": "Cancelled"
+  },
+  "tabs": {
+    "notice-board": "Notice board",
+    "results": "Results",
+    "pairing": "Pairing list",
+    "crews": "Crews",
+    "live": "Live",
+    "media": "Media",
+    "entry": "Enter results"
+  },
+  "act": {
+    "title": "Act {{n}}",
+    "tabs": "Matchday",
+    "division": "Division"
+  },
+  "hostedBy": "hosted by {{host}}",
+  "now": {
+    "title": "{{act}}, {{dates}}.",
+    "seasonComplete": "Season complete.",
+    "nothingYet": "{{league}} — the season is being planned.",
+    "matchdayPage": "Matchday page",
+    "resultsOf": "Results {{act}}"
+  },
+  "standings": {
+    "title": "Where everyone stands.",
+    "more": "Full standings",
+    "noSeries": "No series published for this year yet.",
+    "notYet": "No races sailed yet.",
+    "archive": "Archive",
+    "promotion": "promotion",
+    "relegation": "relegation",
+    "requalify": "requalification",
+    "missed": "missed"
+  },
+  "season": {
+    "title_one": "One weekend, one season.",
+    "title_other": "{{count}} weekends, one season.",
+    "more": "Season & notice board",
+    "empty": "No matchdays published yet.",
+    "matchdays": "Matchdays"
+  },
+  "clubs": {
+    "title_one": "One club.",
+    "title_other": "{{count}} clubs.",
+    "titleNone": "The clubs.",
+    "more": "All clubs",
+    "none": "No clubs entered yet.",
+    "clubPage": "Club page"
+  },
+  "news": {
+    "title": "From the water.",
+    "more": "All news"
+  },
+  "media": {
+    "title": "Watch it again.",
+    "more": "Photos & videos",
+    "preview_one": "One video and the galleries of every matchday.",
+    "preview_other": "{{count}} videos and the galleries of every matchday.",
+    "page": "Photos & videos",
+    "videos": "Videos",
+    "photos": "Photos",
+    "none": "Nothing here yet.",
+    "credits": "Photos © Deutsche Segel-Bundesliga; aerial photo © Adam Burdylo."
+  },
+  "press": {
+    "title": "For the press.",
+    "more": "Press centre",
+    "page": "Press centre",
+    "releases": "Press releases",
+    "kit": "Press kit",
+    "kitText": "Logos, fact sheet, the season's dates",
+    "photos": "Print photos",
+    "photosText": "High resolution, free for editorial use",
+    "accreditation": "Accreditation",
+    "accreditationText": "On the water or ashore, per matchday",
+    "contact": "Contact"
+  },
+  "about": {
+    "title": "About the {{league}}",
+    "more": "How it works",
+    "stake": "What is at stake"
+  },
+  "noticeBoard": {
+    "season": "Season notice board",
+    "all": "All documents",
+    "seasonPreview": "League regulations, the season's notice of race, charter terms and entry deadlines.",
+    "intro": "Documents for the whole season. A matchday's own notices — amendments, jury decisions, the protest list — are on its page:",
+    "ofAct": "notice board of {{act}}",
+    "announcements": "Announcements",
+    "documents": "Documents",
+    "from": {
+      "race-committee": "Race committee",
+      "jury": "Jury",
+      "organizer": "Organizer"
+    }
+  },
+  "live": {
+    "now": "Racing now",
+    "replay": "Tracking replay",
+    "from": "Live from {{dates}}",
+    "text": "Every boat on the map, the ranking of the race and the wind — from the sailors' phones.",
+    "open": "Open the live map",
+    "external": "Open the live view"
+  },
+  "home": {
+    "title": "Three competitions, one association.",
+    "leagues": "Pick your league.",
+    "news": "News from all leagues.",
+    "association": "Association",
+    "forClubs": "Run your own regatta here.",
+    "aboutMore": "About the association",
+    "founded": "Founded {{date}}.",
+    "aboutKicker": "About the association",
+    "board": "Board",
+    "members": "Member clubs — {{count}}"
+  },
+  "footer": {
+    "calendar": "Calendar",
+    "allClubs": "All clubs",
+    "credits": "Photos and videos © Deutsche Segel-Bundesliga, linked from deutsche-segelbundesliga.de."
+  },
+  "dev": {
+    "chapters": "Chapters",
+    "pictures": "Pictures",
+    "detail": "Detail page",
+    "snap": "Snap",
+    "free": "Free",
+    "photo": "Photo",
+    "fade": "Fade",
+    "slide": "Slide",
+    "video": "Video",
+    "band": "A Band",
+    "sheet": "B Sheet",
+    "split": "C Split"
+  }
+}

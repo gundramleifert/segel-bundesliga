@@ -72,7 +72,8 @@
     "help": "Help",
     "legalNotice": "Legal notice",
     "privacy": "Privacy",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "admin": "Administration"
   },
   "pager": {
     "range": "{{first}}–{{last}} of {{total}}",

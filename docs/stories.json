@@ -24,12 +24,12 @@
   "anchor": "a-11--the-admin-screen-in-tabs"
  },
  "A-12": {
-  "title": "Navigation beside the page, not above it",
+  "title": "The account menu, and the page's name",
   "status": "●",
   "role": "Administration",
   "phase": "The admin screens",
   "file": "docs/userstories/administration.md",
-  "anchor": "a-12--navigation-beside-the-page-not-above-it"
+  "anchor": "a-12--the-account-menu-and-the-pages-name"
  },
  "A-13": {
   "title": "One list mechanism, and every long list is paged",
@@ -134,6 +134,38 @@
   "phase": "The matchday",
   "file": "docs/userstories/visitor.md",
   "anchor": "b-12--see-who-sails-for-each-team-at-a-matchday"
+ },
+ "B-13": {
+  "title": "One row of navigation, the leagues in it",
+  "status": "◐",
+  "role": "Visitor and Fans",
+  "phase": "The leagues",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-13--one-row-of-navigation-the-leagues-in-it"
+ },
+ "B-14": {
+  "title": "A league's page in chapters, each leading to its own page",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The leagues",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-14--a-leagues-page-in-chapters-each-leading-to-its-own-page"
+ },
+ "B-15": {
+  "title": "The matchday page, its tabs in the URL",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The leagues",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-15--the-matchday-page-its-tabs-in-the-url"
+ },
+ "B-16": {
+  "title": "Old addresses lead to the new pages",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The leagues",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-16--old-addresses-lead-to-the-new-pages"
  },
  "B-2": {
   "title": "Review matchday results",

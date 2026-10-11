@@ -13,6 +13,9 @@ export type { ClubOut as Club } from "./generated/model/clubOut";
 export type { ClubDetail } from "./generated/model/clubDetail";
 export type { ClubMemberOut as ClubMemberSummary } from "./generated/model/clubMemberOut";
 export type { MemberOut as Member } from "./generated/model/memberOut";
+/** Issue #14, Story B-14: a competition that runs year after year, and one year of it. */
+export type { LeagueOut as League } from "./generated/model/leagueOut";
+export type { LeagueSeason } from "./generated/model/leagueSeason";
 export type { SeriesOut as Series } from "./generated/model/seriesOut";
 export type { SeriesTable } from "./generated/model/seriesTable";
 export type { SeriesStandingRow as SeriesRow } from "./generated/model/seriesStandingRow";
