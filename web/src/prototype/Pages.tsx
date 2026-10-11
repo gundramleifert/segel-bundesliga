@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Link, Navigate, NavLink, useParams } from "react-router-dom";
 
 import { ChapterDots, Img } from "../wireframes/kit";
@@ -591,7 +591,19 @@ const TAB_LABELS: Record<Tab, string> = {
 export function ActPage() {
   const league = useLeague();
   const detail = useDetailMode();
+  // A tab click scrolls the page so that the matchday row sits right under the top bar and
+  // the tab's content starts below it. A page opened by its URL keeps its picture in view.
+  const anchor = useRef<HTMLDivElement>(null);
+  const clicked = useRef(false);
   const { act: actSlug, tab: tabParam } = useParams();
+  useEffect(() => {
+    if (!clicked.current || !anchor.current) return;
+    clicked.current = false;
+    // The anchor is not sticky, so it marks where the row sits in the page; the row itself
+    // would report where it is stuck. 56 px is the top bar, 113 px bar plus B's pills.
+    const offset = detail === "sheet" ? 113 : 56;
+    window.scrollTo({ top: anchor.current.getBoundingClientRect().top + window.scrollY - offset });
+  }, [tabParam, detail]);
   const act = league?.acts.find((a) => a.slug === actSlug);
   if (!league || !act) return <Navigate to={league ? href.season(league.slug) : href.home()} replace />;
   const fallback: Tab = act.state === "done" ? "results" : "notice-board";
@@ -603,6 +615,7 @@ export function ActPage() {
       {/* Which matchday this is and what it has, in one row that stays under the top bar
           while the page scrolls — the second and last row of navigation. In layout B the
           sheet's own row of pills already sits under the bar, so this one sits under that. */}
+      <div ref={anchor} aria-hidden />
       <nav
         aria-label="Matchday"
         data-testid="proto-act-bar"
@@ -617,6 +630,9 @@ export function ActPage() {
             <li key={t} className="shrink-0">
               <NavLink
                 to={href.act(league.slug, YEAR, act.slug, t)}
+                onClick={() => {
+                  clicked.current = true;
+                }}
                 className={`-mb-px block whitespace-nowrap border-b-2 px-3 py-4 text-sm font-medium ${t === tab ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"}`}
               >
                 {TAB_LABELS[t]}
@@ -625,6 +641,8 @@ export function ActPage() {
           ))}
         </ul>
       </nav>
+      {/* At least a screen tall, so a short tab can still be scrolled up to the row. */}
+      <div className="min-h-[calc(100dvh-7.5rem)]">
 
       {tab === "notice-board" && (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
@@ -740,6 +758,7 @@ export function ActPage() {
           </ul>
         </div>
       )}
+      </div>
     </DepthPage>
   );
 }
