@@ -27,6 +27,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
 | `docs/components.md` | **The frontend's building blocks** — read before writing a page |
+| `docs/site-structure.md` | **The decided site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14); prototype under `/prototype`, wireframes under `/wireframes` |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |

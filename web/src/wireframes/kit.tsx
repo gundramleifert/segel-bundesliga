@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type PointerEvent, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import {
@@ -66,8 +66,22 @@ export function HeroMedia({ photo, className = "" }: { photo: Photo; className?:
   return <Img photo={photo} className={className} />;
 }
 
-function Slideshow({ photo, className, kind }: { photo: Photo; className: string; kind: "fade" | "push" }) {
-  const slides = [photo, ...SLIDESHOW.filter((p) => p.src !== photo.src)].slice(0, 4);
+/** Pictures that take turns in one box: cross-fading with a slow zoom (`fade`), or pushed
+ *  in from the right (`push`). `slides` defaults to the area's photo followed by the
+ *  wireframes' own set; the prototype passes its own. */
+export function Slideshow({
+  photo,
+  className,
+  kind,
+  slides: given,
+}: {
+  photo: Photo;
+  className: string;
+  kind: "fade" | "push";
+  slides?: Photo[];
+}) {
+  const pool = given ?? SLIDESHOW;
+  const slides = [photo, ...pool.filter((p) => p.src !== photo.src)].slice(0, 4);
   const [index, setIndex] = useState(0);
   useEffect(() => {
     // Staggered by picture, so three slideshows on one page do not all change at once.
@@ -581,3 +595,76 @@ function MediaToggle() {
     </div>
   );
 }
+
+/** The column of dots on the right. With a mouse, hovering shows a dot's name. With a
+ *  thumb there is no hover, so it works like the letter index of a phone's contacts:
+ *  put the thumb on the dots and slide — every chapter's name appears, the one under the
+ *  thumb lights up, and the page follows it. Letting go keeps you there. */
+export function ChapterDots({
+  chapters,
+  active,
+}: {
+  chapters: readonly (readonly [id: string, label: string])[];
+  active: string;
+}) {
+  const [scrub, setScrub] = useState<string | null>(null);
+
+  const chapterAt = (event: PointerEvent) =>
+    (document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-dot]") as HTMLElement | null)?.dataset.dot ?? null;
+
+  const follow = (event: PointerEvent) => {
+    const id = chapterAt(event);
+    if (!id || id === scrub) return;
+    setScrub(id);
+    document.getElementById(id)?.scrollIntoView({ block: "start" });
+  };
+
+  return (
+    <nav
+      aria-label="Chapters"
+      // `touch-none`: sliding along the dots is this control's gesture, not a page scroll.
+      // While sliding, a dark band behind the names keeps them readable over the chapter.
+      className={`fixed right-0 top-1/2 z-40 -translate-y-1/2 touch-none select-none rounded-l-3xl py-2 pl-6 pr-3 transition-colors lg:pr-6 ${
+        scrub ? "bg-gradient-to-l from-slate-950/95 via-slate-950/80 to-slate-950/0" : ""
+      }`}
+      onPointerDown={(event) => {
+        if (event.pointerType === "mouse") return;
+        // Keeps the slide on the dots even when the thumb drifts off the column.
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId);
+        } catch {
+          // A pointer the browser no longer tracks — the slide still works, uncaptured.
+        }
+        follow(event);
+      }}
+      onPointerMove={(event) => scrub && follow(event)}
+      onPointerUp={() => setScrub(null)}
+      onPointerCancel={() => setScrub(null)}
+    >
+      <ol className="flex flex-col">
+        {chapters.map(([id, label]) => {
+          const current = (scrub ?? active) === id;
+          return (
+            <li key={id}>
+              <a href={`#${id}`} data-dot={id} className="group flex items-center justify-end gap-3 py-1.5">
+                <span
+                  className={`whitespace-nowrap rounded-full text-xs font-semibold uppercase tracking-widest transition ${
+                    scrub
+                      ? current
+                        ? "bg-white px-3 py-1 text-sm text-slate-950"
+                        : "text-white/70"
+                      : "text-white/0 group-hover:text-white/80"
+                  }`}
+                >
+                  {label}
+                </span>
+                <span className={`block shrink-0 rounded-full transition-all ${current ? "h-6 w-2 bg-white" : "size-2 bg-white/40 group-hover:bg-white/80"}`} />
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+

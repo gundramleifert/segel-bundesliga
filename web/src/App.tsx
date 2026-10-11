@@ -25,6 +25,7 @@ import { Clubs } from "./pages/Clubs";
 import { ClubPage, EventPage, ProfilePage, SeriesPage } from "./pages/me/Contexts";
 import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
 import { WireframeIndex, WireframeOption } from "./wireframes/Wireframes";
+import { Prototype } from "./prototype/Prototype";
 
 export default function App() {
   return (
@@ -34,6 +35,8 @@ export default function App() {
       <Route path="wireframes" element={<WireframeIndex />} />
       <Route path="wireframes/:option" element={<WireframeOption />} />
       <Route path="wireframes/:option/:league" element={<WireframeOption />} />
+      {/* Issue #14: option E as a clickable prototype — the chosen structure, mock data. */}
+      <Route path="prototype/*" element={<Prototype />} />
       <Route element={<Layout />}>
         <Route index element={<Start />} />
         {/* Several series run at once, so the way in is the overview; a single series'

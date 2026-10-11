@@ -25,6 +25,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A field with a server-side default is *required* in the generated request type](openapi-typescript-marks-defaulted-request-fields-required.md)
 - [orval's override.query flags invert its GET/non-GET split, so a POST gets a query hook](orval-s-override-query-flags-invert-its-get-non-get-split-so-a-post-gets-a-query.md)
 - [`locator.count()` does not auto-wait; `toHaveCount()` does](playwright-count-does-not-auto-wait.md)
+- [Playwright in the sandbox shows every cross-origin image as broken, even with the proxy's credentials; route them through route.fetch](playwright-in-the-sandbox-shows-every-cross-origin-image-as-broken-even-with-the.md)
 - [Playwright accepts unknown `use` keys silently — `reducedMotion` moved under `contextOptions`](playwright-moved-reducedmotion-into-contextoptions.md)
 - [Playwright's workerIndex keeps climbing past the worker count; parallelIndex is the bounded slot](playwright-s-workerindex-keeps-climbing-past-the-worker-count-parallelindex-is-th.md)
 - [pnpm runs a store-writing lockfile check before every script, so `pnpm <script>` fails where the store is read-only](pnpm-runs-a-store-writing-lockfile-check-before-every-script-so-pnpm-script-fail.md)
