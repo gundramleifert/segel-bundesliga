@@ -25,6 +25,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/concepts.md` | **Terms and data model** — Series, Event, Squad, Scoring. Start here. |
 | `docs/userstories/` | What the system should do, with tests included — one file per role, `README.md` is the index |
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
+| `docs/manage2sail.md` | **Manage2Sail** — the event token, the check-in report, the public entry/result endpoints, what cannot be written |
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
 | `docs/components.md` | **The frontend's building blocks** — read before writing a page |
 | `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |

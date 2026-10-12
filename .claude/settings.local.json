@@ -4,7 +4,12 @@
       "WebFetch(domain:github.com)",
       "Bash(timeout 30 curl -s https://api.github.com/repos/gundramleifert/PairingList/releases)",
       "WebFetch(domain:api.github.com)",
-      "WebFetch(domain:codeload.github.com)"
+      "WebFetch(domain:codeload.github.com)",
+      "Bash(curl:*)",
+      "WebFetch(domain:www.manage2sail.com)",
+      "Bash(grep -i content-disposition __TRACKED_VAR__/m2sshadow/doch.txt)",
+      "Bash(file __TRACKED_VAR__/m2sshadow/doc.bin)",
+      "WebFetch(domain:portal.manage2sail.com)"
     ]
   },
   "sandbox": {

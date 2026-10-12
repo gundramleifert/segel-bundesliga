@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**84 stories** — ● 59 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 67 · with browser tests: 34 · walked by a journey: 9 · **with no test at all: 10**.
+**85 stories** — ● 59 implemented and tested · ◐ 14 partial · ○ 12 open. With backend tests: 67 · with browser tests: 34 · walked by a journey: 9 · **with no test at all: 11**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -96,6 +96,7 @@ same stories with each test's result, video and trace.
 | [A-5](userstories/visitor.md#a-5--series-standings-with-substitute-score) | ● | Series standings with substitute score | `test_scoring_storage.py::TestSeriesStanding` | — | — |
 | [A-4](userstories/visitor.md#a-4--series-includes-its-year) | ● | Series includes its year | `test_series_assignment.py::TestSeriesNaming` | — | — |
 | [B-2](userstories/visitor.md#b-2--review-matchday-results) | ● | Review matchday results | `test_visitor.py::TestMatchdayResult` | `visitor.spec.ts::B-2: as a fan I read up on how a matchday went` | — |
+| [B-17](userstories/visitor.md#b-17--club-crests-and-a-partner-mark-on-the-results) | ○ | Club crests and a partner mark on the results | — | — | — |
 | [B-3](userstories/visitor.md#b-3--view-pairing-list) | ● | View pairing list | `test_visitor.py::TestPairingList`<br>`test_pairing_pdf.py` | `visitor.spec.ts::B-3: as a sailor I see when I am on which boat` | J-1 |
 | [B-12](userstories/visitor.md#b-12--see-who-sails-for-each-team-at-a-matchday) | ● | See who sails for each team at a matchday | `test_visitor.py::TestMatchdayCrew` | — | — |
 | [B-5](userstories/visitor.md#b-5--follow-live-updates) | ◐ | Follow live updates | `test_live_hub.py`<br>`test_live_updates.py` | `live.spec.ts::B-5: as a spectator I follow live updates` | — |
