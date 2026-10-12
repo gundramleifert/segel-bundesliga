@@ -344,6 +344,17 @@ Acceptance criteria:
   of each division; *Season* every act with its state. **Once the season is over** *Now*
   says so and leads to the final standings and the last results — not to a live map and a
   notice board of a weekend that is past.
+- **The dots on the right are a control of their own size**, fixed on a phone (2026-10-12):
+  - only the dots take touch — the chapter names appear over the chapter while a thumb
+    slides, and take no room. Reserving their room had made the column an invisible strip
+    a third of the screen wide, and a swipe that started there, where a right thumb
+    scrolls, jumped chapters instead of scrolling the page;
+  - a sliding thumb is followed by its **height**, so drifting off the column sideways no
+    longer freezes the slide;
+  - a tap scrolls to the chapter and leaves the address and the history alone (it used to
+    add `#season` to both, so Back walked the chapters);
+  - the marked dot is the chapter crossing the **middle of the screen**. "At least 55%
+    visible" could never be true of a chapter taller than about 1.8 screens.
 - **The chapter page scrolls from the keyboard.** It is its own scrolling box (so the
   chapters can snap), and the document behind has nothing to scroll — so the box takes the
   focus when the page opens, and Space, Page Down and the arrows move it.
