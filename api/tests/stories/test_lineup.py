@@ -29,6 +29,8 @@ async def first_team() -> tuple[int, int, list[int]]:
 
     Deliberately the **last**, not the first: the club and sailor pages check the first,
     and these stories change lineups. Two stories should not interfere with each other.
+    The last *with a squad*: a test that enrols a latecomer (test_scoring_storage.py)
+    leaves a newer registration with nobody in it.
     """
     async with SessionLocal() as session:
         team = (
@@ -36,6 +38,7 @@ async def first_team() -> tuple[int, int, list[int]]:
                 select(Team)
                 .join(Series, Team.series_id == Series.id)
                 .where(Series.slug == "dsbl-1-2026", Team.event_id.is_(None))
+                .where(Team.id.in_(select(TeamMembership.team_id)))
                 .order_by(Team.id.desc())
                 .limit(1)
             )
@@ -71,11 +74,16 @@ async def club_leadership(client, caplog, email: str, club_id: int) -> dict[str,
 
 class TestLineup:
     async def test_four_from_squad_can_be_lined_up(self, client, caplog):
+        """Four is the typical size, not a hard limit — and an empty list clears the lineup.
+
+        Illness, late registrations, and non-standard formats would not work otherwise.
+        """
         team_id, club_id, squad = await first_team()
         headers = await club_leadership(client, caplog, "au1@example.com", club_id)
+        path = f"/api/admin/events/{await matchday_id()}/crew"
 
         response = await client.put(
-            f"/api/admin/events/{await matchday_id()}/crew",
+            path,
             headers=headers,
             json={
                 "team_id": team_id,
@@ -91,6 +99,23 @@ class TestLineup:
         assert lineup["crew_size"] == 4
         assert len(lineup["members"]) == 4
         assert lineup["members"][0]["role"] == "helm"
+
+        three = await client.put(
+            path,
+            headers=headers,
+            json={
+                "team_id": team_id,
+                "members": [{"sailor_id": s, "role": "crew"} for s in squad[:3]],
+            },
+        )
+        assert three.status_code == 200, three.text
+        assert len(three.json()["members"]) == 3
+        # The guide value still appears in the response — for the UI.
+        assert three.json()["crew_size"] == 4
+
+        empty = await client.put(path, headers=headers, json={"team_id": team_id, "members": []})
+        assert empty.status_code == 200
+        assert empty.json()["members"] == []
 
     async def test_unregistered_sailors_cannot_be_lined_up(self, client, caplog):
         """The core rule — enforced at the endpoint, not just in the UI."""
@@ -113,27 +138,6 @@ class TestLineup:
         )
         assert response.status_code == 422
         assert "Not in this team's squad" in response.json()["detail"]
-
-    async def test_crew_size_is_flexible(self, client, caplog):
-        """Four is the typical size, not a hard limit.
-
-        Illness, late registrations, and non-standard formats would not work otherwise.
-        """
-        team_id, club_id, squad = await first_team()
-        headers = await club_leadership(client, caplog, "au3@example.com", club_id)
-
-        response = await client.put(
-            f"/api/admin/events/{await matchday_id()}/crew",
-            headers=headers,
-            json={
-                "team_id": team_id,
-                "members": [{"sailor_id": s, "role": "crew"} for s in squad[:3]],
-            },
-        )
-        assert response.status_code == 200, response.text
-        assert len(response.json()["members"]) == 3
-        # The guide value still appears in the response — for the UI.
-        assert response.json()["crew_size"] == 4
 
     async def test_no_one_appears_twice_in_lineup(self, client, caplog):
         team_id, club_id, squad = await first_team()
@@ -185,23 +189,6 @@ class TestLineup:
             },
         )
         assert response.status_code == 200
-
-    async def test_empty_list_clears_lineup(self, client, caplog):
-        team_id, club_id, squad = await first_team()
-        headers = await club_leadership(client, caplog, "au7@example.com", club_id)
-        path = f"/api/admin/events/{await matchday_id()}/crew"
-
-        await client.put(
-            path,
-            headers=headers,
-            json={
-                "team_id": team_id,
-                "members": [{"sailor_id": s, "role": "crew"} for s in squad[:4]],
-            },
-        )
-        empty = await client.put(path, headers=headers, json={"team_id": team_id, "members": []})
-        assert empty.status_code == 200
-        assert empty.json()["members"] == []
 
     async def test_nonparticipating_clubs_cannot_be_lined_up(self, client, caplog):
         """Lineup is set at the event entry — not for every event that exists.

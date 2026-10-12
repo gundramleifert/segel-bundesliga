@@ -3,8 +3,6 @@
 We do not manage passwords: identity comes from Google, Microsoft, or a one-time code via email.
 """
 
-from uuid import uuid4
-
 import pytest
 from sqlalchemy import select
 
@@ -99,15 +97,6 @@ class TestSigningIn:
         assert IdentityProvider.GOOGLE in wege and IdentityProvider.MICROSOFT in wege
         assert "allow_registration" in wege
 
-    async def test_a_one_time_code_signs_me_in(self, client, caplog):
-        """I can sign in with a one-time code."""
-        await make_user("seglerin@example.org", Role.CLUB_MANAGER)
-        token = await login_as(client, "seglerin@example.org", caplog)
-
-        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == 200
-        assert response.json()["roles"] == [Role.CLUB_MANAGER]
-
     async def test_a_code_works_only_once(self, client, caplog):
         """The code can only be used once."""
         import logging
@@ -178,9 +167,12 @@ class TestRoles:
             json={"user": "wl@example.org", "relation": "race_officer", "object": "site"},
         )
         assert written.status_code == 201, written.text
-        assert written.json()["object"] == "site"
-        user = await client.get(f"/api/auth/users/{user_id}", headers=headers)
-        assert user.json()["roles"] == [Role.RACE_OFFICER]
+        row = written.json()
+        # A site tuple is what a role used to be (Story Z-2).
+        assert (row["object"], row["object_type"], row["object_id"]) == ("site", "site", None)
+        user = (await client.get(f"/api/auth/users/{user_id}", headers=headers)).json()
+        assert user["roles"] == [Role.RACE_OFFICER]
+        assert [t["relation"] for t in user["tuples"]] == ["race_officer"]
 
     async def test_nobody_can_revoke_their_own_admin_role(self, client, caplog):
         """Cannot revoke your own admin role — otherwise the last admin could
@@ -208,50 +200,36 @@ class TestAdminWhitelist:
     """As a deployment operator, I want a whitelisted address to become admin on its
     first sign-in — otherwise a fresh deployment has no one who can grant any role."""
 
-    async def test_a_listed_address_becomes_admin_on_first_sign_in(
+    async def test_a_listed_address_becomes_admin_once_an_unlisted_one_stays_plain(
         self, client, caplog, monkeypatch
     ):
-        """A whitelisted address becomes admin on its first sign-in."""
+        """A whitelisted address becomes admin on its first sign-in, compared without
+        case; signing in again creates no duplicate role row, and an address not on the
+        list gets no role."""
         monkeypatch.setattr(settings, "admin_emails", ["Chef@Example.org"])
         await make_user("chef@example.org")
-
-        token = await login_as(client, "chef@example.org", caplog)
-        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
-        assert response.json()["roles"] == [Role.ADMIN]
-
-    async def test_an_unlisted_address_stays_without_a_role(self, client, caplog):
-        """An address not on the list gets no role, as before."""
         await make_user("niemand@example.org")
-        token = await login_as(client, "niemand@example.org", caplog)
-
-        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
-        assert response.json()["roles"] == []
-
-    async def test_a_role_is_never_granted_twice(self, client, caplog, monkeypatch):
-        """Signing in twice doesn't create a duplicate role row."""
-        monkeypatch.setattr(settings, "admin_emails", ["chef@example.org"])
-        await make_user("chef@example.org")
 
         await login_as(client, "chef@example.org", caplog)
         token = await login_as(client, "chef@example.org", caplog)
-
         response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.json()["roles"] == [Role.ADMIN]
+
+        token = await login_as(client, "niemand@example.org", caplog)
+        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+        assert response.json()["roles"] == []
 
 
 class TestRemoveAccount:
     """Removing an account deactivates it — the row and its history stay in the DB."""
 
     async def test_removing_deactivates_not_deletes(self, client, caplog):
-        from sqlalchemy import select
-
-        from app.db import SessionLocal
-        from app.models.auth import User
-
-        admin = await make_user("rm-admin@example.org", Role.ADMIN)
-        assert admin
+        """The row stays, and the removed person's still-valid token stops working —
+        `is_active` is checked per request."""
+        await make_user("rm-admin@example.org", Role.ADMIN)
         token = await login_as(client, "rm-admin@example.org", caplog)
         victim_id = await make_user("rm-victim@example.org", Role.EDITOR)
+        victim_token = await login_as(client, "rm-victim@example.org", caplog)
 
         response = await client.delete(
             f"/api/auth/users/{victim_id}",
@@ -267,18 +245,6 @@ class TestRemoveAccount:
         assert still_there is not None, "the row must remain"
         assert still_there.is_active is False
 
-    async def test_a_deactivated_account_cannot_sign_in(self, client, caplog):
-        await make_user("rm-admin2@example.org", Role.ADMIN)
-        admin_token = await login_as(client, "rm-admin2@example.org", caplog)
-        victim_id = await make_user("rm-victim2@example.org")
-        victim_token = await login_as(client, "rm-victim2@example.org", caplog)
-
-        await client.delete(
-            f"/api/auth/users/{victim_id}",
-            headers={"Authorization": f"Bearer {admin_token}"},
-        )
-
-        # The still-valid token no longer works — is_active is checked per request.
         response = await client.get(
             "/api/auth/me", headers={"Authorization": f"Bearer {victim_token}"}
         )
@@ -312,48 +278,33 @@ class TestDeleteMyAccount:
     testing-phase convenience, unlike administration removing someone else (Z-6, which
     deactivates and keeps the row)."""
 
-    async def test_deleting_removes_the_row(self, client, caplog):
-        user_id = await make_user("del-self@example.org")
-        token = await login_as(client, "del-self@example.org", caplog)
+    async def test_deleting_removes_the_row_its_tuples_and_its_token(self, client, caplog, ids):
+        """The row goes, the token stops working immediately, and every tuple of the
+        account goes with it — membership is a tuple now (Story Z-5), and SQLite reuses
+        ids, so a leftover row would belong to the next account."""
+        user_id = await make_user("del-member@example.org")
+        token = await login_as(client, "del-member@example.org", caplog)
+        headers = {"Authorization": f"Bearer {token}"}
+        async with SessionLocal() as session:
+            session.add(Grant(user_id=user_id, relation=Relation.MEMBER, club_id=ids.club("fsc")))
+            session.add(Grant(user_id=user_id, relation=Relation.RACE_OFFICER))
+            await session.commit()
 
-        response = await client.delete("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+        response = await client.delete("/api/auth/me", headers=headers)
         assert response.status_code == 204
 
         async with SessionLocal() as session:
             gone = (
                 await session.execute(select(User).where(User.id == user_id))
             ).scalar_one_or_none()
-        assert gone is None
-
-    async def test_the_token_stops_working_immediately(self, client, caplog):
-        await make_user("del-self2@example.org")
-        token = await login_as(client, "del-self2@example.org", caplog)
-
-        await client.delete("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
-
-        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == 401
-
-    async def test_the_accounts_tuples_go_with_it(self, client, caplog, ids):
-        """Membership is a tuple now (Story Z-5), and every tuple of the account goes with
-        it — SQLite reuses ids, so a leftover row would belong to the next account."""
-        user_id = await make_user("del-member@example.org")
-        token = await login_as(client, "del-member@example.org", caplog)
-        async with SessionLocal() as session:
-            session.add(Grant(user_id=user_id, relation=Relation.MEMBER, club_id=ids.club("fsc")))
-            session.add(Grant(user_id=user_id, relation=Relation.RACE_OFFICER))
-            await session.commit()
-
-        response = await client.delete("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == 204
-
-        async with SessionLocal() as session:
             leftover = (
                 (await session.execute(select(Grant).where(Grant.user_id == user_id)))
                 .scalars()
                 .all()
             )
+        assert gone is None
         assert leftover == []
+        assert (await client.get("/api/auth/me", headers=headers)).status_code == 401
 
     async def test_waiver_confirmations_survive_with_recorder_cleared(self, client, caplog, ids):
         """A waiver confirmation is someone else's evidence — it must outlive the staff
@@ -440,16 +391,6 @@ class TestTuples:
     """Story Z-2: permissions are relation tuples — user · relation · object — written
     and deleted one at a time, checked through the model's rewrite rules."""
 
-    async def test_a_site_tuple_is_what_a_role_used_to_be(self, client, caplog):
-        headers = await _admin_headers(client, caplog)
-        user_id = await make_user("wl2@example.org")
-
-        row = await _write(client, headers, "wl2@example.org", "race_officer", "site")
-        assert (row["object"], row["object_type"], row["object_id"]) == ("site", "site", None)
-        user = (await client.get(f"/api/auth/users/{user_id}", headers=headers)).json()
-        assert user["roles"] == [Role.RACE_OFFICER]
-        assert [t["relation"] for t in user["tuples"]] == ["race_officer"]
-
     async def test_the_model_decides_which_relations_an_object_has(self, client, caplog, ids):
         """`manager` has no meaning on the site, `jury` none on a club (the schema)."""
         headers = await _admin_headers(client, caplog)
@@ -483,7 +424,12 @@ class TestTuples:
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
         assert by_type["site"] == ["admin", "editor", "race_officer"]
         assert by_type["event"] == [
-            "admin", "manager", "race_officer", "jury", "helper", "treasurer"
+            "admin",
+            "manager",
+            "race_officer",
+            "jury",
+            "helper",
+            "treasurer",
         ]
 
     async def test_the_same_tuple_twice_is_refused(self, client, caplog, ids):
@@ -561,7 +507,8 @@ class TestTuples:
 
     async def test_deleting_one_tuple_leaves_the_others_alone(self, client, caplog, ids):
         """A person is manager of two clubs and race officer of two events — four rows;
-        deleting one is one row. The old set-roles endpoint rebuilt them all."""
+        deleting one is one row. The old set-roles endpoint rebuilt them all. Every write
+        and delete is audited."""
         headers = await _admin_headers(client, caplog)
         nrv, byc = ids.club("nrv"), ids.club("byc")
         act_1, act_3 = ids.event("dsbl-1-2026-act-1"), ids.event("dsbl-1-2026-act-3")
@@ -582,16 +529,6 @@ class TestTuples:
             ]
         )
 
-
-    async def test_every_write_and_delete_is_audited(self, client, caplog, ids):
-        headers = await _admin_headers(client, caplog)
-        user_id = await make_user("protokoll@example.org")
-        event_id = ids.event("dsbl-1-2026-act-3")
-        row = await _write(
-            client, headers, "protokoll@example.org", "race_officer", f"event:{event_id}"
-        )
-        await client.delete(f"/api/auth/tuples/{row['id']}", headers=headers)
-
         async with SessionLocal() as session:
             rows = (
                 (
@@ -605,8 +542,10 @@ class TestTuples:
                 .all()
             )
         assert [(r.action, r.payload["relation"], r.payload["object_id"]) for r in rows] == [
-            ("grant", "race_officer", event_id),
-            ("revoke", "race_officer", event_id),
+            ("grant", "manager", byc),
+            ("grant", "race_officer", act_1),
+            ("grant", "race_officer", act_3),
+            ("revoke", "race_officer", act_3),
         ]
 
 
@@ -805,17 +744,3 @@ class TestOrganizers:
         ).status_code == 403
         me = (await client.get("/api/auth/me", headers=admin)).json()
         assert me["roles"] == [Role.SERIES_MANAGER]
-
-
-async def _lonely_club() -> int:
-    """A fresh club nobody organizes yet, so its first organizer is also its last."""
-    async with SessionLocal() as session:
-        club = Club(
-            slug=f"einsam-{uuid4().hex[:6]}",
-            name="Einsamer Segelverein",
-            short_name="ESV",
-            city="Nirgendwo",
-        )
-        session.add(club)
-        await session.commit()
-        return club.id

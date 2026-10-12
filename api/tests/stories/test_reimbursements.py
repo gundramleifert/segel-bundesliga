@@ -181,18 +181,6 @@ class TestFilingAClaim:
         # The account's bank details are copied onto the claim at submission.
         assert claim["iban"] == IBAN and claim["payee_name"] == "Hel Per"
 
-    async def test_a_member_files_on_their_club(self, client, caplog):
-        w = await world()
-        me = await login(
-            client,
-            caplog,
-            f"m-{uuid4().hex[:6]}@example.org",
-            Grant(relation=Relation.MEMBER, club_id=w.club),
-        )
-
-        claim = await submitted(client, me, club=w.club)
-        assert claim["club_id"] == w.club and claim["payer_club_id"] == w.club
-
     async def test_nobody_else_may_file(self, client, caplog):
         w = await world()
         # Member of another club; editor of the site (manager of every event by rewrite).
@@ -291,6 +279,8 @@ class TestFilingAClaim:
             Grant(relation=Relation.MEMBER, club_id=w.club),
         )
         claim = await submitted(client, me, club=w.club)
+        # A member files on their club, and the club pays.
+        assert claim["club_id"] == w.club and claim["payer_club_id"] == w.club
 
         response = await client.post(
             f"/api/claims/{claim['id']}/items",

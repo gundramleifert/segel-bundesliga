@@ -131,23 +131,19 @@ class TestStartingARace:
         assert hub.version(f"event:{event_id}") == version_before + 1
         assert await audit_actions(race_id) == ["start"]
 
-    async def test_a_second_tap_on_start_is_not_an_error(self, client, caplog):
-        headers = await admin(client, caplog, "rc2@example.com")
-        event_id = await live_event(client, headers, "Double Tap Cup", "2027-10-03")
-        (race_id, _), *_ = await races_of(event_id)
-        url = f"/api/admin/events/{event_id}/races/{race_id}/start"
-
-        first = await client.post(url, headers=headers)
-        second = await client.post(url, headers=headers)
-
+        # A second tap on start is not an error, and starts nothing again.
+        second = await client.post(
+            f"/api/admin/events/{event_id}/races/{race_id}/start", headers=headers
+        )
         assert second.status_code == 200, second.text
-        assert second.json()["started_at"] == first.json()["started_at"]
+        assert second.json()["started_at"] == body["started_at"]
         assert await audit_actions(race_id) == ["start"]
 
     async def test_races_run_one_at_a_time(self, client, caplog):
+        """Neither a second start nor a result for a scheduled race while another runs."""
         headers = await admin(client, caplog, "rc3@example.com")
         event_id = await live_event(client, headers, "One At A Time Cup", "2027-10-04")
-        (first, _), (second, _), *_ = await races_of(event_id)
+        (first, _), (second, second_boats), *_ = await races_of(event_id)
         await client.post(f"/api/admin/events/{event_id}/races/{first}/start", headers=headers)
 
         response = await client.post(
@@ -158,6 +154,14 @@ class TestStartingARace:
         body = response.json()
         assert body["type"] == "/errors/race-already-running"
         assert body["race_id"] == first
+
+        result = await client.put(
+            f"/api/admin/events/{event_id}/races/{second}/result",
+            headers=headers,
+            json=full_result(second_boats),
+        )
+        assert result.status_code == 409, result.text
+        assert result.json()["type"] == "/errors/race-already-running"
 
     async def test_the_preparatory_flag_is_stored_with_the_start(self, client, caplog):
         headers = await admin(client, caplog, "rc4@example.com")
@@ -243,14 +247,7 @@ class TestRecallAndAbandon:
         assert all(entry.code is None and entry.points is None for entry in cleared)
         assert await audit_actions(race_id) == ["start", "recall"]
 
-    async def test_a_recalled_first_race_leaves_the_event_frozen(self, client, caplog):
-        headers = await admin(client, caplog, "rc8@example.com")
-        event_id = await live_event(client, headers, "Frozen Cup", "2027-10-10")
-        (race_id, _), *_ = await races_of(event_id)
-        base = f"/api/admin/events/{event_id}/races/{race_id}"
-        await client.post(f"{base}/start", headers=headers)
-        await client.post(f"{base}/recall", headers=headers)
-
+        # A recalled first race leaves the event frozen: the start's audit row outlives it.
         async with SessionLocal() as session:
             frozen = await configuration_frozen(session, event_id)
         assert frozen is not None
@@ -350,44 +347,24 @@ class TestRecallAndAbandon:
 class TestFinishingThroughTheResult:
     """WL-3: the finish is the result PUT — and the PUT respects the state machine."""
 
-    async def test_a_full_result_finishes_the_running_race(self, client, caplog):
-        headers = await admin(client, caplog, "rc12@example.com")
-        event_id = await live_event(client, headers, "Finish Cup", "2027-10-16")
-        (race_id, boats), *_ = await races_of(event_id)
-        base = f"/api/admin/events/{event_id}/races/{race_id}"
-        await client.post(f"{base}/start", headers=headers)
-
-        response = await client.put(f"{base}/result", headers=headers, json=full_result(boats))
-
-        assert response.status_code == 200, response.text
-        assert response.json()["status"] == "finished"
-        race = await race_row(race_id)
-        assert race.started_at is not None
-        assert race.finished_at is not None
-        assert await audit_actions(race_id) == ["start", "finish"]
-
-    async def test_no_result_for_a_scheduled_race_while_another_runs(self, client, caplog):
-        headers = await admin(client, caplog, "rc13@example.com")
-        event_id = await live_event(client, headers, "Queue Cup", "2027-10-17")
-        (first, _), (second, second_boats), *_ = await races_of(event_id)
-        await client.post(f"/api/admin/events/{event_id}/races/{first}/start", headers=headers)
-
-        response = await client.put(
-            f"/api/admin/events/{event_id}/races/{second}/result",
-            headers=headers,
-            json=full_result(second_boats),
-        )
-
-        assert response.status_code == 409, response.text
-        assert response.json()["type"] == "/errors/race-already-running"
-
     async def test_a_finished_race_stays_correctable_while_another_runs(self, client, caplog):
+        """A full result finishes the running race; a correction to it is not refused."""
         headers = await admin(client, caplog, "rc14@example.com")
         event_id = await live_event(client, headers, "Protest Cup", "2027-10-18")
         (first, first_boats), (second, _), *_ = await races_of(event_id)
         base = f"/api/admin/events/{event_id}/races"
         await client.post(f"{base}/{first}/start", headers=headers)
-        await client.put(f"{base}/{first}/result", headers=headers, json=full_result(first_boats))
+
+        finished = await client.put(
+            f"{base}/{first}/result", headers=headers, json=full_result(first_boats)
+        )
+        assert finished.status_code == 200, finished.text
+        assert finished.json()["status"] == "finished"
+        race = await race_row(first)
+        assert race.started_at is not None
+        assert race.finished_at is not None
+        assert await audit_actions(first) == ["start", "finish"]
+
         await client.post(f"{base}/{second}/start", headers=headers)
 
         # The protest on race 1 is decided while race 2 is on the water.
@@ -438,19 +415,13 @@ class TestSignals:
         assert down.json()["signal"] is None
         assert await audit_actions(race_id) == ["signal", "signal"]
 
-    async def test_ap_needs_a_race_that_has_not_started(self, client, caplog):
-        headers = await admin(client, caplog, "rc17@example.com")
-        event_id = await live_event(client, headers, "Late AP Cup", "2027-10-24")
-        (race_id, _), *_ = await races_of(event_id)
-        base = f"/api/admin/events/{event_id}/races/{race_id}"
-        await client.post(f"{base}/start", headers=headers)
-
-        response = await client.post(f"{base}/signal", headers=headers, json={"signal": "AP"})
-
-        assert response.status_code == 409, response.text
-        assert response.json()["type"] == "/errors/race-not-scheduled"
+        # The start clears a postponement.
+        await client.post(f"{base}/signal", headers=headers, json={"signal": "AP"})
+        started = await client.post(f"{base}/start", headers=headers)
+        assert started.json()["signal"] is None
 
     async def test_x_and_s_need_a_running_race(self, client, caplog):
+        """…and AP needs a race that has not started."""
         headers = await admin(client, caplog, "rc18@example.com")
         event_id = await live_event(client, headers, "X Cup", "2027-10-25")
         (race_id, _), *_ = await races_of(event_id)
@@ -468,16 +439,9 @@ class TestSignals:
         s = await client.post(f"{base}/signal", headers=headers, json={"signal": "S"})
         assert s.json()["signal"] == "S"
 
-    async def test_the_start_clears_a_postponement(self, client, caplog):
-        headers = await admin(client, caplog, "rc19@example.com")
-        event_id = await live_event(client, headers, "AP Then Start Cup", "2027-10-26")
-        (race_id, _), *_ = await races_of(event_id)
-        base = f"/api/admin/events/{event_id}/races/{race_id}"
-        await client.post(f"{base}/signal", headers=headers, json={"signal": "AP"})
-
-        started = await client.post(f"{base}/start", headers=headers)
-
-        assert started.json()["signal"] is None
+        late = await client.post(f"{base}/signal", headers=headers, json={"signal": "AP"})
+        assert late.status_code == 409, late.text
+        assert late.json()["type"] == "/errors/race-not-scheduled"
 
 
 class TestTheStartSequenceForSpectators:
@@ -534,8 +498,12 @@ class TestTheStartSequenceForSpectators:
         assert started.json()["start_sequence"] is None
 
         # After a general recall the First Substitute is up: no sequence armed, the flag is.
-        recalled = {**self.SEQUENCE, "first_signal_at": None, "lowering": None,
-                    "first_substitute": True}
+        recalled = {
+            **self.SEQUENCE,
+            "first_signal_at": None,
+            "lowering": None,
+            "first_substitute": True,
+        }
         stored = await client.put(f"{base}/{second_id}/sequence", headers=headers, json=recalled)
         assert stored.json()["start_sequence"] == recalled
 

@@ -190,15 +190,14 @@ class TestExportingARun:
         claim_ids = {c for p in run.json()["payments"] for c in p["claim_ids"]}
         assert own["id"] not in claim_ids
 
-    async def test_only_the_clubs_money_people_make_a_run(self, client, caplog):
-        w, _, anna, claims = await setup(client, caplog)
+    async def test_only_the_clubs_money_people_make_a_run_of_approved_claims(self, client, caplog):
+        w, treasurer, anna, claims = await setup(client, caplog)
         response = await client.post(
             f"/api/clubs/{w.club}/payment-runs", headers=anna, json={"claim_ids": [claims[2]["id"]]}
         )
         assert response.status_code == 403
 
-    async def test_a_claim_not_approved_or_of_another_payer_is_refused(self, client, caplog):
-        w, treasurer, anna, _ = await setup(client, caplog)
+        # A claim not yet approved is not payable, even for the treasurer.
         fresh = await submitted(client, anna, club=w.club)
         response = await client.post(
             f"/api/clubs/{w.club}/payment-runs",

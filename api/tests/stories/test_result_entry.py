@@ -119,6 +119,22 @@ class TestEnteringResults:
         # Low-point scoring: first place scores 1 point.
         assert winner.points == 1.0
 
+        # Undoing a tap with a null code: the boat had a place; now it has none.
+        cleared = await client.put(
+            f"/api/admin/events/{event_id}/races/{race_id}/result",
+            headers=headers,
+            json={"results": [{"boat_number": boats[2], "code": None}]},
+        )
+        assert cleared.status_code == 200, cleared.text
+
+        after = await _entries_by_boat_number(race_id)
+        assert after[boats[2]].code is None
+        assert after[boats[2]].finish_position is None
+        # Points go with it — a boat with no result scores nothing, rather than keeping
+        # the points its old place earned.
+        assert after[boats[2]].points is None
+        # And the boats that were not mentioned keep what they had.
+        assert after[boats[0]].finish_position == 1
 
     async def test_club_manager_is_rejected(self, client, caplog):
         event_id, race_id, boats = await _unfinished_race(offset=2)
@@ -167,7 +183,6 @@ class TestEnteringResults:
         # Rejected as a whole: nothing was written.
         entries = await _entries(race_id)
         assert all(entry.code is None for entry in entries)
-
 
     async def test_a_protest_decision_corrects_an_already_scored_race(self, client, caplog):
         """A finished matchday's result is amended — points must move, not just the flag."""
@@ -296,35 +311,6 @@ class TestABoatWithNoResultYet:
             assert by_number[boat].code is None
             assert by_number[boat].finish_position is None
         assert entries  # the entries themselves are never deleted, only emptied
-
-    async def test_a_null_code_clears_a_result_that_was_there(self, client, caplog):
-        """Undoing a tap. The boat had a place; now it has none."""
-        event_id, race_id, boats = await _unfinished_race(offset=7)
-        headers = await _race_officer(client, caplog, "wl-null2@example.com")
-
-        first = await client.put(
-            f"/api/admin/events/{event_id}/races/{race_id}/result",
-            headers=headers,
-            json=_finished_payload(boats),
-        )
-        assert first.status_code == 200, first.text
-        assert (await _entries_by_boat_number(race_id))[boats[2]].finish_position == 3
-
-        cleared = await client.put(
-            f"/api/admin/events/{event_id}/races/{race_id}/result",
-            headers=headers,
-            json={"results": [{"boat_number": boats[2], "code": None}]},
-        )
-        assert cleared.status_code == 200, cleared.text
-
-        after = await _entries_by_boat_number(race_id)
-        assert after[boats[2]].code is None
-        assert after[boats[2]].finish_position is None
-        # Points go with it — a boat with no result scores nothing, rather than keeping
-        # the points its old place earned.
-        assert after[boats[2]].points is None
-        # And the boats that were not mentioned keep what they had.
-        assert after[boats[0]].finish_position == 1
 
     async def test_a_code_that_needs_a_position_is_still_refused_without_one(self, client, caplog):
         """The refusal this makes room for must not disappear with it.

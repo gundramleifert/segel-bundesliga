@@ -60,7 +60,6 @@ class TestClubCreationAndAssignment:
         assert club["short_name"] == "Segelverein Namenlos"
         assert club["city"] is None
 
-
     async def test_admin_also_sees_unassigned_clubs(self, client, caplog):
         headers = await as_role(client, caplog, "lz3@example.com", Role.EDITOR)
         club = await new_club(client, headers, "Noch Ungeordnet", "NUG")
@@ -161,11 +160,7 @@ class TestYearTransition:
         assert club["slug"] in {v["slug"] for v in in_2026}
         assert club["slug"] not in {v["slug"] for v in in_2027}
 
-    async def test_new_assignment_includes_club_in_2027(self, client, caplog, ids):
-        next_series = await create_series("dsbl-1-2027", "1. Segel-Bundesliga 2027", 2027)
-        headers = await as_role(client, caplog, "sw2@example.com", Role.ADMIN)
-        club = await new_club(client, headers, "Treuer Segelclub", "TSC")
-
+        # A new assignment is what includes the club in 2027 as well.
         await client.put(
             f"/api/admin/clubs/{club['id']}/series",
             headers=headers,
@@ -175,7 +170,6 @@ class TestYearTransition:
         for year, filter_ in ((2026, {"year": 2026}), (2027, {"series": next_series})):
             clubs_list = await all_items(client, "/api/clubs", params=filter_)
             assert club["slug"] in {v["slug"] for v in clubs_list}, f"missing in {year}"
-
 
     async def test_future_year_does_not_move_public_page(self, client, caplog):
         """ "DSBL 2099" is created for assignment.

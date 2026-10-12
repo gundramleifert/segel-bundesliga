@@ -52,15 +52,6 @@ class TestMyClubs:
         response = await client.get(MINE)
         assert response.status_code == 401, response.text
 
-    async def test_an_account_with_no_club_gets_an_empty_list(self, client, caplog):
-        """Not a 404. "You belong to nothing yet" is a normal answer, and the screen has
-        a sentence for it (Story V-12)."""
-        headers = await _as(client, caplog, "mine-nobody@example.com")
-        response = await client.get(MINE, headers=headers)
-        assert response.status_code == 200, response.text
-        assert response.json() == []
-
-
     async def test_an_organizer_sees_the_club_they_manage_without_being_a_member(
         self, client, caplog
     ):
@@ -68,8 +59,14 @@ class TestMyClubs:
 
         A club's organizer is frequently not in the sailing squad, so requiring membership
         here would leave exactly the person who has the permission without a way in.
+
+        The club's series registrations come with it — what V-12 navigates by: a squad
+        belongs to one series registration, so the screen needs the team ids without a
+        request per club. Each series is named once, and an event entry is not a series
+        registration: `Team` carries both, only the one with no `event_id` has a squad
+        (Story V-1), and offering the other would produce a panel every save refuses.
         """
-        club = await _club("byc")
+        club = await _club("nrv")
         headers = await _as(
             client, caplog, "mine-organizer@example.com", Role.CLUB_MANAGER, club_id=club.id
         )
@@ -77,49 +74,20 @@ class TestMyClubs:
         response = await client.get(MINE, headers=headers)
         assert response.status_code == 200, response.text
         entries = response.json()
-        assert [entry["club"]["slug"] for entry in entries] == ["byc"]
-        assert entries[0]["may_manage"] is True
-        assert entries[0]["is_member"] is False
-
-
-    async def test_the_series_registrations_come_with_the_club(self, client, caplog):
-        """What V-12 navigates by: a squad belongs to one series registration, so the
-        screen needs the team ids without a request per club."""
-        club = await _club("nrv")
-        headers = await _as(
-            client, caplog, "mine-teams@example.com", Role.CLUB_MANAGER, club_id=club.id
-        )
-
-        entry = (await client.get(MINE, headers=headers)).json()[0]
+        assert [entry["club"]["slug"] for entry in entries] == ["nrv"]
+        entry = entries[0]
+        assert entry["may_manage"] is True
+        assert entry["is_member"] is False
         assert entry["teams"], "the seeded club is registered for at least one series"
 
         async with SessionLocal() as session:
-            expected = {
-                team_id
-                for (team_id,) in (
-                    await session.execute(
-                        select(Team.id).where(Team.club_id == club.id, Team.event_id.is_(None))
-                    )
-                ).all()
-            }
-        assert {team["team_id"] for team in entry["teams"]} == expected
-
-        team = entry["teams"][0]
-        assert team["series"]["name"]
-        # The size is on the row so the screen can show "7 of 10" without opening each
-        # squad in turn.
-        assert isinstance(team["squad_size"], int)
-
-    async def test_an_event_entry_is_not_a_series_registration(self, client, caplog):
-        """`Team` carries both. Only the one with no `event_id` has a squad (Story V-1),
-        and offering the other would produce a panel every save refuses."""
-        club = await _club("nrv")
-        headers = await _as(
-            client, caplog, "mine-eventteams@example.com", Role.CLUB_MANAGER, club_id=club.id
-        )
-        entry = (await client.get(MINE, headers=headers)).json()[0]
-
-        async with SessionLocal() as session:
+            registrations = (
+                await session.execute(
+                    select(Team.id, Series.slug)
+                    .join(Series, Team.series_id == Series.id)
+                    .where(Team.club_id == club.id, Team.event_id.is_(None))
+                )
+            ).all()
             event_team_ids = {
                 team_id
                 for (team_id,) in (
@@ -128,11 +96,24 @@ class TestMyClubs:
                     )
                 ).all()
             }
+        ids = [team["team_id"] for team in entry["teams"]]
+        assert len(ids) == len(set(ids))
+        assert set(ids) == {team_id for team_id, _ in registrations}
+        assert {team["series"]["slug"] for team in entry["teams"]} == {
+            slug for _, slug in registrations
+        }
         assert event_team_ids, "the seed enters this club into events"
-        assert not {t["team_id"] for t in entry["teams"]} & event_team_ids
+        assert not set(ids) & event_team_ids
+
+        team = entry["teams"][0]
+        assert team["series"]["name"]
+        # The size is on the row so the screen can show "7 of 10" without opening each
+        # squad in turn.
+        assert isinstance(team["squad_size"], int)
 
     async def test_an_admin_gets_the_clubs_they_belong_to_not_all_eighteen(self, client, caplog):
-        """`admin` may manage every club, but this endpoint answers "mine", not "all".
+        """`admin` may manage every club, but this endpoint answers "mine", not "all" —
+        and "you belong to nothing yet" is a normal answer, not a 404 (Story V-12).
 
         Handing an administrator all eighteen would make `/club` a second, worse copy of
         the admin screen, and would bury the one club they actually sail for.
@@ -141,30 +122,6 @@ class TestMyClubs:
         response = await client.get(MINE, headers=headers)
         assert response.status_code == 200, response.text
         assert response.json() == []
-
-    async def test_the_series_is_named_once_per_registration(self, client, caplog):
-        """No duplicate rows: a club registered for two series has two teams, not the same
-        series twice, and the seeded club must not arrive with repeats."""
-        club = await _club("nrv")
-        headers = await _as(
-            client, caplog, "mine-dupes@example.com", Role.CLUB_MANAGER, club_id=club.id
-        )
-        teams = (await client.get(MINE, headers=headers)).json()[0]["teams"]
-        ids = [team["team_id"] for team in teams]
-        assert len(ids) == len(set(ids))
-
-        async with SessionLocal() as session:
-            named = {
-                slug
-                for (slug,) in (
-                    await session.execute(
-                        select(Series.slug)
-                        .join(Team, Team.series_id == Series.id)
-                        .where(Team.club_id == club.id, Team.event_id.is_(None))
-                    )
-                ).all()
-            }
-        assert {team["series"]["slug"] for team in teams} == named
 
 
 class TestMatchdays:

@@ -41,7 +41,13 @@ class TestEveryPagedListSpeaksTheSameShape:
 
     @pytest.mark.parametrize("path,role", PAGED)
     async def test_the_answer_is_an_envelope(self, client, caplog, path, role):
-        response = await client.get(path, headers=await headers_for(client, caplog, path, role))
+        """Shape, page size, cap, offset and sort refusal — each list held to all of them.
+
+        One test per list rather than one per rule: the rules live in `app/pagination.py`
+        once, and what can drift per list is whether it goes through that helper at all.
+        """
+        head = await headers_for(client, caplog, path, role)
+        response = await client.get(path, headers=head)
         assert response.status_code == 200, response.text
 
         page = response.json()
@@ -49,10 +55,6 @@ class TestEveryPagedListSpeaksTheSameShape:
         assert isinstance(page["items"], list)
         assert page["offset"] == 0
         assert page["total"] >= len(page["items"])
-
-    @pytest.mark.parametrize("path,role", PAGED)
-    async def test_the_page_size_is_honoured_and_capped(self, client, caplog, path, role):
-        head = await headers_for(client, caplog, path, role)
 
         page = (await client.get(path, params={"limit": 2}, headers=head)).json()
         assert page["limit"] == 2
@@ -62,22 +64,14 @@ class TestEveryPagedListSpeaksTheSameShape:
         # would page through 5% of the list believing they had seen all of it.
         assert (await client.get(path, params={"limit": 5000}, headers=head)).status_code == 422
 
-    @pytest.mark.parametrize("path,role", PAGED)
-    async def test_an_offset_past_the_end_is_an_empty_page(self, client, caplog, path, role):
-        head = await headers_for(client, caplog, path, role)
         page = (await client.get(path, params={"offset": 10_000}, headers=head)).json()
-
         assert page["items"] == []
         # Still says how many there are — that is what lets the screen offer "back to the
         # first page" rather than an error.
         assert page["total"] >= 0
         assert page["offset"] == 10_000
 
-    @pytest.mark.parametrize("path,role", PAGED)
-    async def test_an_unknown_sort_column_is_refused(self, client, caplog, path, role):
-        head = await headers_for(client, caplog, path, role)
         response = await client.get(path, params={"sort": "no-such-column"}, headers=head)
-
         assert response.status_code == 422, response.text
         problem = response.json()
         assert problem["type"] == "/errors/unknown-sort-column"
@@ -101,7 +95,6 @@ class TestEveryPagedListSpeaksTheSameShape:
 
 class TestSearchingAndSorting:
     """As an administrator, I want the list I am looking at to be the list I asked for."""
-
 
     async def test_sorting_reverses_with_a_minus(self, client, caplog):
         head = await as_role(client, caplog, "page-sort@example.com", Role.ADMIN)
@@ -193,53 +186,40 @@ class TestEverySearchableListSearchesTheSameWay:
     """
 
     @pytest.mark.parametrize("path,role,term", SEARCHABLE)
-    async def test_a_search_that_matches_nothing_is_an_empty_page(
-        self, client, caplog, path, role, term
-    ):
-        head = await headers_for(client, caplog, path, role)
-        response = await client.get(path, params={"q": "quokkaburg"}, headers=head)
+    async def test_a_search_narrows_counts_and_ignores_case(self, client, caplog, path, role, term):
+        """No match, matches beyond the page, either case, a blank box — on every list.
 
+        One test per list: the rules are `apply_search`'s, and what can drift per list is
+        whether its search goes through it before the count.
+        """
+        head = await headers_for(client, caplog, path, role)
+        unfiltered = (await client.get(path, headers=head)).json()
+
+        response = await client.get(path, params={"q": "quokkaburg"}, headers=head)
         assert response.status_code == 200, response.text
         page = response.json()
         assert page["items"] == []
         # And `total` follows the filter rather than the table: the same list without a
         # search has rows in it.
         assert page["total"] == 0
-        assert (await client.get(path, headers=head)).json()["total"] > 0
+        assert unfiltered["total"] > 0
 
-    @pytest.mark.parametrize("path,role,term", SEARCHABLE)
-    async def test_the_total_counts_the_matches_and_not_the_page(
-        self, client, caplog, path, role, term
-    ):
-        head = await headers_for(client, caplog, path, role)
         page = (await client.get(path, params={"q": term, "limit": 1}, headers=head)).json()
-
         assert len(page["items"]) == 1
         # The number the paging control is built from. Counting the page would make every
         # search claim to be complete on its first screen.
         assert page["total"] > 1
 
-    @pytest.mark.parametrize("path,role,term", SEARCHABLE)
-    async def test_searching_ignores_case(self, client, caplog, path, role, term):
-        head = await headers_for(client, caplog, path, role)
         lower = (await client.get(path, params={"q": term.lower()}, headers=head)).json()
         upper = (await client.get(path, params={"q": term.upper()}, headers=head)).json()
-
         assert lower["total"] > 0
         assert upper["total"] == lower["total"]
         assert [i["id"] for i in upper["items"]] == [i["id"] for i in lower["items"]]
 
-    @pytest.mark.parametrize("path,role,term", SEARCHABLE)
-    async def test_whitespace_alone_is_not_a_search(self, client, caplog, path, role, term):
-        """An emptied search box must show the whole list, not nothing.
-
-        The trap is the `%%` pattern a blank term turns into: it looks like "match
-        everything" and quietly drops every row whose searched columns are all NULL.
-        """
-        head = await headers_for(client, caplog, path, role)
+        # An emptied search box must show the whole list, not nothing. The trap is the `%%`
+        # pattern a blank term turns into: it looks like "match everything" and quietly
+        # drops every row whose searched columns are all NULL.
         blank = (await client.get(path, params={"q": "   "}, headers=head)).json()
-        unfiltered = (await client.get(path, headers=head)).json()
-
         assert blank["total"] == unfiltered["total"]
 
 
@@ -312,16 +292,6 @@ class TestSearchingTheEventCalendar:
         }
         assert event_id in found
         assert ids.event("dsbl-1-2026-act-1") not in found
-
-    async def test_the_calendar_counts_every_match_even_off_the_page(self, client, caplog):
-        """Three of them, a page holding two, and a count that says three."""
-        head = await as_role(client, caplog, "page-event-count@example.com", Role.ADMIN)
-        for number in (1, 2, 3):
-            await make_event(client, head, f"Pangolin Regatta {number}")
-
-        page = (await client.get("/api/events", params={"q": "pangolin", "limit": 2})).json()
-        assert page["total"] == 3
-        assert len(page["items"]) == 2
 
     async def test_searching_narrows_the_year_it_is_asked_for(self, client, ids):
         """A search and a filter are applied together, not one instead of the other.

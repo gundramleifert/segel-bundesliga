@@ -90,7 +90,6 @@ class TestAnIncompleteFleet:
     CFG = (FIXTURES.parent / "pairing-17teams" / "schedule_cfg.yml").read_text(encoding="utf-8")
     YML = (FIXTURES.parent / "pairing-17teams" / "pairing_list.yml").read_text(encoding="utf-8")
 
-
     def test_placeholder_seats_produce_no_entry(self):
         pairing = load_pairing_yaml(self.CFG, self.YML)
         # 16 Flights à 3 Wettfahrten, aber nur 17 statt 18 Teams je Flight.

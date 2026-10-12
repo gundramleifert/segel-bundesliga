@@ -36,6 +36,14 @@ class TestSeriesCreation:
         assert series["clubs"] == []
         assert series["event_count"] == 0
 
+        # The URL comes from the name, so the same name twice is refused.
+        second = await client.post(
+            "/api/admin/series",
+            headers=headers,
+            json={"name": "Test Series 2028", "year": 2028},
+        )
+        assert second.status_code == 409
+        assert "taken" in second.json()["detail"]
 
     async def test_selected_clubs_appear_in_series(self, client, caplog):
         headers = await as_role(client, caplog, "se3@example.com", Role.ADMIN)
@@ -106,17 +114,6 @@ class TestSeriesCreation:
         assert response.status_code == 404
         assert "999999" in response.json()["detail"]
 
-    async def test_taken_url_is_detected(self, client, caplog):
-        headers = await as_role(client, caplog, "se7@example.com", Role.ADMIN)
-        data = {"name": "Duplicate Series 2028", "year": 2028}
-        assert (
-            await client.post("/api/admin/series", headers=headers, json=data)
-        ).status_code == 201
-
-        second = await client.post("/api/admin/series", headers=headers, json=data)
-        assert second.status_code == 409
-        assert "taken" in second.json()["detail"]
-
     async def test_admin_sees_all_years(self, client, caplog):
         """They plan ahead — not just the current year counts."""
         headers = await as_role(client, caplog, "se8@example.com", Role.ADMIN)
@@ -133,7 +130,6 @@ class TestSeriesCreation:
         # Publicly, only the current year appears.
         public = {s["year"] for s in (await client.get("/api/series")).json()}
         assert public == {2026}
-
 
     async def test_editors_cannot_create_series(self, client, caplog):
         headers = await as_role(client, caplog, "se10@example.com", Role.EDITOR)

@@ -23,7 +23,6 @@ async def first_club() -> int:
 class TestClubPage:
     """B-7: As a visitor, I want to see a club's page."""
 
-
     async def test_page_shows_teams_of_the_year(self, client):
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
 
@@ -40,19 +39,14 @@ class TestClubPage:
         assert len(series) >= 2, f"Only one series found: {series}"
 
     async def test_page_shows_squad(self, client):
+        """Names are on every results list anyway — email addresses are not."""
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
         first = club["teams"][0]
 
         assert len(first["members"]) == 10, "Ten members per season (Story V-1)"
         # Helm first — the order a crew is announced.
         assert first["members"][0]["role"] == "helm"
-
-    async def test_squad_reveals_no_contact_data(self, client):
-        """Names are on every results list anyway — email addresses are not."""
-        club = (await client.get(f"/api/clubs/{await first_club()}")).json()
-        member = club["teams"][0]["members"][0]
-
-        assert set(member) == {"id", "first_name", "last_name", "role"}
+        assert set(first["members"][0]) == {"id", "first_name", "last_name", "role"}
 
     async def test_different_year_can_be_retrieved(self, client):
         response = await client.get(f"/api/clubs/{await first_club()}", params={"year": 1999})
@@ -77,6 +71,9 @@ class TestSailorPage:
         entry = sailor["teams"][0]
         assert entry["club"]["name"]
         assert "2026" in entry["series"]["name"]
+        # No contact data on a public page.
+        assert "email" not in sailor
+        assert "birth_date" not in sailor
 
     async def test_page_shows_matchdays_they_are_lined_up_for(self, client):
         member = await self._first_sailor(client)
@@ -97,10 +94,3 @@ class TestSailorPage:
         sailor = (await client.get(f"/api/sailors/{substitutes[0]['id']}")).json()
         assert sailor["events"] == []
         assert sailor["teams"], "Registered nonetheless"
-
-    async def test_page_reveals_no_contact_data(self, client):
-        member = await self._first_sailor(client)
-        sailor = (await client.get(f"/api/sailors/{member['id']}")).json()
-
-        assert "email" not in sailor
-        assert "birth_date" not in sailor

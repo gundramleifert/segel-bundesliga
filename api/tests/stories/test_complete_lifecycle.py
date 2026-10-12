@@ -352,7 +352,6 @@ class TestTheCompleteLifecycle:
 class TestTheAdminEventList:
     """Story VA-8: as an organizer I want to see my drafts on the screen that finishes them."""
 
-
     async def test_a_visitor_cannot_read_the_admin_list(self, client):
         """Which events are being planned is not public — not even their titles."""
         assert (await client.get("/api/admin/events")).status_code == 401

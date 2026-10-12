@@ -64,9 +64,21 @@ class TestOwnProfile:
     """As a sailor, I want to view and edit my own name and birthdate."""
 
     async def test_a_sailor_can_view_and_edit_their_own_profile(self, client, caplog):
+        """There is no id parameter on `/api/sailors/me` — it can only ever resolve to the
+        caller's own row, so editing my profile leaves a namesake untouched. Email is
+        identity, not something this endpoint touches — even if a caller includes it in the
+        request body, it is silently ignored, not applied."""
         admin = await _admin(client, caplog)
         sailor_id = await _new_sailor(
             client, admin, email="profil.anna@example.com", birth_date=_ADULT_BIRTH
+        )
+        bea_id = await _new_sailor(
+            client,
+            admin,
+            email="profil.bea@example.com",
+            birth_date=_ADULT_BIRTH,
+            first="Bea",
+            last="Zwei",
         )
         anna = await _account_for(client, caplog, "profil.anna@example.com")
 
@@ -84,33 +96,25 @@ class TestOwnProfile:
         edited = await client.patch(
             "/api/sailors/me",
             headers=anna,
-            json={"first_name": "Anna", "last_name": "Neu", "birth_date": "1991-06-02"},
+            json={
+                "first_name": "Anna",
+                "last_name": "Neu",
+                "birth_date": "1991-06-02",
+                "email": "someone.else@example.com",
+            },
         )
         assert edited.status_code == 200, edited.text
+        assert edited.json()["id"] == sailor_id
         assert edited.json()["first_name"] == "Anna"
         assert edited.json()["last_name"] == "Neu"
         assert edited.json()["birth_date"] == "1991-06-02"
 
-    async def test_editing_my_profile_cannot_change_my_email(self, client, caplog):
-        """Email is identity, not something this endpoint touches — even if a caller
-        includes it in the request body, it is silently ignored, not applied."""
-        admin = await _admin(client, caplog)
-        sailor_id = await _new_sailor(
-            client, admin, email="profil.email@example.com", birth_date=_ADULT_BIRTH
-        )
-        account = await _account_for(client, caplog, "profil.email@example.com")
-
-        response = await client.patch(
-            "/api/sailors/me",
-            headers=account,
-            json={"first_name": "Changed", "email": "someone.else@example.com"},
-        )
-        assert response.status_code == 200, response.text
-
         async with SessionLocal() as session:
             sailor = await session.get(Sailor, sailor_id)
-            assert sailor.email == "profil.email@example.com"
-            assert sailor.first_name == "Changed"
+            assert sailor.email == "profil.anna@example.com"
+            bea = await session.get(Sailor, bea_id)
+            assert bea.first_name == "Bea"
+            assert bea.last_name == "Zwei"
 
     async def test_an_account_with_no_linked_sailor_gets_a_clear_response_not_a_crash(
         self, client, caplog
@@ -127,41 +131,6 @@ class TestOwnProfile:
         )
         assert edit_attempt.status_code == 404
         assert edit_attempt.json()["type"] == "/errors/no-linked-sailor-record"
-
-    async def test_a_sailor_cannot_reach_another_sailors_record_through_this_endpoint(
-        self, client, caplog
-    ):
-        """There is no id parameter on `/api/sailors/me` — it can only ever resolve to the
-        caller's own row. Editing my profile must leave a namesake untouched."""
-        admin = await _admin(client, caplog)
-        anna_id = await _new_sailor(
-            client,
-            admin,
-            email="profil.anna2@example.com",
-            birth_date=_ADULT_BIRTH,
-            first="Anna",
-            last="Eins",
-        )
-        bea_id = await _new_sailor(
-            client,
-            admin,
-            email="profil.bea@example.com",
-            birth_date=_ADULT_BIRTH,
-            first="Bea",
-            last="Zwei",
-        )
-        anna = await _account_for(client, caplog, "profil.anna2@example.com")
-
-        response = await client.patch(
-            "/api/sailors/me", headers=anna, json={"first_name": "Angepasst"}
-        )
-        assert response.status_code == 200, response.text
-        assert response.json()["id"] == anna_id
-
-        async with SessionLocal() as session:
-            bea = await session.get(Sailor, bea_id)
-            assert bea.first_name == "Bea"
-            assert bea.last_name == "Zwei"
 
 
 class TestOwnPhoto:
@@ -210,7 +179,10 @@ class TestOwnPhoto:
         assert gone.status_code == 404
         assert gone.json()["type"] == "/errors/sailor-photo-not-found"
 
-    async def test_a_non_image_upload_is_rejected_with_a_clear_error(self, client, caplog):
+    async def test_a_non_image_or_absurdly_large_upload_is_rejected_with_a_clear_error(
+        self, client, caplog
+    ):
+        """The size limit is checked before processing, so a huge upload is a 413."""
         admin = await _admin(client, caplog)
         await _new_sailor(
             client, admin, email="profil.textdatei@example.com", birth_date=_ADULT_BIRTH
@@ -225,11 +197,6 @@ class TestOwnPhoto:
         assert response.status_code == 422
         assert response.json()["type"] == "/errors/sailor-photo-invalid-type"
 
-    async def test_an_absurdly_large_upload_is_rejected_before_processing(self, client, caplog):
-        admin = await _admin(client, caplog)
-        await _new_sailor(client, admin, email="profil.riesig@example.com", birth_date=_ADULT_BIRTH)
-        account = await _account_for(client, caplog, "profil.riesig@example.com")
-
         oversized = b"\xff" * (5 * 1024 * 1024 + 1)
         response = await client.post(
             "/api/sailors/me/photo",
@@ -242,7 +209,6 @@ class TestOwnPhoto:
 
 class TestMinorPhotoVisibility:
     """S-2's own open question, resolved: an adult's photo is public, a minor's is not."""
-
 
     async def test_a_minors_photo_is_hidden_from_guests_and_unrelated_accounts(
         self, client, caplog

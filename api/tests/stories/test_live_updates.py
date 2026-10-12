@@ -133,23 +133,17 @@ class TestEveryWriterPublishes:
     async def test_each_event_transition_publishes_including_visibility(self, client, caplog):
         headers = await admin(client, caplog, "live6@example.com")
         event_id = await event_with_participants(client, headers, "Transition Cup", "2027-08-07")
-        await draw(client, headers, event_id)
         topic = f"event:{event_id}"
+
+        before = hub.version(topic)
+        await draw(client, headers, event_id)
+        assert hub.version(topic) == before + 1, "the draw did not publish"
 
         for action in ("unpublish", "publish", "start", "finish", "reopen", "cancel", "reopen"):
             before = hub.version(topic)
             response = await client.post(f"/api/admin/events/{event_id}/{action}", headers=headers)
             assert response.status_code == 200, (action, response.text)
             assert hub.version(topic) == before + 1, f"{action} did not publish"
-
-    async def test_the_draw_publishes(self, client, caplog):
-        headers = await admin(client, caplog, "live7@example.com")
-        event_id = await event_with_participants(client, headers, "Draw Cup", "2027-08-14")
-        before = hub.version(f"event:{event_id}")
-
-        await draw(client, headers, event_id)
-
-        assert hub.version(f"event:{event_id}") == before + 1
 
 
 class TestWhereToGoNow:

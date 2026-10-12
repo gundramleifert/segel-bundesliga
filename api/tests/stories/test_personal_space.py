@@ -50,6 +50,8 @@ class TestMyDocuments:
         assert (await client.get("/api/me/documents", headers=me)).json() == []
 
     async def test_the_label_is_from_the_list_and_other_needs_a_title(self, client, caplog):
+        """S-5: a judge's and a race officer's licence are two labels — an organizer looking
+        for the jury does not want the race officers — and the old combined one is gone."""
         me = await login(client, caplog, f"l-{uuid4().hex[:6]}@example.org")
         unknown = await client.post(
             "/api/me/documents",
@@ -69,10 +71,6 @@ class TestMyDocuments:
             "title"
         ] == "Crane licence"
 
-    async def test_jury_and_race_officer_licences_are_labels_of_their_own(self, client, caplog):
-        """S-5: a judge's and a race officer's licence are two labels — an organizer looking
-        for the jury does not want the race officers — and the old combined one is gone."""
-        me = await login(client, caplog, f"o-{uuid4().hex[:6]}@example.org")
         assert (await upload(client, me, "jury_licence"))["kind"] == "jury_licence"
         assert (await upload(client, me, "race_officer_licence"))["kind"] == "race_officer_licence"
         combined = await client.post(
@@ -209,6 +207,8 @@ class TestBankAccount:
         assert saved.json()["iban"] == IBAN
 
         assert (await client.get("/api/me/bank-account", headers=me)).json()["holder"] == "Ma Ria"
+        # No account serializer carries it.
+        assert IBAN not in (await client.get("/api/auth/me", headers=me)).text
         assert (await client.delete("/api/me/bank-account", headers=me)).status_code == 204
         assert (await client.get("/api/me/bank-account", headers=me)).json() is None
 
@@ -221,12 +221,3 @@ class TestBankAccount:
         )
         assert response.status_code == 422
         assert _problem_code(response) == "iban-invalid"
-
-    async def test_no_account_serializer_carries_it(self, client, caplog):
-        email = f"s-{uuid4().hex[:6]}@example.org"
-        me = await login(client, caplog, email)
-        saved = await client.put(
-            "/api/me/bank-account", headers=me, json={"holder": "X", "iban": IBAN}
-        )
-        assert saved.status_code == 200
-        assert IBAN not in (await client.get("/api/auth/me", headers=me)).text

@@ -15,7 +15,7 @@
 # throwaway database, so it is a separate, deliberate step.
 #
 #   scripts/check.sh          # everything
-#   scripts/check.sh --fast   # skip the backend test suite (~2 min)
+#   scripts/check.sh --fast   # skip the backend test suite (~1.5 min)
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

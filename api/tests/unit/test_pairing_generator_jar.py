@@ -50,10 +50,28 @@ def request_for(teams: int, flights: int, boats: int = 6) -> GenerationRequest:
     )
 
 
+_LEAGUE_RUN: dict = {}
+
+
+async def league_run():
+    """One 18-team run and the progress it reported, shared by the tests that read it.
+
+    Each of them asserts a different thing about the same output; starting the JVM once
+    for all three saves seconds and checks nothing less.
+    """
+    if not _LEAGUE_RUN:
+        seen: list = []
+        result = await generate_pairing(
+            request_for(teams=18, flights=6), timeout=180, on_progress=seen.append
+        )
+        _LEAGUE_RUN.update(result=result, progress=seen)
+    return _LEAGUE_RUN["result"], _LEAGUE_RUN["progress"]
+
+
 @needs_jar
 async def test_the_quality_report_is_available_before_publishing():
     """VA-3: The organizer should see the quality before publishing."""
-    result = await generate_pairing(request_for(teams=18, flights=6), timeout=180)
+    result, _ = await league_run()
     summary = result.summary()
 
     assert summary["races"] == 18
@@ -65,7 +83,7 @@ async def test_the_quality_report_is_available_before_publishing():
 @needs_jar
 async def test_our_metrics_agree_with_the_tools_own_numbers():
     """Sanity check: if they differ, one side is measuring incorrectly."""
-    result = await generate_pairing(request_for(teams=18, flights=6), timeout=180)
+    result, _ = await league_run()
     reported = parse_optimizer_log(result.log)
 
     assert reported is not None, "The tool did not output shuttle statistics"
@@ -77,8 +95,7 @@ async def test_our_metrics_agree_with_the_tools_own_numbers():
 @needs_jar
 async def test_progress_is_reported_while_the_optimizer_runs():
     """VA-3: A minute-long run must not be a black box for the organizer."""
-    seen: list = []
-    await generate_pairing(request_for(teams=18, flights=6), timeout=180, on_progress=seen.append)
+    _, seen = await league_run()
 
     assert seen, "No progress messages were received"
     assert {p.phase for p in seen} == {"matching", "boats"}
@@ -108,7 +125,7 @@ async def test_a_run_that_takes_too_long_is_aborted_with_a_clear_message():
         optimizer=OptimizerSettings(),  # Production configuration: takes minutes
     )
     with pytest.raises(PairingGeneratorError, match="stopped"):
-        await generate_pairing(request, timeout=3)
+        await generate_pairing(request, timeout=1)
 
 
 async def test_a_missing_jar_is_reported_helpfully():

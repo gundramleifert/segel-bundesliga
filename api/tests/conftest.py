@@ -43,6 +43,10 @@ async def seeded(database_url: str):
     config = Config(str(Path(__file__).parent.parent / "alembic.ini"))
     config.set_main_option("script_location", str(Path(__file__).parent.parent / "alembic"))
     config.set_main_option("sqlalchemy.url", database_url)
+    # Without this, alembic's `fileConfig` swaps out the root handlers in the middle of
+    # the first test's setup — and with them `caplog`'s, so a fixture that signs in
+    # there (`login_as` reads the code from the log) found no record.
+    config.attributes["configure_logger"] = False
     # Deliberately use real migrations instead of create_all: this catches when a migration
     # drifts from the models. Alembic calls asyncio.run internally, so run in a separate
     # thread — can't do that from an active loop.
@@ -160,3 +164,18 @@ def pytest_runtest_call(item):
     failure if the test failed inside it, so the report marks the step that broke."""
     outcome = yield
     journeys.close(outcome.excinfo)
+
+
+@pytest.fixture(autouse=True)
+def _cheap_argon2(monkeypatch):
+    """Argon2 at its weakest for the suite: every sign-in hashes a one-time code, and at
+    production strength that was ~0.14 s per login — over a third of the whole run.
+    A test about the real parameters puts the real hasher back itself
+    (test_password_login.py)."""
+    from argon2 import PasswordHasher
+
+    from app.services import login, passwords
+
+    cheap = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)
+    monkeypatch.setattr(login, "_hasher", cheap)
+    monkeypatch.setattr(passwords, "_hasher", cheap)

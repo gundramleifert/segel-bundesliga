@@ -32,7 +32,6 @@ class TestTheCatalog:
             assert len(geladen.boats) == entry.boats
             assert len(geladen.teams) == entry.teams
 
-
     def test_the_stored_list_needs_no_boat_changes(self):
         """This is why it is stored rather than recomputed.
 

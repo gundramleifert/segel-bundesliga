@@ -49,20 +49,21 @@ class TestFinishingAnEvent:
     """VA-10: As an organizer I want to declare that racing is over."""
 
     async def test_a_live_event_can_be_finished(self, client, caplog):
+        """Finishing twice is not an error, and it decides nothing about the public.
+
+        Idempotent, exactly as starting already is — a second tap is not a mistake. Status
+        and visibility stay orthogonal (VA-8).
+        """
         headers = await admin(client, caplog, "vc1@example.com")
         event_id = await live_event(client, headers, "Closing Cup", "2027-06-05")
 
         response = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
         assert response.status_code == 200, response.text
         assert response.json()["status"] == "final"
+        assert response.json()["published"] is True
         assert await status_of(event_id) == EventStatus.FINAL
+        assert (await client.get(f"/api/events/{event_id}")).status_code == 200
 
-    async def test_finishing_twice_is_not_an_error(self, client, caplog):
-        """Idempotent, exactly as starting already is — a second tap is not a mistake."""
-        headers = await admin(client, caplog, "vc2@example.com")
-        event_id = await live_event(client, headers, "Twice Closed Cup", "2027-06-12")
-
-        await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
         again = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
         assert again.status_code == 200, again.text
         assert again.json()["status"] == "final"
@@ -82,34 +83,23 @@ class TestFinishingAnEvent:
         assert response.json()["event_status"] == "planned"
         assert await status_of(created["id"]) == EventStatus.PLANNED
 
-    async def test_finishing_does_not_wait_for_every_race(self, client, caplog):
-        """The wind dies, three flights are lost, the day is still over.
-
-        Requiring a complete race list would disable this exactly when it is needed.
-        """
-        headers = await admin(client, caplog, "vc4@example.com")
-        event_id = await live_event(client, headers, "Dying Wind Cup", "2027-06-19")
-        race_id, boats = await first_race(event_id)
-        await enter_result(client, headers, event_id, race_id, boats)
-
-        response = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
-        assert response.status_code == 200, response.text
-
-        # Every other race of the event is still `scheduled`, and that was fine.
-        standings = await client.get(f"/api/events/{event_id}")
-        assert standings.status_code == 200, standings.text
-
     async def test_a_protest_still_lands_after_the_event_is_final(self, client, caplog):
-        """Closing freezes **nothing**. This is the point of the race-committee screens.
+        """Finishing does not wait for every race, and closing freezes **nothing**.
 
-        The configuration was already frozen by the first race (VA-8); results are
-        deliberately not, and a decision heard weeks later has to reach a `final` event.
+        The wind dies, three flights are lost, the day is still over: requiring a complete
+        race list would disable this exactly when it is needed. The configuration was
+        already frozen by the first race (VA-8); results are deliberately not, and a
+        decision heard weeks later has to reach a `final` event.
         """
         headers = await admin(client, caplog, "vc5@example.com")
         event_id = await live_event(client, headers, "Protest Cup", "2027-06-26")
         race_id, boats = await first_race(event_id)
         await enter_result(client, headers, event_id, race_id, boats)
-        await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
+
+        # Every other race of the event is still `scheduled`, and that is fine.
+        finished = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
+        assert finished.status_code == 200, finished.text
+        assert (await client.get(f"/api/events/{event_id}")).status_code == 200
 
         # The protest committee reverses the first two boats, months later.
         corrected = await client.put(
@@ -125,43 +115,21 @@ class TestFinishingAnEvent:
         assert corrected.status_code == 200, corrected.text
         assert await status_of(event_id) == EventStatus.FINAL
 
-    async def test_finishing_decides_nothing_about_the_public(self, client, caplog):
-        """Status and visibility stay orthogonal (VA-8)."""
-        headers = await admin(client, caplog, "vc6@example.com")
-        event_id = await live_event(client, headers, "Still Public Cup", "2027-07-03")
-
-        finished = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
-        assert finished.json()["published"] is True
-        assert (await client.get(f"/api/events/{event_id}")).status_code == 200
-
 
 class TestCancellingAnEvent:
     """VA-10: As an organizer I want to call a day off without losing what it holds."""
 
-    async def test_a_planned_event_can_be_called_off(self, client, caplog):
-        headers = await admin(client, caplog, "vx1@example.com")
-        event_id = await event_with_participants(client, headers, "Called Off Cup", "2027-07-10")
-
-        response = await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
-        assert response.status_code == 200, response.text
-        assert response.json()["status"] == "cancelled"
-
-    async def test_a_live_event_can_be_abandoned_halfway(self, client, caplog):
-        headers = await admin(client, caplog, "vx2@example.com")
-        event_id = await live_event(client, headers, "Fog Cup", "2027-07-17")
-
-        response = await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
-        assert response.status_code == 200, response.text
-        assert await status_of(event_id) == EventStatus.CANCELLED
-
     async def test_cancelling_deletes_nothing(self, client, caplog):
-        """A premature cancellation must cost no data — the day may yet be reinstated."""
+        """A live event can be abandoned halfway, and a premature cancellation must cost no
+        data — the day may yet be reinstated."""
         headers = await admin(client, caplog, "vx3@example.com")
         event_id = await live_event(client, headers, "Premature Cup", "2027-07-24")
         race_id, boats = await first_race(event_id)
         await enter_result(client, headers, event_id, race_id, boats)
 
-        await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
+        response = await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
+        assert response.status_code == 200, response.text
+        assert await status_of(event_id) == EventStatus.CANCELLED
 
         pairing = await client.get(f"/api/events/{event_id}/pairing")
         assert pairing.status_code == 200, pairing.text
@@ -229,10 +197,13 @@ class TestReopeningAnEvent:
         assert response.json()["status"] == "live"
 
     async def test_a_cancelled_event_goes_back_to_planned(self, client, caplog):
-        """Not to `live`: a reinstated day is prepared again, not mid-race."""
+        """A planned event can be called off, and goes back to `planned` — not to `live`:
+        a reinstated day is prepared again, not mid-race."""
         headers = await admin(client, caplog, "vr2@example.com")
         event_id = await event_with_participants(client, headers, "Reinstated Cup", "2027-08-21")
-        await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
+        cancelled = await client.post(f"/api/admin/events/{event_id}/cancel", headers=headers)
+        assert cancelled.status_code == 200, cancelled.text
+        assert cancelled.json()["status"] == "cancelled"
 
         response = await client.post(f"/api/admin/events/{event_id}/reopen", headers=headers)
         assert response.status_code == 200, response.text
@@ -260,7 +231,7 @@ class TestWhoMayCloseAnEvent:
         response = await client.post(f"/api/admin/events/{event_id}/finish", headers=officer)
         assert response.status_code == 200, response.text
 
-    async def test_a_club_manager_may_not(self, client, caplog):
+    async def test_a_club_manager_or_a_guest_may_not(self, client, caplog):
         headers = await admin(client, caplog, "vp2@example.com")
         event_id = await live_event(client, headers, "Not Yours Cup", "2027-09-11")
         await make_user("manager-close@example.com", Role.CLUB_MANAGER)
@@ -269,9 +240,5 @@ class TestWhoMayCloseAnEvent:
         response = await client.post(f"/api/admin/events/{event_id}/finish", headers=manager)
         assert response.status_code == 403, response.text
 
-    async def test_a_guest_may_not(self, client, caplog):
-        headers = await admin(client, caplog, "vp3@example.com")
-        event_id = await live_event(client, headers, "Guest Cup", "2027-09-18")
-
-        response = await client.post(f"/api/admin/events/{event_id}/finish")
-        assert response.status_code == 401, response.text
+        guest = await client.post(f"/api/admin/events/{event_id}/finish")
+        assert guest.status_code == 401, guest.text

@@ -12,7 +12,9 @@ from app.models import Base
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
-if config.config_file_name is not None:
+# A caller with logging of its own opts out: the test suite, where `fileConfig` would
+# replace the root handlers and take `caplog`'s with them (tests/conftest.py).
+if config.config_file_name is not None and config.attributes.get("configure_logger", True):
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata

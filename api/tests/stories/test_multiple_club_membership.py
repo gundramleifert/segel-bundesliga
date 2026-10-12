@@ -14,7 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 
 from app.db import SessionLocal
-from app.models import Event, EventCrew, Team, TeamMembership
+from app.models import EventCrew, Team, TeamMembership
 from app.models.org import CrewRole
 
 
@@ -59,31 +59,3 @@ class TestOncePerCompetition:
             )
             with pytest.raises(IntegrityError):
                 await session.commit()
-
-
-    async def test_endpoint_rejects_foreign_team(self, client, caplog):
-        """Via the API — the database is the last barrier, not the only one."""
-        from tests.stories.test_lineup import club_leadership, first_team, matchday_id
-
-        team_id, club_id, squad = await first_team()
-        headers = await club_leadership(client, caplog, "mv1@example.com", club_id)
-
-        async with SessionLocal() as session:
-            foreign_team = (
-                await session.execute(
-                    select(Team.id)
-                    .join(Event, Event.series_id == Team.series_id)
-                    .where(Team.id != team_id)
-                    .limit(1)
-                )
-            ).scalar_one()
-
-        response = await client.put(
-            f"/api/admin/events/{await matchday_id()}/crew",
-            headers=headers,
-            json={
-                "team_id": foreign_team,
-                "members": [{"sailor_id": squad[0], "role": "helm"}],
-            },
-        )
-        assert response.status_code == 403

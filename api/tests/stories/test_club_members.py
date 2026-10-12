@@ -147,7 +147,8 @@ class TestMembers:
         assert club not in await _mine(client, carla)
 
     async def test_a_member_cannot_remove_another_member(self, client, caplog):
-        """Story Z-5: leaving is about one's *own* tuple; someone else's needs the admin."""
+        """Story Z-5: leaving is about one's *own* tuple; someone else's needs the admin —
+        and for the admin, removing is deleting the tuple (Story V-8)."""
         club, admin = await _club_with_admin(client, caplog, "cm-admin4@example.org")
         await make_user("cm-dora@example.org")
         await make_user("cm-emil@example.org")
@@ -161,18 +162,13 @@ class TestMembers:
         names = {m["display_name"] for m in await _roster(client, admin, club)}
         assert names == {"cm-dora", "cm-emil"}
 
-    async def test_the_clubs_admin_removes_a_member(self, client, caplog):
-        """Stories Z-5, V-8: removing is deleting the tuple."""
-        club, admin = await _club_with_admin(client, caplog, "cm-admin5@example.org")
-        await make_user("cm-fritz@example.org")
-        row = await _write(client, admin, "cm-fritz@example.org", "member", f"club:{club}")
-
-        removed = await client.delete(f"/api/auth/tuples/{row['id']}", headers=admin)
+        removed = await client.delete(f"/api/auth/tuples/{emil_row['id']}", headers=admin)
         assert removed.status_code == 204, removed.text
-        assert await _roster(client, admin, club) == []
+        assert [m["display_name"] for m in await _roster(client, admin, club)] == ["cm-dora"]
 
     async def test_membership_implies_no_other_relation(self, client, caplog):
-        """Story Z-5: a member is not an organizer, and gets no summary role from it."""
+        """Story Z-5: a member is not an organizer, and gets no summary role from it —
+        until the club's admin names them manager as well (Story A-8)."""
         club, admin = await _club_with_admin(client, caplog, "cm-admin6@example.org")
         await make_user("cm-greta@example.org")
         greta = await _headers(client, caplog, "cm-greta@example.org")
@@ -187,26 +183,16 @@ class TestMembers:
         mine = (await _mine(client, greta))[club]
         assert mine["may_manage"] is False
 
+        await _write(client, admin, "cm-greta@example.org", "manager", f"club:{club}")
+        me = (await client.get("/api/auth/me", headers=greta)).json()
+        assert me["roles"] == [Role.CLUB_MANAGER]
+        entry = (await _mine(client, greta))[club]
+        assert (entry["is_member"], entry["may_manage"]) == (True, True)
+
 
 class TestMemberRoster:
     """Story V-10: a member sees who else belongs to the club — display names and what
     each is to the club, no email."""
-
-    async def test_a_member_sees_the_roster_with_relations(self, client, caplog):
-        club, admin = await _club_with_admin(client, caplog, "cm-radmin1@example.org")
-        await make_user("cm-hanna@example.org")
-        await make_user("cm-ingo@example.org")
-        hanna = await _headers(client, caplog, "cm-hanna@example.org")
-        await _write(client, admin, "cm-hanna@example.org", "member", f"club:{club}")
-        await _write(client, admin, "cm-ingo@example.org", "member", f"club:{club}")
-        await _write(client, admin, "cm-ingo@example.org", "manager", f"club:{club}")
-
-        roster = await _roster(client, hanna, club)
-        assert [(m["display_name"], m["relations"]) for m in roster] == [
-            ("cm-hanna", ["member"]),
-            ("cm-ingo", ["manager", "member"]),
-        ]
-        assert all("email" not in m for m in roster)
 
     async def test_strangers_and_other_clubs_members_are_refused(self, client, caplog):
         """Story V-10: a stranger, or a member of a *different* club, gets 403."""
@@ -230,14 +216,23 @@ class TestMemberRoster:
         assert response.status_code == 401, response.text
 
     async def test_organizers_are_marked_and_a_non_member_admin_is_not_listed(self, client, caplog):
-        """Story V-10: a manager who is also a member is marked `organizer`; the admin who
-        is no member does not appear in the roster, and may read it all the same."""
+        """Story V-10: a member sees the roster with what each is to the club, no email;
+        a manager who is also a member is marked `organizer`; the admin who is no member
+        does not appear in the roster, and may read it all the same."""
         club, admin = await _club_with_admin(client, caplog, "cm-radmin4@example.org")
         await make_user("cm-jana@example.org")
         await make_user("cm-kai@example.org")
         await _write(client, admin, "cm-jana@example.org", "member", f"club:{club}")
         await _write(client, admin, "cm-jana@example.org", "manager", f"club:{club}")
         await _write(client, admin, "cm-kai@example.org", "member", f"club:{club}")
+        kai = await _headers(client, caplog, "cm-kai@example.org")
+
+        seen = await _roster(client, kai, club)
+        assert [(m["display_name"], m["relations"]) for m in seen] == [
+            ("cm-jana", ["manager", "member"]),
+            ("cm-kai", ["member"]),
+        ]
+        assert all("email" not in m for m in seen)
 
         roster = {m["display_name"]: m for m in await _roster(client, admin, club)}
         assert set(roster) == {"cm-jana", "cm-kai"}
@@ -256,19 +251,6 @@ class TestMemberRoster:
 
 class TestOrganizers:
     """Story A-8: the club's admin names more organizers; at least one must remain."""
-
-    async def test_the_clubs_admin_names_a_member_manager(self, client, caplog):
-        club, admin = await _club_with_admin(client, caplog, "cm-oadmin1@example.org")
-        await make_user("cm-lena@example.org")
-        lena = await _headers(client, caplog, "cm-lena@example.org")
-        await _write(client, admin, "cm-lena@example.org", "member", f"club:{club}")
-
-        await _write(client, admin, "cm-lena@example.org", "manager", f"club:{club}")
-
-        me = (await client.get("/api/auth/me", headers=lena)).json()
-        assert me["roles"] == [Role.CLUB_MANAGER]
-        entry = (await _mine(client, lena))[club]
-        assert (entry["is_member"], entry["may_manage"]) == (True, True)
 
     async def test_the_only_organizer_may_drop_one_of_two_relations(self, client, caplog):
         """Story A-8: who is both admin and manager, and the club's only organizer, may

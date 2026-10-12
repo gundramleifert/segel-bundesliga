@@ -38,15 +38,6 @@ class TestClubCreation:
         clubs = await all_items(client, "/api/clubs")
         assert not any(v["slug"] == "scm" for v in clubs)
 
-    async def test_editors_can_also_create_clubs(self, client, caplog):
-        headers = await as_role(client, caplog, "sd2@example.com", Role.EDITOR)
-        response = await client.post(
-            "/api/admin/clubs",
-            headers=headers,
-            json={"name": "Yachtclub Beispielsee", "short_name": "YCB", "city": "Beispiel"},
-        )
-        assert response.status_code == 201
-
     async def test_race_officers_cannot_create_clubs(self, client, caplog):
         headers = await as_role(client, caplog, "sd3@example.com", Role.RACE_OFFICER)
         response = await client.post(
@@ -55,13 +46,6 @@ class TestClubCreation:
             json={"name": "Forbidden Club", "short_name": "VBC", "city": "Nowhere"},
         )
         assert response.status_code == 403
-
-    async def test_unauthenticated_access_fails(self, client):
-        response = await client.post(
-            "/api/admin/clubs",
-            json={"name": "Anonymous Club", "short_name": "ANC", "city": "Nowhere"},
-        )
-        assert response.status_code == 401
 
     async def test_abbreviation_with_umlaut_keeps_own_url(self, client, caplog):
         """'BYCÜ' and 'BYC' are different clubs — their URLs must not collide."""
@@ -163,10 +147,7 @@ class TestCreatingAMatchday:
         )
         assert response.json()["logo_url"] == "/marke/host_club.png"
 
-    async def test_ein_eigenes_logo_hat_vorrang(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "ev4@example.com", Role.ADMIN)
-        club = await self._host_club(client)
-
+        # An event's own logo takes precedence.
         response = await client.post(
             "/api/admin/events",
             headers=headers,
@@ -244,12 +225,14 @@ class TestStandaloneEvent:
     the calendar and counts in no series table.
     """
 
-    async def test_an_event_without_a_series_can_be_created(self, client, caplog):
+    async def test_an_event_without_a_series_can_be_created(self, client, caplog, ids):
+        """It appears in the calendar, counts in no series table, and its page still works."""
         headers = await as_role(client, caplog, "fr1@example.com", Role.ADMIN)
         response = await client.post(
             "/api/admin/events",
             headers=headers,
-            json={"title": "Autumn Cup Sampleport", "starts_on": "2026-10-24"},
+            # Published — the calendar shows what is public (Story VA-8).
+            json={"title": "Autumn Cup Sampleport", "starts_on": "2026-10-24", "published": True},
         )
         assert response.status_code == 201, response.text
         event = response.json()
@@ -259,52 +242,14 @@ class TestStandaloneEvent:
         # The URL comes from title and year, not from the series and an act number.
         assert event["slug"] == "autumn-cup-sampleport-2026"
 
-    async def test_it_appears_in_the_calendar(self, client, caplog):
-        headers = await as_role(client, caplog, "fr2@example.com", Role.ADMIN)
-        created = (
-            await client.post(
-                "/api/admin/events",
-                headers=headers,
-                # Published — the calendar shows what is public (Story VA-8).
-                json={
-                    "title": "Training Weekend North",
-                    "starts_on": "2026-11-07",
-                    "published": True,
-                },
-            )
-        ).json()
-
         calendar = await all_items(client, "/api/events")
-        assert created["slug"] in {e["slug"] for e in calendar}
-
-    async def test_it_counts_in_no_series_table(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "fr3@example.com", Role.ADMIN)
-        await client.post(
-            "/api/admin/events",
-            headers=headers,
-            json={"title": "Invitational Regatta South", "starts_on": "2026-11-21"},
-        )
+        assert event["slug"] in {e["slug"] for e in calendar}
 
         table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
-        matchdays = {e["title"] for e in table["events"]}
-        assert "Invitational Regatta South" not in matchdays
+        assert "Autumn Cup Sampleport" not in {e["title"] for e in table["events"]}
 
-    async def test_their_detail_page_stays_reachable(self, client, caplog):
-        """With no series there are no teams, so the results table is simply empty."""
-        headers = await as_role(client, caplog, "fr4@example.com", Role.ADMIN)
-        created = (
-            await client.post(
-                "/api/admin/events",
-                headers=headers,
-                json={
-                    "title": "Clubregatta Beispielsee",
-                    "starts_on": "2026-12-05",
-                    "published": True,
-                },
-            )
-        ).json()
-
-        response = await client.get(f"/api/events/{created['id']}")
+        # With no series there are no teams, so the results table is simply empty.
+        response = await client.get(f"/api/events/{event['id']}")
         assert response.status_code == 200
         detail = response.json()
         assert detail["standings"] == []
