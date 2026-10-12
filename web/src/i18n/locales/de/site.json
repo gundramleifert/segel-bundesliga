@@ -1,0 +1,172 @@
+{
+  "nav": {
+    "leagues": "Ligen",
+    "pages": "Seiten",
+    "chapters": "Kapitel"
+  },
+  "pages": {
+    "home": "Start",
+    "overview": "Übersicht",
+    "standings": "Tabelle",
+    "season": "Saison",
+    "noticeBoard": "Schwarzes Brett",
+    "clubs": "Vereine",
+    "news": "News",
+    "media": "Medien",
+    "press": "Presse",
+    "about": "Über"
+  },
+  "chapters": {
+    "now": "Jetzt",
+    "standings": "Tabelle",
+    "season": "Saison",
+    "clubs": "Vereine",
+    "news": "News",
+    "media": "Medien",
+    "press": "Presse",
+    "about": "Über",
+    "leagues": "Ligen",
+    "forClubs": "Für Vereine"
+  },
+  "state": {
+    "done": "Ergebnisse",
+    "live": "Live",
+    "next": "Als Nächstes",
+    "planned": "Geplant",
+    "cancelled": "Abgesagt"
+  },
+  "tabs": {
+    "notice-board": "Schwarzes Brett",
+    "results": "Ergebnisse",
+    "pairing": "Pairing-Liste",
+    "crews": "Crews",
+    "live": "Live",
+    "media": "Medien",
+    "entry": "Ergebnisse eingeben"
+  },
+  "act": {
+    "title": "Act {{n}}",
+    "tabs": "Spieltag",
+    "division": "Liga"
+  },
+  "hostedBy": "ausgerichtet von {{host}}",
+  "now": {
+    "title": "{{act}}, {{dates}}.",
+    "seasonComplete": "Saison beendet.",
+    "nothingYet": "{{league}} — die Saison wird geplant.",
+    "matchdayPage": "Zum Spieltag",
+    "resultsOf": "Ergebnisse {{act}}"
+  },
+  "standings": {
+    "title": "Wer wo steht.",
+    "more": "Ganze Tabelle",
+    "noSeries": "Für dieses Jahr ist noch keine Serie veröffentlicht.",
+    "notYet": "Noch keine Wettfahrt gesegelt.",
+    "archive": "Archiv",
+    "promotion": "Aufstieg",
+    "relegation": "Abstieg",
+    "requalify": "Requalifikation",
+    "missed": "gefehlt"
+  },
+  "season": {
+    "title_one": "Ein Wochenende, eine Saison.",
+    "title_other": "{{count}} Wochenenden, eine Saison.",
+    "more": "Saison & Schwarzes Brett",
+    "empty": "Noch keine Spieltage veröffentlicht.",
+    "matchdays": "Spieltage"
+  },
+  "clubs": {
+    "title_one": "Ein Verein.",
+    "title_other": "{{count}} Vereine.",
+    "titleNone": "Die Vereine.",
+    "more": "Alle Vereine",
+    "none": "Noch keine Vereine gemeldet.",
+    "clubPage": "Vereinsseite"
+  },
+  "news": {
+    "title": "Vom Wasser.",
+    "more": "Alle News"
+  },
+  "media": {
+    "title": "Noch einmal ansehen.",
+    "more": "Fotos & Videos",
+    "preview_one": "Ein Video und die Galerien aller Spieltage.",
+    "preview_other": "{{count}} Videos und die Galerien aller Spieltage.",
+    "page": "Fotos & Videos",
+    "videos": "Videos",
+    "photos": "Fotos",
+    "none": "Noch nichts da.",
+    "credits": "Fotos © Deutsche Segel-Bundesliga; Luftbild © Adam Burdylo."
+  },
+  "press": {
+    "title": "Für die Presse.",
+    "more": "Pressebereich",
+    "page": "Pressebereich",
+    "releases": "Pressemitteilungen",
+    "kit": "Pressemappe",
+    "kitText": "Logos, Factsheet, die Termine der Saison",
+    "photos": "Druckfotos",
+    "photosText": "Hohe Auflösung, frei für redaktionelle Nutzung",
+    "accreditation": "Akkreditierung",
+    "accreditationText": "Auf dem Wasser oder an Land, pro Spieltag",
+    "contact": "Kontakt"
+  },
+  "about": {
+    "title": "Über die {{league}}",
+    "more": "So funktioniert's",
+    "stake": "Worum es geht"
+  },
+  "noticeBoard": {
+    "season": "Schwarzes Brett der Saison",
+    "all": "Alle Dokumente",
+    "seasonPreview": "Ligaordnung, die Ausschreibung der Saison, Charterbedingungen und Meldefristen.",
+    "intro": "Dokumente für die ganze Saison. Die Aushänge eines Spieltags — Änderungen, Jury-Entscheidungen, die Protestliste — stehen auf seiner Seite:",
+    "ofAct": "Schwarzes Brett von {{act}}",
+    "announcements": "Aushänge",
+    "documents": "Dokumente",
+    "from": {
+      "race-committee": "Wettfahrtleitung",
+      "jury": "Jury",
+      "organizer": "Veranstalter"
+    }
+  },
+  "live": {
+    "now": "Jetzt auf dem Wasser",
+    "replay": "Tracking-Wiederholung",
+    "from": "Live ab {{dates}}",
+    "text": "Jedes Boot auf der Karte, die Rangfolge der Wettfahrt und der Wind — von den Handys der Segler.",
+    "open": "Live-Karte öffnen",
+    "external": "Live-Ansicht öffnen"
+  },
+  "home": {
+    "title": "Drei Wettbewerbe, ein Verein.",
+    "leagues": "Wähle deine Liga.",
+    "news": "News aus allen Ligen.",
+    "association": "Verein",
+    "forClubs": "Richte deine eigene Regatta hier aus.",
+    "aboutMore": "Über den Verein",
+    "founded": "Gegründet am {{date}}.",
+    "aboutKicker": "Über den Verein",
+    "board": "Vorstand",
+    "members": "Mitgliedsvereine — {{count}}"
+  },
+  "footer": {
+    "calendar": "Termine",
+    "allClubs": "Alle Vereine",
+    "credits": "Fotos und Videos © Deutsche Segel-Bundesliga, verlinkt von deutsche-segelbundesliga.de."
+  },
+  "dev": {
+    "chapters": "Kapitel",
+    "pictures": "Bilder",
+    "detail": "Detailseite",
+    "snap": "Einrasten",
+    "free": "Frei",
+    "photo": "Foto",
+    "fade": "Blenden",
+    "slide": "Schieben",
+    "video": "Video",
+    "band": "A Band",
+    "sheet": "B Blatt",
+    "split": "C Geteilt"
+  }
+}

@@ -27,12 +27,16 @@ Acceptance criteria:
 - **Each act column heading also links to its matchday.** A reader looking at one column of
   positions wants that matchday, and the cards below answer a different question ("where
   and when"). The heading is narrow ("Act 2"), so the event's full name is its tooltip.
+- **Since issue #14 a series in a league has its table on the league's standings page**
+  (Story B-14): each division a list whose row opens to its places per act. The full grid
+  with a column per act, described above, is the page of a series in no league
+  (`/series/:id`).
 - The scoring rule is not explained on the page. A "did not sail" cell says so in its own
   tooltip, which is where the question is actually asked; a permanent paragraph restating
   it was read once and skipped thereafter.
 
 Tests: `api/tests/stories/test_visitor.py::TestSeriesTable`,
-`e2e/visitor.spec.ts::B-1: as a fan I see the series standings`
+`e2e/visitor.spec.ts::B-1/B-14: as a fan I see the series standings`
 
 ### A-5 ● Series standings with substitute score
 As a **fan** I want to **see a series table that is correct even with missing clubs**.
@@ -278,6 +282,103 @@ the static site's `/api/*` rewrite does not buffer the stream.
 Tests: `api/tests/unit/test_live_hub.py`,
 `api/tests/stories/test_live_updates.py`,
 `e2e/live.spec.ts::B-5: as a spectator I follow live updates`
+
+## The leagues
+
+The site's structure is option E of issue #14, recorded in `docs/site-structure.md`:
+**chapters on top, depth behind**. These stories are what was built from it.
+
+### B-13 ◐ One row of navigation, the leagues in it
+As a **visitor** I want **one row at the top that names the association's competitions**,
+so that **I am one tap from the league I follow, whatever page I am on**.
+
+Acceptance criteria:
+- Every page has the same row, and only one: the **logo** (the association's home, `/`),
+  **the leagues** in the order the league office set (`League.position`), and the
+  **account button** with *My space* at the right. Topics such as results or press are not
+  in it — each is a chapter of the league's page.
+- **The leagues are data** (`GET /api/leagues`), never a list in the code: the row names
+  whatever leagues exist. A site with one league shows one.
+- On a league's chapter page the row lies over the picture. On a depth page it is solid
+  and sticky, and in variant A it carries the league's pages itself — the league becomes
+  a switch that opens the others, so there is room for its pages beside it.
+- **At most two rows of navigation, ever.** The second exists only on a matchday page
+  (Story B-15).
+- The account button keeps its menu (Story A-12): language, profile, help, legal pages —
+  and *Administration* for whoever can use it.
+- The variants still open (`docs/site-structure.md`) are switched by the **DEV** button
+  (not tested in the browser suite, whose build leaves the dev tools out — the setting it
+  writes is),
+  bottom left, wherever the role switcher is built in (`DEV_TOOLS`): chapters snap or
+  scroll freely; pictures as photo, fade, slide or video; the depth page as A band,
+  B sheet or C split. The choice is remembered in this browser.
+
+Tests: `e2e/visitor.spec.ts::B-13: one row of navigation names the leagues`
+
+### B-14 ● A league's page in chapters, each leading to its own page
+As a **fan** I want **the league's page to show me what is happening now, and lead me
+deeper from there**, so that **the first screen answers the common question and every
+other one is a tap away**.
+
+Acceptance criteria:
+- `/:league` (`/dsbl`) is one page of full-screen chapters over pictures, with dots on the
+  right to jump between them: **Now, Standings, Season, Clubs, News, Media, Press, About**.
+  Each is a preview that ends in a link to its own page.
+- **The league's page shows its current year**: the newest year of *its* series that is
+  not in the future (Story A-4's rule, asked per league — the DSBL publishing next year's
+  series must not empty the Junioren-Liga's page). `GET /api/leagues/{slug}` answers with
+  the year, the years in the archive, the year's series and their events. Published only.
+- **Several series of a year are one league**: the DSBL's 1. and 2. Liga are its two
+  divisions. Standings and clubs show each division; an **act** is the events of the
+  year's series that share a matchday number, at one URL.
+- *Now* shows the running act, else the next one, else the last; *Standings* the top five
+  of each division; *Season* every act with its state.
+- The depth pages: `/:league/standings` (each division's full table, a row expands to its
+  place per act; promotion, relegation and requalification marked where the league's
+  rules say so; the archive by year at `/:league/:year/standings`), `/:league/season`
+  (every act, expanding to its venue, host and links into its tabs), `/:league/clubs`,
+  `/:league/notice-board`, `/:league/news`, `/:league/media`, `/:league/press`,
+  `/:league/about`, and `/about` for the association.
+- **News, press, media, documents and the about texts are static content for now**,
+  behind hooks shaped like the API calls that will replace them
+  (`web/src/content/`), so a page does not change when its data becomes dynamic.
+- The association's home `/` is a chapter page too: *Now* (every league's current act),
+  *Leagues*, *News*, *For clubs*, *About*.
+
+Tests: `api/tests/stories/test_league_pages.py::TestLeagueSeason`,
+`e2e/visitor.spec.ts::B-14: a league's page in chapters`
+
+### B-15 ● The matchday page, its tabs in the URL
+As a **fan** I want **one page per act with everything it has**, so that **results,
+pairing list and crews of both divisions are where I expect them**.
+
+Acceptance criteria:
+- `/:league/:year/act-:n`, for example `/dsbl/2026/act-2`; the tab is the last path segment
+  (`…/act-2/results`), so every tab has its own URL. Without a tab the page opens on
+  *Results* once racing has begun, and on *Notice board* before that.
+- Tabs: **Notice board · Results · Pairing list · Crews · Live · Media**, and for the race
+  committee **Enter results**. They sit in the second row, which names the act and sticks
+  under the top bar.
+- An act with several divisions offers a switch between them inside the tab; each
+  division is its own event underneath.
+- An event that belongs to no league — a club's own regatta — keeps its page at
+  `/events/:id`, in the same frame and with the same tabs.
+
+Tests: `e2e/visitor.spec.ts::B-15: the matchday page`
+
+### B-16 ● Old addresses lead to the new pages
+As **someone with a bookmark** I want **yesterday's address to still work**, so that **a
+shared link does not end on the home page**.
+
+Acceptance criteria:
+- `/series/:id` of a series in a league goes to `/:league/:year/standings`, and
+  `/events/:id` of an event in a league to its act page, keeping the tab. A series or
+  event in no league stays at its own page.
+- `/:league/live` goes to the running act's *Live* tab, else the next act's;
+  `/:league/results` to the last act sailed.
+- Short paths are redirects, never copies.
+
+Tests: `e2e/visitor.spec.ts::B-16: old addresses lead to the new pages`
 
 ## Clubs and sailors
 

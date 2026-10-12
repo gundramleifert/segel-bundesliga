@@ -24,6 +24,8 @@ export interface SeriesCreate {
   ends_on?: string | null;
   /** Rank in the year: 1 for the first, 2 for the second league */
   level?: number | null;
+  /** The league this is a year of; without one it is not on a league's page */
+  league_id?: number | null;
   /** Clubs participating in this series */
   clubs?: number[];
   scoring?: SeriesCreateScoring;

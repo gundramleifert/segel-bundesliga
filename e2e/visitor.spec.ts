@@ -1,12 +1,6 @@
 import { describeStory, expect, test } from "./fixtures";
 
-import {
-  chooseLanguage,
-  closeNavigation,
-  expectNoSidewaysScroll,
-  openNavigation,
-  openUserMenu,
-} from "./layout";
+import { chooseLanguage, expectNoSidewaysScroll, openUserMenu } from "./layout";
 
 /** E2E cut along the user stories — see docs/userstories/.
  *
@@ -15,25 +9,37 @@ import {
  * wording: the site is bilingual and the copy is edited often, and a spec that breaks on a
  * reworded heading tests the translator, not the application.
  *
- * The seed (`app.seed`) is the fixture: four series in 2026, and three matchdays of the
- * 1st Segel-Bundesliga — act 1 sailed to the end, act 2 two-thirds sailed, act 3 drawn but
- * not started.
+ * The seed (`app.seed`) is the fixture: three leagues (DSBL, Junioren-Liga, DSL-Pokal), the
+ * DSBL's 1. and 2. Liga in 2026, and three acts of the 1. Liga — act 1 sailed to the end,
+ * act 2 two-thirds sailed, act 3 drawn but not started. The Sailing Champions League
+ * series belongs to no league, so it keeps its own page.
  */
 
-const FINISHED_EVENT = "/events/1"; // dsbl-1-2026-act-1
-const PLANNED_EVENT = "/events/3"; // dsbl-1-2026-act-3
-const FIRST_SERIES = "/series/1"; // dsbl-1-2026
+const FINISHED_ACT = "/dsbl/2026/act-1"; // dsbl-1-2026-act-1, event 1
+const PLANNED_ACT = "/dsbl/2026/act-3"; // dsbl-1-2026-act-3, event 3
+const STANDINGS = "/dsbl/standings";
+const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
 
 /** Every public page, with the testid that means "this page has its data".
  *
  *  A list rather than a test each: adding a page should be one line, and every page has to
  *  answer the same question — does it fit the viewport it is being read on. */
 const PUBLIC_PAGES: [path: string, ready: string][] = [
-  ["/", "start-events-section"],
-  ["/series", "series-list"],
-  [FIRST_SERIES, "standings-table"],
+  ["/", "site-home-now"],
+  ["/dsbl", "site-chapter-now"],
+  [STANDINGS, "site-standings-dsbl-1-2026"],
+  ["/dsbl/season", "site-season-act"],
+  ["/dsbl/clubs", "site-clubs-dsbl-1-2026"],
+  ["/dsbl/notice-board", "site-depth-page"],
+  ["/dsbl/news", "site-depth-page"],
+  ["/dsbl/media", "site-depth-page"],
+  ["/dsbl/press", "site-depth-page"],
+  ["/dsbl/about", "site-depth-page"],
+  ["/about", "site-depth-page"],
+  [FINISHED_ACT, "matchday-standings-table"],
+  [`${PLANNED_ACT}/pairing`, "matchday-pairing-table"],
+  [UNLEAGUED_SERIES, "standings-results-section"],
   ["/events", "events-list"],
-  [FINISHED_EVENT, "matchday-tabs"],
   ["/clubs", "clubs-list"],
   ["/clubs/1", "club-header"],
   ["/sailors/1", "sailor-registrations-section"],
@@ -42,99 +48,66 @@ const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/privacy", "privacy-last-updated"],
 ];
 
-describeStory("B-1: as a fan I see the series standings", () => {
-  test("the table lists all 18 clubs in ranks 1 to 18", async ({ page }) => {
-    await page.goto(FIRST_SERIES);
+describeStory("B-1/B-14: as a fan I see the series standings", () => {
+  const firstLiga = (page: import("@playwright/test").Page) =>
+    page.getByTestId("site-standings-dsbl-1-2026").getByTestId("site-standings-row");
 
-    const rows = page.getByTestId("standings-table").locator("tbody tr");
+  test("the table lists all 18 clubs in ranks 1 to 18", async ({ page }) => {
+    await page.goto(STANDINGS);
+    const rows = firstLiga(page);
     await expect(rows).toHaveCount(18);
-    await expect(rows.first().locator("td").first()).toHaveText("1");
-    await expect(rows.last().locator("td").first()).toHaveText("18");
+    await expect(rows.first().locator("summary")).toContainText(/^1\D/);
+    await expect(rows.last().locator("summary")).toContainText(/^18\D/);
   });
 
   test("fewer points ranks higher", async ({ page }) => {
-    const table = page.getByTestId("standings-table");
-    await page.goto(FIRST_SERIES);
-    await expect(table.locator("tbody tr")).toHaveCount(18);
-
-    const points = await table.locator("tbody tr td:nth-child(3)").allInnerTexts();
+    await page.goto(STANDINGS);
+    await expect(firstLiga(page)).toHaveCount(18);
+    const points = await firstLiga(page).locator("summary span.tabular-nums").allInnerTexts();
     const numbers = points.map((text) => Number(text.replace(",", ".")));
     expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
   });
 
-  test("the ranking comes first, the events below it", async ({ page }) => {
-    await page.goto(FIRST_SERIES);
-    await expect(page.getByTestId("standings-table")).toBeVisible();
-    await expect(page.getByTestId("standings-events-list")).toBeVisible();
-
-    // Order is the point of this test: the ranking is what a league table is opened for,
-    // and it used to start below a grid of cards and a series blurb. The blurb is gone;
-    // the cards moved below.
-    const table = (await page.getByTestId("standings-results-section").boundingBox())!;
-    const events = (await page.getByTestId("standings-events-section").boundingBox())!;
-    expect(events.y).toBeGreaterThan(table.y);
-    await expect(page.getByTestId("standings-description")).toHaveCount(0);
+  test("a row opens to its place at each act, and on to the club", async ({ page }) => {
+    await page.goto(STANDINGS);
+    const row = firstLiga(page).first();
+    await row.locator("summary").click();
+    // Two acts are sailed (one of them still running), the third is planned.
+    await expect(row.getByText(/Act 1:/)).toBeVisible();
+    await row.getByRole("link").click();
+    await expect(page.getByTestId("club-header")).toBeVisible();
   });
 
-  test("each act column leads to its matchday", async ({ page }) => {
-    await page.goto(FIRST_SERIES);
-    await expect(page.getByTestId("standings-table")).toBeVisible();
-
-    const columns = page.getByTestId("standings-table").getByRole("columnheader");
-    const actLink = columns.getByRole("link").first();
-    await expect(actLink).toBeVisible();
-    await actLink.click();
-    await expect(page).toHaveURL(/\/events\/\d+$/);
-    await expect(page.getByTestId("matchday-tabs")).toBeVisible();
+  test("the league's rules mark the table, and only where they apply", async ({ page }) => {
+    await page.goto(STANDINGS);
+    // The 1. Liga's last four go down; it promotes nobody.
+    const table = page.getByTestId("site-standings-dsbl-1-2026");
+    await expect(table.getByTestId("mark-relegation")).toHaveCount(4);
+    await expect(table.getByTestId("mark-promotion")).toHaveCount(0);
   });
 
-  test("a short club name carries its full name in a tooltip", async ({ page }) => {
-    await page.goto(FIRST_SERIES);
-    const club = page.getByTestId("standings-table").getByTestId(/standings-club-link-/).first();
-    await expect(club).toBeVisible();
-
-    // The cell shows the abbreviation — the column's width is set by eighteen of these,
-    // and a standings reader knows them.
-    const short = (await club.textContent())!.trim();
-    expect(short.length).toBeLessThan(12);
-
-    // Hovering names the club in full, in our own tooltip rather than the browser's.
-    await expect(page.getByTestId("tooltip")).toHaveCount(0);
-    await club.hover();
-    const tip = page.getByTestId("tooltip");
-    await expect(tip).toBeVisible();
-    await expect(tip).toHaveAttribute("role", "tooltip");
-    expect((await tip.textContent())!.length).toBeGreaterThan(short.length);
-  });
-
-  test("several series run at once, so the way in is an overview", async ({ page }) => {
-    // Before the overview existed, the navigation went straight to whichever series
-    // happened to be first for the year and the others were reachable only by URL.
-    await page.goto("/series");
-
-    // `toHaveCount` retries; a bare `count()` does not auto-wait and reads whatever is
-    // on the page at that instant — which, mid-load, is nothing.
-    const cards = page.getByTestId("series-list").getByRole("listitem");
-    await expect(cards).toHaveCount(4);
-
-    await page.getByTestId("series-card-1").click();
-    await expect(page).toHaveURL(/\/series\/1$/);
-    await expect(page.getByTestId("standings-table")).toBeVisible();
+  test("a series in no league keeps its own page", async ({ page }) => {
+    // The Sailing Champions League of the seed is in no league, so there is no league
+    // page to send it to (Story B-16).
+    await page.goto(UNLEAGUED_SERIES);
+    await expect(page.getByTestId("standings-results-section")).toBeVisible();
+    await expect(page).toHaveURL(/\/series\/4$/);
   });
 });
 
 describeStory("B-2: as a fan I read up on how a matchday went", () => {
-  test("the finished matchday shows a complete set of results", async ({ page }) => {
-    await page.goto(FINISHED_EVENT);
-
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  test("the finished matchday opens on a complete set of results", async ({ page }) => {
+    await page.goto(FINISHED_ACT);
+    await expect(page.getByTestId("site-act-results")).toBeVisible();
     await expect(page.getByTestId("matchday-standings-table").locator("tbody tr")).toHaveCount(18);
   });
 
   test("a planned matchday has no results yet, but does have a draw", async ({ page }) => {
-    await page.goto(PLANNED_EVENT);
-
-    await page.getByTestId("matchday-pairing-tab").click();
+    await page.goto(PLANNED_ACT);
+    // Before racing, the page opens on its notice board (Story B-15).
+    await expect(page.getByTestId("site-act-notice-board")).toBeVisible();
+    await page.getByTestId("site-act-tab-pairing").click();
+    await expect(page).toHaveURL(/\/act-3\/pairing/);
     // 18 clubs on 6 boats is 3 races per flight, 16 flights — 48 races.
     await expect(page.getByTestId("matchday-pairing-table").locator("tbody tr")).toHaveCount(48);
   });
@@ -142,9 +115,7 @@ describeStory("B-2: as a fan I read up on how a matchday went", () => {
 
 describeStory("B-3: as a sailor I see when I am on which boat", () => {
   test("the pairing list names the boats by their colour", async ({ page }) => {
-    await page.goto(PLANNED_EVENT);
-    await page.getByTestId("matchday-pairing-tab").click();
-
+    await page.goto(`${PLANNED_ACT}/pairing`);
     const header = page.getByTestId("matchday-pairing-table").locator("thead th");
     for (const colour of ["Black", "Green", "Dark blue", "Red", "Gray", "Orange"]) {
       await expect(header.filter({ hasText: colour })).toHaveCount(1);
@@ -152,8 +123,7 @@ describeStory("B-3: as a sailor I see when I am on which boat", () => {
   });
 
   test("the three races of a flight read as one block", async ({ page }) => {
-    await page.goto(PLANNED_EVENT);
-    await page.getByTestId("matchday-pairing-tab").click();
+    await page.goto(`${PLANNED_ACT}/pairing`);
     await expect(page.getByTestId("matchday-pairing-row-1")).toBeVisible();
 
     // The flight is named where it starts and nowhere else — 48 rows each repeating their
@@ -168,11 +138,7 @@ describeStory("B-3: as a sailor I see when I am on which boat", () => {
   });
 
   test("each club in the draw leads to its own page", async ({ page }) => {
-    await page.goto(PLANNED_EVENT);
-    await page.getByTestId("matchday-pairing-tab").click();
-
-    // The first boat of the first race — an abbreviation, so the full name has to be
-    // reachable some other way, and the club page is where a sailor goes next.
+    await page.goto(`${PLANNED_ACT}/pairing`);
     const club = page.getByTestId("matchday-pairing-club-link-1-1");
     await expect(club).toBeVisible();
     await club.click();
@@ -190,76 +156,62 @@ describeStory("B-4: as a visitor I find clubs and dates", () => {
     await page.goto("/events");
     await page.getByTestId("events-list").getByRole("link").first().click();
 
-    await expect(page).toHaveURL(/\/events\/\d+$/);
-    await expect(page.getByTestId("matchday-tabs")).toBeVisible();
+    // Through the event's address to its act's page (Story B-16).
+    await expect(page).toHaveURL(/\/dsbl\/2026\/act-\d+/);
+    await expect(page.getByTestId("site-act-bar")).toBeVisible();
   });
 });
 
 test.describe("Foundations", () => {
-  test("the home page leads into a series", async ({ page }) => {
-    await page.goto("/");
-    // One page, one name — counted only once the page has loaded. Checked straight after
-    // `goto`, a fast run saw the breadcrumb's heading alone and passed, while the hero
-    // rendered a second `h1` a moment later; only a slower run (video recording) caught it.
-    await expect(page.getByTestId("start-series-card-1")).toBeVisible();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-
-    await page.getByTestId("start-series-card-1").click();
-    await expect(page).toHaveURL(/\/series\/1$/);
-  });
-
   test("the language switcher really switches the language", async ({ page }) => {
     // English is the source language and the default; German is a full second language,
     // not a fallback (see CLAUDE.md, "Language").
-    await page.goto("/");
-    await openNavigation(page);
-    await expect(page.getByTestId("layout-nav-clubs")).toHaveText("Clubs");
-    // Closed again before touching the account button: on a phone the open drawer puts a
-    // backdrop over the rest of the frame, deliberately — while it is open, it is the
-    // only thing on the page.
-    await closeNavigation(page);
-
-    // The language lives in the account menu now, as a submenu of its own (Story A-12).
+    await page.goto(STANDINGS);
+    await expect(page.getByTestId("site-page-season")).toHaveText("Season");
     await chooseLanguage(page, "de");
     await page.keyboard.press("Escape");
-
-    await openNavigation(page);
-    await expect(page.getByTestId("layout-nav-clubs")).toHaveText("Vereine");
+    await expect(page.getByTestId("site-page-season")).toHaveText("Saison");
   });
 
   test("the former single-league standings URLs still redirect", async ({ page }) => {
-    // These were the real URLs of a deployed build, so they stay. The pre-rename German
-    // paths were never public and are gone; the catch-all answers those.
-    await page.goto("/standings");
-    await expect(page).toHaveURL(/\/series$/);
-
+    // These were the real URLs of a deployed build, so they stay — and now lead on to the
+    // league's standings (Story B-16).
     await page.goto("/standings/1");
-    await expect(page).toHaveURL(/\/series\/1$/);
+    await expect(page).toHaveURL(/\/dsbl\/2026\/standings$/);
+    await page.goto("/standings");
+    await expect(page).toHaveURL(/\/$/);
   });
 
   test("the mandatory legal pages are reachable from every page", async ({ page }) => {
     // § 5 DDG requires them to be reachable from anywhere on a German public site. They
-    // are in the account menu (Story A-12), which is in the frame of every page — that
-    // is what let the footer go.
+    // are in the account menu (Story A-12), which is in the one row of every page, and in
+    // the footer.
     await page.goto("/clubs");
     await openUserMenu(page);
     await page.getByTestId("layout-user-menu-legalNotice").click();
     await expect(page).toHaveURL(/\/legal-notice$/);
 
-    await page.goto("/events");
+    await page.goto("/dsbl/season");
+    // Once loaded: the loading frame has a top bar of its own, and a menu opened in it
+    // closes when the page's frame replaces it.
+    await expect(page.getByTestId("site-season-act").first()).toBeVisible();
     await openUserMenu(page);
     await page.getByTestId("layout-user-menu-privacy").click();
     await expect(page).toHaveURL(/\/privacy$/);
+
+    await page.goto("/dsbl/clubs");
+    await page.getByTestId("site-footer-legal-notice").click();
+    await expect(page).toHaveURL(/\/legal-notice$/);
   });
 
   test("the page never scrolls sideways — not even with a wide table", async ({ page }, testInfo) => {
-    await page.goto(PLANNED_EVENT);
-    await page.getByTestId("matchday-pairing-tab").click();
+    await page.goto(`${PLANNED_ACT}/pairing`);
     await expect(page.getByTestId("matchday-pairing-row-1")).toBeVisible();
-
     // Via the shared helper, which also checks that the browser has not zoomed the page
-    // out — the check this test used to make could not see that, and passed for weeks
-    // while the admin screens were unusable (docs/gotchas/, Story A-10).
+    // out (docs/gotchas/, Story A-10).
+    await expectNoSidewaysScroll(page, testInfo);
+    await page.goto(FINISHED_ACT);
+    await expect(page.getByTestId("matchday-standings-table")).toBeVisible();
     await expectNoSidewaysScroll(page, testInfo);
   });
 
@@ -268,52 +220,134 @@ test.describe("Foundations", () => {
     // the phone viewport too, where fitting is the whole question.
     for (const [path, ready] of PUBLIC_PAGES) {
       await page.goto(path);
-      await expect(page.getByTestId(ready)).toBeVisible();
+      await expect(page.getByTestId(ready).first()).toBeVisible();
       await expectNoSidewaysScroll(page, testInfo);
     }
   });
 });
 
-describeStory("A-12: the navigation moves with the viewport", () => {
-  test("wide screens get a left column and a breadcrumb, phones get a burger", async ({
-    page,
-  }, testInfo) => {
-    await page.goto("/series");
+describeStory("B-13: one row of navigation names the leagues", () => {
+  test("the home page names the leagues, and has one name of its own", async ({ page }) => {
+    await page.goto("/");
+    // One page, one name — counted only once the page has loaded (docs/gotchas/: a
+    // strict-mode locator checked straight after `goto` passes before the duplicate shows).
+    await expect(page.getByTestId("site-home-now")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
 
-    // Which arrangement this project gets is decided by its own viewport, so the test
-    // asserts the *pair*: exactly one of the two exists. Counts, not visibility — the
-    // point is that only one is in the document, because rendering both and hiding one
-    // with `hidden lg:flex` leaves two navigations and two breadcrumbs behind.
-    const wide = (page.viewportSize()?.width ?? 0) >= 1024;
-    await expect(page.getByTestId("layout-sidebar")).toHaveCount(wide ? 1 : 0);
-    await expect(page.getByTestId("layout-menu-button")).toHaveCount(wide ? 0 : 1);
-    await expect(page.getByTestId("layout-breadcrumb")).toHaveCount(1);
+    const leagues = page.getByTestId("site-leagues").getByRole("link");
+    await expect(leagues).toHaveText(["DSBL", "Junioren-Liga", "DSL-Pokal"]);
+    await page.getByTestId("site-league-dsbl").click();
+    await expect(page).toHaveURL(/\/dsbl$/);
+  });
 
-    // The breadcrumb says where you are, in both. On a section's own landing page that is
-    // one crumb — repeating "Series › Series" would say nothing twice.
-    const crumb = page.getByTestId("layout-breadcrumb");
-    await expect(crumb).toBeVisible();
-    await expect(crumb.getByRole("listitem")).toHaveCount(1);
+  test("on a depth page the league is a switch, and its pages sit beside it", async ({ page }) => {
+    await page.goto(STANDINGS);
+    await expect(page.getByTestId("site-top-bar")).toHaveCount(1);
+    await expect(page.getByTestId("site-league-pages")).toBeVisible();
+    await page.getByTestId("site-league-switch").locator("summary").click();
+    await page.getByTestId("site-league-switch").getByTestId("site-league-junioren-liga").click();
+    await expect(page).toHaveURL(/\/junioren-liga$/);
+  });
 
-    // ...and two once you are inside it, the second being the page's own name. Which is
-    // the whole point of the crumb now: the page states its name here and nowhere else,
-    // so this asserts the name is a real one rather than the section repeated.
-    await page.goto("/series");
-    await page.getByTestId("series-list").getByRole("link").first().click();
-    await expect(crumb.getByRole("listitem")).toHaveCount(2);
-    // Polled, not read once: the crumb re-renders as the page's own query resolves, and a
-    // read between two renders came back with one item after the count had seen two.
-    const crumbs = await expect
-      .poll(async () => crumb.getByRole("listitem").allInnerTexts(), { timeout: 10_000 })
-      .toHaveLength(2)
-      .then(() => crumb.getByRole("listitem").allInnerTexts());
-    const page_name = crumbs[1].replace("›", "").trim();
-    expect(page_name.length).toBeGreaterThan(0);
-    expect(page_name).not.toEqual(crumbs[0].trim());
+  test("a matchday page has two rows of navigation, never more", async ({ page }) => {
+    await page.goto(FINISHED_ACT);
+    await expect(page.getByTestId("site-act-bar")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toHaveCount(0);
+    await expect(page.getByTestId("site-top-bar")).toHaveCount(1);
+  });
 
-    // The first crumb leads back to the section.
-    await crumb.getByRole("link").first().click();
-    await expect(page).toHaveURL(/\/series$/);
+  test("the frame of a depth page is the one the DEV switch chose", async ({ page }) => {
+    // The DEV button itself is only in builds with the dev tools (staging, the dev
+    // server); the setting it writes is what decides the frame, so this sets it directly.
+    for (const frame of ["band", "sheet", "split"]) {
+      await page.addInitScript((value) => window.localStorage.setItem("site.detail", value), frame);
+      await page.goto(STANDINGS);
+      await expect(page.getByTestId("site-depth-page")).toHaveAttribute("data-frame", frame);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    }
+  });
+});
+
+describeStory("B-14: a league's page in chapters", () => {
+  test("the chapters lead to their own pages", async ({ page }) => {
+    await page.goto("/dsbl");
+    for (const id of ["now", "standings", "season", "clubs", "news", "media", "press", "about"]) {
+      await expect(page.getByTestId(`site-chapter-${id}`)).toHaveCount(1);
+    }
+    await expect(page.getByTestId("site-chapter-dots").getByRole("link")).toHaveCount(8);
+    // The 1. Liga's first five, from the real table.
+    await expect(page.getByTestId("site-top-five-dsbl-1-2026").getByRole("listitem")).toHaveCount(5);
+
+    await page.getByTestId("site-chapter-standings-more").click();
+    await expect(page).toHaveURL(/\/dsbl\/standings$/);
+  });
+
+  test("Now is the running act", async ({ page }) => {
+    await page.goto("/dsbl");
+    await page.getByTestId("site-chapter-now-more").click();
+    // Act 2 is being sailed, so it opens on its results.
+    await expect(page).toHaveURL(/\/dsbl\/2026\/act-2$/);
+    await expect(page.getByTestId("site-act-results")).toBeVisible();
+  });
+
+  test("a league with nothing published yet is a page, not an error", async ({ page }) => {
+    await page.goto("/dsl-pokal");
+    await expect(page.getByTestId("site-chapter-now")).toBeVisible();
+    await page.goto("/dsl-pokal/standings");
+    await expect(page.getByTestId("site-depth-page")).toBeVisible();
+  });
+
+  test("a path that names no league goes home", async ({ page }) => {
+    await page.goto("/no-such-league");
+    await expect(page).toHaveURL(/\/$/);
+  });
+});
+
+describeStory("B-15: the matchday page", () => {
+  test("every tab has its own address", async ({ page }) => {
+    await page.goto(FINISHED_ACT);
+    for (const tab of ["notice-board", "results", "pairing", "crews", "live", "media"]) {
+      await page.getByTestId(`site-act-tab-${tab}`).click();
+      await expect(page).toHaveURL(new RegExp(`/act-1/${tab}`));
+      await expect(page.getByTestId(`site-act-${tab}`)).toBeVisible();
+    }
+    // A guest does not get the race committee's tab.
+    await expect(page.getByTestId("site-act-tab-entry")).toHaveCount(0);
+  });
+
+  test("the live tab leads to the map", async ({ page }) => {
+    await page.goto("/dsbl/2026/act-2/live");
+    await page.getByTestId("matchday-live-map-link").click();
+    await expect(page).toHaveURL(/\/events\/2\/live$/);
+  });
+});
+
+describeStory("B-16: old addresses lead to the new pages", () => {
+  test("an event's and a series' old address lead to the league's pages", async ({ page }) => {
+    await page.goto("/events/1");
+    await expect(page).toHaveURL(/\/dsbl\/2026\/act-1\?division=1$/);
+    await page.goto("/events/3?view=pairing");
+    await expect(page).toHaveURL(/\/dsbl\/2026\/act-3\/pairing\?division=3$/);
+    await page.goto("/series/1");
+    await expect(page).toHaveURL(/\/dsbl\/2026\/standings$/);
+  });
+
+  test("the short paths go to the running act and the last results", async ({ page }) => {
+    await page.goto("/dsbl/live");
+    await expect(page).toHaveURL(/\/dsbl\/2026\/act-2\/live$/);
+    await page.goto("/dsbl/results");
+    await expect(page).toHaveURL(/\/dsbl\/2026\/act-1\/results$/);
+  });
+});
+
+describeStory("A-12: the account menu and the page's name", () => {
+  test("outside the leagues a breadcrumb names the page", async ({ page }) => {
+    await page.goto("/sailors/1");
+    await expect(page.getByTestId("sailor-registrations-section")).toBeVisible();
+    // The page states its name once, and that place is the breadcrumb's last crumb.
+    const name = page.getByTestId("layout-breadcrumb").getByRole("heading", { level: 1 });
+    await expect(name).toHaveText(/\S/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   });
 
   test("the account button opens what is about the reader, not about the page", async ({
@@ -321,7 +355,7 @@ describeStory("A-12: the navigation moves with the viewport", () => {
   }) => {
     await page.goto("/");
 
-    // Nothing is open until it is asked for — the frame carries only the navigation.
+    // Nothing is open until it is asked for — the row carries only the leagues.
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
     await expect(page.getByTestId("layout-profile-button")).toHaveAttribute(
       "aria-expanded",
@@ -353,9 +387,8 @@ describeStory("A-12: the navigation moves with the viewport", () => {
     await page.getByTestId("layout-user-menu-language").click();
     await expect(page.getByTestId("language-switcher")).toHaveCount(0);
 
-    // It opens for a guest too: the language and the legal pages belong to a visitor as
-    // much as to anybody.
-    await expect(page.getByTestId("layout-nav-help")).toHaveCount(0);
+    // A guest is offered no administration.
+    await expect(page.getByTestId("layout-user-menu-admin")).toHaveCount(0);
 
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
@@ -364,29 +397,5 @@ describeStory("A-12: the navigation moves with the viewport", () => {
     await page.getByTestId("layout-user-menu-help").click();
     await expect(page).toHaveURL(/\/help$/);
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
-  });
-
-  test("the burger opens the links, and closes again on Escape and on a click", async ({
-    page,
-  }) => {
-    await page.goto("/");
-    const burger = page.getByTestId("layout-menu-button");
-    test.skip(!(await burger.isVisible()), "wide layout has no burger — its own test above");
-
-    await expect(page.getByTestId("layout-nav")).toHaveCount(0);
-    await expect(burger).toHaveAttribute("aria-expanded", "false");
-
-    await burger.click();
-    await expect(page.getByTestId("layout-menu")).toBeVisible();
-    await expect(burger).toHaveAttribute("aria-expanded", "true");
-
-    await page.keyboard.press("Escape");
-    await expect(page.getByTestId("layout-menu")).toHaveCount(0);
-
-    // A menu left open over the page it just navigated to reads as a broken link.
-    await burger.click();
-    await page.getByTestId("layout-nav-clubs").click();
-    await expect(page).toHaveURL(/\/clubs$/);
-    await expect(page.getByTestId("layout-menu")).toHaveCount(0);
   });
 });

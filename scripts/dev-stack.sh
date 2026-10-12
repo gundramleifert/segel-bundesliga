@@ -44,6 +44,17 @@ done
 
 # `e2e/lifecycle.spec.ts` signs in through /api/dev/login, which only exists with this on.
 # It issues tokens without verification — never set it anywhere reachable.
+# A port still held by an earlier run's server means that server would answer this run's
+# readiness check and its tests — refuse rather than test the wrong stack.
+for ((i = 0; i < WORKERS; i++)); do
+  for port in $((8000 + i)) $((5173 + i)); do
+    if curl -s -o /dev/null --max-time 1 "http://127.0.0.1:$port/"; then
+      echo "port $port is already in use — an earlier stack still running? stop it first" >&2
+      exit 1
+    fi
+  done
+done
+
 export SBL_DEV_LOGIN=true
 # A signing secret, so the stack is self-contained: signing in needs one, and relying on
 # `api/.env` means the suite fails with "No signing secret is configured" on any checkout
@@ -90,18 +101,23 @@ for ((i = 0; i < WORKERS; i++)); do
   web_port=$((5173 + i))
   db=$([[ $i == 0 ]] && echo "e2e.db" || echo "e2e-$i.db")
 
+  # `exec`, so the PID kept below is the server's own and the EXIT trap reaches it. Without
+  # it the trap killed the subshell and left `uv` and its uvicorn running, holding the
+  # port; the next run's servers then failed to bind, the readiness check below was
+  # answered by the *old* ones, and the suite ran against a database this run had just
+  # replaced underneath them (docs/gotchas).
   (cd "$ROOT/api" && SBL_DATABASE_URL="sqlite+aiosqlite:///./$db" \
-     uv run uvicorn app.main:app --port "$api_port" --host 127.0.0.1 \
+     exec uv run uvicorn app.main:app --port "$api_port" --host 127.0.0.1 \
      > "$LOGS/api-$i.log" 2>&1) &
   pids+=($!)
 
   if [[ "$MODE" == built ]]; then
     (cd "$ROOT/web" && SBL_API_PORT="$api_port" \
-       ./node_modules/.bin/vite preview --port "$web_port" --host 127.0.0.1 \
+       exec ./node_modules/.bin/vite preview --port "$web_port" --host 127.0.0.1 \
        > "$LOGS/web-$i.log" 2>&1) &
   else
     (cd "$ROOT/web" && SBL_API_PORT="$api_port" \
-       ./node_modules/.bin/vite --port "$web_port" --host 127.0.0.1 \
+       exec ./node_modules/.bin/vite --port "$web_port" --host 127.0.0.1 \
        > "$LOGS/web-$i.log" 2>&1) &
   fi
   pids+=($!)

@@ -4,7 +4,7 @@ import type { Page, TestInfo } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
 
-import { expectNoSidewaysScroll, openNavigation } from "./layout";
+import { expectNoSidewaysScroll, openUserMenu } from "./layout";
 import { bearer, signIn } from "./session";
 
 /** Story VA-9: running an event, in a real browser.
@@ -370,8 +370,9 @@ describeStory("VA-8: from a draft to a running event", () => {
 
     // The pairing list is reachable from here, which is where the race committee goes next.
     await page.getByTestId(`admin-manage-event-results-link-${eventId}`).click();
-    await expect(page).toHaveURL(new RegExp(`/events/${eventId}$`));
-    await expect(page.getByTestId("matchday-tabs")).toBeVisible();
+    // Its own page, or its act's when the series is in a league (Stories B-15, B-16).
+    await expect(page).toHaveURL(new RegExp(`/events/${eventId}$|/[a-z-]+/\\d{4}/act-\\d+`));
+    await expect(page.getByTestId("site-act-bar")).toBeVisible();
   });
 });
 
@@ -602,9 +603,9 @@ describeStory("V-12: a club manager manages their own squad", () => {
     // The defect this story fixes: the permission existed and there was no door. So the
     // claim is about the nav, not about typing a URL.
     await page.goto("/");
-    await openNavigation(page);
+    await openUserMenu(page);
     // "My space" is the way in (Story Z-8), the club's card the way on (Story S-7).
-    const link = page.getByTestId("layout-nav-mySpace");
+    const link = page.getByTestId("layout-user-menu-mySpace");
     await expect(link).toBeVisible();
     await link.click();
     await expect(page).toHaveURL(/\/me$/);
@@ -668,8 +669,8 @@ describeStory("V-12: a club manager manages their own squad", () => {
     // Not a redirect and not a blank page — the message says the area is not theirs, and
     // /club is where their work actually is.
     await expect(page.getByTestId("admin-access-error")).toBeVisible();
-    await openNavigation(page);
-    await expect(page.getByTestId("layout-nav-admin")).toHaveCount(0);
+    await openUserMenu(page);
+    await expect(page.getByTestId("layout-user-menu-admin")).toHaveCount(0);
   });
 });
 

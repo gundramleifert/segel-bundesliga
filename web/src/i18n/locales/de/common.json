@@ -72,7 +72,8 @@
     "help": "Hilfe",
     "legalNotice": "Impressum",
     "privacy": "Datenschutz",
-    "signIn": "Anmelden"
+    "signIn": "Anmelden",
+    "admin": "Verwaltung"
   },
   "pager": {
     "range": "{{first}}–{{last}} von {{total}}",

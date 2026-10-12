@@ -27,6 +27,7 @@ from app.models import (
     EventStanding,
     EventStatus,
     Flight,
+    League,
     Race,
     RaceEntry,
     RaceStatus,
@@ -117,6 +118,32 @@ async def seed() -> None:
         # Everything the seed creates is a **running competition**, so it is published
         # (Story VA-8): a draft is invisible on the public site, and a seed of drafts would
         # leave the whole dev setup blank.
+        # The association's three competitions — the public site's top row
+        # (docs/site-structure.md). A series names its year; the league links the years.
+        dsbl = League(
+            slug="dsbl",
+            short_name="DSBL",
+            name="Deutsche Segel-Bundesliga",
+            tagline="Two divisions, 36 clubs, promotion and relegation.",
+            position=1,
+        )
+        junior_league = League(
+            slug="junioren-liga",
+            short_name="Junioren-Liga",
+            name="Deutsche Junioren Segel-Liga",
+            tagline="AK16 to AK21 — the talent school of club sailing.",
+            position=2,
+        )
+        cup = League(
+            slug="dsl-pokal",
+            short_name="DSL-Pokal",
+            name="DSL-Pokal",
+            tagline="One weekend where amateur meets professional.",
+            position=3,
+        )
+        session.add_all([dsbl, junior_league, cup])
+        await session.flush()
+
         scoring = {"discard_after": [], "penalty_percent": 20}
         first_league = Series(
             slug="dsbl-1-2026",
@@ -124,6 +151,7 @@ async def seed() -> None:
             short_name="1. Liga 2026",
             year=YEAR,
             level=1,
+            league_id=dsbl.id,
             published=True,
             scoring=scoring,
             description=(
@@ -141,6 +169,7 @@ async def seed() -> None:
             short_name="2. Liga 2026",
             year=YEAR,
             level=2,
+            league_id=dsbl.id,
             published=True,
             scoring=scoring,
         )
@@ -149,6 +178,7 @@ async def seed() -> None:
             name="Junioren-Segelliga 2026",
             short_name="Junioren 2026",
             year=YEAR,
+            league_id=junior_league.id,
             published=True,
             scoring=scoring,
         )
@@ -444,6 +474,7 @@ async def _wipe(session) -> None:
         Club,
         Venue,
         Series,
+        League,
     ):
         await session.execute(delete(model))
     await session.commit()

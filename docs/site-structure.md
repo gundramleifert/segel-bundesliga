@@ -2,10 +2,12 @@
 
 **Decided 2026-10-11:** option E of issue #14, *"chapters on top, depth behind"*, in the
 look of wireframe 8 (*"Chapters"*, issue #13). This file is the lasting record of that
-concept; the issues hold the discussion and the alternatives. Nothing here is built into
-the real site yet. A clickable prototype runs under **`/prototype`**
-(`web/src/prototype/`), the wireframes under **`/wireframes`**. Both use invented content
-and are thrown away once the real pages exist.
+concept; the issues hold the discussion and the alternatives. **Built into the real site
+on 2026-10-12** (Stories B-13–B-16, `web/src/pages/league/`, `web/src/components/site/`):
+the leagues are data (`League`, `GET /api/leagues`, `GET /api/leagues/{slug}`), news,
+press, media and documents static content behind hooks (`web/src/content/`). The
+clickable prototype under **`/prototype`** and the wireframes under **`/wireframes`** stay
+until the open variants are decided, then go.
 
 ## What the site is
 
@@ -142,7 +144,7 @@ chapter dots.
 
 ## Variants still open
 
-A development switch (the **DEV** button, bottom left, in the prototype) toggles these.
+A development switch (the **DEV** button, bottom left, wherever the dev tools are built in — the dev server and staging) toggles these.
 Each is to be decided on the real device, not argued in the abstract:
 
 | Variant | Options |
@@ -162,9 +164,8 @@ Each is to be decided on the real device, not argued in the abstract:
 
 From #14, still unanswered:
 
-1. **"DSBL" spans two series a year.** `/dsbl` needs something that groups a year's
-   series under one league and links the years together. This is a model question, to be
-   decided before the routes are built.
+1. ~~**"DSBL" spans two series a year.**~~ Decided 2026-10-12: a `League` row, and
+   `Series.league_id`. An act is the year's events that share a matchday number.
 2. Which domains exist or are planned.
 3. Who writes news and press releases, and whether they need a review before publishing.
 4. Videos on YouTube (embedded) or hosted here; galleries uploaded here or linked.

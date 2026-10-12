@@ -17,8 +17,10 @@ page has finished loading (a `data-testid` of the loaded content), and use
 `toHaveCount(n)`, not a strict-mode locator, when the number is the point. A test that
 passes only when it is fast is checking timing, not the page.
 
-**Evidence** — `e2e/visitor.spec.ts` ("the home page leads into a series") waits for
-`start-series-card-1`, then expects one `h1`. Without the fix in `web/src/pages/Start.tsx`
-(tagline back to a `<p>`) it now fails in a normal run with "Expected: 1, Received: 2".
+**Evidence** — `e2e/visitor.spec.ts` ("the home page names the leagues, and has one name
+of its own") waits for `site-home-now`, then expects one `h1`. The page it was found on
+(`Start.tsx`, the hero tagline as a second `h1`) was replaced by the chapter home in
+issue #14; the chapter page keeps the rule by making only the first chapter's title an
+`h1`.
 
 **Seen** — 2026-10-04

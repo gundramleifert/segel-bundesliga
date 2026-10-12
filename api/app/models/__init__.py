@@ -1,7 +1,7 @@
 from app.models.auth import Grant, ObjectType, Relation, Role, User
 from app.models.base import Base, TimestampMixin
 from app.models.common import AuditLog, ExternalId, ImportRun, Source
-from app.models.competition import Event, EventStatus, Series, Venue
+from app.models.competition import Event, EventStatus, League, Series, Venue
 from app.models.finance import (
     ClaimStatus,
     ClubBankAccount,
@@ -46,6 +46,7 @@ from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "League",
     "ClubBankAccount",
     "PaymentRun",
     "BankAccount",

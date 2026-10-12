@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
-import { openNavigation } from "./layout";
+import { openUserMenu } from "./layout";
 import { bearer, signIn } from "./session";
 
 /** Stories Z-8 and S-7: my space — every club, series and event I am part of, and my
@@ -100,8 +100,8 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     const { email, clubId } = await aClubAdmin(request);
     await signIn(page, email);
     await page.goto("/");
-    await openNavigation(page);
-    await page.getByTestId("layout-nav-mySpace").click();
+    await openUserMenu(page);
+    await page.getByTestId("layout-user-menu-mySpace").click();
     await expect(page).toHaveURL(/\/me$/);
 
     // The person first, then what they are part of — with what they are to it.

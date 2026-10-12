@@ -1,0 +1,72 @@
+import { useEffect, useState, useSyncExternalStore } from "react";
+
+/** The variants of the site structure still open (`docs/site-structure.md`, Story B-13),
+ *  each switched by the DEV button and decided on a real device, not in the abstract.
+ *
+ *  One value for the whole site, shared by every component that reads it, remembered in
+ *  this browser — a convenience: storage may fail, and then the setting holds until reload.
+ *  Once a variant is decided, its setting goes and the chosen branch stays. */
+function setting<T extends string>(key: string, values: readonly T[], fallback: T) {
+  const listeners = new Set<() => void>();
+  let value: T = (() => {
+    try {
+      const saved = localStorage.getItem(key);
+      return values.includes(saved as T) ? (saved as T) : fallback;
+    } catch {
+      return fallback;
+    }
+  })();
+  const set = (next: T) => {
+    value = next;
+    try {
+      localStorage.setItem(key, next);
+    } catch {
+      // Not remembered; holds until reload.
+    }
+    listeners.forEach((listener) => listener());
+  };
+  const use = () =>
+    useSyncExternalStore(
+      (listener) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      () => value,
+    );
+  return [use, set] as const;
+}
+
+/** Do the chapters snap into place, or scroll freely? */
+export type ChapterMode = "snap" | "free";
+export const CHAPTER_MODES = ["snap", "free"] as const;
+export const [useChapterMode, setChapterMode] = setting<ChapterMode>("site.chapters", CHAPTER_MODES, "snap");
+
+/** What a big picture shows: the photo, a cross-fading or a sliding slideshow, a muted video. */
+export type MediaMode = "photo" | "fade" | "slide" | "video";
+export const MEDIA_MODES = ["photo", "fade", "slide", "video"] as const;
+export const [useMediaMode, setMediaMode] = setting<MediaMode>("site.media", MEDIA_MODES, "photo");
+
+/** How a depth page is framed: A a band of picture, B a sheet over a big picture, C a split
+ *  with the picture and the league's pages fixed on the left. */
+export type DetailMode = "band" | "sheet" | "split";
+export const DETAIL_MODES = ["band", "sheet", "split"] as const;
+export const [useDetailMode, setDetailMode] = setting<DetailMode>("site.detail", DETAIL_MODES, "band");
+
+/** Which chapter fills most of the screen — for the dots, and so only that chapter plays
+ *  a video. `key` re-runs the observer when the set of chapters (or their layout) changes. */
+export function useActiveChapter(first: string, key = "") {
+  const [active, setActive] = useState(first);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive((entry.target as HTMLElement).dataset.chapter ?? first);
+        }
+      },
+      { threshold: 0.55 },
+    );
+    document.querySelectorAll("[data-chapter]").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [first, key]);
+  return active;
+}

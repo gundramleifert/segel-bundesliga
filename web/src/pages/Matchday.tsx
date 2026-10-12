@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Card } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 
@@ -10,15 +10,12 @@ import {
   getGetAdminRacesQueryKey,
   getGetEventQueryKey,
   useGetAdminRaces,
-  useGetEvent,
   useGetEventCrew,
   useGetPairing,
   usePutRaceResult,
 } from "../api/generated/sbl";
 import type { AdminRace, BoatOut, EventSummary, StandingRow, TeamCrew } from "../api/types";
-import { useAsync, useInvalidate, useAccount } from "../api/useApi";
-import { useLive } from "../api/useLive";
-import { TabbedView, type TabDef } from "../components/Tabs";
+import { useAsync, useInvalidate } from "../api/useApi";
 import { Async } from "../components/Async";
 import { FinishChip, useFinishOrder } from "../components/FinishOrderPad";
 import { CardGrid } from "../components/Layouts";
@@ -30,19 +27,13 @@ import {
 } from "../lib/results";
 import {
   ErrorMessage,
-  LiveBadge,
   Loading,
   Empty,
-  PageHeader,
-  StatusBadge,
   TableFrame,
 } from "../components/Blocks";
 import {
   boatColor,
-  locationText,
   formatPoints,
-  matchdaySubtitle,
-  eventDates,
   roleText,
 } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
@@ -115,119 +106,10 @@ function estimatedFlights(
   );
 }
 
-/** B-2 and B-3: Daily standings and pairing list of a matchday. */
-export function Matchday() {
-  const { t } = useTranslation("matchday");
-  const { id = "" } = useParams();
-  const { hasRole } = useAccount();
-  const canEnterResults = hasRole("admin", "race_officer");
+// The tabs of a matchday (Stories B-2, B-3, B-12, WL-2), mounted by the matchday page
+// (`pages/league/Act.tsx`, Story B-15) — one division's event each.
 
-  const matchday = useAsync(useGetEvent(Number(id)));
-
-  // Story B-5: hear about results and transitions while the page is open. Only for a
-  // published event — a draft has no stream (the server answers 404) and the hook would
-  // otherwise fall back to polling for nothing. The prefixes end in a slash on purpose:
-  // "/api/events/1" would also match "/api/events/12".
-  const live = useLive(matchday.data?.event.published ? `event:${id}` : null, [
-    getGetEventQueryKey(Number(id)),
-    `/api/events/${id}/`,
-    `/api/admin/events/${id}/`,
-  ]);
-
-  if (matchday.loading) return <Loading text={t("loading")} testId="matchday-loading" />;
-  if (matchday.error) return <ErrorMessage text={matchday.error} testId="matchday-error" />;
-  if (!matchday.data) return null;
-
-  const { event, standings, races_scored, races_total } = matchday.data;
-
-  // The same strip as the admin screen and the club screen. It was hand-rolled here
-  // first; `TabbedView` grew out of it (Story A-11) and owns the parts that get forgotten
-  // when a strip is copied — the roving tabindex, the arrow keys, the scroll guard — and
-  // it puts the selection in the URL, so a matchday's results tab can be linked.
-  const tabs: TabDef<"standings" | "pairing" | "crew" | "results">[] = [
-    {
-      key: "standings",
-      label: t("standingsTab"),
-      render: () => <DailyStandings standings={standings} event={event} />,
-    },
-    {
-      key: "pairing",
-      label: t("pairingTab"),
-      render: () => <PairingList eventId={Number(id)} />,
-    },
-    {
-      key: "crew",
-      label: t("crewTab"),
-      render: () => <Crew eventId={Number(id)} />,
-    },
-  ];
-  if (canEnterResults) {
-    tabs.push({
-      key: "results",
-      label: t("resultsTab"),
-      render: () => <ResultsEntry eventId={Number(id)} standings={standings} />,
-    });
-  }
-
-  return (
-    <>
-      <PageHeader title={event.title} testId="matchday-header" />
-
-      {/* The matchday's own facts — not a page subtitle, the breadcrumb names the page,
-          but the only place on this page these appear.
-          Three lines rather than one, because they are three kinds of fact and as a
-          single dot-separated run they were a hundred and forty characters that wrapped
-          mid-phrase: which competition this is, where and when it is sailed, and how far
-          along it is. Each line is short enough to survive a phone. */}
-      <div data-testid="matchday-meta" className="mb-6 space-y-0.5 text-sm">
-        {/* The state belongs on the identity line, not on a row of its own above it —
-            "which matchday is this, and where does it stand" is one question. */}
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <p className="font-medium text-slate-900">{matchdaySubtitle(event) ?? event.title}</p>
-          <StatusBadge status={event.status} testId="matchday-status-badge" />
-        </div>
-        <p className="text-slate-600">
-          {[locationText(event), eventDates(event)].filter(Boolean).join(" · ")}
-        </p>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-500">
-          <span data-testid="matchday-races-count">
-            {t("racesCount", { scored: races_scored, total: races_total })}
-          </span>
-          {/* The badge only while racing: a finished day is not "live", and a planned one
-              has nothing to stream yet. The stream itself is open regardless, so the page
-              hears the start. */}
-          {event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
-          {/* Stories L-1, L-2: the boats on the map, for a published event — or the
-              external live view the event names instead. */}
-          {event.published && event.live_url && (
-            <a
-              href={event.live_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="matchday-live-external-link"
-              className="font-medium text-brand-700 underline-offset-2 hover:underline"
-            >
-              {t("liveExternal")}
-            </a>
-          )}
-          {event.published && !event.live_url && (
-            <Link
-              to={`/events/${id}/live`}
-              data-testid="matchday-live-map-link"
-              className="font-medium text-brand-700 underline-offset-2 hover:underline"
-            >
-              {t("liveMap")}
-            </Link>
-          )}
-        </p>
-      </div>
-
-      <TabbedView tabs={tabs} param="view" testIdPrefix="matchday" label={t("viewLabel")} />
-    </>
-  );
-}
-
-function DailyStandings({
+export function DailyStandings({
   standings,
   event,
 }: {
@@ -467,7 +349,7 @@ function StandingsTable({
  *  Deliberately **not** a `LinkCard`, which is one anchor around the whole card: each name
  *  is its own link to a sailor page, and an anchor inside an anchor is invalid HTML that
  *  browsers silently unnest. The club link therefore sits in the card header on its own. */
-function Crew({ eventId }: { eventId: number }) {
+export function Crew({ eventId }: { eventId: number }) {
   const { t } = useTranslation("matchday");
   const crew = useAsync(useGetEventCrew(eventId));
 
@@ -556,7 +438,7 @@ function TeamCrewCard({ entry }: { entry: TeamCrew }) {
   );
 }
 
-function PairingList({ eventId }: { eventId: number }) {
+export function PairingList({ eventId }: { eventId: number }) {
   const { t } = useTranslation("matchday");
   // "" is the whole sheet; a club id is that crew's own page. Before the guards below,
   // because a hook cannot sit after a conditional return.
@@ -738,7 +620,7 @@ function stillOpen(race: AdminRace): boolean {
   return race.status !== "finished" && race.status !== "abandoned";
 }
 
-function ResultsEntry({
+export function ResultsEntry({
   eventId,
   standings,
 }: {

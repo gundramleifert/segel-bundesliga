@@ -16,8 +16,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Series
 
 
-async def current_year(session: AsyncSession, *, published_only: bool = False) -> int | None:
+async def current_year(
+    session: AsyncSession, *, published_only: bool = False, league_id: int | None = None
+) -> int | None:
     """The year currently in effect.
+
+    ``league_id`` asks the same question of one league's series only.
 
     ``published_only`` restricts the question to series the public can see. The public
     site passes it for the same reason the rule exists at all: an unpublished draft for
@@ -25,6 +29,10 @@ async def current_year(session: AsyncSession, *, published_only: bool = False) -
     """
     year = datetime.now(UTC).year
     visible = (Series.published.is_(True),) if published_only else ()
+    # A league's page asks about its own years: the DSBL may already have published next
+    # year's series while the Junioren-Liga has not.
+    if league_id is not None:
+        visible = (*visible, Series.league_id == league_id)
 
     current = (
         await session.execute(

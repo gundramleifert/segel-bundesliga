@@ -1,6 +1,6 @@
 /** i18next setup: English is the source language, German the second locale.
  *
- * Namespaces mirror the pages that use them (`start`, `events`, `standings`, `club`, …)
+ * Namespaces mirror the pages that use them (`site`, `events`, `standings`, `club`, …)
  * plus `common` for anything shared (nav, status labels, boat colours, crew roles).
  * Resources are bundled at build time via static imports — this is a small app with two
  * locales, and a runtime backend would only add complexity for no benefit here.
@@ -26,9 +26,9 @@ import liveDe from "./locales/de/live.json";
 import matchdayDe from "./locales/de/matchday.json";
 import racecontrolDe from "./locales/de/racecontrol.json";
 import sailorDe from "./locales/de/sailor.json";
+import siteDe from "./locales/de/site.json";
 import spaceDe from "./locales/de/space.json";
 import standingsDe from "./locales/de/standings.json";
-import startDe from "./locales/de/start.json";
 import accountEn from "./locales/en/account.json";
 import adminEn from "./locales/en/admin.json";
 import clubEn from "./locales/en/club.json";
@@ -43,9 +43,9 @@ import liveEn from "./locales/en/live.json";
 import matchdayEn from "./locales/en/matchday.json";
 import racecontrolEn from "./locales/en/racecontrol.json";
 import sailorEn from "./locales/en/sailor.json";
+import siteEn from "./locales/en/site.json";
 import spaceEn from "./locales/en/space.json";
 import standingsEn from "./locales/en/standings.json";
-import startEn from "./locales/en/start.json";
 
 export const SUPPORTED_LANGUAGES = ["en", "de"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -57,7 +57,7 @@ void i18n
     resources: {
       en: {
         common: commonEn,
-        start: startEn,
+        site: siteEn,
         events: eventsEn,
         standings: standingsEn,
         clubs: clubsEn,
@@ -76,7 +76,7 @@ void i18n
       },
       de: {
         common: commonDe,
-        start: startDe,
+        site: siteDe,
         events: eventsDe,
         standings: standingsDe,
         clubs: clubsDe,
@@ -98,7 +98,7 @@ void i18n
     supportedLngs: SUPPORTED_LANGUAGES,
     ns: [
       "common",
-      "start",
+      "site",
       "events",
       "standings",
       "clubs",

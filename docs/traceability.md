@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**80 stories** — ● 56 implemented and tested · ◐ 13 partial · ○ 11 open. With backend tests: 66 · with browser tests: 30 · walked by a journey: 9 · **with no test at all: 10**.
+**84 stories** — ● 59 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 67 · with browser tests: 34 · walked by a journey: 9 · **with no test at all: 10**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -26,7 +26,7 @@ same stories with each test's result, video and trace.
 | [A-10](userstories/administration.md#a-10--the-admin-screens-have-to-work-on-a-phone) | ● | The admin screens have to work on a phone | — | `lifecycle.spec.ts` | — |
 | [A-11](userstories/administration.md#a-11--the-admin-screen-in-tabs) | ● | The admin screen in tabs | — | `lifecycle.spec.ts::A-11: the admin screen is organized in tabs` | — |
 | [A-13](userstories/administration.md#a-13--one-list-mechanism-and-every-long-list-is-paged) | ● | One list mechanism, and every long list is paged | `test_pagination.py`<br>`test_pagination.py::TestEveryPagedListSpeaksTheSameShape`<br>`test_pagination.py::TestEverySearchableListSearchesTheSameWay`<br>`test_pagination.py::TestSearchingTheClubList`<br>`test_pagination.py::TestSearchingTheEventCalendar`<br>`test_pagination.py::TestSearchingTheSeriesList` | `lifecycle.spec.ts::A-13: every long list pages, sorts and searches — in the URL` | — |
-| [A-12](userstories/administration.md#a-12--navigation-beside-the-page-not-above-it) | ● | Navigation beside the page, not above it | — | `visitor.spec.ts::A-12: the navigation moves with the viewport` | — |
+| [A-12](userstories/administration.md#a-12--the-account-menu-and-the-pages-name) | ● | The account menu, and the page's name | — | `visitor.spec.ts::A-12: the account menu and the page's name` | — |
 
 ## [race-committee.md](userstories/race-committee.md)
 
@@ -92,13 +92,17 @@ same stories with each test's result, video and trace.
 
 | Story | | Title | Backend tests | Browser tests | Journeys |
 |---|---|---|---|---|---|
-| [B-1](userstories/visitor.md#b-1--view-league-standings) | ● | View league standings | `test_visitor.py::TestSeriesTable` | `visitor.spec.ts::B-1: as a fan I see the series standings` | J-1 |
+| [B-1](userstories/visitor.md#b-1--view-league-standings) | ● | View league standings | `test_visitor.py::TestSeriesTable` | `visitor.spec.ts::B-1/B-14: as a fan I see the series standings` | J-1 |
 | [A-5](userstories/visitor.md#a-5--series-standings-with-substitute-score) | ● | Series standings with substitute score | `test_scoring_storage.py::TestSeriesStanding` | — | — |
 | [A-4](userstories/visitor.md#a-4--series-includes-its-year) | ● | Series includes its year | `test_series_assignment.py::TestSeriesNaming` | — | — |
 | [B-2](userstories/visitor.md#b-2--review-matchday-results) | ● | Review matchday results | `test_visitor.py::TestMatchdayResult` | `visitor.spec.ts::B-2: as a fan I read up on how a matchday went` | — |
 | [B-3](userstories/visitor.md#b-3--view-pairing-list) | ● | View pairing list | `test_visitor.py::TestPairingList`<br>`test_pairing_pdf.py` | `visitor.spec.ts::B-3: as a sailor I see when I am on which boat` | J-1 |
 | [B-12](userstories/visitor.md#b-12--see-who-sails-for-each-team-at-a-matchday) | ● | See who sails for each team at a matchday | `test_visitor.py::TestMatchdayCrew` | — | — |
 | [B-5](userstories/visitor.md#b-5--follow-live-updates) | ◐ | Follow live updates | `test_live_hub.py`<br>`test_live_updates.py` | `live.spec.ts::B-5: as a spectator I follow live updates` | — |
+| [B-13](userstories/visitor.md#b-13--one-row-of-navigation-the-leagues-in-it) | ◐ | One row of navigation, the leagues in it | — | `visitor.spec.ts::B-13: one row of navigation names the leagues` | — |
+| [B-14](userstories/visitor.md#b-14--a-leagues-page-in-chapters-each-leading-to-its-own-page) | ● | A league's page in chapters, each leading to its own page | `test_league_pages.py::TestLeagueSeason` | `visitor.spec.ts::B-14: a league's page in chapters`<br>`visitor.spec.ts::B-1/B-14: as a fan I see the series standings` | — |
+| [B-15](userstories/visitor.md#b-15--the-matchday-page-its-tabs-in-the-url) | ● | The matchday page, its tabs in the URL | — | `visitor.spec.ts::B-15: the matchday page` | — |
+| [B-16](userstories/visitor.md#b-16--old-addresses-lead-to-the-new-pages) | ● | Old addresses lead to the new pages | — | `visitor.spec.ts::B-16: old addresses lead to the new pages` | — |
 | [B-4](userstories/visitor.md#b-4--find-clubs-and-dates) | ◐ | Find clubs and dates | `test_visitor.py::TestClubs` | `visitor.spec.ts::B-4: as a visitor I find clubs and dates` | — |
 | [B-7](userstories/visitor.md#b-7--view-club-page) | ● | View club page | `test_club_page.py::TestClubPage` | — | — |
 | [B-11](userstories/visitor.md#b-11--club-page-in-tabs) | ○ | Club page in tabs | — | — | — |

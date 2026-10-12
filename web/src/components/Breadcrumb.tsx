@@ -14,7 +14,6 @@ import { usePageTitle } from "./breadcrumb";
  * one crumb, which is their title.
  */
 const SECTIONS: Record<string, { path: string; key: string }> = {
-  series: { path: "/series", key: "series" },
   events: { path: "/events", key: "events" },
   clubs: { path: "/clubs", key: "clubs" },
   // `Admin › New event`: the create pages live under /admin and lead back to it.
@@ -23,7 +22,7 @@ const SECTIONS: Record<string, { path: string; key: string }> = {
 
 /** Where you are, in the one place the eye already goes — Story A-12.
  *
- * `Series › 1. Segel-Bundesliga 2026`: the section from the route, the page from its own
+ * `Clubs › Kieler Yacht-Club`: the section from the route, the page from its own
  * `PageHeader`. On a section's landing page the two would be the same word, so only one
  * is shown.
  */

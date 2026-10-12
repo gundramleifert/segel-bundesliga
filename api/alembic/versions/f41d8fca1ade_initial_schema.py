@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: b8254b72dd95
+Revision ID: f41d8fca1ade
 Revises: 
-Create Date: 2026-10-07 21:57:15.282885
+Create Date: 2026-10-11 23:34:10.063210
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'b8254b72dd95'
+revision: str = 'f41d8fca1ade'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -96,6 +96,20 @@ def upgrade() -> None:
     with op.batch_alter_table('import_run', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_import_run_source'), ['source'], unique=False)
 
+    op.create_table('league',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('slug', sa.String(length=64), nullable=False),
+    sa.Column('short_name', sa.String(length=48), nullable=False),
+    sa.Column('name', sa.String(length=160), nullable=False),
+    sa.Column('tagline', sa.String(length=200), nullable=True),
+    sa.Column('position', sa.Integer(), server_default='0', nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_league'))
+    )
+    with op.batch_alter_table('league', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_league_slug'), ['slug'], unique=True)
+
     op.create_table('login_code',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(length=254), nullable=False),
@@ -125,28 +139,6 @@ def upgrade() -> None:
     with op.batch_alter_table('sailor', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_sailor_email'), ['email'], unique=True)
         batch_op.create_index(batch_op.f('ix_sailor_federation_id'), ['federation_id'], unique=False)
-
-    op.create_table('series',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('slug', sa.String(length=80), nullable=False),
-    sa.Column('name', sa.String(length=160), nullable=False),
-    sa.Column('short_name', sa.String(length=48), nullable=False),
-    sa.Column('year', sa.Integer(), nullable=True),
-    sa.Column('starts_on', sa.Date(), nullable=True),
-    sa.Column('ends_on', sa.Date(), nullable=True),
-    sa.Column('level', sa.Integer(), nullable=True),
-    sa.Column('scoring', sa.JSON(), nullable=False),
-    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
-    sa.Column('squad_min', sa.Integer(), server_default='4', nullable=False),
-    sa.Column('squad_max', sa.Integer(), server_default='10', nullable=False),
-    sa.Column('description', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_series'))
-    )
-    with op.batch_alter_table('series', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_series_slug'), ['slug'], unique=True)
-        batch_op.create_index(batch_op.f('ix_series_year'), ['year'], unique=False)
 
     op.create_table('venue',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -203,42 +195,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_club_bank_account')),
     sa.UniqueConstraint('club_id', name=op.f('uq_club_bank_account_club_id'))
     )
-    op.create_table('event',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('slug', sa.String(length=120), nullable=False),
-    sa.Column('title', sa.String(length=200), nullable=False),
-    sa.Column('matchday', sa.Integer(), nullable=True),
-    sa.Column('team_count', sa.Integer(), nullable=False),
-    sa.Column('boat_count', sa.Integer(), nullable=False),
-    sa.Column('flight_count', sa.Integer(), nullable=False),
-    sa.Column('crew_size', sa.Integer(), nullable=False),
-    sa.Column('squad_min', sa.Integer(), server_default='4', nullable=False),
-    sa.Column('squad_max', sa.Integer(), server_default='10', nullable=False),
-    sa.Column('starts_on', sa.Date(), nullable=True),
-    sa.Column('ends_on', sa.Date(), nullable=True),
-    sa.Column('status', sa.String(length=16), nullable=False),
-    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
-    sa.Column('series_id', sa.Integer(), nullable=True),
-    sa.Column('venue_id', sa.Integer(), nullable=True),
-    sa.Column('host_club_id', sa.Integer(), nullable=True),
-    sa.Column('logo_url', sa.String(length=300), nullable=True),
-    sa.Column('live_url', sa.String(length=300), nullable=True),
-    sa.Column('print_settings', sa.JSON(), nullable=True),
-    sa.Column('sap_leaderboard', sa.String(length=200), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['host_club_id'], ['club.id'], name=op.f('fk_event_host_club_id_club')),
-    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_event_series_id_series')),
-    sa.ForeignKeyConstraint(['venue_id'], ['venue.id'], name=op.f('fk_event_venue_id_venue')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_event')),
-    sa.UniqueConstraint('series_id', 'matchday', name=op.f('uq_event_series_id'))
-    )
-    with op.batch_alter_table('event', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_event_host_club_id'), ['host_club_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_event_series_id'), ['series_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_event_slug'), ['slug'], unique=True)
-        batch_op.create_index(batch_op.f('ix_event_venue_id'), ['venue_id'], unique=False)
-
     op.create_table('identity',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -305,6 +261,95 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_personal_document_user_id'), ['user_id'], unique=False)
+
+    op.create_table('series',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('slug', sa.String(length=80), nullable=False),
+    sa.Column('name', sa.String(length=160), nullable=False),
+    sa.Column('short_name', sa.String(length=48), nullable=False),
+    sa.Column('year', sa.Integer(), nullable=True),
+    sa.Column('starts_on', sa.Date(), nullable=True),
+    sa.Column('ends_on', sa.Date(), nullable=True),
+    sa.Column('level', sa.Integer(), nullable=True),
+    sa.Column('scoring', sa.JSON(), nullable=False),
+    sa.Column('league_id', sa.Integer(), nullable=True),
+    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
+    sa.Column('squad_min', sa.Integer(), server_default='4', nullable=False),
+    sa.Column('squad_max', sa.Integer(), server_default='10', nullable=False),
+    sa.Column('description', sa.Text(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['league_id'], ['league.id'], name=op.f('fk_series_league_id_league')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_series'))
+    )
+    with op.batch_alter_table('series', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_series_league_id'), ['league_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_series_slug'), ['slug'], unique=True)
+        batch_op.create_index(batch_op.f('ix_series_year'), ['year'], unique=False)
+
+    op.create_table('event',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('slug', sa.String(length=120), nullable=False),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('matchday', sa.Integer(), nullable=True),
+    sa.Column('team_count', sa.Integer(), nullable=False),
+    sa.Column('boat_count', sa.Integer(), nullable=False),
+    sa.Column('flight_count', sa.Integer(), nullable=False),
+    sa.Column('crew_size', sa.Integer(), nullable=False),
+    sa.Column('squad_min', sa.Integer(), server_default='4', nullable=False),
+    sa.Column('squad_max', sa.Integer(), server_default='10', nullable=False),
+    sa.Column('starts_on', sa.Date(), nullable=True),
+    sa.Column('ends_on', sa.Date(), nullable=True),
+    sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
+    sa.Column('series_id', sa.Integer(), nullable=True),
+    sa.Column('venue_id', sa.Integer(), nullable=True),
+    sa.Column('host_club_id', sa.Integer(), nullable=True),
+    sa.Column('logo_url', sa.String(length=300), nullable=True),
+    sa.Column('live_url', sa.String(length=300), nullable=True),
+    sa.Column('print_settings', sa.JSON(), nullable=True),
+    sa.Column('sap_leaderboard', sa.String(length=200), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['host_club_id'], ['club.id'], name=op.f('fk_event_host_club_id_club')),
+    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_event_series_id_series')),
+    sa.ForeignKeyConstraint(['venue_id'], ['venue.id'], name=op.f('fk_event_venue_id_venue')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_event')),
+    sa.UniqueConstraint('series_id', 'matchday', name=op.f('uq_event_series_id'))
+    )
+    with op.batch_alter_table('event', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_event_host_club_id'), ['host_club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_event_series_id'), ['series_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_event_slug'), ['slug'], unique=True)
+        batch_op.create_index(batch_op.f('ix_event_venue_id'), ['venue_id'], unique=False)
+
+    op.create_table('payment',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('payer_club_id', sa.Integer(), nullable=False),
+    sa.Column('payee_user_id', sa.Integer(), nullable=True),
+    sa.Column('payee_name', sa.String(length=160), nullable=False),
+    sa.Column('iban', sa.String(length=34), nullable=True),
+    sa.Column('status', sa.String(length=16), nullable=False),
+    sa.Column('method', sa.String(length=16), nullable=False),
+    sa.Column('reference', sa.String(length=140), nullable=True),
+    sa.Column('issued_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('issued_on', sa.Date(), nullable=True),
+    sa.Column('settled_on', sa.Date(), nullable=True),
+    sa.Column('failure_reason', sa.String(length=200), nullable=True),
+    sa.Column('run_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['issued_by_user_id'], ['app_user.id'], name=op.f('fk_payment_issued_by_user_id_app_user')),
+    sa.ForeignKeyConstraint(['payee_user_id'], ['app_user.id'], name=op.f('fk_payment_payee_user_id_app_user')),
+    sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_payment_payer_club_id_club')),
+    sa.ForeignKeyConstraint(['run_id'], ['payment_run.id'], name=op.f('fk_payment_run_id_payment_run')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_payment'))
+    )
+    with op.batch_alter_table('payment', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_payment_payee_user_id'), ['payee_user_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_payer_club_id'), ['payer_club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_run_id'), ['run_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_payment_status'), ['status'], unique=False)
 
     op.create_table('access_grant',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -406,34 +451,6 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('flight', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_flight_event_id'), ['event_id'], unique=False)
-
-    op.create_table('payment',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('payer_club_id', sa.Integer(), nullable=False),
-    sa.Column('payee_user_id', sa.Integer(), nullable=True),
-    sa.Column('payee_name', sa.String(length=160), nullable=False),
-    sa.Column('iban', sa.String(length=34), nullable=True),
-    sa.Column('status', sa.String(length=16), nullable=False),
-    sa.Column('method', sa.String(length=16), nullable=False),
-    sa.Column('reference', sa.String(length=140), nullable=True),
-    sa.Column('issued_by_user_id', sa.Integer(), nullable=True),
-    sa.Column('issued_on', sa.Date(), nullable=True),
-    sa.Column('settled_on', sa.Date(), nullable=True),
-    sa.Column('failure_reason', sa.String(length=200), nullable=True),
-    sa.Column('run_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['issued_by_user_id'], ['app_user.id'], name=op.f('fk_payment_issued_by_user_id_app_user')),
-    sa.ForeignKeyConstraint(['payee_user_id'], ['app_user.id'], name=op.f('fk_payment_payee_user_id_app_user')),
-    sa.ForeignKeyConstraint(['payer_club_id'], ['club.id'], name=op.f('fk_payment_payer_club_id_club')),
-    sa.ForeignKeyConstraint(['run_id'], ['payment_run.id'], name=op.f('fk_payment_run_id_payment_run')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_payment'))
-    )
-    with op.batch_alter_table('payment', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_payment_payee_user_id'), ['payee_user_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_payment_payer_club_id'), ['payer_club_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_payment_run_id'), ['run_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_payment_status'), ['status'], unique=False)
 
     op.create_table('team',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -809,13 +826,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_team_club_id'))
 
     op.drop_table('team')
-    with op.batch_alter_table('payment', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_payment_status'))
-        batch_op.drop_index(batch_op.f('ix_payment_run_id'))
-        batch_op.drop_index(batch_op.f('ix_payment_payer_club_id'))
-        batch_op.drop_index(batch_op.f('ix_payment_payee_user_id'))
-
-    op.drop_table('payment')
     with op.batch_alter_table('flight', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_flight_event_id'))
 
@@ -844,6 +854,26 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_access_grant_club_id'))
 
     op.drop_table('access_grant')
+    with op.batch_alter_table('payment', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_payment_status'))
+        batch_op.drop_index(batch_op.f('ix_payment_run_id'))
+        batch_op.drop_index(batch_op.f('ix_payment_payer_club_id'))
+        batch_op.drop_index(batch_op.f('ix_payment_payee_user_id'))
+
+    op.drop_table('payment')
+    with op.batch_alter_table('event', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_event_venue_id'))
+        batch_op.drop_index(batch_op.f('ix_event_slug'))
+        batch_op.drop_index(batch_op.f('ix_event_series_id'))
+        batch_op.drop_index(batch_op.f('ix_event_host_club_id'))
+
+    op.drop_table('event')
+    with op.batch_alter_table('series', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_series_year'))
+        batch_op.drop_index(batch_op.f('ix_series_slug'))
+        batch_op.drop_index(batch_op.f('ix_series_league_id'))
+
+    op.drop_table('series')
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
 
@@ -858,13 +888,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_identity_provider'))
 
     op.drop_table('identity')
-    with op.batch_alter_table('event', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_event_venue_id'))
-        batch_op.drop_index(batch_op.f('ix_event_slug'))
-        batch_op.drop_index(batch_op.f('ix_event_series_id'))
-        batch_op.drop_index(batch_op.f('ix_event_host_club_id'))
-
-    op.drop_table('event')
     op.drop_table('club_bank_account')
     op.drop_table('bank_account')
     with op.batch_alter_table('waiver_text', schema=None) as batch_op:
@@ -875,11 +898,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_venue_slug'))
 
     op.drop_table('venue')
-    with op.batch_alter_table('series', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_series_year'))
-        batch_op.drop_index(batch_op.f('ix_series_slug'))
-
-    op.drop_table('series')
     with op.batch_alter_table('sailor', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_sailor_federation_id'))
         batch_op.drop_index(batch_op.f('ix_sailor_email'))
@@ -890,6 +908,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_login_code_email'))
 
     op.drop_table('login_code')
+    with op.batch_alter_table('league', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_league_slug'))
+
+    op.drop_table('league')
     with op.batch_alter_table('import_run', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_import_run_source'))
 
