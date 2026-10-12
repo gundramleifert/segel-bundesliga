@@ -29,7 +29,8 @@ import { contextPath, useMySpace } from "./shared";
  * moved here, not changed.
  *
  * A tab that needs me says so on its label, so the "needs you" line of the overview card
- * leads on to the right tab instead of a page to search.
+ * leads on to the right tab instead of a page to search. The tabs sit in the header row
+ * beside the page's name, like a matchday's, and the breadcrumb leads back to my space.
  */
 
 type SectionDef = {
@@ -78,7 +79,6 @@ function ContextFrame({
             <>
               <PageHeader title={t("title")} />
               <ErrorMessage text={t("context.notFound")} testId="me-context-not-found" />
-              <BackLink />
             </>
           );
         }
@@ -88,7 +88,6 @@ function ContextFrame({
         return (
           <Stack gap={5} testId={testId}>
             <PageHeader title={context.name} />
-            <BackLink />
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
                 {(context.kind === "event" || context.starts_on) && <span>{eventDates(context)}</span>}
@@ -105,6 +104,7 @@ function ContextFrame({
             {shown.length ? (
               <TabbedView
                 param="tab"
+                inHeader
                 testIdPrefix="me-context"
                 label={t("context.tabsLabel")}
                 className="grid grid-cols-[minmax(0,1fr)]"
@@ -119,15 +119,6 @@ function ContextFrame({
         );
       }}
     </Async>
-  );
-}
-
-function BackLink() {
-  const { t } = useTranslation("space");
-  return (
-    <Link to="/me" className="w-fit text-sm text-brand-700 underline-offset-2 hover:underline" data-testid="me-context-back">
-      ← {t("context.back")}
-    </Link>
   );
 }
 
@@ -175,9 +166,9 @@ export function ProfilePage() {
   return (
     <Stack gap={5} testId="me-profile">
       <PageHeader title={t("overview.me")} />
-      <BackLink />
       <TabbedView
         param="tab"
+        inHeader
         testIdPrefix="me-context"
         label={t("context.tabsLabel")}
         className="grid grid-cols-[minmax(0,1fr)]"

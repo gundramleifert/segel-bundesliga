@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useLocation, useNavigationType } from "react-router-dom";
 
 import { DEV_TOOLS } from "../dev/devTools";
 import { RoleSwitcher } from "../dev/RoleSwitcher";
 import { Breadcrumb } from "./Breadcrumb";
+import { HeaderSlotContext } from "./HeaderSlot";
 import { DevSwitch } from "./site/DevSwitch";
 import { Footer, TopBar } from "./site/Frame";
 
@@ -58,11 +59,25 @@ function useScrollToTop() {
  * the page; it is the page's `h1`.
  */
 export function Layout() {
+  // State, not a ref: the page's portal has to render again once the slot exists.
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
   return (
     <div className="flex min-h-dvh flex-col bg-white text-ink">
       <TopBar />
-      <div data-testid="layout-header" className="mx-auto flex w-full max-w-6xl min-w-0 items-center gap-3 px-4 py-3 lg:px-6">
-        <Breadcrumb />
+      {/* A page with a sub-menu (`InHeader`) puts it beside the breadcrumb — the row then
+          stays under the top bar, as the matchday page's tabs do (Story S-7). `:has`, so
+          a page without one keeps a row that scrolls away. */}
+      <div
+        data-testid="layout-header"
+        className="z-10 bg-white/95 backdrop-blur has-[[role=tablist]]:sticky has-[[role=tablist]]:top-14 has-[[role=tablist]]:border-b has-[[role=tablist]]:border-slate-200"
+      >
+        {/* With a sub-menu the whole row scrolls sideways on a phone, name and tabs together,
+            as the matchday row does — squeezed, the name wrapped into a column. */}
+        <div
+          className="scrollbar-none mx-auto flex w-full max-w-6xl min-w-0 items-center gap-3 px-4 py-3 has-[[role=tablist]]:overflow-x-auto has-[[role=tablist]]:py-0 has-[[role=tablist]]:[&>nav]:shrink-0 has-[[role=tablist]]:[&>nav]:whitespace-nowrap lg:px-6">
+          <Breadcrumb />
+          <div ref={setSlot} data-testid="layout-header-slot" className="contents" />
+        </div>
       </div>
       <main
         id="content"
@@ -72,7 +87,9 @@ export function Layout() {
         className="panel-scroll w-full min-w-0 flex-1 rounded-t-2xl bg-page px-4 py-6 lg:px-6 lg:py-8"
       >
         <div className="mx-auto w-full max-w-6xl">
-          <Outlet />
+          <HeaderSlotContext.Provider value={slot}>
+            <Outlet />
+          </HeaderSlotContext.Provider>
         </div>
       </main>
       <Footer />

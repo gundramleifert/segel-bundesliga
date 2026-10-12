@@ -215,7 +215,6 @@
     "noneLink": "Find your club"
   },
   "context": {
-    "back": "My space",
     "notFound": "This is not part of your space — or it does not exist.",
     "tabsLabel": "Sections",
     "publicPage": "Public page",

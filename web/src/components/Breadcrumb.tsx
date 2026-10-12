@@ -18,6 +18,9 @@ const SECTIONS: Record<string, { path: string; key: string }> = {
   clubs: { path: "/clubs", key: "clubs" },
   // `Admin › New event`: the create pages live under /admin and lead back to it.
   admin: { path: "/admin", key: "admin" },
+  // `My space › Me`: my pages in it lead back to the overview — the crumb replaced a
+  // "← My space" link on each of them (Story S-7).
+  me: { path: "/me", key: "mySpace" },
 };
 
 /** Where you are, in the one place the eye already goes — Story A-12.

@@ -1,6 +1,8 @@
 import { useRef, type ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 
+import { InHeader } from "./HeaderSlot";
+
 /** One tabbed view, with the selected tab in the URL.
  *
  * Extracted when the admin screen needed tabs (Story A-11) and `Matchday.tsx` already had
@@ -31,6 +33,7 @@ export function TabbedView<K extends string>({
   testIdPrefix,
   label,
   className,
+  inHeader = false,
 }: {
   tabs: readonly TabDef<K>[];
   /** The query parameter holding the selection, e.g. `tab` → `/admin?tab=events`. */
@@ -40,6 +43,10 @@ export function TabbedView<K extends string>({
   /** Names the strip for screen readers — "Area", "View". */
   label: string;
   className?: string;
+  /** The page's own sub-menu: the strip goes into the header row beside the page's name,
+   *  drawn like the matchday page's tabs (Story S-7). For a page with one set of tabs —
+   *  never for tabs inside a section. */
+  inHeader?: boolean;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const strip = useRef<HTMLDivElement>(null);
@@ -50,7 +57,7 @@ export function TabbedView<K extends string>({
   const requested = searchParams.get(param);
   const selected = tabs.find((tab) => tab.key === requested)?.key ?? tabs[0]?.key;
 
-  const select = (key: K) =>
+  const select = (key: K) => {
     setSearchParams(
       (previous) => {
         // Functional form and a copy: `setSearchParams({[param]: key})` would drop every
@@ -62,6 +69,9 @@ export function TabbedView<K extends string>({
       },
       { replace: false },
     );
+    // A sub-menu stays under the top bar; the tab it opens starts at the top of the page.
+    if (inHeader) window.scrollTo(0, 0);
+  };
 
   /** Arrow keys move between tabs, Home/End jump to the ends — what the tab pattern
    *  requires, and what a roving tabindex is for: only the selected tab is in the tab
@@ -90,47 +100,59 @@ export function TabbedView<K extends string>({
 
   const active = tabs.find((tab) => tab.key === selected);
 
+  const tablist = (
+    <div
+      ref={strip}
+      role="tablist"
+      aria-label={label}
+      data-testid={`${testIdPrefix}-tabs`}
+      onKeyDown={onKeyDown}
+      className={inHeader ? "flex items-center gap-1" : "inline-flex rounded-lg border border-slate-200 bg-white p-1"}
+    >
+      {tabs.map((tab) => {
+        const isSelected = tab.key === selected;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            role="tab"
+            id={`${testIdPrefix}-tab-${tab.key}`}
+            aria-selected={isSelected}
+            aria-controls={`${testIdPrefix}-panel-${tab.key}`}
+            tabIndex={isSelected ? 0 : -1}
+            onClick={() => select(tab.key)}
+            data-testid={`${testIdPrefix}-${tab.key}-tab`}
+            className={
+              inHeader
+                ? `-mb-px whitespace-nowrap border-b-2 px-3 py-4 text-sm font-medium ${
+                    isSelected ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"
+                  }`
+                : `whitespace-nowrap rounded-md px-4 py-1.5 text-sm transition-colors ${
+                    isSelected ? "bg-brand-600 font-medium text-white" : "text-slate-600 hover:bg-slate-100"
+                  }`
+            }
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className={className}>
       {/* The scroll container is not decoration. Five tabs do not fit across 412 px, and a
           strip wider than the viewport widens the page — which mobile Chromium answers by
           zooming everything out (Story A-10, docs/gotchas/grid-auto-columns-can-zoom-the-
           whole-page-out.md). Letting the strip scroll inside its own box keeps the overflow
-          where it belongs. */}
-      <div className="mb-4 overflow-x-auto">
-        <div
-          ref={strip}
-          role="tablist"
-          aria-label={label}
-          data-testid={`${testIdPrefix}-tabs`}
-          onKeyDown={onKeyDown}
-          className="inline-flex rounded-lg border border-slate-200 bg-white p-1"
-        >
-          {tabs.map((tab) => {
-            const isSelected = tab.key === selected;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                role="tab"
-                id={`${testIdPrefix}-tab-${tab.key}`}
-                aria-selected={isSelected}
-                aria-controls={`${testIdPrefix}-panel-${tab.key}`}
-                tabIndex={isSelected ? 0 : -1}
-                onClick={() => select(tab.key)}
-                data-testid={`${testIdPrefix}-${tab.key}-tab`}
-                className={`whitespace-nowrap rounded-md px-4 py-1.5 text-sm transition-colors ${
-                  isSelected
-                    ? "bg-brand-600 font-medium text-white"
-                    : "text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+          where it belongs. In the header, the header row is that box (`Layout`). */}
+      {inHeader ? (
+        <InHeader>
+          <div className="shrink-0 border-l border-slate-200 pl-1">{tablist}</div>
+        </InHeader>
+      ) : (
+        <div className="mb-4 overflow-x-auto">{tablist}</div>
+      )}
 
       {active && (
         <div

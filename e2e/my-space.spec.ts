@@ -120,7 +120,10 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     await page.getByTestId("me-context-money-tab").click();
     await expect(page.getByTestId(`reimbursements-club-${clubId}`)).toBeVisible();
 
-    await page.getByTestId("me-context-back").click();
+    // The tabs are the page's sub-menu, in the header row beside its name; the
+    // breadcrumb before that name leads back to the overview.
+    await expect(page.getByTestId("layout-header").getByTestId("me-context-tabs")).toBeVisible();
+    await page.getByTestId("layout-breadcrumb").getByRole("link", { name: "My space" }).click();
     await expect(page.getByTestId("me-overview")).toBeVisible();
   });
 

@@ -410,6 +410,10 @@ Acceptance criteria:
   **race control** (race officer), and for its organizer the way to the organizer screen.
 - Tabs keep their selection in the URL (`?tab=`), like every tabbed screen. A tab that
   needs me says so on its label.
+- The tabs are the page's **sub-menu**, drawn like a matchday page's: in the header row
+  beside the page's name (`My space › Me | Account · Documents · …`), staying under the
+  top bar while the page scrolls. The breadcrumb is the way back to my space — there is
+  no separate back link, which took a line of its own on every page.
 - A page I am not part of answers *not found*, not an empty shell.
 - The old addresses keep working: `/account` (signed in) → `/me/profile`, `/club?club=N`
   → `/me/club/N`, `/reimbursements` → `/me`; `/account` signed out stays the sign-in page.
