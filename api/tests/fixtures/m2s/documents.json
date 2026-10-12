@@ -1,0 +1,83 @@
+[
+    {
+        "Id": "f371201f-fdfa-4fdd-b079-418f6ef10b2e",
+        "Type": "",
+        "Title": "20260509_NO 3_KYC_ACT 1_first poss warning_sunday.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-09T20:25:21.403+0200",
+        "Extension": "pdf",
+        "Order": 0
+    },
+    {
+        "Id": "cd28f87a-5070-41b4-9d05-2a766a6b1ea2",
+        "Type": "",
+        "Title": "20260508_NO 2_Course Diagram_ACT1_2026_KYC.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-08T23:50:32.730+0200",
+        "Extension": "pdf",
+        "Order": 1
+    },
+    {
+        "Id": "34e2683d-2b30-456b-a364-545764bfc6fb",
+        "Type": "",
+        "Title": "20260507_NO 1_KYC_ACT 1_Team Umpire.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-07T17:40:08.707+0200",
+        "Extension": "pdf",
+        "Order": 2
+    },
+    {
+        "Id": "e2cccf8c-a930-4355-9fa1-2e35d0545aac",
+        "Type": "",
+        "Title": "20260507__Event SI_DJSL 2026_ACT1_KYC.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-07T17:29:20.410+0200",
+        "Extension": "pdf",
+        "Order": 3
+    },
+    {
+        "Id": "0b060dd1-bb68-455d-b409-d053002246e7",
+        "Type": "",
+        "Title": "20260506_SI_DJSL 2026_final.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-06T11:27:53.703+0200",
+        "Extension": "pdf",
+        "Order": 4
+    },
+    {
+        "Id": "b93b32c6-d44b-4fed-9e7e-e91c799af1cc",
+        "Type": "",
+        "Title": "20250505_DJSL 2026 Pairingliste ACT 1.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-05T14:59:56.283+0200",
+        "Extension": "pdf",
+        "Order": 5
+    },
+    {
+        "Id": "d43fc968-a9a8-4efd-b30f-36289fc96df8",
+        "Type": "",
+        "Title": "20260504_Haftungsausschluss_Medienrechte_Datenschutz_DJSL 2026.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-04T15:02:11.590+0200",
+        "Extension": "pdf",
+        "Order": 6
+    },
+    {
+        "Id": "d87231da-72ae-4503-8722-8995d05bd455",
+        "Type": "",
+        "Title": "20260504_Kautionsbürgschaft_DJSL 2026_ACT1_Strande_KYC.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-05-04T14:51:18.653+0200",
+        "Extension": "pdf",
+        "Order": 7
+    },
+    {
+        "Id": "b2ffdf47-7037-4ff1-aea7-4e26bc0419ff",
+        "Type": "",
+        "Title": "20260401_Ausschreibung_DJSL-2026.pdf",
+        "Version": "1.0",
+        "PublishedDate": "2026-03-31T12:33:21.133+0200",
+        "Extension": "pdf",
+        "Order": 8
+    }
+]

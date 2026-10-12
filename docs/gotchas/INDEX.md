@@ -34,6 +34,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [An RFC 9457 extension member may not be named `status`, `title`, `code` or `type`](problem-extension-members-cannot-shadow-its-parameters.md)
 - [A public endpoint answers 404 for a draft — including in tests you just set up](public-endpoints-answer-404-for-unpublished-things.md)
 - [sepaxml writes the message id in its constructor, so setting msg_id afterwards leaves a random one in the file](sepaxml-writes-the-message-id-in-its-constructor-so-setting-msg-id-afterwards-le.md)
+- [SQLite's lower() folds ASCII only, so a case-insensitive match in SQL misses umlauts that Postgres would find](sqlite-s-lower-folds-ascii-only-so-a-case-insensitive-match-in-sql-misses-umlaut.md)
 - [State inside the race-control card is lost on every change of the race, because the card is keyed by the race's version](state-inside-the-race-control-card-is-lost-on-every-change-of-the-race-because-t.md)
 - [A server started in one sandboxed Bash call is unreachable from the next one](the-bash-sandbox-has-a-network-namespace-per-call.md)
 - [Tones booked from a React effect come out late or twice when the page falls behind; sound needs its own timer](tones-booked-from-a-react-effect-come-out-late-or-twice-when-the-page-falls-behi.md)

@@ -343,3 +343,98 @@ async def _entries_by_boat_number(race_id: int) -> dict[int, RaceEntry]:
             )
         ).all()
         return {number: entry for number, entry in rows}
+
+
+class TestMatchdayPenalty:
+    """Story WL-4: penalty points for a team on a matchday, counted once."""
+
+    async def _team(self, slug: str) -> tuple[int, int, float]:
+        """(event id, a team entered there, that team's current net points)."""
+        from app.models import EventStanding
+
+        async with SessionLocal() as session:
+            event_id = (
+                await session.execute(select(Event.id).where(Event.slug == slug))
+            ).scalar_one()
+            standing = (
+                await session.execute(
+                    select(EventStanding)
+                    .where(EventStanding.event_id == event_id)
+                    .order_by(EventStanding.rank)
+                    .limit(1)
+                )
+            ).scalar_one()
+            return event_id, standing.team_id, standing.net_points
+
+    async def test_a_penalty_is_added_once_and_shown_in_the_table(self, client, caplog):
+        """Story WL-4: the team's net grows by exactly the penalty, the row says why, and
+        removing it restores the table — on a closed event too."""
+        officer = await _race_officer(client, caplog, "wl4-officer@example.com")
+        event_id, team_id, net = await self._team(FINISHED_MATCHDAY)
+        url = f"/api/admin/events/{event_id}/teams/{team_id}/penalty"
+
+        response = await client.put(
+            url, headers=officer, json={"points": 3, "note": "Late crew list"}
+        )
+        assert response.status_code == 200, response.text
+        try:
+            row = next(
+                r
+                for r in (await client.get(f"/api/events/{event_id}")).json()["standings"]
+                if r["team"]["id"] == team_id
+            )
+            assert row["net"] == net + 3
+            assert (row["penalty_points"], row["penalty_note"]) == (3.0, "Late crew list")
+            # The races themselves are untouched: the penalty is no race's points.
+            assert (
+                sum(
+                    p
+                    for seq, p in row["points_by_race"].items()
+                    if int(seq) not in row["discarded_races"]
+                )
+                == net
+            )
+
+            async with SessionLocal() as session:
+                assert (
+                    await session.execute(
+                        select(AuditLog).where(
+                            AuditLog.entity_type == "team",
+                            AuditLog.entity_id == team_id,
+                            AuditLog.action == "penalty",
+                        )
+                    )
+                ).scalars().first() is not None
+        finally:
+            removed = await client.put(url, headers=officer, json={"points": None})
+            assert removed.status_code == 200, removed.text
+
+        row = next(
+            r
+            for r in (await client.get(f"/api/events/{event_id}")).json()["standings"]
+            if r["team"]["id"] == team_id
+        )
+        assert (row["net"], row["penalty_points"], row["penalty_note"]) == (net, 0.0, None)
+
+    async def test_only_the_race_committee_sets_it(self, client, caplog):
+        """Story WL-4: a club manager may not penalise anyone."""
+        manager = await _club_manager(client, caplog, "wl4-manager@example.com")
+        event_id, team_id, _ = await self._team(FINISHED_MATCHDAY)
+        response = await client.put(
+            f"/api/admin/events/{event_id}/teams/{team_id}/penalty",
+            headers=manager,
+            json={"points": 3},
+        )
+        assert response.status_code == 403
+
+    async def test_a_team_of_another_event_is_refused(self, client, caplog):
+        """Story WL-4: the penalty belongs to the team's entry in *this* event."""
+        officer = await _race_officer(client, caplog, "wl4-officer2@example.com")
+        event_id, _, _ = await self._team(FINISHED_MATCHDAY)
+        _, other_team, _ = await self._team(LIVE_MATCHDAY)
+        response = await client.put(
+            f"/api/admin/events/{event_id}/teams/{other_team}/penalty",
+            headers=officer,
+            json={"points": 3},
+        )
+        assert response.status_code == 404

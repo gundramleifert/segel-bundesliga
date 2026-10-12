@@ -7,7 +7,7 @@ Goal: both halves reachable on the public internet, at no cost, for trying thing
 
 | File | Purpose |
 |---|---|
-| `api/Dockerfile` | Backend image. Bakes a **seeded SQLite database** and **`render.env`** (all non-secret config) into the image — see "Configuration" below. |
+| `api/Dockerfile` | Backend image. Bakes a **seeded SQLite database** and **`render.env`** (all non-secret config) into the image — see "Configuration" below. On top of the seed it imports the DSBL seasons of `SAP_IMPORT_YEARS` (default `2025-2026`) from SAP Sailing (`SAP_BASE_URL`), published; a failed import leaves the seed alone (Story A-14). |
 | `api/render.env` | Every non-secret setting for the Render deployment, as plain `KEY=value` lines — checked into git, edited like code. |
 | `render.yaml` | Render blueprint: the API (Docker) + the site (static) in one deploy. Declares no env vars for the API — see "Configuration". |
 

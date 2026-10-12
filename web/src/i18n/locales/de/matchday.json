@@ -76,5 +76,14 @@
     "SCP": "Wertungsstrafe: Zielplatz + 20 % der Starter (mind. 1 Punkt), gedeckelt bei {{cap}} Punkten (nie schlechter als DNF). Die Strafe in dieser Wettfahrt beträgt {{penalty}} Punkte.",
     "RDG": "Redress: Die Jury trägt die zuerkannten Punkte direkt ein — sie werden nicht automatisch berechnet."
   },
-  "liveExternal": "Live-Ansicht (extern)"
+  "liveExternal": "Live-Ansicht (extern)",
+  "penaltyIncluded": "inkl. {{points}} Strafpunkte",
+  "penaltyTooltip": "Strafpunkte für den Spieltag, einmal gezählt und nie gestrichen",
+  "penaltiesTitle": "Strafpunkte für den Spieltag",
+  "penaltiesHint": "Punkte, die ein Team in den Spieltag mitnimmt — einmal zusätzlich zu den Wettfahrten gezählt, nie gestrichen. Feld leeren und speichern, um eine Strafe zu entfernen.",
+  "penaltyPointsLabel": "Strafpunkte für {{club}}",
+  "penaltyNoteLabel": "Begründung der Strafe für {{club}}",
+  "penaltyNotePlaceholder": "Begründung (optional)",
+  "penaltySave": "Speichern",
+  "penaltyInvalid": "Zwischen 0 und 100 Punkten"
 }

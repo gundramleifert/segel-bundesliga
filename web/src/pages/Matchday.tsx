@@ -13,6 +13,7 @@ import {
   useGetEventCrew,
   useGetPairing,
   usePutRaceResult,
+  usePutTeamPenalty,
 } from "../api/generated/sbl";
 import type { AdminRace, BoatOut, EventSummary, StandingRow, TeamCrew } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
@@ -293,6 +294,17 @@ function StandingsTable({
                       <span className="ml-1 text-xs font-normal text-slate-400">
                         ({formatPoints(row.total)} {t("gross")})
                       </span>
+                    )}
+                    {/* Story WL-4: a total that is not the sum of its races says why. */}
+                    {(row.penalty_points ?? 0) > 0 && (
+                      <Tip text={row.penalty_note || t("penaltyTooltip")}>
+                        <span
+                          data-testid={`matchday-standings-penalty-${row.team.id}`}
+                          className="ml-1 text-xs font-normal text-red-700"
+                        >
+                          {t("penaltyIncluded", { points: formatPoints(row.penalty_points ?? 0) })}
+                        </span>
+                      </Tip>
                     )}
                   </td>
                 )}
@@ -732,7 +744,87 @@ export function ResultsEntry({
           </tbody>
         </table>
       </TableFrame>
+      <PenaltyEntry eventId={eventId} standings={standings} />
     </>
+  );
+}
+
+/** Story WL-4: penalty points for a team on the matchday as a whole — counted once, never
+ *  discarded. One row per team; saving an empty field removes the penalty. */
+function PenaltyEntry({ eventId, standings }: { eventId: number; standings: StandingRow[] }) {
+  const { t } = useTranslation("matchday");
+  if (!standings.length) return null;
+  const rows = [...standings].sort((a, b) =>
+    a.team.club.short_name.localeCompare(b.team.club.short_name),
+  );
+  return (
+    <details className="mt-4" data-testid="matchday-penalties">
+      <summary className="cursor-pointer text-sm font-medium text-slate-700">
+        {t("penaltiesTitle")}
+      </summary>
+      <p className="mt-2 text-sm text-slate-600">{t("penaltiesHint")}</p>
+      <ul className="mt-2 flex flex-col gap-2">
+        {rows.map((row) => (
+          <PenaltyRow key={`${row.team.id}-${row.penalty_points}-${row.penalty_note}`} eventId={eventId} row={row} />
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+function PenaltyRow({ eventId, row }: { eventId: number; row: StandingRow }) {
+  const { t } = useTranslation("matchday");
+  const invalidate = useInvalidate();
+  const [points, setPoints] = useState(row.penalty_points ? String(row.penalty_points) : "");
+  const [note, setNote] = useState(row.penalty_note ?? "");
+  const save = usePutTeamPenalty({
+    mutation: { onSuccess: () => invalidate(getGetEventQueryKey(eventId)) },
+  });
+  const parsed = points.trim() === "" ? null : Number(points.replace(",", "."));
+  const invalid = parsed !== null && !(parsed > 0 && parsed <= 100);
+  return (
+    <li
+      data-testid={`matchday-penalty-row-${row.team.id}`}
+      className="flex flex-wrap items-center gap-2 text-sm"
+    >
+      <span className="w-20 font-medium">{row.team.club.short_name}</span>
+      <input
+        type="text"
+        inputMode="decimal"
+        aria-label={t("penaltyPointsLabel", { club: row.team.club.short_name })}
+        data-testid={`matchday-penalty-points-${row.team.id}`}
+        className={`${INPUT_CLASS} w-20`}
+        value={points}
+        onChange={(e) => setPoints(e.target.value)}
+      />
+      <input
+        type="text"
+        aria-label={t("penaltyNoteLabel", { club: row.team.club.short_name })}
+        placeholder={t("penaltyNotePlaceholder")}
+        data-testid={`matchday-penalty-note-${row.team.id}`}
+        className={`${INPUT_CLASS} min-w-0 flex-1`}
+        value={note}
+        maxLength={300}
+        onChange={(e) => setNote(e.target.value)}
+      />
+      <button
+        type="button"
+        disabled={invalid || save.isPending}
+        data-testid={`matchday-penalty-save-${row.team.id}`}
+        className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline disabled:text-slate-400"
+        onClick={() =>
+          save.mutate({
+            eventId,
+            teamId: row.team.id,
+            data: { points: parsed, note: parsed === null ? null : note.trim() || null },
+          })
+        }
+      >
+        {t("penaltySave")}
+      </button>
+      {invalid && <span className="text-red-700">{t("penaltyInvalid")}</span>}
+      {save.error && <span className="text-red-700">{errorText(save.error)}</span>}
+    </li>
   );
 }
 

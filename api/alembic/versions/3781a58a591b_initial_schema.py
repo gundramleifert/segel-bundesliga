@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: f41d8fca1ade
+Revision ID: 3781a58a591b
 Revises: 
-Create Date: 2026-10-11 23:34:10.063210
+Create Date: 2026-10-12 23:30:48.115451
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'f41d8fca1ade'
+revision: str = '3781a58a591b'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -407,6 +407,23 @@ def upgrade() -> None:
     with op.batch_alter_table('course', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_course_event_id'), ['event_id'], unique=False)
 
+    op.create_table('event_document',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=False),
+    sa.Column('title', sa.String(length=300), nullable=False),
+    sa.Column('kind', sa.String(length=32), nullable=False),
+    sa.Column('url', sa.String(length=500), nullable=False),
+    sa.Column('extension', sa.String(length=16), nullable=True),
+    sa.Column('published_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('position', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_event_document_event_id_event')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_event_document'))
+    )
+    with op.batch_alter_table('event_document', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_event_document_event_id'), ['event_id'], unique=False)
+
     op.create_table('expense_claim',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('event_id', sa.Integer(), nullable=True),
@@ -461,6 +478,8 @@ def upgrade() -> None:
     sa.Column('status', sa.String(length=16), nullable=False),
     sa.Column('decision_note', sa.String(length=500), nullable=True),
     sa.Column('decided_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('penalty_points', sa.Float(), nullable=True),
+    sa.Column('penalty_note', sa.String(length=300), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.CheckConstraint('series_id IS NOT NULL OR event_id IS NOT NULL', name=op.f('ck_team_team_has_a_competition')),
@@ -838,6 +857,10 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_expense_claim_claimant_user_id'))
 
     op.drop_table('expense_claim')
+    with op.batch_alter_table('event_document', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_event_document_event_id'))
+
+    op.drop_table('event_document')
     with op.batch_alter_table('course', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_course_event_id'))
 

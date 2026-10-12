@@ -1,10 +1,20 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import JSON, Boolean, Date, ForeignKey, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -224,3 +234,40 @@ class Event(Base, TimestampMixin):
     boats: Mapped[list[Boat]] = relationship(
         back_populates="event", cascade="all, delete-orphan", order_by="Boat.number"
     )
+    documents: Mapped[list[EventDocument]] = relationship(
+        back_populates="event", cascade="all, delete-orphan", order_by="EventDocument.position"
+    )
+
+
+class EventDocumentKind(StrEnum):
+    """What an event document is, as far as its title tells (Story A-14)."""
+
+    NOTICE_OF_RACE = "notice_of_race"
+    SAILING_INSTRUCTIONS = "sailing_instructions"
+    NOTICE = "notice"
+    OTHER = "other"
+
+
+class EventDocument(Base, TimestampMixin):
+    """A document on an event's notice board — notice of race, sailing instructions, a
+    notice to competitors (Story A-14).
+
+    A **link**, not a copy: the file stays where it was published (Manage2Sail today), so
+    the version a competitor reads here is the one the organizer published there. An
+    imported document is keyed by an ``ExternalId`` like everything else imported.
+    """
+
+    __tablename__ = "event_document"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), index=True)
+    title: Mapped[str] = mapped_column(String(300))
+    kind: Mapped[str] = mapped_column(String(32), default=EventDocumentKind.OTHER)
+    url: Mapped[str] = mapped_column(String(500))
+    # The file's extension as the source reports it — "pdf", "docx" — for the icon.
+    extension: Mapped[str | None] = mapped_column(String(16), default=None)
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # The source's own order on its notice board.
+    position: Mapped[int] = mapped_column(default=0)
+
+    event: Mapped[Event] = relationship(back_populates="documents")

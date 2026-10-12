@@ -38,6 +38,63 @@ Already built that way (see [A-1](#a-1--create-clubs) and
 
 Tests: `api/tests/stories/test_series_assignment.py::TestClubCreationAndAssignment`
 
+### A-14 ● Import clubs, past seasons and event documents from SAP Sailing and Manage2Sail
+As **administration** I want to **pull what SAP Sailing Analytics and Manage2Sail already
+hold into this site with one command**, so that **past seasons, the clubs and the
+notice-board documents are here without being typed in**.
+
+The two systems hold different halves of a competition (`docs/manage2sail.md` §6): SAP
+the league's matchdays — races, boats, the scored results; Manage2Sail the registrations
+and the event's documents (notice of race, sailing instructions, notices to competitors).
+
+Acceptance criteria:
+- **A command, not a screen:** `uv run python -m app.imports sap …` and
+  `… m2s …` in `api/`. Only public endpoints are read — no SAP secret, no M2S token — and
+  nothing is ever written back to either system.
+- **SAP** (`sap --year 2023`, `sap --years 2021-2023`, `sap --regatta "<name>"`,
+  `sap --all`): every regatta named
+  `1./2. Segel-Bundesliga YYYY - City (n)` becomes an **event** in the series
+  `1./2. Segel-Bundesliga YYYY` of the league `dsbl`, with its clubs entered, its boats
+  (sail number and the colour SAP has), 16 flights of races and every team's result.
+  The matchday is the `(n)` in the name, or the order of the dates where the year's
+  names carry none. Points are then **derived** here (`recompute_event`), never copied.
+- **Manage2Sail** (`m2s --event <uuid>`): the event (title, dates), the clubs and teams
+  of its entry list, and the **documents** on its notice board — title, kind (notice of
+  race, sailing instructions, notice, other), date and the public download link. The
+  file stays at Manage2Sail; the site links it. `--to <event id>` attaches it to an event
+  that already exists here — the usual case, since the SAP import or an organizer created
+  it.
+- **Matching is by `ExternalId`, never by name.** A club is keyed by its **club code**
+  (SAP's `shortName`, M2S's `ClubCode` — `HSC`, `NRV`), case-insensitive, since both
+  systems spell the names differently. A club this site already has with that code as its
+  short name is linked on the first run rather than duplicated; an unknown one is created.
+  Events, races and documents are keyed by the source's UUID.
+- **Repeatable:** a second run with unchanged data changes nothing and says so.
+- **The race committee wins** (Domain decisions): a result already recorded here that
+  differs from the source is kept and reported as a conflict, never overwritten.
+- SAP's `carriedPoints` — points a team carries into the matchday — become the team's
+  **matchday penalty** (Story WL-4), under the same rule.
+- **Imported competitions start as drafts**, unless `--publish`: a past season appearing
+  on the public site is a decision, not a side effect.
+- **Staging imports on every build** (`api/Dockerfile`): on top of the seed, the seasons
+  of the build argument `SAP_IMPORT_YEARS` — **`2025-2026` by default**, empty to skip —
+  published, from `SAP_BASE_URL` (default `www.sapsailing.com`). A failed or empty import
+  never fails the build. The public SAP server has no season after 2023, so the default
+  imports nothing until the newer seasons' SAP instance is known and set.
+- Each run is an `ImportRun` row and prints what it created, updated, left unchanged,
+  and what conflicted or failed.
+- Sailors are **not** imported: SAP carries none for the league (its "sailor" is the club),
+  and Manage2Sail's public list has names but no id to match them by. That is VA-1's job,
+  with the check-in report's World Sailing ids.
+
+Open: show the imported documents on the matchday page (the notice board is still
+placeholder content, `web/src/content/`, issue #14's question 5); SAP's attribution notice
+under imported results (`docs/findings.md` §3).
+
+Tests: `api/tests/stories/test_imports.py::TestSapImport`,
+`api/tests/stories/test_imports.py::TestManage2SailImport`,
+`api/tests/unit/test_import_parsing.py`
+
 ## The series and who sails in it
 
 ### A-6 ● Create series and select clubs

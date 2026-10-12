@@ -58,10 +58,14 @@ export const BOAT_COLORS: Record<string, { hex: string }> = {
   WHITE: { hex: "#ffffff" },
 };
 
+/** A colour a source gave as `#rrggbb` — SAP Sailing's boats (Story A-14) — is shown as
+ *  itself; it has no name to translate, so the code stands in for one. */
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+
 export function boatColor(color: string | null | undefined): { hex: string; name: string } {
   const entry = color ? BOAT_COLORS[color] : undefined;
   return {
-    hex: entry?.hex ?? "#cbd5e1",
+    hex: entry?.hex ?? (color && HEX_COLOR.test(color) ? color : "#cbd5e1"),
     name: color ? i18n.t(`common:boatColor.${color}`, { defaultValue: color }) : "—",
   };
 }

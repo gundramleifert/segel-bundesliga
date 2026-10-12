@@ -1,0 +1,6771 @@
+{
+ "name": "1. Segel-Bundesliga 2023 - Berlin (1)",
+ "displayName": "Berlin",
+ "boatClass": "J/70",
+ "resultTimepoint": 1697889311000,
+ "delayToLiveInMillis": 5000,
+ "resultState": "Live",
+ "type": "RegattaLeaderboard",
+ "shardingLeaderboardName": "/leaderboard/1__Segel_Bundesliga_2023___Berlin__1_",
+ "discardIndexResultsStartingWithHowManyRaces": [],
+ "canBoatsOfCompetitorsChangePerRace": true,
+ "maxCompetitorsCount": null,
+ "scoringComment": "Results of race F14, Race 3 have been updated.",
+ "lastScoringUpdate": 1697889311000,
+ "columnNames": [
+  "F1",
+  "F2",
+  "F3",
+  "F4",
+  "F5",
+  "F6",
+  "F7",
+  "F8",
+  "F9",
+  "F10",
+  "F11",
+  "F12",
+  "F13",
+  "F14",
+  "F15",
+  "F16"
+ ],
+ "trackedRacesInfo": [
+  {
+   "raceColumnName": "F1",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 1 - 1.DSBL",
+      "id": "c29af3a0-d24b-013b-fc2a-342e996a9920",
+      "startTimeMillis": 1683885600000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 2 - 1.DSBL",
+      "id": "13d85f50-d24c-013b-fc38-342e996a9920",
+      "startTimeMillis": 1683887220000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 3 - 1.DSBL",
+      "id": "13e1c300-d24c-013b-fc3f-342e996a9920",
+      "startTimeMillis": 1683888900000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F2",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 4 - 1.DSBL",
+      "id": "13ea6cb0-d24c-013b-fc46-342e996a9920",
+      "startTimeMillis": 1683890400000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 5 - 1.DSBL",
+      "id": "13f31410-d24c-013b-fc4d-342e996a9920",
+      "startTimeMillis": 1683891840000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 6 - 1.DSBL",
+      "id": "13fbe060-d24c-013b-fc54-342e996a9920",
+      "startTimeMillis": 1683893760000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F3",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 7 - 1.DSBL",
+      "id": "14054710-d24c-013b-fc5b-342e996a9920",
+      "startTimeMillis": 1683895380000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 8 - 1.DSBL",
+      "id": "5d301d30-d24c-013b-fc8c-342e996a9920",
+      "startTimeMillis": 1683897000000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 9 - 1.DSBL",
+      "id": "5d3a2870-d24c-013b-fc93-342e996a9920",
+      "startTimeMillis": 1683898800000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F4",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 10 - 1.DSBL",
+      "id": "5d437c30-d24c-013b-fc9a-342e996a9920",
+      "startTimeMillis": 1683900420000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 11 - 1.DSBL",
+      "id": "5d4c4520-d24c-013b-fca1-342e996a9920",
+      "startTimeMillis": 1683901980000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 12 - 1.DSBL",
+      "id": "5d54dcf0-d24c-013b-fca8-342e996a9920",
+      "startTimeMillis": 1683903480000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F5",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 13 - 1.DSBL",
+      "id": "5d5d73f0-d24c-013b-fcaf-342e996a9920",
+      "startTimeMillis": 1683905280000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 14 - 1.DSBL",
+      "id": "5d665aa0-d24c-013b-fcb6-342e996a9920",
+      "startTimeMillis": 1683906840000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 15 - 1.DSBL",
+      "id": "5d6f7960-d24c-013b-fcbd-342e996a9920",
+      "startTimeMillis": 1683965160000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F6",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 16 - 1.DSBL",
+      "id": "5d7caaf0-d24c-013b-fcc4-342e996a9920",
+      "startTimeMillis": 1683966720000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 17 - 1.DSBL",
+      "id": "5d850870-d24c-013b-fccb-342e996a9920",
+      "startTimeMillis": 1683968280000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 18 - 1.DSBL",
+      "id": "5d8d8ab0-d24c-013b-fcd2-342e996a9920",
+      "startTimeMillis": 1683969840000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F7",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 19 - 1.DSBL",
+      "id": "5d962a70-d24c-013b-fcd9-342e996a9920",
+      "startTimeMillis": 1683971340000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 20 - 1.DSBL",
+      "id": "5d9f3540-d24c-013b-fce0-342e996a9920",
+      "startTimeMillis": 1683972780000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 21 - 1.DSBL",
+      "id": "5da79fc0-d24c-013b-fce7-342e996a9920",
+      "startTimeMillis": 1683974280000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F8",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 22 - 1.DSBL",
+      "id": "5db01610-d24c-013b-fcee-342e996a9920",
+      "startTimeMillis": 1683975660000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 23 - 1.DSBL",
+      "id": "5db8d760-d24c-013b-fcf5-342e996a9920",
+      "startTimeMillis": 1683977160000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 24 - 1.DSBL",
+      "id": "5dc1ae40-d24c-013b-fcfc-342e996a9920",
+      "startTimeMillis": 1683979140000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F9",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 25 - 1.DSBL",
+      "id": "5dca8050-d24c-013b-fd03-342e996a9920",
+      "startTimeMillis": 1683980580000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 26 - 1.DSBL",
+      "id": "5dd49b20-d24c-013b-fd0a-342e996a9920",
+      "startTimeMillis": 1683981900000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 27 - 1.DSBL",
+      "id": "5ddce5e0-d24c-013b-fd11-342e996a9920",
+      "startTimeMillis": 1683983580000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F10",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 28 - 1.DSBL",
+      "id": "5de592d0-d24c-013b-fd18-342e996a9920",
+      "startTimeMillis": 1683985320000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 29 - 1.DSBL",
+      "id": "6d8bd140-d24c-013b-fd1f-342e996a9920",
+      "startTimeMillis": 1683986940000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 30 - 1.DSBL",
+      "id": "6d964250-d24c-013b-fd26-342e996a9920",
+      "startTimeMillis": 1683990360000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F11",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 31 - 1.DSBL",
+      "id": "6d9eeef0-d24c-013b-fd2d-342e996a9920",
+      "startTimeMillis": 1683991980000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 32 - 1.DSBL",
+      "id": "6da806d0-d24c-013b-fd34-342e996a9920",
+      "startTimeMillis": 1684051380000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 33 - 1.DSBL",
+      "id": "6db28280-d24c-013b-fd3b-342e996a9920",
+      "startTimeMillis": 1684053060000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F12",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 34 - 1.DSBL",
+      "id": "6dbc7760-d24c-013b-fd42-342e996a9920",
+      "startTimeMillis": 1684054500000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 35 - 1.DSBL",
+      "id": "6dc69b90-d24c-013b-fd49-342e996a9920",
+      "startTimeMillis": 1684056060000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 36 - 1.DSBL",
+      "id": "6dcfba90-d24c-013b-fd50-342e996a9920",
+      "startTimeMillis": 1684057500000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F13",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 37 - 1.DSBL",
+      "id": "6dd911b0-d24c-013b-fd57-342e996a9920",
+      "startTimeMillis": 1684058820000,
+      "live": false,
+      "delayToLiveInMillis": 40000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 38 - 1.DSBL",
+      "id": "6de21d20-d24c-013b-fd5e-342e996a9920",
+      "startTimeMillis": 1684060320000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 39 - 1.DSBL",
+      "id": "6deb0930-d24c-013b-fd65-342e996a9920",
+      "startTimeMillis": 1684061880000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F14",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 40 - 1.DSBL",
+      "id": "6df49f90-d24c-013b-fd6c-342e996a9920",
+      "startTimeMillis": 1684065240000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 41 - 1.DSBL",
+      "id": "6dfde900-d24c-013b-fd73-342e996a9920",
+      "startTimeMillis": 1684066740000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 42 - 1.DSBL",
+      "id": "6e06a380-d24c-013b-fd7a-342e996a9920",
+      "startTimeMillis": 1684068480000,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F15",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 43 - 1.DSBL",
+      "id": "6e0f6380-d24c-013b-fd81-342e996a9920",
+      "startTimeMillis": null,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 44 - 1.DSBL",
+      "id": "6e17f200-d24c-013b-fd88-342e996a9920",
+      "startTimeMillis": null,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 45 - 1.DSBL",
+      "id": "6e21f890-d24c-013b-fd8f-342e996a9920",
+      "startTimeMillis": null,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "raceColumnName": "F16",
+   "fleets": [
+    {
+     "name": "Race 1",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 46 - 1.DSBL",
+      "id": "6e2ac150-d24c-013b-fd96-342e996a9920",
+      "startTimeMillis": null,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 2",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 47 - 1.DSBL",
+      "id": "6e335310-d24c-013b-fd9d-342e996a9920",
+      "startTimeMillis": null,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    },
+    {
+     "name": "Race 3",
+     "resultsAreOfficial": false,
+     "trackedRace": {
+      "name": "Race 48 - 1.DSBL",
+      "id": "6e3bd760-d24c-013b-fda4-342e996a9920",
+      "startTimeMillis": null,
+      "live": false,
+      "delayToLiveInMillis": 5000,
+      "status": "FINISHED",
+      "loadingProgress": 1.0
+     }
+    }
+   ]
+  }
+ ],
+ "competitors": [
+  {
+   "id": "83109c60-d283-013b-ff36-342e996a9920",
+   "name": "Mühlenberger Segel-Club",
+   "shortName": "MSC",
+   "displayName": "Mühlenberger Segel-Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 1,
+   "carriedPoints": null,
+   "netPoints": 32.0,
+   "overallRank": 1,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82c8f430-d283-013b-ff15-342e996a9920",
+   "name": "Münchner Yacht-Club",
+   "shortName": "MYC",
+   "displayName": "Münchner Yacht-Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 2,
+   "carriedPoints": null,
+   "netPoints": 38.0,
+   "overallRank": 2,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82ef1220-d283-013b-ff2a-342e996a9920",
+   "name": "Norddeutscher Regatta Verein",
+   "shortName": "NRV",
+   "displayName": "Norddeutscher Regatta Verein",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 3,
+   "carriedPoints": null,
+   "netPoints": 39.0,
+   "overallRank": 3,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82fb4a80-d283-013b-ff30-342e996a9920",
+   "name": "Flensburger Segel-Club",
+   "shortName": "FSC",
+   "displayName": "Flensburger Segel-Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 4,
+   "carriedPoints": null,
+   "netPoints": 44.0,
+   "overallRank": 4,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82d8b000-d283-013b-ff1e-342e996a9920",
+   "name": "Akademischer SegelVerein Warnemünde",
+   "shortName": "ASVW",
+   "displayName": "Akademischer SegelVerein Warnemünde",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 5,
+   "carriedPoints": null,
+   "netPoints": 45.0,
+   "overallRank": 5,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 7.0,
+     "uncorrectedTotalPoints": 7.0,
+     "netPoints": 7.0,
+     "maxPointsReason": "DNF",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82d43800-d283-013b-ff1b-342e996a9920",
+   "name": "Schlei-Segel-Club",
+   "shortName": "SSC",
+   "displayName": "Schlei-Segel-Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 6,
+   "carriedPoints": null,
+   "netPoints": 45.0,
+   "overallRank": 6,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 1,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 7.0,
+     "uncorrectedTotalPoints": 7.0,
+     "netPoints": 7.0,
+     "maxPointsReason": "DNF",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "831aa430-d283-013b-ff3c-342e996a9920",
+   "name": "Regatta-Segler Neuruppin",
+   "shortName": "RSN",
+   "displayName": "Regatta-Segler Neuruppin",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 7,
+   "carriedPoints": null,
+   "netPoints": 46.0,
+   "overallRank": 7,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 7.0,
+     "uncorrectedTotalPoints": 7.0,
+     "netPoints": 7.0,
+     "maxPointsReason": "OCS",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 1,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82ffb8b0-d283-013b-ff33-342e996a9920",
+   "name": "Seglervereinigung 1903",
+   "shortName": "SV03",
+   "displayName": "Seglervereinigung 1903",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 8,
+   "carriedPoints": null,
+   "netPoints": 47.0,
+   "overallRank": 8,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "832b5670-d283-013b-ff45-342e996a9920",
+   "name": "Wassersport-Verein Hemelingen",
+   "shortName": "WVH",
+   "displayName": "Wassersport-Verein Hemelingen",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 9,
+   "carriedPoints": 3.0,
+   "netPoints": 48.0,
+   "overallRank": 9,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 7.0,
+     "uncorrectedTotalPoints": 7.0,
+     "netPoints": 7.0,
+     "maxPointsReason": "OCS",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82ceeb50-d283-013b-ff18-342e996a9920",
+   "name": "Württembergischer Yacht-Club",
+   "shortName": "WYC",
+   "displayName": "Württembergischer Yacht-Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 10,
+   "carriedPoints": null,
+   "netPoints": 49.0,
+   "overallRank": 10,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 7.0,
+     "uncorrectedTotalPoints": 7.0,
+     "netPoints": 7.0,
+     "maxPointsReason": "DNF",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82dd12d0-d283-013b-ff21-342e996a9920",
+   "name": "Chiemsee Yacht Club",
+   "shortName": "CYC",
+   "displayName": "Chiemsee Yacht Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 11,
+   "carriedPoints": null,
+   "netPoints": 51.0,
+   "overallRank": 11,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 7.0,
+     "uncorrectedTotalPoints": 7.0,
+     "netPoints": 7.0,
+     "maxPointsReason": "DNF",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82f6d610-d283-013b-ff2d-342e996a9920",
+   "name": "Bodensee-Yacht-Club Überlingen",
+   "shortName": "BYCÜ",
+   "displayName": "Bodensee-Yacht-Club Überlingen",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 12,
+   "carriedPoints": null,
+   "netPoints": 53.0,
+   "overallRank": 12,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 7.0,
+     "uncorrectedTotalPoints": 7.0,
+     "netPoints": 7.0,
+     "maxPointsReason": "OCS",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 1,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "831641b0-d283-013b-ff39-342e996a9920",
+   "name": "Hamburger Segel-Club",
+   "shortName": "HSC",
+   "displayName": "Hamburger Segel-Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 13,
+   "carriedPoints": 3.0,
+   "netPoints": 59.0,
+   "overallRank": 13,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82bfdd10-d283-013b-ff12-342e996a9920",
+   "name": "Konstanzer Yacht Club",
+   "shortName": "KYC (BW)",
+   "displayName": "Konstanzer Yacht Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 14,
+   "carriedPoints": null,
+   "netPoints": 60.0,
+   "overallRank": 14,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 1.0,
+     "uncorrectedTotalPoints": 1.0,
+     "netPoints": 1.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 1,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82e1acf0-d283-013b-ff24-342e996a9920",
+   "name": "Segel- und Motorboot Club Überlingen",
+   "shortName": "SMCÜ",
+   "displayName": "Segel- und Motorboot Club Überlingen",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 15,
+   "carriedPoints": 3.0,
+   "netPoints": 60.0,
+   "overallRank": 15,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 1,
+     "finished": true
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 4,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "831f4640-d283-013b-ff3f-342e996a9920",
+   "name": "Düsseldorfer Yachtclub",
+   "shortName": "DYC",
+   "displayName": "Düsseldorfer Yachtclub",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 16,
+   "carriedPoints": null,
+   "netPoints": 61.0,
+   "overallRank": 16,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "82e71060-d283-013b-ff27-342e996a9920",
+   "name": "Berliner Yacht-Club",
+   "shortName": "BYC (BE)",
+   "displayName": "Berliner Yacht-Club",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 17,
+   "carriedPoints": 3.0,
+   "netPoints": 66.0,
+   "overallRank": 17,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 3,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  },
+  {
+   "id": "8323b5e0-d283-013b-ff42-342e996a9920",
+   "name": "Verein Seglerhaus am Wannsee",
+   "shortName": "VSAW",
+   "displayName": "Verein Seglerhaus am Wannsee",
+   "sailID": null,
+   "nationality": "GER",
+   "countryCode": "DE",
+   "rank": 18,
+   "carriedPoints": null,
+   "netPoints": 67.0,
+   "overallRank": 18,
+   "columns": {
+    "F1": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": 5,
+     "trackedRank": 5,
+     "finished": true
+    },
+    "F2": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F3": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 2.0,
+     "uncorrectedTotalPoints": 2.0,
+     "netPoints": 2.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 2,
+     "trackedRank": 2,
+     "finished": true
+    },
+    "F4": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F5": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 3.0,
+     "uncorrectedTotalPoints": 3.0,
+     "netPoints": 3.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 3,
+     "trackedRank": 3,
+     "finished": true
+    },
+    "F6": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F7": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 4.0,
+     "uncorrectedTotalPoints": 4.0,
+     "netPoints": 4.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 4,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F8": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F9": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#4",
+      "name": "Boat 4 (1)",
+      "displayName": "Boat 4 (1) (4)",
+      "sailId": "4",
+      "boatClass": "J/70",
+      "color": "#04C41D"
+     },
+     "fleet": "Race 3",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F10": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 6,
+     "finished": true
+    },
+    "F11": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 4,
+     "finished": true
+    },
+    "F12": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#3",
+      "name": "Boat 3 (1)",
+      "displayName": "Boat 3 (1) (3)",
+      "sailId": "3",
+      "boatClass": "J/70",
+      "color": "#E20202"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 6,
+     "finished": false
+    },
+    "F13": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#2",
+      "name": "Boat 2 (1)",
+      "displayName": "Boat 2 (1) (2)",
+      "sailId": "2",
+      "boatClass": "J/70",
+      "color": "#808080"
+     },
+     "fleet": "Race 1",
+     "totalPoints": 5.0,
+     "uncorrectedTotalPoints": 5.0,
+     "netPoints": 5.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 5,
+     "trackedRank": 2,
+     "finished": false
+    },
+    "F14": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#1",
+      "name": "Boat 1 (1)",
+      "displayName": "Boat 1 (1) (1)",
+      "sailId": "1",
+      "boatClass": "J/70",
+      "color": "#00B0F0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": 6.0,
+     "uncorrectedTotalPoints": 6.0,
+     "netPoints": 6.0,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": true,
+     "rank": 6,
+     "trackedRank": 5,
+     "finished": false
+    },
+    "F15": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#6",
+      "name": "Boat 6 (1)",
+      "displayName": "Boat 6 (1) (6)",
+      "sailId": "6",
+      "boatClass": "J/70",
+      "color": "#7030A0"
+     },
+     "fleet": "Race 2",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    },
+    "F16": {
+     "boat": {
+      "id": "d27ecc2e-5e4f-4f91-ac43-27a546d58d94#5",
+      "name": "Boat 5 (1)",
+      "displayName": "Boat 5 (1) (5)",
+      "sailId": "5",
+      "boatClass": "J/70",
+      "color": "#FFFFFF"
+     },
+     "fleet": "Race 1",
+     "totalPoints": null,
+     "uncorrectedTotalPoints": null,
+     "netPoints": null,
+     "maxPointsReason": "NONE",
+     "isDiscarded": false,
+     "isCorrected": false,
+     "rank": null,
+     "trackedRank": null,
+     "finished": false
+    }
+   }
+  }
+ ]
+}

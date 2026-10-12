@@ -83,9 +83,10 @@ without authentication (tested):
 
 | What | URL | Format |
 |---|---|---|
-| Event page (holds the class ids) | `/en-US/event/{eventId}` — the ids appear as `classId={uuid}` in the HTML | HTML |
+| Event page (holds the class ids) | `/en-US/event/{eventId}` — the title in `<title>`, and the days and classes (`Id`, `Name`, `HasEntries`, …) as JSON in `window.boostrapedResourceData` (sic) | HTML |
 | Entries of one class | `/api/event/{eventId}/regattaentry?regattaId={classId}` | JSON: `TotalCount`, `RegattaName`, `Entries[]` with `EntryId`, `SailNumber`, `TeamName`, `SkipperName`, `Crew`, `BoatName`, `BoatType`, `Hcp`, … |
 | Results of one class | `/api/event/{eventId}/regattaresult/{classId}` | JSON: `RaceNames[]`, `Discards`, `PointSystem`, `OverallReport` (`IsOfficial`, `PublishedDate`), `EntryResults[]` with `Rank`, `TeamName`, `ClubName`, `ClubCode`, `SailNumber`, `EntryRaceResults[]` (`RaceId`, `Points`, …) |
+| **Documents** of the event / of one class | `/api/event/{eventId}/document/{eventId}` (event) or `…/document/{classId}` | JSON: `[{Id, Title, Type, Version, PublishedDate, Extension, Order}]` — the notice board's files; `Id` is the `{documentId}` below |
 | Results as World Sailing XRR | `/en-US/Home/DownloadXrr/event/{eventId}/regatta/{classId}` | XML, [XRR](https://www.sailing.org/xml) v1.3 |
 | Results as HTML | `/en-US/Home/ResultsFragment/event/{eventId}/regatta/{classId}` | HTML |
 | Calendar entry | `/api/event/{eventId}/CalendarItem` | referenced by the page, not tested |
@@ -119,7 +120,7 @@ whether they offer OAuth/OIDC sign-in (`docs/findings.md` §4).
 
 | We want | Possible? | How |
 |---|---|---|
-| **Registered clubs** of an event | **Yes** | Check-in report: `BoatTeamClub`, `SkipperClub`, `Crew1Club`. The format is `"<code>, <name>"`, e.g. `"WSS, Wassersportclub Seligenstadt e. V."` — the **code before the comma** is the stable key; store it as an `ExternalId`, never match on the name. The public results carry `ClubCode` separately. The report has **no club id**. |
+| **Registered clubs** of an event | **Yes** | Check-in report: `BoatTeamClub`, `SkipperClub`, `Crew1Club`. The format is `"<code>, <name>"`, e.g. `"WSS, Wassersportclub Seligenstadt e. V."`. The public entries and results carry `ClubCode` and `ClubName` separately. There is **no club id**, and **the code alone is not unique**: one entry list of the Junioren-Liga 2026 has `KYC` for the Kieler *and* the Konstanzer Yacht-Club, `BYC` for the Bayerischer *and* the Berliner. Key a club by code **and** M2S's club name (`app/imports/m2s.py`), and never use a code two clubs share to find one of ours. |
 | Teams / entries with crews | **Yes** | Check-in report (crew 1 as fields, crew 2+ only as the `RemainingCrew` string — enough for display, too little for a lineup), or the public `regattaentry` without a token |
 | Who has paid / checked in | **Yes** | Check-in report: `IsPaid`, `ToBePaid`, `IsChecked`, `BoatTeamState` |
 | Results | **Yes** | Public `regattaresult` JSON or the XRR file, no token |

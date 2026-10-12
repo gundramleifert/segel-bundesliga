@@ -74,6 +74,8 @@ class TeamScore:
     net: float
     points_by_race: dict[int, float] = field(default_factory=dict)
     discarded_races: set[int] = field(default_factory=set)
+    # The matchday penalty (Story WL-4), already inside ``total`` and ``net``.
+    penalty: float = 0.0
     rank: int = 0
 
 
@@ -122,9 +124,15 @@ def _tiebreak_key(score: TeamScore, results: list[RaceResult], config: ScoringCo
 def score_event(
     results_by_team: dict[int, list[RaceResult]],
     config: ScoringConfig | None = None,
+    penalties: dict[int, float] | None = None,
 ) -> list[TeamScore]:
-    """Daily scoring: points per team, discards applied, sorted by placement."""
+    """Daily scoring: points per team, discards applied, sorted by placement.
+
+    ``penalties`` are matchday penalties per team (Story WL-4): counted once, on top of the
+    races, and outside the discards — a discard drops a race, never a penalty.
+    """
     config = config or ScoringConfig()
+    penalties = penalties or {}
     scores: list[TeamScore] = []
 
     for team_id, results in results_by_team.items():
@@ -135,14 +143,16 @@ def score_event(
         discards = _discard_count(len(scored_results), config)
         discarded = _pick_discards(scored_results, points, discards)
         net = total - sum(points[rid] for rid in discarded)
+        penalty = float(penalties.get(team_id) or 0.0)
 
         scores.append(
             TeamScore(
                 team_id=team_id,
-                total=total,
-                net=net,
+                total=total + penalty,
+                net=net + penalty,
                 points_by_race=points,
                 discarded_races=discarded,
+                penalty=penalty,
             )
         )
 

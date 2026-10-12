@@ -1,7 +1,15 @@
 from app.models.auth import Grant, ObjectType, Relation, Role, User
 from app.models.base import Base, TimestampMixin
 from app.models.common import AuditLog, ExternalId, ImportRun, Source
-from app.models.competition import Event, EventStatus, League, Series, Venue
+from app.models.competition import (
+    Event,
+    EventDocument,
+    EventDocumentKind,
+    EventStatus,
+    League,
+    Series,
+    Venue,
+)
 from app.models.finance import (
     ClaimStatus,
     ClubBankAccount,
@@ -73,6 +81,8 @@ __all__ = [
     "Club",
     "CrewRole",
     "Event",
+    "EventDocument",
+    "EventDocumentKind",
     "EventCrew",
     "EventStanding",
     "EventStatus",

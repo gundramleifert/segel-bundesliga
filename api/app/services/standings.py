@@ -71,8 +71,23 @@ async def compute_event(session: AsyncSession, event_id: int) -> list[TeamScore]
             )
         )
 
+    # A team with a matchday penalty and no race yet still has a row: the penalty is its
+    # score so far (Story WL-4).
+    penalties = {
+        team_id: points
+        for team_id, points in (
+            await session.execute(
+                select(Team.id, Team.penalty_points).where(
+                    Team.event_id == event_id, Team.penalty_points.is_not(None)
+                )
+            )
+        ).all()
+    }
+    for team_id in penalties:
+        by_team.setdefault(team_id, [])
+
     config = ScoringConfig.from_json(series.scoring) if series else ScoringConfig()
-    return score_event(by_team, config)
+    return score_event(by_team, config, penalties)
 
 
 async def recompute_event(session: AsyncSession, event_id: int) -> list[TeamScore]:
