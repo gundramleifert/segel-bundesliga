@@ -87,7 +87,7 @@ here), *About* (history, board, member clubs → `/about`).
 
 | URL | Content | Expands in place |
 |---|---|---|
-| `/:league/standings` | the full table of each division, side by side; promotion, relegation and requalification marked; archive by year | a row → its points per matchday |
+| `/:league/standings` | the full table of each division, one under the other, a column per act; promotion, relegation and requalification marked; archive by year | — |
 | `/:league/season` | every matchday: dates, venue, host, divisions, state; calendar file | a matchday → its details and links into its tabs |
 | `/:league/notice-board` | the **season's** documents: rules, notice of race, boats, entry | each group of documents |
 | `/:league/clubs` | the clubs of each division | — |

@@ -63,11 +63,7 @@
     "more": "Full standings",
     "noSeries": "No series published for this year yet.",
     "notYet": "No races sailed yet.",
-    "archive": "Archive",
-    "promotion": "promotion",
-    "relegation": "relegation",
-    "requalify": "requalification",
-    "missed": "missed"
+    "archive": "Archive"
   },
   "season": {
     "title_one": "One weekend, one season.",
@@ -81,8 +77,7 @@
     "title_other": "{{count}} clubs.",
     "titleNone": "The clubs.",
     "more": "All clubs",
-    "none": "No clubs entered yet.",
-    "clubPage": "Club page"
+    "none": "No clubs entered yet."
   },
   "news": {
     "title": "From the water.",

@@ -63,11 +63,7 @@
     "more": "Ganze Tabelle",
     "noSeries": "Für dieses Jahr ist noch keine Serie veröffentlicht.",
     "notYet": "Noch keine Wettfahrt gesegelt.",
-    "archive": "Archiv",
-    "promotion": "Aufstieg",
-    "relegation": "Abstieg",
-    "requalify": "Requalifikation",
-    "missed": "gefehlt"
+    "archive": "Archiv"
   },
   "season": {
     "title_one": "Ein Wochenende, eine Saison.",
@@ -81,8 +77,7 @@
     "title_other": "{{count}} Vereine.",
     "titleNone": "Die Vereine.",
     "more": "Alle Vereine",
-    "none": "Noch keine Vereine gemeldet.",
-    "clubPage": "Vereinsseite"
+    "none": "Noch keine Vereine gemeldet."
   },
   "news": {
     "title": "Vom Wasser.",

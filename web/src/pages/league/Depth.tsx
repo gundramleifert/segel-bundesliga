@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams } from "react-router-dom";
 
 import { useGetSeriesTable } from "../../api/generated/sbl";
-import type { EventSummary, Series, SeriesRow } from "../../api/types";
+import type { Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
+import { StandingsTable } from "../../components/StandingsTable";
 import { Block, DepthPage, Expand } from "../../components/site/Frame";
 import { Img, YouTubePlayer } from "../../components/site/Media";
 import {
@@ -43,14 +44,15 @@ export function StandingsPage() {
     <LeagueGate>
       {(data) => {
         const { league, season, year } = data;
-        const several = season.series.length > 1;
         return (
           <DepthPage league={league} title={t("pages.standings")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.podium}>
             {season.series.length ? (
-              <div className={`grid grid-cols-[minmax(0,1fr)] gap-10 ${several ? "lg:grid-cols-2" : ""}`}>
+              // One division under the other: with a column per act, two tables side by
+              // side left each too narrow to read.
+              <div>
                 {season.series.map((s) => (
                   <Block key={s.id} title={s.name} testId={`site-standings-${s.slug}`}>
-                    <DivisionTable series={s} marks={tableMarks(league.slug, s.level)} />
+                    <DivisionTable series={s} marks={tableMarks(league.slug, s.level)} league={league.slug} year={year} />
                   </Block>
                 ))}
               </div>
@@ -80,7 +82,7 @@ export function StandingsPage() {
   );
 }
 
-function DivisionTable({ series, marks }: { series: Series; marks: TableMarks }) {
+function DivisionTable({ series, marks, league, year }: { series: Series; marks: TableMarks; league: string; year: number | null }) {
   const { t } = useTranslation("site");
   const table = useAsync(useGetSeriesTable(series.id));
   return (
@@ -89,57 +91,20 @@ function DivisionTable({ series, marks }: { series: Series; marks: TableMarks })
         data.rows.every((r) => (r.events_sailed ?? 0) === 0) ? (
           <p className="text-slate-500">{t("standings.notYet")}</p>
         ) : (
-          <div>
-            {data.rows.map((row) => (
-              <Expand key={row.team.id} testId="site-standings-row" summary={<RowSummary row={row} count={data.rows.length} marks={marks} />}>
-                <PerAct row={row} events={data.events} />
-              </Expand>
-            ))}
+          // A table wider than a phone scrolls here, not the page (Story A-10).
+          <div className="panel-scroll">
+            <StandingsTable
+              data={data}
+              marks={marks}
+              testId="site-standings"
+              actHref={(event) =>
+                year && event.matchday != null ? href.act(league, year, `act-${event.matchday}`, "results") : href.event(event.id)
+              }
+            />
           </div>
         )
       }
     </Async>
-  );
-}
-
-function RowSummary({ row, count, marks }: { row: SeriesRow; count: number; marks: TableMarks }) {
-  const { t } = useTranslation("site");
-  const promoted = marks.promotion != null && row.rank <= marks.promotion;
-  const relegated = marks.relegation != null && row.rank > count - marks.relegation;
-  const requalify = marks.requalify != null && row.rank >= marks.requalify[0] && row.rank <= marks.requalify[1];
-  return (
-    <span className="flex items-center gap-3">
-      <span className="w-6 text-slate-400">{row.rank}</span>
-      <span className="min-w-0 flex-1 truncate font-medium">
-        {row.team.club.short_name} <span className="hidden font-normal text-slate-500 sm:inline">{row.team.club.name}</span>
-      </span>
-      {promoted && <span className="rounded-full bg-emerald-50 px-2 text-xs text-emerald-700" data-testid="mark-promotion">{t("standings.promotion")}</span>}
-      {relegated && <span className="rounded-full bg-red-50 px-2 text-xs text-red-700" data-testid="mark-relegation">{t("standings.relegation")}</span>}
-      {requalify && <span className="rounded-full bg-amber-50 px-2 text-xs text-amber-800" data-testid="mark-requalify">{t("standings.requalify")}</span>}
-      <span className="w-10 text-right tabular-nums">{row.points}</span>
-    </span>
-  );
-}
-
-/** A row opened: its place at each act — or that it missed one. */
-function PerAct({ row, events }: { row: SeriesRow; events: EventSummary[] }) {
-  const { t } = useTranslation("site");
-  const sailed = events.filter((e) => e.matchday != null && (row.ranks_by_matchday[e.matchday] != null || (row.missed_matchdays ?? []).includes(e.matchday)));
-  if (!sailed.length) return <p>{t("standings.notYet")}</p>;
-  return (
-    <div className="flex flex-wrap gap-2">
-      {sailed.map((e) => {
-        const rank = row.ranks_by_matchday[e.matchday!];
-        return (
-          <span key={e.id} className="rounded-lg bg-slate-50 px-3 py-1.5">
-            {t("act.title", { n: e.matchday })}: <b className="tabular-nums">{rank != null ? rank : t("standings.missed")}</b>
-          </span>
-        );
-      })}
-      <Link to={href.club(row.team.club.id)} className="self-center font-medium text-brand-700 hover:underline">
-        {t("clubs.clubPage")} →
-      </Link>
-    </div>
   );
 }
 

@@ -317,3 +317,11 @@ else sits in `Layout`, which uses the same top row.
 - Content without a backend comes from **`web/src/content/`**, through hooks that return
   an `AsyncState` like a generated query — render it with `Async`, and the page does not
   change when the endpoint arrives.
+
+## `StandingsTable`
+
+A series' standings as a table — rank, club, points, a column per act (a missed act in
+italics, the rule in its tooltip). One table for a series' own page (`/series/:id`) and
+each division on a league's standings page, where `marks` (the league's promotion,
+relegation and requalification ranks) colour the row's edge and add a legend. `actHref`
+says where an act's heading leads; `testId` prefixes every testid.

@@ -50,40 +50,56 @@ const PUBLIC_PAGES: [path: string, ready: string][] = [
 
 describeStory("B-1/B-14: as a fan I see the series standings", () => {
   const firstLiga = (page: import("@playwright/test").Page) =>
-    page.getByTestId("site-standings-dsbl-1-2026").getByTestId("site-standings-row");
+    page.getByTestId("site-standings-dsbl-1-2026").getByTestId("site-standings-table").locator("tbody tr");
 
   test("the table lists all 18 clubs in ranks 1 to 18", async ({ page }) => {
     await page.goto(STANDINGS);
     const rows = firstLiga(page);
     await expect(rows).toHaveCount(18);
-    await expect(rows.first().locator("summary")).toContainText(/^1\D/);
-    await expect(rows.last().locator("summary")).toContainText(/^18\D/);
+    await expect(rows.first().locator("td").first()).toHaveText("1");
+    await expect(rows.last().locator("td").first()).toHaveText("18");
   });
 
   test("fewer points ranks higher", async ({ page }) => {
     await page.goto(STANDINGS);
     await expect(firstLiga(page)).toHaveCount(18);
-    const points = await firstLiga(page).locator("summary span.tabular-nums").allInnerTexts();
+    const points = await firstLiga(page).locator("td:nth-child(3)").allInnerTexts();
     const numbers = points.map((text) => Number(text.replace(",", ".")));
     expect(numbers).toEqual([...numbers].sort((a, b) => a - b));
   });
 
-  test("a row opens to its place at each act, and on to the club", async ({ page }) => {
+  test("a column per act, and each heading leads to its matchday", async ({ page }) => {
     await page.goto(STANDINGS);
-    const row = firstLiga(page).first();
-    await row.locator("summary").click();
-    // Two acts are sailed (one of them still running), the third is planned.
-    await expect(row.getByText(/Act 1:/)).toBeVisible();
-    await row.getByRole("link").click();
-    await expect(page.getByTestId("club-header")).toBeVisible();
+    const table = page.getByTestId("site-standings-dsbl-1-2026").getByTestId("site-standings-table");
+    // At least the three acts the seed sails — other stories add acts to this same series
+    // (docs/gotchas: a count against a seed event is green alone and red in the suite).
+    await expect(table.getByRole("columnheader").getByRole("link").nth(2)).toBeVisible();
+    await table.getByRole("columnheader").getByRole("link").first().click();
+    await expect(page).toHaveURL(/\/dsbl\/2026\/act-1\/results$/);
+    await expect(page.getByTestId("matchday-standings-table")).toBeVisible();
+  });
+
+  test("a short club name carries its full name in a tooltip", async ({ page }) => {
+    await page.goto(STANDINGS);
+    const club = page.getByTestId("site-standings-dsbl-1-2026").getByTestId(/site-standings-club-link-/).first();
+    await expect(club).toBeVisible();
+    const short = (await club.textContent())!.trim();
+    expect(short.length).toBeLessThan(12);
+    await expect(page.getByTestId("tooltip")).toHaveCount(0);
+    await club.hover();
+    const tip = page.getByTestId("tooltip");
+    await expect(tip).toBeVisible();
+    expect((await tip.textContent())!.length).toBeGreaterThan(short.length);
   });
 
   test("the league's rules mark the table, and only where they apply", async ({ page }) => {
     await page.goto(STANDINGS);
     // The 1. Liga's last four go down; it promotes nobody.
     const table = page.getByTestId("site-standings-dsbl-1-2026");
-    await expect(table.getByTestId("mark-relegation")).toHaveCount(4);
-    await expect(table.getByTestId("mark-promotion")).toHaveCount(0);
+    await expect(firstLiga(page)).toHaveCount(18);
+    await expect(table.locator('tr[data-mark="relegation"]')).toHaveCount(4);
+    await expect(table.locator('tr[data-mark="promotion"]')).toHaveCount(0);
+    await expect(table.getByTestId("site-standings-legend")).toContainText("Relegation");
   });
 
   test("a series in no league keeps its own page", async ({ page }) => {
@@ -262,7 +278,7 @@ describeStory("B-13: one row of navigation names the leagues", () => {
 
   test("a new page opens at its top", async ({ page }) => {
     await page.goto(STANDINGS);
-    await expect(page.getByTestId("site-standings-row").first()).toBeVisible();
+    await expect(page.getByTestId("site-standings-table").first()).toBeVisible();
     await page.getByTestId("site-footer").scrollIntoViewIfNeeded();
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     await page.getByTestId("site-footer").getByRole("link", { name: "Season" }).first().click();

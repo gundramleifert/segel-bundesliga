@@ -21,5 +21,10 @@
     "empty": "No series has been set up for this year yet.",
     "eventCount_one": "1 event",
     "eventCount_other": "{{count}} events"
+  },
+  "marks": {
+    "promotion": "Promotion",
+    "relegation": "Relegation",
+    "requalify": "Requalification"
   }
 }

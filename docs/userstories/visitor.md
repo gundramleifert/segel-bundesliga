@@ -28,9 +28,11 @@ Acceptance criteria:
   positions wants that matchday, and the cards below answer a different question ("where
   and when"). The heading is narrow ("Act 2"), so the event's full name is its tooltip.
 - **Since issue #14 a series in a league has its table on the league's standings page**
-  (Story B-14): each division a list whose row opens to its places per act. The full grid
-  with a column per act, described above, is the page of a series in no league
-  (`/series/:id`).
+  (Story B-14), one division under the other — the same table as here, a column per act
+  leading to that act's results (`components/StandingsTable.tsx`). A series in no league
+  keeps this page at `/series/:id`. For a few hours after the rebuild the league page
+  showed each division as a list whose rows opened to their places per act, as the
+  prototype did; a list is not a league table, and the table came back.
 - The scoring rule is not explained on the page. A "did not sail" cell says so in its own
   tooltip, which is where the question is actually asked; a permanent paragraph restating
   it was read once and skipped thereafter.
@@ -358,9 +360,9 @@ Acceptance criteria:
 - **The chapter page scrolls from the keyboard.** It is its own scrolling box (so the
   chapters can snap), and the document behind has nothing to scroll — so the box takes the
   focus when the page opens, and Space, Page Down and the arrows move it.
-- The depth pages: `/:league/standings` (each division's full table, a row expands to its
-  place per act; promotion, relegation and requalification marked where the league's
-  rules say so; the archive by year at `/:league/:year/standings`), `/:league/season`
+- The depth pages: `/:league/standings` (each division's full table, a column per act; promotion,
+  relegation and requalification marked on the row's edge and named in a legend, where
+  the league's rules say so; the archive by year at `/:league/:year/standings`), `/:league/season`
   (every act, expanding to its venue, host and links into its tabs), `/:league/clubs`,
   `/:league/notice-board`, `/:league/news`, `/:league/media`, `/:league/press`,
   `/:league/about`, and `/about` for the association.

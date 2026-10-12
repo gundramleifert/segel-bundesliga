@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
-import { Tip } from "../components/Tip";
 
 import {
   getGetSeriesTableQueryKey,
@@ -18,10 +16,9 @@ import {
   Empty,
   MatchdayCard,
   PageHeader,
-  TableFrame,
 } from "../components/Blocks";
 import { CardGrid, Stack } from "../components/Layouts";
-import { formatPoints } from "../lib/format";
+import { StandingsTable } from "../components/StandingsTable";
 
 /** B-1: As a fan, I want to see where my team stands in the series.
  *
@@ -101,111 +98,7 @@ export function Standings() {
             : t("empty.noEvents")}
         </Empty>
       ) : (
-      <TableFrame testId="standings-table-frame">
-        <table
-          data-testid="standings-table"
-          // Sized by its content, not stretched to the panel. Every column here is a rank,
-          // an abbreviation or a number, so stretching only widened the club column — with
-          // `w-full` the browser hands the leftover width to whichever column has no
-          // explicit one, and "BYC (BE)" then sat in a column three times its width.
-          className="data-table border-collapse text-sm"
-        >
-          <caption className="sr-only">
-            {t("caption", { seriesName: data.series.name })}
-          </caption>
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th scope="col" className="w-14 font-medium text-slate-600">
-                {t("table.rank")}
-              </th>
-              {/* Abbreviations only (the full name is the row's tooltip), so ten
-                  characters — "BYC (BE)" — is the widest this ever has to be. */}
-              <th scope="col" className="max-w-28 font-medium text-slate-600">
-                {t("table.club")}
-              </th>
-              <th scope="col" className="w-24 text-right font-medium text-slate-600">
-                {t("table.points")}
-              </th>
-              {data.events.map((event) => (
-                <th
-                  key={event.id}
-                  scope="col"
-                  className="w-20 text-center font-medium text-slate-600"
-                >
-                  {/* The heading is the way into the matchday. The tooltip carries the
-                      event's full name — the column fits only "Act 2". */}
-                  <Tip text={event.title}>
-                    <Link
-                      to={`/events/${event.id}`}
-                      data-testid={`standings-event-link-${event.id}`}
-                      className="underline-offset-2 hover:text-slate-900 hover:underline"
-                    >
-                      {t("table.act", { matchday: event.matchday })}
-                    </Link>
-                  </Tip>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.rows.map((row) => (
-              <tr
-                key={row.team.id}
-                data-testid={`standings-row-${row.team.id}`}
-                className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-              >
-                <td className="font-semibold tabular-nums text-slate-900">
-                  {row.rank}
-                </td>
-                <td>
-                  {/* The abbreviation carries the row, the full name is the tooltip. It
-                      used to be both side by side, which set this column's width from the
-                      longest of eighteen club names. */}
-                  <Tip text={row.team.club.name}>
-                    <Link
-                      to={`/clubs/${row.team.club.id}`}
-                      data-testid={`standings-club-link-${row.team.id}`}
-                      className="font-medium text-slate-900 underline-offset-2 hover:underline"
-                    >
-                      {row.team.club.short_name}
-                    </Link>
-                  </Tip>
-                </td>
-                <td className="text-right font-semibold tabular-nums">
-                  {formatPoints(row.points)}
-                </td>
-                {data.events.map((event) => (
-                  <td
-                    key={event.id}
-                    className="text-center tabular-nums text-slate-500"
-                  >
-                    {/* The rule lives here, on the cell that raises the question — a boat
-                        that missed this act shows "field size + 1", and that is where
-                        someone asks why. It used to be a paragraph under the table. */}
-                    <Tip
-                      text={
-                        row.missed_matchdays?.includes(event.matchday ?? 0)
-                          ? t("table.notSailed")
-                          : null
-                      }
-                    >
-                      <span
-                        className={
-                          row.missed_matchdays?.includes(event.matchday ?? 0)
-                            ? "italic text-slate-400"
-                            : ""
-                        }
-                      >
-                        {row.ranks_by_matchday[String(event.matchday)] ?? "–"}
-                      </span>
-                    </Tip>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </TableFrame>
+      <StandingsTable data={data} actHref={(event) => `/events/${event.id}`} />
       )}
       </section>
 

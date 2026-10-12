@@ -21,5 +21,10 @@
     "empty": "Für diesen Jahrgang ist noch keine Serie eingerichtet.",
     "eventCount_one": "1 Veranstaltung",
     "eventCount_other": "{{count}} Veranstaltungen"
+  },
+  "marks": {
+    "promotion": "Aufstieg",
+    "relegation": "Abstieg",
+    "requalify": "Requalifikation"
   }
 }
