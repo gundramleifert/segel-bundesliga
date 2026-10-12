@@ -59,8 +59,12 @@ class TestLayingTheCourse:
     """L-2: As race committee I lay the course with a few taps."""
 
     async def test_the_default_course_has_six_marks_and_five_waypoints(self, client, caplog):
+        """A guest may not lay it; a re-lay is a new course and a started race keeps its own."""
         headers = await admin(client, caplog, "tr1@example.com")
         event_id = await live_event(client, headers, "Course Cup", "2027-11-06")
+
+        guest = await client.post(f"/api/admin/events/{event_id}/course/default")
+        assert guest.status_code == 401
 
         missing = await client.get(f"/api/admin/events/{event_id}/course", headers=headers)
         assert missing.status_code == 404
@@ -83,12 +87,6 @@ class TestLayingTheCourse:
         again = await client.get(f"/api/admin/events/{event_id}/course", headers=headers)
         assert again.json()["id"] == body["id"]
 
-    async def test_a_re_lay_is_a_new_course_and_a_started_race_keeps_its_own(self, client, caplog):
-        headers = await admin(client, caplog, "tr2@example.com")
-        event_id = await live_event(client, headers, "Relay Cup", "2027-11-07")
-        first = (
-            await client.post(f"/api/admin/events/{event_id}/course/default", headers=headers)
-        ).json()
         (race_id, _), *_ = await races_of(event_id)
         started = await client.post(
             f"/api/admin/events/{event_id}/races/{race_id}/start", headers=headers
@@ -98,16 +96,10 @@ class TestLayingTheCourse:
         second = (
             await client.post(f"/api/admin/events/{event_id}/course/default", headers=headers)
         ).json()
-        assert second["id"] != first["id"]
+        assert second["id"] != body["id"]
         async with SessionLocal() as session:
             race = await session.get(Race, race_id)
-        assert race.course_id == first["id"]
-
-    async def test_a_guest_may_not_lay_a_course(self, client, caplog):
-        headers = await admin(client, caplog, "tr3@example.com")
-        event_id = await live_event(client, headers, "Guest Cup", "2027-11-08")
-        response = await client.post(f"/api/admin/events/{event_id}/course/default")
-        assert response.status_code == 401
+        assert race.course_id == body["id"]
 
 
 class TestTrackersAndIngest:
@@ -124,11 +116,8 @@ class TestTrackersAndIngest:
         again = await trackers_of(client, headers, event_id)
         assert [t["device_token"] for t in again] == [t["device_token"] for t in trackers]
 
-    async def test_a_batch_is_stored_once_however_often_it_arrives(self, client, caplog):
-        headers = await admin(client, caplog, "tr5@example.com")
-        event_id = await live_event(client, headers, "Idempotent Cup", "2027-11-14")
-        token = (await trackers_of(client, headers, event_id))[0]["device_token"]
-        payload = batch(token, at=datetime.now(UTC))
+        # A batch is stored once, however often it arrives.
+        payload = batch(trackers[0]["device_token"], at=datetime.now(UTC))
 
         first = await client.post("/api/track/fixes", json=payload)
         assert first.status_code == 200, first.text
@@ -172,7 +161,6 @@ class TestTheLivePicture:
         assert abs(boat["sog_kn"] - 3.0 / (1852 / 3600)) < 0.01
         assert boat["cog"] == 20.0
         assert len(boat["trail"]) == 3
-
 
     async def test_an_unpublished_event_has_no_live_picture(self, client, caplog):
         """A draft's boats are as private as the draft: its live picture answers 404."""

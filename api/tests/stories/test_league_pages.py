@@ -20,17 +20,17 @@ class TestLeagueSeason:
         ]
 
     async def test_a_league_holds_its_year_s_series_as_divisions(self, client):
-        """B-14: the DSBL's 1. and 2. Liga are one league, top division first."""
+        """B-14: the DSBL's 1. and 2. Liga are one league, top division first.
+
+        Its events are the year's, in date order, each with its matchday — an act is the
+        events that share one.
+        """
         season = (await client.get("/api/leagues/dsbl")).json()
 
         assert season["league"]["short_name"] == "DSBL"
         assert season["year"] == 2026
         assert [s["slug"] for s in season["series"]] == ["dsbl-1-2026", "dsbl-2-2026"]
         assert 2026 in season["years"]
-
-    async def test_the_events_of_the_year_are_in_date_order_with_their_matchday(self, client):
-        """B-14: an act is the events that share a matchday — so each carries one."""
-        season = (await client.get("/api/leagues/dsbl")).json()
 
         events = season["events"]
         assert events, "the seed sails acts in the 1. Liga"

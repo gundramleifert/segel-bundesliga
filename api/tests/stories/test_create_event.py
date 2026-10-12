@@ -75,17 +75,6 @@ async def event_with_participants(
 class TestCreateEvent:
     """As an organizer, I want to create an event with its dimensions."""
 
-
-    async def test_boats_get_color_and_name(self, client, caplog):
-        """On the water, people refer to color and name."""
-        headers = await admin(client, caplog, "va2@example.com")
-        event_id = await event_with_participants(client, headers, "Boat Cup", "2026-10-10")
-
-        pairing = (await client.get(f"/api/events/{event_id}/pairing")).json()
-        assert [boat["color"] for boat in pairing["boats"]] == [b["color"] for b in BOATS]
-        assert [boat["name"] for boat in pairing["boats"]] == [b["name"] for b in BOATS]
-
-
     async def test_without_boat_specs_league_colors_apply(self, client, caplog):
         headers = await admin(client, caplog, "va3@example.com")
         created = (
@@ -172,7 +161,6 @@ class TestCreateEvent:
 class TestPairingFromCatalog:
     """As an organizer, I want pairings immediately, not after ten minutes."""
 
-
     async def test_catalog_produces_complete_pairing_list(self, client, caplog):
         headers = await admin(client, caplog, "pk2@example.com")
         event_id = await event_with_participants(client, headers, "Catalog Cup", "2026-11-28")
@@ -184,6 +172,9 @@ class TestPairingFromCatalog:
         )
         assert response.status_code == 200, response.text
         assert response.json()["races"] == 48
+        # Only who sits where is shuffled — not the structure, so the stored quality holds.
+        assert response.json()["quality"]["boat_changes"] == 0
+        assert response.json()["quality"]["repeated_groups"] == 0
 
         pairing = (await client.get(f"/api/events/{event_id}/pairing")).json()
         assert len(pairing["races"]) == 48
@@ -225,21 +216,6 @@ class TestPairingFromCatalog:
         ).json()
         assert [reason["code"] for reason in ready["reasons"]] == ["pairing-catalog-missing"]
 
-    async def test_quality_of_stored_list_is_preserved(self, client, caplog):
-        """Only who sits where is shuffled — not the structure."""
-        headers = await admin(client, caplog, "pk3@example.com")
-        event_id = await event_with_participants(client, headers, "Quality Cup", "2026-12-05")
-
-        report = (
-            await client.post(
-                f"/api/admin/events/{event_id}/pairing/from-catalog",
-                headers=headers,
-                json={"seed": 7},
-            )
-        ).json()["quality"]
-        assert report["boat_changes"] == 0
-        assert report["repeated_groups"] == 0
-
     async def test_same_seed_produces_same_draw(self, client, caplog):
         """In case of dispute, a draw must be reproducible."""
         headers = await admin(client, caplog, "pk4@example.com")
@@ -261,19 +237,10 @@ class TestPairingFromCatalog:
         assert await draw(99) == first
         assert await draw(100) != first
 
-    async def test_event_boats_survive_redraw(self, client, caplog):
-        """The same boats are at the dock, regardless of how often redrawing happens."""
-        headers = await admin(client, caplog, "pk5@example.com")
-        event_id = await event_with_participants(client, headers, "Dock Cup", "2026-12-19")
-
-        for seed in (1, 2):
-            await client.post(
-                f"/api/admin/events/{event_id}/pairing/from-catalog",
-                headers=headers,
-                json={"seed": seed},
-            )
-
+        # The same boats are at the dock, regardless of how often redrawing happens — with
+        # the color and name the organizer gave them, which is what people say on the water.
         pairing = (await client.get(f"/api/events/{event_id}/pairing")).json()
+        assert [boat["color"] for boat in pairing["boats"]] == [b["color"] for b in BOATS]
         assert [boat["name"] for boat in pairing["boats"]] == [b["name"] for b in BOATS]
 
     async def test_dimension_without_entry_reports_clearly(self, client, caplog):

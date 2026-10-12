@@ -4,7 +4,6 @@ The stored points are derived. The test that matters: when race officials enter 
 decision, points and standings must move without anyone touching them by hand.
 """
 
-import pytest
 from sqlalchemy import func, select
 
 from app.db import SessionLocal
@@ -165,9 +164,14 @@ class TestSeriesStanding:
             assert row["missed_matchdays"] == []
             assert row["events_sailed"] == 2, "Two events sailed, one planned"
             assert row["points"] == sum(row["ranks_by_matchday"].values())
+        # Sorted by points, ranked in that order.
+        points = [z["points"] for z in table["rows"]]
+        assert points == sorted(points)
+        assert [z["rank"] for z in table["rows"]] == list(range(1, len(points) + 1))
 
     async def test_latecomer_gets_substitute_scoring(self, client, caplog, ids):
-        """A club assigned to the series later has not sailed anywhere."""
+        """A club assigned to the series later has not sailed anywhere — and the substitute
+        scoring is worse than last place, the actual reason for the rule."""
         from tests.stories.test_series_assignment import as_role, new_club
 
         header = await as_role(client, caplog, "sw-latecomer@example.com", Role.ADMIN)
@@ -187,20 +191,6 @@ class TestSeriesStanding:
         assert new_team["ranks_by_matchday"] == {"1": 19, "2": 19}
         assert new_team["points"] == 38.0
 
-    async def test_substitute_scoring_is_worse_than_last_place(self, client, ids):
-        """The actual reason for the rule."""
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
-
         sailed = [z for z in table["rows"] if not z["missed_matchdays"]]
         missed = [z for z in table["rows"] if z["missed_matchdays"]]
-        if not missed:
-            pytest.skip("No team with missed matchdays in this order")
-
-        worst_present = max(z["points"] for z in sailed)
-        assert min(z["points"] for z in missed) > worst_present
-
-    async def test_table_is_sorted_by_points(self, client, ids):
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
-        points = [z["points"] for z in table["rows"]]
-        assert points == sorted(points)
-        assert [z["rank"] for z in table["rows"]] == list(range(1, len(points) + 1))
+        assert min(z["points"] for z in missed) > max(z["points"] for z in sailed)

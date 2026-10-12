@@ -63,6 +63,7 @@ class TestUploadCrest:
     """As a club manager, I want to upload our crest so that we are recognizable."""
 
     async def test_an_admin_can_upload_a_crest_and_it_is_served(self, client, caplog):
+        """Served as uploaded — transparency included — and a replacement simply wins."""
         admin = await _headers(client, caplog, "crest-admin@example.com", Role.ADMIN)
         club = await _new_club(client, admin, short_name="WPN")
 
@@ -80,10 +81,25 @@ class TestUploadCrest:
         served = await client.get(logo_url)
         assert served.status_code == 200
         assert served.headers["content-type"] == "image/png"
+        stored = Image.open(io.BytesIO(served.content))
+        assert stored.mode == "RGBA"
+        # The transparent half is still transparent — not flattened onto white, which
+        # would show as a box wherever the crest sits on the brand-blue surfaces.
+        assert stored.getpixel((10, 10))[3] == 0
+        assert stored.getpixel((stored.width - 10, 10))[3] == 255
 
         # And the public club page shows it, with no frontend change involved.
         page = await client.get(f"/api/clubs/{club['id']}")
         assert page.json()["logo_url"] == logo_url
+
+        second = await client.post(
+            f"/api/admin/clubs/{club['id']}/logo",
+            headers=admin,
+            files={"file": ("neu.png", _png(size=(200, 200)), "image/png")},
+        )
+        assert second.status_code == 200, second.text
+        served = await client.get(second.json()["logo_url"])
+        assert Image.open(io.BytesIO(served.content)).size == (200, 200)
 
     async def test_the_clubs_own_admin_can_upload_it(self, client, caplog):
         """The same restriction as club assignment (Z-3): own club only."""
@@ -127,27 +143,6 @@ class TestUploadCrest:
         # Nothing was written for the club they tried to reach.
         assert (await client.get(f"/api/clubs/{other['id']}/logo")).status_code == 404
 
-    async def test_a_replacement_upload_simply_wins(self, client, caplog):
-        admin = await _headers(client, caplog, "crest-admin4@example.com", Role.ADMIN)
-        club = await _new_club(client, admin, short_name="WPR")
-
-        first = await client.post(
-            f"/api/admin/clubs/{club['id']}/logo",
-            headers=admin,
-            files={"file": ("alt.png", _png(size=(400, 240)), "image/png")},
-        )
-        assert first.status_code == 200, first.text
-
-        second = await client.post(
-            f"/api/admin/clubs/{club['id']}/logo",
-            headers=admin,
-            files={"file": ("neu.png", _png(size=(200, 200)), "image/png")},
-        )
-        assert second.status_code == 200, second.text
-
-        served = await client.get(second.json()["logo_url"])
-        assert Image.open(io.BytesIO(served.content)).size == (200, 200)
-
     async def test_a_non_image_upload_is_rejected_with_a_clear_error(self, client, caplog):
         admin = await _headers(client, caplog, "crest-admin5@example.com", Role.ADMIN)
         club = await _new_club(client, admin, short_name="WPT")
@@ -176,25 +171,6 @@ class TestUploadCrest:
 
 class TestCrestTransparency:
     """The deliberate difference from the sailor photo: a crest keeps its alpha channel."""
-
-    async def test_a_transparent_png_stays_transparent(self, client, caplog):
-        admin = await _headers(client, caplog, "crest-alpha@example.com", Role.ADMIN)
-        club = await _new_club(client, admin, short_name="WPA")
-
-        uploaded = await client.post(
-            f"/api/admin/clubs/{club['id']}/logo",
-            headers=admin,
-            files={"file": ("stander.png", _png(size=(400, 240)), "image/png")},
-        )
-        assert uploaded.status_code == 200, uploaded.text
-
-        served = await client.get(uploaded.json()["logo_url"])
-        stored = Image.open(io.BytesIO(served.content))
-        assert stored.mode == "RGBA"
-        # The transparent half is still transparent — not flattened onto white, which
-        # would show as a box wherever the crest sits on the brand-blue surfaces.
-        assert stored.getpixel((10, 10))[3] == 0
-        assert stored.getpixel((stored.width - 10, 10))[3] == 255
 
     async def test_an_oversized_crest_is_downscaled_without_being_cropped(self, client, caplog):
         """No square crop, unlike a sailor photo: a pennant is not square, and the aspect

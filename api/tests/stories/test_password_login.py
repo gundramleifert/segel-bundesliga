@@ -12,6 +12,7 @@ from app.config import settings
 from app.db import SessionLocal
 from app.models import AuditLog
 from app.models.auth import PasswordCredential, Role, User
+from app.services import passwords
 from tests.stories.test_login_and_roles import login_as, make_user
 
 PASSWORD = "lee-side of the pontoon"
@@ -62,21 +63,16 @@ class TestSettingAndSigningIn:
     """Z-9: as a sailor, I set a password and sign in with it."""
 
     async def test_set_then_sign_in(self, client, caplog):
-        """Z-9: a password set on the account signs in to the same account."""
+        """Z-9: a password set on the account signs in to the same account — and the
+        address signs in however it is capitalised, like every other path."""
         await with_password(client, caplog, "pw-set@example.com", Role.CLUB_MANAGER)
 
-        response = await password_login(client, "pw-set@example.com", PASSWORD)
+        response = await password_login(client, "PW-Set@Example.com", PASSWORD)
         assert response.status_code == 200, response.text
         me = await client.get("/api/auth/me", headers=bearer(response.json()["access_token"]))
         assert me.json()["email"] == "pw-set@example.com"
         assert me.json()["roles"] == [Role.CLUB_MANAGER]
         assert "password" in {i["provider"] for i in me.json()["identities"]}
-
-    async def test_the_address_is_case_insensitive(self, client, caplog):
-        """Z-9: the address signs in however it is capitalised, like every other path."""
-        await with_password(client, caplog, "pw-case@example.com")
-        response = await password_login(client, "PW-Case@Example.com", PASSWORD)
-        assert response.status_code == 200, response.text
 
     async def test_the_same_umlaut_typed_two_ways_is_the_same_password(self, client, caplog):
         """Z-9: NFKC — 'ü' as one code point and as 'u' + combining diaeresis match."""
@@ -182,8 +178,12 @@ class TestNothingGivenAway:
             assert "$argon2" not in response.text
             assert PASSWORD not in response.text
 
-    async def test_a_hash_with_old_parameters_is_upgraded_on_login(self, client, caplog):
+    async def test_a_hash_with_old_parameters_is_upgraded_on_login(
+        self, client, caplog, monkeypatch
+    ):
         """Z-9: stronger parameters later reach every hash at its owner's next sign-in."""
+        # The suite hashes cheaply (conftest.py); this test is about the real parameters.
+        monkeypatch.setattr(passwords, "_hasher", PasswordHasher())
         await with_password(client, caplog, "pw-rehash@example.com")
         weak = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1).hash(PASSWORD)
         async with SessionLocal() as session:
@@ -247,7 +247,9 @@ class TestChangingAndRemoving:
     """Z-9: a password is changed with the old one, removed freely, cleared by the admin."""
 
     async def test_changing_needs_the_current_password(self, client, caplog):
-        """Z-9: without the current password, a password is not replaced."""
+        """Z-9: without the current password, a password is not replaced. Setting,
+        changing and removing each leave an audit row; none of them carries the password
+        or the hash."""
         headers = await with_password(client, caplog, "pw-change@example.com")
 
         missing = await client.put(
@@ -263,6 +265,13 @@ class TestChangingAndRemoving:
         assert changed.status_code == 204
         assert (await password_login(client, "pw-change@example.com", PASSWORD)).status_code == 401
         assert (await password_login(client, "pw-change@example.com", OTHER)).status_code == 200
+
+        await client.delete("/api/auth/password", headers=headers)
+        rows = await audit_rows("pw-change@example.com")
+        assert [r.action for r in rows] == ["password_set", "password_changed", "password_removed"]
+        for row in rows:
+            assert PASSWORD not in str(row.payload) and OTHER not in str(row.payload)
+            assert "argon2" not in str(row.payload)
 
     async def test_removing_leaves_the_code_as_the_way_in(self, client, caplog):
         """Z-9: removing a password is never 'the last way in' — the code always is one."""
@@ -289,22 +298,6 @@ class TestChangingAndRemoving:
         assert cleared.status_code == 204
         assert await credential("pw-cleared@example.com") is None
         assert "password_cleared" in await audited("pw-cleared@example.com")
-
-    async def test_set_change_and_remove_are_audited_without_the_password(self, client, caplog):
-        """Z-9: each step leaves a row; none of them carries the password or the hash."""
-        headers = await with_password(client, caplog, "pw-audit@example.com")
-        await client.put(
-            "/api/auth/password",
-            headers=headers,
-            json={"current_password": PASSWORD, "new_password": OTHER},
-        )
-        await client.delete("/api/auth/password", headers=headers)
-
-        rows = await audit_rows("pw-audit@example.com")
-        assert [r.action for r in rows] == ["password_set", "password_changed", "password_removed"]
-        for row in rows:
-            assert PASSWORD not in str(row.payload) and OTHER not in str(row.payload)
-            assert "argon2" not in str(row.payload)
 
     async def test_the_password_goes_with_a_deleted_account(self, client, caplog):
         """Z-9 with Z-7: deleting the account deletes its password — SQLite reuses ids,

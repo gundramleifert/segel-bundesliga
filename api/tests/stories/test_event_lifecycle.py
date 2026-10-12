@@ -89,21 +89,17 @@ async def enter_result(client, headers, event_id: int, race_id: int, boats: list
 class TestSavingAnIncompleteEvent:
     """VA-8: As an organizer I want to save an event that isn't finished yet."""
 
-    async def test_a_title_alone_is_enough_to_save(self, client, caplog):
-        """Not even a date is required — it is often the last thing to be settled."""
-        headers = await admin(client, caplog, "lc1@example.com")
+    async def test_readiness_names_every_missing_piece(self, client, caplog):
+        """VA-8: a title alone is enough to save — not even a date is required, it is often
+        the last thing to be settled — and the organizer must see *what* is missing, not
+        just that something is."""
+        headers = await admin(client, caplog, "lc2@example.com")
         response = await client.post(
-            "/api/admin/events", headers=headers, json={"title": "Undated Cup"}
+            "/api/admin/events", headers=headers, json={"title": "Unready Cup"}
         )
         assert response.status_code == 201, response.text
-        assert response.json()["starts_on"] is None
-
-    async def test_readiness_names_every_missing_piece(self, client, caplog):
-        """VA-8: the organizer must see *what* is missing, not just that something is."""
-        headers = await admin(client, caplog, "lc2@example.com")
-        created = (
-            await client.post("/api/admin/events", headers=headers, json={"title": "Unready Cup"})
-        ).json()
+        created = response.json()
+        assert created["starts_on"] is None
 
         report = await readiness(client, headers, created["id"])
         assert report["ready"] is False
@@ -144,13 +140,6 @@ class TestSavingAnIncompleteEvent:
             catalog["details"]["flights"],
         ) == (18, 5, 11)
         assert "18/6/16" in catalog["details"]["available"]
-
-    async def test_a_complete_setup_reports_ready(self, client, caplog):
-        headers = await admin(client, caplog, "lc4@example.com")
-        event_id = await event_with_participants(client, headers, "Ready Cup", "2027-03-13")
-        report = await readiness(client, headers, event_id)
-        assert report["ready"] is True
-        assert report["reasons"] == []
 
 
 class TestPublication:
@@ -324,8 +313,12 @@ class TestStarting:
         assert response.json()["registered"] == 0
 
     async def test_a_valid_event_still_needs_its_pairing_list(self, client, caplog):
+        """A complete setup reports ready — and the start still waits for the draw."""
         headers = await admin(client, caplog, "ls3@example.com")
         event_id = await event_with_participants(client, headers, "Undrawn Cup", "2027-04-24")
+        report = await readiness(client, headers, event_id)
+        assert report["ready"] is True
+        assert report["reasons"] == []
 
         response = await client.post(f"/api/admin/events/{event_id}/start", headers=headers)
         assert response.status_code == 409, response.text
@@ -377,17 +370,6 @@ class TestStarting:
 class TestFreezeAfterTheFirstRace:
     """VA-8: As an organizer I want the setup to hold still once racing has begun."""
 
-    async def test_a_redraw_before_the_first_race_is_fine(self, client, caplog):
-        """Nothing freezes on a schedule — only on a race actually starting."""
-        headers = await admin(client, caplog, "lf1@example.com")
-        event_id = await event_with_participants(client, headers, "Redraw Cup", "2027-05-15")
-        await draw(client, headers, event_id, seed=1)
-        await draw(client, headers, event_id, seed=2)
-
-        report = await readiness(client, headers, event_id)
-        assert report["configuration_frozen"] is False
-        assert report["has_pairing_list"] is True
-
     async def test_a_recorded_result_freezes_the_configuration(self, client, caplog):
         headers = await admin(client, caplog, "lf2@example.com")
         event_id = await event_with_participants(client, headers, "Frozen Cup", "2027-05-22")
@@ -424,61 +406,29 @@ class TestFreezeAfterTheFirstRace:
         assert redraw.status_code == 409
         assert redraw.json()["type"] == "/errors/event-configuration-frozen"
 
-    async def test_results_stay_editable_after_the_freeze(self, client, caplog):
-        """The point of the whole distinction: a protest decision must stay possible.
-
-        The freeze covers the *configuration*. Entering, correcting and re-correcting
-        results is what the race committee does all day, and a jury may rule weeks later
-        (``docs/concepts.md``, "Points are derived, not entered").
-        """
-        headers = await admin(client, caplog, "lf3@example.com")
-        event_id = await event_with_participants(client, headers, "Protest Cup", "2027-05-29")
-        await draw(client, headers, event_id)
-        race_id, boats = await first_race(event_id)
-        await enter_result(client, headers, event_id, race_id, boats)
-
-        # A jury grants redress long after the freeze took hold.
-        corrected = await client.put(
-            f"/api/admin/events/{event_id}/races/{race_id}/result",
-            headers=headers,
-            json={"results": [{"boat_number": boats[0], "code": "RDG", "redress_points": 2.5}]},
-        )
-        assert corrected.status_code == 200, corrected.text
-
-        async with SessionLocal() as session:
-            entry = (
-                await session.execute(
-                    select(RaceEntry)
-                    .join(Boat, RaceEntry.boat_id == Boat.id)
-                    .where(RaceEntry.race_id == race_id, Boat.number == boats[0])
-                )
-            ).scalar_one()
-            # Points are derived, and the correction went through the recomputation.
-            assert entry.points == 2.5
-
-    async def test_the_title_and_the_venue_stay_editable_while_racing(self, client, caplog):
-        """A typo or a moved venue has to be fixable on a race day too."""
-        headers = await admin(client, caplog, "lf4@example.com")
-        event_id = await event_with_participants(client, headers, "Typo Cup", "2027-06-05")
-        await draw(client, headers, event_id)
-        race_id, boats = await first_race(event_id)
-        await enter_result(client, headers, event_id, race_id, boats)
-
+        # The title is not configuration: a typo has to be fixable on a race day too.
+        # (Results stay editable after the freeze as well — the protest case, asserted in
+        # test_result_entry and test_event_closing.)
         patched = await client.patch(
             f"/api/admin/events/{event_id}",
             headers=headers,
-            json={"title": "Typo Cup (corrected)", "status": "final"},
+            json={"title": "Frozen Cup (corrected)", "status": "final"},
         )
         assert patched.status_code == 200, patched.text
-        assert patched.json()["title"] == "Typo Cup (corrected)"
+        assert patched.json()["title"] == "Frozen Cup (corrected)"
         assert patched.json()["status"] == "final"
 
     async def test_a_started_race_freezes_even_without_a_result(self, client, caplog):
         """The trigger is the first start, not the first result — a race under way already
-        depends on the list it was drawn from."""
+        depends on the list it was drawn from. Nothing freezes on a schedule, so a redraw
+        before that is fine."""
         headers = await admin(client, caplog, "lf5@example.com")
         event_id = await event_with_participants(client, headers, "Under Way Cup", "2027-06-12")
-        await draw(client, headers, event_id)
+        await draw(client, headers, event_id, seed=1)
+        await draw(client, headers, event_id, seed=2)
+        before = await readiness(client, headers, event_id)
+        assert before["configuration_frozen"] is False
+        assert before["has_pairing_list"] is True
         race_id, _ = await first_race(event_id)
 
         async with SessionLocal() as session:

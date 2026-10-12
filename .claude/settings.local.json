@@ -9,7 +9,9 @@
       "WebFetch(domain:www.manage2sail.com)",
       "Bash(grep -i content-disposition __TRACKED_VAR__/m2sshadow/doch.txt)",
       "Bash(file __TRACKED_VAR__/m2sshadow/doc.bin)",
-      "WebFetch(domain:portal.manage2sail.com)"
+      "WebFetch(domain:portal.manage2sail.com)",
+      "Bash(timeout 25 git fetch --dry-run origin)",
+      "Bash(echo \"exit=$?\")",
     ]
   },
   "sandbox": {

@@ -64,15 +64,6 @@ class TestPaymentState:
     """Story F-4: whether a claim is paid follows from the settled payments allocated
     to it. A failed or cancelled payment simply stops counting."""
 
-    def test_an_approved_claim_without_payments_is_unpaid(self):
-        assert _claim(_item(10000)).payment_state is PaymentState.UNPAID
-
-    def test_an_issued_payment_puts_it_in_payment(self):
-        claim = _claim(_item(10000))
-        _pay(claim, 10000, PaymentStatus.ISSUED)
-
-        assert claim.payment_state is PaymentState.IN_PAYMENT
-
     def test_settled_in_full_is_paid(self):
         claim = _claim(_item(10000))
         _pay(claim, 6000, PaymentStatus.SETTLED)
@@ -88,9 +79,12 @@ class TestPaymentState:
         assert claim.payment_state is PaymentState.PARTIALLY_PAID
 
     def test_a_failed_transfer_falls_back_to_unpaid_by_itself(self):
-        """Never edit, reverse: the failed payment stays as it was, and the claim is
-        unpaid again because the computation no longer counts it."""
+        """An approved claim without payments is unpaid. Never edit, reverse: the failed
+        payment stays as it was, and the claim is unpaid again because the computation no
+        longer counts it. (An issued payment putting it in payment is checked through the
+        API, by the payment-run story.)"""
         claim = _claim(_item(10000))
+        assert claim.payment_state is PaymentState.UNPAID
         _pay(claim, 10000, PaymentStatus.FAILED)
         _pay(claim, 10000, PaymentStatus.CANCELLED)
 

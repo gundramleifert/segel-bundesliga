@@ -5,20 +5,31 @@ The benchmark is the actual draw of the Java tool
 boat spread ≤ 2, opponent meetings 4–6, no duplicate groups.
 """
 
+from functools import cache
+
 import pytest
 
 from app.pairing import build_pairing, pairing_report
 
 
+@cache
+def league_draw(seed: int = 0) -> tuple:
+    """An 18-team, 16-flight draw, built once per seed — each build takes a third of a second.
+
+    Returned as a tuple so a test cannot change the shared draw under another.
+    """
+    return tuple(build_pairing(team_count=18, flights=16, seed=seed))
+
+
 def test_a_matchday_has_every_team_once_per_flight():
-    slots = build_pairing(team_count=18, flights=16)
+    slots = league_draw()
     for flight in range(1, 17):
         teams = [s.team_index for s in slots if s.flight == flight]
         assert sorted(teams) == list(range(18)), f"Flight {flight} is not a complete round"
 
 
 def test_every_race_fills_each_boat_exactly_once():
-    slots = build_pairing(team_count=18, flights=16)
+    slots = league_draw()
     by_race: dict[int, list[int]] = {}
     for slot in slots:
         by_race.setdefault(slot.sequence, []).append(slot.boat_number)
@@ -29,7 +40,7 @@ def test_every_race_fills_each_boat_exactly_once():
 
 @pytest.mark.parametrize("seed", [0, 1, 2, 3, 4])
 def test_the_result_is_as_balanced_as_the_official_draw(seed):
-    report = pairing_report(build_pairing(18, 16, seed=seed), team_count=18)
+    report = pairing_report(list(league_draw(seed)), team_count=18)
     assert report["repeated_groups"] == 0
     assert report["boat_spread_max"] <= 2
     # Slightly wider than the Java tool (4–6 there), but no outliers downward.
@@ -39,11 +50,11 @@ def test_the_result_is_as_balanced_as_the_official_draw(seed):
 
 def test_the_draw_is_reproducible():
     """A draw must be provable — same input, same result."""
-    assert build_pairing(18, 16, seed=42) == build_pairing(18, 16, seed=42)
+    assert tuple(build_pairing(18, 16, seed=3)) == league_draw(3)
 
 
 def test_different_seeds_give_different_draws():
-    assert build_pairing(18, 16, seed=1) != build_pairing(18, 16, seed=2)
+    assert league_draw(1) != league_draw(2)
 
 
 def test_a_roster_that_does_not_fill_the_boats_is_rejected():

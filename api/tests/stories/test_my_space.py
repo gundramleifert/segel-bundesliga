@@ -103,15 +103,6 @@ class TestMySpace:
         """About one person, so there is no public form of it."""
         assert (await client.get(MINE)).status_code == 401
 
-    async def test_someone_part_of_nothing_still_has_themselves(self, client, caplog):
-        """No context is a normal answer — the page says how to join a club — and the
-        *Me* card is always there."""
-        headers = await login(client, caplog, f"z8-nobody-{_tag()}@example.com")
-        body = await _mine(client, headers)
-        assert body["contexts"] == []
-        assert body["me"]["needs"] == []
-        assert body["me"]["name"]
-
     async def test_every_relation_i_hold_is_a_context_and_a_chip(self, client, caplog):
         """A treasurer, a jury member and a helper each find their thing — the three
         people the old screens had no door for."""
@@ -135,14 +126,21 @@ class TestMySpace:
 
     async def test_a_site_relation_is_not_mine(self, client, caplog):
         """The league office's reach is `/admin`'s business — an editor does not get
-        every club of the country on their own page."""
+        every club of the country on their own page. No context is a normal answer — the
+        page says how to join a club — and the *Me* card is always there."""
         headers = await login(
             client, caplog, f"z8-editor-{_tag()}@example.com", Grant(relation=Relation.EDITOR)
         )
-        assert (await _mine(client, headers))["contexts"] == []
+        body = await _mine(client, headers)
+        assert body["contexts"] == []
+        assert body["me"]["needs"] == []
+        assert body["me"]["name"]
 
     async def test_sailing_puts_me_in_a_series_and_an_event(self, client, caplog):
-        """No tuple anywhere — the squad and the crew are what make me part of it."""
+        """No tuple anywhere — the squad and the crew are what make me part of it. An
+        unsigned waiver needs me where it is signed: the series asks for the signature, so
+        the series card says so — not each of its events (Story S-1: one statement per
+        competition)."""
         email = f"z8-sailor-{_tag()}@example.com"
         club = await _club()
         series = await _series()
@@ -156,20 +154,12 @@ class TestMySpace:
         sailed = _context(body, "series", series)
         assert sailed["relations"] == ["sailor"]
         assert [t["club_id"] for t in sailed["teams"]] == [club]
-        assert _context(body, "event", event)["relations"] == ["sailor"]
+        assert _needs(sailed) == {"waiver": 1}
+        sailing = _context(body, "event", event)
+        assert sailing["relations"] == ["sailor"]
+        assert _needs(sailing) == {}
         # Sailing for a club is not membership of it: the club is no context of mine.
         assert _context(body, "club", club) is None
-
-    async def test_an_unsigned_waiver_needs_me_where_it_is_signed(self, client, caplog):
-        """The series asks for the signature, so the series card says so — not each of
-        its events (Story S-1: one statement per competition)."""
-        email = f"z8-waiver-{_tag()}@example.com"
-        club, series = await _club(), await _series()
-        squad = await _team(club, series_id=series)
-        headers = await login(client, caplog, email)
-        await _sailor(email, squad, birth_date=date(1990, 1, 1))
-
-        assert _needs(_context(await _mine(client, headers), "series", series)) == {"waiver": 1}
 
     async def test_claims_to_decide_need_the_one_who_decides(self, client, caplog):
         """On the event when I hold the event, on the paying club when I hold the club —

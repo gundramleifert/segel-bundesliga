@@ -50,18 +50,6 @@ def auth_headers(token: str) -> dict[str, str]:
 class TestRegistering:
     """As a sailor, I want to create an account myself."""
 
-
-    async def test_before_confirmation_the_address_is_merely_claimed(self, client, caplog):
-        """Before confirmation, the address is only claimed — anyone could type someone else's."""
-        with caplog.at_level(logging.WARNING, logger="app.mail"):
-            await client.post(
-                "/api/auth/register",
-                json={"email": "unbestaetigt@example.com", "display_name": "Uwe Unbestätigt"},
-            )
-        person = await account("unbestaetigt@example.com")
-        assert person is not None
-        assert person.email_verified is False
-
     async def test_the_code_proves_the_address(self, client, caplog):
         """With the code, the address is verified."""
         token = await register(client, caplog, "bestaetigt@example.com", "Bea Bestätigt")
@@ -71,10 +59,10 @@ class TestRegistering:
         assert ich["roles"] == []
         assert ich["tuples"] == []
 
-
     async def test_a_known_address_gives_nothing_away(self, client, caplog):
         """A known address doesn't reveal itself — else we could enumerate accounts
-        via registration."""
+        via registration — and registering overwrites no existing account. A new address
+        is only claimed until confirmed: anyone could type someone else's."""
         await make_user("schon.da@example.com")
 
         with caplog.at_level(logging.WARNING, logger="app.mail"):
@@ -90,14 +78,9 @@ class TestRegistering:
         assert bekannt.status_code == unbekannt.status_code == 202
         assert bekannt.json() == unbekannt.json()
 
-    async def test_registering_overwrites_no_existing_account(self, client, caplog):
-        """Registration does not overwrite an existing account."""
-        await make_user("bestand@example.com")
-        with caplog.at_level(logging.WARNING, logger="app.mail"):
-            await client.post(
-                "/api/auth/register",
-                json={"email": "bestand@example.com", "display_name": "Fremder Name"},
-            )
-        person = await account("bestand@example.com")
-        assert person is not None
-        assert person.display_name == "bestand"
+        bestand = await account("schon.da@example.com")
+        assert bestand is not None
+        assert bestand.display_name == "schon.da"
+        neu = await account("noch.nicht.da@example.com")
+        assert neu is not None
+        assert neu.email_verified is False

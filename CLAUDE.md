@@ -48,7 +48,7 @@ export UV_CACHE_DIR="$TMPDIR/uv-cache"   # ~/.cache is locked
 uv sync
 uv run python -m app.seed_test_setup     # Schema + reference data + accounts in one step
 uv run uvicorn app.main:app --reload
-uv run pytest
+uv run pytest -n auto                    # one worker per core; plain `pytest` for one test
 ```
 
 Or **`tilt up`** at the repo root (`Tiltfile`): backend with `SBL_DEV_LOGIN=true` and
@@ -464,6 +464,13 @@ story ID in the docstring. New features are added to stories first, then tested.
   **One-time setup:** `sudo pnpm exec playwright install-deps chromium` (or
   `sudo apt install -y libnss3 libnspr4 libasound2t64`). Chromium will not start without these
   system libraries.
+
+**The backend suite runs in parallel** — `uv run pytest -n auto` (pytest-xdist), as
+`check.sh` does. Every worker imports `conftest.py` and so builds its own database and
+uploads directory; anything a test reads from the environment must be **assigned** there,
+never `setdefault` — workers inherit the starting process's environment. A test that needs
+rows another test created only passes in one order: the seed is what each worker starts
+from, so count on the seed alone.
 
 External APIs are never called live in tests; we test against recorded fixtures (`api/tests/fixtures/`).
 

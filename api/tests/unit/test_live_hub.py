@@ -70,11 +70,6 @@ class TestWireFormat:
         frame = Frame("positions", {"race": 5, "boats": []})
         assert frame.encode() == b'event: positions\ndata: {"race":5,"boats":[]}\n\n'
 
-    async def test_a_quiet_stream_sends_a_heartbeat_comment(self):
-        hub = Hub()
-        chunks = await collect(hub, "event:1", 2, heartbeat=0.01)
-        assert chunks[1] == b": keep-alive\n\n"
-
     async def test_a_reconnecting_browser_behind_the_hub_gets_one_change_at_once(self):
         hub = Hub()
         hub.publish("event:1")
@@ -88,7 +83,8 @@ class TestWireFormat:
         hub.publish("event:1")
 
         chunks = await collect(hub, "event:1", 2, last_event_id=1, heartbeat=0.01)
-        # Nothing to catch up on: the next thing after `retry:` is the heartbeat.
+        # Nothing to catch up on: the next thing after `retry:` is the heartbeat — the
+        # comment a quiet stream sends so proxies keep it open.
         assert chunks[1] == b": keep-alive\n\n"
 
 

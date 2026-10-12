@@ -210,13 +210,20 @@ class TestConfirming:
         assert again.headers["content-type"].startswith("application/problem+json")
 
     async def test_you_can_only_confirm_for_yourself(self, client, caplog, ids):
+        """The refusal is also the worked example of a typed RFC 9457 error
+        (docs/concepts.md → Errors): a stable type, status, title and instance."""
         sailor_id, _ = await _squad_sailor("dsbl-1-2026", offset=40)
         stranger = await _account_for(client, caplog, "wv-stranger@example.com")
         url = f"/api/series/{ids.series('dsbl-1-2026')}/waiver"
 
         denied = await client.post(url, headers=stranger, json={"sailor_id": sailor_id})
         assert denied.status_code == 403
-        assert denied.json()["type"] == "/errors/waiver-confirmation-forbidden"
+        assert denied.headers["content-type"].startswith("application/problem+json")
+        body = denied.json()
+        assert body["type"] == "/errors/waiver-confirmation-forbidden"
+        assert body["status"] == 403
+        assert isinstance(body["title"], str) and body["title"]
+        assert body["instance"] == url
 
         admin = await _admin(client, caplog)
         allowed = await client.post(url, headers=admin, json={"sailor_id": sailor_id})
@@ -332,23 +339,6 @@ class TestMinors:
 
 class TestProblemFormat:
     """Every error is RFC 9457 application/problem+json (docs/concepts.md → Errors)."""
-
-    async def test_a_typed_error_carries_a_stable_type(self, client, caplog, ids):
-        sailor_id, _ = await _squad_sailor("dsbl-1-2026", offset=50)
-        stranger = await _account_for(client, caplog, "wv-fmt@example.com")
-
-        response = await client.post(
-            f"/api/series/{ids.series('dsbl-1-2026')}/waiver",
-            headers=stranger,
-            json={"sailor_id": sailor_id},
-        )
-        assert response.status_code == 403
-        assert response.headers["content-type"].startswith("application/problem+json")
-        body = response.json()
-        assert body["type"] == "/errors/waiver-confirmation-forbidden"
-        assert body["status"] == 403
-        assert isinstance(body["title"], str) and body["title"]
-        assert body["instance"] == f"/api/series/{ids.series('dsbl-1-2026')}/waiver"
 
     async def test_a_plain_http_error_still_becomes_a_problem(self, client, caplog):
         admin = await _admin(client, caplog)

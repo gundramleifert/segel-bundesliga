@@ -11,6 +11,7 @@ for.
 
 import re
 import shutil
+import zlib
 from pathlib import Path
 
 import pytest
@@ -79,6 +80,17 @@ def page_count(pdf: bytes) -> int:
     return len(re.findall(rb"/Type\s*/Page[^s]", pdf))
 
 
+def page_text(pdf: bytes) -> bytes:
+    """The pages' drawing commands, inflated — the text shows up as `(…)Tj`."""
+    text = b""
+    for stream in re.findall(rb"stream\r?\n(.*?)endstream", pdf, re.S):
+        try:
+            text += zlib.decompress(stream)
+        except zlib.error:
+            pass  # a font or an image, not a page
+    return text
+
+
 @needs_jar
 async def test_every_team_gets_its_own_page():
     """The overview plus one page per club — the sheet a crew takes to the boat."""
@@ -96,35 +108,20 @@ async def test_the_overview_alone_is_one_page():
 
 @needs_jar
 async def test_a_crew_can_print_its_own_sheet_alone():
-    """Story B-3: one team's page, not the file with a page for every club in it."""
-    pdf = await render_pdf(request_for(teams=12, flights=3, team_index=5))
+    """Story B-3: one team's page, not the file with a page for every club in it.
 
-    assert page_count(pdf) == 1
+    Each marks its own races — the cache must not hand one crew another's page.
+    """
+    first = await render_pdf(request_for(teams=12, flights=3, team_index=0))
+    second = await render_pdf(request_for(teams=12, flights=3, team_index=1))
 
-
-@needs_jar
-async def test_two_teams_get_different_sheets():
-    """Each marks its own races — the cache must not hand one crew another's page."""
-    first = await render_pdf(request_for(team_index=0))
-    second = await render_pdf(request_for(team_index=1))
-
+    assert page_count(first) == page_count(second) == 1
     assert first != second
 
 
 async def test_a_team_outside_the_list_is_refused():
     with pytest.raises(PairingPdfError, match="no team 99"):
         await render_pdf(request_for(teams=12, team_index=99))
-
-
-@needs_jar
-async def test_the_organizers_font_size_wins_over_the_tools_own():
-    """The organizer knows the venue's printer; the tool only knows the configuration."""
-    small = await render_pdf(request_for(teams=18, flights=16, settings=PrintSettings(font_size=6)))
-    large = await render_pdf(
-        request_for(teams=18, flights=16, settings=PrintSettings(font_size=12))
-    )
-
-    assert page_count(large) > page_count(small), "a bigger font needs more paper"
 
 
 def test_no_font_size_is_sent_unless_the_organizer_chose_one():
@@ -143,13 +140,21 @@ def test_no_font_size_is_sent_unless_the_organizer_chose_one():
 
 
 @needs_jar
-async def test_the_tool_sizes_a_league_matchday_onto_one_page():
-    """48 rows, nothing configured: the tool's own default has to be the small one."""
-    pdf = await render_pdf(
+async def test_the_organizers_font_size_wins_over_the_tools_own():
+    """48 rows, nothing configured: the tool's own default has to be the small one.
+
+    The organizer knows the venue's printer; the tool only knows the configuration — a
+    font size they chose overrules it, even when that takes more paper.
+    """
+    tools_own = await render_pdf(
         request_for(teams=18, flights=16, settings=PrintSettings(team_pages=False))
     )
+    organizers = await render_pdf(
+        request_for(teams=18, flights=16, settings=PrintSettings(font_size=12, team_pages=False))
+    )
 
-    assert page_count(pdf) == 1
+    assert page_count(tools_own) == 1
+    assert page_count(organizers) > 1, "a bigger font needs more paper"
 
 
 def test_an_installation_without_the_tool_says_so_instead_of_pretending():
@@ -205,8 +210,9 @@ async def test_a_fleet_that_is_not_filled_evenly_still_prints():
 
 
 @needs_jar
-async def test_the_same_list_renders_to_the_same_bytes():
-    """A printed list must be reproducible — two prints of one draw cannot disagree."""
+async def test_a_second_print_of_the_same_list_comes_from_the_cache():
+    """Eighteen crews downloading one list start one JVM. The tool stamps the render time
+    into the file, so equal bytes are proof the cache answered, not a second render."""
     first = await render_pdf(request_for())
     second = await render_pdf(request_for())
 
@@ -215,11 +221,12 @@ async def test_the_same_list_renders_to_the_same_bytes():
 
 @needs_jar
 async def test_a_different_title_renders_a_different_file():
-    """The cache is keyed by the content it renders, and the title is part of that."""
-    first = await render_pdf(request_for(title="Act 1"))
+    """The cache is keyed by the content it renders, and the title is part of that.
+    Checked in the page itself: two renders differ by their timestamps anyway, so
+    unequal bytes alone would pass with the title ignored."""
     second = await render_pdf(request_for(title="Act 2"))
 
-    assert first != second
+    assert b"(Act 2)Tj" in page_text(second)
 
 
 async def test_a_missing_jar_is_reported_helpfully():

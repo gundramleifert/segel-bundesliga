@@ -23,27 +23,21 @@ class TestSeriesTable:
     """As a fan, I want to see how my team stands in the series."""
 
     async def test_table_lists_all_teams_without_gaps(self, client, ids):
-        """At least the 18 from the seed; other stories add more.
+        """Ranks numbered from one without gaps, low points first, a place per matchday.
 
-        Deliberately no check for exactly 18: the point is that ranks are numbered
-        continuously from one — not how many there are right now.
+        At least the 18 from the seed; other stories add more. Deliberately no check for
+        exactly 18: the point is that ranks are numbered continuously from one — not how
+        many there are right now. Sailing scoring is low-point scoring: lower is better.
         """
         response = await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")
         assert response.status_code == 200
 
-        table = response.json()
-        assert len(table["rows"]) >= 18
-        assert [row["rank"] for row in table["rows"]] == list(range(1, len(table["rows"]) + 1))
-
-    async def test_fewer_points_means_higher_position(self, client, ids):
-        """Sailing scoring is low-point scoring: lower is better."""
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
-        punkte = [row["points"] for row in table["rows"]]
-        assert punkte == sorted(punkte)
-
-    async def test_table_shows_placement_for_each_sailed_matchday(self, client, ids):
-        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
-        for row in table["rows"]:
+        rows = response.json()["rows"]
+        assert len(rows) >= 18
+        assert [row["rank"] for row in rows] == list(range(1, len(rows) + 1))
+        points = [row["points"] for row in rows]
+        assert points == sorted(points)
+        for row in rows:
             # Two matchdays have been sailed, the third is planned.
             assert sorted(row["ranks_by_matchday"]) == ["1", "2"]
 
@@ -58,9 +52,7 @@ class TestMatchdayResult:
         assert detail["races_total"] == 48
         assert detail["races_scored"] == 48
         assert len(detail["standings"]) == 18
-
-    async def test_each_team_sailed_once_in_each_of_sixteen_flights(self, client, ids):
-        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
+        # Each team sailed once in each of the sixteen flights.
         for row in detail["standings"]:
             assert row["races_scored"] == 16, f"{row['team']['name']} is missing a race"
 
@@ -105,10 +97,7 @@ class TestPairingList:
 
         assert len(pairing["races"]) == 48
         assert [r["sequence"] for r in pairing["races"]] == list(range(1, 49))
-
-
-    async def test_each_boat_is_assigned_exactly_once_in_each_race(self, client, ids):
-        pairing = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-3')}/pairing")).json()
+        # Each boat is assigned exactly once in each race.
         for race in pairing["races"]:
             assert sorted(int(n) for n in race["teams_by_boat"]) == [1, 2, 3, 4, 5, 6]
 
@@ -124,7 +113,6 @@ class TestPairingList:
         for flight, teams in by_flight.items():
             assert len(teams) == 18, f"Flight {flight} is not a complete round"
             assert len(set(teams)) == 18, f"Flight {flight} has a team twice"
-
 
     async def test_the_list_says_whether_it_can_be_printed_here(self, client, ids):
         """Story B-3: a deployment may carry no renderer, and the page has to know.
@@ -256,7 +244,6 @@ class TestMatchdayCrew:
         assert len(lineups["teams"]) == 18
         assert all(entry["crew"] == [] for entry in lineups["teams"])
 
-
     async def test_the_lineup_reveals_no_contact_data(self, client, ids):
         """Names are on every results list; email and birth year are not."""
         lineups = (await client.get(f"/api/events/{ids.event(self.MATCHDAY)}/crew")).json()
@@ -293,7 +280,6 @@ class TestClubs:
         listed = {c["short_name"] for c in await all_items(client, "/api/clubs")}
         missing = {shortname for _, shortname, _ in CLUBS} - listed
         assert not missing, f"These clubs are missing: {sorted(missing)}"
-
 
     async def test_events_are_sorted_chronologically(self, client):
         events = await all_items(client, "/api/events")
