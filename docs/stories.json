@@ -167,6 +167,14 @@
   "file": "docs/userstories/visitor.md",
   "anchor": "b-16--old-addresses-lead-to-the-new-pages"
  },
+ "B-17": {
+  "title": "Club crests and a partner mark on the results",
+  "status": "○",
+  "role": "Visitor and Fans",
+  "phase": "Standings and results",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-17--club-crests-and-a-partner-mark-on-the-results"
+ },
  "B-2": {
   "title": "Review matchday results",
   "status": "●",

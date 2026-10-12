@@ -95,6 +95,41 @@ Tests: `api/tests/stories/test_visitor.py::TestMatchdayResult`. The new UI addit
 `pnpm typecheck`/`pnpm build` and against seeded data; Playwright e2e coverage for this page is
 a separate, not-yet-started task.
 
+### B-17 ○ Club crests and a partner mark on the results
+As a **fan** I want to **see each club's crest next to its result and know where the data
+comes from**, so that **the table is recognisable at a glance and the partners are credited**.
+
+Acceptance criteria:
+- **A club crest sits beside the club name in every results table** — the league/series
+  `StandingsTable` (Stories B-1, B-14) and the matchday daily standings (`Matchday.tsx`,
+  Story B-2). Same emblem the club page already shows (B-7), at a small, fixed row height so
+  no row grows and the table still fits a phone (Story A-10).
+- **The crest is our own, not hot-linked.** It is `Club.logo_url` / the club crest already in
+  our model. SAP and Manage2Sail both expose crest URLs (SAP on the league's S3 bucket,
+  `docs/findings.md` §3a) — those are a **source to import a missing crest from once**, with
+  reuse cleared, never a URL the public page fetches live.
+- **A missing crest never breaks the layout** — a club with no emblem shows a neutral
+  placeholder (e.g. its short code), never a broken image.
+- **Accessibility:** the crest's alt text is the club name; it adds nothing a screen reader
+  must read twice beside the name already in the row.
+- **A "powered by SAP Sailing Analytics" mark appears on the results page**, linking to SAP.
+  - **The data shown here is our own** computed standings (Domain decisions: points are
+    derived here), so SAP's **attribution/branding clause does not yet compel it**
+    (`docs/findings.md` §3 "Legal Requirements") — it is a **partner acknowledgment** now,
+    and it is already in place for when a table *is* fed from SAP, where the clause *does*
+    compel it. The page must not imply the numbers are SAP's while they are ours.
+  - The mark is one shared, reusable piece (a component, not copy pasted per page), so the
+    day a table becomes SAP-sourced the obligation is met in one place.
+- **No new backend and no SAP call** for this story — it is the visuals on data we already
+  serve. Pulling results *from* SAP is a separate, larger story (see `docs/findings.md` §3a).
+
+Open question for the league office before build: written clearance to display the club
+crests (they are the clubs' marks, held in the league's media bucket) and the exact SAP
+attribution lockup/wording required.
+
+Tests: _(none yet — story recorded first; a test and the code follow per CLAUDE.md "From
+issue to merge")._
+
 ## The matchday
 
 ### B-3 ● View pairing list

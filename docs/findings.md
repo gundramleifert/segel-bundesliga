@@ -189,9 +189,16 @@ them:
 
 `GET /sailingserver/api/v2/leaderboards/{name}`
 
+**Verified live 2026-10-12 against `www.sapsailing.com`:** the `secret` is **not** always
+required. Every DSBL regatta on that public server (see §3a) returns its **full scored
+leaderboard** — 18 competitors, 16 flight columns, net points, discards, boat colour per
+cell — over this endpoint with **no secret at all**. The earlier "mandatory" note held for
+the docs, not for these public league events; a private or embargoed regatta may still
+demand one, so send the secret when you have it and treat its absence as "try anyway".
+
 | Parameter | Meaning |
 |---|---|
-| `secret` | **Mandatory**, assigned per regatta |
+| `secret` | Per regatta; **optional for the public DSBL regattas** (see note above) |
 | `resultState` | `Live` or `Final` |
 | `columnNames`, `raceDetails` | repeatable; `raceDetails=ALL` for everything |
 | `time` / `timeasmillis` | State at a point in time (ISO 8601 or ms) |
@@ -257,6 +264,36 @@ Derived from `LeaderboardsResourceV2.getLeaderboardJson`. Complete documentation
   In v1 it is always `raceScores`. Parser must handle both.
 - Stable IDs are present (Competitor UUID, Race UUID) — basis for `ExternalId`.
 
+### 3a. DSBL events live on SAP, and are importable without a secret (verified 2026-10-12)
+
+The Deutsche Segel-Liga's own matchdays run on SAP Sailing, **not** manage2sail
+(`docs/manage2sail.md` draws the same line). The public server `www.sapsailing.com` lists
+**2183 regattas**, among them the league's own, by year:
+
+| | 2015 | 2016 | 2017 | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 |
+|---|---|---|---|---|---|---|---|---|---|
+| `1./2. Segel-Bundesliga YYYY - City` | 13 | 11 | 10 | 10 | 11 | 9 | 11 | 11 | 11 |
+
+**2024 and 2025 are not on this host** — a newer season likely sits on a different SAP
+instance or is not published here; ask the league office for the current host.
+
+What one DSBL regatta gives, over the **public v1/v2 API with no secret** (example
+`1. Segel-Bundesliga 2021 - Warnemünde`, tested):
+
+- `GET /api/v1/regattas` → every regatta with `boatclass`, scoring system, registration type.
+- `GET /api/v1/regattas/{name}/races` → **48 races**, each with a stable **UUID** (→ `ExternalId`).
+- `GET /api/v1/regattas/{name}/competitors` → the **18 clubs** with `id` (UUID), `shortName`
+  and a **club-flag URL** on the league's S3 bucket — a ready club key and crest.
+- `GET /api/v2/leaderboards/{name}` → the scored table: 16 flight columns `F1…F16`, per
+  competitor `rank`/`netPoints`, per cell `totalPoints`/`netPoints`/`isDiscarded`/`rank`/
+  `finished`/`fleet` (Race 1–3) and the **boat** (name, `color` `#rrggbb` — our boat colours).
+
+This is a far better DSBL source than manage2sail: it is the league's own data, structurally
+matches our model (flights, boats, colours, 48 races), and carries stable UUIDs for matching.
+**What needs permission:** GPS tracks — `.../competitors/positions` answers **401
+`TRACKED_RACE:EXPORT`** without rights. So results and structure import freely; tracks do not.
+The ATTRIBUTION/BRANDING and position-data clauses below still apply to anything shown.
+
 ### Legal Requirements
 
 The v2 documentation includes an **ATTRIBUTION/BRANDING** clause: anyone using the API must 
@@ -268,8 +305,9 @@ clarified before going live.
 
 ## 4. manage2sail
 
-Scarcely documented publicly. What is confirmed: there is an **Access Token** for result 
-and regatta structure import, and an Integration tab for export to external systems.
+Scarcely documented publicly. **How to connect, and what the event token can and cannot
+do, is in `docs/manage2sail.md`** (tested 2026-10-12): the token opens one read-only report
+of all registrations; entries and results are public JSON/XRR; nothing can be written.
 
 **Consequence:** The M2S adapter has a **CSV/XML upload as fallback from the start** so the 
 business office is not blocked if the token path does not work out. Token and export scope 
