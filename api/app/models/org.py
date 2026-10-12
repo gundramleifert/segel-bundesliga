@@ -149,6 +149,13 @@ class Team(Base, TimestampMixin):
     decision_note: Mapped[str | None] = mapped_column(String(500), default=None)
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
+    # Penalty points for the matchday as a whole (Story WL-4) — SAP's "carried points":
+    # added once to the team's total and net, before its first race, and never discarded.
+    # Only on an entry in an event; raw data like a finish position, set by the race
+    # committee or the jury, and the points stay derived from it.
+    penalty_points: Mapped[float | None] = mapped_column(default=None)
+    penalty_note: Mapped[str | None] = mapped_column(String(300), default=None)
+
     club: Mapped[Club] = relationship(back_populates="teams")
     series: Mapped[Series | None] = relationship(back_populates="teams")
     event: Mapped[Event | None] = relationship(back_populates="teams")

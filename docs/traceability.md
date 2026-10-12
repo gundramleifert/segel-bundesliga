@@ -9,7 +9,7 @@ journeys that walk it. The recordings are not here — they exist only after an 
 run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the
 same stories with each test's result, video and trace.
 
-**85 stories** — ● 59 implemented and tested · ◐ 14 partial · ○ 12 open. With backend tests: 67 · with browser tests: 34 · walked by a journey: 9 · **with no test at all: 11**.
+**87 stories** — ● 60 implemented and tested · ◐ 15 partial · ○ 12 open. With backend tests: 69 · with browser tests: 34 · walked by a journey: 9 · **with no test at all: 11**.
 
 ## [administration.md](userstories/administration.md)
 
@@ -17,6 +17,7 @@ same stories with each test's result, video and trace.
 |---|---|---|---|---|---|
 | [A-1](userstories/administration.md#a-1--create-clubs) | ● | Create clubs | `test_master_data.py::TestClubCreation` | `lifecycle.spec.ts::A-1/V-3: clubs and their crests` | J-1 |
 | [A-7](userstories/administration.md#a-7--club-can-exist-without-competition) | ● | Club can exist without competition | `test_series_assignment.py::TestClubCreationAndAssignment` | — | — |
+| [A-14](userstories/administration.md#a-14--import-clubs-past-seasons-and-event-documents-from-sap-sailing-and-manage2sail) | ● | Import clubs, past seasons and event documents from SAP Sailing and Manage2Sail | `test_imports.py::TestSapImport`<br>`test_imports.py::TestManage2SailImport`<br>`test_import_parsing.py` | — | — |
 | [A-6](userstories/administration.md#a-6--create-series-and-select-clubs) | ● | Create series and select clubs | `test_create_series.py` | — | J-1 |
 | [A-3](userstories/administration.md#a-3--assign-clubs-to-series) | ● | Assign clubs to series | `test_series_assignment.py` | — | — |
 | [A-9](userstories/administration.md#a-9--accept-or-reject-participation) | ● | Accept or reject participation | `test_participation.py::TestDecidingOnApplications` | — | — |
@@ -35,6 +36,7 @@ same stories with each test's result, video and trace.
 | [WL-1](userstories/race-committee.md#wl-1--run-races) | ○ | Run races | — | — | — |
 | [WL-3](userstories/race-committee.md#wl-3--start-recall-and-finish-races-from-one-screen) | ◐ | Start, recall and finish races from one screen | `test_race_control.py`<br>`test_scoring.py::test_non_finishers_score_starters_plus_one` | `race-control.spec.ts::WL-3: as race committee I run one race at a time` | — |
 | [WL-2](userstories/race-committee.md#wl-2--enter-and-edit-results-easily) | ◐ | Enter and edit results easily | `test_result_entry.py::TestEnteringResults` | — | J-1 |
+| [WL-4](userstories/race-committee.md#wl-4--penalty-points-for-a-team-on-a-matchday) | ◐ | Penalty points for a team on a matchday | `test_result_entry.py::TestMatchdayPenalty`<br>`test_scoring.py::test_a_matchday_penalty_counts_once_and_is_never_discarded` | — | — |
 
 ## [event-organizer.md](userstories/event-organizer.md)
 

@@ -215,3 +215,37 @@ in the UI and block Save immediately, ahead of the existing
 `/errors/race-result-duplicate-position` server-side check.
 
 Tests: `api/tests/stories/test_result_entry.py::TestEnteringResults`
+
+### WL-4 ◐ Penalty points for a team on a matchday
+As **race committee** I want to **give a team penalty points for the matchday as a
+whole**, so that **a penalty that belongs to no single race — a late crew list, a missed
+briefing, damage to a boat — still counts**.
+
+SAP Sailing calls these **carried points**: points a team starts the matchday with, before
+its first race. The DSBL used them in 2023 (3 points each for four teams in Berlin).
+
+Acceptance criteria:
+- **Once per matchday, on the team's entry in the event** — not per race, and not in the
+  series: a team's penalty in Berlin is no penalty in Kiel.
+- **Added once, never discarded:** the team's total and net for the matchday each grow by
+  exactly that amount, whatever discards apply to its races. It is raw data like a
+  finish position — the points stay derived (`recompute_event`), and the series table
+  follows from the matchday's.
+- A reason can be noted with it. Setting it again replaces it; removing it is setting it
+  to nothing. Every change is written to `AuditLog`.
+- Who may: whoever may enter results for the event (`race_officer` on it, its series, its
+  host club or the site). A closed (`final`) event still takes it, like a protest
+  decision — closing freezes nothing.
+- The matchday table shows the penalty next to the team, so a total that is not the sum
+  of its races explains itself.
+- The SAP import (Story A-14) brings it in from `carriedPoints`; a penalty set here wins
+  over the import.
+
+Endpoint: `PUT /api/admin/events/{event_id}/teams/{team_id}/penalty`. Entered in
+`web/src/pages/Matchday.tsx`'s results tab (*Penalty points for the matchday*, below the
+races); the standings show "incl. 3 penalty" with the reason as its tooltip.
+
+Open: no browser test covers the entry form yet.
+
+Tests: `api/tests/stories/test_result_entry.py::TestMatchdayPenalty`,
+`api/tests/unit/test_scoring.py::test_a_matchday_penalty_counts_once_and_is_never_discarded`

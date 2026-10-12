@@ -39,6 +39,14 @@
   "file": "docs/userstories/administration.md",
   "anchor": "a-13--one-list-mechanism-and-every-long-list-is-paged"
  },
+ "A-14": {
+  "title": "Import clubs, past seasons and event documents from SAP Sailing and Manage2Sail",
+  "status": "●",
+  "role": "Administration",
+  "phase": "Master data",
+  "file": "docs/userstories/administration.md",
+  "anchor": "a-14--import-clubs-past-seasons-and-event-documents-from-sap-sailing-and-manage2sail"
+ },
  "A-2": {
   "title": "Create matchday",
   "status": "●",
@@ -606,6 +614,14 @@
   "phase": "On the water",
   "file": "docs/userstories/race-committee.md",
   "anchor": "wl-3--start-recall-and-finish-races-from-one-screen"
+ },
+ "WL-4": {
+  "title": "Penalty points for a team on a matchday",
+  "status": "◐",
+  "role": "Race Committee",
+  "phase": "Results",
+  "file": "docs/userstories/race-committee.md",
+  "anchor": "wl-4--penalty-points-for-a-team-on-a-matchday"
  },
  "Z-1": {
   "title": "Sign in with Google, Microsoft or a one-time code",

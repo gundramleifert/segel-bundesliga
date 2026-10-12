@@ -19,4 +19,6 @@ export interface EventStandingRow {
   races_scored: number;
   points_by_race: EventStandingRowPointsByRace;
   discarded_races: number[];
+  penalty_points?: number;
+  penalty_note?: string | null;
 }

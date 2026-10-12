@@ -51,6 +51,8 @@ from app.schemas.admin import (
     RaceResultsOut,
     RaceSignalIn,
     RaceStartIn,
+    TeamPenaltyIn,
+    TeamPenaltyOut,
 )
 from app.schemas.public import BoatOut, ClubOut, StartSequence, TeamOut
 from app.services import (
@@ -818,6 +820,55 @@ async def put_race_result(
         applied=True,
         overwrote_existing=overwrote_existing,
     )
+
+
+@router.put(
+    "/events/{event_id}/teams/{team_id}/penalty",
+    response_model=TeamPenaltyOut,
+    summary="Set or remove a team's penalty points for the matchday",
+)
+async def put_team_penalty(
+    event_id: int,
+    team_id: int,
+    request: TeamPenaltyIn,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(require_event_officer),
+) -> TeamPenaltyOut:
+    """Story WL-4: points a team carries into the matchday, counted once and never
+    discarded. Raw data, like a finish position: the standings are recomputed from it.
+
+    Who may enter a result may set it, and a ``final`` event still takes it — closing
+    freezes nothing (Story VA-10).
+    """
+    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
+    team = await session.get(Team, team_id)
+    if event is None or team is None or team.event_id != event_id:
+        raise Problem(
+            404, "team-not-in-event", f"Team {team_id} is not entered in event {event_id}."
+        )
+    note = (request.note or "").strip() or None
+    points = request.points
+    session.add(
+        AuditLog(
+            entity_type="team",
+            entity_id=team.id,
+            action="penalty",
+            actor=acting.email,
+            payload={
+                "before": {"points": team.penalty_points, "note": team.penalty_note},
+                "after": {"points": points, "note": note if points is not None else None},
+            },
+        )
+    )
+    team.penalty_points = points
+    team.penalty_note = note if points is not None else None
+
+    await recompute_event(session, event.id)
+    if event.series_id is not None:
+        await recompute_series(session, event.series_id)
+    await session.commit()
+    hub.publish(event_topic(event.id))
+    return TeamPenaltyOut(team_id=team.id, points=team.penalty_points, note=team.penalty_note)
 
 
 async def _teams_of_event(session: AsyncSession, event_id: int) -> dict[int, TeamOut]:

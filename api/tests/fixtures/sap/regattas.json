@@ -1,0 +1,368 @@
+[
+ {
+  "name": "2. Segel-Bundesliga 2022 - Kiel (2)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "09cbde41-3dd5-48f4-84ae-5d76eb8ca6f4"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2022 - Travemünde (3)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "082274d2-25f8-4782-9baf-ce18c9b06323"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2023 - Hamburg (6)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "65b61426-e6b8-47e0-ba74-eb7446478fd6"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2022 - Travemünde (3)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "b741d0ce-62ad-4eb0-909f-3a65769ff992"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2022 - Hamburg (1)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "affee4d5-957b-4caf-8ade-0675f00df431"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2023 - Konstanz (4)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "b2959afd-1fa3-42c1-a704-906f5e64c617"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2023 - Berlin (1)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "725247a4-fc04-4505-accb-44b550be49f7"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2023 - Konstanz (4)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "4265b0a5-3550-434d-9881-85d9fa6f89fc"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2023 - Überlingen (5)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "d63fc06a-b180-473d-a74f-1aeb93269103"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2023 - Kiel (3)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "123cc88a-846e-4264-8486-89e8bf3569bc"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2022 - Kiel (2)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "10a43ae3-623f-46ce-a1c8-b7aaf4e1f794"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2022 - Warnemünde (4)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "4f5834ab-7505-411c-b181-e60d504a5617"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2022 - Warnemünde (4)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "f57428f4-752a-4609-8225-4d292c870499"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2022 - Friedrichshafen (6)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "f4c54ba5-902b-4a0a-bade-1f96d3c5d74a"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2022 - Friedrichshafen (5)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "67706213-a137-48ef-9f9f-a7215663dd25"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2023 - Travemünde (2)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "66fbfb29-a0c2-4c80-a4b2-eb84400bad99"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2023 - Travemünde (2)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "b1dcd70b-30ea-4f92-903b-af6901b3d97a"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2023 - Berlin (1)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "8d7b0d0c-92a9-496b-a4ef-0083e6d4f04f"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2023 - Kiel (3)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "e0ca826a-5f8f-4947-ae5c-9644c516d75c"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2022 - Hamburg (1)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "03de3b15-4b83-4cdd-9dee-278807ce8e79"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "1. Segel-Bundesliga 2022 - Berlin (5)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "daab75be-532e-492c-80ae-bc2ed913aeab"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "2. Segel-Bundesliga 2023 - Hamburg (5)",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "38cabb11-5798-4a4d-88f7-e9be933e0568"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "KW 2016 Offshore - Welcome Race 2 ORC II",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "TIME_ON_TIME_AND_DISTANCE",
+  "boatclass": "ORC Club",
+  "courseAreaIds": [],
+  "canBoatsOfCompetitorsChangePerRace": false,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": false,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ }
+]

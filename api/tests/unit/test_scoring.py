@@ -116,3 +116,26 @@ def test_races_without_a_result_are_ignored():
     scores = score_event({10: [finished(1, 4), pending]})
     assert scores[0].net == 4.0
     assert 2 not in scores[0].points_by_race
+
+
+def test_a_matchday_penalty_counts_once_and_is_never_discarded():
+    """Story WL-4: carried points sit on top of the races, outside the discards."""
+    config = ScoringConfig(discard_after=(4,))
+    results = [finished(i, 1) for i in range(1, 4)] + [finished(4, 6)]
+    scores = score_event(
+        {10: results, 20: [finished(i, 2) for i in range(1, 5)]}, config, {10: 3.0}
+    )
+    penalised = next(s for s in scores if s.team_id == 10)
+    # Races 9, the worst (6) discarded: net 3 — plus the penalty, once, on both.
+    assert (penalised.total, penalised.net, penalised.penalty) == (12.0, 6.0, 3.0)
+    assert penalised.discarded_races == {4}
+    # Without the penalty team 10 would lead (3 against 6); with it they tie on 6 and the
+    # better series decides — the penalty counts in the ranking, not only in the total.
+    assert [s.team_id for s in scores] == [10, 20]
+    assert next(s for s in scores if s.team_id == 20).penalty == 0.0
+
+
+def test_a_penalty_alone_is_a_score():
+    """Story WL-4: a team penalised before its first race already has a row."""
+    scores = score_event({10: []}, None, {10: 2.0})
+    assert (scores[0].total, scores[0].net) == (2.0, 2.0)

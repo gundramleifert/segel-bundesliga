@@ -68,6 +68,7 @@ import type {
   EventCreate,
   EventCrewList,
   EventDetail,
+  EventDocumentOut,
   EventOut,
   EventReadinessOut,
   EventUpdate,
@@ -151,6 +152,8 @@ import type {
   SquadOut,
   SquadSetRequest,
   StartSequence,
+  TeamPenaltyIn,
+  TeamPenaltyOut,
   TestEmail,
   TestEmailOut,
   TestUserOut,
@@ -2079,6 +2082,109 @@ export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetEventCrewQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListEventDocumentsUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/documents`
+}
+
+/**
+ * Notice of race, sailing instructions, notices — as links to where they were
+ * published (Story A-14), in the source's own order. A draft event is a 404 here too.
+ * @summary The documents on an event's notice board
+ */
+export const listEventDocuments = async (eventId: number, options?: RequestInit): Promise<EventDocumentOut[]> => {
+
+  return http<EventDocumentOut[]>(getListEventDocumentsUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEventDocumentsQueryKey = (eventId: number,) => {
+    return [
+    `/api/events/${eventId}/documents`
+    ] as const;
+    }
+
+
+export const getListEventDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEventDocumentsQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEventDocuments>>> = ({ signal }) => listEventDocuments(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEventDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listEventDocuments>>>
+export type ListEventDocumentsQueryError = ErrorType<HTTPValidationError>
+
+
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof listEventDocuments>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventDocuments>>,
+          TError,
+          Awaited<ReturnType<typeof listEventDocuments>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The documents on an event's notice board
+ */
+
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEventDocumentsQueryOptions(eventId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -5394,6 +5500,102 @@ export const usePutRaceResult = <TError = ErrorType<HTTPValidationError>,
         TContext
       > => {
       return useMutation(getPutRaceResultMutationOptions(options), queryClient);
+    }
+
+export const getPutTeamPenaltyUrl = (eventId: number,
+    teamId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/teams/${teamId}/penalty`
+}
+
+/**
+ * Story WL-4: points a team carries into the matchday, counted once and never
+ * discarded. Raw data, like a finish position: the standings are recomputed from it.
+ *
+ * Who may enter a result may set it, and a ``final`` event still takes it — closing
+ * freezes nothing (Story VA-10).
+ * @summary Set or remove a team's penalty points for the matchday
+ */
+export const putTeamPenalty = async (eventId: number,
+    teamId: number,
+    teamPenaltyIn: TeamPenaltyIn, options?: RequestInit): Promise<TeamPenaltyOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<TeamPenaltyOut>(getPutTeamPenaltyUrl(eventId,teamId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(teamPenaltyIn)
+  }
+);}
+
+
+
+
+
+export const getPutTeamPenaltyMutationKey = () => ['putTeamPenalty'] as const;
+
+export const getPutTeamPenaltyMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putTeamPenalty>>, TError,PutTeamPenaltyMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof putTeamPenalty>>, TError,PutTeamPenaltyMutationVariables, TContext> => {
+
+const mutationKey = getPutTeamPenaltyMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putTeamPenalty>>, PutTeamPenaltyMutationVariables> = (props) => {
+          const {eventId,teamId,data} = props ?? {};
+
+          return  putTeamPenalty(eventId,teamId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PutTeamPenaltyMutationResult = NonNullable<Awaited<ReturnType<typeof putTeamPenalty>>>
+    export type PutTeamPenaltyMutationBody = BodyType<TeamPenaltyIn>
+    export type PutTeamPenaltyMutationError = ErrorType<HTTPValidationError>
+    export type PutTeamPenaltyMutationVariables = {eventId: number;teamId: number;data: BodyType<TeamPenaltyIn>}
+
+    /**
+ * @summary Set or remove a team's penalty points for the matchday
+ */
+export const usePutTeamPenalty = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putTeamPenalty>>, TError,PutTeamPenaltyMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof putTeamPenalty>>,
+        TError,
+        PutTeamPenaltyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPutTeamPenaltyMutationOptions(options), queryClient);
     }
 
 export const getListAllEventsUrl = (params?: ListAllEventsParams,) => {

@@ -76,5 +76,14 @@
     "SCP": "Scoring penalty: finish position + 20% of starters (min. 1 point), capped at {{cap}} points (never worse than DNF). This race's penalty is {{penalty}} points.",
     "RDG": "Redress: the jury enters the awarded points directly — they are not computed automatically."
   },
-  "liveExternal": "Live view (external)"
+  "liveExternal": "Live view (external)",
+  "penaltyIncluded": "incl. {{points}} penalty",
+  "penaltyTooltip": "Penalty points for the matchday, counted once and never discarded",
+  "penaltiesTitle": "Penalty points for the matchday",
+  "penaltiesHint": "Points a team carries into the matchday — counted once on top of its races, never discarded. Leave the field empty and save to remove a penalty.",
+  "penaltyPointsLabel": "Penalty points for {{club}}",
+  "penaltyNoteLabel": "Reason for {{club}}'s penalty",
+  "penaltyNotePlaceholder": "Reason (optional)",
+  "penaltySave": "Save",
+  "penaltyInvalid": "Between 0 and 100 points"
 }

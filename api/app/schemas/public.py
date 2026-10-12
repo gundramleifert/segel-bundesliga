@@ -7,7 +7,7 @@ API client is generated (``scripts/gen-api-client.sh``).
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -227,6 +227,10 @@ class EventStandingRow(BaseModel):
     # Points per race, key is the sequential race number (1..48).
     points_by_race: dict[int, float]
     discarded_races: list[int]
+    # The matchday penalty, already inside ``total`` and ``net`` (Story WL-4) — shown so a
+    # total that is not the sum of its races explains itself.
+    penalty_points: float = 0.0
+    penalty_note: str | None = None
 
 
 class EventDetail(BaseModel):
@@ -324,6 +328,21 @@ class BoatOut(BaseModel):
     color: str | None = None
     name: str | None = None
     sail_number: str | None = None
+
+
+class EventDocumentOut(BaseModel):
+    """A document on an event's notice board — a link to where it was published
+    (Story A-14)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    # notice_of_race, sailing_instructions, notice, other.
+    kind: str
+    url: str
+    extension: str | None = None
+    published_at: datetime | None = None
 
 
 class PairingRow(BaseModel):

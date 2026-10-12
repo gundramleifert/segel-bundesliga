@@ -96,6 +96,20 @@ class RaceResultsOut(BaseModel):
     note: str | None = None
 
 
+class TeamPenaltyIn(BaseModel):
+    """A team's penalty for the matchday as a whole (Story WL-4). ``points: null`` removes
+    it."""
+
+    points: float | None = Field(default=None, gt=0, le=100)
+    note: str | None = Field(default=None, max_length=300)
+
+
+class TeamPenaltyOut(BaseModel):
+    team_id: int
+    points: float | None
+    note: str | None
+
+
 class RaceEntryOut(BaseModel):
     """One boat's pairing and (if entered) result in a race, for the entry screen."""
 

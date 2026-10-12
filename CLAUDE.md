@@ -32,6 +32,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |
+| `api/app/imports/` | **Imports** from SAP Sailing (past DSBL matchdays, results) and Manage2Sail (entries, notice-board documents) — `uv run python -m app.imports --help`, Story A-14 |
 | `api/app/tracking/` | **Boats on the water** — geometry, polar, course, passings, ranking, the emulator; `settings.py` holds every tuned constant (`SBL_TRACKING_*`) |
 | `reference/` | Shallow clones of external repos for reference, not versioned |
 | `~/.claude/plans/iterative-jingling-willow.md` | The original overall plan — its Phase 5 (live, tracking) is superseded by `docs/PLAN_LIVE_IMPLEMENTATION.md` |
@@ -198,7 +199,10 @@ These points were deliberately decided this way; bypassing them costs a lot late
   Women's and youth leagues score differently, and rules change between years.
 - **External systems are matched via `ExternalId`, never by name comparison.** Club
   and team names are spelled differently in SAP Sailing, manage2sail, and here
-  (`BYC (BA)`, `BYCÜ`, `KYC (SH)`).
+  (`BYC (BA)`, `BYCÜ`, `KYC (SH)`). The one bridge on a first import is the club
+  **code** (`app/imports/`, Story A-14) — and at Manage2Sail a code is *not* unique
+  (`KYC` is Kiel and Konstanz), so there a club's key is code plus M2S's club name, and a
+  shared code is never matched.
 - **Boats have colors** (BLACK, GREEN, DARKBLUE, RED, GRAY, ORANGE) **and belong to the Event**,
   not the draw: the organizer assigns color and name when creating the Event; a new pairing list
   only swaps the assignment.

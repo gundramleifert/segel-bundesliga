@@ -33,6 +33,7 @@ from app.models import (
     CrewRole,
     Event,
     EventCrew,
+    EventDocument,
     EventStatus,
     Flight,
     League,
@@ -57,6 +58,7 @@ from app.schemas.public import (
     ClubTeamOut,
     EventCrewList,
     EventDetail,
+    EventDocumentOut,
     EventOut,
     EventStandingRow,
     LeagueOut,
@@ -823,6 +825,15 @@ async def get_event(
     races_total = await _count_races(session, event.id)
     # Get the race ID -> race number mapping once, rather than repeatedly for each team.
     sequences = await _race_sequences(session, event.id)
+    penalty_notes = dict(
+        (
+            await session.execute(
+                select(Team.id, Team.penalty_note).where(
+                    Team.event_id == event.id, Team.penalty_note.is_not(None)
+                )
+            )
+        ).all()
+    )
 
     rows = [
         EventStandingRow(
@@ -835,6 +846,8 @@ async def get_event(
                 sequences[race_id]: points for race_id, points in score.points_by_race.items()
             },
             discarded_races=sorted(sequences[race_id] for race_id in score.discarded_races),
+            penalty_points=score.penalty,
+            penalty_note=penalty_notes.get(score.team_id) if score.penalty else None,
         )
         for score in scores
         if score.team_id in teams
@@ -901,6 +914,30 @@ async def get_event_crew(
             TeamCrewOut(team=team, crew=crew_by_team.get(team.id, []))
             for team in sorted(teams.values(), key=lambda t: t.name)
         ],
+    )
+
+
+@router.get(
+    "/events/{event_id}/documents",
+    response_model=list[EventDocumentOut],
+    summary="The documents on an event's notice board",
+)
+async def list_event_documents(
+    event_id: int,
+    session: AsyncSession = Depends(get_session),
+    locale: Locale = Depends(resolve_locale),
+) -> list[EventDocument]:
+    """Notice of race, sailing instructions, notices — as links to where they were
+    published (Story A-14), in the source's own order. A draft event is a 404 here too."""
+    event = await _event_by_id(session, event_id, locale)
+    return list(
+        (
+            await session.execute(
+                select(EventDocument)
+                .where(EventDocument.event_id == event.id)
+                .order_by(EventDocument.position, EventDocument.id)
+            )
+        ).scalars()
     )
 
 
