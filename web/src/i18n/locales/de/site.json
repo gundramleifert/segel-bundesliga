@@ -55,7 +55,8 @@
     "seasonComplete": "Saison beendet.",
     "nothingYet": "{{league}} — die Saison wird geplant.",
     "matchdayPage": "Zum Spieltag",
-    "resultsOf": "Ergebnisse {{act}}"
+    "resultsOf": "Ergebnisse {{act}}",
+    "finalStandings": "Abschlusstabelle"
   },
   "standings": {
     "title": "Wer wo steht.",
@@ -168,5 +169,6 @@
     "band": "A Band",
     "sheet": "B Blatt",
     "split": "C Geteilt"
-  }
+  },
+  "example": "Beispielinhalt — dieses Schwarze Brett ist noch nicht angebunden. Nichts hier ist ein offizieller Aushang."
 }

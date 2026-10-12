@@ -2,19 +2,19 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, NavLink, useParams, useSearchParams } from "react-router-dom";
 
-import { getGetEventQueryKey, useGetEvent } from "../../api/generated/sbl";
+import { getGetEventQueryKey, useGetEvent, useListLeagues } from "../../api/generated/sbl";
 import type { EventSummary, League } from "../../api/types";
 import { useAccount, useAsync } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
-import { Block, DepthPage, Expand, TopBar, useLeagues, useSecondRow } from "../../components/site/Frame";
+import { Block, DepthPage, Expand, TopBar, useSecondRow } from "../../components/site/Frame";
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
 import { eventDates, locationText } from "../../lib/format";
 import { currentAct, hasResults, href, lastSailed, type Act } from "../../lib/site";
 import { Crew, DailyStandings, PairingList, ResultsEntry } from "../Matchday";
 import { DocList, MediaContent } from "./Depth";
-import { LeagueGate, StateBadge, actDates, divisionName, useActTitle } from "./shared";
+import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle } from "./shared";
 
 // The matchday page (Story B-15): one act, its tabs in the URL, a division switch inside
 // the tab when the act sails several. An event in no league has the same page at
@@ -102,6 +102,9 @@ function MatchdayView({
             <li key={tb} className="shrink-0">
               <NavLink
                 to={{ pathname: tabHref(tb), search: params.toString() }}
+                // This page scrolls itself on a tab click (above); the site's reset to the
+                // top on a new page must not undo that.
+                state={{ keepScroll: true }}
                 onClick={() => {
                   clicked.current = true;
                 }}
@@ -167,7 +170,9 @@ function NoticeBoard({ events }: { events: EventSummary[] }) {
   const board = useActNotices(events.map((e) => e.id));
   return (
     <Async state={board} testId="site-act-notices">
-      {({ notices, documents }) => (
+      {({ notices, documents, example }) => (
+        <>
+        {example && <ExampleNote />}
         <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <Block title={t("noticeBoard.announcements")}>
             {notices.map((n, i) => (
@@ -196,6 +201,7 @@ function NoticeBoard({ events }: { events: EventSummary[] }) {
             <DocList docs={documents} />
           </Block>
         </div>
+        </>
       )}
     </Async>
   );
@@ -212,7 +218,9 @@ function Results({ event }: { event: EventSummary }) {
         <>
           <p className="mb-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
             <span data-testid="matchday-races-count">{t("racesCount", { scored: data.races_scored, total: data.races_total })}</span>
-            {event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
+            {/* The status from the event's own query, which the stream refreshes — the
+                act's list from the league's year is a snapshot of when the page opened. */}
+            {data.event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
           </p>
           <DailyStandings standings={data.standings} event={data.event} />
         </>
@@ -233,12 +241,15 @@ function Entry({ event }: { event: EventSummary }) {
 }
 
 /** Hear about results and transitions while the page is open — published events only, a
- *  draft has no stream. The prefixes end in a slash: "/api/events/1" would also match 12. */
+ *  draft has no stream. The prefixes end in a slash: "/api/events/1" would also match 12.
+ *  The league's year is refetched too: the act's state, its badge and the Now chapter
+ *  are derived from the events' states in it. */
 function useEventLive(event: EventSummary) {
   return useLive(event.published ? `event:${event.id}` : null, [
     getGetEventQueryKey(event.id),
     `/api/events/${event.id}/`,
     `/api/admin/events/${event.id}/`,
+    "/api/leagues/",
   ]);
 }
 
@@ -272,9 +283,10 @@ const OLD_VIEWS: Record<string, Tab> = { standings: "results", pairing: "pairing
 /** `/events/:id/:tab?` — an event in a league goes to its act's page (Story B-16); one in
  *  no league, a club's own regatta, keeps this address and the same page (Story B-15). */
 export function EventPage() {
-  const { id = "", tab } = useParams();
+  const { id = "" } = useParams();
+  const { tab } = useParams();
   const [params] = useSearchParams();
-  const leagues = useLeagues();
+  const leagues = useListLeagues();
   const detail = useAsync(useGetEvent(Number(id)));
   if (detail.loading) return <Bare><Loading testId="matchday-loading" /></Bare>;
   if (detail.error) return <Bare><ErrorMessage text={detail.error} testId="matchday-error" /></Bare>;
@@ -282,10 +294,16 @@ export function EventPage() {
 
   const event = detail.data.event;
   const wanted = tab ?? OLD_VIEWS[params.get("view") ?? ""];
-  const league = leagues.find((l) => l.id === event.series?.league_id);
-  if (event.series?.league_id != null && !league && !leagues.length) return <Bare><Loading testId="matchday-loading" /></Bare>;
-  if (league && event.series?.year && event.matchday != null) {
-    const to = href.act(league.slug, event.series.year, `act-${event.matchday}`, wanted);
+  const leagueId = event.series?.league_id;
+  // Waits for the leagues only while they are on their way: if that request fails, the
+  // event's own page is the honest answer, not a spinner that never ends.
+  if (leagueId != null && leagues.isPending) return <Bare><Loading testId="matchday-loading" /></Bare>;
+  const league = leagues.data?.find((l) => l.id === leagueId);
+  if (league && event.series?.year) {
+    // The same slug `actsOf` gives the act, so an event with no matchday — a cup's one
+    // weekend — has one page, not two.
+    const slug = event.matchday != null ? `act-${event.matchday}` : `event-${event.id}`;
+    const to = href.act(league.slug, event.series.year, slug, wanted);
     return <Navigate to={`${to}?division=${event.id}`} replace />;
   }
   const act: Act = { slug: `event-${event.id}`, matchday: event.matchday ?? null, events: [event], first: event, state: stateOfEvent(event) };
@@ -303,7 +321,7 @@ function Bare({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-white">
       <TopBar />
-      <div className="mx-auto max-w-6xl px-4">{children}</div>
+      <main id="content" className="mx-auto max-w-6xl px-4">{children}</main>
     </div>
   );
 }

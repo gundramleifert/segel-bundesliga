@@ -1,4 +1,4 @@
-import { useState, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
@@ -22,11 +22,20 @@ export type ChapterSpec = {
 export function ChapterScroller({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
   const mode = useChapterMode();
   const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}`);
+  // The document behind has nothing to scroll, so Space, Page Down and the arrows have to
+  // reach this box: it takes the focus when the page opens (without moving), and a click
+  // anywhere in it keeps it there. Tab still starts at the top row, which is inside it.
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (document.activeElement === document.body) scroller.current?.focus({ preventScroll: true });
+  }, []);
   return (
     // Its own scroller, fixed over the screen, so the document behind has nothing to
     // scroll and the snapping (when on) is this box's alone.
     <div
-      className={`scrollbar-none fixed inset-0 overflow-y-auto bg-slate-950 ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
+      ref={scroller}
+      tabIndex={-1}
+      className={`scrollbar-none fixed inset-0 overflow-y-auto bg-slate-950 outline-none ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
       data-testid="site-chapters"
       data-league={league?.slug}
     >

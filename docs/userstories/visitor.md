@@ -304,6 +304,15 @@ Acceptance criteria:
   a switch that opens the others, so there is room for its pages beside it.
 - **At most two rows of navigation, ever.** The second exists only on a matchday page
   (Story B-15).
+- **On a phone the league's pages are behind the league's pill**, which names the page
+  you are on ("DSBL · Standings ▾"). In the row beside the logo and the account button one
+  link fitted, and nothing said the other seven existed.
+- **A new page opens at its top.** The router keeps the window's scroll position, so a
+  footer link opened the next page at its footer, past its picture and title. Back and
+  forward keep their place; a matchday's tabs scroll on purpose (Story B-15).
+- **Every page has a skip link** to its content, the chapter and depth pages included —
+  they draw their own frame, and the link used to live only in the frame they left.
+- The fixed dev switches keep clear of the footer, where the legal links are.
 - The account button keeps its menu (Story A-12): language, profile, help, legal pages —
   and *Administration* for whoever can use it.
 - The variants still open (`docs/site-structure.md`) are switched by the **DEV** button
@@ -332,7 +341,12 @@ Acceptance criteria:
   divisions. Standings and clubs show each division; an **act** is the events of the
   year's series that share a matchday number, at one URL.
 - *Now* shows the running act, else the next one, else the last; *Standings* the top five
-  of each division; *Season* every act with its state.
+  of each division; *Season* every act with its state. **Once the season is over** *Now*
+  says so and leads to the final standings and the last results — not to a live map and a
+  notice board of a weekend that is past.
+- **The chapter page scrolls from the keyboard.** It is its own scrolling box (so the
+  chapters can snap), and the document behind has nothing to scroll — so the box takes the
+  focus when the page opens, and Space, Page Down and the arrows move it.
 - The depth pages: `/:league/standings` (each division's full table, a row expands to its
   place per act; promotion, relegation and requalification marked where the league's
   rules say so; the archive by year at `/:league/:year/standings`), `/:league/season`
@@ -342,6 +356,9 @@ Acceptance criteria:
 - **News, press, media, documents and the about texts are static content for now**,
   behind hooks shaped like the API calls that will replace them
   (`web/src/content/`), so a page does not change when its data becomes dynamic.
+- **Placeholder content that could read as official says it is an example**: the season's
+  documents and a matchday's notice board (invented jury decisions on a real matchday
+  were the problem). A document carries no download mark until there is a file.
 - The association's home `/` is a chapter page too: *Now* (every league's current act),
   *Leagues*, *News*, *For clubs*, *About*.
 
@@ -363,6 +380,9 @@ Acceptance criteria:
   division is its own event underneath.
 - An event that belongs to no league — a club's own regatta — keeps its page at
   `/events/:id`, in the same frame and with the same tabs.
+- **The page follows the stream** (Story B-5): when the race committee starts or finishes
+  the event, the live badge and the act's state change without a reload — the league's
+  year is refetched with the event.
 
 Tests: `e2e/visitor.spec.ts::B-15: the matchday page`
 
@@ -372,7 +392,10 @@ shared link does not end on the home page**.
 
 Acceptance criteria:
 - `/series/:id` of a series in a league goes to `/:league/:year/standings`, and
-  `/events/:id` of an event in a league to its act page, keeping the tab. A series or
+  `/events/:id` of an event in a league to its act page, keeping the tab — an event
+  without a matchday to `…/event-<id>`, the address its league's season links to, so it
+  has one page and not two. If the leagues cannot be loaded, the event's own page shows
+  rather than a spinner that never ends. A series or
   event in no league stays at its own page.
 - `/:league/live` goes to the running act's *Live* tab, else the next act's;
   `/:league/results` to the last act sailed.
