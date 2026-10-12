@@ -6,8 +6,8 @@ concept; the issues hold the discussion and the alternatives. **Built into the r
 on 2026-10-12** (Stories B-13–B-16, `web/src/pages/league/`, `web/src/components/site/`):
 the leagues are data (`League`, `GET /api/leagues`, `GET /api/leagues/{slug}`), news,
 press, media and documents static content behind hooks (`web/src/content/`). The
-clickable prototype under **`/prototype`** and the wireframes under **`/wireframes`** stay
-until the open variants are decided, then go.
+clickable prototype under **`/prototype`** stays until the open variants are decided, then
+goes; the wireframes of #13 were removed on 2026-10-12.
 
 ## What the site is
 

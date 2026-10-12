@@ -1,8 +1,10 @@
 // Mock content for the option-E prototype (issue #14). The structure is the point; the
-// content is invented except where noted. Throwaway, like the wireframes: the real pages
+// content is invented except where noted. Throwaway: the real pages
 // are built from stories once the open questions of #14 are answered.
 
-import { NEWS as WF_NEWS, PRESS as WF_PRESS, type Photo, type Row } from "../wireframes/data";
+export type Photo = { src: string; alt: string; credit: string; license: string; page: string };
+
+export type Row = { rank: number; club: string; short: string; points: number; trend: -1 | 0 | 1 };
 
 const DSBL_UPLOADS = "https://deutsche-segelbundesliga.de/wp-content/uploads";
 
@@ -225,7 +227,46 @@ const BOARD_ELECTED: Article = {
   ],
 };
 
-export const NEWS: Article[] = [BOARD_ELECTED, ...WF_NEWS.map((item, i) => ({
+const NEWS_TEXT = [
+  {
+    title: "NRV takes the lead after a perfect Sunday in Glücksburg",
+    date: "2026-09-21",
+    league: "1. Liga",
+    teaser: "Six wins in eight races — and the table has a new name at the top.",
+  },
+  {
+    title: "Promotion race: three clubs within two points",
+    date: "2026-09-14",
+    league: "2. Liga",
+    teaser: "Before the final act in Kiel, nothing is decided.",
+  },
+  {
+    title: "Junioren-Liga crowns its champion on the Alster",
+    date: "2026-08-30",
+    league: "Junioren-Liga",
+    teaser: "The youngest crew in the field wins the last flight and the title.",
+  },
+  {
+    title: "DSL-Pokal: registration for 2027 opens",
+    date: "2026-08-12",
+    league: "DSL-Pokal",
+    teaser: "Every member club can enter one crew. Deadline 31 January.",
+  },
+  {
+    title: "Live tracking: every boat on the map, from every phone",
+    date: "2026-07-28",
+    league: "Association",
+    teaser: "From this season the tracker is the sailor's own phone.",
+  },
+  {
+    title: "Kiel Week: league clubs sail the J/70 cup",
+    date: "2026-06-24",
+    league: "Association",
+    teaser: "Twelve league clubs, one week, the Förde.",
+  },
+] as const;
+
+export const NEWS: Article[] = [BOARD_ELECTED, ...NEWS_TEXT.map((item, i) => ({
   slug: item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 48),
   title: item.title,
   date: item.date,
@@ -243,7 +284,14 @@ export const newsOf = (league: ProtoLeague) => NEWS.filter((item) => item.league
 
 export type Release = { title: string; date: string; kind: string; body: string };
 
-export const PRESS: Release[] = WF_PRESS.map((item) => ({
+const PRESS_TEXT = [
+  { title: "Act 5 Glücksburg: NRV takes over the lead", date: "2026-09-21", kind: "Press release" },
+  { title: "Season 2027: calendar and venues confirmed", date: "2026-09-02", kind: "Press release" },
+  { title: "Media kit 2026: logos, fact sheet, contacts", date: "2026-04-01", kind: "Press kit" },
+  { title: "Photo pool Act 4 Tutzing (print resolution)", date: "2026-09-07", kind: "Photos" },
+];
+
+export const PRESS: Release[] = PRESS_TEXT.map((item) => ({
   ...item,
   body: "Placeholder text of the release: the facts in the first paragraph, a quote, the next dates, and the press contact.",
 }));

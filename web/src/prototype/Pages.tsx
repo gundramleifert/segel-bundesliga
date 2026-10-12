@@ -1,9 +1,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Link, Navigate, NavLink, useParams } from "react-router-dom";
 
-import { ChapterDots, Img } from "../wireframes/kit";
-import type { Photo, Row } from "../wireframes/data";
-import { formatDate } from "../wireframes/nav";
+import { ChapterDots, Img, formatDate } from "./kit";
+import type { Photo, Row } from "./data";
 import {
   ASSOCIATION,
   BOARD,

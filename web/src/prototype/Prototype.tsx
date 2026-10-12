@@ -21,7 +21,7 @@ import {
 
 /** The clickable prototype of option E (issue #14, concept in `docs/site-structure.md`):
  *  the URL scheme under `/prototype`, mock content, and a development switch for the
- *  variants still open. Outside the site's Layout, like the wireframes; throwaway. */
+ *  variants still open. Outside the site's Layout; throwaway. */
 export function Prototype() {
   return (
     <Routes>

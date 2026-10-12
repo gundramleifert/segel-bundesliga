@@ -1,10 +1,8 @@
 import { useState, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
-import { Img, MyArea, Slideshow } from "../wireframes/kit";
-import type { Photo } from "../wireframes/data";
-import { setMediaMode, useMediaMode, type MediaMode } from "../wireframes/nav";
-import { LEAGUES, SLIDES, VIDEOS, type ProtoLeague } from "./data";
+import { Img, MyArea, Slideshow, setMediaMode, useMediaMode, type MediaMode } from "./kit";
+import { LEAGUES, SLIDES, VIDEOS, type Photo, type ProtoLeague } from "./data";
 import { href, setChapterMode, setDetailMode, useChapterMode, useDetailMode, type ChapterMode, type DetailMode } from "./state";
 
 // The building blocks of the option-E prototype (issue #14). Clean on purpose: white and
@@ -483,8 +481,7 @@ export function DevSwitch() {
           <Segment label="Pictures" value={media} options={MEDIA_MODES} onChange={setMediaMode} testId="proto-dev-media" />
           <Segment label="Detail page" value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="proto-dev-detail" />
           <div className="mt-3 border-t border-white/10 pt-3 text-xs text-white/60">
-            <Link to={href.home()} className="hover:text-white">Prototype home</Link> ·{" "}
-            <Link to="/wireframes" className="hover:text-white">Wireframes</Link>
+            <Link to={href.home()} className="hover:text-white">Prototype home</Link>
           </div>
         </div>
       )}

@@ -20,7 +20,6 @@ import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
 import { ClubPage, EventPage as MyEventPage, ProfilePage, SeriesPage as MySeriesPage } from "./pages/me/Contexts";
 import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
-import { WireframeIndex, WireframeOption } from "./wireframes/Wireframes";
 import { Prototype } from "./prototype/Prototype";
 import { ActPage, EventPage, LiveRedirect, ResultsRedirect } from "./pages/league/Act";
 import {
@@ -43,9 +42,6 @@ export default function App() {
     <Routes>
       {/* Issue #13: five homepage options to compare, each with its own header — so
           outside the site's Layout. Throwaway until one is chosen. */}
-      <Route path="wireframes" element={<WireframeIndex />} />
-      <Route path="wireframes/:option" element={<WireframeOption />} />
-      <Route path="wireframes/:option/:league" element={<WireframeOption />} />
       {/* Issue #14: option E as a clickable prototype — the chosen structure, mock data. */}
       <Route path="prototype/*" element={<Prototype />} />
       <Route element={<SiteShell />}>
