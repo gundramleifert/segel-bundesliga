@@ -55,7 +55,8 @@
     "seasonComplete": "Season complete.",
     "nothingYet": "{{league}} — the season is being planned.",
     "matchdayPage": "Matchday page",
-    "resultsOf": "Results {{act}}"
+    "resultsOf": "Results {{act}}",
+    "finalStandings": "Final standings"
   },
   "standings": {
     "title": "Where everyone stands.",
@@ -168,5 +169,6 @@
     "band": "A Band",
     "sheet": "B Sheet",
     "split": "C Split"
-  }
+  },
+  "example": "Example content — this notice board is not connected yet. Nothing here is an official notice."
 }

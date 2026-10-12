@@ -27,7 +27,7 @@ import {
 import { formatDate, locationText } from "../../lib/format";
 import { currentAct, href } from "../../lib/site";
 import { useClubsOf } from "./LeagueHome";
-import { LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
+import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
 
 // The depth pages behind a league's chapters (Story B-14). Each is a `DepthPage`, framed
 // by whichever variant the DEV switch picks; the content is the same in all three.
@@ -241,7 +241,16 @@ export function NoticeBoardPage() {
 
 function SeasonDocuments({ league, render }: { league: string; render: (group: DocGroup) => ReactNode }) {
   const documents = useSeasonDocuments(league);
-  return <Async state={documents} testId="site-season-documents">{(groups) => groups.map(render)}</Async>;
+  return (
+    <Async state={documents} testId="site-season-documents">
+      {({ groups, example }) => (
+        <>
+          {example && <ExampleNote />}
+          {groups.map(render)}
+        </>
+      )}
+    </Async>
+  );
 }
 
 export function DocList({ docs }: { docs: string[] }) {
@@ -250,8 +259,8 @@ export function DocList({ docs }: { docs: string[] }) {
       {docs.map((doc) => (
         <li key={doc} className="flex items-center gap-3">
           <span className="grid size-8 shrink-0 place-items-center rounded-md bg-slate-100 text-[10px] font-bold text-slate-500">PDF</span>
+          {/* No download mark until there is a file to download. */}
           <span className="flex-1 text-slate-800">{doc}</span>
-          <span aria-hidden className="text-brand-700">↓</span>
         </li>
       ))}
     </ul>

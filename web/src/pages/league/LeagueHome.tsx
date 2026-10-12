@@ -36,6 +36,8 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const clubs = useClubsOf(season.series);
   const act = currentAct(acts);
   const last = lastSailed(acts);
+  // Nothing left to sail: the current act is the last, and it is done or called off.
+  const over = act != null && (act.state === "done" || act.state === "cancelled");
   const several = season.series.length > 1;
   const l = league.slug;
 
@@ -46,15 +48,22 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       label: t("chapters.now"),
       title: !act
         ? t("now.nothingYet", { league: league.short_name })
-        : act.state === "done"
+        : over
           ? t("now.seasonComplete")
           : t("now.title", { act: actTitle(act), dates: actDates(act) }),
       photo: leaguePhoto(l),
-      more: act && year ? { to: href.act(l, year, act.slug), label: t("now.matchdayPage") } : undefined,
+      // Once the season is over, its outcome is the standings — not a matchday whose live
+      // map has nothing left to show.
+      more: over
+        ? { to: href.standings(l), label: t("now.finalStandings") }
+        : act && year
+          ? { to: href.act(l, year, act.slug), label: t("now.matchdayPage") }
+          : undefined,
       body: act ? (
         <>
           <p className="max-w-xl text-lg text-white/80">
             {[
+              over ? actTitle(act) : null,
               locationText(act.first),
               act.first.host_club ? t("hostedBy", { host: act.first.host_club.name }) : null,
               act.events.map(divisionName).join(" · "),
@@ -63,8 +72,8 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
               .join(" · ")}
           </p>
           <div className="mt-5 flex flex-wrap gap-2 text-sm">
-            {year && <Link to={href.act(l, year, act.slug, "live")} className={chip}>{t("tabs.live")}</Link>}
-            {year && <Link to={href.act(l, year, act.slug, "notice-board")} className={chip}>{t("tabs.notice-board")}</Link>}
+            {!over && year && <Link to={href.act(l, year, act.slug, "live")} className={chip}>{t("tabs.live")}</Link>}
+            {!over && year && <Link to={href.act(l, year, act.slug, "notice-board")} className={chip}>{t("tabs.notice-board")}</Link>}
             {last && <Link to={href.results(l)} className={chip}>{t("now.resultsOf", { act: actTitle(last) })}</Link>}
           </div>
         </>

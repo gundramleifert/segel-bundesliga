@@ -261,8 +261,10 @@ const SEASON_DOCUMENTS: DocGroup[] = [
   { title: { en: "Entry", de: "Meldung" }, docs: ["Squad registration deadline", "Liability waiver", "Advertising rules"] },
 ];
 
+/** `example`: what is returned is placeholder content, and a page showing it says so —
+ *  invented documents and jury decisions must never read as a real notice board. */
 export function useSeasonDocuments(_league: string) {
-  return ready(SEASON_DOCUMENTS);
+  return ready({ groups: SEASON_DOCUMENTS, example: true });
 }
 
 export type Notice = { time: string; from: "race-committee" | "jury" | "organizer"; title: string; body: string };
@@ -280,7 +282,7 @@ const EVENT_DOCUMENTS = ["Notice of race", "Sailing instructions", "Amendment 1"
 /** A matchday's notice board, newest first, and its documents. Placeholders until
  *  issue #14's question 5 (is this the official notice board?) is answered. */
 export function useActNotices(_eventIds: number[]) {
-  return ready({ notices: NOTICES, documents: EVENT_DOCUMENTS });
+  return ready({ notices: NOTICES, documents: EVENT_DOCUMENTS, example: true });
 }
 
 /** The association's members are the clubs of this league's divisions

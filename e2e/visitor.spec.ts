@@ -243,10 +243,39 @@ describeStory("B-13: one row of navigation names the leagues", () => {
   test("on a depth page the league is a switch, and its pages sit beside it", async ({ page }) => {
     await page.goto(STANDINGS);
     await expect(page.getByTestId("site-top-bar")).toHaveCount(1);
-    await expect(page.getByTestId("site-league-pages")).toBeVisible();
-    await page.getByTestId("site-league-switch").locator("summary").click();
-    await page.getByTestId("site-league-switch").getByTestId("site-league-junioren-liga").click();
+    const switcher = page.getByTestId("site-league-switch");
+    if ((page.viewportSize()?.width ?? 0) >= 768) {
+      await expect(page.getByTestId("site-league-pages")).toBeVisible();
+    } else {
+      // A phone's row has no room for eight links: the pill names the page and opens to them.
+      await expect(page.getByTestId("site-league-pages")).toBeHidden();
+      await expect(switcher.locator("summary")).toContainText("Standings");
+      await switcher.locator("summary").click();
+      await switcher.getByTestId("site-switch-page-season").click();
+      await expect(page).toHaveURL(/\/dsbl\/season$/);
+      await expect(page.getByTestId("site-season-act").first()).toBeVisible();
+    }
+    await switcher.locator("summary").click();
+    await switcher.getByTestId("site-league-junioren-liga").click();
     await expect(page).toHaveURL(/\/junioren-liga$/);
+  });
+
+  test("a new page opens at its top", async ({ page }) => {
+    await page.goto(STANDINGS);
+    await expect(page.getByTestId("site-standings-row").first()).toBeVisible();
+    await page.getByTestId("site-footer").scrollIntoViewIfNeeded();
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await page.getByTestId("site-footer").getByRole("link", { name: "Season" }).first().click();
+    await expect(page).toHaveURL(/\/dsbl\/season$/);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  });
+
+  test("every page has a skip link to its content", async ({ page }) => {
+    for (const path of ["/", "/dsbl", STANDINGS, FINISHED_ACT, "/clubs"]) {
+      await page.goto(path);
+      await expect(page.getByTestId("layout-skip-link")).toHaveCount(1);
+      await expect(page.locator("main#content")).toHaveCount(1);
+    }
   });
 
   test("a matchday page has two rows of navigation, never more", async ({ page }) => {
@@ -288,6 +317,20 @@ describeStory("B-14: a league's page in chapters", () => {
     // Act 2 is being sailed, so it opens on its results.
     await expect(page).toHaveURL(/\/dsbl\/2026\/act-2$/);
     await expect(page.getByTestId("site-act-results")).toBeVisible();
+  });
+
+  test("the chapters scroll from the keyboard", async ({ page }) => {
+    await page.goto("/dsbl");
+    await expect(page.getByTestId("site-chapter-now")).toBeVisible();
+    await page.keyboard.press("PageDown");
+    await expect.poll(() => page.getByTestId("site-chapters").evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  });
+
+  test("placeholder documents and notices say they are examples", async ({ page }) => {
+    await page.goto("/dsbl/notice-board");
+    await expect(page.getByTestId("site-example-note")).toBeVisible();
+    await page.goto(PLANNED_ACT);
+    await expect(page.getByTestId("site-act-notice-board").getByTestId("site-example-note")).toBeVisible();
   });
 
   test("a league with nothing published yet is a page, not an error", async ({ page }) => {

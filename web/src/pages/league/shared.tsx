@@ -32,7 +32,7 @@ function Frameless({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-white">
       <TopBar />
-      <div className="mx-auto max-w-6xl px-4">{children}</div>
+      <main id="content" className="mx-auto max-w-6xl px-4">{children}</main>
     </div>
   );
 }
@@ -73,3 +73,14 @@ export function StateBadge({ state, dark = false }: { state: ActState; dark?: bo
 /** The division an event sails in — its series' short name without the year. */
 export const divisionName = (event: EventSummary) =>
   event.series ? event.series.short_name.replace(/\s*\d{4}$/, "") : event.title;
+
+/** Says that what follows is example content, not the real thing — for the parts of a page
+ *  that have no backend yet and would otherwise read as official (Story B-14). */
+export function ExampleNote() {
+  const { t } = useTranslation("site");
+  return (
+    <p role="note" data-testid="site-example-note" className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      {t("example")}
+    </p>
+  );
+}
