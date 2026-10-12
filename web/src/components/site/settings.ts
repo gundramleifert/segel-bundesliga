@@ -52,8 +52,13 @@ export type DetailMode = "band" | "sheet" | "split";
 export const DETAIL_MODES = ["band", "sheet", "split"] as const;
 export const [useDetailMode, setDetailMode] = setting<DetailMode>("site.detail", DETAIL_MODES, "band");
 
-/** Which chapter fills most of the screen — for the dots, and so only that chapter plays
- *  a video. `key` re-runs the observer when the set of chapters (or their layout) changes. */
+/** Which chapter is on screen — for the dots, and so only that chapter plays a video:
+ *  the one that covers the **middle line** of the screen. `key` re-runs the observer when
+ *  the set of chapters (or their layout) changes.
+ *
+ *  It used to be "the one at least 55% visible", which a chapter taller than about 1.8
+ *  screens can never be — its dot was never marked, and the previous one stayed lit. The
+ *  middle line is crossed by exactly one chapter at a time, whatever their heights. */
 export function useActiveChapter(first: string, key = "") {
   const [active, setActive] = useState(first);
   useEffect(() => {
@@ -63,7 +68,8 @@ export function useActiveChapter(first: string, key = "") {
           if (entry.isIntersecting) setActive((entry.target as HTMLElement).dataset.chapter ?? first);
         }
       },
-      { threshold: 0.55 },
+      // A band of zero height across the middle of the screen.
+      { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
     );
     document.querySelectorAll("[data-chapter]").forEach((el) => observer.observe(el));
     return () => observer.disconnect();

@@ -326,6 +326,65 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect.poll(() => page.getByTestId("site-chapters").evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   });
 
+  test("the dots claim their own column and nothing more", async ({ page }) => {
+    await page.goto("/dsbl");
+    const dots = page.getByTestId("site-chapter-dots");
+    await expect(dots.getByRole("link")).toHaveCount(8);
+    // The names are laid over the chapter; the touch area is the dots. It was 145 px of a
+    // 412 px phone, and every swipe that started there jumped chapters.
+    expect((await dots.boundingBox())!.width).toBeLessThan(64);
+  });
+
+  test("a tap on a dot scrolls there, and leaves the address and the history alone", async ({ page }) => {
+    await page.goto("/dsbl");
+    await expect(page.getByTestId("site-chapter-now")).toBeVisible();
+    const before = await page.evaluate(() => history.length);
+    await page.locator('[data-dot="season"]').click();
+    await expect(page.locator('[data-dot="season"]')).toHaveAttribute("aria-current", "true");
+    await expect.poll(() => page.getByTestId("site-chapter-season").evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(0);
+    expect(page.url()).not.toContain("#");
+    expect(await page.evaluate(() => history.length)).toBe(before);
+  });
+
+  test("the marked dot is the chapter in the middle of the screen, however tall", async ({ page }) => {
+    await page.goto("/dsbl");
+    await expect(page.getByTestId("site-chapter-now")).toBeVisible();
+    // A chapter three screens tall: at 55% visible, the rule this replaced, it could never
+    // be marked. Free mode, so the box can stop inside it.
+    await page.evaluate(() => {
+      localStorage.setItem("site.chapters", "free");
+    });
+    await page.reload();
+    const tall = page.getByTestId("site-chapter-standings");
+    await tall.evaluate((el) => (el.style.minHeight = "300vh"));
+    await page.getByTestId("site-chapters").evaluate((box) => {
+      const el = document.getElementById("standings")!;
+      box.scrollTop = el.offsetTop + window.innerHeight;
+    });
+    await expect(page.locator('[data-dot="standings"]')).toHaveAttribute("aria-current", "true");
+  });
+
+  test("a thumb sliding along the dots is followed by its height, even when it drifts", async ({ page, isMobile }) => {
+    test.skip(!isMobile, "a touch gesture — the phone project's");
+    await page.goto("/dsbl");
+    await expect(page.getByTestId("site-chapter-now")).toBeVisible();
+    const box = (dot: string) => page.locator(`[data-dot="${dot}"]`).boundingBox();
+    const start = (await box("now"))!;
+    const end = (await box("press"))!;
+    const cdp = await page.context().newCDPSession(page);
+    const x = start.x + start.width / 2;
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: start.y + start.height / 2 }] });
+    // Down the column — and off it to the left, the way a thumb drifts.
+    for (let i = 1; i <= 10; i++) {
+      const y = start.y + ((end.y - start.y) * i) / 10 + start.height / 2;
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x - i * 15, y }] });
+    }
+    await expect(page.getByTestId("site-chapter-dots")).toHaveAttribute("data-scrubbing", "");
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect(page.getByTestId("site-chapter-dots")).not.toHaveAttribute("data-scrubbing", "");
+    await expect(page.locator('[data-dot="press"]')).toHaveAttribute("aria-current", "true");
+  });
+
   test("placeholder documents and notices say they are examples", async ({ page }) => {
     await page.goto("/dsbl/notice-board");
     await expect(page.getByTestId("site-example-note")).toBeVisible();

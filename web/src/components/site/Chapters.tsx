@@ -92,29 +92,51 @@ function Chapter({ spec, n, of, playing }: { spec: ChapterSpec; n: number; of: n
 }
 
 /** The column of dots on the right. A tap jumps; a thumb sliding along the column shows
- *  every chapter's name and the page follows. */
+ *  every chapter's name and the page follows.
+ *
+ *  Three rules, each learned on a phone:
+ *  - **Only the dots take touch.** The names are laid over the chapter, not beside the
+ *    dots in the column: reserving their room made the column an invisible strip a third
+ *    of the screen wide, and every swipe that started in it — where a right thumb scrolls —
+ *    jumped chapters instead of scrolling the page.
+ *  - **The chapter follows the thumb's height**, never what is under it: a thumb drifts
+ *    sideways, and once it left the column the slide froze on the last chapter.
+ *  - **A tap scrolls, it does not navigate**: following `#season` scrolled a second time
+ *    and put every tap into the history, so Back walked the chapters. */
 function ChapterDots({ chapters, active }: { chapters: readonly (readonly [id: string, label: string])[]; active: string }) {
   const { t } = useTranslation("site");
   const [scrub, setScrub] = useState<string | null>(null);
+  const list = useRef<HTMLOListElement>(null);
 
-  const chapterAt = (event: PointerEvent) =>
-    (document.elementFromPoint(event.clientX, event.clientY)?.closest("[data-dot]") as HTMLElement | null)?.dataset.dot ?? null;
+  /** The chapter whose dot is nearest the pointer's height. */
+  const chapterAt = (y: number) => {
+    let best: string | null = null;
+    let distance = Infinity;
+    list.current?.querySelectorAll<HTMLElement>("[data-dot]").forEach((dot) => {
+      const box = dot.getBoundingClientRect();
+      const d = Math.abs(box.top + box.height / 2 - y);
+      if (d < distance) [best, distance] = [dot.dataset.dot ?? null, d];
+    });
+    return best;
+  };
+
+  const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ block: "start" });
 
   const follow = (event: PointerEvent) => {
-    const id = chapterAt(event);
+    const id = chapterAt(event.clientY);
     if (!id || id === scrub) return;
     setScrub(id);
-    document.getElementById(id)?.scrollIntoView({ block: "start" });
+    jump(id);
   };
 
   return (
     <nav
       aria-label={t("nav.chapters")}
       data-testid="site-chapter-dots"
-      // `touch-none`: sliding along the dots is this control's gesture, not a page scroll.
-      className={`fixed right-0 top-1/2 z-40 -translate-y-1/2 touch-none select-none rounded-l-3xl py-2 pl-6 pr-3 transition-colors lg:pr-6 ${
-        scrub ? "bg-gradient-to-l from-slate-950/95 via-slate-950/80 to-slate-950/0" : ""
-      }`}
+      data-scrubbing={scrub ? "" : undefined}
+      // `touch-none`: sliding along the dots is this control's gesture, not a page scroll —
+      // and the box is the dots and nothing more, so it claims no other swipe.
+      className="fixed right-0 top-1/2 z-40 -translate-y-1/2 touch-none select-none py-2 pr-1 lg:pr-4"
       onPointerDown={(event) => {
         if (event.pointerType === "mouse") return;
         try {
@@ -127,16 +149,41 @@ function ChapterDots({ chapters, active }: { chapters: readonly (readonly [id: s
       onPointerMove={(event) => scrub && follow(event)}
       onPointerUp={() => setScrub(null)}
       onPointerCancel={() => setScrub(null)}
+      onLostPointerCapture={() => setScrub(null)}
     >
-      <ol className="flex flex-col">
+      {/* While sliding, a dark band behind the names keeps them readable over the chapter.
+          Decoration only: it takes no pointer. */}
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute inset-y-0 right-0 w-72 bg-gradient-to-l from-slate-950/95 via-slate-950/80 to-slate-950/0 transition-opacity ${
+          scrub ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <ol ref={list} className="relative flex flex-col">
         {chapters.map(([id, label]) => {
           const current = (scrub ?? active) === id;
           return (
             <li key={id}>
-              <a href={`#${id}`} data-dot={id} aria-current={current || undefined} className="group flex items-center justify-end gap-3 py-1.5">
+              <a
+                href={`#${id}`}
+                data-dot={id}
+                aria-current={current || undefined}
+                aria-label={label}
+                onClick={(event) => {
+                  event.preventDefault();
+                  jump(id);
+                }}
+                className="group relative flex h-9 w-10 items-center justify-center"
+              >
+                {/* Laid over the chapter to the left of the dot, so it takes no room. */}
                 <span
-                  className={`whitespace-nowrap rounded-full text-xs font-semibold uppercase tracking-widest transition ${
-                    scrub ? (current ? "bg-white px-3 py-1 text-sm text-slate-950" : "text-white/70") : "text-white/0 group-hover:text-white/80"
+                  aria-hidden
+                  className={`pointer-events-none absolute right-full mr-1 whitespace-nowrap rounded-full text-xs font-semibold uppercase tracking-widest transition ${
+                    scrub
+                      ? current
+                        ? "bg-white px-3 py-1 text-sm text-slate-950"
+                        : "text-white/70"
+                      : "text-white/0 group-hover:text-white/80"
                   }`}
                 >
                   {label}
