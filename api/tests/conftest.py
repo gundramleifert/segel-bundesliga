@@ -24,7 +24,10 @@ os.environ.setdefault("SBL_JWT_SECRET", "testgeheimnis-nur-fuer-die-testsuite")
 # a test run would leave files behind under the real api/uploads/, and SQLite's reused
 # ids (see test_login_and_roles.py::make_user) could make one run's leftover photo look
 # like it belongs to an unrelated sailor in the next.
-os.environ.setdefault("SBL_UPLOADS_DIR", str(_TEST_DB_DIR / "uploads"))
+# Assigned, not `setdefault`: pytest-xdist's workers inherit the environment of the
+# process that started them, so a default would hand every worker the first one's
+# directory — while each has its own database with the same ids.
+os.environ["SBL_UPLOADS_DIR"] = str(_TEST_DB_DIR / "uploads")
 
 
 @pytest.fixture(scope="session")

@@ -82,11 +82,13 @@ class TestEveryPagedListSpeaksTheSameShape:
     @pytest.mark.parametrize("path,role", PAGED)
     async def test_paging_walks_the_list_without_repeating_a_row(self, client, caplog, path, role):
         head = await headers_for(client, caplog, path, role)
-        first = (await client.get(path, params={"limit": 3, "offset": 0}, headers=head)).json()
-        second = (await client.get(path, params={"limit": 3, "offset": 3}, headers=head)).json()
+        # Pages of two: the seed holds three events, and a larger page only ever had a
+        # second one because other tests had created events first in the same database.
+        first = (await client.get(path, params={"limit": 2, "offset": 0}, headers=head)).json()
+        second = (await client.get(path, params={"limit": 2, "offset": 2}, headers=head)).json()
 
-        if first["total"] < 4:
-            pytest.skip(f"{path} holds fewer than four rows in the seed")
+        if first["total"] < 3:
+            pytest.skip(f"{path} holds fewer than three rows in the seed")
 
         ids = [item["id"] for item in first["items"]]
         assert len(set(ids)) == len(ids)

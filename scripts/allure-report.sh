@@ -37,7 +37,7 @@ rm -rf "$ROOT/allure-results" "$ROOT/allure-report"
 status=0
 
 echo "▸ backend tests → allure-results/"
-(cd "$ROOT/api" && uv run pytest -q -p no:cacheprovider --alluredir="$ROOT/allure-results") \
+(cd "$ROOT/api" && uv run pytest -q -n auto -p no:cacheprovider --alluredir="$ROOT/allure-results") \
   > "$LOGS/pytest.log" 2>&1 || status=1
 grep -E "^[0-9]+ (passed|failed)|[0-9]+ passed|[0-9]+ failed" "$LOGS/pytest.log" | tail -1
 
