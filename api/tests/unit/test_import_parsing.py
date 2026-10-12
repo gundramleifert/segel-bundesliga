@@ -97,3 +97,28 @@ def test_a_boat_s_number_comes_from_its_sail_number_or_its_name():
             "d": {"sailId": "", "name": "Boot 2"},  # 2 is taken by b: the next number up
         }
     ) == {"b": 2, "d": 3, "a": 5, "c": 6}
+
+
+@pytest.mark.parametrize(
+    ("spec", "years"),
+    [
+        ("2025-2026", {2025, 2026}),
+        ("2023", {2023}),
+        ("2019, 2021-2023", {2019, 2021, 2022, 2023}),
+        ("", set()),
+    ],
+)
+def test_a_year_range_names_its_years(spec, years):
+    """Story A-14: `--years 2025-2026`, the range the staging build imports."""
+    from app.imports.sap import parse_years
+
+    assert parse_years(spec) == years
+
+
+@pytest.mark.parametrize("spec", ["2026-2025", "twenty", "2025-"])
+def test_a_range_that_is_none_is_refused(spec):
+    """Story A-14: a mistyped range fails loudly rather than importing nothing."""
+    from app.imports.sap import parse_years
+
+    with pytest.raises(ValueError):
+        parse_years(spec)

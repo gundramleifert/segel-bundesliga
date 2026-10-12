@@ -51,7 +51,8 @@ Acceptance criteria:
 - **A command, not a screen:** `uv run python -m app.imports sap …` and
   `… m2s …` in `api/`. Only public endpoints are read — no SAP secret, no M2S token — and
   nothing is ever written back to either system.
-- **SAP** (`sap --year 2023`, `sap --regatta "<name>"`, `sap --all`): every regatta named
+- **SAP** (`sap --year 2023`, `sap --years 2021-2023`, `sap --regatta "<name>"`,
+  `sap --all`): every regatta named
   `1./2. Segel-Bundesliga YYYY - City (n)` becomes an **event** in the series
   `1./2. Segel-Bundesliga YYYY` of the league `dsbl`, with its clubs entered, its boats
   (sail number and the colour SAP has), 16 flights of races and every team's result.
@@ -75,6 +76,11 @@ Acceptance criteria:
   **matchday penalty** (Story WL-4), under the same rule.
 - **Imported competitions start as drafts**, unless `--publish`: a past season appearing
   on the public site is a decision, not a side effect.
+- **Staging imports on every build** (`api/Dockerfile`): on top of the seed, the seasons
+  of the build argument `SAP_IMPORT_YEARS` — **`2025-2026` by default**, empty to skip —
+  published, from `SAP_BASE_URL` (default `www.sapsailing.com`). A failed or empty import
+  never fails the build. The public SAP server has no season after 2023, so the default
+  imports nothing until the newer seasons' SAP instance is known and set.
 - Each run is an `ImportRun` row and prints what it created, updated, left unchanged,
   and what conflicted or failed.
 - Sailors are **not** imported: SAP carries none for the league (its "sailor" is the club),

@@ -69,6 +69,21 @@ RUN SBL_JWT_SECRET="$SEED_JWT_SECRET" \
     SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db" \
     python -m app.seed_test_setup --reset
 
+# On top of the seed, the DSBL seasons of this year range from SAP Sailing (Story A-14),
+# published so staging shows them. Empty skips it: `--build-arg SAP_IMPORT_YEARS=`.
+# SAP_BASE_URL points at another SAP instance — the public www.sapsailing.com has no
+# season after 2023, so 2025-2026 imports nothing there until it does. A failed or empty
+# import never fails the build: the image then carries the seed alone, as before.
+ARG SAP_IMPORT_YEARS=2025-2026
+ARG SAP_BASE_URL=
+RUN if [ -n "$SAP_IMPORT_YEARS" ]; then \
+      SBL_JWT_SECRET="$SEED_JWT_SECRET" \
+      SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db" \
+      SBL_SAP_BASE_URL="$SAP_BASE_URL" \
+      python -m app.imports sap --years "$SAP_IMPORT_YEARS" --publish \
+      || echo "SAP import failed — the image keeps the seed alone"; \
+    fi
+
 ENV SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db"
 EXPOSE 8000
 

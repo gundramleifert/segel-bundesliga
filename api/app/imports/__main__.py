@@ -1,6 +1,7 @@
 """Import from SAP Sailing Analytics and Manage2Sail (Story A-14).
 
     uv run python -m app.imports sap --year 2023            # both divisions of 2023
+    uv run python -m app.imports sap --years 2021-2023      # a range (also 2019,2021-2023)
     uv run python -m app.imports sap --regatta "1. Segel-Bundesliga 2023 - Berlin (1)"
     uv run python -m app.imports sap --all                  # every DSBL season on SAP
     uv run python -m app.imports sap --list                 # what SAP has, nothing written
@@ -10,6 +11,9 @@
     uv run python -m app.imports m2s <uuid> --series junioren-2026 --matchday 1
     uv run python -m app.imports m2s <uuid> --link "KYC|Kieler Yacht-Club e. V.=kyc"
 
+SAP's address is ``https://www.sapsailing.com/sailingserver/api``, or ``SBL_SAP_BASE_URL``
+/ ``--base-url`` for another SAP instance — the public one has no season after 2023.
+
 Repeatable: a second run with the same data changes nothing. Imported competitions stay
 drafts unless ``--publish``. Uses the database of ``SBL_DATABASE_URL`` (``api/sbl.db``).
 """
@@ -18,14 +22,16 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 
 import httpx
 
-from app.db import SessionLocal
+from app.db import SessionLocal, engine
 from app.imports.common import USER_AGENT, Report
 from app.imports.m2s import Manage2SailClient, import_m2s
-from app.imports.sap import SapClient, import_sap, parse_regatta_name
+from app.imports.sap import BASE_URL as SAP_BASE_URL
+from app.imports.sap import SapClient, import_sap, parse_regatta_name, parse_years
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -38,6 +44,14 @@ def _parser() -> argparse.ArgumentParser:
 
     sap = sub.add_parser("sap", help="DSBL matchdays, clubs and results from SAP Sailing")
     sap.add_argument("--year", type=int, action="append", default=[], help="a season, repeatable")
+    sap.add_argument(
+        "--years", action="append", default=[], metavar="RANGE", help="2025-2026, or 2019,2021"
+    )
+    sap.add_argument(
+        "--base-url",
+        default=os.environ.get("SBL_SAP_BASE_URL") or SAP_BASE_URL,
+        help="the SAP server's API root (default: www.sapsailing.com, or SBL_SAP_BASE_URL)",
+    )
     sap.add_argument("--regatta", action="append", default=[], help="one regatta by its SAP name")
     sap.add_argument("--all", action="store_true", help="every DSBL regatta SAP has")
     sap.add_argument("--list", action="store_true", help="list the DSBL regattas, import nothing")
@@ -64,19 +78,23 @@ async def _run(args: argparse.Namespace) -> Report | None:
         headers={"User-Agent": USER_AGENT}, timeout=60, follow_redirects=True
     ) as http:
         if args.source == "sap":
-            client = SapClient(http)
+            client = SapClient(http, args.base_url)
             if args.list:
                 for regatta in await client.regattas():
                     parsed = parse_regatta_name(regatta["name"])
                     if parsed:
                         print(f"{parsed.year}  {parsed.level}. Liga  {parsed.name}")
                 return None
-            if not (args.year or args.regatta or args.all):
-                raise SystemExit("sap: say what — --year, --regatta, --all or --list")
+            try:
+                years = set(args.year).union(*(parse_years(spec) for spec in args.years))
+            except ValueError as error:
+                raise SystemExit(f"sap: --years {error}") from error
+            if not (years or args.regatta or args.all):
+                raise SystemExit("sap: say what — --year(s), --regatta, --all or --list")
             return await import_sap(
                 SessionLocal,
                 client,
-                years=args.year,
+                years=years,
                 names=args.regatta,
                 everything=args.all,
                 publish=args.publish,
@@ -101,7 +119,13 @@ async def _run(args: argparse.Namespace) -> Report | None:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
-    report = asyncio.run(_run(args))
+    try:
+        report = asyncio.run(_run(args))
+    finally:
+        # Closing the last connection folds the WAL back into the file — without it the
+        # build leaves an `sbl.db-wal` beside the database (docs/gotchas: copying a
+        # WAL-mode SQLite file copies half the database).
+        asyncio.run(engine.dispose())
     if report is None:
         return 0
     print(report.render())

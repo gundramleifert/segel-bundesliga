@@ -109,6 +109,20 @@ class RegattaName:
         return f"{self.level}. Segel-Bundesliga {self.year}"
 
 
+def parse_years(spec: str) -> set[int]:
+    """`2025-2026`, `2023`, `2019,2021-2023` → the years they name. Empty → none."""
+    years: set[int] = set()
+    for part in filter(None, (p.strip() for p in spec.split(","))):
+        first, sep, last = part.partition("-")
+        if not first.strip().isdigit() or (sep and not last.strip().isdigit()):
+            raise ValueError(f"{part!r} is not a year or a range of years (2025-2026)")
+        start, end = int(first), int(last) if sep else int(first)
+        if end < start:
+            raise ValueError(f"{part!r}: the range runs backwards")
+        years.update(range(start, end + 1))
+    return years
+
+
 def parse_regatta_name(name: str) -> RegattaName | None:
     match = _NAME.match(name)
     if match is None:
