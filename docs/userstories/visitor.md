@@ -330,20 +330,24 @@ As a **visitor** I want **one row at the top that names the association's compet
 so that **I am one tap from the league I follow, whatever page I am on**.
 
 Acceptance criteria:
-- Every page has the same row, and only one: the **logo** (the association's home, `/`),
-  **the leagues** in the order the league office set (`League.position`), and the
-  **account button** with *My space* at the right. Topics such as results or press are not
-  in it — each is a chapter of the league's page.
+- Every page has the same row, and only one: the **logo** and ***Association*** (*Verein*,
+  both the association's home, `/`), **the leagues** in the order the league office set
+  (`League.position`) — *1. Liga · 2. Liga · Junioren · DSL-Pokal* in the seed, the way
+  deutsche-segelbundesliga.de names its competitions — and the **account button** at the
+  right: *Sign in* for a guest, *My space* when signed in. Topics such as results or
+  press are not in it — each is a chapter of the league's page. (Changed 2026-10-16: the
+  1. and 2. Liga were one entry, *DSBL*, and the association had only the logo.)
 - **The leagues are data** (`GET /api/leagues`), never a list in the code: the row names
   whatever leagues exist. A site with one league shows one.
 - On a league's chapter page the row lies over the picture. On a depth page it is solid
-  and sticky, and in variant A it carries the league's pages itself — the league becomes
-  a switch that opens the others, so there is room for its pages beside it.
+  and sticky, **and it keeps naming the association and every league**, the current one
+  marked — it no longer turns into a league switch. The league's own pages are a row of
+  links under the depth page's picture (variant A) or the sheet's pills (variant B); on a
+  matchday page its tabs are the second row (Story B-15).
 - **At most two rows of navigation, ever.** The second exists only on a matchday page
   (Story B-15).
-- **On a phone the league's pages are behind the league's pill**, which names the page
-  you are on ("DSBL · Standings ▾"). In the row beside the logo and the account button one
-  link fitted, and nothing said the other seven existed.
+- **On a phone the row scrolls sideways** inside itself, never the page
+  (`expectNoSidewaysScroll`); the marked entry is scrolled into view.
 - **A new page opens at its top.** The router keeps the window's scroll position, so a
   footer link opened the next page at its footer, past its picture and title. Back and
   forward keep their place; a matchday's tabs scroll on purpose (Story B-15).
@@ -367,20 +371,28 @@ deeper from there**, so that **the first screen answers the common question and 
 other one is a tap away**.
 
 Acceptance criteria:
-- `/:league` (`/dsbl`) is one page of full-screen chapters over pictures, with dots on the
-  right to jump between them: **Now, Standings, Season, Clubs, News, Media, Press, About**.
-  Each is a preview that ends in a link to its own page.
+- `/:league` (`/1-liga`) is one page of full-screen chapters over pictures, with dots on
+  the right to jump between them: **Standings, Results, News, Media, About, Archive**.
+  Each is a preview that ends in a link to its own page. (Changed 2026-10-16, from *Now,
+  Standings, Season, Clubs, News, Media, Press, About*.)
+- **A chapter's title is its name** — *Standings*, *News* — the same word as its dot.
+  The slogans it replaced ("Where everyone stands.") did not say what the chapter is;
+  the association's home follows the same rule.
+- ***Standings* opens the page**: the top five of the year's table, leading to the full
+  standings. ***Results* is there only while a matchday is live** — the act, its venue and
+  host, links to its live map, results and notice board; between matchdays the season's
+  page holds the calendar. ***About*** carries the league's text, its clubs and the link
+  to the press centre. ***Archive*** lists the earlier years, each leading to that year's
+  standings; with no earlier year it is left out.
 - **The league's page shows its current year**: the newest year of *its* series that is
   not in the future (Story A-4's rule, asked per league — the DSBL publishing next year's
   series must not empty the Junioren-Liga's page). `GET /api/leagues/{slug}` answers with
   the year, the years in the archive, the year's series and their events. Published only.
-- **Several series of a year are one league**: the DSBL's 1. and 2. Liga are its two
-  divisions. Standings and clubs show each division; an **act** is the events of the
-  year's series that share a matchday number, at one URL.
-- *Now* shows the running act, else the next one, else the last; *Standings* the top five
-  of each division; *Season* every act with its state. **Once the season is over** *Now*
-  says so and leads to the final standings and the last results — not to a live map and a
-  notice board of a weekend that is past.
+- **The 1. and the 2. Liga are two leagues** (`/1-liga`, `/2-liga`), each with one
+  series a year. They sail the same weekends at the same venues, but each has its own
+  page, its own standings and its own matchday pages; promotion and relegation are named
+  on each table's edge. A league with several series in a year still shows each of them,
+  and an **act** is still the events of the year's series sharing a matchday number.
 - **The dots on the right are a control of their own size**, fixed on a phone (2026-10-12):
   - only the dots take touch — the chapter names appear over the chapter while a thumb
     slides, and take no room. Reserving their room had made the column an invisible strip
@@ -408,7 +420,10 @@ Acceptance criteria:
   documents and a matchday's notice board (invented jury decisions on a real matchday
   were the problem). A document carries no download mark until there is a file.
 - The association's home `/` is a chapter page too: *Now* (every league's current act),
-  *Leagues*, *News*, *For clubs*, *About*.
+  *Leagues*, *News*, *For clubs*, *About* — titled with those names, except the first,
+  whose title is the page's heading: *Deutsche Segel-Liga e.V.*
+- **Old addresses of the DSBL** (`/dsbl`, `/dsbl/…`) go to the 1. Liga's same page
+  (Story B-16).
 
 Tests: `api/tests/stories/test_league_pages.py::TestLeagueSeason`,
 `e2e/visitor.spec.ts::B-14: a league's page in chapters`
@@ -447,6 +462,9 @@ Acceptance criteria:
   event in no league stays at its own page.
 - `/:league/live` goes to the running act's *Live* tab, else the next act's;
   `/:league/results` to the last act sailed.
+- **`/dsbl` and everything under it go to the same page of the 1. Liga** (`/dsbl/standings`
+  → `/1-liga/standings`, `/dsbl/2026/act-2/live` → `/1-liga/2026/act-2/live`): the DSBL
+  was one league until 2026-10-16 (Story B-14), and its addresses were shared.
 - Short paths are redirects, never copies.
 
 Tests: `e2e/visitor.spec.ts::B-16: old addresses lead to the new pages`

@@ -178,10 +178,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **The current year is the newest one not in the future** — not simply the highest ID. Otherwise
   creating "DSBL 2027" would immediately switch the public page to a year where no one is registered
   yet (`app/services/series.py`).
-- **A League is what links the years: `/dsbl` is the league, its series are its years**
-  (issue #14, Story B-14, `docs/site-structure.md`). A year's series of one league are its
-  divisions (the DSBL's 1. and 2. Liga), and an **act** is the events of that year sharing
-  a matchday number — one page, `/:league/:year/act-:n`. `Series.league_id` is optional:
+- **A League is what links the years: `/1-liga` is the league, its series are its years**
+  (issue #14, Story B-14, `docs/site-structure.md`). The 1. and 2. Liga are **two
+  leagues** (decided 2026-10-16 — each is a top-level entry of the site, like
+  deutsche-segelbundesliga.de's), though they sail the same weekends; `Series.level` still
+  says which division a series is. An **act** is the events of a league's year sharing a
+  matchday number — one page, `/:league/:year/act-:n`. `Series.league_id` is optional:
   a series or event in no league keeps its own page at `/series/:id` / `/events/:id`.
   The current year is asked **per league**. News, press, media and documents are static
   content behind hooks (`web/src/content/`) until they have a backend.

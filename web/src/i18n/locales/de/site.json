@@ -1,5 +1,6 @@
 {
   "nav": {
+    "association": "Verein",
     "leagues": "Ligen",
     "pages": "Seiten",
     "chapters": "Kapitel"
@@ -19,14 +20,13 @@
   "chapters": {
     "now": "Jetzt",
     "standings": "Tabelle",
-    "season": "Saison",
-    "clubs": "Vereine",
     "news": "News",
     "media": "Medien",
-    "press": "Presse",
     "about": "Über",
     "leagues": "Ligen",
-    "forClubs": "Für Vereine"
+    "forClubs": "Für Vereine",
+    "results": "Ergebnisse",
+    "archive": "Archiv"
   },
   "state": {
     "done": "Ergebnisse",
@@ -51,40 +51,27 @@
   },
   "hostedBy": "ausgerichtet von {{host}}",
   "now": {
-    "title": "{{act}}, {{dates}}.",
-    "seasonComplete": "Saison beendet.",
-    "nothingYet": "{{league}} — die Saison wird geplant.",
-    "matchdayPage": "Zum Spieltag",
-    "resultsOf": "Ergebnisse {{act}}",
-    "finalStandings": "Abschlusstabelle"
+    "resultsOf": "Ergebnisse {{act}}"
   },
   "standings": {
-    "title": "Wer wo steht.",
     "more": "Ganze Tabelle",
     "noSeries": "Für dieses Jahr ist noch keine Serie veröffentlicht.",
     "notYet": "Noch keine Wettfahrt gesegelt.",
     "archive": "Archiv"
   },
   "season": {
-    "title_one": "Ein Wochenende, eine Saison.",
-    "title_other": "{{count}} Wochenenden, eine Saison.",
     "more": "Saison & Schwarzes Brett",
     "empty": "Noch keine Spieltage veröffentlicht.",
     "matchdays": "Spieltage"
   },
   "clubs": {
-    "title_one": "Ein Verein.",
-    "title_other": "{{count}} Vereine.",
-    "titleNone": "Die Vereine.",
     "more": "Alle Vereine",
     "none": "Noch keine Vereine gemeldet."
   },
   "news": {
-    "title": "Vom Wasser.",
     "more": "Alle News"
   },
   "media": {
-    "title": "Noch einmal ansehen.",
     "more": "Fotos & Videos",
     "preview_one": "Ein Video und die Galerien aller Spieltage.",
     "preview_other": "{{count}} Videos und die Galerien aller Spieltage.",
@@ -95,7 +82,6 @@
     "credits": "Fotos © Deutsche Segel-Bundesliga; Luftbild © Adam Burdylo."
   },
   "press": {
-    "title": "Für die Presse.",
     "more": "Pressebereich",
     "page": "Pressebereich",
     "releases": "Pressemitteilungen",
@@ -135,11 +121,7 @@
     "external": "Live-Ansicht öffnen"
   },
   "home": {
-    "title": "Drei Wettbewerbe, ein Verein.",
-    "leagues": "Wähle deine Liga.",
-    "news": "News aus allen Ligen.",
     "association": "Verein",
-    "forClubs": "Richte deine eigene Regatta hier aus.",
     "aboutMore": "Über den Verein",
     "founded": "Gegründet am {{date}}.",
     "aboutKicker": "Über den Verein",

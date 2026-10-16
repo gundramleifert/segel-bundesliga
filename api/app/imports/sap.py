@@ -58,7 +58,9 @@ from app.text import slugify
 
 SOURCE = Source.SAP_SAILING
 BASE_URL = "https://www.sapsailing.com/sailingserver/api"
-LEAGUE_SLUG = "dsbl"
+# A series' slug keeps the DSBL prefix (`dsbl-1-2026`) — series slugs are stable, and the
+# seed's series are found by it. The league is the division's own (Story B-14).
+SERIES_PREFIX = "dsbl"
 # The matchdays are sailed on German water; a start at 23:30 UTC is the next day here.
 LOCAL_TIME = ZoneInfo("Europe/Berlin")
 
@@ -401,7 +403,7 @@ async def _series(
     session: AsyncSession, report: Report, regatta: RegattaName, publish: bool
 ) -> Series:
     series = await linked(session, Series, SOURCE, regatta.series_name)
-    slug = f"{LEAGUE_SLUG}-{regatta.level}-{regatta.year}"
+    slug = f"{SERIES_PREFIX}-{regatta.level}-{regatta.year}"
     if series is None:
         # The seed's and the admin's own series of that year, if there is one.
         series = (
@@ -417,7 +419,7 @@ async def _series(
             short_name=f"{regatta.level}. Liga {regatta.year}",
             year=regatta.year,
             level=regatta.level,
-            league_id=(await _league(session, report)).id,
+            league_id=(await _league(session, report, regatta.level)).id,
             scoring={"discard_after": [], "penalty_percent": 20},
             published=publish,
         )
@@ -431,13 +433,18 @@ async def _series(
     return series
 
 
-async def _league(session: AsyncSession, report: Report) -> League:
+async def _league(session: AsyncSession, report: Report, level: int) -> League:
+    """The division's league — the 1. and 2. Liga are two leagues (Story B-14)."""
+    slug = f"{level}-liga"
     league = (
-        await session.execute(select(League).where(League.slug == LEAGUE_SLUG))
+        await session.execute(select(League).where(League.slug == slug))
     ).scalar_one_or_none()
     if league is None:
         league = League(
-            slug=LEAGUE_SLUG, short_name="DSBL", name="Deutsche Segel-Bundesliga", position=1
+            slug=slug,
+            short_name=f"{level}. Liga",
+            name=f"{level}. Segel-Bundesliga",
+            position=level,
         )
         session.add(league)
         await session.flush()

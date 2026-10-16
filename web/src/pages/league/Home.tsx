@@ -2,11 +2,11 @@ import { useQueries } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import { getGetLeagueSeasonQueryOptions, useGetLeagueSeason } from "../../api/generated/sbl";
+import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
 import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
-import { BOARD, DSBL_PHOTOS, MEMBER_LEAGUE, OWN_PHOTOS, useAssociation, useLocalized, useNews } from "../../content";
+import { BOARD, DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, useAssociation, useLocalized, useNews } from "../../content";
 import { formatDate } from "../../lib/format";
 import { actsOf, currentAct, href } from "../../lib/site";
 import { useClubsOf } from "./LeagueHome";
@@ -28,7 +28,8 @@ export function AssociationHome() {
     {
       id: "now",
       label: t("chapters.now"),
-      title: t("home.title"),
+      // The page's one h1 names the page; every other chapter is titled with its name.
+      title: "Deutsche Segel-Liga e.V.",
       photo: OWN_PHOTOS.title,
       body: (
         <div className="max-w-2xl rounded-2xl bg-white/10 px-4 backdrop-blur" data-testid="site-home-now">
@@ -51,10 +52,10 @@ export function AssociationHome() {
     {
       id: "leagues",
       label: t("chapters.leagues"),
-      title: t("home.leagues"),
+      title: t("chapters.leagues"),
       photo: DSBL_PHOTOS.race,
       body: (
-        <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-3">
+        <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {leagues.map((l) => (
             <li key={l.slug}>
               <Link to={href.league(l.slug)} className="block h-full rounded-2xl bg-white/10 p-5 backdrop-blur transition hover:bg-white/20">
@@ -69,12 +70,12 @@ export function AssociationHome() {
     {
       id: "news",
       label: t("chapters.news"),
-      title: t("home.news"),
+      title: t("chapters.news"),
       photo: DSBL_PHOTOS.swimmer,
       body: (
         <ul className="max-w-2xl space-y-3">
           {news.map((n) => {
-            const league = n.league ?? MEMBER_LEAGUE;
+            const league = n.league ?? MEMBER_LEAGUES[0];
             return (
               <li key={n.slug}>
                 <Link to={href.article(league, n.slug)} className="block border-l-2 border-white/50 pl-4 hover:border-white">
@@ -92,14 +93,14 @@ export function AssociationHome() {
     {
       id: "clubs",
       label: t("chapters.forClubs"),
-      title: t("home.forClubs"),
+      title: t("chapters.forClubs"),
       photo: DSBL_PHOTOS.podium,
       body: <p className="max-w-xl text-lg text-white/80">{association ? localized(association.service) : null}</p>,
     },
     {
       id: "about",
       label: t("chapters.about"),
-      title: "Deutsche Segel-Liga e.V.",
+      title: t("chapters.about"),
       photo: DSBL_PHOTOS.studio,
       more: { to: href.about(), label: t("home.aboutMore") },
       body: (
@@ -130,8 +131,8 @@ export function AssociationAboutPage() {
   const { t } = useTranslation("site");
   const localized = useLocalized();
   const association = useAssociation().data;
-  const members = useGetLeagueSeason(MEMBER_LEAGUE).data;
-  const clubs = useClubsOf(members?.series ?? []);
+  const members = useQueries({ queries: MEMBER_LEAGUES.map((l) => getGetLeagueSeasonQueryOptions(l)) });
+  const clubs = useClubsOf(members.flatMap((m) => m.data?.series ?? []));
   return (
     <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")} photo={OWN_PHOTOS.title}>
       {association && (

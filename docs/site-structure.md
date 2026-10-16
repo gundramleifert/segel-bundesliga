@@ -11,12 +11,16 @@ goes; the wireframes of #13 were removed on 2026-10-12.
 
 ## What the site is
 
-One application for the association's three competitions and for the association itself:
+One application for the association's competitions and for the association itself. **Changed
+2026-10-16:** the 1. and 2. Liga were one league, *DSBL* (`/dsbl`, two series a year); they
+are two leagues now, each a top-level entry like on deutsche-segelbundesliga.de, and the old
+`/dsbl/…` addresses go to the 1. Liga's same page.
 
 | Competition | Path | Made of |
 |---|---|---|
-| **DSBL** — Deutsche Segel-Bundesliga | `/dsbl` | two series a year: 1. Liga (18 clubs, 6 matchdays) and 2. Liga (18 clubs, 5 matchdays) |
-| **Junioren-Liga** — Deutsche Junioren Segel-Liga | `/junioren-liga` | one series a year, AK16–AK21 |
+| **1. Liga** — 1. Segel-Bundesliga | `/1-liga` | one series a year: 18 clubs, 6 matchdays |
+| **2. Liga** — 2. Segel-Bundesliga | `/2-liga` | one series a year: 18 clubs, 5 matchdays, sailed at the 1. Liga's venues and weekends |
+| **Junioren** — Deutsche Junioren Segel-Liga | `/junioren-liga` | one series a year, AK16–AK21 |
 | **DSL-Pokal** | `/dsl-pokal` | one event a year, autumn |
 | the association, Deutsche Segel-Liga e.V. | `/` | its own pages |
 
@@ -26,16 +30,18 @@ to requalify at the DSL-Pokal.
 
 ## The one navigation row
 
-Every page has the same row at the top, and only one: the **logo** (the association's
-home) · **DSBL · Junioren-Liga · DSL-Pokal** · **My area** at the right. Topics such as
+Every page has the same row at the top, and only one: the **logo** and **Verein**
+(*Association*, both the association's home) · **1. Liga · 2. Liga · Junioren · DSL-Pokal**
+· the **account** at the right (*Sign in*, or *My space*). Topics such as
 results, media and press are not in the row. Each one is a chapter of the league's page
 and has a full page behind that chapter. An earlier row of topics under the league bar
 made two navigation rows and was dropped (#13).
 
 On a chapter page the row lies over the picture. On a depth page it is solid and sticky,
-and (layout A) it carries the league's pages itself: **logo · DSBL ▾ · Standings · Season ·
-Notice board · Clubs · News · Media · Press · About · My area**. The league becomes a
-switch, so there is room for its pages beside it.
+with the same entries and the current league marked (changed 2026-10-16: it used to turn
+the league into a switch with its pages beside it). The league's own pages — *Standings ·
+Season · Notice board · Clubs · News · Media · Press · About* — are a row of links under
+the depth page's picture (layout A), the sheet's pills (B) or the left column (C).
 
 **At most two rows of navigation, ever.** The second exists only on a matchday page: it
 names the matchday (*"Act 5 · Berlin, 18–20 Sep"*) and lists what it has (*notice board,
@@ -46,38 +52,39 @@ league's pages under the bar made three rows on a matchday page and was dropped
 
 ## The league's page: chapters
 
-`/dsbl` is one page of full-screen chapters, each over its own picture, with a column of
+`/1-liga` is one page of full-screen chapters, each over its own picture, with a column of
 dots on the right to jump between them. A thumb can slide along the dots, which shows
 every chapter's name, and the page follows. Each chapter is a **preview** that ends in a
 link to its **own page**. That link is what option E adds to option A.
 
 ```mermaid
 flowchart TD
-  top["Top bar: logo · DSBL · Junioren-Liga · DSL-Pokal · My area"]
-  top --> lg["/dsbl — the chapter page"]
-  lg --> ch1["Now"] & ch2["Standings"] & ch3["Season"] & ch4["Clubs"] & ch5["News"] & ch6["Media"] & ch7["Press"] & ch8["About"]
-  ch1 -->|"matchday page"| p1["/dsbl/2026/act-6"]
-  ch2 -->|"full standings"| p2["/dsbl/standings"]
-  ch3 -->|"season & notice board"| p3["/dsbl/season"]
-  ch4 -->|"all clubs"| p4["/dsbl/clubs"]
-  ch5 -->|"all news"| p5["/dsbl/news"]
-  ch6 -->|"photos & videos"| p6["/dsbl/media"]
-  ch7 -->|"press centre"| p7["/dsbl/press"]
-  ch8 -->|"how it works"| p8["/dsbl/about"]
-  p3 --> nb["/dsbl/notice-board — season documents"]
+  top["Top bar: logo · Verein · 1. Liga · 2. Liga · Junioren · DSL-Pokal · account"]
+  top --> lg["/1-liga — the chapter page"]
+  lg --> ch1["Standings"] & ch2["Results (while live)"] & ch3["News"] & ch4["Media"] & ch5["About"] & ch6["Archive"]
+  ch1 -->|"full standings"| p2["/1-liga/standings"]
+  ch2 -->|"results of the act"| p1["/1-liga/2026/act-6/results"]
+  ch3 -->|"all news"| p5["/1-liga/news"]
+  ch4 -->|"photos & videos"| p6["/1-liga/media"]
+  ch5 -->|"how it works · clubs · press"| p8["/1-liga/about"]
+  ch5 --> p4["/1-liga/clubs"] & p7["/1-liga/press"]
+  ch6 -->|"a year"| p9["/1-liga/2025/standings"]
+  p2 --> p3["/1-liga/season"]
+  p3 --> nb["/1-liga/notice-board — season documents"]
   p1 --> tabs["tabs: Notice board · Results · Pairing list · Crews · Live · Media"]
 ```
 
 | Chapter | Preview | Its page |
 |---|---|---|
-| **Now** | the running or next matchday: venue, host, divisions; links to live map, notice board, last results | the matchday page |
-| **Standings** | top five of each division | `/:league/standings` |
-| **Season** | every matchday of the year, with its state | `/:league/season` |
-| **Clubs** | the clubs' short names | `/:league/clubs` |
+| **Standings** | the top five; the page's title | `/:league/standings` |
+| **Results** | only while a matchday is live: the act, venue, host; links to live map and notice board | the act's results |
 | **News** | three headlines | `/:league/news` |
 | **Media** | what there is to watch | `/:league/media` |
-| **Press** | the latest releases | `/:league/press` |
-| **About** | what the league is | `/:league/about` |
+| **About** | what the league is, its clubs, links to all clubs and the press centre | `/:league/about` |
+| **Archive** | the earlier years; left out when there is none | `/:league/:year/standings` |
+
+**A chapter's title is its name** (*Standings*, not *"Where everyone stands."*) — changed
+2026-10-16; on the association's home only the first chapter carries the page's name.
 
 The association's home `/` is a chapter page as well: *Now* (every league's current
 matchday), *Leagues*, *News*, *For clubs* (the association's service: run your own event
@@ -99,7 +106,7 @@ here), *About* (history, board, member clubs → `/about`).
 
 ## The matchday page
 
-`/:league/:year/:act`, for example `/dsbl/2026/act-6`. The tab is the last path
+`/:league/:year/:act`, for example `/1-liga/2026/act-6`. The tab is the last path
 segment (`…/act-6/results`), so every tab has its own URL. Without a tab the page opens
 on *Results* once racing is done, and on *Notice board* before that.
 
@@ -117,9 +124,9 @@ C's idea, kept inside E.
 
 ## URLs and redirects
 
-- **The league's path is stable across years.** `/dsbl` is the current season, by the
+- **The league's path is stable across years.** `/1-liga` is the current season, by the
   existing rule for "the current year" (the newest one not in the future). A past year is
-  `/dsbl/2025/…`.
+  `/1-liga/2025/…`.
 - **Short paths are redirects, never copies:** `/:league/live` goes to the running act,
   else the next one (`…/live`); `/:league/results` goes to the last act sailed
   (`…/results`); `/:league/notice-board` holds the season's documents and links on to the
@@ -165,7 +172,8 @@ Each is to be decided on the real device, not argued in the abstract:
 From #14, still unanswered:
 
 1. ~~**"DSBL" spans two series a year.**~~ Decided 2026-10-12: a `League` row, and
-   `Series.league_id`. An act is the year's events that share a matchday number.
+   `Series.league_id`. An act is the year's events that share a matchday number. Revised
+   2026-10-16: the 1. and 2. Liga are two leagues, one series a year each.
 2. Which domains exist or are planned.
 3. Who writes news and press releases, and whether they need a review before publishing.
 4. Videos on YouTube (embedded) or hosted here; galleries uploaded here or linked.

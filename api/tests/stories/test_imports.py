@@ -107,7 +107,7 @@ async def db(tmp_path):
         await connection.run_sync(Base.metadata.create_all)
     sessions = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     async with sessions() as session:
-        session.add(League(slug="dsbl", short_name="DSBL", name="Deutsche Segel-Bundesliga"))
+        session.add(League(slug="1-liga", short_name="1. Liga", name="1. Segel-Bundesliga"))
         session.add_all(
             Club(slug=slugify(short), name=name, short_name=short) for name, short in _CLUBS
         )

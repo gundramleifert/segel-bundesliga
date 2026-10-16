@@ -67,17 +67,27 @@ export type LeagueAbout = { intro: Localized; facts: Localized[]; photo: Photo }
 /** What a league is and what is at stake — condensed from deutsche-segelliga.de/wettbewerbe.
  *  Keyed by the league's slug; a league without an entry simply has no about text yet. */
 const LEAGUE_ABOUT: Record<string, LeagueAbout> = {
-  dsbl: {
+  "1-liga": {
     photo: DSBL_PHOTOS.race,
     intro: {
-      en: "The top of German club sailing since 2013: the best sailors of 36 clubs — Olympians, seasoned professionals and rising talents — race side by side for their club, on J/70s the league provides and rotates after every race.",
-      de: "Die Spitze des deutschen Vereinssegelns seit 2013: Die besten Seglerinnen und Segler aus 36 Vereinen — Olympioniken, erfahrene Profis und junge Talente — segeln Seite an Seite für ihren Club, auf J/70, die die Liga stellt und nach jeder Wettfahrt tauscht.",
+      en: "The top of German club sailing since 2013: the best sailors of 18 clubs — Olympians, seasoned professionals and rising talents — race side by side for their club, on J/70s the league provides and rotates after every race.",
+      de: "Die Spitze des deutschen Vereinssegelns seit 2013: Die besten Seglerinnen und Segler aus 18 Vereinen — Olympioniken, erfahrene Profis und junge Talente — segeln Seite an Seite für ihren Club, auf J/70, die die Liga stellt und nach jeder Wettfahrt tauscht.",
     },
     facts: [
-      { en: "1. Liga: 18 clubs, 6 matchdays, the German championship plate and SAILING Champions League places.", de: "1. Liga: 18 Vereine, 6 Spieltage, die Meisterschale und Startplätze in der SAILING Champions League." },
-      { en: "2. Liga: 18 clubs, 5 matchdays, sailed alongside the 1. Liga's events.", de: "2. Liga: 18 Vereine, 5 Spieltage, gesegelt bei den Events der 1. Liga." },
-      { en: "The last four of the 1. Liga go down, the first four of the 2. Liga go up.", de: "Die letzten vier der 1. Liga steigen ab, die ersten vier der 2. Liga steigen auf." },
-      { en: "Places 13–18 of the 2. Liga must requalify at the DSL-Pokal.", de: "Die Plätze 13–18 der 2. Liga müssen sich beim DSL-Pokal neu qualifizieren." },
+      { en: "18 clubs, 6 matchdays, the German championship plate and SAILING Champions League places.", de: "18 Vereine, 6 Spieltage, die Meisterschale und Startplätze in der SAILING Champions League." },
+      { en: "The last four go down to the 2. Liga.", de: "Die letzten vier steigen in die 2. Liga ab." },
+    ],
+  },
+  "2-liga": {
+    photo: DSBL_PHOTOS.aerial,
+    intro: {
+      en: "The second division of German club sailing: 18 clubs race the league's format — J/70, fleet race — at the same venues and weekends as the 1. Liga, for four places in it.",
+      de: "Die zweite Liga des deutschen Vereinssegelns: 18 Vereine segeln im Format der Liga — J/70, Fleet Race — an denselben Orten und Wochenenden wie die 1. Liga, um vier Plätze in ihr.",
+    },
+    facts: [
+      { en: "18 clubs, 5 matchdays, sailed alongside the 1. Liga's events.", de: "18 Vereine, 5 Spieltage, gesegelt bei den Events der 1. Liga." },
+      { en: "The first four go up to the 1. Liga.", de: "Die ersten vier steigen in die 1. Liga auf." },
+      { en: "Places 13–18 must requalify at the DSL-Pokal.", de: "Die Plätze 13–18 müssen sich beim DSL-Pokal neu qualifizieren." },
     ],
   },
   "junioren-liga": {
@@ -120,7 +130,8 @@ export type TableMarks = { promotion?: number; relegation?: number; requalify?: 
 
 const TABLE_MARKS: Record<string, Record<number, TableMarks>> = {
   // deutsche-segelliga.de/wettbewerbe: four down, four up, 13–18 of the 2. Liga requalify.
-  dsbl: { 1: { relegation: 4 }, 2: { promotion: 4, requalify: [13, 18] } },
+  "1-liga": { 1: { relegation: 4 } },
+  "2-liga": { 2: { promotion: 4, requalify: [13, 18] } },
 };
 
 export const tableMarks = (league: string, level: number | null | undefined): TableMarks =>
@@ -160,7 +171,7 @@ const NEWS: Article[] = [
     slug: "nrv-takes-the-lead",
     title: "NRV takes the lead after a perfect Sunday",
     date: "2026-09-21",
-    league: "dsbl",
+    league: "1-liga",
     teaser: "Six wins in eight races — and the table has a new name at the top.",
     photo: DSBL_PHOTOS.podium,
     body: ["Six wins in eight races — and the table has a new name at the top.", PLACEHOLDER],
@@ -169,7 +180,7 @@ const NEWS: Article[] = [
     slug: "promotion-race",
     title: "Promotion race: three clubs within two points",
     date: "2026-09-14",
-    league: "dsbl",
+    league: "2-liga",
     teaser: "Before the final act, nothing is decided.",
     photo: DSBL_PHOTOS.race,
     body: ["Before the final act, nothing is decided.", PLACEHOLDER],
@@ -285,6 +296,7 @@ export function useActNotices(_eventIds: number[]) {
   return ready({ notices: NOTICES, documents: EVENT_DOCUMENTS, example: true });
 }
 
-/** The association's members are the clubs of this league's divisions
- *  (`docs/site-structure.md`) — content, because membership has no model of its own yet. */
-export const MEMBER_LEAGUE = "dsbl";
+/** The association's members are the clubs of the 1. and 2. Liga
+ *  (`docs/site-structure.md`) — content, because membership has no model of its own yet.
+ *  The first also hosts the association's own news, which belongs to no league. */
+export const MEMBER_LEAGUES = ["1-liga", "2-liga"] as const;

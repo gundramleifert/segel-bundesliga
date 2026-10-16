@@ -84,7 +84,7 @@ describeStory("B-5: as a spectator I follow live updates", () => {
   test("/live leads to the running event", async ({ page }) => {
     await page.goto("/live");
     // Through the event's address to its act, which opens on the results while racing.
-    await expect(page).toHaveURL(new RegExp(`/dsbl/2026/act-2\\?division=${LIVE_EVENT}$`));
+    await expect(page).toHaveURL(new RegExp(`/1-liga/2026/act-2\\?division=${LIVE_EVENT}$`));
     await expect(page.getByTestId("matchday-live-badge")).toBeVisible();
   });
 });
