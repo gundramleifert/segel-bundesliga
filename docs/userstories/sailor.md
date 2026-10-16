@@ -159,8 +159,10 @@ Acceptance criteria:
 - The date of birth decides the path. Unknown, the page says so and points at the profile
   form above it, where the sailor enters it themselves (S-2).
 - Whoever may record a confirmation (S-3) may also upload a scan and download a form for
-  that sailor: the sailor's own account, `admin`, `editor`, `club_manager`. So a club
-  manager can hand in the paper forms their club collected.
+  that sailor: the sailor's own account, `admin`, `editor`, and the manager of a club
+  that has the sailor in a squad. So a club manager can hand in the paper forms their
+  club collected — and only those: until 2026-10-17 any club's manager could sign for any
+  sailor on the site (found by Journey J-5).
 
 **The scan is the most sensitive document in the whole project**: it contains data on a
 minor and a signature. Therefore:
@@ -202,8 +204,10 @@ Acceptance criteria:
   longer cleared** until they confirm the new one (status `version_outdated`).
 - Confirming the same version for the same scope twice is rejected
   (`/errors/waiver-already-confirmed`).
-- A sailor can confirm for **their own account** (matched by email); `admin`, `editor`, and
-  `club_manager` can record for anyone (they collect the paper forms).
+- A sailor can confirm for **their own account** (matched by its **verified** email);
+  `admin` and `editor` can record for anyone, a club's manager for the sailors in their
+  club's squads (they collect the paper forms) — `waiver-confirmation-forbidden` for
+  everyone else.
 
 **Minors** (under 18 on the reference date — the event start, or the series start / 1 Jan of
 its year):
