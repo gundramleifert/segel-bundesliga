@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout, SiteShell } from "./components/Layout";
-import { LegacyRedirect } from "./components/LegacyRedirect";
+import { LegacyRedirect, PrefixRedirect } from "./components/LegacyRedirect";
 import { Help } from "./pages/Help";
 import { Account } from "./pages/Account";
 import { LegalNotice } from "./pages/LegalNotice";
@@ -50,6 +50,8 @@ export default function App() {
           They draw their own frame. A league's path is one free segment, so the static
           routes below (`/me`, `/admin`, …) win over it by react-router's ranking. */}
       <Route index element={<AssociationHome />} />
+      {/* The DSBL was one league until 2026-10-16; its 1. Liga is its heir (Story B-16). */}
+      <Route path="dsbl/*" element={<PrefixRedirect from="dsbl" to="1-liga" />} />
       <Route path="about" element={<AssociationAboutPage />} />
       <Route path=":league" element={<LeagueHome />} />
       <Route path=":league/about" element={<LeagueAboutPage />} />

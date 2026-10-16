@@ -1,8 +1,10 @@
 {
   "nav": {
+    "association": "Association",
     "leagues": "Leagues",
     "pages": "Pages",
-    "chapters": "Chapters"
+    "chapters": "Chapters",
+    "menu": "Menu"
   },
   "pages": {
     "home": "Home",
@@ -19,14 +21,13 @@
   "chapters": {
     "now": "Now",
     "standings": "Standings",
-    "season": "Season",
-    "clubs": "Clubs",
     "news": "News",
     "media": "Media",
-    "press": "Press",
     "about": "About",
     "leagues": "Leagues",
-    "forClubs": "For clubs"
+    "forClubs": "For clubs",
+    "results": "Results",
+    "archive": "Archive"
   },
   "state": {
     "done": "Results",
@@ -51,40 +52,27 @@
   },
   "hostedBy": "hosted by {{host}}",
   "now": {
-    "title": "{{act}}, {{dates}}.",
-    "seasonComplete": "Season complete.",
-    "nothingYet": "{{league}} — the season is being planned.",
-    "matchdayPage": "Matchday page",
-    "resultsOf": "Results {{act}}",
-    "finalStandings": "Final standings"
+    "resultsOf": "Results {{act}}"
   },
   "standings": {
-    "title": "Where everyone stands.",
     "more": "Full standings",
     "noSeries": "No series published for this year yet.",
     "notYet": "No races sailed yet.",
     "archive": "Archive"
   },
   "season": {
-    "title_one": "One weekend, one season.",
-    "title_other": "{{count}} weekends, one season.",
     "more": "Season & notice board",
     "empty": "No matchdays published yet.",
     "matchdays": "Matchdays"
   },
   "clubs": {
-    "title_one": "One club.",
-    "title_other": "{{count}} clubs.",
-    "titleNone": "The clubs.",
     "more": "All clubs",
     "none": "No clubs entered yet."
   },
   "news": {
-    "title": "From the water.",
     "more": "All news"
   },
   "media": {
-    "title": "Watch it again.",
     "more": "Photos & videos",
     "preview_one": "One video and the galleries of every matchday.",
     "preview_other": "{{count}} videos and the galleries of every matchday.",
@@ -95,7 +83,6 @@
     "credits": "Photos © Deutsche Segel-Bundesliga; aerial photo © Adam Burdylo."
   },
   "press": {
-    "title": "For the press.",
     "more": "Press centre",
     "page": "Press centre",
     "releases": "Press releases",
@@ -135,11 +122,7 @@
     "external": "Open the live view"
   },
   "home": {
-    "title": "Three competitions, one association.",
-    "leagues": "Pick your league.",
-    "news": "News from all leagues.",
     "association": "Association",
-    "forClubs": "Run your own regatta here.",
     "aboutMore": "About the association",
     "founded": "Founded {{date}}.",
     "aboutKicker": "About the association",

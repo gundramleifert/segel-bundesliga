@@ -118,30 +118,39 @@ async def seed() -> None:
         # Everything the seed creates is a **running competition**, so it is published
         # (Story VA-8): a draft is invisible on the public site, and a seed of drafts would
         # leave the whole dev setup blank.
-        # The association's three competitions — the public site's top row
+        # The association's competitions — the public site's top row
         # (docs/site-structure.md). A series names its year; the league links the years.
-        dsbl = League(
-            slug="dsbl",
-            short_name="DSBL",
-            name="Deutsche Segel-Bundesliga",
-            tagline="Two divisions, 36 clubs, promotion and relegation.",
+        # The 1. and 2. Liga are two leagues (Story B-14): they sail the same weekends,
+        # but each is its own entry on the site.
+        first_division = League(
+            slug="1-liga",
+            short_name="1. Liga",
+            name="1. Segel-Bundesliga",
+            tagline="18 clubs, six weekends — the last four go down.",
             position=1,
+        )
+        second_division = League(
+            slug="2-liga",
+            short_name="2. Liga",
+            name="2. Segel-Bundesliga",
+            tagline="18 clubs, five weekends — the first four go up.",
+            position=2,
         )
         junior_league = League(
             slug="junioren-liga",
-            short_name="Junioren-Liga",
+            short_name="Junioren",
             name="Deutsche Junioren Segel-Liga",
             tagline="AK16 to AK21 — the talent school of club sailing.",
-            position=2,
+            position=3,
         )
         cup = League(
             slug="dsl-pokal",
             short_name="DSL-Pokal",
             name="DSL-Pokal",
             tagline="One weekend where amateur meets professional.",
-            position=3,
+            position=4,
         )
-        session.add_all([dsbl, junior_league, cup])
+        session.add_all([first_division, second_division, junior_league, cup])
         await session.flush()
 
         scoring = {"discard_after": [], "penalty_percent": 20}
@@ -151,7 +160,7 @@ async def seed() -> None:
             short_name="1. Liga 2026",
             year=YEAR,
             level=1,
-            league_id=dsbl.id,
+            league_id=first_division.id,
             published=True,
             scoring=scoring,
             description=(
@@ -169,7 +178,7 @@ async def seed() -> None:
             short_name="2. Liga 2026",
             year=YEAR,
             level=2,
-            league_id=dsbl.id,
+            league_id=second_division.id,
             published=True,
             scoring=scoring,
         )

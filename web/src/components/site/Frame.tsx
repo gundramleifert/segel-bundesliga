@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { useListLeagues } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
@@ -20,20 +20,28 @@ export function useLeagues(): League[] {
   return useListLeagues().data ?? [];
 }
 
-/** The one navigation row: logo (the association's home), the leagues, the account. Over
- *  the picture on a chapter page, solid and sticky everywhere else. */
+/** The one navigation row: logo and *Association* (the association's home), the leagues,
+ *  the account. Over the picture on a chapter page, solid and sticky everywhere else — and
+ *  the same entries everywhere, the current one marked (Story B-13). */
 export function TopBar({
   overlay = false,
   league,
 }: {
   overlay?: boolean;
-  /** With a league: the row offers that league's pages, the leagues behind a switch. */
+  /** The league the page belongs to, marked in the row. */
   league?: League | null;
 }) {
   const { t } = useTranslation("site");
   const leagues = useLeagues();
   const { pathname } = useLocation();
   const { account, loading, hasRole } = useAccount();
+  const inLeague = (slug: string) =>
+    league?.slug === slug || pathname === href.league(slug) || pathname.startsWith(`${href.league(slug)}/`);
+  const atHome = !league && (pathname === href.home() || pathname === href.about());
+  const entries = [
+    { key: "association", to: href.home(), label: t("nav.association"), on: atHome },
+    ...leagues.map((l) => ({ key: `league-${l.slug}`, to: href.league(l.slug), label: l.short_name, on: inLeague(l.slug) })),
+  ];
   return (
     <header
       className={`z-40 text-sm ${
@@ -53,40 +61,56 @@ export function TopBar({
             height={58}
           />
         </Link>
-        {league ? (
-          <>
-            <LeagueSwitch league={league} leagues={leagues} />
-            <LeaguePages league={league} />
-            <span className="flex-1 md:hidden" />
-          </>
-        ) : (
-          <nav aria-label={t("nav.leagues")} className="scrollbar-none min-w-0 flex-1 overflow-x-auto" data-testid="site-leagues">
-            <ul className="flex">
-              {leagues.map((l) => {
-                const on = pathname === href.league(l.slug) || pathname.startsWith(`${href.league(l.slug)}/`);
-                return (
-                  <li key={l.slug} className="shrink-0">
-                    <NavLink
-                      to={href.league(l.slug)}
-                      data-testid={`site-league-${l.slug}`}
-                      className={`block whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium transition sm:px-3 sm:text-sm ${
-                        on
-                          ? overlay
-                            ? "bg-white text-slate-950"
-                            : "bg-slate-900 text-white"
-                          : overlay
-                            ? "hover:text-white"
-                            : "hover:text-slate-950"
-                      }`}
-                    >
-                      {l.short_name}
-                    </NavLink>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-        )}
+        {/* A phone has no room for five entries: one button names where you are and opens
+            them as a list. Keyed on the path, so it closes when a link is followed. */}
+        <details key={pathname} className="relative min-w-0 flex-1 md:hidden" data-testid="site-menu">
+          <summary
+            className={`flex w-max max-w-full cursor-pointer list-none items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden ${
+              overlay ? "bg-white text-slate-950" : "bg-slate-900 text-white"
+            }`}
+          >
+            <span aria-hidden>☰</span>
+            <span className="truncate">{entries.find((e) => e.on)?.label ?? t("nav.menu")}</span>
+          </summary>
+          <ul className="absolute left-0 z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-600 shadow-xl" aria-label={t("nav.leagues")}>
+            {entries.map((e) => (
+              <li key={e.key}>
+                <Link
+                  to={e.to}
+                  aria-current={e.on ? "page" : undefined}
+                  data-testid={`site-menu-${e.key}`}
+                  className={`block rounded-lg px-3 py-2 ${e.on ? "font-semibold text-slate-950" : "hover:bg-slate-100"}`}
+                >
+                  {e.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </details>
+        <nav aria-label={t("nav.leagues")} className="scrollbar-none hidden min-w-0 flex-1 overflow-x-auto md:block" data-testid="site-leagues">
+          <ul className="flex">
+            {entries.map((e) => (
+              <li key={e.key} className="shrink-0">
+                <Link
+                  to={e.to}
+                  aria-current={e.on ? "page" : undefined}
+                  data-testid={`site-${e.key}`}
+                  className={`block whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium transition sm:px-3 sm:text-sm ${
+                    e.on
+                      ? overlay
+                        ? "bg-white text-slate-950"
+                        : "bg-slate-900 text-white"
+                      : overlay
+                        ? "hover:text-white"
+                        : "hover:text-slate-950"
+                  }`}
+                >
+                  {e.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
         <UserMenu
           account={account}
           loading={loading}
@@ -94,56 +118,6 @@ export function TopBar({
         />
       </div>
     </header>
-  );
-}
-
-/** The current league as a pill that opens the others — so the row has room for the
- *  league's own pages beside it. A `<details>`, so it needs no state of its own.
- *
- *  Below `md` the row has no room for those pages at all — beside the logo and the account
- *  button one link fitted, with nothing to say the others existed. There the pill names
- *  the page you are on and opens to the league's pages as well. */
-function LeagueSwitch({ league, leagues }: { league: League; leagues: League[] }) {
-  const { t } = useTranslation("site");
-  const current = useCurrentSibling(league);
-  const pages = siblings(league);
-  const here = pages.find((s) => s.to === current && s.key !== "overview");
-  return (
-    <details className="relative min-w-0 shrink" data-testid="site-league-switch">
-      <summary className="flex cursor-pointer list-none items-center gap-1 whitespace-nowrap rounded-full bg-slate-900 px-3 py-1.5 text-[13px] font-semibold text-white sm:text-sm [&::-webkit-details-marker]:hidden">
-        {league.short_name}
-        {here && <span className="truncate font-normal text-white/80 md:hidden"> · {t(`pages.${here.key}`)}</span>}
-        <span aria-hidden className="text-[10px] opacity-70">▾</span>
-      </summary>
-      <div className="absolute left-0 z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-        <ul className="border-b border-slate-100 pb-1.5 md:hidden" aria-label={t("nav.pages")}>
-          {pages.map((s) => (
-            <li key={s.to}>
-              <Link
-                to={s.to}
-                data-testid={`site-switch-page-${s.key}`}
-                className={`block rounded-lg px-3 py-2 ${s.to === current ? "font-semibold text-slate-950" : "text-slate-600 hover:bg-slate-100"}`}
-              >
-                {t(`pages.${s.key}`)}
-              </Link>
-            </li>
-          ))}
-        </ul>
-        <ul className="pt-1.5 md:pt-0" aria-label={t("nav.leagues")}>
-          {leagues.map((l) => (
-            <li key={l.slug}>
-              <Link
-                to={href.league(l.slug)}
-                data-testid={`site-league-${l.slug}`}
-                className={`block rounded-lg px-3 py-2 ${l.slug === league.slug ? "font-semibold text-slate-950" : "text-slate-600 hover:bg-slate-100"}`}
-              >
-                {l.short_name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </details>
   );
 }
 
@@ -181,33 +155,6 @@ function useCurrentSibling(league: League | null) {
   return matches.sort((x, y) => y.to.length - x.to.length)[0]?.to ?? null;
 }
 
-/** The league's pages, in the top row (variant A). */
-function LeaguePages({ league }: { league: League }) {
-  const { t } = useTranslation("site");
-  const current = useCurrentSibling(league);
-  return (
-    <nav aria-label={t("nav.pages")} className="scrollbar-none hidden min-w-0 flex-1 overflow-x-auto md:block" data-testid="site-league-pages">
-      <ul className="flex">
-        {siblings(league)
-          .filter((s) => s.key !== "overview")
-          .map((s) => (
-            <li key={s.to} className="shrink-0">
-              <Link
-                to={s.to}
-                data-testid={`site-page-${s.key}`}
-                className={`block whitespace-nowrap px-2.5 py-1.5 text-[13px] transition sm:text-sm ${
-                  current === s.to ? "font-semibold text-slate-950" : "text-slate-500 hover:text-slate-950"
-                }`}
-              >
-                {t(`pages.${s.key}`)}
-              </Link>
-            </li>
-          ))}
-      </ul>
-    </nav>
-  );
-}
-
 type DepthProps = {
   league: League | null;
   title: string;
@@ -224,9 +171,10 @@ export function DepthPage(props: DepthProps) {
   const Frame = mode === "sheet" ? SheetFrame : mode === "split" ? SplitFrame : BandFrame;
   return (
     <div className="min-h-dvh bg-white text-slate-900" data-testid="site-depth-page" data-frame={mode}>
-      {/* A: one row — the league's pages sit in the top bar. B and C show them in their
-          own place (the sheet's edge, the left column). */}
-      <TopBar league={mode === "band" ? props.league : null} />
+      {/* The top row names the association and every league on every page (Story B-13);
+          the league's own pages sit in each frame's own place — under A's picture, at
+          B's sheet edge, in C's left column. */}
+      <TopBar league={props.league} />
       <Frame {...props} />
       <Footer />
     </div>
@@ -254,8 +202,8 @@ function Crumbs({ league, light = true }: { league: League | null; light?: boole
   );
 }
 
-/** A · Band — a big picture with the kicker and title on it, then the content on white;
- *  the league's pages are in the top row. Under a league the row already says where you
+/** A · Band — a big picture with the kicker and title on it, the league's pages in a row
+ *  under it, then the content on white. Under a league the top row already says where you
  *  are; a breadcrumb would repeat it. */
 function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
   return (
@@ -269,18 +217,20 @@ function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
           <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-6xl">{title}</h1>
         </div>
       </header>
+      {/* Not sticky: a matchday page's tabs are the one second row that sticks (B-15). */}
+      {league && <SiblingPills league={league} sticky={false} />}
       <main id="content" className="mx-auto max-w-6xl px-4 py-10">{children}</main>
     </>
   );
 }
 
-/** The sibling pages as a row of pills that sticks under the top bar — B's way to the
- *  league's other pages. */
-function SiblingPills({ league, className = "" }: { league: League | null; className?: string }) {
+/** The sibling pages as a row of pills — under A's picture, and sticking under the top bar
+ *  at the edge of B's sheet. */
+function SiblingPills({ league, className = "", sticky = true }: { league: League | null; className?: string; sticky?: boolean }) {
   const { t } = useTranslation("site");
   const current = useCurrentSibling(league);
   return (
-    <nav aria-label={t("nav.pages")} className={`scrollbar-none sticky top-14 z-20 overflow-x-auto border-b border-slate-100 bg-white/95 backdrop-blur ${className}`}>
+    <nav aria-label={t("nav.pages")} data-testid="site-league-pages" className={`scrollbar-none ${sticky ? "sticky top-14 z-20" : ""} overflow-x-auto border-b border-slate-100 bg-white/95 backdrop-blur ${className}`}>
       <ul className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-3">
         {siblings(league).map((s) => (
           <li key={s.to} className="shrink-0">
