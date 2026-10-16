@@ -208,8 +208,11 @@ Acceptance criteria:
     whom.
   - `squad-member-is-lined-up` — cannot be dropped while lined up for a matchday, and for
     which one.
-  - `squad-needs-series-registration` — this `Team` is an event entry, not a series
-    registration, so it carries no squad.
+  - `squad-needs-series-registration` — this `Team` is the entry in an event that belongs
+    to a series, whose squad is the club's series registration. **A stand-alone event's
+    entry does carry the squad** (V-12) and is saved like a series registration, within
+    the event's own limits; until 2026-10-17 it was refused too, which left a club's own
+    cup without a squad, a crew or a waiver (found by Journey J-5, step J-5.4).
 - **The squad's size is set per series — or per event, when the event stands alone**
   (`Series.squad_min` / `squad_max`, `Event.squad_min` / `squad_max`; defaults 4 and 10).
   The **maximum is enforced** when the squad is saved (`squad-too-large`, naming the

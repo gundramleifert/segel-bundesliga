@@ -384,8 +384,10 @@ async def set_squad(
 
     Two rules apply:
 
-    * The squad is tied to **series registration**, not to competing at a single event.
-    From it, the lineup is selected for each matchday (Story V-2).
+    * The squad is tied to **series registration**, not to competing at a single event
+    of the series. From it, the lineup is selected for each matchday (Story V-2). An
+    event that belongs to no series has no registration above it, so there the club's
+    **entry** carries the squad (Story V-12) — the team `participation.squad_team` names.
     * **Within a series, a person competes only once.** Registering for a second club
     in the same series would mean competing against oneself.
 
@@ -395,11 +397,11 @@ async def set_squad(
     team = await _team(session, team_id)
     _can_manage_squad(acting, team)
 
-    if not team.is_series_registration:
+    if not team.is_series_registration and team.series_id is not None:
         raise Problem(
             422,
             "squad-needs-series-registration",
-            "A squad belongs to a series registration, not to an entry in one event.",
+            "A squad belongs to the series registration, not to the entry in one of its events.",
             team_id=team.id,
         )
 
@@ -792,6 +794,9 @@ async def _not_removing_lined_up(
     )
     if team.series_id is not None:
         stmt = stmt.where(Event.series_id == team.series_id)
+    elif team.event_id is not None:
+        # A stand-alone event's squad only feeds that event's crew.
+        stmt = stmt.where(Event.id == team.event_id)
 
     selected = (await session.execute(stmt)).all()
     if selected:

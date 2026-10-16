@@ -81,15 +81,8 @@ Open:
   for a matchday"). That is why the crew (J-5.5) comes *before* the waiver here: today a
   sailor who has signed nothing can be lined up. If the lock is built, the order flips —
   waiver first, then the crew — and J-5.5 gains a refusal branch. A stakeholder decision.
-- **A stand-alone event's squad cannot be saved (J-5.4).** V-12 says its squad hangs off
-  the club's entry, `GET /api/clubs/mine` points there (`squad_team_id == team_id`) and
-  the squad can be *read* there, but `PUT /api/admin/teams/{entry}/members` refuses an
-  event entry with `squad-needs-series-registration` (V-1). So no crew can be named for
-  a club's own cup, and nobody in it can be cleared. The walk
-  `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_stand_alone_event` is a
-  strict `xfail` that says exactly this; it joins the `Tests:` line when it passes.
 - Who besides the club's own manager may upload a minor's scan: today any account with
   the `club_manager` summary role may record a confirmation for **any** sailor
   (`_may_confirm_for`), not only for their own club's.
 
-Tests: `api/tests/stories/test_journey_crew.py::TestACrewIsClearedForAMatchday::test_adult_crew_for_a_series_matchday`, `api/tests/stories/test_journey_crew.py::TestACrewIsClearedForAMatchday::test_minor_crew_with_a_guardian`
+Tests: `api/tests/stories/test_journey_crew.py::TestACrewIsClearedForAMatchday::test_adult_crew_for_a_series_matchday`, `api/tests/stories/test_journey_crew.py::TestACrewIsClearedForAMatchday::test_minor_crew_with_a_guardian`, `api/tests/stories/test_journey_crew.py::TestACrewIsClearedForAMatchday::test_stand_alone_event`

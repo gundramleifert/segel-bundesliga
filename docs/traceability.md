@@ -107,20 +107,21 @@ here — this page says what *exists*, the report what *passed*.
 
 - **W1** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_adult_crew_for_a_series_matchday`
 - **W2** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_minor_crew_with_a_guardian`
+- **W3** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_stand_alone_event`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
 | J-5.1 | series | V-1 | ● | W1, W2 | — | — |
 | J-5.2 | squad too small | V-1 | ● | W2 | — | — |
 | J-5.3 | squad too small | V-1 | ● | W2 | — | — |
-| J-5.4 | stand-alone event | V-12 | ● | — | — | — |
-| J-5.5 | main | V-2 | ● | W1, W2 | — | — |
-| J-5.6 | main | Z-8 | ● | W1, W2 | — | — |
+| J-5.4 | stand-alone event | V-12 | ● | W3 | — | — |
+| J-5.5 | main | V-2 | ● | W1, W2, W3 | — | — |
+| J-5.6 | main | Z-8 | ● | W1, W2, W3 | — | — |
 | J-5.7 | no date of birth | S-2 | ◐ | W2 | — | — |
-| J-5.8 | adult | S-1 | ● | W1 | — | — |
+| J-5.8 | adult | S-1 | ● | W1, W3 | — | — |
 | J-5.9 | minor | S-1 | ● | W2 | — | — |
 | J-5.10 | minor | S-1 | ● | *(offline)* | — | — |
 | J-5.11 | minor | S-1 | ● | *(offline)* | — | — |
 | J-5.12 | sailor uploads | S-1 | ● | W2 | — | — |
 | J-5.13 | club uploads | S-1 | ● | W2 | — | — |
-| J-5.14 | main | VA-5 | ◐ | W1, W2 | — | — |
+| J-5.14 | main | VA-5 | ◐ | W1, W2, W3 | — | — |

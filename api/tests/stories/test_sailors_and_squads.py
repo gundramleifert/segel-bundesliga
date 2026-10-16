@@ -11,7 +11,7 @@ a person competes only once.
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import Club, Event, Series, Team, TeamMembership
+from app.models import Club, Event, Sailor, Series, Team, TeamMembership
 from app.models.auth import Role
 from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
@@ -280,11 +280,16 @@ class TestSquadRefusalsAreTyped:
         # in one.
         assert problem["sailors"] == ["Other Typed0"]
 
-    async def test_an_event_entry_says_it_carries_no_squad(self, client, caplog):
+    async def test_an_entry_in_a_series_event_says_it_carries_no_squad(self, client, caplog):
+        """The squad of a series' event is the series registration's — not its entry's."""
         admin = await as_role(client, caplog, "typed3@example.com", Role.ADMIN)
         async with SessionLocal() as session:
             entry = (
-                await session.execute(select(Team).where(Team.event_id.is_not(None)).limit(1))
+                await session.execute(
+                    select(Team)
+                    .where(Team.event_id.is_not(None), Team.series_id.is_not(None))
+                    .limit(1)
+                )
             ).scalar_one()
 
         response = await client.put(
@@ -529,6 +534,26 @@ class TestSquadLimits:
 
         squad = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
         assert (squad["squad_min"], squad["squad_max"]) == (2, 5)
+
+        # The entry *is* the squad's team: it is saved there, within the event's limits.
+        async with SessionLocal() as session:
+            sailors = list(
+                (await session.execute(select(Sailor.id).order_by(Sailor.id).limit(6))).scalars()
+            )
+        saved = await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={"members": [{"sailor_id": sid, "role": "crew"} for sid in sailors[:3]]},
+        )
+        assert saved.status_code == 200, saved.text
+        assert {m["id"] for m in saved.json()["members"]} == set(sailors[:3])
+        too_many = await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={"members": [{"sailor_id": sid, "role": "crew"} for sid in sailors]},
+        )
+        assert too_many.status_code == 422
+        assert too_many.json()["type"] == "/errors/squad-too-large"
 
         widened = await client.patch(
             f"/api/admin/events/{event_id}", headers=admin, json={"squad_max": 6}

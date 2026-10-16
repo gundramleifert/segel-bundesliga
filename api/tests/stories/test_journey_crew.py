@@ -24,7 +24,6 @@ import io
 from datetime import date, timedelta
 from uuid import uuid4
 
-import pytest
 
 from app.models.auth import Role
 from tests.journeys import step
@@ -227,7 +226,8 @@ class _Setting:
     @property
     def waiver_url(self) -> str:
         kind, object_id = self.scope
-        return f"/api/{kind}/{object_id}/waiver"
+        # The scope is singular ("event"), the route plural; "series" is both.
+        return f"/api/{'events' if kind == 'event' else 'series'}/{object_id}/waiver"
 
     async def my_waiver(self, headers) -> dict:
         response = await self.client.get("/api/waiver/me", headers=headers)
@@ -378,18 +378,9 @@ class TestACrewIsClearedForAMatchday:
             for row in listing["sailors"]
         )
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "A stand-alone event's squad cannot be saved: PUT /api/admin/teams/{entry}/members "
-            "refuses an event entry (squad-needs-series-registration), although V-12 and "
-            "participation.squad_team hang the squad off it. Not on the journey's Tests: line "
-            "until it passes — then add it there, and J-5.4 is covered."
-        ),
-    )
     async def test_stand_alone_event(self, client, caplog):
         """Journey J-5 — an event in no series: its squad on the club's entry, its own
-        waiver. The walk the journey drew and the code does not allow yet."""
+        waiver. Until 2026-10-17 the squad could not be saved there (V-1)."""
         the = _Setting(client, caplog)
         await the.stand_alone_event()
         squad = await the.sailors(ADULT, ADULT, ADULT, ADULT)
