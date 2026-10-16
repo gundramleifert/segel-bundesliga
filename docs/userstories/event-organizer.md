@@ -384,7 +384,7 @@ Tests: `api/tests/stories/test_event_closing.py`,
 
 ### VA-9 ● Run one event from end to end
 
-Moved: this is now **Journey [J-1](journeys.md#j-1--from-an-empty-series-to-a-scored-matchday)**
+Moved: this is now **Journey [J-1](../journeys/lifecycle.md)**
 — the same test, its steps named and checked in order. The ID stays, because tests and
 history carry it.
 

@@ -16,7 +16,7 @@ per phase.
 | [sailor.md](sailor.md) | Sailor: account, club, waiver, profile |
 | [visitor.md](visitor.md) | Visitor and fans: everything that is public |
 | [treasurer.md](treasurer.md) | Treasurer: the expense claims of an event, paid by its host club |
-| [journeys.md](journeys.md) | Journeys: several stories in the order they really happen, walked by one test |
+| [journeys.md](journeys.md) | Journeys: the index of `docs/journeys/`, the actors and the format — several stories in the order they really happen, walked by one test |
 | [live.md](live.md) | Live and tracking — spectator, race committee and the phone on the boat share these; the plan is `docs/PLAN_LIVE_IMPLEMENTATION.md` |
 
 **Identifiers are permanent, files are not.** The letter records where a story was

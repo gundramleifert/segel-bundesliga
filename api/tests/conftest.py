@@ -134,13 +134,23 @@ _REPOSITORY = "https://github.com/gundramleifert/segel-bundesliga/blob/main"
 NO_STORY = "(no story)"
 
 
+#: "Journey step J-5.6" — a test covering one step of a journey without walking it; it is
+#: labelled with the journey and with the step's story (`docs/journeys/`).
+_STEP_MENTION = re.compile(
+    r"\bJourney steps?\s+((?:J-\d+\.\d+)(?:(?:[,\s]+|\s+and\s+)J-\d+\.\d+)*)"
+)
+
+
 def _stories_of(item: pytest.Item) -> list[str]:
     for owner in (getattr(item, "function", None), getattr(item, "cls", None), item.module):
+        doc = (owner.__doc__ or "") if owner else ""
         ids = [
-            sid
-            for group in _STORY_MENTION.findall((owner.__doc__ or "") if owner else "")
-            for sid in re.findall(r"[A-Z]+-\d+", group)
+            sid for group in _STORY_MENTION.findall(doc) for sid in re.findall(r"[A-Z]+-\d+", group)
         ]
+        for group in _STEP_MENTION.findall(doc):
+            for step_id in re.findall(r"J-\d+\.\d+", group):
+                entry = _STORIES.get(step_id, {})
+                ids += [sid for sid in (entry.get("journey"), entry.get("story")) if sid]
         if ids:
             return list(dict.fromkeys(sid for sid in ids if sid in _STORIES))
     return []

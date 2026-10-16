@@ -315,9 +315,447 @@
   "title": "From an empty series to a scored matchday",
   "status": "◐",
   "role": "Journeys",
-  "phase": "Running an event",
-  "file": "docs/userstories/journeys.md",
-  "anchor": "j-1--from-an-empty-series-to-a-scored-matchday"
+  "phase": "Journeys",
+  "file": "docs/journeys/lifecycle.md",
+  "anchor": ""
+ },
+ "J-1.1": {
+  "journey": "J-1",
+  "story": "A-1",
+  "path": "main",
+  "who": "league office",
+  "what": "12 clubs exist; none is public yet"
+ },
+ "J-1.10": {
+  "journey": "J-1",
+  "story": "WL-2",
+  "path": "main",
+  "who": "race officer",
+  "what": "16 races entered; the points add up to what 16 races hand out"
+ },
+ "J-1.11": {
+  "journey": "J-1",
+  "story": "B-1",
+  "path": "main",
+  "who": "visitor",
+  "what": "the series table has the act in it, every club with its placement"
+ },
+ "J-1.12": {
+  "journey": "J-1",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the configuration is frozen; a typo in the title is still fixable"
+ },
+ "J-1.13": {
+  "journey": "J-1",
+  "story": "WL-2",
+  "path": "main",
+  "who": "jury",
+  "what": "a winner disqualified; the points follow on write"
+ },
+ "J-1.14": {
+  "journey": "J-1",
+  "story": "VA-10",
+  "path": "main",
+  "who": "race officer",
+  "what": "the event is `final`"
+ },
+ "J-1.15": {
+  "journey": "J-1",
+  "story": "VA-8",
+  "path": "not ready",
+  "who": "event organizer",
+  "what": "the draw is refused with `event-not-ready`, carrying the same codes"
+ },
+ "J-1.16": {
+  "journey": "J-1",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "team count and date fixed; the event is ready"
+ },
+ "J-1.2": {
+  "journey": "J-1",
+  "story": "A-6",
+  "path": "main",
+  "who": "league office",
+  "what": "\"Lifecycle Trophy 2026\" with the 12 clubs, as a draft — 404 publicly"
+ },
+ "J-1.3": {
+  "journey": "J-1",
+  "story": "VA-8",
+  "path": "main",
+  "who": "league office",
+  "what": "the series is published and listed"
+ },
+ "J-1.4": {
+  "journey": "J-1",
+  "story": "VA-6",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the event exists with a title and boats; the series' registrations are its entries"
+ },
+ "J-1.5": {
+  "journey": "J-1",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the readiness lists what is missing: team count, date"
+ },
+ "J-1.6": {
+  "journey": "J-1",
+  "story": "VA-7",
+  "path": "main",
+  "who": "event organizer",
+  "what": "a pairing list from the catalog; a second draw replaces it"
+ },
+ "J-1.7": {
+  "journey": "J-1",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the event is in the public calendar"
+ },
+ "J-1.8": {
+  "journey": "J-1",
+  "story": "B-3",
+  "path": "main",
+  "who": "visitor",
+  "what": "the pairing list prints — or the server says it cannot, never silently"
+ },
+ "J-1.9": {
+  "journey": "J-1",
+  "story": "VA-8",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the event is `live`"
+ },
+ "J-2": {
+  "title": "A new club gets going and runs itself",
+  "status": "◐",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/club.md",
+  "anchor": ""
+ },
+ "J-2.1": {
+  "journey": "J-2",
+  "story": "A-1",
+  "path": "main",
+  "who": "league office",
+  "what": "the club exists, its address made from the abbreviation"
+ },
+ "J-2.10": {
+  "journey": "J-2",
+  "story": "B-7",
+  "path": "main",
+  "who": "visitor",
+  "what": "the club is in the public list, and its page shows the series"
+ },
+ "J-2.2": {
+  "journey": "J-2",
+  "story": "A-7",
+  "path": "main",
+  "who": "visitor",
+  "what": "the club is not in the public club list — it competes nowhere yet"
+ },
+ "J-2.3": {
+  "journey": "J-2",
+  "story": "A-8",
+  "path": "main",
+  "who": "league office",
+  "what": "the account exists (verified by administration) and holds `admin` on the club"
+ },
+ "J-2.4": {
+  "journey": "J-2",
+  "story": "Z-8",
+  "path": "main",
+  "who": "club admin",
+  "what": "my space lists the club, with the relation `admin`"
+ },
+ "J-2.5": {
+  "journey": "J-2",
+  "story": "V-3",
+  "path": "main",
+  "who": "club admin",
+  "what": "the crest is stored; the club's `logo_url` points at it"
+ },
+ "J-2.6": {
+  "journey": "J-2",
+  "story": "A-8",
+  "path": "last organizer",
+  "who": "club admin",
+  "what": "refused with `last-organizer` (409); the club keeps its admin"
+ },
+ "J-2.7": {
+  "journey": "J-2",
+  "story": "A-8",
+  "path": "main",
+  "who": "club admin",
+  "what": "the person holds `manager` on the club — no acceptance step"
+ },
+ "J-2.8": {
+  "journey": "J-2",
+  "story": "V-5",
+  "path": "main",
+  "who": "club manager",
+  "what": "an application for the series, status `requested`; still not public"
+ },
+ "J-2.9": {
+  "journey": "J-2",
+  "story": "A-9",
+  "path": "main",
+  "who": "league office",
+  "what": "accepted: the club is a participant of the series"
+ },
+ "J-3": {
+  "title": "A sailor joins their club",
+  "status": "◐",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/member.md",
+  "anchor": ""
+ },
+ "J-3.1": {
+  "journey": "J-3",
+  "story": "V-9",
+  "path": "no account yet",
+  "who": "club admin",
+  "what": "refused with 404 — an account must exist; nobody is added"
+ },
+ "J-3.10": {
+  "journey": "J-3",
+  "story": "Z-5",
+  "path": "leaves",
+  "who": "club member",
+  "what": "the member tuple is gone; the club is no longer in my space; the sailor record stays"
+ },
+ "J-3.2": {
+  "journey": "J-3",
+  "story": "Z-4",
+  "path": "main",
+  "who": "person",
+  "what": "an account exists, its address only claimed; a code is mailed — the same answer for a known address"
+ },
+ "J-3.3": {
+  "journey": "J-3",
+  "story": "Z-4",
+  "path": "main",
+  "who": "person",
+  "what": "the address is verified; the account has no role and no club"
+ },
+ "J-3.4": {
+  "journey": "J-3",
+  "story": "Z-9",
+  "path": "password",
+  "who": "person",
+  "what": "a password is set; signing in with it gives a token"
+ },
+ "J-3.5": {
+  "journey": "J-3",
+  "story": "Z-5",
+  "path": "main",
+  "who": "club admin",
+  "what": "a `member` tuple on the club — at once, no acceptance step"
+ },
+ "J-3.6": {
+  "journey": "J-3",
+  "story": "Z-8",
+  "path": "main",
+  "who": "club member",
+  "what": "my space lists the club with the chip *member*; no sailor record is linked yet"
+ },
+ "J-3.7": {
+  "journey": "J-3",
+  "story": "V-10",
+  "path": "main",
+  "who": "club member",
+  "what": "the roster shows the club's people by display name, no email"
+ },
+ "J-3.8": {
+  "journey": "J-3",
+  "story": "V-4",
+  "path": "main",
+  "who": "club manager",
+  "what": "a sailor record with the person's address (lowercased) and date of birth"
+ },
+ "J-3.9": {
+  "journey": "J-3",
+  "story": "S-2",
+  "path": "main",
+  "who": "club member",
+  "what": "the record, linked by the verified address, carries the corrected name and date"
+ },
+ "J-4": {
+  "title": "An organizer sets up a series",
+  "status": "◐",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/series.md",
+  "anchor": ""
+ },
+ "J-4.1": {
+  "journey": "J-4",
+  "story": "A-6",
+  "path": "main",
+  "who": "league office",
+  "what": "the series exists with its year and squad limits, no clubs, as a draft — 404 publicly"
+ },
+ "J-4.2": {
+  "journey": "J-4",
+  "story": "Z-2",
+  "path": "main",
+  "who": "league office",
+  "what": "the person holds `manager` on the series; their admin list shows this series and no other"
+ },
+ "J-4.3": {
+  "journey": "J-4",
+  "story": "A-6",
+  "path": "main",
+  "who": "series manager",
+  "what": "the series has its dates and its clubs; creating another series is refused (403)"
+ },
+ "J-4.4": {
+  "journey": "J-4",
+  "story": "V-5",
+  "path": "club applies",
+  "who": "club manager",
+  "what": "an application, `requested` — not among the series' clubs"
+ },
+ "J-4.5": {
+  "journey": "J-4",
+  "story": "A-9",
+  "path": "club applies",
+  "who": "league office",
+  "what": "the club is a participant; the series manager's own accept is refused (403)"
+ },
+ "J-4.6": {
+  "journey": "J-4",
+  "story": "VA-6",
+  "path": "main",
+  "who": "series manager",
+  "what": "act 1 exists with its host club; the series' clubs, the accepted one included, are its entries"
+ },
+ "J-4.7": {
+  "journey": "J-4",
+  "story": "VA-8",
+  "path": "main",
+  "who": "series manager",
+  "what": "the series is published"
+ },
+ "J-4.8": {
+  "journey": "J-4",
+  "story": "B-1",
+  "path": "main",
+  "who": "visitor",
+  "what": "the series is listed for its year and its table opens"
+ },
+ "J-5": {
+  "title": "A club's crew is cleared for a matchday",
+  "status": "◐",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/crew-cleared.md",
+  "anchor": ""
+ },
+ "J-5.1": {
+  "journey": "J-5",
+  "story": "V-1",
+  "path": "series",
+  "who": "club manager",
+  "what": "the squad is saved on the club's series registration, within the series' maximum"
+ },
+ "J-5.10": {
+  "journey": "J-5",
+  "story": "S-1",
+  "path": "minor",
+  "who": "sailor (offline)",
+  "what": "the guardian has the form"
+ },
+ "J-5.11": {
+  "journey": "J-5",
+  "story": "S-1",
+  "path": "minor",
+  "who": "guardian (offline)",
+  "what": "the form is signed"
+ },
+ "J-5.12": {
+  "journey": "J-5",
+  "story": "S-1",
+  "path": "sailor uploads",
+  "who": "sailor",
+  "what": "a `guardian` confirmation with the scan; the sailor is cleared"
+ },
+ "J-5.13": {
+  "journey": "J-5",
+  "story": "S-1",
+  "path": "club uploads",
+  "who": "club manager",
+  "what": "the same, recorded by the club manager for a form the club collected"
+ },
+ "J-5.14": {
+  "journey": "J-5",
+  "story": "VA-5",
+  "path": "main",
+  "who": "event organizer",
+  "what": "the check-in list shows every squad member `cleared`, nothing outstanding, the minors' scans on file"
+ },
+ "J-5.2": {
+  "journey": "J-5",
+  "story": "V-1",
+  "path": "squad too small",
+  "who": "site",
+  "what": "below the series' minimum: the squad says `squad_min`, my space shows `squad_below_min` — and it is saved"
+ },
+ "J-5.3": {
+  "journey": "J-5",
+  "story": "V-1",
+  "path": "squad too small",
+  "who": "club manager",
+  "what": "the squad reaches the minimum; the need is gone"
+ },
+ "J-5.4": {
+  "journey": "J-5",
+  "story": "V-12",
+  "path": "stand-alone event",
+  "who": "club manager",
+  "what": "the squad is saved on the event entry, within the event's own limits"
+ },
+ "J-5.5": {
+  "journey": "J-5",
+  "story": "V-2",
+  "path": "main",
+  "who": "club manager",
+  "what": "the crew is named for the matchday — only from the squad"
+ },
+ "J-5.6": {
+  "journey": "J-5",
+  "story": "Z-8",
+  "path": "main",
+  "who": "site",
+  "what": "each sailor's my space shows `waiver` on the series (or the stand-alone event)"
+ },
+ "J-5.7": {
+  "journey": "J-5",
+  "story": "S-2",
+  "path": "no date of birth",
+  "who": "sailor",
+  "what": "the age can be judged; until then the page says \"add your date of birth first\" and confirming is refused (`waiver-birth-date-required`)"
+ },
+ "J-5.8": {
+  "journey": "J-5",
+  "story": "S-1",
+  "path": "adult",
+  "who": "sailor",
+  "what": "an `online` confirmation of the version in force; the sailor is cleared for every event of the series"
+ },
+ "J-5.9": {
+  "journey": "J-5",
+  "story": "S-1",
+  "path": "minor",
+  "who": "sailor",
+  "what": "the form PDF with the wording, name, date of birth and competition; an online click is refused (`guardian-confirmation-needed`)"
  },
  "L-1": {
   "title": "See the boats move",

@@ -3,81 +3,118 @@
 Part of the [user stories](README.md); the status marks and the identifier rule are
 explained there.
 
-A **journey** is several stories in the order they really happen, walked by one test from
-start to finish — a use case's *main success scenario* (Cockburn), laid along the backbone
-of a story map (Patton). Every step is already a story with its own tests; what a journey
-adds is the **sequence**: that each step's output really is the next step's input. That is
+A **journey** is several stories in the order they really happen, across the people who
+take part — a use case's *main success scenario* (Cockburn), laid along the backbone of a
+story map (Patton). Every step is already a story with its own tests; what a journey adds
+is the **sequence**: that each step's output really is the next step's input. That is
 what breaks in practice — a draw keyed on teams while the clubs are added after creation,
 an event saved without a date because the date is agreed later — each fine alone, wrong in
 order.
 
+Each journey is **one file in [`docs/journeys/`](../journeys/)**, with a sequence diagram
+stakeholders can read and a step table the tests are held to. The chain it starts is
+**journey → story → tests → help → report**, generated into
+[`docs/traceability.md`](../traceability.md#journeys); the `journey` skill
+(`.claude/skills/journey/`) writes and extends journeys.
+
+## The journeys
+
+| Journey | File | Who |
+|---|---|---|
+| J-1 From an empty series to a scored matchday | [lifecycle.md](../journeys/lifecycle.md) | league office, event organizer, race officer, jury, visitor |
+| J-2 A new club gets going and runs itself | [club.md](../journeys/club.md) | league office, club admin, club manager, visitor |
+| J-3 A sailor joins their club | [member.md](../journeys/member.md) | person, club admin, club member, club manager |
+| J-4 An organizer sets up a series | [series.md](../journeys/series.md) | league office, series manager, club manager, visitor |
+| J-5 A club's crew is cleared for a matchday | [crew-cleared.md](../journeys/crew-cleared.md) | club manager, sailor, guardian, event organizer, visitor |
+
+## Actors
+
+The people (and the one system) a journey may name — in its `Who:` line, in the `Who`
+column and as the diagram's participants. **Only these**, spelled like this, so a step's
+actor always says which relation the person holds, which story file tells their stories
+and which help audience reads about it. An actor is defined by what someone **holds or
+does**, never by a job title: one person is often several actors (a club admin who also
+sails), and a journey shows them as the actor of each step.
+
+| Actor | Alias | Is someone who … | Relation (Story Z-2) | Stories | Help audience |
+|---|---|---|---|---|---|
+| visitor | V | reads the public site, signed in or not | — | [visitor.md](visitor.md) | visitor |
+| person | N | has an account and nothing else yet — just registered | — | [sailor.md](sailor.md) | sailor |
+| club member | M | belongs to a club | `member` on the club | [sailor.md](sailor.md) | sailor |
+| sailor | S | is in a squad or a crew | — (a `Team` row, Story V-1) | [sailor.md](sailor.md) | sailor |
+| guardian | G | signs for a minor sailor, on paper; has no account | — | [sailor.md](sailor.md) | sailor |
+| club admin | CA | decides who is *in* a club: members, organizers, crest | `admin` on the club | [club-manager.md](club-manager.md) | club-manager |
+| club manager | CM | decides who *sails*: participation, squads, crews | `manager` on the club | [club-manager.md](club-manager.md) | club-manager |
+| treasurer | T | decides and pays expense claims | `treasurer` on a club or an event | [treasurer.md](treasurer.md) | treasurer |
+| series manager | SM | runs one series: its clubs, dates, events | `manager` on the series | [event-organizer.md](event-organizer.md) | event-organizer |
+| event organizer | O | runs one event: configuration, draw, check-in | `manager` on the event (or its series, or its host club) | [event-organizer.md](event-organizer.md) | event-organizer |
+| helper | H | works the day without power over it | `helper` on the event | [event-organizer.md](event-organizer.md) | event-organizer |
+| race officer | R | runs the races and enters results | `race_officer` on the event, series or site | [race-committee.md](race-committee.md) | race-committee |
+| jury | JY | decides protests | `jury` on the series or event | [race-committee.md](race-committee.md) | race-committee |
+| league office | A | runs the site: clubs, series, accounts | `admin` or `editor` on the site | [administration.md](administration.md) | administration |
+| site | P | the system itself — answers, refuses, shows | — | — | — |
+
+In the diagram an actor is `actor <Alias> as <Actor>` (`site` is `participant P as Site`),
+capitalised as a name. In the table, a step done by either of two actors says
+`sailor or club manager`; a step that happens away from the site adds `(offline)`. A new
+actor is a new row here first — and then, usually, a new relation or story file.
+
 ## The format
 
+````markdown
+# J-5 ◐ A club's crew is cleared for a matchday
+
+As a **club** I want … (why the journey matters, in a sentence or two)
+
+Who: club manager, sailor, guardian, event organizer
+Starting point: what exists before the first step
+Goal: what is true at the end
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor CM as Club manager
+  participant P as Site
+  CM->>P: [J-5.1] registers the squad for the series
+  opt fewer than the series' minimum
+    P-->>CM: [J-5.2] "3 of 4–10" in amber, saved anyway
+  end
 ```
-### J-1 ◐ <what someone gets done, start to end>
-Who: the people who act in it
-Starting point: what exists before step 1
 
-Steps:
-1. A-1   <who does what, and what is then true>
-2. A-6   …
+| Step | Path | Story | Who | What is then true |
+|---|---|---|---|---|
+| J-5.1 | main | V-1 | club manager | the squad is saved |
+| J-5.2 | squad too small | V-1 | site | the minimum is guidance |
 
-Variations:
-4a. VA-7  <a different path that branches off step 4>
+Retired steps: none
 
-Tests: `api/tests/…::TestX::test_y`, `e2e/journeys.spec.ts::J-1: …`
-```
+Open: decisions the journey made visible and nobody has taken yet.
 
-- **One story per step**, its ID first. A story may appear in several steps.
-- **The test walks the main steps, in this order, and names each one**:
-  `step("A-1", "…")` (pytest, `tests/journeys.py`) or `await step("A-1", "…", async () => …)`
-  inside a `describeJourney("J-1: …")` (Playwright, `e2e/fixtures.ts`). In evidence mode
-  (`EVIDENCE=1`) the steps are the chapters of the trace.
-- **Variations are alternatives, not steps of the test.** Each is checked either inside
-  the step it branches from, or by its story's own tests.
-- **Status:** ● only when the test exists and every story of the main steps is ● itself;
-  a journey cannot be more finished than its weakest step. Otherwise ◐, or ○ without a
-  test.
-- `scripts/check-docs.py` holds all of this: every step ID is a real story, each test's
-  `step(...)` IDs match the main steps in order, and the status follows the rule above.
+Tests: `api/tests/stories/test_journey_crew.py::TestACrewIsCleared::test_adult_crew`
+````
 
-## Running an event
-
-### J-1 ◐ From an empty series to a scored matchday
-As the **association** I want **one test that walks the whole way — clubs, series, event,
-boats, clubs entered, draw, start, all races sailed, standings, freeze, protest** — so that
-**the steps are proven to fit together in the order they actually happen**. (Told first as
-Story VA-9.) ◐ and not ●, because step 10 and 13's story WL-2 is not finished yet: a
-journey is never more done than its weakest step.
-
-Who: the league office (admin) acting as organizer, race committee and jury.
-Starting point: a running installation; none of the clubs, the series or the event exist.
-
-Steps:
-1. A-1   admin creates 12 clubs; none is public yet
-2. A-6   admin creates "Lifecycle Trophy 2026" with the 12 clubs, as a draft — 404 publicly
-3. VA-8  admin publishes the series; it is listed now
-4. VA-6  organizer creates the event with a title and boats only; the series' registrations are adopted as entries
-5. VA-8  the readiness says what is missing (team count, date), and the organizer fixes it
-6. VA-7  organizer draws the pairing list from the catalog, and may draw again
-7. VA-8  organizer publishes the event; it is in the public calendar
-8. B-3   the pairing list prints — or the server says it cannot, never silently
-9. VA-8  organizer starts the event
-10. WL-2  race committee enters all 16 races; points add up to what 16 races hand out
-11. B-1   the series table has the act in it, every club with its placement
-12. VA-8  the configuration is frozen now — but a typo in the title is still fixable
-13. WL-2  the jury disqualifies a winner months later, and the points follow on write
-14. VA-10 the race committee declares the event final
-
-Variations:
-5a. VA-8  the draw is refused while the readiness reasons stand, with the same codes
-
-It runs the catalog's **smallest** configuration (12 clubs, 6 boats, 8 flights = 16
-races), not the league's 48 — small enough to sail to the end in a test, large enough to be
-a real pairing list. Through the HTTP API only, nothing reached around into the database,
-and deliberately **one long test**: a step that only makes sense after the previous one
-cannot be a test that runs on its own. The browser half — that each step is *reachable*,
-with its button enabled at the right moment — is in `e2e/lifecycle.spec.ts` per story, not
-yet as one walk.
-
-Tests: `api/tests/stories/test_complete_lifecycle.py::TestTheCompleteLifecycle::test_from_an_empty_series_to_a_scored_matchday`
+- **Step IDs `J-n.k`** — the journey's ID, a dot, a number. `k` is given once and **never
+  renumbered or reused**: a new step takes the next free number even in the middle of the
+  flow, because tests and help pages carry it. The table's order is the flow; the number
+  is only a name.
+- **A removed step** leaves the diagram and the table, and its ID goes on the
+  `Retired steps:` line, so nobody gives it out again.
+- **The table is the source of truth, the diagram a view of it**: every arrow carrying a
+  `[J-n.k]` is one row, every row one such arrow, in the same order. An arrow without an
+  ID (an answer, a `Note`) is reading aid and tested by nobody.
+- **`Path`** is `main` or the name of a branch — an `opt`/`alt` block in the diagram, its
+  steps carrying the block's name. `alt` with two arms is two branch names; the shared
+  spine is `main`.
+- **Every step names exactly one story** — a step whose story does not exist yet is the
+  signal to write that story first (CLAUDE.md, "the story first").
+- **Tests.** A *walk* is one long test whose stretches are `step("J-5.4", "…")` —
+  `tests/journeys.py` in pytest, `describeJourney` + `step` from `e2e/fixtures.ts` in
+  Playwright — listed on the journey's `Tests:` line. A walk takes every `main` step that
+  is not offline, plus any branches, in the table's order; one journey may have several
+  walks ("— minor crew"). A step can instead be covered by a story test that says
+  `Journey step J-5.6` in its docstring.
+- **Status:** ○ when no test walks it; ● when it is walked, every step that is not
+  offline is covered by a walk or a docstring, and every step's story is ●; ◐ otherwise.
+  A journey is never more finished than its weakest step.
+- `scripts/check-docs.py` holds all of this, including the actors; a step no test covers
+  is printed as a warning.
