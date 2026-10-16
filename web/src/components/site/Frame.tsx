@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 
@@ -42,12 +42,6 @@ export function TopBar({
     { key: "association", to: href.home(), label: t("nav.association"), on: atHome },
     ...leagues.map((l) => ({ key: `league-${l.slug}`, to: href.league(l.slug), label: l.short_name, on: inLeague(l.slug) })),
   ];
-  // On a phone the row scrolls inside itself; keep the marked entry in view.
-  const row = useRef<HTMLUListElement>(null);
-  const marked = entries.find((e) => e.on)?.key;
-  useEffect(() => {
-    row.current?.querySelector<HTMLElement>("[aria-current=page]")?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
-  }, [marked, leagues.length]);
   return (
     <header
       className={`z-40 text-sm ${
@@ -67,8 +61,34 @@ export function TopBar({
             height={58}
           />
         </Link>
-        <nav aria-label={t("nav.leagues")} className="scrollbar-none min-w-0 flex-1 overflow-x-auto" data-testid="site-leagues">
-          <ul ref={row} className="flex">
+        {/* A phone has no room for five entries: one button names where you are and opens
+            them as a list. Keyed on the path, so it closes when a link is followed. */}
+        <details key={pathname} className="relative min-w-0 flex-1 md:hidden" data-testid="site-menu">
+          <summary
+            className={`flex w-max max-w-full cursor-pointer list-none items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden ${
+              overlay ? "bg-white text-slate-950" : "bg-slate-900 text-white"
+            }`}
+          >
+            <span aria-hidden>☰</span>
+            <span className="truncate">{entries.find((e) => e.on)?.label ?? t("nav.menu")}</span>
+          </summary>
+          <ul className="absolute left-0 z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-600 shadow-xl" aria-label={t("nav.leagues")}>
+            {entries.map((e) => (
+              <li key={e.key}>
+                <Link
+                  to={e.to}
+                  aria-current={e.on ? "page" : undefined}
+                  data-testid={`site-menu-${e.key}`}
+                  className={`block rounded-lg px-3 py-2 ${e.on ? "font-semibold text-slate-950" : "hover:bg-slate-100"}`}
+                >
+                  {e.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </details>
+        <nav aria-label={t("nav.leagues")} className="scrollbar-none hidden min-w-0 flex-1 overflow-x-auto md:block" data-testid="site-leagues">
+          <ul className="flex">
             {entries.map((e) => (
               <li key={e.key} className="shrink-0">
                 <Link

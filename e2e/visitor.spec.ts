@@ -244,6 +244,16 @@ test.describe("Foundations", () => {
 });
 
 describeStory("B-13: one row of navigation names the leagues", () => {
+  /** Follows an entry of the top row — on a phone it is in the menu (Story B-13). */
+  async function follow(page: import("@playwright/test").Page, key: string) {
+    if ((page.viewportSize()?.width ?? 0) < 768) {
+      await page.getByTestId("site-menu").locator("summary").click();
+      await page.getByTestId(`site-menu-${key}`).click();
+    } else {
+      await page.getByTestId(`site-${key}`).click();
+    }
+  }
+
   test("the row names the association and every league, and the home page one name", async ({ page }) => {
     await page.goto("/");
     // One page, one name — counted only once the page has loaded (docs/gotchas/: a
@@ -251,13 +261,22 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page.getByTestId("site-home-now")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
 
-    const row = page.getByTestId("site-leagues").getByRole("link");
-    await expect(row).toHaveText(["Association", "1. Liga", "2. Liga", "Junioren", "DSL-Pokal"]);
-    await expect(page.getByTestId("site-association")).toHaveAttribute("aria-current", "page");
-    await page.getByTestId("site-league-2-liga").click();
+    const names = ["Association", "1. Liga", "2. Liga", "Junioren", "DSL-Pokal"];
+    if ((page.viewportSize()?.width ?? 0) < 768) {
+      await expect(page.getByTestId("site-leagues")).toBeHidden();
+      await expect(page.getByTestId("site-menu").locator("summary")).toContainText("Association");
+      await page.getByTestId("site-menu").locator("summary").click();
+      await expect(page.getByTestId("site-menu").getByRole("link")).toHaveText(names);
+      await page.getByTestId("site-menu").locator("summary").click();
+    } else {
+      await expect(page.getByTestId("site-menu")).toBeHidden();
+      await expect(page.getByTestId("site-leagues").getByRole("link")).toHaveText(names);
+      await expect(page.getByTestId("site-association")).toHaveAttribute("aria-current", "page");
+    }
+    await follow(page, "league-2-liga");
     await expect(page).toHaveURL(/\/2-liga$/);
     await expect(page.getByTestId("site-league-2-liga")).toHaveAttribute("aria-current", "page");
-    await page.getByTestId("site-association").click();
+    await follow(page, "association");
     await expect(page).toHaveURL(/\/$/);
   });
 
@@ -265,11 +284,10 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await page.goto(STANDINGS);
     await expect(page.getByTestId("site-top-bar")).toHaveCount(1);
     await expect(page.getByTestId("site-league-1-liga")).toHaveAttribute("aria-current", "page");
-    await expect(page.getByTestId("site-association")).toBeVisible();
     await page.getByTestId("site-league-pages").getByTestId("site-page-season").click();
     await expect(page).toHaveURL(/\/1-liga\/season$/);
     await expect(page.getByTestId("site-season-act").first()).toBeVisible();
-    await page.getByTestId("site-league-junioren-liga").click();
+    await follow(page, "league-junioren-liga");
     await expect(page).toHaveURL(/\/junioren-liga$/);
   });
 

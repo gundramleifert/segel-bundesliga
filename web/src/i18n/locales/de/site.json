@@ -3,7 +3,8 @@
     "association": "Verein",
     "leagues": "Ligen",
     "pages": "Seiten",
-    "chapters": "Kapitel"
+    "chapters": "Kapitel",
+    "menu": "Menü"
   },
   "pages": {
     "home": "Start",

@@ -346,8 +346,9 @@ Acceptance criteria:
   matchday page its tabs are the second row (Story B-15).
 - **At most two rows of navigation, ever.** The second exists only on a matchday page
   (Story B-15).
-- **On a phone the row scrolls sideways** inside itself, never the page
-  (`expectNoSidewaysScroll`); the marked entry is scrolled into view.
+- **On a phone the entries are a menu**: one button names where you are (*☰ 1. Liga*) and
+  opens the association and the leagues as a list; following a link closes it. Five
+  entries beside the logo and the account button do not fit a phone's width.
 - **A new page opens at its top.** The router keeps the window's scroll position, so a
   footer link opened the next page at its footer, past its picture and title. Back and
   forward keep their place; a matchday's tabs scroll on purpose (Story B-15).
