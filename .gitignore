@@ -95,4 +95,5 @@ api/e2e-*.db
 !.claude/skills/
 .claude/skills/*
 !.claude/skills/issue/
+!.claude/skills/handbook/
 api/.claude/
