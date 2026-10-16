@@ -34,6 +34,9 @@ step() {
 }
 
 step "docs"            python3 scripts/check-docs.py
+# The agent sandbox shows a denied path as an empty file; staged, it would overwrite real
+# configuration elsewhere with nothing (.gitignore, "Claude Code's local state").
+step "claude files"    bash -c '! git ls-files -co --exclude-standard .claude | xargs -r -d "\\n" find 2>/dev/null -maxdepth 0 -type f -empty | grep .'
 step "ruff"            bash -c 'cd api && uv run ruff check .'
 # One process per core (pytest-xdist): each worker imports conftest.py and so gets a
 # database and an uploads directory of its own. ~40 s instead of ~90 s.
