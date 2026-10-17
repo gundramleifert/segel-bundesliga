@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, type To } from "react-router-dom";
 
 import { useListLeagues } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
@@ -10,7 +10,7 @@ import { SLIDES, type Photo } from "../../content";
 import { href } from "../../lib/site";
 import { UserMenu } from "../UserMenu";
 import { Picture } from "./Media";
-import { useDetailMode } from "./settings";
+import { useDetailMode, useSiteVersion } from "./settings";
 
 // The frame of the site (`docs/site-structure.md`, Stories B-13, B-14). Clean on purpose:
 // white and slate, one accent (the brand blue), generous space, type doing the work.
@@ -121,6 +121,109 @@ export function TopBar({
   );
 }
 
+/** The top row and the sub-menu under it, together, in the layout with a sub-menu: in
+ *  pixels for scrolling, as a class for `sticky`. 57 + 48 — the row's border included. */
+export const BARS = { offset: 105, top: "top-[105px]" };
+
+/** One entry of a sub-menu. */
+export type SubItem = {
+  key: string;
+  to: To;
+  label: string;
+  current: boolean;
+  testId: string;
+  state?: unknown;
+  onClick?: () => void;
+};
+
+/** The sub-menu under the top row, in the layout with a sub-menu — drawn like my space's
+ *  (`Layout`): where you are on the left, what is beside it as tabs on the right, sticking
+ *  under the top row. On a league's page it holds the league's pages, on a matchday page
+ *  the matchday's tabs. One `nav`: the crumbs are part of it, not a second navigation. */
+export function SubBar({
+  crumbs,
+  items,
+  label,
+  testId,
+}: {
+  crumbs: { label: string; to?: string }[];
+  items: SubItem[];
+  label: string;
+  testId: string;
+}) {
+  return (
+    // The row scrolls sideways inside itself on a phone, crumbs and tabs together — a
+    // row wider than the screen would zoom the page out (Story A-10).
+    <nav aria-label={label} data-testid={testId} className="scrollbar-none h-12 overflow-x-auto border-b border-slate-200 bg-white/95 text-sm backdrop-blur">
+      <div className="mx-auto flex h-full max-w-6xl items-stretch px-4">
+        <ol className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 text-slate-500" data-testid="site-sub-crumbs">
+          {crumbs.map((c, i) => (
+            <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
+              {i > 0 && <span aria-hidden className="text-slate-300">›</span>}
+              {c.to ? (
+                <Link to={c.to} className="hover:text-slate-900 hover:underline">{c.label}</Link>
+              ) : (
+                <span className="font-medium text-slate-700">{c.label}</span>
+              )}
+            </li>
+          ))}
+        </ol>
+        <ul className="flex shrink-0 items-stretch gap-1 border-l border-slate-200 pl-1">
+          {items.map((item) => (
+            <li key={item.key} className="flex shrink-0">
+              <Link
+                to={item.to}
+                state={item.state}
+                onClick={item.onClick}
+                aria-current={item.current ? "page" : undefined}
+                data-testid={item.testId}
+                className={`-mb-px flex items-center whitespace-nowrap border-b-2 px-3 font-medium ${
+                  item.current ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  );
+}
+
+/** A league's pages as the sub-menu — or the association's, outside a league. */
+export function LeagueSubBar({ league }: { league: League | null }) {
+  const { t } = useTranslation("site");
+  const current = useCurrentSibling(league);
+  return (
+    <SubBar
+      label={t("nav.pages")}
+      testId="site-league-pages"
+      crumbs={[league ? { label: league.short_name, to: href.league(league.slug) } : { label: "Deutsche Segel-Liga", to: href.home() }]}
+      items={siblings(league).map((s) => ({
+        key: s.key,
+        to: s.to,
+        label: t(`pages.${s.key}`),
+        current: current === s.to,
+        testId: `site-page-${s.key}`,
+      }))}
+    />
+  );
+}
+
+/** The top row and, in the layout with a sub-menu, the sub-menu under it — sticking
+ *  together. `subnav` replaces the league's pages, as a matchday's tabs do. */
+export function Bars({ league, subnav }: { league: League | null; subnav?: ReactNode }) {
+  const version = useSiteVersion();
+  if (version === "classic") return <TopBar league={league} />;
+  return (
+    <div className="sticky top-0 z-40">
+      <TopBar league={league} />
+      {subnav ?? <LeagueSubBar league={league} />}
+    </div>
+  );
+}
+
 type Sibling = { to: string; key: string };
 
 /** The pages beside this one — what the league's chapters lead to. */
@@ -161,6 +264,14 @@ type DepthProps = {
   kicker?: string;
   photo?: Photo;
   children: ReactNode;
+  /** The sub-menu in the layout with one, instead of the league's pages — a matchday's
+   *  tabs. Ignored in the classic layout, where the page draws its own row. */
+  subnav?: ReactNode;
+};
+
+type FrameProps = DepthProps & {
+  /** Classic: the frame shows the league's pages itself. With a sub-menu they are in it. */
+  classic: boolean;
 };
 
 /** The frame of a depth page, in the layout the DEV switch picks (A band, B sheet, C split).
@@ -168,14 +279,15 @@ type DepthProps = {
  *  one `h1`. */
 export function DepthPage(props: DepthProps) {
   const mode = useDetailMode();
+  const version = useSiteVersion();
   const Frame = mode === "sheet" ? SheetFrame : mode === "split" ? SplitFrame : BandFrame;
   return (
-    <div className="min-h-dvh bg-white text-slate-900" data-testid="site-depth-page" data-frame={mode}>
+    <div className="min-h-dvh bg-white text-slate-900" data-testid="site-depth-page" data-frame={mode} data-version={version}>
       {/* The top row names the association and every league on every page (Story B-13);
           the league's own pages sit in each frame's own place — under A's picture, at
           B's sheet edge, in C's left column. */}
-      <TopBar league={props.league} />
-      <Frame {...props} />
+      <Bars league={props.league} subnav={props.subnav} />
+      <Frame {...props} classic={version === "classic"} />
       <Footer />
     </div>
   );
@@ -185,6 +297,8 @@ export function DepthPage(props: DepthProps) {
  *  under the sheet's own row of pills. In pixels, for scrolling; as a class, for `sticky`. */
 export function useSecondRow() {
   const mode = useDetailMode();
+  const version = useSiteVersion();
+  if (version === "submenu") return BARS;
   return mode === "sheet" ? { offset: 113, top: "top-[113px]" } : { offset: 56, top: "top-14" };
 }
 
@@ -205,20 +319,29 @@ function Crumbs({ league, light = true }: { league: League | null; light?: boole
 /** A · Band — a big picture with the kicker and title on it, the league's pages in a row
  *  under it, then the content on white. Under a league the top row already says where you
  *  are; a breadcrumb would repeat it. */
-function BandFrame({ league, title, kicker, photo, children }: DepthProps) {
+function BandFrame({ league, title, kicker, photo, children, classic }: FrameProps) {
   return (
     <>
-      <header className="relative h-[52vh] max-h-[34rem] min-h-72 overflow-hidden bg-slate-900">
-        <Picture photo={photo ?? SLIDES[0]} className="opacity-80" />
+      {/* With the sub-menu the picture stands still and the page scrolls over it: fixed to
+          the screen, and cut to the band by the clip-path, which — unlike overflow —
+          clips a fixed child too. */}
+      <header className={`relative h-[52vh] max-h-[34rem] min-h-72 overflow-hidden bg-slate-900 ${classic ? "" : "[clip-path:inset(0)]"}`}>
+        {classic ? (
+          <Picture photo={photo ?? SLIDES[0]} className="opacity-80" />
+        ) : (
+          <div className="fixed inset-0">
+            <Picture photo={photo ?? SLIDES[0]} className="opacity-80" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-8 text-white">
-          {!league && <Crumbs league={league} />}
+          {!league && classic && <Crumbs league={league} />}
           {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/70" data-testid="site-kicker">{kicker}</p>}
           <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-6xl">{title}</h1>
         </div>
       </header>
       {/* Not sticky: a matchday page's tabs are the one second row that sticks (B-15). */}
-      {league && <SiblingPills league={league} sticky={false} />}
+      {league && classic && <SiblingPills league={league} sticky={false} />}
       <main id="content" className="mx-auto max-w-6xl px-4 py-10">{children}</main>
     </>
   );
@@ -250,20 +373,20 @@ function SiblingPills({ league, className = "", sticky = true }: { league: Leagu
 
 /** B · Sheet — a big picture with a big title, and the content as a white sheet sliding
  *  up over it, the sibling pages as pills at its top edge. */
-function SheetFrame({ league, title, kicker, photo, children }: DepthProps) {
+function SheetFrame({ league, title, kicker, photo, children, classic }: FrameProps) {
   return (
     <>
       <header className="relative h-[62vh] min-h-[22rem] overflow-hidden bg-slate-950">
         <Picture photo={photo ?? SLIDES[0]} />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-slate-950/20" />
         <div className="absolute inset-x-0 bottom-24 mx-auto max-w-6xl px-4 text-white">
-          <Crumbs league={league} />
+          {classic && <Crumbs league={league} />}
           {kicker && <p className="mt-4 font-mono text-xs tracking-widest text-white/60" data-testid="site-kicker">{kicker}</p>}
           <h1 className="mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-7xl">{title}</h1>
         </div>
       </header>
       <main id="content" className="relative z-10 -mt-16 rounded-t-[2rem] bg-white shadow-[0_-12px_40px_rgba(2,6,23,0.25)]">
-        <SiblingPills league={league} className="rounded-t-[2rem]" />
+        {classic && <SiblingPills league={league} className="rounded-t-[2rem]" />}
         <div className="mx-auto max-w-6xl px-4 py-10">{children}</div>
       </main>
     </>
@@ -272,22 +395,22 @@ function SheetFrame({ league, title, kicker, photo, children }: DepthProps) {
 
 /** C · Split — the page's picture, title and siblings fixed on the left, the content
  *  scrolling on the right; on a phone the left column becomes a compact head with pills. */
-function SplitFrame({ league, title, kicker, photo, children }: DepthProps) {
+function SplitFrame({ league, title, kicker, photo, children, classic }: FrameProps) {
   const { t } = useTranslation("site");
   const current = useCurrentSibling(league);
   return (
     <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] lg:grid-cols-[19rem_minmax(0,1fr)] lg:gap-10 lg:px-6">
-      <aside className="lg:sticky lg:top-14 lg:h-[calc(100dvh-3.5rem)] lg:overflow-y-auto lg:py-8">
+      <aside className={`lg:sticky lg:overflow-y-auto lg:py-8 ${classic ? "lg:top-14 lg:h-[calc(100dvh-3.5rem)]" : "lg:top-[105px] lg:h-[calc(100dvh-105px)]"}`}>
         <div className="relative h-40 overflow-hidden bg-slate-900 lg:aspect-[4/3] lg:h-auto lg:rounded-2xl">
           <Picture photo={photo ?? SLIDES[0]} />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 to-transparent lg:hidden" />
         </div>
         <div className="px-4 pt-5 lg:px-0">
-          <Crumbs league={league} light={false} />
+          {classic && <Crumbs league={league} light={false} />}
           {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600" data-testid="site-kicker">{kicker}</p>}
           <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight">{title}</h1>
         </div>
-        <nav aria-label={t("nav.pages")} className="scrollbar-none mt-5 overflow-x-auto px-4 lg:mt-8 lg:overflow-visible lg:px-0">
+        {classic && <nav aria-label={t("nav.pages")} className="scrollbar-none mt-5 overflow-x-auto px-4 lg:mt-8 lg:overflow-visible lg:px-0">
           <ul className="flex gap-1 pb-1 lg:flex-col lg:gap-0.5">
             {siblings(league).map((s) => (
               <li key={s.to} className="shrink-0">
@@ -303,7 +426,7 @@ function SplitFrame({ league, title, kicker, photo, children }: DepthProps) {
               </li>
             ))}
           </ul>
-        </nav>
+        </nav>}
       </aside>
       <main id="content" className="min-w-0 border-t border-slate-100 px-4 py-8 lg:border-0 lg:px-0 lg:py-10">{children}</main>
     </div>

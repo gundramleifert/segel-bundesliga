@@ -22,6 +22,7 @@ import {
   usePress,
   useSeasonDocuments,
   useVideos,
+  type Article,
   type DocGroup,
   type TableMarks,
 } from "../../content";
@@ -290,30 +291,38 @@ function NewsGrid({ league }: { league: string }) {
   const news = useNews(league);
   return (
     <Async state={news} testId="site-news">
-      {(items) => (
-        <ul className="grid grid-cols-[minmax(0,1fr)] gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((n) => (
-            <li key={n.slug}>
-              <Link to={href.article(league, n.slug)} className="group block">
-                <div className="aspect-[3/2] overflow-hidden rounded-xl bg-slate-100">
-                  <Img photo={n.photo} className="transition group-hover:scale-105" />
-                </div>
-                <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600">{formatDate(n.date)}</p>
-                <p className="mt-1 text-lg font-semibold leading-snug group-hover:underline">{n.title}</p>
-                <p className="mt-1 text-sm text-slate-600">{n.teaser}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      {(items) => <NewsCards league={league} items={items} />}
     </Async>
   );
 }
 
+/** Articles as cards: picture, date, title, teaser — each leading to its own page. */
+function NewsCards({ league, items }: { league: string; items: Article[] }) {
+  return (
+    <ul className="grid grid-cols-[minmax(0,1fr)] gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((n) => (
+        <li key={n.slug}>
+          <Link to={href.article(league, n.slug)} className="group block" data-testid={`site-news-${n.slug}`}>
+            <div className="aspect-[3/2] overflow-hidden rounded-xl bg-slate-100">
+              <Img photo={n.photo} className="transition group-hover:scale-105" />
+            </div>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600">{formatDate(n.date)}</p>
+            <p className="mt-1 text-lg font-semibold leading-snug group-hover:underline">{n.title}</p>
+            <p className="mt-1 text-sm text-slate-600">{n.teaser}</p>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** `/:league/news/:slug` — one article: the lead, the text, a quote, who wrote it, and
+ *  the league's next articles. */
 export function ArticlePage() {
   const { t } = useTranslation("site");
-  const { slug } = useParams();
+  const { slug, league: leagueSlug = "" } = useParams();
   const article = useArticle(slug).data;
+  const more = (useNews(leagueSlug).data ?? []).filter((n) => n.slug !== slug).slice(0, 3);
   return (
     <LeagueGate>
       {({ league }) =>
@@ -321,16 +330,36 @@ export function ArticlePage() {
           <Navigate to={href.news(league.slug)} replace />
         ) : (
           <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
-            <article className="max-w-2xl space-y-4 text-lg leading-relaxed text-slate-700">
-              {article.body.map((p) => (
-                <p key={p}>{p}</p>
-              ))}
+            {article.example && <ExampleNote text={t("news.example")} />}
+            <article className="max-w-2xl" data-testid="site-article">
+              <p className="text-xl font-medium leading-relaxed text-slate-900" data-testid="site-article-lead">{article.teaser}</p>
+              {article.author && (
+                <p className="mt-3 text-sm text-slate-500" data-testid="site-article-byline">
+                  {t("news.byline", { author: article.author, date: formatDate(article.date) })}
+                </p>
+              )}
+              <div className="mt-8 space-y-5 text-lg leading-relaxed text-slate-700">
+                {article.body.map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+              {article.quote && (
+                <blockquote className="my-10 border-l-4 border-brand-600 pl-6">
+                  <p className="text-2xl font-semibold leading-snug tracking-tight text-slate-900">“{article.quote.text}”</p>
+                  <footer className="mt-2 text-sm text-slate-500">— {article.quote.by}</footer>
+                </blockquote>
+              )}
             </article>
-            <p className="mt-10">
-              <Link to={href.news(league.slug)} className="font-medium text-brand-700 hover:underline">
+            <p className="mb-12 mt-10">
+              <Link to={href.news(league.slug)} className="font-medium text-brand-700 hover:underline" data-testid="site-article-back">
                 ← {t("news.more")}
               </Link>
             </p>
+            {more.length > 0 && (
+              <Block title={t("news.related")} more={{ to: href.news(league.slug), label: t("news.more") }} testId="site-article-related">
+                <NewsCards league={league.slug} items={more} />
+              </Block>
+            )}
           </DepthPage>
         )
       }

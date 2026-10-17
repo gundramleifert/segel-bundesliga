@@ -26,6 +26,7 @@ const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
  *  answer the same question — does it fit the viewport it is being read on. */
 const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/", "site-home-now"],
+  ["/1-liga/news/nrv-takes-the-lead", "site-article"],
   ["/1-liga", "site-chapter-standings"],
   ["/2-liga", "site-chapter-standings"],
   [STANDINGS, "site-standings-dsbl-1-2026"],
@@ -281,7 +282,7 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page).toHaveURL(/\/$/);
   });
 
-  test("on a depth page the row stays the same, and the league's pages sit under the picture", async ({ page }) => {
+  test("on a depth page the row stays the same, and the league's pages are the sub-menu", async ({ page }) => {
     await page.goto(STANDINGS);
     await expect(page.getByTestId("site-top-bar")).toHaveCount(1);
     await expect(page.getByTestId("site-league-1-liga")).toHaveAttribute("aria-current", "page");
@@ -315,6 +316,48 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page.getByTestId("site-act-bar")).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toHaveCount(0);
     await expect(page.getByTestId("site-top-bar")).toHaveCount(1);
+  });
+
+  test("the sub-menu names the league and its pages, and stays while the page scrolls", async ({ page }) => {
+    await page.goto(STANDINGS);
+    const sub = page.getByTestId("site-league-pages");
+    await expect(sub.getByTestId("site-sub-crumbs")).toHaveText("1. Liga");
+    await expect(sub.getByTestId("site-page-standings")).toHaveAttribute("aria-current", "page");
+    await page.getByTestId("site-footer").scrollIntoViewIfNeeded();
+    await expect.poll(async () => (await sub.boundingBox())!.y).toBeGreaterThan(50);
+    expect((await sub.boundingBox())!.y).toBeLessThan(60);
+  });
+
+  test("on a chapter page the sub-menu holds the league's pages, and the picture stands still", async ({ page }) => {
+    await page.goto("/1-liga");
+    await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
+    await expect(page.getByTestId("site-league-pages").getByTestId("site-page-overview")).toHaveAttribute("aria-current", "page");
+    const picture = page.getByTestId("site-chapters").locator("xpath=preceding-sibling::div[1]");
+    const before = (await picture.boundingBox())!;
+    await page.locator('[data-dot="news"]').click();
+    await expect(page.locator('[data-dot="news"]')).toHaveAttribute("aria-current", "true");
+    expect((await picture.boundingBox())!.y).toBe(before.y);
+  });
+
+  test("on a matchday page the sub-menu is the matchday's: where it hangs, and its tabs", async ({ page }) => {
+    await page.goto(FINISHED_ACT);
+    const bar = page.getByTestId("site-act-bar");
+    await expect(bar.getByTestId("site-sub-crumbs").getByRole("link")).toHaveCount(2);
+    await expect(bar.getByTestId("site-act-tab-results")).toHaveAttribute("aria-current", "page");
+    await expect(page.getByTestId("site-league-pages")).toHaveCount(0);
+    await bar.getByTestId("site-sub-crumbs").getByRole("link").nth(1).click();
+    await expect(page).toHaveURL(/\/1-liga\/season$/);
+  });
+
+  test("the classic layout is still there when the DEV switch picks it", async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem("site.version", "classic"));
+    await page.goto("/1-liga");
+    await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
+    await expect(page.getByTestId("site-league-pages")).toHaveCount(0);
+    await expect(page.getByTestId("site-season-strip")).toHaveCount(0);
+    await page.goto(FINISHED_ACT);
+    await expect(page.getByTestId("site-depth-page")).toHaveAttribute("data-version", "classic");
+    await expect(page.getByTestId("site-act-bar").getByTestId("site-sub-crumbs")).toHaveCount(0);
   });
 
   test("the frame of a depth page is the one the DEV switch chose", async ({ page }) => {
@@ -385,7 +428,17 @@ describeStory("B-14: a league's page in chapters", () => {
     const before = await page.evaluate(() => history.length);
     await page.locator('[data-dot="news"]').click();
     await expect(page.locator('[data-dot="news"]')).toHaveAttribute("aria-current", "true");
-    await expect.poll(() => page.getByTestId("site-chapter-news").evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(0);
+    // At the top of the scrolling box — which starts under the bars in the layout with a
+    // sub-menu, and at the top of the screen in the classic one.
+    await expect
+      .poll(() =>
+        page.getByTestId("site-chapter-news").evaluate((el) => {
+          const box = el.closest('[data-testid="site-chapters"]')!;
+          // `+ 0`: a rounded -0.4 is -0, which `toBe(0)` does not accept.
+          return Math.round(el.getBoundingClientRect().top - box.getBoundingClientRect().top) + 0;
+        }),
+      )
+      .toBe(0);
     expect(page.url()).not.toContain("#");
     expect(await page.evaluate(() => history.length)).toBe(before);
   });
@@ -427,6 +480,29 @@ describeStory("B-14: a league's page in chapters", () => {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
     await expect(page.getByTestId("site-chapter-dots")).not.toHaveAttribute("data-scrubbing", "");
     await expect(page.locator('[data-dot="about"]')).toHaveAttribute("aria-current", "true");
+  });
+
+  test("the chapters are filled: the season's matchdays, news with pictures, videos, facts", async ({ page }) => {
+    await page.goto("/1-liga");
+    // Every act of the year — at least the seed's three; the lifecycle spec adds its own.
+    await expect.poll(() => page.getByTestId("site-season-strip").getByRole("listitem").count()).toBeGreaterThanOrEqual(3);
+    await expect(page.getByTestId("site-news-tiles").getByRole("link").first()).toBeVisible();
+    await expect(page.getByTestId("site-video-tiles").getByRole("listitem")).toHaveCount(3);
+    await expect(page.getByTestId("site-about-facts").getByRole("listitem").first()).toBeVisible();
+    await expect(page.getByTestId("site-live-progress")).toHaveCount(1);
+    await page.goto("/");
+    await expect(page.getByTestId("site-home-services").getByRole("listitem")).toHaveCount(6);
+  });
+
+  test("a news article has its own page: lead, byline, text, and more news", async ({ page }) => {
+    await page.goto("/1-liga/news");
+    await page.getByTestId("site-news-nrv-takes-the-lead").click();
+    await expect(page).toHaveURL(/\/1-liga\/news\/nrv-takes-the-lead$/);
+    await expect(page.getByTestId("site-article-lead")).toBeVisible();
+    await expect(page.getByTestId("site-article-byline")).toBeVisible();
+    // Invented news about real clubs says it is an example.
+    await expect(page.getByTestId("site-example-note")).toBeVisible();
+    await expect(page.getByTestId("site-article-related").getByRole("listitem")).toHaveCount(3);
   });
 
   test("placeholder documents and notices say they are examples", async ({ page }) => {

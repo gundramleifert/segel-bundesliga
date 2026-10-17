@@ -121,6 +121,9 @@ export function useLeagueAbout(league: string) {
 }
 
 /** The picture a league's pages fall back to. */
+/** The same, outside a component — for a list of leagues. */
+export const leagueAbout = (league: string) => LEAGUE_ABOUT[league] ?? null;
+
 export const leaguePhoto = (league: string) => LEAGUE_ABOUT[league]?.photo ?? DSBL_PHOTOS.race;
 
 /** Where a table marks promotion, relegation and requalification — the league's rules,
@@ -148,10 +151,11 @@ export type Article = {
   teaser: string;
   photo: Photo;
   body: string[];
+  author?: string;
+  quote?: { text: string; by: string };
+  /** Written to fill the page, not real news — the article says so (Story B-14). */
+  example?: boolean;
 };
-
-const PLACEHOLDER =
-  "Placeholder text for the article. A real article is written by the league office and carries a byline, a date, the matchday it belongs to and its photos.";
 
 const NEWS: Article[] = [
   {
@@ -162,9 +166,9 @@ const NEWS: Article[] = [
     league: null,
     teaser: "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 von 36 Vereinen getroffen.",
     photo: OWN_PHOTOS.title,
+    author: "Gundram Leifert",
     body: [
       "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 von 36 Vereinen getroffen – und gemeinsam die Weichen für die Zukunft der Segel-Bundesliga gestellt.",
-      "Von Gundram Leifert.",
     ],
   },
   {
@@ -174,7 +178,14 @@ const NEWS: Article[] = [
     league: "1-liga",
     teaser: "Six wins in eight races — and the table has a new name at the top.",
     photo: DSBL_PHOTOS.podium,
-    body: ["Six wins in eight races — and the table has a new name at the top.", PLACEHOLDER],
+    author: "League office",
+    example: true,
+    body: [
+      "Saturday had been a day of waiting: the wind came late, turned twice and left the race committee with four flights. Sunday made up for it. A steady 12 knots from the west, flat water, and a crew from Hamburg that did not put a foot wrong.",
+      "Six wins in eight races carried them past the leaders of the morning, who lost two places in the last flight after a penalty at the leeward gate. The gap at the top is now two points with one matchday to go.",
+      "Behind them the table is as tight as it has been all season. Four clubs are separated by three points between places five and eight, and the fight against relegation will be decided on the final weekend.",
+    ],
+    quote: { text: "We kept it simple: good starts, the right side, no fouls. Everything else followed.", by: "the winning helm" },
   },
   {
     slug: "promotion-race",
@@ -183,7 +194,13 @@ const NEWS: Article[] = [
     league: "2-liga",
     teaser: "Before the final act, nothing is decided.",
     photo: DSBL_PHOTOS.race,
-    body: ["Before the final act, nothing is decided.", PLACEHOLDER],
+    author: "League office",
+    example: true,
+    body: [
+      "Four places go up to the 1. Liga, and five clubs still have a realistic chance of one of them. The leaders are safe; behind them, three clubs are within two points of each other.",
+      "The last matchday is sailed at the same venue as the 1. Liga's final, which means a full harbour, a broadcast and the knowledge that every race counts double in the minds of the crews.",
+      "At the other end of the table, places 13 to 18 will have to requalify at the DSL-Pokal in autumn.",
+    ],
   },
   {
     slug: "junioren-liga-champion",
@@ -192,7 +209,14 @@ const NEWS: Article[] = [
     league: "junioren-liga",
     teaser: "The youngest crew in the field wins the last flight and the title.",
     photo: DSBL_PHOTOS.swimmer,
-    body: ["The youngest crew in the field wins the last flight and the title.", PLACEHOLDER],
+    author: "League office",
+    example: true,
+    body: [
+      "The average age of the crew was seventeen. Their lead before the last flight was one point. They won the race, and with it the title.",
+      "Three days on the Alster brought every condition the city lake has to offer: gusts off the buildings, holes behind the trees and a final day with a breeze that made the J/70s plane downwind.",
+      "The best teams of the season qualify for the DSL-Pokal, where they meet crews of the 1. and 2. Liga.",
+    ],
+    quote: { text: "We trained for exactly this: one race, everything on it.", by: "the champions' helm" },
   },
   {
     slug: "dsl-pokal-registration",
@@ -201,7 +225,13 @@ const NEWS: Article[] = [
     league: "dsl-pokal",
     teaser: "Every member club can enter one crew. Deadline 31 January.",
     photo: DSBL_PHOTOS.aerial,
-    body: ["Every member club can enter one crew. Deadline 31 January.", PLACEHOLDER],
+    author: "League office",
+    example: true,
+    body: [
+      "The DSL-Pokal is the one weekend of the year on which clubs of every level race each other — and the way into the 2. Liga for clubs not yet in a Bundesliga.",
+      "Each member club can enter one crew. Entries are made by the club's team manager on this site, under the club's page in My space. Squads can be completed until the deadline.",
+      "The notice of race and the entry fee will be published on the notice board.",
+    ],
   },
   {
     slug: "live-tracking",
@@ -210,7 +240,84 @@ const NEWS: Article[] = [
     league: null,
     teaser: "From this season the tracker is the sailor's own phone.",
     photo: DSBL_PHOTOS.camera,
-    body: ["From this season the tracker is the sailor's own phone.", PLACEHOLDER],
+    author: "League office",
+    example: true,
+    body: [
+      "No more boxes to charge and hand out on the pontoon: from this season a phone on board is the tracker. The race committee's phone marks the start and finish lines.",
+      "Spectators see every boat on the map, the ranking of the race and the wind, while it happens. After the race the replay stays on the matchday's page.",
+      "The tracking is the association's own and comes with every event organised on this site, the clubs' own regattas included.",
+    ],
+  },
+  {
+    slug: "season-2027-calendar",
+    title: "Season 2027: six weekends, six venues",
+    date: "2026-10-02",
+    league: "1-liga",
+    teaser: "The calendar for next season is set — two venues are new.",
+    photo: DSBL_PHOTOS.aerial,
+    author: "League office",
+    example: true,
+    body: [
+      "The league office and the host clubs have agreed the calendar for 2027. The season opens in May and ends in late September with the final.",
+      "Two venues are new to the league, and both bring a sailing area close to the shore — good for spectators and for the broadcast.",
+      "Every matchday is shared with the 2. Liga, which sails the same weekends at the same venues.",
+    ],
+  },
+  {
+    slug: "relegation-battle",
+    title: "Relegation: one weekend, four clubs, two places",
+    date: "2026-09-07",
+    league: "1-liga",
+    teaser: "The last four go down — and nobody below seventh is safe.",
+    photo: DSBL_PHOTOS.race,
+    author: "League office",
+    example: true,
+    body: [
+      "The rules are simple and hard: the last four of the 1. Liga go down to the 2. Liga. With one matchday left, the clubs between places 12 and 16 are separated by four points.",
+      "A matchday is scored by the sum of all races, so a single bad flight can cost three places. Consistency, not brilliance, is what keeps a club in the league.",
+    ],
+  },
+  {
+    slug: "media-kit",
+    title: "Broadcast and media: every matchday live",
+    date: "2026-05-15",
+    league: null,
+    teaser: "A studio on the pontoon, cameras on the water, the live map on screen.",
+    photo: DSBL_PHOTOS.studio,
+    author: "Press office",
+    example: true,
+    body: [
+      "Every matchday of the 1. Liga is broadcast live: a studio on the pontoon, cameras on RIBs, commentary and the live map with the boats' positions.",
+      "Journalists find photos, the press kit and the accreditation form in each league's press centre.",
+    ],
+  },
+  {
+    slug: "junioren-new-clubs",
+    title: "Junioren-Liga grows: five new clubs",
+    date: "2026-03-20",
+    league: "junioren-liga",
+    teaser: "More youth teams than ever have entered this season.",
+    photo: DSBL_PHOTOS.podium,
+    author: "League office",
+    example: true,
+    body: [
+      "Five clubs sail the Junioren-Liga for the first time this season. The league is open to youth teams of every German sailing club, from AK16 to AK21.",
+      "The boats are provided by the Heinz Nixdorf Verein, so a club needs a crew, a coach and the will to travel — nothing more.",
+    ],
+  },
+  {
+    slug: "club-service",
+    title: "Run your own regatta here",
+    date: "2026-04-10",
+    league: null,
+    teaser: "Pairing lists, results, tracking and waivers — the association's service for every club.",
+    photo: OWN_PHOTOS.title,
+    author: "Deutsche Segel-Liga e.V.",
+    example: true,
+    body: [
+      "Everything the league uses on a matchday is available to every club that organises its own event: the pairing list, the race committee's result entry, live tracking from phones, the liability waivers and the expense claims afterwards.",
+      "An event need not belong to a league. A club's leadership creates it, names its boats and invites its helpers — and the event has its own page on this site.",
+    ],
   },
 ];
 

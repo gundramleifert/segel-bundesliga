@@ -63,14 +63,18 @@
   "season": {
     "more": "Saison & Schwarzes Brett",
     "empty": "Noch keine Spieltage veröffentlicht.",
-    "matchdays": "Spieltage"
+    "matchdays": "Spieltage",
+    "calendar": "Saison {year}"
   },
   "clubs": {
     "more": "Alle Vereine",
     "none": "Noch keine Vereine gemeldet."
   },
   "news": {
-    "more": "Alle News"
+    "more": "Alle News",
+    "example": "Beispielartikel — geschrieben, um die Seite zu zeigen, keine echte Meldung.",
+    "byline": "{author} · {date}",
+    "related": "Weitere News"
   },
   "media": {
     "more": "Fotos & Videos",
@@ -118,7 +122,8 @@
     "from": "Live ab {dates}",
     "text": "Jedes Boot auf der Karte, die Rangfolge der Wettfahrt und der Wind — von den Handys der Segler.",
     "open": "Live-Karte öffnen",
-    "external": "Live-Ansicht öffnen"
+    "external": "Live-Ansicht öffnen",
+    "progress": "{scored} von {total} Wettfahrten gesegelt"
   },
   "home": {
     "association": "Verein",
@@ -126,7 +131,47 @@
     "founded": "Gegründet am {date}.",
     "aboutKicker": "Über den Verein",
     "board": "Vorstand",
-    "members": "Mitgliedsvereine — {count}"
+    "members": "Mitgliedsvereine — {count}",
+    "figures": {
+      "competitions": {
+        "value": "{count}",
+        "label": "Wettbewerbe"
+      },
+      "clubs": {
+        "value": "36",
+        "label": "Mitgliedsvereine"
+      },
+      "since": {
+        "value": "2013",
+        "label": "Liga seit"
+      }
+    },
+    "services": {
+      "pairing": {
+        "title": "Pairing-Listen",
+        "text": "Wer welches Boot in welcher Wettfahrt segelt — ausgeglichen, gedruckt, fertig fürs Schwarze Brett."
+      },
+      "results": {
+        "title": "Ergebnisse",
+        "text": "Die Wettfahrtleitung erfasst die Zieleinläufe auf dem Wasser; Punkte und Tabelle folgen von selbst."
+      },
+      "live": {
+        "title": "Live-Tracking",
+        "text": "Jedes Boot auf der Karte, von den Handys der Seglerinnen und Segler."
+      },
+      "waivers": {
+        "title": "Haftungsausschlüsse",
+        "text": "Online von Volljährigen bestätigt, auf Papier von den Eltern Minderjähriger — und die Check-in-Liste weiß es."
+      },
+      "expenses": {
+        "title": "Abrechnungen",
+        "text": "Helfer reichen Auslagen ein, die Kasse zahlt sie als eine Bankdatei."
+      },
+      "own": {
+        "title": "Ihr eigenes Event",
+        "text": "Ein Event muss zu keiner Liga gehören: Ein Verein legt sein eigenes an und bekommt eine eigene Seite."
+      }
+    }
   },
   "footer": {
     "calendar": "Termine",
@@ -145,7 +190,10 @@
     "video": "Video",
     "band": "A Band",
     "sheet": "B Blatt",
-    "split": "C Geteilt"
+    "split": "C Geteilt",
+    "version": "Layout",
+    "classic": "Klassisch",
+    "submenu": "Sub-Menü"
   },
   "example": "Beispielinhalt — dieses Schwarze Brett ist noch nicht angebunden. Nichts hier ist ein offizieller Aushang."
 }

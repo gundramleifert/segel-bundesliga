@@ -63,14 +63,18 @@
   "season": {
     "more": "Season & notice board",
     "empty": "No matchdays published yet.",
-    "matchdays": "Matchdays"
+    "matchdays": "Matchdays",
+    "calendar": "Season {year}"
   },
   "clubs": {
     "more": "All clubs",
     "none": "No clubs entered yet."
   },
   "news": {
-    "more": "All news"
+    "more": "All news",
+    "example": "Example article — written to show the page, not real news.",
+    "byline": "{author} · {date}",
+    "related": "More news"
   },
   "media": {
     "more": "Photos & videos",
@@ -118,7 +122,8 @@
     "from": "Live from {dates}",
     "text": "Every boat on the map, the ranking of the race and the wind — from the sailors' phones.",
     "open": "Open the live map",
-    "external": "Open the live view"
+    "external": "Open the live view",
+    "progress": "{scored} of {total} races sailed"
   },
   "home": {
     "association": "Association",
@@ -126,7 +131,47 @@
     "founded": "Founded {date}.",
     "aboutKicker": "About the association",
     "board": "Board",
-    "members": "Member clubs — {count}"
+    "members": "Member clubs — {count}",
+    "figures": {
+      "competitions": {
+        "value": "{count}",
+        "label": "Competitions"
+      },
+      "clubs": {
+        "value": "36",
+        "label": "Member clubs"
+      },
+      "since": {
+        "value": "2013",
+        "label": "League since"
+      }
+    },
+    "services": {
+      "pairing": {
+        "title": "Pairing lists",
+        "text": "Who sails which boat in which race — balanced, printed, ready for the notice board."
+      },
+      "results": {
+        "title": "Results",
+        "text": "The race committee enters finishes on the water; points and standings follow by themselves."
+      },
+      "live": {
+        "title": "Live tracking",
+        "text": "Every boat on the map, from the sailors' own phones."
+      },
+      "waivers": {
+        "title": "Liability waivers",
+        "text": "Signed online by adults, on paper by a minor's guardian — and the check-in list knows."
+      },
+      "expenses": {
+        "title": "Expense claims",
+        "text": "Helpers file claims, the treasurer pays them as one bank file."
+      },
+      "own": {
+        "title": "Your own event",
+        "text": "An event need not belong to a league: a club creates its own and gets its own page."
+      }
+    }
   },
   "footer": {
     "calendar": "Calendar",
@@ -145,7 +190,10 @@
     "video": "Video",
     "band": "A Band",
     "sheet": "B Sheet",
-    "split": "C Split"
+    "split": "C Split",
+    "version": "Layout",
+    "classic": "Classic",
+    "submenu": "Sub-menu"
   },
   "example": "Example content — this notice board is not connected yet. Nothing here is an official notice."
 }

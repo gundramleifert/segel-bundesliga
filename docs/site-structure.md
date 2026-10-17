@@ -158,6 +158,7 @@ Each is to be decided on the real device, not argued in the abstract:
 |---|---|
 | Chapters | **snap** — every chapter fills the screen and clicks into place; **free** — chapters keep their height but scroll freely |
 | Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays) |
+| Layout | **Sub-menu** (default since 2026-10-18) — like my space: the top row solid, a sticky sub-menu under it (where you are · the league's pages, or a matchday's tabs), one fixed picture behind the chapters that only the text scrolls over, fuller chapters · **Classic** — each chapter over its own picture, the top row over it, the league's pages in each depth frame |
 | Detail page | **A band** — a big picture (about half the screen) with the kicker and title on it, content on white, the league's pages in the top row · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the league's pages as sticky pills at its top edge (three rows on a matchday page) · **C split** — picture, title and the league's pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
 
 ## Content sources

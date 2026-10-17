@@ -4,9 +4,9 @@ import { Link } from "react-router-dom";
 
 import type { League } from "../../api/types";
 import type { Photo } from "../../content";
-import { Footer, TopBar } from "./Frame";
+import { Footer, LeagueSubBar, TopBar } from "./Frame";
 import { Picture } from "./Media";
-import { useActiveChapter, useChapterMode } from "./settings";
+import { useActiveChapter, useChapterMode, useSiteVersion } from "./settings";
 
 export type ChapterSpec = {
   id: string;
@@ -15,20 +15,119 @@ export type ChapterSpec = {
   photo: Photo;
   more?: { to: string; label: string };
   body: ReactNode;
+  /** More of the chapter, shown in the layout with a sub-menu — the classic chapters stay
+   *  as they were, so the two can be compared. */
+  extra?: ReactNode;
 };
 
-/** The face of a league (or of the association): full-screen chapters over pictures,
- *  dots on the right, each chapter a preview that ends in its own page (Story B-14). */
-export function ChapterScroller({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
-  const mode = useChapterMode();
-  const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}`);
-  // The document behind has nothing to scroll, so Space, Page Down and the arrows have to
-  // reach this box: it takes the focus when the page opens (without moving), and a click
-  // anywhere in it keeps it there. Tab still starts at the top row, which is inside it.
+/** The face of a league (or of the association): full-screen chapters, dots on the right,
+ *  each chapter a preview that ends in its own page (Story B-14) — in the layout the DEV
+ *  switch picks. */
+export function ChapterScroller(props: { chapters: ChapterSpec[]; league?: League | null }) {
+  return useSiteVersion() === "classic" ? <ClassicChapters {...props} /> : <SubmenuChapters {...props} />;
+}
+
+/** The scroller takes the focus when the page opens (without moving), so Space, Page Down
+ *  and the arrows reach it: the document behind has nothing to scroll. */
+function useScrollerFocus() {
   const scroller = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (document.activeElement === document.body) scroller.current?.focus({ preventScroll: true });
   }, []);
+  return scroller;
+}
+
+/** With a sub-menu: the top row and the league's pages solid above, **one** picture fixed
+ *  behind every chapter — photo, slideshow or video, as the DEV switch says — and only the
+ *  text scrolling over it. */
+function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
+  const mode = useChapterMode();
+  const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}|submenu`);
+  const scroller = useScrollerFocus();
+  return (
+    <div className="fixed inset-0 flex flex-col bg-slate-950">
+      <div className="relative z-40 shrink-0">
+        <TopBar league={league} />
+        <LeagueSubBar league={league ?? null} />
+      </div>
+      <div className="relative min-h-0 flex-1">
+        <div aria-hidden className="absolute inset-0">
+          <Picture photo={chapters[0].photo} video={0} />
+        </div>
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/30" />
+        <div
+          ref={scroller}
+          tabIndex={-1}
+          className={`scrollbar-none absolute inset-0 overflow-y-auto outline-none ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
+          data-testid="site-chapters"
+          data-league={league?.slug}
+          data-version="submenu"
+        >
+          <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} />
+          <main id="content">
+            {chapters.map((c, i) => (
+              <section
+                key={c.id}
+                id={c.id}
+                data-chapter={c.id}
+                data-testid={`site-chapter-${c.id}`}
+                className={`relative flex items-center border-t border-white/10 first:border-0 ${
+                  mode === "snap" ? "min-h-[calc(100dvh-105px)] snap-start" : "min-h-[75dvh]"
+                }`}
+              >
+                <div className="mx-auto w-full max-w-6xl px-4 py-14 pr-14 text-white lg:pr-24">
+                  <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
+                  {c.body}
+                  {c.extra && <div className="mt-8">{c.extra}</div>}
+                  {c.more && <MoreLink id={c.id} more={c.more} />}
+                </div>
+              </section>
+            ))}
+          </main>
+          <div className="snap-start bg-white">
+            <Footer />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChapterHead({ n, of, title }: { n: number; of: number; title: string }) {
+  return (
+    <>
+      <p className="font-mono text-xs tracking-widest text-white/60">
+        {String(n).padStart(2, "0")} / {String(of).padStart(2, "0")}
+      </p>
+      {/* The first chapter's title is the page's heading; the others are its sections. */}
+      {n === 1 ? (
+        <h1 className="mb-6 mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">{title}</h1>
+      ) : (
+        <h2 className="mb-6 mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">{title}</h2>
+      )}
+    </>
+  );
+}
+
+function MoreLink({ id, more }: { id: string; more: { to: string; label: string } }) {
+  return (
+    <Link
+      to={more.to}
+      data-testid={`site-chapter-${id}-more`}
+      className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
+    >
+      {more.label} <span aria-hidden>→</span>
+    </Link>
+  );
+}
+
+/** Classic: each chapter over its own picture, the top row lying over it. */
+function ClassicChapters({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
+  const mode = useChapterMode();
+  const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}`);
+  // A click anywhere in the box keeps the focus there. Tab still starts at the top row,
+  // which is inside it.
+  const scroller = useScrollerFocus();
   return (
     // Its own scroller, fixed over the screen, so the document behind has nothing to
     // scroll and the snapping (when on) is this box's alone.
@@ -67,25 +166,9 @@ function Chapter({ spec, n, of, playing }: { spec: ChapterSpec; n: number; of: n
       <Picture photo={spec.photo} play={playing} video={n - 1} />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-slate-950/25" />
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pr-14 pt-24 text-white lg:pr-24">
-        <p className="font-mono text-xs tracking-widest text-white/60">
-          {String(n).padStart(2, "0")} / {String(of).padStart(2, "0")}
-        </p>
-        {/* The first chapter's title is the page's heading; the others are its sections. */}
-        {n === 1 ? (
-          <h1 className="mb-6 mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">{spec.title}</h1>
-        ) : (
-          <h2 className="mb-6 mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">{spec.title}</h2>
-        )}
+        <ChapterHead n={n} of={of} title={spec.title} />
         {spec.body}
-        {spec.more && (
-          <Link
-            to={spec.more.to}
-            data-testid={`site-chapter-${spec.id}-more`}
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
-          >
-            {spec.more.label} <span aria-hidden>→</span>
-          </Link>
-        )}
+        {spec.more && <MoreLink id={spec.id} more={spec.more} />}
       </div>
     </section>
   );

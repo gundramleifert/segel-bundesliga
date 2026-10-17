@@ -52,6 +52,14 @@ export type DetailMode = "band" | "sheet" | "split";
 export const DETAIL_MODES = ["band", "sheet", "split"] as const;
 export const [useDetailMode, setDetailMode] = setting<DetailMode>("site.detail", DETAIL_MODES, "band");
 
+/** The site's layout: **classic** — the chapters each over their own picture, the top row
+ *  over it, the league's pages in each depth frame; **submenu** — like my space: the top
+ *  row solid with a sticky sub-menu under it (the league's pages, or a matchday's tabs),
+ *  one fixed picture behind the chapters that the text scrolls over, fuller chapters. */
+export type SiteVersion = "classic" | "submenu";
+export const SITE_VERSIONS = ["classic", "submenu"] as const;
+export const [useSiteVersion, setSiteVersion] = setting<SiteVersion>("site.version", SITE_VERSIONS, "submenu");
+
 /** Which chapter is on screen — for the dots, and so only that chapter plays a video:
  *  the one that covers the **middle line** of the screen. `key` re-runs the observer when
  *  the set of chapters (or their layout) changes.

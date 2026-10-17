@@ -363,6 +363,18 @@ Acceptance criteria:
   bottom left, wherever the role switcher is built in (`DEV_TOOLS`): chapters snap or
   scroll freely; pictures as photo, fade, slide or video; the depth page as A band,
   B sheet or C split. The choice is remembered in this browser.
+- **The layout with a sub-menu** (2026-10-18, the DEV switch's *Layout*, the default; the
+  classic one stays selectable to compare): the public site is built like my space. The
+  top row is solid everywhere, and under it a **sub-menu row sticks** — where you are on
+  the left (*1. Liga*; on a matchday *1. Liga › Season › Act 2 · Kiel*), the pages beside
+  it as tabs on the right: the league's pages (*Overview · Standings · Season · Notice
+  board · Clubs · News · Media · Press · About*), the association's on its own pages, a
+  matchday's tabs on a matchday page. It is there on the chapter page too, so a deeper
+  page is one tap away from the first screen. Still at most two rows: on a matchday page
+  the matchday's tabs *are* the sub-menu, the league's pages a step up its crumbs.
+- **In that layout the picture stands still and only the text scrolls**: a chapter page
+  has one picture behind all its chapters (photo, fade, slide or video, as before), a depth
+  page's picture is fixed behind its band.
 
 Tests: `e2e/visitor.spec.ts::B-13: one row of navigation names the leagues`
 
@@ -425,6 +437,15 @@ Acceptance criteria:
   whose title is the page's heading: *Deutsche Segel-Liga e.V.*
 - **Old addresses of the DSBL** (`/dsbl`, `/dsbl/…`) go to the 1. Liga's same page
   (Story B-16).
+- **The chapters are filled** in the layout with a sub-menu (Story B-13; the classic
+  chapters stay as they were): *Standings* also lists the year's matchdays with their
+  state, each leading to its page; *Results* how many races are sailed; *News* the newest
+  three as cards with picture and teaser and three more headlines; *Media* the videos as
+  stills; *About* the league's facts. On the association's home: figures, the service for
+  clubs as six tiles, the history.
+- **Every article has its own page** (`/:league/news/:slug`): the lead, the byline, the
+  text, a quote where there is one, and the league's next three articles. An invented
+  article says it is an example — it names real clubs.
 
 Tests: `api/tests/stories/test_league_pages.py::TestLeagueSeason`,
 `e2e/visitor.spec.ts::B-14: a league's page in chapters`

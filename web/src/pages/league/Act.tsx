@@ -8,7 +8,8 @@ import { useAccount, useAsync } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
-import { Block, DepthPage, Expand, TopBar, useSecondRow } from "../../components/site/Frame";
+import { Block, DepthPage, Expand, SubBar, TopBar, useSecondRow } from "../../components/site/Frame";
+import { useSiteVersion } from "../../components/site/settings";
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
 import { eventDates, locationText } from "../../lib/format";
 import { currentAct, hasResults, href, lastSailed, type Act } from "../../lib/site";
@@ -60,6 +61,7 @@ function MatchdayView({
   const actTitle = useActTitle();
   const { hasRole } = useAccount();
   const second = useSecondRow();
+  const classic = useSiteVersion() === "classic";
   const [params, setParams] = useSearchParams();
   // A tab click scrolls the page so the matchday row sits right under the top bar and the
   // tab starts below it. A page opened by its URL keeps its picture in view.
@@ -78,17 +80,47 @@ function MatchdayView({
   const event = act.events.find((e) => String(e.id) === params.get("division")) ?? act.events[0];
   const kicker = [league?.short_name, actDates(act), act.first.venue?.water ?? act.first.venue?.name].filter(Boolean).join(" · ");
 
+  // With a sub-menu, the matchday's tabs are it: where you are on the left (the league,
+  // its season, this act), the tabs beside it — the league's pages are a step up.
+  const subnav = classic ? undefined : (
+    <SubBar
+      label={t("act.tabs")}
+      testId="site-act-bar"
+      crumbs={[
+        ...(league
+          ? [
+              { label: league.short_name, to: href.league(league.slug) },
+              { label: t("pages.season"), to: href.season(league.slug) },
+            ]
+          : []),
+        { label: actTitle(act) },
+      ]}
+      items={tabs.map((tb) => ({
+        key: tb,
+        to: { pathname: tabHref(tb), search: params.toString() },
+        label: t(`tabs.${tb}`),
+        current: tb === tab,
+        testId: `site-act-tab-${tb}`,
+        state: { keepScroll: true },
+        onClick: () => {
+          clicked.current = true;
+        },
+      }))}
+    />
+  );
+
   return (
     <DepthPage
       league={league}
       title={actTitle(act)}
       kicker={kicker}
       photo={hasResults(act) ? DSBL_PHOTOS.podium : league ? leaguePhoto(league.slug) : DSBL_PHOTOS.race}
+      subnav={subnav}
     >
       {/* Which matchday this is and what it has, in one row that stays under the top bar
           — the second and last row of navigation (Story B-13). */}
       <div ref={anchor} aria-hidden />
-      <nav
+      {classic && <nav
         aria-label={t("act.tabs")}
         data-testid="site-act-bar"
         className={`scrollbar-none sticky z-10 -mx-4 mb-8 overflow-x-auto border-b border-slate-200 bg-white/95 px-4 backdrop-blur ${second.top}`}
@@ -119,7 +151,7 @@ function MatchdayView({
             </li>
           ))}
         </ul>
-      </nav>
+      </nav>}
 
       {/* At least a screen tall, so a short tab can still be scrolled up to the row. */}
       {/* `panel-scroll`: a results table wider than a phone scrolls here, not the page

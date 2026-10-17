@@ -76,11 +76,11 @@ export const divisionName = (event: EventSummary) =>
 
 /** Says that what follows is example content, not the real thing — for the parts of a page
  *  that have no backend yet and would otherwise read as official (Story B-14). */
-export function ExampleNote() {
+export function ExampleNote({ text }: { text?: string }) {
   const { t } = useTranslation("site");
   return (
     <p role="note" data-testid="site-example-note" className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-      {t("example")}
+      {text ?? t("example")}
     </p>
   );
 }

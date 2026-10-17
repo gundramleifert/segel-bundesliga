@@ -5,16 +5,19 @@ import {
   CHAPTER_MODES,
   DETAIL_MODES,
   MEDIA_MODES,
+  SITE_VERSIONS,
   setChapterMode,
   setDetailMode,
   setMediaMode,
+  setSiteVersion,
   useChapterMode,
   useDetailMode,
   useMediaMode,
+  useSiteVersion,
 } from "./settings";
 
 /** The DEV button, bottom left: the variants of the site structure still being decided
- *  (Story B-13) — chapters snapping or scrolling freely, pictures as photo, fade, slide or
+ *  (Story B-13) — the layout, classic or with a sub-menu, chapters snapping or scrolling freely, pictures as photo, fade, slide or
  *  video, and the depth page's frame. Built in wherever the role switcher is (`DEV_TOOLS`),
  *  so the stakeholders can switch on staging, on their own phones. */
 export function DevSwitch() {
@@ -23,10 +26,12 @@ export function DevSwitch() {
   const chapters = useChapterMode();
   const media = useMediaMode();
   const detail = useDetailMode();
+  const version = useSiteVersion();
   return (
     <div className="fixed bottom-4 left-4 z-50 text-sm" data-testid="site-dev">
       {open && (
         <div className="mb-2 w-64 rounded-2xl bg-slate-900/95 p-4 text-white shadow-2xl backdrop-blur">
+          <Segment label={t("dev.version")} value={version} options={SITE_VERSIONS} onChange={setSiteVersion} testId="site-dev-version" />
           <Segment label={t("dev.chapters")} value={chapters} options={CHAPTER_MODES} onChange={setChapterMode} testId="site-dev-chapters" />
           <Segment label={t("dev.pictures")} value={media} options={MEDIA_MODES} onChange={setMediaMode} testId="site-dev-media" />
           <Segment label={t("dev.detail")} value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="site-dev-detail" />
