@@ -59,9 +59,9 @@ account by nothing but the **verified** email address: membership does not creat
 until it exists `GET /api/sailors/me` answers `no-linked-sailor-record`. ◐ and not ●,
 because S-2 is ◐.
 
-Open: V-4 says an organizer creates only people of their **own** club, but a sailor
-record has no club — `POST /api/admin/sailors` checks only that the caller is some club's
-manager (`_can_manage_master_data`), so any club's manager can create anyone. Either the
-criterion goes, or the record needs a club to check it against.
+Drawing this journey found that V-4 promised "an organizer creates only people of their
+own club" while any club's manager could *edit* anyone. Since 2026-10-17 creating stays
+open to every club's manager (a new person has no club yet), and changing a person
+(J-3.8 onwards) is for the managers of a club whose squad holds them (`sailor-not-yours`).
 
 Tests: `api/tests/stories/test_journey_member.py::TestASailorJoinsTheirClub::test_from_no_account_to_a_member_with_a_sailor_record`

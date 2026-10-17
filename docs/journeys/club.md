@@ -53,8 +53,8 @@ sequenceDiagram
 
 Retired steps: none
 
-Open: V-3 is ◐ — the crest is uploaded on the admin club list today; the club's own page
-in my space has no crest control yet, though the endpoint already lets the club's admin
-upload. V-11 ("manage our own club page" — description, contact) is ○ and so not a step.
+Open: V-11 ("manage our own club page" — description, contact) is ○ and so not a step.
+(Drawing this journey found that a club's admin had no screen for the crest, J-2.5; since
+2026-10-17 it is on the Members tab of the club's page in my space.)
 
 Tests: `api/tests/stories/test_journey_club.py::TestANewClubRunsItself::test_from_nothing_to_a_public_club`
