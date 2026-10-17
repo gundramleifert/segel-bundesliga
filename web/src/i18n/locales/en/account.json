@@ -17,8 +17,8 @@
     "sendCodeRegister": "Create account",
     "sending": "Sending…",
     "codeSentTitle": "Check your email",
-    "codeSentHint": "If an account exists for {{email}}, a code is on its way. It's valid for ten minutes.",
-    "codeSentHintRegister": "A confirmation code for {{email}} is on its way. It's valid for ten minutes — enter it to finish creating the account.",
+    "codeSentHint": "If an account exists for {email}, a code is on its way. It's valid for ten minutes.",
+    "codeSentHintRegister": "A confirmation code for {email} is on its way. It's valid for ten minutes — enter it to finish creating the account.",
     "codeLabel": "One-time code",
     "codePlaceholder": "6-digit code",
     "verify": "Sign in",
@@ -84,7 +84,7 @@
     "title": "Liability waiver",
     "description": "One statement per series — or per event, when the event belongs to no series. It covers every matchday of that competition; a new wording asks for a new confirmation.",
     "none": "You are not entered in any competition yet, so there is nothing to sign.",
-    "forCompetition": "Reference date {{date}}",
+    "forCompetition": "Reference date {date}",
     "status": {
       "cleared": "Cleared",
       "missing": "Not yet confirmed",
@@ -93,9 +93,9 @@
       "birth_date_unknown": "Date of birth missing",
       "not_required": "No waiver published"
     },
-    "confirmedOn": "Version {{version}}, confirmed {{date}}",
+    "confirmedOn": "Version {version}, confirmed {date}",
     "methodOnline": "online",
-    "methodGuardian": "signed by {{name}}",
+    "methodGuardian": "signed by {name}",
     "viewScan": "Open the uploaded form",
     "needBirthDate": "Enter your date of birth in the profile above first — it decides whether you confirm online or a parent has to sign.",
     "adult": {
@@ -116,13 +116,13 @@
       "uploading": "Uploading…",
       "done": "The signed form is on file — you are cleared."
     },
-    "methodGuardianOnline": "accepted online by {{name}}",
+    "methodGuardianOnline": "accepted online by {name}",
     "guardian": {
       "title": "My children",
       "description": "The young sailors your club linked to you as their guardian. While a child is under 18, you accept the waiver for them here — no form to print.",
-      "none": "{{name}} is not entered in any competition yet.",
-      "agree": "I have read the statement above and accept it for {{name}}, as their parent or legal guardian.",
-      "done": "Thank you — your acceptance for {{name}} is recorded."
+      "none": "{name} is not entered in any competition yet.",
+      "agree": "I have read the statement above and accept it for {name}, as their parent or legal guardian.",
+      "done": "Thank you — your acceptance for {name} is recorded."
     }
   }
 }

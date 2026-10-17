@@ -4,13 +4,13 @@
   "noCourse": "No course has been laid yet — the boats appear once the committee lays one and the trackers report.",
   "noBoats": "No boat has reported a position yet.",
   "race": {
-    "running": "Race {{sequence}} · running",
-    "finished": "Race {{sequence}} · finished",
+    "running": "Race {sequence} · running",
+    "finished": "Race {sequence} · finished",
     "none": "No race on the water",
-    "next": "Next up: race {{sequence}}",
-    "elapsed": "{{time}} sailed",
-    "signal": "Signal {{signal}}",
-    "wind": "Wind {{deg}}°"
+    "next": "Next up: race {sequence}",
+    "elapsed": "{time} sailed",
+    "signal": "Signal {signal}",
+    "wind": "Wind {deg}°"
   },
   "panel": {
     "rank": "#",
@@ -19,7 +19,7 @@
     "speed": "kn",
     "toGo": "to go / gap",
     "finished": "finished",
-    "detectedOrder": "Detected finish order: {{order}}"
+    "detectedOrder": "Detected finish order: {order}"
   },
   "leg": {
     "start": "to the start",
@@ -46,7 +46,7 @@
     "laid": "Course laid.",
     "simulate": "Simulate a race",
     "simulating": "Simulating…",
-    "speed": "Speed ×{{factor}}",
+    "speed": "Speed ×{factor}",
     "simulateHint": "Six made-up boats sail the current race through the real ingest path; the finish order becomes the result and the next race is up. Development only.",
     "raceControl": "Race control",
     "finishLine": "Finish line",

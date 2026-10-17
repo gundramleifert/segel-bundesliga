@@ -5,10 +5,16 @@
  * Resources are bundled at build time via static imports — this is a small app with two
  * locales, and a runtime backend would only add complexity for no benefit here.
  *
+ * Messages are ICU MessageFormat (`i18next-icu`): `{name}` for a value, and plurals in one
+ * key — `{count, plural, one {# event} other {# events}}` — instead of i18next's `{{name}}`
+ * and `_one`/`_other` keys. `scripts/check-i18n.mjs` parses every message, because a
+ * message that does not parse is otherwise shown raw, braces and all, without an error.
+ *
  * The detected/stored language persists in `localStorage` under `sbl.language`; without a
  * stored preference, the browser's language decides, and English is the fallback.
  */
 import i18n from "i18next";
+import ICU from "i18next-icu";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
@@ -51,6 +57,7 @@ export const SUPPORTED_LANGUAGES = ["en", "de"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 void i18n
+  .use(new ICU())
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({

@@ -46,13 +46,13 @@
     "entry": "Ergebnisse eingeben"
   },
   "act": {
-    "title": "Act {{n}}",
+    "title": "Act {n}",
     "tabs": "Spieltag",
     "division": "Liga"
   },
-  "hostedBy": "ausgerichtet von {{host}}",
+  "hostedBy": "ausgerichtet von {host}",
   "now": {
-    "resultsOf": "Ergebnisse {{act}}"
+    "resultsOf": "Ergebnisse {act}"
   },
   "standings": {
     "more": "Ganze Tabelle",
@@ -74,8 +74,7 @@
   },
   "media": {
     "more": "Fotos & Videos",
-    "preview_one": "Ein Video und die Galerien aller Spieltage.",
-    "preview_other": "{{count}} Videos und die Galerien aller Spieltage.",
+    "preview": "{count, plural, one {Ein Video und die Galerien aller Spieltage.} other {# Videos und die Galerien aller Spieltage.}}",
     "page": "Fotos & Videos",
     "videos": "Videos",
     "photos": "Fotos",
@@ -95,7 +94,7 @@
     "contact": "Kontakt"
   },
   "about": {
-    "title": "Über die {{league}}",
+    "title": "Über die {league}",
     "more": "So funktioniert's",
     "stake": "Worum es geht"
   },
@@ -104,7 +103,7 @@
     "all": "Alle Dokumente",
     "seasonPreview": "Ligaordnung, die Ausschreibung der Saison, Charterbedingungen und Meldefristen.",
     "intro": "Dokumente für die ganze Saison. Die Aushänge eines Spieltags — Änderungen, Jury-Entscheidungen, die Protestliste — stehen auf seiner Seite:",
-    "ofAct": "Schwarzes Brett von {{act}}",
+    "ofAct": "Schwarzes Brett von {act}",
     "announcements": "Aushänge",
     "documents": "Dokumente",
     "from": {
@@ -116,7 +115,7 @@
   "live": {
     "now": "Jetzt auf dem Wasser",
     "replay": "Tracking-Wiederholung",
-    "from": "Live ab {{dates}}",
+    "from": "Live ab {dates}",
     "text": "Jedes Boot auf der Karte, die Rangfolge der Wettfahrt und der Wind — von den Handys der Segler.",
     "open": "Live-Karte öffnen",
     "external": "Live-Ansicht öffnen"
@@ -124,10 +123,10 @@
   "home": {
     "association": "Verein",
     "aboutMore": "Über den Verein",
-    "founded": "Gegründet am {{date}}.",
+    "founded": "Gegründet am {date}.",
     "aboutKicker": "Über den Verein",
     "board": "Vorstand",
-    "members": "Mitgliedsvereine — {{count}}"
+    "members": "Mitgliedsvereine — {count}"
   },
   "footer": {
     "calendar": "Termine",

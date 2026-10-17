@@ -108,8 +108,8 @@ function SailorList({ page, params }: { page: SailorPage; params: ListParams }) 
           enableSorting: false,
           cell: ({ row }) => (
             <span className="text-slate-400">
-              {/* i18next's own plural forms (`_one` / `_other`), so the count reaches the
-                  singular too — a hand-rolled pair showed "{{count}} registration" once. */}
+              {/* An ICU plural (`{count, plural, one {…} other {…}}`), so the count reaches
+                  the singular too — a hand-rolled pair showed "{{count}} registration" once. */}
               {t("sailors.registrationsLabel", { count: row.original.squads ?? 0 })}
             </span>
           ),

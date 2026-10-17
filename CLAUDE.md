@@ -656,6 +656,12 @@ language using **i18n (internationalization)**, not as German-only source text o
   `standings`, `clubs`, `club`, `sailor`, `matchday`, `account`, `admin`, `dev`)
 - `de/*.json` — German translations of the same namespaces
 
+Messages are **ICU MessageFormat** (`i18next-icu`): `{name}` for a value, and a plural is one
+key — `{count, plural, one {# event} other {# events}}` — never i18next's `{{name}}` or
+`_one`/`_other` keys. A message that does not parse is shown raw without an error, so
+`pnpm check:i18n` (part of `check.sh`) parses every one and compares placeholders across
+languages.
+
 A language switcher in the UI lets visitors choose English or German at runtime. English is the
 default and source language.
 

@@ -9,13 +9,12 @@
   "ownEvents_desc": "Without a series — they don't count toward any series standings.",
   "unassigned": "This club is not assigned to any series for the current year.",
   "crew_empty": "Lineup to be determined",
-  "stats": "{{count}} registered · {{events}} matchdays",
+  "stats": "{count} registered · {events} matchdays",
   "website": "Club website",
-  "clubDescription": "{{short_name}} · {{city}}",
+  "clubDescription": "{short_name} · {city}",
   "members": {
     "title": "Members",
-    "listTitle": "{{count}} member",
-    "listTitle_other": "{{count}} members",
+    "listTitle": "{count, plural, one {# member} other {# members}}",
     "empty": "Nobody is a member yet.",
     "you": "you",
     "relations": {
@@ -57,14 +56,14 @@
       "series": "Series"
     },
     "seriesHint": "Every series this club is registered in. Open one to register who may sail for it — the squad the matchday crews are drawn from.",
-    "squadSize": "{{count}} of {{min}}–{{max}} registered",
+    "squadSize": "{count} of {min}–{max} registered",
     "openSquad": "Squad",
     "closeSquad": "Close",
     "titlePlural": "My clubs"
   },
   "lineup": {
     "title": "Crew for this matchday",
-    "sizeHint": "{{count}} named · usually {{usual}}",
+    "sizeHint": "{count} named · usually {usual}",
     "empty": "No crew named yet.",
     "squadEmpty": "The squad is empty — register people for the series first.",
     "noHelm": "no helm named yet",
@@ -82,6 +81,6 @@
     "add": "Add guardian",
     "link": "Link",
     "emailPlaceholder": "The parent's email address",
-    "remove": "Remove {{name}} as guardian"
+    "remove": "Remove {name} as guardian"
   }
 }

@@ -21,7 +21,7 @@
   "live": {
     "live": "Live",
     "reconnecting": "Reconnecting …",
-    "off": "Updates every {{seconds}} s"
+    "off": "Updates every {seconds} s"
   },
   "crewRole": {
     "helm": "Helm",
@@ -37,9 +37,9 @@
     "ORANGE": "Orange",
     "WHITE": "White"
   },
-  "hostedBy": "Host: {{name}}",
+  "hostedBy": "Host: {name}",
   "venueUnknown": "Venue to be announced",
-  "actNumber": "Act {{number}}",
+  "actNumber": "Act {number}",
   "language": {
     "label": "Language",
     "en": "English",
@@ -47,8 +47,8 @@
   },
   "transferList": {
     "filterPlaceholder": "Filter …",
-    "available": "Available ({{count}})",
-    "selected": "Selected ({{count}})",
+    "available": "Available ({count})",
+    "selected": "Selected ({count})",
     "noneAvailable": "No matches.",
     "noneSelected": "None selected yet.",
     "remove": "Remove",
@@ -58,7 +58,7 @@
     "loadFailed": "The data could not be loaded. Is there a connection?",
     "loginFailed": "Sign-in failed.",
     "actionFailed": "That didn't work. Is there a connection?",
-    "requestFailed": "The request failed ({{status}}).",
+    "requestFailed": "The request failed ({status}).",
     "noSeriesThisYear": "There's no series yet for this year."
   },
   "dateOpen": "Date to be confirmed",
@@ -76,10 +76,10 @@
     "admin": "Administration"
   },
   "pager": {
-    "range": "{{first}}–{{last}} of {{total}}",
+    "range": "{first}–{last} of {total}",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {{page}} of {{pages}}"
+    "page": "Page {page} of {pages}"
   },
   "table": {
     "sortBy": "Sort by this column",
@@ -88,7 +88,7 @@
   },
   "dropzone": {
     "prompt": "Drop a file here, or tap to choose one",
-    "refused": "“{{name}}” is not a file type accepted here."
+    "refused": "“{name}” is not a file type accepted here."
   },
   "crest": {
     "upload": "Upload crest",

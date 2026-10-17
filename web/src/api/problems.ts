@@ -4,7 +4,7 @@
  * `type` like `/errors/guardian-confirmation-needed`; this module maps the last segment
  * (the "code") to a key in the `errors` i18n namespace. Extension members on the body
  * (`required_version`, `sailor_id`, …) are passed to the translation as interpolation
- * values, so `errors.json` can write `"{{required_version}}"`.
+ * values, so `errors.json` can write `"{required_version}"`.
  *
  * See `docs/concepts.md` → "Errors".
  */

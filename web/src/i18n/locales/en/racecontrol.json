@@ -2,9 +2,9 @@
   "title": "Race control",
   "loading": "Race control is loading…",
   "forbidden": "This screen is for the race committee.",
-  "raceHeading": "Race {{sequence}}",
-  "flightOf": "Flight {{flight}} of {{total}}",
-  "progress": "{{done}} of {{total}} races done",
+  "raceHeading": "Race {sequence}",
+  "flightOf": "Flight {flight} of {total}",
+  "progress": "{done} of {total} races done",
   "previous": "Previous race",
   "next": "Next race",
   "backToCurrent": "Back to the current race",
@@ -45,36 +45,34 @@
     "confirmAbandon": "Tap again to abandon",
     "finish": "Finish race",
     "correct": "Correct in the results tab",
-    "sequenceAt": "Sequence at {{time}}",
+    "sequenceAt": "Sequence at {time}",
     "restartNow": "Restart in 10 s",
-    "restartAt": "Restart at {{time}}",
+    "restartAt": "Restart at {time}",
     "soundOn": "Sound on — tap to mute",
     "soundOff": "Sound muted — tap to turn on",
     "soundLocked": "Sound is off on this device — tap here to turn it on",
     "soundTest": "Test sound",
     "apIsUp": "AP is up — lower it with a sequence above",
-    "lowerNow": "{{flag}} down in 10 s",
-    "lowerAt": "{{flag}} down at {{time}}"
+    "lowerNow": "{flag} down in 10 s",
+    "lowerAt": "{flag} down at {time}"
   },
   "sequence": {
     "preparatory": "Preparatory flag",
     "hint": "3-2-1-0 with the club flag. The start is recorded by itself at zero. AP during the sequence goes up in 10 s, at the latest 3 s before the start.",
     "clubFlag": "Club flag",
-    "startAt": "Start {{time}}",
+    "startAt": "Start {time}",
     "actions": {
       "apUp": "AP UP",
       "apDown": "AP DOWN",
       "clubUp": "Club flag UP",
-      "preparatoryUp": "{{flag}} UP",
-      "preparatoryDown": "{{flag}} DOWN",
+      "preparatoryUp": "{flag} UP",
+      "preparatoryDown": "{flag} DOWN",
       "start": "Club flag DOWN — start",
       "firstSubstituteDown": "1st Substitute DOWN"
     },
     "tones": {
-      "short_one": "+ one short sound",
-      "short_other": "+ {{count}} short sounds",
-      "long_one": "+ one long sound",
-      "long_other": "+ {{count}} long sounds"
+      "short": "{count, plural, one {+ one short sound} other {+ # short sounds}}",
+      "long": "{count, plural, one {+ one long sound} other {+ # long sounds}}"
     }
   },
   "flags": {
@@ -84,13 +82,13 @@
     "U": "U",
     "BLACK": "Black"
   },
-  "elapsed": "Elapsed {{time}}",
-  "xHint": "X is up: tap a boat that was over the line — it gets {{code}}. Tap again to clear.",
+  "elapsed": "Elapsed {time}",
+  "xHint": "X is up: tap a boat that was over the line — it gets {code}. Tap again to clear.",
   "localHint": "Taps stay on this device until you finish the race.",
   "duplicateWarning": "Two boats have the same finish position.",
-  "codeLabel": "Code for {{boat}}",
-  "finishedBanner": "Race {{sequence}} finished.",
-  "position": "Place {{position}}",
+  "codeLabel": "Code for {boat}",
+  "finishedBanner": "Race {sequence} finished.",
+  "position": "Place {position}",
   "lowering": {
     "AP": "AP",
     "firstSubstitute": "1st Substitute"

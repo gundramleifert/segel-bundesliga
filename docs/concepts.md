@@ -287,7 +287,7 @@ where clients already read it — routers adopt real codes one at a time. The wa
 
 **Frontend** (`web/src/api/problems.ts`): `describeProblem()` turns a problem into a
 message via the `errors` i18n namespace — `errors:<code>`, with the extension members
-passed as interpolation values (`"… version {{required_version}} …"`), falling back to
+passed as interpolation values (`"… version {required_version} …"`), falling back to
 `title` then `errors:unknown`. `ApiError` carries `.code` and `.problem` so a component
 can branch on the code or re-translate on a language switch.
 

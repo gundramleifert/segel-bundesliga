@@ -17,8 +17,8 @@
     "sendCodeRegister": "Konto anlegen",
     "sending": "Wird gesendet…",
     "codeSentTitle": "E-Mail-Postfach prüfen",
-    "codeSentHint": "Falls zu {{email}} ein Konto besteht, ist ein Code unterwegs. Er gilt zehn Minuten.",
-    "codeSentHintRegister": "An {{email}} ist ein Bestätigungscode unterwegs. Er gilt zehn Minuten — damit ist das Konto fertig angelegt.",
+    "codeSentHint": "Falls zu {email} ein Konto besteht, ist ein Code unterwegs. Er gilt zehn Minuten.",
+    "codeSentHintRegister": "An {email} ist ein Bestätigungscode unterwegs. Er gilt zehn Minuten — damit ist das Konto fertig angelegt.",
     "codeLabel": "Einmalcode",
     "codePlaceholder": "6-stelliger Code",
     "verify": "Anmelden",
@@ -84,7 +84,7 @@
     "title": "Haftungsausschluss",
     "description": "Eine Erklärung pro Serie – oder pro Veranstaltung, wenn sie zu keiner Serie gehört. Sie gilt für alle Spieltage dieser Wettbewerbe; ein neuer Wortlaut verlangt eine neue Bestätigung.",
     "none": "Du bist noch für keinen Wettbewerb gemeldet, es gibt also nichts zu unterschreiben.",
-    "forCompetition": "Stichtag {{date}}",
+    "forCompetition": "Stichtag {date}",
     "status": {
       "cleared": "Erledigt",
       "missing": "Noch nicht bestätigt",
@@ -93,9 +93,9 @@
       "birth_date_unknown": "Geburtsdatum fehlt",
       "not_required": "Kein Haftungsausschluss veröffentlicht"
     },
-    "confirmedOn": "Fassung {{version}}, bestätigt am {{date}}",
+    "confirmedOn": "Fassung {version}, bestätigt am {date}",
     "methodOnline": "online",
-    "methodGuardian": "unterschrieben von {{name}}",
+    "methodGuardian": "unterschrieben von {name}",
     "viewScan": "Hochgeladenes Formular öffnen",
     "needBirthDate": "Trage zuerst oben im Profil dein Geburtsdatum ein – es entscheidet, ob du online bestätigst oder ein Elternteil unterschreiben muss.",
     "adult": {
@@ -116,13 +116,13 @@
       "uploading": "Wird hochgeladen…",
       "done": "Das unterschriebene Formular liegt vor – du bist freigegeben."
     },
-    "methodGuardianOnline": "online angenommen von {{name}}",
+    "methodGuardianOnline": "online angenommen von {name}",
     "guardian": {
       "title": "Meine Kinder",
       "description": "Die jungen Seglerinnen und Segler, die Ihr Verein Ihnen als Erziehungsberechtigte(r) zugeordnet hat. Solange ein Kind unter 18 ist, nehmen Sie den Haftungsausschluss hier für es an — ohne Formular zum Ausdrucken.",
-      "none": "{{name}} ist noch für keinen Wettbewerb gemeldet.",
-      "agree": "Ich habe die obige Erklärung gelesen und nehme sie als Elternteil bzw. Erziehungsberechtigte(r) für {{name}} an.",
-      "done": "Danke — Ihre Annahme für {{name}} ist erfasst."
+      "none": "{name} ist noch für keinen Wettbewerb gemeldet.",
+      "agree": "Ich habe die obige Erklärung gelesen und nehme sie als Elternteil bzw. Erziehungsberechtigte(r) für {name} an.",
+      "done": "Danke — Ihre Annahme für {name} ist erfasst."
     }
   }
 }

@@ -6,21 +6,20 @@
     "noRaces": "No races have been sailed yet in this series.",
     "noEvents": "No events scheduled for this series yet."
   },
-  "caption": "Series standings {{seriesName}}",
+  "caption": "Series standings {seriesName}",
   "resultsHeading": "Results",
   "eventsHeading": "Events",
   "table": {
     "rank": "Rank",
     "club": "Club",
     "points": "Points",
-    "act": "Act {{matchday}}",
+    "act": "Act {matchday}",
     "notSailed": "Did not sail — field size + 1"
   },
   "seriesOverview": {
     "title": "Series",
     "empty": "No series has been set up for this year yet.",
-    "eventCount_one": "1 event",
-    "eventCount_other": "{{count}} events"
+    "eventCount": "{count, plural, one {1 event} other {# events}}"
   },
   "marks": {
     "promotion": "Promotion",

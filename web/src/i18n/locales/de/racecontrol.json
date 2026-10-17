@@ -2,9 +2,9 @@
   "title": "Wettfahrtleitung",
   "loading": "Wettfahrtleitung wird geladen …",
   "forbidden": "Dieser Bildschirm ist für die Wettfahrtleitung.",
-  "raceHeading": "Wettfahrt {{sequence}}",
-  "flightOf": "Flight {{flight}} von {{total}}",
-  "progress": "{{done}} von {{total}} Wettfahrten erledigt",
+  "raceHeading": "Wettfahrt {sequence}",
+  "flightOf": "Flight {flight} von {total}",
+  "progress": "{done} von {total} Wettfahrten erledigt",
   "previous": "Vorherige Wettfahrt",
   "next": "Nächste Wettfahrt",
   "backToCurrent": "Zurück zur aktuellen Wettfahrt",
@@ -45,36 +45,34 @@
     "confirmAbandon": "Nochmal tippen zum Abbrechen",
     "finish": "Wettfahrt beenden",
     "correct": "Im Ergebnis-Tab korrigieren",
-    "sequenceAt": "Startfolge um {{time}}",
+    "sequenceAt": "Startfolge um {time}",
     "restartNow": "Neu in 10 s",
-    "restartAt": "Neu um {{time}}",
+    "restartAt": "Neu um {time}",
     "soundOn": "Ton an — tippen zum Stummschalten",
     "soundOff": "Ton stumm — tippen zum Einschalten",
     "soundLocked": "Ton ist auf diesem Gerät aus — hier tippen zum Einschalten",
     "soundTest": "Ton testen",
     "apIsUp": "AP ist oben — runter mit einer Startfolge oben",
-    "lowerNow": "{{flag}} runter in 10 s",
-    "lowerAt": "{{flag}} runter um {{time}}"
+    "lowerNow": "{flag} runter in 10 s",
+    "lowerAt": "{flag} runter um {time}"
   },
   "sequence": {
     "preparatory": "Vorbereitungssignal",
     "hint": "3-2-1-0 mit der Clubflagge. Der Start wird bei null von selbst erfasst. AP während der Startfolge geht in 10 s hoch, spätestens 3 s vor dem Start.",
     "clubFlag": "Clubflagge",
-    "startAt": "Start {{time}}",
+    "startAt": "Start {time}",
     "actions": {
       "apUp": "AP HOCH",
       "apDown": "AP RUNTER",
       "clubUp": "Clubflagge HOCH",
-      "preparatoryUp": "{{flag}} HOCH",
-      "preparatoryDown": "{{flag}} RUNTER",
+      "preparatoryUp": "{flag} HOCH",
+      "preparatoryDown": "{flag} RUNTER",
       "start": "Clubflagge RUNTER — Start",
       "firstSubstituteDown": "1. Hilfsstander RUNTER"
     },
     "tones": {
-      "short_one": "+ ein kurzer Ton",
-      "short_other": "+ {{count}} kurze Töne",
-      "long_one": "+ ein langer Ton",
-      "long_other": "+ {{count}} lange Töne"
+      "short": "{count, plural, one {+ ein kurzer Ton} other {+ # kurze Töne}}",
+      "long": "{count, plural, one {+ ein langer Ton} other {+ # lange Töne}}"
     }
   },
   "flags": {
@@ -84,13 +82,13 @@
     "U": "U",
     "BLACK": "Schwarz"
   },
-  "elapsed": "Gesegelt {{time}}",
-  "xHint": "X steht: ein Boot antippen, das über der Linie war — es bekommt {{code}}. Nochmal tippen löscht.",
+  "elapsed": "Gesegelt {time}",
+  "xHint": "X steht: ein Boot antippen, das über der Linie war — es bekommt {code}. Nochmal tippen löscht.",
   "localHint": "Die Eingaben bleiben auf diesem Gerät, bis du die Wettfahrt beendest.",
   "duplicateWarning": "Zwei Boote haben denselben Zielplatz.",
-  "codeLabel": "Code für {{boat}}",
-  "finishedBanner": "Wettfahrt {{sequence}} beendet.",
-  "position": "Platz {{position}}",
+  "codeLabel": "Code für {boat}",
+  "finishedBanner": "Wettfahrt {sequence} beendet.",
+  "position": "Platz {position}",
   "lowering": {
     "AP": "AP",
     "firstSubstitute": "1. Hilfsstander"

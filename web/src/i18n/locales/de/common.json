@@ -21,7 +21,7 @@
   "live": {
     "live": "Live",
     "reconnecting": "Verbindung wird wiederhergestellt …",
-    "off": "Aktualisiert alle {{seconds}} s"
+    "off": "Aktualisiert alle {seconds} s"
   },
   "crewRole": {
     "helm": "Steuermann",
@@ -37,9 +37,9 @@
     "ORANGE": "Orange",
     "WHITE": "Weiß"
   },
-  "hostedBy": "Ausrichter: {{name}}",
+  "hostedBy": "Ausrichter: {name}",
   "venueUnknown": "Ort noch offen",
-  "actNumber": "{{number}}. Act",
+  "actNumber": "{number}. Act",
   "language": {
     "label": "Sprache",
     "en": "English",
@@ -47,8 +47,8 @@
   },
   "transferList": {
     "filterPlaceholder": "Filtern …",
-    "available": "Verfügbar ({{count}})",
-    "selected": "Ausgewählt ({{count}})",
+    "available": "Verfügbar ({count})",
+    "selected": "Ausgewählt ({count})",
     "noneAvailable": "Keine Treffer.",
     "noneSelected": "Noch nichts ausgewählt.",
     "remove": "Entfernen",
@@ -58,7 +58,7 @@
     "loadFailed": "Die Daten konnten nicht geladen werden. Besteht eine Verbindung?",
     "loginFailed": "Anmeldung fehlgeschlagen.",
     "actionFailed": "Das hat nicht geklappt. Besteht eine Verbindung?",
-    "requestFailed": "Die Anfrage ist fehlgeschlagen ({{status}}).",
+    "requestFailed": "Die Anfrage ist fehlgeschlagen ({status}).",
     "noSeriesThisYear": "Für dieses Jahr gibt es noch keine Serie."
   },
   "dateOpen": "Datum steht noch nicht fest",
@@ -76,10 +76,10 @@
     "admin": "Verwaltung"
   },
   "pager": {
-    "range": "{{first}}–{{last}} von {{total}}",
+    "range": "{first}–{last} von {total}",
     "previous": "Zurück",
     "next": "Weiter",
-    "page": "Seite {{page}} von {{pages}}"
+    "page": "Seite {page} von {pages}"
   },
   "table": {
     "sortBy": "Nach dieser Spalte sortieren",
@@ -88,7 +88,7 @@
   },
   "dropzone": {
     "prompt": "Datei hier ablegen oder tippen, um eine auszuwählen",
-    "refused": "„{{name}}“ hat einen Dateityp, der hier nicht angenommen wird."
+    "refused": "„{name}“ hat einen Dateityp, der hier nicht angenommen wird."
   },
   "crest": {
     "upload": "Stander hochladen",

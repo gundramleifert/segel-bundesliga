@@ -9,13 +9,12 @@
   "ownEvents_desc": "Ohne Serie — sie zählen in keine Serienwertung.",
   "unassigned": "Für den laufenden Jahrgang ist dieser Verein noch keiner Serie zugeordnet.",
   "crew_empty": "Aufstellung steht noch aus",
-  "stats": "{{count}} gemeldet · {{events}} Acts",
+  "stats": "{count} gemeldet · {events} Acts",
   "website": "Website des Vereins",
-  "clubDescription": "{{short_name}} · {{city}}",
+  "clubDescription": "{short_name} · {city}",
   "members": {
     "title": "Mitglieder",
-    "listTitle": "{{count}} Mitglied",
-    "listTitle_other": "{{count}} Mitglieder",
+    "listTitle": "{count, plural, one {# Mitglied} other {# Mitglieder}}",
     "empty": "Noch niemand ist Mitglied.",
     "you": "du",
     "relations": {
@@ -57,14 +56,14 @@
       "series": "Serien"
     },
     "seriesHint": "Jede Serie, für die dieser Verein gemeldet ist. Öffne eine, um zu melden, wer für sie segeln darf – der Kader, aus dem die Spieltags-Crews kommen.",
-    "squadSize": "{{count}} von {{min}}–{{max}} gemeldet",
+    "squadSize": "{count} von {min}–{max} gemeldet",
     "openSquad": "Kader",
     "closeSquad": "Schließen",
     "titlePlural": "Meine Vereine"
   },
   "lineup": {
     "title": "Crew für diesen Spieltag",
-    "sizeHint": "{{count}} aufgestellt · üblich {{usual}}",
+    "sizeHint": "{count} aufgestellt · üblich {usual}",
     "empty": "Noch keine Crew aufgestellt.",
     "squadEmpty": "Der Kader ist leer – melde zuerst Personen für die Serie.",
     "noHelm": "noch kein Steuermann",
@@ -82,6 +81,6 @@
     "add": "Erziehungsberechtigte hinzufügen",
     "link": "Verknüpfen",
     "emailPlaceholder": "E-Mail-Adresse des Elternteils",
-    "remove": "{{name}} als Erziehungsberechtigte(n) entfernen"
+    "remove": "{name} als Erziehungsberechtigte(n) entfernen"
   }
 }

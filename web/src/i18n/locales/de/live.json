@@ -4,13 +4,13 @@
   "noCourse": "Noch keine Bahn gelegt — die Boote erscheinen, sobald die Wettfahrtleitung eine legt und die Tracker melden.",
   "noBoats": "Noch kein Boot hat eine Position gemeldet.",
   "race": {
-    "running": "Wettfahrt {{sequence}} · läuft",
-    "finished": "Wettfahrt {{sequence}} · beendet",
+    "running": "Wettfahrt {sequence} · läuft",
+    "finished": "Wettfahrt {sequence} · beendet",
     "none": "Keine Wettfahrt auf dem Wasser",
-    "next": "Als Nächstes: Wettfahrt {{sequence}}",
-    "elapsed": "{{time}} gesegelt",
-    "signal": "Signal {{signal}}",
-    "wind": "Wind {{deg}}°"
+    "next": "Als Nächstes: Wettfahrt {sequence}",
+    "elapsed": "{time} gesegelt",
+    "signal": "Signal {signal}",
+    "wind": "Wind {deg}°"
   },
   "panel": {
     "rank": "#",
@@ -19,7 +19,7 @@
     "speed": "kn",
     "toGo": "verbleibend / Abstand",
     "finished": "im Ziel",
-    "detectedOrder": "Erkannte Zielreihenfolge: {{order}}"
+    "detectedOrder": "Erkannte Zielreihenfolge: {order}"
   },
   "leg": {
     "start": "zum Start",
@@ -46,7 +46,7 @@
     "laid": "Bahn gelegt.",
     "simulate": "Wettfahrt simulieren",
     "simulating": "Simulation läuft …",
-    "speed": "Tempo ×{{factor}}",
+    "speed": "Tempo ×{factor}",
     "simulateHint": "Sechs erfundene Boote segeln die aktuelle Wettfahrt über den echten Empfangsweg; die Zielreihenfolge wird das Ergebnis, und die nächste Wettfahrt steht an. Nur in der Entwicklung.",
     "raceControl": "Wettfahrtleitung",
     "finishLine": "Ziellinie",

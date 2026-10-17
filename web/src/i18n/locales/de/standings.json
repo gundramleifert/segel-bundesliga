@@ -6,21 +6,20 @@
     "noRaces": "In dieser Serie wurde noch keine Wettfahrt gesegelt.",
     "noEvents": "Für diese Serie ist noch keine Veranstaltung angesetzt."
   },
-  "caption": "Serientabelle {{seriesName}}",
+  "caption": "Serientabelle {seriesName}",
   "resultsHeading": "Ergebnisse",
   "eventsHeading": "Veranstaltungen",
   "table": {
     "rank": "Platz",
     "club": "Verein",
     "points": "Punkte",
-    "act": "{{matchday}}. Act",
+    "act": "{matchday}. Act",
     "notSailed": "nicht angetreten — Teilnehmerzahl + 1"
   },
   "seriesOverview": {
     "title": "Serien",
     "empty": "Für diesen Jahrgang ist noch keine Serie eingerichtet.",
-    "eventCount_one": "1 Veranstaltung",
-    "eventCount_other": "{{count}} Veranstaltungen"
+    "eventCount": "{count, plural, one {1 Veranstaltung} other {# Veranstaltungen}}"
   },
   "marks": {
     "promotion": "Aufstieg",
