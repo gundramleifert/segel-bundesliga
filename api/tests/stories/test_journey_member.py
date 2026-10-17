@@ -4,7 +4,7 @@ Every step is covered on its own elsewhere — registering in ``test_registratio
 password in ``test_password_login.py``, membership and the roster in
 ``test_club_members.py``, my space in ``test_my_space.py``, the sailor record in
 ``test_sailors_and_squads.py`` and ``test_sailor_profile.py``. What this adds is the
-**order**: the club manager cannot add someone before they register, the account a person
+**order**: the club admin cannot add someone before they register, the account a person
 registers is the one the membership lands on, and the sailor record a club manager
 creates later is the one the person then edits — linked by nothing but the verified
 address.
@@ -39,7 +39,7 @@ class TestASailorJoinsTheirClub:
         email = f"j3-nina-{tag}@example.com"
         membership = {"user": email, "relation": "member", "object": f"club:{club}"}
 
-        step("J-3.1", "the club manager adds the person before they have an account — not found")
+        step("J-3.1", "the club admin adds the person before they have an account — not found")
         refused = await client.post("/api/auth/tuples", headers=club_admin, json=membership)
         assert refused.status_code == 404, refused.text
         assert await account(email) is None
@@ -74,7 +74,7 @@ class TestASailorJoinsTheirClub:
         assert signed_in.status_code == 200, signed_in.text
         person = auth_headers(signed_in.json()["access_token"])
 
-        step("J-3.5", "the club manager adds the person as a member, by email")
+        step("J-3.5", "the club admin adds the person as a member, by email")
         added = await client.post("/api/auth/tuples", headers=club_admin, json=membership)
         assert added.status_code == 201, added.text
         assert (added.json()["relation"], added.json()["object"]) == ("member", f"club:{club}")

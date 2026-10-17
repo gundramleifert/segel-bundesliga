@@ -471,29 +471,29 @@
   "journey": "J-2",
   "story": "Z-8",
   "path": "main",
-  "who": "club manager",
+  "who": "club admin",
   "what": "my space lists the club, with the relation `admin`"
  },
  "J-2.5": {
   "journey": "J-2",
   "story": "V-3",
   "path": "main",
-  "who": "club manager",
+  "who": "club admin",
   "what": "the crest is stored; the club's `logo_url` points at it"
  },
  "J-2.6": {
   "journey": "J-2",
   "story": "A-8",
   "path": "last organizer",
-  "who": "club manager",
+  "who": "club admin",
   "what": "refused with `last-organizer` (409); the club keeps its admin"
  },
  "J-2.7": {
   "journey": "J-2",
   "story": "A-8",
   "path": "main",
-  "who": "club manager",
-  "what": "a second person holds `manager` on the club — no acceptance step"
+  "who": "club admin",
+  "what": "the person holds `manager` on the club — no acceptance step"
  },
  "J-2.8": {
   "journey": "J-2",
@@ -521,7 +521,7 @@
   "journey": "J-3",
   "story": "V-9",
   "path": "no account yet",
-  "who": "club manager",
+  "who": "club admin",
   "what": "refused with 404 — an account must exist; nobody is added"
  },
  "J-3.10": {
@@ -556,7 +556,7 @@
   "journey": "J-3",
   "story": "Z-5",
   "path": "main",
-  "who": "club manager",
+  "who": "club admin",
   "what": "a `member` tuple on the club — at once, no acceptance step"
  },
  "J-3.6": {

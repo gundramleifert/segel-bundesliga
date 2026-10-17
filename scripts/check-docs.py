@@ -65,7 +65,7 @@ STEP_ROW = re.compile(
     r"^\| (?P<id>J-\d+\.\d+) \| (?P<path>[^|]+?) \| (?P<story>[^|]+?) \| (?P<who>[^|]+?) \| (?P<what>[^|]*?) \|$",
     re.M,
 )
-# The actors (docs/userstories/journeys.md § Actors): "| club manager | CM | …".
+# The actors (docs/userstories/journeys.md § Actors): "| club admin | CA | …".
 ACTOR_ROW = re.compile(r"^\| (?P<name>[a-z][a-z ]*) \| (?P<alias>[A-Z]+) \|", re.M)
 PARTICIPANT = re.compile(r"^\s*(?:actor|participant) (?P<alias>\w+) as (?P<name>.+?)\s*$", re.M)
 MERMAID = re.compile(r"^```mermaid\n(?P<body>.*?)^```", re.M | re.S)
