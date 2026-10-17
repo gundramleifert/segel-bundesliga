@@ -162,6 +162,13 @@ Acceptance criteria:
   site cannot collect online.
 - The date of birth decides the path. Unknown, the page says so and points at the profile
   form above it, where the sailor enters it themselves (S-2).
+- **Where I meet it is the event, not a tab** (decided 2026-10-17). My page for a series
+  or an event (S-7) has no waiver tab: while my waiver is not cleared, a **notice above
+  the tabs** says so and holds the whole row — the wording to accept, or the form and the
+  scan upload. An event of a series shows the **series'** notice, and every such event I
+  sail in shows it: accepting once, on any of them, clears it on all (one statement per
+  competition). Cleared, the notice is gone. The full list stays on my profile's
+  *Waivers* tab, beside my children's (S-8).
 - Whoever may record a confirmation (S-3) may also upload a scan and download a form for
   that sailor: the sailor's own account, `admin`, `editor`, and the manager of a club
   that has the sailor in a squad. So a team manager can hand in the paper forms their
@@ -190,7 +197,8 @@ stand-alone event has, and a job that nobody has written.
 Built on top of the versioned confirmation mechanism — see [S-3](#s-3--confirm-a-waiver-version-for-a-series-or-event).
 
 Tests: `api/tests/stories/test_waiver.py::TestSelfService`,
-`api/tests/stories/test_waiver.py::TestScans`, `e2e/waiver.spec.ts`
+`api/tests/stories/test_waiver.py::TestScans`, `e2e/waiver.spec.ts`,
+`e2e/my-space.spec.ts` ("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list")
 
 ### S-8 ● My parent accepts the waiver for me
 As a **guardian** I want to **accept the liability waiver for my child online, from my own
@@ -401,7 +409,8 @@ Acceptance criteria:
   as chips — *sailor* among them when I sail there. A person who is both member and
   manager sees both.
 - A card says what **needs me** there, in words, only when something does:
-  - a liability waiver of mine that is not cleared (series, or an event in no series);
+  - a liability waiver of mine that is not cleared — on the series, and on each event of
+    it I sail in, since that is where I meet it (S-1); on an event in no series, there;
   - claims waiting for my decision or payment (on the event when I hold the event, else
     on the club that pays);
   - as a club's organizer: a series squad below its minimum, an upcoming entry with no crew
@@ -410,6 +419,9 @@ Acceptance criteria:
     by Journey J-5), an upcoming matchday whose crew has a waiver not cleared (VA-5);
   - on *Me*: a document of mine that has expired.
 - Tapping a card opens my page for it (Story S-7).
+- **The account button carries a badge** with the number of things that need me — the
+  sum over every card, *Me* included — so I see from any page that something is to do,
+  and *My space* in its menu repeats the number. No badge when nothing does.
 - One request: `GET /api/me/contexts`. It is the one answer to "which clubs, series and
   events are mine" — the account page, the club screen and the reimbursements page each
   had their own, and the three disagreed (a treasurer had no club, a helper no event).
@@ -418,7 +430,8 @@ Acceptance criteria:
 
 Screen: `/me`.
 Tests: `api/tests/stories/test_my_space.py::TestMySpace`,
-`e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it")
+`e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it"),
+`e2e/my-space.spec.ts` ("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list")
 
 ### S-7 ● My page in a club, a series or an event
 Issue #10.
@@ -441,13 +454,15 @@ Acceptance criteria:
   (V-1, V-2; editable for the club's organizer, read-only for a member), **my claims** to
   the club (member, F-2), **money** — claims to decide and pay, the club's bank account,
   payment runs and the books (manager, treasurer; F-3, F-4, F-7).
-- `/me/series/:id` — **my waiver** and **my squad** (sailor), the series' **events**, and
-  for its organizer the way to the organizer screen.
-- `/me/event/:id` — **my crew** and **my waiver** (sailor), **my claims** for the event
+- `/me/series/:id` — **my squad** (sailor), the series' **events**, and for its organizer
+  the way to the organizer screen.
+- `/me/event/:id` — **my crew** (sailor), **my claims** for the event
   (anyone holding a relation on it, F-2), **claims to decide** (its manager, treasurer),
   **race control** (race officer), and for its organizer the way to the organizer screen.
 - Tabs keep their selection in the URL (`?tab=`), like every tabbed screen. A tab that
   needs me says so on its label.
+- An unsigned waiver of mine is no tab but a **notice above the tabs**, with the accept
+  button in it (S-1).
 - The tabs are the page's **sub-menu**, drawn like a matchday page's: in the header row
   beside the page's name (`My space › Me | Account · Documents · …`), staying under the
   top bar while the page scrolls. The breadcrumb is the way back to my space — there is

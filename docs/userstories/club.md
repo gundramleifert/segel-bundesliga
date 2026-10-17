@@ -391,6 +391,32 @@ Endpoints: `GET /api/clubs/{club_id}/guardians`, `POST /api/sailors/{sailor_id}/
 
 Tests: `api/tests/stories/test_guardians.py::TestLinkingAGuardian`, `e2e/guardians.spec.ts`
 
+### V-14 ● See whose waivers are in
+As a **team manager** I want to **see which of our sailors have signed the liability
+waiver and which have not**, so that **I can chase the missing ones before the matchday
+instead of finding out at check-in**.
+
+The organizer's check-in list (VA-2, VA-5) answers this for one event and every club in
+it; the team manager needs it for their own club and every competition it is in.
+
+Acceptance criteria:
+- A **Waivers** tab on the club's page in my space (`/me/club/:id`), for the club's
+  organizer (`manager` or `admin` on it); the tab says how many matchdays need it
+  (`crew_waiver_missing`, Z-8).
+- One block per competition the club is in and has not finished: each **series squad**
+  (one waiver covers all its matchdays) and each **entry in an event that belongs to no
+  series** (planned or live). Each block says *n of m cleared*, and lists the sailors —
+  those still missing first — with their status: cleared, missing, outdated version,
+  waiting on the guardian's signature, date of birth unknown.
+- The status is the one the sailor's own page and the check-in list compute
+  (`app/services/waivers.py`) — never a second rule.
+- Anyone else gets `club-waivers-forbidden` (403); an unknown club 404.
+
+Endpoint: `GET /api/clubs/{club_id}/waivers`
+
+Tests: `api/tests/stories/test_waiver.py::TestClubOverview`,
+`e2e/my-space.spec.ts` ("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list")
+
 ### V-11 ○ Manage our own club page
 As a **club organizer** I want to **edit our club page where it is shown**,
 so that I **do not have to ask administration to fix our description or our crest**.

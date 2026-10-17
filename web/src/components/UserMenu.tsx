@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
+import { useMyContexts } from "../api/generated/sbl";
 import type { Account } from "../api/types";
 import { useDisclosure } from "../lib/useDisclosure";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
@@ -15,6 +16,11 @@ import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
  * The button itself is the same in both layouts: initials when signed in, a plain account
  * icon when not. Signed out the menu still opens, because the language switcher and the
  * legal pages belong to a guest as much as to anybody.
+ *
+ * Signed in, the button carries a **badge** with the number of things that need the
+ * person — the sum of my space's "needs you" lines (Story Z-8) — so it is seen from any
+ * page, and *My space* in the menu repeats it. It reads the same request as my space, so
+ * whatever clears a need there clears the badge.
  */
 export function UserMenu({
   account,
@@ -34,6 +40,8 @@ export function UserMenu({
 }) {
   const { t } = useTranslation();
   const menu = useDisclosure("user-menu");
+  const space = useMyContexts({ query: { enabled: Boolean(account) } });
+  const needs = account && space.data ? countNeeds(space.data) : 0;
 
   // Signed in, my space and my own page in it (Stories Z-8, S-7); signed out, the way in.
   const own = account
@@ -55,14 +63,23 @@ export function UserMenu({
       <button
         type="button"
         {...menu.triggerProps}
-        aria-label={t("userMenu.label")}
+        aria-label={needs ? `${t("userMenu.label")} — ${t("userMenu.needs", { count: needs })}` : t("userMenu.label")}
         data-testid="layout-profile-button"
-        className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold uppercase transition-colors ${
+        className={`relative grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold uppercase transition-colors ${
           account
             ? "bg-brand-600 text-white hover:bg-brand-700"
             : `bg-slate-100 text-slate-500 hover:bg-slate-200 ${loading ? "animate-pulse" : ""}`
         }`}
       >
+        {needs > 0 && (
+          <span
+            aria-hidden
+            data-testid="layout-profile-badge"
+            className="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white"
+          >
+            {needs > 9 ? "9+" : needs}
+          </span>
+        )}
         {account ? (
           initials(account.display_name)
         ) : (
@@ -107,9 +124,17 @@ export function UserMenu({
                 <Link
                   to={link.to}
                   data-testid={`layout-user-menu-${link.key}`}
-                  className="block rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                  className="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
                 >
                   {t(`userMenu.${link.key}`)}
+                  {link.key === "mySpace" && needs > 0 && (
+                    <span
+                      className="rounded-full bg-amber-100 px-2 text-xs font-medium text-amber-800"
+                      data-testid="layout-user-menu-mySpace-needs"
+                    >
+                      {needs}
+                    </span>
+                  )}
                 </Link>
               </li>
             ))}
@@ -118,6 +143,12 @@ export function UserMenu({
       )}
     </div>
   );
+}
+
+/** Everything that needs me, over my space: *Me* and every card (Story Z-8). */
+function countNeeds(space: { me: { needs: { count: number }[] }; contexts: { needs: { count: number }[] }[] }): number {
+  const sum = (needs: { count: number }[]) => needs.reduce((total, need) => total + need.count, 0);
+  return sum(space.me.needs) + space.contexts.reduce((total, context) => total + sum(context.needs), 0);
 }
 
 /** Initials for the avatar — there's no separate first/last name on `Account`, only

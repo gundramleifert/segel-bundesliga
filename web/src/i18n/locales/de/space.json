@@ -217,8 +217,6 @@
     "sailsFor": "Sie segeln für",
     "crewsAndPairings": "Crews und Pairing-Liste auf der Veranstaltungsseite",
     "noEvents": "In dieser Serie sind noch keine Veranstaltungen veröffentlicht.",
-    "waiverInSeries": "Diese Veranstaltung gehört zu einer Serie – Ihr Haftungsausschluss für die Serie gilt auch hier.",
-    "waiverInSeriesLink": "Ihr Haftungsausschluss für die Serie",
     "raceControl": "Wettfahrten starten, zurückrufen und beenden und Ergebnisse eintragen.",
     "raceControlLink": "Wettfahrtleitung öffnen",
     "organizeSeries": "Serie, Veranstaltungen und Teilnehmer bearbeiten Sie in der Verwaltung.",
@@ -232,7 +230,6 @@
       "squads": "Serien & Kader",
       "myClaims": "Meine Abrechnungen",
       "money": "Finanzen",
-      "waiver": "Haftungsausschluss",
       "team": "Mein Team",
       "events": "Veranstaltungen",
       "crew": "Meine Crew",
@@ -240,5 +237,10 @@
       "raceControl": "Wettfahrtleitung",
       "organize": "Organisieren"
     }
+  },
+  "clubWaivers": {
+    "none": "Der Verein ist in keinem laufenden Wettbewerb gemeldet – es gibt keinen Haftungsausschluss einzusammeln.",
+    "nobody": "In diesem Kader ist noch niemand.",
+    "summary": "{cleared} von {total} vollständig"
   }
 }

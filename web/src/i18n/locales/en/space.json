@@ -217,8 +217,6 @@
     "sailsFor": "You sail for",
     "crewsAndPairings": "Crews and pairing list on the event page",
     "noEvents": "No events published in this series yet.",
-    "waiverInSeries": "This event belongs to a series — your waiver for the series covers it.",
-    "waiverInSeriesLink": "Your waiver for the series",
     "raceControl": "Start, recall and finish races, and enter results.",
     "raceControlLink": "Open race control",
     "organizeSeries": "Edit the series, its events and its participants on the organizer screen.",
@@ -232,7 +230,6 @@
       "squads": "Series & squads",
       "myClaims": "My claims",
       "money": "Money",
-      "waiver": "Waiver",
       "team": "My team",
       "events": "Events",
       "crew": "My crew",
@@ -240,5 +237,10 @@
       "raceControl": "Race control",
       "organize": "Organize"
     }
+  },
+  "clubWaivers": {
+    "none": "The club is in no running competition, so there is no waiver to collect.",
+    "nobody": "Nobody is in this squad yet.",
+    "summary": "{cleared} of {total} cleared"
   }
 }

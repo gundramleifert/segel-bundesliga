@@ -52,6 +52,7 @@ import type {
   ClubMemberOut,
   ClubOut,
   ClubUpdate,
+  ClubWaiverList,
   ConfirmWaiver,
   CourseIn,
   CourseOut,
@@ -10338,6 +10339,112 @@ export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getEventWaiversQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getClubWaiversUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/waivers`
+}
+
+/**
+ * Who of the club's sailors has signed — Story V-14, for its team manager.
+ *
+ * One block per competition the club is in and has not finished: each series squad
+ * (its waiver covers every matchday) and each entry in an event that belongs to no
+ * series. The status is the one the sailor's own page and the check-in list show.
+ * @summary Waiver status of a club's sailors
+ */
+export const clubWaivers = async (clubId: number, options?: RequestInit): Promise<ClubWaiverList> => {
+
+  return http<ClubWaiverList>(getClubWaiversUrl(clubId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getClubWaiversQueryKey = (clubId: number,) => {
+    return [
+    `/api/clubs/${clubId}/waivers`
+    ] as const;
+    }
+
+
+export const getClubWaiversQueryOptions = <TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getClubWaiversQueryKey(clubId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof clubWaivers>>> = ({ signal }) => clubWaivers(clubId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: clubId !== null && clubId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ClubWaiversQueryResult = NonNullable<Awaited<ReturnType<typeof clubWaivers>>>
+export type ClubWaiversQueryError = ErrorType<HTTPValidationError>
+
+
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof clubWaivers>>,
+          TError,
+          Awaited<ReturnType<typeof clubWaivers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof clubWaivers>>,
+          TError,
+          Awaited<ReturnType<typeof clubWaivers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Waiver status of a club's sailors
+ */
+
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getClubWaiversQueryOptions(clubId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

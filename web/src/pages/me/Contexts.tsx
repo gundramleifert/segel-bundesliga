@@ -13,7 +13,7 @@ import { Stack } from "../../components/Layouts";
 import { TabbedView, type TabDef } from "../../components/Tabs";
 import { eventDates } from "../../lib/format";
 import { AccountInfo, DeleteAccount, SailorProfile, SignInMethods } from "../Account";
-import { ClubEvents, ClubTeams } from "./ClubSections";
+import { ClubEvents, ClubTeams, ClubWaivers } from "./ClubSections";
 import { ClubMoneyTab, EventClaimsTab } from "./Money";
 import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
 import { Wards, Waivers } from "./Waivers";
@@ -101,6 +101,7 @@ function ContextFrame({
               <RelationChips relations={context.relations} testId={`${testId}-relations`} />
               <NeedsLine needs={context.needs} testId={`${testId}-needs`} />
             </div>
+            <WaiverNotice context={context} />
             {shown.length ? (
               <TabbedView
                 param="tab"
@@ -119,6 +120,23 @@ function ContextFrame({
         );
       }}
     </Async>
+  );
+}
+
+/** Story S-1: an unsigned waiver of mine is no tab but a notice above the tabs, with the
+ * accept button in it. An event of a series asks for the series' waiver — one signature
+ * on any of its events clears them all — and the notice goes once it is cleared, because
+ * signing refreshes my space and with it this context's needs. */
+function WaiverNotice({ context }: { context: MyContext }) {
+  if (!context.relations.includes("sailor") || !context.needs.some((n) => n.code === "waiver")) return null;
+  const only =
+    context.kind === "event" && context.series_id == null
+      ? ({ scope: "event", id: context.id } as const)
+      : ({ scope: "series", id: context.kind === "series" ? context.id : context.series_id! } as const);
+  return (
+    <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-1" data-testid="me-context-waiver-notice">
+      <Waivers only={only} />
+    </div>
   );
 }
 
@@ -243,6 +261,13 @@ export function ClubPage() {
         return [
           ...club,
           {
+            key: "waivers",
+            label: t("context.tabs.waivers"),
+            for: ORGANIZERS,
+            needs: ["crew_waiver_missing"],
+            render: () => <ClubWaivers clubId={c.id} />,
+          },
+          {
             key: "claims",
             label: t("context.tabs.myClaims"),
             for: ["member"],
@@ -271,13 +296,6 @@ export function SeriesPage() {
       kind="series"
       publicPath={(c) => (c.published ? `/series/${c.id}` : null)}
       sections={(c) => [
-        {
-          key: "waiver",
-          label: t("context.tabs.waiver"),
-          for: ["sailor"],
-          needs: ["waiver"],
-          render: () => <Waivers only={{ scope: "series", id: c.id }} />,
-        },
         {
           key: "team",
           label: t("context.tabs.team"),
@@ -357,24 +375,6 @@ export function EventPage() {
               )}
             </Stack>
           ),
-        },
-        {
-          key: "waiver",
-          label: t("context.tabs.waiver"),
-          for: ["sailor"],
-          needs: ["waiver"],
-          // An event of a series is covered by the series' waiver (Story S-1).
-          render: () =>
-            c.series_id != null ? (
-              <Door
-                text={t("context.waiverInSeries")}
-                to={`${contextPath({ kind: "series", id: c.series_id })}?tab=waiver`}
-                label={t("context.waiverInSeriesLink")}
-                testId="me-event-waiver-series"
-              />
-            ) : (
-              <Waivers only={{ scope: "event", id: c.id }} />
-            ),
         },
         {
           key: "claims",

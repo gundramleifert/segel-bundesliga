@@ -144,6 +144,7 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
         await _waivers(session, sailor, at)
 
     await _fill(session, contexts)
+    _series_waiver_on_events(contexts)
     _claims(await expenses.pending(session, user), contexts)
     await _organizer(session, user, contexts)
 
@@ -189,6 +190,20 @@ async def _waivers(session: AsyncSession, sailor: Sailor, at) -> None:
             judged = (await event_waiver_status(session, competition.event, [sailor.id]))[sailor.id]
         if judged.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED):
             at(competition.scope, competition.scope_id).need("waiver")
+
+
+def _series_waiver_on_events(contexts: dict[tuple[str, int], Context]) -> None:
+    """A series' waiver is signed once, on the series — but a sailor meets it on the
+    matchday, so each event of the series I sail in asks for it too (Story S-1). Signing
+    once clears all of them: they read the series' status, they keep none of their own."""
+    unsigned = {
+        object_id
+        for (kind, object_id), context in contexts.items()
+        if kind == "series" and context.needs.get("waiver")
+    }
+    for (kind, _), context in contexts.items():
+        if kind == "event" and SAILOR in context.relations and context.series_id in unsigned:
+            context.need("waiver")
 
 
 async def _fill(session: AsyncSession, contexts: dict[tuple[str, int], Context]) -> None:

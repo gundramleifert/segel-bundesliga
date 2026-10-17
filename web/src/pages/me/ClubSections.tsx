@@ -2,7 +2,10 @@ import { Button } from "@heroui/react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { useClubWaivers } from "../../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../../api/types";
+import { useAsync } from "../../api/useApi";
+import { Async } from "../../components/Async";
 import { Empty, StatusBadge } from "../../components/Blocks";
 import { LineupPanel } from "../../components/LineupPanel";
 import { SquadPanel } from "../../components/SquadPanel";
@@ -195,5 +198,69 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
         })}
       </ul>
     </section>
+  );
+}
+
+/** Story V-14: whose waivers are in — one block per competition the club is in, the
+ * missing first, with the status the sailor's own page and the check-in list show. */
+export function ClubWaivers({ clubId }: { clubId: number }) {
+  const { t } = useTranslation(["space", "admin"]);
+  const list = useAsync(useClubWaivers(clubId));
+  return (
+    <Async
+      state={list}
+      testId="my-club-waivers"
+      empty={t("clubWaivers.none")}
+      isEmpty={(data) => !data.competitions.length}
+    >
+      {(data) => (
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-3" data-testid="my-club-waivers-list">
+          {data.competitions.map((block) => (
+            <li
+              key={`${block.scope}-${block.scope_id}`}
+              data-testid={`my-club-waivers-${block.scope}-${block.scope_id}`}
+              className="rounded-lg border border-slate-200 bg-white p-4"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <Link
+                  to={block.scope === "series" ? `/series/${block.scope_id}` : `/events/${block.scope_id}`}
+                  className="font-medium underline-offset-2 hover:underline"
+                >
+                  {block.name}
+                </Link>
+                <span
+                  className={`text-sm ${block.outstanding ? "font-medium text-amber-700" : "text-emerald-700"}`}
+                  data-testid={`my-club-waivers-${block.scope}-${block.scope_id}-summary`}
+                >
+                  {t("clubWaivers.summary", { cleared: block.cleared, total: block.cleared + block.outstanding })}
+                </span>
+              </div>
+              {block.sailors.length ? (
+                <ul className="mt-3 flex flex-col divide-y divide-slate-100 text-sm">
+                  {block.sailors.map((row) => (
+                    <li
+                      key={row.sailor_id}
+                      className="flex flex-wrap items-baseline justify-between gap-x-3 py-1.5"
+                      data-testid={`my-club-waiver-row-${block.scope}-${block.scope_id}-${row.sailor_id}`}
+                      data-status={row.status}
+                    >
+                      <span>
+                        {row.first_name} {row.last_name}
+                        {row.minor && <span className="ml-2 text-xs text-slate-500">{t("admin:manage.waiverMinor")}</span>}
+                      </span>
+                      <span className={row.status === "cleared" ? "text-emerald-700" : "font-medium text-amber-700"}>
+                        {t(`admin:manage.waiverStatus.${row.status}`)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-slate-500">{t("clubWaivers.nobody")}</p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Async>
   );
 }

@@ -73,7 +73,8 @@
     "legalNotice": "Impressum",
     "privacy": "Datenschutz",
     "signIn": "Anmelden",
-    "admin": "Verwaltung"
+    "admin": "Verwaltung",
+    "needs": "{count, plural, one {# Sache wartet auf Sie} other {# Sachen warten auf Sie}}"
   },
   "pager": {
     "range": "{first}–{last} von {total}",

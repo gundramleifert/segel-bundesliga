@@ -73,7 +73,8 @@
     "legalNotice": "Legal notice",
     "privacy": "Privacy",
     "signIn": "Sign in",
-    "admin": "Administration"
+    "admin": "Administration",
+    "needs": "{count, plural, one {# thing needs you} other {# things need you}}"
   },
   "pager": {
     "range": "{first}–{last} of {total}",

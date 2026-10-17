@@ -138,9 +138,9 @@ class TestMySpace:
 
     async def test_sailing_puts_me_in_a_series_and_an_event(self, client, caplog):
         """No tuple anywhere — the squad and the crew are what make me part of it. An
-        unsigned waiver needs me where it is signed: the series asks for the signature, so
-        the series card says so — not each of its events (Story S-1: one statement per
-        competition)."""
+        unsigned waiver of a series needs me on the series and on each of its events I
+        sail in — the matchday is where I meet it (Story S-1, decided 2026-10-17) — and
+        one signature clears them all."""
         email = f"z8-sailor-{_tag()}@example.com"
         club = await _club()
         series = await _series()
@@ -157,7 +157,16 @@ class TestMySpace:
         assert _needs(sailed) == {"waiver": 1}
         sailing = _context(body, "event", event)
         assert sailing["relations"] == ["sailor"]
-        assert _needs(sailing) == {}
+        assert _needs(sailing) == {"waiver": 1}
+
+        sailor_id = (await client.get("/api/waiver/me", headers=headers)).json()["sailor_id"]
+        signed = await client.post(
+            f"/api/series/{series}/waiver", headers=headers, json={"sailor_id": sailor_id}
+        )
+        assert signed.status_code == 201, signed.text
+        body = await _mine(client, headers)
+        assert _needs(_context(body, "series", series)) == {}
+        assert _needs(_context(body, "event", event)) == {}
         # Sailing for a club is not membership of it: the club is no context of mine.
         assert _context(body, "club", club) is None
 

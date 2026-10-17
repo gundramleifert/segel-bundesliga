@@ -9,12 +9,14 @@ Minors cannot clear the waiver by their own click — a legal guardian signs on 
 the reference to that scan is recorded.
 """
 
+from datetime import date
+
 import pytest
 from sqlalchemy import delete, select
 
 from app.db import SessionLocal
 from app.models import Club, Sailor, Series, Team, TeamMembership, WaiverConfirmation, WaiverText
-from app.models.auth import Role
+from app.models.auth import Grant, Relation, Role
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
@@ -688,3 +690,64 @@ class TestScans:
 
         anonymous = await client.get(url)
         assert anonymous.status_code == 401
+
+
+class TestClubOverview:
+    """V-14: the team manager sees which of the club's sailors have signed."""
+
+    async def test_the_team_manager_sees_who_signed_in_each_competition(self, client, caplog):
+        """One block per series squad and per entry in a stand-alone event; the missing
+        first; a series confirmation clears the series' block."""
+        from tests.stories.test_my_space import SOON, _club, _event, _sailor, _series, _tag, _team
+        from tests.stories.test_reimbursements import login
+
+        club = await _club()
+        series = await _series()
+        cup = await _event(starts_on=SOON)  # in no series
+        squad = await _team(club, series_id=series)
+        entry = await _team(club, event_id=cup)
+        signed, unsigned = f"v14-a-{_tag()}@example.com", f"v14-b-{_tag()}@example.com"
+        signed_id = await _sailor(signed, squad, entry, birth_date=date(1990, 1, 1))
+        unsigned_id = await _sailor(unsigned, squad, birth_date=date(1991, 1, 1))
+        sailor = await login(client, caplog, signed)
+        confirmed = await client.post(
+            f"/api/series/{series}/waiver", headers=sailor, json={"sailor_id": signed_id}
+        )
+        assert confirmed.status_code == 201, confirmed.text
+
+        manager = await login(
+            client,
+            caplog,
+            f"v14-tm-{_tag()}@example.com",
+            Grant(relation=Relation.MANAGER, club_id=club),
+        )
+        response = await client.get(f"/api/clubs/{club}/waivers", headers=manager)
+        assert response.status_code == 200, response.text
+        blocks = {(b["scope"], b["scope_id"]): b for b in response.json()["competitions"]}
+        assert set(blocks) == {("series", series), ("event", cup)}
+
+        in_series = blocks[("series", series)]
+        assert (in_series["cleared"], in_series["outstanding"]) == (1, 1)
+        assert [(s["sailor_id"], s["status"]) for s in in_series["sailors"]] == [
+            (unsigned_id, "missing"),
+            (signed_id, "cleared"),
+        ]
+        # A series confirmation does not cover an event that belongs to no series.
+        at_cup = blocks[("event", cup)]
+        assert [(s["sailor_id"], s["status"]) for s in at_cup["sailors"]] == [
+            (signed_id, "missing")
+        ]
+
+    async def test_a_member_or_another_club_is_refused(self, client, caplog):
+        from tests.stories.test_my_space import _club, _tag
+        from tests.stories.test_reimbursements import login
+
+        club, other = await _club(), await _club()
+        for grant in (
+            Grant(relation=Relation.MEMBER, club_id=club),
+            Grant(relation=Relation.MANAGER, club_id=other),
+        ):
+            headers = await login(client, caplog, f"v14-no-{_tag()}@example.com", grant)
+            response = await client.get(f"/api/clubs/{club}/waivers", headers=headers)
+            assert response.status_code == 403, response.text
+            assert response.json()["type"].endswith("/club-waivers-forbidden")

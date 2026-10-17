@@ -914,6 +914,14 @@
   "file": "docs/userstories/club.md",
   "anchor": "v-13--link-a-parent-to-a-minor-sailor"
  },
+ "V-14": {
+  "title": "See whose waivers are in",
+  "status": "●",
+  "role": "Club: its admin and its team manager",
+  "phase": "The club's page",
+  "file": "docs/userstories/club.md",
+  "anchor": "v-14--see-whose-waivers-are-in"
+ },
  "V-2": {
   "title": "Select sailors for matchday",
   "status": "●",

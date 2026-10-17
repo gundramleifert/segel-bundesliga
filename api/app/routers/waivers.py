@@ -31,6 +31,7 @@ from app.models import (
     AuditLog,
     Club,
     Event,
+    EventStatus,
     Sailor,
     Series,
     Team,
@@ -145,6 +146,25 @@ class EventWaiverList(BaseModel):
     cleared: int
     outstanding: int
     sailors: list[SailorWaiverRow]
+
+
+class ClubCompetitionWaivers(BaseModel):
+    """One competition of a club and its sailors' waivers — a series squad, or the
+    entry of an event in no series (Story V-14)."""
+
+    scope: Scope
+    scope_id: int
+    name: str
+    starts_on: date | None = None
+    cleared: int
+    outstanding: int
+    sailors: list[SailorWaiverRow]
+
+
+class ClubWaiverList(BaseModel):
+    club_id: int
+    required_version: int | None
+    competitions: list[ClubCompetitionWaivers]
 
 
 class MyCompetitionWaiver(BaseModel):
@@ -553,25 +573,8 @@ async def event_waivers(
     people = await _squad_people(session, event)
     status_by_id = await event_waiver_status(session, event, [pid for pid, _, _, _ in people])
 
-    rows = [
-        SailorWaiverRow(
-            sailor_id=pid,
-            first_name=first,
-            last_name=last,
-            club=club,
-            status=status_by_id[pid].status,
-            minor=status_by_id[pid].minor,
-            required_version=status_by_id[pid].required_version,
-            confirmed_version=status_by_id[pid].confirmed_version,
-            confirmed_at=status_by_id[pid].confirmed_at,
-            method=status_by_id[pid].method,
-            guardian_name=status_by_id[pid].guardian_name,
-            confirmation_id=status_by_id[pid].confirmation_id,
-            scan_available=status_by_id[pid].scan_available,
-        )
-        for pid, first, last, club in people
-    ]
-    rows.sort(key=lambda r: (r.status == STATUS_CLEARED, r.last_name, r.first_name))
+    rows = [_row(pid, first, last, club, status_by_id[pid]) for pid, first, last, club in people]
+    _outstanding_first(rows)
     cleared = sum(1 for r in rows if r.status == STATUS_CLEARED)
     return EventWaiverList(
         event_id=event.id,
@@ -579,6 +582,91 @@ async def event_waivers(
         cleared=cleared,
         outstanding=len(rows) - cleared,
         sailors=rows,
+    )
+
+
+# --------------------------------------------------------------------- Club view
+
+
+@router.get(
+    "/api/clubs/{club_id}/waivers",
+    response_model=ClubWaiverList,
+    summary="Waiver status of a club's sailors",
+)
+async def club_waivers(
+    club_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> ClubWaiverList:
+    """Who of the club's sailors has signed — Story V-14, for its team manager.
+
+    One block per competition the club is in and has not finished: each series squad
+    (its waiver covers every matchday) and each entry in an event that belongs to no
+    series. The status is the one the sailor's own page and the check-in list show.
+    """
+    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
+    if club is None:
+        raise HTTPException(status_code=404, detail=f"Club {club_id} not found")
+    if not acting.can(Relation.MANAGER, on=club):
+        raise Problem(
+            403,
+            "club-waivers-forbidden",
+            "The club's waiver overview is for its team manager and admin.",
+        )
+
+    today = date.today()
+    competitions: list[ClubCompetitionWaivers] = []
+
+    squads = (
+        await session.execute(
+            select(Team.id, Series)
+            .join(Series, Team.series_id == Series.id)
+            .where(
+                Team.club_id == club_id,
+                Team.event_id.is_(None),
+                Team.status == TeamStatus.ACCEPTED,
+                Series.ends_on.is_(None) | (Series.ends_on >= today),
+            )
+            .order_by(Series.starts_on, Series.name)
+        )
+    ).all()
+    for team_id, series in squads:
+        rows = [
+            _row(
+                sailor.id,
+                sailor.first_name,
+                sailor.last_name,
+                None,
+                await series_waiver_status(session, series, sailor),
+            )
+            for sailor in await _team_sailors(session, team_id)
+        ]
+        competitions.append(_competition("series", series.id, series.name, series.starts_on, rows))
+
+    entries = (
+        await session.execute(
+            select(Team.id, Event)
+            .join(Event, Team.event_id == Event.id)
+            .where(
+                Team.club_id == club_id,
+                Team.status == TeamStatus.ACCEPTED,
+                Event.series_id.is_(None),
+                Event.status.in_([EventStatus.PLANNED, EventStatus.LIVE]),
+            )
+            .order_by(Event.starts_on, Event.title)
+        )
+    ).all()
+    for team_id, event in entries:
+        sailors = await _team_sailors(session, team_id)
+        judged = await event_waiver_status(session, event, [s.id for s in sailors])
+        rows = [_row(s.id, s.first_name, s.last_name, None, judged[s.id]) for s in sailors]
+        competitions.append(_competition("event", event.id, event.title, event.starts_on, rows))
+
+    required = await current_waiver_text(session)
+    return ClubWaiverList(
+        club_id=club_id,
+        required_version=required.version if required else None,
+        competitions=competitions,
     )
 
 
@@ -963,6 +1051,59 @@ def _out(
         confirmed_at=row.confirmed_at,
         guardian_name=row.guardian_name,
         cleared=cleared,
+    )
+
+
+def _row(
+    sailor_id: int, first: str, last: str, club: str | None, judged: SailorWaiver
+) -> SailorWaiverRow:
+    return SailorWaiverRow(
+        sailor_id=sailor_id,
+        first_name=first,
+        last_name=last,
+        club=club,
+        status=judged.status,
+        minor=judged.minor,
+        required_version=judged.required_version,
+        confirmed_version=judged.confirmed_version,
+        confirmed_at=judged.confirmed_at,
+        method=judged.method,
+        guardian_name=judged.guardian_name,
+        confirmation_id=judged.confirmation_id,
+        scan_available=judged.scan_available,
+    )
+
+
+def _outstanding_first(rows: list[SailorWaiverRow]) -> None:
+    """Who still has to sign at the top — that is what someone opens the list for."""
+    rows.sort(key=lambda r: (r.status == STATUS_CLEARED, r.last_name, r.first_name))
+
+
+def _competition(
+    scope: Scope, scope_id: int, name: str, starts_on: date | None, rows: list[SailorWaiverRow]
+) -> ClubCompetitionWaivers:
+    _outstanding_first(rows)
+    cleared = sum(1 for r in rows if r.status == STATUS_CLEARED)
+    return ClubCompetitionWaivers(
+        scope=scope,
+        scope_id=scope_id,
+        name=name,
+        starts_on=starts_on,
+        cleared=cleared,
+        outstanding=len(rows) - cleared,
+        sailors=rows,
+    )
+
+
+async def _team_sailors(session: AsyncSession, team_id: int) -> list[Sailor]:
+    return list(
+        (
+            await session.execute(
+                select(Sailor)
+                .join(TeamMembership, TeamMembership.sailor_id == Sailor.id)
+                .where(TeamMembership.team_id == team_id)
+            )
+        ).scalars()
     )
 
 

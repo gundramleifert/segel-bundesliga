@@ -114,7 +114,7 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}`));
     // An organizer who is a member: the club's people, its matchdays and squads, their
     // own claims to it, and its money.
-    for (const tab of ["members", "events", "series", "claims", "money"]) {
+    for (const tab of ["members", "events", "series", "waivers", "claims", "money"]) {
       await expect(page.getByTestId(`me-context-${tab}-tab`)).toBeVisible();
     }
     await page.getByTestId("me-context-money-tab").click();
@@ -196,5 +196,60 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
     await page.goto(`/me/club/${clubId}?tab=members`);
     await expect(page.getByTestId("my-club-members")).toBeVisible();
     await expect(page.getByTestId(`my-club-crest-${clubId}-section`)).toHaveCount(0);
+  });
+});
+
+describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list", () => {
+  // A club no other spec signs for; each browser project takes its own sailor.
+  const DOMAIN = "vsaw.example.com";
+
+  test("the sailor sees the badge, accepts in the notice, and the notice is gone", async ({ page, request }, testInfo) => {
+    const headers = await bearer(request, ADMIN);
+    const listed = await request.get(`/api/admin/sailors?q=${DOMAIN}&limit=100`, { headers });
+    const adults = ((await listed.json()) as { items: { email: string | null; birth_date: string | null }[] }).items.filter(
+      (s) => s.email && s.birth_date && Number(s.birth_date.slice(0, 4)) <= 2004,
+    );
+    const email = adults[testInfo.project.name === "mobile" ? 1 : 0]!.email!;
+
+    await signIn(page, email);
+    await page.goto("/");
+    await expect(page.getByTestId("layout-profile-badge")).toBeVisible();
+
+    await page.goto("/me");
+    const card = page.locator('a[data-testid^="me-card-series-"]').filter({
+      has: page.locator('[data-testid$="-needs-waiver"]'),
+    });
+    await card.first().click();
+
+    // No waiver tab: the notice above the tabs holds the whole row.
+    await expect(page.getByTestId("me-context-waiver-tab")).toHaveCount(0);
+    const notice = page.getByTestId("me-context-waiver-notice");
+    const row = notice.locator('[data-testid^="account-waiver-series-"]');
+    await expect(row).toHaveAttribute("data-status", "missing");
+    const id = (await row.getAttribute("data-testid"))!.replace("account-waiver-", "");
+    await notice.getByTestId(`account-waiver-read-${id}`).click();
+    await notice.getByTestId(`account-waiver-agree-${id}`).check();
+    await notice.getByTestId(`account-waiver-confirm-${id}`).click();
+
+    // Signed, nothing on this page needs me any more.
+    await expect(notice).toHaveCount(0);
+    await expect(page.locator('[data-testid$="-needs-waiver"]')).toHaveCount(0);
+  });
+
+  test("the team manager sees, per competition, who has signed", async ({ page, request }) => {
+    const manager = (await devUsers(request)).find(
+      (u) => u.roles.includes("team_manager") && u.email.endsWith(`@${DOMAIN}`),
+    )!;
+    const clubs = (await (
+      await request.get("/api/clubs/mine", { headers: await bearer(request, manager.email) })
+    ).json()) as { club: { id: number }; may_manage: boolean }[];
+    const clubId = clubs.find((c) => c.may_manage)!.club.id;
+
+    await signIn(page, manager.email);
+    await page.goto(`/me/club/${clubId}?tab=waivers`);
+    const blocks = page.getByTestId("my-club-waivers-list").locator(':scope > li');
+    await expect(blocks.first()).toBeVisible();
+    await expect(blocks.first().locator('[data-testid$="-summary"]')).toContainText(/\d+ of \d+ cleared/);
+    await expect(blocks.first().locator("[data-status]").first()).toBeVisible();
   });
 });
