@@ -14,5 +14,7 @@ export const NeedOutCode = {
   claims: 'claims',
   squad_below_min: 'squad_below_min',
   crew_missing: 'crew_missing',
+  crew_waiver_missing: 'crew_waiver_missing',
   documents_expired: 'documents_expired',
+  ward_waiver: 'ward_waiver',
 } as const;

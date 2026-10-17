@@ -192,7 +192,7 @@ Built on top of the versioned confirmation mechanism — see [S-3](#s-3--confirm
 Tests: `api/tests/stories/test_waiver.py::TestSelfService`,
 `api/tests/stories/test_waiver.py::TestScans`, `e2e/waiver.spec.ts`
 
-### S-8 ○ My parent accepts the waiver for me
+### S-8 ● My parent accepts the waiver for me
 As a **guardian** I want to **accept the liability waiver for my child online, from my own
 account**, so that **my child is cleared without printing, signing and scanning a form**.
 
@@ -218,7 +218,7 @@ Acceptance criteria:
 
 Endpoints: `GET /api/waiver/wards`; confirmation as S-1.
 
-Tests: `api/tests/stories/test_guardians.py::TestAGuardianConfirms`
+Tests: `api/tests/stories/test_guardians.py::TestAGuardianConfirms`, `e2e/guardians.spec.ts`
 
 ### S-3 ● Confirm a waiver version for a series or event
 As a **sailor** (or an admin/club manager acting for one) I want to **confirm one specific
@@ -405,7 +405,9 @@ Acceptance criteria:
   - claims waiting for my decision or payment (on the event when I hold the event, else
     on the club that pays);
   - as a club's organizer: a series squad below its minimum, an upcoming entry with no crew
-    named;
+    named (the matchday's crew, `EventCrew` — until 2026-10-17 this counted the squad on
+    the entry instead, so a series matchday asked for a crew that was already named; found
+    by Journey J-5), an upcoming matchday whose crew has a waiver not cleared (VA-5);
   - on *Me*: a document of mine that has expired.
 - Tapping a card opens my page for it (Story S-7).
 - One request: `GET /api/me/contexts`. It is the one answer to "which clubs, series and

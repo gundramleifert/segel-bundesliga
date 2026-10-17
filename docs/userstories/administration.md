@@ -185,7 +185,7 @@ Permissions are **relation tuples** in the Zanzibar/OpenFGA sense, at the size t
 needs and without the server: ``user:relation:object``. The model is written in
 OpenFGA's DSL (`MODEL` in `app/models/auth.py`) and that string *is* the definition —
 parsed at import, interpreted by `User.can(...)`. The tuples live in one table (`Grant`,
-`access_grant`) whose object is one of three foreign keys, all NULL for the site: the
+`access_grant`) whose object is one of four foreign keys, all NULL for the site: the
 database cascades and joins, and a check needs no lookup.
 
 The model — almost every relation is scoped by a club, a series or an event:
@@ -206,6 +206,10 @@ The model — almost every relation is scoped by a club, a series or an event:
   trackers), `jury` (the protest committee; announcements, VA-11), `treasurer` (checks
   and pays the event's expense claims, F-1), `helper` (works the day — no power on the
   event, but a claim on its costs and their documents seen by its organizers, VA-12).
+- `sailor`: `guardian` — a parent the child's club linked (V-13), who accepts the child's
+  liability waiver online while the child is a minor (S-8). Nothing implies it and it
+  implies nothing; a sailor has no admin, so it is written by the child's club through
+  its own endpoints, or by the site's admin.
 
 The rewrite rules (`or … from …` in the DSL) say what implies what: an object's `admin`
 is each of its other relations; a series' admin, manager, race officer or jury is that of

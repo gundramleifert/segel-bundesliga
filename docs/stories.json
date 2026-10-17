@@ -669,14 +669,14 @@
  "J-5.10": {
   "journey": "J-5",
   "story": "S-1",
-  "path": "minor",
+  "path": "on paper",
   "who": "sailor (offline)",
   "what": "the guardian has the form"
  },
  "J-5.11": {
   "journey": "J-5",
   "story": "S-1",
-  "path": "minor",
+  "path": "on paper",
   "who": "guardian (offline)",
   "what": "the form is signed"
  },
@@ -700,6 +700,27 @@
   "path": "main",
   "who": "event organizer",
   "what": "the check-in list shows every squad member `cleared`, nothing outstanding, the minors' scans on file"
+ },
+ "J-5.15": {
+  "journey": "J-5",
+  "story": "V-13",
+  "path": "guardian online",
+  "who": "club manager",
+  "what": "the parent holds `guardian` on the sailor — only the child's club may link"
+ },
+ "J-5.16": {
+  "journey": "J-5",
+  "story": "S-8",
+  "path": "guardian online",
+  "who": "guardian",
+  "what": "a `guardian_online` confirmation from the parent's own account; the minor is cleared, nothing on paper"
+ },
+ "J-5.17": {
+  "journey": "J-5",
+  "story": "VA-5",
+  "path": "main",
+  "who": "site",
+  "what": "the club's card in the manager's my space shows `crew_waiver_missing` — the crew stays named, nothing is locked"
  },
  "J-5.2": {
   "journey": "J-5",
@@ -753,7 +774,7 @@
  "J-5.9": {
   "journey": "J-5",
   "story": "S-1",
-  "path": "minor",
+  "path": "on paper",
   "who": "sailor",
   "what": "the form PDF with the wording, name, date of birth and competition; an online click is refused (`guardian-confirmation-needed`)"
  },
@@ -845,6 +866,14 @@
   "file": "docs/userstories/sailor.md",
   "anchor": "s-7--my-page-in-a-club-a-series-or-an-event"
  },
+ "S-8": {
+  "title": "My parent accepts the waiver for me",
+  "status": "●",
+  "role": "Sailor",
+  "phase": "Before the season: the waiver",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "s-8--my-parent-accepts-the-waiver-for-me"
+ },
  "V-1": {
   "title": "Register season squad",
   "status": "●",
@@ -876,6 +905,14 @@
   "phase": "Squad and lineup",
   "file": "docs/userstories/club-manager.md",
   "anchor": "v-12--my-club-one-screen-for-members-matchdays-and-squads"
+ },
+ "V-13": {
+  "title": "Link a parent to a minor sailor",
+  "status": "●",
+  "role": "Club Manager",
+  "phase": "The club's page",
+  "file": "docs/userstories/club-manager.md",
+  "anchor": "v-13--link-a-parent-to-a-minor-sailor"
  },
  "V-2": {
   "title": "Select sailors for matchday",
@@ -991,7 +1028,7 @@
  },
  "VA-5": {
   "title": "Confirm liability waivers",
-  "status": "◐",
+  "status": "●",
   "role": "Event Organizer",
   "phase": "Participants and their waivers",
   "file": "docs/userstories/event-organizer.md",

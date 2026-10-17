@@ -8,6 +8,7 @@ import { useAccount, useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { AccessPanel } from "./AccessPanel";
 import { CrestEditor } from "./CrestEditor";
+import { GuardiansPanel } from "./GuardiansPanel";
 import { Empty, ErrorMessage, Loading } from "./Blocks";
 import { PersonDocuments } from "./PersonDocuments";
 
@@ -143,6 +144,10 @@ export function ClubMembersPanel({
           </CrestEditor>
         </section>
       )}
+
+      {/* Whose parent may accept a young sailor's waiver (Story V-13) — the club's
+          organizer decides, the admin and the manager alike. */}
+      {entry.may_manage && <GuardiansPanel clubId={clubId} />}
 
       {entry.may_admin && (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-2">

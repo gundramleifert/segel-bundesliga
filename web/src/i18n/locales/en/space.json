@@ -200,7 +200,11 @@
     "crew_missing_one": "1 upcoming entry has no crew named",
     "crew_missing_other": "{{count}} upcoming entries have no crew named",
     "documents_expired_one": "1 document has expired",
-    "documents_expired_other": "{{count}} documents have expired"
+    "documents_expired_other": "{{count}} documents have expired",
+    "crew_waiver_missing_one": "1 upcoming matchday has a crew member without a cleared waiver",
+    "crew_waiver_missing_other": "{{count}} upcoming matchdays have crew members without a cleared waiver",
+    "ward_waiver_one": "Your child's liability waiver waits for you",
+    "ward_waiver_other": "{{count}} liability waivers of your children wait for you"
   },
   "overview": {
     "me": "Me",

@@ -80,6 +80,7 @@ import type {
   GetClubParams,
   GetLeagueSeasonParams,
   GetSailorParams,
+  GuardianOut,
   HTTPValidationError,
   Health200,
   Index200,
@@ -87,6 +88,7 @@ import type {
   JobOut,
   LeagueOut,
   LeagueSeason,
+  LinkGuardian,
   ListAllClubsParams,
   ListAllEventsParams,
   ListAllSeriesParams,
@@ -136,6 +138,7 @@ import type {
   SailorAdminOut,
   SailorCreate,
   SailorDetail,
+  SailorGuardiansOut,
   SailorMeOut,
   SailorMeUpdate,
   SailorUpdate,
@@ -8292,6 +8295,8 @@ export const getListPendingApplicationsUrl = (params?: ListPendingApplicationsPa
 }
 
 /**
+ * Every application for administration; one series' or one event's for its
+ * organizer, who has to name it (Story A-9).
  * @summary Pending applications
  */
 export const listPendingApplications = async (params?: ListPendingApplicationsParams, options?: RequestInit): Promise<ApplicationOut[]> => {
@@ -9081,8 +9086,10 @@ export const getSetSquadUrl = (teamId: number,) => {
  *
  * Two rules apply:
  *
- * * The squad is tied to **series registration**, not to competing at a single event.
- * From it, the lineup is selected for each matchday (Story V-2).
+ * * The squad is tied to **series registration**, not to competing at a single event
+ * of the series. From it, the lineup is selected for each matchday (Story V-2). An
+ * event that belongs to no series has no registration above it, so there the club's
+ * **entry** carries the squad (Story V-12) — the team `participation.squad_team` names.
  * * **Within a series, a person competes only once.** Registering for a second club
  * in the same series would mean competing against oneself.
  *
@@ -9363,6 +9370,109 @@ export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TErr
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getMyWaiversQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWardWaiversUrl = () => {
+
+
+
+
+  return `/api/waiver/wards`
+}
+
+/**
+ * Story S-8: one entry per sailor the child's club linked me to as guardian (Story
+ * V-13), each exactly as that sailor's own page shows it (S-1) — the same function.
+ * @summary My children's waivers — the sailors I am guardian of
+ */
+export const wardWaivers = async ( options?: RequestInit): Promise<MyWaivers[]> => {
+
+  return http<MyWaivers[]>(getWardWaiversUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getWardWaiversQueryKey = () => {
+    return [
+    `/api/waiver/wards`
+    ] as const;
+    }
+
+
+export const getWardWaiversQueryOptions = <TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getWardWaiversQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof wardWaivers>>> = ({ signal }) => wardWaivers({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type WardWaiversQueryResult = NonNullable<Awaited<ReturnType<typeof wardWaivers>>>
+export type WardWaiversQueryError = ErrorType<unknown>
+
+
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof wardWaivers>>,
+          TError,
+          Awaited<ReturnType<typeof wardWaivers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof wardWaivers>>,
+          TError,
+          Awaited<ReturnType<typeof wardWaivers>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary My children's waivers — the sailors I am guardian of
+ */
+
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getWardWaiversQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -10239,6 +10349,275 @@ export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>
 
 
 
+
+export const getListClubGuardiansUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/guardians`
+}
+
+/**
+ * Story V-13: for the club's manager or admin — every sailor the club's squads and
+ * entries hold or whose account is a member, with the guardians linked to them.
+ * @summary The club's sailors and their guardians
+ */
+export const listClubGuardians = async (clubId: number, options?: RequestInit): Promise<SailorGuardiansOut[]> => {
+
+  return http<SailorGuardiansOut[]>(getListClubGuardiansUrl(clubId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListClubGuardiansQueryKey = (clubId: number,) => {
+    return [
+    `/api/clubs/${clubId}/guardians`
+    ] as const;
+    }
+
+
+export const getListClubGuardiansQueryOptions = <TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClubGuardiansQueryKey(clubId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClubGuardians>>> = ({ signal }) => listClubGuardians(clubId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: clubId !== null && clubId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListClubGuardiansQueryResult = NonNullable<Awaited<ReturnType<typeof listClubGuardians>>>
+export type ListClubGuardiansQueryError = ErrorType<HTTPValidationError>
+
+
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listClubGuardians>>,
+          TError,
+          Awaited<ReturnType<typeof listClubGuardians>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listClubGuardians>>,
+          TError,
+          Awaited<ReturnType<typeof listClubGuardians>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The club's sailors and their guardians
+ */
+
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+ clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListClubGuardiansQueryOptions(clubId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLinkGuardianUrl = (sailorId: number,) => {
+
+
+
+
+  return `/api/sailors/${sailorId}/guardians`
+}
+
+/**
+ * Story V-13: writes `user:guardian:sailor` for an existing account, by email.
+ * @summary Link a parent to a sailor
+ */
+export const linkGuardian = async (sailorId: number,
+    linkGuardianBody: LinkGuardian, options?: RequestInit): Promise<GuardianOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<GuardianOut>(getLinkGuardianUrl(sailorId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(linkGuardianBody)
+  }
+);}
+
+
+
+
+
+export const getLinkGuardianMutationKey = () => ['linkGuardian'] as const;
+
+export const getLinkGuardianMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkGuardian>>, TError,LinkGuardianMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof linkGuardian>>, TError,LinkGuardianMutationVariables, TContext> => {
+
+const mutationKey = getLinkGuardianMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof linkGuardian>>, LinkGuardianMutationVariables> = (props) => {
+          const {sailorId,data} = props ?? {};
+
+          return  linkGuardian(sailorId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LinkGuardianMutationResult = NonNullable<Awaited<ReturnType<typeof linkGuardian>>>
+    export type LinkGuardianMutationBody = BodyType<LinkGuardian>
+    export type LinkGuardianMutationError = ErrorType<HTTPValidationError>
+    export type LinkGuardianMutationVariables = {sailorId: number;data: BodyType<LinkGuardian>}
+
+    /**
+ * @summary Link a parent to a sailor
+ */
+export const useLinkGuardian = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkGuardian>>, TError,LinkGuardianMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof linkGuardian>>,
+        TError,
+        LinkGuardianMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLinkGuardianMutationOptions(options), queryClient);
+    }
+
+export const getUnlinkGuardianUrl = (sailorId: number,
+    tupleId: number,) => {
+
+
+
+
+  return `/api/sailors/${sailorId}/guardians/${tupleId}`
+}
+
+/**
+ * @summary Unlink a parent from a sailor
+ */
+export const unlinkGuardian = async (sailorId: number,
+    tupleId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getUnlinkGuardianUrl(sailorId,tupleId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getUnlinkGuardianMutationKey = () => ['unlinkGuardian'] as const;
+
+export const getUnlinkGuardianMutationOptions = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkGuardian>>, TError,UnlinkGuardianMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof unlinkGuardian>>, TError,UnlinkGuardianMutationVariables, TContext> => {
+
+const mutationKey = getUnlinkGuardianMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unlinkGuardian>>, UnlinkGuardianMutationVariables> = (props) => {
+          const {sailorId,tupleId} = props ?? {};
+
+          return  unlinkGuardian(sailorId,tupleId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnlinkGuardianMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkGuardian>>>
+
+    export type UnlinkGuardianMutationError = ErrorType<HTTPValidationError>
+    export type UnlinkGuardianMutationVariables = {sailorId: number;tupleId: number}
+
+    /**
+ * @summary Unlink a parent from a sailor
+ */
+export const useUnlinkGuardian = <TError = ErrorType<HTTPValidationError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkGuardian>>, TError,UnlinkGuardianMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof unlinkGuardian>>,
+        TError,
+        UnlinkGuardianMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnlinkGuardianMutationOptions(options), queryClient);
+    }
 
 export const getListMyDocumentsUrl = () => {
 

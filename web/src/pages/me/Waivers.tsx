@@ -11,6 +11,7 @@ import {
   myWaivers,
   uploadEventWaiverScan,
   uploadSeriesWaiverScan,
+  wardWaivers,
 } from "../../api/generated/sbl";
 import { ApiError } from "../../api/http";
 import { useInvalidate } from "../../api/useApi";
@@ -116,6 +117,80 @@ export function Waivers({ only }: { only?: { scope: "series" | "event"; id: numb
   );
 }
 
+/** Story S-8: the waivers of the sailors the reader is guardian of — linked by the
+ * child's club (Story V-13). Each child as their own page shows them (S-1), from the same
+ * status function; for a minor the guardian accepts it here, online. Renders nothing for
+ * someone who is nobody's guardian. */
+export function Wards() {
+  const { t, i18n } = useTranslation("account");
+  const invalidate = useInvalidate();
+  const lang: "en" | "de" = i18n.language.startsWith("de") ? "de" : "en";
+  const [wards, setWards] = useState<MyWaivers[] | null>(null);
+  const [text, setText] = useState<WaiverText | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(() => {
+    let active = true;
+    Promise.all([wardWaivers(), getCurrentWaiver().catch(() => null)])
+      .then(([children, wording]) => {
+        if (!active) return;
+        setWards(children);
+        setText(wording);
+        setLoadError(null);
+      })
+      .catch((err) => active && setLoadError(errorText(err)));
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => load(), [load]);
+
+  if (loadError) return <ErrorMessage text={loadError} testId="account-wards-error" />;
+  if (!wards?.length) return null;
+
+  return (
+    <Card data-testid="account-wards-card">
+      <Card.Header>
+        <Card.Title>{t("waiver.guardian.title")}</Card.Title>
+        <Card.Description>{t("waiver.guardian.description")}</Card.Description>
+      </Card.Header>
+      <Card.Content className="grid grid-cols-[minmax(0,1fr)] gap-6">
+        {wards.map((ward) => {
+          const name = `${ward.first_name} ${ward.last_name}`;
+          return (
+            <section key={ward.sailor_id} data-testid={`account-ward-${ward.sailor_id}`}>
+              <h3 className="mb-2 font-medium">{name}</h3>
+              {ward.competitions.length === 0 ? (
+                <p className="text-sm text-slate-600">{t("waiver.guardian.none", { name })}</p>
+              ) : (
+                <ul className="grid grid-cols-[minmax(0,1fr)] gap-4">
+                  {ward.competitions.map((row) => (
+                    <li key={`${row.scope}-${row.scope_id}`}>
+                      <CompetitionRow
+                        row={row}
+                        text={text}
+                        lang={lang}
+                        birthDateKnown={ward.birth_date_known}
+                        guardianOf={name}
+                        prefix={`account-ward-waiver-${ward.sailor_id}`}
+                        onChanged={() => {
+                          load();
+                          invalidate("/api/me/contexts");
+                        }}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })}
+      </Card.Content>
+    </Card>
+  );
+}
+
 const STATUS_STYLE: Record<string, string> = {
   cleared: "bg-emerald-100 text-emerald-800 ring-emerald-300",
   missing: "bg-amber-100 text-amber-800 ring-amber-300",
@@ -133,12 +208,17 @@ function CompetitionRow({
   lang,
   birthDateKnown,
   onChanged,
+  guardianOf,
+  prefix = "account-waiver",
 }: {
   row: MyCompetitionWaiver;
   text: WaiverText | null;
   lang: "en" | "de";
   birthDateKnown: boolean;
   onChanged: () => void;
+  /** The child's name, when the reader is their linked guardian (Story S-8). */
+  guardianOf?: string;
+  prefix?: string;
 }) {
   const { t } = useTranslation("account");
   const [reading, setReading] = useState(false);
@@ -176,7 +256,7 @@ function CompetitionRow({
         setReading(false);
         onChanged();
       },
-      t("waiver.adult.done"),
+      guardianOf ? t("waiver.guardian.done", { name: guardianOf }) : t("waiver.adult.done"),
     );
 
   const download = () =>
@@ -217,12 +297,12 @@ function CompetitionRow({
   return (
     <div
       className="rounded-lg border border-slate-200 bg-white p-4"
-      data-testid={`account-waiver-${id}`}
+      data-testid={`${prefix}-${id}`}
       data-status={row.status}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-medium" data-testid={`account-waiver-name-${id}`}>
+          <p className="font-medium" data-testid={`${prefix}-name-${id}`}>
             {row.name}
           </p>
           <p className="text-xs text-slate-500">
@@ -236,6 +316,8 @@ function CompetitionRow({
                 })}
                 {row.method === "guardian" && row.guardian_name
                   ? `, ${t("waiver.methodGuardian", { name: row.guardian_name })}`
+                  : row.method === "guardian_online" && row.guardian_name
+                    ? `, ${t("waiver.methodGuardianOnline", { name: row.guardian_name })}`
                   : row.method === "online"
                     ? `, ${t("waiver.methodOnline")}`
                     : ""}
@@ -244,7 +326,7 @@ function CompetitionRow({
           </p>
         </div>
         <span
-          data-testid={`account-waiver-status-${id}`}
+          data-testid={`${prefix}-status-${id}`}
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
             STATUS_STYLE[row.status] ?? STATUS_STYLE.not_required
           }`}
@@ -254,17 +336,17 @@ function CompetitionRow({
       </div>
 
       {noBirthDate && row.status !== "cleared" && (
-        <p className="mt-3 text-sm text-slate-700" data-testid={`account-waiver-need-birth-date-${id}`}>
+        <p className="mt-3 text-sm text-slate-700" data-testid={`${prefix}-need-birth-date-${id}`}>
           {t("waiver.needBirthDate")}
         </p>
       )}
 
-      {open && row.minor === false && (
+      {open && (row.minor === false || (guardianOf !== undefined && row.minor === true)) && (
         <div className="mt-3 space-y-3">
           {reading && text ? (
             <div
               className="rounded-md bg-slate-50 p-3 text-sm"
-              data-testid={`account-waiver-text-${id}`}
+              data-testid={`${prefix}-text-${id}`}
             >
               <p className="font-semibold">{lang === "de" ? text.title_de : text.title_en}</p>
               <p className="mt-2 whitespace-pre-line text-slate-700">
@@ -276,9 +358,11 @@ function CompetitionRow({
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
                   className="mt-0.5"
-                  data-testid={`account-waiver-agree-${id}`}
+                  data-testid={`${prefix}-agree-${id}`}
                 />
-                <span>{t("waiver.adult.agree")}</span>
+                <span>
+                  {guardianOf ? t("waiver.guardian.agree", { name: guardianOf }) : t("waiver.adult.agree")}
+                </span>
               </label>
             </div>
           ) : null}
@@ -287,7 +371,7 @@ function CompetitionRow({
               size="sm"
               variant={reading ? "outline" : "primary"}
               onPress={() => setReading((v) => !v)}
-              data-testid={`account-waiver-read-${id}`}
+              data-testid={`${prefix}-read-${id}`}
             >
               {reading ? t("waiver.adult.hide") : t("waiver.adult.read")}
             </Button>
@@ -296,7 +380,7 @@ function CompetitionRow({
                 size="sm"
                 isDisabled={!agreed || busy !== null}
                 onPress={confirm}
-                data-testid={`account-waiver-confirm-${id}`}
+                data-testid={`${prefix}-confirm-${id}`}
               >
                 {busy === "confirm" ? t("waiver.adult.confirming") : t("waiver.adult.confirm")}
               </Button>
@@ -305,7 +389,7 @@ function CompetitionRow({
         </div>
       )}
 
-      {open && row.minor === true && (
+      {open && row.minor === true && guardianOf === undefined && (
         <div className="mt-3 space-y-3">
           <p className="text-sm text-slate-700">{t("waiver.minor.explain")}</p>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
@@ -314,7 +398,7 @@ function CompetitionRow({
               variant="outline"
               isDisabled={busy !== null}
               onPress={download}
-              data-testid={`account-waiver-download-${id}`}
+              data-testid={`${prefix}-download-${id}`}
             >
               {busy === "download" ? t("waiver.minor.downloading") : t("waiver.minor.download")}
             </Button>
@@ -332,7 +416,7 @@ function CompetitionRow({
                 value={guardianName}
                 onChange={(e) => setGuardianName(e.target.value)}
                 className={INPUT_CLASS}
-                data-testid={`account-waiver-guardian-${id}`}
+                data-testid={`${prefix}-guardian-${id}`}
               />
             </div>
             <FileDropzone
@@ -346,7 +430,7 @@ function CompetitionRow({
                     ? t("waiver.minor.replace")
                     : t("waiver.minor.upload")
               }
-              testId={`account-waiver-upload-${id}`}
+              testId={`${prefix}-upload-${id}`}
             />
           </div>
         </div>
@@ -359,7 +443,7 @@ function CompetitionRow({
             onClick={viewScan}
             disabled={busy !== null}
             className="text-sm underline underline-offset-2"
-            data-testid={`account-waiver-scan-${id}`}
+            data-testid={`${prefix}-scan-${id}`}
           >
             {t("waiver.viewScan")}
           </button>
@@ -367,7 +451,7 @@ function CompetitionRow({
       )}
 
       <div className="mt-3">
-        <Message testId={`account-waiver-message-${id}`} error={error} success={success} />
+        <Message testId={`${prefix}-message-${id}`} error={error} success={success} />
       </div>
     </div>
   );

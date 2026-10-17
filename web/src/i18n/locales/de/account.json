@@ -115,6 +115,14 @@
       "replace": "Neuen Scan hochladen",
       "uploading": "Wird hochgeladen…",
       "done": "Das unterschriebene Formular liegt vor – du bist freigegeben."
+    },
+    "methodGuardianOnline": "online angenommen von {{name}}",
+    "guardian": {
+      "title": "Meine Kinder",
+      "description": "Die jungen Seglerinnen und Segler, die Ihr Verein Ihnen als Erziehungsberechtigte(r) zugeordnet hat. Solange ein Kind unter 18 ist, nehmen Sie den Haftungsausschluss hier für es an — ohne Formular zum Ausdrucken.",
+      "none": "{{name}} ist noch für keinen Wettbewerb gemeldet.",
+      "agree": "Ich habe die obige Erklärung gelesen und nehme sie als Elternteil bzw. Erziehungsberechtigte(r) für {{name}} an.",
+      "done": "Danke — Ihre Annahme für {{name}} ist erfasst."
     }
   }
 }

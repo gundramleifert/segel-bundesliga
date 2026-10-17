@@ -211,7 +211,7 @@ takes the scan-upload path from S-1.
 
 Tests: none yet
 
-### VA-5 ◐ Confirm liability waivers
+### VA-5 ● Confirm liability waivers
 As a **race organizer** I want to **only check off submitted liability waivers**,
 so that I **don't have to collect anything on event day**.
 
@@ -234,6 +234,7 @@ Access: the event's host-club leadership, plus `admin`, `editor`, `race_officer`
 role was added — the on-site organizer is a `race_officer` or the host `club_manager`.
 
 Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list),
+`api/tests/stories/test_guardians.py::TestTheCrewWaiverIsSaid` (lined up, and said),
 `e2e/waiver.spec.ts` (the organizer's panel)
 
 ## The draw

@@ -102,5 +102,10 @@
   "payment-not-failable": "Nur eine an die Bank übergebene oder gebuchte Zahlung kann zurückkommen.",
   "payment-not-found": "Diese Zahlung gibt es nicht.",
   "bic-invalid": "Diese BIC ist ungültig – leer lassen, dann wird sie aus der IBAN ergänzt.",
-  "sailor-not-yours": "Diese Person segelt für einen anderen Verein — nur dessen Organisatoren können ihre Angaben ändern."
+  "sailor-not-yours": "Diese Person segelt für einen anderen Verein — nur dessen Organisatoren können ihre Angaben ändern.",
+  "guardian-link-forbidden": "Nur Organisatoren des Vereins des Seglers können Erziehungsberechtigte verknüpfen.",
+  "guardian-account-missing": "Zu dieser Adresse gibt es kein Konto — das Elternteil registriert sich zuerst.",
+  "guardian-is-the-sailor": "Ein Segler kann nicht sein eigener Erziehungsberechtigter sein.",
+  "guardian-link-missing": "Dieser Segler hat keine solche Verknüpfung.",
+  "waiver-ward-is-adult": "Diese Person ist für diesen Wettbewerb volljährig und nimmt den Haftungsausschluss selbst an."
 }

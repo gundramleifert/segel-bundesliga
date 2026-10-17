@@ -358,7 +358,7 @@ Tests: `api/tests/stories/test_my_clubs.py`,
 
 ## The club's page
 
-### V-13 ○ Link a parent to a minor sailor
+### V-13 ● Link a parent to a minor sailor
 As a **club manager** I want to **link a parent's account to a young sailor of our club**,
 so that **the parent can accept the liability waiver for their child online** — without
 a printed form, a pen and a scan (Story S-8).
@@ -376,6 +376,8 @@ Acceptance criteria:
 - **Who may link and unlink**: the manager or admin of a club the child belongs to — a
   club whose squad or event entry holds them, or whose `member` the child's account is —
   and the site's admin. Anyone else gets `guardian-link-forbidden` (403).
+- **The guardian need not belong to the club** — only the child does. A parent is often
+  no member, sailor or organizer anywhere; the link asks nothing of them but an account.
 - The parent is named by the **email of an existing account**, as on the People panel
   (V-9): no account → `guardian-account-missing` (404), register first (Z-4). Linking
   the same account twice is `tuple-exists` (409); a child cannot be their own guardian
@@ -387,7 +389,7 @@ Acceptance criteria:
 Endpoints: `GET /api/clubs/{club_id}/guardians`, `POST /api/sailors/{sailor_id}/guardians`,
 `DELETE /api/sailors/{sailor_id}/guardians/{tuple_id}`
 
-Tests: `api/tests/stories/test_guardians.py::TestLinkingAGuardian`
+Tests: `api/tests/stories/test_guardians.py::TestLinkingAGuardian`, `e2e/guardians.spec.ts`
 
 ### V-11 ○ Manage our own club page
 As a **club organizer** I want to **edit our club page where it is shown**,

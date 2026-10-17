@@ -12,4 +12,5 @@ export type WaiverMethod = typeof WaiverMethod[keyof typeof WaiverMethod];
 export const WaiverMethod = {
   online: 'online',
   guardian: 'guardian',
+  guardian_online: 'guardian_online',
 } as const;

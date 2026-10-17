@@ -102,5 +102,10 @@
   "payment-not-failable": "Only a payment sent to the bank or booked can come back.",
   "payment-not-found": "This payment does not exist.",
   "bic-invalid": "This BIC is not valid — leave it empty to take it from the IBAN.",
-  "sailor-not-yours": "This person sails for another club — only that club's organizers can change their details."
+  "sailor-not-yours": "This person sails for another club — only that club's organizers can change their details.",
+  "guardian-link-forbidden": "Only the manager or admin of the sailor's club can link a guardian.",
+  "guardian-account-missing": "There is no account with this address — the parent registers first.",
+  "guardian-is-the-sailor": "A sailor cannot be their own guardian.",
+  "guardian-link-missing": "This sailor has no such guardian.",
+  "waiver-ward-is-adult": "This sailor is an adult for this competition and accepts the waiver themselves."
 }
