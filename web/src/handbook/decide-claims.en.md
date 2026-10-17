@@ -16,7 +16,7 @@ title: "Decide and pay claims"
 
 | Claim on | Decided and paid by |
 |---|---|
-| an event | the *Treasurer* named for that event; the treasurer of its host club; the *Organizer* named for that event; the host club's organizer; and the admins of the event, its series or its host club |
+| an event | the *Treasurer* named for that event; the treasurer of its host club; the *Organizer* named for that event; the host club's organizer; and the admins of the event or its host club (a series' admin has no screen for it yet and asks the league office) |
 | a club | the club's *Organizer* or *Treasurer*, and its *Admin* |
 
 The organizer of a series and the site's editors and race committee run events, but do

@@ -25,8 +25,9 @@ A parent or guardian must sign — on the printed form, or online from their own
 The wording has changed (*New wording — please confirm again*): [which waiver](#waiver-which).
 
 #### My account has no sailor profile.
-Your record is found by email address. Ask your club's organizer to enter the one you
-sign in with: [your profile](#profile-sailor).
+Your record is found by email address. If there is none, ask the league office to create
+one with the address you sign in with; if it carries another address, sign in with that
+one, or ask the league office: [your profile](#profile-sailor).
 
 #### How do I join my club?
 There is no request: the club's admin adds you by your account's email address:
@@ -43,8 +44,8 @@ A person sails for one club per series. The other club must remove her from its 
 first: [the squad](#squad-and-lineup-squad).
 
 #### The squad is refused as too large.
-The series sets the maximum, a standalone event its own. Remove someone, or ask the
-series' organizer: [squad size](#squad-and-lineup-size).
+The league office sets a series' maximum; a standalone event's organizer sets its own.
+Remove someone, or ask them: [squad size](#squad-and-lineup-size).
 
 #### Why can't I remove someone from the squad?
 They are in a matchday crew. Change the crew first: [the crew](#squad-and-lineup-crew).

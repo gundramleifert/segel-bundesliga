@@ -67,19 +67,19 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
 | Change a sailor's details | ✓⁹ | ✓⁹ | — | — | — | — | — | squad²˒⁹ | squad²˒⁹ | — | self |
 | Register the squad | ✓ | — | — | — | — | — | — | own | own | — | — |
 | Name the crew for a matchday | ✓⁹ | ✓⁹ | ✓⁹ | series⁹ | own⁹ | own⁹ | — | own, hosted⁹ | own, hosted⁹ | — | — |
-| Link a guardian | ✓ | — | — | — | — | — | — | own | own | — | — |
-| Confirm a waiver for a sailor | ✓ | ✓ | — | — | — | — | — | squad | squad | — | self³ |
+| Link a guardian | ✓⁹ | — | — | — | — | — | — | own | own | — | — |
+| Confirm a waiver for a sailor | ✓⁹ | ✓⁹ | — | — | — | — | — | squad⁹ | squad⁹ | — | self³ |
 | See a signed waiver form | ✓ | ✓ | ✓ | series⁴ | own⁴ | own⁴ | — | squad, hosted⁴ | squad, hosted⁴ | — | self |
 | See an event's check-in list | ✓ | ✓ | ✓⁹ | series | own | own⁹ | — | hosted⁹ | hosted⁹ | — | — |
-| See the club's waiver overview | ✓ | — | — | — | — | — | — | own | own | — | — |
+| See the club's waiver overview | ✓⁹ | — | — | — | — | — | — | own | own | — | — |
 | See a person's documents | ✓ | ✓⁵ | ✓⁵ | series⁵ | own⁵ | — | — | own⁶ | own⁶ | — | self |
 | File an expense claim⁷ | — | — | — | series | own | own | own | — | — | — | own |
-| Decide and pay a claim⁸ | ✓ | — | — | —¹ | own | — | — | own, hosted | own, hosted | own, hosted | — |
-| Club account, SEPA file, books | ✓ | — | — | — | — | — | — | own | own | own | — |
+| Decide and pay a claim⁸ | ✓⁹ | — | — | —¹ | own | — | — | own, hosted | own, hosted | own, hosted | — |
+| Club account, SEPA file, books | ✓⁹ | — | — | — | — | — | — | own | own | own | — |
 | Publish a new waiver wording | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
 
-1. A series' *Admin* may, for its events — except running races: race control and the
-   results tab do not let them in yet (⁹).
+1. A series' *Admin* may, for its events — except running races and deciding claims:
+   race control, the results tab and the claims screens do not let them in yet (⁹).
 2. Or in nobody's squad yet.
 3. And a linked guardian, for a child under 18.
 4. Only forms signed for that event alone, not those for a whole series.

@@ -44,7 +44,8 @@ Your club is in the series.
 
 ### Squad size {#squad-and-lineup-size}
 
-Set per series, or per event in no series — 4 to 10 unless its organizer changes it.
+Set per series by the league office, or for an event in no series by its organizer in the
+event's panel — 4 to 10 unless changed.
 
 | Rule | Effect |
 |---|---|
@@ -63,8 +64,8 @@ The squad is registered.
 ![The lineup for one matchday](shot:help-club-lineup)
 
 Only the squad is offered; the number is free (*usually …*). Nobody sails for two teams
-on one matchday; an empty list removes the lineup. The event's organizer and race
-committee can change it too. A [missing waiver](#club-waivers-missing) blocks nobody.
+on one matchday; an empty list removes the lineup. Only the club's team manager or
+admin names the crew on screen; anyone else asks the club. A [missing waiver](#club-waivers-missing) blocks nobody.
 
 Refused? See the [FAQ](#faq-club).
 

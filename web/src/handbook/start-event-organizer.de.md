@@ -28,7 +28,9 @@ nur den Ausrichter, wenden Sie sich an die Geschäftsstelle.
 - [Sehen, was noch fehlt](#run-event-readiness), und es ergänzen.
 - [Pairing-Liste auslosen lassen](#run-event-draw) und [den Druck einstellen](#run-event-print).
 - [Veranstaltung veröffentlichen](#run-event-publish), sobald sie sich zeigen lässt.
-- [Wettfahrtleitung, Jury und Helfer benennen](#run-event-helpers).
+- [Wettfahrtleitung, Jury und Helfer benennen lassen](#run-event-helpers) — das ist Sache
+  der Verwaltung der Veranstaltung; als Organisation fragen Sie dort oder bei der
+  Geschäftsstelle.
 - [Haftungsausschlüsse prüfen](#event-checkin-list) aller Kadermitglieder.
 
 ### Am Tag {#start-event-organizer-day}

@@ -46,7 +46,7 @@ sequenceDiagram
   participant P as Site
 
   CA->>P: [J-2.6] deletes their own admin tuple
-  P-->>CA: refused — at least one organizer must remain
+  P-->>CA: refused — at least one admin must remain
 ```
 
 | Step | Path | Story | Who | What is then true |

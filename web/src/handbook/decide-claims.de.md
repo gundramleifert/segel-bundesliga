@@ -16,7 +16,7 @@ title: "Abrechnungen entscheiden und zahlen"
 
 | Abrechnung für | Entschieden und gezahlt von |
 |---|---|
-| eine Veranstaltung | dem für diese Veranstaltung benannten *Kassenwart*; dem Kassenwart des Ausrichters; der für diese Veranstaltung benannten *Organisation*; der Organisation des Ausrichters; sowie der *Verwaltung* der Veranstaltung, ihrer Serie oder des Ausrichters |
+| eine Veranstaltung | dem für diese Veranstaltung benannten *Kassenwart*; dem Kassenwart des Ausrichters; der für diese Veranstaltung benannten *Organisation*; der Organisation des Ausrichters; sowie der *Verwaltung* der Veranstaltung oder des Ausrichters (die Verwaltung einer Serie hat dafür noch keine Seite und fragt die Geschäftsstelle) |
 | einen Verein | der *Organisation* oder dem *Kassenwart* des Vereins und seiner *Verwaltung* |
 
 Die Organisation einer Serie sowie Redaktion und Wettfahrtleitung der Website führen

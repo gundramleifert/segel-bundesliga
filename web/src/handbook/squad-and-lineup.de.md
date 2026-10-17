@@ -46,8 +46,8 @@ Ihr Verein ist für die Serie gemeldet.
 
 ### Kadergröße {#squad-and-lineup-size}
 
-Festgelegt je Serie oder je Veranstaltung ohne Serie – 4 bis 10, wenn deren Organisation
-nichts ändert.
+Je Serie legt sie die Geschäftsstelle fest, bei einer Veranstaltung ohne Serie deren
+Organisation im Panel der Veranstaltung – 4 bis 10, wenn niemand etwas ändert.
 
 | Regel | Wirkung |
 |---|---|
@@ -68,8 +68,9 @@ Der Kader ist gemeldet.
 ![Die Aufstellung für einen Spieltag](shot:help-club-lineup)
 
 Angeboten wird nur der Kader; die Anzahl ist frei (*üblich …*). Niemand segelt an einem
-Spieltag für zwei Teams; eine leere Liste entfernt die Aufstellung. Organisation und
-Wettfahrtleitung der Veranstaltung können sie ebenfalls ändern. Ein
+Spieltag für zwei Teams; eine leere Liste entfernt die Aufstellung. Auf der Website stellt
+nur der Teammanager oder die Verwaltung des Vereins die Crew auf; alle anderen fragen den
+Verein. Ein
 [fehlender Haftungsausschluss](#club-waivers-missing) sperrt niemanden.
 
 Abgelehnt? Siehe [FAQ](#faq-club).

@@ -32,8 +32,9 @@ Bestätigung für die Serie gilt für jede ihrer Veranstaltungen.
 | *Geburtsdatum unbekannt* | das Alter lässt sich erst beurteilen, wenn das Datum eingetragen ist |
 | *Nicht erforderlich* | es ist noch kein Text veröffentlicht |
 
-Sichtbar für Organisation und Wettfahrtleitung der Veranstaltung, ihrer Serie und ihres
-Ausrichters sowie für die Geschäftsstelle.
+Sichtbar im Panel der Veranstaltung für ihre Organisation (der Veranstaltung oder ihrer
+Serie) und für die Geschäftsstelle. Wettfahrtleitung und Organisation des Ausrichters
+haben dafür noch keine Seite — fragen Sie die Geschäftsstelle.
 
 ![Die Check-in-Liste mit dem Status jeder Person](shot:help-event-checkin)
 

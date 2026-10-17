@@ -20,8 +20,8 @@ All on *Me* in [my space](/me/profile).
 site shows them; *Save*.
 
 The card appears once a sailor record carries your account's email address, confirmed.
-Otherwise it says no record is linked — ask your club's organizer or the league office to
-create one with your address.
+Otherwise it says no record is linked — ask the league office to create one with your
+address (your club can pass the request on).
 
 - *Upload photo*: an image, at most 5 MB. It is turned upright, cut to a square and
   reduced to 512×512 pixels. *Replace photo*, *Remove photo*.

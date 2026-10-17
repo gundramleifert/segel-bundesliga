@@ -29,7 +29,7 @@ editor creates clubs; entering a club in a series is the admin's.
 - **A new club is not public** until it is entered in a published series of the current
   year. *… visible in the current year* above the list also counts series still in *Draft*.
 - The crest: *Upload crest*, *Replace crest* or *Remove crest* in the club's row — the
-  club's own admin can too. Name, short name and city cannot be changed afterwards.
+  club's own admin can too. No screen changes name, short name or city afterwards.
 
 ### Enter a club in a series {#admin-clubs-series}
 

@@ -21,8 +21,8 @@ Seite sie zeigt; *Speichern*.
 
 Die Karte erscheint, sobald ein Segler-Datensatz die bestätigte E-Mail-Adresse Ihres
 Kontos trägt. Sonst steht dort, dass kein Datensatz verknüpft
-ist – bitten Sie die Organisation Ihres Vereins oder die Geschäftsstelle, einen mit Ihrer
-Adresse anzulegen.
+ist – bitten Sie die Geschäftsstelle, einen mit Ihrer Adresse anzulegen (Ihr
+Verein kann die Bitte weitergeben).
 
 - *Foto hochladen*: ein Bild, höchstens 5 MB. Es wird aufgerichtet, quadratisch
   zugeschnitten und auf 512×512 Pixel verkleinert. *Foto ersetzen*, *Foto entfernen*.

@@ -14,8 +14,8 @@ title: Eine Serienleitung richtet eine Serie ein
 
 Wer: die Geschäftsstelle, die Serienleitung, der Teammanager eines Vereins, ein Besucher.
 
-Die Geschäftsstelle legt die Serie an und benennt ihre Leitung; die Serienleitung legt die
-Spieltage an und führt sie durch. Die Serie selbst zu ändern — Termine, Vereine,
+Die Geschäftsstelle legt die Serie an und benennt ihre Leitung; die Serienleitung führt ihre
+Spieltage durch (einen anzulegen braucht heute noch die Verwaltung der Geschäftsstelle). Die Serie selbst zu ändern — Termine, Vereine,
 Veröffentlichung — stünde ihr zu, doch der Reiter *Serien* bietet ihr dafür noch nichts
 an; sie bittet also die Geschäftsstelle. Eine weitere Serie anzulegen bleibt Sache der
 Geschäftsstelle.

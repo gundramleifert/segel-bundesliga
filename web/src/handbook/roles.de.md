@@ -68,19 +68,20 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 | Angaben eines Seglers ändern | ✓⁹ | ✓⁹ | — | — | — | — | — | Kader²˒⁹ | Kader²˒⁹ | — | selbst |
 | Kader melden | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
 | Crew für einen Spieltag aufstellen | ✓⁹ | ✓⁹ | ✓⁹ | Serie⁹ | eigene⁹ | eigene⁹ | — | eigene, ausgerichtet⁹ | eigene, ausgerichtet⁹ | — | — |
-| Erziehungsberechtigte verknüpfen | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
-| Haftungsausschluss für einen Segler bestätigen | ✓ | ✓ | — | — | — | — | — | Kader | Kader | — | selbst³ |
+| Erziehungsberechtigte verknüpfen | ✓⁹ | — | — | — | — | — | — | eigene | eigene | — | — |
+| Haftungsausschluss für einen Segler bestätigen | ✓⁹ | ✓⁹ | — | — | — | — | — | Kader⁹ | Kader⁹ | — | selbst³ |
 | Unterschriebenes Formular sehen | ✓ | ✓ | ✓ | Serie⁴ | eigene⁴ | eigene⁴ | — | Kader, ausgerichtet⁴ | Kader, ausgerichtet⁴ | — | selbst |
 | Check-in-Liste einer Veranstaltung sehen | ✓ | ✓ | ✓⁹ | Serie | eigene | eigene⁹ | — | ausgerichtet⁹ | ausgerichtet⁹ | — | — |
-| Übersicht der Haftungsausschlüsse des Vereins sehen | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
+| Übersicht der Haftungsausschlüsse des Vereins sehen | ✓⁹ | — | — | — | — | — | — | eigene | eigene | — | — |
 | Dokumente einer Person sehen | ✓ | ✓⁵ | ✓⁵ | Serie⁵ | eigene⁵ | — | — | eigene⁶ | eigene⁶ | — | selbst |
 | Kosten abrechnen⁷ | — | — | — | Serie | eigene | eigene | eigene | — | — | — | eigene |
-| Über eine Abrechnung entscheiden und sie zahlen⁸ | ✓ | — | — | —¹ | eigene | — | — | eigene, ausgerichtet | eigene, ausgerichtet | eigene, ausgerichtet | — |
-| Vereinskonto, SEPA-Datei, Buchhaltung | ✓ | — | — | — | — | — | — | eigene | eigene | eigene | — |
+| Über eine Abrechnung entscheiden und sie zahlen⁸ | ✓⁹ | — | — | —¹ | eigene | — | — | eigene, ausgerichtet | eigene, ausgerichtet | eigene, ausgerichtet | — |
+| Vereinskonto, SEPA-Datei, Buchhaltung | ✓⁹ | — | — | — | — | — | — | eigene | eigene | eigene | — |
 | Neuen Wortlaut des Haftungsausschlusses veröffentlichen | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
 
 1. Die *Verwaltung* einer Serie darf es, für ihre Veranstaltungen — außer Wettfahrten
-   durchführen: Die Wettfahrtleitung und der Ergebnis-Tab lassen sie noch nicht zu (⁹).
+   durchführen und über Abrechnungen entscheiden: Die Wettfahrtleitung, der Ergebnis-Tab
+   und die Abrechnungsseiten lassen sie noch nicht zu (⁹).
 2. Oder in noch keinem Kader.
 3. Und verknüpfte Erziehungsberechtigte, für ein Kind unter 18.
 4. Nur Formulare für genau diese Veranstaltung, nicht die für eine ganze Serie.

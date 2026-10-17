@@ -14,8 +14,8 @@ title: An organizer sets up a series
 
 Who: the league office, the series manager, a club's team manager, a visitor.
 
-The league office creates the series and names its manager; the series manager creates and
-runs its matchdays. Changing the series itself — dates, clubs, publication — is open to
+The league office creates the series and names its manager; the series manager runs its
+matchdays (creating one still needs the league office's admin today). Changing the series itself — dates, clubs, publication — is open to
 the series manager in principle, but the *Series* tab offers them no controls yet, so they
 ask the league office. Creating another series stays with the league office.
 

@@ -28,8 +28,9 @@ Der Wortlaut hat sich geändert (*Neuer Wortlaut – bitte erneut bestätigen*):
 [welcher Haftungsausschluss](#waiver-which).
 
 #### Mein Konto hat kein Segler-Profil.
-Ihr Datensatz wird über die E-Mail-Adresse gefunden. Bitten Sie die Organisation Ihres
-Vereins, die einzutragen, mit der Sie sich anmelden:
+Ihr Datensatz wird über die E-Mail-Adresse gefunden. Gibt es keinen, bitten Sie die
+Geschäftsstelle, einen mit der Adresse anzulegen, mit der Sie sich anmelden; trägt er eine
+andere Adresse, melden Sie sich mit dieser an oder fragen Sie die Geschäftsstelle:
 [Ihr Profil](#profile-sailor).
 
 #### Wie trete ich meinem Verein bei?
@@ -47,8 +48,9 @@ Eine Person segelt je Serie für einen Verein. Der andere Verein muss sie zuerst
 seinem Kader nehmen: [der Kader](#squad-and-lineup-squad).
 
 #### Der Kader wird als zu groß abgelehnt.
-Die Serie legt die Höchstzahl fest, eine Einzelveranstaltung ihre eigene. Nehmen Sie
-jemanden heraus, oder fragen Sie die Serienleitung: [Kadergröße](#squad-and-lineup-size).
+Die Höchstzahl einer Serie legt die Geschäftsstelle fest, die einer Einzelveranstaltung
+deren Organisation. Nehmen Sie jemanden heraus, oder fragen Sie dort:
+[Kadergröße](#squad-and-lineup-size).
 
 #### Warum kann ich niemanden aus dem Kader nehmen?
 Die Person steht in einer Crew eines Spieltags. Ändern Sie zuerst die Aufstellung: [die Crew](#squad-and-lineup-crew).

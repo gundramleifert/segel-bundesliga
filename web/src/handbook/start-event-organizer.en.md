@@ -26,7 +26,8 @@ managers; if you manage only the host club, ask the league office.
 - [See what is still missing](#run-event-readiness) and fix it.
 - [Have the pairing list drawn](#run-event-draw) and [set how it prints](#run-event-print).
 - [Publish the event](#run-event-publish) when it is worth showing.
-- [Name the race committee, jury and helpers](#run-event-helpers).
+- [Have the race committee, jury and helpers named](#run-event-helpers) — that is the
+  event's admin's job; as a manager, ask them or the league office.
 - [Check the waivers](#event-checkin-list) of all squad members.
 
 ### On the day {#start-event-organizer-day}

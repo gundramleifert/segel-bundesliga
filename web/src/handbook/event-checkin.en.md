@@ -32,8 +32,9 @@ every event of it.
 | *Date of birth unknown* | age cannot be judged until the date is entered |
 | *Not required* | no waiver text has been published yet |
 
-Shown to the managers and race officers of the event, its series and its host club, and
-to the league office.
+Shown in the event's panel to its organizers (of the event or its series) and to the
+league office. Race officers and the host club's organizers have no screen for it yet —
+ask the league office.
 
 ![The check-in list with each person's status](shot:help-event-checkin)
 

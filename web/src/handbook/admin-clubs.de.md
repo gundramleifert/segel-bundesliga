@@ -33,7 +33,7 @@ Sache der Verwaltung.
   zählt auch Serien mit, die noch *Entwurf* sind.
 - Der Stander: *Stander hochladen*, *Stander ersetzen* oder *Stander entfernen* in der
   Zeile des Vereins — die Verwaltung des Vereins kann das auch. Name, Kürzel und Ort
-  lassen sich danach nicht mehr ändern.
+  ändert danach keine Seite mehr.
 
 ### Einen Verein in eine Serie eintragen {#admin-clubs-series}
 
