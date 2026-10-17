@@ -129,10 +129,22 @@ A member leaves by deleting their own tuple — the one write a person may make 
 separate setting, not tied to `debug` — in a reachable environment this would be a security hole,
 and the server warns on startup while it is on.
 
-`app.seed_users` creates: one account **per registered sailor** (360 across the three seeded series) — without login, no one can
-submit their waiver — one person per club with `manager` on it, plus `admin@`, `redaktion@`, `wl@`,
-`beides@`, `gast@sbl.example.com`, and four people with one tuple on the planned matchday
-only: `regatta@` (race officer), `orga@` (manager), `jury@`, `helfer@` (helper).
+`app.seed_users` creates a **small cast on one club, one series, one event** — 42 accounts
+(decided 2026-10-17; it was 370). The data stays whole (18 clubs, 360 sailors, the series
+and their events); the people who sign in are concentrated:
+
+- **club** NRV: `board@nrv.example.com` (its `admin`), `teams@` (its `manager`, the team
+  manager), `treasurer@`, and every NRV sailor — all `member` of it. A sailor needs an
+  account to sign a waiver; a sailor of any other club has none, and the specs pick their
+  adults and juniors from NRV's squad;
+- **series** 1. Segel-Bundesliga 2026: `serie@` (its `manager`);
+- **event** its act 3, still planned: `orga@` (manager), `regatta@` (race officer),
+  `jury@`, `helfer@` (helper);
+- the **league office** `admin@`, `redaktion@` (editor), `wl@` (race officer), and
+  `gast@sbl.example.com` with no relation.
+
+The role switcher groups them the same way (league office · series · event · club ·
+sailors · guest, the `group` of `/api/dev/users`), the sailors folded until searched.
 
 Test addresses use `example.com`: `.test` and `.example` are reserved domains that email validation
 rejects — including in real login flows.

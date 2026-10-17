@@ -20,11 +20,11 @@ const ADMIN = "admin@sbl.example.com";
 const PLANNED_ACT = 3; // dsbl-1-2026-act-3, planned — the one still to be lined up
 
 async function aTeamManager(request: APIRequestContext): Promise<DevUser> {
-  // The seed creates one manager per club; NRV's is in every seeded series' squads too.
+  // NRV is the test club (`app/seed_users.py`), with a team in every seeded series.
   const manager = (await devUsers(request)).find(
     (a) => a.roles.includes("team_manager") && a.email.endsWith("@nrv.example.com"),
   );
-  expect(manager, "the seed creates one team_manager per club").toBeTruthy();
+  expect(manager, "the seed gives NRV a team manager").toBeTruthy();
   return manager!;
 }
 

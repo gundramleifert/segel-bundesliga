@@ -6,5 +6,13 @@
   "noRole": "ohne Rolle",
   "notFound": "Nichts gefunden.",
   "signOut": "Abmelden",
-  "notSignedIn": "Nicht angemeldet"
+  "notSignedIn": "Nicht angemeldet",
+  "groups": {
+    "league": "Geschäftsstelle",
+    "series": "Serie",
+    "event": "Veranstaltung",
+    "club": "Vereinsleitung",
+    "sailor": "Segler",
+    "guest": "Gast"
+  }
 }

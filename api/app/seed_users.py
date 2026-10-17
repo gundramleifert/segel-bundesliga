@@ -1,15 +1,23 @@
-"""Create test accounts — one for each role and for each participant.
+"""Create the test accounts — a small cast: one club, one series, one event.
 
     uv run python -m app.seed_users
 
-Each registered sailor gets an account, because without logging in they cannot submit
-their waiver (Stories V-1 and S-1). One person per club additionally gets the
-``team_manager`` role so roster management and club assignment can be tested.
+All 18 clubs, their sailors, the series and their events stay as data (`app.seed`): the
+league, its pairing lists and its standings need them. The people who sign in are
+concentrated on **one of each**:
 
-In addition, a set of named accounts for roles that do not belong to a club — administration,
-editorial, race officer — plus an account with no role to see what a logged-in guest can do.
+* the **club** NRV: its board (the club's ``admin`` — who is in the club), its team
+  manager (``manager`` — who sails), its treasurer, and every sailor of its squads — all
+  of them ``member`` of it. A sailor needs an account to sign their waiver (Story S-1),
+  and the specs pick their adults and juniors from this squad;
+* the **series** 1. Segel-Bundesliga 2026: its manager;
+* the **event** act 3 of that series, still planned: its organizer, race officer, jury
+  and helper.
 
-The run is repeatable: existing accounts are updated, not duplicated.
+Beyond these: the league office (``admin``, ``editor``, ``race_officer`` on the site) and
+a guest with no relation.
+Tuples are written through `app/services/grants.py`, like every other tuple, so the run
+is repeatable: an existing account is updated and a tuple it holds is not written twice.
 """
 
 from __future__ import annotations
@@ -17,218 +25,147 @@ from __future__ import annotations
 import asyncio
 
 from fastapi import HTTPException
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
 from app.auth import create_access_token
+from app.authz import ObjectRef
 from app.db import SessionLocal
-from app.models import Club, Event, Sailor, Team, TeamMembership
-from app.models.auth import Grant, ObjectType, Relation, Role, User
+from app.models import Club, Event, Sailor, Series, Team, TeamMembership
+from app.models.auth import ObjectType, Relation, User
+from app.services import grants
 
-# Accounts not linked to a club: (email, name, site relations)
-FUNCTIONAL_ACCOUNTS: list[tuple[str, str, list[str]]] = [
+#: The one club, series and event the cast is about.
+TEST_CLUB = "nrv"
+TEST_SERIES = "dsbl-1-2026"
+TEST_EVENT = "dsbl-1-2026-act-3"
+
+#: The league office and a guest: (email, name, site relations).
+SITE_ACCOUNTS: list[tuple[str, str, list[Relation]]] = [
     ("admin@sbl.example.com", "Alina Admin", [Relation.ADMIN]),
     ("redaktion@sbl.example.com", "Rudi Editor", [Relation.EDITOR]),
     ("wl@sbl.example.com", "Wanda Racecommittee", [Relation.RACE_OFFICER]),
-    ("beides@sbl.example.com", "Bea Bothroles", [Relation.EDITOR, Relation.RACE_OFFICER]),
     ("gast@sbl.example.com", "Gero Guest", []),
 ]
-# Tuples on one event (Story Z-2) — written after the loop, because they name an event:
-# the person a club names to run its regatta, and the organizer of that event.
-EVENT_ACCOUNTS: list[tuple[str, str, str]] = [
+#: The test series' manager (Story Z-2).
+SERIES_ACCOUNTS: list[tuple[str, str, Relation]] = [
+    ("serie@sbl.example.com", "Sven Series", Relation.MANAGER),
+]
+#: One tuple each on the test event (Story Z-2).
+EVENT_ACCOUNTS: list[tuple[str, str, Relation]] = [
     ("regatta@sbl.example.com", "Regina Regatta", Relation.RACE_OFFICER),
     ("orga@sbl.example.com", "Otto Organizer", Relation.MANAGER),
     ("jury@sbl.example.com", "Jutta Jury", Relation.JURY),
     ("helfer@sbl.example.com", "Hanna Helper", Relation.HELPER),
 ]
+#: The test club's officials: (address before the @, what they are, relation).
+CLUB_OFFICIALS: list[tuple[str, str, Relation]] = [
+    ("board", "Club admin", Relation.ADMIN),
+    ("teams", "Team manager", Relation.MANAGER),
+    ("treasurer", "Treasurer", Relation.TREASURER),
+]
 
 
-async def _account(
-    session: AsyncSession,
-    *,
-    email: str,
-    name: str,
-    roles: list[str],
-    club_id: int | None = None,
-) -> User:
+async def _account(session: AsyncSession, email: str, name: str) -> User:
+    """The account under this address — created verified (test accounts redeem no code),
+    or brought back to active."""
     user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
-
     if user is None:
-        # Set roles before the flush: afterward the assignment would first want to reload the
-        # collection, and a lazy load fails in async context.
-        # Test accounts are considered verified — otherwise each would first need to redeem a code.
         user = User(email=email, display_name=name, email_verified=True)
-        # `Role.TEAM_MANAGER` here means "manager of this club"; everything else is a
-        # site relation.
-        user.grants = [_tuple(role, club_id) for role in roles]
+        # Empty, not unloaded: writing a tuple reads the collection, and a lazy load fails
+        # in the async session.
+        user.grants = []
         session.add(user)
         await session.flush()
         return user
-
     user.display_name = name
     user.is_active = True
     user.email_verified = True
-    # Replace existing tuples via SQL instead of via the collection — for the same reason.
-    await session.execute(delete(Grant).where(Grant.user_id == user.id))
-    for role in roles:
-        row = _tuple(role, club_id)
-        row.user_id = user.id
-        session.add(row)
-    await session.flush()
     return user
 
 
-def _tuple(role: str, club_id: int | None) -> Grant:
-    """`Role.TEAM_MANAGER` → `manager` of the club; `admin`/`manager` with a club → on the
-    club; anything else is a site relation."""
-    if role == Role.TEAM_MANAGER:
-        return Grant(relation=Relation.MANAGER, club_id=club_id)
-    if club_id is not None and role in (Relation.ADMIN, Relation.MANAGER):
-        return Grant(relation=Relation(role), club_id=club_id)
-    return Grant(relation=Relation(role))
-
-
-async def _membership(session: AsyncSession, club_id: int, user_id: int) -> None:
-    """The ``member`` tuple on the club (Story Z-5), once."""
-    existing = (
-        await session.execute(
-            select(Grant).where(
-                Grant.club_id == club_id,
-                Grant.user_id == user_id,
-                Grant.relation == Relation.MEMBER,
-            )
-        )
-    ).scalar_one_or_none()
-    if existing is None:
-        session.add(Grant(club_id=club_id, user_id=user_id, relation=Relation.MEMBER))
+async def _tuple(session: AsyncSession, user: User, relation: Relation, obj: ObjectRef) -> None:
+    if not authz.read(user, relation, obj):
+        await grants.grant(session, user, relation, obj.type, obj.id, actor=None)
 
 
 async def seed_users() -> None:
     async with SessionLocal() as session:
-        clubs = (await session.execute(select(Club).order_by(Club.name))).scalars().all()
-        if not clubs:
+        club = (
+            await session.execute(select(Club).where(Club.slug == TEST_CLUB))
+        ).scalar_one_or_none()
+        if club is None:
             raise SystemExit("No clubs yet. Run 'uv run python -m app.seed' first.")
 
-        for email, name, roles in FUNCTIONAL_ACCOUNTS:
-            await _account(session, email=email, name=name, roles=roles)
+        for email, name, relations in SITE_ACCOUNTS:
+            user = await _account(session, email, name)
+            for relation in relations:
+                await _tuple(session, user, relation, authz.SITE)
 
-        # The planned matchday, so results can still be entered and the setup changed.
-        planned = (
-            await session.execute(select(Event).where(Event.slug == "dsbl-1-2026-act-3"))
+        series = (
+            await session.execute(select(Series).where(Series.slug == TEST_SERIES))
         ).scalar_one_or_none()
-        if planned is not None:
-            for email, name, relation in EVENT_ACCOUNTS:
-                person = await _account(session, email=email, name=name, roles=[])
-                session.add(Grant(user_id=person.id, relation=relation, event_id=planned.id))
-            await session.flush()
+        if series is not None:
+            for email, name, relation in SERIES_ACCOUNTS:
+                user = await _account(session, email, name)
+                await _tuple(session, user, relation, ObjectRef(ObjectType.SERIES, series.id))
 
-        # All registered sailors with their club: via the team, not by name.
+        event = (
+            await session.execute(select(Event).where(Event.slug == TEST_EVENT))
+        ).scalar_one_or_none()
+        if event is not None:
+            for email, name, relation in EVENT_ACCOUNTS:
+                user = await _account(session, email, name)
+                await _tuple(session, user, relation, ObjectRef(ObjectType.EVENT, event.id))
+
+        here = ObjectRef(ObjectType.CLUB, club.id)
+        for local, what, relation in CLUB_OFFICIALS:
+            user = await _account(
+                session, f"{local}@{club.slug}.example.com", f"{what} {club.short_name}"
+            )
+            await _tuple(session, user, relation, here)
+            # Officials belong to their club, like everyone in it.
+            await _tuple(session, user, Relation.MEMBER, here)
+        # Every sailor of the club's squads and entries, as a member of it.
         rows = (
             await session.execute(
-                select(Sailor, Team.club_id)
+                select(Sailor)
                 .join(TeamMembership, TeamMembership.sailor_id == Sailor.id)
                 .join(Team, TeamMembership.team_id == Team.id)
-                .where(Sailor.email.is_not(None))
-                .order_by(Team.club_id, Sailor.id)
+                .where(Team.club_id == club.id, Sailor.email.is_not(None))
+                .distinct()
+                .order_by(Sailor.id)
             )
-        ).all()
-
-        seen: set[str] = set()
-        first_per_club: set[int] = set()
-        participants = 0
-        team_managers = 0
-
-        for sailor, club_id in rows:
+        ).scalars()
+        sailors = 0
+        for sailor in rows:
             assert sailor.email is not None
-            if sailor.email in seen:
-                continue
-            seen.add(sailor.email)
-
-            # The first person of a club also manages it — otherwise club
-            # assignment (Z-3) couldn't be tested.
-            leads = club_id not in first_per_club
-            if leads:
-                first_per_club.add(club_id)
-                team_managers += 1
-
-            account = await _account(
-                session,
-                email=sailor.email,
-                name=f"{sailor.first_name} {sailor.last_name}",
-                # The club's one seeded official is its *admin*: decides who is in the
-                # club and, the model making an admin a manager, who sails for it.
-                roles=[Relation.ADMIN] if leads else [],
-                club_id=club_id,
-            )
-            # Membership is mutually confirmed: registered sailors belong to the club.
-            await _membership(session, club_id, account.id)
-            participants += 1
+            user = await _account(session, sailor.email, sailor.full_name)
+            await _tuple(session, user, Relation.MEMBER, here)
+            sailors += 1
 
         await session.commit()
-        await _report(session, participants, team_managers, len(clubs))
+        admin = (
+            await session.execute(select(User).where(User.email == SITE_ACCOUNTS[0][0]))
+        ).scalar_one()
+        _report(club, sailors, admin)
 
 
-async def _report(
-    session: AsyncSession, participants: int, team_managers: int, clubs_count: int
-) -> None:
-    clubs = {c.id: c for c in (await session.execute(select(Club))).scalars()}
-
-    print(f"Test accounts ready: {participants} participants from {clubs_count} clubs,")
-    print(f"of which {team_managers} with the role team_manager.\n")
-
-    print("Functional accounts:")
-    for email, name, roles in FUNCTIONAL_ACCOUNTS:
-        print(f"  {email:24s} {', '.join(roles) or 'no role':28s} {name}")
+def _report(club: Club, sailors: int, admin: User) -> None:
+    print("League office and guest:")
+    for email, name, relations in SITE_ACCOUNTS:
+        print(f"  {email:30s} {', '.join(relations) or 'no relation':22s} {name}")
+    print(f"On the series {TEST_SERIES}:")
+    for email, name, relation in SERIES_ACCOUNTS:
+        print(f"  {email:30s} {relation:22s} {name}")
+    print(f"On the event {TEST_EVENT}:")
     for email, name, relation in EVENT_ACCOUNTS:
-        print(f"  {email:24s} {relation + ' (one event)':28s} {name}")
-
-    samples = (
-        (
-            await session.execute(
-                select(User)
-                .join(Grant, Grant.user_id == User.id)
-                .where(
-                    Grant.relation.in_([Relation.MANAGER, Relation.ADMIN]),
-                    Grant.club_id.is_not(None),
-                )
-                .order_by(User.id)
-                .limit(3)
-            )
-        )
-        .scalars()
-        .all()
-    )
-
-    print("\nClub organizers (sample):")
-    for user in samples:
-        held = authz.list_objects(user, Relation.MANAGER, ObjectType.CLUB)
-        abbr = ", ".join(clubs[cid].short_name for cid in sorted(held))
-        print(f"  {user.email:34s} club admin    {user.display_name} [{abbr}]")
-
-    no_role = (
-        (
-            await session.execute(
-                select(User)
-                .where(User.grants.any(Grant.relation == Relation.MEMBER))
-                .where(~User.grants.any(Grant.relation != Relation.MEMBER))
-                .order_by(User.id)
-                .limit(2)
-            )
-        )
-        .scalars()
-        .all()
-    )
-
-    print("\nParticipants with no role (sample):")
-    for user in no_role:
-        held = authz.list_objects(user, Relation.MEMBER, ObjectType.CLUB)
-        abbr = ", ".join(clubs[cid].short_name for cid in sorted(held))
-        print(f"  {user.email:34s} member        {user.display_name} [{abbr}]")
-
-    admin = (
-        await session.execute(select(User).where(User.email == "admin@sbl.example.com"))
-    ).scalar_one()
+        print(f"  {email:30s} {relation:22s} {name}")
+    print(f"{club.name}:")
+    for local, what, relation in CLUB_OFFICIALS:
+        print(f"  {local + '@' + club.slug + '.example.com':30s} {relation:22s} {what}")
+    print(f"…and {sailors} sailors of the club, each a member.")
     # A convenience line, and nothing the seed depends on — so a missing signing secret
     # must not take the whole seeding down with it. It used to: `create_access_token`
     # raises 503 without `SBL_JWT_SECRET`, which made `seed_test_setup` exit 1 *after*

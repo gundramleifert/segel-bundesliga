@@ -6,5 +6,13 @@
   "noRole": "no role",
   "notFound": "Nothing found.",
   "signOut": "Sign out",
-  "notSignedIn": "Not signed in"
+  "notSignedIn": "Not signed in",
+  "groups": {
+    "league": "League office",
+    "series": "Series",
+    "event": "Event",
+    "club": "Club officials",
+    "sailor": "Sailors",
+    "guest": "Guest"
+  }
 }

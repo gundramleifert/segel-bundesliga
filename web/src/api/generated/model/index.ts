@@ -227,6 +227,7 @@ export * from './teamPenaltyOut';
 export * from './testEmail';
 export * from './testEmailOut';
 export * from './testUserOut';
+export * from './testUserOutGroup';
 export * from './tokenOut';
 export * from './trackerOut';
 export * from './tupleOut';

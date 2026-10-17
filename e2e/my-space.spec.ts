@@ -20,8 +20,9 @@ import { bearer, bornIn, devUsers, managedClub, seededSailors, signIn } from "./
  */
 
 const ADMIN = "admin@sbl.example.com";
-// A club no other spec touches; each browser project takes its own person.
-const CLUB_DOMAIN = "dtyc.example.com";
+// The test club, the one with accounts (`app/seed_users.py`); each browser project takes
+// its own person.
+const CLUB_DOMAIN = "nrv.example.com";
 const PNG =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
@@ -192,12 +193,13 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
 });
 
 describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list", () => {
-  // A club no other spec signs for; each browser project takes its own sailor.
-  const DOMAIN = "vsaw.example.com";
+  // The test club. Its adults 0 and 1 sign in `waiver.spec.ts`; these take 2 and 3, one
+  // per browser project, still unsigned.
+  const DOMAIN = "nrv.example.com";
 
   test("the sailor sees the badge, accepts in the notice, and the notice is gone", async ({ page, request }, testInfo) => {
     const adults = (await seededSailors(request, DOMAIN)).filter((s) => bornIn(s) > 0 && bornIn(s) <= 2004);
-    const email = adults[testInfo.project.name === "mobile" ? 1 : 0]!.email!;
+    const email = adults[testInfo.project.name === "mobile" ? 3 : 2]!.email!;
 
     await signIn(page, email);
     await page.goto("/");

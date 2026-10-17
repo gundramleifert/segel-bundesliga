@@ -5,7 +5,7 @@ import type { Page, TestInfo } from "@playwright/test";
 import { describeStory, expect, test } from "./fixtures";
 
 import { expectNoSidewaysScroll, openUserMenu } from "./layout";
-import { bearer, signIn } from "./session";
+import { bearer, managedClub, signIn } from "./session";
 
 /** Story VA-9: running an event, in a real browser.
  *
@@ -593,12 +593,16 @@ describeStory("V-12: a team manager manages their own squad", () => {
     expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
     const accounts = (await response.json()) as { email: string; roles: string[] }[];
     const manager = accounts.find((account) => account.roles.includes("team_manager"));
-    expect(manager, "the seed creates one team_manager per club").toBeTruthy();
+    expect(manager, "the seed gives the test club a team manager").toBeTruthy();
     return manager!.email;
   }
 
   test("reaches the squad without ever touching an admin route", async ({ page }, testInfo) => {
-    await signIn(page, await aTeamManager(page));
+    const email = await aTeamManager(page);
+    // The club they manage — not the first card: other specs make test people members of
+    // further clubs, and on those the squad is read-only.
+    const clubId = await managedClub(page.request, email);
+    await signIn(page, email);
 
     // The defect this story fixes: the permission existed and there was no door. So the
     // claim is about the nav, not about typing a URL.
@@ -609,8 +613,8 @@ describeStory("V-12: a team manager manages their own squad", () => {
     await expect(link).toBeVisible();
     await link.click();
     await expect(page).toHaveURL(/\/me$/);
-    await page.locator('a[data-testid^="me-card-club-"]').first().click();
-    await expect(page).toHaveURL(/\/me\/club\/\d+/);
+    await page.getByTestId(`me-card-club-${clubId}`).click();
+    await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}`));
 
     // The breadcrumb is where a page states its name now (Story A-12), so that is what
     // says the right screen arrived; the squads sit under their tab, Members opens first.

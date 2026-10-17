@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import socket
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
@@ -33,13 +34,35 @@ from app.tracking.emulate_job import emulate_event
 router = APIRouter(prefix="/api/dev", tags=["development"])
 
 
+#: The switcher's groups, in the order it shows them — where the person's tuples are.
+Group = Literal["league", "series", "event", "club", "sailor", "guest"]
+
+
 class TestUserOut(BaseModel):
     id: int
     email: str
     display_name: str
     roles: list[str]
     club: str | None = None
+    group: Group
     description: str
+
+
+def _group(user: User) -> Group:
+    """Where someone's tuples are, the widest first: on the site, a series, an event, a
+    club beyond membership; a plain member is a sailor; no tuple at all, a guest."""
+    held = authz.tuples(user)
+    types = {obj.type for _, obj in held}
+    for object_type, group in (
+        (ObjectType.SITE, "league"),
+        (ObjectType.SERIES, "series"),
+        (ObjectType.EVENT, "event"),
+    ):
+        if object_type in types:
+            return group  # type: ignore[return-value]
+    if any(obj.type is ObjectType.CLUB and relation != Relation.MEMBER for relation, obj in held):
+        return "club"
+    return "sailor" if held else "guest"
 
 
 class DevLogin(BaseModel):
@@ -92,6 +115,7 @@ async def list_test_users(
                 if cid in clubs
             )
             or None,
+            group=_group(user),
             description=tr(
                 locale,
                 en=" ".join(DESCRIPTION[role] for role in sorted(user.roles) if role in DESCRIPTION)
