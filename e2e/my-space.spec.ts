@@ -170,3 +170,31 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     await expect(page.getByTestId("me-context-not-found")).toBeVisible();
   });
 });
+
+describeStory("V-3: a club's admin keeps the club's crest on the club's page", () => {
+  test("the admin uploads and removes it; a plain member sees no control", async ({ page, request }) => {
+    const { email, clubId } = await aClubAdmin(request);
+    await signIn(page, email);
+    await page.goto(`/me/club/${clubId}?tab=members`);
+
+    const edit = page.getByTestId(`my-club-crest-edit-${clubId}`);
+    await expect(edit).toBeVisible();
+    await page.getByTestId(`my-club-crest-input-${clubId}`).setInputFiles({
+      name: "crest.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(PNG, "base64"),
+    });
+    await expect(page.getByTestId(`my-club-crest-${clubId}`)).toBeVisible();
+    // Leave the club as it was: the other browser project, and other specs, read it.
+    await page.getByTestId(`my-club-crest-remove-${clubId}`).click();
+    await expect(page.getByTestId(`my-club-crest-${clubId}`)).toHaveCount(0);
+
+    const member = (await devUsers(request)).find(
+      (u) => u.email.endsWith("@nrv.example.com") && !u.roles.includes("club_admin"),
+    )!;
+    await signIn(page, member.email);
+    await page.goto(`/me/club/${clubId}?tab=members`);
+    await expect(page.getByTestId("my-club-members")).toBeVisible();
+    await expect(page.getByTestId(`my-club-crest-${clubId}-section`)).toHaveCount(0);
+  });
+});

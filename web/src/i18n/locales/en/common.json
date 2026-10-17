@@ -89,5 +89,11 @@
   "dropzone": {
     "prompt": "Drop a file here, or tap to choose one",
     "refused": "“{{name}}” is not a file type accepted here."
+  },
+  "crest": {
+    "upload": "Upload crest",
+    "replace": "Replace crest",
+    "remove": "Remove crest",
+    "title": "Crest"
   }
 }

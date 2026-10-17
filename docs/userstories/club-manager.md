@@ -435,7 +435,14 @@ with no change on its side and none in the frontend, and removing the upload fal
 the external URL instead of leaving the club blank. The served URL carries a `?v=<mtime>`
 cache stamp, because the path itself is stable across replacements.
 
-**The UI** is the club list in `web/src/pages/Admin.tsx` (`ClubRow`). The crest is edited
+**The club's admin edits it on their club's page in my space** — the Members tab of
+`/me/club/:id`, beside the people, because the crest is the club's identity like its
+members. Until 2026-10-17 the only control was the admin screen's club list, which a
+club's admin cannot open, so the endpoint let them upload and no screen did (found by
+Journey J-2). Both places use one component, `CrestEditor`.
+
+**The UI** in both places — the admin screen's club list (`ClubRow` in
+`web/src/pages/Admin.tsx`) and the club's page — is `web/src/components/CrestEditor.tsx`. The crest is edited
 **from the crest**: hovering (or keyboard-focusing) the thumbnail reveals a pen over it, and
 activating it opens the file chooser — there is deliberately no separate "upload"/"replace"
 button, which said the same thing twice and put the action a row's width away from the thing

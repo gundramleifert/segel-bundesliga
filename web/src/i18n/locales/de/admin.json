@@ -15,9 +15,6 @@
     "statsText": "{{count}} Vereine, davon {{visible}} im laufenden Jahrgang sichtbar",
     "createdMessage": "{{name}} ist angelegt.",
     "emptyText": "Es sind noch keine Vereine angelegt.",
-    "crestRemoveButton": "Stander entfernen",
-    "crestUploadLabel": "Stander hochladen",
-    "crestReplaceLabel": "Stander ersetzen",
     "newButton": "Neuer Verein"
   },
   "series": {
