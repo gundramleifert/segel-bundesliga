@@ -153,6 +153,12 @@ so that **only those who belong come to the field**.
 
 Acceptance criteria:
 - Administration sees all open applications per series.
+- **So does the series' organizer, for their series** — the `manager` of the series (or of
+  the event, for an application to one event), who decides them like administration does.
+  They could already set the series' clubs directly (A-6), so deciding an application
+  gives them nothing new; refusing it only sent them to the league office for a club
+  they could have added themselves (found by Journey J-4, decided 2026-10-17). Listing
+  without naming their series or event, or deciding someone else's, is refused (403).
 - **Accepting** makes the club a participant — from then on everything applies as with a
   directly set assignment.
 - **Rejecting** needs no reason but can have one: the club should learn why.
@@ -259,8 +265,7 @@ Endpoints (FGA's vocabulary): `GET /api/auth/model`, `GET /api/auth/tuples?objec
 `DELETE /api/auth/tuples/{id}`; `UserOut.tuples` lists a person's, `UserOut.roles` the
 summary roles.
 
-Open: the Accounts tab does not yet filter by relation or object; applications to a
-series (A-9) are still decided by the site's admin alone, not yet by the series' manager.
+Open: the Accounts tab does not yet filter by relation or object.
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
 `api/tests/stories/test_login_and_roles.py::TestTuples`,

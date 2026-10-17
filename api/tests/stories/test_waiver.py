@@ -229,9 +229,7 @@ class TestConfirming:
         allowed = await client.post(url, headers=admin, json={"sailor_id": sailor_id})
         assert allowed.status_code == 201
 
-    async def test_a_club_manager_signs_only_for_their_own_clubs_sailors(
-        self, client, caplog, ids
-    ):
+    async def test_a_club_manager_signs_only_for_their_own_clubs_sailors(self, client, caplog, ids):
         """Stories S-1, S-3: a club's manager hands in the forms *their* club collected —
         confirming, uploading a scan or printing a form for a sailor of another club is
         refused, as it is for any stranger. (Until 2026-10-17 any club manager on the site

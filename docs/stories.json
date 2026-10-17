@@ -627,8 +627,8 @@
   "journey": "J-4",
   "story": "A-9",
   "path": "club applies",
-  "who": "league office",
-  "what": "the club is a participant; the series manager's own accept is refused (403)"
+  "who": "series manager",
+  "what": "the club is a participant"
  },
  "J-4.6": {
   "journey": "J-4",

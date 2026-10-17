@@ -6,8 +6,7 @@ in the table's order. Every step is covered on its own elsewhere — the series 
 ``test_participation.py``, the event in ``test_create_event.py``; what this test proves is
 the hand-over: the league office creates the series and names its manager, and from then
 on the **series manager** does the rest with the one `manager` tuple — dates, clubs, the
-first matchday, publication — except deciding an application, which is still the league
-office's (Story Z-2, Open). Stories A-6, Z-2, V-5, A-9, VA-6, VA-8, B-1.
+first matchday, the applications, publication. Stories A-6, Z-2, V-5, A-9, VA-6, VA-8, B-1.
 
 Through the HTTP API only. Year 2026, the current one, and no league: a series in no league
 keeps its own page and leaves the league pages other tests read alone.
@@ -110,15 +109,10 @@ class TestAnOrganizerSetsUpASeries:
         listed = await all_items(client, "/api/admin/series", headers=manager)
         assert clubs[2] not in {c["id"] for c in listed[0]["clubs"]}
 
-        # ------------------------------------------ the office decides (A-9)
-        step("J-4.5", "league office accepts the application")
-        # The series' own manager may not decide it yet (Story Z-2, Open).
-        not_theirs = await client.post(
-            f"/api/admin/applications/{application['team_id']}/accept", headers=manager
-        )
-        assert not_theirs.status_code == 403
+        # ------------------------------------ the series manager decides (A-9)
+        step("J-4.5", "series manager accepts the application")
         accepted = await client.post(
-            f"/api/admin/applications/{application['team_id']}/accept", headers=office
+            f"/api/admin/applications/{application['team_id']}/accept", headers=manager
         )
         assert accepted.status_code == 200, accepted.text
         assert accepted.json()["status"] == "accepted"

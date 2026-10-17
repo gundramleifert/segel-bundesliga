@@ -24,7 +24,6 @@ import io
 from datetime import date, timedelta
 from uuid import uuid4
 
-
 from app.models.auth import Role
 from tests.journeys import step
 from tests.stories.test_create_event import admin

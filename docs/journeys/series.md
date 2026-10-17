@@ -24,7 +24,7 @@ sequenceDiagram
   SM->>P: [J-4.3] sets the dates and the clubs
   opt a club applies
     CM->>P: [J-4.4] applies for the series
-    A->>P: [J-4.5] accepts the application
+    SM->>P: [J-4.5] accepts the application
   end
   SM->>P: [J-4.6] creates the first matchday, hosted by a club
   P-->>SM: the series' clubs are its entries
@@ -38,7 +38,7 @@ sequenceDiagram
 | J-4.2 | main | Z-2 | league office | the person holds `manager` on the series; their admin list shows this series and no other |
 | J-4.3 | main | A-6 | series manager | the series has its dates and its clubs; creating another series is refused (403) |
 | J-4.4 | club applies | V-5 | club manager | an application, `requested` — not among the series' clubs |
-| J-4.5 | club applies | A-9 | league office | the club is a participant; the series manager's own accept is refused (403) |
+| J-4.5 | club applies | A-9 | series manager | the club is a participant |
 | J-4.6 | main | VA-6 | series manager | act 1 exists with its host club; the series' clubs, the accepted one included, are its entries |
 | J-4.7 | main | VA-8 | series manager | the series is published |
 | J-4.8 | main | B-1 | visitor | the series is listed for its year and its table opens |
@@ -46,13 +46,9 @@ sequenceDiagram
 Retired steps: none
 
 What the series manager may do with the one `manager` tuple on the series, and nothing
-more: edit it (`PATCH`), set its clubs, publish and unpublish it, and create its events —
+more: edit it (`PATCH`), set its clubs, decide the applications to it, publish and unpublish
+it, and create its events —
 whose manager they then are too, through the series. Creating a series stays the league
 office's (`require_admin`).
-
-Open: deciding an application (J-4.5) is still the site admin's alone, not the series
-manager's — Story Z-2 says so in its own Open line. Once the series' manager may decide
-the applications to their series, J-4.5 becomes theirs and the refusal checked in the walk
-goes.
 
 Tests: `api/tests/stories/test_journey_series.py::TestAnOrganizerSetsUpASeries::test_from_a_draft_to_the_public_table`
