@@ -101,5 +101,6 @@
   "payment-run-not-found": "This payment run does not exist.",
   "payment-not-failable": "Only a payment sent to the bank or booked can come back.",
   "payment-not-found": "This payment does not exist.",
-  "bic-invalid": "This BIC is not valid — leave it empty to take it from the IBAN."
+  "bic-invalid": "This BIC is not valid — leave it empty to take it from the IBAN.",
+  "sailor-not-yours": "This person sails for another club — only that club's organizers can change their details."
 }

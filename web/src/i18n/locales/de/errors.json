@@ -101,5 +101,6 @@
   "payment-run-not-found": "Diesen Zahlungslauf gibt es nicht.",
   "payment-not-failable": "Nur eine an die Bank übergebene oder gebuchte Zahlung kann zurückkommen.",
   "payment-not-found": "Diese Zahlung gibt es nicht.",
-  "bic-invalid": "Diese BIC ist ungültig – leer lassen, dann wird sie aus der IBAN ergänzt."
+  "bic-invalid": "Diese BIC ist ungültig – leer lassen, dann wird sie aus der IBAN ergänzt.",
+  "sailor-not-yours": "Diese Person segelt für einen anderen Verein — nur dessen Organisatoren können ihre Angaben ändern."
 }

@@ -82,7 +82,13 @@ Acceptance criteria:
   still write a sailor without one, bypassing this form.)
 - Birth date is captured as a **complete date**, not just a year — age-category eligibility
   (e.g. a youth series) needs the exact date. It stays optional and is never shown publicly.
-- An organizer creates only people from their **own** club.
+- **Any club's organizer may create and find people** — a person has no club until a
+  squad holds them (V-1), so there is nothing to scope a new record to, and finding the
+  existing record beats creating a second. **Changing** a person is scoped: the organizer
+  of a club whose squad or entry holds them, or of any club while nobody's squad holds
+  them yet; administration and editorial always. Until 2026-10-17 this story said
+  "creates only people from their own club" while any club's organizer could edit
+  anyone on the site (found by Journey J-3) — `sailor-not-yours` (403) now.
 - If the address is already known, the **existing person is offered** instead of creating a
   second. Two records for the same person would be a mistake that is hard to fix later.
 - **A person may sail for multiple clubs.** They can be registered for one in the first

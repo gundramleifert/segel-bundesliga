@@ -78,6 +78,44 @@ async def act_id(slug: str) -> int:
 class TestCreatingSailors:
     """V-4: As club leadership, I want to create our sailors."""
 
+    async def test_a_club_manager_changes_only_their_own_clubs_people(self, client, caplog):
+        """Story V-4: any club's organizer creates and finds people, but changes only
+        those their club's squads hold — or nobody's squad holds yet. (Until 2026-10-17
+        any club's organizer could rename anyone; found by Journey J-3.)"""
+        team_id, squad = await squad_of("byc", "dsbl-1-2026")
+        byc_sailor = squad[0]
+        async with SessionLocal() as session:
+            other = (await session.execute(select(Club.id).where(Club.slug == "fsc"))).scalar_one()
+            byc = (await session.execute(select(Club.id).where(Club.slug == "byc"))).scalar_one()
+        foreign = await as_role(
+            client, caplog, "sg-foreign@example.com", Role.CLUB_MANAGER, club_id=other
+        )
+        own = await as_role(client, caplog, "sg-own@example.com", Role.CLUB_MANAGER, club_id=byc)
+
+        refused = await client.patch(
+            f"/api/admin/sailors/{byc_sailor}", headers=foreign, json={"first_name": "Hijacked"}
+        )
+        assert refused.status_code == 403, refused.text
+        assert refused.json()["type"] == "/errors/sailor-not-yours"
+
+        fixed = await client.patch(
+            f"/api/admin/sailors/{byc_sailor}", headers=own, json={"last_name": "Corrected"}
+        )
+        assert fixed.status_code == 200, fixed.text
+
+        # A person nobody's squad holds yet belongs to no club: whoever created them, or
+        # any other club's organizer, may still correct the spelling.
+        created = await client.post(
+            "/api/admin/sailors",
+            headers=foreign,
+            json={"first_name": "Neu", "last_name": "Ling", "email": "sg-newling@example.com"},
+        )
+        assert created.status_code == 201, created.text
+        renamed = await client.patch(
+            f"/api/admin/sailors/{created.json()['id']}", headers=own, json={"first_name": "Neo"}
+        )
+        assert renamed.status_code == 200, renamed.text
+
     async def test_email_is_required(self, client, caplog):
         """Someone created through this form must be reachable — name alone won't do."""
         header = await as_role(client, caplog, "sg1@example.com", Role.ADMIN)

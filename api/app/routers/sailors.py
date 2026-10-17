@@ -331,6 +331,7 @@ async def update_sailor(
 ) -> SailorAdminOut:
     _can_manage_master_data(acting)
     sailor = await _sailor(session, sailor_id)
+    await _may_change_sailor(session, acting, sailor)
 
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
@@ -687,6 +688,32 @@ def _can_manage_master_data(acting: User) -> None:
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Only administration, editorial staff, and club leadership can manage sailors.",
+    )
+
+
+async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor) -> None:
+    """Story V-4: a club's organizer changes the people *their* club's squads or entries
+    hold — or anyone nobody's squad holds yet, who belongs to no club. Creating and
+    finding stay open to every club's organizer (`_can_manage_master_data`): a new
+    person has no club to scope by."""
+    if acting.has_any(Role.ADMIN, Role.EDITOR):
+        return
+    clubs = set(
+        (
+            await session.execute(
+                select(Team.club_id)
+                .join(TeamMembership, TeamMembership.team_id == Team.id)
+                .where(TeamMembership.sailor_id == sailor.id)
+            )
+        ).scalars()
+    )
+    if not clubs or clubs & acting.managed_club_ids:
+        return
+    raise Problem(
+        403,
+        "sailor-not-yours",
+        "This person sails for another club; only that club's organizers can change them.",
+        sailor_id=sailor.id,
     )
 
 
