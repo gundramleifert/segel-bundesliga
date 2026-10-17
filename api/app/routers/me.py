@@ -16,7 +16,15 @@ from app.services.contexts import my_space
 
 router = APIRouter(tags=["personal"])
 
-NeedCode = Literal["waiver", "claims", "squad_below_min", "crew_missing", "documents_expired"]
+NeedCode = Literal[
+    "waiver",
+    "claims",
+    "squad_below_min",
+    "crew_missing",
+    "crew_waiver_missing",
+    "documents_expired",
+    "ward_waiver",
+]
 
 
 class NeedOut(BaseModel):

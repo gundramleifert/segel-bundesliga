@@ -36,7 +36,7 @@ from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.competition import Event, Series
-    from app.models.org import Club
+    from app.models.org import Club, Sailor
 
 
 class Relation(StrEnum):
@@ -63,6 +63,10 @@ class Relation(StrEnum):
     MEMBER = "member"
     """Club: belongs to it. Implies nothing else, and nothing implies it."""
 
+    GUARDIAN = "guardian"
+    """Sailor: a parent or legal guardian, linked by the child's club (Story V-13) — may
+    accept the liability waiver for the child while the child is a minor (Story S-8)."""
+
     HELPER = "helper"
     """Event: works the day — RIB driver, pontoon, boat handling (Story VA-12). Grants no
     power on the event; it entitles the person to an expense claim on it (Story F-2) and
@@ -79,6 +83,7 @@ class ObjectType(StrEnum):
     CLUB = "club"
     SERIES = "series"
     EVENT = "event"
+    SAILOR = "sailor"
 
 
 #: The authorization model, in OpenFGA's DSL — and this string *is* the definition:
@@ -142,6 +147,10 @@ type event
     define jury: [user] or admin or jury from series
     define helper: [user] or admin
     define treasurer: [user] or admin or treasurer from host_club
+
+type sailor
+  relations
+    define guardian: [user]
 """
 
 #: One term of a ``define``: ``direct`` for ``[user]``, else the relation to check on
@@ -273,6 +282,7 @@ class User(Base, TimestampMixin):
         club_id: int | None = None,
         series_id: int | None = None,
         event_id: int | None = None,
+        sailor_id: int | None = None,
     ) -> bool:
         """A **direct** tuple: this relation on exactly this object (no ids: the site).
         No rewrite — an admin does not "hold" manager on a club, they merely may act as
@@ -282,6 +292,7 @@ class User(Base, TimestampMixin):
             and g.club_id == club_id
             and g.series_id == series_id
             and g.event_id == event_id
+            and g.sailor_id == sailor_id
             for g in self.grants
         )
 
@@ -404,6 +415,7 @@ def _ids(ref: tuple[ObjectType, int | None]) -> dict[str, int]:
         ObjectType.CLUB: "club_id",
         ObjectType.SERIES: "series_id",
         ObjectType.EVENT: "event_id",
+        ObjectType.SAILOR: "sailor_id",
     }
     return (
         {column[object_type]: object_id} if object_id is not None and object_type in column else {}
@@ -424,6 +436,8 @@ def _ref(
         return (ObjectType.CLUB, ident), {"site": site}
     if name == "Series":
         return (ObjectType.SERIES, ident), {"site": site}
+    if name == "Sailor":
+        return (ObjectType.SAILOR, ident), {"site": site}
     if name == "Event":
         edges: dict[str, tuple[ObjectType, int | None]] = {"site": site}
         if on.series_id is not None:  # type: ignore[attr-defined]
@@ -435,9 +449,10 @@ def _ref(
 
 
 class Grant(Base, TimestampMixin):
-    """One tuple: ``user`` is ``relation`` of the site, a club, a series or an event.
+    """One tuple: ``user`` is ``relation`` of the site, a club, a series, an event or a
+    sailor (a guardian, Story V-13).
 
-    ``user:relation:object`` in the FGA notation; here the object is one of three foreign
+    ``user:relation:object`` in the FGA notation; here the object is one of four foreign
     keys (all NULL for the site), so the database cascades and joins and the check needs
     no lookup. At most one is set. The uniqueness constraint cannot see two site tuples as
     equal (NULLs are distinct in SQL), so `app/services/grants.py` checks for a duplicate
@@ -446,9 +461,10 @@ class Grant(Base, TimestampMixin):
 
     __tablename__ = "access_grant"
     __table_args__ = (
-        UniqueConstraint("user_id", "relation", "club_id", "series_id", "event_id"),
+        UniqueConstraint("user_id", "relation", "club_id", "series_id", "event_id", "sailor_id"),
         CheckConstraint(
-            "(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL) <= 1",
+            "(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL)"
+            " + (sailor_id IS NOT NULL) <= 1",
             name="one_object",
         ),
     )
@@ -459,6 +475,9 @@ class Grant(Base, TimestampMixin):
     club_id: Mapped[int | None] = mapped_column(ForeignKey("club.id"), default=None, index=True)
     series_id: Mapped[int | None] = mapped_column(ForeignKey("series.id"), default=None, index=True)
     event_id: Mapped[int | None] = mapped_column(ForeignKey("event.id"), default=None, index=True)
+    sailor_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sailor.id", ondelete="CASCADE"), default=None, index=True
+    )
 
     user: Mapped[User] = relationship(back_populates="grants")
     # Loaded eagerly so a tuple can be *named* in a response ("race_officer · Act 2 Kiel")
@@ -466,6 +485,7 @@ class Grant(Base, TimestampMixin):
     club: Mapped[Club | None] = relationship(lazy="selectin")
     series: Mapped[Series | None] = relationship(lazy="selectin")
     event: Mapped[Event | None] = relationship(lazy="selectin")
+    sailor: Mapped[Sailor | None] = relationship(lazy="selectin")
 
     @property
     def object_type(self) -> ObjectType:
@@ -475,11 +495,13 @@ class Grant(Base, TimestampMixin):
             return ObjectType.SERIES
         if self.event_id is not None:
             return ObjectType.EVENT
+        if self.sailor_id is not None:
+            return ObjectType.SAILOR
         return ObjectType.SITE
 
     @property
     def object_id(self) -> int | None:
-        return self.club_id or self.series_id or self.event_id
+        return self.club_id or self.series_id or self.event_id or self.sailor_id
 
     @property
     def object(self) -> str:
@@ -495,6 +517,8 @@ class Grant(Base, TimestampMixin):
             return self.series.name
         if self.event is not None:
             return self.event.title
+        if self.sailor is not None:
+            return self.sailor.full_name
         return None
 
 

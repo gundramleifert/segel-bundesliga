@@ -192,6 +192,34 @@ Built on top of the versioned confirmation mechanism — see [S-3](#s-3--confirm
 Tests: `api/tests/stories/test_waiver.py::TestSelfService`,
 `api/tests/stories/test_waiver.py::TestScans`, `e2e/waiver.spec.ts`
 
+### S-8 ● My parent accepts the waiver for me
+As a **guardian** I want to **accept the liability waiver for my child online, from my own
+account**, so that **my child is cleared without printing, signing and scanning a form**.
+
+The club links the parent's account to the child first (Story V-13). From then on the
+parent sees their children in their own space and can confirm there what S-1 would
+otherwise send to paper.
+
+Acceptance criteria:
+- **Where**: the waiver tab of my space (`/me/profile?tab=waivers`) gains a section
+  *My children* — for each linked child their competitions with the same status as
+  their own page (S-1), computed by the same function. `GET /api/waiver/wards`.
+- **Confirming**: the same text, in full, actively accepted (checkbox + button), through
+  the same endpoints as S-1 (`POST /api/series/{id}/waiver`,
+  `POST /api/events/{id}/waiver`, with the child's `sailor_id`). Recorded as method
+  `guardian_online`: who (the guardian's account, `recorded_by_user_id`), their name as
+  `guardian_name`, when, which version, in which language. It **clears the minor** like a
+  signed scan does; the paper path stays for those without a linked account.
+- **Only while the child is a minor** on the reference date: for an adult ward the guardian
+  is refused (`waiver-ward-is-adult`, 422) — an adult's own click is their statement. A
+  guardian may also print the form and upload a scan for the child, as the club may.
+- My space says it: the *Me* card carries `ward_waiver` with the number of the children's
+  competitions not cleared (Z-8).
+
+Endpoints: `GET /api/waiver/wards`; confirmation as S-1.
+
+Tests: `api/tests/stories/test_guardians.py::TestAGuardianConfirms`, `e2e/guardians.spec.ts`
+
 ### S-3 ● Confirm a waiver version for a series or event
 As a **sailor** (or an admin/club manager acting for one) I want to **confirm one specific
 version of the liability waiver**, so that **participation is covered and provable**.
@@ -377,7 +405,9 @@ Acceptance criteria:
   - claims waiting for my decision or payment (on the event when I hold the event, else
     on the club that pays);
   - as a club's organizer: a series squad below its minimum, an upcoming entry with no crew
-    named;
+    named (the matchday's crew, `EventCrew` — until 2026-10-17 this counted the squad on
+    the entry instead, so a series matchday asked for a crew that was already named; found
+    by Journey J-5), an upcoming matchday whose crew has a waiver not cleared (VA-5);
   - on *Me*: a document of mine that has expired.
 - Tapping a card opens my page for it (Story S-7).
 - One request: `GET /api/me/contexts`. It is the one answer to "which clubs, series and

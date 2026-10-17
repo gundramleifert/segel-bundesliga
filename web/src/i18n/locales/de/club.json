@@ -73,5 +73,15 @@
     "saving": "Wird gespeichert…",
     "saved": "Aufstellung gespeichert.",
     "unsaved": "Noch nicht gespeichert."
+  },
+  "guardians": {
+    "title": "Erziehungsberechtigte",
+    "hint": "Verknüpfen Sie das Konto eines Elternteils mit einem jungen Segler — dann nimmt das Elternteil den Haftungsausschluss online für ihn an. Das macht nur der Verein.",
+    "empty": "Noch keine Segler des Vereins bekannt — sie erscheinen, sobald ein Kader oder eine Meldung sie enthält oder ihr Konto Mitglied ist.",
+    "minor": "unter 18",
+    "add": "Erziehungsberechtigte hinzufügen",
+    "link": "Verknüpfen",
+    "emailPlaceholder": "E-Mail-Adresse des Elternteils",
+    "remove": "{{name}} als Erziehungsberechtigte(n) entfernen"
   }
 }

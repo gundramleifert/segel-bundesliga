@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**86 stories** — ● 60 implemented and tested · ◐ 14 partial · ○ 12 open. With backend tests: 68 · with browser tests: 34 · walked by a journey: 29 · **with no test at all: 11**.
+**88 stories** — ● 63 implemented and tested · ◐ 13 partial · ○ 12 open. With backend tests: 70 · with browser tests: 36 · walked by a journey: 31 · **with no test at all: 11**.
 
 ## Journeys
 
@@ -108,20 +108,24 @@ here — this page says what *exists*, the report what *passed*.
 - **W1** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_adult_crew_for_a_series_matchday`
 - **W2** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_minor_crew_with_a_guardian`
 - **W3** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_stand_alone_event`
+- **W4** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_minor_crew_with_a_linked_guardian`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-5.1 | series | V-1 | ● | W1, W2 | — | — |
+| J-5.1 | series | V-1 | ● | W1, W2, W4 | — | — |
 | J-5.2 | squad too small | V-1 | ● | W2 | — | — |
 | J-5.3 | squad too small | V-1 | ● | W2 | — | — |
 | J-5.4 | stand-alone event | V-12 | ● | W3 | — | — |
-| J-5.5 | main | V-2 | ● | W1, W2, W3 | — | — |
-| J-5.6 | main | Z-8 | ● | W1, W2, W3 | — | — |
+| J-5.5 | main | V-2 | ● | W1, W2, W3, W4 | — | — |
+| J-5.6 | main | Z-8 | ● | W1, W2, W3, W4 | — | — |
+| J-5.17 | main | VA-5 | ● | W1, W2, W3, W4 | — | — |
 | J-5.7 | no date of birth | S-2 | ◐ | W2 | — | — |
 | J-5.8 | adult | S-1 | ● | W1, W3 | — | — |
-| J-5.9 | minor | S-1 | ● | W2 | — | — |
-| J-5.10 | minor | S-1 | ● | *(offline)* | — | — |
-| J-5.11 | minor | S-1 | ● | *(offline)* | — | — |
+| J-5.15 | guardian online | V-13 | ● | W4 | — | — |
+| J-5.16 | guardian online | S-8 | ● | W4 | — | — |
+| J-5.9 | on paper | S-1 | ● | W2 | — | — |
+| J-5.10 | on paper | S-1 | ● | *(offline)* | — | — |
+| J-5.11 | on paper | S-1 | ● | *(offline)* | — | — |
 | J-5.12 | sailor uploads | S-1 | ● | W2 | — | — |
 | J-5.13 | club uploads | S-1 | ● | W2 | — | — |
-| J-5.14 | main | VA-5 | ◐ | W1, W2, W3 | — | — |
+| J-5.14 | main | VA-5 | ● | W1, W2, W3, W4 | — | — |

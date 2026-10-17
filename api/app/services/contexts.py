@@ -25,8 +25,17 @@ from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Club, Event, PersonalDocument, Sailor, Series, Team, TeamMembership
-from app.models.auth import ObjectType, User
+from app.models import (
+    Club,
+    Event,
+    EventCrew,
+    PersonalDocument,
+    Sailor,
+    Series,
+    Team,
+    TeamMembership,
+)
+from app.models.auth import ObjectType, Relation, User
 from app.models.competition import EventStatus
 from app.models.org import TeamStatus
 from app.services import expenses
@@ -142,6 +151,9 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     expired = await _expired_documents(session, user)
     if expired:
         me_needs.append(Need("documents_expired", expired))
+    wards = await _ward_waivers(session, user)
+    if wards:
+        me_needs.append(Need("ward_waiver", wards))
 
     return MySpace(
         name=sailor.full_name if sailor is not None else user.display_name,
@@ -254,6 +266,15 @@ async def _organizer(
     ).scalars()
     for club_id in short:
         contexts[("club", club_id)].need("squad_below_min")
+    # The crew is the matchday's `EventCrew`, never the entry's `TeamMembership`: a series
+    # matchday's entry holds no members at all (its squad is the series registration's),
+    # and a stand-alone event's entry holds the squad — neither says who is named.
+    crewed = (
+        select(func.count(EventCrew.id))
+        .where(EventCrew.event_id == Team.event_id, EventCrew.team_id == Team.id)
+        .correlate(Team)
+        .scalar_subquery()
+    )
     uncrewed = (
         await session.execute(
             select(Team.club_id)
@@ -263,12 +284,58 @@ async def _organizer(
                 Team.status == TeamStatus.ACCEPTED,
                 Event.status == EventStatus.PLANNED,
                 Event.starts_on >= today,
-                size == 0,
+                crewed == 0,
             )
         )
     ).scalars()
     for club_id in uncrewed:
         contexts[("club", club_id)].need("crew_missing")
+
+    # Story VA-5: a crew may be named before its waivers are in — the lineup stays open —
+    # but the organizer is told, once per upcoming matchday with someone not cleared.
+    crews = (
+        await session.execute(
+            select(Event, Team.club_id, EventCrew.sailor_id)
+            .join(EventCrew, EventCrew.event_id == Event.id)
+            .join(Team, EventCrew.team_id == Team.id)
+            .where(
+                Team.club_id.in_(clubs),
+                Event.status == EventStatus.PLANNED,
+                Event.starts_on >= today,
+            )
+        )
+    ).all()
+    by_event: dict[tuple[int, int], tuple[Event, list[int]]] = {}
+    for event, club_id, sailor_id in crews:
+        by_event.setdefault((event.id, club_id), (event, []))[1].append(sailor_id)
+    for (_, club_id), (event, sailor_ids) in by_event.items():
+        judged = await event_waiver_status(session, event, sailor_ids)
+        if any(j.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED) for j in judged.values()):
+            contexts[("club", club_id)].need("crew_waiver_missing")
+
+
+async def _ward_waivers(session: AsyncSession, user: User) -> int:
+    """Story S-8: the competitions of the sailors I am guardian of whose waiver is not
+    cleared yet and which I can sign — the child is a minor there (or of unknown age,
+    which the club has to fix: the page says so)."""
+    ward_ids = user.objects_of(Relation.GUARDIAN, ObjectType.SAILOR)
+    if not ward_ids:
+        return 0
+    count = 0
+    wards = (await session.execute(select(Sailor).where(Sailor.id.in_(ward_ids)))).scalars()
+    for ward in wards:
+        for competition in await sailor_competitions(session, ward):
+            if competition.series is not None:
+                judged = await series_waiver_status(session, competition.series, ward)
+            else:
+                assert competition.event is not None
+                judged = (await event_waiver_status(session, competition.event, [ward.id]))[ward.id]
+            if (
+                judged.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED)
+                and judged.minor is not False
+            ):
+                count += 1
+    return count
 
 
 async def _expired_documents(session: AsyncSession, user: User) -> int:

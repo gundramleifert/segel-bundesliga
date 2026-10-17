@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 3781a58a591b
+Revision ID: 57be07647f4f
 Revises: 
-Create Date: 2026-10-12 23:30:48.115451
+Create Date: 2026-10-17 07:35:42.394479
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '3781a58a591b'
+revision: str = '57be07647f4f'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -358,20 +358,23 @@ def upgrade() -> None:
     sa.Column('club_id', sa.Integer(), nullable=True),
     sa.Column('series_id', sa.Integer(), nullable=True),
     sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('sailor_id', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.CheckConstraint('(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL) <= 1', name=op.f('ck_access_grant_one_object')),
+    sa.CheckConstraint('(club_id IS NOT NULL) + (series_id IS NOT NULL) + (event_id IS NOT NULL) + (sailor_id IS NOT NULL) <= 1', name=op.f('ck_access_grant_one_object')),
     sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_access_grant_club_id_club')),
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_access_grant_event_id_event')),
+    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_access_grant_sailor_id_sailor'), ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_access_grant_series_id_series')),
     sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_access_grant_user_id_app_user')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_access_grant')),
-    sa.UniqueConstraint('user_id', 'relation', 'club_id', 'series_id', 'event_id', name=op.f('uq_access_grant_user_id'))
+    sa.UniqueConstraint('user_id', 'relation', 'club_id', 'series_id', 'event_id', 'sailor_id', name=op.f('uq_access_grant_user_id'))
     )
     with op.batch_alter_table('access_grant', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_access_grant_club_id'), ['club_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_event_id'), ['event_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_relation'), ['relation'], unique=False)
+        batch_op.create_index(batch_op.f('ix_access_grant_sailor_id'), ['sailor_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_series_id'), ['series_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_access_grant_user_id'), ['user_id'], unique=False)
 
@@ -872,6 +875,7 @@ def downgrade() -> None:
     with op.batch_alter_table('access_grant', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_access_grant_user_id'))
         batch_op.drop_index(batch_op.f('ix_access_grant_series_id'))
+        batch_op.drop_index(batch_op.f('ix_access_grant_sailor_id'))
         batch_op.drop_index(batch_op.f('ix_access_grant_relation'))
         batch_op.drop_index(batch_op.f('ix_access_grant_event_id'))
         batch_op.drop_index(batch_op.f('ix_access_grant_club_id'))

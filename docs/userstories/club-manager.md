@@ -358,6 +358,39 @@ Tests: `api/tests/stories/test_my_clubs.py`,
 
 ## The club's page
 
+### V-13 ● Link a parent to a minor sailor
+As a **club manager** I want to **link a parent's account to a young sailor of our club**,
+so that **the parent can accept the liability waiver for their child online** — without
+a printed form, a pen and a scan (Story S-8).
+
+A minor's waiver needs their guardian (S-1). Until now the only way was paper: print the
+form, have it signed, upload the scan. The club knows its young sailors' parents, so the
+club says who is whose guardian — decided 2026-10-17: **only the club's manager or admin
+connects an adult's account to a child**, never the parent themselves (anyone could claim
+any child) and never the child.
+
+Acceptance criteria:
+- Guardianship is a relation tuple, `user:guardian:sailor` (Story Z-2) — a new object
+  type `sailor` with the one relation `guardian`. A child can have several guardians, a
+  parent several children.
+- **Who may link and unlink**: the manager or admin of a club the child belongs to — a
+  club whose squad or event entry holds them, or whose `member` the child's account is —
+  and the site's admin. Anyone else gets `guardian-link-forbidden` (403).
+- **The guardian need not belong to the club** — only the child does. A parent is often
+  no member, sailor or organizer anywhere; the link asks nothing of them but an account.
+- The parent is named by the **email of an existing account**, as on the People panel
+  (V-9): no account → `guardian-account-missing` (404), register first (Z-4). Linking
+  the same account twice is `tuple-exists` (409); a child cannot be their own guardian
+  (`guardian-is-the-sailor`, 422).
+- Every link and unlink is in the audit log, as every tuple.
+- The screen is a **Guardians** section on the club's Members tab (`/me/club/:id`), for
+  the club's organizer: the club's sailors with their guardians, add by email, remove.
+
+Endpoints: `GET /api/clubs/{club_id}/guardians`, `POST /api/sailors/{sailor_id}/guardians`,
+`DELETE /api/sailors/{sailor_id}/guardians/{tuple_id}`
+
+Tests: `api/tests/stories/test_guardians.py::TestLinkingAGuardian`, `e2e/guardians.spec.ts`
+
 ### V-11 ○ Manage our own club page
 As a **club organizer** I want to **edit our club page where it is shown**,
 so that I **do not have to ask administration to fix our description or our crest**.

@@ -259,12 +259,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
   protest decision just entered.
 - **Permissions are relation tuples, `user:relation:object`, and the model is OpenFGA's
   DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`,
-  `app/services/grants.py`). Object types `site`, `club`, `series`, `event`; relations
+  `app/services/grants.py`). Object types `site`, `club`, `series`, `event`, `sailor`; relations
   `admin`/`editor` (site), `manager` (the organizer — club, series, event),
   `race_officer` (site, series, event), `jury` (series, event), `helper` (event — works
   the day, holds no power on it, Story VA-12), `treasurer` (club,
   event — the host club pays its events' costs, so its treasurer is every hosted event's,
-  Story F-1), and `admin` on every object —
+  Story F-1), `guardian` (sailor — a parent the child's club linked, who accepts a
+  minor's waiver online, Stories V-13, S-8), and `admin` on every object but the sailor —
   everything within it, people included; on a club the `admin` decides who is *in* it
   and the `manager` who *sails*. `or … from …` lines say what implies what: an object's
   admin is each of its relations, a series' people are its events', the host club's
@@ -276,7 +277,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
   silently dropped. Membership is the `member` tuple on a club, implying nothing else.
-  Three foreign keys and one small interpreter are the whole model: no authorization
+  Four foreign keys and one small interpreter are the whole model: no authorization
   service.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   (a `member` tuple on the club) and organizing (`manager` or `admin` on it) are both per
@@ -311,7 +312,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   (`GET /api/waiver/form`, reportlab) and takes the scan back
   (`POST …/waiver/scan`). The scan is the most sensitive file here: random name under
   `uploads/waivers/`, one serving endpoint that checks who asks, every look in
-  `AuditLog`. Without a date of birth nothing can be confirmed — the status says so
+  `AuditLog`. A minor's **guardian** may instead accept online from their own account
+  (`guardian_online`), once the child's club — its manager or admin, nobody else — linked
+  that account to the child (`user:guardian:sailor`, decided 2026-10-17). A sailor who is
+  not cleared **can still be lined up**: the waiver is said to the sailor, the guardian,
+  the club's organizer (`crew_waiver_missing`) and the check-in list, never locked
+  (Story VA-5). Without a date of birth nothing can be confirmed — the status says so
   instead of failing open. Status is **computed, never stored**, by the one function the
   account page and the organizer's check-in list both use.
 - **Live updates are Server-Sent Events carrying a version token, published after the
@@ -381,7 +387,9 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
 | Assign user to club, accept members, crest | `admin`; the club's `admin` (own club only) |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
-| Create and maintain sailors | `admin`, `editor`, `club_manager` |
+| Create and maintain sailors | `admin`, `editor`, `club_manager` (changing one: only those their club's squads hold, or nobody's yet) |
+| Link a parent to a sailor as guardian | the manager or admin of a club the sailor belongs to (squad, entry or membership); site `admin` |
+| Confirm a waiver for a sailor | the sailor; `admin`, `editor`; the manager of a club whose squad holds them; their linked `guardian` while they are a minor |
 | Register Squad for Series | `admin`, `club_manager` (own club only) |
 | **Create** Event | additionally the `manager` of the host club or of the series |
 | File an expense claim | `race_officer`/`jury`/`manager`/`helper` held directly on the event (or the first three on its series); `member` of the club |

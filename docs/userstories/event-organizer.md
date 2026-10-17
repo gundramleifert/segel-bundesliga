@@ -211,7 +211,7 @@ takes the scan-upload path from S-1.
 
 Tests: none yet
 
-### VA-5 ◐ Confirm liability waivers
+### VA-5 ● Confirm liability waivers
 As a **race organizer** I want to **only check off submitted liability waivers**,
 so that I **don't have to collect anything on event day**.
 
@@ -220,14 +220,21 @@ Acceptance criteria:
   outdated version, or (for a minor) waiting on the guardian's signature. **Built** —
   `GET /api/admin/events/{event_id}/waivers` (see [S-3](sailor.md#s-3--confirm-a-waiver-version-for-a-series-or-event)),
   shown on the event's admin panel with a link to a minor's uploaded scan (S-1).
-- Who is not cleared cannot be registered for a matchday — the lock applies in Story V-2,
-  not on the water. **Not yet wired** into the V-2 lineup check.
+- **Who is not cleared can still be lined up — but the waiver has to be filled.**
+  Decided 2026-10-17, replacing "who is not cleared cannot be registered for a matchday":
+  a crew is named weeks ahead and changed on the pontoon, and a lock would make the club
+  chase paper before it may even plan. So the lineup stays open (V-2), and the missing
+  waiver is *said* to everyone who can fix it — the sailor and their linked guardian in my
+  space (S-1, S-8), the club's organizer as `crew_waiver_missing` on the club for every
+  upcoming matchday whose crew has someone not cleared (Z-8), and the organizer on this
+  check-in list.
 - Every confirmation is logged: who, when. **Built** — the confirmation row records it.
 
 Access: the event's host-club leadership, plus `admin`, `editor`, `race_officer`. No fifth
 role was added — the on-site organizer is a `race_officer` or the host `club_manager`.
 
 Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list),
+`api/tests/stories/test_guardians.py::TestTheCrewWaiverIsSaid` (lined up, and said),
 `e2e/waiver.spec.ts` (the organizer's panel)
 
 ## The draw

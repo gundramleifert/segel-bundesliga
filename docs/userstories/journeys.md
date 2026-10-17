@@ -42,7 +42,7 @@ sails), and a journey shows them as the actor of each step.
 | person | N | has an account and nothing else yet — just registered | — | [sailor.md](sailor.md) | sailor |
 | club member | M | belongs to a club | `member` on the club | [sailor.md](sailor.md) | sailor |
 | sailor | S | is in a squad or a crew | — (a `Team` row, Story V-1) | [sailor.md](sailor.md) | sailor |
-| guardian | G | signs for a minor sailor, on paper; has no account | — | [sailor.md](sailor.md) | sailor |
+| guardian | G | accepts the waiver for a minor sailor — online once the child's club linked their account, else on paper | `guardian` on the sailor (V-13) | [sailor.md](sailor.md) | sailor |
 | club admin | CA | decides who is *in* a club: members, organizers, crest | `admin` on the club | [club-manager.md](club-manager.md) | club-manager |
 | club manager | CM | decides who *sails*: participation, squads, crews | `manager` on the club | [club-manager.md](club-manager.md) | club-manager |
 | treasurer | T | decides and pays expense claims | `treasurer` on a club or an event | [treasurer.md](treasurer.md) | treasurer |

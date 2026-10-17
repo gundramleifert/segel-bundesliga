@@ -15,15 +15,21 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import AuditLog, Club, Event, Series
+from app.models import AuditLog, Club, Event, Sailor, Series
 from app.models.auth import Grant, ObjectType, Relation, User, writable
 from app.problems import Problem
 
-_TABLES = {ObjectType.CLUB: Club, ObjectType.SERIES: Series, ObjectType.EVENT: Event}
+_TABLES = {
+    ObjectType.CLUB: Club,
+    ObjectType.SERIES: Series,
+    ObjectType.EVENT: Event,
+    ObjectType.SAILOR: Sailor,
+}
 _COLUMNS = {
     ObjectType.CLUB: "club_id",
     ObjectType.SERIES: "series_id",
     ObjectType.EVENT: "event_id",
+    ObjectType.SAILOR: "sailor_id",
 }
 
 
@@ -47,7 +53,7 @@ def check_schema(relation: Relation, object_type: ObjectType) -> None:
 
 async def resolve(
     session: AsyncSession, object_type: ObjectType, object_id: int | None
-) -> Club | Series | Event | None:
+) -> Club | Series | Event | Sailor | None:
     """The object a tuple names, loaded — or a 404/422. ``None`` for the site."""
     if object_type is ObjectType.SITE:
         if object_id is not None:
@@ -108,6 +114,8 @@ async def grant(
         row.series = obj
     elif object_type is ObjectType.EVENT:
         row.event = obj
+    elif object_type is ObjectType.SAILOR:
+        row.sailor = obj
     # Change the collection, not a bare INSERT — otherwise the in-memory user still
     # looks role-less to the response built afterwards (expire_on_commit is off).
     target.grants.append(row)
@@ -167,7 +175,10 @@ async def grants_on(
     stmt = select(Grant).options(selectinload(Grant.user)).order_by(Grant.relation, Grant.id)
     if object_type is ObjectType.SITE:
         stmt = stmt.where(
-            Grant.club_id.is_(None), Grant.series_id.is_(None), Grant.event_id.is_(None)
+            Grant.club_id.is_(None),
+            Grant.series_id.is_(None),
+            Grant.event_id.is_(None),
+            Grant.sailor_id.is_(None),
         )
     else:
         stmt = stmt.where(getattr(Grant, _COLUMNS[object_type]) == object_id)
@@ -187,7 +198,7 @@ async def organizer_count(
 
 
 def may_administer(
-    acting: User, object_type: ObjectType, obj: Club | Series | Event | None
+    acting: User, object_type: ObjectType, obj: Club | Series | Event | Sailor | None
 ) -> bool:
     """Who may write tuples on this object: its ``admin`` — which the model resolves to
     the site's admin for everything, a series' admin for its events, the host club's for
@@ -195,6 +206,10 @@ def may_administer(
     things up; naming people is the admin's. Site tuples are the site admin's alone."""
     if object_type is ObjectType.SITE or obj is None:
         return acting.can(Relation.ADMIN)
+    if object_type is ObjectType.SAILOR:
+        # A sailor has no admin of its own: the child's club links a guardian through
+        # its own endpoints (`routers/guardians.py`, Story V-13); here only the site's.
+        return acting.is_admin()
     return acting.can(Relation.ADMIN, on=obj)
 
 

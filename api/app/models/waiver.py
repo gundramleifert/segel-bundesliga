@@ -15,7 +15,8 @@ Two rules shape the model:
 
 Minors are handled explicitly: a sailor who is under 18 on the reference date cannot
 clear the waiver by their own click. Their confirmation must be ``GUARDIAN`` and carry a
-reference to the guardian's signed statement.
+reference to the guardian's signed statement — or ``GUARDIAN_ONLINE``, accepted in the
+app by a guardian the child's club linked to them (Stories V-13, S-8).
 """
 
 from __future__ import annotations
@@ -43,6 +44,10 @@ class WaiverMethod(StrEnum):
 
     GUARDIAN = "guardian"
     """A legal guardian signed a paper statement; the scan is on file."""
+
+    GUARDIAN_ONLINE = "guardian_online"
+    """A guardian the child's club linked to them (Story V-13) accepted it in the app,
+    from their own account — ``recorded_by_user_id`` is that account (Story S-8)."""
 
 
 class WaiverText(Base, TimestampMixin):
@@ -144,4 +149,6 @@ class WaiverConfirmation(Base, TimestampMixin):
 
     @property
     def is_guardian_signed(self) -> bool:
+        if self.method == WaiverMethod.GUARDIAN_ONLINE:
+            return True
         return self.method == WaiverMethod.GUARDIAN and bool(self.guardian_signature_ref)

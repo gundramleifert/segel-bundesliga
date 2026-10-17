@@ -115,6 +115,14 @@
       "replace": "Upload a new scan",
       "uploading": "Uploading…",
       "done": "The signed form is on file — you are cleared."
+    },
+    "methodGuardianOnline": "accepted online by {{name}}",
+    "guardian": {
+      "title": "My children",
+      "description": "The young sailors your club linked to you as their guardian. While a child is under 18, you accept the waiver for them here — no form to print.",
+      "none": "{{name}} is not entered in any competition yet.",
+      "agree": "I have read the statement above and accept it for {{name}}, as their parent or legal guardian.",
+      "done": "Thank you — your acceptance for {{name}} is recorded."
     }
   }
 }

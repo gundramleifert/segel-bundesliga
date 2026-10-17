@@ -16,7 +16,7 @@ import { AccountInfo, DeleteAccount, SailorProfile, SignInMethods } from "../Acc
 import { ClubEvents, ClubTeams } from "./ClubSections";
 import { ClubMoneyTab, EventClaimsTab } from "./Money";
 import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
-import { Waivers } from "./Waivers";
+import { Wards, Waivers } from "./Waivers";
 import { NeedsLine, RelationChips } from "./Chips";
 import { contextPath, useMySpace } from "./shared";
 
@@ -187,7 +187,18 @@ export function ProfilePage() {
           },
           { key: "documents", label: t("tabs.documents"), render: () => <DocumentsTab /> },
           { key: "bank", label: t("tabs.bank"), render: () => <BankTab /> },
-          { key: "waivers", label: t("context.tabs.waivers"), render: () => <Waivers /> },
+          {
+            key: "waivers",
+            label: t("context.tabs.waivers"),
+            // Mine (S-1), then my children's (S-8) — a parent with no sailor record of
+            // their own sees only the second.
+            render: () => (
+              <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+                <Waivers />
+                <Wards />
+              </div>
+            ),
+          },
           { key: "claims", label: t("tabs.claims"), render: () => <ClaimsTab /> },
         ]}
       />

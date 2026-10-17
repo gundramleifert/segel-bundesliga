@@ -23,6 +23,7 @@ from app.routers import (
     dev,
     events,
     expenses,
+    guardians,
     me,
     payments,
     personal,
@@ -128,6 +129,7 @@ app.include_router(applications.router)
 app.include_router(club_members.router)
 app.include_router(sailors.router)
 app.include_router(waivers.router)
+app.include_router(guardians.router)
 app.include_router(personal.router)
 app.include_router(me.router)
 app.include_router(expenses.router)

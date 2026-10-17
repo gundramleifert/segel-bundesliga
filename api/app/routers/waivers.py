@@ -40,7 +40,7 @@ from app.models import (
     WaiverMethod,
     WaiverText,
 )
-from app.models.auth import Relation, Role, User
+from app.models.auth import ObjectType, Relation, Role, User
 from app.problems import Problem
 from app.routers.sailors import _my_sailor as my_sailor
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
@@ -208,6 +208,36 @@ async def my_waivers(
     organizer's list would show. 404 `no-linked-sailor-record` when the account has no
     sailor, exactly as the profile does."""
     sailor = await my_sailor(session, acting)
+    return await _waivers_of(session, sailor)
+
+
+@router.get(
+    "/api/waiver/wards",
+    response_model=list[MyWaivers],
+    summary="My children's waivers — the sailors I am guardian of",
+)
+async def ward_waivers(
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> list[MyWaivers]:
+    """Story S-8: one entry per sailor the child's club linked me to as guardian (Story
+    V-13), each exactly as that sailor's own page shows it (S-1) — the same function."""
+    ward_ids = acting.objects_of(Relation.GUARDIAN, ObjectType.SAILOR)
+    if not ward_ids:
+        return []
+    wards = (
+        await session.execute(
+            select(Sailor)
+            .where(Sailor.id.in_(ward_ids))
+            .order_by(Sailor.first_name, Sailor.last_name)
+        )
+    ).scalars()
+    return [await _waivers_of(session, ward) for ward in wards]
+
+
+async def _waivers_of(session: AsyncSession, sailor: Sailor) -> MyWaivers:
+    """A sailor's competitions with their waiver status — for the sailor (S-1) and for
+    their guardian (S-8)."""
     required = await current_waiver_text(session)
     rows: list[MyCompetitionWaiver] = []
     for competition in await sailor_competitions(session, sailor):
@@ -571,7 +601,7 @@ async def _confirm(
     if sailor is None:
         raise HTTPException(status_code=404, detail=f"Sailor {request.sailor_id} not found")
 
-    await _may_confirm_for(session, acting, sailor)
+    capacity = await _may_confirm_for(session, acting, sailor)
 
     required = await current_waiver_text(session)
     if required is None:
@@ -588,6 +618,16 @@ async def _confirm(
             422,
             "waiver-birth-date-required",
             "The sailor's date of birth is required to confirm the waiver.",
+            sailor_id=sailor.id,
+        )
+    if capacity == GUARDIAN and not minor:
+        # Story S-8: an adult's own click is their statement — the guardianship gives
+        # the parent nothing to sign once the child is of age.
+        raise Problem(
+            422,
+            "waiver-ward-is-adult",
+            "This sailor is an adult on the competition's reference date and confirms "
+            "the waiver themselves.",
             sailor_id=sailor.id,
         )
 
@@ -632,8 +672,13 @@ async def _confirm(
         )
 
     method = request.method
-    if minor:
-        if method == WaiverMethod.ONLINE:
+    if minor and capacity == GUARDIAN:
+        # The linked guardian's own click, from their own account (Story S-8): it clears
+        # the child like a signed scan does, with nothing on paper.
+        method = WaiverMethod.GUARDIAN_ONLINE
+        guardian_name = guardian_name or acting.display_name or acting.email
+    elif minor:
+        if method in (WaiverMethod.ONLINE, WaiverMethod.GUARDIAN_ONLINE):
             raise Problem(
                 422,
                 "guardian-confirmation-needed",
@@ -873,21 +918,30 @@ async def _sailor_clubs(session: AsyncSession, sailor_id: int) -> set[int]:
     )
 
 
-async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) -> None:
-    """The sailor's own (verified) account, the league office, or the manager of a club
+#: In which capacity someone may confirm for a sailor (`_may_confirm_for`).
+OWN, STAFF, GUARDIAN = "own", "staff", "guardian"
+
+
+async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) -> str:
+    """The sailor's own (verified) account; the league office or the manager of a club
     that has the sailor in a squad — they collect their club's paper forms (Stories S-1,
-    S-3). Not any club's manager: the `club_manager` *summary* role once let one club
-    sign for every sailor on the site."""
+    S-3); or a guardian the child's club linked to the sailor (Stories V-13, S-8). Not any
+    club's manager: the `club_manager` *summary* role once let one club sign for every
+    sailor on the site. Returns which of the three it is — the first that applies."""
     own = (
         acting.email_verified
         and sailor.email is not None
         and sailor.email.lower() == acting.email.lower()
     )
-    if own or acting.can(Relation.ADMIN, Relation.EDITOR):
-        return
+    if own:
+        return OWN
+    if acting.can(Relation.ADMIN, Relation.EDITOR):
+        return STAFF
     managed = acting.managed_club_ids
     if managed and managed & await _sailor_clubs(session, sailor.id):
-        return
+        return STAFF
+    if acting.holds(Relation.GUARDIAN, sailor_id=sailor.id):
+        return GUARDIAN
     raise Problem(
         403,
         "waiver-confirmation-forbidden",

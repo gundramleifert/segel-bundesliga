@@ -200,7 +200,11 @@
     "crew_missing_one": "Für 1 kommende Meldung ist keine Crew benannt",
     "crew_missing_other": "Für {{count}} kommende Meldungen ist keine Crew benannt",
     "documents_expired_one": "1 Dokument ist abgelaufen",
-    "documents_expired_other": "{{count}} Dokumente sind abgelaufen"
+    "documents_expired_other": "{{count}} Dokumente sind abgelaufen",
+    "crew_waiver_missing_one": "Bei 1 kommenden Spieltag fehlt einem Crewmitglied der Haftungsausschluss",
+    "crew_waiver_missing_other": "Bei {{count}} kommenden Spieltagen fehlt Crewmitgliedern der Haftungsausschluss",
+    "ward_waiver_one": "Der Haftungsausschluss Ihres Kindes wartet auf Sie",
+    "ward_waiver_other": "{{count}} Haftungsausschlüsse Ihrer Kinder warten auf Sie"
   },
   "overview": {
     "me": "Ich",

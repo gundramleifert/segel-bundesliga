@@ -73,5 +73,15 @@
     "saving": "Saving…",
     "saved": "Lineup saved.",
     "unsaved": "Not saved yet."
+  },
+  "guardians": {
+    "title": "Guardians",
+    "hint": "Link a parent's account to a young sailor, and the parent accepts the liability waiver for them online. Only the club does this.",
+    "empty": "None of the club's sailors is known here yet — they appear once a squad or an entry holds them, or once their account is a member.",
+    "minor": "under 18",
+    "add": "Add guardian",
+    "link": "Link",
+    "emailPlaceholder": "The parent's email address",
+    "remove": "Remove {{name}} as guardian"
   }
 }
