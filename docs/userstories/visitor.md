@@ -372,9 +372,14 @@ Acceptance criteria:
   matchday's tabs on a matchday page. It is there on the chapter page too, so a deeper
   page is one tap away from the first screen. Still at most two rows: on a matchday page
   the matchday's tabs *are* the sub-menu, the league's pages a step up its crumbs.
+  On a chapter page the sub-menu **underlines the page the chapter on screen leads to**
+  (*Standings* while the standings chapter is in view, *News* at the news), so the mark
+  runs along with the chapters; *Overview* stays the page you are on.
 - **In that layout the picture stands still and only the text scrolls**: a chapter page
   has one picture behind all its chapters (photo, fade, slide or video, as before), a depth
-  page's picture is fixed behind its band.
+  page's picture is fixed behind its band. Without snapping a chapter is as tall as its content — the
+  screen-high chapters of the snapping mode left half a screen of empty picture between
+  two.
 
 Tests: `e2e/visitor.spec.ts::B-13: one row of navigation names the leagues`
 

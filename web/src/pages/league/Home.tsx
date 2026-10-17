@@ -128,6 +128,7 @@ export function AssociationHome() {
     },
     {
       id: "about",
+      page: "about",
       label: t("chapters.about"),
       title: t("chapters.about"),
       photo: DSBL_PHOTOS.studio,

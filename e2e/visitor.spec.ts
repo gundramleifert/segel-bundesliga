@@ -339,6 +339,17 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     expect((await picture.boundingBox())!.y).toBe(before.y);
   });
 
+  test("the sub-menu marks the page the chapter on screen leads to", async ({ page }) => {
+    await page.goto("/1-liga");
+    const sub = page.getByTestId("site-league-pages");
+    await expect(sub.getByTestId("site-page-standings")).toHaveAttribute("data-marked", "true");
+    await page.locator('[data-dot="news"]').click();
+    await expect(sub.getByTestId("site-page-news")).toHaveAttribute("data-marked", "true");
+    await expect(sub.getByTestId("site-page-standings")).toHaveAttribute("data-marked", "false");
+    // Still the page you are on, for a screen reader.
+    await expect(sub.getByTestId("site-page-overview")).toHaveAttribute("aria-current", "page");
+  });
+
   test("on a matchday page the sub-menu is the matchday's: where it hangs, and its tabs", async ({ page }) => {
     await page.goto(FINISHED_ACT);
     const bar = page.getByTestId("site-act-bar");
@@ -350,7 +361,7 @@ describeStory("B-13: one row of navigation names the leagues", () => {
   });
 
   test("the classic layout is still there when the DEV switch picks it", async ({ page }) => {
-    await page.addInitScript(() => window.localStorage.setItem("site.version", "classic"));
+    await page.addInitScript(() => window.localStorage.setItem("site.layout", "classic"));
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     await expect(page.getByTestId("site-league-pages")).toHaveCount(0);

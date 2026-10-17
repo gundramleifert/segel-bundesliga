@@ -15,6 +15,9 @@ export type ChapterSpec = {
   photo: Photo;
   more?: { to: string; label: string };
   body: ReactNode;
+  /** The sub-menu's entry this chapter belongs to (`pages.<key>`) — underlined while the
+   *  chapter is on screen. None: the page's own entry. */
+  page?: string;
   /** More of the chapter, shown in the layout with a sub-menu — the classic chapters stay
    *  as they were, so the two can be compared. */
   extra?: ReactNode;
@@ -48,7 +51,7 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
     <div className="fixed inset-0 flex flex-col bg-slate-950">
       <div className="relative z-40 shrink-0">
         <TopBar league={league} />
-        <LeagueSubBar league={league ?? null} />
+        <LeagueSubBar league={league ?? null} marked={chapters.find((c) => c.id === current)?.page ?? null} />
       </div>
       <div className="relative min-h-0 flex-1">
         <div aria-hidden className="absolute inset-0">
@@ -71,11 +74,13 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
                 id={c.id}
                 data-chapter={c.id}
                 data-testid={`site-chapter-${c.id}`}
+                // Free: a chapter is as tall as its content — the screen-high boxes of the
+                // snapping mode left half a screen of picture between two chapters.
                 className={`relative flex items-center border-t border-white/10 first:border-0 ${
-                  mode === "snap" ? "min-h-[calc(100dvh-105px)] snap-start" : "min-h-[75dvh]"
+                  mode === "snap" ? "min-h-[calc(100dvh-105px)] snap-start" : ""
                 }`}
               >
-                <div className="mx-auto w-full max-w-6xl px-4 py-14 pr-14 text-white lg:pr-24">
+                <div className={`mx-auto w-full max-w-6xl px-4 pr-14 text-white lg:pr-24 ${mode === "snap" ? "py-14" : "py-10"}`}>
                   <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
                   {c.body}
                   {c.extra && <div className="mt-8">{c.extra}</div>}

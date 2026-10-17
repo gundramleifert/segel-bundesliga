@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, type To } from "react-router-dom";
 
@@ -131,6 +131,9 @@ export type SubItem = {
   to: To;
   label: string;
   current: boolean;
+  /** Underlined, where `current` would be — the chapter on screen, on a chapter page.
+   *  Defaults to `current`. */
+  marked?: boolean;
   testId: string;
   state?: unknown;
   onClick?: () => void;
@@ -151,10 +154,21 @@ export function SubBar({
   label: string;
   testId: string;
 }) {
+  // The marked entry kept in view: on a phone the row is wider than the screen, and the
+  // mark follows the chapters as they scroll by.
+  const bar = useRef<HTMLElement>(null);
+  const marked = items.find((item) => item.marked ?? item.current)?.key;
+  useEffect(() => {
+    const row = bar.current;
+    const entry = row?.querySelector<HTMLElement>('[data-marked="true"]');
+    if (!row || !entry) return;
+    const left = entry.offsetLeft - row.clientWidth / 2 + entry.offsetWidth / 2;
+    row.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  }, [marked]);
   return (
     // The row scrolls sideways inside itself on a phone, crumbs and tabs together — a
     // row wider than the screen would zoom the page out (Story A-10).
-    <nav aria-label={label} data-testid={testId} className="scrollbar-none h-12 overflow-x-auto border-b border-slate-200 bg-white/95 text-sm backdrop-blur">
+    <nav ref={bar} aria-label={label} data-testid={testId} className="scrollbar-none h-12 overflow-x-auto border-b border-slate-200 bg-white/95 text-sm backdrop-blur">
       <div className="mx-auto flex h-full max-w-6xl items-stretch px-4">
         <ol className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 text-slate-500" data-testid="site-sub-crumbs">
           {crumbs.map((c, i) => (
@@ -169,30 +183,36 @@ export function SubBar({
           ))}
         </ol>
         <ul className="flex shrink-0 items-stretch gap-1 border-l border-slate-200 pl-1">
-          {items.map((item) => (
+          {items.map((item) => {
+            const on = item.marked ?? item.current;
+            return (
             <li key={item.key} className="flex shrink-0">
               <Link
                 to={item.to}
                 state={item.state}
                 onClick={item.onClick}
                 aria-current={item.current ? "page" : undefined}
+                data-marked={on}
                 data-testid={item.testId}
-                className={`-mb-px flex items-center whitespace-nowrap border-b-2 px-3 font-medium ${
-                  item.current ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"
+                className={`-mb-px flex items-center whitespace-nowrap border-b-2 px-3 font-medium transition-colors ${
+                  on ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"
                 }`}
               >
                 {item.label}
               </Link>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </div>
     </nav>
   );
 }
 
-/** A league's pages as the sub-menu — or the association's, outside a league. */
-export function LeagueSubBar({ league }: { league: League | null }) {
+/** A league's pages as the sub-menu — or the association's, outside a league. `marked`
+ *  names the entry to underline instead of the current page: on a chapter page, the page
+ *  the chapter on screen leads to. */
+export function LeagueSubBar({ league, marked }: { league: League | null; marked?: string | null }) {
   const { t } = useTranslation("site");
   const current = useCurrentSibling(league);
   return (
@@ -205,6 +225,7 @@ export function LeagueSubBar({ league }: { league: League | null }) {
         to: s.to,
         label: t(`pages.${s.key}`),
         current: current === s.to,
+        marked: marked ? marked === s.key : undefined,
         testId: `site-page-${s.key}`,
       }))}
     />

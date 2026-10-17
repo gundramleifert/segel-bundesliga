@@ -47,6 +47,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const chapters: ChapterSpec[] = [
     {
       id: "standings",
+      page: "standings",
       label: t("chapters.standings"),
       title: t("chapters.standings"),
       photo: leaguePhoto(l),
@@ -70,6 +71,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       ? [
           {
             id: "results",
+            page: "season",
             label: t("chapters.results"),
             title: t("chapters.results"),
             photo: DSBL_PHOTOS.podium,
@@ -98,6 +100,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       : []),
     {
       id: "news",
+      page: "news",
       label: t("chapters.news"),
       title: t("chapters.news"),
       photo: DSBL_PHOTOS.swimmer,
@@ -119,6 +122,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
     },
     {
       id: "media",
+      page: "media",
       label: t("chapters.media"),
       title: t("chapters.media"),
       photo: DSBL_PHOTOS.camera,
@@ -128,6 +132,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
     },
     {
       id: "about",
+      page: "about",
       label: t("chapters.about"),
       title: t("chapters.about"),
       photo: OWN_PHOTOS.title,
@@ -165,6 +170,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       ? [
           {
             id: "archive",
+            page: "standings",
             label: t("chapters.archive"),
             title: t("chapters.archive"),
             photo: DSBL_PHOTOS.aerial,

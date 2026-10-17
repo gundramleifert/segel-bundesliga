@@ -58,7 +58,9 @@ export const [useDetailMode, setDetailMode] = setting<DetailMode>("site.detail",
  *  one fixed picture behind the chapters that the text scrolls over, fuller chapters. */
 export type SiteVersion = "classic" | "submenu";
 export const SITE_VERSIONS = ["classic", "submenu"] as const;
-export const [useSiteVersion, setSiteVersion] = setting<SiteVersion>("site.version", SITE_VERSIONS, "submenu");
+// A new key (it was `site.version`), so a browser that once picked "classic" while
+// comparing starts on the default again — the one the site is meant to show.
+export const [useSiteVersion, setSiteVersion] = setting<SiteVersion>("site.layout", SITE_VERSIONS, "submenu");
 
 /** Which chapter is on screen — for the dots, and so only that chapter plays a video:
  *  the one that covers the **middle line** of the screen. `key` re-runs the observer when
