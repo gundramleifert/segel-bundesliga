@@ -136,7 +136,11 @@ stand-alone event they are entered in (`GET /api/waiver/me`).
 
 Acceptance criteria:
 - The account page lists each of my competitions with its status — cleared, missing,
-  outdated version, waiting on the guardian's signature, or "add your date of birth first".
+  outdated version, or waiting on the guardian's signature — and says "add your date of
+  birth first" when none is on file (`birth_date_known: false` on `GET /api/waiver/me`;
+  the status stays *missing*, since nothing can be confirmed yet). The status
+  `birth_date_unknown` is only for a confirmation already on file whose sailor's date of
+  birth has since gone missing, so it cannot be judged.
   The status is computed exactly as the organizer's list computes it (`app/services/waivers.py`),
   never a second rule.
 - **Adults confirm online.** The wording is shown in full, in the reader's language, and
