@@ -16,6 +16,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A story test asserting a count against a seed event is green alone and red in the full suite, because another story added a participant to that same event](a-story-test-asserting-a-count-against-a-seed-event-is-green-alone-and-red-in-th.md)
 - [A strict-mode locator checked straight after goto can pass in a fast run because the duplicate it should catch has not rendered yet](a-strict-mode-locator-checked-straight-after-goto-can-pass-in-a-fast-run-because.md)
 - [A token issued a moment ago is rejected as "Invalid access token", because WSL2 steps the wall clock backwards](a-token-issued-a-moment-ago-is-rejected-as-invalid-because-wsl2-steps-the-wall-clock-back.md)
+- [A uv.lock resolved through a private mirror breaks every Render deploy, and staging silently keeps serving the last API that built](a-uv-lock-resolved-through-a-private-mirror-breaks-every-render-deploy-and-stagi.md)
 - [A wrapper cannot carry the surface of a table wider than its container](a-wrapper-cannot-carry-the-surface-of-a-table-wider-than-its-container.md)
 - [Alembic's fileConfig swaps out the root log handlers, so a login in the first test's fixture finds no code in caplog](alembic-s-fileconfig-swaps-out-the-root-log-handlers-so-a-login-in-the-first-tes.md)
 - [An account reached through selectinload(Grant.user) has no grants loaded, and a test with only the caller in the result hides it](an-account-reached-through-selectinload-grant-user-has-no-grants-loaded-and-a-te.md)
