@@ -46,7 +46,7 @@
   "squad-duplicate-sailor": "Someone is in this squad twice.",
   "squad-sailor-in-another-club": "Already sailing for another club in this series: {{sailors}}. A person competes only once per series.",
   "squad-member-is-lined-up": "Already lined up for a matchday: {{selections}}. Change the lineup first, then the squad.",
-  "squad-needs-series-registration": "A squad belongs to a series registration, not to an entry in a single event.",
+  "squad-needs-series-registration": "A squad belongs to the series registration, not to the entry in one of its events.",
   "squad-unknown-sailor": "Some of these people no longer exist. Reload the page.",
   "waiver-scan-invalid-type": "The signed form must be a PDF, a JPEG or a PNG.",
   "waiver-scan-invalid": "This file could not be read as a PDF or image.",
@@ -101,5 +101,6 @@
   "payment-run-not-found": "This payment run does not exist.",
   "payment-not-failable": "Only a payment sent to the bank or booked can come back.",
   "payment-not-found": "This payment does not exist.",
-  "bic-invalid": "This BIC is not valid — leave it empty to take it from the IBAN."
+  "bic-invalid": "This BIC is not valid — leave it empty to take it from the IBAN.",
+  "sailor-not-yours": "This person sails for another club — only that club's organizers can change their details."
 }

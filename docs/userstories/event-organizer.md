@@ -67,8 +67,11 @@ As an **event organizer** I want to **create a matchday with name, date, and hos
 so that **the date is set before details are finalized**.
 
 Acceptance criteria:
-- Access is available to **administration, editorial, and race committee** — all three
-  contribute an event.
+- Access is available to **administration, editorial and the site's race committee**, and
+  to the event's **organizers**: the manager of the host club (for their own club as host)
+  and the manager of the series it belongs to (Stories VA-6, Z-2). Until 2026-10-17 this
+  story still said "administration, editorial, and race committee" only, long after the
+  organizers had been let in (`events.py::_can_create`; found by Journey J-4).
 - Name, date, league, and season are sufficient. The **host** is selected from created clubs
   (A-1).
 - Without an end date, the matchday is single-day; an end before the start is rejected.
@@ -76,7 +79,7 @@ Acceptance criteria:
   creating. The interface names the host instead of leaving a gap.
 - An **own logo** is possible; without one, the host's crest applies.
 - The matchday number increments if not specified; a taken number is rejected.
-- Club accounts may not create matchdays.
+- A club's manager may not create a matchday **another** club hosts.
 
 Endpoints: `POST /api/admin/events`, `PATCH /api/admin/events/{slug}`
 
@@ -384,7 +387,7 @@ Tests: `api/tests/stories/test_event_closing.py`,
 
 ### VA-9 ● Run one event from end to end
 
-Moved: this is now **Journey [J-1](journeys.md#j-1--from-an-empty-series-to-a-scored-matchday)**
+Moved: this is now **Journey [J-1](../journeys/lifecycle.md)**
 — the same test, its steps named and checked in order. The ID stays, because tests and
 history carry it.
 

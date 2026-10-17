@@ -42,19 +42,21 @@ Take the audience from the **file**, and from what the story's "As a …" says.
 
 ## Journeys become journey pages
 
-`docs/userstories/journeys.md` (and, once `plan-journeys.md` has landed, `docs/journeys/`):
-a journey is several stories in the order they really happen, across several people.
+`docs/journeys/<slug>.md`, indexed in `docs/userstories/journeys.md` with the **actors**: a
+journey is several stories in the order they really happen, across several people. Each
+actor names its help audience there — use it for the page's `audience`.
 
 - **One `journey` page per journey** whose status is ◐ or ●. A ○ journey has no test, so
   nobody has proven its steps fit together — leave it out.
 - The page follows the journey's **main steps in order**; each step is one line naming who
   acts and what is then true, and links to the `###` in that person's guide that explains
   how. The journey page itself explains no screen.
-- **Variations** (`5a.` in the list format, `alt`/`opt` branches with `J-n.k` IDs in the
-  diagram format) become a short "If …" list at the end.
+- The page's steps carry the journey's **step IDs** (`J-5.4`) — they are permanent, so a
+  help page can cite them. Branches (`Path` ≠ `main`, the `opt`/`alt` blocks) become a
+  short "If …" list at the end.
 - Steps whose story is not ● are written only as far as the code goes, and reported.
 - The journey's test is the strongest evidence there is: it proves the order. Read it —
-  `api/tests/stories/test_complete_lifecycle.py` for J-1 — to learn the starting state and
+  the walks on the journey's `Tests:` line (`docs/traceability.md` § Journeys lists them) — to learn the starting state and
   what each step leaves behind.
 
 The journey page is what a club or an organizer reads **before** a season; the per-person

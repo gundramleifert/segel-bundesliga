@@ -11,7 +11,7 @@ a person competes only once.
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import Club, Event, Series, Team, TeamMembership
+from app.models import Club, Event, Sailor, Series, Team, TeamMembership
 from app.models.auth import Role
 from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
@@ -77,6 +77,44 @@ async def act_id(slug: str) -> int:
 
 class TestCreatingSailors:
     """V-4: As club leadership, I want to create our sailors."""
+
+    async def test_a_club_manager_changes_only_their_own_clubs_people(self, client, caplog):
+        """Story V-4: any club's organizer creates and finds people, but changes only
+        those their club's squads hold — or nobody's squad holds yet. (Until 2026-10-17
+        any club's organizer could rename anyone; found by Journey J-3.)"""
+        team_id, squad = await squad_of("byc", "dsbl-1-2026")
+        byc_sailor = squad[0]
+        async with SessionLocal() as session:
+            other = (await session.execute(select(Club.id).where(Club.slug == "fsc"))).scalar_one()
+            byc = (await session.execute(select(Club.id).where(Club.slug == "byc"))).scalar_one()
+        foreign = await as_role(
+            client, caplog, "sg-foreign@example.com", Role.CLUB_MANAGER, club_id=other
+        )
+        own = await as_role(client, caplog, "sg-own@example.com", Role.CLUB_MANAGER, club_id=byc)
+
+        refused = await client.patch(
+            f"/api/admin/sailors/{byc_sailor}", headers=foreign, json={"first_name": "Hijacked"}
+        )
+        assert refused.status_code == 403, refused.text
+        assert refused.json()["type"] == "/errors/sailor-not-yours"
+
+        fixed = await client.patch(
+            f"/api/admin/sailors/{byc_sailor}", headers=own, json={"last_name": "Corrected"}
+        )
+        assert fixed.status_code == 200, fixed.text
+
+        # A person nobody's squad holds yet belongs to no club: whoever created them, or
+        # any other club's organizer, may still correct the spelling.
+        created = await client.post(
+            "/api/admin/sailors",
+            headers=foreign,
+            json={"first_name": "Neu", "last_name": "Ling", "email": "sg-newling@example.com"},
+        )
+        assert created.status_code == 201, created.text
+        renamed = await client.patch(
+            f"/api/admin/sailors/{created.json()['id']}", headers=own, json={"first_name": "Neo"}
+        )
+        assert renamed.status_code == 200, renamed.text
 
     async def test_email_is_required(self, client, caplog):
         """Someone created through this form must be reachable — name alone won't do."""
@@ -280,11 +318,16 @@ class TestSquadRefusalsAreTyped:
         # in one.
         assert problem["sailors"] == ["Other Typed0"]
 
-    async def test_an_event_entry_says_it_carries_no_squad(self, client, caplog):
+    async def test_an_entry_in_a_series_event_says_it_carries_no_squad(self, client, caplog):
+        """The squad of a series' event is the series registration's — not its entry's."""
         admin = await as_role(client, caplog, "typed3@example.com", Role.ADMIN)
         async with SessionLocal() as session:
             entry = (
-                await session.execute(select(Team).where(Team.event_id.is_not(None)).limit(1))
+                await session.execute(
+                    select(Team)
+                    .where(Team.event_id.is_not(None), Team.series_id.is_not(None))
+                    .limit(1)
+                )
             ).scalar_one()
 
         response = await client.put(
@@ -529,6 +572,26 @@ class TestSquadLimits:
 
         squad = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
         assert (squad["squad_min"], squad["squad_max"]) == (2, 5)
+
+        # The entry *is* the squad's team: it is saved there, within the event's limits.
+        async with SessionLocal() as session:
+            sailors = list(
+                (await session.execute(select(Sailor.id).order_by(Sailor.id).limit(6))).scalars()
+            )
+        saved = await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={"members": [{"sailor_id": sid, "role": "crew"} for sid in sailors[:3]]},
+        )
+        assert saved.status_code == 200, saved.text
+        assert {m["id"] for m in saved.json()["members"]} == set(sailors[:3])
+        too_many = await client.put(
+            f"/api/admin/teams/{team_id}/members",
+            headers=admin,
+            json={"members": [{"sailor_id": sid, "role": "crew"} for sid in sailors]},
+        )
+        assert too_many.status_code == 422
+        assert too_many.json()["type"] == "/errors/squad-too-large"
 
         widened = await client.patch(
             f"/api/admin/events/{event_id}", headers=admin, json={"squad_max": 6}

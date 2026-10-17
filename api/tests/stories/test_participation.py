@@ -11,6 +11,7 @@ from app.models import AuditLog
 from app.models.auth import Role, User
 from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
+from tests.stories.test_registration import auth_headers
 
 
 async def as_role(client, caplog, email: str, *roles: str) -> dict[str, str]:
@@ -112,6 +113,45 @@ class TestDecidingOnApplications:
             )
         ).json()
         return admin, club, application
+
+    async def test_the_series_manager_decides_the_applications_to_their_series(
+        self, client, caplog, ids
+    ):
+        """A-9: the series' organizer sees and decides the applications to their series —
+        and only to theirs (decided 2026-10-17, found by Journey J-4)."""
+        admin, club, application = await self._antrag(
+            client, caplog, "Vom Serienleiter Angenommen", "tn-sm", ids
+        )
+        own, other = ids.series("dsbl-2-2026"), ids.series("dsbl-1-2026")
+        for email, series_id in (("tn-sm-own", own), ("tn-sm-other", other)):
+            await make_user(f"{email}@example.com")
+            written = await client.post(
+                "/api/auth/tuples",
+                headers=admin,
+                json={
+                    "user": f"{email}@example.com",
+                    "relation": "manager",
+                    "object": f"series:{series_id}",
+                },
+            )
+            assert written.status_code == 201, written.text
+        manager = auth_headers(await login_as(client, "tn-sm-own@example.com", caplog))
+        stranger = auth_headers(await login_as(client, "tn-sm-other@example.com", caplog))
+        url = f"/api/admin/applications/{application['team_id']}/accept"
+
+        # Every pending application on the site is the league office's list, not theirs.
+        assert (await client.get("/api/admin/applications", headers=manager)).status_code == 403
+        assert (
+            await client.get(f"/api/admin/applications?series_id={other}", headers=manager)
+        ).status_code == 403
+        pending = await client.get(f"/api/admin/applications?series_id={own}", headers=manager)
+        assert pending.status_code == 200, pending.text
+        assert application["team_id"] in {a["team_id"] for a in pending.json()}
+
+        assert (await client.post(url, headers=stranger)).status_code == 403
+        accepted = await client.post(url, headers=manager)
+        assert accepted.status_code == 200, accepted.text
+        assert accepted.json()["status"] == "accepted"
 
     async def test_accepting_makes_the_club_a_participant(self, client, caplog, ids):
         admin, club, application = await self._antrag(

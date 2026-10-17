@@ -6,8 +6,10 @@ Two paths lead to the same row:
   `PUT /api/admin/series/{id}/clubs`, `PUT /api/admin/events/{id}/clubs`) — the participation
   is accepted immediately. The club need not consent: it doesn't need the admin's permission,
   and the admin doesn't need the club's.
-* The **club applies** and gets accepted — this path. This direction requires
-  admin approval.
+* The **club applies** and gets accepted — this path. This direction requires the
+  approval of administration or of the competition's organizer: the ``manager`` of the
+  series (or of the event, for an application to one event), who could set the clubs
+  directly anyway (Story A-9).
 
 Only the **club officer** can request for their own club. Both paths end in
 a ``Team`` row; only its ``status`` differs.
@@ -23,11 +25,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import current_user, require_admin
+from app.auth import current_user
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import AuditLog, Club, Event, Series, Team, TeamStatus
-from app.models.auth import Role, User
+from app.models.auth import Relation, Role, User
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import ParticipationError, has_results, new_event_entry
 
@@ -182,7 +184,6 @@ async def withdraw_application(
 @router.get(
     "/api/admin/applications",
     response_model=list[ApplicationOut],
-    dependencies=[Depends(require_admin)],
     summary="Pending applications",
 )
 async def list_pending_applications(
@@ -190,7 +191,19 @@ async def list_pending_applications(
     event_id: int | None = None,
     status_filter: str = "requested",
     session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
 ) -> list[ApplicationOut]:
+    """Every application for administration; one series' or one event's for its
+    organizer, who has to name it (Story A-9)."""
+    if not acting.is_admin():
+        target = (
+            await session.get(Event, event_id)
+            if event_id is not None
+            else await session.get(Series, series_id)
+            if series_id is not None
+            else None
+        )
+        _may_decide(acting, target)
     stmt = (
         select(Team)
         .options(selectinload(Team.club), selectinload(Team.series), selectinload(Team.event))
@@ -213,7 +226,7 @@ async def accept_application(
     team_id: int,
     request: ApplicationDecision | None = None,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_admin),
+    acting: User = Depends(current_user),
     locale: Locale = Depends(resolve_locale),
 ) -> ApplicationOut:
     """Accepts an application, making the club a participant.
@@ -235,7 +248,7 @@ async def reject_application(
     team_id: int,
     request: ApplicationDecision | None = None,
     session: AsyncSession = Depends(get_session),
-    acting: User = Depends(require_admin),
+    acting: User = Depends(current_user),
     locale: Locale = Depends(resolve_locale),
 ) -> ApplicationOut:
     team = await _decide(
@@ -373,6 +386,19 @@ def _retry_after_rejection(team: Team, where: str, locale: Locale) -> Team:
     )
 
 
+def _may_decide(acting: User, target: Series | Event | None) -> None:
+    """Story A-9: administration decides every application; the ``manager`` of the series
+    — or of the event, for an application to one event — decides those to theirs. The
+    model's ``manager`` is what lets them set the clubs directly, so deciding gives them
+    nothing they could not already do."""
+    if acting.is_admin() or (target is not None and acting.can(Relation.MANAGER, on=target)):
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Applications are decided by administration and by the competition's organizer.",
+    )
+
+
 async def _with_relations(session: AsyncSession, team_id: int, locale: Locale) -> Team:
     team = (
         await session.execute(
@@ -402,6 +428,7 @@ async def _decide(
     locale: Locale,
 ) -> Team:
     team = await _with_relations(session, team_id, locale)
+    _may_decide(acting, team.event if team.event_id is not None else team.series)
 
     if team.status == TeamStatus.ACCEPTED and new_status != TeamStatus.ACCEPTED:
         if await has_results(session, team):

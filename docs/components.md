@@ -32,6 +32,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and the club's page in my space (`/me/club/:id`) |
 | `PersonDocuments.tsx` | `PersonDocuments` — a person's licences on demand, for their organizers, on a person's row (Story S-5); hides itself on `documents-forbidden`. `ExpiredBadge` |
 | `FileDropzone.tsx` | `FileDropzone` — a file field you drop a file onto or tap to choose; checks the type on drop, keeps a hidden `<input type="file">` carrying the `testId` for `setInputFiles` |
+| `CrestEditor.tsx` | `CrestEditor` — a club's crest, edited from the crest itself (Story V-3); the admin club list and the club's page in my space |
 | `ClaimParts.tsx` | `ClaimStatusBadge`, `ClaimSummary`, `ClaimItems`, `ClaimReceipts` — one expense claim as both the claimant and the decider see it, in my space (`/me/…`) (Stories F-2 to F-6) |
 | `Layout.tsx`, `Breadcrumb.tsx` | the frame around every page (Story A-12) |
 

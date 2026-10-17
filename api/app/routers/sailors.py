@@ -331,6 +331,7 @@ async def update_sailor(
 ) -> SailorAdminOut:
     _can_manage_master_data(acting)
     sailor = await _sailor(session, sailor_id)
+    await _may_change_sailor(session, acting, sailor)
 
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
@@ -384,8 +385,10 @@ async def set_squad(
 
     Two rules apply:
 
-    * The squad is tied to **series registration**, not to competing at a single event.
-    From it, the lineup is selected for each matchday (Story V-2).
+    * The squad is tied to **series registration**, not to competing at a single event
+    of the series. From it, the lineup is selected for each matchday (Story V-2). An
+    event that belongs to no series has no registration above it, so there the club's
+    **entry** carries the squad (Story V-12) — the team `participation.squad_team` names.
     * **Within a series, a person competes only once.** Registering for a second club
     in the same series would mean competing against oneself.
 
@@ -395,11 +398,11 @@ async def set_squad(
     team = await _team(session, team_id)
     _can_manage_squad(acting, team)
 
-    if not team.is_series_registration:
+    if not team.is_series_registration and team.series_id is not None:
         raise Problem(
             422,
             "squad-needs-series-registration",
-            "A squad belongs to a series registration, not to an entry in one event.",
+            "A squad belongs to the series registration, not to the entry in one of its events.",
             team_id=team.id,
         )
 
@@ -688,6 +691,32 @@ def _can_manage_master_data(acting: User) -> None:
     )
 
 
+async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor) -> None:
+    """Story V-4: a club's organizer changes the people *their* club's squads or entries
+    hold — or anyone nobody's squad holds yet, who belongs to no club. Creating and
+    finding stay open to every club's organizer (`_can_manage_master_data`): a new
+    person has no club to scope by."""
+    if acting.has_any(Role.ADMIN, Role.EDITOR):
+        return
+    clubs = set(
+        (
+            await session.execute(
+                select(Team.club_id)
+                .join(TeamMembership, TeamMembership.team_id == Team.id)
+                .where(TeamMembership.sailor_id == sailor.id)
+            )
+        ).scalars()
+    )
+    if not clubs or clubs & acting.managed_club_ids:
+        return
+    raise Problem(
+        403,
+        "sailor-not-yours",
+        "This person sails for another club; only that club's organizers can change them.",
+        sailor_id=sailor.id,
+    )
+
+
 def _can_manage_squad(acting: User, team: Team) -> None:
     if acting.has_any(Role.ADMIN):
         return
@@ -792,6 +821,9 @@ async def _not_removing_lined_up(
     )
     if team.series_id is not None:
         stmt = stmt.where(Event.series_id == team.series_id)
+    elif team.event_id is not None:
+        # A stand-alone event's squad only feeds that event's crew.
+        stmt = stmt.where(Event.id == team.event_id)
 
     selected = (await session.execute(stmt)).all()
     if selected:

@@ -24,6 +24,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `e2e/` | Playwright tests against the running application |
 | `docs/concepts.md` | **Terms and data model** — Series, Event, Squad, Scoring. Start here. |
 | `docs/userstories/` | What the system should do, with tests included — one file per role, `README.md` is the index |
+| `docs/journeys/` | **Journeys** — stories in the order they happen, across people: diagram, step table, walked by one test; `docs/traceability.md` § Journeys traces each step to story, tests, help and report |
 | `docs/findings.md` | **Research findings** — API formats, League format, open questions |
 | `docs/manage2sail.md` | **Manage2Sail** — the event token, the check-in report, the public entry/result endpoints, what cannot be written |
 | `docs/gotchas/` | **Things that surprised someone** — read this before debugging anything odd |
@@ -439,11 +440,17 @@ story ID in the docstring. New features are added to stories first, then tested.
   `scripts/check-docs.py` checks each ID is a real story. Only a group that covers no
   story ("Foundations") stays a plain `test.describe`.
 
-  **Journeys** (`docs/userstories/journeys.md`, `J-…`) are several stories in the order
-  they really happen, walked by one long test whose stretches are named with
-  `step("VA-7", "…")` — `tests/journeys.py` in pytest, `describeJourney` + `step` from
-  `e2e/fixtures.ts` in Playwright. `check-docs.py` holds the test to the journey's
-  numbered main steps, in order, and a journey is ● only when every story it walks is.
+  **Journeys** (`docs/journeys/<slug>.md`, indexed with the **actors** and the format in
+  `docs/userstories/journeys.md`; the `journey` skill writes them) are several stories in
+  the order they really happen: a Mermaid sequence diagram for the stakeholder and a step
+  table for the tests. Step IDs are `J-n.k` — **never renumbered or reused**; a removed
+  step goes on `Retired steps:`. A *walk* is one long test whose stretches are
+  `step("J-5.4", "…")` — `tests/journeys.py` in pytest, `describeJourney` + `step` from
+  `e2e/fixtures.ts` in Playwright — and the step's story comes from `docs/stories.json`.
+  `check-docs.py` holds the walk to the table's order, every branch to a walk or a
+  `Journey step J-n.k` docstring, the actors to the list, and the status: ● only when
+  every step is covered and every story it names is ●. A changed feature means checking
+  the journeys whose steps name its story.
 
   **Evidence mode** — `EVIDENCE=1 playwright test` (`pnpm e2e:evidence`) records a video,
   a final screenshot and a full trace of every test, and writes an HTML report to

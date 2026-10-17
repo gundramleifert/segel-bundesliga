@@ -89,5 +89,11 @@
   "dropzone": {
     "prompt": "Datei hier ablegen oder tippen, um eine auszuwählen",
     "refused": "„{{name}}“ hat einen Dateityp, der hier nicht angenommen wird."
+  },
+  "crest": {
+    "upload": "Stander hochladen",
+    "replace": "Stander ersetzen",
+    "remove": "Stander entfernen",
+    "title": "Stander"
   }
 }

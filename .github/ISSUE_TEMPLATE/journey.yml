@@ -1,0 +1,71 @@
+name: "Journey / Ablauf"
+description: "Something someone gets done on the site, from start to end, across people — Ein Ablauf von Anfang bis Ende, über mehrere Personen"
+title: "Journey: "
+labels: ["journey"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the flow in your own words — **no diagram needed**: we draw it as a sequence
+        diagram and you review it in the pull request, where it renders.
+        Beschreiben Sie den Ablauf in eigenen Worten — **kein Diagramm nötig**: wir zeichnen es
+        und Sie prüfen es im Pull Request.
+  - type: input
+    id: name
+    attributes:
+      label: "What gets done? / Was wird erreicht?"
+      description: "e.g. 'A club's crew is cleared for a matchday' / z. B. 'Die Mannschaft eines Vereins ist für den Spieltag startberechtigt'"
+    validations:
+      required: true
+  - type: checkboxes
+    id: actors
+    attributes:
+      label: "Who takes part? / Wer ist beteiligt?"
+      description: "The actors of docs/userstories/journeys.md"
+      options:
+        - label: "visitor / Besucher"
+        - label: "person (new account) / Person (neues Konto)"
+        - label: "club member / Vereinsmitglied"
+        - label: "sailor / Segler"
+        - label: "guardian / Erziehungsberechtigte"
+        - label: "club admin / Vereinsadmin"
+        - label: "club manager / Vereinsorganisator"
+        - label: "treasurer / Kassenwart"
+        - label: "series manager / Serienorganisator"
+        - label: "event organizer / Veranstalter"
+        - label: "helper / Helfer"
+        - label: "race officer / Wettfahrtleitung"
+        - label: "jury / Jury"
+        - label: "league office / Ligabüro"
+  - type: input
+    id: other_actors
+    attributes:
+      label: "Someone else? / Jemand anderes?"
+  - type: textarea
+    id: start
+    attributes:
+      label: "Starting point / Ausgangslage"
+      description: "What exists before the first step? / Was gibt es schon vor dem ersten Schritt?"
+  - type: textarea
+    id: goal
+    attributes:
+      label: "Goal / Ziel"
+      description: "What is true at the end? / Was ist am Ende wahr?"
+    validations:
+      required: true
+  - type: textarea
+    id: flow
+    attributes:
+      label: "The flow / Der Ablauf"
+      description: "Who does what, in which order — one line each / Wer macht was, in welcher Reihenfolge — eine Zeile pro Schritt"
+      placeholder: |
+        1. club manager registers the squad for the series
+        2. club manager names the crew for the matchday
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: branches
+    attributes:
+      label: "What if …? / Was wenn …?"
+      description: "Exceptions and alternatives / Ausnahmen und Alternativen (e.g. 'a sailor is under 18')"

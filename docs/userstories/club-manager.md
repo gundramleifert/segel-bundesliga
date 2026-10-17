@@ -82,7 +82,13 @@ Acceptance criteria:
   still write a sailor without one, bypassing this form.)
 - Birth date is captured as a **complete date**, not just a year — age-category eligibility
   (e.g. a youth series) needs the exact date. It stays optional and is never shown publicly.
-- An organizer creates only people from their **own** club.
+- **Any club's organizer may create and find people** — a person has no club until a
+  squad holds them (V-1), so there is nothing to scope a new record to, and finding the
+  existing record beats creating a second. **Changing** a person is scoped: the organizer
+  of a club whose squad or entry holds them, or of any club while nobody's squad holds
+  them yet; administration and editorial always. Until 2026-10-17 this story said
+  "creates only people from their own club" while any club's organizer could edit
+  anyone on the site (found by Journey J-3) — `sailor-not-yours` (403) now.
 - If the address is already known, the **existing person is offered** instead of creating a
   second. Two records for the same person would be a mistake that is hard to fix later.
 - **A person may sail for multiple clubs.** They can be registered for one in the first
@@ -208,8 +214,11 @@ Acceptance criteria:
     whom.
   - `squad-member-is-lined-up` — cannot be dropped while lined up for a matchday, and for
     which one.
-  - `squad-needs-series-registration` — this `Team` is an event entry, not a series
-    registration, so it carries no squad.
+  - `squad-needs-series-registration` — this `Team` is the entry in an event that belongs
+    to a series, whose squad is the club's series registration. **A stand-alone event's
+    entry does carry the squad** (V-12) and is saved like a series registration, within
+    the event's own limits; until 2026-10-17 it was refused too, which left a club's own
+    cup without a squad, a crew or a waiver (found by Journey J-5, step J-5.4).
 - **The squad's size is set per series — or per event, when the event stands alone**
   (`Series.squad_min` / `squad_max`, `Event.squad_min` / `squad_max`; defaults 4 and 10).
   The **maximum is enforced** when the squad is saved (`squad-too-large`, naming the
@@ -426,7 +435,14 @@ with no change on its side and none in the frontend, and removing the upload fal
 the external URL instead of leaving the club blank. The served URL carries a `?v=<mtime>`
 cache stamp, because the path itself is stable across replacements.
 
-**The UI** is the club list in `web/src/pages/Admin.tsx` (`ClubRow`). The crest is edited
+**The club's admin edits it on their club's page in my space** — the Members tab of
+`/me/club/:id`, beside the people, because the crest is the club's identity like its
+members. Until 2026-10-17 the only control was the admin screen's club list, which a
+club's admin cannot open, so the endpoint let them upload and no screen did (found by
+Journey J-2). Both places use one component, `CrestEditor`.
+
+**The UI** in both places — the admin screen's club list (`ClubRow` in
+`web/src/pages/Admin.tsx`) and the club's page — is `web/src/components/CrestEditor.tsx`. The crest is edited
 **from the crest**: hovering (or keyboard-focusing) the thumbnail reveals a pen over it, and
 activating it opens the file chooser — there is deliberately no separate "upload"/"replace"
 button, which said the same thing twice and put the action a row's width away from the thing

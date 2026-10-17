@@ -249,7 +249,7 @@ async def waiver_form(
     may print their form. An adult gets the same sheet with their own signature line, for
     whoever prefers paper."""
     sailor = await _sailor(session, sailor_id)
-    _may_confirm_for(acting, sailor)
+    await _may_confirm_for(session, acting, sailor)
     required = await current_waiver_text(session)
     if required is None:
         raise Problem(404, "no-waiver-published", "No liability waiver has been published yet.")
@@ -571,7 +571,7 @@ async def _confirm(
     if sailor is None:
         raise HTTPException(status_code=404, detail=f"Sailor {request.sailor_id} not found")
 
-    _may_confirm_for(acting, sailor)
+    await _may_confirm_for(session, acting, sailor)
 
     required = await current_waiver_text(session)
     if required is None:
@@ -728,7 +728,7 @@ async def _attach_scan(
     reference_date: date,
 ) -> WaiverConfirmationOut:
     sailor = await _sailor(session, sailor_id)
-    _may_confirm_for(acting, sailor)
+    await _may_confirm_for(session, acting, sailor)
 
     required = await current_waiver_text(session)
     if required is None:
@@ -847,18 +847,7 @@ async def _may_view_scan(
     managed = acting.managed_club_ids
     if not managed:
         return False
-    sailor_clubs = set(
-        (
-            await session.execute(
-                select(Team.club_id)
-                .join(TeamMembership, TeamMembership.team_id == Team.id)
-                .where(TeamMembership.sailor_id == sailor.id)
-            )
-        )
-        .scalars()
-        .all()
-    )
-    if managed & sailor_clubs:
+    if managed & await _sailor_clubs(session, sailor.id):
         return True
     if row.event_id is not None:
         host = (
@@ -869,10 +858,35 @@ async def _may_view_scan(
     return False
 
 
-def _may_confirm_for(acting: User, sailor: Sailor) -> None:
-    """The sailor's own account, or someone who maintains sailors (they collect the forms)."""
-    own = sailor.email is not None and sailor.email.lower() == acting.email.lower()
-    if own or acting.has_any(Role.ADMIN, Role.EDITOR, Role.CLUB_MANAGER):
+async def _sailor_clubs(session: AsyncSession, sailor_id: int) -> set[int]:
+    """The clubs that have this sailor in a squad or an event entry — "the sailor's club"."""
+    return set(
+        (
+            await session.execute(
+                select(Team.club_id)
+                .join(TeamMembership, TeamMembership.team_id == Team.id)
+                .where(TeamMembership.sailor_id == sailor_id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) -> None:
+    """The sailor's own (verified) account, the league office, or the manager of a club
+    that has the sailor in a squad — they collect their club's paper forms (Stories S-1,
+    S-3). Not any club's manager: the `club_manager` *summary* role once let one club
+    sign for every sailor on the site."""
+    own = (
+        acting.email_verified
+        and sailor.email is not None
+        and sailor.email.lower() == acting.email.lower()
+    )
+    if own or acting.can(Relation.ADMIN, Relation.EDITOR):
+        return
+    managed = acting.managed_club_ids
+    if managed and managed & await _sailor_clubs(session, sailor.id):
         return
     raise Problem(
         403,

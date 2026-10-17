@@ -7,6 +7,7 @@ import type { MyClub } from "../api/types";
 import { useAccount, useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { AccessPanel } from "./AccessPanel";
+import { CrestEditor } from "./CrestEditor";
 import { Empty, ErrorMessage, Loading } from "./Blocks";
 import { PersonDocuments } from "./PersonDocuments";
 
@@ -19,9 +20,9 @@ import { PersonDocuments } from "./PersonDocuments";
  *   else each person is to the club, so the organizers are recognizable (V-10).
  * - A **member**: "Leave the club", which deletes their own `member` tuple — the one
  *   write a person may make on themselves.
- * - The club's **admin**: the `AccessPanel` on `club:<id>`, which is where people are
- *   added by email and removed (V-8, V-9). No separate invite form: it would be a second
- *   copy of that panel with fewer relations.
+ * - The club's **admin**: the club's crest (`CrestEditor`, V-3), and the `AccessPanel` on
+ *   `club:<id>`, which is where people are added by email and removed (V-8, V-9). No
+ *   separate invite form: it would be a second copy of that panel with fewer relations.
  */
 export function ClubMembersPanel({
   entry,
@@ -127,6 +128,20 @@ export function ClubMembersPanel({
           )}
           {leave.isError && <ErrorMessage text={errorText(leave.error)} />}
         </div>
+      )}
+
+      {entry.may_admin && (
+        // The crest is the club's identity, like its people — so it is kept here, by the
+        // club's admin (Story V-3), not only on the league office's club list.
+        <section className="flex flex-wrap items-center gap-3" data-testid={`my-club-crest-${clubId}-section`}>
+          <CrestEditor
+            club={entry.club}
+            onChanged={() => invalidate("/api/clubs", "/api/admin/clubs")}
+            testIdPrefix="my-club-crest"
+          >
+            <p className="min-w-0 flex-1 text-sm text-slate-600">{t("members.crestHint")}</p>
+          </CrestEditor>
+        </section>
       )}
 
       {entry.may_admin && (

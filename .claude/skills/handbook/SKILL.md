@@ -1,6 +1,6 @@
 ---
 name: handbook
-description: "Builds and updates the site's in-app help — the handbook at /help — for every kind of person who uses it: visitor, sailor, club manager, event organizer, race committee, treasurer, administration. Pages are derived from the user stories (only what is built) and the journeys in docs/userstories/journeys.md: one guide per journey, one starting page per audience, a roles page from the permission model, an FAQ from the typed errors. English source, German translation, screenshots from the running stack, and checks in scripts/check-docs.py that keep pages, stories and journeys in step. Use for 'write the help', 'document this for club managers', 'update the handbook', 'Hilfe/Handbuch', 'user docs from the journeys', or after a feature changed what someone does on the site. Adapted from the Planet AI vertical-docs skill. NOT for engineering docs under docs/, the user stories themselves, or the public content pages (news, press)."
+description: "Builds and updates the site's in-app help — the handbook at /help — for every kind of person who uses it: visitor, sailor, club manager, event organizer, race committee, treasurer, administration. Pages are derived from the user stories (only what is built) and the journeys in docs/journeys/: one guide per journey, one starting page per audience, a roles page from the permission model, an FAQ from the typed errors. English source, German translation, screenshots from the running stack, and checks in scripts/check-docs.py that keep pages, stories and journeys in step. Use for 'write the help', 'document this for club managers', 'update the handbook', 'Hilfe/Handbuch', 'user docs from the journeys', or after a feature changed what someone does on the site. Adapted from the Planet AI vertical-docs skill. NOT for engineering docs under docs/, the user stories themselves, or the public content pages (news, press)."
 argument-hint: "[first-pass | update | page <id> | audience <name> | journey <J-n>]"
 ---
 
@@ -81,8 +81,7 @@ Rosters, prompts, the plan format: `references/orchestration.md`. Update mode:
 - Inventory `[HAVE]/[MISSING]`: the store, its baseline (`web/src/handbook/.baseline/`),
   the viewer (`web/src/pages/Help.tsx` — hand-written roles matrix today), the `/help`
   route in `web/src/App.tsx`, the `help` i18n namespace, the journeys and their format
-  (numbered story steps, or the `J-n.k` step tables of `plan-journeys.md` if that has
-  landed), the screenshot spec, `scripts/check-docs.py`'s handbook checks.
+  (`docs/journeys/`, `J-n.k` step tables, actors in `docs/userstories/journeys.md`), the screenshot spec, `scripts/check-docs.py`'s handbook checks.
 - The stack must start: `scripts/dev-stack.sh --workers 1` (seeded throwaway database,
   `SBL_DEV_LOGIN=true`). If it does not, stop after discovery — never author from source
   alone and call it verified.

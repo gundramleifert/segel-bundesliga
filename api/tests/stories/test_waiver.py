@@ -13,7 +13,7 @@ import pytest
 from sqlalchemy import delete, select
 
 from app.db import SessionLocal
-from app.models import Sailor, Series, Team, TeamMembership, WaiverConfirmation, WaiverText
+from app.models import Club, Sailor, Series, Team, TeamMembership, WaiverConfirmation, WaiverText
 from app.models.auth import Role
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
@@ -228,6 +228,45 @@ class TestConfirming:
         admin = await _admin(client, caplog)
         allowed = await client.post(url, headers=admin, json={"sailor_id": sailor_id})
         assert allowed.status_code == 201
+
+    async def test_a_club_manager_signs_only_for_their_own_clubs_sailors(self, client, caplog, ids):
+        """Stories S-1, S-3: a club's manager hands in the forms *their* club collected —
+        confirming, uploading a scan or printing a form for a sailor of another club is
+        refused, as it is for any stranger. (Until 2026-10-17 any club manager on the site
+        could sign for anybody; found by Journey J-5.)"""
+        sailor_id, _ = await _squad_sailor("dsbl-1-2026", offset=45)
+        own_club = await _club_of(sailor_id)
+        async with SessionLocal() as session:
+            sailor_clubs = set(
+                (
+                    await session.execute(
+                        select(Team.club_id)
+                        .join(TeamMembership, TeamMembership.team_id == Team.id)
+                        .where(TeamMembership.sailor_id == sailor_id)
+                    )
+                ).scalars()
+            )
+            other_club = (
+                await session.execute(
+                    select(Club.id).where(Club.id.not_in(sailor_clubs)).order_by(Club.id).limit(1)
+                )
+            ).scalar_one()
+        series_id = ids.series("dsbl-1-2026")
+        url = f"/api/series/{series_id}/waiver"
+        form = f"/api/waiver/form?scope=series&scope_id={series_id}&sailor_id={sailor_id}"
+
+        await make_user("wv-foreign-mgr@example.com", Role.CLUB_MANAGER, club_id=other_club)
+        foreign = auth_headers(await login_as(client, "wv-foreign-mgr@example.com", caplog))
+        denied = await client.post(url, headers=foreign, json={"sailor_id": sailor_id})
+        assert denied.status_code == 403, denied.text
+        assert denied.json()["type"] == "/errors/waiver-confirmation-forbidden"
+        assert (await client.get(form, headers=foreign)).status_code == 403
+
+        await make_user("wv-own-mgr@example.com", Role.CLUB_MANAGER, club_id=own_club)
+        own = auth_headers(await login_as(client, "wv-own-mgr@example.com", caplog))
+        assert (await client.get(form, headers=own)).status_code == 200
+        allowed = await client.post(url, headers=own, json={"sailor_id": sailor_id})
+        assert allowed.status_code == 201, allowed.text
 
 
 class TestMinors:

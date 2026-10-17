@@ -46,7 +46,7 @@
   "squad-duplicate-sailor": "Jemand steht doppelt in diesem Kader.",
   "squad-sailor-in-another-club": "In dieser Serie schon für einen anderen Verein gemeldet: {{sailors}}. Eine Person tritt je Serie nur einmal an.",
   "squad-member-is-lined-up": "Schon für eine Veranstaltung aufgestellt: {{selections}}. Erst die Aufstellung ändern, dann den Kader.",
-  "squad-needs-series-registration": "Ein Kader hängt an der Meldung für eine Serie, nicht am Antritt zu einer einzelnen Veranstaltung.",
+  "squad-needs-series-registration": "Ein Kader hängt an der Meldung für die Serie, nicht am Antritt zu einer ihrer Veranstaltungen.",
   "squad-unknown-sailor": "Einige dieser Personen gibt es nicht mehr. Bitte die Seite neu laden.",
   "waiver-scan-invalid-type": "Das unterschriebene Formular muss ein PDF, ein JPEG oder ein PNG sein.",
   "waiver-scan-invalid": "Diese Datei ließ sich nicht als PDF oder Bild lesen.",
@@ -101,5 +101,6 @@
   "payment-run-not-found": "Diesen Zahlungslauf gibt es nicht.",
   "payment-not-failable": "Nur eine an die Bank übergebene oder gebuchte Zahlung kann zurückkommen.",
   "payment-not-found": "Diese Zahlung gibt es nicht.",
-  "bic-invalid": "Diese BIC ist ungültig – leer lassen, dann wird sie aus der IBAN ergänzt."
+  "bic-invalid": "Diese BIC ist ungültig – leer lassen, dann wird sie aus der IBAN ergänzt.",
+  "sailor-not-yours": "Diese Person segelt für einen anderen Verein — nur dessen Organisatoren können ihre Angaben ändern."
 }

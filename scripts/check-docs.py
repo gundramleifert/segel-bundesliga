@@ -18,8 +18,9 @@ Three jobs, all of them things that went wrong here before:
 It also regenerates `docs/gotchas/INDEX.md`, which exists so an agent can load ten one-line
 rules instead of ten files and still know which one to open, and `docs/traceability.md`:
 every story with its status, the backend tests that cover it, the browser test groups
-tagged with it and the journeys that walk it — the one page that answers "what proves
-this story?", and the gaps where nothing does.
+tagged with it, the journey steps that walk it and the help pages that explain it — the
+one page that answers "what proves this story?", and the gaps where nothing does — with
+one table per journey (`docs/journeys/`), step by step.
 
     scripts/check-docs.py         # report, exit 1 on problems
     scripts/check-docs.py --fix   # also rewrite the generated pages and docs/stories.json
@@ -32,9 +33,12 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 ROOT = Path(__file__).resolve().parent.parent
 STORIES = ROOT / "docs" / "userstories"
+JOURNEYS = ROOT / "docs" / "journeys"
+HANDBOOK = ROOT / "web" / "src" / "handbook"
 GOTCHAS = ROOT / "docs" / "gotchas"
 INDEX = GOTCHAS / "INDEX.md"
 TRACEABILITY = ROOT / "docs" / "traceability.md"
@@ -50,12 +54,25 @@ STORY_MENTION = re.compile(r"\b(?:Stor(?:y|ies)\s+)((?:[A-Z]+-\d+)(?:[,\s]+(?:an
 # An e2e spec names its stories in the title it hands `describeStory` ("VA-8/VA-9: …");
 # `e2e/fixtures.ts` turns them into tags, so an unknown one would be a tag for nothing.
 E2E_STORY_TITLE = re.compile(r"describeStory\(\s*\"(?P<ids>[A-Z]+-\d+(?:/[A-Z]+-\d+)*):")
-# A journey test's steps: `step("VA-7", …)` in pytest (`api/tests/journeys.py`) and in a
+# A journey test's steps: `step("J-1.6", …)` in pytest (`api/tests/journeys.py`) and in a
 # Playwright `describeJourney` (`e2e/fixtures.ts`) — never Playwright's own `test.step`.
-STEP_CALL = re.compile(r"(?<![.\w])step\(\s*\"(?P<id>[A-Z]+-\d+)\"")
+STEP_CALL = re.compile(r"(?<![.\w])step\(\s*\"(?P<id>[A-Z]+-[\d.]+)\"")
 E2E_JOURNEY_TITLE = re.compile(r"describeJourney\(\s*\"(?P<ids>J-\d+):")
-# In a journey's section: "3. VA-8  …" is a main step, "5a. VA-8  …" a variation.
-JOURNEY_STEP = re.compile(r"^(?P<number>\d+)(?P<variant>[a-z]?)\.\s+(?P<id>[A-Z]+-\d+)\s", re.M)
+# A journey file (`docs/journeys/<slug>.md`): its heading, its step table, its diagram.
+JOURNEY_HEADING = re.compile(r"^# (?P<id>J-\d+) (?P<marker>[○◐●]) (?P<title>.+)$", re.M)
+STEP_ID = re.compile(r"J-\d+\.\d+")
+STEP_ROW = re.compile(
+    r"^\| (?P<id>J-\d+\.\d+) \| (?P<path>[^|]+?) \| (?P<story>[^|]+?) \| (?P<who>[^|]+?) \| (?P<what>[^|]*?) \|$",
+    re.M,
+)
+# The actors (docs/userstories/journeys.md § Actors): "| club admin | CA | …".
+ACTOR_ROW = re.compile(r"^\| (?P<name>[a-z][a-z ]*) \| (?P<alias>[A-Z]+) \|", re.M)
+PARTICIPANT = re.compile(r"^\s*(?:actor|participant) (?P<alias>\w+) as (?P<name>.+?)\s*$", re.M)
+MERMAID = re.compile(r"^```mermaid\n(?P<body>.*?)^```", re.M | re.S)
+RETIRED = re.compile(r"^Retired steps: (?P<body>.+)$", re.M)
+# A test that covers one step without walking the journey says so in its docstring:
+# "Journey step J-5.6", "Journey steps J-5.2 and J-5.3".
+STEP_MENTION = re.compile(r"\bJourney steps?\s+((?:J-\d+\.\d+)(?:(?:[,\s]+|\s+and\s+)J-\d+\.\d+)*)")
 
 REQUIRED_SECTIONS = ("**Symptom**", "**Cause**", "**Rule**", "**Evidence**")
 
@@ -79,7 +96,7 @@ LINK = re.compile(r"\]\((?P<file>[\w-]+\.md)?(?:#(?P<anchor>[\w-]+))?\)")
 HEADING = re.compile(r"^#{1,6} (?P<text>.+)$", re.M)
 
 
-FENCE = re.compile(r"^```.*?^```", re.M | re.S)
+FENCE = re.compile(r"^(?P<ticks>`{3,}).*?^(?P=ticks)$", re.M | re.S)
 
 
 def story_files() -> dict[str, str]:
@@ -185,48 +202,215 @@ def _test_region(reference: str) -> str | None:
     return rest[: end.start()] if end else rest
 
 
-def check_journeys(files: dict[str, str]) -> list[str]:
-    """A journey (`J-…`, docs/userstories/journeys.md) is walked by its tests step by step:
-    each test's `step(...)` IDs are the main steps, in order; every step is a real story;
-    and the journey is ● only when it has a test and every main step's story is ●."""
-    markers = {m["id"]: m["marker"] for text in files.values() for m in STORY_HEADING.finditer(text)}
+class Step(NamedTuple):
+    id: str
+    path: str
+    story: str
+    who: str
+    what: str
+
+    @property
+    def offline(self) -> bool:
+        """Happens away from the site — a guardian signing paper — so no test can walk it."""
+        return "(offline)" in self.who
+
+
+class Journey(NamedTuple):
+    id: str
+    marker: str
+    title: str
+    file: str  # relative to ROOT
+    text: str
+    steps: list[Step]
+    diagram: list[str]  # the `[J-n.k]` of every arrow, in reading order
+    participants: list[tuple[str, str]]  # (alias, name) of every `actor`/`participant`
+    retired: list[str]
+    tests: list[str]  # the references on its `Tests:` line
+
+
+def journeys() -> list[Journey]:
+    """Every journey in `docs/journeys/`, one per file, in ID order."""
+    out: list[Journey] = []
+    for path in sorted(JOURNEYS.glob("*.md")):
+        if path.name == "README.md":
+            continue
+        raw = path.read_text(encoding="utf-8")
+        heading = JOURNEY_HEADING.search(raw)
+        if not heading:
+            out.append(Journey("?", "?", path.name, str(path.relative_to(ROOT)), raw, [], [], [], [], []))
+            continue
+        diagrams = "\n".join(m["body"] for m in MERMAID.finditer(raw))
+        diagram = re.findall(r"\[(J-\d+\.\d+)\]", diagrams)
+        text = FENCE.sub("", raw)
+        retired = RETIRED.search(text)
+        tests_line = TESTS_LINE.search(text)
+        out.append(Journey(
+            id=heading["id"],
+            marker=heading["marker"],
+            title=heading["title"],
+            file=str(path.relative_to(ROOT)),
+            text=text,
+            steps=[Step(*(g.strip() for g in m.groups())) for m in STEP_ROW.finditer(text)],
+            diagram=diagram,
+            participants=[(m["alias"], m["name"]) for m in PARTICIPANT.finditer(diagrams)],
+            retired=STEP_ID.findall(retired["body"]) if retired else [],
+            tests=REFERENCE.findall(tests_line["body"]) if tests_line else [],
+        ))
+    return sorted(out, key=lambda j: int(j.id[2:]) if j.id[2:].isdigit() else 0)
+
+
+def _test_sources() -> list[Path]:
+    return sorted((ROOT / "api" / "tests").rglob("test_*.py")) + sorted((ROOT / "e2e").glob("*.spec.ts"))
+
+
+def step_mentions() -> dict[str, list[str]]:
+    """Step ID → the tests that cover it without walking the journey ("Journey step J-5.6"
+    in a docstring), each as `file::test` — the test function or class the mention sits in."""
+    out: dict[str, list[str]] = {}
+    for path in _test_sources():
+        source = path.read_text(encoding="utf-8")
+        for m in STEP_MENTION.finditer(source):
+            owner = None
+            for d in re.finditer(r"^[ \t]*(?:async )?(?:def|class) (\w+)", source[: m.start()], re.M):
+                owner = d[1]
+            label = f"{path.name}::{owner}" if owner else path.name
+            for sid in STEP_ID.findall(m[1]):
+                if label not in out.setdefault(sid, []):
+                    out[sid].append(label)
+    return out
+
+
+def walks(journey: Journey) -> dict[str, list[str]]:
+    """Each test on the journey's `Tests:` line → the step IDs it walks, in order."""
+    out: dict[str, list[str]] = {}
+    for reference in journey.tests:
+        region = _test_region(reference)
+        if region is not None:  # check_story_references reports one that does not resolve
+            out[reference] = [c["id"] for c in STEP_CALL.finditer(region)]
+    return out
+
+
+def check_journeys(markers: dict[str, str], all_journeys: list[Journey], index: str) -> tuple[list[str], list[str]]:
+    """A journey (`docs/journeys/<slug>.md`) proves itself: stable step IDs, a diagram that
+    shows exactly the table, tests that walk the main path in order, and a status that
+    follows from what is tested. Returns (problems, warnings)."""
     problems: list[str] = []
-    for name, text in files.items():
-        for m in STORY_HEADING.finditer(text):
-            if not m["id"].startswith("J-"):
-                continue
-            journey = m["id"]
-            following = re.search(r"^### ", text[m.end():], re.M)
-            section = text[m.end(): m.end() + following.start()] if following else text[m.end():]
-            steps = list(JOURNEY_STEP.finditer(section))
-            main = [s["id"] for s in steps if not s["variant"]]
-            if not main:
-                problems.append(f"{name}: journey {journey} has no numbered steps")
-            for step in steps:
-                if step["id"] not in markers:
-                    problems.append(f"{name}: journey {journey} step {step['number']}{step['variant']} names {step['id']}, which is not a story")
-            tests_line = TESTS_LINE.search(section)
-            references = REFERENCE.findall(tests_line["body"]) if tests_line else []
-            for reference in references:
-                region = _test_region(reference)
-                if region is None:
-                    continue  # check_story_references reports a reference that does not resolve
-                walked = [c["id"] for c in STEP_CALL.finditer(region)]
-                if walked != main:
-                    problems.append(
-                        f"{name}: journey {journey} has steps {' → '.join(main)}, "
-                        f"but {reference} walks {' → '.join(walked) or 'no step(...) at all'}"
-                    )
-            weakest = [sid for sid in dict.fromkeys(main) if markers.get(sid) != "●"]
-            expected = "○" if not references else ("◐" if weakest else "●")
-            if m["marker"] != expected:
-                why = (
-                    "it has no test" if not references
-                    else f"{', '.join(f'{sid} is {markers.get(sid, '?')}' for sid in weakest)}" if weakest
-                    else "it has a test and every step is ●"
+    warnings: list[str] = []
+    mentions = step_mentions()
+    seen_ids: dict[str, str] = {}
+    all_steps = {s.id for j in all_journeys for s in j.steps}
+    all_retired = {r for j in all_journeys for r in j.retired}
+    actors_section = index.partition("## Actors")[2].partition("\n## ")[0]
+    actors = {m["name"]: m["alias"] for m in ACTOR_ROW.finditer(actors_section)}
+    if not actors:
+        problems.append("docs/userstories/journeys.md: no actor table under '## Actors'")
+
+    def unknown_actors(cell: str) -> list[str]:
+        names = re.split(r",\s*|\s+or\s+", cell.replace("(offline)", "").strip())
+        return [n for n in (x.strip() for x in names) if n and n not in actors]
+
+    for j in all_journeys:
+        where = j.file
+        if j.id == "?":
+            problems.append(f"{where}: first heading must be '# J-<n> <○|◐|●> <title>'")
+            continue
+        if j.id in seen_ids:
+            problems.append(f"{where}: journey {j.id} is also {seen_ids[j.id]}")
+        seen_ids[j.id] = where
+        if f"../journeys/{Path(where).name}" not in index:
+            problems.append(f"{where}: not listed in docs/userstories/journeys.md")
+        if not j.steps:
+            problems.append(f"{where}: {j.id} has no step table (| Step | Path | Story | Who | What is then true |)")
+            continue
+
+        who = re.search(r"^Who: (?P<body>.+)$", j.text, re.M)
+        for name in unknown_actors(who["body"]) if who else ["(no Who: line)"]:
+            problems.append(f"{where}: Who: names '{name}', which is not an actor in journeys.md")
+        for alias, shown in j.participants:
+            name = shown.lower()
+            if name not in actors:
+                problems.append(f"{where}: the diagram's '{shown}' is not an actor in journeys.md")
+            elif alias != actors[name]:
+                problems.append(f"{where}: the diagram calls {name} '{alias}', journeys.md '{actors[name]}'")
+
+        ids = [s.id for s in j.steps]
+        for sid in {i for i in ids if ids.count(i) > 1}:
+            problems.append(f"{where}: step {sid} is in the table twice")
+        for s in j.steps:
+            if not s.id.startswith(j.id + "."):
+                problems.append(f"{where}: step {s.id} does not belong to {j.id}")
+            if s.story not in markers or s.story.startswith("J-"):
+                problems.append(f"{where}: step {s.id} names {s.story}, which is not a story")
+            for name in unknown_actors(s.who):
+                problems.append(f"{where}: step {s.id} is done by '{name}', which is not an actor in journeys.md")
+        for r in j.retired:
+            if r in ids:
+                problems.append(f"{where}: step {r} is retired and must not be in the table again")
+        if j.diagram != ids:
+            missing = [i for i in ids if i not in j.diagram]
+            extra = [i for i in j.diagram if i not in ids]
+            if missing or extra:
+                problems.append(
+                    f"{where}: the diagram and the table disagree — "
+                    + "; ".join(filter(None, [
+                        missing and f"no arrow for {', '.join(missing)}",
+                        extra and f"arrow without a row: {', '.join(extra)}",
+                    ]))
                 )
-                problems.append(f"{name}: journey {journey} is marked {m['marker']}, but must be {expected} — {why}")
-    return problems
+            else:
+                problems.append(
+                    f"{where}: the table must list the steps in the diagram's order: "
+                    f"{' → '.join(j.diagram)}"
+                )
+        if "main" not in {s.path for s in j.steps}:
+            problems.append(f"{where}: {j.id} has no step on path main")
+
+        position = {s.id: n for n, s in enumerate(j.steps)}
+        main = [s.id for s in j.steps if s.path == "main" and not s.offline]
+        walked: set[str] = set()
+        journey_walks = walks(j)
+        for reference, sequence in journey_walks.items():
+            foreign = [i for i in sequence if i not in position]
+            if foreign:
+                problems.append(f"{where}: {reference} walks {', '.join(foreign)}, not a step of {j.id}")
+                continue
+            if [position[i] for i in sequence] != sorted(position[i] for i in set(sequence)):
+                problems.append(
+                    f"{where}: {reference} walks {' → '.join(sequence)}, which is not the table's order"
+                )
+            skipped = [i for i in main if i not in sequence]
+            if skipped:
+                problems.append(f"{where}: {reference} skips the main steps {', '.join(skipped)}")
+            walked.update(sequence)
+
+        covered = walked | {s.id for s in j.steps if s.id in mentions}
+        uncovered = [s.id for s in j.steps if not s.offline and s.id not in covered]
+        weak = list(dict.fromkeys(s.story for s in j.steps if markers.get(s.story) != "●"))
+        expected = "○" if not journey_walks else ("●" if not uncovered and not weak else "◐")
+        if j.marker != expected:
+            why = (
+                "no test walks it" if not journey_walks
+                else "; ".join(filter(None, [
+                    uncovered and f"no test covers {', '.join(uncovered)}",
+                    weak and ", ".join(f"{sid} is {markers.get(sid, '?')}" for sid in weak),
+                ])) or "it is walked, every step is covered and every story is ●"
+            )
+            problems.append(f"{where}: {j.id} is marked {j.marker}, but must be {expected} — {why}")
+        if journey_walks and uncovered:
+            warnings.append(f"{where}: no test covers {', '.join(uncovered)} (walk it, or name 'Journey step …' in a test)")
+
+    for sid, tests in mentions.items():
+        if sid in all_retired:
+            problems.append(f"{', '.join(tests)} names step {sid}, which is retired")
+        elif sid not in all_steps:
+            problems.append(f"{', '.join(tests)} names step {sid}, which is in no journey")
+    for path in _test_sources():
+        for c in STEP_CALL.finditer(path.read_text(encoding="utf-8")):
+            if c["id"] in all_retired:
+                problems.append(f"{path.relative_to(ROOT)} walks step {c['id']}, which is retired")
+            elif c["id"] not in all_steps:
+                problems.append(f"{path.relative_to(ROOT)} walks {c['id']}, which is no journey step (J-n.k)")
+    return problems, warnings
 
 
 def check_gotchas() -> tuple[list[str], list[tuple[str, str]]]:
@@ -302,14 +486,35 @@ def _short(reference: str) -> str:
     return f"{Path(path).name}::{node}" if node else Path(path).name
 
 
-def render_traceability(files: dict[str, str]) -> str:
+def handbook_pages() -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+    """The handbook's pages (`web/src/handbook/<id>.en.md`, the `handbook` skill) by the
+    stories and by the journey each cites in its frontmatter — the "auto-documentation"
+    end of the chain. Empty until the handbook exists."""
+    by_story: dict[str, list[str]] = {}
+    by_journey: dict[str, list[str]] = {}
+    for path in sorted(HANDBOOK.glob("*.en.md")) if HANDBOOK.is_dir() else []:
+        head = path.read_text(encoding="utf-8").split("---")
+        meta = head[1] if len(head) > 2 else ""
+        page = path.name.removesuffix(".en.md")
+        stories = re.search(r"^stories:\s*\[(?P<ids>[^\]]*)\]", meta, re.M)
+        for sid in re.findall(r"[A-Z]+-\d+", stories["ids"]) if stories else []:
+            by_story.setdefault(sid, []).append(page)
+        journey = re.search(r"^journey:\s*(?P<id>J-\d+)", meta, re.M)
+        if journey:
+            by_journey.setdefault(journey["id"], []).append(page)
+    return by_story, by_journey
+
+
+def render_traceability(files: dict[str, str], all_journeys: list[Journey]) -> str:
     """docs/traceability.md: one row per story — status, backend tests, browser groups,
-    journeys — grouped by the file the story is told in, in the README's order."""
+    journey steps, help pages — grouped by the file the story is told in, in the README's
+    order; then one table per journey, step by step."""
     order = re.findall(r"^\| \[([\w-]+\.md)\]", (STORIES / "README.md").read_text(encoding="utf-8"), re.M)
     names = [n for n in order if n in files] + [n for n in files if n not in order and n != "README.md"]
+    step_story = {s.id: s.story for j in all_journeys for s in j.steps}
+    help_by_story, help_by_journey = handbook_pages()
 
     browser: dict[str, list[str]] = {}
-    journeys: dict[str, list[str]] = {}
     for path in sorted((ROOT / "e2e").glob("*.spec.ts")):
         source = path.read_text(encoding="utf-8")
         for m in E2E_GROUP.finditer(source):
@@ -319,20 +524,18 @@ def render_traceability(files: dict[str, str]) -> str:
             if m["kind"] == "Journey":
                 region = _test_region(f"e2e/{path.name}::{m['title']}") or ""
                 for c in STEP_CALL.finditer(region):
-                    browser.setdefault(c["id"], []).append(f"{label} (step)")
-    for text in files.values():
-        for m in STORY_HEADING.finditer(text):
-            if m["id"].startswith("J-"):
-                following = re.search(r"^### ", text[m.end():], re.M)
-                section = text[m.end(): m.end() + following.start()] if following else text[m.end():]
-                for step in JOURNEY_STEP.finditer(section):
-                    entry = m["id"] if not step["variant"] else f"{m['id']} (variation)"
-                    if entry not in journeys.setdefault(step["id"], []):
-                        journeys[step["id"]].append(entry)
+                    story = step_story.get(c["id"])
+                    if story and f"{label} (step)" not in browser.setdefault(story, []):
+                        browser[story].append(f"{label} (step)")
+    walked_in: dict[str, list[str]] = {}
+    for j in all_journeys:
+        for s in j.steps:
+            walked_in.setdefault(s.story, []).append(s.id)
 
     rows: dict[str, list[str]] = {}
     totals = {"●": 0, "◐": 0, "○": 0}
     covered = {"backend": 0, "browser": 0, "journey": 0, "none": 0}
+    cell = lambda items: "<br>".join(f"`{i}`" for i in items) or "—"  # noqa: E731
     for name in names:
         text = files[name]
         for m in STORY_HEADING.finditer(text):
@@ -344,16 +547,16 @@ def render_traceability(files: dict[str, str]) -> str:
             groups = list(dict.fromkeys(
                 [_short(r) for r in references if r.startswith("e2e/")] + browser.get(sid, [])
             ))
-            walked = journeys.get(sid, [])
+            walked = walked_in.get(sid, [])
             totals[m["marker"]] += 1
             covered["backend"] += bool(backend)
             covered["browser"] += bool(groups)
             covered["journey"] += bool(walked)
             covered["none"] += not (backend or groups)
             link = f"[{sid}](userstories/{name}#{anchor(m.group(0)[4:])})"
-            cell = lambda items: "<br>".join(f"`{i}`" for i in items) or "—"  # noqa: E731
             rows.setdefault(name, []).append(
-                f"| {link} | {m['marker']} | {m['title']} | {cell(backend)} | {cell(groups)} | {', '.join(walked) or '—'} |"
+                f"| {link} | {m['marker']} | {m['title']} | {cell(backend)} | {cell(groups)} "
+                f"| {', '.join(walked) or '—'} | {cell(help_by_story.get(sid, []))} |"
             )
 
     lines = [
@@ -362,17 +565,51 @@ def render_traceability(files: dict[str, str]) -> str:
         "Generated by `scripts/check-docs.py --fix` — do not edit by hand; `scripts/check.sh`",
         "fails when it is stale.",
         "",
-        "Every story, and what proves it: the backend tests its `Tests:` line names, the browser",
-        "test groups tagged with it (`describeStory` / `describeJourney` in `e2e/`), and the",
-        "journeys that walk it. The recordings are not here — they exist only after an evidence",
-        "run: `pnpm e2e:evidence`, then open `e2e-evidence/traceability.html`, which lists the",
-        "same stories with each test's result, video and trace.",
+        "The chain is **journey → story → tests → help → report**. Every journey step names one",
+        "story; every story names the backend tests on its `Tests:` line and is tagged by the",
+        "browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages",
+        "(`web/src/handbook/`) cite the stories and journeys they explain; and the Allure report",
+        "(`scripts/allure-report.sh`) shows each test's last result under the same story and",
+        "journey names, a journey's walk with one Allure step per journey step. Results are not",
+        "here — this page says what *exists*, the report what *passed*.",
         "",
         f"**{sum(totals.values())} stories** — ● {totals['●']} implemented and tested · "
         f"◐ {totals['◐']} partial · ○ {totals['○']} open. "
         f"With backend tests: {covered['backend']} · with browser tests: {covered['browser']} · "
         f"walked by a journey: {covered['journey']} · **with no test at all: {covered['none']}**.",
     ]
+
+    if all_journeys:
+        mentions = step_mentions()
+        lines += ["", "## Journeys", ""]
+        lines += [f"- [{j.id} {j.marker} {j.title}](#{anchor(f'{j.id} {j.marker} {j.title}')})" for j in all_journeys]
+        for j in all_journeys:
+            journey_walks = walks(j)
+            markers = {sid: mk for t in files.values() for sid, mk in ((x["id"], x["marker"]) for x in STORY_HEADING.finditer(t))}
+            lines += [
+                "",
+                f"### {j.id} {j.marker} {j.title}",
+                "",
+                f"[{Path(j.file).name}]({Path(j.file).relative_to('docs')}) · "
+                f"help: {', '.join(f'`{p}`' for p in help_by_journey.get(j.id, [])) or '—'} · "
+                f"report: Allure → story *{j.id} · {j.title}*, one step per row below",
+                "",
+            ]
+            names = {r: f"W{n}" for n, r in enumerate(journey_walks, 1)}
+            lines += [f"- **{names[r]}** `{_short(r)}`" for r in journey_walks] or ["- no walk yet"]
+            lines += [
+                "",
+                "| Step | Path | Story | | Walked by | Also covered by | Help |",
+                "|---|---|---|---|---|---|---|",
+            ]
+            for s in j.steps:
+                by = [names[r] for r, seq in journey_walks.items() if s.id in seq]
+                also = mentions.get(s.id, [])
+                walked_cell = "*(offline)*" if s.offline else (", ".join(by) or "—")
+                lines.append(
+                    f"| {s.id} | {s.path} | {s.story} | {markers.get(s.story, '?')} | {walked_cell} "
+                    f"| {cell(also)} | {cell(help_by_story.get(s.story, []))} |"
+                )
     for name in names:
         if name not in rows:
             continue
@@ -380,18 +617,19 @@ def render_traceability(files: dict[str, str]) -> str:
             "",
             f"## [{name}](userstories/{name})",
             "",
-            "| Story | | Title | Backend tests | Browser tests | Journeys |",
-            "|---|---|---|---|---|---|",
+            "| Story | | Title | Backend tests | Browser tests | Journey steps | Help |",
+            "|---|---|---|---|---|---|---|",
             *rows[name],
         ]
     return "\n".join(lines) + "\n"
 
 
-def render_stories_json(files: dict[str, str]) -> str:
+def render_stories_json(files: dict[str, str], all_journeys: list[Journey]) -> str:
     """docs/stories.json: every story's title, status and place — the file's `#` heading
-    (the role) and the `##` heading above it (the phase). Read by the Allure hooks
-    (`api/tests/conftest.py`, `e2e/fixtures.ts`) so the report's Behaviors tree is
-    role → phase → story without either side parsing Markdown."""
+    (the role) and the `##` heading above it (the phase) — every journey, and every journey
+    step with its story. Read by the Allure hooks (`api/tests/conftest.py`,
+    `e2e/fixtures.ts`) and by `step()`, so the report's tree is role → phase → story and a
+    step reads "J-5.4 · V-2: …" without either side parsing Markdown."""
     out: dict[str, dict[str, str]] = {}
     for name, text in files.items():
         if name == "README.md":
@@ -407,6 +645,17 @@ def render_stories_json(files: dict[str, str]) -> str:
                 "file": f"docs/userstories/{name}",
                 "anchor": anchor(m.group(0)[4:]),
             }
+    for j in all_journeys:
+        out[j.id] = {
+            "title": j.title,
+            "status": j.marker,
+            "role": "Journeys",
+            "phase": "Journeys",
+            "file": j.file,
+            "anchor": "",
+        }
+        for s in j.steps:
+            out[s.id] = {"journey": j.id, "story": s.story, "path": s.path, "who": s.who, "what": s.what}
     return json.dumps(dict(sorted(out.items())), ensure_ascii=False, indent=1) + "\n"
 
 
@@ -420,15 +669,18 @@ def main(argv: list[str]) -> int:
 
     files = story_files()
     known, problems = story_ids(files)
+    all_journeys = journeys()
+    markers = {m["id"]: m["marker"] for text in files.values() for m in STORY_HEADING.finditer(text)}
     problems += check_links(files)
-    problems += check_story_references(files)
-    problems += check_test_story_ids(known)
-    problems += check_journeys(files)
+    problems += check_story_references({**files, **{j.file: j.text for j in all_journeys}})
+    problems += check_test_story_ids(known | {j.id for j in all_journeys})
+    journey_problems, warnings = check_journeys(markers, all_journeys, files.get("journeys.md", ""))
+    problems += journey_problems
     gotcha_problems, entries = check_gotchas()
     problems += gotcha_problems
 
-    traceability = render_traceability(files)
-    stories_json = render_stories_json(files)
+    traceability = render_traceability(files, all_journeys)
+    stories_json = render_stories_json(files, all_journeys)
     if "--fix" in argv:
         STORIES_JSON.write_text(stories_json, encoding="utf-8")
         print(f"wrote {STORIES_JSON.relative_to(ROOT)}")
@@ -444,9 +696,12 @@ def main(argv: list[str]) -> int:
         if not TRACEABILITY.exists() or TRACEABILITY.read_text(encoding="utf-8") != traceability:
             problems.append("docs/traceability.md is out of date — run scripts/check-docs.py --fix")
 
-    print(f"{len(known)} stories, {len(entries)} gotchas")
+    print(f"{len(known)} stories, {len(all_journeys)} journeys, {len(entries)} gotchas")
     for problem in problems:
         print(f"  ✗ {problem}")
+    # Warnings never fail the gate, and are printed after the problems so they never hide one.
+    for warning in warnings:
+        print(f"  ! {warning}")
     return 1 if problems else 0
 
 

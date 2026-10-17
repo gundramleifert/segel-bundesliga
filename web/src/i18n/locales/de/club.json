@@ -30,7 +30,8 @@
     "leave": "Verein verlassen",
     "leaveConfirm": "Diesen Verein verlassen? Deine Kadermeldungen bleiben, bis der Verein sie ändert.",
     "leaveCancel": "Bleiben",
-    "addHint": "Nimm ein Mitglied über die E-Mail-Adresse seines Kontos auf — es ist sofort Mitglied, ohne Bestätigung. Wer kein Konto hat, registriert sich zuerst. Das ✕ neben einer Zeile entfernt sie wieder."
+    "addHint": "Nimm ein Mitglied über die E-Mail-Adresse seines Kontos auf — es ist sofort Mitglied, ohne Bestätigung. Wer kein Konto hat, registriert sich zuerst. Das ✕ neben einer Zeile entfernt sie wieder.",
+    "crestHint": "Der Stander des Vereins — auf der Vereinsseite, in der Tabelle und den Ergebnissen. Zum Ersetzen antippen."
   },
   "organizer": "Organisator:in",
   "mine": {
