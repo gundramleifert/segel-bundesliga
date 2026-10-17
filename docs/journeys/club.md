@@ -5,7 +5,7 @@ run itself** — its own admin, its crest, its organizers, its applications to c
 that **nobody at the league office maintains a club's people, and the club appears in
 public exactly when it competes**.
 
-Who: league office, club admin, club manager, visitor
+Who: league office, club admin, team manager, visitor
 Starting point: a running installation; the club does not exist. The person who will
 organize the club's sailing has an account already (registered herself, Story Z-4 —
 Journey J-3 shows that part). A published series of the current year exists.
@@ -17,7 +17,7 @@ sequenceDiagram
   autonumber
   actor A as League office
   actor CA as Club admin
-  actor CM as Club manager
+  actor TM as Team manager
   participant P as Site
   actor V as Visitor
 
@@ -32,8 +32,8 @@ sequenceDiagram
     CA->>P: [J-2.6] deletes their own admin tuple
     P-->>CA: refused — at least one organizer must remain
   end
-  CA->>P: [J-2.7] names the club manager, by email
-  CM->>P: [J-2.8] applies for the series
+  CA->>P: [J-2.7] names the team manager, by email
+  TM->>P: [J-2.8] applies for the series
   A->>P: [J-2.9] accepts the application
   V->>P: [J-2.10] finds the club in the list and opens its page
 ```
@@ -47,7 +47,7 @@ sequenceDiagram
 | J-2.5 | main | V-3 | club admin | the crest is stored; the club's `logo_url` points at it |
 | J-2.6 | last organizer | A-8 | club admin | refused with `last-organizer` (409); the club keeps its admin |
 | J-2.7 | main | A-8 | club admin | the person holds `manager` on the club — no acceptance step |
-| J-2.8 | main | V-5 | club manager | an application for the series, status `requested`; still not public |
+| J-2.8 | main | V-5 | team manager | an application for the series, status `requested`; still not public |
 | J-2.9 | main | A-9 | league office | accepted: the club is a participant of the series |
 | J-2.10 | main | B-7 | visitor | the club is in the public list, and its page shows the series |
 

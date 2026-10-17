@@ -450,7 +450,7 @@ class MyClubOut(BaseModel):
     club: ClubOut
     #: Holds `member` on the club (Story Z-5).
     is_member: bool
-    #: `club_manager` for this club — granted per club, never globally.
+    #: `team_manager` for this club — granted per club, never globally.
     may_manage: bool
     may_admin: bool = False
     teams: list[MyTeamOut]

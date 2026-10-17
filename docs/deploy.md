@@ -224,5 +224,5 @@ it successfully signs in, through any provider (`app.services.login._resolve_use
 checked on every sign-in, so adding an address later still takes effect on that person's
 next login. Add it to `render.env` as a JSON array, the same way as `SBL_CORS_ORIGINS`:
 `SBL_ADMIN_EMAILS=["you@example.com"]`. From there, that account can grant `admin`,
-`editor`, `race_officer`, and `club_manager` to anyone else via the accounts admin UI
+`editor`, `race_officer`, and `team_manager` to anyone else via the accounts admin UI
 (Story Z-2) — the whitelist only needs to cover whoever bootstraps the first admin.

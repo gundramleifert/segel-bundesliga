@@ -95,7 +95,7 @@
   "expense-document-invalid-type": "Ein Beleg muss ein PDF, JPEG oder PNG sein.",
   "expense-document-too-large": "Der Beleg ist zu groß (höchstens 10 MB).",
   "club-bank-account-missing": "Zuerst das Vereinskonto speichern – von ihm gehen die Überweisungen ab.",
-  "club-money-forbidden": "Konto und Zahlungen des Vereins verwalten nur Vereinsmanager und Kassenwart.",
+  "club-money-forbidden": "Konto und Zahlungen des Vereins verwalten nur Teammanager und Kassenwart.",
   "claim-not-payable": "Eine der Abrechnungen ist nicht freigegeben, gehört zu einem anderen Verein oder ist schon bezahlt.",
   "payment-run-empty": "Es gibt nichts zu zahlen.",
   "payment-run-not-found": "Diesen Zahlungslauf gibt es nicht.",

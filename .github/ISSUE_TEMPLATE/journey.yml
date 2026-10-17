@@ -29,7 +29,7 @@ body:
         - label: "sailor / Segler"
         - label: "guardian / Erziehungsberechtigte"
         - label: "club admin / Vereinsadmin"
-        - label: "club manager / Vereinsorganisator"
+        - label: "team manager / Vereinsorganisator"
         - label: "treasurer / Kassenwart"
         - label: "series manager / Serienorganisator"
         - label: "event organizer / Veranstalter"
@@ -59,8 +59,8 @@ body:
       label: "The flow / Der Ablauf"
       description: "Who does what, in which order — one line each / Wer macht was, in welcher Reihenfolge — eine Zeile pro Schritt"
       placeholder: |
-        1. club manager registers the squad for the series
-        2. club manager names the crew for the matchday
+        1. team manager registers the squad for the series
+        2. team manager names the crew for the matchday
         3. …
     validations:
       required: true

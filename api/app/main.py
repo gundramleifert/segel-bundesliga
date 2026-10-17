@@ -121,7 +121,7 @@ app.include_router(admin.router)
 app.include_router(events.router)
 app.include_router(clubs.router)
 # Same prefix as clubs.router, but without its admin/editor-only router dependency —
-# the crest is also a club manager's own business (Story V-3).
+# the crest is also a team manager's own business (Story V-3).
 app.include_router(clubs.crest_router)
 app.include_router(crew.router)
 app.include_router(series.router)

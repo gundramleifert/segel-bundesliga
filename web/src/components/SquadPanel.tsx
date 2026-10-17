@@ -27,7 +27,7 @@ import { errorText } from "../lib/admin";
  * already sails, because eighteen people in this data share a surname.
  *
  * Used from two places on purpose: the admin screen, which reaches a team by picking a
- * series and then a club, and `/club`, where a club manager reaches their own team
+ * series and then a club, and `/club`, where a team manager reaches their own team
  * directly (Story V-12). Two copies would drift, and the rules displayed here — the ten,
  * the single helm, which refusal means what — are the ones that took longest to get right.
  *

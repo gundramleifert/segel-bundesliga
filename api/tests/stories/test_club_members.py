@@ -91,7 +91,7 @@ class TestMembers:
     async def test_a_clubs_manager_cannot_change_who_is_in(self, client, caplog):
         """Story V-8: the manager decides who *sails*, the admin who *belongs*."""
         club = await _fresh_club()
-        await make_user("cm-sport@example.org", Role.CLUB_MANAGER, club_id=club)
+        await make_user("cm-sport@example.org", Role.TEAM_MANAGER, club_id=club)
         await make_user("cm-bert@example.org")
         sport = await _headers(client, caplog, "cm-sport@example.org")
 
@@ -185,7 +185,7 @@ class TestMembers:
 
         await _write(client, admin, "cm-greta@example.org", "manager", f"club:{club}")
         me = (await client.get("/api/auth/me", headers=greta)).json()
-        assert me["roles"] == [Role.CLUB_MANAGER]
+        assert me["roles"] == [Role.TEAM_MANAGER]
         entry = (await _mine(client, greta))[club]
         assert (entry["is_member"], entry["may_manage"]) == (True, True)
 

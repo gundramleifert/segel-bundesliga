@@ -211,7 +211,7 @@ Tests: `api/tests/stories/test_visitor.py::TestPairingList`,
 As a **visitor** I want to **see who sails for each team at one matchday**,
 so that I **know which crew is on the water when I read a result**.
 
-The lineup already exists — a club manager names it (Story V-2, `EventCrew`) and the club
+The lineup already exists — a team manager names it (Story V-2, `EventCrew`) and the club
 page shows it from that one club's side (Story B-7). What was missing is the matchday's own
 side of the same fact: standing at the notice board or watching from the shore, the question
 is not "who does NRV field this season" but "who is sailing here today", across every team

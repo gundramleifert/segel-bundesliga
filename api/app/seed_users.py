@@ -4,7 +4,7 @@
 
 Each registered sailor gets an account, because without logging in they cannot submit
 their waiver (Stories V-1 and S-1). One person per club additionally gets the
-``club_manager`` role so roster management and club assignment can be tested.
+``team_manager`` role so roster management and club assignment can be tested.
 
 In addition, a set of named accounts for roles that do not belong to a club — administration,
 editorial, race officer — plus an account with no role to see what a logged-in guest can do.
@@ -58,7 +58,7 @@ async def _account(
         # collection, and a lazy load fails in async context.
         # Test accounts are considered verified — otherwise each would first need to redeem a code.
         user = User(email=email, display_name=name, email_verified=True)
-        # `Role.CLUB_MANAGER` here means "manager of this club"; everything else is a
+        # `Role.TEAM_MANAGER` here means "manager of this club"; everything else is a
         # site relation.
         user.grants = [_tuple(role, club_id) for role in roles]
         session.add(user)
@@ -79,9 +79,9 @@ async def _account(
 
 
 def _tuple(role: str, club_id: int | None) -> Grant:
-    """`Role.CLUB_MANAGER` → `manager` of the club; `admin`/`manager` with a club → on the
+    """`Role.TEAM_MANAGER` → `manager` of the club; `admin`/`manager` with a club → on the
     club; anything else is a site relation."""
-    if role == Role.CLUB_MANAGER:
+    if role == Role.TEAM_MANAGER:
         return Grant(relation=Relation.MANAGER, club_id=club_id)
     if club_id is not None and role in (Relation.ADMIN, Relation.MANAGER):
         return Grant(relation=Relation(role), club_id=club_id)
@@ -136,7 +136,7 @@ async def seed_users() -> None:
         seen: set[str] = set()
         first_per_club: set[int] = set()
         participants = 0
-        club_managers = 0
+        team_managers = 0
 
         for sailor, club_id in rows:
             assert sailor.email is not None
@@ -149,7 +149,7 @@ async def seed_users() -> None:
             leads = club_id not in first_per_club
             if leads:
                 first_per_club.add(club_id)
-                club_managers += 1
+                team_managers += 1
 
             account = await _account(
                 session,
@@ -165,16 +165,16 @@ async def seed_users() -> None:
             participants += 1
 
         await session.commit()
-        await _report(session, participants, club_managers, len(clubs))
+        await _report(session, participants, team_managers, len(clubs))
 
 
 async def _report(
-    session: AsyncSession, participants: int, club_managers: int, clubs_count: int
+    session: AsyncSession, participants: int, team_managers: int, clubs_count: int
 ) -> None:
     clubs = {c.id: c for c in (await session.execute(select(Club))).scalars()}
 
     print(f"Test accounts ready: {participants} participants from {clubs_count} clubs,")
-    print(f"of which {club_managers} with the role club_manager.\n")
+    print(f"of which {team_managers} with the role team_manager.\n")
 
     print("Functional accounts:")
     for email, name, roles in FUNCTIONAL_ACCOUNTS:

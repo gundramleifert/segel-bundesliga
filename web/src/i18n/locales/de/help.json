@@ -8,7 +8,7 @@
       "admin": "Geschäftsstelle",
       "editor": "Redaktion",
       "raceOfficer": "Wettfahrtleitung",
-      "clubManager": "Vereinsverwaltung",
+      "teamManager": "Teammanager",
       "eventManager": "Veranstaltungsleitung",
       "clubAdmin": "Vereinsverwaltung",
       "seriesManager": "Serienleitung"
@@ -51,7 +51,7 @@
     },
     "createEvent": {
       "title": "Eine Veranstaltung anlegen",
-      "who": "Geschäftsstelle, Redaktion oder Wettfahrtleitung — außerdem die Vereinsverwaltung, aber nur für eine Veranstaltung, die der eigene Verein ausrichtet.",
+      "who": "Geschäftsstelle, Redaktion oder Wettfahrtleitung — außerdem der Teammanager eines Vereins, aber nur für eine Veranstaltung, die der eigene Verein ausrichtet.",
       "steps": [
         "Verwaltung öffnen und zum Abschnitt Veranstaltungen gehen.",
         "Name und Datum eingeben.",
@@ -59,7 +59,7 @@
         "Team-, Boots- und Flight-Anzahl festlegen; das Formular zeigt dabei sofort, wie viele Wettfahrten pro Flight sich daraus ergeben.",
         "Auf Veranstaltung anlegen klicken."
       ],
-      "note": "Aktuell ist die Verwaltungsseite selbst nur für Geschäftsstelle und Redaktion erreichbar. Die Rechte von Wettfahrtleitung und ausrichtender Vereinsverwaltung, eine Veranstaltung anzulegen, sind zwar in den Regeln vorgesehen, aber noch ohne eigene Oberfläche."
+      "note": "Aktuell ist die Verwaltungsseite selbst nur für Geschäftsstelle und Redaktion erreichbar. Die Rechte von Wettfahrtleitung und dem Teammanager des ausrichtenden Vereins, eine Veranstaltung anzulegen, sind zwar in den Regeln vorgesehen, aber noch ohne eigene Oberfläche."
     },
     "createClub": {
       "title": "Einen Verein anlegen",
@@ -84,21 +84,21 @@
     },
     "registerSeries": {
       "title": "Einen Verein für eine Serie melden",
-      "who": "Die Geschäftsstelle legt dies direkt fest; die Vereinsverwaltung kann für den eigenen Verein auch einen Antrag stellen, über den dann die Geschäftsstelle entscheidet.",
+      "who": "Die Geschäftsstelle legt dies direkt fest; der Teammanager kann für den eigenen Verein auch einen Antrag stellen, über den dann die Geschäftsstelle entscheidet.",
       "steps": [
         "Weg über die Geschäftsstelle: Beim Anlegen oder Bearbeiten einer Serie den Verein über die Vereinsauswahl in der Verwaltungsseite hinzufügen — das wirkt sofort, ohne weitere Zustimmung.",
-        "Weg über einen Antrag: Die Vereinsverwaltung stellt einen Antrag mit dem eigenen Verein und der gewünschten Serie; er zählt erst, wenn die Geschäftsstelle ihn annimmt.",
+        "Weg über einen Antrag: Der Teammanager stellt einen Antrag mit dem eigenen Verein und der gewünschten Serie; er zählt erst, wenn die Geschäftsstelle ihn annimmt.",
         "Diese Meldung — ohne zugeordnete Veranstaltung — ist die Voraussetzung für den Kader des Vereins und seine öffentliche Sichtbarkeit in dieser Serie. Sie ist etwas anderes als die Teilnahme an einer einzelnen Veranstaltung dieser Serie."
       ],
       "note": "Der Antragsweg existiert bereits in der Programmierschnittstelle, hat aber noch keine eigene Seite. Aktuell läuft die Meldung eines Vereins für eine Serie über den Abschnitt Serien der Verwaltungsseite."
     },
     "registerEvent": {
       "title": "Einen Verein für eine Veranstaltung melden",
-      "who": "Die Geschäftsstelle legt dies direkt fest; die Vereinsverwaltung kann auch hier einen Antrag stellen, über den die Geschäftsstelle entscheidet.",
+      "who": "Die Geschäftsstelle legt dies direkt fest; der Teammanager kann auch hier einen Antrag stellen, über den die Geschäftsstelle entscheidet.",
       "steps": [
         "Ein Verein muss bereits für die Serie der Veranstaltung gemeldet sein, bevor er an einer ihrer Veranstaltungen teilnehmen kann.",
         "Weg über die Geschäftsstelle: Die teilnehmenden Vereine einer bestimmten Veranstaltung werden direkt festgelegt und wirken sofort.",
-        "Weg über einen Antrag: Die Vereinsverwaltung stellt einen Antrag mit dem eigenen Verein und der gewünschten Veranstaltung; er zählt erst nach Annahme durch die Geschäftsstelle.",
+        "Weg über einen Antrag: Der Teammanager stellt einen Antrag mit dem eigenen Verein und der gewünschten Veranstaltung; er zählt erst nach Annahme durch die Geschäftsstelle.",
         "Diese Teilnahme — mit zugeordneter Veranstaltung — ist die Grundlage, auf der Pairing-Liste, Ergebnisse und Aufstellung dieser Veranstaltung aufbauen."
       ],
       "note": "Weder der direkte Weg über die Geschäftsstelle noch der Antragsweg für Veranstaltungsteilnehmer haben bisher eine eigene Seite — beide existieren bislang nur als Endpunkte der Programmierschnittstelle."

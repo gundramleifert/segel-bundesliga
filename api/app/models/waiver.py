@@ -133,7 +133,7 @@ class WaiverConfirmation(Base, TimestampMixin):
     locale_shown: Mapped[str] = mapped_column(String(2), default="en")
 
     # The signed-in account that recorded this — usually the sailor's own, but an admin or
-    # club manager may enter a paper form. Kept for the audit trail; the account can later
+    # team manager may enter a paper form. Kept for the audit trail; the account can later
     # be deactivated, so no cascade.
     recorded_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("app_user.id"), default=None)
     user_agent: Mapped[str | None] = mapped_column(String(400), default=None)

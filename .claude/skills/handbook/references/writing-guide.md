@@ -68,20 +68,20 @@ soften it.
 ### `start` — one per audience
 
 ```markdown
-## Help for club managers
+## Help for team managers
 
 You register your club's people for a series, name the crew for each matchday, and keep
 the member list. All of it is on your club's page in *My space*.
 
-### Before the season {#start-club-manager-season}
+### Before the season {#start-club-season}
 - [Register the squad](#squad-and-lineup-squad) for each series your club is entered in.
 - [Accept members](#club-members-add) who belong to the club.
 
-### Before each matchday {#start-club-manager-matchday}
+### Before each matchday {#start-club-matchday}
 - [Name the crew](#squad-and-lineup-crew) — from the squad, by the organizer's deadline.
 - Check that everyone's waiver is cleared: [waivers](#waiver-club-check).
 
-### Where this fits {#start-club-manager-journeys}
+### Where this fits {#start-club-journeys}
 - [A crew is cleared for a matchday](#journey-crew-cleared) — what the sailors and the organizer do around you.
 
 [Open my space](/me)

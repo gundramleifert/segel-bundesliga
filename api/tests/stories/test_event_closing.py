@@ -231,10 +231,10 @@ class TestWhoMayCloseAnEvent:
         response = await client.post(f"/api/admin/events/{event_id}/finish", headers=officer)
         assert response.status_code == 200, response.text
 
-    async def test_a_club_manager_or_a_guest_may_not(self, client, caplog):
+    async def test_a_team_manager_or_a_guest_may_not(self, client, caplog):
         headers = await admin(client, caplog, "vp2@example.com")
         event_id = await live_event(client, headers, "Not Yours Cup", "2027-09-11")
-        await make_user("manager-close@example.com", Role.CLUB_MANAGER)
+        await make_user("manager-close@example.com", Role.TEAM_MANAGER)
         manager = auth_headers(await login_as(client, "manager-close@example.com", caplog))
 
         response = await client.post(f"/api/admin/events/{event_id}/finish", headers=manager)

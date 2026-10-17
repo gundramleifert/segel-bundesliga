@@ -231,7 +231,7 @@ Acceptance criteria:
 - Every confirmation is logged: who, when. **Built** — the confirmation row records it.
 
 Access: the event's host-club leadership, plus `admin`, `editor`, `race_officer`. No fifth
-role was added — the on-site organizer is a `race_officer` or the host `club_manager`.
+role was added — the on-site organizer is a `race_officer` or the host `team_manager`.
 
 Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list),
 `api/tests/stories/test_guardians.py::TestTheCrewWaiverIsSaid` (lined up, and said),

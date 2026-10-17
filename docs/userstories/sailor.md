@@ -63,7 +63,7 @@ Acceptance criteria:
 - Everyone with a `member` tuple on the club, with what else they are to it (manager,
   admin, race officer) so the organizers are recognizable — display name only, no
   email: contact data stays the club admin's business (the People panel,
-  [V-8](club-manager.md#v-8--decide-who-is-in-the-club)).
+  [V-8](club.md#v-8--decide-who-is-in-the-club)).
 - Open to a signed-in **member of that specific club**, to the club's admins and
   managers, and to `admin`/`editor` staff. A stranger, or a member of a *different* club,
   gets 403; signed-out gets 401.
@@ -88,7 +88,7 @@ the people who actually use this site every week it is wrong — they open the p
 Acceptance criteria:
 - **"My clubs"** comes first: every club the signed-in account belongs to. Plural
   deliberately — a person can be an active member of more than one club (Story V-7), and a
-  `club_manager` can manage several, so this is a list, never a single club.
+  `team_manager` can manage several, so this is a list, never a single club.
 - What counts as "mine" is the `member` tuple on the club (Story Z-5). An account has no
   club field of its own, so there is nothing else this could read.
 - The **club search** sits beside it on a wide screen and **below it** on a phone — the
@@ -105,14 +105,14 @@ Acceptance criteria:
 Endpoints: `GET /api/clubs` exists and stays the search's source. The account's own clubs
 come from `GET /api/clubs/mine` (signed-in only) rather than making the frontend fan out
 over `GET /api/clubs/{id}/members` for all eighteen clubs to find itself. **Built for Story
-V-12**, which needed the same list to let a club manager reach their squad; this page is
+V-12**, which needed the same list to let a team manager reach their squad; this page is
 still to be written.
 
 Each entry carries the club, the account's two *independent* relationships to it, and the
 club's series registrations:
 
 - `is_member` — an **active** `ClubMember`. This is what "my clubs" means on this page.
-- `may_manage` — `club_manager` for this club, or `admin`. Deliberately separate: the two
+- `may_manage` — `team_manager` for this club, or `admin`. Deliberately separate: the two
   do not imply each other. A club's organizer is often not in the sailing squad and need
   not be an accepted member at all, and most members manage nothing. An entry appears when
   **either** is true, so this page filters on `is_member` and V-12's screen on `may_manage`,
@@ -164,7 +164,7 @@ Acceptance criteria:
   form above it, where the sailor enters it themselves (S-2).
 - Whoever may record a confirmation (S-3) may also upload a scan and download a form for
   that sailor: the sailor's own account, `admin`, `editor`, and the manager of a club
-  that has the sailor in a squad. So a club manager can hand in the paper forms their
+  that has the sailor in a squad. So a team manager can hand in the paper forms their
   club collected — and only those: until 2026-10-17 any club's manager could sign for any
   sailor on the site (found by Journey J-5).
 
@@ -175,7 +175,7 @@ minor and a signature. Therefore:
   row knows (`guardian_signature_ref = "upload:<uuid>.<ext>"`), served by exactly one
   endpoint, `GET /api/waiver/confirmations/{id}/scan`, which checks access on every
   request — the sailor themselves, `admin`, `editor`, the leadership of the sailor's club,
-  and the organizer of the event (the host's `club_manager`, `race_officer`). Never a static
+  and the organizer of the event (the host's `team_manager`, `race_officer`). Never a static
   path, never public, never guessable.
 - **Every retrieval is logged** as an `AuditLog` row (`waiver_scan` / `viewed`, with the
   actor), as is every upload and replacement.
@@ -221,7 +221,7 @@ Endpoints: `GET /api/waiver/wards`; confirmation as S-1.
 Tests: `api/tests/stories/test_guardians.py::TestAGuardianConfirms`, `e2e/guardians.spec.ts`
 
 ### S-3 ● Confirm a waiver version for a series or event
-As a **sailor** (or an admin/club manager acting for one) I want to **confirm one specific
+As a **sailor** (or an admin/team manager acting for one) I want to **confirm one specific
 version of the liability waiver**, so that **participation is covered and provable**.
 
 Acceptance criteria:
@@ -281,7 +281,7 @@ Acceptance criteria:
   source aspect ratio or camera format. Rejected with a typed error if it's not a
   readable image, or over ~5&nbsp;MB.
 - The sailor can also view and correct their own `first_name`/`last_name`/`birth_date`
-  (`GET`/`PATCH /api/sailors/me`) — previously only a club manager or admin could. Not
+  (`GET`/`PATCH /api/sailors/me`) — previously only a team manager or admin could. Not
   `email`: that's account identity, out of scope here. Resolved via the account's
   **verified** email matching `Sailor.email` — the same link Story S-1's waiver
   confirmation already relies on — so there is no id parameter to point at anyone else's
@@ -321,7 +321,7 @@ part a person should be able to decline.
 
 Acceptance criteria:
 - One switch on the sailor's own profile (`PATCH /api/sailors/me`, a `profile_public`
-  boolean on `Sailor`). **The sailor owns this choice**: a club manager, an `editor` or an
+  boolean on `Sailor`). **The sailor owns this choice**: a team manager, an `editor` or an
   `admin` can see the setting but cannot flip it for someone else — this is the one field
   on the sailor record that management does not maintain (contrast V-4, where they
   maintain all of it).

@@ -99,7 +99,7 @@ inherits from its series, its host club, the site editor and the site race commi
 | **Approve one's own claim** | never (four-eyes rule, enforced in the service) |
 
 The CLAUDE.md "Permissions by area" table gets replaced by this one once it is agreed.
-It still names `club_manager` as a role, which is a leftover from before tuples.
+It still names `team_manager` as a role, which is a leftover from before tuples.
 
 ---
 

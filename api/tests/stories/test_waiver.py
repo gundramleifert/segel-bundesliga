@@ -229,10 +229,10 @@ class TestConfirming:
         allowed = await client.post(url, headers=admin, json={"sailor_id": sailor_id})
         assert allowed.status_code == 201
 
-    async def test_a_club_manager_signs_only_for_their_own_clubs_sailors(self, client, caplog, ids):
+    async def test_a_team_manager_signs_only_for_their_own_clubs_sailors(self, client, caplog, ids):
         """Stories S-1, S-3: a club's manager hands in the forms *their* club collected —
         confirming, uploading a scan or printing a form for a sailor of another club is
-        refused, as it is for any stranger. (Until 2026-10-17 any club manager on the site
+        refused, as it is for any stranger. (Until 2026-10-17 any team manager on the site
         could sign for anybody; found by Journey J-5.)"""
         sailor_id, _ = await _squad_sailor("dsbl-1-2026", offset=45)
         own_club = await _club_of(sailor_id)
@@ -255,14 +255,14 @@ class TestConfirming:
         url = f"/api/series/{series_id}/waiver"
         form = f"/api/waiver/form?scope=series&scope_id={series_id}&sailor_id={sailor_id}"
 
-        await make_user("wv-foreign-mgr@example.com", Role.CLUB_MANAGER, club_id=other_club)
+        await make_user("wv-foreign-mgr@example.com", Role.TEAM_MANAGER, club_id=other_club)
         foreign = auth_headers(await login_as(client, "wv-foreign-mgr@example.com", caplog))
         denied = await client.post(url, headers=foreign, json={"sailor_id": sailor_id})
         assert denied.status_code == 403, denied.text
         assert denied.json()["type"] == "/errors/waiver-confirmation-forbidden"
         assert (await client.get(form, headers=foreign)).status_code == 403
 
-        await make_user("wv-own-mgr@example.com", Role.CLUB_MANAGER, club_id=own_club)
+        await make_user("wv-own-mgr@example.com", Role.TEAM_MANAGER, club_id=own_club)
         own = auth_headers(await login_as(client, "wv-own-mgr@example.com", caplog))
         assert (await client.get(form, headers=own)).status_code == 200
         allowed = await client.post(url, headers=own, json={"sailor_id": sailor_id})
@@ -671,12 +671,12 @@ class TestScans:
         assert denied.status_code == 403
         assert denied.json()["type"] == "/errors/waiver-scan-forbidden"
 
-        await make_user("wv-otherclub@example.com", Role.CLUB_MANAGER, club_id=ids.club("nrv"))
+        await make_user("wv-otherclub@example.com", Role.TEAM_MANAGER, club_id=ids.club("nrv"))
         other_club = auth_headers(await login_as(client, "wv-otherclub@example.com", caplog))
         assert (await client.get(url, headers=other_club)).status_code == 403
 
         own_club = await _club_of(sailor_id)
-        await make_user("wv-ownclub@example.com", Role.CLUB_MANAGER, club_id=own_club)
+        await make_user("wv-ownclub@example.com", Role.TEAM_MANAGER, club_id=own_club)
         leadership = auth_headers(await login_as(client, "wv-ownclub@example.com", caplog))
         assert (await client.get(url, headers=leadership)).status_code == 200
 

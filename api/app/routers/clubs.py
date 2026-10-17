@@ -4,7 +4,7 @@ Admin and editorial roles have access. Clubs are master data: teams, accounts, a
 memberships depend on them — and the choice of host for creating an event.
 
 The crest upload (Story V-3) sits on a **second router** in this file: it is the one club
-endpoint a `club_manager` may also use — for their own club — so it cannot live under this
+endpoint a `team_manager` may also use — for their own club — so it cannot live under this
 module's router-level `require_master_data`. See `crest_router`.
 """
 
@@ -353,9 +353,9 @@ async def delete_club_logo(
 
 
 def _can_manage_crest(acting: User, club_id: int) -> None:
-    """Administration and editorial for any club, a `club_manager` for their own.
+    """Administration and editorial for any club, a `team_manager` for their own.
 
-    `club_manager` is granted per club (`UserRole.club_id`), so the check is
+    `team_manager` is granted per club (`UserRole.club_id`), so the check is
     `manages_club(...)` — never `acting.club_id == club_id`, which is the separate
     "represents" field and would let a member of one club edit it while missing a manager
     who organizes several.

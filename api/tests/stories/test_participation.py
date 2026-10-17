@@ -20,7 +20,7 @@ async def as_role(client, caplog, email: str, *roles: str) -> dict[str, str]:
 
 
 async def club_leadership(client, caplog, email: str, club_id: int) -> dict[str, str]:
-    await make_user(email, Role.CLUB_MANAGER, club_id=club_id)
+    await make_user(email, Role.TEAM_MANAGER, club_id=club_id)
     return {"Authorization": f"Bearer {await login_as(client, email, caplog)}"}
 
 

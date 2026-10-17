@@ -194,7 +194,7 @@ require_admin = require_site(Relation.ADMIN)
 require_editor = require_site(Relation.EDITOR)
 require_race_officer = require_site(Relation.RACE_OFFICER)
 # "Organizes some club": the route narrows to the club itself with `manages_club(...)`.
-require_club_manager = require_summary_roles(Role.ADMIN, Role.CLUB_MANAGER)
+require_team_manager = require_summary_roles(Role.ADMIN, Role.TEAM_MANAGER)
 # One event: its race committee (results, race control, trackers) …
 require_event_officer = require_on_event(Relation.RACE_OFFICER)
 # … its organizer (dates, clubs, boats, publication, people) …

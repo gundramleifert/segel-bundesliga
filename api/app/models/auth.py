@@ -218,7 +218,7 @@ class Role(StrEnum):
     """The **summary** roles — what the navigation and the help page call a person.
 
     Derived from the tuples, never stored: ``club_admin`` means "admin of some club",
-    ``club_manager`` "manager or admin of some club" (the model makes an admin a manager),
+    ``team_manager`` "manager or admin of some club" (the model makes an admin a manager),
     ``series_manager`` and ``event_manager`` the same for a series or an event,
     ``race_officer``, ``jury``, ``treasurer`` and ``helper`` "held on anything". The site
     relations keep their names.
@@ -228,7 +228,7 @@ class Role(StrEnum):
     EDITOR = "editor"
     RACE_OFFICER = "race_officer"
     CLUB_ADMIN = "club_admin"
-    CLUB_MANAGER = "club_manager"
+    TEAM_MANAGER = "team_manager"
     SERIES_MANAGER = "series_manager"
     EVENT_MANAGER = "event_manager"
     JURY = "jury"
@@ -329,7 +329,7 @@ class User(Base, TimestampMixin):
         return False
 
     def holds_any(self, relation: Relation | str, object_type: ObjectType | None = None) -> bool:
-        """Holds this relation on *something* (of this type) — for "is a club manager
+        """Holds this relation on *something* (of this type) — for "is a team manager
         somewhere" pre-checks and the navigation. Direct tuples only."""
         return any(
             g.relation == relation and (object_type is None or g.object_type is object_type)
@@ -351,7 +351,7 @@ class User(Base, TimestampMixin):
         """The summary roles (:class:`Role`) — derived, for the navigation and the help."""
         out: set[str] = set()
         organizer = {
-            ObjectType.CLUB: Role.CLUB_MANAGER,
+            ObjectType.CLUB: Role.TEAM_MANAGER,
             ObjectType.SERIES: Role.SERIES_MANAGER,
             ObjectType.EVENT: Role.EVENT_MANAGER,
         }

@@ -60,7 +60,7 @@ def _jpeg(size: tuple[int, int] = (300, 200)) -> bytes:
 
 
 class TestUploadCrest:
-    """As a club manager, I want to upload our crest so that we are recognizable."""
+    """As a team manager, I want to upload our crest so that we are recognizable."""
 
     async def test_an_admin_can_upload_a_crest_and_it_is_served(self, client, caplog):
         """Served as uploaded — transparency included — and a replacement simply wins."""

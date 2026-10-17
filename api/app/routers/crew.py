@@ -147,7 +147,7 @@ def _check_permissions(acting: User, team: Team, event: Event) -> None:
     # club or the site (Story Z-2) — may line up a crew; one for a different event may not.
     if acting.can(Relation.MANAGER, Relation.RACE_OFFICER, on=event):
         return
-    if not acting.has_any(Role.CLUB_MANAGER):
+    if not acting.has_any(Role.TEAM_MANAGER):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Lineup can be set by club officials, administration, and race officers.",

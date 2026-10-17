@@ -68,7 +68,7 @@ class TestMyClubs:
         """
         club = await _club("nrv")
         headers = await _as(
-            client, caplog, "mine-organizer@example.com", Role.CLUB_MANAGER, club_id=club.id
+            client, caplog, "mine-organizer@example.com", Role.TEAM_MANAGER, club_id=club.id
         )
 
         response = await client.get(MINE, headers=headers)
@@ -131,7 +131,7 @@ class TestMatchdays:
     async def test_the_clubs_matchdays_come_with_their_entries(self, client, caplog):
         club = await _club("kyc")
         headers = await _as(
-            client, caplog, "mine-matchdays@example.com", Role.CLUB_MANAGER, club_id=club.id
+            client, caplog, "mine-matchdays@example.com", Role.TEAM_MANAGER, club_id=club.id
         )
         response = await client.get(MINE, headers=headers)
         assert response.status_code == 200, response.text
@@ -180,7 +180,7 @@ class TestMatchdays:
         assert entered.status_code == 200, entered.text
 
         manager = await _as(
-            client, caplog, "mine-wyc@example.com", Role.CLUB_MANAGER, club_id=club.id
+            client, caplog, "mine-wyc@example.com", Role.TEAM_MANAGER, club_id=club.id
         )
         entries = (await client.get(MINE, headers=manager)).json()
         mine = next(e for e in entries if e["club"]["slug"] == "wyc")

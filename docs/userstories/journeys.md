@@ -22,10 +22,10 @@ stakeholders can read and a step table the tests are held to. The chain it start
 | Journey | File | Who |
 |---|---|---|
 | J-1 From an empty series to a scored matchday | [lifecycle.md](../journeys/lifecycle.md) | league office, event organizer, race officer, jury, visitor |
-| J-2 A new club gets going and runs itself | [club.md](../journeys/club.md) | league office, club admin, club manager, visitor |
-| J-3 A sailor joins their club | [member.md](../journeys/member.md) | person, club admin, club member, club manager |
-| J-4 An organizer sets up a series | [series.md](../journeys/series.md) | league office, series manager, club manager, visitor |
-| J-5 A club's crew is cleared for a matchday | [crew-cleared.md](../journeys/crew-cleared.md) | club manager, sailor, guardian, event organizer, visitor |
+| J-2 A new club gets going and runs itself | [club.md](../journeys/club.md) | league office, club admin, team manager, visitor |
+| J-3 A sailor joins their club | [member.md](../journeys/member.md) | person, club admin, club member, team manager |
+| J-4 An organizer sets up a series | [series.md](../journeys/series.md) | league office, series manager, team manager, visitor |
+| J-5 A club's crew is cleared for a matchday | [crew-cleared.md](../journeys/crew-cleared.md) | team manager, sailor, guardian, event organizer, visitor |
 
 ## Actors
 
@@ -43,8 +43,8 @@ sails), and a journey shows them as the actor of each step.
 | club member | M | belongs to a club | `member` on the club | [sailor.md](sailor.md) | sailor |
 | sailor | S | is in a squad or a crew | — (a `Team` row, Story V-1) | [sailor.md](sailor.md) | sailor |
 | guardian | G | accepts the waiver for a minor sailor — online once the child's club linked their account, else on paper | `guardian` on the sailor (V-13) | [sailor.md](sailor.md) | sailor |
-| club admin | CA | decides who is *in* a club: members, organizers, crest | `admin` on the club | [club-manager.md](club-manager.md) | club-manager |
-| club manager | CM | decides who *sails*: participation, squads, crews | `manager` on the club | [club-manager.md](club-manager.md) | club-manager |
+| club admin | CA | decides who is *in* a club: members, organizers, crest | `admin` on the club | [club.md](club.md) | club |
+| team manager | TM | decides who *sails*: participation, squads, crews | `manager` on the club | [club.md](club.md) | club |
 | treasurer | T | decides and pays expense claims | `treasurer` on a club or an event | [treasurer.md](treasurer.md) | treasurer |
 | series manager | SM | runs one series: its clubs, dates, events | `manager` on the series | [event-organizer.md](event-organizer.md) | event-organizer |
 | event organizer | O | runs one event: configuration, draw, check-in | `manager` on the event (or its series, or its host club) | [event-organizer.md](event-organizer.md) | event-organizer |
@@ -56,7 +56,7 @@ sails), and a journey shows them as the actor of each step.
 
 In the diagram an actor is `actor <Alias> as <Actor>` (`site` is `participant P as Site`),
 capitalised as a name. In the table, a step done by either of two actors says
-`sailor or club manager`; a step that happens away from the site adds `(offline)`. A new
+`sailor or team manager`; a step that happens away from the site adds `(offline)`. A new
 actor is a new row here first — and then, usually, a new relation or story file.
 
 ## The format
@@ -66,24 +66,24 @@ actor is a new row here first — and then, usually, a new relation or story fil
 
 As a **club** I want … (why the journey matters, in a sentence or two)
 
-Who: club manager, sailor, guardian, event organizer
+Who: team manager, sailor, guardian, event organizer
 Starting point: what exists before the first step
 Goal: what is true at the end
 
 ```mermaid
 sequenceDiagram
   autonumber
-  actor CM as Club manager
+  actor TM as Team manager
   participant P as Site
-  CM->>P: [J-5.1] registers the squad for the series
+  TM->>P: [J-5.1] registers the squad for the series
   opt fewer than the series' minimum
-    P-->>CM: [J-5.2] "3 of 4–10" in amber, saved anyway
+    P-->>TM: [J-5.2] "3 of 4–10" in amber, saved anyway
   end
 ```
 
 | Step | Path | Story | Who | What is then true |
 |---|---|---|---|---|
-| J-5.1 | main | V-1 | club manager | the squad is saved |
+| J-5.1 | main | V-1 | team manager | the squad is saved |
 | J-5.2 | squad too small | V-1 | site | the minimum is guidance |
 
 Retired steps: none

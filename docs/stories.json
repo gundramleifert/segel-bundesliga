@@ -499,7 +499,7 @@
   "journey": "J-2",
   "story": "V-5",
   "path": "main",
-  "who": "club manager",
+  "who": "team manager",
   "what": "an application for the series, status `requested`; still not public"
  },
  "J-2.9": {
@@ -577,7 +577,7 @@
   "journey": "J-3",
   "story": "V-4",
   "path": "main",
-  "who": "club manager",
+  "who": "team manager",
   "what": "a sailor record with the person's address (lowercased) and date of birth"
  },
  "J-3.9": {
@@ -620,7 +620,7 @@
   "journey": "J-4",
   "story": "V-5",
   "path": "club applies",
-  "who": "club manager",
+  "who": "team manager",
   "what": "an application, `requested` — not among the series' clubs"
  },
  "J-4.5": {
@@ -663,7 +663,7 @@
   "journey": "J-5",
   "story": "V-1",
   "path": "series",
-  "who": "club manager",
+  "who": "team manager",
   "what": "the squad is saved on the club's series registration, within the series' maximum"
  },
  "J-5.10": {
@@ -691,8 +691,8 @@
   "journey": "J-5",
   "story": "S-1",
   "path": "club uploads",
-  "who": "club manager",
-  "what": "the same, recorded by the club manager for a form the club collected"
+  "who": "team manager",
+  "what": "the same, recorded by the team manager for a form the club collected"
  },
  "J-5.14": {
   "journey": "J-5",
@@ -705,7 +705,7 @@
   "journey": "J-5",
   "story": "V-13",
   "path": "guardian online",
-  "who": "club manager",
+  "who": "team manager",
   "what": "the parent holds `guardian` on the sailor — only the child's club may link"
  },
  "J-5.16": {
@@ -733,21 +733,21 @@
   "journey": "J-5",
   "story": "V-1",
   "path": "squad too small",
-  "who": "club manager",
+  "who": "team manager",
   "what": "the squad reaches the minimum; the need is gone"
  },
  "J-5.4": {
   "journey": "J-5",
   "story": "V-12",
   "path": "stand-alone event",
-  "who": "club manager",
+  "who": "team manager",
   "what": "the squad is saved on the event entry, within the event's own limits"
  },
  "J-5.5": {
   "journey": "J-5",
   "story": "V-2",
   "path": "main",
-  "who": "club manager",
+  "who": "team manager",
   "what": "the crew is named for the matchday — only from the squad"
  },
  "J-5.6": {
@@ -877,9 +877,9 @@
  "V-1": {
   "title": "Register season squad",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Squad and lineup",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-1--register-season-squad"
  },
  "V-10": {
@@ -893,81 +893,81 @@
  "V-11": {
   "title": "Manage our own club page",
   "status": "○",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "The club's page",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-11--manage-our-own-club-page"
  },
  "V-12": {
   "title": "My club: one screen for members, matchdays and squads",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Squad and lineup",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-12--my-club-one-screen-for-members-matchdays-and-squads"
  },
  "V-13": {
   "title": "Link a parent to a minor sailor",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "The club's page",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-13--link-a-parent-to-a-minor-sailor"
  },
  "V-2": {
   "title": "Select sailors for matchday",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Squad and lineup",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-2--select-sailors-for-matchday"
  },
  "V-3": {
   "title": "Upload club crest",
   "status": "◐",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "The club's page",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-3--upload-club-crest"
  },
  "V-4": {
   "title": "Create sailors",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Members",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-4--create-sailors"
  },
  "V-5": {
   "title": "Request participation",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Entering competitions",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-5--request-participation"
  },
  "V-6": {
   "title": "Request participation in an event",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Entering competitions",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-6--request-participation-in-an-event"
  },
  "V-8": {
   "title": "Decide who is in the club",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Members",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-8--decide-who-is-in-the-club"
  },
  "V-9": {
   "title": "Add someone by email",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Members",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "v-9--add-someone-by-email"
  },
  "VA-1": {
@@ -1117,9 +1117,9 @@
  "Z-3": {
   "title": "Assign user to club",
   "status": "●",
-  "role": "Club Manager",
+  "role": "Club: its admin and its team manager",
   "phase": "Members",
-  "file": "docs/userstories/club-manager.md",
+  "file": "docs/userstories/club.md",
   "anchor": "z-3--assign-user-to-club"
  },
  "Z-4": {

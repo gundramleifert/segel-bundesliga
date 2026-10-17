@@ -56,7 +56,7 @@ update      diff map (no agents) → updater×(1–3) ∥ author×new → editor
 
 **Runtime tour**
 > Start `scripts/dev-stack.sh --workers 1`. With Playwright, sign in through
-> `e2e/session.ts::signIn` as each seeded role (a club manager, `regatta@`, `orga@`,
+> `e2e/session.ts::signIn` as each seeded role (a team manager, `regatta@`, `orga@`,
 > `jury@`, `helfer@`, `admin@`, a sailor, a guest) and visit every route that role reaches,
 > in `en` and `de` (`localStorage["sbl.language"]`), desktop and Pixel 7. Screenshots into
 > the scratchpad. Report what rendered, what failed, what data was there. Stop the stack.
@@ -76,8 +76,8 @@ story: B-<n> "I find the help for what I do"     absorbs: web/src/pages/Help.tsx
 ## Pages
 | id | type | order | audience | stories | journey | route | anchors | shots | evidence |
 |---|---|---|---|---|---|---|---|---|---|
-| start-club-manager | start | 30 | club-manager | — | — | — | start-club-manager-season, … | — | club-manager.md |
-| squad-and-lineup | guide | 20 | club-manager | V-1, V-2, V-12 | — | /me/club/:id | squad-and-lineup-squad, squad-and-lineup-crew, squad-and-lineup-size | lineup-panel, squad-panel | LineupPanel.tsx:…, routers/teams.py:…, test_lineup.py |
+| start-club | start | 30 | club | — | — | — | start-club-season, … | — | club.md |
+| squad-and-lineup | guide | 20 | club | V-1, V-2, V-12 | — | /me/club/:id | squad-and-lineup-squad, squad-and-lineup-crew, squad-and-lineup-size | lineup-panel, squad-panel | LineupPanel.tsx:…, routers/teams.py:…, test_lineup.py |
 | journey-lifecycle | journey | 10 | administration, event-organizer, race-committee | (J-1's stories) | J-1 | — | journey-lifecycle-variations | — | journeys.md J-1, test_complete_lifecycle.py |
 | roles | doc | 20 | all seven | Z-2, Z-5, F-3 | — | /help/roles | roles-list, roles-matrix, roles-getting | — | models/auth.py MODEL, auth.py |
 | faq-sailor | faq | 10 | sailor | S-1, S-3, V-1 | — | — | faq-sailor-waiver, … | — | problems.py, errors.json |
@@ -87,7 +87,7 @@ story: B-<n> "I find the help for what I do"     absorbs: web/src/pages/Help.tsx
 |---|---|---|---|---|---|
 
 ## Cross-page links
-squad-and-lineup-crew ← start-club-manager, journey-crew-cleared
+squad-and-lineup-crew ← start-club, journey-crew-cleared
 
 ## Gaps found in discovery (report, do not document)
 - VA-5: the waiver lock on the lineup is not wired

@@ -93,13 +93,13 @@ class TestAnOrganizerSetsUpASeries:
         assert refused.status_code == 403
 
         # ------------------------------------------- a club applies (V-5)
-        step("J-4.4", "a club manager applies for the series")
-        club_manager_email = f"j4-club-{tag}@example.com"
-        await make_user(club_manager_email, Role.CLUB_MANAGER, club_id=clubs[2])
-        club_manager = auth_headers(await login_as(client, club_manager_email, caplog))
+        step("J-4.4", "a team manager applies for the series")
+        team_manager_email = f"j4-club-{tag}@example.com"
+        await make_user(team_manager_email, Role.TEAM_MANAGER, club_id=clubs[2])
+        team_manager = auth_headers(await login_as(client, team_manager_email, caplog))
         applied = await client.post(
             "/api/applications",
-            headers=club_manager,
+            headers=team_manager,
             json={"club_id": clubs[2], "series_id": series_id},
         )
         assert applied.status_code == 201, applied.text

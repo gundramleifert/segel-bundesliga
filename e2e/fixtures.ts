@@ -115,7 +115,7 @@ export function describeJourney(title: string, body: () => void): void {
 
 /** One step of a journey: its step ID (`J-5.4`), and what happens in it.
  *
- * Playwright's `test.step` underneath, titled "J-5.4 · V-2: club manager names the crew" —
+ * Playwright's `test.step` underneath, titled "J-5.4 · V-2: team manager names the crew" —
  * the story looked up in `docs/stories.json` — so the step is a chapter of the trace
  * (evidence mode, `EVIDENCE=1`) and a failure names the step it happened in. The story is
  * also recorded as an annotation and an Allure label, which puts the walk under that story

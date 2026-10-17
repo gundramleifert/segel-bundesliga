@@ -145,7 +145,7 @@
     "clubTitle": "Zahlungen für {name}",
     "claimsTitle": "Freigegeben, zu zahlen",
     "accountTitle": "Konto des Vereins",
-    "accountHint": "Das Konto, von dem der Verein zahlt. Hier sehen es nur Vereinsmanager und Kassenwart des Vereins.",
+    "accountHint": "Das Konto, von dem der Verein zahlt. Hier sehen es nur Teammanager und Kassenwart des Vereins.",
     "bicHint": "optional – wird aus der IBAN ergänzt",
     "accountSaved": "Das Vereinskonto ist gespeichert.",
     "sepaTitle": "Per SEPA-Datei zahlen",

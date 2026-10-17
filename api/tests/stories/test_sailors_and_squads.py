@@ -78,7 +78,7 @@ async def act_id(slug: str) -> int:
 class TestCreatingSailors:
     """V-4: As club leadership, I want to create our sailors."""
 
-    async def test_a_club_manager_changes_only_their_own_clubs_people(self, client, caplog):
+    async def test_a_team_manager_changes_only_their_own_clubs_people(self, client, caplog):
         """Story V-4: any club's organizer creates and finds people, but changes only
         those their club's squads hold — or nobody's squad holds yet. (Until 2026-10-17
         any club's organizer could rename anyone; found by Journey J-3.)"""
@@ -88,9 +88,9 @@ class TestCreatingSailors:
             other = (await session.execute(select(Club.id).where(Club.slug == "fsc"))).scalar_one()
             byc = (await session.execute(select(Club.id).where(Club.slug == "byc"))).scalar_one()
         foreign = await as_role(
-            client, caplog, "sg-foreign@example.com", Role.CLUB_MANAGER, club_id=other
+            client, caplog, "sg-foreign@example.com", Role.TEAM_MANAGER, club_id=other
         )
-        own = await as_role(client, caplog, "sg-own@example.com", Role.CLUB_MANAGER, club_id=byc)
+        own = await as_role(client, caplog, "sg-own@example.com", Role.TEAM_MANAGER, club_id=byc)
 
         refused = await client.patch(
             f"/api/admin/sailors/{byc_sailor}", headers=foreign, json={"first_name": "Hijacked"}
@@ -213,7 +213,7 @@ class TestRegisteringASquad:
         the head office doesn't."""
         team_id, club_id = await series_registration()
         header = await as_role(
-            client, caplog, "kd2@example.com", Role.CLUB_MANAGER, club_id=club_id
+            client, caplog, "kd2@example.com", Role.TEAM_MANAGER, club_id=club_id
         )
         sailors = await self._new_sailors(client, header, 4, "Er")
         path = f"/api/admin/teams/{team_id}/members"
@@ -243,7 +243,7 @@ class TestRegisteringASquad:
     async def test_a_club_that_is_not_theirs_registers_nobody(self, client, caplog):
         team_id, club_id = await series_registration()
         other = await as_role(
-            client, caplog, "kd6@example.com", Role.CLUB_MANAGER, club_id=club_id + 1
+            client, caplog, "kd6@example.com", Role.TEAM_MANAGER, club_id=club_id + 1
         )
         response = await client.put(
             f"/api/admin/teams/{team_id}/members", headers=other, json={"members": []}

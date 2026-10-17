@@ -176,7 +176,7 @@ class TestCreatingAMatchday:
             assert response.status_code == 201, f"{rolle}: {response.text}"
 
     async def test_a_club_account_cannot_create_matchdays(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "ev7@example.com", Role.CLUB_MANAGER)
+        headers = await as_role(client, caplog, "ev7@example.com", Role.TEAM_MANAGER)
         response = await client.post(
             "/api/admin/events",
             headers=headers,

@@ -581,24 +581,24 @@ describeStory("Z-2: access is a relation tuple, written and deleted one at a tim
   });
 });
 
-describeStory("V-12: a club manager manages their own squad", () => {
-  /** A seeded account holding `club_manager`, found rather than hardcoded.
+describeStory("V-12: a team manager manages their own squad", () => {
+  /** A seeded account holding `team_manager`, found rather than hardcoded.
    *
    *  The seed builds its names from a generated list, so `roden.nanisberg1@nrv.example.com`
    *  is stable only until someone touches `app/seed_users.py`. `/api/dev/users` is the same
    *  list the role switcher reads, and asking it keeps this spec pinned to the *role*
    *  rather than to one person's name. */
-  async function aClubManager(page: Page): Promise<string> {
+  async function aTeamManager(page: Page): Promise<string> {
     const response = await page.request.get("/api/dev/users");
     expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
     const accounts = (await response.json()) as { email: string; roles: string[] }[];
-    const manager = accounts.find((account) => account.roles.includes("club_manager"));
-    expect(manager, "the seed creates one club_manager per club").toBeTruthy();
+    const manager = accounts.find((account) => account.roles.includes("team_manager"));
+    expect(manager, "the seed creates one team_manager per club").toBeTruthy();
     return manager!.email;
   }
 
   test("reaches the squad without ever touching an admin route", async ({ page }, testInfo) => {
-    await signIn(page, await aClubManager(page));
+    await signIn(page, await aTeamManager(page));
 
     // The defect this story fixes: the permission existed and there was no door. So the
     // claim is about the nav, not about typing a URL.
@@ -664,7 +664,7 @@ describeStory("V-12: a club manager manages their own squad", () => {
   test("the admin screen is still refused, which is the point of the separate route", async ({
     page,
   }) => {
-    await signIn(page, await aClubManager(page));
+    await signIn(page, await aTeamManager(page));
     await page.goto("/admin");
     // Not a redirect and not a blank page — the message says the area is not theirs, and
     // /club is where their work actually is.

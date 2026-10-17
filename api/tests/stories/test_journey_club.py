@@ -36,7 +36,7 @@ class TestANewClubRunsItself:
         office = await admin(client, caplog, f"office-{tag}@example.com")
         admin_email = f"chair-{tag}@example.com"
         manager_email = f"sport-{tag}@example.com"
-        # The future club manager registered on their own (Story Z-4, Journey J-3).
+        # The future team manager registered on their own (Story Z-4, Journey J-3).
         await register(client, caplog, manager_email, "Sam Sport")
 
         step("J-2.1", "league office creates the club")
@@ -93,20 +93,20 @@ class TestANewClubRunsItself:
         assert refused.status_code == 409, refused.text
         assert refused.json()["type"].endswith("/last-organizer")
 
-        step("J-2.7", "the club admin names the club manager by email")
+        step("J-2.7", "the club admin names the team manager by email")
         named = await client.post(
             "/api/auth/tuples",
             headers=club_admin,
             json={"user": manager_email, "relation": "manager", "object": f"club:{club_id}"},
         )
         assert named.status_code == 201, named.text
-        club_manager = auth_headers(await login_as(client, manager_email, caplog))
+        team_manager = auth_headers(await login_as(client, manager_email, caplog))
 
-        step("J-2.8", "the club manager applies for the series")
+        step("J-2.8", "the team manager applies for the series")
         series_id = ids.series("junioren-2026")
         applied = await client.post(
             "/api/applications",
-            headers=club_manager,
+            headers=team_manager,
             json={"club_id": club_id, "series_id": series_id},
         )
         assert applied.status_code in (200, 201), applied.text

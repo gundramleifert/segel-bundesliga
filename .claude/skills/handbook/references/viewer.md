@@ -50,7 +50,7 @@ Pick the file for `i18n.resolvedLanguage`, falling back to `en`.
    — derived from `GET /api/me/contexts` (relations and `sailor`) and `User.roles` (site
    roles), the same answer my space uses (Story Z-8). A guest sees `visitor` first.
    **Nothing is hidden**: every page is readable by everyone; the audience only orders and
-   filters. The help contains nothing secret, and someone about to become a club manager
+   filters. The help contains nothing secret, and someone about to become a team manager
    should be able to read what that means.
 2. **Journeys** — one `LinkCard` per `journey` page.
 3. **Look up** — `terms`, `roles`, the FAQ.
@@ -81,13 +81,13 @@ locales.
 Tests, under the story the first pass wrote (`describeStory("B-n: …")`, both projects,
 `chromium` and `mobile`):
 
-- the landing renders every audience tile and journey; a signed-in club manager sees
+- the landing renders every audience tile and journey; a signed-in team manager sees
   theirs first (`e2e/session.ts::signIn`);
 - `/help/roles` deep-loads in a fresh tab and scrolls to `#roles-matrix`;
 - a cross-page anchor link opens the right page; an internal link navigates without reload;
 - switching to German shows the German page with the same anchors;
 - no sideways scroll on the widest page (`expectNoSidewaysScroll`);
-- "help for this page" on `/me/club/:id` opens the club manager's guide.
+- "help for this page" on `/me/club/:id` opens the team manager's guide.
 
 A unit test for the frontmatter parser and the anchor index lives beside the other web
 unit tests, if the web project has them; otherwise the e2e tests carry it.

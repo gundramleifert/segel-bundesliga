@@ -72,7 +72,7 @@ class TestTreasurerRelation:
         assert not event_admin.can(Relation.TREASURER, on=Club(id=HOST))
         assert site_admin.can(Relation.TREASURER, on=_event(host=None))
 
-    def test_a_club_manager_does_not_hold_the_money(self):
+    def test_a_team_manager_does_not_hold_the_money(self):
         """The manager decides who sails; the money is the admin's or the treasurer's."""
         manager = _person(Grant(relation=Relation.MANAGER, club_id=HOST))
 

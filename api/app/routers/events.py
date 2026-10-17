@@ -891,7 +891,7 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
     for relation in (Relation.MANAGER, Relation.ADMIN):
         if series_id is not None and acting.holds(relation, series_id=series_id):
             return
-    if acting.has_any(Role.CLUB_MANAGER) and host_club_id is not None:
+    if acting.has_any(Role.TEAM_MANAGER) and host_club_id is not None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only host events for your own club.",

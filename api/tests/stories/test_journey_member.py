@@ -5,7 +5,7 @@ password in ``test_password_login.py``, membership and the roster in
 ``test_club_members.py``, my space in ``test_my_space.py``, the sailor record in
 ``test_sailors_and_squads.py`` and ``test_sailor_profile.py``. What this adds is the
 **order**: the club admin cannot add someone before they register, the account a person
-registers is the one the membership lands on, and the sailor record a club manager
+registers is the one the membership lands on, and the sailor record a team manager
 creates later is the one the person then edits — linked by nothing but the verified
 address.
 
@@ -33,9 +33,9 @@ class TestASailorJoinsTheirClub:
         tag = uuid4().hex[:8]
         club = await _fresh_club()
         await make_user(f"j3-admin-{tag}@example.com", Role.CLUB_ADMIN, club_id=club)
-        await make_user(f"j3-manager-{tag}@example.com", Role.CLUB_MANAGER, club_id=club)
+        await make_user(f"j3-manager-{tag}@example.com", Role.TEAM_MANAGER, club_id=club)
         club_admin = await _headers(client, caplog, f"j3-admin-{tag}@example.com")
-        club_manager = await _headers(client, caplog, f"j3-manager-{tag}@example.com")
+        team_manager = await _headers(client, caplog, f"j3-manager-{tag}@example.com")
         email = f"j3-nina-{tag}@example.com"
         membership = {"user": email, "relation": "member", "object": f"club:{club}"}
 
@@ -86,7 +86,7 @@ class TestASailorJoinsTheirClub:
             c for c in contexts.json()["contexts"] if c["kind"] == "club" and c["id"] == club
         )
         assert card["relations"] == ["member"]
-        # Membership creates no sailor record — that is the club manager's step.
+        # Membership creates no sailor record — that is the team manager's step.
         unlinked = await client.get("/api/sailors/me", headers=person)
         assert unlinked.status_code == 404, unlinked.text
         assert unlinked.json()["type"].endswith("/no-linked-sailor-record")
@@ -97,10 +97,10 @@ class TestASailorJoinsTheirClub:
         assert "Nina Neu" in {m["display_name"] for m in roster.json()}
         assert all("email" not in m for m in roster.json())
 
-        step("J-3.8", "the club manager creates the sailor record with email and date of birth")
+        step("J-3.8", "the team manager creates the sailor record with email and date of birth")
         created = await client.post(
             "/api/admin/sailors",
-            headers=club_manager,
+            headers=team_manager,
             json={
                 "first_name": "Nina",
                 "last_name": "Neuu",

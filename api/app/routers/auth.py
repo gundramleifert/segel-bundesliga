@@ -15,7 +15,7 @@ from app.auth import (
     create_access_token,
     current_user,
     require_admin,
-    require_club_manager,
+    require_team_manager,
 )
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
@@ -448,7 +448,7 @@ USER_SORT = {"display_name": User.display_name, "email": User.email}
 @router.get(
     "/users",
     response_model=Page[UserOut],
-    dependencies=[Depends(require_club_manager)],
+    dependencies=[Depends(require_team_manager)],
     summary="List accounts",
 )
 async def list_users(
@@ -456,7 +456,7 @@ async def list_users(
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[UserOut]:
-    """Also for club managers: they need to find people to assign to their club.
+    """Also for team managers: they need to find people to assign to their club.
 
     Paged since Story A-13 — there is one account per registered sailor, so this list is
     as long as the sailor register and had no limit at all.

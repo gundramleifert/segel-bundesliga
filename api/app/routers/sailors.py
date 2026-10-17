@@ -473,7 +473,7 @@ async def update_my_sailor(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> SailorMeOut:
-    """A sailor corrects their own name or birthdate — the same fields a club manager or
+    """A sailor corrects their own name or birthdate — the same fields a team manager or
     admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
     record" instead of requiring `_can_manage_master_data`."""
     sailor = await _my_sailor(session, acting)
@@ -660,7 +660,7 @@ async def _may_view_minor_photo(session: AsyncSession, acting: User | None, sail
         return True
     if sailor.email is not None and sailor.email.lower() == acting.email.lower():
         return True
-    if acting.has_any(Role.CLUB_MANAGER):
+    if acting.has_any(Role.TEAM_MANAGER):
         club_ids = (
             await session.execute(
                 select(Team.club_id)
@@ -683,7 +683,7 @@ def _can_manage_master_data(acting: User) -> None:
     Club leadership is included because they register their own sailors — they know the
     spelling of names, not the head office.
     """
-    if acting.has_any(Role.ADMIN, Role.EDITOR, Role.CLUB_MANAGER):
+    if acting.has_any(Role.ADMIN, Role.EDITOR, Role.TEAM_MANAGER):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -720,7 +720,7 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
 def _can_manage_squad(acting: User, team: Team) -> None:
     if acting.has_any(Role.ADMIN):
         return
-    if acting.has_any(Role.CLUB_MANAGER) and acting.manages_club(team.club_id):
+    if acting.has_any(Role.TEAM_MANAGER) and acting.manages_club(team.club_id):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

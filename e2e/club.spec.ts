@@ -3,10 +3,10 @@ import type { APIRequestContext, Page } from "@playwright/test";
 import { describeStory, expect, test } from "./fixtures";
 import { bearer, signIn } from "./session";
 
-/** Stories V-12 and V-2: the club manager's own screen, with the matchdays and the lineup.
+/** Stories V-12 and V-2: the team manager's own screen, with the matchdays and the lineup.
  *
  * `api/tests/stories/test_lineup.py` proves the rule (the crew comes from the squad);
- * `test_my_clubs.py` proves the list. What a browser adds: a club manager finds their
+ * `test_my_clubs.py` proves the list. What a browser adds: a team manager finds their
  * club's matchdays on `/club` without any admin route, names a crew there, and the public
  * matchday page shows it; and a person in two clubs picks one in the navigation, which
  * opens it (`?club=`), and a bare `/club` later opens the last one shown again — a
@@ -21,15 +21,15 @@ const PLANNED_ACT = 3; // dsbl-1-2026-act-3, planned — the one still to be lin
 
 type Account = { id: number; email: string; roles: string[] };
 
-async function aClubManager(request: APIRequestContext): Promise<Account> {
+async function aTeamManager(request: APIRequestContext): Promise<Account> {
   const response = await request.get("/api/dev/users");
   expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
   const accounts = (await response.json()) as Account[];
   // The seed creates one manager per club; NRV's is in every seeded series' squads too.
   const manager = accounts.find(
-    (a) => a.roles.includes("club_manager") && a.email.endsWith("@nrv.example.com"),
+    (a) => a.roles.includes("team_manager") && a.email.endsWith("@nrv.example.com"),
   );
-  expect(manager, "the seed creates one club_manager per club").toBeTruthy();
+  expect(manager, "the seed creates one team_manager per club").toBeTruthy();
   return manager!;
 }
 
@@ -53,9 +53,9 @@ async function openMyClub(
   await expect(page.getByTestId(`me-context-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
 }
 
-describeStory("V-2/V-12/S-7: as a club manager I name the crew for a matchday from my club's page", () => {
+describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday from my club's page", () => {
   test("the matchdays are listed and a crew is named from the squad", async ({ page, request }) => {
-    const manager = await aClubManager(request);
+    const manager = await aTeamManager(request);
     await signIn(page, manager.email);
     await openMyClub(page, await managedClub(request, manager.email));
     await expect(page.getByTestId("my-club-events-list")).toBeVisible();
@@ -110,7 +110,7 @@ describeStory("V-2/V-12/S-7: as a club manager I name the crew for a matchday fr
     page,
     request,
   }) => {
-    const manager = await aClubManager(request);
+    const manager = await aTeamManager(request);
     // Make them a member of a second club as well. Membership is a tuple the club's
     // admin — or the site's — writes (Story Z-5); nobody has to accept it.
     const admin = await bearer(request, ADMIN);
@@ -156,7 +156,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     request,
   }) => {
     // The seed's one official per club is its admin; NRV's is the manager used above.
-    const clubAdmin = await aClubManager(request);
+    const clubAdmin = await aTeamManager(request);
     expect(clubAdmin.roles, "the seeded official is the club's admin").toContain("club_admin");
     const guest = "gast@sbl.example.com"; // seeded, no club, no role
     const clubs = (await (await request.get("/api/clubs/mine", { headers: await bearer(request, clubAdmin.email) })).json()) as {

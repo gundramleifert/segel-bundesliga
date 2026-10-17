@@ -30,7 +30,7 @@ A ◐ story often says inside itself what is built: "**Built** — …", "**Not 
 |---|---|---|
 | `visitor` | `visitor.md` | not signed in, or signed in with no relation |
 | `sailor` | `sailor.md` | in a squad or a crew (`sailor` in `/api/me/contexts`); every account (sign-in, profile, waiver) |
-| `club-manager` | `club-manager.md` | `admin`, `manager`, `member` on a club |
+| `club` | `club.md` | `admin`, `manager`, `member` on a club |
 | `event-organizer` | `event-organizer.md` | `manager` on an event, its series or its host club |
 | `race-committee` | `race-committee.md`, the race-committee parts of `live.md` | `race_officer`, `jury`, `helper` |
 | `treasurer` | `treasurer.md` | `treasurer` on a club or event, and anyone filing a claim |

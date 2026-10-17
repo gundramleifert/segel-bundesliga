@@ -94,15 +94,15 @@ from tests.journeys import step
 
 class TestACrewIsCleared:
     async def test_adult_crew(self, client, caplog):
-        step("J-5.1", "club manager registers the squad")
+        step("J-5.1", "team manager registers the squad")
         ...
-        step("J-5.4", "club manager names the crew")
+        step("J-5.4", "team manager names the crew")
 ```
 
 ```ts
 describeJourney("J-5: a crew is cleared — adult crew", () => {
   test("walks it", async ({ page }) => {
-    await step("J-5.1", "club manager registers the squad", async () => { … });
+    await step("J-5.1", "team manager registers the squad", async () => { … });
   });
 });
 ```

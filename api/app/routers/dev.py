@@ -56,7 +56,7 @@ DESCRIPTION: dict[str, str] = {
     "editor": "Editorial: write messages, approve club posts.",
     "race_officer": "Race officer: record and correct results.",
     "club_admin": "Decides who is in the club: members, organizers.",
-    "club_manager": "Decides who sails for the club: squads, lineups, registrations.",
+    "team_manager": "Decides who sails for the club: squads, lineups, registrations.",
     "series_manager": "Organizer of a series: its clubs, its events, its publication.",
     "event_manager": "Organizer of an event: its setup and its clubs.",
     "jury": "Protest committee of an event: announcements, protest decisions.",

@@ -250,7 +250,7 @@ Acceptance criteria:
 **Summary roles.** The navigation and the help page still speak of roles; those are
 **derived** from the tuples (`User.roles`, `Role`): `admin`, `editor`, `race_officer`,
 `jury`, `treasurer` and `helper` for the relation held anywhere, `club_admin` for `admin` of some club,
-`club_manager`, `series_manager` and `event_manager` for `manager` **or** `admin` of some
+`team_manager`, `series_manager` and `event_manager` for `manager` **or** `admin` of some
 club, series or event (an admin is a manager, says the model). Never a permission check —
 that is `User.can(relation, on=object)`.
 
@@ -287,7 +287,7 @@ club — members, organizers, crest, the club's tuples — and its **manager** d
 model. A person can organize several clubs independently, each tuple written and deleted
 on its own. The club screen and the Accounts tab go through the same
 `app/services/grants.py`, so the last-organizer rule below holds whichever screen is used.
-"Organizer" below means either relation; `club_admin` and `club_manager` are the summary
+"Organizer" below means either relation; `club_admin` and `team_manager` are the summary
 roles.
 
 Acceptance criteria:

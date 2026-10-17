@@ -12,7 +12,7 @@ per phase.
 | [administration.md](administration.md) | Administration: clubs, series, accounts and roles, the admin screens |
 | [race-committee.md](race-committee.md) | Race committee: running races, entering results |
 | [event-organizer.md](event-organizer.md) | Event organizer: one event from draft to closing |
-| [club-manager.md](club-manager.md) | Club manager: members, competitions, squad and lineup, the club page |
+| [club.md](club.md) | Club admin and team manager: members, competitions, squad and lineup, the club page |
 | [sailor.md](sailor.md) | Sailor: account, club, waiver, profile |
 | [visitor.md](visitor.md) | Visitor and fans: everything that is public |
 | [treasurer.md](treasurer.md) | Treasurer: the expense claims of an event, paid by its host club |
@@ -20,7 +20,7 @@ per phase.
 | [live.md](live.md) | Live and tracking — spectator, race committee and the phone on the boat share these; the plan is `docs/PLAN_LIVE_IMPLEMENTATION.md` |
 
 **Identifiers are permanent, files are not.** The letter records where a story was
-first told (`B` Visitor/Fan · `WL` Race Committee · `VA` Event Organizer · `V` Club Manager
+first told (`B` Visitor/Fan · `WL` Race Committee · `VA` Event Organizer · `V` Club
 · `S` Sailor · `Z` Access · `A` Administration · `L` Live and tracking · `R` Editorial · `F` Finance · `J` Journey) and
 never changes, because tests carry it. A story sits in the file of the person who tells
 it, so `A-5` is read in `visitor.md` and `Z-2` in `administration.md`. `scripts/check-docs.py`

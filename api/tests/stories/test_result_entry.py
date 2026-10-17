@@ -35,8 +35,8 @@ async def _admin(client, caplog, email: str) -> dict[str, str]:
     return auth_headers(await login_as(client, email, caplog))
 
 
-async def _club_manager(client, caplog, email: str) -> dict[str, str]:
-    await make_user(email, Role.CLUB_MANAGER)
+async def _team_manager(client, caplog, email: str) -> dict[str, str]:
+    await make_user(email, Role.TEAM_MANAGER)
     return auth_headers(await login_as(client, email, caplog))
 
 
@@ -136,9 +136,9 @@ class TestEnteringResults:
         # And the boats that were not mentioned keep what they had.
         assert after[boats[0]].finish_position == 1
 
-    async def test_club_manager_is_rejected(self, client, caplog):
+    async def test_team_manager_is_rejected(self, client, caplog):
         event_id, race_id, boats = await _unfinished_race(offset=2)
-        headers = await _club_manager(client, caplog, "wl-cm1@example.com")
+        headers = await _team_manager(client, caplog, "wl-cm1@example.com")
 
         response = await client.put(
             f"/api/admin/events/{event_id}/races/{race_id}/result",
@@ -417,8 +417,8 @@ class TestMatchdayPenalty:
         assert (row["net"], row["penalty_points"], row["penalty_note"]) == (net, 0.0, None)
 
     async def test_only_the_race_committee_sets_it(self, client, caplog):
-        """Story WL-4: a club manager may not penalise anyone."""
-        manager = await _club_manager(client, caplog, "wl4-manager@example.com")
+        """Story WL-4: a team manager may not penalise anyone."""
+        manager = await _team_manager(client, caplog, "wl4-manager@example.com")
         event_id, team_id, _ = await self._team(FINISHED_MATCHDAY)
         response = await client.put(
             f"/api/admin/events/{event_id}/teams/{team_id}/penalty",

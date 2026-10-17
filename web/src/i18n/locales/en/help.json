@@ -8,7 +8,7 @@
       "admin": "Admin",
       "editor": "Editor",
       "raceOfficer": "Race committee",
-      "clubManager": "Club manager",
+      "teamManager": "Team manager",
       "eventManager": "Event manager",
       "clubAdmin": "Club admin",
       "seriesManager": "Series manager"
@@ -51,7 +51,7 @@
     },
     "createEvent": {
       "title": "Create an Event",
-      "who": "Admin, editor or race committee — plus a club manager, but only for an Event their own club hosts.",
+      "who": "Admin, editor or race committee — plus a team manager, but only for an Event their own club hosts.",
       "steps": [
         "Open Admin and go to the Events section.",
         "Enter a title and a date.",
@@ -59,7 +59,7 @@
         "Set team count, boat count and flight count; the form shows the resulting races per flight as you type.",
         "Click Create."
       ],
-      "note": "Today the Admin page itself is reachable for admin and editor accounts only. The race-committee and hosting-club-manager permissions to create an Event exist in the rules, but the interface has no entry point for them yet."
+      "note": "Today the Admin page itself is reachable for admin and editor accounts only. The race-committee and the hosting club's team-manager permissions to create an Event exist in the rules, but the interface has no entry point for them yet."
     },
     "createClub": {
       "title": "Create a Club",
@@ -84,21 +84,21 @@
     },
     "registerSeries": {
       "title": "Register a Club for a Series",
-      "who": "Admin sets this directly; a club manager can also apply on their own club's behalf, subject to admin approval.",
+      "who": "Admin sets this directly; a team manager can also apply on their own club's behalf, subject to admin approval.",
       "steps": [
         "Admin path: while creating or editing a Series, add the club with the club selector in the Admin page — this takes effect immediately, no approval needed.",
-        "Application path: a club manager submits a request naming their club and the Series; it only counts once an admin accepts it.",
+        "Application path: a team manager submits a request naming their club and the Series; it only counts once an admin accepts it.",
         "This registration — with no Event attached — is what makes the club's Squad and its public visibility for that Series possible. It is separate from taking part in any one Event of that Series."
       ],
       "note": "The application path exists in the API but has no page in the interface yet. For now, registering a club for a Series happens through the Admin page's Series section."
     },
     "registerEvent": {
       "title": "Register a Club for an Event",
-      "who": "Admin sets this directly; a club manager can also apply, subject to admin approval.",
+      "who": "Admin sets this directly; a team manager can also apply, subject to admin approval.",
       "steps": [
         "A club must already be registered for the Event's Series before it can take part in one of that Series' Events.",
         "Admin path: the clubs participating in a specific Event are set directly and take effect immediately.",
-        "Application path: a club manager submits a request naming their club and the Event; it only counts once an admin accepts it.",
+        "Application path: a team manager submits a request naming their club and the Event; it only counts once an admin accepts it.",
         "This participation — with the Event attached — is what the pairing list, results and lineup for that Event work from."
       ],
       "note": "Neither the admin path nor the application path for Event participants has a page in the interface yet; both exist only as API endpoints so far."

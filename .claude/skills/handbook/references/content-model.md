@@ -38,7 +38,7 @@ quote a `title` containing `:`. **Every field except `title` is identical in bot
 id: squad-and-lineup
 type: guide
 order: 20
-audience: [club-manager]
+audience: [club]
 stories: [V-1, V-2, V-12]
 journey: null
 route: /me/club/:id
@@ -52,7 +52,7 @@ title: "Register the squad and name the crew"
 | `id` | yes | equals the file name's id |
 | `type` | yes | `start`, `guide`, `journey`, `doc`, `faq` |
 | `order` | yes | position within its type, **steps of 10**, never renumbered |
-| `audience` | yes | one or more of `visitor`, `sailor`, `club-manager`, `event-organizer`, `race-committee`, `treasurer`, `administration`; a `guide` has **exactly one** |
+| `audience` | yes | one or more of `visitor`, `sailor`, `club`, `event-organizer`, `race-committee`, `treasurer`, `administration`; a `guide` has **exactly one** |
 | `stories` | yes | the story IDs this page documents — the link the checks and the update mode follow. `[]` only for `start` pages |
 | `journey` | `journey` pages | the journey ID (`J-1`); `null` elsewhere |
 | `route` | no | the route this page explains, as written in `App.tsx`; feeds "help for this page". At most one page per route. `null` if none |

@@ -541,7 +541,7 @@ async def event_waivers(
 
     if not (
         acting.can(Relation.MANAGER, Relation.RACE_OFFICER, on=event)
-        or (acting.has_any(Role.CLUB_MANAGER) and acting.manages_club(event.host_club_id))
+        or (acting.has_any(Role.TEAM_MANAGER) and acting.manages_club(event.host_club_id))
     ):
         raise Problem(
             403,
@@ -926,7 +926,7 @@ async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) 
     """The sailor's own (verified) account; the league office or the manager of a club
     that has the sailor in a squad — they collect their club's paper forms (Stories S-1,
     S-3); or a guardian the child's club linked to the sailor (Stories V-13, S-8). Not any
-    club's manager: the `club_manager` *summary* role once let one club sign for every
+    club's manager: the `team_manager` *summary* role once let one club sign for every
     sailor on the site. Returns which of the three it is — the first that applies."""
     own = (
         acting.email_verified

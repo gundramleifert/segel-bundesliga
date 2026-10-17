@@ -7,7 +7,7 @@ and every ``step("J-5.k", …)`` is a row of the journey's table, in the table's
   confirms the waiver online, the check-in list is all green;
 - **minor crew with a guardian**: the squad starts below the series' minimum, one sailor
   has no date of birth on file, the guardian's paper form is downloaded and its scan
-  uploaded — once by the sailor, once by the club manager;
+  uploaded — once by the sailor, once by the team manager;
 - **stand-alone event**: an event in no series carries its own squad on the club's entry,
   and its own waiver.
 - **minors with a linked guardian**: the club links each child's parent, and the parent
@@ -89,7 +89,7 @@ class _Setting:
             self.client,
             self.caplog,
             f"j5-manager-{self.tag}@example.com",
-            Role.CLUB_MANAGER,
+            Role.TEAM_MANAGER,
             club_id=self.club_id,
         )
 
@@ -174,7 +174,7 @@ class _Setting:
         self.entry_team, self.squad_team = entry["team_id"], entry["squad_team_id"]
 
     async def sailors(self, *births: str | None) -> list[tuple[int, dict[str, str]]]:
-        """The club's sailors (Story V-4, by the club manager), each with an account."""
+        """The club's sailors (Story V-4, by the team manager), each with an account."""
         out = []
         for n, birth in enumerate(births):
             email = f"j5-sailor-{n}-{self.tag}@example.com"
@@ -257,13 +257,13 @@ class TestACrewIsClearedForAMatchday:
         await the.series_matchday()
         squad = await the.sailors(ADULT, ADULT, ADULT, ADULT, ADULT)
 
-        step("J-5.1", "club manager registers the squad for the series")
+        step("J-5.1", "team manager registers the squad for the series")
         saved = await the.register_squad(squad)
         assert len(saved["members"]) == 5
         assert (saved["squad_min"], saved["squad_max"]) == (4, 10)
         assert "squad_below_min" not in await _needs(client, the.manager, "club", the.club_id)
 
-        step("J-5.5", "club manager names the crew for the matchday from the squad")
+        step("J-5.5", "team manager names the crew for the matchday from the squad")
         crew = squad[:4]
         await the.name_crew(crew)
 
@@ -272,7 +272,7 @@ class TestACrewIsClearedForAMatchday:
             assert "waiver" in await _needs(client, headers, "series", the.series_id)
             assert (await the.my_waiver(headers))["status"] == "missing"
 
-        step("J-5.17", "the club manager's my space says a crew member's waiver is missing")
+        step("J-5.17", "the team manager's my space says a crew member's waiver is missing")
         # The crew stays named — nothing is locked (VA-5) — but the club is told.
         assert "crew_waiver_missing" in await _needs(client, the.manager, "club", the.club_id)
 
@@ -299,7 +299,7 @@ class TestACrewIsClearedForAMatchday:
         await the.series_matchday()
         squad = await the.sailors(MINOR, MINOR, None, MINOR)
 
-        step("J-5.1", "club manager registers the first three sailors for the series")
+        step("J-5.1", "team manager registers the first three sailors for the series")
         saved = await the.register_squad(squad[:3])
         assert len(saved["members"]) == 3
 
@@ -307,11 +307,11 @@ class TestACrewIsClearedForAMatchday:
         assert (saved["squad_min"], len(saved["members"])) == (4, 3)
         assert "squad_below_min" in await _needs(client, the.manager, "club", the.club_id)
 
-        step("J-5.3", "club manager completes the squad later")
+        step("J-5.3", "team manager completes the squad later")
         assert len((await the.register_squad(squad))["members"]) == 4
         assert "squad_below_min" not in await _needs(client, the.manager, "club", the.club_id)
 
-        step("J-5.5", "club manager names the crew for the matchday from the squad")
+        step("J-5.5", "team manager names the crew for the matchday from the squad")
         assert "crew_missing" in await _needs(client, the.manager, "club", the.club_id)
         await the.name_crew(squad)
         # A crew is named: my space stops asking for one (Story Z-8).
@@ -330,7 +330,7 @@ class TestACrewIsClearedForAMatchday:
         assert refused.status_code == 422
         assert refused.json()["type"] == "/errors/waiver-birth-date-required"
 
-        step("J-5.17", "the club manager's my space says a crew member's waiver is missing")
+        step("J-5.17", "the team manager's my space says a crew member's waiver is missing")
         # The crew stays named — nothing is locked (VA-5) — but the club is told.
         assert "crew_waiver_missing" in await _needs(client, the.manager, "club", the.club_id)
 
@@ -377,7 +377,7 @@ class TestACrewIsClearedForAMatchday:
             assert uploaded.status_code == 201, uploaded.text
             assert uploaded.json()["method"] == "guardian" and uploaded.json()["cleared"] is True
 
-        step("J-5.13", "the club manager uploads the last one, collected at the club")
+        step("J-5.13", "the team manager uploads the last one, collected at the club")
         last_id, last = squad[3]
         uploaded = await client.post(f"{the.waiver_url}/scan", headers=the.manager, **scan(last_id))
         assert uploaded.status_code == 201, uploaded.text
@@ -400,19 +400,19 @@ class TestACrewIsClearedForAMatchday:
         squad = await the.sailors(ADULT, ADULT, ADULT, ADULT)
         assert the.squad_team == the.entry_team  # the entry carries the squad
 
-        step("J-5.4", "club manager registers the squad on the event entry")
+        step("J-5.4", "team manager registers the squad on the event entry")
         saved = await the.register_squad(squad)
         assert saved["series_id"] is None
         assert (saved["squad_min"], saved["squad_max"]) == (4, 6)  # the event's own limits
 
-        step("J-5.5", "club manager names the crew from that squad")
+        step("J-5.5", "team manager names the crew from that squad")
         await the.name_crew(squad)
 
         step("J-5.6", "each sailor's my space asks the event's waiver, not a series'")
         for _, headers in squad:
             assert "waiver" in await _needs(client, headers, "event", the.event_id)
 
-        step("J-5.17", "the club manager's my space says a crew member's waiver is missing")
+        step("J-5.17", "the team manager's my space says a crew member's waiver is missing")
         # The crew stays named — nothing is locked (VA-5) — but the club is told.
         assert "crew_waiver_missing" in await _needs(client, the.manager, "club", the.club_id)
 
@@ -436,10 +436,10 @@ class TestACrewIsClearedForAMatchday:
         await the.series_matchday()
         squad = await the.sailors(MINOR, MINOR, MINOR, MINOR)
 
-        step("J-5.1", "club manager registers the squad for the series")
+        step("J-5.1", "team manager registers the squad for the series")
         assert len((await the.register_squad(squad))["members"]) == 4
 
-        step("J-5.5", "club manager names the crew for the matchday from the squad")
+        step("J-5.5", "team manager names the crew for the matchday from the squad")
         assert "crew_missing" in await _needs(client, the.manager, "club", the.club_id)
         await the.name_crew(squad)
         # A crew is named: my space stops asking for one (Story Z-8).
@@ -449,10 +449,10 @@ class TestACrewIsClearedForAMatchday:
         for _, headers in squad:
             assert "waiver" in await _needs(client, headers, "series", the.series_id)
 
-        step("J-5.17", "the club manager's my space says a crew member's waiver is missing")
+        step("J-5.17", "the team manager's my space says a crew member's waiver is missing")
         assert "crew_waiver_missing" in await _needs(client, the.manager, "club", the.club_id)
 
-        step("J-5.15", "club manager links each child's parent as guardian")
+        step("J-5.15", "team manager links each child's parent as guardian")
         parents = []
         for n, (sailor_id, _) in enumerate(squad):
             email = f"j5-parent-{n}-{the.tag}@example.com"

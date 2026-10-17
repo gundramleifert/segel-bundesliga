@@ -354,7 +354,7 @@ class TestDecidingAClaim:
             )
         assert "submitted" in actions and "returned" in actions
 
-    async def test_the_club_manager_decides_a_club_claim(self, client, caplog):
+    async def test_the_team_manager_decides_a_club_claim(self, client, caplog):
         w = await world()
         member = await login(
             client,

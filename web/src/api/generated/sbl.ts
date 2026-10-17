@@ -303,7 +303,7 @@ export const getUpdateMySailorUrl = () => {
 }
 
 /**
- * A sailor corrects their own name or birthdate — the same fields a club manager or
+ * A sailor corrects their own name or birthdate — the same fields a team manager or
  * admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
  * record" instead of requiring `_can_manage_master_data`.
  * @summary Edit my own sailor record
@@ -3357,7 +3357,7 @@ export const getListUsersUrl = (params?: ListUsersParams,) => {
 }
 
 /**
- * Also for club managers: they need to find people to assign to their club.
+ * Also for team managers: they need to find people to assign to their club.
  *
  * Paged since Story A-13 — there is one account per registered sailor, so this list is
  * as long as the sailor register and had no limit at all.

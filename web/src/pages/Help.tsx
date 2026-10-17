@@ -10,7 +10,7 @@ const ROLE_COLUMNS = [
   "seriesManager",
   "eventManager",
   "clubAdmin",
-  "clubManager",
+  "teamManager",
 ] as const;
 type RoleColumn = (typeof ROLE_COLUMNS)[number];
 
@@ -25,7 +25,7 @@ interface AreaRow {
 }
 
 /** Source of truth: the permissions table in CLAUDE.md. Two of its rows ("Create and
- *  maintain Events" and "Create Event: additionally club_manager if own club hosts")
+ *  maintain Events" and "Create Event: additionally team_manager if own club hosts")
  *  describe the same area from two angles and are merged into one row here. */
 const AREAS: AreaRow[] = [
   {
@@ -37,7 +37,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "ownEvents",
       eventManager: "no",
       clubAdmin: "no",
-      clubManager: "no",
+      teamManager: "no",
     },
   },
   {
@@ -49,7 +49,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "no",
       eventManager: "no",
       clubAdmin: "no",
-      clubManager: "no",
+      teamManager: "no",
     },
   },
   {
@@ -61,7 +61,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "ownEvents",
       eventManager: "ownEvents",
       clubAdmin: "ownEvents",
-      clubManager: "hostsCreate",
+      teamManager: "hostsCreate",
     },
   },
   {
@@ -73,7 +73,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "ownAdmin",
       eventManager: "ownAdmin",
       clubAdmin: "ownEvents",
-      clubManager: "no",
+      teamManager: "no",
     },
   },
   {
@@ -85,7 +85,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "no",
       eventManager: "no",
       clubAdmin: "no",
-      clubManager: "no",
+      teamManager: "no",
     },
   },
   {
@@ -97,7 +97,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "ownAdmin",
       eventManager: "ownAdmin",
       clubAdmin: "ownAdmin",
-      clubManager: "no",
+      teamManager: "no",
     },
   },
   {
@@ -109,7 +109,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "no",
       eventManager: "no",
       clubAdmin: "own",
-      clubManager: "no",
+      teamManager: "no",
     },
   },
   {
@@ -121,7 +121,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "no",
       eventManager: "no",
       clubAdmin: "own",
-      clubManager: "own",
+      teamManager: "own",
     },
   },
   {
@@ -133,7 +133,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "no",
       eventManager: "no",
       clubAdmin: "own",
-      clubManager: "own",
+      teamManager: "own",
     },
   },
   {
@@ -145,7 +145,7 @@ const AREAS: AreaRow[] = [
       seriesManager: "no",
       eventManager: "no",
       clubAdmin: "own",
-      clubManager: "own",
+      teamManager: "own",
     },
   },
 ];

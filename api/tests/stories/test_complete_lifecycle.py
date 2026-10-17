@@ -363,7 +363,7 @@ class TestTheAdminEventList:
         is deliberately *not* permission to read everyone else's planning: the list is
         narrowed to the events their tuples reach (Story Z-2), so a fresh club's manager
         sees only events their club hosts — and nothing of the league's."""
-        await make_user("clubmanager-list@example.com", Role.CLUB_MANAGER)
+        await make_user("clubmanager-list@example.com", Role.TEAM_MANAGER)
         headers = auth_headers(await login_as(client, "clubmanager-list@example.com", caplog))
         me = (await client.get("/api/auth/me", headers=headers)).json()
         (mine,) = [t["object_id"] for t in me["tuples"]]

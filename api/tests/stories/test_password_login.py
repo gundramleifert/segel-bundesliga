@@ -65,13 +65,13 @@ class TestSettingAndSigningIn:
     async def test_set_then_sign_in(self, client, caplog):
         """Z-9: a password set on the account signs in to the same account — and the
         address signs in however it is capitalised, like every other path."""
-        await with_password(client, caplog, "pw-set@example.com", Role.CLUB_MANAGER)
+        await with_password(client, caplog, "pw-set@example.com", Role.TEAM_MANAGER)
 
         response = await password_login(client, "PW-Set@Example.com", PASSWORD)
         assert response.status_code == 200, response.text
         me = await client.get("/api/auth/me", headers=bearer(response.json()["access_token"]))
         assert me.json()["email"] == "pw-set@example.com"
-        assert me.json()["roles"] == [Role.CLUB_MANAGER]
+        assert me.json()["roles"] == [Role.TEAM_MANAGER]
         assert "password" in {i["provider"] for i in me.json()["identities"]}
 
     async def test_the_same_umlaut_typed_two_ways_is_the_same_password(self, client, caplog):

@@ -266,7 +266,7 @@ def _can_apply(acting: User, club_id: int, locale: Locale) -> None:
     Admins can also register because they can set directly anyway; a request in their
     name is the weaker intervention.
     """
-    if not acting.has_any(Role.ADMIN, Role.CLUB_MANAGER):
+    if not acting.has_any(Role.ADMIN, Role.TEAM_MANAGER):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=tr(

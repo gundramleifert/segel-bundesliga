@@ -464,7 +464,7 @@ async def my_clubs(
     `sailors.me_router` is included before `public.router` in `app/main.py`).
     """
     member_of = acting.member_club_ids
-    # `club_manager` is granted per club (`UserRole.club_id`), never globally — so this
+    # `team_manager` is granted per club (`UserRole.club_id`), never globally — so this
     # comes off the role rows and not off `User.club_id`, which is the separate and
     # narrower "this account represents that club".
     manages = acting.managed_club_ids
@@ -509,7 +509,7 @@ async def my_clubs(
 
     # Event entries — the rows a lineup is set on (Stories V-2, V-12). Drafts included:
     # the participants of an unpublished event are exactly the people who have to line
-    # up before it is published, and a `club_manager` sees only their own clubs here.
+    # up before it is published, and a `team_manager` sees only their own clubs here.
     entries = (
         await session.execute(
             select(Team.id, Team.club_id, Event, Series)

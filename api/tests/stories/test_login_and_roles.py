@@ -37,17 +37,17 @@ async def make_user(
             display_name=email.split("@")[0],
             is_active=active,
         )
-        # `Role.CLUB_MANAGER` with `club_id` means "manager of this club" — one tuple on
-        # the club; every other role here is a site relation (Story Z-2). A club manager
+        # `Role.TEAM_MANAGER` with `club_id` means "manager of this club" — one tuple on
+        # the club; every other role here is a site relation (Story Z-2). A team manager
         # without a club named organizes the first seeded club: a manager tuple needs an
         # object, and these tests only care that the person organizes *some* club.
-        if (Role.CLUB_MANAGER in roles or Role.CLUB_ADMIN in roles) and club_id is None:
+        if (Role.TEAM_MANAGER in roles or Role.CLUB_ADMIN in roles) and club_id is None:
             club_id = (
                 await session.execute(select(Club.id).order_by(Club.id).limit(1))
             ).scalar_one()
         user.grants = [
             Grant(relation=Relation.MANAGER, club_id=club_id)
-            if role == Role.CLUB_MANAGER
+            if role == Role.TEAM_MANAGER
             else Grant(relation=Relation.ADMIN, club_id=club_id)
             if role == Role.CLUB_ADMIN
             else Grant(relation=Relation(role))
@@ -512,7 +512,7 @@ class TestTuples:
         headers = await _admin_headers(client, caplog)
         nrv, byc = ids.club("nrv"), ids.club("byc")
         act_1, act_3 = ids.event("dsbl-1-2026-act-1"), ids.event("dsbl-1-2026-act-3")
-        user_id = await make_user("vier@example.org", Role.CLUB_MANAGER, club_id=nrv)
+        user_id = await make_user("vier@example.org", Role.TEAM_MANAGER, club_id=nrv)
         await _write(client, headers, "vier@example.org", "manager", f"club:{byc}")
         await _write(client, headers, "vier@example.org", "race_officer", f"event:{act_1}")
         gone = await _write(client, headers, "vier@example.org", "race_officer", f"event:{act_3}")
@@ -520,7 +520,7 @@ class TestTuples:
         response = await client.delete(f"/api/auth/tuples/{gone['id']}", headers=headers)
         assert response.status_code == 204, response.text
         user = (await client.get(f"/api/auth/users/{user_id}", headers=headers)).json()
-        assert sorted(user["roles"]) == [Role.CLUB_MANAGER, Role.RACE_OFFICER]
+        assert sorted(user["roles"]) == [Role.RACE_OFFICER, Role.TEAM_MANAGER]
         assert sorted((t["relation"], t["object"]) for t in user["tuples"]) == sorted(
             [
                 ("manager", f"club:{byc}"),
@@ -638,7 +638,7 @@ class TestOrganizers:
         headers = await _admin_headers(client, caplog)
         club = ids.club("byc")
         await make_user("byc-orga@example.org", Role.CLUB_ADMIN, club_id=club)
-        await make_user("byc-sport@example.org", Role.CLUB_MANAGER, club_id=club)
+        await make_user("byc-sport@example.org", Role.TEAM_MANAGER, club_id=club)
         await make_user("stranger@example.org")
         orga = await _headers(client, caplog, "byc-orga@example.org")
         sport = await _headers(client, caplog, "byc-sport@example.org")
@@ -660,7 +660,7 @@ class TestOrganizers:
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
         assert by_type["club"] == ["admin", "manager", "member", "treasurer"]
         me = (await client.get("/api/auth/me", headers=orga)).json()
-        assert sorted(me["roles"]) == [Role.CLUB_ADMIN, Role.CLUB_MANAGER]
+        assert sorted(me["roles"]) == [Role.CLUB_ADMIN, Role.TEAM_MANAGER]
         await client.delete(f"/api/auth/tuples/{written.json()['id']}", headers=orga)
 
     async def test_an_event_manager_sets_up_but_its_admin_names_the_people(

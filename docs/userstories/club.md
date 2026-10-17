@@ -1,4 +1,4 @@
-# Club Manager
+# Club: its admin and its team manager
 
 Part of the [user stories](README.md); the format, the status marks and the
 identifier rule are explained there.
@@ -9,7 +9,7 @@ before each matchday the club names the four who actually sail.
 
 Two people stand behind "the club" here (Story Z-2): the club's **admin** decides who is
 *in* the club — members, organizers, the crest — and the club's **manager** decides who
-*sails* — squads, lineups, registrations. Where a story below says `club_manager`, read
+*sails* — squads, lineups, registrations; the site calls them the **team manager**. Where a story below says `team_manager`, read
 the manager for sport and the admin for membership; an admin is a manager too.
 Membership itself is a tuple, `user:member:club`, written by the admin (Z-5).
 
@@ -72,7 +72,7 @@ Endpoints: `POST /api/auth/tuples`
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-4 ● Create sailors
-As a **club manager** I want to **create sailors in my club**,
+As a **team manager** I want to **create sailors in my club**,
 so that I **can register them in the squad**.
 
 Acceptance criteria:
@@ -117,7 +117,7 @@ Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`
 ## Entering competitions
 
 ### V-5 ● Request participation
-As a **club manager** I want to **register my club for a series or event**,
+As a **team manager** I want to **register my club for a series or event**,
 so that I **don't have to call the league office**.
 
 Acceptance criteria:
@@ -135,7 +135,7 @@ Endpoints: `POST /api/applications`, `GET /api/applications`,
 Tests: `api/tests/stories/test_participation.py::TestApplying`
 
 ### V-6 ● Request participation in an event
-As a **club manager** I want to **register my club for a single event**,
+As a **team manager** I want to **register my club for a single event**,
 so that **we can also participate in a cup that belongs to no series**.
 
 Acceptance criteria:
@@ -190,7 +190,7 @@ concept would be advised now.
 ## Squad and lineup
 
 ### V-1 ● Register season squad
-As a **club manager** I want to **register the people who are allowed to sail for us**,
+As a **team manager** I want to **register the people who are allowed to sail for us**,
 so that **it is clear who can be lined up**.
 
 Acceptance criteria:
@@ -206,7 +206,7 @@ Acceptance criteria:
 
 - **Every refusal is a typed problem** (`app/problems.py`), not a sentence built in the
   router: the squad screen has to say *which* rule was broken, and it has to say it in the
-  reader's language. A club manager who adds someone who already sails for another club in
+  reader's language. A team manager who adds someone who already sails for another club in
   the same series gets that sentence, with both names in it — not a 422 whose body is an
   English string chosen by the backend.
   - `squad-duplicate-sailor` — the same person twice in one submission.
@@ -255,7 +255,7 @@ Tests: `api/tests/stories/test_sailors_and_squads.py::TestRegisteringASquad`,
 `api/tests/stories/test_sailors_and_squads.py::TestSquadRefusalsAreTyped`
 
 ### V-2 ● Select sailors for matchday
-As a **club manager** I want to **name the four sailors for a matchday in advance**,
+As a **team manager** I want to **name the four sailors for a matchday in advance**,
 so that **the registration is timely**.
 
 The core rule: **A club registers X people for the league; for a matchday they choose from
@@ -268,7 +268,7 @@ Acceptance criteria:
   (four), and the interface orientates itself to it — it is not enforced. Illness, late
   registration, and different formats would not get through otherwise.
 - No one appears twice in a lineup, and no one sails a matchday for two teams.
-- A club manager lines up only their **own** team; administration and race committee can
+- A team manager lines up only their **own** team; administration and race committee can
   intervene anywhere — on event day someone must be able to change quickly.
 - An empty list removes the lineup.
 - An event **without a series** has no squad and thus no lineup.
@@ -283,21 +283,21 @@ Tests: `api/tests/stories/test_lineup.py`, `e2e/club.spec.ts`
 Open: coupling to confirmed liability waiver (S-1, VA-5).
 
 ### V-12 ● My club: one screen for members, matchdays and squads
-As a **club manager** I want **my club's squad to be somewhere I can get to**,
+As a **team manager** I want **my club's squad to be somewhere I can get to**,
 so that **I can register who may sail without asking an administrator to do it for me**.
 
 Story V-1 has said since it was written that "registration may be done by the leadership of
 their **own** club", and the endpoint has enforced exactly that from the start. The screen
 never did: the only squad panel lives under `/admin`, which refuses anyone who is not
 `admin` or `editor`, and it finds a team by first listing every series through
-`GET /api/admin/series` — an admin-only route. So a club manager had the permission, the
+`GET /api/admin/series` — an admin-only route. So a team manager had the permission, the
 data and no door. This story is the door.
 
 Acceptance criteria:
 - **The club's page in my space is the club's own screen, for everyone who belongs to
   it** — `/me/club/:id` (Story S-7; it was `/club` until Issue #10, and that address
   redirects). Every club a person is a member of or organizes is a card in *My space*
-  (Story Z-8), not only for `club_manager`, since a member has things to see there too.
+  (Story Z-8), not only for `team_manager`, since a member has things to see there too.
   The club screen's part of it is **three tabs**: **Members**, **Matchdays** and
   **Series & squads** (`?tab=members|events|series`; Members opens first), beside the
   person's claims and, for its organizer or treasurer, the club's money (S-7).
@@ -320,7 +320,7 @@ Acceptance criteria:
   A signed-in member sees the roster there; their own way in is *My space*.
 - **Nothing on the way in is admin-only.** The route reaches the squad through
   `/api/clubs/mine` and `/api/admin/teams/{team_id}/members`, both of which a
-  `club_manager` may call for their own club. Needing an admin-only list to find your own
+  `team_manager` may call for their own club. Needing an admin-only list to find your own
   team was the actual defect, and it would come straight back if this screen borrowed the
   admin page's queries.
 - **The squad panel is the same component in both places.** `SquadPanel` is used by the club's
@@ -346,20 +346,20 @@ Acceptance criteria:
   the entry itself for a stand-alone event). An organizer opens a matchday and names the
   crew from the squad, with roles; a member sees who is named. The endpoint is the one
   Story V-2 always had, `PUT /api/admin/events/{event_id}/crew`, which lets a
-  `club_manager` line up their own club — the screen was the missing part, exactly as it
+  `team_manager` line up their own club — the screen was the missing part, exactly as it
   was for the squad.
 - A stand-alone event's squad hangs off the entry itself (`squad_team`), so the same
   `SquadPanel` is shown for it under the matchday — otherwise a club running its own cup
   here could enter it and never register anyone.
 
 Tests: `api/tests/stories/test_my_clubs.py`,
-`e2e/lifecycle.spec.ts::V-12: a club manager manages their own squad`,
+`e2e/lifecycle.spec.ts::V-12: a team manager manages their own squad`,
 `e2e/club.spec.ts`
 
 ## The club's page
 
 ### V-13 ● Link a parent to a minor sailor
-As a **club manager** I want to **link a parent's account to a young sailor of our club**,
+As a **team manager** I want to **link a parent's account to a young sailor of our club**,
 so that **the parent can accept the liability waiver for their child online** — without
 a printed form, a pen and a scan (Story S-8).
 
@@ -395,7 +395,7 @@ Tests: `api/tests/stories/test_guardians.py::TestLinkingAGuardian`, `e2e/guardia
 As a **club organizer** I want to **edit our club page where it is shown**,
 so that I **do not have to ask administration to fix our description or our crest**.
 
-A `club_manager` can already upload the crest (Story V-3) and maintain sailors (V-4) — but
+A `team_manager` can already upload the crest (Story V-3) and maintain sailors (V-4) — but
 through the admin area, which is a different page from the one the public reads. The club
 page is where a manager notices that the description is out of date, and it is where they
 should be able to fix it.
@@ -405,7 +405,7 @@ Acceptance criteria:
   club — sees the page's own editing affordances. Everyone else sees the page exactly as it
   is today, with no disabled buttons and no hint that an editing mode exists.
 - The check is `User.manages_club(club_id)`, never `acting.club_id == club_id`:
-  `club_manager` is granted per club, so someone who organizes two clubs can maintain both,
+  `team_manager` is granted per club, so someone who organizes two clubs can maintain both,
   and merely *representing* a club grants nothing (same rule as V-3).
 - **Info tab**: description, website and location are editable in place. Name and
   abbreviation are **not** — the abbreviation is in the URL and in every external-id
@@ -427,7 +427,7 @@ Acceptance criteria:
 Tests: none yet
 
 ### V-3 ◐ Upload club crest
-As a **club manager** I want to **upload our club's crest**,
+As a **team manager** I want to **upload our club's crest**,
 so that **we are recognizable on the page**.
 
 Acceptance criteria:
