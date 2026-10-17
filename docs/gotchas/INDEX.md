@@ -38,3 +38,4 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [State inside the race-control card is lost on every change of the race, because the card is keyed by the race's version](state-inside-the-race-control-card-is-lost-on-every-change-of-the-race-because-t.md)
 - [A server started in one sandboxed Bash call is unreachable from the next one](the-bash-sandbox-has-a-network-namespace-per-call.md)
 - [Tones booked from a React effect come out late or twice when the page falls behind; sound needs its own timer](tones-booked-from-a-react-effect-come-out-late-or-twice-when-the-page-falls-behi.md)
+- [Without reference/PairingList cloned, the lifecycle e2e test fails on a missing PDF link, not on a missing tool](without-reference-pairinglist-cloned-the-lifecycle-e2e-test-fails-on-a-missing-p.md)
