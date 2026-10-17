@@ -53,10 +53,12 @@ list** and the index; this skill is the procedure. `$ARGUMENTS` picks the mode.
    and worth reporting.
 4. **Number it**: the next free `J-n` (`ls docs/journeys/`, the index in `journeys.md`).
 5. **Write `docs/journeys/<slug>.md`** in the format: heading `# J-n ○ <goal>`, the why,
-   `Who:` `Starting point:` `Goal:`, the diagram, the table, `Retired steps: none`,
-   `Open:`, `Tests:`. Branches: `opt` for "may happen", `alt`/`else` for "one or the
-   other" — each arm's steps carry the branch's name in `Path`. Offline steps (a guardian
-   signing paper) say `(offline)` in `Who`.
+   `Who:` `Starting point:` `Goal:`, the diagrams, the table, `Retired steps: none`,
+   `Open:`, `Tests:`. **One diagram per way through** — `### Main path` first, then a
+   `### Branch "<path>" — <when>` for each branch ("may happen" and "one or the other"
+   alike), with a sentence on where it leaves and rejoins; never an `opt`/`alt` block.
+   Each branch's steps carry its name in `Path`. Offline steps (a guardian signing paper)
+   say `(offline)` in `Who`. No `;` inside a diagram — it ends a Mermaid line.
 6. **Add it to the index** in `journeys.md` (the checker refuses an unlisted file).
 7. **Walk it** — see Tests below. Then set the marker by the rule (○/◐/●).
 8. `python3 scripts/check-docs.py --fix` and `python3 scripts/check-docs.py`; then the
@@ -123,9 +125,10 @@ describeJourney("J-5: a crew is cleared — adult crew", () => {
 
 ## What the checker enforces (`scripts/check-docs.py`)
 
-Heading and index entry; actors in `Who:`, the `Who` column and the diagram (with their
-aliases); unique step IDs belonging to the journey; every story real; diagram ⇄ table,
-same order; no retired ID anywhere (table, tests); every `step()` and `Journey step …` a
+Heading and index entry; actors in `Who:`, the `Who` column and the diagrams (with their
+aliases); unique step IDs belonging to the journey; every story real; diagrams ⇄ table —
+each step drawn once, each diagram in table order, every `main` step in the first, no
+`opt`/`alt` block, no `;`; no retired ID anywhere (table, tests); every `step()` and `Journey step …` a
 real step; each walk in table order without skipping a main step; the status marker.
 Generated: `docs/stories.json` (journeys and steps), `docs/traceability.md` § Journeys.
 

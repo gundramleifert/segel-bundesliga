@@ -12,9 +12,10 @@ Journey J-3 shows that part). A published series of the current year exists.
 Goal: the club has an admin and a manager of its own, a crest, and is a participant of a
 series — and therefore listed publicly.
 
+### Main path
+
 ```mermaid
 sequenceDiagram
-  autonumber
   actor A as League office
   actor CA as Club admin
   actor TM as Team manager
@@ -28,14 +29,24 @@ sequenceDiagram
   CA->>P: [J-2.4] opens my space
   P-->>CA: the club as a card, "admin"
   CA->>P: [J-2.5] uploads the crest
-  opt tries to step down while the only organizer
-    CA->>P: [J-2.6] deletes their own admin tuple
-    P-->>CA: refused — at least one organizer must remain
-  end
+  Note over CA,P: may try to step down — branch "last organizer"
   CA->>P: [J-2.7] names the team manager, by email
   TM->>P: [J-2.8] applies for the series
   A->>P: [J-2.9] accepts the application
   V->>P: [J-2.10] finds the club in the list and opens its page
+```
+
+### Branch "last organizer" — the only organizer tries to step down
+
+After J-2.5; nothing changes, and the main path goes on at J-2.7.
+
+```mermaid
+sequenceDiagram
+  actor CA as Club admin
+  participant P as Site
+
+  CA->>P: [J-2.6] deletes their own admin tuple
+  P-->>CA: refused — at least one organizer must remain
 ```
 
 | Step | Path | Story | Who | What is then true |

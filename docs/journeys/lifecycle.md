@@ -10,9 +10,10 @@ Who: league office, event organizer, race officer, jury, visitor
 Starting point: a running installation; none of the clubs, the series or the event exist.
 Goal: a final event whose points survive a protest decided after the freeze.
 
+### Main path
+
 ```mermaid
 sequenceDiagram
-  autonumber
   actor A as League office
   actor O as Event organizer
   actor R as Race officer
@@ -25,10 +26,7 @@ sequenceDiagram
   A->>P: [J-1.3] publishes the series
   O->>P: [J-1.4] creates the event — a title and boats only
   P-->>O: [J-1.5] readiness: team count and date missing
-  opt draws before the event is ready
-    O->>P: [J-1.15] draws anyway
-    P-->>O: refused, with the same reasons
-  end
+  Note over O,P: may draw too early — branch "not ready"
   O->>P: [J-1.16] fixes team count and date — ready
   O->>P: [J-1.6] draws the pairing list from the catalog, and again
   O->>P: [J-1.7] publishes the event
@@ -36,9 +34,22 @@ sequenceDiagram
   O->>P: [J-1.9] starts the event
   R->>P: [J-1.10] enters all 16 races
   V->>P: [J-1.11] reads the series table
-  O->>P: [J-1.12] tries to change the configuration — frozen; the title still changes
+  O->>P: [J-1.12] tries to change the configuration — frozen — the title still changes
   JY->>P: [J-1.13] disqualifies a winner months later
   R->>P: [J-1.14] declares the event final
+```
+
+### Branch "not ready" — the organizer draws before the event is ready
+
+Leaves the main path after J-1.5; it goes on at J-1.16.
+
+```mermaid
+sequenceDiagram
+  actor O as Event organizer
+  participant P as Site
+
+  O->>P: [J-1.15] draws anyway
+  P-->>O: refused, with the same reasons
 ```
 
 | Step | Path | Story | Who | What is then true |

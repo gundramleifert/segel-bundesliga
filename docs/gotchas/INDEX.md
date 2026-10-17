@@ -12,6 +12,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [`require_ready` answers with a *different* code depending on how many things are missing](a-readiness-refusal-carries-two-different-codes.md)
 - [A relationship on a row you just appended is not loaded after the commit, and reading it in the response fails with MissingGreenlet](a-relationship-on-a-row-you-just-appended-is-not-loaded-after-the-commit-and-rea.md)
 - [A sandbox-denied file shows up as a 0-byte `/dev/null`, so `ls` and `stat` describe something that is not there](a-sandbox-denied-file-looks-like-an-empty-file.md)
+- [A semicolon in a Mermaid diagram ends the line — the diagram silently becomes an error box](a-semicolon-in-a-mermaid-diagram-ends-the-line-the-diagram-silently-becomes-an-e.md)
 - [A story test asserting a count against a seed event is green alone and red in the full suite, because another story added a participant to that same event](a-story-test-asserting-a-count-against-a-seed-event-is-green-alone-and-red-in-th.md)
 - [A strict-mode locator checked straight after goto can pass in a fast run because the duplicate it should catch has not rendered yet](a-strict-mode-locator-checked-straight-after-goto-can-pass-in-a-fast-run-because.md)
 - [A token issued a moment ago is rejected as "Invalid access token", because WSL2 steps the wall clock backwards](a-token-issued-a-moment-ago-is-rejected-as-invalid-because-wsl2-steps-the-wall-clock-back.md)

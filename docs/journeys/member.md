@@ -10,32 +10,63 @@ no account and no sailor record.
 Goal: the person is a member of the club, signs in to their own sailor record and has
 corrected it themselves — and can leave the club on their own.
 
+### Main path
+
 ```mermaid
 sequenceDiagram
-  autonumber
   actor CA as Club admin
   actor N as Person
   actor M as Club member
   actor TM as Team manager
   participant P as Site
 
-  opt the person has no account yet
-    CA->>P: [J-3.1] adds the person by email
-    P-->>CA: not found — they register first
-  end
+  Note over CA,P: added before registering? — branch "no account yet"
   N->>P: [J-3.2] registers with email and name
   N->>P: [J-3.3] redeems the code from the email
-  opt prefers a password to a code
-    N->>P: [J-3.4] sets a password and signs in with it
-  end
+  Note over N,P: prefers a password — branch "password"
   CA->>P: [J-3.5] adds the person as a member, by email
   M->>P: [J-3.6] opens my space — the club is a card
   M->>P: [J-3.7] opens the club's roster
   TM->>P: [J-3.8] creates the sailor record with email and date of birth
   M->>P: [J-3.9] corrects their own name and date of birth
-  opt leaves the club
-    M->>P: [J-3.10] deletes their own membership
-  end
+  Note over M,P: may leave — branch "leaves"
+```
+
+### Branch "no account yet" — the club admin is too early
+
+Before J-3.2: the person has to register first.
+
+```mermaid
+sequenceDiagram
+  actor CA as Club admin
+  participant P as Site
+
+  CA->>P: [J-3.1] adds the person by email
+  P-->>CA: not found — they register first
+```
+
+### Branch "password" — a password instead of a code each time
+
+After J-3.3; the main path goes on at J-3.5.
+
+```mermaid
+sequenceDiagram
+  actor N as Person
+  participant P as Site
+
+  N->>P: [J-3.4] sets a password and signs in with it
+```
+
+### Branch "leaves" — the member leaves the club
+
+At any time after J-3.5.
+
+```mermaid
+sequenceDiagram
+  actor M as Club member
+  participant P as Site
+
+  M->>P: [J-3.10] deletes their own membership
 ```
 
 | Step | Path | Story | Who | What is then true |

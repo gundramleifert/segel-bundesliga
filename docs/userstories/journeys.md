@@ -70,21 +70,33 @@ Who: team manager, sailor, guardian, event organizer
 Starting point: what exists before the first step
 Goal: what is true at the end
 
+### Main path
+
 ```mermaid
 sequenceDiagram
-  autonumber
   actor TM as Team manager
   participant P as Site
   TM->>P: [J-5.1] registers the squad for the series
-  opt fewer than the series' minimum
-    P-->>TM: [J-5.2] "3 of 4–10" in amber, saved anyway
-  end
+  Note over TM,P: too few? — branch "squad too small"
+  TM->>P: [J-5.5] names the crew for the matchday
+```
+
+### Branch "squad too small" — fewer than the series' minimum
+
+After J-5.1; saved anyway, completed later.
+
+```mermaid
+sequenceDiagram
+  actor TM as Team manager
+  participant P as Site
+  P-->>TM: [J-5.2] "3 of 4–10" in amber, saved anyway
 ```
 
 | Step | Path | Story | Who | What is then true |
 |---|---|---|---|---|
 | J-5.1 | main | V-1 | team manager | the squad is saved |
 | J-5.2 | squad too small | V-1 | site | the minimum is guidance |
+| J-5.5 | main | V-2 | team manager | the crew is named |
 
 Retired steps: none
 
@@ -99,12 +111,24 @@ Tests: `api/tests/stories/test_journey_crew.py::TestACrewIsCleared::test_adult_c
   is only a name.
 - **A removed step** leaves the diagram and the table, and its ID goes on the
   `Retired steps:` line, so nobody gives it out again.
-- **The table is the source of truth, the diagram a view of it**: every arrow carrying a
-  `[J-n.k]` is one row, every row one such arrow, in the same order. An arrow without an
-  ID (an answer, a `Note`) is reading aid and tested by nobody.
-- **`Path`** is `main` or the name of a branch — an `opt`/`alt` block in the diagram, its
-  steps carrying the block's name. `alt` with two arms is two branch names; the shared
-  spine is `main`.
+- **The table is the source of truth, the diagrams views of it**: every arrow carrying a
+  `[J-n.k]` is one row, every row one such arrow — in exactly one diagram, and each
+  diagram draws its steps in the table's order. An arrow without an ID (an answer, a
+  `Note`) is reading aid and tested by nobody.
+- **One diagram per way through, never an `opt` or `alt` block** (decided 2026-10-17):
+  a block nests, and two or three of them in one diagram are what a stakeholder cannot
+  read. The first diagram, **`### Main path`**, holds every `main` step — plus, where
+  the journey forks into "one or the other", the usual arm, named after it in the
+  heading (`### Main path — a series matchday, an adult crew`). Where a branch leaves
+  it, a `Note` names the branch. Each branch then has its own **`### Branch "<path>" —
+  <when>`**, a sentence saying where it leaves and where the main path goes on, and a
+  diagram with just its steps and the actors in them. A branch of a branch is one more
+  diagram, not a nested one.
+- **`Path`** is `main` or the name of a branch — the name in its `### Branch "…"`
+  heading. "One or the other" is two branch names; the shared spine is `main`.
+- **No `;` in a diagram** — Mermaid ends a statement there, and GitHub then shows an
+  error box instead of the diagram. No `autonumber` either: it counts again in every
+  diagram, and the `[J-n.k]` is the step's name.
 - **Every step names exactly one story** — a step whose story does not exist yet is the
   signal to write that story first (CLAUDE.md, "the story first").
 - **Tests.** A *walk* is one long test whose stretches are `step("J-5.4", "…")` —

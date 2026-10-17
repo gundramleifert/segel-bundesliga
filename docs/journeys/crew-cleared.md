@@ -14,48 +14,108 @@ matchdays (or entered in an event in no series); the event has its organizer; th
 text is in force; the club's sailors exist, each with an account under their address.
 Goal: every sailor in the club's squad shows "cleared" on the event's check-in list.
 
+### Main path — a series matchday, an adult crew
+
 ```mermaid
 sequenceDiagram
-  autonumber
   actor TM as Team manager
   participant P as Site
   actor S as Sailor
-  actor G as Guardian
   actor O as Event organizer
 
-  alt matchday of a series
-    TM->>P: [J-5.1] registers the squad for the series
-    opt fewer than the series' minimum
-      P-->>TM: [J-5.2] "3 of 4–10" — guidance, saved anyway; my space says so
-      TM->>P: [J-5.3] completes the squad later
-    end
-  else event in no series
-    TM->>P: [J-5.4] registers the squad on the club's entry to the event
-  end
+  TM->>P: [J-5.1] registers the squad for the series
+  Note over TM,P: too few? — branch "squad too small" — an event in no series — branch "stand-alone event"
   TM->>P: [J-5.5] names the crew for the matchday, from the squad only
   P-->>S: [J-5.6] my space: the competition's waiver is missing
   P-->>TM: [J-5.17] my space: a crew member's waiver is not cleared yet
-  opt no date of birth on file
-    S->>P: [J-5.7] enters their date of birth
-  end
-  alt adult on the reference date
-    S->>P: [J-5.8] reads the waiver and confirms it online
-  else minor, a parent's account linked
-    TM->>P: [J-5.15] links the parent's account to the sailor as guardian
-    G->>P: [J-5.16] reads the waiver and accepts it for the child online
-  else minor, on paper
-    S->>P: [J-5.9] downloads the guardian form (an own click is refused)
-    S->>G: [J-5.10] hands the form over
-    G-->>S: [J-5.11] signs it on paper
-    alt the sailor uploads
-      S->>P: [J-5.12] uploads the signed scan
-    else the club collects the forms
-      TM->>P: [J-5.13] uploads the signed scan for the sailor
-    end
-  end
+  Note over S,P: no date of birth? — branch "no date of birth"
+  S->>P: [J-5.8] reads the waiver and confirms it online
+  Note over S,P: a minor — branch "guardian online" or "on paper"
   O->>P: [J-5.14] opens the event's check-in list
   P-->>O: every squad member cleared, scans on file for minors
   Note over P: the public matchday page lists the crew (B-12)
+```
+
+### Branch "squad too small" — fewer than the series' minimum
+
+After J-5.1; saved anyway, completed later.
+
+```mermaid
+sequenceDiagram
+  actor TM as Team manager
+  participant P as Site
+
+  P-->>TM: [J-5.2] "3 of 4–10" — guidance, saved anyway — my space says so
+  TM->>P: [J-5.3] completes the squad later
+```
+
+### Branch "stand-alone event" — an event in no series
+
+Instead of J-5.1; the main path goes on at J-5.5.
+
+```mermaid
+sequenceDiagram
+  actor TM as Team manager
+  participant P as Site
+
+  TM->>P: [J-5.4] registers the squad on the club's entry to the event
+```
+
+### Branch "no date of birth" — the age cannot be judged yet
+
+Before the waiver, after J-5.17.
+
+```mermaid
+sequenceDiagram
+  actor S as Sailor
+  participant P as Site
+
+  S->>P: [J-5.7] enters their date of birth
+```
+
+### Branch "guardian online" — a minor, a parent's account linked
+
+Instead of J-5.8; the main path goes on at J-5.14.
+
+```mermaid
+sequenceDiagram
+  actor TM as Team manager
+  actor G as Guardian
+  participant P as Site
+
+  TM->>P: [J-5.15] links the parent's account to the sailor as guardian
+  G->>P: [J-5.16] reads the waiver and accepts it for the child online
+```
+
+### Branch "on paper" — a minor, the guardian signs the form
+
+Instead of J-5.8; the sailor uploads the scan (or the club does — branch "club uploads"),
+and the main path goes on at J-5.14.
+
+```mermaid
+sequenceDiagram
+  actor S as Sailor
+  actor G as Guardian
+  participant P as Site
+
+  S->>P: [J-5.9] downloads the guardian form (an own click is refused)
+  S->>G: [J-5.10] hands the form over
+  G-->>S: [J-5.11] signs it on paper
+  S->>P: [J-5.12] uploads the signed scan
+```
+
+### Branch "club uploads" — the club collects the signed forms
+
+Instead of J-5.12.
+
+```mermaid
+sequenceDiagram
+  actor S as Sailor
+  actor TM as Team manager
+  participant P as Site
+
+  S-->>TM: hands in the signed form
+  TM->>P: [J-5.13] uploads the signed scan for the sailor
 ```
 
 | Step | Path | Story | Who | What is then true |

@@ -10,26 +10,37 @@ Starting point: the clubs exist; the series does not; the series manager has an 
 and no relation yet.
 Goal: a published series with its clubs and its first matchday, run by its manager.
 
+### Main path
+
 ```mermaid
 sequenceDiagram
-  autonumber
   actor A as League office
   actor SM as Series manager
-  actor TM as Team manager
   participant P as Site
   actor V as Visitor
 
   A->>P: [J-4.1] creates the series — name, year, squad limits — as a draft
   A->>P: [J-4.2] names the series manager
   SM->>P: [J-4.3] sets the dates and the clubs
-  opt a club applies
-    TM->>P: [J-4.4] applies for the series
-    SM->>P: [J-4.5] accepts the application
-  end
+  Note over SM,P: a club may apply — branch "club applies"
   SM->>P: [J-4.6] creates the first matchday, hosted by a club
   P-->>SM: the series' clubs are its entries
   SM->>P: [J-4.7] publishes the series
   V->>P: [J-4.8] finds the series of the year, opens its table
+```
+
+### Branch "club applies" — a club asks to join the series
+
+After J-4.3; the main path goes on at J-4.6, the club among the entries.
+
+```mermaid
+sequenceDiagram
+  actor TM as Team manager
+  actor SM as Series manager
+  participant P as Site
+
+  TM->>P: [J-4.4] applies for the series
+  SM->>P: [J-4.5] accepts the application
 ```
 
 | Step | Path | Story | Who | What is then true |

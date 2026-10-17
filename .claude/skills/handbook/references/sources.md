@@ -52,7 +52,7 @@ actor names its help audience there — use it for the page's `audience`.
   acts and what is then true, and links to the `###` in that person's guide that explains
   how. The journey page itself explains no screen.
 - The page's steps carry the journey's **step IDs** (`J-5.4`) — they are permanent, so a
-  help page can cite them. Branches (`Path` ≠ `main`, the `opt`/`alt` blocks) become a
+  help page can cite them. Branches (`Path` ≠ `main`, the `### Branch` diagrams) become a
   short "If …" list at the end.
 - Steps whose story is not ● are written only as far as the code goes, and reported.
 - The journey's test is the strongest evidence there is: it proves the order. Read it —
