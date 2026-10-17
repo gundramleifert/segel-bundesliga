@@ -1,7 +1,9 @@
-"""Access tokens and role checking.
+"""Access tokens, and the route guards built on the permission facade (`app/authz.py`).
 
-We do not manage passwords — identity comes from Google, Microsoft, or a one-time code via email
-(see ``app.services.login``). This module only issues our own session tokens and checks roles.
+Identity comes from Google, Microsoft, a one-time code by email or a password (see
+``app.services.login``). This module issues our own session tokens, loads the signed-in
+person fresh on every request — so a deleted tuple takes effect at once — and turns
+``authz`` checks into FastAPI dependencies.
 
 Everything fails closed: without a configured signing secret, no token is issued and none is
 accepted.
@@ -17,10 +19,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.config import settings
 from app.db import get_session
 from app.models import Event, Series
-from app.models.auth import Relation, Role, User
+from app.models.auth import ObjectType, Relation, User
 
 ALGORITHM = "HS256"
 
@@ -43,7 +46,6 @@ def create_access_token(user: User) -> tuple[str, int]:
     payload = {
         "sub": str(user.id),
         "name": user.display_name,
-        "roles": sorted(user.roles),
         "iat": int(now.timestamp()),
         "exp": int((now + lifetime).timestamp()),
     }
@@ -110,6 +112,14 @@ async def optional_user(
         return None
 
 
+def _forbidden(what: str, wanted) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=f"You lack the permission for {what}. Required: "
+        + ", ".join(sorted(str(r) for r in wanted)),
+    )
+
+
 def require_site(*relations: Relation | str):
     """A dependency for the league office's screens: one of these relations **on the
     site**, through the rewrite rules (an admin passes an editor gate). A tuple on one
@@ -119,36 +129,21 @@ def require_site(*relations: Relation | str):
     wanted = tuple(Relation(r) for r in relations)
 
     async def dependency(user: User = Depends(current_user)) -> User:
-        if not user.can(*wanted):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=(
-                    "You lack the permission for this. Required role(s): "
-                    + ", ".join(sorted(r.value for r in wanted))
-                ),
-            )
+        if not authz.check(user, *wanted):
+            raise _forbidden("this", wanted)
         return user
 
     return dependency
 
 
-def require_summary_roles(*roles: Role | str):
-    """Passes anyone whose **summary** roles include one of these — a navigation-level
-    gate for lists a person then narrows to their own objects (``managed_club_ids``)."""
-    wanted = {str(r) for r in roles}
-
-    async def dependency(user: User = Depends(current_user)) -> User:
-        if not user.has_any(*wanted):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=(
-                    "You lack the permission for this. Required role(s): "
-                    + ", ".join(sorted(wanted))
-                ),
-            )
+async def require_team_manager(user: User = Depends(current_user)) -> User:
+    """Organizes some club, or is the site's admin — for lists a person then narrows to
+    their own clubs (``authz.list_objects(user, MANAGER, CLUB)``)."""
+    if authz.check(user, Relation.ADMIN) or authz.list_objects(
+        user, Relation.MANAGER, ObjectType.CLUB
+    ):
         return user
-
-    return dependency
+    raise _forbidden("this", ["manager on a club"])
 
 
 def _on_object(model, path_param: str, *relations: Relation | str):
@@ -156,6 +151,8 @@ def _on_object(model, path_param: str, *relations: Relation | str):
     one of these relations on that object — directly, or through its containers and the
     site (the model's rewrite rules). Reads the id from the path, so the handler need not
     repeat the check. An unknown object is a 404 here, before any permission question.
+    The object stays in the session's identity map: the handler's ``session.get`` of it
+    costs no second query.
     """
     wanted = tuple(Relation(r) for r in relations)
 
@@ -168,15 +165,9 @@ def _on_object(model, path_param: str, *relations: Relation | str):
         obj = await session.get(model, object_id)
         if obj is None:
             raise HTTPException(status_code=404, detail=f"{model.__name__} {object_id} not found")
-        if user.can(*wanted, on=obj):
-            return user
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=(
-                f"You lack the permission for this {model.__name__.lower()}. "
-                "Required relation(s): " + ", ".join(sorted(r.value for r in wanted))
-            ),
-        )
+        if not authz.check(user, *wanted, on=obj):
+            raise _forbidden(f"this {model.__name__.lower()}", wanted)
+        return user
 
     return dependency
 
@@ -193,8 +184,6 @@ def require_on_series(*relations: Relation | str):
 require_admin = require_site(Relation.ADMIN)
 require_editor = require_site(Relation.EDITOR)
 require_race_officer = require_site(Relation.RACE_OFFICER)
-# "Organizes some club": the route narrows to the club itself with `manages_club(...)`.
-require_team_manager = require_summary_roles(Role.ADMIN, Role.TEAM_MANAGER)
 # One event: its race committee (results, race control, trackers) …
 require_event_officer = require_on_event(Relation.RACE_OFFICER)
 # … its organizer (dates, clubs, boats, publication, people) …

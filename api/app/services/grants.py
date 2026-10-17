@@ -6,7 +6,8 @@ goes through here — the Accounts tab, the event panel's access list and the cl
 "make organizer" alike — so the rules live once: the schema (which relations an object
 type has), that the object exists, that a tuple is not written twice, that a person cannot
 lock themselves out, that a club keeps at least one organizer, and that every change
-lands in the audit log.
+lands in the audit log. It is the write half of the facade `app/authz.py` (FGA's
+``Write``/``Delete``/``Read``); nothing else touches the ``Grant`` table.
 """
 
 from __future__ import annotations
@@ -15,8 +16,10 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app import authz
+from app.authz import ObjectRef
 from app.models import AuditLog, Club, Event, Sailor, Series
-from app.models.auth import Grant, ObjectType, Relation, User, writable
+from app.models.auth import GRANT_COLUMN, Grant, ObjectType, Relation, User, grant_names, writable
 from app.problems import Problem
 
 _TABLES = {
@@ -25,17 +28,11 @@ _TABLES = {
     ObjectType.EVENT: Event,
     ObjectType.SAILOR: Sailor,
 }
-_COLUMNS = {
-    ObjectType.CLUB: "club_id",
-    ObjectType.SERIES: "series_id",
-    ObjectType.EVENT: "event_id",
-    ObjectType.SAILOR: "sailor_id",
-}
 
 
 def check_schema(relation: Relation, object_type: ObjectType) -> None:
     """A relation can only be written where the model gives it a ``[user]`` term —
-    ``manager`` has none on the site, ``admin`` none on a club (there it is derived)."""
+    ``manager`` has none on the site, ``admin`` none on a sailor (there it is derived)."""
     if relation not in writable(object_type):
         raise Problem(
             422,
@@ -89,14 +86,16 @@ async def grant(
     object_type: ObjectType,
     object_id: int | None,
     *,
-    actor: User,
+    actor: User | None,
 ) -> Grant:
-    """Writes the tuple onto ``target`` (not yet committed) and logs it."""
+    """Writes the tuple onto ``target`` (not yet committed) and logs it. ``actor`` is
+    ``None`` for the system itself — the admin whitelist at sign-in."""
     check_schema(relation, object_type)
     obj = await resolve(session, object_type, object_id)
-    ids = {_COLUMNS[object_type]: object_id} if object_type is not ObjectType.SITE else {}
+    column = GRANT_COLUMN.get(object_type)
+    ids = {column: object_id} if column else {}
 
-    if target.holds(relation, **ids):
+    if authz.read(target, relation, ObjectRef(object_type, object_id)):
         raise Problem(
             409,
             "tuple-exists",
@@ -106,16 +105,10 @@ async def grant(
 
     row = Grant(relation=relation, **ids)
     # Hand the loaded object to the row, so naming the tuple in the response right after
-    # the commit needs no lazy load — which would fail outside the async context
-    # (docs/gotchas: a relationship on a row you just appended is not loaded).
-    if object_type is ObjectType.CLUB:
-        row.club = obj
-    elif object_type is ObjectType.SERIES:
-        row.series = obj
-    elif object_type is ObjectType.EVENT:
-        row.event = obj
-    elif object_type is ObjectType.SAILOR:
-        row.sailor = obj
+    # the commit needs no load (docs/gotchas: a relationship on a row you just appended
+    # is not loaded).
+    if column:
+        setattr(row, column.removesuffix("_id"), obj)
     # Change the collection, not a bare INSERT — otherwise the in-memory user still
     # looks role-less to the response built afterwards (expire_on_commit is off).
     target.grants.append(row)
@@ -168,21 +161,69 @@ async def revoke(session: AsyncSession, target: User, row: Grant, *, actor: User
     session.add(_audit("revoke", target, row.relation, row.object_type, row.object_id, actor))
 
 
+async def revoke_row(session: AsyncSession, row: Grant, *, actor: User) -> None:
+    """:func:`revoke` for a tuple found by itself (by its id): the person is loaded through
+    their own query, so their tuples are — reached through ``row.user`` they are not."""
+    target = (await session.execute(select(User).where(User.id == row.user_id))).scalar_one()
+    # The row the user's collection holds is the one to drop (same identity map).
+    await revoke(session, target, next(g for g in target.grants if g.id == row.id), actor=actor)
+
+
 async def grants_on(
-    session: AsyncSession, object_type: ObjectType, object_id: int | None
+    session: AsyncSession,
+    object_type: ObjectType,
+    object_id: int | None,
+    relation: Relation | None = None,
 ) -> list[Grant]:
-    """Every tuple written on this object — the "who has access here" list."""
-    stmt = select(Grant).options(selectinload(Grant.user)).order_by(Grant.relation, Grant.id)
+    """Every tuple written on this object (of this relation) — FGA ``Read`` by object, the
+    "who has access here" list. Named and with their accounts."""
+    stmt = (
+        select(Grant)
+        .options(selectinload(Grant.user), *grant_names())
+        .order_by(Grant.relation, Grant.id)
+    )
     if object_type is ObjectType.SITE:
-        stmt = stmt.where(
-            Grant.club_id.is_(None),
-            Grant.series_id.is_(None),
-            Grant.event_id.is_(None),
-            Grant.sailor_id.is_(None),
-        )
+        stmt = stmt.where(*(getattr(Grant, c).is_(None) for c in GRANT_COLUMN.values()))
     else:
-        stmt = stmt.where(getattr(Grant, _COLUMNS[object_type]) == object_id)
+        stmt = stmt.where(getattr(Grant, GRANT_COLUMN[object_type]) == object_id)
+    if relation is not None:
+        stmt = stmt.where(Grant.relation == relation)
     return list((await session.execute(stmt)).scalars().all())
+
+
+async def holders(
+    session: AsyncSession, relation: Relation, object_type: ObjectType, object_ids: list[int]
+) -> list[Grant]:
+    """The tuples of this relation on any of these objects — FGA ``ListUsers`` for many
+    objects at once (the guardians of a club's sailors)."""
+    if not object_ids:
+        return []
+    column = getattr(Grant, GRANT_COLUMN[object_type])
+    stmt = (
+        select(Grant)
+        .options(selectinload(Grant.user))
+        .where(Grant.relation == relation, column.in_(object_ids))
+    )
+    return list((await session.execute(stmt)).scalars().all())
+
+
+async def tuples_of(session: AsyncSession, user_id: int) -> list[Grant]:
+    """Every tuple another person holds — FGA ``Read`` by user. One's own are on the
+    ``User`` already."""
+    return list((await session.execute(select(Grant).where(Grant.user_id == user_id))).scalars())
+
+
+async def named(session: AsyncSession, *users: User) -> None:
+    """Loads what names these people's tuples (``Grant.object_name``) — only the screens
+    that list tuples need it, so a user is loaded without it."""
+    ids = [g.id for user in users for g in user.grants if g.id is not None]
+    if ids:
+        await session.execute(
+            select(Grant)
+            .where(Grant.id.in_(ids))
+            .options(*grant_names())
+            .execution_options(populate_existing=True)
+        )
 
 
 async def organizer_count(
@@ -202,15 +243,10 @@ def may_administer(
 ) -> bool:
     """Who may write tuples on this object: its ``admin`` — which the model resolves to
     the site's admin for everything, a series' admin for its events, the host club's for
-    the events it hosts, and a club's manager for the club (Story Z-2). A manager sets
-    things up; naming people is the admin's. Site tuples are the site admin's alone."""
-    if object_type is ObjectType.SITE or obj is None:
-        return acting.can(Relation.ADMIN)
-    if object_type is ObjectType.SAILOR:
-        # A sailor has no admin of its own: the child's club links a guardian through
-        # its own endpoints (`routers/guardians.py`, Story V-13); here only the site's.
-        return acting.is_admin()
-    return acting.can(Relation.ADMIN, on=obj)
+    the events it hosts, and a club's admin for the club (Story Z-2). A manager sets
+    things up; naming people is the admin's. A sailor's admin is the site's alone: the
+    child's club links a guardian through its own endpoints (Story V-13)."""
+    return acting.can(Relation.ADMIN, on=obj if obj is not None else authz.SITE)
 
 
 def _audit(
@@ -219,13 +255,13 @@ def _audit(
     relation: str,
     object_type: ObjectType,
     object_id: int | None,
-    actor: User,
+    actor: User | None,
 ) -> AuditLog:
     return AuditLog(
         entity_type="user",
         entity_id=target.id,
         action=action,
-        actor=actor.email,
+        actor=actor.email if actor is not None else "system",
         payload={
             "relation": str(relation),
             "object_type": object_type.value,

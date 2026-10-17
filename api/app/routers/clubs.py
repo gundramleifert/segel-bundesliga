@@ -16,12 +16,14 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import current_user, require_master_data
+from app.authz import ObjectRef
 from app.crests import delete_crest, save_crest
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Series, Team, TeamStatus
-from app.models.auth import Role, User
+from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
@@ -353,16 +355,11 @@ async def delete_club_logo(
 
 
 def _can_manage_crest(acting: User, club_id: int) -> None:
-    """Administration and editorial for any club, a `team_manager` for their own.
-
-    `team_manager` is granted per club (`UserRole.club_id`), so the check is
-    `manages_club(...)` — never `acting.club_id == club_id`, which is the separate
-    "represents" field and would let a member of one club edit it while missing a manager
-    who organizes several.
-    """
-    if acting.has_any(Role.ADMIN, Role.EDITOR):
+    """Administration and editorial for any club, the club's own admin for theirs
+    (Story V-3): the admin decides who is in the club and what it looks like."""
+    if authz.check(acting, Relation.EDITOR):
         return
-    if acting.administers_club(club_id):
+    if authz.check(acting, Relation.ADMIN, on=ObjectRef(ObjectType.CLUB, club_id)):
         return
     raise Problem(
         403,

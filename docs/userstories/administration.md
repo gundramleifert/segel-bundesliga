@@ -252,7 +252,19 @@ Acceptance criteria:
 `jury`, `treasurer` and `helper` for the relation held anywhere, `club_admin` for `admin` of some club,
 `team_manager`, `series_manager` and `event_manager` for `manager` **or** `admin` of some
 club, series or event (an admin is a manager, says the model). Never a permission check —
-that is `User.can(relation, on=object)`.
+that is `authz.check`.
+
+**One facade** (`app/authz.py`, decided 2026-10-17): every permission question goes
+through `check` (FGA's Check), `read` (is exactly this tuple written), `list_objects`
+(FGA's ListObjects) and `ensure` (check or a typed 403), objects named as `ObjectRef`
+(`club:3`); writes stay in `app/services/grants.py`. Its names are OpenFGA's so the
+in-process interpreter could become an OpenFGA server with the callers unchanged. What
+that switch would still need: the checks become async calls, an event's `series` and
+`host_club` become tuples (today they are foreign keys the check reads off the row),
+and `DELETE /api/auth/tuples/{id}` names the tuple instead of its row id. Before this,
+hand-written shortcuts disagreed with the model: a club's admin could not create an
+event their club hosts, and a series' or host club's manager could not open a waiver
+scan of the event.
 
 Club **membership** is the `member` tuple on the club, written by the club's admin (Story Z-5).
 
@@ -272,6 +284,7 @@ summary roles.
 Open: the Accounts tab does not yet filter by relation or object.
 
 Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
+`api/tests/unit/test_authz.py`,
 `api/tests/stories/test_login_and_roles.py::TestTuples`,
 `api/tests/stories/test_login_and_roles.py::TestOrganizers`,
 `api/tests/stories/test_login_and_roles.py::TestAdminWhitelist`,

@@ -24,7 +24,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import current_user, optional_user, require_admin
+from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale
 from app.models import (
@@ -41,7 +43,7 @@ from app.models import (
     WaiverMethod,
     WaiverText,
 )
-from app.models.auth import ObjectType, Relation, Role, User
+from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.routers.sailors import _my_sailor as my_sailor
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
@@ -243,7 +245,7 @@ async def ward_waivers(
 ) -> list[MyWaivers]:
     """Story S-8: one entry per sailor the child's club linked me to as guardian (Story
     V-13), each exactly as that sailor's own page shows it (S-1) — the same function."""
-    ward_ids = acting.objects_of(Relation.GUARDIAN, ObjectType.SAILOR)
+    ward_ids = authz.list_objects(acting, Relation.GUARDIAN, ObjectType.SAILOR)
     if not ward_ids:
         return []
     wards = (
@@ -560,10 +562,8 @@ async def event_waivers(
     if event is None:
         raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
 
-    if not (
-        acting.can(Relation.MANAGER, Relation.RACE_OFFICER, on=event)
-        or (acting.has_any(Role.TEAM_MANAGER) and acting.manages_club(event.host_club_id))
-    ):
+    # The event's manager includes its host club's (the model's `manager from host_club`).
+    if not authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event):
         raise Problem(
             403,
             "waiver-checklist-forbidden",
@@ -954,32 +954,24 @@ async def _may_view_scan(
     session: AsyncSession, acting: User, row: WaiverConfirmation, sailor: Sailor
 ) -> bool:
     """Who is connected closely enough to see a minor's signed form (Story S-1)."""
-    # The league office; an event's organizer or race committee only for that event's forms.
-    if acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
+    # The league office; an event's organizer or race committee — held on the event, its
+    # series or its host club — only for that event's forms.
+    if authz.check(acting, Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
         return True
-    if row.event_id is not None and (
-        acting.holds(Relation.MANAGER, event_id=row.event_id)
-        or acting.holds(Relation.RACE_OFFICER, event_id=row.event_id)
-    ):
-        return True
+    if row.event_id is not None:
+        event = await session.get(Event, row.event_id)
+        if event is not None and authz.check(
+            acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event
+        ):
+            return True
     if (
         acting.email_verified
         and sailor.email is not None
         and sailor.email.lower() == acting.email.lower()
     ):
         return True
-    managed = acting.managed_club_ids
-    if not managed:
-        return False
-    if managed & await _sailor_clubs(session, sailor.id):
-        return True
-    if row.event_id is not None:
-        host = (
-            await session.execute(select(Event.host_club_id).where(Event.id == row.event_id))
-        ).scalar_one_or_none()
-        if host is not None and host in managed:
-            return True
-    return False
+    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
+    return bool(managed and managed & await _sailor_clubs(session, sailor.id))
 
 
 async def _sailor_clubs(session: AsyncSession, sailor_id: int) -> set[int]:
@@ -1014,12 +1006,12 @@ async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) 
     )
     if own:
         return OWN
-    if acting.can(Relation.ADMIN, Relation.EDITOR):
+    if authz.check(acting, Relation.ADMIN, Relation.EDITOR):
         return STAFF
-    managed = acting.managed_club_ids
+    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
     if managed and managed & await _sailor_clubs(session, sailor.id):
         return STAFF
-    if acting.holds(Relation.GUARDIAN, sailor_id=sailor.id):
+    if authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.SAILOR, sailor.id)):
         return GUARDIAN
     raise Problem(
         403,

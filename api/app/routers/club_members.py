@@ -10,15 +10,16 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
+from app import authz
 from app.auth import current_user
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club
-from app.models.auth import Grant, Relation, Role, User
+from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.schemas.public import ClubMemberOut
+from app.services import grants
 
 router = APIRouter(tags=["clubs"])
 
@@ -45,10 +46,8 @@ async def list_club_members(
             status_code=404,
             detail=tr(locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"),
         )
-    if not (
-        acting.has_any(Role.ADMIN, Role.EDITOR)
-        or acting.is_member_of(club.id)
-        or acting.manages_club(club.id)
+    if not authz.check(acting, Relation.EDITOR) and not authz.check(
+        acting, Relation.MEMBER, Relation.MANAGER, on=club
     ):
         raise Problem(
             403,
@@ -56,11 +55,7 @@ async def list_club_members(
             "Only members and organizers of this club, or staff, can see its member list.",
         )
 
-    rows = (
-        await session.execute(
-            select(Grant).options(selectinload(Grant.user)).where(Grant.club_id == club.id)
-        )
-    ).scalars()
+    rows = await grants.grants_on(session, ObjectType.CLUB, club.id)
     by_user: dict[int, tuple[User, list[str]]] = {}
     for row in rows:
         by_user.setdefault(row.user_id, (row.user, []))[1].append(row.relation)
@@ -68,8 +63,7 @@ async def list_club_members(
     # `user.grants`: an account reached through `selectinload(Grant.user)` does not get its
     # own `grants` loaded (the eager load stops where the path cycles back to `Grant`), and
     # touching it lazy-loads outside the async context — a 500 for every roster with
-    # someone in it besides the caller. Same answer as `manages_club`/`administers_club`,
-    # which read direct tuples too.
+    # someone in it besides the caller. Direct tuples, like `authz.read`.
     members = [
         ClubMemberOut(
             user_id=user.id,

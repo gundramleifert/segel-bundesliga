@@ -22,7 +22,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import current_user
+from app.authz import ObjectRef
 from app.db import get_session
 from app.models import Club, Sailor, Team, TeamMembership
 from app.models.auth import Grant, ObjectType, Relation, User
@@ -74,27 +76,13 @@ async def list_club_guardians(
     entries hold or whose account is a member, with the guardians linked to them."""
     if await session.get(Club, club_id) is None:
         raise Problem(404, "club-not-found", "No such club.")
-    if not (acting.is_admin() or acting.manages_club(club_id)):
+    if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
         raise _forbidden()
     sailors = await _club_sailors(session, club_id)
-    links = (
-        (
-            await session.execute(
-                select(Grant).where(
-                    Grant.relation == Relation.GUARDIAN,
-                    Grant.sailor_id.in_([s.id for s in sailors]),
-                )
-            )
-        )
-        .scalars()
-        .all()
+    links = await grants.holders(
+        session, Relation.GUARDIAN, ObjectType.SAILOR, [s.id for s in sailors]
     )
-    accounts = {
-        u.id: u
-        for u in (
-            await session.execute(select(User).where(User.id.in_({g.user_id for g in links})))
-        ).scalars()
-    }
+    accounts = {g.user_id: g.user for g in links}
     return [
         SailorGuardiansOut(
             sailor=GuardianSailorOut(id=s.id, first_name=s.first_name, last_name=s.last_name),
@@ -157,11 +145,7 @@ async def unlink_guardian(
     row = await session.get(Grant, tuple_id)
     if row is None or row.sailor_id != sailor.id or row.relation != Relation.GUARDIAN:
         raise Problem(404, "guardian-link-missing", "This sailor has no such guardian.")
-    # The account through its own query, so its `grants` collection is loaded (as in
-    # `routers/auth.py::delete_tuple`).
-    parent = (await session.execute(select(User).where(User.id == row.user_id))).scalar_one()
-    mine = next(g for g in parent.grants if g.id == row.id)
-    await grants.revoke(session, parent, mine, actor=acting)
+    await grants.revoke_row(session, row, actor=acting)
     await session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -170,9 +154,9 @@ async def unlink_guardian(
 
 
 async def _may_link(session: AsyncSession, acting: User, sailor: Sailor) -> None:
-    if acting.is_admin():
+    if authz.check(acting, Relation.ADMIN):
         return
-    managed = acting.managed_club_ids
+    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
     if managed and managed & await sailor_clubs(session, sailor):
         return
     raise _forbidden()
@@ -190,20 +174,15 @@ async def sailor_clubs(session: AsyncSession, sailor: Sailor) -> set[int]:
             )
         ).scalars()
     )
-    if sailor.email:
-        clubs |= set(
-            (
-                await session.execute(
-                    select(Grant.club_id)
-                    .join(User, Grant.user_id == User.id)
-                    .where(
-                        User.email == sailor.email.lower(),
-                        Grant.relation == Relation.MEMBER,
-                        Grant.club_id.is_not(None),
-                    )
-                )
-            ).scalars()
-        )
+    account = (
+        (
+            await session.execute(select(User).where(User.email == sailor.email.lower()))
+        ).scalar_one_or_none()
+        if sailor.email
+        else None
+    )
+    if account is not None:
+        clubs |= authz.list_objects(account, Relation.MEMBER, ObjectType.CLUB)
     return clubs
 
 
@@ -213,11 +192,8 @@ async def _club_sailors(session: AsyncSession, club_id: int) -> list[Sailor]:
         .join(Team, TeamMembership.team_id == Team.id)
         .where(Team.club_id == club_id)
     )
-    member_emails = (
-        select(User.email)
-        .join(Grant, Grant.user_id == User.id)
-        .where(Grant.relation == Relation.MEMBER, Grant.club_id == club_id)
-    )
+    members = await grants.grants_on(session, ObjectType.CLUB, club_id, Relation.MEMBER)
+    member_emails = [g.user.email for g in members]
     return list(
         (
             await session.execute(

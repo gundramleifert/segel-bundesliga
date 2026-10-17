@@ -18,11 +18,12 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import current_user, require_admin, require_series_manager_for
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventStatus, League, Series, Team, TeamStatus
-from app.models.auth import Relation, User
+from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
@@ -137,8 +138,12 @@ async def list_all_series(
     Z-2) sees that series and nothing else — the same list, narrowed.
     """
     stmt = apply_search(select(Series), q, Series.name, Series.short_name)
-    if not acting.can(Relation.ADMIN, Relation.EDITOR):
-        reach = {g.series_id for g in acting.grants if g.series_id is not None}
+    if not authz.check(acting, Relation.ADMIN, Relation.EDITOR):
+        reach = authz.list_objects(
+            acting,
+            (Relation.ADMIN, Relation.MANAGER, Relation.RACE_OFFICER, Relation.JURY),
+            ObjectType.SERIES,
+        )
         if not reach:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

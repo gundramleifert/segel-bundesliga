@@ -25,6 +25,7 @@ from datetime import date
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.models import (
     Club,
     Event,
@@ -135,10 +136,10 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
             contexts[key] = Context(kind=kind, id=object_id, name="")
         return contexts[key]
 
-    for grant in user.grants:
-        kind = KIND_OF.get(grant.object_type)
-        if kind is not None and grant.object_id is not None:
-            at(kind, grant.object_id).relations.add(grant.relation)
+    for relation, obj in authz.tuples(user):
+        kind = KIND_OF.get(obj.type)
+        if kind is not None and obj.id is not None:
+            at(kind, obj.id).relations.add(relation)
 
     sailor = await linked_sailor(session, user)
     if sailor is not None:
@@ -278,7 +279,8 @@ async def _organizer(
 ) -> None:
     """What only a club's organizer can fix: a running series' squad below its minimum,
     an upcoming entry with nobody named (Stories V-1, V-2)."""
-    clubs = [club_id for club_id in user.managed_club_ids if ("club", club_id) in contexts]
+    managed = authz.list_objects(user, Relation.MANAGER, ObjectType.CLUB)
+    clubs = [club_id for club_id in managed if ("club", club_id) in contexts]
     if not clubs:
         return
     today = date.today()
@@ -355,7 +357,7 @@ async def _ward_waivers(session: AsyncSession, user: User) -> int:
     """Story S-8: the competitions of the sailors I am guardian of whose waiver is not
     cleared yet and which I can sign — the child is a minor there (or of unknown age,
     which the club has to fix: the page says so)."""
-    ward_ids = user.objects_of(Relation.GUARDIAN, ObjectType.SAILOR)
+    ward_ids = authz.list_objects(user, Relation.GUARDIAN, ObjectType.SAILOR)
     if not ward_ids:
         return 0
     count = 0

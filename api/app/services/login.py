@@ -30,10 +30,11 @@ from argon2.exceptions import InvalidHashError, VerifyMismatchError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.config import settings
 from app.mail import MailError, send_login_code
-from app.models.auth import Grant, Identity, IdentityProvider, LoginCode, Relation, User
-from app.services import passwords
+from app.models.auth import Identity, IdentityProvider, LoginCode, ObjectType, Relation, User
+from app.services import grants, passwords
 
 _hasher = PasswordHasher()
 
@@ -248,21 +249,22 @@ async def _resolve_user(
     if (provider, subject) not in known:
         session.add(Identity(user_id=user.id, provider=provider, subject=subject))
 
-    _grant_whitelisted_admin(user)
+    await _grant_whitelisted_admin(session, user)
 
     user.last_login_at = datetime.now(UTC)
     await session.flush()
     return user
 
 
-def _grant_whitelisted_admin(user: User) -> None:
+async def _grant_whitelisted_admin(session: AsyncSession, user: User) -> None:
     """Deployment bootstrap: an address listed in ``SBL_ADMIN_EMAILS`` becomes `admin` the
     moment it signs in, so a fresh deployment has someone who can grant every other role
-    (Story Z-2) without needing direct database access first. Checked on every sign-in, not
-    just account creation, so adding an address to the list later still takes effect."""
+    (Story Z-2) without needing direct database access first. Checked on every sign-in,
+    not just account creation, so adding an address to the list later still takes effect.
+    Written like every tuple, in the audit log as the system's."""
     whitelist = {address.strip().lower() for address in settings.admin_emails}
-    if user.email in whitelist and not user.holds(Relation.ADMIN):
-        user.grants.append(Grant(user_id=user.id, relation=Relation.ADMIN))
+    if user.email in whitelist and not authz.read(user, Relation.ADMIN):
+        await grants.grant(session, user, Relation.ADMIN, ObjectType.SITE, None, actor=None)
 
 
 async def register(session: AsyncSession, email: str, display_name: str) -> None:

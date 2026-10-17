@@ -13,11 +13,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import current_user
+from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Event, EventCrew, Sailor, Team, TeamMembership, TeamStatus
-from app.models.auth import Relation, Role, User
+from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
 from app.schemas.public import MemberOut
 from app.services import ParticipationError, event_entry, squad_team
@@ -145,18 +147,18 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
 def _check_permissions(acting: User, team: Team, event: Event) -> None:
     # The event's organizer and race committee — held on the event, its series, its host
     # club or the site (Story Z-2) — may line up a crew; one for a different event may not.
-    if acting.can(Relation.MANAGER, Relation.RACE_OFFICER, on=event):
+    if authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event):
         return
-    if not acting.has_any(Role.TEAM_MANAGER):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Lineup can be set by club officials, administration, and race officers.",
-        )
-    if not acting.manages_club(team.club_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only line up your own team.",
-        )
+    if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=(
+            "You can only line up your own team."
+            if authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
+            else "Lineup can be set by club officials, administration, and race officers."
+        ),
+    )
 
 
 async def _from_squad(session: AsyncSession, team_id: int, sailor_ids: set[int]) -> None:

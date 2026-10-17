@@ -30,12 +30,14 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import current_user, optional_user
+from app.authz import ObjectRef
 from app.config import settings
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
-from app.models.auth import Role, User
+from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
@@ -656,11 +658,12 @@ async def _may_view_minor_photo(session: AsyncSession, acting: User | None, sail
     """
     if acting is None:
         return False
-    if acting.has_any(Role.ADMIN, Role.EDITOR):
+    if authz.check(acting, Relation.EDITOR):
         return True
     if sailor.email is not None and sailor.email.lower() == acting.email.lower():
         return True
-    if acting.has_any(Role.TEAM_MANAGER):
+    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
+    if managed:
         club_ids = (
             await session.execute(
                 select(Team.club_id)
@@ -669,7 +672,7 @@ async def _may_view_minor_photo(session: AsyncSession, acting: User | None, sail
                 .distinct()
             )
         ).scalars()
-        if any(acting.manages_club(club_id) for club_id in club_ids):
+        if managed & set(club_ids):
             return True
     return False
 
@@ -683,7 +686,9 @@ def _can_manage_master_data(acting: User) -> None:
     Club leadership is included because they register their own sailors — they know the
     spelling of names, not the head office.
     """
-    if acting.has_any(Role.ADMIN, Role.EDITOR, Role.TEAM_MANAGER):
+    if authz.check(acting, Relation.EDITOR) or authz.list_objects(
+        acting, Relation.MANAGER, ObjectType.CLUB
+    ):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -696,7 +701,7 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
     hold — or anyone nobody's squad holds yet, who belongs to no club. Creating and
     finding stay open to every club's organizer (`_can_manage_master_data`): a new
     person has no club to scope by."""
-    if acting.has_any(Role.ADMIN, Role.EDITOR):
+    if authz.check(acting, Relation.EDITOR):
         return
     clubs = set(
         (
@@ -707,7 +712,7 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
             )
         ).scalars()
     )
-    if not clubs or clubs & acting.managed_club_ids:
+    if not clubs or clubs & authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
         return
     raise Problem(
         403,
@@ -718,9 +723,7 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
 
 
 def _can_manage_squad(acting: User, team: Team) -> None:
-    if acting.has_any(Role.ADMIN):
-        return
-    if acting.has_any(Role.TEAM_MANAGER) and acting.manages_club(team.club_id):
+    if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

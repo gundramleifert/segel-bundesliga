@@ -17,6 +17,7 @@ from app.auth import (
     require_admin,
     require_team_manager,
 )
+from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import WaiverConfirmation
@@ -27,7 +28,6 @@ from app.models.auth import (
     ObjectType,
     Relation,
     User,
-    parse_object,
     writable,
 )
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
@@ -79,8 +79,7 @@ class PasswordSet(BaseModel):
     )
     new_password: str = Field(
         max_length=1024,
-        description=f"{passwords.MIN_LENGTH} to {passwords.MAX_LENGTH} characters; "
-        "no other rule",
+        description=f"{passwords.MIN_LENGTH} to {passwords.MAX_LENGTH} characters; no other rule",
     )
 
 
@@ -356,9 +355,7 @@ async def set_my_password(
     a wrong one counts towards the lock like a failed sign-in."""
     _password_login_open()
     try:
-        await passwords.set_password(
-            session, user, request.new_password, request.current_password
-        )
+        await passwords.set_password(session, user, request.new_password, request.current_password)
     except passwords.EmailUnverified as exc:
         raise Problem(
             403,
@@ -396,7 +393,10 @@ async def remove_my_password(
 
 
 @router.get("/me", response_model=UserOut, summary="Get my account")
-async def me(user: User = Depends(current_user)) -> UserOut:
+async def me(
+    user: User = Depends(current_user), session: AsyncSession = Depends(get_session)
+) -> UserOut:
+    await grants.named(session, user)
     return UserOut.of(user)
 
 
@@ -470,6 +470,7 @@ async def list_users(
         sortable=USER_SORT,
         default_order=[User.display_name, User.id],
     )
+    await grants.named(session, *users)
     return page_of([UserOut.of(user) for user in users], total, params)
 
 
@@ -477,12 +478,12 @@ async def list_users(
     "/users",
     response_model=UserOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_admin)],
     summary="Create an account",
 )
 async def create_user(
     request: UserCreate,
     session: AsyncSession = Depends(get_session),
+    acting: User = Depends(require_admin),
     locale: Locale = Depends(resolve_locale),
 ) -> UserOut:
     email = request.email.lower()
@@ -505,15 +506,17 @@ async def create_user(
         display_name=request.display_name,
         email_verified=True,
     )
-    # Relations at creation are site tuples: a club or event tuple names an object, which
-    # the "＋" on the Accounts tab writes one at a time.
-    for relation in dict.fromkeys(request.roles):
-        grants.check_schema(relation, ObjectType.SITE)
-    user.grants = [Grant(relation=relation) for relation in dict.fromkeys(request.roles)]
-    # A fresh account has no sign-in method yet — the identity is created only on first sign-in.
-    # Explicitly empty, otherwise the response tries to load it.
+    # A fresh account has no tuples and no sign-in method yet — the identity is created
+    # only on first sign-in. Explicitly empty, otherwise the response tries to load them.
+    user.grants = []
     user.identities = []
     session.add(user)
+    await session.flush()
+    # Relations at creation are site tuples: a club or event tuple names an object, which
+    # the "＋" on the Accounts tab writes one at a time. Written like every other tuple —
+    # checked against the model and in the audit log.
+    for relation in dict.fromkeys(request.roles):
+        await grants.grant(session, user, relation, ObjectType.SITE, None, actor=acting)
     await session.commit()
     return UserOut.of(user)
 
@@ -553,6 +556,7 @@ async def remove_user(
 
     user.is_active = False
     await session.commit()
+    await grants.named(session, user)
     return UserOut.of(user)
 
 
@@ -618,7 +622,9 @@ async def get_user(
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
 ) -> UserOut:
-    return UserOut.of(await _user(session, user_id, locale))
+    user = await _user(session, user_id, locale)
+    await grants.named(session, user)
+    return UserOut.of(user)
 
 
 @router.get(
@@ -705,21 +711,16 @@ async def delete_tuple(
     leaving = row.relation == Relation.MEMBER and row.user_id == acting.id
     if not leaving:
         _may_administer(acting, row.object_type, obj)
-    # The account through its own query, so its `grants` collection is loaded — reached
-    # through `row.user` it is not, and touching it would lazy-load outside the async
-    # context (docs/gotchas: a relationship on a row you just appended is not loaded).
-    target = await _user(session, row.user_id, locale)
-    # The row the user's collection holds is the one to drop (same identity map).
-    mine = next(g for g in target.grants if g.id == row.id)
-    await grants.revoke(session, target, mine, actor=acting)
+    await grants.revoke_row(session, row, actor=acting)
     await session.commit()
 
 
 def _object(text: str) -> tuple[ObjectType, int | None]:
     try:
-        return parse_object(text)
+        target = ObjectRef.parse(text)
     except ValueError as exc:
         raise Problem(422, "tuple-object-invalid", "Not an object.", detail=str(exc)) from exc
+    return target.type, target.id
 
 
 def _may_administer(acting: User, object_type: ObjectType, obj) -> None:
@@ -727,7 +728,7 @@ def _may_administer(acting: User, object_type: ObjectType, obj) -> None:
         raise Problem(
             403,
             "tuple-forbidden",
-            "Only the site's admin or the object's manager may change who holds what on it.",
+            "Only the site's admin or the object's admin may change who holds what on it.",
             object=object_type.value,
         )
 

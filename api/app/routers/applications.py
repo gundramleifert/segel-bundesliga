@@ -25,11 +25,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app import authz
 from app.auth import current_user
+from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.models import AuditLog, Club, Event, Series, Team, TeamStatus
-from app.models.auth import Relation, Role, User
+from app.models.auth import ObjectType, Relation, User
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import ParticipationError, has_results, new_event_entry
 
@@ -136,7 +138,7 @@ async def list_own_applications(
     """Lists the participations of every club the acting user organizes, and their status —
     both requested and accepted.
     """
-    club_ids = acting.managed_club_ids
+    club_ids = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
     if not club_ids:
         return []
     teams = (
@@ -163,7 +165,7 @@ async def withdraw_application(
 ) -> None:
     """Withdraws an application while it's still pending."""
     team = await _with_relations(session, team_id, locale)
-    if not acting.has_any(Role.ADMIN) and not acting.manages_club(team.club_id):
+    if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=tr(locale, en="This is not your application.", de="Das ist nicht Ihr Antrag."),
@@ -195,7 +197,7 @@ async def list_pending_applications(
 ) -> list[ApplicationOut]:
     """Every application for administration; one series' or one event's for its
     organizer, who has to name it (Story A-9)."""
-    if not acting.is_admin():
+    if not authz.check(acting, Relation.ADMIN):
         target = (
             await session.get(Event, event_id)
             if event_id is not None
@@ -266,7 +268,10 @@ def _can_apply(acting: User, club_id: int, locale: Locale) -> None:
     Admins can also register because they can set directly anyway; a request in their
     name is the weaker intervention.
     """
-    if not acting.has_any(Role.ADMIN, Role.TEAM_MANAGER):
+    if not (
+        authz.check(acting, Relation.ADMIN)
+        or authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=tr(
@@ -275,7 +280,7 @@ def _can_apply(acting: User, club_id: int, locale: Locale) -> None:
                 de="Teilnehmer meldet die Vereinsleitung.",
             ),
         )
-    if not acting.has_any(Role.ADMIN) and not acting.manages_club(club_id):
+    if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=tr(
@@ -391,7 +396,9 @@ def _may_decide(acting: User, target: Series | Event | None) -> None:
     — or of the event, for an application to one event — decides those to theirs. The
     model's ``manager`` is what lets them set the clubs directly, so deciding gives them
     nothing they could not already do."""
-    if acting.is_admin() or (target is not None and acting.can(Relation.MANAGER, on=target)):
+    if authz.check(acting, Relation.ADMIN) or (
+        target is not None and authz.check(acting, Relation.MANAGER, on=target)
+    ):
         return
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

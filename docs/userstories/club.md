@@ -430,8 +430,8 @@ Acceptance criteria:
 - On the club page (Story B-11), a manager of **this** club — and `admin`/`editor` for any
   club — sees the page's own editing affordances. Everyone else sees the page exactly as it
   is today, with no disabled buttons and no hint that an editing mode exists.
-- The check is `User.manages_club(club_id)`, never `acting.club_id == club_id`:
-  `team_manager` is granted per club, so someone who organizes two clubs can maintain both,
+- The check is `authz.check(acting, MANAGER, on=club)`, never `acting.club_id == club_id`:
+  the relation is held per club, so someone who organizes two clubs can maintain both,
   and merely *representing* a club grants nothing (same rule as V-3).
 - **Info tab**: description, website and location are editable in place. Name and
   abbreviation are **not** — the abbreviation is in the URL and in every external-id
@@ -459,8 +459,8 @@ so that **we are recognizable on the page**.
 Acceptance criteria:
 - The club's **admin** uploads it for their **own** club — the crest is the club's
   identity, like its members (Z-3). `admin` and `editor` may do it for any club, as with
-  the rest of club master data (A-1). The check is `User.administers_club(club_id)`: the
-  relation is held per club, so someone who administers two clubs can maintain both
+  the rest of club master data (A-1). The check is `authz.check(acting, ADMIN, on=club)`:
+  the relation is held per club, so someone who administers two clubs can maintain both
   crests.
 - Replacing and removing are possible (`POST` again replaces; `DELETE` on a club without
   an uploaded crest is a no-op, not an error).

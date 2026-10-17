@@ -258,22 +258,26 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **In conflicts, the race committee wins over imports.** Otherwise polling overwrites a
   protest decision just entered.
 - **Permissions are relation tuples, `user:relation:object`, and the model is OpenFGA's
-  DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`,
-  `app/services/grants.py`). Object types `site`, `club`, `series`, `event`, `sailor`; relations
+  DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`, the facade
+  `app/authz.py`, the writes `app/services/grants.py`). Object types `site`, `club`, `series`, `event`, `sailor`; relations
   `admin`/`editor` (site), `manager` (the organizer — club, series, event),
   `race_officer` (site, series, event), `jury` (series, event), `helper` (event — works
   the day, holds no power on it, Story VA-12), `treasurer` (club,
   event — the host club pays its events' costs, so its treasurer is every hosted event's,
   Story F-1), `guardian` (sailor — a parent the child's club linked, who accepts a
-  minor's waiver online, Stories V-13, S-8), and `admin` on every object but the sailor —
-  everything within it, people included; on a club the `admin` decides who is *in* it
+  minor's waiver online, Stories V-13, S-8), and `admin` on every object — everything
+  within it, people included (a sailor's is only derived: the site's); on a club the `admin` decides who is *in* it
   and the `manager` who *sails*. `or … from …` lines say what implies what: an object's
   admin is each of its relations, a series' people are its events', the host club's
   people are its events', the site's editor and race committee are managers of every
-  event. **The check is
-  `User.can(relation, on=obj)`**; `require_site` guards the league office's screens,
-  `require_on_event` a route about one event, `User.roles` is a **derived** summary for
-  the navigation and never a permission. An object's admin sees and writes its tuples
+  event. **Every permission question goes through `app/authz.py`**, named after
+  OpenFGA's API so the interpreter behind it could become an OpenFGA server: `check`
+  (`User.can` is its one-line sugar), `read` for the rare place where the tuple itself is
+  the fact, `list_objects`, `ensure`, objects as `ObjectRef` (`club:3`). Nothing outside
+  it and `grants.py` touches the `Grant` table or walks `user.grants`, and never ask a
+  summary role (`User.roles`, navigation only) or a "holds directly" shortcut what the
+  model answers. `require_site` guards the league office's screens, `require_on_event` a
+  route about one event. An object's admin sees and writes its tuples
   (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
   silently dropped. Membership is the `member` tuple on a club, implying nothing else.

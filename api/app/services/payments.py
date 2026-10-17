@@ -24,10 +24,11 @@ from sepaxml import SepaTransfer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
+from app.authz import ObjectRef
 from app.models import (
     AuditLog,
     ClaimStatus,
-    Club,
     ClubBankAccount,
     ExpenseClaim,
     Payment,
@@ -36,7 +37,7 @@ from app.models import (
     PaymentRun,
     PaymentStatus,
 )
-from app.models.auth import Relation, User
+from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 
 #: The format German banks take since the SEPA 2025 changes (DK data format 3.7+).
@@ -51,7 +52,9 @@ REMITTANCE_MAX = 140
 def may_pay_for(user: User, club_id: int) -> bool:
     """The club's manager or treasurer (and their admins): the people who hold its money
     (Story F-3). The club's account and its runs are theirs alone."""
-    return user.can(Relation.MANAGER, Relation.TREASURER, on=Club(id=club_id))
+    return authz.check(
+        user, Relation.MANAGER, Relation.TREASURER, on=ObjectRef(ObjectType.CLUB, club_id)
+    )
 
 
 def require_pay_for(user: User, club_id: int) -> None:

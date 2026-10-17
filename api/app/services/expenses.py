@@ -21,6 +21,8 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
+from app.authz import ObjectRef
 from app.models import (
     AuditLog,
     BankAccount,
@@ -35,7 +37,7 @@ from app.models import (
     PaymentMethod,
     PaymentStatus,
 )
-from app.models.auth import Relation, User
+from app.models.auth import SCHEMA, ObjectType, Relation, User
 from app.problems import Problem
 
 #: The site's default, for a club that has set none — and the fallback for every key a
@@ -92,12 +94,12 @@ def may_file_on_event(user: User, event: Event, policy: Policy) -> bool:
         relation = Relation(name) if name in Relation._value2member_map_ else None
         if relation is None:
             continue
-        if user.holds(relation, event_id=event.id):
+        if authz.read(user, relation, ObjectRef(ObjectType.EVENT, event.id)):
             return True
         if (
             relation in _SERIES_RELATIONS
             and event.series_id is not None
-            and user.holds(relation, series_id=event.series_id)
+            and authz.read(user, relation, ObjectRef(ObjectType.SERIES, event.series_id))
         ):
             return True
     return False
@@ -110,15 +112,17 @@ def may_decide(user: User, claim: ExpenseClaim) -> bool:
     person is the claimant — :func:`require_decider` does."""
     if claim.event is not None:
         event = claim.event
-        if user.can(Relation.TREASURER, on=event) or user.holds(
-            Relation.MANAGER, event_id=event.id
+        if authz.check(user, Relation.TREASURER, on=event) or authz.read(
+            user, Relation.MANAGER, ObjectRef(ObjectType.EVENT, event.id)
         ):
             return True
-        return event.host_club_id is not None and user.can(
-            Relation.MANAGER, on=Club(id=event.host_club_id)
+        return event.host_club_id is not None and authz.check(
+            user, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, event.host_club_id)
         )
     assert claim.club_id is not None
-    return user.can(Relation.MANAGER, Relation.TREASURER, on=Club(id=claim.club_id))
+    return authz.check(
+        user, Relation.MANAGER, Relation.TREASURER, on=ObjectRef(ObjectType.CLUB, claim.club_id)
+    )
 
 
 def may_see(user: User, claim: ExpenseClaim) -> bool:
@@ -170,8 +174,9 @@ async def load(session: AsyncSession, claim_id: int) -> ExpenseClaim:
 
 async def targets(session: AsyncSession, user: User) -> list[tuple[str, Event | Club]]:
     """Every event and club this person may file a claim on (Story F-2), events first."""
-    direct = {g.event_id for g in user.grants if g.event_id is not None}
-    series = {g.series_id for g in user.grants if g.series_id is not None}
+    # Any relation held there; which ones entitle to a claim is the host's policy, below.
+    direct = authz.list_objects(user, tuple(SCHEMA[ObjectType.EVENT]), ObjectType.EVENT)
+    series = authz.list_objects(user, tuple(SCHEMA[ObjectType.SERIES]), ObjectType.SERIES)
     events: list[Event] = []
     if direct or series:
         found = (
@@ -192,7 +197,7 @@ async def targets(session: AsyncSession, user: User) -> list[tuple[str, Event | 
         events = [
             e for e in found if may_file_on_event(user, e, policy_for(hosts.get(e.host_club_id)))
         ]
-    members = sorted(user.member_club_ids)
+    members = sorted(authz.list_objects(user, Relation.MEMBER, ObjectType.CLUB))
     member_clubs = await _clubs(session, set(members))
     return [("event", e) for e in events] + [
         ("club", member_clubs[c]) for c in members if c in member_clubs
@@ -271,7 +276,7 @@ async def create(
         assert club_id is not None
         if await session.get(Club, club_id) is None:
             raise Problem(404, "club-not-found", "No such club.")
-        if not user.is_member_of(club_id):
+        if not authz.check(user, Relation.MEMBER, on=ObjectRef(ObjectType.CLUB, club_id)):
             raise _not_eligible()
 
     claim = ExpenseClaim(

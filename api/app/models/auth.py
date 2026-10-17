@@ -10,17 +10,14 @@ An account (``User``) can have several ``Identity`` entries: the same person sig
 with Google one day and by email code the next, landing in the same account. Linked via
 the **verified** email address.
 
-Roles are their own rows, not a column: a person can have several (the league office is
-often also the editorial team), and they need to be grantable and revocable without
-changing the schema.
-
 **Permissions are relation tuples** (Story Z-2): ``user:relation:object`` — this person
 is ``manager`` of club A, ``race_officer`` of event C, ``admin`` of the site. That is the
-Zanzibar/OpenFGA model at the size this site needs: a schema of which relations each
-object type has (:data:`SCHEMA`), rewrite rules for what implies what (:data:`IMPLIED`),
-and the tuples themselves (:class:`Grant`) in three foreign-key columns. One person holds
-as many tuples as they have responsibilities: manager of two clubs and race officer of two
+Zanzibar/OpenFGA model at the size this site needs: the model in OpenFGA's DSL
+(:data:`MODEL`, parsed into :data:`SCHEMA`) says which relations each object type has and
+what implies what, and the tuples themselves are :class:`Grant` rows. One person holds as
+many tuples as they have responsibilities: manager of two clubs and race officer of two
 events is four rows. Club **membership** is the ``member`` tuple on the club (Story Z-5).
+This module is the data; the questions are asked through `app/authz.py`, the one facade.
 """
 
 from __future__ import annotations
@@ -30,7 +27,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
 from app.models.base import Base, TimestampMixin
 
@@ -150,6 +147,7 @@ type event
 
 type sailor
   relations
+    define admin: admin from site
     define guardian: [user]
 """
 
@@ -196,7 +194,7 @@ SCHEMA = _parse_model(MODEL)
 
 def writable(object_type: ObjectType) -> list[Relation]:
     """The relations a tuple can name on this object type: those with a ``[user]`` term.
-    A relation that is only derived (a club's ``admin``) is not among them."""
+    A relation that is only derived (a sailor's ``admin``) is not among them."""
     return [
         relation
         for relation, terms in SCHEMA[object_type].items()
@@ -204,14 +202,13 @@ def writable(object_type: ObjectType) -> list[Relation]:
     ]
 
 
-def parse_object(text: str) -> tuple[ObjectType, int | None]:
-    """``"event:3"`` → ``(EVENT, 3)``; ``"site"`` → ``(SITE, None)``. FGA's object notation."""
-    if text == "site":
-        return ObjectType.SITE, None
-    kind, _, ident = text.partition(":")
-    if not ident.isdigit() or kind not in {t.value for t in ObjectType} or kind == "site":
-        raise ValueError(f"not an object: {text!r} (expected type:id, e.g. event:3, or site)")
-    return ObjectType(kind), int(ident)
+#: Which column of a :class:`Grant` holds the object of each type — the site has none.
+GRANT_COLUMN = {
+    ObjectType.CLUB: "club_id",
+    ObjectType.SERIES: "series_id",
+    ObjectType.EVENT: "event_id",
+    ObjectType.SAILOR: "sailor_id",
+}
 
 
 class Role(StrEnum):
@@ -273,82 +270,17 @@ class User(Base, TimestampMixin):
         cascade="all, delete-orphan"
     )
 
-    # ---- the check ------------------------------------------------------------------
-
-    def holds(
-        self,
-        relation: Relation | str,
-        *,
-        club_id: int | None = None,
-        series_id: int | None = None,
-        event_id: int | None = None,
-        sailor_id: int | None = None,
-    ) -> bool:
-        """A **direct** tuple: this relation on exactly this object (no ids: the site).
-        No rewrite — an admin does not "hold" manager on a club, they merely may act as
-        one. Use this where the tuple itself is the fact, e.g. "is listed as organizer"."""
-        return any(
-            g.relation == relation
-            and g.club_id == club_id
-            and g.series_id == series_id
-            and g.event_id == event_id
-            and g.sailor_id == sailor_id
-            for g in self.grants
-        )
-
     def can(self, *relations: Relation | str, on: object = ObjectType.SITE) -> bool:
-        """The one permission check — FGA's ``check``: does any of ``relations`` hold on
-        ``on``, directly or through the model's rewrite rules?
+        """``authz.check(self, …)`` — the one permission check, in the form the routers
+        read best. Everything else about permissions is `app/authz.py`."""
+        from app import authz
 
-        ``on`` is a ``Club``, ``Series`` or ``Event`` instance, or ``ObjectType.SITE``.
-        An event brings its containers along (``series_id``, ``host_club_id``), which is
-        all the rewrite needs — no query.
-        """
-        ref, edges = _ref(on)
-        return any(self._check(Relation(relation), ref, edges) for relation in relations)
-
-    def _check(
-        self,
-        relation: Relation,
-        ref: tuple[ObjectType, int | None],
-        edges: dict[str, tuple[ObjectType, int | None]],
-    ) -> bool:
-        object_type, object_id = ref
-        for term, edge in SCHEMA[object_type].get(relation, ()):
-            if term == "direct":
-                if self.holds(relation, **_ids(ref)):
-                    return True
-            elif edge is None:
-                if self._check(Relation(term), ref, edges):
-                    return True
-            elif edge in edges:
-                parent = edges[edge]
-                # A parent has only the site above it.
-                if self._check(Relation(term), parent, {"site": (ObjectType.SITE, None)}):
-                    return True
-        return False
-
-    def holds_any(self, relation: Relation | str, object_type: ObjectType | None = None) -> bool:
-        """Holds this relation on *something* (of this type) — for "is a team manager
-        somewhere" pre-checks and the navigation. Direct tuples only."""
-        return any(
-            g.relation == relation and (object_type is None or g.object_type is object_type)
-            for g in self.grants
-        )
-
-    def objects_of(self, relation: Relation | str, object_type: ObjectType) -> set[int]:
-        """Every object of this type the person directly holds this relation on."""
-        return {
-            g.object_id
-            for g in self.grants
-            if g.relation == relation and g.object_type is object_type and g.object_id is not None
-        }
-
-    # ---- sugar the routers read well ------------------------------------------------
+        return authz.check(self, *relations, on=on)
 
     @property
     def roles(self) -> set[str]:
-        """The summary roles (:class:`Role`) — derived, for the navigation and the help."""
+        """The summary roles (:class:`Role`) — derived, for the navigation and the help.
+        Never a permission: that is ``can``."""
         out: set[str] = set()
         organizer = {
             ObjectType.CLUB: Role.TEAM_MANAGER,
@@ -356,7 +288,7 @@ class User(Base, TimestampMixin):
             ObjectType.EVENT: Role.EVENT_MANAGER,
         }
         for g in self.grants:
-            if g.relation == Relation.MEMBER:
+            if g.relation in (Relation.MEMBER, Relation.GUARDIAN):
                 continue
             if g.object_type is ObjectType.SITE:
                 out.add(g.relation)
@@ -368,93 +300,14 @@ class User(Base, TimestampMixin):
                 out.add(g.relation)
         return out
 
-    def has_any(self, *roles: str) -> bool:
-        """Holds one of these **summary** roles — a navigation-level question. Never a
-        permission check on an object: that is :meth:`can`."""
-        return bool(self.roles & set(roles))
-
-    def is_admin(self) -> bool:
-        return self.holds(Relation.ADMIN)
-
-    def manages_club(self, club_id: int) -> bool:
-        """Directly holds ``manager`` or ``admin`` on this club — decides who *sails* for
-        it: squads, lineups, registrations (the model makes an admin a manager). For
-        "may act as its manager" including the site's admin use ``can(MANAGER, on=club)``."""
-        return self.holds(Relation.MANAGER, club_id=club_id) or self.holds(
-            Relation.ADMIN, club_id=club_id
-        )
-
-    def administers_club(self, club_id: int) -> bool:
-        """Directly holds ``admin`` on this club — decides who is *in* it: members,
-        organizers, the club's tuples (Stories A-8, Z-3, Z-5)."""
-        return self.holds(Relation.ADMIN, club_id=club_id)
-
-    @property
-    def managed_club_ids(self) -> set[int]:
-        """Every club this account organizes — for "show me everything I manage" listings."""
-        return self.objects_of(Relation.MANAGER, ObjectType.CLUB) | self.objects_of(
-            Relation.ADMIN, ObjectType.CLUB
-        )
-
-    @property
-    def administered_club_ids(self) -> set[int]:
-        return self.objects_of(Relation.ADMIN, ObjectType.CLUB)
-
-    def is_member_of(self, club_id: int) -> bool:
-        """Holds ``member`` on this club (Story Z-5)."""
-        return self.holds(Relation.MEMBER, club_id=club_id)
-
-    @property
-    def member_club_ids(self) -> set[int]:
-        return self.objects_of(Relation.MEMBER, ObjectType.CLUB)
-
-
-def _ids(ref: tuple[ObjectType, int | None]) -> dict[str, int]:
-    object_type, object_id = ref
-    column = {
-        ObjectType.CLUB: "club_id",
-        ObjectType.SERIES: "series_id",
-        ObjectType.EVENT: "event_id",
-        ObjectType.SAILOR: "sailor_id",
-    }
-    return (
-        {column[object_type]: object_id} if object_id is not None and object_type in column else {}
-    )
-
-
-def _ref(
-    on: object,
-) -> tuple[tuple[ObjectType, int | None], dict[str, tuple[ObjectType, int | None]]]:
-    """The object as ``(type, id)`` plus its edges: ``site`` always, and for an event
-    ``series`` and ``host_club`` when set."""
-    site = (ObjectType.SITE, None)
-    if on is ObjectType.SITE or on == "site":
-        return site, {"site": site}
-    name = type(on).__name__
-    ident: int = on.id  # type: ignore[attr-defined]
-    if name == "Club":
-        return (ObjectType.CLUB, ident), {"site": site}
-    if name == "Series":
-        return (ObjectType.SERIES, ident), {"site": site}
-    if name == "Sailor":
-        return (ObjectType.SAILOR, ident), {"site": site}
-    if name == "Event":
-        edges: dict[str, tuple[ObjectType, int | None]] = {"site": site}
-        if on.series_id is not None:  # type: ignore[attr-defined]
-            edges["series"] = (ObjectType.SERIES, on.series_id)  # type: ignore[attr-defined]
-        if on.host_club_id is not None:  # type: ignore[attr-defined]
-            edges["host_club"] = (ObjectType.CLUB, on.host_club_id)  # type: ignore[attr-defined]
-        return (ObjectType.EVENT, ident), edges
-    raise TypeError(f"not an object a relation can be held on: {name}")
-
 
 class Grant(Base, TimestampMixin):
     """One tuple: ``user`` is ``relation`` of the site, a club, a series, an event or a
     sailor (a guardian, Story V-13).
 
     ``user:relation:object`` in the FGA notation; here the object is one of four foreign
-    keys (all NULL for the site), so the database cascades and joins and the check needs
-    no lookup. At most one is set. The uniqueness constraint cannot see two site tuples as
+    keys (all NULL for the site, :data:`GRANT_COLUMN`), so the database cascades and joins.
+    At most one is set. The uniqueness constraint cannot see two site tuples as
     equal (NULLs are distinct in SQL), so `app/services/grants.py` checks for a duplicate
     before inserting.
     """
@@ -480,23 +333,19 @@ class Grant(Base, TimestampMixin):
     )
 
     user: Mapped[User] = relationship(back_populates="grants")
-    # Loaded eagerly so a tuple can be *named* in a response ("race_officer · Act 2 Kiel")
-    # without a second query per row; the lists are short.
-    club: Mapped[Club | None] = relationship(lazy="selectin")
-    series: Mapped[Series | None] = relationship(lazy="selectin")
-    event: Mapped[Event | None] = relationship(lazy="selectin")
-    sailor: Mapped[Sailor | None] = relationship(lazy="selectin")
+    # Only to *name* a tuple in a response ("race_officer · Act 2 Kiel"). Not loaded with
+    # the user: a permission check needs the ids alone, and every request loads the user.
+    # Whoever names tuples loads these (`grant_names()`).
+    club: Mapped[Club | None] = relationship(lazy="raise")
+    series: Mapped[Series | None] = relationship(lazy="raise")
+    event: Mapped[Event | None] = relationship(lazy="raise")
+    sailor: Mapped[Sailor | None] = relationship(lazy="raise")
 
     @property
     def object_type(self) -> ObjectType:
-        if self.club_id is not None:
-            return ObjectType.CLUB
-        if self.series_id is not None:
-            return ObjectType.SERIES
-        if self.event_id is not None:
-            return ObjectType.EVENT
-        if self.sailor_id is not None:
-            return ObjectType.SAILOR
+        for object_type, column in GRANT_COLUMN.items():
+            if getattr(self, column) is not None:
+                return object_type
         return ObjectType.SITE
 
     @property
@@ -504,22 +353,44 @@ class Grant(Base, TimestampMixin):
         return self.club_id or self.series_id or self.event_id or self.sailor_id
 
     @property
+    def ref(self):
+        """The tuple's object as an ``authz.ObjectRef``."""
+        from app.authz import ObjectRef
+
+        return ObjectRef(self.object_type, self.object_id)
+
+    @property
     def object(self) -> str:
         """FGA's notation: ``event:3``, or ``site``."""
-        object_type = self.object_type
-        return "site" if object_type is ObjectType.SITE else f"{object_type.value}:{self.object_id}"
+        return str(self.ref)
 
     @property
     def object_name(self) -> str | None:
-        if self.club is not None:
-            return self.club.name
-        if self.series is not None:
-            return self.series.name
-        if self.event is not None:
-            return self.event.title
-        if self.sailor is not None:
-            return self.sailor.full_name
-        return None
+        """The object's name — needs :func:`grant_names` loaded."""
+        if self.object_type is ObjectType.SITE:
+            return None
+        obj = getattr(self, GRANT_COLUMN[self.object_type].removesuffix("_id"))
+        return getattr(obj, _NAME_FIELD[self.object_type]) if obj is not None else None
+
+
+#: What a tuple's object is called by.
+_NAME_FIELD = {
+    ObjectType.CLUB: "name",
+    ObjectType.SERIES: "name",
+    ObjectType.EVENT: "title",
+    ObjectType.SAILOR: "full_name",
+}
+
+
+def grant_names() -> tuple:
+    """Loader options for a query that *names* tuples (``Grant.object_name``) — a function,
+    because the mappers are not configured yet while this module is imported."""
+    return (
+        selectinload(Grant.club),
+        selectinload(Grant.series),
+        selectinload(Grant.event),
+        selectinload(Grant.sailor),
+    )
 
 
 class Identity(Base, TimestampMixin):

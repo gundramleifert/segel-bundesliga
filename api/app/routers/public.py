@@ -22,6 +22,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app import authz
 from app.auth import current_user
 from app.crests import crest_path
 from app.db import get_session
@@ -46,7 +47,7 @@ from app.models import (
     TeamStatus,
     Venue,
 )
-from app.models.auth import User
+from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
 from app.problems import Problem
@@ -463,12 +464,9 @@ async def my_clubs(
     order, so "mine" would otherwise be read as a club id (the same reason
     `sailors.me_router` is included before `public.router` in `app/main.py`).
     """
-    member_of = acting.member_club_ids
-    # `team_manager` is granted per club (`UserRole.club_id`), never globally — so this
-    # comes off the role rows and not off `User.club_id`, which is the separate and
-    # narrower "this account represents that club".
-    manages = acting.managed_club_ids
-    administers = acting.administered_club_ids
+    member_of = authz.list_objects(acting, Relation.MEMBER, ObjectType.CLUB)
+    manages = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
+    administers = authz.list_objects(acting, Relation.ADMIN, ObjectType.CLUB)
     club_ids = member_of | manages
     if not club_ids:
         return []

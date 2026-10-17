@@ -20,10 +20,11 @@ from fastapi import HTTPException
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import create_access_token
 from app.db import SessionLocal
 from app.models import Club, Event, Sailor, Team, TeamMembership
-from app.models.auth import Grant, Relation, Role, User
+from app.models.auth import Grant, ObjectType, Relation, Role, User
 
 # Accounts not linked to a club: (email, name, site relations)
 FUNCTIONAL_ACCOUNTS: list[tuple[str, str, list[str]]] = [
@@ -201,7 +202,8 @@ async def _report(
 
     print("\nClub organizers (sample):")
     for user in samples:
-        abbr = ", ".join(clubs[cid].short_name for cid in sorted(user.managed_club_ids))
+        held = authz.list_objects(user, Relation.MANAGER, ObjectType.CLUB)
+        abbr = ", ".join(clubs[cid].short_name for cid in sorted(held))
         print(f"  {user.email:34s} club admin    {user.display_name} [{abbr}]")
 
     no_role = (
@@ -220,7 +222,8 @@ async def _report(
 
     print("\nParticipants with no role (sample):")
     for user in no_role:
-        abbr = ", ".join(clubs[cid].short_name for cid in sorted(user.member_club_ids))
+        held = authz.list_objects(user, Relation.MEMBER, ObjectType.CLUB)
+        abbr = ", ".join(clubs[cid].short_name for cid in sorted(held))
         print(f"  {user.email:34s} member        {user.display_name} [{abbr}]")
 
     admin = (

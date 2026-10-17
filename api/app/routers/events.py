@@ -20,7 +20,9 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app import authz
 from app.auth import current_user, require_event_control, require_event_manager_for
+from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.live import event_topic, hub
@@ -36,7 +38,7 @@ from app.models import (
     TeamStatus,
     Venue,
 )
-from app.models.auth import Relation, Role, User
+from app.models.auth import ObjectType, Relation, User
 from app.models.racing import BOAT_COLORS
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
@@ -663,7 +665,9 @@ async def _has_pairing_list(session: AsyncSession, event_id: int) -> bool:
 
 
 async def _event(session: AsyncSession, event_id: int) -> Event:
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
+    # `get`, not a select: a route guard (`require_on_event`) loaded it into this session
+    # already, and `get` answers from there.
+    event = await session.get(Event, event_id)
     if event is None:
         raise HTTPException(status_code=404, detail=f"Matchday {event_id} not found")
     return event
@@ -858,21 +862,19 @@ def _reach_of(acting: User):
     event itself, every event of a series they hold something on, every event a club they
     hold something on hosts. Manager, race committee and jury alike — each has a screen
     here."""
-    clauses = []
-    for g in acting.grants:
-        if g.relation not in {
-            Relation.ADMIN,
-            Relation.MANAGER,
-            Relation.RACE_OFFICER,
-            Relation.JURY,
-        }:
-            continue
-        if g.event_id is not None:
-            clauses.append(Event.id == g.event_id)
-        elif g.series_id is not None:
-            clauses.append(Event.series_id == g.series_id)
-        elif g.club_id is not None:
-            clauses.append(Event.host_club_id == g.club_id)
+    relations = (Relation.ADMIN, Relation.MANAGER, Relation.RACE_OFFICER, Relation.JURY)
+    events = authz.list_objects(acting, relations, ObjectType.EVENT)
+    series = authz.list_objects(acting, relations, ObjectType.SERIES)
+    clubs = authz.list_objects(acting, relations, ObjectType.CLUB)
+    clauses = [
+        column.in_(ids)
+        for column, ids in (
+            (Event.id, events),
+            (Event.series_id, series),
+            (Event.host_club_id, clubs),
+        )
+        if ids
+    ]
     return or_(*clauses) if clauses else None
 
 
@@ -884,14 +886,17 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
     someone else, and the manager of the series it belongs to (Story Z-2). For a foreign
     host this is not possible — otherwise a club would record dates for others.
     """
-    if acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
+    if authz.check(acting, Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
         return
-    if host_club_id is not None and acting.holds(Relation.MANAGER, club_id=host_club_id):
+    if host_club_id is not None and authz.check(
+        acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, host_club_id)
+    ):
         return
-    for relation in (Relation.MANAGER, Relation.ADMIN):
-        if series_id is not None and acting.holds(relation, series_id=series_id):
-            return
-    if acting.has_any(Role.TEAM_MANAGER) and host_club_id is not None:
+    if series_id is not None and authz.check(
+        acting, Relation.MANAGER, on=ObjectRef(ObjectType.SERIES, series_id)
+    ):
+        return
+    if host_club_id is not None and authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only host events for your own club.",

@@ -5,7 +5,8 @@ greenlet_spawn has not been called` as soon as the roster held anyone besides th
 asking. A roster of one — the caller alone — rendered fine.
 
 **Cause** — the endpoint loaded the club's tuples with `selectinload(Grant.user)` and then
-called `user.manages_club(...)`, which reads `user.grants`. `User.grants` is
+called `user.manages_club(...)` — today any `authz` question about that user — which
+reads `user.grants`. `User.grants` is
 `lazy="selectin"`, but SQLAlchemy stops an eager load where the path cycles back to a
 mapper it came from (Grant → User → Grant), so those users arrive with `grants` unloaded
 and reading it is a lazy load in the async session. The caller's own `User` was already in
@@ -13,8 +14,8 @@ the identity map with its grants loaded by `current_user`, which is why a one-me
 roster passed. What misled: `lazy="selectin"` on the relationship reads as "always
 loaded", and the passing single-member case looked like proof.
 
-**Rule** — for rows reached through another row's relationship, do not call `User`
-methods that walk `grants`; derive the answer from the rows you already queried (the
+**Rule** — for rows reached through another row's relationship, do not ask `authz` about
+that user (it walks `grants`); derive the answer from the rows you already queried (the
 roster builds `organizer`/`admin` from the relations it collected), or load the users with
 an explicit `selectinload(Grant.user).selectinload(User.grants)`. And a list test needs at
 least one entry that is **not** the caller.

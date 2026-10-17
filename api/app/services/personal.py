@@ -9,18 +9,20 @@ from schwifty.exceptions import SchwiftyException
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
+from app.authz import ObjectRef
 from app.models import (
     BankAccount,
-    Club,
     Event,
     ExpenseClaim,
     ExpenseDocument,
     Payment,
     PersonalDocument,
 )
-from app.models.auth import Grant, Relation, User
+from app.models.auth import ObjectType, Relation, User
 from app.models.finance import ClaimStatus
 from app.problems import Problem
+from app.services import grants as tuple_store
 from app.services import uploads
 
 #: Where personal documents live, under the uploads directory.
@@ -70,14 +72,14 @@ async def may_see_documents(session: AsyncSession, viewer: User, owner_id: int) 
     owner works directly, or of a club the owner is a member of."""
     if viewer.id == owner_id:
         return True
-    grants = (await session.execute(select(Grant).where(Grant.user_id == owner_id))).scalars().all()
-    for club_id in {g.club_id for g in grants if g.relation == Relation.MEMBER and g.club_id}:
-        if viewer.can(Relation.MANAGER, on=Club(id=club_id)):
+    held = await tuple_store.tuples_of(session, owner_id)
+    for club_id in {g.club_id for g in held if g.relation == Relation.MEMBER and g.club_id}:
+        if authz.check(viewer, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
             return True
-    event_ids = {g.event_id for g in grants if g.relation in WORKS_THE_EVENT and g.event_id}
+    event_ids = {g.event_id for g in held if g.relation in WORKS_THE_EVENT and g.event_id}
     if event_ids:
         events = (await session.execute(select(Event).where(Event.id.in_(event_ids)))).scalars()
-        if any(viewer.can(Relation.MANAGER, on=event) for event in events):
+        if any(authz.check(viewer, Relation.MANAGER, on=event) for event in events):
             return True
     return False
 

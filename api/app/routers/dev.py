@@ -19,6 +19,7 @@ from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import authz
 from app.auth import create_access_token
 from app.config import settings
 from app.db import get_session
@@ -26,7 +27,7 @@ from app.i18n import Locale, resolve_locale, tr
 from app.jobs import jobs
 from app.mail import MailError, send_login_code
 from app.models import Club
-from app.models.auth import User
+from app.models.auth import ObjectType, Relation, User
 from app.tracking.emulate_job import emulate_event
 
 router = APIRouter(prefix="/api/dev", tags=["development"])
@@ -81,7 +82,13 @@ async def list_test_users(
             roles=sorted(user.roles),
             club=", ".join(
                 clubs[cid]
-                for cid in sorted({g.club_id for g in user.grants if g.club_id is not None})
+                for cid in sorted(
+                    authz.list_objects(
+                        user,
+                        (Relation.MEMBER, Relation.MANAGER, Relation.TREASURER),
+                        ObjectType.CLUB,
+                    )
+                )
                 if cid in clubs
             )
             or None,
