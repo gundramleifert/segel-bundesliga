@@ -69,12 +69,12 @@ class TestANewClubRunsItself:
         assert granted.status_code == 201, granted.text
         club_admin = auth_headers(await login_as(client, admin_email, caplog))
 
-        step("J-2.4", "the club admin finds the club in my space")
+        step("J-2.4", "the club manager finds the club in my space")
         mine = (await client.get("/api/me/contexts", headers=club_admin)).json()
         card = next(c for c in mine["contexts"] if c["kind"] == "club" and c["id"] == club_id)
         assert "admin" in card["relations"]
 
-        step("J-2.5", "the club admin uploads the crest")
+        step("J-2.5", "the club manager uploads the crest")
         uploaded = await client.post(
             f"/api/admin/clubs/{club_id}/logo",
             headers=club_admin,
@@ -93,7 +93,7 @@ class TestANewClubRunsItself:
         assert refused.status_code == 409, refused.text
         assert refused.json()["type"].endswith("/last-organizer")
 
-        step("J-2.7", "the club admin names the club manager by email")
+        step("J-2.7", "the club manager names the club manager by email")
         named = await client.post(
             "/api/auth/tuples",
             headers=club_admin,

@@ -22,8 +22,8 @@ stakeholders can read and a step table the tests are held to. The chain it start
 | Journey | File | Who |
 |---|---|---|
 | J-1 From an empty series to a scored matchday | [lifecycle.md](../journeys/lifecycle.md) | league office, event organizer, race officer, jury, visitor |
-| J-2 A new club gets going and runs itself | [club.md](../journeys/club.md) | league office, club admin, club manager, visitor |
-| J-3 A sailor joins their club | [member.md](../journeys/member.md) | person, club admin, club member, club manager |
+| J-2 A new club gets going and runs itself | [club.md](../journeys/club.md) | league office, club manager, visitor |
+| J-3 A sailor joins their club | [member.md](../journeys/member.md) | person, club member, club manager |
 | J-4 An organizer sets up a series | [series.md](../journeys/series.md) | league office, series manager, club manager, visitor |
 | J-5 A club's crew is cleared for a matchday | [crew-cleared.md](../journeys/crew-cleared.md) | club manager, sailor, guardian, event organizer, visitor |
 
@@ -33,7 +33,7 @@ The people (and the one system) a journey may name — in its `Who:` line, in th
 column and as the diagram's participants. **Only these**, spelled like this, so a step's
 actor always says which relation the person holds, which story file tells their stories
 and which help audience reads about it. An actor is defined by what someone **holds or
-does**, never by a job title: one person is often several actors (a club admin who also
+does**, never by a job title: one person is often several actors (a club manager who also
 sails), and a journey shows them as the actor of each step.
 
 | Actor | Alias | Is someone who … | Relation (Story Z-2) | Stories | Help audience |
@@ -43,8 +43,7 @@ sails), and a journey shows them as the actor of each step.
 | club member | M | belongs to a club | `member` on the club | [sailor.md](sailor.md) | sailor |
 | sailor | S | is in a squad or a crew | — (a `Team` row, Story V-1) | [sailor.md](sailor.md) | sailor |
 | guardian | G | accepts the waiver for a minor sailor — online once the child's club linked their account, else on paper | `guardian` on the sailor (V-13) | [sailor.md](sailor.md) | sailor |
-| club admin | CA | decides who is *in* a club: members, organizers, crest | `admin` on the club | [club-manager.md](club-manager.md) | club-manager |
-| club manager | CM | decides who *sails*: participation, squads, crews | `manager` on the club | [club-manager.md](club-manager.md) | club-manager |
+| club manager | CM | runs a club: who is *in* it (members, organizers, crest) and who *sails* (participation, squads, crews) | `admin` or `manager` on the club — one actor, though the model keeps the two relations apart |  [club-manager.md](club-manager.md) | club-manager |
 | treasurer | T | decides and pays expense claims | `treasurer` on a club or an event | [treasurer.md](treasurer.md) | treasurer |
 | series manager | SM | runs one series: its clubs, dates, events | `manager` on the series | [event-organizer.md](event-organizer.md) | event-organizer |
 | event organizer | O | runs one event: configuration, draw, check-in | `manager` on the event (or its series, or its host club) | [event-organizer.md](event-organizer.md) | event-organizer |
