@@ -50,3 +50,11 @@ ignore = ["B008"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 pythonpath = ["."]
+
+# The lock must name public PyPI: Render (and any build server) cannot reach a company
+# mirror, and a workstation's user-level uv config would otherwise rewrite every URL in
+# uv.lock on the next `uv lock` (docs/gotchas). A project index takes precedence over it.
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
+default = true

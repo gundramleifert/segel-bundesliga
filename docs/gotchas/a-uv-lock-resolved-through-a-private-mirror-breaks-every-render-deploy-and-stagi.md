@@ -13,15 +13,17 @@ against an old backend: the new switcher groups accounts by a `group` field the 
 endpoint answered 200 with 369 accounts, so it looked like a frontend bug; the count (the
 seed had been cut to 42) was the clue that the backend was old.
 
-**Rule** — a build server never trusts the lock's URLs: `api/Dockerfile` re-points the
-lock at public PyPI (`uv lock --no-config --default-index https://pypi.org/simple`, which
-keeps every locked version) before `uv sync --frozen`. Locally the lock may name the
-mirror; a gate on the committed lock does not hold, because any local `uv run` rewrites it
-again. And when staging looks wrong, compare what the API answers with what `main` would
+**Rule** — the committed lock names public PyPI, never the mirror. `api/pyproject.toml`
+declares `[[tool.uv.index]] pypi … default = true`: a project index takes precedence over
+the workstation's user-level `~/.config/uv/uv.toml` (which names the mirror and is
+rewritten by `pai-workstation`), so a local `uv lock` / `uv sync` keeps the pypi.org URLs.
+`api/Dockerfile` then runs a plain `uv sync --frozen`. (The first fix, re-locking inside
+the Dockerfile, was dropped on 2026-10-18: the lock in git still named an unreachable
+host.) When staging looks wrong, compare what the API answers with what `main` would
 answer before debugging the page.
 
-**Evidence** — the Dockerfile's two `RUN` lines, tried on the mirror lock of `39daea2` in
-a clean folder: 65 packages, the same versions, no `nexus` URL left, `uv sync --frozen`
-resolves.
+**Evidence** — after the index entry, `uv lock` with the mirror config active: 64
+`registry = "https://pypi.org/simple"`, no `nexus` left, no version changed; the full
+`api/Dockerfile` built locally and the container answered `GET /api/leagues`.
 
 **Seen** — 2026-10-18

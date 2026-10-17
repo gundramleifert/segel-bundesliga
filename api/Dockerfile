@@ -48,14 +48,11 @@ WORKDIR /app
 ENV UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1
 
-# Dependencies first, so a code change doesn't re-install them.
-# The committed lock may name a private mirror — a developer's own uv config rewrites it on
-# every `uv lock` — which a build server cannot reach, and every build would fail while
-# Render keeps serving the last API that built. So the lock is re-pointed at public PyPI
-# here first; it keeps every locked version, only the URLs change (docs/gotchas).
+# Dependencies first, so a code change doesn't re-install them. The lock names public
+# PyPI (`[[tool.uv.index]]` in pyproject.toml); a company mirror in it would be
+# unreachable from here and fail every build (docs/gotchas).
 COPY pyproject.toml uv.lock ./
-RUN uv lock --no-config --default-index https://pypi.org/simple \
- && uv sync --frozen --no-dev --no-config
+RUN uv sync --frozen --no-dev
 
 COPY . .
 ENV PATH="/app/.venv/bin:$PATH"
