@@ -25,6 +25,11 @@ one table per journey (`docs/journeys/`), step by step.
     scripts/check-docs.py         # report, exit 1 on problems
     scripts/check-docs.py --fix   # also rewrite the generated pages and docs/stories.json
     scripts/check-docs.py --new "a sentence stating the rule"
+    scripts/check-docs.py --handbook-snapshot   # the help's structure baseline, last step of a reviewed run
+
+And it holds the help pages (`web/src/handbook/`, Story B-18) to the stories, the journeys,
+the routes and each other — both languages, unique anchors, links that land, the structure
+lock against `web/src/handbook/.baseline/`.
 """
 
 from __future__ import annotations
@@ -33,6 +38,7 @@ import json
 import re
 import sys
 from collections import Counter
+from dataclasses import asdict, dataclass, fields, replace
 from pathlib import Path
 from typing import NamedTuple
 
@@ -537,6 +543,405 @@ def handbook_pages() -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     return by_story, by_journey
 
 
+# --- The handbook (`web/src/handbook/`, the `handbook` skill, Story B-18) -------------------
+#
+# The help pages are derived from the stories and journeys, so they rot the same way: a story
+# renamed, a route moved, an anchor another page links to dropped, one locale forgotten. The
+# rules are `.claude/skills/handbook/references/checks.md`; each was broken on purpose once.
+
+# The help is for signed-in people only — the public site has to explain itself (decided
+# 2026-10-18), so visitors are no audience and `visitor.md`'s stories need no help page.
+AUDIENCES = ("sailor", "club", "event-organizer", "race-committee", "treasurer", "administration")
+PAGE_TYPES = ("start", "guide", "journey", "doc", "faq")
+LOCALES = ("en", "de")
+BASELINE = HANDBOOK / ".baseline" / "structure.json"
+SCREENSHOTS = ROOT / "web" / "public" / "handbook" / "screenshots"
+APP_TSX = ROOT / "web" / "src" / "App.tsx"
+PAGE_FILE = re.compile(r"^(?P<id>[a-z0-9-]+)\.(?P<locale>[a-z]{2})\.md$")
+FRONTMATTER = re.compile(r"\A---\n(?P<meta>.*?)\n---\n(?P<body>.*)\Z", re.S)
+META_LINE = re.compile(r"^(?P<key>[a-z_]+):\s*(?P<value>.*)$")
+ANCHORED = re.compile(r"^#{2,4} .*?\{#(?P<anchor>[a-z0-9-]+)\}\s*$", re.M)
+H3 = re.compile(r"^### (?P<text>.+)$", re.M)
+MD_LINK = re.compile(r"\]\((?P<target>[^)\s]+)\)")
+SHOT = re.compile(r"\(shot:(?P<id>[\w-]+)\)")
+PAGE_STEP = re.compile(r"^\| *(?P<id>J-\d+\.\d+) *\|", re.M)
+BUDGET = {"start": 250, "guide": 350, "journey": 300, "doc": 450, "faq": 600}
+# Which story file tells which audience's stories (`references/sources.md`).
+STORY_FILE_AUDIENCE = {"sailor.md": "sailor", "club.md": "club",
+                       "event-organizer.md": "event-organizer", "race-committee.md": "race-committee",
+                       "treasurer.md": "treasurer", "administration.md": "administration"}
+
+
+class ReservedPage(NamedTuple):
+    """A page other code links to: its id, type and anchors are fixed (`content-model.md`)."""
+    id: str
+    type: str
+    anchors: tuple[str, ...]
+
+
+RESERVED = (ReservedPage("roles", "doc", ("roles-list", "roles-matrix", "roles-getting")),
+            ReservedPage("terms", "doc", ("terms-competition", "terms-people", "terms-event-states")))
+
+
+@dataclass(frozen=True)
+class Frontmatter:
+    """The restricted frontmatter the viewer reads — flat `key: value`, `[a, b]` lists. Every
+    field but `title` is identical in both locales, which is why this is a value: two of
+    them compare with `==` once the title is set aside."""
+    id: str | None = None
+    type: str | None = None
+    order: int | None = None
+    audience: tuple[str, ...] = ()
+    stories: tuple[str, ...] = ()
+    journey: str | None = None
+    route: str | None = None
+    tags: tuple[str, ...] = ()
+    title: str | None = None
+
+    def without_title(self) -> Frontmatter:
+        return replace(self, title=None)
+
+
+FRONTMATTER_FIELDS = {f.name for f in fields(Frontmatter)}
+REQUIRED_FIELDS = ("type", "order", "audience", "title")
+
+
+class Page(NamedTuple):
+    id: str
+    locale: str
+    file: str
+    meta: Frontmatter
+    present: frozenset[str]  # the keys the file actually wrote, to tell "missing" from "null"
+    body: str
+
+    @property
+    def prose(self) -> str:
+        return FENCE.sub("", self.body)
+
+    @property
+    def anchors(self) -> list[str]:
+        return ANCHORED.findall(self.prose)
+
+    @property
+    def shots(self) -> list[str]:
+        return sorted(SHOT.findall(self.prose))
+
+    @property
+    def words(self) -> int:
+        """Counted without tables, which the budget counts lightly."""
+        lines = [line for line in self.prose.splitlines() if not line.lstrip().startswith("|")]
+        return len(re.findall(r"\w+", " ".join(lines)))
+
+
+class Store(NamedTuple):
+    pages: list[Page]
+    problems: list[str]
+
+
+class Findings(NamedTuple):
+    """Problems fail the gate; warnings are printed after them and never do."""
+    problems: list[str]
+    warnings: list[str]
+
+
+class Slot(NamedTuple):
+    """A page's position: `order` is unique within its type."""
+    type: str | None
+    order: int | None
+
+
+@dataclass(frozen=True)
+class PageShape:
+    """What the structure lock compares — never the prose, which may change freely."""
+    type: str | None
+    order: int | None
+    audience: tuple[str, ...]
+    anchors: tuple[str, ...]
+    locales: tuple[str, ...]
+
+
+Structure = dict[str, PageShape]  # page id → its shape
+StoryMarkers = dict[str, str]  # story id → ○ ◐ ●
+StoryFiles = dict[str, str]  # file name in docs/userstories/ → its text
+
+
+def _meta_value(raw: str) -> str | int | tuple[str, ...] | None:
+    raw = raw.strip()
+    if raw.startswith("[") and raw.endswith("]"):
+        return tuple(part.strip().strip("\"'") for part in raw[1:-1].split(",") if part.strip())
+    if raw in ("null", ""):
+        return None
+    if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in "\"'":
+        return raw[1:-1]
+    return int(raw) if raw.isdigit() else raw
+
+
+def handbook_store() -> Store:
+    """Every `<id>.<locale>.md` in the store, parsed the way the viewer parses it — a page
+    this cannot read, the viewer cannot either."""
+    store = Store([], [])
+    for path in sorted(HANDBOOK.glob("*.md")) if HANDBOOK.is_dir() else []:
+        rel = str(path.relative_to(ROOT))
+        name = PAGE_FILE.match(path.name)
+        if not name or name["locale"] not in LOCALES:
+            store.problems.append(f"{rel}: a page is named <id>.<{'|'.join(LOCALES)}>.md")
+            continue
+        m = FRONTMATTER.match(path.read_text(encoding="utf-8"))
+        if not m:
+            store.problems.append(f"{rel}: no frontmatter between two '---' lines")
+            continue
+        values: dict[str, str | int | tuple[str, ...] | None] = {}
+        for line in m["meta"].splitlines():
+            field = META_LINE.match(line)
+            if not field or field["key"] not in FRONTMATTER_FIELDS:
+                store.problems.append(f"{rel}: frontmatter line the viewer cannot read: {line!r}")
+                continue
+            values[field["key"]] = _meta_value(field["value"])
+        try:
+            meta = Frontmatter(**values)  # type: ignore[arg-type]
+        except TypeError as e:
+            store.problems.append(f"{rel}: frontmatter: {e}")
+            continue
+        store.pages.append(Page(name["id"], name["locale"], rel, meta, frozenset(values), m["body"]))
+    return store
+
+
+def app_routes() -> list[str]:
+    """The route patterns of `web/src/App.tsx`, as absolute paths. Every route there is
+    written relative to a layout route without a path, so `/` + the path is the URL."""
+    if not APP_TSX.exists():
+        return []
+    text = APP_TSX.read_text(encoding="utf-8")
+    # The catch-all `*` redirects whatever nothing else matches; counting it would let
+    # every link pass, so it is left out.
+    return ["/"] + ["/" + p for p in re.findall(r'<Route\s+path="([^"]+)"', text) if p != "*"]
+
+
+def _matches_route(path: str, patterns: list[str]) -> bool:
+    segments = [s for s in path.split("?")[0].split("#")[0].split("/") if s]
+    for pattern in patterns:
+        parts = [s for s in pattern.split("/") if s]
+        wildcard = bool(parts) and parts[-1] == "*"
+        fixed = parts[:-1] if wildcard else parts
+        if (len(segments) >= len(fixed) if wildcard else len(segments) == len(fixed)) and all(
+            p.startswith(":") or p == s for p, s in zip(fixed, segments)
+        ):
+            return True
+    return False
+
+
+def _known_route(path: str, routes: list[str]) -> bool:
+    """A path the site has. A pattern of placeholders only (`/:league`,
+    `/:league/:year/:act`) matches any path of its length, so it proves nothing: the path
+    must then be that pattern itself, as a page's `route:` is written."""
+    literal = [r for r in routes if any(not s.startswith(":") for s in r.split("/") if s)]
+    return path in routes or path == "/" or _matches_route(path, literal)
+
+
+def handbook_structure(pages: list[Page]) -> Structure:
+    locales: dict[str, set[str]] = {}
+    for page in pages:
+        locales.setdefault(page.id, set()).add(page.locale)
+    return {
+        page.id: PageShape(page.meta.type, page.meta.order, page.meta.audience,
+                           tuple(sorted(page.anchors)), tuple(sorted(locales[page.id])))
+        for page in sorted(pages, key=lambda p: p.id)
+        if page.locale == "en"
+    }
+
+
+def read_baseline() -> Structure | None:
+    if not BASELINE.exists():
+        return None
+    raw = json.loads(BASELINE.read_text(encoding="utf-8"))
+    return {pid: PageShape(s["type"], s["order"], tuple(s["audience"]), tuple(s["anchors"]), tuple(s["locales"]))
+            for pid, s in raw.items()}
+
+
+def write_baseline(structure: Structure) -> None:
+    BASELINE.parent.mkdir(parents=True, exist_ok=True)
+    BASELINE.write_text(json.dumps({pid: asdict(shape) for pid, shape in structure.items()},
+                                   ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+
+
+def _check_locales(pid: str, en: Page, others: list[Page]) -> list[str]:
+    """Both locales are one page: same frontmatter but the title, same anchors, same shots."""
+    problems: list[str] = []
+    for other in others:
+        if other.meta.without_title() != en.meta.without_title():
+            a, b = asdict(en.meta.without_title()), asdict(other.meta.without_title())
+            diff = sorted(k for k in a if a[k] != b[k])
+            problems.append(f"{other.file}: frontmatter differs from {en.file} in {', '.join(diff)} — only the title may")
+        if sorted(other.anchors) != sorted(en.anchors):
+            problems.append(f"{other.file}: anchors differ from {en.file}: {sorted(set(other.anchors) ^ set(en.anchors))}")
+        if other.shots != en.shots:
+            problems.append(f"{other.file}: screenshots differ from {en.file}")
+    return problems
+
+
+def _check_journey_page(page: Page, journey: Journey) -> list[str]:
+    """The step table lists the journey's main steps, in the journey's order."""
+    listed = [m["id"] for m in PAGE_STEP.finditer(page.prose)]
+    main = [s.id for s in journey.steps if s.path == "main"]
+    problems: list[str] = []
+    if [sid for sid in listed if sid in main] != main:
+        problems.append(f"{page.file}: the step table must list {journey.id}'s main steps in order "
+                        f"({', '.join(main)}), it lists {', '.join(sid for sid in listed if sid in main) or 'none'}")
+    unknown = [sid for sid in listed if sid not in {s.id for s in journey.steps}]
+    if unknown:
+        problems.append(f"{page.file}: {', '.join(unknown)} are not steps of {journey.id}")
+    return problems
+
+
+def _check_body(page: Page, owners: dict[str, str], routes: list[str]) -> list[str]:
+    """Headings carry their anchors, and every link lands: on an anchor some page owns, or
+    on a route the site has."""
+    problems: list[str] = []
+    for m in H3.finditer(page.prose):
+        if "{#" not in m["text"]:
+            problems.append(f"{page.file}: '### {m['text']}' has no {{#anchor}}")
+    for a in page.anchors:
+        if not a.startswith(page.id + "-"):
+            problems.append(f"{page.file}: anchor #{a} must start with the page id ({page.id}-)")
+    if re.search(r"^# ", page.prose, re.M):
+        problems.append(f"{page.file}: a page has no '# ' heading — the site's header is the page's h1")
+    if re.search(r"<[a-zA-Z][^>]*>", page.prose):
+        problems.append(f"{page.file}: raw HTML — the viewer renders markdown only")
+    for m in MD_LINK.finditer(page.prose):
+        target = m["target"]
+        if target.startswith("#") and target[1:] not in owners:
+            problems.append(f"{page.file}: link to {target}, which no page owns")
+        elif target.startswith("/") and not _known_route(target, routes):
+            problems.append(f"{page.file}: link to {target}, which is not a route in web/src/App.tsx")
+    return problems
+
+
+def _check_lock(before: Structure, now: Structure) -> list[str]:
+    """`content-model.md` § Structure lock: pages may be added and rewritten, never silently
+    restructured — they are bookmarked and linked from mails."""
+    problems: list[str] = []
+    for pid, old in before.items():
+        where = f"web/src/handbook/{pid}"
+        new = now.get(pid)
+        if not new:
+            problems.append(f"{where}: removed-page — a page in the baseline is gone (a rename is a removal)")
+            continue
+        if old.order != new.order:
+            problems.append(f"{where}: reorder — order was {old.order}, is {new.order}")
+        if old.type != new.type:
+            problems.append(f"{where}: retype — type was {old.type}, is {new.type}")
+        problems += [f"{where}: lost-anchor — #{a} is in the baseline" for a in sorted(set(old.anchors) - set(new.anchors))]
+        problems += [f"{where}: lost-locale — {loc}" for loc in sorted(set(old.locales) - set(new.locales))]
+        problems += [f"{where}: audience-dropped — {a}" for a in sorted(set(old.audience) - set(new.audience))]
+    return problems
+
+
+def check_handbook(markers: StoryMarkers, all_journeys: list[Journey], files: StoryFiles) -> Findings:
+    store = handbook_store()
+    found = Findings(list(store.problems), [])
+    if not store.pages:
+        return found
+    problems, warnings = found
+    by_id: dict[str, dict[str, Page]] = {}
+    for page in store.pages:
+        by_id.setdefault(page.id, {})[page.locale] = page
+    routes = app_routes()
+    owners: dict[str, str] = {pid: pid for pid in by_id}  # anchor → the page that owns it
+    for page in store.pages:
+        if page.locale != "en":
+            continue
+        for a in page.anchors:
+            if a in owners:
+                problems.append(f"{page.file}: anchor #{a} is also on page {owners[a]}")
+            owners[a] = page.id
+    journeys_by_id = {j.id: j for j in all_journeys}
+    slots: dict[Slot, str] = {}
+    route_owners: dict[str, str] = {}
+    shots_used: set[str] = set()
+
+    for pid, locales in sorted(by_id.items()):
+        problems += [f"web/src/handbook/{pid}.{loc}.md is missing — every page exists in {', '.join(LOCALES)}"
+                     for loc in LOCALES if loc not in locales]
+        en = locales.get("en") or next(iter(locales.values()))
+        problems += _check_locales(pid, en, [p for p in locales.values() if p is not en])
+        meta = en.meta
+        if meta.id != pid:
+            problems.append(f"{en.file}: id is {meta.id!r}, the file name says {pid!r}")
+        problems += [f"{en.file}: frontmatter has no {key}" for key in REQUIRED_FIELDS if key not in en.present]
+        if meta.type not in PAGE_TYPES:
+            problems.append(f"{en.file}: type {meta.type!r} is not one of {', '.join(PAGE_TYPES)}")
+        problems += [f"{en.file}: audience {a!r} is not one of {', '.join(AUDIENCES)}"
+                     for a in meta.audience if a not in AUDIENCES]
+        if meta.type == "guide" and len(meta.audience) != 1:
+            problems.append(f"{en.file}: a guide is written for exactly one audience, not {list(meta.audience)}")
+        slot = Slot(meta.type, meta.order)
+        if not isinstance(meta.order, int) or meta.order % 10:
+            problems.append(f"{en.file}: order must be a multiple of 10")
+        elif slot in slots:
+            problems.append(f"{en.file}: order {meta.order} is also {slots[slot]}'s")
+        else:
+            slots[slot] = pid
+        if meta.route:
+            if not _known_route(meta.route, routes):
+                problems.append(f"{en.file}: route {meta.route} is not a route in web/src/App.tsx")
+            elif meta.route in route_owners:
+                problems.append(f"{en.file}: route {meta.route} is also {route_owners[meta.route]}'s — one page per route")
+            else:
+                route_owners[meta.route] = pid
+        problems += [f"{en.file}: story {sid} is not in docs/userstories/" for sid in meta.stories if sid not in markers]
+        cited = [markers[s] for s in meta.stories if s in markers]
+        if cited and all(m == "○" for m in cited):
+            problems.append(f"{en.file}: cites only stories marked ○ — it documents nothing that exists")
+        half = [s for s in meta.stories if markers.get(s) == "◐"]
+        if half:
+            warnings.append(f"{en.file}: cites ◐ {', '.join(half)} — check it documents only the built part")
+        if meta.type == "journey":
+            journey = journeys_by_id.get(meta.journey or "")
+            if not journey:
+                problems.append(f"{en.file}: journey {meta.journey!r} is not a journey in docs/journeys/")
+            else:
+                for page in locales.values():
+                    problems += _check_journey_page(page, journey)
+        elif meta.journey:
+            problems.append(f"{en.file}: only a journey page names a journey")
+        for page in locales.values():
+            problems += _check_body(page, owners, routes)
+            shots_used.update(page.shots)
+        budget = BUDGET.get(meta.type or "")
+        if budget and en.words > budget * 1.2:
+            warnings.append(f"{en.file}: {en.words} words, budget {budget} for a {meta.type}")
+
+    in_use = {a for p in store.pages for a in p.meta.audience}
+    problems += [f"web/src/handbook/start-{a}.en.md is missing — every audience in use has a start page"
+                 for a in sorted(in_use) if f"start-{a}" not in by_id]
+    for reserved in RESERVED:
+        page = by_id.get(reserved.id, {}).get("en")
+        if not page:
+            problems.append(f"web/src/handbook/{reserved.id}.en.md is missing — a reserved page other code links to")
+            continue
+        if page.meta.type != reserved.type:
+            problems.append(f"{page.file}: a reserved page of type {reserved.type}")
+        problems += [f"{page.file}: reserved anchor #{a} is missing" for a in reserved.anchors if a not in page.anchors]
+
+    cited_anywhere = {s for p in store.pages for s in p.meta.stories}
+    for name, audience in STORY_FILE_AUDIENCE.items():
+        if audience in in_use:
+            warnings += [f"story {m['id']} ● ({name}) is cited by no help page — a task nobody explains yet"
+                         for m in STORY_HEADING.finditer(files.get(name, ""))
+                         if m["marker"] == "●" and m["id"] not in cited_anywhere]
+
+    pngs = {p.name for p in SCREENSHOTS.glob("*.png")} if SCREENSHOTS.is_dir() else set()
+    warnings += [f"screenshot {shot} has no PNG under web/public/handbook/screenshots/"
+                 for shot in sorted(shots_used) if not any(n.startswith(f"{shot}_") for n in pngs)]
+    warnings += [f"web/public/handbook/screenshots/{name} is used by no page"
+                 for name in sorted(pngs) if re.sub(r"_(en|de)(_phone)?\.png$", "", name) not in shots_used]
+
+    before = read_baseline()
+    if before is not None:
+        problems += _check_lock(before, handbook_structure(store.pages))
+    return found
+
+
 def render_traceability(files: dict[str, str], all_journeys: list[Journey]) -> str:
     """docs/traceability.md: one row per story — status, backend tests, browser groups,
     journey steps, help pages — grouped by the file the story is told in, in the README's
@@ -710,6 +1115,19 @@ def main(argv: list[str]) -> int:
     problems += journey_problems
     gotcha_problems, entries = check_gotchas()
     problems += gotcha_problems
+    handbook = check_handbook(markers, all_journeys, files)
+    problems += handbook.problems
+    warnings = [*warnings, *handbook.warnings]
+
+    if "--handbook-snapshot" in argv:
+        if problems:
+            print("not writing the handbook baseline while there are problems:")
+            for problem in problems:
+                print(f"  ✗ {problem}")
+            return 1
+        write_baseline(handbook_structure(handbook_store().pages))
+        print(f"wrote {BASELINE.relative_to(ROOT)}")
+        return 0
 
     traceability = render_traceability(files, all_journeys)
     stories_json = render_stories_json(files, all_journeys)

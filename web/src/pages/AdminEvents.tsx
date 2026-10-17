@@ -1179,7 +1179,7 @@ function EventPanel({
   const closed = event.status === "final" || event.status === "cancelled";
 
   return (
-    <Stack gap={5} className="mt-4  border-t border-slate-100 pt-4">
+    <Stack gap={5} className="mt-4  border-t border-slate-100 pt-4" testId={`admin-manage-event-panel-${event.id}`}>
       {/* 1. What's missing --------------------------------------------------- */}
       <div>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.readinessTitle")}</h3>
@@ -1663,7 +1663,7 @@ function WaiverChecklist({ eventId }: { eventId: number }) {
   const [scanError, setScanError] = useState<string | null>(null);
 
   return (
-    <Stack gap={3}>
+    <Stack gap={3} testId={`admin-manage-event-waivers-section-${eventId}`}>
       <h3 className="text-sm font-semibold text-slate-700">{t("manage.waiversTitle")}</h3>
       <p className="text-sm text-slate-600">{t("manage.waiversHint")}</p>
       {list.loading ? (

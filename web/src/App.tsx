@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout, SiteShell } from "./components/Layout";
 import { LegacyRedirect, PrefixRedirect } from "./components/LegacyRedirect";
-import { Help } from "./pages/Help";
+import { HelpLanding, HelpPageView } from "./pages/Help";
 import { Account } from "./pages/Account";
 import { LegalNotice } from "./pages/LegalNotice";
 import { Privacy } from "./pages/Privacy";
@@ -104,7 +104,9 @@ export default function App() {
         <Route path="admin/series/new" element={<AdminSeriesNew />} />
         <Route path="admin/events/new" element={<AdminEventNew />} />
         <Route path="admin/sailors/new" element={<AdminSailorNew />} />
-        <Route path="help" element={<Help />} />
+        {/* Story B-18: the handbook, pages from web/src/handbook/. */}
+        <Route path="help" element={<HelpLanding />} />
+        <Route path="help/:page" element={<HelpPageView />} />
         <Route path="legal-notice" element={<LegalNotice />} />
         <Route path="privacy" element={<Privacy />} />
         {/* The former "standings" paths, from when the site presented a single league

@@ -79,7 +79,7 @@ story: B-<n> "I find the help for what I do"     absorbs: web/src/pages/Help.tsx
 | start-club | start | 30 | club | — | — | — | start-club-season, … | — | club.md |
 | squad-and-lineup | guide | 20 | club | V-1, V-2, V-12 | — | /me/club/:id | squad-and-lineup-squad, squad-and-lineup-crew, squad-and-lineup-size | lineup-panel, squad-panel | LineupPanel.tsx:…, routers/teams.py:…, test_lineup.py |
 | journey-lifecycle | journey | 10 | administration, event-organizer, race-committee | (J-1's stories) | J-1 | — | journey-lifecycle-variations | — | journeys.md J-1, test_complete_lifecycle.py |
-| roles | doc | 20 | all seven | Z-2, Z-5, F-3 | — | /help/roles | roles-list, roles-matrix, roles-getting | — | models/auth.py MODEL, auth.py |
+| roles | doc | 20 | all six | Z-2, Z-5, F-3 | — | /help/roles | roles-list, roles-matrix, roles-getting | — | models/auth.py MODEL, auth.py |
 | faq-sailor | faq | 10 | sailor | S-1, S-3, V-1 | — | — | faq-sailor-waiver, … | — | problems.py, errors.json |
 
 ## Shot list

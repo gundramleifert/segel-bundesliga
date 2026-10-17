@@ -254,17 +254,17 @@ class TestOrganizers:
 
     async def test_the_only_organizer_may_drop_one_of_two_relations(self, client, caplog):
         """Story A-8: who is both admin and manager, and the club's only organizer, may
-        delete one of the two — they remain an organizer. Only the last relation of the
-        last person is refused."""
+        drop the manager tuple — as admin they are still a manager. The admin tuple is
+        the one that has to stay."""
         club, admin = await _club_with_admin(client, caplog, "cm-oadmin-both@example.org")
         site = await _admin_headers(client, caplog, "cm-site-admin@example.org")
         await _write(client, site, "cm-oadmin-both@example.org", "manager", f"club:{club}")
 
-        mine = await _my_tuple(client, admin, "admin", club)
-        dropped = await client.delete(f"/api/auth/tuples/{mine['id']}", headers=admin)
+        manager = await _my_tuple(client, admin, "manager", club)
+        dropped = await client.delete(f"/api/auth/tuples/{manager['id']}", headers=admin)
         assert dropped.status_code == 204, dropped.text
 
-        last = await _my_tuple(client, admin, "manager", club)
+        last = await _my_tuple(client, admin, "admin", club)
         refused = await client.delete(f"/api/auth/tuples/{last['id']}", headers=site)
         assert refused.status_code == 409
         assert _problem_code(refused) == "last-organizer"
@@ -292,15 +292,28 @@ class TestOrganizers:
         assert refused.status_code == 409, refused.text
         assert _problem_code(refused) == "last-organizer"
 
-        # With a manager beside them the admin may go — then the manager is the last one.
+
+    async def test_the_last_admin_cannot_go_while_only_managers_remain(self, client, caplog):
+        """Story A-8: a manager beside the admin is not enough — the admin decides who is
+        in the club, and a club of managers only could not add anyone any more. With a
+        second admin the first may go, and a manager may go while an admin remains."""
+        site = await _admin_headers(client, caplog, "cm-site-b@example.org")
+        club, admin = await _club_with_admin(client, caplog, "cm-oadmin6@example.org")
+        admin_row = await _my_tuple(client, admin, "admin", club)
         await make_user("cm-nora@example.org")
         manager_row = await _write(client, admin, "cm-nora@example.org", "manager", f"club:{club}")
-        gone = await client.delete(f"/api/auth/tuples/{admin_row['id']}", headers=site)
-        assert gone.status_code == 204, gone.text
 
-        refused = await client.delete(f"/api/auth/tuples/{manager_row['id']}", headers=site)
+        refused = await client.delete(f"/api/auth/tuples/{admin_row['id']}", headers=site)
         assert refused.status_code == 409, refused.text
         assert _problem_code(refused) == "last-organizer"
+
+        gone = await client.delete(f"/api/auth/tuples/{manager_row['id']}", headers=admin)
+        assert gone.status_code == 204, gone.text
+
+        await make_user("cm-ada@example.org")
+        await _write(client, admin, "cm-ada@example.org", "admin", f"club:{club}")
+        handed_over = await client.delete(f"/api/auth/tuples/{admin_row['id']}", headers=site)
+        assert handed_over.status_code == 204, handed_over.text
 
     async def test_a_person_can_organize_two_clubs(self, client, caplog):
         """Story A-8: a second club no longer fails because of the first; removing one

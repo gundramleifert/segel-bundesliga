@@ -17,7 +17,7 @@ One spec, `e2e/handbook-shots.spec.ts`, kept out of the normal run (`test.skip` 
 - **The role**: `signIn(page, email)` from `e2e/session.ts`, with the seeded accounts
   (CLAUDE.md § Testing different roles): a club's `manager`, `regatta@` (race officer),
   `orga@` (manager), `jury@`, `helfer@`, `admin@`, `redaktion@`, one sailor account,
-  a guest for the public pages. The **role switcher** (bottom right, dev only) must not be
+  — no guest: the help explains no public page. The **role switcher** (bottom right, dev only) must not be
   in any shot — hide it in the spec, or clip.
 - **The locale**: the i18n detector reads `localStorage["sbl.language"]`
   (`web/src/i18n/`); set it with `page.addInitScript` before the first navigation. Check

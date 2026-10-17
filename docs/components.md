@@ -34,6 +34,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `FileDropzone.tsx` | `FileDropzone` — a file field you drop a file onto or tap to choose; checks the type on drop, keeps a hidden `<input type="file">` carrying the `testId` for `setInputFiles` |
 | `CrestEditor.tsx` | `CrestEditor` — a club's crest, edited from the crest itself (Story V-3); the admin club list and the club's page in my space |
 | `ClaimParts.tsx` | `ClaimStatusBadge`, `ClaimSummary`, `ClaimItems`, `ClaimReceipts` — one expense claim as both the claimant and the decider see it, in my space (`/me/…`) (Stories F-2 to F-6) |
+| `HelpLink.tsx` | `HelpLink` — the "?" beside a heading that opens the help on that one thing, by handbook anchor (Story B-18) |
 | `Layout.tsx`, `Breadcrumb.tsx` | the frame around every page (Story A-12) |
 
 ## The pieces
@@ -129,6 +130,20 @@ the top of the window on the breadcrumb before that.
 
 In an iterator, the `key` belongs on the `Tip`, not on the child — it is the outer element
 now.
+
+### `HelpLink` — the "?" that opens the help on this
+
+```tsx
+<h2>{t("roles.title")} <HelpLink anchor="roles-matrix" /></h2>
+```
+
+A small "?" with a tooltip, linking to `/help/<page>#<anchor>`. It takes a handbook
+**anchor**, never a path: which page owns an anchor is `web/src/handbook/index.ts`'s
+business, and anchors are what the help promises to keep (the structure lock in
+`scripts/check-docs.py`), while pages may be split or renamed around them. An anchor no
+page has renders nothing, so a link is never a "?" that lands on an empty page. The
+testid is `help-link-<anchor>`. For "help for the whole screen" use `helpFor(pathname)`
+from the same module, as the account menu does — never write a `/help/…` path by hand.
 
 ### `LiveBadge` and `useLive` — the page hears about changes
 

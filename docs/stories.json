@@ -183,6 +183,14 @@
   "file": "docs/userstories/visitor.md",
   "anchor": "b-17--club-crests-and-a-partner-mark-on-the-results"
  },
+ "B-18": {
+  "title": "The help for what I do",
+  "status": "◐",
+  "role": "Sailor",
+  "phase": "My profile",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "b-18--the-help-for-what-i-do"
+ },
  "B-2": {
   "title": "Review matchday results",
   "status": "●",

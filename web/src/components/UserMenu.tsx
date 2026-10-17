@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { useMyContexts } from "../api/generated/sbl";
 import type { Account } from "../api/types";
 import { useDisclosure } from "../lib/useDisclosure";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
+import { helpFor, helpPath } from "../handbook";
 
 /** Everything that is about *you* and about the site, behind the account button.
  *
- * Language, profile, help and the legal pages are each used rarely and none of them is
+ * Language, profile, help (signed in only — the handbook is internal) and the legal pages
+ * are each used rarely and none of them is
  * about the page being read — so they were four things competing with the navigation for
  * room in the frame. Collected here, the frame carries only what someone came for.
  *
@@ -40,12 +42,17 @@ export function UserMenu({
    *  upward. On a phone the button is in the top bar and it opens downward. */
   placement?: "top" | "bottom";
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const menu = useDisclosure("user-menu");
   const space = useMyContexts({
     query: { enabled: Boolean(account), staleTime: 5 * 60_000, refetchOnWindowFocus: false },
   });
   const needs = account ? (space.data?.total ?? 0) : 0;
+  const { pathname } = useLocation();
+  // Help for this page (Story B-18): the handbook page whose route is this screen, else
+  // the help's landing page. The handbook is internal, so only a signed-in account is
+  // offered it, and a public screen never has a page of its own (`helpFor`).
+  const pageHelp = account ? helpFor(pathname, i18n.resolvedLanguage) : undefined;
 
   // Signed in, my space and my own page in it (Stories Z-8, S-7); signed out, the way in.
   const own = account
@@ -57,7 +64,7 @@ export function UserMenu({
   const links = [
     ...own,
     ...(admin ? [{ to: "/admin", key: "admin" }] : []),
-    { to: "/help", key: "help" },
+    ...(account ? [{ to: pageHelp ? helpPath(pageHelp.id) : helpPath(), key: "help" }] : []),
     { to: "/legal-notice", key: "legalNotice" },
     { to: "/privacy", key: "privacy" },
   ];
@@ -130,7 +137,11 @@ export function UserMenu({
                   data-testid={`layout-user-menu-${link.key}`}
                   className="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
                 >
-                  {t(`userMenu.${link.key}`)}
+                  {link.key === "help" && pageHelp ? (
+                    <span data-testid="help-for-this-page">{t("forThisPage", { ns: "help" })}</span>
+                  ) : (
+                    t(`userMenu.${link.key}`)
+                  )}
                   {link.key === "mySpace" && needs > 0 && (
                     <span
                       className="rounded-full bg-amber-100 px-2 text-xs font-medium text-amber-800"

@@ -1,6 +1,6 @@
 ---
 name: handbook
-description: "Builds and updates the site's in-app help — the handbook at /help — for every kind of person who uses it: visitor, sailor, club admin and team manager, event organizer, race committee, treasurer, administration. Pages are derived from the user stories (only what is built) and the journeys in docs/journeys/: one guide per journey, one starting page per audience, a roles page from the permission model, an FAQ from the typed errors. English source, German translation, screenshots from the running stack, and checks in scripts/check-docs.py that keep pages, stories and journeys in step. Use for 'write the help', 'document this for team managers', 'update the handbook', 'Hilfe/Handbuch', 'user docs from the journeys', or after a feature changed what someone does on the site. Adapted from the Planet AI vertical-docs skill. NOT for engineering docs under docs/, the user stories themselves, or the public content pages (news, press)."
+description: "Builds and updates the site's in-app help — the handbook at /help — for everyone signed in — sailor, club admin and team manager, event organizer, race committee, treasurer, administration. Pages are derived from the user stories (only what is built) and the journeys in docs/journeys/: one guide per journey, one starting page per audience, a roles page from the permission model, an FAQ from the typed errors. English source, German translation, screenshots from the running stack, and checks in scripts/check-docs.py that keep pages, stories and journeys in step. Use for 'write the help', 'document this for team managers', 'update the handbook', 'Hilfe/Handbuch', 'user docs from the journeys', or after a feature changed what someone does on the site. Adapted from the Planet AI vertical-docs skill. NOT for engineering docs under docs/, the user stories themselves, or the public content pages (news, press)."
 argument-hint: "[first-pass | update | page <id> | audience <name> | journey <J-n>]"
 ---
 
@@ -17,7 +17,7 @@ not a Planet AI vertical:
 | `@planet-ai/handbook` renders the store | the site renders it itself: `react-markdown` (already a dependency), HeroUI, `web/src/components/` — `references/viewer.md` |
 | German authoritative, `react-intl` | **English authoritative**, German a full translation, `react-i18next` (CLAUDE.md § Language) |
 | evidence = routes, routers, i18n | the same, **plus the user stories and journeys** — they say what is built (● / ◐ / ○) and in which order things happen (`references/sources.md`) |
-| one reader, a professional mid-task | **seven audiences**, the files of `docs/userstories/` — every page says whom it is for (`references/content-model.md` § Audiences) |
+| one reader, a professional mid-task | **six audiences**, the files of `docs/userstories/` except `visitor.md` — every page says whom it is for (`references/content-model.md` § Audiences). **The help is internal**: signed-in accounts only; the public site explains itself, and what a page would have had to explain to a visitor is reported as a UX fix instead |
 | roles page from the gateway catalogue | roles page from the relation-tuple model (`MODEL` in `api/app/models/auth.py`) and the `require_*` checks |
 | `pai-handbook check` / `lock` | `scripts/check-docs.py`, which `scripts/check.sh` already runs (`references/checks.md`) |
 | a welcome dialog | none — "my space" (`/me`) already tells a person what waits for them (Story Z-8) |
@@ -99,7 +99,7 @@ role inventory for the roles page. Update: no agents — `references/update-mode
 
 | Question | Default |
 |---|---|
-| Audiences to cover now | all seven; `live` folded into race committee and visitor |
+| Audiences to cover now | all six; `live` folded into race committee |
 | German register | **"Sie"** — and report that the `de` catalogs mix *Sie* and *du* (`account.json` vs the waiver texts) |
 | Journeys as pages | every journey with ≥ ◐ status |
 | Route | `/help`, absorbing today's `Help.tsx` roles matrix into the reserved `roles` page |
@@ -115,7 +115,7 @@ in `references/orchestration.md`. Show it on one screen. `Proceed? (yes / no)`.
 
 - **The story first** (CLAUDE.md, "How to update the docs"): the first pass adds one story
   for the help itself — "As anyone using the site I find the help for what I do" — in
-  `docs/userstories/visitor.md`, next free `B-` ID, acceptance criteria from the plan.
+  `docs/userstories/sailor.md` (B-18), acceptance criteria from the plan.
   Update mode edits that story only if the viewer's behaviour changes.
 - In one message: the **viewer agent** (first pass, or update when the viewer is missing
   something) and **one author per page** (update: 1–3 updaters plus authors for new pages).

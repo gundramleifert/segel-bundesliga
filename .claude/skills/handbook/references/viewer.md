@@ -48,8 +48,8 @@ Pick the file for `i18n.resolvedLanguage`, falling back to `en`.
 1. **"Help for …" tiles, one per audience** (`LinkCard`s in a `CardGrid`), opening
    `start-<audience>`. When signed in, the audiences the person **has** come first, marked
    — derived from `GET /api/me/contexts` (relations and `sailor`) and `User.roles` (site
-   roles), the same answer my space uses (Story Z-8). A guest sees `visitor` first.
-   **Nothing is hidden**: every page is readable by everyone; the audience only orders and
+   roles), the same answer my space uses (Story Z-8). A guest sees no tiles at all — only a prompt
+   to sign in (Story B-18). **Nothing is hidden from a signed-in person**: the audience only orders and
    filters. The help contains nothing secret, and someone about to become a team manager
    should be able to read what that means.
 2. **Journeys** — one `LinkCard` per `journey` page.

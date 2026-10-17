@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**89 stories** — ● 64 implemented and tested · ◐ 13 partial · ○ 12 open. With backend tests: 71 · with browser tests: 37 · walked by a journey: 31 · **with no test at all: 11**.
+**90 stories** — ● 64 implemented and tested · ◐ 14 partial · ○ 12 open. With backend tests: 71 · with browser tests: 38 · walked by a journey: 31 · **with no test at all: 11**.
 
 ## Journeys
 
@@ -23,87 +23,87 @@ here — this page says what *exists*, the report what *passed*.
 
 ### J-1 ◐ From an empty series to a scored matchday
 
-[lifecycle.md](journeys/lifecycle.md) · help: — · report: Allure → story *J-1 · From an empty series to a scored matchday*, one step per row below
+[lifecycle.md](journeys/lifecycle.md) · help: `journey-lifecycle` · report: Allure → story *J-1 · From an empty series to a scored matchday*, one step per row below
 
 - **W1** `test_complete_lifecycle.py::TestTheCompleteLifecycle::test_from_an_empty_series_to_a_scored_matchday`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-1.1 | main | A-1 | ● | W1 | — | — |
-| J-1.2 | main | A-6 | ● | W1 | — | — |
-| J-1.3 | main | VA-8 | ● | W1 | — | — |
-| J-1.4 | main | VA-6 | ● | W1 | — | — |
-| J-1.5 | main | VA-8 | ● | W1 | — | — |
-| J-1.15 | not ready | VA-8 | ● | W1 | — | — |
-| J-1.16 | main | VA-8 | ● | W1 | — | — |
-| J-1.6 | main | VA-7 | ● | W1 | — | — |
-| J-1.7 | main | VA-8 | ● | W1 | — | — |
-| J-1.8 | main | B-3 | ● | W1 | — | — |
-| J-1.9 | main | VA-8 | ● | W1 | — | — |
-| J-1.10 | main | WL-2 | ◐ | W1 | — | — |
-| J-1.11 | main | B-1 | ● | W1 | — | — |
-| J-1.12 | main | VA-8 | ● | W1 | — | — |
-| J-1.13 | main | WL-2 | ◐ | W1 | — | — |
-| J-1.14 | main | VA-10 | ● | W1 | — | — |
+| J-1.1 | main | A-1 | ● | W1 | — | `admin-clubs`<br>`journey-club`<br>`journey-lifecycle` |
+| J-1.2 | main | A-6 | ● | W1 | — | `admin-series`<br>`journey-lifecycle`<br>`journey-series` |
+| J-1.3 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-1.4 | main | VA-6 | ● | W1 | — | `create-event`<br>`journey-lifecycle`<br>`journey-series` |
+| J-1.5 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-1.15 | not ready | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-1.16 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-1.6 | main | VA-7 | ● | W1 | — | `journey-lifecycle`<br>`run-event` |
+| J-1.7 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-1.8 | main | B-3 | ● | W1 | — | `journey-lifecycle`<br>`run-event` |
+| J-1.9 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-1.10 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`results-entry` |
+| J-1.11 | main | B-1 | ● | W1 | — | `journey-lifecycle`<br>`journey-series` |
+| J-1.12 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-1.13 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`results-entry` |
+| J-1.14 | main | VA-10 | ● | W1 | — | `close-event`<br>`journey-lifecycle`<br>`terms` |
 
 ### J-2 ◐ A new club gets going and runs itself
 
-[club.md](journeys/club.md) · help: — · report: Allure → story *J-2 · A new club gets going and runs itself*, one step per row below
+[club.md](journeys/club.md) · help: `journey-club` · report: Allure → story *J-2 · A new club gets going and runs itself*, one step per row below
 
 - **W1** `test_journey_club.py::TestANewClubRunsItself::test_from_nothing_to_a_public_club`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-2.1 | main | A-1 | ● | W1 | — | — |
-| J-2.2 | main | A-7 | ● | W1 | — | — |
-| J-2.3 | main | A-8 | ● | W1 | — | — |
-| J-2.4 | main | Z-8 | ● | W1 | — | — |
-| J-2.5 | main | V-3 | ◐ | W1 | — | — |
-| J-2.6 | last organizer | A-8 | ● | W1 | — | — |
-| J-2.7 | main | A-8 | ● | W1 | — | — |
-| J-2.8 | main | V-5 | ● | W1 | — | — |
-| J-2.9 | main | A-9 | ● | W1 | — | — |
-| J-2.10 | main | B-7 | ● | W1 | — | — |
+| J-2.1 | main | A-1 | ● | W1 | — | `admin-clubs`<br>`journey-club`<br>`journey-lifecycle` |
+| J-2.2 | main | A-7 | ● | W1 | — | `admin-clubs`<br>`journey-club` |
+| J-2.3 | main | A-8 | ● | W1 | — | `admin-accounts`<br>`club-members`<br>`faq`<br>`journey-club`<br>`roles` |
+| J-2.4 | main | Z-8 | ● | W1 | — | `journey-club`<br>`journey-crew-cleared`<br>`journey-member`<br>`my-space` |
+| J-2.5 | main | V-3 | ◐ | W1 | — | `club-members`<br>`journey-club` |
+| J-2.6 | last organizer | A-8 | ● | W1 | — | `admin-accounts`<br>`club-members`<br>`faq`<br>`journey-club`<br>`roles` |
+| J-2.7 | main | A-8 | ● | W1 | — | `admin-accounts`<br>`club-members`<br>`faq`<br>`journey-club`<br>`roles` |
+| J-2.8 | main | V-5 | ● | W1 | — | `journey-club`<br>`journey-series`<br>`squad-and-lineup` |
+| J-2.9 | main | A-9 | ● | W1 | — | `admin-clubs`<br>`journey-club`<br>`journey-series` |
+| J-2.10 | main | B-7 | ● | W1 | — | `journey-club` |
 
 ### J-3 ◐ A sailor joins their club
 
-[member.md](journeys/member.md) · help: — · report: Allure → story *J-3 · A sailor joins their club*, one step per row below
+[member.md](journeys/member.md) · help: `journey-member` · report: Allure → story *J-3 · A sailor joins their club*, one step per row below
 
 - **W1** `test_journey_member.py::TestASailorJoinsTheirClub::test_from_no_account_to_a_member_with_a_sailor_record`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-3.1 | no account yet | V-9 | ● | W1 | — | — |
-| J-3.2 | main | Z-4 | ● | W1 | — | — |
-| J-3.3 | main | Z-4 | ● | W1 | — | — |
-| J-3.4 | password | Z-9 | ● | W1 | — | — |
-| J-3.5 | main | Z-5 | ● | W1 | — | — |
-| J-3.6 | main | Z-8 | ● | W1 | — | — |
-| J-3.7 | main | V-10 | ● | W1 | — | — |
-| J-3.8 | main | V-4 | ● | W1 | — | — |
-| J-3.9 | main | S-2 | ◐ | W1 | — | — |
-| J-3.10 | leaves | Z-5 | ● | W1 | — | — |
+| J-3.1 | no account yet | V-9 | ● | W1 | — | `club-members`<br>`faq`<br>`journey-member` |
+| J-3.2 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
+| J-3.3 | main | Z-4 | ● | W1 | — | `account`<br>`faq`<br>`journey-member` |
+| J-3.4 | password | Z-9 | ● | W1 | — | `account`<br>`journey-member` |
+| J-3.5 | main | Z-5 | ● | W1 | — | `journey-member`<br>`my-space`<br>`roles` |
+| J-3.6 | main | Z-8 | ● | W1 | — | `journey-club`<br>`journey-crew-cleared`<br>`journey-member`<br>`my-space` |
+| J-3.7 | main | V-10 | ● | W1 | — | `journey-member`<br>`my-space` |
+| J-3.8 | main | V-4 | ● | W1 | — | `journey-member`<br>`squad-and-lineup` |
+| J-3.9 | main | S-2 | ◐ | W1 | — | `journey-crew-cleared`<br>`journey-member`<br>`profile` |
+| J-3.10 | leaves | Z-5 | ● | W1 | — | `journey-member`<br>`my-space`<br>`roles` |
 
 ### J-4 ◐ An organizer sets up a series
 
-[series.md](journeys/series.md) · help: — · report: Allure → story *J-4 · An organizer sets up a series*, one step per row below
+[series.md](journeys/series.md) · help: `journey-series` · report: Allure → story *J-4 · An organizer sets up a series*, one step per row below
 
 - **W1** `test_journey_series.py::TestAnOrganizerSetsUpASeries::test_from_a_draft_to_the_public_table`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-4.1 | main | A-6 | ● | W1 | — | — |
-| J-4.2 | main | Z-2 | ◐ | W1 | — | — |
-| J-4.3 | main | A-6 | ● | W1 | — | — |
-| J-4.4 | club applies | V-5 | ● | W1 | — | — |
-| J-4.5 | club applies | A-9 | ● | W1 | — | — |
-| J-4.6 | main | VA-6 | ● | W1 | — | — |
-| J-4.7 | main | VA-8 | ● | W1 | — | — |
-| J-4.8 | main | B-1 | ● | W1 | — | — |
+| J-4.1 | main | A-6 | ● | W1 | — | `admin-series`<br>`journey-lifecycle`<br>`journey-series` |
+| J-4.2 | main | Z-2 | ◐ | W1 | — | `admin-accounts`<br>`journey-series`<br>`roles` |
+| J-4.3 | main | A-6 | ● | W1 | — | `admin-series`<br>`journey-lifecycle`<br>`journey-series` |
+| J-4.4 | club applies | V-5 | ● | W1 | — | `journey-club`<br>`journey-series`<br>`squad-and-lineup` |
+| J-4.5 | club applies | A-9 | ● | W1 | — | `admin-clubs`<br>`journey-club`<br>`journey-series` |
+| J-4.6 | main | VA-6 | ● | W1 | — | `create-event`<br>`journey-lifecycle`<br>`journey-series` |
+| J-4.7 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
+| J-4.8 | main | B-1 | ● | W1 | — | `journey-lifecycle`<br>`journey-series` |
 
 ### J-5 ◐ A club's crew is cleared for a matchday
 
-[crew-cleared.md](journeys/crew-cleared.md) · help: — · report: Allure → story *J-5 · A club's crew is cleared for a matchday*, one step per row below
+[crew-cleared.md](journeys/crew-cleared.md) · help: `journey-crew-cleared` · report: Allure → story *J-5 · A club's crew is cleared for a matchday*, one step per row below
 
 - **W1** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_adult_crew_for_a_series_matchday`
 - **W2** `test_journey_crew.py::TestACrewIsClearedForAMatchday::test_minor_crew_with_a_guardian`
@@ -112,20 +112,20 @@ here — this page says what *exists*, the report what *passed*.
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-5.1 | series | V-1 | ● | W1, W2, W4 | — | — |
-| J-5.2 | squad too small | V-1 | ● | W2 | — | — |
-| J-5.3 | squad too small | V-1 | ● | W2 | — | — |
-| J-5.4 | stand-alone event | V-12 | ● | W3 | — | — |
-| J-5.5 | main | V-2 | ● | W1, W2, W3, W4 | — | — |
-| J-5.6 | main | Z-8 | ● | W1, W2, W3, W4 | — | — |
-| J-5.17 | main | VA-5 | ● | W1, W2, W3, W4 | — | — |
-| J-5.7 | no date of birth | S-2 | ◐ | W2 | — | — |
-| J-5.8 | adult | S-1 | ● | W1, W3 | — | — |
-| J-5.15 | guardian online | V-13 | ● | W4 | — | — |
-| J-5.16 | guardian online | S-8 | ● | W4 | — | — |
-| J-5.9 | on paper | S-1 | ● | W2 | — | — |
-| J-5.10 | on paper | S-1 | ● | *(offline)* | — | — |
-| J-5.11 | on paper | S-1 | ● | *(offline)* | — | — |
-| J-5.12 | sailor uploads | S-1 | ● | W2 | — | — |
-| J-5.13 | club uploads | S-1 | ● | W2 | — | — |
-| J-5.14 | main | VA-5 | ● | W1, W2, W3, W4 | — | — |
+| J-5.1 | series | V-1 | ● | W1, W2, W4 | — | `faq`<br>`journey-crew-cleared`<br>`squad-and-lineup` |
+| J-5.2 | squad too small | V-1 | ● | W2 | — | `faq`<br>`journey-crew-cleared`<br>`squad-and-lineup` |
+| J-5.3 | squad too small | V-1 | ● | W2 | — | `faq`<br>`journey-crew-cleared`<br>`squad-and-lineup` |
+| J-5.4 | stand-alone event | V-12 | ● | W3 | — | `journey-crew-cleared`<br>`squad-and-lineup` |
+| J-5.5 | main | V-2 | ● | W1, W2, W3, W4 | — | `journey-crew-cleared`<br>`squad-and-lineup` |
+| J-5.6 | main | Z-8 | ● | W1, W2, W3, W4 | — | `journey-club`<br>`journey-crew-cleared`<br>`journey-member`<br>`my-space` |
+| J-5.17 | main | VA-5 | ● | W1, W2, W3, W4 | — | `club-waivers`<br>`event-checkin`<br>`journey-crew-cleared` |
+| J-5.7 | no date of birth | S-2 | ◐ | W2 | — | `journey-crew-cleared`<br>`journey-member`<br>`profile` |
+| J-5.8 | adult | S-1 | ● | W1, W3 | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
+| J-5.15 | guardian online | V-13 | ● | W4 | — | `club-members`<br>`journey-crew-cleared` |
+| J-5.16 | guardian online | S-8 | ● | W4 | — | `journey-crew-cleared`<br>`waiver` |
+| J-5.9 | on paper | S-1 | ● | W2 | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
+| J-5.10 | on paper | S-1 | ● | *(offline)* | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
+| J-5.11 | on paper | S-1 | ● | *(offline)* | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
+| J-5.12 | sailor uploads | S-1 | ● | W2 | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
+| J-5.13 | club uploads | S-1 | ● | W2 | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
+| J-5.14 | main | VA-5 | ● | W1, W2, W3, W4 | — | `club-waivers`<br>`event-checkin`<br>`journey-crew-cleared` |

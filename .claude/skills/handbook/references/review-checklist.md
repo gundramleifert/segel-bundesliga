@@ -61,7 +61,7 @@ Verify each finding in the code before reporting it.
 - A dependency added beyond `remark-gfm`; a hand-written copy of something
   `web/src/components/` has (`docs/components.md`); a component importing from `pages/`.
 - A handbook path hardcoded outside `web/src/handbook/index.ts` and `App.tsx`.
-- An audience tile hiding pages from people without that role (the help is public).
+- An audience tile hiding pages from a signed-in person without that role (the help is for every signed-in account), or any page content reaching a guest.
 - A second `h1` on the page; sideways scroll on a phone (`expectNoSidewaysScroll`).
 - Tests missing for the story, or not in a `describeStory("B-n: …")`; `data-testid`s
   missing.

@@ -525,3 +525,48 @@ Acceptance criteria:
 - Deleting the account deletes it.
 
 Tests: `api/tests/stories/test_personal_space.py::TestBankAccount`
+
+### B-18 ◐ The help for what I do
+As **someone signed in** — a sailor, a team manager, an organizer, a race officer, a
+treasurer, the league office — I want to **find the help for what I do, in my language**,
+so that **I can get a task done without asking someone who has done it before**.
+
+**The help is internal; the public site explains itself** (decided 2026-10-18). A visitor
+who needs a manual to read a results table is a defect in the table, not a missing help
+page — so there is no visitor help, and what a help author found unclear on a public page
+is reported as a fix to that page.
+
+Acceptance criteria:
+- **`/help` is for signed-in accounts.** A guest at `/help` or `/help/<page>` sees only a
+  prompt to sign in, never a page; the account menu offers *Help* only when signed in.
+- `/help` opens **one tile per audience** — sailor, club, event organizer, race committee,
+  treasurer, administration — each opening that audience's starting page. The audiences a
+  person **has** come first and are marked, taken from the answer my space uses
+  (`GET /api/me/contexts`, Story Z-8, plus the site roles). **Nothing is hidden from a
+  signed-in person**: the audience only orders, so someone about to become a team manager
+  can read what that means.
+- Below the tiles: one card per **journey** page (the journeys in `docs/journeys/`, in the
+  order they happen across people), then the reference pages — terms, roles, questions.
+- A **search** box over titles, headings and search words finds a page in either language.
+- **`/help/:page`** shows one page with its sections as a table of contents; it loads
+  directly in a fresh tab, and `/help/roles#roles-matrix` scrolls to that section.
+- **The roles page replaces the hand-written matrix** `/help` showed until now: who may do
+  what, derived from the permission model (Story Z-2), and how one gets a role.
+- Pages are written in English and fully translated into German, with the same sections and
+  anchors in both; the language switcher changes the page in place.
+- Screenshots come from the running site, per language, with a phone version for what is
+  done on the water; a missing one shows a "screenshot pending" box, never a broken image.
+- **Help for this page:** the account menu's *Help* entry opens the page that explains the
+  current screen when there is one, `/help` otherwise.
+- No page scrolls sideways on a phone (Story A-10); a wide table scrolls inside itself.
+- The pages are files in `web/src/handbook/`, built from the stories and journeys by the
+  `handbook` skill; `scripts/check-docs.py` holds them to the stories, the journeys, the
+  routes and each other (both languages present, anchors unique, links resolve, the
+  structure no page may silently lose).
+
+Not a secret: the pages ship in the site's JavaScript like every other text, so the
+sign-in is about whom the help is written for, not about hiding it.
+
+Frontend: `web/src/pages/Help.tsx`, `web/src/handbook/`, `web/src/components/HelpLink.tsx`
+
+Tests: `e2e/help.spec.ts::B-18: as a guest I am asked to sign in for the help`, `e2e/help.spec.ts::B-18: as anyone signed in I find the help for what I do`

@@ -142,16 +142,22 @@ async def revoke(session: AsyncSession, target: User, row: Grant, *, actor: User
             and g.club_id == row.club_id
             for g in target.grants
         )
-        if (
+        # And the admin is who decides who is *in* the club: with managers only left, it
+        # could not add a member or an organizer any more (decided 2026-10-18).
+        last_admin = (
+            row.relation == Relation.ADMIN
+            and await admin_count(session, row.club_id, excluding_user_id=target.id) < 1
+        )
+        if last_admin or (
             not remains_organizer
             and await organizer_count(session, row.club_id, excluding_user_id=target.id) < 1
         ):
-            # Story A-8: a club with no organizer left could no longer manage itself.
+            # Story A-8: a club with no admin or no organizer left could no longer manage itself.
             raise Problem(
                 409,
                 "last-organizer",
-                "At least one organizer must remain for this club.",
-                detail="At least one organizer must remain for this club.",
+                "At least one admin must remain for this club.",
+                detail="Name another admin first — the admin decides who is in the club.",
                 club_id=row.club_id,
             )
 
@@ -235,6 +241,16 @@ async def organizer_count(
     )
     if excluding_user_id is not None:
         stmt = stmt.where(Grant.user_id != excluding_user_id)
+    return int((await session.execute(stmt)).scalar_one())
+
+
+async def admin_count(session: AsyncSession, club_id: int, *, excluding_user_id: int) -> int:
+    """How many other accounts hold ``admin`` on this club directly."""
+    stmt = select(func.count(func.distinct(Grant.user_id))).where(
+        Grant.relation == Relation.ADMIN,
+        Grant.club_id == club_id,
+        Grant.user_id != excluding_user_id,
+    )
     return int((await session.execute(stmt)).scalar_one())
 
 

@@ -44,7 +44,8 @@ const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/clubs", "clubs-list"],
   ["/clubs/1", "club-header"],
   ["/sailors/1", "sailor-registrations-section"],
-  ["/help", "help-roles-section"],
+  // The handbook is internal (Story B-18): a guest gets the sign-in prompt.
+  ["/help", "help-sign-in"],
   ["/legal-notice", "legal-notice-last-updated"],
   ["/privacy", "privacy-last-updated"],
 ];
@@ -517,8 +518,10 @@ describeStory("A-12: the account menu and the page's name", () => {
     );
 
     await openUserMenu(page);
-    // A guest's way in is "Sign in"; my space and my profile are for the signed-in.
-    for (const key of ["language", "signIn", "help", "legalNotice", "privacy"]) {
+    // A guest's way in is "Sign in"; my space, my profile and the help (internal, Story
+    // B-18) are for the signed-in.
+    await expect(page.getByTestId("layout-user-menu-help")).toHaveCount(0);
+    for (const key of ["language", "signIn", "legalNotice", "privacy"]) {
       await expect(page.getByTestId(`layout-user-menu-${key}`)).toBeVisible();
     }
 
@@ -548,8 +551,8 @@ describeStory("A-12: the account menu and the page's name", () => {
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
 
     await openUserMenu(page);
-    await page.getByTestId("layout-user-menu-help").click();
-    await expect(page).toHaveURL(/\/help$/);
+    await page.getByTestId("layout-user-menu-legalNotice").click();
+    await expect(page).toHaveURL(/\/legal-notice$/);
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
   });
 });

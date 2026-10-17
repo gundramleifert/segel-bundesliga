@@ -316,6 +316,12 @@ Acceptance criteria:
   must remain** for that specific club; the last one can't step down until someone else
   has taken over. Revoking one club never touches a person's organizer status at any other
   club, and the account stays either way.
+- **And at least one admin must remain** (decided 2026-10-18): the admin is who decides
+  who is *in* the club, so a club left with managers only could no longer add a member, a
+  treasurer or another organizer — it would have to ask the league office for every
+  change. Removing the club's last `admin` is refused with the same `last-organizer`
+  code until someone else holds `admin` on it; a manager may still go while an admin
+  remains, because the admin is a manager too.
 - Every grant and revoke is written to the audit log.
 
 Endpoints: the tuple endpoints of Story Z-2 — `GET /api/auth/tuples?object=club:<id>`,

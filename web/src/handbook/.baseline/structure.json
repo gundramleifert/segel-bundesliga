@@ -1,0 +1,561 @@
+{
+ "account": {
+  "type": "guide",
+  "order": 40,
+  "audience": [
+   "sailor"
+  ],
+  "anchors": [
+   "account-delete",
+   "account-password",
+   "account-register",
+   "account-sign-in"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "admin-accounts": {
+  "type": "guide",
+  "order": 220,
+  "audience": [
+   "administration"
+  ],
+  "anchors": [
+   "admin-accounts-create",
+   "admin-accounts-grant",
+   "admin-accounts-lists",
+   "admin-accounts-remove"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "admin-clubs": {
+  "type": "guide",
+  "order": 200,
+  "audience": [
+   "administration"
+  ],
+  "anchors": [
+   "admin-clubs-applications",
+   "admin-clubs-create",
+   "admin-clubs-series"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "admin-series": {
+  "type": "guide",
+  "order": 210,
+  "audience": [
+   "administration"
+  ],
+  "anchors": [
+   "admin-series-create",
+   "admin-series-manager",
+   "admin-series-publish"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "close-event": {
+  "type": "guide",
+  "order": 130,
+  "audience": [
+   "event-organizer"
+  ],
+  "anchors": [
+   "close-event-cancel",
+   "close-event-finish",
+   "close-event-reopen"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "club-members": {
+  "type": "guide",
+  "order": 80,
+  "audience": [
+   "club"
+  ],
+  "anchors": [
+   "club-members-add",
+   "club-members-crest",
+   "club-members-guardians",
+   "club-members-organizers"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "club-waivers": {
+  "type": "guide",
+  "order": 100,
+  "audience": [
+   "club"
+  ],
+  "anchors": [
+   "club-waivers-missing",
+   "club-waivers-overview",
+   "club-waivers-upload"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "create-event": {
+  "type": "guide",
+  "order": 110,
+  "audience": [
+   "event-organizer"
+  ],
+  "anchors": [
+   "create-event-boats",
+   "create-event-config",
+   "create-event-wizard"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "decide-claims": {
+  "type": "guide",
+  "order": 180,
+  "audience": [
+   "treasurer"
+  ],
+  "anchors": [
+   "decide-claims-decide",
+   "decide-claims-girocode",
+   "decide-claims-pending",
+   "decide-claims-who"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "event-checkin": {
+  "type": "guide",
+  "order": 140,
+  "audience": [
+   "event-organizer"
+  ],
+  "anchors": [
+   "event-checkin-list",
+   "event-checkin-not-cleared",
+   "event-checkin-scan"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "faq": {
+  "type": "faq",
+  "order": 10,
+  "audience": [
+   "sailor",
+   "club",
+   "event-organizer",
+   "race-committee",
+   "treasurer",
+   "administration"
+  ],
+  "anchors": [
+   "faq-administration",
+   "faq-club",
+   "faq-event-organizer",
+   "faq-race-committee",
+   "faq-sailor",
+   "faq-treasurer"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "file-a-claim": {
+  "type": "guide",
+  "order": 170,
+  "audience": [
+   "treasurer"
+  ],
+  "anchors": [
+   "file-a-claim-items",
+   "file-a-claim-receipts",
+   "file-a-claim-where"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "journey-club": {
+  "type": "journey",
+  "order": 20,
+  "audience": [
+   "administration",
+   "club"
+  ],
+  "anchors": [
+   "journey-club-variations"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "journey-crew-cleared": {
+  "type": "journey",
+  "order": 50,
+  "audience": [
+   "club",
+   "sailor",
+   "event-organizer"
+  ],
+  "anchors": [
+   "journey-crew-cleared-variations"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "journey-lifecycle": {
+  "type": "journey",
+  "order": 10,
+  "audience": [
+   "administration",
+   "event-organizer",
+   "race-committee"
+  ],
+  "anchors": [
+   "journey-lifecycle-variations"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "journey-member": {
+  "type": "journey",
+  "order": 30,
+  "audience": [
+   "club",
+   "sailor"
+  ],
+  "anchors": [
+   "journey-member-variations"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "journey-series": {
+  "type": "journey",
+  "order": 40,
+  "audience": [
+   "administration",
+   "event-organizer",
+   "club"
+  ],
+  "anchors": [
+   "journey-series-variations"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "my-space": {
+  "type": "guide",
+  "order": 50,
+  "audience": [
+   "sailor"
+  ],
+  "anchors": [
+   "my-space-club",
+   "my-space-leave",
+   "my-space-overview",
+   "my-space-pages"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "payment-runs": {
+  "type": "guide",
+  "order": 190,
+  "audience": [
+   "treasurer"
+  ],
+  "anchors": [
+   "payment-runs-bank",
+   "payment-runs-create",
+   "payment-runs-exports",
+   "payment-runs-settle"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "profile": {
+  "type": "guide",
+  "order": 70,
+  "audience": [
+   "sailor"
+  ],
+  "anchors": [
+   "profile-bank",
+   "profile-documents",
+   "profile-sailor"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "race-control": {
+  "type": "guide",
+  "order": 150,
+  "audience": [
+   "race-committee"
+  ],
+  "anchors": [
+   "race-control-finish",
+   "race-control-recall",
+   "race-control-start"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "results-entry": {
+  "type": "guide",
+  "order": 160,
+  "audience": [
+   "race-committee"
+  ],
+  "anchors": [
+   "results-entry-correct",
+   "results-entry-enter",
+   "results-entry-penalty"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "roles": {
+  "type": "doc",
+  "order": 20,
+  "audience": [
+   "sailor",
+   "club",
+   "event-organizer",
+   "race-committee",
+   "treasurer",
+   "administration"
+  ],
+  "anchors": [
+   "roles-getting",
+   "roles-list",
+   "roles-matrix"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "run-event": {
+  "type": "guide",
+  "order": 120,
+  "audience": [
+   "event-organizer"
+  ],
+  "anchors": [
+   "run-event-draw",
+   "run-event-frozen",
+   "run-event-helpers",
+   "run-event-print",
+   "run-event-publish",
+   "run-event-readiness",
+   "run-event-start"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "squad-and-lineup": {
+  "type": "guide",
+  "order": 90,
+  "audience": [
+   "club"
+  ],
+  "anchors": [
+   "squad-and-lineup-apply",
+   "squad-and-lineup-crew",
+   "squad-and-lineup-sailors",
+   "squad-and-lineup-size",
+   "squad-and-lineup-squad"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "start-administration": {
+  "type": "start",
+  "order": 70,
+  "audience": [
+   "administration"
+  ],
+  "anchors": [
+   "start-administration-journeys",
+   "start-administration-people",
+   "start-administration-season"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "start-club": {
+  "type": "start",
+  "order": 30,
+  "audience": [
+   "club"
+  ],
+  "anchors": [
+   "start-club-journeys",
+   "start-club-matchday",
+   "start-club-people",
+   "start-club-season"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "start-event-organizer": {
+  "type": "start",
+  "order": 40,
+  "audience": [
+   "event-organizer"
+  ],
+  "anchors": [
+   "start-event-organizer-after",
+   "start-event-organizer-before",
+   "start-event-organizer-day",
+   "start-event-organizer-journeys"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "start-race-committee": {
+  "type": "start",
+  "order": 50,
+  "audience": [
+   "race-committee"
+  ],
+  "anchors": [
+   "start-race-committee-day",
+   "start-race-committee-journeys"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "start-sailor": {
+  "type": "start",
+  "order": 20,
+  "audience": [
+   "sailor"
+  ],
+  "anchors": [
+   "start-sailor-account",
+   "start-sailor-journeys",
+   "start-sailor-season"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "start-treasurer": {
+  "type": "start",
+  "order": 60,
+  "audience": [
+   "treasurer"
+  ],
+  "anchors": [
+   "start-treasurer-claim",
+   "start-treasurer-pay"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "terms": {
+  "type": "doc",
+  "order": 10,
+  "audience": [
+   "sailor",
+   "club",
+   "event-organizer",
+   "race-committee",
+   "treasurer",
+   "administration"
+  ],
+  "anchors": [
+   "terms-competition",
+   "terms-event-states",
+   "terms-people",
+   "terms-scoring"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "waiver": {
+  "type": "guide",
+  "order": 60,
+  "audience": [
+   "sailor"
+  ],
+  "anchors": [
+   "waiver-adult",
+   "waiver-birth-date",
+   "waiver-guardian-online",
+   "waiver-minor-paper",
+   "waiver-which"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ }
+}

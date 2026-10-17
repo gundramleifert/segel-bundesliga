@@ -1,117 +1,70 @@
 {
   "title": "Help",
-  "roles": {
-    "title": "Roles and what they can do",
-    "intro": "Every request checks a person's roles fresh against the database, so granting or revoking one takes effect immediately, not after the next sign-in. The table below summarizes who can do what.",
-    "areaHeader": "Area",
-    "columns": {
-      "admin": "Admin",
-      "editor": "Editor",
-      "raceOfficer": "Race committee",
-      "teamManager": "Team manager",
-      "eventManager": "Event manager",
-      "clubAdmin": "Club admin",
-      "seriesManager": "Series manager"
+  "intro": "Find the help for what you do on this site. Every page is open to every account — pick yours, or read what someone else does.",
+  "audiencesTitle": "Help for …",
+  "audiencesSignedIn": "Yours first, marked.",
+  "mine": "Yours",
+  "audiences": {
+    "sailor": {
+      "title": "Sailors",
+      "description": "Your account, my space, the waiver, your profile."
     },
-    "areas": {
-      "createClubsEnroll": "Create clubs and enroll them in a Series",
-      "createSeries": "Create a Series and set its participants",
-      "maintainEvents": "Create and maintain Events",
-      "pairingAccountsRoles": "Generate pairing lists; manage accounts and roles",
-      "enterResults": "Enter race results",
-      "assignUserToClub": "Add members to the club",
-      "registerParticipants": "Register participants for a Series or Event",
-      "maintainSailors": "Create and maintain sailor records",
-      "registerSquad": "Register a Squad for a Series",
-      "namePeople": "Name an Event's race committee and jury"
+    "club": {
+      "title": "Clubs",
+      "description": "Members, squads and crews — for club admins and team managers."
     },
-    "cells": {
-      "yes": "Yes",
-      "no": "—",
-      "own": "Own club only",
-      "hostsCreate": "Only to create an Event their own club hosts",
-      "ownEvents": "Own Events and Series only",
-      "ownAdmin": "As admin of the Series or Event only"
+    "event-organizer": {
+      "title": "Event organizers",
+      "description": "Create an event, draw the pairing list, run and close it."
     },
-    "guestNote": "Without an account, or with no role assigned, you can still browse everything public — the league table, Events, clubs and sailor profiles. You just can't change anything."
-  },
-  "howTo": {
-    "title": "Common tasks, step by step",
-    "createSeries": {
-      "title": "Create a Series",
-      "who": "Admin only.",
-      "steps": [
-        "Sign in with an account that has the admin role and open Admin from the top navigation.",
-        "In the Series section, enter a name that carries the year, e.g. \"1st German Sailing Bundesliga 2027\" — there is no separate field for the year in the public display, though an optional numeric Year field is there too, mainly for sorting.",
-        "Optionally set a start and end date.",
-        "Choose which clubs take part with the two-column selector: click a club on the left to move it into \"selected\" on the right.",
-        "Click Create."
-      ],
-      "note": "Editors can see this section but not create a Series — a message there explains that series are created by the business office (admin) only. Once a Series exists, its \"Edit\" button lets an admin change the participating clubs or add a description at any time."
+    "race-committee": {
+      "title": "Race committee",
+      "description": "Start races, record finishes, correct results."
     },
-    "createEvent": {
-      "title": "Create an Event",
-      "who": "Admin, editor or race committee — plus a team manager, but only for an Event their own club hosts.",
-      "steps": [
-        "Open Admin and go to the Events section.",
-        "Enter a title and a date.",
-        "Optionally assign the Event to a Series — this is what makes it count toward that Series' standings — and pick a host club.",
-        "Set team count, boat count and flight count; the form shows the resulting races per flight as you type.",
-        "Click Create."
-      ],
-      "note": "Today the Admin page itself is reachable for admin and editor accounts only. The race-committee and the hosting club's team-manager permissions to create an Event exist in the rules, but the interface has no entry point for them yet."
+    "treasurer": {
+      "title": "Treasurers",
+      "description": "Expense claims, decisions and payment runs."
     },
-    "createClub": {
-      "title": "Create a Club",
-      "who": "Admin or editor.",
-      "steps": [
-        "Open Admin and go to the Clubs section.",
-        "Enter the club's name (at least 3 characters); short name and city are optional.",
-        "Click Create."
-      ],
-      "note": "A newly created club does not appear on the public Clubs page until it is enrolled in a Series for the current year — creating it is only the first step."
-    },
-    "createAccount": {
-      "title": "Create an Account",
-      "who": "An admin can create one directly for someone; a person can also create their own where self-registration is switched on.",
-      "steps": [
-        "Admin path: an administrator creates the account with an email address, a display name and any roles it should start with. Such an account counts as already verified, since the address came from an entry or import rather than being claimed by the person themselves.",
-        "Self-registration path: where enabled, a person submits their own email and name and receives a confirmation code by email, valid for ten minutes. Entering that code verifies the address.",
-        "Either way, a fresh account starts with no role and no club — it becomes useful once it is linked to a club (see \"Join a Club\" below).",
-        "Signing in happens via Google, Microsoft, a one-time code sent by email, or a password the person sets on their account page once the address is verified."
-      ],
-      "note": "Neither path has a page in the interface yet — account creation, self-registration and real sign-in are currently reachable only through the API. In development, the role switcher in the bottom-right corner stands in for signing in as any test account."
-    },
-    "registerSeries": {
-      "title": "Register a Club for a Series",
-      "who": "Admin sets this directly; a team manager can also apply on their own club's behalf, subject to admin approval.",
-      "steps": [
-        "Admin path: while creating or editing a Series, add the club with the club selector in the Admin page — this takes effect immediately, no approval needed.",
-        "Application path: a team manager submits a request naming their club and the Series; it only counts once an admin accepts it.",
-        "This registration — with no Event attached — is what makes the club's Squad and its public visibility for that Series possible. It is separate from taking part in any one Event of that Series."
-      ],
-      "note": "The application path exists in the API but has no page in the interface yet. For now, registering a club for a Series happens through the Admin page's Series section."
-    },
-    "registerEvent": {
-      "title": "Register a Club for an Event",
-      "who": "Admin sets this directly; a team manager can also apply, subject to admin approval.",
-      "steps": [
-        "A club must already be registered for the Event's Series before it can take part in one of that Series' Events.",
-        "Admin path: the clubs participating in a specific Event are set directly and take effect immediately.",
-        "Application path: a team manager submits a request naming their club and the Event; it only counts once an admin accepts it.",
-        "This participation — with the Event attached — is what the pairing list, results and lineup for that Event work from."
-      ],
-      "note": "Neither the admin path nor the application path for Event participants has a page in the interface yet; both exist only as API endpoints so far."
-    },
-    "joinClub": {
-      "title": "Join a Club (Club Membership)",
-      "who": "The club's admin decides — there is no request and no invitation to answer.",
-      "steps": [
-        "The person needs an account; without one, they register first.",
-        "The club's admin opens “My club”, tab “Members”, and adds the person by the email address of their account as “member”. They are a member at once.",
-        "The admin removes a member there the same way; a member can leave the club on their own from the same tab."
-      ],
-      "note": "Unlike registration for a Series or Event, this is about who belongs to the club, not who sails. The public club page offers no way to join."
+    "administration": {
+      "title": "League office",
+      "description": "Clubs, series, accounts and roles."
     }
+  },
+  "journeysTitle": "How it fits together",
+  "journeysIntro": "The steps of a season across the people who take part, in the order they happen.",
+  "lookupTitle": "Look it up",
+  "types": {
+    "start": "Starting page",
+    "guide": "Guide",
+    "journey": "Journey",
+    "doc": "Reference",
+    "faq": "Questions"
+  },
+  "search": {
+    "label": "Search the help",
+    "placeholder": "Search titles, sections and terms — e.g. squad, waiver, Kader",
+    "results": "{count, plural, one {# page found} other {# pages found}}",
+    "none": "Nothing found for “{query}”."
+  },
+  "empty": "The help pages are being written. Please come back soon.",
+  "back": "All help",
+  "toc": "On this page",
+  "related": "The other side of this",
+  "untranslated": "This page is not yet translated; it is shown in English.",
+  "notFound": {
+    "title": "Page not found",
+    "text": "There is no help page called “{id}” — yet, or any more.",
+    "link": "To the overview of the help"
+  },
+  "shotPending": "Screenshot pending",
+  "callout": {
+    "note": "Note",
+    "careful": "Careful"
+  },
+  "helpLink": "Help on this",
+  "forThisPage": "Help for this page",
+  "signIn": {
+    "text": "The help is for people who work on this site — sailors, clubs, organizers, the race committee, treasurers and the league office. Please sign in to read it.",
+    "link": "Sign in"
   }
 }

@@ -22,6 +22,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [An exists() subquery over a table the outer query also joins correlates itself away, and fails with 'no FROM clauses' instead of returning nothing](an-exists-subquery-over-a-table-the-outer-query-also-joins-correlates-itself-awa.md)
 - [A "page doesn't scroll sideways" assertion passes while the page is unusably zoomed out](an-overflow-assertion-cannot-see-its-own-symptom.md)
 - [Appending a Tailwind class to override one in a shared class string does nothing when the shared one comes later in the stylesheet](appending-a-tailwind-class-to-override-one-in-a-shared-class-string-does-nothing.md)
+- [Checking a path against the app's route patterns proves nothing when a catch-all or a placeholder-only pattern is among them](checking-a-path-against-the-app-s-route-patterns-proves-nothing-when-a-catch-all.md)
 - [Copying a WAL-mode SQLite file copies half the database](copying-a-wal-mode-sqlite-file-copies-half-the-database.md)
 - [A Tailwind `grid gap-*` column is sized by its widest item's min-content — and that can zoom the whole page out](grid-auto-columns-can-zoom-the-whole-page-out.md)
 - [HeroUI owns `--color-surface`; naming our own token that overrode it made every card invisible](heroui-owns-the-surface-color-token.md)

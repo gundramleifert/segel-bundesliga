@@ -26,9 +26,12 @@ A ◐ story often says inside itself what is built: "**Built** — …", "**Not 
 
 ## The audiences are the story files
 
+**Not `visitor.md`.** The help is internal — signed-in accounts only — and the public
+site has to explain itself (decided 2026-10-18, Story B-18). A public page an author would
+have to explain is a finding for the report, not a help page.
+
 | `audience` | Story file | Who in the permission model |
 |---|---|---|
-| `visitor` | `visitor.md` | not signed in, or signed in with no relation |
 | `sailor` | `sailor.md` | in a squad or a crew (`sailor` in `/api/me/contexts`); every account (sign-in, profile, waiver) |
 | `club` | `club.md` | `admin`, `manager`, `member` on a club |
 | `event-organizer` | `event-organizer.md` | `manager` on an event, its series or its host club |

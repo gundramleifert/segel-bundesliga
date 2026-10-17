@@ -293,6 +293,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
   (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
   silently dropped. Membership is the `member` tuple on a club, implying nothing else.
+  A club always keeps one `admin` (Story A-8): removing the last one is refused even
+  while managers remain, or nobody could add a member any more.
   Four foreign keys and one small interpreter are the whole model: no authorization
   service.
 - **A person can be in several clubs, and an account has no club of its own.** Membership

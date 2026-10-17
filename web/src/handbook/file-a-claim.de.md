@@ -1,0 +1,65 @@
+---
+id: file-a-claim
+type: guide
+order: 170
+audience: [treasurer]
+stories: [F-2, F-5, S-6]
+journey: null
+route: null
+tags: [expenses, receipt, travel costs, abrechnung, beleg, reisekosten, erstattung]
+title: "Kosten abrechnen"
+---
+
+## Kosten abrechnen
+
+Sie können Kosten abrechnen für eine Veranstaltung, bei der Sie selbst eine Aufgabe haben
+– *Wettfahrtleitung*, *Jury*, *Organisation* oder *Helfer* dieser Veranstaltung, oder
+*Wettfahrtleitung*, *Jury* oder *Organisation* ihrer Serie –, oder für einen Verein, in
+dem Sie *Mitglied* sind. Es zahlt der Ausrichter der Veranstaltung bzw. Ihr Verein.
+
+### Wo Sie abrechnen {#file-a-claim-where}
+
+1. In Ihrem Profil in *Mein Bereich*, Reiter *Bankverbindung*: *Kontoinhaber* und
+   *IBAN* eintragen (*BIC* ist optional) und *Speichern*. Dort sehen nur Sie sie.
+2. Den Reiter *Abrechnungen* in Ihrem Profil öffnen, oder *Meine Abrechnungen* auf der
+   Seite der Veranstaltung bzw. des Vereins.
+3. Unter *Neue Abrechnung* bei *Für* die Veranstaltung oder den Verein wählen, einen
+   *Titel* eingeben und *Abrechnung anlegen* drücken. Die Abrechnung ist ein *Entwurf*.
+
+*Für* zeigt nur, wofür Sie abrechnen dürfen; eine Aufgabe für die ganze Website
+berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über den Reiter
+*Abrechnungen* in Ihrem Profil abrechnen.
+
+### Positionen erfassen {#file-a-claim-items}
+
+1. Die Abrechnung mit *Details* öffnen, dann unter *Position hinzufügen* die *Art*
+   wählen: *Auto*, *Öffentliche Verkehrsmittel*, *Unterkunft*, *Tagegeld*, *Verpflegung*
+   oder *Sonstiges*.
+2. *Datum*, *Beschreibung* und *Betrag (€)* eintragen, dann *Position hinzufügen*. Bei
+   *Auto* die *Kilometer*: Es gilt der Kilometersatz des zahlenden Vereins, beim
+   Einreichen festgeschrieben.
+
+### Belege und Einreichen {#file-a-claim-receipts}
+
+1. *Beleg hochladen* für eine Position oder für *die ganze Abrechnung* (deckt alle
+   Positionen ab): PDF, JPEG oder PNG, je höchstens 10 MB.
+2. *Einreichen* drücken. *Öffentliche Verkehrsmittel*, *Unterkunft* und *Sonstiges*
+   brauchen einen Beleg; fehlt er, wird die Abrechnung abgelehnt und die Positionen
+   werden genannt.
+
+Beim Einreichen werden Kontoinhaber und IBAN Ihrer gespeicherten Bankverbindung **in die
+Abrechnung übernommen**: Die Zahlung geht dorthin, auch wenn Sie Ihre Bankverbindung
+später ändern. Ab dann sind Positionen und Belege festgeschrieben. Ihre Belege sehen nur
+Sie und wer über die Abrechnung entscheidet; jeder Blick einer anderen Person wird
+protokolliert.
+
+| Stand | |
+|---|---|
+| eingereicht, noch nicht entschieden | Sie können sie *Zurückziehen* |
+| *Zurückgegeben* | kommt mit einem Hinweis: ändern und erneut einreichen |
+| *Abgelehnt* | endgültig |
+| *Genehmigt* | zeigt dann *Offen*, *In Zahlung* oder *Gezahlt* |
+
+Abgelehnt? Siehe die [häufigen Fragen](#faq-treasurer).
+
+[Mein Profil öffnen](/me/profile)
