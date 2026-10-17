@@ -18,9 +18,11 @@ import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
  * legal pages belong to a guest as much as to anybody.
  *
  * Signed in, the button carries a **badge** with the number of things that need the
- * person — the sum of my space's "needs you" lines (Story Z-8) — so it is seen from any
- * page, and *My space* in the menu repeats it. It reads the same request as my space, so
- * whatever clears a need there clears the badge.
+ * person — my space's `total`, each thing once (Story Z-8) — so it is seen from any page,
+ * and *My space* in the menu repeats it. It reads the same request as my space, so
+ * whatever clears a need there (every such mutation invalidates it) clears the badge.
+ * The request is a heavy one, and the button is on every page: it is not refetched on
+ * every focus or page change.
  */
 export function UserMenu({
   account,
@@ -40,8 +42,10 @@ export function UserMenu({
 }) {
   const { t } = useTranslation();
   const menu = useDisclosure("user-menu");
-  const space = useMyContexts({ query: { enabled: Boolean(account) } });
-  const needs = account && space.data ? countNeeds(space.data) : 0;
+  const space = useMyContexts({
+    query: { enabled: Boolean(account), staleTime: 5 * 60_000, refetchOnWindowFocus: false },
+  });
+  const needs = account ? (space.data?.total ?? 0) : 0;
 
   // Signed in, my space and my own page in it (Stories Z-8, S-7); signed out, the way in.
   const own = account
@@ -143,12 +147,6 @@ export function UserMenu({
       )}
     </div>
   );
-}
-
-/** Everything that needs me, over my space: *Me* and every card (Story Z-8). */
-function countNeeds(space: { me: { needs: { count: number }[] }; contexts: { needs: { count: number }[] }[] }): number {
-  const sum = (needs: { count: number }[]) => needs.reduce((total, need) => total + need.count, 0);
-  return sum(space.me.needs) + space.contexts.reduce((total, context) => total + sum(context.needs), 0);
 }
 
 /** Initials for the avatar — there's no separate first/last name on `Account`, only

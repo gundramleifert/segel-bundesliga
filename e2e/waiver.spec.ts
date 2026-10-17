@@ -1,7 +1,7 @@
-import type { APIRequestContext, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
-import { bearer, signIn } from "./session";
+import { bearer, bornIn, seededSailors, signIn, type SeededSailor } from "./session";
 
 /** Stories S-1 and VA-5: the liability waiver, from the sailor's own account.
  *
@@ -23,20 +23,6 @@ const PNG = Buffer.from(
   "base64",
 );
 
-type SailorRow = { id: number; email: string | null; birth_date: string | null };
-
-/** The seeded sailors of one club: adults sail the first league, teenagers the juniors. */
-async function sailorsOf(request: APIRequestContext, domain: string): Promise<SailorRow[]> {
-  const headers = await bearer(request, ADMIN);
-  const response = await request.get(`/api/admin/sailors?q=${domain}&limit=100`, { headers });
-  expect(response.ok(), await response.text()).toBeTruthy();
-  return ((await response.json()) as { items: SailorRow[] }).items.filter((s) => s.email);
-}
-
-function bornIn(row: SailorRow): number {
-  return Number(row.birth_date?.slice(0, 4) ?? 0);
-}
-
 async function openAccount(page: Page): Promise<void> {
   // My waivers are a tab of my own page in my space (Story S-7).
   await page.goto("/me/profile?tab=waivers");
@@ -44,11 +30,11 @@ async function openAccount(page: Page): Promise<void> {
   await expect(page.getByTestId("account-waivers-list")).toBeVisible();
 }
 
-let adult: SailorRow;
-let junior: SailorRow;
+let adult: SeededSailor;
+let junior: SeededSailor;
 
 test.beforeAll(async ({ request }, testInfo) => {
-  const sailors = await sailorsOf(request, CLUB_DOMAIN);
+  const sailors = await seededSailors(request, CLUB_DOMAIN);
   // Each browser project takes its own pair: the two projects can share one stack, and a
   // waiver confirmed by the first run would already be "cleared" for the second.
   const nth = testInfo.project.name === "mobile" ? 1 : 0;

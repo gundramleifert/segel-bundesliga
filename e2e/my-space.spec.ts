@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
 import { openUserMenu } from "./layout";
-import { bearer, signIn } from "./session";
+import { bearer, bornIn, devUsers, managedClub, seededSailors, signIn } from "./session";
 
 /** Stories Z-8 and S-7: my space — every club, series and event I am part of, and my
  * page in each — and Story S-5: a person's licences, dropped onto the page.
@@ -72,14 +72,6 @@ describeStory("S-5: as a sailor I drop my licences onto my space", () => {
     await expect(page.getByTestId("my-space-document-file-selected")).toHaveCount(0);
   });
 });
-
-type DevUser = { email: string; roles: string[] };
-
-async function devUsers(request: import("@playwright/test").APIRequestContext): Promise<DevUser[]> {
-  const response = await request.get("/api/dev/users");
-  expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
-  return (await response.json()) as DevUser[];
-}
 
 /** The seeded club admin and the club they hold `admin` on. */
 async function aClubAdmin(request: import("@playwright/test").APIRequestContext) {
@@ -204,11 +196,7 @@ describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a b
   const DOMAIN = "vsaw.example.com";
 
   test("the sailor sees the badge, accepts in the notice, and the notice is gone", async ({ page, request }, testInfo) => {
-    const headers = await bearer(request, ADMIN);
-    const listed = await request.get(`/api/admin/sailors?q=${DOMAIN}&limit=100`, { headers });
-    const adults = ((await listed.json()) as { items: { email: string | null; birth_date: string | null }[] }).items.filter(
-      (s) => s.email && s.birth_date && Number(s.birth_date.slice(0, 4)) <= 2004,
-    );
+    const adults = (await seededSailors(request, DOMAIN)).filter((s) => bornIn(s) > 0 && bornIn(s) <= 2004);
     const email = adults[testInfo.project.name === "mobile" ? 1 : 0]!.email!;
 
     await signIn(page, email);
@@ -240,10 +228,7 @@ describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a b
     const manager = (await devUsers(request)).find(
       (u) => u.roles.includes("team_manager") && u.email.endsWith(`@${DOMAIN}`),
     )!;
-    const clubs = (await (
-      await request.get("/api/clubs/mine", { headers: await bearer(request, manager.email) })
-    ).json()) as { club: { id: number }; may_manage: boolean }[];
-    const clubId = clubs.find((c) => c.may_manage)!.club.id;
+    const clubId = await managedClub(request, manager.email);
 
     await signIn(page, manager.email);
     await page.goto(`/me/club/${clubId}?tab=waivers`);

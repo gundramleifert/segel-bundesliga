@@ -32,6 +32,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import NamedTuple
 
@@ -222,12 +223,20 @@ class Journey(NamedTuple):
     file: str  # relative to ROOT
     text: str
     steps: list[Step]
-    diagram: list[str]  # the `[J-n.k]` of every arrow, over all its diagrams
-    views: list[list[str]]  # the same, per diagram: the main path first, then each branch
-    blocks: list[str]  # each diagram's source
+    blocks: list[str]  # each diagram's source: the main path first, then each branch
     participants: list[tuple[str, str]]  # (alias, name) of every `actor`/`participant`
     retired: list[str]
     tests: list[str]  # the references on its `Tests:` line
+
+    @property
+    def views(self) -> list[list[str]]:
+        """The `[J-n.k]` of every arrow, per diagram, in reading order."""
+        return [re.findall(r"\[(J-\d+\.\d+)\]", block) for block in self.blocks]
+
+    @property
+    def diagram(self) -> list[str]:
+        """The same over all its diagrams."""
+        return [sid for view in self.views for sid in view]
 
 
 def journeys() -> list[Journey]:
@@ -239,12 +248,10 @@ def journeys() -> list[Journey]:
         raw = path.read_text(encoding="utf-8")
         heading = JOURNEY_HEADING.search(raw)
         if not heading:
-            out.append(Journey("?", "?", path.name, str(path.relative_to(ROOT)), raw, [], [], [], [], [], [], []))
+            out.append(Journey("?", "?", path.name, str(path.relative_to(ROOT)), raw, [], [], [], [], []))
             continue
         blocks = [m["body"] for m in MERMAID.finditer(raw)]
         diagrams = "\n".join(blocks)
-        views = [re.findall(r"\[(J-\d+\.\d+)\]", block) for block in blocks]
-        diagram = [sid for view in views for sid in view]
         text = FENCE.sub("", raw)
         retired = RETIRED.search(text)
         tests_line = TESTS_LINE.search(text)
@@ -255,8 +262,6 @@ def journeys() -> list[Journey]:
             file=str(path.relative_to(ROOT)),
             text=text,
             steps=[Step(*(g.strip() for g in m.groups())) for m in STEP_ROW.finditer(text)],
-            diagram=diagram,
-            views=views,
             blocks=blocks,
             participants=[(m["alias"], m["name"]) for m in PARTICIPANT.finditer(diagrams)],
             retired=STEP_ID.findall(retired["body"]) if retired else [],
@@ -355,8 +360,9 @@ def check_journeys(markers: dict[str, str], all_journeys: list[Journey], index: 
         # One diagram per way through: the main path first, then each branch on its own.
         # Every step is one arrow in exactly one of them, and each draws its steps in the
         # table's order — the table is the flow, the diagrams are views of it.
-        missing = [i for i in ids if i not in j.diagram]
-        extra = [i for i in j.diagram if i not in ids]
+        diagram = j.diagram
+        missing = [i for i in ids if i not in diagram]
+        extra = [i for i in diagram if i not in ids]
         if missing or extra:
             problems.append(
                 f"{where}: the diagrams and the table disagree — "
@@ -365,17 +371,16 @@ def check_journeys(markers: dict[str, str], all_journeys: list[Journey], index: 
                     extra and f"arrow without a row: {', '.join(extra)}",
                 ]))
             )
-        for sid in sorted({i for i in j.diagram if j.diagram.count(i) > 1}):
+        for sid in sorted(sid for sid, count in Counter(diagram).items() if count > 1):
             problems.append(f"{where}: step {sid} is drawn twice — each step is an arrow in one diagram")
-        row = {sid: n for n, sid in enumerate(ids)}
-        for n, view in enumerate(j.views, 1):
-            drawn = [sid for sid in view if sid in row]
-            if drawn != sorted(drawn, key=row.__getitem__):
+        position = {s.id: n for n, s in enumerate(j.steps)}
+        for n, (view, block) in enumerate(zip(j.views, j.blocks), 1):
+            drawn = [sid for sid in view if sid in position]
+            ordered = sorted(drawn, key=position.__getitem__)
+            if drawn != ordered:
                 problems.append(
-                    f"{where}: diagram {n} must draw its steps in the table's order: "
-                    f"{' → '.join(sorted(drawn, key=row.__getitem__))}"
+                    f"{where}: diagram {n} must draw its steps in the table's order: {' → '.join(ordered)}"
                 )
-        for n, block in enumerate(j.blocks, 1):
             # Mermaid ends a statement at `;` — the rest of the line is a parse error, and
             # GitHub shows the error box instead of the diagram (two journeys did, unnoticed).
             for line in block.splitlines():
@@ -393,7 +398,6 @@ def check_journeys(markers: dict[str, str], all_journeys: list[Journey], index: 
         if "main" not in {s.path for s in j.steps}:
             problems.append(f"{where}: {j.id} has no step on path main")
 
-        position = {s.id: n for n, s in enumerate(j.steps)}
         main = [s.id for s in j.steps if s.path == "main" and not s.offline]
         walked: set[str] = set()
         journey_walks = walks(j)

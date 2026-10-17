@@ -17,7 +17,7 @@ from uuid import uuid4
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import Club, Event, Sailor, Series, Team, TeamMembership
+from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
 from app.models.auth import Grant, Relation
 from tests.stories.test_personal_space import upload
 from tests.stories.test_reimbursements import login, submitted
@@ -169,6 +169,30 @@ class TestMySpace:
         assert _needs(_context(body, "event", event)) == {}
         # Sailing for a club is not membership of it: the club is no context of mine.
         assert _context(body, "club", club) is None
+
+    async def test_a_named_crew_puts_me_in_the_matchday(self, client, caplog):
+        """A series matchday's crew is its `EventCrew` — the entry holds no members (Story
+        V-2) — so being named is what makes the event mine. Its series' unsigned waiver
+        asks there too, and still counts once in the total (the badge, Story Z-8)."""
+        email = f"z8-crew-{_tag()}@example.com"
+        club = await _club()
+        series = await _series()
+        event = await _event(series_id=series, starts_on=SOON)
+        squad = await _team(club, series_id=series)
+        entry = await _team(club, series_id=series, event_id=event)
+        headers = await login(client, caplog, email)
+        sailor_id = await _sailor(email, squad, birth_date=date(1990, 1, 1))
+        async with SessionLocal() as session:
+            session.add(EventCrew(event_id=event, team_id=entry, sailor_id=sailor_id, role="crew"))
+            await session.commit()
+
+        body = await _mine(client, headers)
+        crewed = _context(body, "event", event)
+        assert crewed is not None and crewed["relations"] == ["sailor"]
+        assert [t["club_id"] for t in crewed["teams"]] == [club]
+        assert _needs(crewed) == {"waiver": 1}
+        assert _needs(_context(body, "series", series)) == {"waiver": 1}
+        assert body["total"] == 1
 
     async def test_claims_to_decide_need_the_one_who_decides(self, client, caplog):
         """On the event when I hold the event, on the paying club when I hold the club —

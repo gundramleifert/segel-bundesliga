@@ -29,7 +29,8 @@ import { contextPath, useMySpace } from "./shared";
  * moved here, not changed.
  *
  * A tab that needs me says so on its label, so the "needs you" line of the overview card
- * leads on to the right tab instead of a page to search. The tabs sit in the header row
+ * leads on to the right tab instead of a page to search. A section that is only there
+ * while it needs me — an unsigned waiver (S-1) — is a **notice** above the tabs instead. The tabs sit in the header row
  * beside the page's name, like a matchday's, and the breadcrumb leads back to my space.
  */
 
@@ -40,6 +41,8 @@ type SectionDef = {
   for?: string[];
   /** Overview "needs" codes this tab is where to act on. */
   needs?: string[];
+  /** Not a tab: shown above the tabs, and only while one of its `needs` is there. */
+  notice?: boolean;
   render: () => ReactNode;
 };
 
@@ -82,7 +85,9 @@ function ContextFrame({
             </>
           );
         }
-        const shown = visible(sections(context), context.relations);
+        const declared = visible(sections(context), context.relations);
+        const shown = declared.filter((s) => !s.notice);
+        const notices = declared.filter((s) => s.notice && context.needs.some((n) => s.needs?.includes(n.code)));
         const testId = `me-context-${context.kind}-${context.id}`;
         const link = publicPath(context);
         return (
@@ -101,7 +106,16 @@ function ContextFrame({
               <RelationChips relations={context.relations} testId={`${testId}-relations`} />
               <NeedsLine needs={context.needs} testId={`${testId}-needs`} />
             </div>
-            <WaiverNotice context={context} />
+            {notices.map((s) => (
+              <section
+                key={s.key}
+                aria-label={s.label}
+                className="rounded-xl border-2 border-amber-300 bg-amber-50 p-1"
+                data-testid={`me-context-${s.key}-notice`}
+              >
+                {s.render()}
+              </section>
+            ))}
             {shown.length ? (
               <TabbedView
                 param="tab"
@@ -123,21 +137,18 @@ function ContextFrame({
   );
 }
 
-/** Story S-1: an unsigned waiver of mine is no tab but a notice above the tabs, with the
- * accept button in it. An event of a series asks for the series' waiver — one signature
- * on any of its events clears them all — and the notice goes once it is cleared, because
- * signing refreshes my space and with it this context's needs. */
-function WaiverNotice({ context }: { context: MyContext }) {
-  if (!context.relations.includes("sailor") || !context.needs.some((n) => n.code === "waiver")) return null;
-  const only =
-    context.kind === "event" && context.series_id == null
-      ? ({ scope: "event", id: context.id } as const)
-      : ({ scope: "series", id: context.kind === "series" ? context.id : context.series_id! } as const);
-  return (
-    <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-1" data-testid="me-context-waiver-notice">
-      <Waivers only={only} />
-    </div>
-  );
+/** Story S-1: my unsigned waiver, as a notice with its button. An event of a series asks
+ * for the series' waiver — one signature on any of its events clears them all — and the
+ * notice goes once it is signed: signing refreshes my space, and with it the need. */
+function waiverNotice(t: (key: string) => string, scope: "series" | "event", id: number): SectionDef {
+  return {
+    key: "waiver",
+    label: t("context.tabs.waivers"),
+    for: ["sailor"],
+    needs: ["waiver"],
+    notice: true,
+    render: () => <Waivers only={{ scope, id }} />,
+  };
 }
 
 /** A section that is a way to another screen, said in a sentence. */
@@ -296,6 +307,7 @@ export function SeriesPage() {
       kind="series"
       publicPath={(c) => (c.published ? `/series/${c.id}` : null)}
       sections={(c) => [
+        waiverNotice(t, "series", c.id),
         {
           key: "team",
           label: t("context.tabs.team"),
@@ -361,6 +373,7 @@ export function EventPage() {
       kind="event"
       publicPath={(c) => (c.published ? `/events/${c.id}` : null)}
       sections={(c) => [
+        c.series_id != null ? waiverNotice(t, "series", c.series_id) : waiverNotice(t, "event", c.id),
         {
           key: "crew",
           label: t("context.tabs.crew"),

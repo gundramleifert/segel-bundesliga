@@ -1,7 +1,7 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
-import { bearer, signIn } from "./session";
+import { bearer, devUsers, managedClub, signIn, type DevUser } from "./session";
 
 /** Stories V-12 and V-2: the team manager's own screen, with the matchdays and the lineup.
  *
@@ -19,27 +19,13 @@ test.describe.configure({ mode: "serial" });
 const ADMIN = "admin@sbl.example.com";
 const PLANNED_ACT = 3; // dsbl-1-2026-act-3, planned — the one still to be lined up
 
-type Account = { id: number; email: string; roles: string[] };
-
-async function aTeamManager(request: APIRequestContext): Promise<Account> {
-  const response = await request.get("/api/dev/users");
-  expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
-  const accounts = (await response.json()) as Account[];
+async function aTeamManager(request: APIRequestContext): Promise<DevUser> {
   // The seed creates one manager per club; NRV's is in every seeded series' squads too.
-  const manager = accounts.find(
+  const manager = (await devUsers(request)).find(
     (a) => a.roles.includes("team_manager") && a.email.endsWith("@nrv.example.com"),
   );
   expect(manager, "the seed creates one team_manager per club").toBeTruthy();
   return manager!;
-}
-
-/** The club this person organizes — the one the club screen is about for them. */
-async function managedClub(request: APIRequestContext, email: string): Promise<number> {
-  const clubs = (await (await request.get("/api/clubs/mine", { headers: await bearer(request, email) })).json()) as {
-    club: { id: number };
-    may_manage: boolean;
-  }[];
-  return clubs.find((c) => c.may_manage)!.club.id;
 }
 
 /** The club's page in my space (Story S-7), on one of the club screen's tabs. */

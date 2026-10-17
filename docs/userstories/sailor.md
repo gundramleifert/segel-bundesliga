@@ -419,9 +419,15 @@ Acceptance criteria:
     by Journey J-5), an upcoming matchday whose crew has a waiver not cleared (VA-5);
   - on *Me*: a document of mine that has expired.
 - Tapping a card opens my page for it (Story S-7).
-- **The account button carries a badge** with the number of things that need me — the
-  sum over every card, *Me* included — so I see from any page that something is to do,
-  and *My space* in its menu repeats the number. No badge when nothing does.
+- **The account button carries a badge** with the number of things that need me —
+  every card's, *Me* included, each thing once (a series' waiver asked again on its events
+  is one signature; `total` on `GET /api/me/contexts`) — so I see from any page that
+  something is to do, and *My space* in its menu repeats the number. No badge when
+  nothing does.
+- Sailing in an event is being **named in its crew** (`EventCrew`, Story V-2) or, for an
+  event in no series, being in its entry's squad. Until 2026-10-17 only the entry's
+  members counted — which a series matchday's entry never has — so a sailor named for a
+  matchday did not find it here at all.
 - One request: `GET /api/me/contexts`. It is the one answer to "which clubs, series and
   events are mine" — the account page, the club screen and the reimbursements page each
   had their own, and the three disagreed (a treasurer had no club, a helper no event).

@@ -155,13 +155,18 @@ def _judge(
 
 
 async def event_waiver_status(
-    session: AsyncSession, event: Event, sailor_ids: list[int]
+    session: AsyncSession,
+    event: Event,
+    sailor_ids: list[int],
+    required: WaiverText | None = None,
 ) -> dict[int, SailorWaiver]:
     """Clearance for each of ``sailor_ids`` for one event.
 
-    A confirmation counts if it is scoped to this event, or to the event's series.
+    A confirmation counts if it is scoped to this event, or to the event's series. Pass
+    ``required`` when the caller has already read the waiver text in force.
     """
-    required = await current_waiver_text(session)
+    if required is None:
+        required = await current_waiver_text(session)
     if not sailor_ids:
         return {}
 
@@ -212,14 +217,28 @@ async def series_waiver_status(
     An event confirmation covers that event alone, so it never clears the series; the
     organizer's per-event list (`event_waiver_status`) is where it shows up.
     """
-    required = await current_waiver_text(session)
+    return (await series_waivers_status(session, series, [sailor]))[sailor.id]
+
+
+async def series_waivers_status(
+    session: AsyncSession,
+    series: Series,
+    sailors: list[Sailor],
+    required: WaiverText | None = None,
+) -> dict[int, SailorWaiver]:
+    """`series_waiver_status` for many sailors of one series, in one query. Pass
+    ``required`` when the caller has already read the waiver text in force."""
+    if required is None:
+        required = await current_waiver_text(session)
+    if not sailors:
+        return {}
     rows = (
         (
             await session.execute(
                 select(WaiverConfirmation)
                 .options(selectinload(WaiverConfirmation.waiver_text))
                 .where(
-                    WaiverConfirmation.sailor_id == sailor.id,
+                    WaiverConfirmation.sailor_id.in_([s.id for s in sailors]),
                     WaiverConfirmation.series_id == series.id,
                 )
             )
@@ -227,12 +246,19 @@ async def series_waiver_status(
         .scalars()
         .all()
     )
-    return _judge(
-        sailor_id=sailor.id,
-        minor=is_minor(sailor.birth_date, series_reference_date(series)),
-        required=required,
-        confirmations=list(rows),
-    )
+    by_sailor: dict[int, list[WaiverConfirmation]] = {}
+    for row in rows:
+        by_sailor.setdefault(row.sailor_id, []).append(row)
+    reference = series_reference_date(series)
+    return {
+        sailor.id: _judge(
+            sailor_id=sailor.id,
+            minor=is_minor(sailor.birth_date, reference),
+            required=required,
+            confirmations=by_sailor.get(sailor.id, []),
+        )
+        for sailor in sailors
+    }
 
 
 # ---------------------------------------------------------------- What must I sign?

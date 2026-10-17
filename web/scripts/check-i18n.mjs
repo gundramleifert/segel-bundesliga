@@ -16,7 +16,7 @@ const source = "en";
 const languages = readdirSync(root);
 const errors = [];
 
-function flatten(obj, prefix, out) {
+function flatten(obj, prefix = "", out = new Map()) {
   for (const [key, value] of Object.entries(obj)) {
     const path = prefix ? `${prefix}.${key}` : key;
     if (typeof value === "string") out.set(path, value);
@@ -27,9 +27,8 @@ function flatten(obj, prefix, out) {
 
 function placeholders(elements, out = new Set()) {
   for (const el of elements) {
-    if (ARGUMENT.has(el.type)) out.add(el.value);
+    if (ARGUMENT.has(el.type) || BRANCHING.has(el.type)) out.add(el.value);
     if (BRANCHING.has(el.type)) {
-      out.add(el.value);
       for (const option of Object.values(el.options)) placeholders(option.value, out);
     }
   }
@@ -41,7 +40,7 @@ for (const lang of languages) {
   messages[lang] = new Map();
   for (const file of readdirSync(join(root, lang))) {
     const ns = file.replace(/\.json$/, "");
-    const flat = flatten(JSON.parse(readFileSync(join(root, lang, file), "utf8")), "", new Map());
+    const flat = flatten(JSON.parse(readFileSync(join(root, lang, file), "utf8")));
     for (const [key, text] of flat) {
       const id = `${ns}:${key}`;
       try {

@@ -18,7 +18,9 @@ from app.db import SessionLocal
 from app.models import Club, Sailor, Series, Team, TeamMembership, WaiverConfirmation, WaiverText
 from app.models.auth import Grant, Relation, Role
 from tests.stories.test_login_and_roles import login_as, make_user
+from tests.stories.test_my_space import SOON, _club, _event, _sailor, _series, _tag, _team
 from tests.stories.test_registration import auth_headers
+from tests.stories.test_reimbursements import login
 
 V2 = {
     "title_en": "Liability waiver v2",
@@ -698,9 +700,6 @@ class TestClubOverview:
     async def test_the_team_manager_sees_who_signed_in_each_competition(self, client, caplog):
         """One block per series squad and per entry in a stand-alone event; the missing
         first; a series confirmation clears the series' block."""
-        from tests.stories.test_my_space import SOON, _club, _event, _sailor, _series, _tag, _team
-        from tests.stories.test_reimbursements import login
-
         club = await _club()
         series = await _series()
         cup = await _event(starts_on=SOON)  # in no series
@@ -739,9 +738,6 @@ class TestClubOverview:
         ]
 
     async def test_a_member_or_another_club_is_refused(self, client, caplog):
-        from tests.stories.test_my_space import _club, _tag
-        from tests.stories.test_reimbursements import login
-
         club, other = await _club(), await _club()
         for grant in (
             Grant(relation=Relation.MEMBER, club_id=club),

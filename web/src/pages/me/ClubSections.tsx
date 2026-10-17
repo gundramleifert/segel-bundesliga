@@ -6,6 +6,7 @@ import { useClubWaivers } from "../../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
+import { WaiverName, WaiverStatus } from "../../components/WaiverStatus";
 import { Empty, StatusBadge } from "../../components/Blocks";
 import { LineupPanel } from "../../components/LineupPanel";
 import { SquadPanel } from "../../components/SquadPanel";
@@ -204,7 +205,7 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
 /** Story V-14: whose waivers are in — one block per competition the club is in, the
  * missing first, with the status the sailor's own page and the check-in list show. */
 export function ClubWaivers({ clubId }: { clubId: number }) {
-  const { t } = useTranslation(["space", "admin"]);
+  const { t } = useTranslation("space");
   const list = useAsync(useClubWaivers(clubId));
   return (
     <Async
@@ -232,7 +233,7 @@ export function ClubWaivers({ clubId }: { clubId: number }) {
                   className={`text-sm ${block.outstanding ? "font-medium text-amber-700" : "text-emerald-700"}`}
                   data-testid={`my-club-waivers-${block.scope}-${block.scope_id}-summary`}
                 >
-                  {t("clubWaivers.summary", { cleared: block.cleared, total: block.cleared + block.outstanding })}
+                  {t("clubWaivers.summary", { cleared: block.cleared, total: block.sailors.length })}
                 </span>
               </div>
               {block.sailors.length ? (
@@ -245,12 +246,9 @@ export function ClubWaivers({ clubId }: { clubId: number }) {
                       data-status={row.status}
                     >
                       <span>
-                        {row.first_name} {row.last_name}
-                        {row.minor && <span className="ml-2 text-xs text-slate-500">{t("admin:manage.waiverMinor")}</span>}
+                        <WaiverName first={row.first_name} last={row.last_name} minor={row.minor} />
                       </span>
-                      <span className={row.status === "cleared" ? "text-emerald-700" : "font-medium text-amber-700"}>
-                        {t(`admin:manage.waiverStatus.${row.status}`)}
-                      </span>
+                      <WaiverStatus status={row.status} />
                     </li>
                   ))}
                 </ul>

@@ -35,7 +35,7 @@ import { formatDate } from "../../lib/format";
  *
  * The card renders nothing when the account has no sailor record: the profile card
  * already says so, and saying it twice helps nobody. With `only`, it shows one
- * competition's row — the waiver section of a series' or an event's page (Story S-7).
+ * competition's row — the notice on my page for a series or an event (Stories S-1, S-7).
  */
 export function Waivers({ only }: { only?: { scope: "series" | "event"; id: number } } = {}) {
   const { t, i18n } = useTranslation("account");

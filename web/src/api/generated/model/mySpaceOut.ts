@@ -11,4 +11,5 @@ import type { MyContextOut } from './myContextOut';
 export interface MySpaceOut {
   me: MeOut;
   contexts: MyContextOut[];
+  total: number;
 }

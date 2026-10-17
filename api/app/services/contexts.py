@@ -111,6 +111,8 @@ class MySpace:
     name: str
     needs: list[Need]
     contexts: list[Context]
+    #: Everything that needs me, each thing once — what the account button's badge shows.
+    total: int = 0
 
 
 async def linked_sailor(session: AsyncSession, user: User) -> Sailor | None:
@@ -144,7 +146,7 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
         await _waivers(session, sailor, at)
 
     await _fill(session, contexts)
-    _series_waiver_on_events(contexts)
+    echoed = _series_waiver_on_events(contexts)
     _claims(await expenses.pending(session, user), contexts)
     await _organizer(session, user, contexts)
 
@@ -156,10 +158,14 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     if wards:
         me_needs.append(Need("ward_waiver", wards))
 
+    # Things to do, each once: a series' waiver asked again on its events is one signature.
+    total = sum(n.count for n in me_needs) - echoed
+    total += sum(count for context in contexts.values() for count in context.needs.values())
     return MySpace(
         name=sailor.full_name if sailor is not None else user.display_name,
         needs=me_needs,
         contexts=sorted(contexts.values(), key=_order),
+        total=total,
     )
 
 
@@ -174,14 +180,27 @@ async def _sailing(session: AsyncSession, sailor: Sailor, at) -> None:
             .order_by(Club.name)
         )
     ).all()
-    for team_id, series_id, event_id, club_id, club_name in rows:
+    # A series matchday's entry holds no members: its crew is the `EventCrew` (Story V-2),
+    # and being named there is what puts me in the event.
+    crews = (
+        await session.execute(
+            select(Team.id, Team.series_id, EventCrew.event_id, Club.id, Club.name)
+            .join(EventCrew, EventCrew.team_id == Team.id)
+            .join(Club, Team.club_id == Club.id)
+            .where(EventCrew.sailor_id == sailor.id)
+            .order_by(Club.name)
+        )
+    ).all()
+    for team_id, series_id, event_id, club_id, club_name in [*rows, *crews]:
         context = at("event", event_id) if event_id is not None else at("series", series_id)
         context.relations.add(SAILOR)
-        context.teams.append(TeamRef(team_id, club_id, club_name))
+        if all(team.team_id != team_id for team in context.teams):
+            context.teams.append(TeamRef(team_id, club_id, club_name))
 
 
 async def _waivers(session: AsyncSession, sailor: Sailor, at) -> None:
-    """Where the signature is asked for — the series, or an event in no series (S-1)."""
+    """Where the signature is given — the series, or an event in no series (S-1). The
+    series' events I sail in ask for it too (`_series_waiver_on_events`)."""
     for competition in await sailor_competitions(session, sailor):
         if competition.series is not None:
             judged = await series_waiver_status(session, competition.series, sailor)
@@ -192,7 +211,7 @@ async def _waivers(session: AsyncSession, sailor: Sailor, at) -> None:
             at(competition.scope, competition.scope_id).need("waiver")
 
 
-def _series_waiver_on_events(contexts: dict[tuple[str, int], Context]) -> None:
+def _series_waiver_on_events(contexts: dict[tuple[str, int], Context]) -> int:
     """A series' waiver is signed once, on the series — but a sailor meets it on the
     matchday, so each event of the series I sail in asks for it too (Story S-1). Signing
     once clears all of them: they read the series' status, they keep none of their own."""
@@ -201,9 +220,12 @@ def _series_waiver_on_events(contexts: dict[tuple[str, int], Context]) -> None:
         for (kind, object_id), context in contexts.items()
         if kind == "series" and context.needs.get("waiver")
     }
+    echoed = 0
     for (kind, _), context in contexts.items():
         if kind == "event" and SAILOR in context.relations and context.series_id in unsigned:
             context.need("waiver")
+            echoed += 1
+    return echoed
 
 
 async def _fill(session: AsyncSession, contexts: dict[tuple[str, int], Context]) -> None:

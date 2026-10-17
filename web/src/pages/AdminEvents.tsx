@@ -50,6 +50,7 @@ import { ClubSelector } from "../components/ClubSelector";
 import { Steps } from "../components/Steps";
 import { AddButton } from "../components/AddButton";
 import { AccessPanel } from "../components/AccessPanel";
+import { WaiverName, WaiverStatus } from "../components/WaiverStatus";
 
 /** Stories A-4, VA-6, VA-7 and VA-8: scheduling an event and taking it through its life.
  *
@@ -1703,20 +1704,11 @@ function WaiverChecklist({ eventId }: { eventId: number }) {
                       data-status={row.status}
                     >
                       <td className="px-3 py-2">
-                        {row.first_name} {row.last_name}
-                        {row.minor && (
-                          <span className="ml-2 text-xs text-slate-500">{t("manage.waiverMinor")}</span>
-                        )}
+                        <WaiverName first={row.first_name} last={row.last_name} minor={row.minor} />
                       </td>
                       <td className="px-3 py-2 text-slate-600">{row.club ?? "—"}</td>
                       <td className="px-3 py-2">
-                        <span
-                          className={
-                            row.status === "cleared" ? "text-emerald-700" : "font-medium text-amber-700"
-                          }
-                        >
-                          {t(`manage.waiverStatus.${row.status}`)}
-                        </span>
+                        <WaiverStatus status={row.status} />
                         {row.scan_available && row.confirmation_id != null && (
                           <button
                             type="button"

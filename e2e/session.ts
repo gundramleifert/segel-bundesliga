@@ -39,3 +39,41 @@ export async function bearer(
 ): Promise<Record<string, string>> {
   return { Authorization: `Bearer ${await devToken(request, email)}` };
 }
+
+// ----------------------------------------------------------------- Finding seeded people
+//
+// Specs find the person a story is about rather than hardcode them: the seed's accounts
+// are stable only until someone touches `app/seed_users.py`.
+
+export type DevUser = { id: number; email: string; roles: string[] };
+
+/** Every seeded account with its summary roles (`/api/dev/users`). */
+export async function devUsers(request: APIRequestContext): Promise<DevUser[]> {
+  const response = await request.get("/api/dev/users");
+  expect(response.ok(), "is SBL_DEV_LOGIN=true?").toBeTruthy();
+  return (await response.json()) as DevUser[];
+}
+
+/** The club this person organizes — the one a club screen is about for them. */
+export async function managedClub(request: APIRequestContext, email: string): Promise<number> {
+  const clubs = (await (await request.get("/api/clubs/mine", { headers: await bearer(request, email) })).json()) as {
+    club: { id: number };
+    may_manage: boolean;
+  }[];
+  return clubs.find((c) => c.may_manage)!.club.id;
+}
+
+export type SeededSailor = { id: number; email: string | null; birth_date: string | null };
+
+/** The seeded sailors of one club, by its address domain (`nrv.example.com`): adults sail
+ * the first league, teenagers the juniors. */
+export async function seededSailors(request: APIRequestContext, domain: string): Promise<SeededSailor[]> {
+  const headers = await bearer(request, "admin@sbl.example.com");
+  const response = await request.get(`/api/admin/sailors?q=${domain}&limit=100`, { headers });
+  expect(response.ok(), await response.text()).toBeTruthy();
+  return ((await response.json()) as { items: SeededSailor[] }).items.filter((s) => s.email);
+}
+
+export function bornIn(sailor: SeededSailor): number {
+  return Number(sailor.birth_date?.slice(0, 4) ?? 0);
+}

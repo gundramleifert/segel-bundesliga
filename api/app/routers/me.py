@@ -73,6 +73,9 @@ class MeOut(BaseModel):
 class MySpaceOut(BaseModel):
     me: MeOut
     contexts: list[MyContextOut]
+    #: Everything that needs me, each thing once: a series' waiver asked again on each of
+    #: its events is one signature. The account button's badge (Story Z-8).
+    total: int
 
 
 @router.get("/api/me/contexts", response_model=MySpaceOut, summary="Everything I am part of")
@@ -107,4 +110,5 @@ async def my_contexts(
             )
             for c in space.contexts
         ],
+        total=space.total,
     )

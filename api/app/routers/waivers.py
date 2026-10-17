@@ -56,6 +56,7 @@ from app.services.waivers import (
     scan_path,
     series_reference_date,
     series_waiver_status,
+    series_waivers_status,
     store_scan,
 )
 
@@ -573,15 +574,11 @@ async def event_waivers(
     people = await _squad_people(session, event)
     status_by_id = await event_waiver_status(session, event, [pid for pid, _, _, _ in people])
 
-    rows = [_row(pid, first, last, club, status_by_id[pid]) for pid, first, last, club in people]
-    _outstanding_first(rows)
-    cleared = sum(1 for r in rows if r.status == STATUS_CLEARED)
+    rows = [_row(first, last, status_by_id[pid], club=club) for pid, first, last, club in people]
     return EventWaiverList(
         event_id=event.id,
         required_version=required.version if required else None,
-        cleared=cleared,
-        outstanding=len(rows) - cleared,
-        sailors=rows,
+        **_tally(rows),
     )
 
 
@@ -615,8 +612,7 @@ async def club_waivers(
         )
 
     today = date.today()
-    competitions: list[ClubCompetitionWaivers] = []
-
+    required = await current_waiver_text(session)
     squads = (
         await session.execute(
             select(Team.id, Series)
@@ -630,19 +626,6 @@ async def club_waivers(
             .order_by(Series.starts_on, Series.name)
         )
     ).all()
-    for team_id, series in squads:
-        rows = [
-            _row(
-                sailor.id,
-                sailor.first_name,
-                sailor.last_name,
-                None,
-                await series_waiver_status(session, series, sailor),
-            )
-            for sailor in await _team_sailors(session, team_id)
-        ]
-        competitions.append(_competition("series", series.id, series.name, series.starts_on, rows))
-
     entries = (
         await session.execute(
             select(Team.id, Event)
@@ -656,13 +639,21 @@ async def club_waivers(
             .order_by(Event.starts_on, Event.title)
         )
     ).all()
-    for team_id, event in entries:
-        sailors = await _team_sailors(session, team_id)
-        judged = await event_waiver_status(session, event, [s.id for s in sailors])
-        rows = [_row(s.id, s.first_name, s.last_name, None, judged[s.id]) for s in sailors]
-        competitions.append(_competition("event", event.id, event.title, event.starts_on, rows))
+    members = await _team_sailors(session, [team_id for team_id, _ in [*squads, *entries]])
 
-    required = await current_waiver_text(session)
+    competitions: list[ClubCompetitionWaivers] = []
+    for team_id, series in squads:
+        sailors = members.get(team_id, [])
+        judged = await series_waivers_status(session, series, sailors, required)
+        competitions.append(
+            _competition("series", series.id, series.name, series.starts_on, sailors, judged)
+        )
+    for team_id, event in entries:
+        sailors = members.get(team_id, [])
+        judged = await event_waiver_status(session, event, [s.id for s in sailors], required)
+        competitions.append(
+            _competition("event", event.id, event.title, event.starts_on, sailors, judged)
+        )
     return ClubWaiverList(
         club_id=club_id,
         required_version=required.version if required else None,
@@ -1055,56 +1046,44 @@ def _out(
 
 
 def _row(
-    sailor_id: int, first: str, last: str, club: str | None, judged: SailorWaiver
+    first: str, last: str, judged: SailorWaiver, *, club: str | None = None
 ) -> SailorWaiverRow:
-    return SailorWaiverRow(
-        sailor_id=sailor_id,
-        first_name=first,
-        last_name=last,
-        club=club,
-        status=judged.status,
-        minor=judged.minor,
-        required_version=judged.required_version,
-        confirmed_version=judged.confirmed_version,
-        confirmed_at=judged.confirmed_at,
-        method=judged.method,
-        guardian_name=judged.guardian_name,
-        confirmation_id=judged.confirmation_id,
-        scan_available=judged.scan_available,
-    )
+    return SailorWaiverRow(first_name=first, last_name=last, club=club, **_status_fields(judged))
 
 
-def _outstanding_first(rows: list[SailorWaiverRow]) -> None:
-    """Who still has to sign at the top — that is what someone opens the list for."""
+def _tally(rows: list[SailorWaiverRow]) -> dict:
+    """The rows with who still has to sign at the top — that is what someone opens the
+    list for — and the two counts above them."""
     rows.sort(key=lambda r: (r.status == STATUS_CLEARED, r.last_name, r.first_name))
+    cleared = sum(1 for r in rows if r.status == STATUS_CLEARED)
+    return dict(cleared=cleared, outstanding=len(rows) - cleared, sailors=rows)
 
 
 def _competition(
-    scope: Scope, scope_id: int, name: str, starts_on: date | None, rows: list[SailorWaiverRow]
+    scope: Scope,
+    scope_id: int,
+    name: str,
+    starts_on: date | None,
+    sailors: list[Sailor],
+    judged: dict[int, SailorWaiver],
 ) -> ClubCompetitionWaivers:
-    _outstanding_first(rows)
-    cleared = sum(1 for r in rows if r.status == STATUS_CLEARED)
+    rows = [_row(s.first_name, s.last_name, judged[s.id]) for s in sailors]
     return ClubCompetitionWaivers(
-        scope=scope,
-        scope_id=scope_id,
-        name=name,
-        starts_on=starts_on,
-        cleared=cleared,
-        outstanding=len(rows) - cleared,
-        sailors=rows,
+        scope=scope, scope_id=scope_id, name=name, starts_on=starts_on, **_tally(rows)
     )
 
 
-async def _team_sailors(session: AsyncSession, team_id: int) -> list[Sailor]:
-    return list(
-        (
-            await session.execute(
-                select(Sailor)
-                .join(TeamMembership, TeamMembership.sailor_id == Sailor.id)
-                .where(TeamMembership.team_id == team_id)
-            )
-        ).scalars()
+async def _team_sailors(session: AsyncSession, team_ids: list[int]) -> dict[int, list[Sailor]]:
+    """The members of each of these teams, in one query."""
+    out: dict[int, list[Sailor]] = {}
+    rows = await session.execute(
+        select(TeamMembership.team_id, Sailor)
+        .join(Sailor, TeamMembership.sailor_id == Sailor.id)
+        .where(TeamMembership.team_id.in_(team_ids))
     )
+    for team_id, sailor in rows:
+        out.setdefault(team_id, []).append(sailor)
+    return out
 
 
 async def _squad_people(
