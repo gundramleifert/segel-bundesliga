@@ -280,9 +280,15 @@ the contract.
 **Backend** (`api/app/problems.py`): a router raises `Problem(status, code, title, **extra)`
 — never a `tr(locale, …)` sentence for a typed error. `title` is a fixed English summary
 of the *type* (a fallback, and useful in logs); extension members carry the specifics.
-Plain `HTTPException` and request-validation failures are also rendered as `problem+json`
-with a generic `type` (`/errors/http-409`, `/errors/validation`) while keeping `detail`
-where clients already read it — routers adopt real codes one at a time. The waiver router
+No router or guard raises a plain `HTTPException` — ruff's banned-api rule
+(`TID251` in `api/pyproject.toml`) refuses the import outside `app/main.py`. A load by id
+is `app/services/lookup.get_or_404` (`<model>-not-found`); the guards in `app/auth.py`
+answer `not-signed-in`, `session-expired`, `token-invalid`, `account-inactive` (401) and
+`forbidden` (403, with the relations that would have passed as `required`). What the
+framework itself raises — an unknown route, a wrong method — and request-validation
+failures are still `problem+json`, with a generic `type` (`/errors/http-404`,
+`/errors/validation`). The OpenAPI document declares these responses on every operation
+as `ProblemDetails` (`app.problems.declare_problems`). The waiver router
 (`app/routers/waivers.py`) is the worked example.
 
 **Frontend** (`web/src/api/problems.ts`): `describeProblem()` turns a problem into a

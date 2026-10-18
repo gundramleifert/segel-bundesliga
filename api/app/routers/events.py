@@ -14,17 +14,16 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import authz
-from app.auth import current_user, require_event_control, require_event_manager_for
+from app.auth import current_user, forbidden, require_event_control, require_event_manager_for
 from app.authz import ObjectRef
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.live import event_topic, hub
 from app.models import (
     Boat,
@@ -39,10 +38,10 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.models.racing import BOAT_COLORS
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
+from app.problems import Problem
 from app.routers.public import _EVENT_LOAD, _event_out, search_events
 from app.schemas.public import ClubOut, EventOut
 from app.services import (
-    ParticipationError,
     adopt_series_registrations,
     candidate_clubs,
     check_squad_limits,
@@ -246,13 +245,7 @@ async def list_all_events(
     if not acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
         reach = _reach_of(acting)
         if reach is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=(
-                    "You lack the permission for this. "
-                    "Required role(s): admin, editor, race_officer"
-                ),
-            )
+            raise forbidden("this", [Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER])
         stmt = stmt.where(reach)
     events, total = await paginate(
         session,
@@ -269,7 +262,6 @@ async def create_event(
     request: EventCreate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> EventOut:
     """Create an event — Stories A-4, VA-6 and VA-8.
 
@@ -297,16 +289,9 @@ async def create_event(
             matchday=request.matchday,
         )
     except MatchdayTaken as taken:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=str(taken),
-                de=f"In dieser Serie gibt es den {taken.matchday}. Act schon.",
-            ),
-        ) from taken
+        raise Problem(409, "matchday-taken", str(taken), matchday=taken.matchday) from taken
     except NoFreeSlug as exhausted:
-        raise HTTPException(status_code=409, detail=str(exhausted)) from exhausted
+        raise Problem(409, "slug-exhausted", str(exhausted)) from exhausted
 
     check_squad_limits(request.squad_min, request.squad_max)
     event = Event(
@@ -348,7 +333,6 @@ async def update_event(
     event_id: int,
     request: EventUpdate,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> EventOut:
     """Change an event — Story VA-8.
 
@@ -383,14 +367,7 @@ async def update_event(
         and event.ends_on is not None
         and event.ends_on < event.starts_on
     ):
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en="End date cannot be before start date.",
-                de="Das Ende darf nicht vor dem Beginn liegen.",
-            ),
-        )
+        raise Problem(422, "event-dates-inverted", "End date cannot be before start date.")
 
     await session.commit()
     # After the commit, like every event mutation: a viewer refetching earlier would read
@@ -609,21 +586,12 @@ async def _set_published(session: AsyncSession, event_id: int, published: bool) 
 async def _event(session: AsyncSession, event_id: int) -> Event:
     # `get`, not a select: a route guard (`require_on_event`) loaded it into this session
     # already, and `get` answers from there.
-    event = await session.get(Event, event_id)
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Matchday {event_id} not found")
+    event = await get_or_404(session, Event, event_id)
     return event
 
 
 async def _series(session: AsyncSession, series_id: int) -> Series:
-    series = (
-        await session.execute(select(Series).where(Series.id == series_id))
-    ).scalar_one_or_none()
-    if series is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Series {series_id} is not set up. Create the series first.",
-        )
+    series = await get_or_404(session, Series, series_id)
     return series
 
 
@@ -633,7 +601,7 @@ async def _check_club(session: AsyncSession, club_id: int | None) -> None:
     if (
         await session.execute(select(Club.id).where(Club.id == club_id))
     ).scalar_one_or_none() is None:
-        raise HTTPException(status_code=404, detail=f"Club {club_id} is not known.")
+        raise Problem(404, "club-not-found", f"Club {club_id} is not known.", id=club_id)
 
 
 async def _check_venue(session: AsyncSession, venue_id: int | None) -> None:
@@ -642,7 +610,7 @@ async def _check_venue(session: AsyncSession, venue_id: int | None) -> None:
     if (
         await session.execute(select(Venue.id).where(Venue.id == venue_id))
     ).scalar_one_or_none() is None:
-        raise HTTPException(status_code=404, detail=f"Venue {venue_id} is not known.")
+        raise Problem(404, "venue-not-found", f"Venue {venue_id} is not known.", id=venue_id)
 
 
 async def _with_relationships(session: AsyncSession, event_id: int) -> Event:
@@ -716,7 +684,6 @@ async def set_participants(
     event_id: int,
     request: ParticipantSetRequest,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> list[ParticipantOut]:
     """Sets the clubs entering this event.
 
@@ -741,27 +708,18 @@ async def set_participants(
             team.status = TeamStatus.ACCEPTED
             continue
         if await has_results(session, team):
-            de_msg = (
-                "Dieser Verein lässt sich nicht herausnehmen: "
-                "es liegen bereits Wettfahrtergebnisse vor."
-            )
-            raise HTTPException(
-                status_code=409,
-                detail=tr(
-                    locale,
-                    en="This club cannot be removed: race results already exist.",
-                    de=de_msg,
-                ),
+            raise Problem(
+                409,
+                "participation-has-results",
+                "This club cannot be removed: race results already exist.",
+                club_id=club_id,
             )
         await session.delete(team)
 
     for club_id, club in desired.items():
         if club_id in existing:
             continue
-        try:
-            await new_event_entry(session, event, club)
-        except ParticipationError as error:
-            raise HTTPException(status_code=422, detail=str(error)) from error
+        await new_event_entry(session, event, club)
 
     await session.commit()
     return await _participants_out(session, event.id)
@@ -792,7 +750,9 @@ async def _clubs(session: AsyncSession, club_ids: list[int]) -> list[Club]:
     }
     missing = [club_id for club_id in unique if club_id not in found]
     if missing:
-        raise HTTPException(status_code=404, detail=f"These clubs do not exist: {missing}")
+        raise Problem(
+            404, "clubs-not-found", f"These clubs do not exist: {missing}", club_ids=missing
+        )
     return [found[club_id] for club_id in unique]
 
 
@@ -836,16 +796,12 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
     ):
         return
     if host_club_id is not None and authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only host events for your own club.",
-        )
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail=(
-            "Events are created by administration, editorial, race officers, and the "
-            "host club's leadership."
-        ),
+        raise Problem(403, "host-club-not-mine", "You can only host events for your own club.")
+    raise Problem(
+        403,
+        "event-create-forbidden",
+        "Events are created by administration, editorial, race officers, and the "
+        "host club's leadership.",
     )
 
 

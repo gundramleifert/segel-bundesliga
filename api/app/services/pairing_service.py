@@ -16,11 +16,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus, Team
 from app.pairing import BoatSpec, ImportedPairing, PairingSlot, logistics_report, pairing_report
 from app.pairing.pdf import PdfRequest, PrintSettings
+from app.problems import Problem
 from app.services.participation import event_entries
 
 
-class PairingPublishError(RuntimeError):
-    """This pairing list cannot be published as it stands."""
+class PairingPublishError(Problem):
+    """This pairing list cannot be published as it stands — a typed 409."""
+
+    def __init__(self, code: str, title: str, **extra: object) -> None:
+        super().__init__(409, code, title, **extra)
 
 
 class TeamNotInPairing(RuntimeError):
@@ -55,7 +59,10 @@ class PairingDraft:
     def from_import(cls, pairing: ImportedPairing, team_ids: list[int]) -> PairingDraft:
         if len(team_ids) != len(pairing.teams):
             raise PairingPublishError(
-                f"The list names {len(pairing.teams)} teams, but {len(team_ids)} were mapped"
+                "pairing-team-mapping-mismatch",
+                f"The list names {len(pairing.teams)} teams, but {len(team_ids)} were mapped",
+                listed=len(pairing.teams),
+                mapped=len(team_ids),
             )
         return cls(
             team_ids=team_ids,
@@ -153,14 +160,20 @@ async def publish_pairing(
     already_sailed = await sailed_races(session, event.id)
     if already_sailed:
         raise PairingPublishError(
+            "pairing-has-results",
             f"This matchday already has results from {already_sailed} races. "
-            "A new draw would discard them."
+            "A new draw would discard them.",
+            races_sailed=already_sailed,
         )
 
     known_teams = {team.id for team in await event_entries(session, event.id)}
     unknown = [team_id for team_id in draft.team_ids if team_id not in known_teams]
     if unknown:
-        raise PairingPublishError(f"These teams are not entered in this event: {unknown}")
+        raise PairingPublishError(
+            "pairing-teams-not-entered",
+            f"These teams are not entered in this event: {unknown}",
+            team_ids=unknown,
+        )
 
     await _clear_pairing(session, event.id)
 

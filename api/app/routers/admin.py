@@ -4,14 +4,13 @@ enter and correct race results (Story WL-2).
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import require_admin, require_event_officer
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.jobs import Job, JobStatus, jobs
 from app.live import event_topic, hub
 from app.models import Event
@@ -65,7 +64,6 @@ from app.services.audit import EntityType, audit
 from app.services.lookup import get_or_404
 from app.services.pairing_service import (
     PairingDraft,
-    PairingPublishError,
     PublishedPairing,
     publish_pairing,
 )
@@ -97,7 +95,6 @@ async def start_pairing_job(
     event_id: int,
     request: PairingJobRequest,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> JobOut:
     """Starts the computation in the background.
 
@@ -114,29 +111,20 @@ async def start_pairing_job(
     await require_ready(session, event, ignore={CATALOG_REASON})
     teams = await event_entries(session, event.id)
     if len(teams) < request.boats:
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en=f"Only {len(teams)} teams registered, but {request.boats} boats.",
-                de=f"Nur {len(teams)} Teams gemeldet, aber {request.boats} Boote.",
-            ),
+        raise Problem(
+            422,
+            "pairing-too-few-teams",
+            f"Only {len(teams)} teams registered, but {request.boats} boats.",
+            teams=len(teams),
+            boats=request.boats,
         )
     if len(teams) % request.boats:
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en=(
-                    f"{len(teams)} teams cannot be evenly distributed across {request.boats} "
-                    "boats. The tool pads with empty slots — we're not prepared for that yet."
-                ),
-                de=(
-                    f"{len(teams)} Teams lassen sich nicht gleichmäßig auf {request.boats} "
-                    "Boote verteilen. Das Werkzeug füllt dann mit Leerplätzen auf — dafür ist "
-                    "die Liste bei uns noch nicht vorgesehen."
-                ),
-            ),
+        raise Problem(
+            422,
+            "pairing-uneven-teams",
+            f"{len(teams)} teams cannot be evenly distributed across {request.boats} boats.",
+            teams=len(teams),
+            boats=request.boats,
         )
 
     team_ids = [team.id for team in teams]
@@ -169,17 +157,10 @@ async def start_pairing_job(
     dependencies=[Depends(require_admin)],
     summary="Job status",
 )
-async def get_job(job_id: str, locale: Locale = Depends(resolve_locale)) -> JobOut:
+async def get_job(job_id: str) -> JobOut:
     job = jobs.get(job_id)
     if job is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en="This job does not exist (anymore).",
-                de="Diesen Auftrag gibt es nicht (mehr).",
-            ),
-        )
+        raise Problem(404, "job-not-found", "This job does not exist (anymore).")
     return _job_out(job)
 
 
@@ -189,17 +170,10 @@ async def get_job(job_id: str, locale: Locale = Depends(resolve_locale)) -> JobO
     dependencies=[Depends(require_admin)],
     summary="Cancel job",
 )
-async def cancel_job(job_id: str, locale: Locale = Depends(resolve_locale)) -> JobOut:
+async def cancel_job(job_id: str) -> JobOut:
     job = jobs.get(job_id)
     if job is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en="This job does not exist (anymore).",
-                de="Diesen Auftrag gibt es nicht (mehr).",
-            ),
-        )
+        raise Problem(404, "job-not-found", "This job does not exist (anymore).")
     jobs.cancel(job_id)
     return _job_out(job)
 
@@ -214,39 +188,22 @@ async def publish_job_result(
     event_id: int,
     request: PublishRequest,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> PublishResult:
     event = await get_or_404(session, Event, event_id)
     await require_editable_configuration(session, event.id)
     job = jobs.get(request.job_id)
     if job is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en="This job does not exist (anymore).",
-                de="Diesen Auftrag gibt es nicht (mehr).",
-            ),
-        )
+        raise Problem(404, "job-not-found", "This job does not exist (anymore).")
     if job.status != JobStatus.DONE:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=f"The job is not complete (status: {job.status}).",
-                de=f"Der Auftrag ist nicht abgeschlossen (Stand: {job.status}).",
-            ),
+        raise Problem(
+            409,
+            "job-not-complete",
+            f"The job is not complete (status: {job.status}).",
+            job_status=str(job.status),
         )
     draft = job.result
     if not isinstance(draft, PairingDraft):
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en="This job contains no pairing list.",
-                de="Dieser Auftrag enthält keine Pairing-Liste.",
-            ),
-        )
+        raise Problem(409, "job-without-pairing-list", "This job contains no pairing list.")
 
     return PublishResult(**(await _publish(session, event, draft))._asdict(), quality=draft.quality)
 
@@ -355,7 +312,6 @@ async def import_pairing(
     event_id: int,
     request: PairingImportRequest,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> PublishResult:
     """Imports a draw created elsewhere — the standard until now.
 
@@ -374,22 +330,17 @@ async def import_pairing(
     try:
         pairing = load_pairing_yaml(request.schedule_config, request.pairing_list)
     except PairingImportError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+        raise Problem(
+            422, "pairing-import-invalid", "The pairing list could not be read.", detail=str(exc)
+        ) from exc
 
     if len(pairing.teams) != len(teams):
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en=(
-                    f"The list names {len(pairing.teams)} teams, {len(teams)} are registered. "
-                    "First reconcile the registrations, then import the draw."
-                ),
-                de=(
-                    f"Die Liste nennt {len(pairing.teams)} Teams, gemeldet sind {len(teams)}. "
-                    "Erst die Meldungen abgleichen, dann die Auslosung übernehmen."
-                ),
-            ),
+        raise Problem(
+            422,
+            "pairing-import-team-count",
+            f"The list names {len(pairing.teams)} teams, {len(teams)} are registered.",
+            listed=len(pairing.teams),
+            registered=len(teams),
         )
 
     draft = PairingDraft.from_import(pairing, [team.id for team in teams])
@@ -761,12 +712,13 @@ async def _teams_of_event(session: AsyncSession, event_id: int) -> dict[int, Tea
 
 
 async def _publish(session: AsyncSession, event: Event, draft: PairingDraft) -> PublishedPairing:
+    # A list that cannot be published is a typed 409 (`PairingPublishError`).
     try:
         created = await publish_pairing(session, event, draft)
-    except PairingPublishError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
     except PairingGeneratorError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+        raise Problem(
+            503, "pairing-generator-failed", "The pairing tool failed.", detail=str(exc)
+        ) from exc
     await session.commit()
     # A new pairing list changes who is on which boat — the running-race view and the
     # pairing tab both read it. After the commit (Story B-5).

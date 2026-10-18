@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -23,13 +23,13 @@ from app.auth import current_user, require_master_data
 from app.authz import ObjectRef
 from app.crests import delete_crest, save_crest
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Series, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import current_year
+from app.services.lookup import get_or_404
 from app.services.registrations import Registration, RegistrationHasResults, sync_registrations
 from app.text import slugify
 
@@ -171,7 +171,6 @@ async def set_series(
     club_id: int,
     request: SeriesAssignment,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> ClubAdminOut:
     """Sets the series in which the club participates.
 
@@ -179,27 +178,11 @@ async def set_series(
     "DSBL 2027" — a new assignment is needed there. An assignment under which racing has
     already occurred cannot be removed; results depend on it.
     """
-    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
-    if club is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"),
-        )
+    club = await get_or_404(session, Club, club_id)
 
     desired: dict[int, Series] = {}
     for series_id in dict.fromkeys(request.series):
-        series = (
-            await session.execute(select(Series).where(Series.id == series_id))
-        ).scalar_one_or_none()
-        if series is None:
-            raise HTTPException(
-                status_code=404,
-                detail=tr(
-                    locale,
-                    f"Series {series_id} not found",
-                    f"Serie {series_id} nicht gefunden",
-                ),
-            )
+        series = await get_or_404(session, Series, series_id)
         desired[series.id] = series
 
     existing = (
@@ -212,19 +195,10 @@ async def set_series(
             (Registration(club.id, series_id, club.short_name) for series_id in desired),
         )
     except RegistrationHasResults:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                (
-                    "The assignment cannot be removed: this series already has"
-                    " race results for the club."
-                ),
-                (
-                    "Die Zuordnung lässt sich nicht aufheben: in dieser Serie"
-                    " liegen für den Verein bereits Wettfahrtergebnisse vor."
-                ),
-            ),
+        raise Problem(
+            409,
+            "registration-has-results",
+            "The assignment cannot be removed: this series already has race results for the club.",
         ) from None
     await session.commit()
     club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one()
@@ -235,18 +209,15 @@ async def set_series(
 async def create_club(
     request: ClubCreate,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> ClubAdminOut:
     """A new club — answered in the shape the admin list has, so a client needs one type."""
     slug = slugify(request.slug or request.short_name or request.name)
     if await _slug_taken(session, slug):
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                f"The URL '{slug}' is already taken. Please provide your own slug.",
-                f"Die Adresse '{slug}' ist schon vergeben. Bitte einen eigenen Slug angeben.",
-            ),
+        raise Problem(
+            409,
+            "slug-taken",
+            f"The URL '{slug}' is already taken. Please provide your own slug.",
+            slug=slug,
         )
 
     club = Club(
@@ -271,14 +242,8 @@ async def update_club(
     club_id: int,
     request: ClubUpdate,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> ClubAdminOut:
-    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
-    if club is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"),
-        )
+    club = await get_or_404(session, Club, club_id)
 
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(club, field, value.strip() if isinstance(value, str) else value)

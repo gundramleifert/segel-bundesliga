@@ -7,7 +7,7 @@ refusals to responses.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,13 +16,13 @@ from app import authz
 from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.models import Event, EventCrew, Sailor, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
+from app.problems import Problem
 from app.schemas.public import MemberOut
 from app.services import event_entry
-from app.services.lineup import LineupError, LineupMember, LineupRefusal, set_lineup
+from app.services.lineup import LineupMember, set_lineup
 from app.services.lookup import get_or_404
 
 router = APIRouter(prefix="/api/admin/events", tags=["administration"])
@@ -67,7 +67,6 @@ async def set_crew(
     request: SetCrewRequest,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> CrewOut:
     """Lines up a club's crew for this matchday.
 
@@ -86,18 +85,12 @@ async def set_crew(
 
     _check_permissions(acting, team, event)
 
-    try:
-        await set_lineup(
-            session,
-            event.id,
-            team,
-            [LineupMember(member.sailor_id, member.role) for member in request.members],
-        )
-    except LineupError as error:
-        detail = error.message
-        if error.reason is LineupRefusal.LINED_UP_TWICE:
-            detail = tr(locale, en=error.message, de="Eine Person ist doppelt aufgestellt.")
-        raise HTTPException(status_code=error.status, detail=detail) from error
+    await set_lineup(
+        session,
+        event.id,
+        team,
+        [LineupMember(member.sailor_id, member.role) for member in request.members],
+    )
 
     await session.commit()
     return await _crew_out(session, event, team.id)
@@ -116,10 +109,7 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
 
     found = await event_entry(session, event.id, team.club_id)
     if found is None or found.status != TeamStatus.ACCEPTED:
-        raise HTTPException(
-            status_code=422,
-            detail="This club does not participate in this event.",
-        )
+        raise Problem(422, "club-not-in-event", "This club does not participate in this event.")
     return found
 
 
@@ -130,13 +120,12 @@ def _check_permissions(acting: User, team: Team, event: Event) -> None:
         return
     if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
         return
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail=(
-            "You can only line up your own team."
-            if authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
-            else "Lineup can be set by club officials, administration, and race officers."
-        ),
+    if authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
+        raise Problem(403, "lineup-not-own-team", "You can only line up your own team.")
+    raise Problem(
+        403,
+        "lineup-forbidden",
+        "Lineup can be set by club officials, administration, and race officers.",
     )
 
 

@@ -160,7 +160,7 @@ class TestCreateEvent:
             },
         )
         assert response.status_code == 403
-        assert "own club" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/host-club-not-mine"
 
     async def test_account_without_role_cannot_create_event(self, client, caplog):
         headers = auth_headers(await register(client, caplog, "va7@example.com", "Otto Nobody"))

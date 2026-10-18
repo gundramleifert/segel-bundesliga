@@ -156,7 +156,7 @@ class TestCreatingSailors:
 
         second = await client.post("/api/admin/sailors", headers=header, json=data)
         assert second.status_code == 409
-        assert "unique" in second.json()["detail"]
+        assert second.json()["type"] == "/errors/email-taken"
 
     async def test_an_account_without_a_role_creates_nobody(self, client, caplog):
         header = await as_role(client, caplog, "sg5@example.com")

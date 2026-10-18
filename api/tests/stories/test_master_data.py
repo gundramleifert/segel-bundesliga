@@ -66,7 +66,7 @@ class TestClubCreation:
 
         second = await client.post("/api/admin/clubs", headers=headers, json=data)
         assert second.status_code == 409
-        assert "taken" in second.json()["detail"]
+        assert second.json()["type"] == "/errors/slug-taken"
 
 
 class TestCreatingAMatchday:

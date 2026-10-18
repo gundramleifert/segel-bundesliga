@@ -41,10 +41,21 @@ target-version = "py312"
 extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+select = ["E", "F", "I", "UP", "B", "TID251"]
 # B008 verbietet Funktionsaufrufe in Argument-Defaults. Bei FastAPI ist genau das die
 # vorgesehene Schreibweise für Depends() und Query() — hier also ein Fehlalarm.
 ignore = ["B008"]
+
+# Every error is a typed RFC 9457 problem (app/problems.py): a plain HTTPException
+# would reach the client as the generic `/errors/http-<status>` no screen can word.
+# app/main.py is the one place that names it — to render the framework's own as problems.
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"fastapi.HTTPException".msg = "Raise app.problems.Problem(status, code, title) instead."
+"fastapi.exceptions.HTTPException".msg = "Raise app.problems.Problem(status, code, title) instead."
+"starlette.exceptions.HTTPException".msg = "Raise app.problems.Problem(status, code, title) instead."
+
+[tool.ruff.lint.per-file-ignores]
+"app/main.py" = ["TID251"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

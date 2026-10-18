@@ -19,7 +19,7 @@ import asyncio
 from datetime import date, datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, Query, UploadFile
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
@@ -48,6 +48,7 @@ from app.problems import Problem
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
 from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_sailor
+from app.services.lookup import get_or_404
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
     STATUS_CLEARED,
@@ -387,11 +388,7 @@ async def confirm_for_series(
     user_agent: str | None = Header(default=None),
 ) -> WaiverConfirmationOut:
     """One confirmation here counts for every event of the series."""
-    series = (
-        await session.execute(select(Series).where(Series.id == series_id))
-    ).scalar_one_or_none()
-    if series is None:
-        raise HTTPException(status_code=404, detail=f"Series {series_id} not found")
+    series = await get_or_404(session, Series, series_id)
 
     return await _confirm(
         session,
@@ -417,9 +414,7 @@ async def confirm_for_event(
     acting: User = Depends(current_user),
     user_agent: str | None = Header(default=None),
 ) -> WaiverConfirmationOut:
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+    event = await get_or_404(session, Event, event_id)
 
     return await _confirm(
         session,
@@ -558,9 +553,7 @@ async def event_waivers(
     One row per person in the participating squads: cleared, missing, or (for a minor)
     waiting on the guardian's signature.
     """
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+    event = await get_or_404(session, Event, event_id)
 
     # The event's manager includes its host club's (the model's `manager from host_club`).
     if not authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event):
@@ -603,9 +596,7 @@ async def club_waivers(
     (its waiver covers every matchday) and each entry in an event that belongs to no
     series. The status is the one the sailor's own page and the check-in list show.
     """
-    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
-    if club is None:
-        raise HTTPException(status_code=404, detail=f"Club {club_id} not found")
+    club = await get_or_404(session, Club, club_id)
     if not acting.can(Relation.MANAGER, on=club):
         raise Problem(
             403,
@@ -676,11 +667,7 @@ async def _confirm(
     scope_id: int,
     reference_date: date,
 ) -> WaiverConfirmationOut:
-    sailor = (
-        await session.execute(select(Sailor).where(Sailor.id == request.sailor_id))
-    ).scalar_one_or_none()
-    if sailor is None:
-        raise HTTPException(status_code=404, detail=f"Sailor {request.sailor_id} not found")
+    sailor = await get_or_404(session, Sailor, request.sailor_id)
 
     capacity = await _may_confirm_for(session, acting, sailor)
 
@@ -797,26 +784,16 @@ async def _confirm(
 
 
 async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
-    sailor = (
-        await session.execute(select(Sailor).where(Sailor.id == sailor_id))
-    ).scalar_one_or_none()
-    if sailor is None:
-        raise HTTPException(status_code=404, detail=f"Sailor {sailor_id} not found")
+    sailor = await get_or_404(session, Sailor, sailor_id)
     return sailor
 
 
 async def _scope(session: AsyncSession, scope: Scope, scope_id: int) -> tuple[str, date]:
     """The competition's display name and the date a sailor's age is judged against."""
     if scope == "series":
-        series = (
-            await session.execute(select(Series).where(Series.id == scope_id))
-        ).scalar_one_or_none()
-        if series is None:
-            raise HTTPException(status_code=404, detail=f"Series {scope_id} not found")
+        series = await get_or_404(session, Series, scope_id)
         return series.name, series_reference_date(series)
-    event = (await session.execute(select(Event).where(Event.id == scope_id))).scalar_one_or_none()
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Event {scope_id} not found")
+    event = await get_or_404(session, Event, scope_id)
     return event.title, event_reference_date(event)
 
 
