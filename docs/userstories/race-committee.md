@@ -214,7 +214,8 @@ positions from the manual inputs (tap-assignment cannot produce one by construct
 in the UI and block Save immediately, ahead of the existing
 `/errors/race-result-duplicate-position` server-side check.
 
-Tests: `api/tests/stories/test_result_entry.py::TestEnteringResults`
+Tests: `api/tests/stories/test_result_entry.py::TestEnteringResults`,
+`api/tests/unit/test_results.py`
 
 ### WL-4 ◐ Penalty points for a team on a matchday
 As **race committee** I want to **give a team penalty points for the matchday as a
