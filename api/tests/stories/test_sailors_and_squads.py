@@ -8,7 +8,9 @@ The rule in focus here: Sailing for multiple clubs is allowed, but **within a se
 a person competes only once.
 """
 
+import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.db import SessionLocal
 from app.models import Club, Event, Sailor, Series, Team, TeamMembership
@@ -154,7 +156,7 @@ class TestCreatingSailors:
 
         second = await client.post("/api/admin/sailors", headers=header, json=data)
         assert second.status_code == 409
-        assert "unique" in second.json()["detail"]
+        assert second.json()["type"] == "/errors/email-taken"
 
     async def test_an_account_without_a_role_creates_nobody(self, client, caplog):
         header = await as_role(client, caplog, "sg5@example.com")
@@ -296,6 +298,21 @@ class TestSquadRefusalsAreTyped:
         problem = response.json()
         assert problem["type"] == "/errors/squad-duplicate-sailor"
         assert problem["sailor_ids"] == [sailor]
+
+    async def test_the_database_refuses_the_same_person_twice_too(self, client, caplog):
+        """V-1: the router's refusal is the polite half; the unique constraint on
+        `(team_id, sailor_id)` holds for every other writer (an import, the seed)."""
+        admin = await as_role(client, caplog, "typed-db@example.com", Role.ADMIN)
+        team_id, _ = await series_registration()
+        sailor = (await self._new_sailors(client, admin, 1, "DupDb"))[0]
+
+        async with SessionLocal() as session:
+            session.add_all(
+                TeamMembership(team_id=team_id, sailor_id=sailor, role=role)
+                for role in ("helm", "crew")
+            )
+            with pytest.raises(IntegrityError):
+                await session.commit()
 
     async def test_already_sailing_for_another_club_names_both(self, client, caplog):
         admin = await as_role(client, caplog, "typed2@example.com", Role.ADMIN)

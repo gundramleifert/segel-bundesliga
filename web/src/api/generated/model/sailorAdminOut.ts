@@ -16,6 +16,7 @@ export interface SailorAdminOut {
   last_name: string;
   email?: string | null;
   birth_date?: string | null;
+  profile_public?: boolean;
   squads?: number;
   registrations?: SailorRegistrationOut[];
 }

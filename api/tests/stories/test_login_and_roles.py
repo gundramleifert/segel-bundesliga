@@ -144,7 +144,7 @@ class TestRoles:
 
         response = await client.get("/api/auth/users", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 403
-        assert "lack the permission" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/forbidden"
 
     async def test_administration_can_create_accounts_and_grant_roles(self, client, caplog):
         """Admin can create accounts and assign roles."""
@@ -259,7 +259,7 @@ class TestRemoveAccount:
             headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 409
-        assert "own account" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/account-self-removal"
 
     async def test_only_admin_can_remove_an_account(self, client, caplog):
         await make_user("rm-editor@example.org", Role.EDITOR)

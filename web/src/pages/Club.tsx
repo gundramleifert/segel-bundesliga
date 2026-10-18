@@ -6,6 +6,7 @@ import { useGetClub, useListClubMembers } from "../api/generated/sbl";
 import type { ClubDetail, ClubMemberSummary, Member } from "../api/types";
 import { useAsync, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
+import { SailorName } from "../components/SailorName";
 import { locationText, roleText, eventDates } from "../lib/format";
 
 type ClubEvent = NonNullable<NonNullable<ClubDetail["teams"]>[number]["events"]>[number];
@@ -193,13 +194,10 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
               crew.map((member, index) => (
                 <span key={member.id}>
                   {index > 0 && ", "}
-                  <Link
-                    to={`/sailors/${member.id}`}
-                    data-testid={`club-crew-link-${event.id}-${member.id}`}
-                    className="underline-offset-2 hover:underline"
-                  >
-                    {member.first_name} {member.last_name}
-                  </Link>
+                  <SailorName
+                    member={member}
+                    testId={`club-crew-link-${event.id}-${member.id}`}
+                  />
                 </span>
               ))
             ) : (
@@ -230,13 +228,11 @@ function Squad({ members }: { members: Member[] }) {
           data-testid={`club-squad-row-${member.id}`}
           className="flex items-center justify-between gap-3 py-2"
         >
-          <Link
-            to={`/sailors/${member.id}`}
-            data-testid={`club-squad-link-${member.id}`}
-            className="font-medium underline-offset-2 hover:underline"
-          >
-            {member.first_name} {member.last_name}
-          </Link>
+          <SailorName
+            member={member}
+            testId={`club-squad-link-${member.id}`}
+            className="font-medium"
+          />
           <span className="shrink-0 text-slate-500">{roleText(member.role)}</span>
         </li>
       ))}

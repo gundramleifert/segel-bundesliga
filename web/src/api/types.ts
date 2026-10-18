@@ -21,6 +21,8 @@ export type { SeriesTable } from "./generated/model/seriesTable";
 export type { SeriesStandingRow as SeriesRow } from "./generated/model/seriesStandingRow";
 export type { EventOut as EventSummary } from "./generated/model/eventOut";
 export type { EventDetail } from "./generated/model/eventDetail";
+/** Story WL-3: what the person asking may do on one event — gates the committee's tools. */
+export type { EventAccess } from "./generated/model/eventAccess";
 export type { EventStandingRow as StandingRow } from "./generated/model/eventStandingRow";
 /** Story B-12: one team entered in a matchday, and the crew sailing it there. */
 export type { TeamCrewOut as TeamCrew } from "./generated/model/teamCrewOut";
@@ -93,10 +95,29 @@ export type { TokenOut } from "./generated/model/tokenOut";
 export { ApiError } from "./http";
 /** Stories S-5, S-6: a person's own documents and bank account. */
 export type { PersonalDocumentOut as PersonalDocument } from "./generated/model/personalDocumentOut";
-export type { DocumentKind } from "./generated/model/documentKind";
+export { DocumentKind } from "./generated/model/documentKind";
 export type { BankAccountOut as BankAccount } from "./generated/model/bankAccountOut";
 /** Stories F-2 to F-6: an expense claim, its items, and what it may be filed on. */
 export type { ClaimOut as Claim } from "./generated/model/claimOut";
 export type { ItemOut as ClaimItem } from "./generated/model/itemOut";
 export type { ClaimTarget } from "./generated/model/claimTarget";
-export type { ExpenseKind } from "./generated/model/expenseKind";
+export { ExpenseKind } from "./generated/model/expenseKind";
+
+/** The closed sets the backend types as enums. Each is a type *and* a constant object
+ *  (`EventStatus.live`), so a comparison names a member the compiler knows — a typo or a
+ *  renamed value is a build error rather than a branch that silently never runs. */
+export { EventStatus } from "./generated/model/eventStatus";
+export { RaceStatus } from "./generated/model/raceStatus";
+export { RaceSignal } from "./generated/model/raceSignal";
+export { PreparatoryFlag } from "./generated/model/preparatoryFlag";
+export { ResultCode } from "./generated/model/resultCode";
+export { MarkRole } from "./generated/model/markRole";
+export { CrewRole } from "./generated/model/crewRole";
+export { WaiverStatus } from "./generated/model/waiverStatus";
+export { Role } from "./generated/model/role";
+export { Relation } from "./generated/model/relation";
+export { ObjectType } from "./generated/model/objectType";
+export { WaiverMethod } from "./generated/model/waiverMethod";
+export { ClaimStatus } from "./generated/model/claimStatus";
+export { PaymentState } from "./generated/model/paymentState";
+export { PaymentStatus } from "./generated/model/paymentStatus";

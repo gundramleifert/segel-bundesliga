@@ -82,12 +82,30 @@ class Sailor(Base, TimestampMixin):
     birth_date: Mapped[date | None] = mapped_column(Date, default=None)
     # DSV sailing number or similar — personal data, see the deletion policy.
     federation_id: Mapped[str | None] = mapped_column(String(40), default=None, index=True)
+    # Story S-4: the sailor's own choice whether their profile page is public. Empty means
+    # "never chosen" — then the default follows age (`profile_public`), so a minor's page
+    # starts hidden and opens by itself on the eighteenth birthday unless they decided.
+    # Only the sailor's own account writes this (`PATCH /api/sailors/me`).
+    profile_public_choice: Mapped[bool | None] = mapped_column(default=None)
 
     memberships: Mapped[list[TeamMembership]] = relationship(back_populates="sailor")
 
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def profile_public(self) -> bool:
+        """Whether the profile page is public (Story S-4): the sailor's choice, else by age.
+
+        No birth date counts as an adult here — guessing "minor" would hide most people
+        on record, and the switch is the sailor's to turn off either way.
+        """
+        if self.profile_public_choice is not None:
+            return self.profile_public_choice
+        from app.services.waivers import is_minor  # the services import the models
+
+        return is_minor(self.birth_date, date.today()) is not True
 
 
 class Team(Base, TimestampMixin):
@@ -172,6 +190,9 @@ class Team(Base, TimestampMixin):
 
 class TeamMembership(Base, TimestampMixin):
     __tablename__ = "team_membership"
+    # A person is on a squad once — the router says so politely
+    # (`squad-duplicate-sailor`), this makes it true for every other writer too.
+    __table_args__ = (UniqueConstraint("team_id", "sailor_id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     team_id: Mapped[int] = mapped_column(ForeignKey("team.id"), index=True)

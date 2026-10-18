@@ -18,9 +18,10 @@ from sqlalchemy.orm import selectinload
 
 from app import authz
 from app.authz import ObjectRef
-from app.models import AuditLog, Club, Event, Sailor, Series
+from app.models import Club, Event, Sailor, Series
 from app.models.auth import GRANT_COLUMN, Grant, ObjectType, Relation, User, grant_names, writable
 from app.problems import Problem
+from app.services.audit import EntityType, audit
 
 _TABLES = {
     ObjectType.CLUB: Club,
@@ -112,7 +113,10 @@ async def grant(
     # Change the collection, not a bare INSERT — otherwise the in-memory user still
     # looks role-less to the response built afterwards (expire_on_commit is off).
     target.grants.append(row)
-    session.add(_audit("grant", target, relation, object_type, object_id, actor))
+    audit(
+        session, EntityType.USER, target.id, "grant", actor,
+        relation=str(relation), object_type=object_type.value, object_id=object_id,
+    )  # fmt: skip
     return row
 
 
@@ -164,7 +168,10 @@ async def revoke(session: AsyncSession, target: User, row: Grant, *, actor: User
     # Reassign the collection so the in-memory user is consistent for the response;
     # delete-orphan cascade removes the dropped row on flush.
     target.grants = [g for g in target.grants if g is not row]
-    session.add(_audit("revoke", target, row.relation, row.object_type, row.object_id, actor))
+    audit(
+        session, EntityType.USER, target.id, "revoke", actor,
+        relation=str(row.relation), object_type=row.object_type.value, object_id=row.object_id,
+    )  # fmt: skip
 
 
 async def revoke_row(session: AsyncSession, row: Grant, *, actor: User) -> None:
@@ -263,24 +270,3 @@ def may_administer(
     things up; naming people is the admin's. A sailor's admin is the site's alone: the
     child's club links a guardian through its own endpoints (Story V-13)."""
     return acting.can(Relation.ADMIN, on=obj if obj is not None else authz.SITE)
-
-
-def _audit(
-    action: str,
-    target: User,
-    relation: str,
-    object_type: ObjectType,
-    object_id: int | None,
-    actor: User | None,
-) -> AuditLog:
-    return AuditLog(
-        entity_type="user",
-        entity_id=target.id,
-        action=action,
-        actor=actor.email if actor is not None else "system",
-        payload={
-            "relation": str(relation),
-            "object_type": object_type.value,
-            "object_id": object_id,
-        },
-    )

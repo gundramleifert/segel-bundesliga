@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getGetClaimDocumentUrl } from "../api/generated/sbl";
-import type { Claim, ClaimItem } from "../api/types";
+import { ClaimStatus, PaymentState, type Claim, type ClaimItem } from "../api/types";
 import { errorText } from "../lib/admin";
 import { openFile } from "../lib/files";
 import { formatDate, formatMoney } from "../lib/format";
@@ -18,7 +18,7 @@ import { Badge, type BadgeTone } from "./Blocks";
  * takes.
  */
 
-const STATUS_TONE: Record<string, BadgeTone> = {
+const STATUS_TONE: Record<ClaimStatus | typeof PaymentState.paid, BadgeTone> = {
   draft: "neutral",
   submitted: "warning",
   returned: "caution",
@@ -32,14 +32,14 @@ const STATUS_TONE: Record<string, BadgeTone> = {
  *  claimant actually wants to know. */
 export function ClaimStatusBadge({ claim, testId }: { claim: Claim; testId?: string }) {
   const { t } = useTranslation("space");
-  const paid = claim.payment_state === "paid";
+  const paid = claim.payment_state === PaymentState.paid;
   const label =
-    claim.status === "approved" && claim.payment_state
+    claim.status === ClaimStatus.approved && claim.payment_state
       ? `${t(`statuses.${claim.status}`)} · ${t(`paymentStates.${claim.payment_state}`)}`
       : t(`statuses.${claim.status}`);
   return (
     <Badge
-      tone={STATUS_TONE[paid ? "paid" : claim.status] ?? "neutral"}
+      tone={STATUS_TONE[paid ? PaymentState.paid : claim.status]}
       testId={testId ?? `claim-status-${claim.id}`}
       data-status={claim.status}
       data-payment-state={claim.payment_state ?? undefined}
@@ -55,7 +55,7 @@ export function ClaimSummary({ claim }: { claim: Claim }) {
   const parts = [
     claim.event_title ?? claim.club_name,
     t("claims.claimed", { amount: formatMoney(claim.claimed_cents) }),
-    claim.status === "approved" ? t("claims.approved", { amount: formatMoney(claim.approved_cents) }) : null,
+    claim.status === ClaimStatus.approved ? t("claims.approved", { amount: formatMoney(claim.approved_cents) }) : null,
     claim.paid_cents > 0 ? t("claims.paid", { amount: formatMoney(claim.paid_cents) }) : null,
   ];
   return <p className="text-xs text-slate-500">{parts.filter(Boolean).join(" · ")}</p>;

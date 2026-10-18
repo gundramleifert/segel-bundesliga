@@ -45,6 +45,17 @@ class TestLeagueSeason:
         assert second["series"][0]["level"] == 2
         assert (await client.get("/api/leagues/dsbl")).status_code == 404
 
+    async def test_the_season_names_its_clubs(self, client, ids):
+        """B-14: each series carries its registered clubs, the season all of them once."""
+        season = (await client.get("/api/leagues/1-liga")).json()
+        table = (await client.get(f"/api/series/{ids.series('dsbl-1-2026')}/table")).json()
+
+        series_clubs = {club["id"] for club in season["series"][0]["clubs"]}
+        assert series_clubs == {row["team"]["club"]["id"] for row in table["rows"]}
+        assert {club["id"] for club in season["clubs"]} == series_clubs
+        names = [club["name"] for club in season["clubs"]]
+        assert names == sorted(names)
+
     async def test_an_unknown_league_is_not_found(self, client):
         response = await client.get("/api/leagues/no-such-league")
         assert response.status_code == 404

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useDeleteTuple, useListClubMembers } from "../api/generated/sbl";
-import type { MyClub } from "../api/types";
+import { ObjectType, Relation, type MyClub } from "../api/types";
 import { useAccount, useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { AccessPanel } from "./AccessPanel";
@@ -42,7 +42,7 @@ export function ClubMembersPanel({
   const [leaving, setLeaving] = useState(false);
 
   const own = account?.tuples.find(
-    (row) => row.object_type === "club" && row.object_id === clubId && row.relation === "member",
+    (row) => row.object_type === ObjectType.club && row.object_id === clubId && row.relation === Relation.member,
   );
   const refresh = () => invalidate("/api/clubs/mine", `/api/clubs/${clubId}/members`, "/api/auth/me", "/api/me/contexts");
   const leave = useDeleteTuple({
@@ -76,7 +76,7 @@ export function ClubMembersPanel({
                     >
                       <span className="min-w-0 flex-1 truncate">{member.display_name}</span>
                       {(member.relations ?? [])
-                        .filter((relation) => relation !== "member")
+                        .filter((relation) => relation !== Relation.member)
                         .map((relation) => (
                           <Badge
                             key={relation}

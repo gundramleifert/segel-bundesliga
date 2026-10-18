@@ -1,28 +1,29 @@
 """Lineup for a matchday — Story V-2.
 
-The rule here: a club registers **X people for the league** (season squad, ``TeamMembership``).
-For a matchday, it selects the **crew** from those (``EventCrew``). Anyone not in the squad
-cannot be lined up — this endpoint enforces that, rather than relying on the UI only
-offering suitable names.
+The rule — only the squad can be lined up, nobody for two teams — lives in
+``app/services/lineup.py``; this router answers who may set a lineup and maps the rule's
+refusals to responses.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
 from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
-from app.models import Event, EventCrew, Sailor, Team, TeamMembership, TeamStatus
+from app.models import Event, EventCrew, Sailor, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
+from app.problems import Problem
 from app.schemas.public import MemberOut
-from app.services import ParticipationError, event_entry, squad_team
+from app.services import event_entry
+from app.services.lineup import LineupMember, set_lineup
+from app.services.lookup import get_or_404
 
 router = APIRouter(prefix="/api/admin/events", tags=["administration"])
 
@@ -56,7 +57,7 @@ class CrewOut(BaseModel):
 async def get_crew(
     event_id: int, team_id: int, session: AsyncSession = Depends(get_session)
 ) -> CrewOut:
-    event = await _event(session, event_id)
+    event = await get_or_404(session, Event, event_id)
     return await _crew_out(session, event, (await _participation(session, event, team_id)).id)
 
 
@@ -66,7 +67,6 @@ async def set_crew(
     request: SetCrewRequest,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> CrewOut:
     """Lines up a club's crew for this matchday.
 
@@ -80,49 +80,23 @@ async def set_crew(
     A club official can only line up their own team; administration and race officers can
     intervene everywhere — on event day, someone must be able to make changes on short notice.
     """
-    event = await _event(session, event_id)
+    event = await get_or_404(session, Event, event_id)
     team = await _participation(session, event, request.team_id)
 
     _check_permissions(acting, team, event)
 
-    desired = {member.sailor_id: member.role for member in request.members}
-    if len(desired) != len(request.members):
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en="A person is lined up twice.",
-                de="Eine Person ist doppelt aufgestellt.",
-            ),
-        )
-
-    if desired:
-        try:
-            squad = await squad_team(session, team)
-        except ParticipationError as error:
-            raise HTTPException(status_code=422, detail=str(error)) from error
-        await _from_squad(session, squad.id, set(desired))
-        await _not_elsewhere_lined_up(session, event.id, team.id, set(desired))
-
-    await session.execute(
-        delete(EventCrew).where(EventCrew.event_id == event.id, EventCrew.team_id == team.id)
+    await set_lineup(
+        session,
+        event.id,
+        team,
+        [LineupMember(member.sailor_id, member.role) for member in request.members],
     )
-    session.add_all(
-        EventCrew(event_id=event.id, team_id=team.id, sailor_id=sailor_id, role=role)
-        for sailor_id, role in desired.items()
-    )
+
     await session.commit()
     return await _crew_out(session, event, team.id)
 
 
 # ------------------------------------------------------------------ Helpers
-
-
-async def _event(session: AsyncSession, event_id: int) -> Event:
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Matchday {event_id} not found")
-    return event
 
 
 async def _participation(session: AsyncSession, event: Event, team_id: int) -> Team:
@@ -131,16 +105,11 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
     Lineup is always at the entry, not at the series registration — the lineup applies to
     one matchday. Either can be specified: the club is what matters.
     """
-    team = (await session.execute(select(Team).where(Team.id == team_id))).scalar_one_or_none()
-    if team is None:
-        raise HTTPException(status_code=404, detail="This team does not exist.")
+    team = await get_or_404(session, Team, team_id)
 
     found = await event_entry(session, event.id, team.club_id)
     if found is None or found.status != TeamStatus.ACCEPTED:
-        raise HTTPException(
-            status_code=422,
-            detail="This club does not participate in this event.",
-        )
+        raise Problem(422, "club-not-in-event", "This club does not participate in this event.")
     return found
 
 
@@ -151,71 +120,13 @@ def _check_permissions(acting: User, team: Team, event: Event) -> None:
         return
     if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
         return
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail=(
-            "You can only line up your own team."
-            if authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
-            else "Lineup can be set by club officials, administration, and race officers."
-        ),
+    if authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
+        raise Problem(403, "lineup-not-own-team", "You can only line up your own team.")
+    raise Problem(
+        403,
+        "lineup-forbidden",
+        "Lineup can be set by club officials, administration, and race officers.",
     )
-
-
-async def _from_squad(session: AsyncSession, team_id: int, sailor_ids: set[int]) -> None:
-    """The core of the rule: only those registered for the series can be lined up.
-
-    ``team_id`` is the team with the squad — for an act, the club's series registration,
-    for a standalone event, the event entry itself.
-    """
-    in_squad = set(
-        (
-            await session.execute(
-                select(TeamMembership.sailor_id).where(
-                    TeamMembership.team_id == team_id,
-                    TeamMembership.sailor_id.in_(sailor_ids),
-                )
-            )
-        ).scalars()
-    )
-    external = sailor_ids - in_squad
-    if not external:
-        return
-
-    names = (
-        await session.execute(
-            select(Sailor.id, Sailor.first_name, Sailor.last_name).where(Sailor.id.in_(external))
-        )
-    ).all()
-    name_list = ", ".join(f"{first} {last}" for _, first, last in names)
-    description = name_list or ", ".join(map(str, external))
-    raise HTTPException(
-        status_code=422,
-        detail=(f"Not in this team's squad: {description}. Register first, then line up."),
-    )
-
-
-async def _not_elsewhere_lined_up(
-    session: AsyncSession, event_id: int, team_id: int, sailor_ids: set[int]
-) -> None:
-    """No one sails for two teams in a single matchday."""
-    duplicates = (
-        (
-            await session.execute(
-                select(EventCrew.sailor_id).where(
-                    EventCrew.event_id == event_id,
-                    EventCrew.team_id != team_id,
-                    EventCrew.sailor_id.in_(sailor_ids),
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    if duplicates:
-        raise HTTPException(
-            status_code=409,
-            detail=("This person is already lined up for another team in this matchday."),
-        )
 
 
 async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOut:
@@ -227,15 +138,7 @@ async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOu
         )
     ).all()
     members = sorted(
-        (
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=crew.role,
-            )
-            for crew, sailor in rows
-        ),
+        (MemberOut.of(sailor, crew.role) for crew, sailor in rows),
         key=MemberOut.announce_order,
     )
     return CrewOut(

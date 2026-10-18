@@ -6,7 +6,7 @@ password (Story Z-9). All end with a session token that carries roles.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,6 +27,7 @@ from app.models.auth import (
     Grant,
     ObjectType,
     Relation,
+    Role,
     User,
     writable,
 )
@@ -35,13 +36,13 @@ from app.problems import Problem
 from app.schemas.auth import TokenOut
 from app.services import grants, passwords, personal
 from app.services.login import (
-    LoginError,
     login_with_oidc,
     login_with_password,
     register,
     request_email_code,
     verify_email_code,
 )
+from app.services.lookup import get_or_404
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
@@ -122,7 +123,7 @@ class TupleOut(BaseModel):
     user_id: int
     user: str = Field(description="The account's email — the user identifier of the tuple")
     user_name: str
-    relation: str
+    relation: Relation
     object: str = Field(description='"site", or "<type>:<id>" such as "event:3"')
     object_type: ObjectType
     object_id: int | None
@@ -151,7 +152,7 @@ class UserOut(BaseModel):
     display_name: str
     is_active: bool
     email_verified: bool
-    roles: list[str] = Field(
+    roles: list[Role] = Field(
         description="The summary roles derived from the tuples — what the navigation shows tabs by"
     )
     tuples: list[TupleOut]
@@ -235,10 +236,8 @@ async def register_account(
     The account initially has neither role nor club. A club's admin then makes it a
     member by writing the ``member`` tuple on the club (Story Z-5).
     """
-    try:
-        await register(session, request.email, request.display_name)
-    except LoginError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    # A refusal is a typed 400 (`LoginError`): registration closed, or no name.
+    await register(session, request.email, request.display_name)
     return {
         "detail": tr(
             locale,
@@ -284,10 +283,7 @@ async def email_request(
 async def email_verify(
     request: EmailVerify, session: AsyncSession = Depends(get_session)
 ) -> TokenOut:
-    try:
-        user = await verify_email_code(session, request.email, request.code)
-    except LoginError as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
+    user = await verify_email_code(session, request.email, request.code)
     token, expires_in = create_access_token(user)
     return TokenOut(access_token=token, expires_in=expires_in)
 
@@ -300,10 +296,7 @@ async def email_verify(
 async def oidc_login(
     provider: str, request: OidcLogin, session: AsyncSession = Depends(get_session)
 ) -> TokenOut:
-    try:
-        user = await login_with_oidc(session, provider, request.id_token)
-    except LoginError as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
+    user = await login_with_oidc(session, provider, request.id_token)
     await session.commit()
     token, expires_in = create_access_token(user)
     return TokenOut(access_token=token, expires_in=expires_in)
@@ -479,20 +472,12 @@ async def create_user(
     request: UserCreate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(require_admin),
-    locale: Locale = Depends(resolve_locale),
 ) -> UserOut:
     email = request.email.lower()
     if (
         await session.execute(select(User).where(User.email == email))
     ).scalar_one_or_none() is not None:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en="An account already exists for this address.",
-                de="Für diese Adresse gibt es schon ein Konto.",
-            ),
-        )
+        raise Problem(409, "account-exists", "An account already exists for this address.")
 
     # Created by administration: the address is considered verified because it comes from
     # an entry or import and was not claimed by the person themselves.
@@ -526,28 +511,15 @@ async def remove_user(
     user_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(require_admin),
-    locale: Locale = Depends(resolve_locale),
 ) -> UserOut:
     """Removing an account never deletes its row — too much points at it by id (audit
     log entries, past decisions, results someone entered) for that to be safe. Instead
     it's deactivated: `is_active=False` blocks sign-in immediately, same as a suspended
     account, and the row — along with its history — stays intact.
     """
-    user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht."),
-        )
+    user = await get_or_404(session, User, user_id)
     if user.id == acting.id:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en="You cannot remove your own account.",
-                de="Das eigene Konto lässt sich nicht entfernen.",
-            ),
-        )
+        raise Problem(409, "account-self-removal", "You cannot remove your own account.")
 
     user.is_active = False
     await session.commit()
@@ -564,11 +536,10 @@ async def clear_password(
     user_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(require_admin),
-    locale: Locale = Depends(resolve_locale),
 ) -> None:
     """Story Z-9: the site's admin clears a password, audited. The person
     then signs in by code and sets a new one — there is no reset flow of its own."""
-    user = await _user(session, user_id, locale)
+    user = await get_or_404(session, User, user_id)
     await passwords.remove_password(session, user, actor=acting)
     await session.commit()
 
@@ -615,9 +586,8 @@ async def get_model() -> ModelOut:
 async def get_user(
     user_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> UserOut:
-    user = await _user(session, user_id, locale)
+    user = await get_or_404(session, User, user_id)
     await grants.named(session, user)
     return UserOut.of(user)
 
@@ -651,7 +621,6 @@ async def write_tuple(
     request: TupleWrite,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> TupleOut:
     """Story Z-2. The rules — the schema, the object must exist, no duplicate — live in
     `app/services/grants.py`, shared with the club screen. The site's admin writes any
@@ -664,14 +633,7 @@ async def write_tuple(
         await session.execute(select(User).where(User.email == request.user.lower()))
     ).scalar_one_or_none()
     if target is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en="No account with this address. Create it first.",
-                de="Kein Konto mit dieser Adresse. Bitte zuerst anlegen.",
-            ),
-        )
+        raise Problem(404, "account-unknown", "No account with this address. Create it first.")
     row = await grants.grant(
         session, target, request.relation, object_type, object_id, actor=acting
     )
@@ -688,18 +650,10 @@ async def delete_tuple(
     tuple_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> None:
     """Exactly this tuple goes; every other one the person holds stays. Refuses to delete
     the caller's own `admin` and a club's last organizer (Story A-8)."""
-    row = await session.get(Grant, tuple_id)
-    if row is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale, en="This tuple does not exist.", de="Diese Berechtigung gibt es nicht."
-            ),
-        )
+    row = await get_or_404(session, Grant, tuple_id, code="tuple-not-found")
     obj = await grants.resolve(session, row.object_type, row.object_id)
     # Leaving a club is the one write a person makes on themselves (Story Z-5): their
     # own `member` tuple. Everything else needs the object's admin.
@@ -726,13 +680,3 @@ def _may_administer(acting: User, object_type: ObjectType, obj) -> None:
             "Only the site's admin or the object's admin may change who holds what on it.",
             object=object_type.value,
         )
-
-
-async def _user(session: AsyncSession, user_id: int, locale: Locale) -> User:
-    user = (await session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(locale, en="This account does not exist.", de="Dieses Konto gibt es nicht."),
-        )
-    return user

@@ -14,25 +14,22 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel, Field, model_validator
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import authz
-from app.auth import current_user, require_event_control, require_event_manager_for
+from app.auth import current_user, forbidden, require_event_control, require_event_manager_for
 from app.authz import ObjectRef
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.live import event_topic, hub
 from app.models import (
     Boat,
     Club,
     Event,
     EventStatus,
-    Flight,
-    Race,
     Series,
     Team,
     TeamStatus,
@@ -45,19 +42,19 @@ from app.problems import Problem
 from app.routers.public import _EVENT_LOAD, _event_out, search_events
 from app.schemas.public import ClubOut, EventOut
 from app.services import (
-    CATALOG_REASON,
-    ParticipationError,
     adopt_series_registrations,
+    candidate_clubs,
     check_squad_limits,
     configuration_frozen,
     event_entries,
     event_readiness,
+    event_state,
     has_results,
     new_event_entry,
     require_editable_configuration,
-    require_ready,
 )
-from app.text import slugify
+from app.services.events import MatchdayTaken, NoFreeSlug, place_event
+from app.services.lookup import get_or_404
 
 # Permissions are attached to individual routes, not the router: creating an event is also
 # permitted to the host club's leadership (Story VA-6) — everything else is modified only by
@@ -180,7 +177,9 @@ class EventUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=200)
     starts_on: date | None = None
     ends_on: date | None = None
-    status: str | None = None
+    # No ``status``: it changes only through start/finish/cancel/reopen (Story VA-10,
+    # ``services/event_state.py``) — here it once skipped every one of their rules. A
+    # ``status`` sent anyway is ignored, like any other unknown field.
     published: bool | None = None
     host_club_id: int | None = None
     logo_url: str | None = None
@@ -199,7 +198,7 @@ class EventUpdate(BaseModel):
 # The fields that make up the **configuration** of the event: what gets drawn and sailed.
 # Once racing has started these are frozen (Story VA-8) — a pairing list is sailed against
 # these numbers, and moving an event into another series would re-home results that are
-# already in a standings table. Everything else (title, dates, venue, host, logo, status,
+# already in a standings table. Everything else (title, dates, venue, host, logo,
 # publication) stays editable: a typo or a moved venue must remain fixable while racing.
 _CONFIGURATION_FIELDS = frozenset(
     {"team_count", "boat_count", "flight_count", "series", "matchday"}
@@ -246,13 +245,7 @@ async def list_all_events(
     if not acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
         reach = _reach_of(acting)
         if reach is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=(
-                    "You lack the permission for this. "
-                    "Required role(s): admin, editor, race_officer"
-                ),
-            )
+            raise forbidden("this", [Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER])
         stmt = stmt.where(reach)
     events, total = await paginate(
         session,
@@ -269,7 +262,6 @@ async def create_event(
     request: EventCreate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> EventOut:
     """Create an event — Stories A-4, VA-6 and VA-8.
 
@@ -281,38 +273,25 @@ async def create_event(
     The **host club's** leadership can create events — they organize it, so they should be
     able to record the date — as well as administration, editorial, and race officers.
     """
-    series = await _series(session, request.series) if request.series else None
+    series = await get_or_404(session, Series, request.series) if request.series else None
     _can_create(acting, request.host_club_id, series.id if series else None)
-    await _check_club(session, request.host_club_id)
-    await _check_venue(session, request.venue_id)
+    if request.host_club_id is not None:
+        await get_or_404(session, Club, request.host_club_id)
+    if request.venue_id is not None:
+        await get_or_404(session, Venue, request.venue_id)
 
-    matchday = None
-    if series is not None:
-        matchday = request.matchday
-        if matchday is None:
-            highest = (
-                await session.execute(
-                    select(func.max(Event.matchday)).where(Event.series_id == series.id)
-                )
-            ).scalar_one()
-            matchday = (highest or 0) + 1
-        elif await _matchday_exists(session, series.id, matchday):
-            raise HTTPException(
-                status_code=409,
-                detail=tr(
-                    locale,
-                    en=f"This series already has Act {matchday}.",
-                    de=f"In dieser Serie gibt es den {matchday}. Act schon.",
-                ),
-            )
-        desired = f"{series.slug}-act-{matchday}"
-    else:
-        # Standalone event: the URL is created from title and year. Without a date yet,
-        # the current year stands in — the slug only has to be unique and readable.
-        year = (request.starts_on or date.today()).year
-        desired = f"{slugify(request.title)}-{year}"
-
-    slug = await _find_free_slug(session, desired)
+    try:
+        matchday, slug = await place_event(
+            session,
+            title=request.title,
+            starts_on=request.starts_on,
+            series=series,
+            matchday=request.matchday,
+        )
+    except MatchdayTaken as taken:
+        raise Problem(409, "matchday-taken", str(taken), matchday=taken.matchday) from taken
+    except NoFreeSlug as exhausted:
+        raise Problem(409, "slug-exhausted", str(exhausted)) from exhausted
 
     check_squad_limits(request.squad_min, request.squad_max)
     event = Event(
@@ -354,14 +333,14 @@ async def update_event(
     event_id: int,
     request: EventUpdate,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> EventOut:
     """Change an event — Story VA-8.
 
     Never refuses because the event is incomplete: a half-filled event is savable, and the
     only thing that stands in the way of a change is the **first race**, which freezes the
-    configuration (dimensions, series, matchday). Title, dates, venue, host, logo, status
-    and publication stay editable throughout — a typo has to be fixable on a race day too.
+    configuration (dimensions, series, matchday). Title, dates, venue, host, logo and
+    publication stay editable throughout — a typo has to be fixable on a race day too. The
+    status is not among them: it moves only through the transitions below (Story VA-10).
     """
     event = await _event(session, event_id)
 
@@ -380,17 +359,6 @@ async def update_event(
         await _check_club(session, changes["host_club_id"])
     if "venue_id" in changes:
         await _check_venue(session, changes["venue_id"])
-    if "status" in changes and changes["status"] not in set(EventStatus):
-        possible_statuses = ", ".join(sorted(EventStatus))
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en=f"Unknown status. Possible: {possible_statuses}",
-                de=f"Unbekannter Status. Möglich: {possible_statuses}",
-            ),
-        )
-
     for field, value in changes.items():
         setattr(event, field, value)
 
@@ -399,14 +367,7 @@ async def update_event(
         and event.ends_on is not None
         and event.ends_on < event.starts_on
     ):
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en="End date cannot be before start date.",
-                de="Das Ende darf nicht vor dem Beginn liegen.",
-            ),
-        )
+        raise Problem(422, "event-dates-inverted", "End date cannot be before start date.")
 
     await session.commit()
     # After the commit, like every event mutation: a viewer refetching earlier would read
@@ -467,7 +428,7 @@ async def get_readiness(
         event_id=event.id,
         ready=not reasons,
         reasons=[ReadinessReasonOut(**reason.as_dict()) for reason in reasons],
-        has_pairing_list=await _has_pairing_list(session, event.id),
+        has_pairing_list=await event_state.has_pairing_list(session, event.id),
         configuration_frozen=frozen is not None,
         races_started=frozen.races_started if frozen else 0,
         results_recorded=frozen.results_recorded if frozen else 0,
@@ -520,22 +481,8 @@ async def start_event(event_id: int, session: AsyncSession = Depends(get_session
     doesn't hold is just as valid.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.LIVE:
-        return _event_out(await _with_relationships(session, event.id))
-
-    await require_ready(session, event, ignore={CATALOG_REASON})
-    if not await _has_pairing_list(session, event.id):
-        raise Problem(
-            409,
-            "event-without-pairing-list",
-            "This event has no pairing list yet, so there is nothing to sail.",
-            event_id=event.id,
-        )
-
-    event.status = EventStatus.LIVE
-    await session.commit()
-    hub.publish(event_topic(event.id))
-    return _event_out(await _with_relationships(session, event.id))
+    await event_state.start_event(session, event)
+    return await _committed(session, event)
 
 
 @router.post(
@@ -561,17 +508,8 @@ async def finish_event(event_id: int, session: AsyncSession = Depends(get_sessio
     heard weeks later still has to land, which is what the race-committee screens are for.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.FINAL:
-        return _event_out(await _with_relationships(session, event.id))
-    if event.status != EventStatus.LIVE:
-        raise Problem(
-            409,
-            "event-not-started",
-            "This event has not been started, so there is nothing to declare over.",
-            event_id=event.id,
-            event_status=event.status,
-        )
-    return await _set_status(session, event, EventStatus.FINAL)
+    event_state.finish_event(event)
+    return await _committed(session, event)
 
 
 @router.post(
@@ -596,9 +534,8 @@ async def cancel_event(event_id: int, session: AsyncSession = Depends(get_sessio
     must never be worse than staying home.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.CANCELLED:
-        return _event_out(await _with_relationships(session, event.id))
-    return await _set_status(session, event, EventStatus.CANCELLED)
+    event_state.cancel_event(event)
+    return await _committed(session, event)
 
 
 @router.post(
@@ -616,26 +553,17 @@ async def reopen_event(event_id: int, session: AsyncSession = Depends(get_sessio
     reinstated day is prepared again, not resumed mid-race.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.FINAL:
-        return await _set_status(session, event, EventStatus.LIVE)
-    if event.status == EventStatus.CANCELLED:
-        return await _set_status(session, event, EventStatus.PLANNED)
-    raise Problem(
-        409,
-        "event-not-closed",
-        "This event is neither finished nor cancelled, so there is nothing to reopen.",
-        event_id=event.id,
-        event_status=event.status,
-    )
+    event_state.reopen_event(event)
+    return await _committed(session, event)
 
 
-async def _set_status(session: AsyncSession, event: Event, status_value: EventStatus) -> EventOut:
-    """Writes a status and nothing else.
+async def _committed(session: AsyncSession, event: Event) -> EventOut:
+    """Commits a transition and tells live pages about it.
 
-    Publication is deliberately untouched: ``published`` is the only thing that decides who
-    can see an event, and closing one says nothing about that (Story VA-8).
+    The transition itself is ``services/event_state.py``'s; an idempotent repeat changes
+    nothing and is committed all the same — it costs nothing and keeps one path. Publication
+    is deliberately untouched (Story VA-8).
     """
-    event.status = status_value
     await session.commit()
     # Every transition is something a live page must hear — after the commit (Story B-5).
     hub.publish(event_topic(event.id))
@@ -652,39 +580,18 @@ async def _set_published(session: AsyncSession, event_id: int, published: bool) 
     return _event_out(await _with_relationships(session, event.id))
 
 
-async def _has_pairing_list(session: AsyncSession, event_id: int) -> bool:
-    hit = (
-        await session.execute(
-            select(Race.id)
-            .join(Flight, Race.flight_id == Flight.id)
-            .where(Flight.event_id == event_id)
-            .limit(1)
-        )
-    ).scalar_one_or_none()
-    return hit is not None
-
-
 # ------------------------------------------------------------------ Helpers
 
 
 async def _event(session: AsyncSession, event_id: int) -> Event:
     # `get`, not a select: a route guard (`require_on_event`) loaded it into this session
     # already, and `get` answers from there.
-    event = await session.get(Event, event_id)
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Matchday {event_id} not found")
+    event = await get_or_404(session, Event, event_id)
     return event
 
 
 async def _series(session: AsyncSession, series_id: int) -> Series:
-    series = (
-        await session.execute(select(Series).where(Series.id == series_id))
-    ).scalar_one_or_none()
-    if series is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Series {series_id} is not set up. Create the series first.",
-        )
+    series = await get_or_404(session, Series, series_id)
     return series
 
 
@@ -694,7 +601,7 @@ async def _check_club(session: AsyncSession, club_id: int | None) -> None:
     if (
         await session.execute(select(Club.id).where(Club.id == club_id))
     ).scalar_one_or_none() is None:
-        raise HTTPException(status_code=404, detail=f"Club {club_id} is not known.")
+        raise Problem(404, "club-not-found", f"Club {club_id} is not known.", id=club_id)
 
 
 async def _check_venue(session: AsyncSession, venue_id: int | None) -> None:
@@ -703,29 +610,7 @@ async def _check_venue(session: AsyncSession, venue_id: int | None) -> None:
     if (
         await session.execute(select(Venue.id).where(Venue.id == venue_id))
     ).scalar_one_or_none() is None:
-        raise HTTPException(status_code=404, detail=f"Venue {venue_id} is not known.")
-
-
-async def _matchday_exists(session: AsyncSession, series_id: int, matchday: int) -> bool:
-    match = (
-        await session.execute(
-            select(Event.id).where(Event.series_id == series_id, Event.matchday == matchday)
-        )
-    ).scalar_one_or_none()
-    return match is not None
-
-
-async def _find_free_slug(session: AsyncSession, desired: str) -> str:
-    """Appends a digit if the slug is already taken — it must be unique."""
-    candidate = desired
-    for counter in range(2, 50):
-        taken = (
-            await session.execute(select(Event.id).where(Event.slug == candidate))
-        ).scalar_one_or_none()
-        if taken is None:
-            return candidate
-        candidate = f"{desired}-{counter}"
-    raise HTTPException(status_code=409, detail="Could not find a free URL.")
+        raise Problem(404, "venue-not-found", f"Venue {venue_id} is not known.", id=venue_id)
 
 
 async def _with_relationships(session: AsyncSession, event_id: int) -> Event:
@@ -752,7 +637,7 @@ class ParticipantOut(BaseModel):
     """An entry to this event."""
 
     team_id: int
-    status: str
+    status: TeamStatus
     club: ClubOut
 
 
@@ -770,6 +655,25 @@ async def list_participants(
     return await _participants_out(session, event_id)
 
 
+@router.get(
+    "/{event_id}/candidate-clubs",
+    response_model=list[ClubOut],
+    dependencies=[Depends(require_event_manager_for)],
+    summary="Clubs that may enter this event",
+)
+async def list_candidate_clubs(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> list[ClubOut]:
+    """The choice the clubs step offers — Story VA-6.
+
+    An act of a series takes its series' accepted registrations, a stand-alone event any
+    club: the same rule ``PUT …/clubs`` enforces, answered from the same place
+    (``app/services/participation.py``).
+    """
+    event = await _event(session, event_id)
+    return [ClubOut.model_validate(club) for club in await candidate_clubs(session, event)]
+
+
 @router.put(
     "/{event_id}/clubs",
     response_model=list[ParticipantOut],
@@ -780,7 +684,6 @@ async def set_participants(
     event_id: int,
     request: ParticipantSetRequest,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> list[ParticipantOut]:
     """Sets the clubs entering this event.
 
@@ -805,27 +708,18 @@ async def set_participants(
             team.status = TeamStatus.ACCEPTED
             continue
         if await has_results(session, team):
-            de_msg = (
-                "Dieser Verein lässt sich nicht herausnehmen: "
-                "es liegen bereits Wettfahrtergebnisse vor."
-            )
-            raise HTTPException(
-                status_code=409,
-                detail=tr(
-                    locale,
-                    en="This club cannot be removed: race results already exist.",
-                    de=de_msg,
-                ),
+            raise Problem(
+                409,
+                "participation-has-results",
+                "This club cannot be removed: race results already exist.",
+                club_id=club_id,
             )
         await session.delete(team)
 
     for club_id, club in desired.items():
         if club_id in existing:
             continue
-        try:
-            await new_event_entry(session, event, club)
-        except ParticipationError as error:
-            raise HTTPException(status_code=422, detail=str(error)) from error
+        await new_event_entry(session, event, club)
 
     await session.commit()
     return await _participants_out(session, event.id)
@@ -856,7 +750,9 @@ async def _clubs(session: AsyncSession, club_ids: list[int]) -> list[Club]:
     }
     missing = [club_id for club_id in unique if club_id not in found]
     if missing:
-        raise HTTPException(status_code=404, detail=f"These clubs do not exist: {missing}")
+        raise Problem(
+            404, "clubs-not-found", f"These clubs do not exist: {missing}", club_ids=missing
+        )
     return [found[club_id] for club_id in unique]
 
 
@@ -900,16 +796,12 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
     ):
         return
     if host_club_id is not None and authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only host events for your own club.",
-        )
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail=(
-            "Events are created by administration, editorial, race officers, and the "
-            "host club's leadership."
-        ),
+        raise Problem(403, "host-club-not-mine", "You can only host events for your own club.")
+    raise Problem(
+        403,
+        "event-create-forbidden",
+        "Events are created by administration, editorial, race officers, and the "
+        "host club's leadership.",
     )
 
 

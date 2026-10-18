@@ -15,10 +15,11 @@ with the guardian's name and a reference to the signed statement on file.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date, datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Header, Query, UploadFile
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
@@ -30,7 +31,6 @@ from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale
 from app.models import (
-    AuditLog,
     Club,
     Event,
     EventStatus,
@@ -46,19 +46,21 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
+from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_sailor
+from app.services.lookup import get_or_404
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
-    STATUS_CLEARED,
+    Competition,
     SailorWaiver,
+    WaiverStatus,
+    competition_status,
     discard_scan,
     event_reference_date,
-    sailor_competitions,
+    sailor_waivers,
     scan_media_type,
     scan_path,
     series_reference_date,
-    series_waiver_status,
-    series_waivers_status,
     store_scan,
 )
 
@@ -116,9 +118,9 @@ class WaiverConfirmationOut(BaseModel):
     id: int
     sailor_id: int
     version: int
-    scope: str
+    scope: Scope
     scope_id: int
-    method: str
+    method: WaiverMethod
     locale_shown: str
     confirmed_at: datetime
     guardian_name: str | None = None
@@ -131,12 +133,12 @@ class SailorWaiverRow(BaseModel):
     first_name: str
     last_name: str
     club: str | None = None
-    status: str
+    status: WaiverStatus
     minor: bool | None = None
     required_version: int | None = None
     confirmed_version: int | None = None
     confirmed_at: datetime | None = None
-    method: str | None = None
+    method: WaiverMethod | None = None
     guardian_name: str | None = None
     # The uploaded form, if there is one — the organizer opens it from the list.
     confirmation_id: int | None = None
@@ -178,12 +180,12 @@ class MyCompetitionWaiver(BaseModel):
     name: str
     reference_date: date
     sailor_id: int
-    status: str
+    status: WaiverStatus
     minor: bool | None = None
     required_version: int | None = None
     confirmed_version: int | None = None
     confirmed_at: datetime | None = None
-    method: str | None = None
+    method: WaiverMethod | None = None
     guardian_name: str | None = None
     # The row behind the status — the address of the scan endpoint. Empty until something
     # was recorded.
@@ -231,7 +233,7 @@ async def my_waivers(
     organizer's list would show. 404 `no-linked-sailor-record` when the account has no
     sailor, exactly as the profile does."""
     sailor = await require_linked_sailor(session, acting)
-    return await _waivers_of(session, sailor)
+    return await _waivers_of(session, sailor, await current_waiver_text(session))
 
 
 @router.get(
@@ -255,20 +257,17 @@ async def ward_waivers(
             .order_by(Sailor.first_name, Sailor.last_name)
         )
     ).scalars()
-    return [await _waivers_of(session, ward) for ward in wards]
-
-
-async def _waivers_of(session: AsyncSession, sailor: Sailor) -> MyWaivers:
-    """A sailor's competitions with their waiver status — for the sailor (S-1) and for
-    their guardian (S-8)."""
     required = await current_waiver_text(session)
+    return [await _waivers_of(session, ward, required) for ward in wards]
+
+
+async def _waivers_of(
+    session: AsyncSession, sailor: Sailor, required: WaiverText | None
+) -> MyWaivers:
+    """A sailor's competitions with their waiver status — for the sailor (S-1) and for
+    their guardian (S-8). ``required`` is read once per request by the caller."""
     rows: list[MyCompetitionWaiver] = []
-    for competition in await sailor_competitions(session, sailor):
-        if competition.series is not None:
-            judged = await series_waiver_status(session, competition.series, sailor)
-        else:
-            assert competition.event is not None
-            judged = (await event_waiver_status(session, competition.event, [sailor.id]))[sailor.id]
+    for competition, judged in await sailor_waivers(session, sailor, required):
         rows.append(
             MyCompetitionWaiver(
                 scope=competition.scope,  # type: ignore[arg-type]
@@ -307,7 +306,10 @@ async def waiver_form(
     if required is None:
         raise Problem(404, "no-waiver-published", "No liability waiver has been published yet.")
     name, reference_date = await _scope(session, scope, scope_id)
-    pdf = render_waiver_form(
+    # ReportLab is CPU work: off the event loop. The rows it reads are loaded already, and
+    # no session work happens in the thread.
+    pdf = await asyncio.to_thread(
+        render_waiver_form,
         text=required,
         sailor=sailor,
         competition=name,
@@ -386,11 +388,7 @@ async def confirm_for_series(
     user_agent: str | None = Header(default=None),
 ) -> WaiverConfirmationOut:
     """One confirmation here counts for every event of the series."""
-    series = (
-        await session.execute(select(Series).where(Series.id == series_id))
-    ).scalar_one_or_none()
-    if series is None:
-        raise HTTPException(status_code=404, detail=f"Series {series_id} not found")
+    series = await get_or_404(session, Series, series_id)
 
     return await _confirm(
         session,
@@ -416,9 +414,7 @@ async def confirm_for_event(
     acting: User = Depends(current_user),
     user_agent: str | None = Header(default=None),
 ) -> WaiverConfirmationOut:
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+    event = await get_or_404(session, Event, event_id)
 
     return await _confirm(
         session,
@@ -522,14 +518,13 @@ async def get_waiver_scan(
         )
     path = scan_path(row.guardian_signature_ref)
     assert path is not None and row.guardian_signature_ref is not None
-    session.add(
-        AuditLog(
-            entity_type="waiver_scan",
-            entity_id=row.id,
-            action="viewed",
-            actor=acting.email,
-            payload={"sailor_id": sailor.id},
-        )
+    audit(
+        session,
+        EntityType.WAIVER_SCAN,
+        row.id,
+        "viewed",
+        acting,
+        sailor_id=sailor.id,
     )
     await session.commit()
     return FileResponse(
@@ -558,9 +553,7 @@ async def event_waivers(
     One row per person in the participating squads: cleared, missing, or (for a minor)
     waiting on the guardian's signature.
     """
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+    event = await get_or_404(session, Event, event_id)
 
     # The event's manager includes its host club's (the model's `manager from host_club`).
     if not authz.check(acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event):
@@ -572,7 +565,9 @@ async def event_waivers(
 
     required = await current_waiver_text(session)
     people = await _squad_people(session, event)
-    status_by_id = await event_waiver_status(session, event, [pid for pid, _, _, _ in people])
+    status_by_id = await event_waiver_status(
+        session, event, [pid for pid, _, _, _ in people], required
+    )
 
     rows = [_row(first, last, status_by_id[pid], club=club) for pid, first, last, club in people]
     return EventWaiverList(
@@ -601,9 +596,7 @@ async def club_waivers(
     (its waiver covers every matchday) and each entry in an event that belongs to no
     series. The status is the one the sailor's own page and the check-in list show.
     """
-    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
-    if club is None:
-        raise HTTPException(status_code=404, detail=f"Club {club_id} not found")
+    club = await get_or_404(session, Club, club_id)
     if not acting.can(Relation.MANAGER, on=club):
         raise Problem(
             403,
@@ -644,13 +637,13 @@ async def club_waivers(
     competitions: list[ClubCompetitionWaivers] = []
     for team_id, series in squads:
         sailors = members.get(team_id, [])
-        judged = await series_waivers_status(session, series, sailors, required)
+        judged = await competition_status(session, Competition.of_series(series), sailors, required)
         competitions.append(
             _competition("series", series.id, series.name, series.starts_on, sailors, judged)
         )
     for team_id, event in entries:
         sailors = members.get(team_id, [])
-        judged = await event_waiver_status(session, event, [s.id for s in sailors], required)
+        judged = await competition_status(session, Competition.of_event(event), sailors, required)
         competitions.append(
             _competition("event", event.id, event.title, event.starts_on, sailors, judged)
         )
@@ -674,11 +667,7 @@ async def _confirm(
     scope_id: int,
     reference_date: date,
 ) -> WaiverConfirmationOut:
-    sailor = (
-        await session.execute(select(Sailor).where(Sailor.id == request.sailor_id))
-    ).scalar_one_or_none()
-    if sailor is None:
-        raise HTTPException(status_code=404, detail=f"Sailor {request.sailor_id} not found")
+    sailor = await get_or_404(session, Sailor, request.sailor_id)
 
     capacity = await _may_confirm_for(session, acting, sailor)
 
@@ -795,26 +784,16 @@ async def _confirm(
 
 
 async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
-    sailor = (
-        await session.execute(select(Sailor).where(Sailor.id == sailor_id))
-    ).scalar_one_or_none()
-    if sailor is None:
-        raise HTTPException(status_code=404, detail=f"Sailor {sailor_id} not found")
+    sailor = await get_or_404(session, Sailor, sailor_id)
     return sailor
 
 
 async def _scope(session: AsyncSession, scope: Scope, scope_id: int) -> tuple[str, date]:
     """The competition's display name and the date a sailor's age is judged against."""
     if scope == "series":
-        series = (
-            await session.execute(select(Series).where(Series.id == scope_id))
-        ).scalar_one_or_none()
-        if series is None:
-            raise HTTPException(status_code=404, detail=f"Series {scope_id} not found")
+        series = await get_or_404(session, Series, scope_id)
         return series.name, series_reference_date(series)
-    event = (await session.execute(select(Event).where(Event.id == scope_id))).scalar_one_or_none()
-    if event is None:
-        raise HTTPException(status_code=404, detail=f"Event {scope_id} not found")
+    event = await get_or_404(session, Event, scope_id)
     return event.title, event_reference_date(event)
 
 
@@ -833,10 +812,10 @@ def _status_fields(judged: SailorWaiver) -> dict:
     )
 
 
-def _validated_scan(raw: bytes, content_type: str | None) -> str:
+async def _validated_scan(raw: bytes, content_type: str | None) -> str:
     """The media type the bytes really are — or a ``waiver-scan-…`` refusal
     (``app/services/uploads.py``). A guardian's signature is not the place to guess."""
-    return uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
+    return await uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
 
 
 async def _attach_scan(
@@ -883,7 +862,7 @@ async def _attach_scan(
         )
 
     raw = await file.read()
-    media_type = _validated_scan(raw, file.content_type)
+    media_type = await _validated_scan(raw, file.content_type)
     name = (guardian_name or "").strip() or None
 
     where_scope = (
@@ -931,20 +910,17 @@ async def _attach_scan(
         if name is not None:
             row.guardian_name = name
     await session.flush()
-    session.add(
-        AuditLog(
-            entity_type="waiver_scan",
-            entity_id=row.id,
-            action=action,
-            actor=acting.email,
-            payload={
-                "sailor_id": sailor.id,
-                "scope": scope,
-                "scope_id": scope_id,
-                "media_type": media_type,
-                "bytes": len(raw),
-            },
-        )
+    audit(
+        session,
+        EntityType.WAIVER_SCAN,
+        row.id,
+        action,
+        acting,
+        sailor_id=sailor.id,
+        scope=scope,
+        scope_id=scope_id,
+        media_type=media_type,
+        bytes=len(raw),
     )
     await session.commit()
     return _out(row, scope, scope_id, required.version, cleared=True)
@@ -1046,8 +1022,8 @@ def _row(
 def _tally(rows: list[SailorWaiverRow]) -> dict:
     """The rows with who still has to sign at the top — that is what someone opens the
     list for — and the two counts above them."""
-    rows.sort(key=lambda r: (r.status == STATUS_CLEARED, r.last_name, r.first_name))
-    cleared = sum(1 for r in rows if r.status == STATUS_CLEARED)
+    rows.sort(key=lambda r: (r.status == WaiverStatus.CLEARED, r.last_name, r.first_name))
+    cleared = sum(1 for r in rows if r.status == WaiverStatus.CLEARED)
     return dict(cleared=cleared, outstanding=len(rows) - cleared, sailors=rows)
 
 

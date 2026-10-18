@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-import { CreateEventWizard } from "./AdminEvents";
+import { CreateEventWizard } from "./admin/events/Wizard";
 import { NewEntryPage } from "./AdminNewPage";
 
 /** `/admin/events/new` — Story VA-6: the three steps, on their own page. Leaving the

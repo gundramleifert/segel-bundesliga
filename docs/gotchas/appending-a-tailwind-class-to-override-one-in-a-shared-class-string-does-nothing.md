@@ -14,7 +14,7 @@ and Tailwind does not.
 own class string, or split the shared constant so the conflicting property is not in it
 (or use Tailwind's `!` important modifier, sparingly).
 
-**Evidence** — `web/src/pages/Matchday.tsx`, the `matchday-pairing-pdf-club` select:
+**Evidence** — `web/src/pages/league/act/PairingList.tsx`, the `matchday-pairing-pdf-club` select:
 bounding box 992 × 36 px before, 97 × 28 px after.
 
 **Seen** — 2026-10-07

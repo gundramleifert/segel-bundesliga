@@ -17,17 +17,16 @@ import re
 from collections.abc import Iterable
 from datetime import date
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, Query
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import authz
-from app.auth import current_user
+from app.auth import current_user, optional_user
 from app.crests import crest_path
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.live import hub
 from app.models import (
     Boat,
@@ -51,12 +50,14 @@ from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
 from app.problems import Problem
+from app.routers.sailors import connected_to_sailor
 from app.schemas.public import (
     BoatOut,
     ClubDetail,
     ClubEventOut,
     ClubOut,
     ClubTeamOut,
+    EventAccess,
     EventCrewList,
     EventDetail,
     EventDocumentOut,
@@ -75,6 +76,7 @@ from app.schemas.public import (
     SailorDetail,
     SailorEventOut,
     SailorTeamOut,
+    SeasonSeriesOut,
     SeriesOut,
     SeriesStandingRow,
     SeriesTable,
@@ -83,7 +85,9 @@ from app.schemas.public import (
     VenueOut,
 )
 from app.services import compute_event, compute_series, current_year, event_entries
+from app.services.lookup import get_or_404
 from app.services.pairing_service import TeamNotInPairing, stored_pairing
+from app.services.standings import points_by_flight, race_flights
 from app.text import slugify
 
 router = APIRouter(prefix="/api", tags=["public"])
@@ -192,13 +196,45 @@ async def get_league_season(
         if series
         else []
     )
+    clubs_of = await _registered_clubs(session, [s.id for s in series])
+    every_club = {club.id: club for clubs in clubs_of.values() for club in clubs}
     return LeagueSeason(
         league=LeagueOut.model_validate(league),
         year=effective_year,
         years=years,
-        series=[SeriesOut.model_validate(s) for s in series],
+        series=[
+            SeasonSeriesOut(
+                **SeriesOut.model_validate(s).model_dump(), clubs=clubs_of.get(s.id, [])
+            )
+            for s in series
+        ],
         events=[_event_out(e) for e in events],
+        clubs=sorted(every_club.values(), key=lambda club: (club.name, club.id)),
     )
+
+
+async def _registered_clubs(
+    session: AsyncSession, series_ids: list[int]
+) -> dict[int, list[ClubOut]]:
+    """Series ID -> the clubs registered and accepted for it, by name (Story B-14)."""
+    if not series_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(Team.series_id, Club)
+            .join(Club, Team.club_id == Club.id)
+            .where(
+                Team.series_id.in_(series_ids),
+                Team.event_id.is_(None),
+                Team.status == TeamStatus.ACCEPTED,
+            )
+            .order_by(Club.name, Club.id)
+        )
+    ).all()
+    clubs: dict[int, list[ClubOut]] = {}
+    for series_id, club in rows:
+        clubs.setdefault(series_id, []).append(ClubOut.model_validate(club))
+    return clubs
 
 
 # -------------------------------------------------------------------------- Series
@@ -225,7 +261,6 @@ async def list_series(
 async def get_series_table(
     series_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> SeriesTable:
     """The series standings table: the placements of all matchdays, summed. Lower is better.
 
@@ -240,14 +275,7 @@ async def get_series_table(
         )
     ).scalar_one_or_none()
     if series is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en=f"Series {series_id} not found",
-                de=f"Serie {series_id} nicht gefunden",
-            ),
-        )
+        raise Problem(404, "series-not-found", f"Series {series_id} not found.", id=series_id)
 
     events = list(
         (
@@ -564,23 +592,13 @@ async def get_club(
     club_id: int,
     year: int | None = Query(default=None, description="Year; otherwise the current one"),
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> ClubDetail:
     """The club page: master data, emblem, brief description, and teams.
 
     A club can participate in multiple series — so this is a list. The events of a series
     appear under their team; events hosted by the club without a series appear separately.
     """
-    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
-    if club is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en=f"Club {club_id} not found",
-                de=f"Verein {club_id} nicht gefunden",
-            ),
-        )
+    club = await get_or_404(session, Club, club_id)
 
     effective_year = year if year is not None else await current_year(session, published_only=True)
 
@@ -663,7 +681,7 @@ async def get_sailor(
     sailor_id: int,
     year: int | None = Query(default=None, description="Year; otherwise the current one"),
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
+    acting: User | None = Depends(optional_user),
 ) -> SailorDetail:
     """The sailor page: which club and series someone is registered with, where they compete.
 
@@ -671,19 +689,18 @@ async def get_sailor(
     Being on the squad does not mean sailing every event.
 
     Deliberately no email or birth year — same as on the club page.
+
+    A sailor who switched their page off (Story S-4) gets the **same** 404 as nobody at
+    all, so the page does not confirm to a guesser that the person exists; the people
+    connected to them (`connected_to_sailor`) still open it.
     """
     sailor = (
         await session.execute(select(Sailor).where(Sailor.id == sailor_id))
     ).scalar_one_or_none()
-    if sailor is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en="This person is not registered.",
-                de="Diese Person ist nicht gemeldet.",
-            ),
-        )
+    if sailor is None or (
+        not sailor.profile_public and not await connected_to_sailor(session, acting, sailor)
+    ):
+        raise Problem(404, "sailor-not-found", "This person is not registered.", id=sailor_id)
 
     effective_year = year if year is not None else await current_year(session, published_only=True)
     teams: list[SailorTeamOut] = []
@@ -736,6 +753,7 @@ async def get_sailor(
         id=sailor.id,
         first_name=sailor.first_name,
         last_name=sailor.last_name,
+        profile_public=sailor.profile_public,
         teams=teams,
         events=events,
     )
@@ -813,15 +831,15 @@ async def list_events(
 async def get_event(
     event_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> EventDetail:
-    event = await _event_by_id(session, event_id, locale)
+    event = await _event_by_id(session, event_id)
     teams = await _teams_of_event(session, event.id)
 
     scores = await compute_event(session, event.id)
     races_total = await _count_races(session, event.id)
     # Get the race ID -> race number mapping once, rather than repeatedly for each team.
     sequences = await _race_sequences(session, event.id)
+    flights = await race_flights(session, event.id)
     penalty_notes = dict(
         (
             await session.execute(
@@ -842,6 +860,7 @@ async def get_event(
             points_by_race={
                 sequences[race_id]: points for race_id, points in score.points_by_race.items()
             },
+            points_by_flight=points_by_flight(score, flights),
             discarded_races=sorted(sequences[race_id] for race_id in score.discarded_races),
             penalty_points=score.penalty,
             penalty_note=penalty_notes.get(score.team_id) if score.penalty else None,
@@ -859,6 +878,32 @@ async def get_event(
 
 
 @router.get(
+    "/events/{event_id}/access",
+    response_model=EventAccess,
+    summary="What the person asking may do on this event",
+)
+async def get_event_access(
+    event_id: int,
+    session: AsyncSession = Depends(get_session),
+    user: User | None = Depends(optional_user),
+) -> EventAccess:
+    """Story WL-3: the race committee's tools appear on the events a person runs.
+
+    A request of its own rather than a field on the event detail: the detail is the same
+    for everyone and cached as such, this answer depends on who asks. Same visibility as
+    the detail — what a visitor cannot see is a 404.
+    """
+    event = await _event_by_id(session, event_id)
+    if user is None:
+        return EventAccess()
+    return EventAccess(
+        record_results=authz.check(user, Relation.RACE_OFFICER, on=event),
+        control=authz.check(user, Relation.MANAGER, Relation.RACE_OFFICER, on=event),
+        manage=authz.check(user, Relation.MANAGER, on=event),
+    )
+
+
+@router.get(
     "/events/{event_id}/crew",
     response_model=EventCrewList,
     summary="Who sails for each team at this matchday",
@@ -866,7 +911,6 @@ async def get_event(
 async def get_event_crew(
     event_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> EventCrewList:
     """The lineups of one matchday, per team — Story B-12.
 
@@ -881,7 +925,7 @@ async def get_event_crew(
     Separate from ``get_event`` on purpose: the standings are what the page opens with, and
     every visitor would otherwise pay for a join most of them never look at.
     """
-    event = await _event_by_id(session, event_id, locale)
+    event = await _event_by_id(session, event_id)
     teams = await _teams_of_event(session, event.id)
 
     rows = (
@@ -894,14 +938,7 @@ async def get_event_crew(
 
     crew_by_team: dict[int, list[MemberOut]] = {}
     for crew, sailor in rows:
-        crew_by_team.setdefault(crew.team_id, []).append(
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=crew.role,
-            )
-        )
+        crew_by_team.setdefault(crew.team_id, []).append(MemberOut.of(sailor, crew.role))
     for members in crew_by_team.values():
         members.sort(key=MemberOut.announce_order)
 
@@ -922,11 +959,10 @@ async def get_event_crew(
 async def list_event_documents(
     event_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> list[EventDocument]:
     """Notice of race, sailing instructions, notices — as links to where they were
     published (Story A-14), in the source's own order. A draft event is a 404 here too."""
-    event = await _event_by_id(session, event_id, locale)
+    event = await _event_by_id(session, event_id)
     return list(
         (
             await session.execute(
@@ -942,10 +978,9 @@ async def list_event_documents(
 async def get_pairing(
     event_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> PairingList:
     """The pairing list: which team sails when on which boat."""
-    event = await _event_by_id(session, event_id, locale)
+    event = await _event_by_id(session, event_id)
     teams = await _teams_of_event(session, event.id)
 
     boats = list(
@@ -1001,7 +1036,6 @@ async def download_pairing_pdf(
         description="Print only this team's own page instead of the whole sheet",
     ),
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> Response:
     """The pairing list as the sheet that is printed and handed out (Story B-3).
 
@@ -1013,7 +1047,7 @@ async def download_pairing_pdf(
     shares a shuttle with. That is the sheet one crew wants — finding its page among
     eighteen is what a crew does at the dock, in the wind, on paper.
     """
-    event = await _event_by_id(session, event_id, locale)
+    event = await _event_by_id(session, event_id)
 
     try:
         request = await stored_pairing(session, event, title=_pdf_title(event), team_id=team)
@@ -1073,7 +1107,7 @@ def _pdf_title(event: Event) -> str:
     return event.title
 
 
-async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale) -> Event:
+async def _event_by_id(session: AsyncSession, event_id: int) -> Event:
     """The event, if a visitor may see it — a draft is a 404 here, like anywhere public."""
     event = (
         await session.execute(
@@ -1081,14 +1115,7 @@ async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale) -> 
         )
     ).scalar_one_or_none()
     if event is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                en=f"Event {event_id} not found",
-                de=f"Veranstaltung {event_id} nicht gefunden",
-            ),
-        )
+        raise Problem(404, "event-not-found", f"Event {event_id} not found.", id=event_id)
     return event
 
 
@@ -1144,14 +1171,7 @@ async def _squad(session: AsyncSession, team_ids: list[int]) -> dict[int, list[M
 
     by_team: dict[int, list[MemberOut]] = {}
     for membership, sailor in rows:
-        by_team.setdefault(membership.team_id, []).append(
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=membership.role,
-            )
-        )
+        by_team.setdefault(membership.team_id, []).append(MemberOut.of(sailor, membership.role))
     for members in by_team.values():
         members.sort(key=MemberOut.announce_order)
     return by_team
@@ -1199,14 +1219,7 @@ async def _events_by_team(
 
     crew_by_event: dict[int, list[MemberOut]] = {}
     for crew, sailor in lineups:
-        crew_by_event.setdefault(crew.event_id, []).append(
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=crew.role,
-            )
-        )
+        crew_by_event.setdefault(crew.event_id, []).append(MemberOut.of(sailor, crew.role))
     for members in crew_by_event.values():
         members.sort(key=MemberOut.announce_order)
 
@@ -1277,6 +1290,7 @@ def _event_out(event: Event) -> EventOut:
         team_count=event.team_count,
         boat_count=event.boat_count,
         flight_count=event.flight_count,
+        races_per_flight=event.races_per_flight if event.boat_count >= 1 else 0,
         crew_size=event.crew_size,
         print_settings=event.print_settings,
     )

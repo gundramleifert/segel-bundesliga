@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 
 import { getGetEventQueryKey, useGetEvent, useListLeagues } from "../../api/generated/sbl";
-import type { EventSummary, League } from "../../api/types";
-import { useAccount, useAsync } from "../../api/useApi";
+import { EventStatus, type EventSummary, type League } from "../../api/types";
+import { useAsync, useEventAccess } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
@@ -13,7 +13,10 @@ import { BARS, Block, DepthPage, Expand, PageLoading, SubBar } from "../../compo
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
 import { eventDates, locationText } from "../../lib/format";
 import { actSlug, currentAct, hasResults, href, lastSailed, stateOf, type Act } from "../../lib/site";
-import { Crew, DailyStandings, PairingList, ResultsEntry } from "../Matchday";
+import { Crew } from "./act/Crew";
+import { PairingList } from "./act/PairingList";
+import { ResultsEntry } from "./act/Results";
+import { DailyStandings } from "./act/Standings";
 import { DocList, MediaContent } from "./Depth";
 import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle } from "./shared";
 
@@ -59,7 +62,6 @@ function MatchdayView({
 }) {
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
-  const { hasRole } = useAccount();
   const [params, setParams] = useSearchParams();
   // A tab click scrolls the page so the matchday row sits right under the top bar and the
   // tab starts below it. A page opened by its URL keeps its picture in view.
@@ -71,11 +73,13 @@ function MatchdayView({
     window.scrollTo({ top: anchor.current.getBoundingClientRect().top + window.scrollY - BARS.offset });
   }, [tabParam]);
 
-  const canEnterResults = hasRole("admin", "race_officer");
+  const event = act.events.find((e) => String(e.id) === params.get("division")) ?? act.events[0];
+  // The entry tab is the race committee's of *this* division's event (Story WL-3) — the
+  // server's answer, not a role held somewhere.
+  const canEnterResults = useEventAccess(event.id).record_results;
   const tabs = TABS.filter((tb) => tb !== "entry" || canEnterResults);
   const fallback: Tab = hasResults(act) ? "results" : "notice-board";
   const tab: Tab = (tabs as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : fallback;
-  const event = act.events.find((e) => String(e.id) === params.get("division")) ?? act.events[0];
   const kicker = [league?.short_name, actDates(act), act.first.venue?.water ?? act.first.venue?.name].filter(Boolean).join(" · ");
 
   // The matchday's tabs are its sub-menu: where you are on the left (the league, its
@@ -214,7 +218,7 @@ function Results({ event }: { event: EventSummary }) {
             <span data-testid="matchday-races-count">{t("racesCount", { scored: data.races_scored, total: data.races_total })}</span>
             {/* The status from the event's own query, which the stream refreshes — the
                 act's list from the league's year is a snapshot of when the page opened. */}
-            {data.event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
+            {data.event.status === EventStatus.live && <LiveBadge state={live} testId="matchday-live-badge" />}
           </p>
           <DailyStandings standings={data.standings} event={data.event} />
         </>
@@ -250,7 +254,7 @@ function useEventLive(event: EventSummary) {
 /** The live map while racing, a replay afterwards — or the live view the event names. */
 function LiveTab({ event }: { event: EventSummary }) {
   const { t } = useTranslation("site");
-  const title = event.status === "live" ? t("live.now") : event.status === "final" ? t("live.replay") : t("live.from", { dates: eventDates(event) });
+  const title = event.status === EventStatus.live ? t("live.now") : event.status === EventStatus.final ? t("live.replay") : t("live.from", { dates: eventDates(event) });
   const button = "mt-5 inline-block rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950";
   return (
     <Card className="p-8 text-center" testId="site-live">

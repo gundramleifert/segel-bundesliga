@@ -160,7 +160,7 @@ class TestCreateEvent:
             },
         )
         assert response.status_code == 403
-        assert "own club" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/host-club-not-mine"
 
     async def test_account_without_role_cannot_create_event(self, client, caplog):
         headers = auth_headers(await register(client, caplog, "va7@example.com", "Otto Nobody"))
@@ -334,3 +334,59 @@ class TestPairingFromCatalog:
         )
         assert drawn.status_code == 200, drawn.text
         assert drawn.json()["races"] == 48
+
+
+class TestWhoMayEnter:
+    """VA-6: As an organizer, the clubs step offers exactly the clubs that may enter."""
+
+    async def test_an_act_offers_its_series_accepted_clubs(self, client, caplog, ids):
+        """Story VA-6: an applicant still waiting is not offered — the server would refuse it."""
+        from tests.stories.test_participation import club_leadership, new_club
+
+        headers = await admin(client, caplog, "cand1@example.com")
+        waiting = await new_club(client, headers, "Wartender Kandidat")
+        officer = await club_leadership(client, caplog, "cand1b@example.com", waiting["id"])
+        applied = await client.post(
+            "/api/applications",
+            headers=officer,
+            json={"club_id": waiting["id"], "series_id": ids.series("dsbl-1-2026")},
+        )
+        assert applied.status_code == 201, applied.text
+
+        event_id = ids.event("dsbl-1-2026-act-3")
+        response = await client.get(
+            f"/api/admin/events/{event_id}/candidate-clubs", headers=headers
+        )
+        assert response.status_code == 200, response.text
+        series = await all_items(client, "/api/admin/series", headers=headers)
+        registered = next(s for s in series if s["id"] == ids.series("dsbl-1-2026"))["clubs"]
+
+        offered = {club["id"] for club in response.json()}
+        assert offered == {club["id"] for club in registered}
+        assert waiting["id"] not in offered
+
+    async def test_an_event_standing_alone_offers_every_club(self, client, caplog):
+        """Story VA-6: a club in no series at all can enter a club's own regatta."""
+        from tests.stories.test_participation import new_club
+
+        headers = await admin(client, caplog, "cand2@example.com")
+        newcomer = await new_club(client, headers, "Ganz Neuer Kandidat")
+        event = (
+            await client.post(
+                "/api/admin/events",
+                headers=headers,
+                json={"title": "Offener Pokal", "starts_on": "2026-11-07"},
+            )
+        ).json()
+
+        response = await client.get(
+            f"/api/admin/events/{event['id']}/candidate-clubs", headers=headers
+        )
+        assert response.status_code == 200, response.text
+        assert newcomer["id"] in {club["id"] for club in response.json()}
+
+    async def test_a_guest_is_not_shown_the_choice(self, client, ids):
+        """Story VA-6: the choice is the organizer's, like the clubs it decides between."""
+        event_id = ids.event("dsbl-1-2026-act-3")
+        response = await client.get(f"/api/admin/events/{event_id}/candidate-clubs")
+        assert response.status_code == 401

@@ -5,11 +5,12 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { MarkRole } from './markRole';
 
 export interface TrackerOut {
   id: number;
   boat_number: number | null;
-  mark_role: string | null;
+  mark_role: MarkRole | null;
   device_token: string;
   active_from: string;
 }

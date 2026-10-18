@@ -6,11 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type RaceSignalInSignal = typeof RaceSignalInSignal[keyof typeof RaceSignalInSignal] | null;
+export type MarkRole = typeof MarkRole[keyof typeof MarkRole];
 
 
-export const RaceSignalInSignal = {
-  AP: 'AP',
-  X: 'X',
-  S: 'S',
+export const MarkRole = {
+  committee_boat: 'committee_boat',
+  start_pin: 'start_pin',
+  windward: 'windward',
+  gate_left: 'gate_left',
+  gate_right: 'gate_right',
+  finish_pin: 'finish_pin',
 } as const;

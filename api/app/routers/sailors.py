@@ -18,12 +18,13 @@ See the docstring on `_save_photo` for the storage and minors-visibility design.
 
 from __future__ import annotations
 
+import asyncio
 import io
 from collections import Counter
 from datetime import date
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from PIL import Image, ImageOps
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -35,7 +36,6 @@ from app.auth import current_user, optional_user
 from app.authz import ObjectRef
 from app.config import settings
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
 from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
@@ -44,6 +44,7 @@ from app.problems import Problem
 from app.schemas.public import MemberOut
 from app.services import is_minor
 from app.services.contexts import require_linked_sailor
+from app.services.lookup import get_or_404
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
 me_router = APIRouter(prefix="/api/sailors", tags=["sailors"])
@@ -126,7 +127,7 @@ class SailorRegistrationOut(BaseModel):
     team_id: int
     club: SquadClubOut
     series: SquadSeriesOut
-    role: str
+    role: CrewRole
 
 
 class SailorAdminOut(BaseModel):
@@ -139,6 +140,9 @@ class SailorAdminOut(BaseModel):
     last_name: str
     email: str | None = None
     birth_date: date | None = None
+    # Story S-4: management sees the sailor's choice, never sets it (`SailorUpdate` has
+    # no such field).
+    profile_public: bool = True
     # How many series this person is registered for. Says at a glance whether they're
     # in a squad anywhere.
     squads: int = 0
@@ -161,6 +165,8 @@ class SailorMeOut(BaseModel):
     birth_date: date | None = None
     # Whether a photo file exists — never the binary itself, see `get_sailor_photo`.
     has_photo: bool = False
+    # Story S-4: whether the profile page is public — the choice, or the age default.
+    profile_public: bool = True
 
 
 class SailorMeUpdate(SailorFields):
@@ -171,6 +177,9 @@ class SailorMeUpdate(SailorFields):
     first_name: str | None = Field(default=None, min_length=1, max_length=80)
     last_name: str | None = Field(default=None, min_length=1, max_length=80)
     birth_date: date | None = Field(default=None, le=date.today())
+    # Story S-4 — the one field here management cannot set for someone else. Null (or
+    # absent) leaves the choice as it is.
+    profile_public: bool | None = None
 
 
 class SquadMemberIn(BaseModel):
@@ -300,7 +309,6 @@ async def create_sailor(
     request: SailorCreate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> SailorAdminOut:
     """Create a person.
 
@@ -309,13 +317,11 @@ async def create_sailor(
     _can_manage_master_data(acting)
 
     if request.email and await _email_taken(session, request.email):
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=f"Email {request.email} is already taken. Emails are unique.",
-                de=f"Zu {request.email} ist schon jemand angelegt. Adressen sind eindeutig.",
-            ),
+        raise Problem(
+            409,
+            "email-taken",
+            f"Email {request.email} is already taken. Emails are unique.",
+            email=request.email,
         )
 
     sailor = Sailor(**request.model_dump())
@@ -330,7 +336,6 @@ async def update_sailor(
     request: SailorUpdate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> SailorAdminOut:
     _can_manage_master_data(acting)
     sailor = await _sailor(session, sailor_id)
@@ -339,13 +344,8 @@ async def update_sailor(
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
     if email and await _email_taken(session, email, except_id=sailor.id):
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=f"Email {email} is already taken. Emails are unique.",
-                de=f"Zu {email} ist schon jemand angelegt. Adressen sind eindeutig.",
-            ),
+        raise Problem(
+            409, "email-taken", f"Email {email} is already taken. Emails are unique.", email=email
         )
 
     for field, value in changes.items():
@@ -382,7 +382,6 @@ async def set_squad(
     request: SquadSetRequest,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> SquadOut:
     """Registers the people who are allowed to compete for this team — Story V-1.
 
@@ -432,9 +431,9 @@ async def set_squad(
 
     if desired:
         await _all_exist(session, set(desired))
-        await _not_already_in_series(session, team, set(desired), locale)
+        await _not_already_in_series(session, team, set(desired))
 
-    await _not_removing_lined_up(session, team, set(desired), locale)
+    await _not_removing_lined_up(session, team, set(desired))
 
     await session.execute(delete(TeamMembership).where(TeamMembership.team_id == team.id))
     session.add_all(
@@ -480,7 +479,11 @@ async def update_my_sailor(
     admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
     record" instead of requiring `_can_manage_master_data`."""
     sailor = await require_linked_sailor(session, acting)
-    for field, value in request.model_dump(exclude_unset=True).items():
+    changes = request.model_dump(exclude_unset=True)
+    profile_public = changes.pop("profile_public", None)
+    if profile_public is not None:
+        sailor.profile_public_choice = profile_public
+    for field, value in changes.items():
         setattr(sailor, field, value)
     await session.commit()
     return _me_out(sailor)
@@ -494,7 +497,7 @@ async def upload_my_photo(
 ) -> SailorMeOut:
     sailor = await require_linked_sailor(session, acting)
     raw = await file.read()
-    _save_photo(sailor.id, raw, content_type=file.content_type)
+    await asyncio.to_thread(_save_photo, sailor.id, raw, content_type=file.content_type)
     return _me_out(sailor)
 
 
@@ -530,9 +533,10 @@ async def get_sailor_photo(
     # "adult" therefore requires the connected-viewer check. A sailor lifts the restriction
     # on their own photo by filling in their birth date in the same self-service form they
     # uploaded it from. `app/routers/waivers.py` treats the same unknown as blocking.
-    if is_minor(sailor.birth_date, date.today()) is not False and not await _may_view_minor_photo(
-        session, acting, sailor
-    ):
+    minor = is_minor(sailor.birth_date, date.today()) is not False
+    if (minor or not sailor.profile_public) and await connected_to_sailor(session, acting, sailor):
+        return FileResponse(path, media_type="image/jpeg")
+    if minor:
         raise Problem(
             403,
             "sailor-photo-protected",
@@ -540,6 +544,10 @@ async def get_sailor_photo(
             "only shown to a signed-in account connected to them: the sailor themselves, "
             "administration/editorial staff, or their club's leadership.",
         )
+    # Story S-4: a hidden profile takes its photo with it — the same 404 as a sailor
+    # without one, for whoever is not connected to the person.
+    if not sailor.profile_public:
+        raise Problem(404, "sailor-photo-not-found", "This sailor has no photo.")
 
     return FileResponse(path, media_type="image/jpeg")
 
@@ -551,6 +559,7 @@ def _me_out(sailor: Sailor) -> SailorMeOut:
         last_name=sailor.last_name,
         birth_date=sailor.birth_date,
         has_photo=_photo_path(sailor.id).exists(),
+        profile_public=sailor.profile_public,
     )
 
 
@@ -616,8 +625,9 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
     image.save(_photo_path(sailor_id), format="JPEG", quality=_JPEG_QUALITY)
 
 
-async def _may_view_minor_photo(session: AsyncSession, acting: User | None, sailor: Sailor) -> bool:
-    """Who may see a photo that is not public — Story S-2's own open question, resolved here.
+async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor: Sailor) -> bool:
+    """Who may see a photo or a profile page that is not public — Story S-2's own open
+    question, resolved here, and the same circle Story S-4 opens a hidden page for.
 
     An **adult's** photo is public: "so that people see who sails for the club" is the whole
     point of S-2, and there is no reason to gate it. A minor's photo is sensitive in exactly
@@ -663,9 +673,10 @@ def _can_manage_master_data(acting: User) -> None:
         acting, Relation.MANAGER, ObjectType.CLUB
     ):
         return
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Only administration, editorial staff, and club leadership can manage sailors.",
+    raise Problem(
+        403,
+        "sailor-manage-forbidden",
+        "Only administration, editorial staff, and club leadership can manage sailors.",
     )
 
 
@@ -698,25 +709,20 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
 def _can_manage_squad(acting: User, team: Team) -> None:
     if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
         return
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Only club leadership of the same club can manage the squad.",
+    raise Problem(
+        403,
+        "squad-manage-forbidden",
+        "Only club leadership of the same club can manage the squad.",
     )
 
 
 async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
-    sailor = (
-        await session.execute(select(Sailor).where(Sailor.id == sailor_id))
-    ).scalar_one_or_none()
-    if sailor is None:
-        raise HTTPException(status_code=404, detail=f"Sailor {sailor_id} not found")
+    sailor = await get_or_404(session, Sailor, sailor_id)
     return sailor
 
 
 async def _team(session: AsyncSession, team_id: int) -> Team:
-    team = (await session.execute(select(Team).where(Team.id == team_id))).scalar_one_or_none()
-    if team is None:
-        raise HTTPException(status_code=404, detail=f"Team {team_id} not found")
+    team = await get_or_404(session, Team, team_id)
     return team
 
 
@@ -741,9 +747,7 @@ async def _all_exist(session: AsyncSession, sailor_ids: set[int]) -> None:
         )
 
 
-async def _not_already_in_series(
-    session: AsyncSession, team: Team, sailor_ids: set[int], locale: Locale
-) -> None:
+async def _not_already_in_series(session: AsyncSession, team: Team, sailor_ids: set[int]) -> None:
     """The core rule: once per series, for whichever club."""
     if team.series_id is None:
         return
@@ -773,9 +777,7 @@ async def _not_already_in_series(
         )
 
 
-async def _not_removing_lined_up(
-    session: AsyncSession, team: Team, staying: set[int], locale: Locale
-) -> None:
+async def _not_removing_lined_up(session: AsyncSession, team: Team, staying: set[int]) -> None:
     """People selected for a matchday cannot be removed from the squad."""
     current = set(
         (
@@ -844,15 +846,7 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
         )
     ).all()
     members = sorted(
-        (
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=membership.role,
-            )
-            for membership, sailor in rows
-        ),
+        (MemberOut.of(sailor, membership.role) for membership, sailor in rows),
         key=MemberOut.announce_order,
     )
     return SquadOut(

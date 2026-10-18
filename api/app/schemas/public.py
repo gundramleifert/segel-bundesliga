@@ -13,7 +13,10 @@ from typing import Any, Literal, NamedTuple
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.crests import crest_url
-from app.models.org import CrewRole
+from app.models.auth import Relation
+from app.models.competition import EventDocumentKind, EventStatus
+from app.models.org import CrewRole, Sailor
+from app.models.racing import PreparatoryFlag, RaceStatus
 
 
 class ClubOut(BaseModel):
@@ -78,9 +81,11 @@ class LeagueSeason(BaseModel):
     year: int | None
     #: Every year the league has published series in, newest first — the archive.
     years: list[int]
-    series: list[SeriesOut]
+    series: list[SeasonSeriesOut]
     #: The events of those series in date order; an act is the events sharing a matchday.
     events: list[EventOut]
+    #: Every club registered (accepted) for one of those series, once, by name.
+    clubs: list[ClubOut] = []
 
 
 class SeriesOut(BaseModel):
@@ -106,6 +111,12 @@ class SeriesOut(BaseModel):
     published: bool = False
     # Free-text, Markdown, for the public standings page. Absent unless an admin set one.
     description: str | None = None
+
+
+class SeasonSeriesOut(SeriesOut):
+    """A series on its league's page, with the clubs registered (accepted) for it."""
+
+    clubs: list[ClubOut] = []
 
 
 class VenueOut(BaseModel):
@@ -134,7 +145,21 @@ class MemberOut(BaseModel):
     id: int
     first_name: str
     last_name: str
-    role: str
+    role: CrewRole
+    # Story S-4: whether the name may link to the profile page. False renders the name as
+    # plain text — it is never hidden, only the page is.
+    profile_public: bool = True
+
+    @classmethod
+    def of(cls, sailor: Sailor, role: CrewRole | str) -> MemberOut:
+        """A sailor as a squad or lineup names them: the name, the role, nothing personal."""
+        return cls(
+            id=sailor.id,
+            first_name=sailor.first_name,
+            last_name=sailor.last_name,
+            role=role,
+            profile_public=sailor.profile_public,
+        )
 
     def announce_order(self) -> AnnounceOrder:
         """Sort key: helm, crew, substitute — the order a crew is announced — then name."""
@@ -164,7 +189,7 @@ class ClubMemberOut(BaseModel):
 
     user_id: int
     display_name: str
-    relations: list[str] = Field(
+    relations: list[Relation] = Field(
         default_factory=list, description="What this person is to the club: member, manager, …"
     )
     organizer: bool = False
@@ -209,7 +234,7 @@ class EventOut(BaseModel):
     # (Story VA-8). It cannot be started without one.
     starts_on: date | None = None
     ends_on: date | None = None
-    status: str
+    status: EventStatus
     # Public visibility, orthogonal to `status`. Always true on public routes.
     published: bool = False
     series: SeriesOut | None = None
@@ -223,6 +248,8 @@ class EventOut(BaseModel):
     team_count: int
     boat_count: int
     flight_count: int
+    # ceil(team_count / boat_count): the races of one flight, so every team sails once.
+    races_per_flight: int = 0
     crew_size: int
     # The squad's size when the event stands alone (Story V-1); a series event uses its
     # series' limits.
@@ -243,6 +270,9 @@ class EventStandingRow(BaseModel):
     races_scored: int
     # Points per race, key is the sequential race number (1..48).
     points_by_race: dict[int, float]
+    # The same points summed per flight (key: flight number), only for flights this team
+    # has a result in — computed from each race's own flight (Story B-2).
+    points_by_flight: dict[int, float] = {}
     discarded_races: list[int]
     # The matchday penalty, already inside ``total`` and ``net`` (Story WL-4) — shown so a
     # total that is not the sum of its races explains itself.
@@ -255,6 +285,24 @@ class EventDetail(BaseModel):
     standings: list[EventStandingRow]
     races_total: int
     races_scored: int
+
+
+class EventAccess(BaseModel):
+    """What the person asking may do on one event — Story WL-3.
+
+    Answered per event with the permission model (``app/authz.py``), so a race officer of
+    one event sees the committee's tools there and nowhere else, and one appointed through
+    the series or the host club sees them too. A guest gets ``false`` throughout. The
+    summary roles (``User.roles``) are for navigation and never answer this.
+    """
+
+    #: The race committee's tools: results, race control, the course, trackers
+    #: (``race_officer`` on the event — directly or through its series, host club, site).
+    record_results: bool = False
+    #: Start, finish, cancel and reopen the day (``manager`` or ``race_officer``).
+    control: bool = False
+    #: The organizer's setup screen (``manager`` on the event).
+    manage: bool = False
 
 
 class TeamCrewOut(BaseModel):
@@ -319,7 +367,7 @@ class StartSequence(BaseModel):
     from them with the same code (`web/src/lib/startSequence.ts`).
     """
 
-    preparatory: Literal["P", "I", "Z", "U", "BLACK"]
+    preparatory: PreparatoryFlag
     first_signal_at: int | None = Field(
         default=None,
         description="When the club flag goes up (3 minutes to go), ms since the epoch; "
@@ -355,8 +403,7 @@ class EventDocumentOut(BaseModel):
 
     id: int
     title: str
-    # notice_of_race, sailing_instructions, notice, other.
-    kind: str
+    kind: EventDocumentKind
     url: str
     extension: str | None = None
     published_at: datetime | None = None
@@ -368,7 +415,7 @@ class PairingRow(BaseModel):
     sequence: int
     flight: int
     race_in_flight: int
-    status: str
+    status: RaceStatus
     # Boat number -> Team
     teams_by_boat: dict[int, TeamOut]
 
@@ -387,7 +434,7 @@ class SailorTeamOut(BaseModel):
     """Which club and which series a person is registered for in a season."""
 
     team_id: int
-    role: str
+    role: CrewRole
     club: ClubOut
     series: SeriesOut
 
@@ -397,7 +444,7 @@ class SailorEventOut(BaseModel):
 
     event: EventOut
     team_id: int
-    role: str
+    role: CrewRole
 
 
 class SailorDetail(BaseModel):
@@ -406,6 +453,9 @@ class SailorDetail(BaseModel):
     id: int
     first_name: str
     last_name: str
+    # Story S-4: false when only a connected viewer (the sailor, admin/editor, their club's
+    # manager) gets to see this page — the page says so to them.
+    profile_public: bool = True
     teams: list[SailorTeamOut] = Field(default_factory=list)
     events: list[SailorEventOut] = Field(default_factory=list)
 
@@ -444,7 +494,7 @@ class MyEventOut(BaseModel):
     title: str
     starts_on: date | None = None
     ends_on: date | None = None
-    status: str
+    status: EventStatus
     #: A draft is listed for its own participants — they line up before it goes public.
     published: bool
     matchday: int | None = None

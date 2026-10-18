@@ -38,11 +38,14 @@ knows a race is *underway*. B-5's "which race is running" and everything in L-1�
 §7 (decision 14).
 
 Acceptance criteria:
-- **A page, not a Matchday tab:** `/events/:id/race-control`, gated to `admin` and
-  `race_officer`, linked from the manage screen and the results tab. The results tab stays
+- **A page, not a Matchday tab:** `/events/:id/race-control`, gated to the race committee
+  *of that event* (see below), linked from the manage screen and the results tab. The results tab stays
   the *correction* screen — a protest heard weeks later belongs there, not here.
-- **One race on screen, the current one:** the first race that is neither `finished` nor
-  `abandoned` — the rule the results tab already uses to find the open race. Header names
+- **One race on screen, the current one:** the race on the water, else the first race that
+  is neither `finished` nor `abandoned` — decided by the server, which owns the transitions
+  (`services/race_state.py::current_sequence`), and sent as `current_sequence` with the
+  races (`GET /api/admin/events/{id}/races`); the results tab marks the same race. `null`
+  once every race is done. Header names
   the race and its flight, a progress bar shows races done over the event's total. Arrows
   reach the previous race (to correct) and the next (to preview), nothing further.
 - **Everything is sized by the event** — `Event.boat_count` chips, `ceil(team_count /
@@ -148,6 +151,14 @@ Acceptance criteria:
 - **Wet hands:** chips at least 64 px, no dropdowns on the main path. The finish order is
   mirrored to `localStorage` per race so a reload or a dropped connection does not lose the
   taps — not WL-1's offline sync, but it removes the likeliest way to lose a race.
+- **The committee's tools appear on the events I run, and only there.** The race-control
+  page, the results tab and the live view's course controls are offered by what the server
+  answers for *this* event — `GET /api/events/{id}/access` (`record_results`, `control`,
+  `manage`), computed with the permission model — never by a summary role. A race officer
+  appointed for one event used to see the controls on every event (and get a 403 on
+  saving), while one appointed through the event's series or host club never saw them.
+  A guest gets all `false`; the answer is a separate request so the public event detail
+  stays the same for everyone and can be cached as such.
 - The tap-to-finish chips leave `RaceResultRow` for a shared `FinishOrderPad` component, so
   the results tab and this page cannot drift apart.
 
@@ -164,6 +175,7 @@ finish order as a suggestion (L-2), and the day's signals AP/N over A or H, whic
 VA-10 and are reached from the manage screen for now.
 
 Tests: `api/tests/stories/test_race_control.py`,
+`api/tests/stories/test_event_access.py`,
 `api/tests/unit/test_scoring.py::test_non_finishers_score_starters_plus_one`,
 `e2e/race-control.spec.ts::WL-3: as race committee I run one race at a time`
 
@@ -200,7 +212,7 @@ invalid ranking (two boats claiming the same place), and recomputes points/stand
 immediately, so a protest decision is a one-row correction, never a data migration. With a
 stale `version`, the later submission still wins (a rocking boat is no place for a hard
 conflict error), but the state it replaces is written to `AuditLog` first, not silently
-dropped. `web/src/pages/Matchday.tsx`'s results-entry tab (`RaceResultRow`) now makes the
+dropped. The results-entry tab (`RaceResultRow` in `web/src/pages/league/act/Results.tsx`) now makes the
 finish line the primary, fast path: tapping a boat's colored chip in finish order assigns it
 `FINISHED` + the next unused position (a normal 6-boat race is 6 taps), the chip shows the
 assigned rank as a badge, tapping again undoes just that boat, and a "reset race" action clears
@@ -214,7 +226,8 @@ positions from the manual inputs (tap-assignment cannot produce one by construct
 in the UI and block Save immediately, ahead of the existing
 `/errors/race-result-duplicate-position` server-side check.
 
-Tests: `api/tests/stories/test_result_entry.py::TestEnteringResults`
+Tests: `api/tests/stories/test_result_entry.py::TestEnteringResults`,
+`api/tests/unit/test_results.py`
 
 ### WL-4 ◐ Penalty points for a team on a matchday
 As **race committee** I want to **give a team penalty points for the matchday as a
@@ -242,7 +255,7 @@ Acceptance criteria:
   over the import.
 
 Endpoint: `PUT /api/admin/events/{event_id}/teams/{team_id}/penalty`. Entered in
-`web/src/pages/Matchday.tsx`'s results tab (*Penalty points for the matchday*, below the
+`web/src/pages/league/act/Results.tsx`, the results tab (*Penalty points for the matchday*, below the
 races); the standings show "incl. 3 penalty" with the reason as its tooltip.
 
 Open: no browser test covers the entry form yet.

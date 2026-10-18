@@ -137,7 +137,7 @@ class TestLineup:
             },
         )
         assert response.status_code == 422
-        assert "Not in this team's squad" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/lineup-not-in-squad"
 
     async def test_no_one_appears_twice_in_lineup(self, client, caplog):
         team_id, club_id, squad = await first_team()
@@ -157,7 +157,7 @@ class TestLineup:
             },
         )
         assert response.status_code == 422
-        assert "twice" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/lineup-duplicate-sailor"
 
     async def test_cannot_line_up_another_clubs_team(self, client, caplog):
         team_id, club_id, squad = await first_team()
@@ -173,7 +173,7 @@ class TestLineup:
             },
         )
         assert response.status_code == 403
-        assert "own team" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/lineup-not-own-team"
 
     async def test_race_officers_can_intervene_on_short_notice(self, client, caplog):
         team_id, _club_id, squad = await first_team()
@@ -214,7 +214,7 @@ class TestLineup:
             json={"team_id": team_id, "members": []},
         )
         assert response.status_code == 422
-        assert "does not participate in this event" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/club-not-in-event"
 
     async def test_unauthenticated_users_cannot_do_anything(self, client):
         team_id, _club_id, _squad = await first_team()

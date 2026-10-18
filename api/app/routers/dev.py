@@ -15,7 +15,7 @@ import asyncio
 import socket
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +28,8 @@ from app.i18n import Locale, resolve_locale, tr
 from app.jobs import jobs
 from app.mail import MailError, send_login_code
 from app.models import Club
-from app.models.auth import ObjectType, Relation, User
+from app.models.auth import ObjectType, Relation, Role, User
+from app.problems import Problem
 from app.schemas.auth import TokenOut
 from app.tracking.emulate_job import emulate_event
 
@@ -43,7 +44,7 @@ class TestUserOut(BaseModel):
     id: int
     email: str
     display_name: str
-    roles: list[str]
+    roles: list[Role]
     club: str | None = None
     group: Group
     description: str
@@ -127,18 +128,12 @@ async def list_test_users(
 async def dev_login(
     request: DevLogin,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> TokenOut:
     user = (
         await session.execute(select(User).where(User.email == request.email.lower()))
     ).scalar_one_or_none()
     if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale, en="This test account does not exist.", de="Dieses Testkonto gibt es nicht."
-            ),
-        )
+        raise Problem(404, "test-account-not-found", "This test account does not exist.")
 
     # Like a real sign-in: whoever passes through here is considered verified. Otherwise
     # the role switcher couldn't be used for membership stories.
@@ -161,7 +156,7 @@ _MAIL_DIAGNOSTICS_ENABLED = False
 
 def _require_mail_diagnostics_enabled() -> None:
     if not _MAIL_DIAGNOSTICS_ENABLED:
-        raise HTTPException(status_code=404, detail="Not found")
+        raise Problem(404, "mail-diagnostics-disabled", "Not found.")
 
 
 class SmtpConfigOut(BaseModel):

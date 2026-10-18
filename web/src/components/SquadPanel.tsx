@@ -8,7 +8,7 @@ import {
   useListSailors,
   useSetSquad,
 } from "../api/generated/sbl";
-import type { SailorAdmin, SailorRegistration } from "../api/types";
+import { CrewRole, type SailorAdmin, type SailorRegistration } from "../api/types";
 import { useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "./Blocks";
 import { Message } from "./Form";
@@ -97,7 +97,7 @@ export function SquadPanel({
     .map((d) => people.get(d.sailor_id))
     .filter((p): p is Person => Boolean(p));
   const available = (results.data ?? []).filter((p) => !inDraft.has(p.id));
-  const helmCount = draft.filter((d) => d.role === "helm").length;
+  const helmCount = draft.filter((d) => d.role === CrewRole.helm).length;
   const { squad_min: squadMin, squad_max: squadMax } = squad.data;
   const full = draft.length >= squadMax;
 

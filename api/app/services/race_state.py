@@ -33,14 +33,16 @@ The rules, each of which has a reason:
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import AuditLog, Event, EventStatus, Flight, Race, RaceEntry, RaceStatus
+from app.models import Event, EventStatus, Flight, Race, RaceEntry, RaceStatus
 from app.models.racing import PreparatoryFlag, RaceSignal
 from app.problems import Problem
+from app.services.audit import EntityType, audit
 from app.services.event_readiness import RACE_STARTED_ACTION
 from app.services.standings import recompute_after_change
 
@@ -71,6 +73,29 @@ async def running_race(
     return (await session.execute(stmt.order_by(Race.sequence).limit(1))).scalar_one_or_none()
 
 
+def current_sequence(races: Iterable[Race]) -> int | None:
+    """The sequence number of the race the committee is on: the one running, else the first
+    still open (neither finished nor abandoned). ``None`` when every race is done.
+
+    One answer for the race-control page and the results tab, from the module that owns
+    the transitions — so the screens never disagree with the state machine about which
+    race is "now".
+    """
+    ordered = sorted(races, key=lambda race: race.sequence)
+    running = next((race for race in ordered if race.status == RaceStatus.RUNNING), None)
+    if running is not None:
+        return running.sequence
+    open_race = next(
+        (
+            race
+            for race in ordered
+            if race.status not in (RaceStatus.FINISHED, RaceStatus.ABANDONED)
+        ),
+        None,
+    )
+    return open_race.sequence if open_race is not None else None
+
+
 def _already_running(other: Race) -> Problem:
     return Problem(
         409,
@@ -88,12 +113,6 @@ def _not_running(race: Race) -> Problem:
         f"Race {race.sequence} is not running.",
         race_id=race.id,
         race_status=race.status,
-    )
-
-
-def _audit(session: AsyncSession, race: Race, action: str, actor: str, **payload: object) -> None:
-    session.add(
-        AuditLog(entity_type="race", entity_id=race.id, action=action, actor=actor, payload=payload)
     )
 
 
@@ -148,7 +167,9 @@ async def start_race(
     race.preparatory = preparatory
     race.start_sequence = None
     race.version += 1
-    _audit(session, race, RACE_STARTED_ACTION, actor, preparatory=str(preparatory))
+    audit(
+        session, EntityType.RACE, race.id, RACE_STARTED_ACTION, actor, preparatory=str(preparatory)
+    )
     return race
 
 
@@ -162,7 +183,7 @@ async def recall_race(session: AsyncSession, event: Event, race: Race, *, actor:
     race.started_at = None
     race.signal = None
     race.version += 1
-    _audit(session, race, "recall", actor, cleared_entries=cleared)
+    audit(session, EntityType.RACE, race.id, "recall", actor, cleared_entries=cleared)
     await recompute_after_change(session, event)
     return race
 
@@ -183,7 +204,9 @@ async def abandon_race(
     race.started_at = None
     race.signal = None
     race.version += 1
-    _audit(session, race, "abandon", actor, resail=resail, cleared_entries=cleared)
+    audit(
+        session, EntityType.RACE, race.id, "abandon", actor, resail=resail, cleared_entries=cleared
+    )
     await recompute_after_change(session, event)
     return race
 
@@ -222,7 +245,7 @@ async def set_signal(
         return race
     race.signal = None if signal is None else str(signal)
     race.version += 1
-    _audit(session, race, "signal", actor, signal=race.signal)
+    audit(session, EntityType.RACE, race.id, "signal", actor, signal=race.signal)
     return race
 
 
@@ -261,4 +284,4 @@ def finish_race(session: AsyncSession, race: Race, *, actor: str) -> None:
     race.status = RaceStatus.FINISHED
     race.finished_at = datetime.now(UTC)
     race.signal = None
-    _audit(session, race, "finish", actor)
+    audit(session, EntityType.RACE, race.id, "finish", actor)

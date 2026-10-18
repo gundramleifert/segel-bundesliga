@@ -6,4 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ValidationErrorCtx = { [key: string]: unknown };
+export type EventStandingRowPointsByFlight = {[key: string]: number};

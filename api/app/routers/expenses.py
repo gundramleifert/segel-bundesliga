@@ -16,7 +16,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import current_user
 from app.db import get_session
 from app.models import (
-    AuditLog,
     ClaimStatus,
     Event,
     ExpenseClaim,
@@ -28,6 +27,7 @@ from app.models import (
 from app.models.auth import User
 from app.problems import Problem
 from app.services import expenses, payments, uploads
+from app.services.audit import EntityType, audit
 from app.services.personal import RECEIPTS
 
 router = APIRouter(tags=["expenses"])
@@ -364,7 +364,7 @@ async def upload_claim_document(
     if item_id is not None and all(i.id != item_id for i in claim.items):
         raise Problem(404, "expense-item-unknown", "That item is not on this claim.")
     raw = await file.read()
-    media_type = uploads.validated(
+    media_type = await uploads.validated(
         raw, file.content_type, code="expense-document", what="A receipt"
     )
     claim.documents.append(
@@ -425,14 +425,13 @@ async def get_claim_document(
     if document is None or found is None:
         raise Problem(404, "expense-document-not-found", "No such receipt on this claim.")
     if claim.claimant_user_id != acting.id:
-        session.add(
-            AuditLog(
-                entity_type="expense_document",
-                entity_id=document.id,
-                action="viewed",
-                actor=acting.email,
-                payload={"claim_id": claim.id},
-            )
+        audit(
+            session,
+            EntityType.EXPENSE_DOCUMENT,
+            document.id,
+            "viewed",
+            acting,
+            claim_id=claim.id,
         )
         await session.commit()
     return FileResponse(

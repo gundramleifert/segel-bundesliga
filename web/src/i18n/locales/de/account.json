@@ -69,7 +69,10 @@
     "uploadPhoto": "Foto hochladen",
     "replacePhoto": "Foto ersetzen",
     "photoUploading": "Wird hochgeladen…",
-    "removePhoto": "Foto entfernen"
+    "removePhoto": "Foto entfernen",
+    "publicLabel": "Öffentliche Profilseite",
+    "publicOn": "Alle können Ihre Seite mit Foto, Vereinen und Spieltagen öffnen.",
+    "publicOff": "Ihre Seite ist verborgen: Nur Sie, die Leitung Ihres Vereins und die Ligageschäftsstelle können sie öffnen. Ihr Name steht weiter in Kader, Aufstellung und Ergebnissen — als reiner Text, ohne Foto."
   },
   "deleteAccount": {
     "title": "Konto löschen",

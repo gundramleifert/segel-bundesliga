@@ -101,6 +101,11 @@ failing build is the whole point, and is what a hand-written client could not gi
   **path prefix**, `invalidate("/api/clubs")`, which covers the list, each club and each
   club's members in one. Never a key written out by hand: one that matches no query
   invalidates nothing, silently.
+- **A closed set is an enum in the schema, never `str`** — `status: EventStatus`, not
+  `status: str`. It becomes a named OpenAPI schema and a generated constant
+  (`EventStatus.live`, re-exported from `types.ts`), so the frontend compares against a
+  member the compiler knows, and an unknown value in a request is a 422 at validation
+  rather than a check written again in the router.
 
 **Authentication:** Identity comes from Google, Microsoft (OIDC token verification against
 provider keys), a one-time code by email, or a **password** (Story Z-9, since 2026-10-05 —
@@ -255,7 +260,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
   takes the event out of `SCORED_STATES` — so a called-off day costs nobody the
   "participants + 1" that missing an event would. Both undo via `reopen` (`final` → `live`,
   `cancelled` → `planned`). Closing freezes nothing: a protest heard weeks later still has
-  to land on a `final` event.
+  to land on a `final` event. The status changes **only** through these transitions
+  (`app/services/event_state.py`) — `PATCH` does not carry it.
+- **An event's tools are gated on what the model answers for that event**
+  (`GET /api/events/{id}/access`, Story WL-3), never on `hasRole`: a summary role says
+  someone is a race officer *somewhere*, not here.
 - **The printed pairing list is the Java tool's job, and its settings belong to the Event.**
   `api/app/pairing/pdf.py` calls `PdfExport` in `reference/PairingList` — the layout lives
   there and is not reimplemented here. What varies per event is stored in

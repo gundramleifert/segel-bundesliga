@@ -240,6 +240,12 @@ Acceptance criteria:
 - Deleting one's own `admin` is refused (`tuple-self-lockout`); deleting a club's last
   `manager` follows A-8 (`last-organizer`).
 - A deleted tuple takes effect immediately, not when the token expires.
+- **Every refusal of a guard is a typed problem** (RFC 9457, `app/auth.py`), never a
+  sentence the screen has to parse: no token is `not-signed-in`, an expired one
+  `session-expired`, a forged one `token-invalid`, a blocked account `account-inactive`
+  (all 401); a missing relation is `forbidden` (403) with the relations that would have
+  passed as `required`; an unknown event or series in the path is `<thing>-not-found`
+  (404) before any permission question. Every guarded route answers this way.
 - Every write and delete is written to the audit log with relation and object.
 - A blocked account cannot sign in.
 - **Bootstrap:** an address listed in `SBL_ADMIN_EMAILS` becomes `admin` automatically on
@@ -288,6 +294,7 @@ Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
 `api/tests/stories/test_login_and_roles.py::TestTuples`,
 `api/tests/stories/test_login_and_roles.py::TestOrganizers`,
 `api/tests/stories/test_login_and_roles.py::TestAdminWhitelist`,
+`api/tests/stories/test_guard_problems.py::TestGuardProblems`,
 `e2e/lifecycle.spec.ts` ("Z-2: access is a relation tuple, written and deleted one at a time")
 
 ### A-8 ● Set up club organizer
@@ -370,7 +377,7 @@ person.
 
 The overflow itself came from the `grid gap-*` idiom used to stack the admin sections and
 their form rows. A grid's `auto` column is sized by its items' **min-content** width, so
-one wide box — the boat-setup table in `AdminEvents.tsx` — widened its column, and because
+one wide box — the boat-setup table in `admin/events/GeneralDataStep.tsx` — widened its column, and because
 grid items stretch to the column, *every* sibling section grew with it. The fix is to make
 those columns able to be narrower than their content — which is now what `Stack` and
 `CardGrid` are for (`components/Layouts.tsx`), so it cannot be forgotten by writing the

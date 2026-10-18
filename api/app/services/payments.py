@@ -9,6 +9,7 @@ the XSD, ``schwifty`` checks IBANs and finds BICs, ``openpyxl`` writes the sprea
 
 from __future__ import annotations
 
+import asyncio
 import io
 import uuid
 from collections import defaultdict
@@ -26,7 +27,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
 from app.models import (
-    AuditLog,
     ClaimStatus,
     ClubBankAccount,
     ExpenseClaim,
@@ -38,6 +38,7 @@ from app.models import (
 )
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
+from app.services.audit import EntityType, audit
 from app.services.expenses import may_pay_for, own_claim
 
 #: The format German banks take since the SEPA 2025 changes (DK data format 3.7+).
@@ -192,10 +193,10 @@ async def create_run(
             payment.allocations.append(
                 PaymentAllocation(claim=claim, amount_cents=claim.open_cents)
             )
-            _audit(session, "expense_claim", claim.id, "issued", user)
+            audit(session, EntityType.EXPENSE_CLAIM, claim.id, "issued", user)
         run.payments.append(payment)
     await session.flush()
-    _audit(session, "payment_run", run.id, "created", user, claims=len(chosen))
+    audit(session, EntityType.PAYMENT_RUN, run.id, "created", user, claims=len(chosen))
     return run
 
 
@@ -223,10 +224,13 @@ class _RunTransfer(SepaTransfer):
         super()._create_header()
 
 
-def sepa_file(run: PaymentRun) -> bytes:
+async def sepa_file(run: PaymentRun) -> bytes:
     """The run as pain.001.001.09, validated against its XSD by ``sepaxml``. Every
     payment the run issued is in it, whatever became of it since: the file is what was
-    sent, and its message id is the run's, so a bank refuses it a second time."""
+    sent, and its message id is the run's, so a bank refuses it a second time.
+
+    The rows are read here; writing and validating the XML is CPU work and runs in a
+    thread on plain dicts, never on the session."""
     config = {
         "name": run.debtor_name,
         "IBAN": run.debtor_iban,
@@ -235,10 +239,10 @@ def sepa_file(run: PaymentRun) -> bytes:
     }
     if run.debtor_bic:
         config["BIC"] = run.debtor_bic
-    transfer = _RunTransfer(config, run.message_id)
+    transfers = []
     for payment in run.payments:
         assert payment.iban is not None
-        transfer.add_payment(
+        transfers.append(
             {
                 "name": payment.payee_name,
                 "IBAN": payment.iban,
@@ -248,6 +252,13 @@ def sepa_file(run: PaymentRun) -> bytes:
                 "endtoend_id": f"SBL-P-{payment.id}",
             }
         )
+    return await asyncio.to_thread(_export_sepa, config, run.message_id, transfers)
+
+
+def _export_sepa(config: dict, message_id: str, transfers: list[dict]) -> bytes:
+    transfer = _RunTransfer(config, message_id)
+    for entry in transfers:
+        transfer.add_payment(entry)
     return transfer.export(validate=True)
 
 
@@ -293,7 +304,7 @@ def settle_run(session: AsyncSession, user: User, run: PaymentRun, on: date | No
         if payment.status == PaymentStatus.ISSUED:
             payment.status = PaymentStatus.SETTLED
             payment.settled_on = day
-    _audit(session, "payment_run", run.id, "settled", user)
+    audit(session, EntityType.PAYMENT_RUN, run.id, "settled", user)
 
 
 def fail_payment(session: AsyncSession, user: User, payment: Payment, reason: str) -> None:
@@ -309,7 +320,7 @@ def fail_payment(session: AsyncSession, user: User, payment: Payment, reason: st
         )
     payment.status = PaymentStatus.FAILED
     payment.failure_reason = reason
-    _audit(session, "payment", payment.id, "failed", user, reason=reason)
+    audit(session, EntityType.PAYMENT, payment.id, "failed", user, reason=reason)
 
 
 # ---------------------------------------------------------------------- spreadsheets
@@ -341,10 +352,12 @@ async def run_workbook(session: AsyncSession, run: PaymentRun) -> bytes:
                 allocation.amount_cents / 100, payment.reference, run.execution_date,
                 payment.status,
             ])  # fmt: skip
-    return _workbook("Payment run", RUN_COLUMNS, rows, money={"Amount (EUR)"})
+    return await asyncio.to_thread(
+        _workbook, "Payment run", RUN_COLUMNS, rows, money={"Amount (EUR)"}
+    )
 
 
-def book_workbook(claims: list[ExpenseClaim]) -> bytes:
+async def book_workbook(claims: list[ExpenseClaim]) -> bytes:
     """A year's claims of a club, one row per item — what a cash audit asks for."""
     rows = []
     for claim in claims:
@@ -359,9 +372,8 @@ def book_workbook(claims: list[ExpenseClaim]) -> bytes:
         if rows and claim.items:
             # The paid total belongs to the claim, not to an item: on its first row.
             rows[-len(claim.items)][-1] = claim.paid_cents / 100
-    return _workbook(
-        "Claims", BOOK_COLUMNS, rows, money={"Claimed (EUR)", "Approved (EUR)", "Paid (EUR)"}
-    )
+    money = {"Claimed (EUR)", "Approved (EUR)", "Paid (EUR)"}
+    return await asyncio.to_thread(_workbook, "Claims", BOOK_COLUMNS, rows, money=money)
 
 
 async def claims_for_books(session: AsyncSession, club_id: int, year: int) -> list[ExpenseClaim]:
@@ -383,6 +395,7 @@ async def claims_for_books(session: AsyncSession, club_id: int, year: int) -> li
 
 
 def _workbook(title: str, columns: list[str], rows: list[list], *, money: set[str]) -> bytes:
+    """openpyxl on plain values — CPU work, run in a thread by its callers."""
     book = Workbook()
     sheet = book.active
     assert sheet is not None
@@ -421,14 +434,3 @@ def _bic(iban: str | None) -> str | None:
 
 def _day(moment: datetime | None) -> date | None:
     return moment.date() if moment is not None else None
-
-
-def _audit(
-    session: AsyncSession, entity: str, entity_id: int, action: str, user: User, **payload
-) -> None:
-    session.add(
-        AuditLog(
-            entity_type=entity, entity_id=entity_id, action=action, actor=user.email,
-            payload=payload,
-        )
-    )  # fmt: skip

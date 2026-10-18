@@ -23,17 +23,25 @@ The response body is::
       "sailor_id": 42                                        # optional extension members
     }
 
-Plain ``HTTPException`` and request-validation errors are also rendered as
-``application/problem+json`` (see ``app.main``), keeping ``detail`` where it was so
-existing clients keep working while routers migrate to typed codes one at a time.
+No router raises a plain ``HTTPException`` (ruff's banned-api rule in ``pyproject.toml``
+refuses the import). The framework still does — an unknown route, a wrong method — and
+those, like request-validation errors, are rendered as ``application/problem+json`` too
+(see ``app.main``), with a generic ``/errors/http-<status>`` or ``/errors/validation``.
+
+The OpenAPI document declares these responses on every operation
+(:func:`declare_problems`), so a generated client sees the problem shape rather than
+only FastAPI's ``HTTPValidationError``.
 """
 
 from __future__ import annotations
 
-from typing import Any
+import json
+from collections.abc import Iterable
+from typing import Any, NamedTuple
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict, Field
 
 # Relative reference (RFC 9457 §3.1 permits it). Clients care about the last segment —
 # the code — not the origin.
@@ -123,3 +131,74 @@ _HTTP_TITLES = {
     422: "Request could not be processed",
     500: "Internal error",
 }
+
+
+class ProblemDetails(BaseModel):
+    """An RFC 9457 problem — the body of every error response, for the OpenAPI document.
+
+    Only for documentation: :class:`Problem` builds the body. Extension members (named in
+    each code's raise site) are allowed, which is what ``extra="allow"`` says.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    type: str = Field(description="`/errors/<code>` — the stable contract a client maps.")
+    title: str = Field(description="Short English summary of the type; a fallback.")
+    status: int
+    detail: str | list[dict[str, Any]] | None = Field(
+        default=None,
+        description="English elaboration of this occurrence; for `/errors/validation` the "
+        "per-field list.",
+    )
+    instance: str | None = Field(default=None, description="The request path.")
+
+
+class Operation(NamedTuple):
+    """One operation of the OpenAPI document, and what can refuse it."""
+
+    path: str
+    method: str
+    #: Behind a guard of ``app/auth.py``: can answer 401 and 403.
+    guarded: bool
+
+
+_DESCRIPTIONS = {
+    401: "Not signed in, or the session is no longer valid.",
+    403: "Signed in, but lacking the relation this needs.",
+    404: "Something the path names does not exist.",
+    409: "Conflicts with the current state.",
+    422: "The request could not be processed.",
+}
+
+
+def declare_problems(openapi: dict[str, Any], operations: Iterable[Operation]) -> None:
+    """Adds the error responses an operation can give to the OpenAPI document, each as
+    ``application/problem+json`` with :class:`ProblemDetails`.
+
+    401/403 for guarded operations, 404 where the path names something, 409 for writes,
+    422 for all — replacing FastAPI's own ``HTTPValidationError``, which is not the shape
+    this API answers with (``app.main`` renders validation errors as problems).
+    """
+    schemas = openapi.setdefault("components", {}).setdefault("schemas", {})
+    schemas["ProblemDetails"] = ProblemDetails.model_json_schema(
+        ref_template="#/components/schemas/{model}"
+    )
+    content = {CONTENT_TYPE: {"schema": {"$ref": "#/components/schemas/ProblemDetails"}}}
+    for operation in operations:
+        spec = openapi.get("paths", {}).get(operation.path, {}).get(operation.method.lower())
+        if spec is None:
+            continue
+        statuses = [422]
+        if operation.guarded:
+            statuses += [401, 403]
+        if "{" in operation.path:
+            statuses.append(404)
+        if operation.method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+            statuses.append(409)
+        responses = spec.setdefault("responses", {})
+        for status in sorted(statuses):
+            responses[str(status)] = {"description": _DESCRIPTIONS[status], "content": content}
+    # FastAPI's validation shapes, once nothing refers to them any more.
+    for name in ("HTTPValidationError", "ValidationError"):
+        if f'"#/components/schemas/{name}"' not in json.dumps(openapi):
+            schemas.pop(name, None)

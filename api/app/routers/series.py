@@ -12,15 +12,14 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
-from app.auth import current_user, require_admin, require_series_manager_for
+from app.auth import current_user, forbidden, require_admin, require_series_manager_for
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, League, Series, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
@@ -28,6 +27,7 @@ from app.problems import Problem
 from app.schemas.admin import ScoringIn
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import check_squad_limits
+from app.services.lookup import get_or_404
 from app.services.registrations import Registration, RegistrationHasResults, sync_registrations
 from app.text import slugify
 
@@ -138,10 +138,7 @@ async def list_all_series(
             ObjectType.SERIES,
         )
         if not reach:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You lack the permission for this. Required role(s): admin",
-            )
+            raise forbidden("this", [Relation.ADMIN])
         stmt = stmt.where(Series.id.in_(reach))
     series, total = await paginate(
         session,
@@ -212,21 +209,18 @@ async def _compose(session: AsyncSession, series: list[Series]) -> list[SeriesAd
 async def create_series(
     request: SeriesCreate,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> SeriesAdminOut:
     """Creates a series and registers the selected clubs immediately."""
     slug = slugify(request.slug or request.name)
     if await _slug_taken(session, slug):
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                f"The URL '{slug}' is already taken. Please provide your own slug.",
-                f"Die Adresse '{slug}' ist schon vergeben. Bitte einen eigenen Slug angeben.",
-            ),
+        raise Problem(
+            409,
+            "slug-taken",
+            f"The URL '{slug}' is already taken. Please provide your own slug.",
+            slug=slug,
         )
 
-    clubs = await _resolve_clubs(session, request.clubs, locale)
+    clubs = await _resolve_clubs(session, request.clubs)
     check_squad_limits(request.squad_min, request.squad_max)
     await _check_league(session, request.league_id)
 
@@ -271,9 +265,8 @@ async def update_series(
     series_id: int,
     request: SeriesUpdate,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> SeriesAdminOut:
-    series = await _get_series(session, series_id, locale)
+    series = await _get_series(session, series_id)
     changes = request.model_dump(exclude_unset=True)
     if request.scoring is not None:
         # Whole, with defaults: ``exclude_unset`` would otherwise store a partial object.
@@ -297,7 +290,6 @@ async def update_series(
 async def publish_series(
     series_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> SeriesAdminOut:
     """Makes the series visible on the public site — Story VA-8.
 
@@ -306,7 +298,7 @@ async def publish_series(
     series stays as editable as it was, and the events in it keep their own publication
     state.
     """
-    return await _set_published(session, series_id, True, locale)
+    return await _set_published(session, series_id, True)
 
 
 @router.post(
@@ -318,16 +310,13 @@ async def publish_series(
 async def unpublish_series(
     series_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> SeriesAdminOut:
     """Back to a draft. Standings and events stay — only the public view ends."""
-    return await _set_published(session, series_id, False, locale)
+    return await _set_published(session, series_id, False)
 
 
-async def _set_published(
-    session: AsyncSession, series_id: int, published: bool, locale: Locale
-) -> SeriesAdminOut:
-    series = await _get_series(session, series_id, locale)
+async def _set_published(session: AsyncSession, series_id: int, published: bool) -> SeriesAdminOut:
+    series = await _get_series(session, series_id)
     series.published = published
     await session.commit()
     return await _series_out(session, series.id)
@@ -343,14 +332,13 @@ async def set_clubs(
     series_id: int,
     request: SetClubs,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> SeriesAdminOut:
     """Sets the clubs participating in this series.
 
     A club that has already raced in this series cannot be removed — results depend on it.
     """
-    series = await _get_series(session, series_id, locale)
-    desired = {club.id: club for club in await _resolve_clubs(session, request.clubs, locale)}
+    series = await _get_series(session, series_id)
+    desired = {club.id: club for club in await _resolve_clubs(session, request.clubs)}
 
     existing = (
         await session.execute(
@@ -364,16 +352,10 @@ async def set_clubs(
             (Registration(club.id, series.id, club.short_name) for club in desired.values()),
         )
     except RegistrationHasResults:
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                ("This club cannot be removed: this series already has race results for it."),
-                (
-                    "Dieser Verein lässt sich nicht entfernen: in dieser Serie"
-                    " liegen für ihn bereits Wettfahrtergebnisse vor."
-                ),
-            ),
+        raise Problem(
+            409,
+            "registration-has-results",
+            "This club cannot be removed: this series already has race results for it.",
         ) from None
     await session.commit()
     return await _series_out(session, series.id)
@@ -382,20 +364,13 @@ async def set_clubs(
 # ------------------------------------------------------------------ Helper functions
 
 
-async def _get_series(session: AsyncSession, series_id: int, locale: Locale) -> Series:
+async def _get_series(session: AsyncSession, series_id: int) -> Series:
     """Fetch a series by ID, raising 404 if not found."""
-    series = (
-        await session.execute(select(Series).where(Series.id == series_id))
-    ).scalar_one_or_none()
-    if series is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(locale, f"Series {series_id} not found", f"Serie {series_id} nicht gefunden"),
-        )
+    series = await get_or_404(session, Series, series_id)
     return series
 
 
-async def _resolve_clubs(session: AsyncSession, club_ids: list[int], locale: Locale) -> list[Club]:
+async def _resolve_clubs(session: AsyncSession, club_ids: list[int]) -> list[Club]:
     """Resolve selected clubs by ID — and report which is missing rather than silently skip."""
     unique = list(dict.fromkeys(club_ids))
     if not unique:
@@ -407,13 +382,8 @@ async def _resolve_clubs(session: AsyncSession, club_ids: list[int], locale: Loc
     }
     missing = [club_id for club_id in unique if club_id not in found]
     if missing:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(
-                locale,
-                f"These clubs do not exist: {missing}",
-                f"Diese Vereine gibt es nicht: {missing}",
-            ),
+        raise Problem(
+            404, "clubs-not-found", f"These clubs do not exist: {missing}", club_ids=missing
         )
     return [found[club_id] for club_id in unique]
 

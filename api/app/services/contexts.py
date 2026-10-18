@@ -35,6 +35,7 @@ from app.models import (
     Series,
     Team,
     TeamMembership,
+    WaiverText,
 )
 from app.models.auth import ObjectType, Relation, User
 from app.models.competition import EventStatus
@@ -42,11 +43,10 @@ from app.models.org import TeamStatus
 from app.problems import Problem
 from app.services import expenses
 from app.services.waivers import (
-    STATUS_CLEARED,
-    STATUS_NOT_REQUIRED,
+    WaiverStatus,
+    current_waiver_text,
     event_waiver_status,
-    sailor_competitions,
-    series_waiver_status,
+    sailor_waivers,
 )
 
 #: The chips, in reading order: what I *am* there, then what I *do* there.
@@ -165,21 +165,23 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
         if kind is not None and obj.id is not None:
             at(kind, obj.id).relations.add(relation)
 
+    # Read once for the whole page: every waiver question below is judged against it.
+    required = await current_waiver_text(session)
     sailor = await linked_sailor(session, user)
     if sailor is not None:
         await _sailing(session, sailor, at)
-        await _waivers(session, sailor, at)
+        await _waivers(session, sailor, required, at)
 
     await _fill(session, contexts)
     echoed = _series_waiver_on_events(contexts)
     _claims(await expenses.pending(session, user), contexts)
-    await _organizer(session, user, contexts)
+    await _organizer(session, user, required, contexts)
 
     me_needs = []
     expired = await _expired_documents(session, user)
     if expired:
         me_needs.append(Need("documents_expired", expired))
-    wards = await _ward_waivers(session, user)
+    wards = await _ward_waivers(session, user, required)
     if wards:
         me_needs.append(Need("ward_waiver", wards))
 
@@ -223,16 +225,11 @@ async def _sailing(session: AsyncSession, sailor: Sailor, at) -> None:
             context.teams.append(TeamRef(team_id, club_id, club_name))
 
 
-async def _waivers(session: AsyncSession, sailor: Sailor, at) -> None:
+async def _waivers(session: AsyncSession, sailor: Sailor, required: WaiverText | None, at) -> None:
     """Where the signature is given — the series, or an event in no series (S-1). The
     series' events I sail in ask for it too (`_series_waiver_on_events`)."""
-    for competition in await sailor_competitions(session, sailor):
-        if competition.series is not None:
-            judged = await series_waiver_status(session, competition.series, sailor)
-        else:
-            assert competition.event is not None
-            judged = (await event_waiver_status(session, competition.event, [sailor.id]))[sailor.id]
-        if judged.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED):
+    for competition, judged in await sailor_waivers(session, sailor, required):
+        if judged.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED):
             at(competition.scope, competition.scope_id).need("waiver")
 
 
@@ -299,7 +296,10 @@ def _claims(pending: list, contexts: dict[tuple[str, int], Context]) -> None:
 
 
 async def _organizer(
-    session: AsyncSession, user: User, contexts: dict[tuple[str, int], Context]
+    session: AsyncSession,
+    user: User,
+    required: WaiverText | None,
+    contexts: dict[tuple[str, int], Context],
 ) -> None:
     """What only a club's organizer can fix: a running series' squad below its minimum,
     an upcoming entry with nobody named (Stories V-1, V-2)."""
@@ -372,12 +372,15 @@ async def _organizer(
     for event, club_id, sailor_id in crews:
         by_event.setdefault((event.id, club_id), (event, []))[1].append(sailor_id)
     for (_, club_id), (event, sailor_ids) in by_event.items():
-        judged = await event_waiver_status(session, event, sailor_ids)
-        if any(j.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED) for j in judged.values()):
+        judged = await event_waiver_status(session, event, sailor_ids, required)
+        if any(
+            j.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED)
+            for j in judged.values()
+        ):
             contexts[("club", club_id)].need("crew_waiver_missing")
 
 
-async def _ward_waivers(session: AsyncSession, user: User) -> int:
+async def _ward_waivers(session: AsyncSession, user: User, required: WaiverText | None) -> int:
     """Story S-8: the competitions of the sailors I am guardian of whose waiver is not
     cleared yet and which I can sign — the child is a minor there (or of unknown age,
     which the club has to fix: the page says so)."""
@@ -387,14 +390,9 @@ async def _ward_waivers(session: AsyncSession, user: User) -> int:
     count = 0
     wards = (await session.execute(select(Sailor).where(Sailor.id.in_(ward_ids)))).scalars()
     for ward in wards:
-        for competition in await sailor_competitions(session, ward):
-            if competition.series is not None:
-                judged = await series_waiver_status(session, competition.series, ward)
-            else:
-                assert competition.event is not None
-                judged = (await event_waiver_status(session, competition.event, [ward.id]))[ward.id]
+        for _, judged in await sailor_waivers(session, ward, required):
             if (
-                judged.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED)
+                judged.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED)
                 and judged.minor is not False
             ):
                 count += 1

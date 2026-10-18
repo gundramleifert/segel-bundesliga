@@ -1,32 +1,30 @@
 /** What a race result is made of, shared by the two screens that enter one (Stories WL-2, WL-3).
  *
- * The results tab in `pages/Matchday.tsx` and the race-control page both turn taps and
+ * The results tab in `pages/league/act/Results.tsx` and the race-control page both turn taps and
  * codes into the raw fields the endpoint wants — `code`, `finish_position`,
  * `redress_points` — and both have to agree on what "complete" means, which codes need a
  * position, and what a redress suggestion is. Pure functions, no React: the state that
  * uses them is `useFinishOrder` in `components/FinishOrderPad.tsx`.
  */
-import type { AdminRace, RaceResultInput, StandingRow } from "../api/types";
+import {
+  PreparatoryFlag,
+  ResultCode,
+  type RaceResultInput,
+  type StandingRow,
+} from "../api/types";
 
 /** `races_per_flight = ceil(team_count / boat_count)` — the one formula (`CLAUDE.md`: "The
- *  Event defines the configuration"), read by the matchday's grid and by the event form's
- *  summary. Guarded against `boat_count === 0` and half-typed input while an event is
+ *  Event defines the configuration"), for the event form's summary before the event
+ *  exists — an existing event carries `races_per_flight` from the server. Guarded against `boat_count === 0` and half-typed input while an event is
  *  still being set up: 0 then, never `Infinity` or `NaN`. */
 export function racesPerFlight(event: { team_count: number; boat_count: number }): number {
   return event.boat_count > 0 ? Math.ceil(event.team_count / event.boat_count) || 0 : 0;
 }
 
-/** A race not yet finished (or abandoned) — the client-side "current race". Races run
- *  strictly one at a time in sequence, so the first such race is the one on the water,
- *  for the results tab and the race-control page alike. */
-export function stillOpen(race: AdminRace): boolean {
-  return race.status !== "finished" && race.status !== "abandoned";
-}
-
 /** One boat's result as the screens hold it before it is sent. */
 export interface ResultRow {
   boat_number: number;
-  code: string;
+  code: ResultCode;
   finish_position: number | null;
   redress_points: number | null;
   /** Only meaningful while `code === "RDG"`: RRS A10's recommended convention is the average
@@ -40,49 +38,64 @@ export interface ResultRow {
 /** Every code except FINISHED — that one is picked as a finish position number directly in
  *  the results tab's merged dropdown, not as its own entry in this list. UFD and BFD are the
  *  U-flag and black-flag start penalties (Story WL-3). */
-export const SPECIAL_CODES = [
-  "DNS",
-  "DNF",
-  "OCS",
-  "UFD",
-  "BFD",
-  "DSQ",
-  "DNE",
-  "RET",
-  "RDG",
-  "ZFP",
-  "SCP",
-] as const;
+export const SPECIAL_CODES: readonly ResultCode[] = [
+  ResultCode.DNS,
+  ResultCode.DNF,
+  ResultCode.OCS,
+  ResultCode.UFD,
+  ResultCode.BFD,
+  ResultCode.DSQ,
+  ResultCode.DNE,
+  ResultCode.RET,
+  ResultCode.RDG,
+  ResultCode.ZFP,
+  ResultCode.SCP,
+];
 
 /** `DID_NOT_FINISH_CODES` in `api/app/scoring/low_point.py`: all scored identically —
  *  starters + 1 points, worse than finishing last. Frontend copy of that fact for the
  *  tooltip text; the backend file is the source of truth and isn't touched here. */
-export const NOT_FINISHED_CODES = new Set(["DNS", "DNF", "OCS", "UFD", "BFD", "DSQ", "DNE", "RET"]);
+export const NOT_FINISHED_CODES: ReadonlySet<ResultCode> = new Set<ResultCode>([
+  ResultCode.DNS,
+  ResultCode.DNF,
+  ResultCode.OCS,
+  ResultCode.UFD,
+  ResultCode.BFD,
+  ResultCode.DSQ,
+  ResultCode.DNE,
+  ResultCode.RET,
+]);
 
 /** What a boat over the line at the start is scored as, by the preparatory flag that was
  *  flying (RRS 30). Mirrors `PreparatoryFlag.over_early_code` in `api/app/models/racing.py`:
  *  under P and I the boat may return and start correctly, so its OCS is clearable; under Z,
  *  U and the black flag the penalty stands. */
-export const OVER_EARLY_CODE: Record<string, string> = {
-  P: "OCS",
-  I: "OCS",
-  Z: "ZFP",
-  U: "UFD",
-  BLACK: "BFD",
+export const OVER_EARLY_CODE: Record<PreparatoryFlag, ResultCode> = {
+  [PreparatoryFlag.P]: ResultCode.OCS,
+  [PreparatoryFlag.I]: ResultCode.OCS,
+  [PreparatoryFlag.Z]: ResultCode.ZFP,
+  [PreparatoryFlag.U]: ResultCode.UFD,
+  [PreparatoryFlag.BLACK]: ResultCode.BFD,
 };
 
-export const PREPARATORY_FLAGS = ["P", "I", "Z", "U", "BLACK"] as const;
-export type PreparatoryFlag = (typeof PREPARATORY_FLAGS)[number];
+export const PREPARATORY_FLAGS: readonly PreparatoryFlag[] = Object.values(PreparatoryFlag);
 
-export function needsPosition(code: string): boolean {
-  return code === "FINISHED" || code === "ZFP" || code === "SCP";
+const RESULT_CODES: ReadonlySet<string> = new Set(Object.values(ResultCode));
+
+/** A `<select>`'s value as the code it names — `null` for anything that is not one. */
+export function parseResultCode(value: string): ResultCode | null {
+  return RESULT_CODES.has(value) ? (value as ResultCode) : null;
+}
+
+export function needsPosition(code: ResultCode): boolean {
+  return code === ResultCode.FINISHED || code === ResultCode.ZFP || code === ResultCode.SCP;
 }
 
 /** Only ZFP/SCP still need their own position input — FINISHED's position comes directly
  *  from picking a number in the merged dropdown, so showing a second input for it would just
  *  be two controls for the same value. */
-export function needsOwnInput(code: string): boolean {
-  return code === "ZFP" || code === "SCP";
+export function needsOwnInput(code: ResultCode): boolean {
+  return code === ResultCode.ZFP || code === ResultCode.SCP;
 }
 
 /** Whether this row already carries a complete result: a finish position for
@@ -90,14 +103,14 @@ export function needsOwnInput(code: string): boolean {
  *  code at all. */
 export function resultComplete(row: ResultRow): boolean {
   if (needsPosition(row.code)) return row.finish_position != null;
-  if (row.code === "RDG") return row.redress_points != null;
+  if (row.code === ResultCode.RDG) return row.redress_points != null;
   return true;
 }
 
 /** The tap fast-path only ever assigns/undoes a *FINISHED* position — once a special code has
  *  been chosen, tapping would silently overwrite it back to a numbered finish. */
 export function canBeTapped(row: ResultRow): boolean {
-  return row.code === "FINISHED";
+  return row.code === ResultCode.FINISHED;
 }
 
 /** Smallest finish position not currently occupied by a `FINISHED` boat — so the tap flow
@@ -105,7 +118,7 @@ export function canBeTapped(row: ResultRow): boolean {
 export function nextFreePosition(rows: Record<number, ResultRow>): number {
   const taken = new Set(
     Object.values(rows)
-      .filter((row) => row.code === "FINISHED" && row.finish_position != null)
+      .filter((row) => row.code === ResultCode.FINISHED && row.finish_position != null)
       .map((row) => row.finish_position as number),
   );
   let position = 1;

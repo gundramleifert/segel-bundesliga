@@ -79,9 +79,14 @@ Acceptance criteria:
 - Complete daily standings across 18 teams; each team sailed once in 16 flights.
 - The points are broken down by race, and the sum gives the overall standings.
 - A running matchday shows an interim standing, a planned one shows no results yet.
+- The **points per flight** come from the server (`EventStandingRow.points_by_flight`, keyed
+  by flight number, summed from each race's own flight), and the event says how many races
+  a flight has (`EventOut.races_per_flight`). The page used to rebuild flights from race
+  sequence numbers and an assumed flight length — which breaks the day a flight is
+  re-sailed or a race renumbered. Only the projection stays display math in the browser.
 
 `EventStandingRow.points_by_race`/`discarded_races` (`api/app/schemas/public.py`) carried the
-per-race breakdown from the start, but `web/src/pages/Matchday.tsx`'s daily standings only
+per-race breakdown from the start, but the daily standings (now `web/src/pages/league/act/Standings.tsx`) only
 rendered rank/team/net/total until now — the second acceptance criterion was met by the API but
 not actually visible anywhere. The page now adds one column per flight (16, not 48 individual
 races — clearer to read, still sums to the same total) showing that team's points for the
@@ -101,7 +106,7 @@ comes from**, so that **the table is recognisable at a glance and the partners a
 
 Acceptance criteria:
 - **A club crest sits beside the club name in every results table** — the league/series
-  `StandingsTable` (Stories B-1, B-14) and the matchday daily standings (`Matchday.tsx`,
+  `StandingsTable` (Stories B-1, B-14) and the matchday daily standings (`league/act/Standings.tsx`,
   Story B-2). Same emblem the club page already shows (B-7), at a small, fixed row height so
   no row grows and the table still fits a phone (Story A-10).
 - **The crest is our own, not hot-linked.** It is `Club.logo_url` / the club crest already in
@@ -228,10 +233,10 @@ Acceptance criteria:
 - **No login.** Participation is public — the pairing list, the results and the standings
   carry these names anyway, so putting the lineup behind a session would be theatre. The
   private thing is club *membership* (Story V-10), which this is not.
-- Each name links to its sailor page; once Story S-4 exists, a sailor who has switched their
+- Each name links to its sailor page; a sailor who has switched their
   profile off appears here as plain text under the same name, never hidden and never omitted.
-- **No contact details**, exactly as in the squad: `MemberOut` carries id, name and role and
-  nothing else.
+- **No contact details**, exactly as in the squad: `MemberOut` carries id, name, role and whether the
+  name may link (`profile_public`, Story S-4), nothing else.
 - A draft matchday answers 404 here as it does everywhere public (Story VA-8).
 
 Deliberately a **new public endpoint** rather than widening `EventDetail`: the standings are
@@ -242,7 +247,7 @@ issues no query at all.
 Endpoints: `GET /api/events/{id}/crew`
 
 Tests: `api/tests/stories/test_visitor.py::TestMatchdayCrew`. The tab itself
-(`web/src/pages/Matchday.tsx`) has no automated test yet — same state as B-2's flight
+(`web/src/pages/league/act/Crew.tsx`) has no automated test yet — same state as B-2's flight
 columns; Playwright coverage for this page is a separate, not-yet-started task.
 
 ### B-5 ◐ Follow live updates
@@ -428,6 +433,9 @@ Acceptance criteria:
   not in the future (Story A-4's rule, asked per league — the DSBL publishing next year's
   series must not empty the Junioren-Liga's page). `GET /api/leagues/{slug}` answers with
   the year, the years in the archive, the year's series and their events. Published only.
+  **Each series carries its clubs** (its accepted registrations), and the season the clubs
+  of all its series once — the *About* chapter, `/:league/clubs` and the association's
+  member list read them there instead of fetching every series' full table for its names.
 - **The 1. and the 2. Liga are two leagues** (`/1-liga`, `/2-liga`), each with one
   series a year. They sail the same weekends at the same venues, but each has its own
   page, its own standings and its own matchday pages; promotion and relegation are named
@@ -569,7 +577,7 @@ Acceptance criteria:
     next" and "how did they do", so it carries the club's placing per event where one
     exists.
 - The tab lives in the **URL** (`/clubs/:id/team`, or a query parameter — the existing
-  matchday tabs in `web/src/pages/Matchday.tsx` are the pattern to follow), so a tab can be
+  matchday tabs in `web/src/pages/league/act/` are the pattern to follow), so a tab can be
   linked and survives a reload. `/clubs/:id` opens Info.
 - **Everyone sees all three tabs** without signing in — but the Team tab's two lists differ:
   **participation is public, affiliation is not.** Whoever a club registers for a series or

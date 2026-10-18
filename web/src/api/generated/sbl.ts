@@ -66,6 +66,7 @@ import type {
   EmailVerify,
   EmulateIn,
   EmulateOut,
+  EventAccess,
   EventCreate,
   EventCrewList,
   EventDetail,
@@ -82,7 +83,6 @@ import type {
   GetLeagueSeasonParams,
   GetSailorParams,
   GuardianOut,
-  HTTPValidationError,
   Health200,
   Index200,
   ItemCreate,
@@ -124,6 +124,7 @@ import type {
   PasswordSet,
   PayBody,
   PersonalDocumentOut,
+  ProblemDetails,
   ProvidersOut,
   PublishRequest,
   PublishResult,
@@ -227,7 +228,7 @@ export const getGetMySailorQueryKey = () => {
     }
 
 
-export const getGetMySailorQueryOptions = <TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>>, }
+export const getGetMySailorQueryOptions = <TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -246,10 +247,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetMySailorQueryResult = NonNullable<Awaited<ReturnType<typeof getMySailor>>>
-export type GetMySailorQueryError = ErrorType<unknown>
+export type GetMySailorQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<unknown>>(
+export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMySailor>>,
@@ -259,7 +260,7 @@ export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<unknown>>(
+export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMySailor>>,
@@ -269,7 +270,7 @@ export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<unknown>>(
+export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -277,7 +278,7 @@ export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, 
  * @summary My own sailor record
  */
 
-export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<unknown>>(
+export function useGetMySailor<TData = Awaited<ReturnType<typeof getMySailor>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySailor>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -340,7 +341,7 @@ return http<SailorMeOut>(getUpdateMySailorUrl(),
 
 export const getUpdateMySailorMutationKey = () => ['updateMySailor'] as const;
 
-export const getUpdateMySailorMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUpdateMySailorMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMySailor>>, TError,UpdateMySailorMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateMySailor>>, TError,UpdateMySailorMutationVariables, TContext> => {
 
@@ -369,13 +370,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateMySailorMutationResult = NonNullable<Awaited<ReturnType<typeof updateMySailor>>>
     export type UpdateMySailorMutationBody = BodyType<SailorMeUpdate>
-    export type UpdateMySailorMutationError = ErrorType<HTTPValidationError>
+    export type UpdateMySailorMutationError = ErrorType<ProblemDetails>
     export type UpdateMySailorMutationVariables = {data: BodyType<SailorMeUpdate>}
 
     /**
  * @summary Edit my own sailor record
  */
-export const useUpdateMySailor = <TError = ErrorType<HTTPValidationError>,
+export const useUpdateMySailor = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMySailor>>, TError,UpdateMySailorMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateMySailor>>,
@@ -416,7 +417,7 @@ formData.append(`file`, bodyUploadMyPhoto.file);
 
 export const getUploadMyPhotoMutationKey = () => ['uploadMyPhoto'] as const;
 
-export const getUploadMyPhotoMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUploadMyPhotoMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadMyPhoto>>, TError,UploadMyPhotoMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof uploadMyPhoto>>, TError,UploadMyPhotoMutationVariables, TContext> => {
 
@@ -445,13 +446,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UploadMyPhotoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadMyPhoto>>>
     export type UploadMyPhotoMutationBody = BodyType<BodyUploadMyPhoto>
-    export type UploadMyPhotoMutationError = ErrorType<HTTPValidationError>
+    export type UploadMyPhotoMutationError = ErrorType<ProblemDetails>
     export type UploadMyPhotoMutationVariables = {data: BodyType<BodyUploadMyPhoto>}
 
     /**
  * @summary Upload or replace my photo
  */
-export const useUploadMyPhoto = <TError = ErrorType<HTTPValidationError>,
+export const useUploadMyPhoto = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadMyPhoto>>, TError,UploadMyPhotoMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof uploadMyPhoto>>,
@@ -491,7 +492,7 @@ export const deleteMyPhoto = async ( options?: RequestInit): Promise<void> => {
 
 export const getDeleteMyPhotoMutationKey = () => ['deleteMyPhoto'] as const;
 
-export const getDeleteMyPhotoMutationOptions = <TError = ErrorType<unknown>,
+export const getDeleteMyPhotoMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyPhoto>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteMyPhoto>>, TError,void, TContext> => {
 
@@ -520,13 +521,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteMyPhotoMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyPhoto>>>
 
-    export type DeleteMyPhotoMutationError = ErrorType<unknown>
+    export type DeleteMyPhotoMutationError = ErrorType<ProblemDetails>
 
 
     /**
  * @summary Remove my photo
  */
-export const useDeleteMyPhoto = <TError = ErrorType<unknown>,
+export const useDeleteMyPhoto = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyPhoto>>, TError,void, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteMyPhoto>>,
@@ -573,7 +574,7 @@ export const getGetSailorPhotoQueryKey = (sailorId: number,) => {
     }
 
 
-export const getGetSailorPhotoQueryOptions = <TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<HTTPValidationError>>(sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>>, }
+export const getGetSailorPhotoQueryOptions = <TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -592,10 +593,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetSailorPhotoQueryResult = NonNullable<Awaited<ReturnType<typeof getSailorPhoto>>>
-export type GetSailorPhotoQueryError = ErrorType<HTTPValidationError>
+export type GetSailorPhotoQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSailorPhoto>>,
@@ -605,7 +606,7 @@ export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPho
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSailorPhoto>>,
@@ -615,7 +616,7 @@ export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPho
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -623,7 +624,7 @@ export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPho
  * @summary A sailor's photo
  */
 
-export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailorPhoto<TData = Awaited<ReturnType<typeof getSailorPhoto>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailorPhoto>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -675,7 +676,7 @@ export const getListLeaguesQueryKey = () => {
     }
 
 
-export const getListLeaguesQueryOptions = <TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>>, }
+export const getListLeaguesQueryOptions = <TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -694,10 +695,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListLeaguesQueryResult = NonNullable<Awaited<ReturnType<typeof listLeagues>>>
-export type ListLeaguesQueryError = ErrorType<unknown>
+export type ListLeaguesQueryError = ErrorType<ProblemDetails>
 
 
-export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listLeagues>>,
@@ -707,7 +708,7 @@ export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listLeagues>>,
@@ -717,7 +718,7 @@ export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -725,7 +726,7 @@ export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, 
  * @summary The leagues
  */
 
-export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<unknown>>(
+export function useListLeagues<TData = Awaited<ReturnType<typeof listLeagues>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagues>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -791,7 +792,7 @@ export const getGetLeagueSeasonQueryKey = (slug: string,
     }
 
 
-export const getGetLeagueSeasonQueryOptions = <TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(slug: string,
+export const getGetLeagueSeasonQueryOptions = <TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<ProblemDetails>>(slug: string,
     params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>>, }
 ) => {
 
@@ -811,10 +812,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetLeagueSeasonQueryResult = NonNullable<Awaited<ReturnType<typeof getLeagueSeason>>>
-export type GetLeagueSeasonQueryError = ErrorType<HTTPValidationError>
+export type GetLeagueSeasonQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<ProblemDetails>>(
  slug: string,
     params: undefined |  GetLeagueSeasonParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -825,7 +826,7 @@ export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSe
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<ProblemDetails>>(
  slug: string,
     params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -836,7 +837,7 @@ export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSe
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<ProblemDetails>>(
  slug: string,
     params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -845,7 +846,7 @@ export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSe
  * @summary One year of a league
  */
 
-export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetLeagueSeason<TData = Awaited<ReturnType<typeof getLeagueSeason>>, TError = ErrorType<ProblemDetails>>(
  slug: string,
     params?: GetLeagueSeasonParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLeagueSeason>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -905,7 +906,7 @@ export const getListSeriesQueryKey = (params?: ListSeriesParams,) => {
     }
 
 
-export const getListSeriesQueryOptions = <TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<HTTPValidationError>>(params?: ListSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeries>>, TError, TData>>, }
+export const getListSeriesQueryOptions = <TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<ProblemDetails>>(params?: ListSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeries>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -924,10 +925,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListSeriesQueryResult = NonNullable<Awaited<ReturnType<typeof listSeries>>>
-export type ListSeriesQueryError = ErrorType<HTTPValidationError>
+export type ListSeriesQueryError = ErrorType<ProblemDetails>
 
 
-export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListSeriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeries>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listSeries>>,
@@ -937,7 +938,7 @@ export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<ProblemDetails>>(
  params?: ListSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeries>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listSeries>>,
@@ -947,7 +948,7 @@ export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<ProblemDetails>>(
  params?: ListSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeries>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -955,7 +956,7 @@ export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TE
  * @summary Series of a year
  */
 
-export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSeries<TData = Awaited<ReturnType<typeof listSeries>>, TError = ErrorType<ProblemDetails>>(
  params?: ListSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSeries>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1010,7 +1011,7 @@ export const getGetSeriesTableQueryKey = (seriesId: number,) => {
     }
 
 
-export const getGetSeriesTableQueryOptions = <TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<HTTPValidationError>>(seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSeriesTable>>, TError, TData>>, }
+export const getGetSeriesTableQueryOptions = <TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<ProblemDetails>>(seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSeriesTable>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -1029,10 +1030,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetSeriesTableQueryResult = NonNullable<Awaited<ReturnType<typeof getSeriesTable>>>
-export type GetSeriesTableQueryError = ErrorType<HTTPValidationError>
+export type GetSeriesTableQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<ProblemDetails>>(
  seriesId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSeriesTable>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSeriesTable>>,
@@ -1042,7 +1043,7 @@ export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTab
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<ProblemDetails>>(
  seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSeriesTable>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSeriesTable>>,
@@ -1052,7 +1053,7 @@ export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTab
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<ProblemDetails>>(
  seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSeriesTable>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1060,7 +1061,7 @@ export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTab
  * @summary Get Series Table
  */
 
-export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSeriesTable<TData = Awaited<ReturnType<typeof getSeriesTable>>, TError = ErrorType<ProblemDetails>>(
  seriesId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSeriesTable>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1115,7 +1116,7 @@ export const getGetLiveNowQueryKey = () => {
     }
 
 
-export const getGetLiveNowQueryOptions = <TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>>, }
+export const getGetLiveNowQueryOptions = <TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -1134,10 +1135,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetLiveNowQueryResult = NonNullable<Awaited<ReturnType<typeof getLiveNow>>>
-export type GetLiveNowQueryError = ErrorType<unknown>
+export type GetLiveNowQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getLiveNow>>,
@@ -1147,7 +1148,7 @@ export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getLiveNow>>,
@@ -1157,7 +1158,7 @@ export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1165,7 +1166,7 @@ export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TE
  * @summary Where /live should lead now
  */
 
-export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<unknown>>(
+export function useGetLiveNow<TData = Awaited<ReturnType<typeof getLiveNow>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getLiveNow>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1234,7 +1235,7 @@ export const getListClubsQueryKey = (params?: ListClubsParams,) => {
     }
 
 
-export const getListClubsQueryOptions = <TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<HTTPValidationError>>(params?: ListClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubs>>, TError, TData>>, }
+export const getListClubsQueryOptions = <TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<ProblemDetails>>(params?: ListClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubs>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -1253,10 +1254,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListClubsQueryResult = NonNullable<Awaited<ReturnType<typeof listClubs>>>
-export type ListClubsQueryError = ErrorType<HTTPValidationError>
+export type ListClubsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListClubsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubs>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listClubs>>,
@@ -1266,7 +1267,7 @@ export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<ProblemDetails>>(
  params?: ListClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubs>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listClubs>>,
@@ -1276,7 +1277,7 @@ export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<ProblemDetails>>(
  params?: ListClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1284,7 +1285,7 @@ export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TErr
  * @summary List Clubs
  */
 
-export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubs<TData = Awaited<ReturnType<typeof listClubs>>, TError = ErrorType<ProblemDetails>>(
  params?: ListClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1350,7 +1351,7 @@ export const getMyClubsQueryKey = () => {
     }
 
 
-export const getMyClubsQueryOptions = <TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>>, }
+export const getMyClubsQueryOptions = <TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -1369,10 +1370,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type MyClubsQueryResult = NonNullable<Awaited<ReturnType<typeof myClubs>>>
-export type MyClubsQueryError = ErrorType<unknown>
+export type MyClubsQueryError = ErrorType<ProblemDetails>
 
 
-export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof myClubs>>,
@@ -1382,7 +1383,7 @@ export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof myClubs>>,
@@ -1392,7 +1393,7 @@ export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1400,7 +1401,7 @@ export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError =
  * @summary The clubs this account belongs to or may manage
  */
 
-export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<unknown>>(
+export function useMyClubs<TData = Awaited<ReturnType<typeof myClubs>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1465,7 +1466,7 @@ export const getGetClubQueryKey = (clubId: number,
     }
 
 
-export const getGetClubQueryOptions = <TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<HTTPValidationError>>(clubId: number,
+export const getGetClubQueryOptions = <TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<ProblemDetails>>(clubId: number,
     params?: GetClubParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData>>, }
 ) => {
 
@@ -1485,10 +1486,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetClubQueryResult = NonNullable<Awaited<ReturnType<typeof getClub>>>
-export type GetClubQueryError = ErrorType<HTTPValidationError>
+export type GetClubQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params: undefined |  GetClubParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -1499,7 +1500,7 @@ export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params?: GetClubParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -1510,7 +1511,7 @@ export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params?: GetClubParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -1519,7 +1520,7 @@ export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError =
  * @summary Get Club
  */
 
-export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClub<TData = Awaited<ReturnType<typeof getClub>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params?: GetClubParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClub>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -1581,7 +1582,7 @@ export const getGetClubLogoQueryKey = (clubId: number,) => {
     }
 
 
-export const getGetClubLogoQueryOptions = <TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubLogo>>, TError, TData>>, }
+export const getGetClubLogoQueryOptions = <TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<ProblemDetails>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubLogo>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -1600,10 +1601,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetClubLogoQueryResult = NonNullable<Awaited<ReturnType<typeof getClubLogo>>>
-export type GetClubLogoQueryError = ErrorType<HTTPValidationError>
+export type GetClubLogoQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubLogo>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClubLogo>>,
@@ -1613,7 +1614,7 @@ export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubLogo>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClubLogo>>,
@@ -1623,7 +1624,7 @@ export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubLogo>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1631,7 +1632,7 @@ export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, 
  * @summary A club's crest
  */
 
-export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubLogo<TData = Awaited<ReturnType<typeof getClubLogo>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubLogo>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1672,6 +1673,10 @@ export const getGetSailorUrl = (sailorId: number,
  * Being on the squad does not mean sailing every event.
  *
  * Deliberately no email or birth year — same as on the club page.
+ *
+ * A sailor who switched their page off (Story S-4) gets the **same** 404 as nobody at
+ * all, so the page does not confirm to a guesser that the person exists; the people
+ * connected to them (`connected_to_sailor`) still open it.
  * @summary Get Sailor
  */
 export const getSailor = async (sailorId: number,
@@ -1698,7 +1703,7 @@ export const getGetSailorQueryKey = (sailorId: number,
     }
 
 
-export const getGetSailorQueryOptions = <TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<HTTPValidationError>>(sailorId: number,
+export const getGetSailorQueryOptions = <TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(sailorId: number,
     params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>>, }
 ) => {
 
@@ -1718,10 +1723,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetSailorQueryResult = NonNullable<Awaited<ReturnType<typeof getSailor>>>
-export type GetSailorQueryError = ErrorType<HTTPValidationError>
+export type GetSailorQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number,
     params: undefined |  GetSailorParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -1732,7 +1737,7 @@ export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number,
     params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -1743,7 +1748,7 @@ export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number,
     params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -1752,7 +1757,7 @@ export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TErr
  * @summary Get Sailor
  */
 
-export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSailor<TData = Awaited<ReturnType<typeof getSailor>>, TError = ErrorType<ProblemDetails>>(
  sailorId: number,
     params?: GetSailorParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSailor>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -1816,7 +1821,7 @@ export const getListEventsQueryKey = (params?: ListEventsParams,) => {
     }
 
 
-export const getListEventsQueryOptions = <TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<HTTPValidationError>>(params?: ListEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>>, }
+export const getListEventsQueryOptions = <TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<ProblemDetails>>(params?: ListEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -1835,10 +1840,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listEvents>>>
-export type ListEventsQueryError = ErrorType<HTTPValidationError>
+export type ListEventsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListEventsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listEvents>>,
@@ -1848,7 +1853,7 @@ export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<ProblemDetails>>(
  params?: ListEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listEvents>>,
@@ -1858,7 +1863,7 @@ export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<ProblemDetails>>(
  params?: ListEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1866,7 +1871,7 @@ export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TE
  * @summary List Events
  */
 
-export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEvents<TData = Awaited<ReturnType<typeof listEvents>>, TError = ErrorType<ProblemDetails>>(
  params?: ListEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEvents>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1917,7 +1922,7 @@ export const getGetEventQueryKey = (eventId: number,) => {
     }
 
 
-export const getGetEventQueryOptions = <TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>>, }
+export const getGetEventQueryOptions = <TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -1936,10 +1941,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetEventQueryResult = NonNullable<Awaited<ReturnType<typeof getEvent>>>
-export type GetEventQueryError = ErrorType<HTTPValidationError>
+export type GetEventQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEvent>>,
@@ -1949,7 +1954,7 @@ export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEvent>>,
@@ -1959,7 +1964,7 @@ export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1967,12 +1972,118 @@ export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError
  * @summary Get Event
  */
 
-export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEvent>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetEventQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEventAccessUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/access`
+}
+
+/**
+ * Story WL-3: the race committee's tools appear on the events a person runs.
+ *
+ * A request of its own rather than a field on the event detail: the detail is the same
+ * for everyone and cached as such, this answer depends on who asks. Same visibility as
+ * the detail — what a visitor cannot see is a 404.
+ * @summary What the person asking may do on this event
+ */
+export const getEventAccess = async (eventId: number, options?: RequestInit): Promise<EventAccess> => {
+
+  return http<EventAccess>(getGetEventAccessUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEventAccessQueryKey = (eventId: number,) => {
+    return [
+    `/api/events/${eventId}/access`
+    ] as const;
+    }
+
+
+export const getGetEventAccessQueryOptions = <TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventAccessQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventAccess>>> = ({ signal }) => getEventAccess(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventAccessQueryResult = NonNullable<Awaited<ReturnType<typeof getEventAccess>>>
+export type GetEventAccessQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventAccess>>,
+          TError,
+          Awaited<ReturnType<typeof getEventAccess>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventAccess>>,
+          TError,
+          Awaited<ReturnType<typeof getEventAccess>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What the person asking may do on this event
+ */
+
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventAccessQueryOptions(eventId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -2030,7 +2141,7 @@ export const getGetEventCrewQueryKey = (eventId: number,) => {
     }
 
 
-export const getGetEventCrewQueryOptions = <TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>>, }
+export const getGetEventCrewQueryOptions = <TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -2049,10 +2160,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetEventCrewQueryResult = NonNullable<Awaited<ReturnType<typeof getEventCrew>>>
-export type GetEventCrewQueryError = ErrorType<HTTPValidationError>
+export type GetEventCrewQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEventCrew>>,
@@ -2062,7 +2173,7 @@ export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEventCrew>>,
@@ -2072,7 +2183,7 @@ export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2080,7 +2191,7 @@ export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>
  * @summary Who sails for each team at this matchday
  */
 
-export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCrew<TData = Awaited<ReturnType<typeof getEventCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCrew>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2133,7 +2244,7 @@ export const getListEventDocumentsQueryKey = (eventId: number,) => {
     }
 
 
-export const getListEventDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>>, }
+export const getListEventDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -2152,10 +2263,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListEventDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listEventDocuments>>>
-export type ListEventDocumentsQueryError = ErrorType<HTTPValidationError>
+export type ListEventDocumentsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listEventDocuments>>,
@@ -2165,7 +2276,7 @@ export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEven
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listEventDocuments>>,
@@ -2175,7 +2286,7 @@ export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEven
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2183,7 +2294,7 @@ export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEven
  * @summary The documents on an event's notice board
  */
 
-export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEventDocuments>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventDocuments>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2235,7 +2346,7 @@ export const getGetPairingQueryKey = (eventId: number,) => {
     }
 
 
-export const getGetPairingQueryOptions = <TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPairing>>, TError, TData>>, }
+export const getGetPairingQueryOptions = <TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPairing>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -2254,10 +2365,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetPairingQueryResult = NonNullable<Awaited<ReturnType<typeof getPairing>>>
-export type GetPairingQueryError = ErrorType<HTTPValidationError>
+export type GetPairingQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPairing>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPairing>>,
@@ -2267,7 +2378,7 @@ export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPairing>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getPairing>>,
@@ -2277,7 +2388,7 @@ export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPairing>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2285,7 +2396,7 @@ export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TE
  * @summary Get Pairing
  */
 
-export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetPairing<TData = Awaited<ReturnType<typeof getPairing>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPairing>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2355,7 +2466,7 @@ export const getDownloadPairingPdfQueryKey = (eventId: number,
     }
 
 
-export const getDownloadPairingPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(eventId: number,
+export const getDownloadPairingPdfQueryOptions = <TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<ProblemDetails>>(eventId: number,
     params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>>, }
 ) => {
 
@@ -2375,10 +2486,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type DownloadPairingPdfQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPairingPdf>>>
-export type DownloadPairingPdfQueryError = ErrorType<HTTPValidationError>
+export type DownloadPairingPdfQueryError = ErrorType<ProblemDetails>
 
 
-export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     params: undefined |  DownloadPairingPdfParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -2389,7 +2500,7 @@ export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof download
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -2400,7 +2511,7 @@ export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof download
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -2409,7 +2520,7 @@ export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof download
  * @summary Pairing list as PDF
  */
 
-export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPairingPdf<TData = Awaited<ReturnType<typeof downloadPairingPdf>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     params?: DownloadPairingPdfParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPairingPdf>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -2465,7 +2576,7 @@ export const getProvidersQueryKey = () => {
     }
 
 
-export const getProvidersQueryOptions = <TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providers>>, TError, TData>>, }
+export const getProvidersQueryOptions = <TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -2484,10 +2595,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof providers>>>
-export type ProvidersQueryError = ErrorType<unknown>
+export type ProvidersQueryError = ErrorType<ProblemDetails>
 
 
-export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<unknown>>(
+export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof providers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof providers>>,
@@ -2497,7 +2608,7 @@ export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<unknown>>(
+export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof providers>>,
@@ -2507,7 +2618,7 @@ export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<unknown>>(
+export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2515,7 +2626,7 @@ export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TErr
  * @summary Which sign-in methods are available
  */
 
-export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<unknown>>(
+export function useProviders<TData = Awaited<ReturnType<typeof providers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof providers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2583,7 +2694,7 @@ return http<RegisterAccount202>(getRegisterAccountUrl(),
 
 export const getRegisterAccountMutationKey = () => ['registerAccount'] as const;
 
-export const getRegisterAccountMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getRegisterAccountMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerAccount>>, TError,RegisterAccountMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof registerAccount>>, TError,RegisterAccountMutationVariables, TContext> => {
 
@@ -2612,13 +2723,13 @@ const {mutation: mutationOptions} = options ?
 
     export type RegisterAccountMutationResult = NonNullable<Awaited<ReturnType<typeof registerAccount>>>
     export type RegisterAccountMutationBody = BodyType<Registration>
-    export type RegisterAccountMutationError = ErrorType<HTTPValidationError>
+    export type RegisterAccountMutationError = ErrorType<ProblemDetails>
     export type RegisterAccountMutationVariables = {data: BodyType<Registration>}
 
     /**
  * @summary Create an account
  */
-export const useRegisterAccount = <TError = ErrorType<HTTPValidationError>,
+export const useRegisterAccount = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerAccount>>, TError,RegisterAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof registerAccount>>,
@@ -2674,7 +2785,7 @@ return http<EmailRequest202>(getEmailRequestUrl(),
 
 export const getEmailRequestMutationKey = () => ['emailRequest'] as const;
 
-export const getEmailRequestMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getEmailRequestMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailRequest>>, TError,EmailRequestMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof emailRequest>>, TError,EmailRequestMutationVariables, TContext> => {
 
@@ -2703,13 +2814,13 @@ const {mutation: mutationOptions} = options ?
 
     export type EmailRequestMutationResult = NonNullable<Awaited<ReturnType<typeof emailRequest>>>
     export type EmailRequestMutationBody = BodyType<EmailRequest>
-    export type EmailRequestMutationError = ErrorType<HTTPValidationError>
+    export type EmailRequestMutationError = ErrorType<ProblemDetails>
     export type EmailRequestMutationVariables = {data: BodyType<EmailRequest>}
 
     /**
  * @summary Request a one-time code
  */
-export const useEmailRequest = <TError = ErrorType<HTTPValidationError>,
+export const useEmailRequest = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailRequest>>, TError,EmailRequestMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof emailRequest>>,
@@ -2762,7 +2873,7 @@ return http<TokenOut>(getEmailVerifyUrl(),
 
 export const getEmailVerifyMutationKey = () => ['emailVerify'] as const;
 
-export const getEmailVerifyMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getEmailVerifyMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailVerify>>, TError,EmailVerifyMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof emailVerify>>, TError,EmailVerifyMutationVariables, TContext> => {
 
@@ -2791,13 +2902,13 @@ const {mutation: mutationOptions} = options ?
 
     export type EmailVerifyMutationResult = NonNullable<Awaited<ReturnType<typeof emailVerify>>>
     export type EmailVerifyMutationBody = BodyType<EmailVerify>
-    export type EmailVerifyMutationError = ErrorType<HTTPValidationError>
+    export type EmailVerifyMutationError = ErrorType<ProblemDetails>
     export type EmailVerifyMutationVariables = {data: BodyType<EmailVerify>}
 
     /**
  * @summary Redeem a one-time code
  */
-export const useEmailVerify = <TError = ErrorType<HTTPValidationError>,
+export const useEmailVerify = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emailVerify>>, TError,EmailVerifyMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof emailVerify>>,
@@ -2851,7 +2962,7 @@ return http<TokenOut>(getOidcLoginUrl(provider),
 
 export const getOidcLoginMutationKey = () => ['oidcLogin'] as const;
 
-export const getOidcLoginMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getOidcLoginMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oidcLogin>>, TError,OidcLoginMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof oidcLogin>>, TError,OidcLoginMutationVariables, TContext> => {
 
@@ -2880,13 +2991,13 @@ const {mutation: mutationOptions} = options ?
 
     export type OidcLoginMutationResult = NonNullable<Awaited<ReturnType<typeof oidcLogin>>>
     export type OidcLoginMutationBody = BodyType<OidcLogin>
-    export type OidcLoginMutationError = ErrorType<HTTPValidationError>
+    export type OidcLoginMutationError = ErrorType<ProblemDetails>
     export type OidcLoginMutationVariables = {provider: string;data: BodyType<OidcLogin>}
 
     /**
  * @summary Sign in with Google or Microsoft
  */
-export const useOidcLogin = <TError = ErrorType<HTTPValidationError>,
+export const useOidcLogin = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof oidcLogin>>, TError,OidcLoginMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof oidcLogin>>,
@@ -2941,7 +3052,7 @@ return http<TokenOut>(getPasswordLoginUrl(),
 
 export const getPasswordLoginMutationKey = () => ['passwordLogin'] as const;
 
-export const getPasswordLoginMutationOptions = <TError = ErrorType<void | HTTPValidationError>,
+export const getPasswordLoginMutationOptions = <TError = ErrorType<void | ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof passwordLogin>>, TError,PasswordLoginMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof passwordLogin>>, TError,PasswordLoginMutationVariables, TContext> => {
 
@@ -2970,13 +3081,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PasswordLoginMutationResult = NonNullable<Awaited<ReturnType<typeof passwordLogin>>>
     export type PasswordLoginMutationBody = BodyType<PasswordLogin>
-    export type PasswordLoginMutationError = ErrorType<void | HTTPValidationError>
+    export type PasswordLoginMutationError = ErrorType<void | ProblemDetails>
     export type PasswordLoginMutationVariables = {data: BodyType<PasswordLogin>}
 
     /**
  * @summary Sign in with a password
  */
-export const usePasswordLogin = <TError = ErrorType<void | HTTPValidationError>,
+export const usePasswordLogin = <TError = ErrorType<void | ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof passwordLogin>>, TError,PasswordLoginMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof passwordLogin>>,
@@ -3031,7 +3142,7 @@ return http<void>(getSetMyPasswordUrl(),
 
 export const getSetMyPasswordMutationKey = () => ['setMyPassword'] as const;
 
-export const getSetMyPasswordMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSetMyPasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyPassword>>, TError,SetMyPasswordMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setMyPassword>>, TError,SetMyPasswordMutationVariables, TContext> => {
 
@@ -3060,13 +3171,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SetMyPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof setMyPassword>>>
     export type SetMyPasswordMutationBody = BodyType<PasswordSet>
-    export type SetMyPasswordMutationError = ErrorType<HTTPValidationError>
+    export type SetMyPasswordMutationError = ErrorType<ProblemDetails>
     export type SetMyPasswordMutationVariables = {data: BodyType<PasswordSet>}
 
     /**
  * @summary Set or change my password
  */
-export const useSetMyPassword = <TError = ErrorType<HTTPValidationError>,
+export const useSetMyPassword = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setMyPassword>>, TError,SetMyPasswordMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setMyPassword>>,
@@ -3107,7 +3218,7 @@ export const removeMyPassword = async ( options?: RequestInit): Promise<void> =>
 
 export const getRemoveMyPasswordMutationKey = () => ['removeMyPassword'] as const;
 
-export const getRemoveMyPasswordMutationOptions = <TError = ErrorType<unknown>,
+export const getRemoveMyPasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeMyPassword>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof removeMyPassword>>, TError,void, TContext> => {
 
@@ -3136,13 +3247,13 @@ const {mutation: mutationOptions} = options ?
 
     export type RemoveMyPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof removeMyPassword>>>
 
-    export type RemoveMyPasswordMutationError = ErrorType<unknown>
+    export type RemoveMyPasswordMutationError = ErrorType<ProblemDetails>
 
 
     /**
  * @summary Remove my password
  */
-export const useRemoveMyPassword = <TError = ErrorType<unknown>,
+export const useRemoveMyPassword = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeMyPassword>>, TError,void, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof removeMyPassword>>,
@@ -3186,7 +3297,7 @@ export const getMeQueryKey = () => {
     }
 
 
-export const getMeQueryOptions = <TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, }
+export const getMeQueryOptions = <TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -3205,10 +3316,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type MeQueryResult = NonNullable<Awaited<ReturnType<typeof me>>>
-export type MeQueryError = ErrorType<unknown>
+export type MeQueryError = ErrorType<ProblemDetails>
 
 
-export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<unknown>>(
+export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof me>>,
@@ -3218,7 +3329,7 @@ export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<unknown>>(
+export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof me>>,
@@ -3228,7 +3339,7 @@ export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<unknown>>(
+export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -3236,7 +3347,7 @@ export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType
  * @summary Get my account
  */
 
-export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<unknown>>(
+export function useMe<TData = Awaited<ReturnType<typeof me>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof me>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -3296,7 +3407,7 @@ export const deleteMyAccount = async ( options?: RequestInit): Promise<void> => 
 
 export const getDeleteMyAccountMutationKey = () => ['deleteMyAccount'] as const;
 
-export const getDeleteMyAccountMutationOptions = <TError = ErrorType<unknown>,
+export const getDeleteMyAccountMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAccount>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteMyAccount>>, TError,void, TContext> => {
 
@@ -3325,13 +3436,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteMyAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAccount>>>
 
-    export type DeleteMyAccountMutationError = ErrorType<unknown>
+    export type DeleteMyAccountMutationError = ErrorType<ProblemDetails>
 
 
     /**
  * @summary Delete my account
  */
-export const useDeleteMyAccount = <TError = ErrorType<unknown>,
+export const useDeleteMyAccount = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAccount>>, TError,void, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteMyAccount>>,
@@ -3386,7 +3497,7 @@ export const getListUsersQueryKey = (params?: ListUsersParams,) => {
     }
 
 
-export const getListUsersQueryOptions = <TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<HTTPValidationError>>(params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>, }
+export const getListUsersQueryOptions = <TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<ProblemDetails>>(params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -3405,10 +3516,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listUsers>>>
-export type ListUsersQueryError = ErrorType<HTTPValidationError>
+export type ListUsersQueryError = ErrorType<ProblemDetails>
 
 
-export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListUsersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listUsers>>,
@@ -3418,7 +3529,7 @@ export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<ProblemDetails>>(
  params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listUsers>>,
@@ -3428,7 +3539,7 @@ export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<ProblemDetails>>(
  params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -3436,7 +3547,7 @@ export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TErr
  * @summary List accounts
  */
 
-export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListUsers<TData = Awaited<ReturnType<typeof listUsers>>, TError = ErrorType<ProblemDetails>>(
  params?: ListUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listUsers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -3496,7 +3607,7 @@ return http<UserOut>(getCreateUserUrl(),
 
 export const getCreateUserMutationKey = () => ['createUser'] as const;
 
-export const getCreateUserMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCreateUserMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,CreateUserMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,CreateUserMutationVariables, TContext> => {
 
@@ -3525,13 +3636,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateUserMutationResult = NonNullable<Awaited<ReturnType<typeof createUser>>>
     export type CreateUserMutationBody = BodyType<UserCreate>
-    export type CreateUserMutationError = ErrorType<HTTPValidationError>
+    export type CreateUserMutationError = ErrorType<ProblemDetails>
     export type CreateUserMutationVariables = {data: BodyType<UserCreate>}
 
     /**
  * @summary Create an account
  */
-export const useCreateUser = <TError = ErrorType<HTTPValidationError>,
+export const useCreateUser = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createUser>>, TError,CreateUserMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createUser>>,
@@ -3574,7 +3685,7 @@ export const removeUser = async (userId: number, options?: RequestInit): Promise
 
 export const getRemoveUserMutationKey = () => ['removeUser'] as const;
 
-export const getRemoveUserMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getRemoveUserMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeUser>>, TError,RemoveUserMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof removeUser>>, TError,RemoveUserMutationVariables, TContext> => {
 
@@ -3603,13 +3714,13 @@ const {mutation: mutationOptions} = options ?
 
     export type RemoveUserMutationResult = NonNullable<Awaited<ReturnType<typeof removeUser>>>
 
-    export type RemoveUserMutationError = ErrorType<HTTPValidationError>
+    export type RemoveUserMutationError = ErrorType<ProblemDetails>
     export type RemoveUserMutationVariables = {userId: number}
 
     /**
  * @summary Remove an account
  */
-export const useRemoveUser = <TError = ErrorType<HTTPValidationError>,
+export const useRemoveUser = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeUser>>, TError,RemoveUserMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof removeUser>>,
@@ -3653,7 +3764,7 @@ export const getGetUserQueryKey = (userId: number,) => {
     }
 
 
-export const getGetUserQueryOptions = <TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, }
+export const getGetUserQueryOptions = <TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<ProblemDetails>>(userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -3672,10 +3783,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetUserQueryResult = NonNullable<Awaited<ReturnType<typeof getUser>>>
-export type GetUserQueryError = ErrorType<HTTPValidationError>
+export type GetUserQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUser>>,
@@ -3685,7 +3796,7 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getUser>>,
@@ -3695,7 +3806,7 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -3703,7 +3814,7 @@ export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError =
  * @summary One account with its tuples
  */
 
-export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetUser<TData = Awaited<ReturnType<typeof getUser>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -3751,7 +3862,7 @@ export const clearPassword = async (userId: number, options?: RequestInit): Prom
 
 export const getClearPasswordMutationKey = () => ['clearPassword'] as const;
 
-export const getClearPasswordMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getClearPasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearPassword>>, TError,ClearPasswordMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof clearPassword>>, TError,ClearPasswordMutationVariables, TContext> => {
 
@@ -3780,13 +3891,13 @@ const {mutation: mutationOptions} = options ?
 
     export type ClearPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof clearPassword>>>
 
-    export type ClearPasswordMutationError = ErrorType<HTTPValidationError>
+    export type ClearPasswordMutationError = ErrorType<ProblemDetails>
     export type ClearPasswordMutationVariables = {userId: number}
 
     /**
  * @summary Clear someone's password
  */
-export const useClearPassword = <TError = ErrorType<HTTPValidationError>,
+export const useClearPassword = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearPassword>>, TError,ClearPasswordMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof clearPassword>>,
@@ -3832,7 +3943,7 @@ export const getGetModelQueryKey = () => {
     }
 
 
-export const getGetModelQueryOptions = <TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>>, }
+export const getGetModelQueryOptions = <TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -3851,10 +3962,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetModelQueryResult = NonNullable<Awaited<ReturnType<typeof getModel>>>
-export type GetModelQueryError = ErrorType<unknown>
+export type GetModelQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getModel>>,
@@ -3864,7 +3975,7 @@ export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getModel>>,
@@ -3874,7 +3985,7 @@ export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -3882,7 +3993,7 @@ export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError
  * @summary The authorization model (OpenFGA DSL)
  */
 
-export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<unknown>>(
+export function useGetModel<TData = Awaited<ReturnType<typeof getModel>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getModel>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -3942,7 +4053,7 @@ export const getReadTuplesQueryKey = (params?: ReadTuplesParams,) => {
     }
 
 
-export const getReadTuplesQueryOptions = <TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>>, }
+export const getReadTuplesQueryOptions = <TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<ProblemDetails>>(params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -3961,10 +4072,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ReadTuplesQueryResult = NonNullable<Awaited<ReturnType<typeof readTuples>>>
-export type ReadTuplesQueryError = ErrorType<HTTPValidationError>
+export type ReadTuplesQueryError = ErrorType<ProblemDetails>
 
 
-export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<ProblemDetails>>(
  params: ReadTuplesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof readTuples>>,
@@ -3974,7 +4085,7 @@ export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<ProblemDetails>>(
  params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof readTuples>>,
@@ -3984,7 +4095,7 @@ export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<ProblemDetails>>(
  params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -3992,7 +4103,7 @@ export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TE
  * @summary Who holds what on one object (FGA read)
  */
 
-export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<HTTPValidationError>>(
+export function useReadTuples<TData = Awaited<ReturnType<typeof readTuples>>, TError = ErrorType<ProblemDetails>>(
  params: ReadTuplesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof readTuples>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4056,7 +4167,7 @@ return http<TupleOut>(getWriteTupleUrl(),
 
 export const getWriteTupleMutationKey = () => ['writeTuple'] as const;
 
-export const getWriteTupleMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getWriteTupleMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof writeTuple>>, TError,WriteTupleMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof writeTuple>>, TError,WriteTupleMutationVariables, TContext> => {
 
@@ -4085,13 +4196,13 @@ const {mutation: mutationOptions} = options ?
 
     export type WriteTupleMutationResult = NonNullable<Awaited<ReturnType<typeof writeTuple>>>
     export type WriteTupleMutationBody = BodyType<TupleWrite>
-    export type WriteTupleMutationError = ErrorType<HTTPValidationError>
+    export type WriteTupleMutationError = ErrorType<ProblemDetails>
     export type WriteTupleMutationVariables = {data: BodyType<TupleWrite>}
 
     /**
  * @summary Write one tuple (FGA write)
  */
-export const useWriteTuple = <TError = ErrorType<HTTPValidationError>,
+export const useWriteTuple = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof writeTuple>>, TError,WriteTupleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof writeTuple>>,
@@ -4132,7 +4243,7 @@ export const deleteTuple = async (tupleId: number, options?: RequestInit): Promi
 
 export const getDeleteTupleMutationKey = () => ['deleteTuple'] as const;
 
-export const getDeleteTupleMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getDeleteTupleMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTuple>>, TError,DeleteTupleMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteTuple>>, TError,DeleteTupleMutationVariables, TContext> => {
 
@@ -4161,13 +4272,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteTupleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTuple>>>
 
-    export type DeleteTupleMutationError = ErrorType<HTTPValidationError>
+    export type DeleteTupleMutationError = ErrorType<ProblemDetails>
     export type DeleteTupleMutationVariables = {tupleId: number}
 
     /**
  * @summary Delete one tuple (FGA delete)
  */
-export const useDeleteTuple = <TError = ErrorType<HTTPValidationError>,
+export const useDeleteTuple = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteTuple>>, TError,DeleteTupleMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteTuple>>,
@@ -4230,7 +4341,7 @@ return http<JobOut>(getStartPairingJobUrl(eventId),
 
 export const getStartPairingJobMutationKey = () => ['startPairingJob'] as const;
 
-export const getStartPairingJobMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getStartPairingJobMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startPairingJob>>, TError,StartPairingJobMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof startPairingJob>>, TError,StartPairingJobMutationVariables, TContext> => {
 
@@ -4259,13 +4370,13 @@ const {mutation: mutationOptions} = options ?
 
     export type StartPairingJobMutationResult = NonNullable<Awaited<ReturnType<typeof startPairingJob>>>
     export type StartPairingJobMutationBody = BodyType<PairingJobRequest>
-    export type StartPairingJobMutationError = ErrorType<HTTPValidationError>
+    export type StartPairingJobMutationError = ErrorType<ProblemDetails>
     export type StartPairingJobMutationVariables = {eventId: number;data: BodyType<PairingJobRequest>}
 
     /**
  * @summary Compute pairing list
  */
-export const useStartPairingJob = <TError = ErrorType<HTTPValidationError>,
+export const useStartPairingJob = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startPairingJob>>, TError,StartPairingJobMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof startPairingJob>>,
@@ -4309,7 +4420,7 @@ export const getGetJobQueryKey = (jobId: string,) => {
     }
 
 
-export const getGetJobQueryOptions = <TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<HTTPValidationError>>(jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJob>>, TError, TData>>, }
+export const getGetJobQueryOptions = <TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<ProblemDetails>>(jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJob>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -4328,10 +4439,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetJobQueryResult = NonNullable<Awaited<ReturnType<typeof getJob>>>
-export type GetJobQueryError = ErrorType<HTTPValidationError>
+export type GetJobQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<ProblemDetails>>(
  jobId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJob>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getJob>>,
@@ -4341,7 +4452,7 @@ export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = E
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<ProblemDetails>>(
  jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJob>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getJob>>,
@@ -4351,7 +4462,7 @@ export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = E
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<ProblemDetails>>(
  jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJob>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4359,7 +4470,7 @@ export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = E
  * @summary Job status
  */
 
-export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetJob<TData = Awaited<ReturnType<typeof getJob>>, TError = ErrorType<ProblemDetails>>(
  jobId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getJob>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4405,7 +4516,7 @@ export const cancelJob = async (jobId: string, options?: RequestInit): Promise<J
 
 export const getCancelJobMutationKey = () => ['cancelJob'] as const;
 
-export const getCancelJobMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCancelJobMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelJob>>, TError,CancelJobMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof cancelJob>>, TError,CancelJobMutationVariables, TContext> => {
 
@@ -4434,13 +4545,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CancelJobMutationResult = NonNullable<Awaited<ReturnType<typeof cancelJob>>>
 
-    export type CancelJobMutationError = ErrorType<HTTPValidationError>
+    export type CancelJobMutationError = ErrorType<ProblemDetails>
     export type CancelJobMutationVariables = {jobId: string}
 
     /**
  * @summary Cancel job
  */
-export const useCancelJob = <TError = ErrorType<HTTPValidationError>,
+export const useCancelJob = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelJob>>, TError,CancelJobMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof cancelJob>>,
@@ -4494,7 +4605,7 @@ return http<PublishResult>(getPublishJobResultUrl(eventId),
 
 export const getPublishJobResultMutationKey = () => ['publishJobResult'] as const;
 
-export const getPublishJobResultMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPublishJobResultMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishJobResult>>, TError,PublishJobResultMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof publishJobResult>>, TError,PublishJobResultMutationVariables, TContext> => {
 
@@ -4523,13 +4634,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PublishJobResultMutationResult = NonNullable<Awaited<ReturnType<typeof publishJobResult>>>
     export type PublishJobResultMutationBody = BodyType<PublishRequest>
-    export type PublishJobResultMutationError = ErrorType<HTTPValidationError>
+    export type PublishJobResultMutationError = ErrorType<ProblemDetails>
     export type PublishJobResultMutationVariables = {eventId: number;data: BodyType<PublishRequest>}
 
     /**
  * @summary Publish computed list
  */
-export const usePublishJobResult = <TError = ErrorType<HTTPValidationError>,
+export const usePublishJobResult = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishJobResult>>, TError,PublishJobResultMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof publishJobResult>>,
@@ -4579,7 +4690,7 @@ export const getListPairingCatalogQueryKey = () => {
     }
 
 
-export const getListPairingCatalogQueryOptions = <TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairingCatalog>>, TError, TData>>, }
+export const getListPairingCatalogQueryOptions = <TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairingCatalog>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -4598,10 +4709,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListPairingCatalogQueryResult = NonNullable<Awaited<ReturnType<typeof listPairingCatalog>>>
-export type ListPairingCatalogQueryError = ErrorType<unknown>
+export type ListPairingCatalogQueryError = ErrorType<ProblemDetails>
 
 
-export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<unknown>>(
+export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairingCatalog>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPairingCatalog>>,
@@ -4611,7 +4722,7 @@ export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPair
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<unknown>>(
+export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairingCatalog>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPairingCatalog>>,
@@ -4621,7 +4732,7 @@ export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPair
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<unknown>>(
+export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairingCatalog>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4629,7 +4740,7 @@ export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPair
  * @summary Finished pairing lists
  */
 
-export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<unknown>>(
+export function useListPairingCatalog<TData = Awaited<ReturnType<typeof listPairingCatalog>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPairingCatalog>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4698,7 +4809,7 @@ return http<PublishResult>(getPairingFromCatalogUrl(eventId),
 
 export const getPairingFromCatalogMutationKey = () => ['pairingFromCatalog'] as const;
 
-export const getPairingFromCatalogMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPairingFromCatalogMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pairingFromCatalog>>, TError,PairingFromCatalogMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof pairingFromCatalog>>, TError,PairingFromCatalogMutationVariables, TContext> => {
 
@@ -4727,13 +4838,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PairingFromCatalogMutationResult = NonNullable<Awaited<ReturnType<typeof pairingFromCatalog>>>
     export type PairingFromCatalogMutationBody = BodyType<FromCatalogRequest | null> | undefined
-    export type PairingFromCatalogMutationError = ErrorType<HTTPValidationError>
+    export type PairingFromCatalogMutationError = ErrorType<ProblemDetails>
     export type PairingFromCatalogMutationVariables = {eventId: number;data?: BodyType<FromCatalogRequest | null>}
 
     /**
  * @summary Take finished list from catalog
  */
-export const usePairingFromCatalog = <TError = ErrorType<HTTPValidationError>,
+export const usePairingFromCatalog = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof pairingFromCatalog>>, TError,PairingFromCatalogMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof pairingFromCatalog>>,
@@ -4795,7 +4906,7 @@ return http<PublishResult>(getImportPairingUrl(eventId),
 
 export const getImportPairingMutationKey = () => ['importPairing'] as const;
 
-export const getImportPairingMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getImportPairingMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importPairing>>, TError,ImportPairingMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof importPairing>>, TError,ImportPairingMutationVariables, TContext> => {
 
@@ -4824,13 +4935,13 @@ const {mutation: mutationOptions} = options ?
 
     export type ImportPairingMutationResult = NonNullable<Awaited<ReturnType<typeof importPairing>>>
     export type ImportPairingMutationBody = BodyType<PairingImportRequest>
-    export type ImportPairingMutationError = ErrorType<HTTPValidationError>
+    export type ImportPairingMutationError = ErrorType<ProblemDetails>
     export type ImportPairingMutationVariables = {eventId: number;data: BodyType<PairingImportRequest>}
 
     /**
  * @summary Import finished list
  */
-export const useImportPairing = <TError = ErrorType<HTTPValidationError>,
+export const useImportPairing = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importPairing>>, TError,ImportPairingMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof importPairing>>,
@@ -4879,7 +4990,7 @@ export const getGetAdminRacesQueryKey = (eventId: number,) => {
     }
 
 
-export const getGetAdminRacesQueryOptions = <TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminRaces>>, TError, TData>>, }
+export const getGetAdminRacesQueryOptions = <TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminRaces>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -4898,10 +5009,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetAdminRacesQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminRaces>>>
-export type GetAdminRacesQueryError = ErrorType<HTTPValidationError>
+export type GetAdminRacesQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminRaces>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminRaces>>,
@@ -4911,7 +5022,7 @@ export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminRaces>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAdminRaces>>,
@@ -4921,7 +5032,7 @@ export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminRaces>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4929,7 +5040,7 @@ export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces
  * @summary Pairing and current results, for the entry screen
  */
 
-export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetAdminRaces<TData = Awaited<ReturnType<typeof getAdminRaces>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminRaces>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4998,7 +5109,7 @@ return http<AdminRaceOut>(getStartRaceUrl(eventId,raceId),
 
 export const getStartRaceMutationKey = () => ['startRace'] as const;
 
-export const getStartRaceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getStartRaceMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startRace>>, TError,StartRaceMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof startRace>>, TError,StartRaceMutationVariables, TContext> => {
 
@@ -5027,13 +5138,13 @@ const {mutation: mutationOptions} = options ?
 
     export type StartRaceMutationResult = NonNullable<Awaited<ReturnType<typeof startRace>>>
     export type StartRaceMutationBody = BodyType<RaceStartIn | null> | undefined
-    export type StartRaceMutationError = ErrorType<HTTPValidationError>
+    export type StartRaceMutationError = ErrorType<ProblemDetails>
     export type StartRaceMutationVariables = {eventId: number;raceId: number;data?: BodyType<RaceStartIn | null>}
 
     /**
  * @summary The gun: start a race
  */
-export const useStartRace = <TError = ErrorType<HTTPValidationError>,
+export const useStartRace = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startRace>>, TError,StartRaceMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof startRace>>,
@@ -5078,7 +5189,7 @@ export const recallRace = async (eventId: number,
 
 export const getRecallRaceMutationKey = () => ['recallRace'] as const;
 
-export const getRecallRaceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getRecallRaceMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recallRace>>, TError,RecallRaceMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof recallRace>>, TError,RecallRaceMutationVariables, TContext> => {
 
@@ -5107,13 +5218,13 @@ const {mutation: mutationOptions} = options ?
 
     export type RecallRaceMutationResult = NonNullable<Awaited<ReturnType<typeof recallRace>>>
 
-    export type RecallRaceMutationError = ErrorType<HTTPValidationError>
+    export type RecallRaceMutationError = ErrorType<ProblemDetails>
     export type RecallRaceMutationVariables = {eventId: number;raceId: number}
 
     /**
  * @summary First Substitute: general recall
  */
-export const useRecallRace = <TError = ErrorType<HTTPValidationError>,
+export const useRecallRace = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recallRace>>, TError,RecallRaceMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof recallRace>>,
@@ -5167,7 +5278,7 @@ export const abandonRace = async (eventId: number,
 
 export const getAbandonRaceMutationKey = () => ['abandonRace'] as const;
 
-export const getAbandonRaceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getAbandonRaceMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof abandonRace>>, TError,AbandonRaceMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof abandonRace>>, TError,AbandonRaceMutationVariables, TContext> => {
 
@@ -5196,13 +5307,13 @@ const {mutation: mutationOptions} = options ?
 
     export type AbandonRaceMutationResult = NonNullable<Awaited<ReturnType<typeof abandonRace>>>
 
-    export type AbandonRaceMutationError = ErrorType<HTTPValidationError>
+    export type AbandonRaceMutationError = ErrorType<ProblemDetails>
     export type AbandonRaceMutationVariables = {eventId: number;raceId: number;params?: AbandonRaceParams}
 
     /**
  * @summary N: abandon a race
  */
-export const useAbandonRace = <TError = ErrorType<HTTPValidationError>,
+export const useAbandonRace = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof abandonRace>>, TError,AbandonRaceMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof abandonRace>>,
@@ -5262,7 +5373,7 @@ return http<AdminRaceOut>(getSetRaceSignalUrl(eventId,raceId),
 
 export const getSetRaceSignalMutationKey = () => ['setRaceSignal'] as const;
 
-export const getSetRaceSignalMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSetRaceSignalMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setRaceSignal>>, TError,SetRaceSignalMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setRaceSignal>>, TError,SetRaceSignalMutationVariables, TContext> => {
 
@@ -5291,13 +5402,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SetRaceSignalMutationResult = NonNullable<Awaited<ReturnType<typeof setRaceSignal>>>
     export type SetRaceSignalMutationBody = BodyType<RaceSignalIn>
-    export type SetRaceSignalMutationError = ErrorType<HTTPValidationError>
+    export type SetRaceSignalMutationError = ErrorType<ProblemDetails>
     export type SetRaceSignalMutationVariables = {eventId: number;raceId: number;data: BodyType<RaceSignalIn>}
 
     /**
  * @summary Hoist or haul down a displayed signal (AP, X, S)
  */
-export const useSetRaceSignal = <TError = ErrorType<HTTPValidationError>,
+export const useSetRaceSignal = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setRaceSignal>>, TError,SetRaceSignalMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setRaceSignal>>,
@@ -5356,7 +5467,7 @@ return http<AdminRaceOut>(getStoreStartSequenceUrl(eventId,raceId),
 
 export const getStoreStartSequenceMutationKey = () => ['storeStartSequence'] as const;
 
-export const getStoreStartSequenceMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getStoreStartSequenceMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeStartSequence>>, TError,StoreStartSequenceMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof storeStartSequence>>, TError,StoreStartSequenceMutationVariables, TContext> => {
 
@@ -5385,13 +5496,13 @@ const {mutation: mutationOptions} = options ?
 
     export type StoreStartSequenceMutationResult = NonNullable<Awaited<ReturnType<typeof storeStartSequence>>>
     export type StoreStartSequenceMutationBody = BodyType<StartSequence | null> | undefined
-    export type StoreStartSequenceMutationError = ErrorType<HTTPValidationError>
+    export type StoreStartSequenceMutationError = ErrorType<ProblemDetails>
     export type StoreStartSequenceMutationVariables = {eventId: number;raceId: number;data?: BodyType<StartSequence | null>}
 
     /**
  * @summary Store the start sequence the race committee runs
  */
-export const useStoreStartSequence = <TError = ErrorType<HTTPValidationError>,
+export const useStoreStartSequence = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof storeStartSequence>>, TError,StoreStartSequenceMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof storeStartSequence>>,
@@ -5460,7 +5571,7 @@ return http<RaceResultsOut>(getPutRaceResultUrl(eventId,raceId),
 
 export const getPutRaceResultMutationKey = () => ['putRaceResult'] as const;
 
-export const getPutRaceResultMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPutRaceResultMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putRaceResult>>, TError,PutRaceResultMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof putRaceResult>>, TError,PutRaceResultMutationVariables, TContext> => {
 
@@ -5489,13 +5600,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PutRaceResultMutationResult = NonNullable<Awaited<ReturnType<typeof putRaceResult>>>
     export type PutRaceResultMutationBody = BodyType<RaceResultsIn>
-    export type PutRaceResultMutationError = ErrorType<HTTPValidationError>
+    export type PutRaceResultMutationError = ErrorType<ProblemDetails>
     export type PutRaceResultMutationVariables = {eventId: number;raceId: number;data: BodyType<RaceResultsIn>}
 
     /**
  * @summary Enter or correct a race's result
  */
-export const usePutRaceResult = <TError = ErrorType<HTTPValidationError>,
+export const usePutRaceResult = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putRaceResult>>, TError,PutRaceResultMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putRaceResult>>,
@@ -5556,7 +5667,7 @@ return http<TeamPenaltyOut>(getPutTeamPenaltyUrl(eventId,teamId),
 
 export const getPutTeamPenaltyMutationKey = () => ['putTeamPenalty'] as const;
 
-export const getPutTeamPenaltyMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPutTeamPenaltyMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putTeamPenalty>>, TError,PutTeamPenaltyMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof putTeamPenalty>>, TError,PutTeamPenaltyMutationVariables, TContext> => {
 
@@ -5585,13 +5696,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PutTeamPenaltyMutationResult = NonNullable<Awaited<ReturnType<typeof putTeamPenalty>>>
     export type PutTeamPenaltyMutationBody = BodyType<TeamPenaltyIn>
-    export type PutTeamPenaltyMutationError = ErrorType<HTTPValidationError>
+    export type PutTeamPenaltyMutationError = ErrorType<ProblemDetails>
     export type PutTeamPenaltyMutationVariables = {eventId: number;teamId: number;data: BodyType<TeamPenaltyIn>}
 
     /**
  * @summary Set or remove a team's penalty points for the matchday
  */
-export const usePutTeamPenalty = <TError = ErrorType<HTTPValidationError>,
+export const usePutTeamPenalty = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putTeamPenalty>>, TError,PutTeamPenaltyMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof putTeamPenalty>>,
@@ -5657,7 +5768,7 @@ export const getListAllEventsQueryKey = (params?: ListAllEventsParams,) => {
     }
 
 
-export const getListAllEventsQueryOptions = <TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
+export const getListAllEventsQueryOptions = <TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<ProblemDetails>>(params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -5676,10 +5787,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListAllEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listAllEvents>>>
-export type ListAllEventsQueryError = ErrorType<HTTPValidationError>
+export type ListAllEventsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListAllEventsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllEvents>>,
@@ -5689,7 +5800,7 @@ export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllEvents>>,
@@ -5699,7 +5810,7 @@ export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -5707,7 +5818,7 @@ export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents
  * @summary All events, drafts included
  */
 
-export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllEvents<TData = Awaited<ReturnType<typeof listAllEvents>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllEventsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllEvents>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -5776,7 +5887,7 @@ return http<EventOut>(getCreateEventUrl(),
 
 export const getCreateEventMutationKey = () => ['createEvent'] as const;
 
-export const getCreateEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCreateEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,CreateEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,CreateEventMutationVariables, TContext> => {
 
@@ -5805,13 +5916,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateEventMutationResult = NonNullable<Awaited<ReturnType<typeof createEvent>>>
     export type CreateEventMutationBody = BodyType<EventCreate>
-    export type CreateEventMutationError = ErrorType<HTTPValidationError>
+    export type CreateEventMutationError = ErrorType<ProblemDetails>
     export type CreateEventMutationVariables = {data: BodyType<EventCreate>}
 
     /**
  * @summary Create Event
  */
-export const useCreateEvent = <TError = ErrorType<HTTPValidationError>,
+export const useCreateEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEvent>>, TError,CreateEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createEvent>>,
@@ -5835,8 +5946,9 @@ export const getUpdateEventUrl = (eventId: number,) => {
  *
  * Never refuses because the event is incomplete: a half-filled event is savable, and the
  * only thing that stands in the way of a change is the **first race**, which freezes the
- * configuration (dimensions, series, matchday). Title, dates, venue, host, logo, status
- * and publication stay editable throughout — a typo has to be fixable on a race day too.
+ * configuration (dimensions, series, matchday). Title, dates, venue, host, logo and
+ * publication stay editable throughout — a typo has to be fixable on a race day too. The
+ * status is not among them: it moves only through the transitions below (Story VA-10).
  * @summary Update Event
  */
 export const updateEvent = async (eventId: number,
@@ -5871,7 +5983,7 @@ return http<EventOut>(getUpdateEventUrl(eventId),
 
 export const getUpdateEventMutationKey = () => ['updateEvent'] as const;
 
-export const getUpdateEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUpdateEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,UpdateEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,UpdateEventMutationVariables, TContext> => {
 
@@ -5900,13 +6012,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateEventMutationResult = NonNullable<Awaited<ReturnType<typeof updateEvent>>>
     export type UpdateEventMutationBody = BodyType<EventUpdate>
-    export type UpdateEventMutationError = ErrorType<HTTPValidationError>
+    export type UpdateEventMutationError = ErrorType<ProblemDetails>
     export type UpdateEventMutationVariables = {eventId: number;data: BodyType<EventUpdate>}
 
     /**
  * @summary Update Event
  */
-export const useUpdateEvent = <TError = ErrorType<HTTPValidationError>,
+export const useUpdateEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateEvent>>, TError,UpdateEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateEvent>>,
@@ -5955,7 +6067,7 @@ export const getGetReadinessQueryKey = (eventId: number,) => {
     }
 
 
-export const getGetReadinessQueryOptions = <TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReadiness>>, TError, TData>>, }
+export const getGetReadinessQueryOptions = <TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReadiness>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -5974,10 +6086,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetReadinessQueryResult = NonNullable<Awaited<ReturnType<typeof getReadiness>>>
-export type GetReadinessQueryError = ErrorType<HTTPValidationError>
+export type GetReadinessQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReadiness>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getReadiness>>,
@@ -5987,7 +6099,7 @@ export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReadiness>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getReadiness>>,
@@ -5997,7 +6109,7 @@ export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReadiness>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -6005,7 +6117,7 @@ export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>
  * @summary Is this event ready to be drawn and started?
  */
 
-export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetReadiness<TData = Awaited<ReturnType<typeof getReadiness>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReadiness>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -6056,7 +6168,7 @@ export const publishEvent = async (eventId: number, options?: RequestInit): Prom
 
 export const getPublishEventMutationKey = () => ['publishEvent'] as const;
 
-export const getPublishEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPublishEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishEvent>>, TError,PublishEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof publishEvent>>, TError,PublishEventMutationVariables, TContext> => {
 
@@ -6085,13 +6197,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PublishEventMutationResult = NonNullable<Awaited<ReturnType<typeof publishEvent>>>
 
-    export type PublishEventMutationError = ErrorType<HTTPValidationError>
+    export type PublishEventMutationError = ErrorType<ProblemDetails>
     export type PublishEventMutationVariables = {eventId: number}
 
     /**
  * @summary Make the event publicly visible
  */
-export const usePublishEvent = <TError = ErrorType<HTTPValidationError>,
+export const usePublishEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishEvent>>, TError,PublishEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof publishEvent>>,
@@ -6131,7 +6243,7 @@ export const unpublishEvent = async (eventId: number, options?: RequestInit): Pr
 
 export const getUnpublishEventMutationKey = () => ['unpublishEvent'] as const;
 
-export const getUnpublishEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUnpublishEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpublishEvent>>, TError,UnpublishEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof unpublishEvent>>, TError,UnpublishEventMutationVariables, TContext> => {
 
@@ -6160,13 +6272,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UnpublishEventMutationResult = NonNullable<Awaited<ReturnType<typeof unpublishEvent>>>
 
-    export type UnpublishEventMutationError = ErrorType<HTTPValidationError>
+    export type UnpublishEventMutationError = ErrorType<ProblemDetails>
     export type UnpublishEventMutationVariables = {eventId: number}
 
     /**
  * @summary Withdraw the event from the public site
  */
-export const useUnpublishEvent = <TError = ErrorType<HTTPValidationError>,
+export const useUnpublishEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpublishEvent>>, TError,UnpublishEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof unpublishEvent>>,
@@ -6215,7 +6327,7 @@ export const startEvent = async (eventId: number, options?: RequestInit): Promis
 
 export const getStartEventMutationKey = () => ['startEvent'] as const;
 
-export const getStartEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getStartEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startEvent>>, TError,StartEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof startEvent>>, TError,StartEventMutationVariables, TContext> => {
 
@@ -6244,13 +6356,13 @@ const {mutation: mutationOptions} = options ?
 
     export type StartEventMutationResult = NonNullable<Awaited<ReturnType<typeof startEvent>>>
 
-    export type StartEventMutationError = ErrorType<HTTPValidationError>
+    export type StartEventMutationError = ErrorType<ProblemDetails>
     export type StartEventMutationVariables = {eventId: number}
 
     /**
  * @summary Start the event
  */
-export const useStartEvent = <TError = ErrorType<HTTPValidationError>,
+export const useStartEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startEvent>>, TError,StartEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof startEvent>>,
@@ -6303,7 +6415,7 @@ export const finishEvent = async (eventId: number, options?: RequestInit): Promi
 
 export const getFinishEventMutationKey = () => ['finishEvent'] as const;
 
-export const getFinishEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getFinishEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishEvent>>, TError,FinishEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof finishEvent>>, TError,FinishEventMutationVariables, TContext> => {
 
@@ -6332,13 +6444,13 @@ const {mutation: mutationOptions} = options ?
 
     export type FinishEventMutationResult = NonNullable<Awaited<ReturnType<typeof finishEvent>>>
 
-    export type FinishEventMutationError = ErrorType<HTTPValidationError>
+    export type FinishEventMutationError = ErrorType<ProblemDetails>
     export type FinishEventMutationVariables = {eventId: number}
 
     /**
  * @summary Declare that racing is over
  */
-export const useFinishEvent = <TError = ErrorType<HTTPValidationError>,
+export const useFinishEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof finishEvent>>, TError,FinishEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof finishEvent>>,
@@ -6390,7 +6502,7 @@ export const cancelEvent = async (eventId: number, options?: RequestInit): Promi
 
 export const getCancelEventMutationKey = () => ['cancelEvent'] as const;
 
-export const getCancelEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCancelEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelEvent>>, TError,CancelEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof cancelEvent>>, TError,CancelEventMutationVariables, TContext> => {
 
@@ -6419,13 +6531,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CancelEventMutationResult = NonNullable<Awaited<ReturnType<typeof cancelEvent>>>
 
-    export type CancelEventMutationError = ErrorType<HTTPValidationError>
+    export type CancelEventMutationError = ErrorType<ProblemDetails>
     export type CancelEventMutationVariables = {eventId: number}
 
     /**
  * @summary Call the event off
  */
-export const useCancelEvent = <TError = ErrorType<HTTPValidationError>,
+export const useCancelEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelEvent>>, TError,CancelEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof cancelEvent>>,
@@ -6470,7 +6582,7 @@ export const reopenEvent = async (eventId: number, options?: RequestInit): Promi
 
 export const getReopenEventMutationKey = () => ['reopenEvent'] as const;
 
-export const getReopenEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getReopenEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenEvent>>, TError,ReopenEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof reopenEvent>>, TError,ReopenEventMutationVariables, TContext> => {
 
@@ -6499,13 +6611,13 @@ const {mutation: mutationOptions} = options ?
 
     export type ReopenEventMutationResult = NonNullable<Awaited<ReturnType<typeof reopenEvent>>>
 
-    export type ReopenEventMutationError = ErrorType<HTTPValidationError>
+    export type ReopenEventMutationError = ErrorType<ProblemDetails>
     export type ReopenEventMutationVariables = {eventId: number}
 
     /**
  * @summary Undo a finish or a cancellation
  */
-export const useReopenEvent = <TError = ErrorType<HTTPValidationError>,
+export const useReopenEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reopenEvent>>, TError,ReopenEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof reopenEvent>>,
@@ -6550,7 +6662,7 @@ export const getListParticipantsQueryKey = (eventId: number,) => {
     }
 
 
-export const getListParticipantsQueryOptions = <TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listParticipants>>, TError, TData>>, }
+export const getListParticipantsQueryOptions = <TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listParticipants>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -6569,10 +6681,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListParticipantsQueryResult = NonNullable<Awaited<ReturnType<typeof listParticipants>>>
-export type ListParticipantsQueryError = ErrorType<HTTPValidationError>
+export type ListParticipantsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<HTTPValidationError>>(
+export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listParticipants>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listParticipants>>,
@@ -6582,7 +6694,7 @@ export function useListParticipants<TData = Awaited<ReturnType<typeof listPartic
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<HTTPValidationError>>(
+export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listParticipants>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listParticipants>>,
@@ -6592,7 +6704,7 @@ export function useListParticipants<TData = Awaited<ReturnType<typeof listPartic
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<HTTPValidationError>>(
+export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listParticipants>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -6600,7 +6712,7 @@ export function useListParticipants<TData = Awaited<ReturnType<typeof listPartic
  * @summary Event participants
  */
 
-export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<HTTPValidationError>>(
+export function useListParticipants<TData = Awaited<ReturnType<typeof listParticipants>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listParticipants>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -6669,7 +6781,7 @@ return http<ParticipantOut[]>(getSetParticipantsUrl(eventId),
 
 export const getSetParticipantsMutationKey = () => ['setParticipants'] as const;
 
-export const getSetParticipantsMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSetParticipantsMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setParticipants>>, TError,SetParticipantsMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setParticipants>>, TError,SetParticipantsMutationVariables, TContext> => {
 
@@ -6698,13 +6810,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SetParticipantsMutationResult = NonNullable<Awaited<ReturnType<typeof setParticipants>>>
     export type SetParticipantsMutationBody = BodyType<ParticipantSetRequest>
-    export type SetParticipantsMutationError = ErrorType<HTTPValidationError>
+    export type SetParticipantsMutationError = ErrorType<ProblemDetails>
     export type SetParticipantsMutationVariables = {eventId: number;data: BodyType<ParticipantSetRequest>}
 
     /**
  * @summary Set event participants
  */
-export const useSetParticipants = <TError = ErrorType<HTTPValidationError>,
+export const useSetParticipants = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setParticipants>>, TError,SetParticipantsMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setParticipants>>,
@@ -6714,6 +6826,112 @@ export const useSetParticipants = <TError = ErrorType<HTTPValidationError>,
       > => {
       return useMutation(getSetParticipantsMutationOptions(options), queryClient);
     }
+
+export const getListCandidateClubsUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/candidate-clubs`
+}
+
+/**
+ * The choice the clubs step offers — Story VA-6.
+ *
+ * An act of a series takes its series' accepted registrations, a stand-alone event any
+ * club: the same rule ``PUT …/clubs`` enforces, answered from the same place
+ * (``app/services/participation.py``).
+ * @summary Clubs that may enter this event
+ */
+export const listCandidateClubs = async (eventId: number, options?: RequestInit): Promise<ClubOut[]> => {
+
+  return http<ClubOut[]>(getListCandidateClubsUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCandidateClubsQueryKey = (eventId: number,) => {
+    return [
+    `/api/admin/events/${eventId}/candidate-clubs`
+    ] as const;
+    }
+
+
+export const getListCandidateClubsQueryOptions = <TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCandidateClubsQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCandidateClubs>>> = ({ signal }) => listCandidateClubs(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCandidateClubsQueryResult = NonNullable<Awaited<ReturnType<typeof listCandidateClubs>>>
+export type ListCandidateClubsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCandidateClubs>>,
+          TError,
+          Awaited<ReturnType<typeof listCandidateClubs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCandidateClubs>>,
+          TError,
+          Awaited<ReturnType<typeof listCandidateClubs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Clubs that may enter this event
+ */
+
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCandidateClubsQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListAllClubsUrl = (params?: ListAllClubsParams,) => {
   const normalizedParams = new URLSearchParams();
@@ -6760,7 +6978,7 @@ export const getListAllClubsQueryKey = (params?: ListAllClubsParams,) => {
     }
 
 
-export const getListAllClubsQueryOptions = <TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
+export const getListAllClubsQueryOptions = <TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<ProblemDetails>>(params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -6779,10 +6997,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListAllClubsQueryResult = NonNullable<Awaited<ReturnType<typeof listAllClubs>>>
-export type ListAllClubsQueryError = ErrorType<HTTPValidationError>
+export type ListAllClubsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListAllClubsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllClubs>>,
@@ -6792,7 +7010,7 @@ export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllClubs>>,
@@ -6802,7 +7020,7 @@ export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -6810,7 +7028,7 @@ export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>
  * @summary All clubs with assignments
  */
 
-export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllClubs<TData = Awaited<ReturnType<typeof listAllClubs>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllClubsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllClubs>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -6871,7 +7089,7 @@ return http<ClubAdminOut>(getCreateClubUrl(),
 
 export const getCreateClubMutationKey = () => ['createClub'] as const;
 
-export const getCreateClubMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCreateClubMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClub>>, TError,CreateClubMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createClub>>, TError,CreateClubMutationVariables, TContext> => {
 
@@ -6900,13 +7118,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateClubMutationResult = NonNullable<Awaited<ReturnType<typeof createClub>>>
     export type CreateClubMutationBody = BodyType<ClubCreate>
-    export type CreateClubMutationError = ErrorType<HTTPValidationError>
+    export type CreateClubMutationError = ErrorType<ProblemDetails>
     export type CreateClubMutationVariables = {data: BodyType<ClubCreate>}
 
     /**
  * @summary Create Club
  */
-export const useCreateClub = <TError = ErrorType<HTTPValidationError>,
+export const useCreateClub = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClub>>, TError,CreateClubMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createClub>>,
@@ -6965,7 +7183,7 @@ return http<ClubAdminOut>(getSetSeriesUrl(clubId),
 
 export const getSetSeriesMutationKey = () => ['setSeries'] as const;
 
-export const getSetSeriesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSetSeriesMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSeries>>, TError,SetSeriesMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setSeries>>, TError,SetSeriesMutationVariables, TContext> => {
 
@@ -6994,13 +7212,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SetSeriesMutationResult = NonNullable<Awaited<ReturnType<typeof setSeries>>>
     export type SetSeriesMutationBody = BodyType<SeriesAssignment>
-    export type SetSeriesMutationError = ErrorType<HTTPValidationError>
+    export type SetSeriesMutationError = ErrorType<ProblemDetails>
     export type SetSeriesMutationVariables = {clubId: number;data: BodyType<SeriesAssignment>}
 
     /**
  * @summary Assign series
  */
-export const useSetSeries = <TError = ErrorType<HTTPValidationError>,
+export const useSetSeries = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSeries>>, TError,SetSeriesMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setSeries>>,
@@ -7054,7 +7272,7 @@ return http<ClubAdminOut>(getUpdateClubUrl(clubId),
 
 export const getUpdateClubMutationKey = () => ['updateClub'] as const;
 
-export const getUpdateClubMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUpdateClubMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClub>>, TError,UpdateClubMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateClub>>, TError,UpdateClubMutationVariables, TContext> => {
 
@@ -7083,13 +7301,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateClubMutationResult = NonNullable<Awaited<ReturnType<typeof updateClub>>>
     export type UpdateClubMutationBody = BodyType<ClubUpdate>
-    export type UpdateClubMutationError = ErrorType<HTTPValidationError>
+    export type UpdateClubMutationError = ErrorType<ProblemDetails>
     export type UpdateClubMutationVariables = {clubId: number;data: BodyType<ClubUpdate>}
 
     /**
  * @summary Update Club
  */
-export const useUpdateClub = <TError = ErrorType<HTTPValidationError>,
+export const useUpdateClub = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClub>>, TError,UpdateClubMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateClub>>,
@@ -7137,7 +7355,7 @@ formData.append(`file`, bodyUploadClubLogo.file);
 
 export const getUploadClubLogoMutationKey = () => ['uploadClubLogo'] as const;
 
-export const getUploadClubLogoMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUploadClubLogoMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadClubLogo>>, TError,UploadClubLogoMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof uploadClubLogo>>, TError,UploadClubLogoMutationVariables, TContext> => {
 
@@ -7166,13 +7384,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UploadClubLogoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadClubLogo>>>
     export type UploadClubLogoMutationBody = BodyType<BodyUploadClubLogo>
-    export type UploadClubLogoMutationError = ErrorType<HTTPValidationError>
+    export type UploadClubLogoMutationError = ErrorType<ProblemDetails>
     export type UploadClubLogoMutationVariables = {clubId: number;data: BodyType<BodyUploadClubLogo>}
 
     /**
  * @summary Upload club crest
  */
-export const useUploadClubLogo = <TError = ErrorType<HTTPValidationError>,
+export const useUploadClubLogo = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadClubLogo>>, TError,UploadClubLogoMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof uploadClubLogo>>,
@@ -7216,7 +7434,7 @@ export const deleteClubLogo = async (clubId: number, options?: RequestInit): Pro
 
 export const getDeleteClubLogoMutationKey = () => ['deleteClubLogo'] as const;
 
-export const getDeleteClubLogoMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getDeleteClubLogoMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClubLogo>>, TError,DeleteClubLogoMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteClubLogo>>, TError,DeleteClubLogoMutationVariables, TContext> => {
 
@@ -7245,13 +7463,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteClubLogoMutationResult = NonNullable<Awaited<ReturnType<typeof deleteClubLogo>>>
 
-    export type DeleteClubLogoMutationError = ErrorType<HTTPValidationError>
+    export type DeleteClubLogoMutationError = ErrorType<ProblemDetails>
     export type DeleteClubLogoMutationVariables = {clubId: number}
 
     /**
  * @summary Remove club crest
  */
-export const useDeleteClubLogo = <TError = ErrorType<HTTPValidationError>,
+export const useDeleteClubLogo = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClubLogo>>, TError,DeleteClubLogoMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteClubLogo>>,
@@ -7298,7 +7516,7 @@ export const getGetCrewQueryKey = (eventId: number,
     }
 
 
-export const getGetCrewQueryOptions = <TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<HTTPValidationError>>(eventId: number,
+export const getGetCrewQueryOptions = <TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<ProblemDetails>>(eventId: number,
     teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCrew>>, TError, TData>>, }
 ) => {
 
@@ -7318,10 +7536,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetCrewQueryResult = NonNullable<Awaited<ReturnType<typeof getCrew>>>
-export type GetCrewQueryError = ErrorType<HTTPValidationError>
+export type GetCrewQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     teamId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCrew>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -7332,7 +7550,7 @@ export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCrew>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -7343,7 +7561,7 @@ export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError =
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCrew>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -7352,7 +7570,7 @@ export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError =
  * @summary View lineup
  */
 
-export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetCrew<TData = Awaited<ReturnType<typeof getCrew>>, TError = ErrorType<ProblemDetails>>(
  eventId: number,
     teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCrew>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -7425,7 +7643,7 @@ return http<CrewOut>(getSetCrewUrl(eventId),
 
 export const getSetCrewMutationKey = () => ['setCrew'] as const;
 
-export const getSetCrewMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSetCrewMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setCrew>>, TError,SetCrewMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setCrew>>, TError,SetCrewMutationVariables, TContext> => {
 
@@ -7454,13 +7672,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SetCrewMutationResult = NonNullable<Awaited<ReturnType<typeof setCrew>>>
     export type SetCrewMutationBody = BodyType<SetCrewRequest>
-    export type SetCrewMutationError = ErrorType<HTTPValidationError>
+    export type SetCrewMutationError = ErrorType<ProblemDetails>
     export type SetCrewMutationVariables = {eventId: number;data: BodyType<SetCrewRequest>}
 
     /**
  * @summary Set lineup
  */
-export const useSetCrew = <TError = ErrorType<HTTPValidationError>,
+export const useSetCrew = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setCrew>>, TError,SetCrewMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setCrew>>,
@@ -7518,7 +7736,7 @@ export const getListAllSeriesQueryKey = (params?: ListAllSeriesParams,) => {
     }
 
 
-export const getListAllSeriesQueryOptions = <TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
+export const getListAllSeriesQueryOptions = <TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<ProblemDetails>>(params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -7537,10 +7755,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListAllSeriesQueryResult = NonNullable<Awaited<ReturnType<typeof listAllSeries>>>
-export type ListAllSeriesQueryError = ErrorType<HTTPValidationError>
+export type ListAllSeriesQueryError = ErrorType<ProblemDetails>
 
 
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListAllSeriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllSeries>>,
@@ -7550,7 +7768,7 @@ export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listAllSeries>>,
@@ -7560,7 +7778,7 @@ export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -7568,7 +7786,7 @@ export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries
  * @summary All series
  */
 
-export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<HTTPValidationError>>(
+export function useListAllSeries<TData = Awaited<ReturnType<typeof listAllSeries>>, TError = ErrorType<ProblemDetails>>(
  params?: ListAllSeriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllSeries>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -7629,7 +7847,7 @@ return http<SeriesAdminOut>(getCreateSeriesUrl(),
 
 export const getCreateSeriesMutationKey = () => ['createSeries'] as const;
 
-export const getCreateSeriesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCreateSeriesMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSeries>>, TError,CreateSeriesMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createSeries>>, TError,CreateSeriesMutationVariables, TContext> => {
 
@@ -7658,13 +7876,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateSeriesMutationResult = NonNullable<Awaited<ReturnType<typeof createSeries>>>
     export type CreateSeriesMutationBody = BodyType<SeriesCreate>
-    export type CreateSeriesMutationError = ErrorType<HTTPValidationError>
+    export type CreateSeriesMutationError = ErrorType<ProblemDetails>
     export type CreateSeriesMutationVariables = {data: BodyType<SeriesCreate>}
 
     /**
  * @summary Create Series
  */
-export const useCreateSeries = <TError = ErrorType<HTTPValidationError>,
+export const useCreateSeries = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSeries>>, TError,CreateSeriesMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createSeries>>,
@@ -7718,7 +7936,7 @@ return http<SeriesAdminOut>(getUpdateSeriesUrl(seriesId),
 
 export const getUpdateSeriesMutationKey = () => ['updateSeries'] as const;
 
-export const getUpdateSeriesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUpdateSeriesMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSeries>>, TError,UpdateSeriesMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSeries>>, TError,UpdateSeriesMutationVariables, TContext> => {
 
@@ -7747,13 +7965,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateSeriesMutationResult = NonNullable<Awaited<ReturnType<typeof updateSeries>>>
     export type UpdateSeriesMutationBody = BodyType<SeriesUpdate>
-    export type UpdateSeriesMutationError = ErrorType<HTTPValidationError>
+    export type UpdateSeriesMutationError = ErrorType<ProblemDetails>
     export type UpdateSeriesMutationVariables = {seriesId: number;data: BodyType<SeriesUpdate>}
 
     /**
  * @summary Update Series
  */
-export const useUpdateSeries = <TError = ErrorType<HTTPValidationError>,
+export const useUpdateSeries = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSeries>>, TError,UpdateSeriesMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSeries>>,
@@ -7798,7 +8016,7 @@ export const publishSeries = async (seriesId: number, options?: RequestInit): Pr
 
 export const getPublishSeriesMutationKey = () => ['publishSeries'] as const;
 
-export const getPublishSeriesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPublishSeriesMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishSeries>>, TError,PublishSeriesMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof publishSeries>>, TError,PublishSeriesMutationVariables, TContext> => {
 
@@ -7827,13 +8045,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PublishSeriesMutationResult = NonNullable<Awaited<ReturnType<typeof publishSeries>>>
 
-    export type PublishSeriesMutationError = ErrorType<HTTPValidationError>
+    export type PublishSeriesMutationError = ErrorType<ProblemDetails>
     export type PublishSeriesMutationVariables = {seriesId: number}
 
     /**
  * @summary Publish series
  */
-export const usePublishSeries = <TError = ErrorType<HTTPValidationError>,
+export const usePublishSeries = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishSeries>>, TError,PublishSeriesMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof publishSeries>>,
@@ -7873,7 +8091,7 @@ export const unpublishSeries = async (seriesId: number, options?: RequestInit): 
 
 export const getUnpublishSeriesMutationKey = () => ['unpublishSeries'] as const;
 
-export const getUnpublishSeriesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUnpublishSeriesMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpublishSeries>>, TError,UnpublishSeriesMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof unpublishSeries>>, TError,UnpublishSeriesMutationVariables, TContext> => {
 
@@ -7902,13 +8120,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UnpublishSeriesMutationResult = NonNullable<Awaited<ReturnType<typeof unpublishSeries>>>
 
-    export type UnpublishSeriesMutationError = ErrorType<HTTPValidationError>
+    export type UnpublishSeriesMutationError = ErrorType<ProblemDetails>
     export type UnpublishSeriesMutationVariables = {seriesId: number}
 
     /**
  * @summary Unpublish series
  */
-export const useUnpublishSeries = <TError = ErrorType<HTTPValidationError>,
+export const useUnpublishSeries = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unpublishSeries>>, TError,UnpublishSeriesMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof unpublishSeries>>,
@@ -7965,7 +8183,7 @@ return http<SeriesAdminOut>(getSetClubsUrl(seriesId),
 
 export const getSetClubsMutationKey = () => ['setClubs'] as const;
 
-export const getSetClubsMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSetClubsMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setClubs>>, TError,SetClubsMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setClubs>>, TError,SetClubsMutationVariables, TContext> => {
 
@@ -7994,13 +8212,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SetClubsMutationResult = NonNullable<Awaited<ReturnType<typeof setClubs>>>
     export type SetClubsMutationBody = BodyType<SetClubs>
-    export type SetClubsMutationError = ErrorType<HTTPValidationError>
+    export type SetClubsMutationError = ErrorType<ProblemDetails>
     export type SetClubsMutationVariables = {seriesId: number;data: BodyType<SetClubs>}
 
     /**
  * @summary Set participants
  */
-export const useSetClubs = <TError = ErrorType<HTTPValidationError>,
+export const useSetClubs = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setClubs>>, TError,SetClubsMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setClubs>>,
@@ -8010,6 +8228,109 @@ export const useSetClubs = <TError = ErrorType<HTTPValidationError>,
       > => {
       return useMutation(getSetClubsMutationOptions(options), queryClient);
     }
+
+export const getListOwnApplicationsUrl = () => {
+
+
+
+
+  return `/api/applications`
+}
+
+/**
+ * Lists the participations of every club the acting user organizes, and their status —
+ * both requested and accepted.
+ * @summary View own applications
+ */
+export const listOwnApplications = async ( options?: RequestInit): Promise<ApplicationOut[]> => {
+
+  return http<ApplicationOut[]>(getListOwnApplicationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListOwnApplicationsQueryKey = () => {
+    return [
+    `/api/applications`
+    ] as const;
+    }
+
+
+export const getListOwnApplicationsQueryOptions = <TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListOwnApplicationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOwnApplications>>> = ({ signal }) => listOwnApplications({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListOwnApplicationsQueryResult = NonNullable<Awaited<ReturnType<typeof listOwnApplications>>>
+export type ListOwnApplicationsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOwnApplications>>,
+          TError,
+          Awaited<ReturnType<typeof listOwnApplications>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listOwnApplications>>,
+          TError,
+          Awaited<ReturnType<typeof listOwnApplications>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary View own applications
+ */
+
+export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListOwnApplicationsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getSubmitApplicationUrl = () => {
 
@@ -8057,7 +8378,7 @@ return http<ApplicationOut>(getSubmitApplicationUrl(),
 
 export const getSubmitApplicationMutationKey = () => ['submitApplication'] as const;
 
-export const getSubmitApplicationMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSubmitApplicationMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitApplication>>, TError,SubmitApplicationMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof submitApplication>>, TError,SubmitApplicationMutationVariables, TContext> => {
 
@@ -8086,13 +8407,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SubmitApplicationMutationResult = NonNullable<Awaited<ReturnType<typeof submitApplication>>>
     export type SubmitApplicationMutationBody = BodyType<ApplicationCreate>
-    export type SubmitApplicationMutationError = ErrorType<HTTPValidationError>
+    export type SubmitApplicationMutationError = ErrorType<ProblemDetails>
     export type SubmitApplicationMutationVariables = {data: BodyType<ApplicationCreate>}
 
     /**
  * @summary Request participation
  */
-export const useSubmitApplication = <TError = ErrorType<HTTPValidationError>,
+export const useSubmitApplication = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitApplication>>, TError,SubmitApplicationMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof submitApplication>>,
@@ -8102,109 +8423,6 @@ export const useSubmitApplication = <TError = ErrorType<HTTPValidationError>,
       > => {
       return useMutation(getSubmitApplicationMutationOptions(options), queryClient);
     }
-
-export const getListOwnApplicationsUrl = () => {
-
-
-
-
-  return `/api/applications`
-}
-
-/**
- * Lists the participations of every club the acting user organizes, and their status —
- * both requested and accepted.
- * @summary View own applications
- */
-export const listOwnApplications = async ( options?: RequestInit): Promise<ApplicationOut[]> => {
-
-  return http<ApplicationOut[]>(getListOwnApplicationsUrl(),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getListOwnApplicationsQueryKey = () => {
-    return [
-    `/api/applications`
-    ] as const;
-    }
-
-
-export const getListOwnApplicationsQueryOptions = <TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<HTTPValidationError>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getListOwnApplicationsQueryKey();
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listOwnApplications>>> = ({ signal }) => listOwnApplications({ signal });
-
-
-
-
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListOwnApplicationsQueryResult = NonNullable<Awaited<ReturnType<typeof listOwnApplications>>>
-export type ListOwnApplicationsQueryError = ErrorType<HTTPValidationError>
-
-
-export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<HTTPValidationError>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOwnApplications>>,
-          TError,
-          Awaited<ReturnType<typeof listOwnApplications>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<HTTPValidationError>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listOwnApplications>>,
-          TError,
-          Awaited<ReturnType<typeof listOwnApplications>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<HTTPValidationError>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary View own applications
- */
-
-export function useListOwnApplications<TData = Awaited<ReturnType<typeof listOwnApplications>>, TError = ErrorType<HTTPValidationError>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOwnApplications>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getListOwnApplicationsQueryOptions(options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
 
 export const getWithdrawApplicationUrl = (teamId: number,) => {
 
@@ -8235,7 +8453,7 @@ export const withdrawApplication = async (teamId: number, options?: RequestInit)
 
 export const getWithdrawApplicationMutationKey = () => ['withdrawApplication'] as const;
 
-export const getWithdrawApplicationMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getWithdrawApplicationMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawApplication>>, TError,WithdrawApplicationMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof withdrawApplication>>, TError,WithdrawApplicationMutationVariables, TContext> => {
 
@@ -8264,13 +8482,13 @@ const {mutation: mutationOptions} = options ?
 
     export type WithdrawApplicationMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawApplication>>>
 
-    export type WithdrawApplicationMutationError = ErrorType<HTTPValidationError>
+    export type WithdrawApplicationMutationError = ErrorType<ProblemDetails>
     export type WithdrawApplicationMutationVariables = {teamId: number}
 
     /**
  * @summary Withdraw application
  */
-export const useWithdrawApplication = <TError = ErrorType<HTTPValidationError>,
+export const useWithdrawApplication = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawApplication>>, TError,WithdrawApplicationMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof withdrawApplication>>,
@@ -8323,7 +8541,7 @@ export const getListPendingApplicationsQueryKey = (params?: ListPendingApplicati
     }
 
 
-export const getListPendingApplicationsQueryOptions = <TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<HTTPValidationError>>(params?: ListPendingApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingApplications>>, TError, TData>>, }
+export const getListPendingApplicationsQueryOptions = <TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<ProblemDetails>>(params?: ListPendingApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingApplications>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -8342,10 +8560,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListPendingApplicationsQueryResult = NonNullable<Awaited<ReturnType<typeof listPendingApplications>>>
-export type ListPendingApplicationsQueryError = ErrorType<HTTPValidationError>
+export type ListPendingApplicationsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListPendingApplicationsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingApplications>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPendingApplications>>,
@@ -8355,7 +8573,7 @@ export function useListPendingApplications<TData = Awaited<ReturnType<typeof lis
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<ProblemDetails>>(
  params?: ListPendingApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingApplications>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPendingApplications>>,
@@ -8365,7 +8583,7 @@ export function useListPendingApplications<TData = Awaited<ReturnType<typeof lis
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<ProblemDetails>>(
  params?: ListPendingApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingApplications>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -8373,7 +8591,7 @@ export function useListPendingApplications<TData = Awaited<ReturnType<typeof lis
  * @summary Pending applications
  */
 
-export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPendingApplications<TData = Awaited<ReturnType<typeof listPendingApplications>>, TError = ErrorType<ProblemDetails>>(
  params?: ListPendingApplicationsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingApplications>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -8437,7 +8655,7 @@ return http<ApplicationOut>(getAcceptApplicationUrl(teamId),
 
 export const getAcceptApplicationMutationKey = () => ['acceptApplication'] as const;
 
-export const getAcceptApplicationMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getAcceptApplicationMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptApplication>>, TError,AcceptApplicationMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof acceptApplication>>, TError,AcceptApplicationMutationVariables, TContext> => {
 
@@ -8466,13 +8684,13 @@ const {mutation: mutationOptions} = options ?
 
     export type AcceptApplicationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptApplication>>>
     export type AcceptApplicationMutationBody = BodyType<ApplicationDecision | null> | undefined
-    export type AcceptApplicationMutationError = ErrorType<HTTPValidationError>
+    export type AcceptApplicationMutationError = ErrorType<ProblemDetails>
     export type AcceptApplicationMutationVariables = {teamId: number;data?: BodyType<ApplicationDecision | null>}
 
     /**
  * @summary Accept application
  */
-export const useAcceptApplication = <TError = ErrorType<HTTPValidationError>,
+export const useAcceptApplication = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptApplication>>, TError,AcceptApplicationMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof acceptApplication>>,
@@ -8526,7 +8744,7 @@ return http<ApplicationOut>(getRejectApplicationUrl(teamId),
 
 export const getRejectApplicationMutationKey = () => ['rejectApplication'] as const;
 
-export const getRejectApplicationMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getRejectApplicationMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectApplication>>, TError,RejectApplicationMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof rejectApplication>>, TError,RejectApplicationMutationVariables, TContext> => {
 
@@ -8555,13 +8773,13 @@ const {mutation: mutationOptions} = options ?
 
     export type RejectApplicationMutationResult = NonNullable<Awaited<ReturnType<typeof rejectApplication>>>
     export type RejectApplicationMutationBody = BodyType<ApplicationDecision | null> | undefined
-    export type RejectApplicationMutationError = ErrorType<HTTPValidationError>
+    export type RejectApplicationMutationError = ErrorType<ProblemDetails>
     export type RejectApplicationMutationVariables = {teamId: number;data?: BodyType<ApplicationDecision | null>}
 
     /**
  * @summary Reject application
  */
-export const useRejectApplication = <TError = ErrorType<HTTPValidationError>,
+export const useRejectApplication = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectApplication>>, TError,RejectApplicationMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof rejectApplication>>,
@@ -8609,7 +8827,7 @@ export const getListClubMembersQueryKey = (clubId: number,) => {
     }
 
 
-export const getListClubMembersQueryOptions = <TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubMembers>>, TError, TData>>, }
+export const getListClubMembersQueryOptions = <TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<ProblemDetails>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubMembers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -8628,10 +8846,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListClubMembersQueryResult = NonNullable<Awaited<ReturnType<typeof listClubMembers>>>
-export type ListClubMembersQueryError = ErrorType<HTTPValidationError>
+export type ListClubMembersQueryError = ErrorType<ProblemDetails>
 
 
-export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubMembers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listClubMembers>>,
@@ -8641,7 +8859,7 @@ export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMem
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubMembers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listClubMembers>>,
@@ -8651,7 +8869,7 @@ export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMem
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubMembers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -8659,7 +8877,7 @@ export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMem
  * @summary Who belongs to this club
  */
 
-export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMembers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubMembers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -8722,7 +8940,7 @@ export const getListSailorsQueryKey = (params?: ListSailorsParams,) => {
     }
 
 
-export const getListSailorsQueryOptions = <TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<HTTPValidationError>>(params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>>, }
+export const getListSailorsQueryOptions = <TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -8741,10 +8959,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListSailorsQueryResult = NonNullable<Awaited<ReturnType<typeof listSailors>>>
-export type ListSailorsQueryError = ErrorType<HTTPValidationError>
+export type ListSailorsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  ListSailorsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listSailors>>,
@@ -8754,7 +8972,7 @@ export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
  params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listSailors>>,
@@ -8764,7 +8982,7 @@ export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
  params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -8772,7 +8990,7 @@ export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, 
  * @summary Search sailors
  */
 
-export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<HTTPValidationError>>(
+export function useListSailors<TData = Awaited<ReturnType<typeof listSailors>>, TError = ErrorType<ProblemDetails>>(
  params?: ListSailorsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listSailors>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -8835,7 +9053,7 @@ return http<SailorAdminOut>(getCreateSailorUrl(),
 
 export const getCreateSailorMutationKey = () => ['createSailor'] as const;
 
-export const getCreateSailorMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCreateSailorMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSailor>>, TError,CreateSailorMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createSailor>>, TError,CreateSailorMutationVariables, TContext> => {
 
@@ -8864,13 +9082,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateSailorMutationResult = NonNullable<Awaited<ReturnType<typeof createSailor>>>
     export type CreateSailorMutationBody = BodyType<SailorCreate>
-    export type CreateSailorMutationError = ErrorType<HTTPValidationError>
+    export type CreateSailorMutationError = ErrorType<ProblemDetails>
     export type CreateSailorMutationVariables = {data: BodyType<SailorCreate>}
 
     /**
  * @summary Create sailor
  */
-export const useCreateSailor = <TError = ErrorType<HTTPValidationError>,
+export const useCreateSailor = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSailor>>, TError,CreateSailorMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createSailor>>,
@@ -8924,7 +9142,7 @@ return http<SailorAdminOut>(getUpdateSailorUrl(sailorId),
 
 export const getUpdateSailorMutationKey = () => ['updateSailor'] as const;
 
-export const getUpdateSailorMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUpdateSailorMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSailor>>, TError,UpdateSailorMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSailor>>, TError,UpdateSailorMutationVariables, TContext> => {
 
@@ -8953,13 +9171,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateSailorMutationResult = NonNullable<Awaited<ReturnType<typeof updateSailor>>>
     export type UpdateSailorMutationBody = BodyType<SailorUpdate>
-    export type UpdateSailorMutationError = ErrorType<HTTPValidationError>
+    export type UpdateSailorMutationError = ErrorType<ProblemDetails>
     export type UpdateSailorMutationVariables = {sailorId: number;data: BodyType<SailorUpdate>}
 
     /**
  * @summary Update sailor
  */
-export const useUpdateSailor = <TError = ErrorType<HTTPValidationError>,
+export const useUpdateSailor = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSailor>>, TError,UpdateSailorMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateSailor>>,
@@ -9007,7 +9225,7 @@ export const getGetSquadQueryKey = (teamId: number,) => {
     }
 
 
-export const getGetSquadQueryOptions = <TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<HTTPValidationError>>(teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSquad>>, TError, TData>>, }
+export const getGetSquadQueryOptions = <TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<ProblemDetails>>(teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSquad>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -9026,10 +9244,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetSquadQueryResult = NonNullable<Awaited<ReturnType<typeof getSquad>>>
-export type GetSquadQueryError = ErrorType<HTTPValidationError>
+export type GetSquadQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<ProblemDetails>>(
  teamId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSquad>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSquad>>,
@@ -9039,7 +9257,7 @@ export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<ProblemDetails>>(
  teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSquad>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getSquad>>,
@@ -9049,7 +9267,7 @@ export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<ProblemDetails>>(
  teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSquad>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -9057,7 +9275,7 @@ export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError
  * @summary View squad
  */
 
-export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetSquad<TData = Awaited<ReturnType<typeof getSquad>>, TError = ErrorType<ProblemDetails>>(
  teamId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSquad>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -9131,7 +9349,7 @@ return http<SquadOut>(getSetSquadUrl(teamId),
 
 export const getSetSquadMutationKey = () => ['setSquad'] as const;
 
-export const getSetSquadMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSetSquadMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSquad>>, TError,SetSquadMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof setSquad>>, TError,SetSquadMutationVariables, TContext> => {
 
@@ -9160,13 +9378,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SetSquadMutationResult = NonNullable<Awaited<ReturnType<typeof setSquad>>>
     export type SetSquadMutationBody = BodyType<SquadSetRequest>
-    export type SetSquadMutationError = ErrorType<HTTPValidationError>
+    export type SetSquadMutationError = ErrorType<ProblemDetails>
     export type SetSquadMutationVariables = {teamId: number;data: BodyType<SquadSetRequest>}
 
     /**
  * @summary Register squad
  */
-export const useSetSquad = <TError = ErrorType<HTTPValidationError>,
+export const useSetSquad = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setSquad>>, TError,SetSquadMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof setSquad>>,
@@ -9211,7 +9429,7 @@ export const getGetCurrentWaiverQueryKey = () => {
     }
 
 
-export const getGetCurrentWaiverQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentWaiver>>, TError, TData>>, }
+export const getGetCurrentWaiverQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentWaiver>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -9230,10 +9448,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetCurrentWaiverQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentWaiver>>>
-export type GetCurrentWaiverQueryError = ErrorType<unknown>
+export type GetCurrentWaiverQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<unknown>>(
+export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentWaiver>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCurrentWaiver>>,
@@ -9243,7 +9461,7 @@ export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrent
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<unknown>>(
+export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentWaiver>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCurrentWaiver>>,
@@ -9253,7 +9471,7 @@ export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrent
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<unknown>>(
+export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentWaiver>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -9261,7 +9479,7 @@ export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrent
  * @summary Current waiver text
  */
 
-export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<unknown>>(
+export function useGetCurrentWaiver<TData = Awaited<ReturnType<typeof getCurrentWaiver>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentWaiver>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -9316,7 +9534,7 @@ export const getMyWaiversQueryKey = () => {
     }
 
 
-export const getMyWaiversQueryOptions = <TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>>, }
+export const getMyWaiversQueryOptions = <TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -9335,10 +9553,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type MyWaiversQueryResult = NonNullable<Awaited<ReturnType<typeof myWaivers>>>
-export type MyWaiversQueryError = ErrorType<unknown>
+export type MyWaiversQueryError = ErrorType<ProblemDetails>
 
 
-export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof myWaivers>>,
@@ -9348,7 +9566,7 @@ export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof myWaivers>>,
@@ -9358,7 +9576,7 @@ export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TErr
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -9366,7 +9584,7 @@ export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TErr
  * @summary What I have to sign, and where I stand
  */
 
-export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<unknown>>(
+export function useMyWaivers<TData = Awaited<ReturnType<typeof myWaivers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -9419,7 +9637,7 @@ export const getWardWaiversQueryKey = () => {
     }
 
 
-export const getWardWaiversQueryOptions = <TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>>, }
+export const getWardWaiversQueryOptions = <TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -9438,10 +9656,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type WardWaiversQueryResult = NonNullable<Awaited<ReturnType<typeof wardWaivers>>>
-export type WardWaiversQueryError = ErrorType<unknown>
+export type WardWaiversQueryError = ErrorType<ProblemDetails>
 
 
-export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof wardWaivers>>,
@@ -9451,7 +9669,7 @@ export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof wardWaivers>>,
@@ -9461,7 +9679,7 @@ export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -9469,7 +9687,7 @@ export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, 
  * @summary My children's waivers — the sailors I am guardian of
  */
 
-export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<unknown>>(
+export function useWardWaivers<TData = Awaited<ReturnType<typeof wardWaivers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof wardWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -9531,7 +9749,7 @@ export const getWaiverFormQueryKey = (params?: WaiverFormParams,) => {
     }
 
 
-export const getWaiverFormQueryOptions = <TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>>, }
+export const getWaiverFormQueryOptions = <TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<ProblemDetails>>(params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -9550,10 +9768,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type WaiverFormQueryResult = NonNullable<Awaited<ReturnType<typeof waiverForm>>>
-export type WaiverFormQueryError = ErrorType<HTTPValidationError>
+export type WaiverFormQueryError = ErrorType<ProblemDetails>
 
 
-export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<ProblemDetails>>(
  params: WaiverFormParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof waiverForm>>,
@@ -9563,7 +9781,7 @@ export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<ProblemDetails>>(
  params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof waiverForm>>,
@@ -9573,7 +9791,7 @@ export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<ProblemDetails>>(
  params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -9581,7 +9799,7 @@ export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TE
  * @summary The waiver as a printable form (PDF)
  */
 
-export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<HTTPValidationError>>(
+export function useWaiverForm<TData = Awaited<ReturnType<typeof waiverForm>>, TError = ErrorType<ProblemDetails>>(
  params: WaiverFormParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof waiverForm>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -9632,7 +9850,7 @@ export const getListWaiverTextsQueryKey = () => {
     }
 
 
-export const getListWaiverTextsQueryOptions = <TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaiverTexts>>, TError, TData>>, }
+export const getListWaiverTextsQueryOptions = <TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaiverTexts>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -9651,10 +9869,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListWaiverTextsQueryResult = NonNullable<Awaited<ReturnType<typeof listWaiverTexts>>>
-export type ListWaiverTextsQueryError = ErrorType<unknown>
+export type ListWaiverTextsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<unknown>>(
+export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaiverTexts>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listWaiverTexts>>,
@@ -9664,7 +9882,7 @@ export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverT
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<unknown>>(
+export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaiverTexts>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listWaiverTexts>>,
@@ -9674,7 +9892,7 @@ export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverT
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<unknown>>(
+export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaiverTexts>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -9682,7 +9900,7 @@ export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverT
  * @summary All waiver versions
  */
 
-export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<unknown>>(
+export function useListWaiverTexts<TData = Awaited<ReturnType<typeof listWaiverTexts>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listWaiverTexts>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -9746,7 +9964,7 @@ return http<WaiverTextOut>(getPublishWaiverTextUrl(),
 
 export const getPublishWaiverTextMutationKey = () => ['publishWaiverText'] as const;
 
-export const getPublishWaiverTextMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPublishWaiverTextMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishWaiverText>>, TError,PublishWaiverTextMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof publishWaiverText>>, TError,PublishWaiverTextMutationVariables, TContext> => {
 
@@ -9775,13 +9993,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PublishWaiverTextMutationResult = NonNullable<Awaited<ReturnType<typeof publishWaiverText>>>
     export type PublishWaiverTextMutationBody = BodyType<WaiverTextCreate>
-    export type PublishWaiverTextMutationError = ErrorType<HTTPValidationError>
+    export type PublishWaiverTextMutationError = ErrorType<ProblemDetails>
     export type PublishWaiverTextMutationVariables = {data: BodyType<WaiverTextCreate>}
 
     /**
  * @summary Publish a new waiver version
  */
-export const usePublishWaiverText = <TError = ErrorType<HTTPValidationError>,
+export const usePublishWaiverText = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishWaiverText>>, TError,PublishWaiverTextMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof publishWaiverText>>,
@@ -9836,7 +10054,7 @@ return http<WaiverConfirmationOut>(getConfirmForSeriesUrl(seriesId),
 
 export const getConfirmForSeriesMutationKey = () => ['confirmForSeries'] as const;
 
-export const getConfirmForSeriesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getConfirmForSeriesMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmForSeries>>, TError,ConfirmForSeriesMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof confirmForSeries>>, TError,ConfirmForSeriesMutationVariables, TContext> => {
 
@@ -9865,13 +10083,13 @@ const {mutation: mutationOptions} = options ?
 
     export type ConfirmForSeriesMutationResult = NonNullable<Awaited<ReturnType<typeof confirmForSeries>>>
     export type ConfirmForSeriesMutationBody = BodyType<ConfirmWaiver>
-    export type ConfirmForSeriesMutationError = ErrorType<HTTPValidationError>
+    export type ConfirmForSeriesMutationError = ErrorType<ProblemDetails>
     export type ConfirmForSeriesMutationVariables = {seriesId: number;data: BodyType<ConfirmWaiver>}
 
     /**
  * @summary Confirm the waiver for a series
  */
-export const useConfirmForSeries = <TError = ErrorType<HTTPValidationError>,
+export const useConfirmForSeries = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmForSeries>>, TError,ConfirmForSeriesMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof confirmForSeries>>,
@@ -9925,7 +10143,7 @@ return http<WaiverConfirmationOut>(getConfirmForEventUrl(eventId),
 
 export const getConfirmForEventMutationKey = () => ['confirmForEvent'] as const;
 
-export const getConfirmForEventMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getConfirmForEventMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmForEvent>>, TError,ConfirmForEventMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof confirmForEvent>>, TError,ConfirmForEventMutationVariables, TContext> => {
 
@@ -9954,13 +10172,13 @@ const {mutation: mutationOptions} = options ?
 
     export type ConfirmForEventMutationResult = NonNullable<Awaited<ReturnType<typeof confirmForEvent>>>
     export type ConfirmForEventMutationBody = BodyType<ConfirmWaiver>
-    export type ConfirmForEventMutationError = ErrorType<HTTPValidationError>
+    export type ConfirmForEventMutationError = ErrorType<ProblemDetails>
     export type ConfirmForEventMutationVariables = {eventId: number;data: BodyType<ConfirmWaiver>}
 
     /**
  * @summary Confirm the waiver for an event
  */
-export const useConfirmForEvent = <TError = ErrorType<HTTPValidationError>,
+export const useConfirmForEvent = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmForEvent>>, TError,ConfirmForEventMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof confirmForEvent>>,
@@ -10012,7 +10230,7 @@ if(bodyUploadSeriesWaiverScan.locale_shown !== undefined) {
 
 export const getUploadSeriesWaiverScanMutationKey = () => ['uploadSeriesWaiverScan'] as const;
 
-export const getUploadSeriesWaiverScanMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUploadSeriesWaiverScanMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>, TError,UploadSeriesWaiverScanMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>, TError,UploadSeriesWaiverScanMutationVariables, TContext> => {
 
@@ -10041,13 +10259,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UploadSeriesWaiverScanMutationResult = NonNullable<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>>
     export type UploadSeriesWaiverScanMutationBody = BodyType<BodyUploadSeriesWaiverScan>
-    export type UploadSeriesWaiverScanMutationError = ErrorType<HTTPValidationError>
+    export type UploadSeriesWaiverScanMutationError = ErrorType<ProblemDetails>
     export type UploadSeriesWaiverScanMutationVariables = {seriesId: number;data: BodyType<BodyUploadSeriesWaiverScan>}
 
     /**
  * @summary Upload the guardian's signed form for a series
  */
-export const useUploadSeriesWaiverScan = <TError = ErrorType<HTTPValidationError>,
+export const useUploadSeriesWaiverScan = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadSeriesWaiverScan>>, TError,UploadSeriesWaiverScanMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof uploadSeriesWaiverScan>>,
@@ -10096,7 +10314,7 @@ if(bodyUploadEventWaiverScan.locale_shown !== undefined) {
 
 export const getUploadEventWaiverScanMutationKey = () => ['uploadEventWaiverScan'] as const;
 
-export const getUploadEventWaiverScanMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUploadEventWaiverScanMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadEventWaiverScan>>, TError,UploadEventWaiverScanMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof uploadEventWaiverScan>>, TError,UploadEventWaiverScanMutationVariables, TContext> => {
 
@@ -10125,13 +10343,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UploadEventWaiverScanMutationResult = NonNullable<Awaited<ReturnType<typeof uploadEventWaiverScan>>>
     export type UploadEventWaiverScanMutationBody = BodyType<BodyUploadEventWaiverScan>
-    export type UploadEventWaiverScanMutationError = ErrorType<HTTPValidationError>
+    export type UploadEventWaiverScanMutationError = ErrorType<ProblemDetails>
     export type UploadEventWaiverScanMutationVariables = {eventId: number;data: BodyType<BodyUploadEventWaiverScan>}
 
     /**
  * @summary Upload the guardian's signed form for an event
  */
-export const useUploadEventWaiverScan = <TError = ErrorType<HTTPValidationError>,
+export const useUploadEventWaiverScan = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadEventWaiverScan>>, TError,UploadEventWaiverScanMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof uploadEventWaiverScan>>,
@@ -10179,7 +10397,7 @@ export const getGetWaiverScanQueryKey = (confirmationId: number,) => {
     }
 
 
-export const getGetWaiverScanQueryOptions = <TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>>, }
+export const getGetWaiverScanQueryOptions = <TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<ProblemDetails>>(confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -10198,10 +10416,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetWaiverScanQueryResult = NonNullable<Awaited<ReturnType<typeof getWaiverScan>>>
-export type GetWaiverScanQueryError = ErrorType<HTTPValidationError>
+export type GetWaiverScanQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<ProblemDetails>>(
  confirmationId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getWaiverScan>>,
@@ -10211,7 +10429,7 @@ export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<ProblemDetails>>(
  confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getWaiverScan>>,
@@ -10221,7 +10439,7 @@ export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<ProblemDetails>>(
  confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -10229,7 +10447,7 @@ export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan
  * @summary The uploaded scan of a signed form
  */
 
-export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetWaiverScan<TData = Awaited<ReturnType<typeof getWaiverScan>>, TError = ErrorType<ProblemDetails>>(
  confirmationId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getWaiverScan>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -10284,7 +10502,7 @@ export const getEventWaiversQueryKey = (eventId: number,) => {
     }
 
 
-export const getEventWaiversQueryOptions = <TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventWaivers>>, TError, TData>>, }
+export const getEventWaiversQueryOptions = <TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventWaivers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -10303,10 +10521,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type EventWaiversQueryResult = NonNullable<Awaited<ReturnType<typeof eventWaivers>>>
-export type EventWaiversQueryError = ErrorType<HTTPValidationError>
+export type EventWaiversQueryError = ErrorType<ProblemDetails>
 
 
-export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventWaivers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof eventWaivers>>,
@@ -10316,7 +10534,7 @@ export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventWaivers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof eventWaivers>>,
@@ -10326,7 +10544,7 @@ export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -10334,7 +10552,7 @@ export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>
  * @summary Waiver status for an event
  */
 
-export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useEventWaivers<TData = Awaited<ReturnType<typeof eventWaivers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -10390,7 +10608,7 @@ export const getClubWaiversQueryKey = (clubId: number,) => {
     }
 
 
-export const getClubWaiversQueryOptions = <TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>>, }
+export const getClubWaiversQueryOptions = <TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<ProblemDetails>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -10409,10 +10627,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ClubWaiversQueryResult = NonNullable<Awaited<ReturnType<typeof clubWaivers>>>
-export type ClubWaiversQueryError = ErrorType<HTTPValidationError>
+export type ClubWaiversQueryError = ErrorType<ProblemDetails>
 
 
-export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof clubWaivers>>,
@@ -10422,7 +10640,7 @@ export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, 
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof clubWaivers>>,
@@ -10432,7 +10650,7 @@ export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, 
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -10440,7 +10658,7 @@ export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, 
  * @summary Waiver status of a club's sailors
  */
 
-export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<HTTPValidationError>>(
+export function useClubWaivers<TData = Awaited<ReturnType<typeof clubWaivers>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof clubWaivers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -10493,7 +10711,7 @@ export const getListClubGuardiansQueryKey = (clubId: number,) => {
     }
 
 
-export const getListClubGuardiansQueryOptions = <TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>>, }
+export const getListClubGuardiansQueryOptions = <TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<ProblemDetails>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -10512,10 +10730,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListClubGuardiansQueryResult = NonNullable<Awaited<ReturnType<typeof listClubGuardians>>>
-export type ListClubGuardiansQueryError = ErrorType<HTTPValidationError>
+export type ListClubGuardiansQueryError = ErrorType<ProblemDetails>
 
 
-export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listClubGuardians>>,
@@ -10525,7 +10743,7 @@ export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubG
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listClubGuardians>>,
@@ -10535,7 +10753,7 @@ export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubG
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -10543,7 +10761,7 @@ export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubG
  * @summary The club's sailors and their guardians
  */
 
-export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<HTTPValidationError>>(
+export function useListClubGuardians<TData = Awaited<ReturnType<typeof listClubGuardians>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listClubGuardians>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -10605,7 +10823,7 @@ return http<GuardianOut>(getLinkGuardianUrl(sailorId),
 
 export const getLinkGuardianMutationKey = () => ['linkGuardian'] as const;
 
-export const getLinkGuardianMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getLinkGuardianMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkGuardian>>, TError,LinkGuardianMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof linkGuardian>>, TError,LinkGuardianMutationVariables, TContext> => {
 
@@ -10634,13 +10852,13 @@ const {mutation: mutationOptions} = options ?
 
     export type LinkGuardianMutationResult = NonNullable<Awaited<ReturnType<typeof linkGuardian>>>
     export type LinkGuardianMutationBody = BodyType<LinkGuardian>
-    export type LinkGuardianMutationError = ErrorType<HTTPValidationError>
+    export type LinkGuardianMutationError = ErrorType<ProblemDetails>
     export type LinkGuardianMutationVariables = {sailorId: number;data: BodyType<LinkGuardian>}
 
     /**
  * @summary Link a parent to a sailor
  */
-export const useLinkGuardian = <TError = ErrorType<HTTPValidationError>,
+export const useLinkGuardian = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof linkGuardian>>, TError,LinkGuardianMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof linkGuardian>>,
@@ -10681,7 +10899,7 @@ export const unlinkGuardian = async (sailorId: number,
 
 export const getUnlinkGuardianMutationKey = () => ['unlinkGuardian'] as const;
 
-export const getUnlinkGuardianMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUnlinkGuardianMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkGuardian>>, TError,UnlinkGuardianMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof unlinkGuardian>>, TError,UnlinkGuardianMutationVariables, TContext> => {
 
@@ -10710,13 +10928,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UnlinkGuardianMutationResult = NonNullable<Awaited<ReturnType<typeof unlinkGuardian>>>
 
-    export type UnlinkGuardianMutationError = ErrorType<HTTPValidationError>
+    export type UnlinkGuardianMutationError = ErrorType<ProblemDetails>
     export type UnlinkGuardianMutationVariables = {sailorId: number;tupleId: number}
 
     /**
  * @summary Unlink a parent from a sailor
  */
-export const useUnlinkGuardian = <TError = ErrorType<HTTPValidationError>,
+export const useUnlinkGuardian = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unlinkGuardian>>, TError,UnlinkGuardianMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof unlinkGuardian>>,
@@ -10760,7 +10978,7 @@ export const getListMyDocumentsQueryKey = () => {
     }
 
 
-export const getListMyDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyDocuments>>, TError, TData>>, }
+export const getListMyDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyDocuments>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -10779,10 +10997,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListMyDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyDocuments>>>
-export type ListMyDocumentsQueryError = ErrorType<unknown>
+export type ListMyDocumentsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<unknown>>(
+export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyDocuments>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMyDocuments>>,
@@ -10792,7 +11010,7 @@ export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocum
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<unknown>>(
+export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyDocuments>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMyDocuments>>,
@@ -10802,7 +11020,7 @@ export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocum
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<unknown>>(
+export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyDocuments>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -10810,7 +11028,7 @@ export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocum
  * @summary My documents
  */
 
-export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<unknown>>(
+export function useListMyDocuments<TData = Awaited<ReturnType<typeof listMyDocuments>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyDocuments>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -10867,7 +11085,7 @@ if(bodyUploadMyDocument.valid_until !== undefined && bodyUploadMyDocument.valid_
 
 export const getUploadMyDocumentMutationKey = () => ['uploadMyDocument'] as const;
 
-export const getUploadMyDocumentMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUploadMyDocumentMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadMyDocument>>, TError,UploadMyDocumentMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof uploadMyDocument>>, TError,UploadMyDocumentMutationVariables, TContext> => {
 
@@ -10896,13 +11114,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UploadMyDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadMyDocument>>>
     export type UploadMyDocumentMutationBody = BodyType<BodyUploadMyDocument>
-    export type UploadMyDocumentMutationError = ErrorType<HTTPValidationError>
+    export type UploadMyDocumentMutationError = ErrorType<ProblemDetails>
     export type UploadMyDocumentMutationVariables = {data: BodyType<BodyUploadMyDocument>}
 
     /**
  * @summary Upload a document
  */
-export const useUploadMyDocument = <TError = ErrorType<HTTPValidationError>,
+export const useUploadMyDocument = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadMyDocument>>, TError,UploadMyDocumentMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof uploadMyDocument>>,
@@ -10941,7 +11159,7 @@ export const deleteMyDocument = async (documentId: number, options?: RequestInit
 
 export const getDeleteMyDocumentMutationKey = () => ['deleteMyDocument'] as const;
 
-export const getDeleteMyDocumentMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getDeleteMyDocumentMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyDocument>>, TError,DeleteMyDocumentMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteMyDocument>>, TError,DeleteMyDocumentMutationVariables, TContext> => {
 
@@ -10970,13 +11188,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteMyDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyDocument>>>
 
-    export type DeleteMyDocumentMutationError = ErrorType<HTTPValidationError>
+    export type DeleteMyDocumentMutationError = ErrorType<ProblemDetails>
     export type DeleteMyDocumentMutationVariables = {documentId: number}
 
     /**
  * @summary Delete one of my documents
  */
-export const useDeleteMyDocument = <TError = ErrorType<HTTPValidationError>,
+export const useDeleteMyDocument = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyDocument>>, TError,DeleteMyDocumentMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteMyDocument>>,
@@ -11022,7 +11240,7 @@ export const getListPersonDocumentsQueryKey = (userId: number,) => {
     }
 
 
-export const getListPersonDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<HTTPValidationError>>(userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPersonDocuments>>, TError, TData>>, }
+export const getListPersonDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<ProblemDetails>>(userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPersonDocuments>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -11041,10 +11259,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListPersonDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listPersonDocuments>>>
-export type ListPersonDocumentsQueryError = ErrorType<HTTPValidationError>
+export type ListPersonDocumentsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPersonDocuments>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPersonDocuments>>,
@@ -11054,7 +11272,7 @@ export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPer
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPersonDocuments>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPersonDocuments>>,
@@ -11064,7 +11282,7 @@ export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPer
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPersonDocuments>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -11072,7 +11290,7 @@ export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPer
  * @summary A person's documents, for their organizers
  */
 
-export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<HTTPValidationError>>(
+export function useListPersonDocuments<TData = Awaited<ReturnType<typeof listPersonDocuments>>, TError = ErrorType<ProblemDetails>>(
  userId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPersonDocuments>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -11123,7 +11341,7 @@ export const getGetDocumentFileQueryKey = (documentId: number,) => {
     }
 
 
-export const getGetDocumentFileQueryOptions = <TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<HTTPValidationError>>(documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDocumentFile>>, TError, TData>>, }
+export const getGetDocumentFileQueryOptions = <TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<ProblemDetails>>(documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDocumentFile>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -11142,10 +11360,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetDocumentFileQueryResult = NonNullable<Awaited<ReturnType<typeof getDocumentFile>>>
-export type GetDocumentFileQueryError = ErrorType<HTTPValidationError>
+export type GetDocumentFileQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<ProblemDetails>>(
  documentId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDocumentFile>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getDocumentFile>>,
@@ -11155,7 +11373,7 @@ export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocument
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<ProblemDetails>>(
  documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDocumentFile>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getDocumentFile>>,
@@ -11165,7 +11383,7 @@ export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocument
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<ProblemDetails>>(
  documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDocumentFile>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -11173,7 +11391,7 @@ export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocument
  * @summary The file of a personal document
  */
 
-export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetDocumentFile<TData = Awaited<ReturnType<typeof getDocumentFile>>, TError = ErrorType<ProblemDetails>>(
  documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDocumentFile>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -11225,7 +11443,7 @@ export const getGetMyBankAccountQueryKey = () => {
     }
 
 
-export const getGetMyBankAccountQueryOptions = <TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyBankAccount>>, TError, TData>>, }
+export const getGetMyBankAccountQueryOptions = <TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyBankAccount>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -11244,10 +11462,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetMyBankAccountQueryResult = NonNullable<Awaited<ReturnType<typeof getMyBankAccount>>>
-export type GetMyBankAccountQueryError = ErrorType<unknown>
+export type GetMyBankAccountQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<unknown>>(
+export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyBankAccount>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMyBankAccount>>,
@@ -11257,7 +11475,7 @@ export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankA
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<unknown>>(
+export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyBankAccount>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMyBankAccount>>,
@@ -11267,7 +11485,7 @@ export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankA
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<unknown>>(
+export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyBankAccount>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -11275,7 +11493,7 @@ export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankA
  * @summary My bank account
  */
 
-export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<unknown>>(
+export function useGetMyBankAccount<TData = Awaited<ReturnType<typeof getMyBankAccount>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyBankAccount>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -11335,7 +11553,7 @@ return http<BankAccountOut>(getSaveMyBankAccountUrl(),
 
 export const getSaveMyBankAccountMutationKey = () => ['saveMyBankAccount'] as const;
 
-export const getSaveMyBankAccountMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSaveMyBankAccountMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMyBankAccount>>, TError,SaveMyBankAccountMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof saveMyBankAccount>>, TError,SaveMyBankAccountMutationVariables, TContext> => {
 
@@ -11364,13 +11582,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SaveMyBankAccountMutationResult = NonNullable<Awaited<ReturnType<typeof saveMyBankAccount>>>
     export type SaveMyBankAccountMutationBody = BodyType<BankAccountIn>
-    export type SaveMyBankAccountMutationError = ErrorType<HTTPValidationError>
+    export type SaveMyBankAccountMutationError = ErrorType<ProblemDetails>
     export type SaveMyBankAccountMutationVariables = {data: BodyType<BankAccountIn>}
 
     /**
  * @summary Save my bank account
  */
-export const useSaveMyBankAccount = <TError = ErrorType<HTTPValidationError>,
+export const useSaveMyBankAccount = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMyBankAccount>>, TError,SaveMyBankAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof saveMyBankAccount>>,
@@ -11409,7 +11627,7 @@ export const deleteMyBankAccount = async ( options?: RequestInit): Promise<void>
 
 export const getDeleteMyBankAccountMutationKey = () => ['deleteMyBankAccount'] as const;
 
-export const getDeleteMyBankAccountMutationOptions = <TError = ErrorType<unknown>,
+export const getDeleteMyBankAccountMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyBankAccount>>, TError,void, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteMyBankAccount>>, TError,void, TContext> => {
 
@@ -11438,13 +11656,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteMyBankAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyBankAccount>>>
 
-    export type DeleteMyBankAccountMutationError = ErrorType<unknown>
+    export type DeleteMyBankAccountMutationError = ErrorType<ProblemDetails>
 
 
     /**
  * @summary Delete my bank account
  */
-export const useDeleteMyBankAccount = <TError = ErrorType<unknown>,
+export const useDeleteMyBankAccount = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyBankAccount>>, TError,void, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteMyBankAccount>>,
@@ -11491,7 +11709,7 @@ export const getMyContextsQueryKey = () => {
     }
 
 
-export const getMyContextsQueryOptions = <TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>>, }
+export const getMyContextsQueryOptions = <TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -11510,10 +11728,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type MyContextsQueryResult = NonNullable<Awaited<ReturnType<typeof myContexts>>>
-export type MyContextsQueryError = ErrorType<unknown>
+export type MyContextsQueryError = ErrorType<ProblemDetails>
 
 
-export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof myContexts>>,
@@ -11523,7 +11741,7 @@ export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof myContexts>>,
@@ -11533,7 +11751,7 @@ export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -11541,7 +11759,7 @@ export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TE
  * @summary Everything I am part of
  */
 
-export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<unknown>>(
+export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myContexts>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -11593,7 +11811,7 @@ export const getListMyClaimTargetsQueryKey = () => {
     }
 
 
-export const getListMyClaimTargetsQueryOptions = <TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaimTargets>>, TError, TData>>, }
+export const getListMyClaimTargetsQueryOptions = <TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaimTargets>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -11612,10 +11830,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListMyClaimTargetsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyClaimTargets>>>
-export type ListMyClaimTargetsQueryError = ErrorType<unknown>
+export type ListMyClaimTargetsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<unknown>>(
+export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaimTargets>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMyClaimTargets>>,
@@ -11625,7 +11843,7 @@ export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyCl
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<unknown>>(
+export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaimTargets>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMyClaimTargets>>,
@@ -11635,7 +11853,7 @@ export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyCl
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<unknown>>(
+export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaimTargets>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -11643,7 +11861,7 @@ export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyCl
  * @summary What I may claim on
  */
 
-export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<unknown>>(
+export function useListMyClaimTargets<TData = Awaited<ReturnType<typeof listMyClaimTargets>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaimTargets>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -11694,7 +11912,7 @@ export const getListMyClaimsQueryKey = () => {
     }
 
 
-export const getListMyClaimsQueryOptions = <TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaims>>, TError, TData>>, }
+export const getListMyClaimsQueryOptions = <TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaims>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -11713,10 +11931,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListMyClaimsQueryResult = NonNullable<Awaited<ReturnType<typeof listMyClaims>>>
-export type ListMyClaimsQueryError = ErrorType<unknown>
+export type ListMyClaimsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<unknown>>(
+export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaims>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMyClaims>>,
@@ -11726,7 +11944,7 @@ export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<unknown>>(
+export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaims>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listMyClaims>>,
@@ -11736,7 +11954,7 @@ export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<unknown>>(
+export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaims>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -11744,7 +11962,7 @@ export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>
  * @summary My claims
  */
 
-export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<unknown>>(
+export function useListMyClaims<TData = Awaited<ReturnType<typeof listMyClaims>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMyClaims>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -11804,7 +12022,7 @@ return http<ClaimOut>(getCreateClaimUrl(),
 
 export const getCreateClaimMutationKey = () => ['createClaim'] as const;
 
-export const getCreateClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCreateClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClaim>>, TError,CreateClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createClaim>>, TError,CreateClaimMutationVariables, TContext> => {
 
@@ -11833,13 +12051,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CreateClaimMutationResult = NonNullable<Awaited<ReturnType<typeof createClaim>>>
     export type CreateClaimMutationBody = BodyType<ClaimCreate>
-    export type CreateClaimMutationError = ErrorType<HTTPValidationError>
+    export type CreateClaimMutationError = ErrorType<ProblemDetails>
     export type CreateClaimMutationVariables = {data: BodyType<ClaimCreate>}
 
     /**
  * @summary Start a claim
  */
-export const useCreateClaim = <TError = ErrorType<HTTPValidationError>,
+export const useCreateClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createClaim>>, TError,CreateClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createClaim>>,
@@ -11884,7 +12102,7 @@ export const getListPendingClaimsQueryKey = () => {
     }
 
 
-export const getListPendingClaimsQueryOptions = <TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingClaims>>, TError, TData>>, }
+export const getListPendingClaimsQueryOptions = <TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingClaims>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -11903,10 +12121,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListPendingClaimsQueryResult = NonNullable<Awaited<ReturnType<typeof listPendingClaims>>>
-export type ListPendingClaimsQueryError = ErrorType<unknown>
+export type ListPendingClaimsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<unknown>>(
+export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingClaims>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPendingClaims>>,
@@ -11916,7 +12134,7 @@ export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendi
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<unknown>>(
+export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingClaims>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listPendingClaims>>,
@@ -11926,7 +12144,7 @@ export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendi
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<unknown>>(
+export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingClaims>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -11934,7 +12152,7 @@ export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendi
  * @summary Claims waiting for me
  */
 
-export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<unknown>>(
+export function useListPendingClaims<TData = Awaited<ReturnType<typeof listPendingClaims>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPendingClaims>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -11985,7 +12203,7 @@ export const getGetClaimQueryKey = (claimId: number,) => {
     }
 
 
-export const getGetClaimQueryOptions = <TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<HTTPValidationError>>(claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaim>>, TError, TData>>, }
+export const getGetClaimQueryOptions = <TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<ProblemDetails>>(claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaim>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -12004,10 +12222,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetClaimQueryResult = NonNullable<Awaited<ReturnType<typeof getClaim>>>
-export type GetClaimQueryError = ErrorType<HTTPValidationError>
+export type GetClaimQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaim>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClaim>>,
@@ -12017,7 +12235,7 @@ export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaim>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClaim>>,
@@ -12027,7 +12245,7 @@ export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaim>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -12035,7 +12253,7 @@ export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError
  * @summary One claim
  */
 
-export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaim<TData = Awaited<ReturnType<typeof getClaim>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaim>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -12096,7 +12314,7 @@ return http<ClaimOut>(getUpdateClaimUrl(claimId),
 
 export const getUpdateClaimMutationKey = () => ['updateClaim'] as const;
 
-export const getUpdateClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUpdateClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClaim>>, TError,UpdateClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof updateClaim>>, TError,UpdateClaimMutationVariables, TContext> => {
 
@@ -12125,13 +12343,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UpdateClaimMutationResult = NonNullable<Awaited<ReturnType<typeof updateClaim>>>
     export type UpdateClaimMutationBody = BodyType<ClaimUpdate>
-    export type UpdateClaimMutationError = ErrorType<HTTPValidationError>
+    export type UpdateClaimMutationError = ErrorType<ProblemDetails>
     export type UpdateClaimMutationVariables = {claimId: number;data: BodyType<ClaimUpdate>}
 
     /**
  * @summary Rename a claim
  */
-export const useUpdateClaim = <TError = ErrorType<HTTPValidationError>,
+export const useUpdateClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClaim>>, TError,UpdateClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateClaim>>,
@@ -12171,7 +12389,7 @@ export const deleteClaim = async (claimId: number, options?: RequestInit): Promi
 
 export const getDeleteClaimMutationKey = () => ['deleteClaim'] as const;
 
-export const getDeleteClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getDeleteClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClaim>>, TError,DeleteClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteClaim>>, TError,DeleteClaimMutationVariables, TContext> => {
 
@@ -12200,13 +12418,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteClaimMutationResult = NonNullable<Awaited<ReturnType<typeof deleteClaim>>>
 
-    export type DeleteClaimMutationError = ErrorType<HTTPValidationError>
+    export type DeleteClaimMutationError = ErrorType<ProblemDetails>
     export type DeleteClaimMutationVariables = {claimId: number}
 
     /**
  * @summary Delete a draft claim
  */
-export const useDeleteClaim = <TError = ErrorType<HTTPValidationError>,
+export const useDeleteClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClaim>>, TError,DeleteClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteClaim>>,
@@ -12260,7 +12478,7 @@ return http<ClaimOut>(getAddClaimItemUrl(claimId),
 
 export const getAddClaimItemMutationKey = () => ['addClaimItem'] as const;
 
-export const getAddClaimItemMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getAddClaimItemMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addClaimItem>>, TError,AddClaimItemMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof addClaimItem>>, TError,AddClaimItemMutationVariables, TContext> => {
 
@@ -12289,13 +12507,13 @@ const {mutation: mutationOptions} = options ?
 
     export type AddClaimItemMutationResult = NonNullable<Awaited<ReturnType<typeof addClaimItem>>>
     export type AddClaimItemMutationBody = BodyType<ItemCreate>
-    export type AddClaimItemMutationError = ErrorType<HTTPValidationError>
+    export type AddClaimItemMutationError = ErrorType<ProblemDetails>
     export type AddClaimItemMutationVariables = {claimId: number;data: BodyType<ItemCreate>}
 
     /**
  * @summary Add an item
  */
-export const useAddClaimItem = <TError = ErrorType<HTTPValidationError>,
+export const useAddClaimItem = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addClaimItem>>, TError,AddClaimItemMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof addClaimItem>>,
@@ -12336,7 +12554,7 @@ export const deleteClaimItem = async (claimId: number,
 
 export const getDeleteClaimItemMutationKey = () => ['deleteClaimItem'] as const;
 
-export const getDeleteClaimItemMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getDeleteClaimItemMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClaimItem>>, TError,DeleteClaimItemMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteClaimItem>>, TError,DeleteClaimItemMutationVariables, TContext> => {
 
@@ -12365,13 +12583,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteClaimItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteClaimItem>>>
 
-    export type DeleteClaimItemMutationError = ErrorType<HTTPValidationError>
+    export type DeleteClaimItemMutationError = ErrorType<ProblemDetails>
     export type DeleteClaimItemMutationVariables = {claimId: number;itemId: number}
 
     /**
  * @summary Remove an item
  */
-export const useDeleteClaimItem = <TError = ErrorType<HTTPValidationError>,
+export const useDeleteClaimItem = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClaimItem>>, TError,DeleteClaimItemMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteClaimItem>>,
@@ -12417,7 +12635,7 @@ if(bodyUploadClaimDocument.item_id !== undefined && bodyUploadClaimDocument.item
 
 export const getUploadClaimDocumentMutationKey = () => ['uploadClaimDocument'] as const;
 
-export const getUploadClaimDocumentMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getUploadClaimDocumentMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadClaimDocument>>, TError,UploadClaimDocumentMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof uploadClaimDocument>>, TError,UploadClaimDocumentMutationVariables, TContext> => {
 
@@ -12446,13 +12664,13 @@ const {mutation: mutationOptions} = options ?
 
     export type UploadClaimDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadClaimDocument>>>
     export type UploadClaimDocumentMutationBody = BodyType<BodyUploadClaimDocument>
-    export type UploadClaimDocumentMutationError = ErrorType<HTTPValidationError>
+    export type UploadClaimDocumentMutationError = ErrorType<ProblemDetails>
     export type UploadClaimDocumentMutationVariables = {claimId: number;data: BodyType<BodyUploadClaimDocument>}
 
     /**
  * @summary Attach a receipt
  */
-export const useUploadClaimDocument = <TError = ErrorType<HTTPValidationError>,
+export const useUploadClaimDocument = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadClaimDocument>>, TError,UploadClaimDocumentMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof uploadClaimDocument>>,
@@ -12493,7 +12711,7 @@ export const deleteClaimDocument = async (claimId: number,
 
 export const getDeleteClaimDocumentMutationKey = () => ['deleteClaimDocument'] as const;
 
-export const getDeleteClaimDocumentMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getDeleteClaimDocumentMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClaimDocument>>, TError,DeleteClaimDocumentMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteClaimDocument>>, TError,DeleteClaimDocumentMutationVariables, TContext> => {
 
@@ -12522,13 +12740,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DeleteClaimDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteClaimDocument>>>
 
-    export type DeleteClaimDocumentMutationError = ErrorType<HTTPValidationError>
+    export type DeleteClaimDocumentMutationError = ErrorType<ProblemDetails>
     export type DeleteClaimDocumentMutationVariables = {claimId: number;documentId: number}
 
     /**
  * @summary Remove a receipt
  */
-export const useDeleteClaimDocument = <TError = ErrorType<HTTPValidationError>,
+export const useDeleteClaimDocument = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteClaimDocument>>, TError,DeleteClaimDocumentMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteClaimDocument>>,
@@ -12575,7 +12793,7 @@ export const getGetClaimDocumentQueryKey = (claimId: number,
     }
 
 
-export const getGetClaimDocumentQueryOptions = <TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<HTTPValidationError>>(claimId: number,
+export const getGetClaimDocumentQueryOptions = <TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<ProblemDetails>>(claimId: number,
     documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimDocument>>, TError, TData>>, }
 ) => {
 
@@ -12595,10 +12813,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetClaimDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof getClaimDocument>>>
-export type GetClaimDocumentQueryError = ErrorType<HTTPValidationError>
+export type GetClaimDocumentQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<ProblemDetails>>(
  claimId: number,
     documentId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimDocument>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -12609,7 +12827,7 @@ export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDo
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<ProblemDetails>>(
  claimId: number,
     documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimDocument>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -12620,7 +12838,7 @@ export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDo
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<ProblemDetails>>(
  claimId: number,
     documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimDocument>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -12629,7 +12847,7 @@ export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDo
  * @summary The file of a receipt
  */
 
-export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimDocument<TData = Awaited<ReturnType<typeof getClaimDocument>>, TError = ErrorType<ProblemDetails>>(
  claimId: number,
     documentId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimDocument>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -12676,7 +12894,7 @@ export const submitClaim = async (claimId: number, options?: RequestInit): Promi
 
 export const getSubmitClaimMutationKey = () => ['submitClaim'] as const;
 
-export const getSubmitClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSubmitClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitClaim>>, TError,SubmitClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof submitClaim>>, TError,SubmitClaimMutationVariables, TContext> => {
 
@@ -12705,13 +12923,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SubmitClaimMutationResult = NonNullable<Awaited<ReturnType<typeof submitClaim>>>
 
-    export type SubmitClaimMutationError = ErrorType<HTTPValidationError>
+    export type SubmitClaimMutationError = ErrorType<ProblemDetails>
     export type SubmitClaimMutationVariables = {claimId: number}
 
     /**
  * @summary Submit a claim
  */
-export const useSubmitClaim = <TError = ErrorType<HTTPValidationError>,
+export const useSubmitClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitClaim>>, TError,SubmitClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof submitClaim>>,
@@ -12750,7 +12968,7 @@ export const withdrawClaim = async (claimId: number, options?: RequestInit): Pro
 
 export const getWithdrawClaimMutationKey = () => ['withdrawClaim'] as const;
 
-export const getWithdrawClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getWithdrawClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawClaim>>, TError,WithdrawClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof withdrawClaim>>, TError,WithdrawClaimMutationVariables, TContext> => {
 
@@ -12779,13 +12997,13 @@ const {mutation: mutationOptions} = options ?
 
     export type WithdrawClaimMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawClaim>>>
 
-    export type WithdrawClaimMutationError = ErrorType<HTTPValidationError>
+    export type WithdrawClaimMutationError = ErrorType<ProblemDetails>
     export type WithdrawClaimMutationVariables = {claimId: number}
 
     /**
  * @summary Withdraw a claim
  */
-export const useWithdrawClaim = <TError = ErrorType<HTTPValidationError>,
+export const useWithdrawClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawClaim>>, TError,WithdrawClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof withdrawClaim>>,
@@ -12839,7 +13057,7 @@ return http<ClaimOut>(getApproveClaimUrl(claimId),
 
 export const getApproveClaimMutationKey = () => ['approveClaim'] as const;
 
-export const getApproveClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getApproveClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveClaim>>, TError,ApproveClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof approveClaim>>, TError,ApproveClaimMutationVariables, TContext> => {
 
@@ -12868,13 +13086,13 @@ const {mutation: mutationOptions} = options ?
 
     export type ApproveClaimMutationResult = NonNullable<Awaited<ReturnType<typeof approveClaim>>>
     export type ApproveClaimMutationBody = BodyType<ApproveBody>
-    export type ApproveClaimMutationError = ErrorType<HTTPValidationError>
+    export type ApproveClaimMutationError = ErrorType<ProblemDetails>
     export type ApproveClaimMutationVariables = {claimId: number;data: BodyType<ApproveBody>}
 
     /**
  * @summary Approve a claim
  */
-export const useApproveClaim = <TError = ErrorType<HTTPValidationError>,
+export const useApproveClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveClaim>>, TError,ApproveClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof approveClaim>>,
@@ -12928,7 +13146,7 @@ return http<ClaimOut>(getReturnClaimUrl(claimId),
 
 export const getReturnClaimMutationKey = () => ['returnClaim'] as const;
 
-export const getReturnClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getReturnClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnClaim>>, TError,ReturnClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof returnClaim>>, TError,ReturnClaimMutationVariables, TContext> => {
 
@@ -12957,13 +13175,13 @@ const {mutation: mutationOptions} = options ?
 
     export type ReturnClaimMutationResult = NonNullable<Awaited<ReturnType<typeof returnClaim>>>
     export type ReturnClaimMutationBody = BodyType<NoteBody>
-    export type ReturnClaimMutationError = ErrorType<HTTPValidationError>
+    export type ReturnClaimMutationError = ErrorType<ProblemDetails>
     export type ReturnClaimMutationVariables = {claimId: number;data: BodyType<NoteBody>}
 
     /**
  * @summary Return a claim for changes
  */
-export const useReturnClaim = <TError = ErrorType<HTTPValidationError>,
+export const useReturnClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnClaim>>, TError,ReturnClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof returnClaim>>,
@@ -13017,7 +13235,7 @@ return http<ClaimOut>(getRejectClaimUrl(claimId),
 
 export const getRejectClaimMutationKey = () => ['rejectClaim'] as const;
 
-export const getRejectClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getRejectClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectClaim>>, TError,RejectClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof rejectClaim>>, TError,RejectClaimMutationVariables, TContext> => {
 
@@ -13046,13 +13264,13 @@ const {mutation: mutationOptions} = options ?
 
     export type RejectClaimMutationResult = NonNullable<Awaited<ReturnType<typeof rejectClaim>>>
     export type RejectClaimMutationBody = BodyType<NoteBody>
-    export type RejectClaimMutationError = ErrorType<HTTPValidationError>
+    export type RejectClaimMutationError = ErrorType<ProblemDetails>
     export type RejectClaimMutationVariables = {claimId: number;data: BodyType<NoteBody>}
 
     /**
  * @summary Reject a claim
  */
-export const useRejectClaim = <TError = ErrorType<HTTPValidationError>,
+export const useRejectClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectClaim>>, TError,RejectClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof rejectClaim>>,
@@ -13106,7 +13324,7 @@ return http<ClaimOut>(getPayClaimUrl(claimId),
 
 export const getPayClaimMutationKey = () => ['payClaim'] as const;
 
-export const getPayClaimMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPayClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof payClaim>>, TError,PayClaimMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof payClaim>>, TError,PayClaimMutationVariables, TContext> => {
 
@@ -13135,13 +13353,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PayClaimMutationResult = NonNullable<Awaited<ReturnType<typeof payClaim>>>
     export type PayClaimMutationBody = BodyType<PayBody>
-    export type PayClaimMutationError = ErrorType<HTTPValidationError>
+    export type PayClaimMutationError = ErrorType<ProblemDetails>
     export type PayClaimMutationVariables = {claimId: number;data: BodyType<PayBody>}
 
     /**
  * @summary Mark a claim as paid
  */
-export const usePayClaim = <TError = ErrorType<HTTPValidationError>,
+export const usePayClaim = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof payClaim>>, TError,PayClaimMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof payClaim>>,
@@ -13187,7 +13405,7 @@ export const getGetClaimGirocodeQueryKey = (claimId: number,) => {
     }
 
 
-export const getGetClaimGirocodeQueryOptions = <TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>>, }
+export const getGetClaimGirocodeQueryOptions = <TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<ProblemDetails>>(claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -13206,10 +13424,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetClaimGirocodeQueryResult = NonNullable<Awaited<ReturnType<typeof getClaimGirocode>>>
-export type GetClaimGirocodeQueryError = ErrorType<HTTPValidationError>
+export type GetClaimGirocodeQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClaimGirocode>>,
@@ -13219,7 +13437,7 @@ export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGi
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClaimGirocode>>,
@@ -13229,7 +13447,7 @@ export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGi
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -13237,7 +13455,7 @@ export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGi
  * @summary The claim as a GiroCode (EPC QR) for a banking app
  */
 
-export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClaimGirocode<TData = Awaited<ReturnType<typeof getClaimGirocode>>, TError = ErrorType<ProblemDetails>>(
  claimId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClaimGirocode>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -13288,7 +13506,7 @@ export const getGetClubBankAccountQueryKey = (clubId: number,) => {
     }
 
 
-export const getGetClubBankAccountQueryOptions = <TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>>, }
+export const getGetClubBankAccountQueryOptions = <TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<ProblemDetails>>(clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -13307,10 +13525,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetClubBankAccountQueryResult = NonNullable<Awaited<ReturnType<typeof getClubBankAccount>>>
-export type GetClubBankAccountQueryError = ErrorType<HTTPValidationError>
+export type GetClubBankAccountQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClubBankAccount>>,
@@ -13320,7 +13538,7 @@ export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubB
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getClubBankAccount>>,
@@ -13330,7 +13548,7 @@ export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubB
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -13338,7 +13556,7 @@ export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubB
  * @summary The account the club pays from
  */
 
-export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetClubBankAccount<TData = Awaited<ReturnType<typeof getClubBankAccount>>, TError = ErrorType<ProblemDetails>>(
  clubId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getClubBankAccount>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -13399,7 +13617,7 @@ return http<ClubBankAccountOut>(getSaveClubBankAccountUrl(clubId),
 
 export const getSaveClubBankAccountMutationKey = () => ['saveClubBankAccount'] as const;
 
-export const getSaveClubBankAccountMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSaveClubBankAccountMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveClubBankAccount>>, TError,SaveClubBankAccountMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof saveClubBankAccount>>, TError,SaveClubBankAccountMutationVariables, TContext> => {
 
@@ -13428,13 +13646,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SaveClubBankAccountMutationResult = NonNullable<Awaited<ReturnType<typeof saveClubBankAccount>>>
     export type SaveClubBankAccountMutationBody = BodyType<BankAccountIn>
-    export type SaveClubBankAccountMutationError = ErrorType<HTTPValidationError>
+    export type SaveClubBankAccountMutationError = ErrorType<ProblemDetails>
     export type SaveClubBankAccountMutationVariables = {clubId: number;data: BodyType<BankAccountIn>}
 
     /**
  * @summary Save the account the club pays from
  */
-export const useSaveClubBankAccount = <TError = ErrorType<HTTPValidationError>,
+export const useSaveClubBankAccount = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveClubBankAccount>>, TError,SaveClubBankAccountMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof saveClubBankAccount>>,
@@ -13478,7 +13696,7 @@ export const getListOpenPaymentRunsQueryKey = () => {
     }
 
 
-export const getListOpenPaymentRunsQueryOptions = <TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>>, }
+export const getListOpenPaymentRunsQueryOptions = <TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -13497,10 +13715,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListOpenPaymentRunsQueryResult = NonNullable<Awaited<ReturnType<typeof listOpenPaymentRuns>>>
-export type ListOpenPaymentRunsQueryError = ErrorType<unknown>
+export type ListOpenPaymentRunsQueryError = ErrorType<ProblemDetails>
 
 
-export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listOpenPaymentRuns>>,
@@ -13510,7 +13728,7 @@ export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpe
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listOpenPaymentRuns>>,
@@ -13520,7 +13738,7 @@ export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpe
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -13528,7 +13746,7 @@ export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpe
  * @summary Runs waiting for the bank
  */
 
-export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<unknown>>(
+export function useListOpenPaymentRuns<TData = Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listOpenPaymentRuns>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -13589,7 +13807,7 @@ return http<RunOut>(getCreatePaymentRunUrl(clubId),
 
 export const getCreatePaymentRunMutationKey = () => ['createPaymentRun'] as const;
 
-export const getCreatePaymentRunMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getCreatePaymentRunMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentRun>>, TError,CreatePaymentRunMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof createPaymentRun>>, TError,CreatePaymentRunMutationVariables, TContext> => {
 
@@ -13618,13 +13836,13 @@ const {mutation: mutationOptions} = options ?
 
     export type CreatePaymentRunMutationResult = NonNullable<Awaited<ReturnType<typeof createPaymentRun>>>
     export type CreatePaymentRunMutationBody = BodyType<RunCreate>
-    export type CreatePaymentRunMutationError = ErrorType<HTTPValidationError>
+    export type CreatePaymentRunMutationError = ErrorType<ProblemDetails>
     export type CreatePaymentRunMutationVariables = {clubId: number;data: BodyType<RunCreate>}
 
     /**
  * @summary Pay approved claims through one SEPA file
  */
-export const useCreatePaymentRun = <TError = ErrorType<HTTPValidationError>,
+export const useCreatePaymentRun = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPaymentRun>>, TError,CreatePaymentRunMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createPaymentRun>>,
@@ -13668,7 +13886,7 @@ export const getDownloadPaymentRunSepaQueryKey = (runId: number,) => {
     }
 
 
-export const getDownloadPaymentRunSepaQueryOptions = <TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>>, }
+export const getDownloadPaymentRunSepaQueryOptions = <TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<ProblemDetails>>(runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -13687,10 +13905,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type DownloadPaymentRunSepaQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPaymentRunSepa>>>
-export type DownloadPaymentRunSepaQueryError = ErrorType<HTTPValidationError>
+export type DownloadPaymentRunSepaQueryError = ErrorType<ProblemDetails>
 
 
-export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof downloadPaymentRunSepa>>,
@@ -13700,7 +13918,7 @@ export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof down
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof downloadPaymentRunSepa>>,
@@ -13710,7 +13928,7 @@ export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof down
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -13718,7 +13936,7 @@ export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof down
  * @summary The run as a SEPA file (pain.001.001.09) for online banking
  */
 
-export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunSepa<TData = Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunSepa>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -13769,7 +13987,7 @@ export const getDownloadPaymentRunXlsxQueryKey = (runId: number,) => {
     }
 
 
-export const getDownloadPaymentRunXlsxQueryOptions = <TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>>, }
+export const getDownloadPaymentRunXlsxQueryOptions = <TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<ProblemDetails>>(runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -13788,10 +14006,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type DownloadPaymentRunXlsxQueryResult = NonNullable<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>>
-export type DownloadPaymentRunXlsxQueryError = ErrorType<HTTPValidationError>
+export type DownloadPaymentRunXlsxQueryError = ErrorType<ProblemDetails>
 
 
-export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof downloadPaymentRunXlsx>>,
@@ -13801,7 +14019,7 @@ export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof down
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof downloadPaymentRunXlsx>>,
@@ -13811,7 +14029,7 @@ export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof down
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -13819,7 +14037,7 @@ export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof down
  * @summary The run as a spreadsheet
  */
 
-export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadPaymentRunXlsx<TData = Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError = ErrorType<ProblemDetails>>(
  runId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadPaymentRunXlsx>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -13880,7 +14098,7 @@ return http<RunOut>(getSettlePaymentRunUrl(runId),
 
 export const getSettlePaymentRunMutationKey = () => ['settlePaymentRun'] as const;
 
-export const getSettlePaymentRunMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getSettlePaymentRunMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settlePaymentRun>>, TError,SettlePaymentRunMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof settlePaymentRun>>, TError,SettlePaymentRunMutationVariables, TContext> => {
 
@@ -13909,13 +14127,13 @@ const {mutation: mutationOptions} = options ?
 
     export type SettlePaymentRunMutationResult = NonNullable<Awaited<ReturnType<typeof settlePaymentRun>>>
     export type SettlePaymentRunMutationBody = BodyType<SettleBody | null> | undefined
-    export type SettlePaymentRunMutationError = ErrorType<HTTPValidationError>
+    export type SettlePaymentRunMutationError = ErrorType<ProblemDetails>
     export type SettlePaymentRunMutationVariables = {runId: number;data?: BodyType<SettleBody | null>}
 
     /**
  * @summary The bank booked the run
  */
-export const useSettlePaymentRun = <TError = ErrorType<HTTPValidationError>,
+export const useSettlePaymentRun = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof settlePaymentRun>>, TError,SettlePaymentRunMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof settlePaymentRun>>,
@@ -13969,7 +14187,7 @@ return http<RunOut>(getFailPaymentUrl(paymentId),
 
 export const getFailPaymentMutationKey = () => ['failPayment'] as const;
 
-export const getFailPaymentMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getFailPaymentMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof failPayment>>, TError,FailPaymentMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof failPayment>>, TError,FailPaymentMutationVariables, TContext> => {
 
@@ -13998,13 +14216,13 @@ const {mutation: mutationOptions} = options ?
 
     export type FailPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof failPayment>>>
     export type FailPaymentMutationBody = BodyType<FailBody>
-    export type FailPaymentMutationError = ErrorType<HTTPValidationError>
+    export type FailPaymentMutationError = ErrorType<ProblemDetails>
     export type FailPaymentMutationVariables = {paymentId: number;data: BodyType<FailBody>}
 
     /**
  * @summary The bank returned a payment
  */
-export const useFailPayment = <TError = ErrorType<HTTPValidationError>,
+export const useFailPayment = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof failPayment>>, TError,FailPaymentMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof failPayment>>,
@@ -14058,7 +14276,7 @@ export const getDownloadClubClaimsXlsxQueryKey = (clubId: number,
     }
 
 
-export const getDownloadClubClaimsXlsxQueryOptions = <TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(clubId: number,
+export const getDownloadClubClaimsXlsxQueryOptions = <TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<ProblemDetails>>(clubId: number,
     params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>>, }
 ) => {
 
@@ -14078,10 +14296,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type DownloadClubClaimsXlsxQueryResult = NonNullable<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>>
-export type DownloadClubClaimsXlsxQueryError = ErrorType<HTTPValidationError>
+export type DownloadClubClaimsXlsxQueryError = ErrorType<ProblemDetails>
 
 
-export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params: undefined |  DownloadClubClaimsXlsxParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -14092,7 +14310,7 @@ export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof down
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -14103,7 +14321,7 @@ export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof down
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -14112,7 +14330,7 @@ export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof down
  * @summary A year's claims of the club as a spreadsheet
  */
 
-export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<HTTPValidationError>>(
+export function useDownloadClubClaimsXlsx<TData = Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError = ErrorType<ProblemDetails>>(
  clubId: number,
     params?: DownloadClubClaimsXlsxParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadClubClaimsXlsx>>, TError, TData>>, }
  , queryClient?: QueryClient
@@ -14175,7 +14393,7 @@ return http<FixBatchOut>(getPostFixesUrl(),
 
 export const getPostFixesMutationKey = () => ['postFixes'] as const;
 
-export const getPostFixesMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getPostFixesMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postFixes>>, TError,PostFixesMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof postFixes>>, TError,PostFixesMutationVariables, TContext> => {
 
@@ -14204,13 +14422,13 @@ const {mutation: mutationOptions} = options ?
 
     export type PostFixesMutationResult = NonNullable<Awaited<ReturnType<typeof postFixes>>>
     export type PostFixesMutationBody = BodyType<FixBatchIn>
-    export type PostFixesMutationError = ErrorType<HTTPValidationError>
+    export type PostFixesMutationError = ErrorType<ProblemDetails>
     export type PostFixesMutationVariables = {data: BodyType<FixBatchIn>}
 
     /**
  * @summary Post a batch of fixes
  */
-export const usePostFixes = <TError = ErrorType<HTTPValidationError>,
+export const usePostFixes = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postFixes>>, TError,PostFixesMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof postFixes>>,
@@ -14258,7 +14476,7 @@ export const getGetEventLiveQueryKey = (eventId: number,) => {
     }
 
 
-export const getGetEventLiveQueryOptions = <TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>>, }
+export const getGetEventLiveQueryOptions = <TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -14277,10 +14495,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetEventLiveQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLive>>>
-export type GetEventLiveQueryError = ErrorType<HTTPValidationError>
+export type GetEventLiveQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEventLive>>,
@@ -14290,7 +14508,7 @@ export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEventLive>>,
@@ -14300,7 +14518,7 @@ export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -14308,7 +14526,7 @@ export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>
  * @summary The boats now
  */
 
-export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventLive<TData = Awaited<ReturnType<typeof getEventLive>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventLive>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -14359,7 +14577,7 @@ export const getGetEventCourseQueryKey = (eventId: number,) => {
     }
 
 
-export const getGetEventCourseQueryOptions = <TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>>, }
+export const getGetEventCourseQueryOptions = <TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -14378,10 +14596,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type GetEventCourseQueryResult = NonNullable<Awaited<ReturnType<typeof getEventCourse>>>
-export type GetEventCourseQueryError = ErrorType<HTTPValidationError>
+export type GetEventCourseQueryError = ErrorType<ProblemDetails>
 
 
-export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEventCourse>>,
@@ -14391,7 +14609,7 @@ export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCour
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getEventCourse>>,
@@ -14401,7 +14619,7 @@ export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCour
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -14409,7 +14627,7 @@ export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCour
  * @summary The course as laid
  */
 
-export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<HTTPValidationError>>(
+export function useGetEventCourse<TData = Awaited<ReturnType<typeof getEventCourse>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventCourse>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -14472,7 +14690,7 @@ return http<CourseOut>(getLayEventCourseUrl(eventId),
 
 export const getLayEventCourseMutationKey = () => ['layEventCourse'] as const;
 
-export const getLayEventCourseMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getLayEventCourseMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layEventCourse>>, TError,LayEventCourseMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof layEventCourse>>, TError,LayEventCourseMutationVariables, TContext> => {
 
@@ -14501,13 +14719,13 @@ const {mutation: mutationOptions} = options ?
 
     export type LayEventCourseMutationResult = NonNullable<Awaited<ReturnType<typeof layEventCourse>>>
     export type LayEventCourseMutationBody = BodyType<CourseIn>
-    export type LayEventCourseMutationError = ErrorType<HTTPValidationError>
+    export type LayEventCourseMutationError = ErrorType<ProblemDetails>
     export type LayEventCourseMutationVariables = {eventId: number;data: BodyType<CourseIn>}
 
     /**
  * @summary Lay the course
  */
-export const useLayEventCourse = <TError = ErrorType<HTTPValidationError>,
+export const useLayEventCourse = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layEventCourse>>, TError,LayEventCourseMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof layEventCourse>>,
@@ -14563,7 +14781,7 @@ return http<CourseOut>(getLayDefaultEventCourseUrl(eventId),
 
 export const getLayDefaultEventCourseMutationKey = () => ['layDefaultEventCourse'] as const;
 
-export const getLayDefaultEventCourseMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getLayDefaultEventCourseMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layDefaultEventCourse>>, TError,LayDefaultEventCourseMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof layDefaultEventCourse>>, TError,LayDefaultEventCourseMutationVariables, TContext> => {
 
@@ -14592,13 +14810,13 @@ const {mutation: mutationOptions} = options ?
 
     export type LayDefaultEventCourseMutationResult = NonNullable<Awaited<ReturnType<typeof layDefaultEventCourse>>>
     export type LayDefaultEventCourseMutationBody = BodyType<DefaultCourseIn | null> | undefined
-    export type LayDefaultEventCourseMutationError = ErrorType<HTTPValidationError>
+    export type LayDefaultEventCourseMutationError = ErrorType<ProblemDetails>
     export type LayDefaultEventCourseMutationVariables = {eventId: number;data?: BodyType<DefaultCourseIn | null>}
 
     /**
  * @summary Lay the textbook course here
  */
-export const useLayDefaultEventCourse = <TError = ErrorType<HTTPValidationError>,
+export const useLayDefaultEventCourse = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof layDefaultEventCourse>>, TError,LayDefaultEventCourseMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof layDefaultEventCourse>>,
@@ -14644,7 +14862,7 @@ export const getListEventTrackersQueryKey = (eventId: number,) => {
     }
 
 
-export const getListEventTrackersQueryOptions = <TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>>, }
+export const getListEventTrackersQueryOptions = <TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -14663,10 +14881,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListEventTrackersQueryResult = NonNullable<Awaited<ReturnType<typeof listEventTrackers>>>
-export type ListEventTrackersQueryError = ErrorType<HTTPValidationError>
+export type ListEventTrackersQueryError = ErrorType<ProblemDetails>
 
 
-export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listEventTrackers>>,
@@ -14676,7 +14894,7 @@ export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEvent
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listEventTrackers>>,
@@ -14686,7 +14904,7 @@ export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEvent
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -14694,7 +14912,7 @@ export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEvent
  * @summary The event's trackers
  */
 
-export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEventTrackers>>, TError = ErrorType<ProblemDetails>>(
  eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventTrackers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -14745,7 +14963,7 @@ export const getListTestUsersQueryKey = () => {
     }
 
 
-export const getListTestUsersQueryOptions = <TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<HTTPValidationError>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTestUsers>>, TError, TData>>, }
+export const getListTestUsersQueryOptions = <TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTestUsers>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -14764,10 +14982,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type ListTestUsersQueryResult = NonNullable<Awaited<ReturnType<typeof listTestUsers>>>
-export type ListTestUsersQueryError = ErrorType<HTTPValidationError>
+export type ListTestUsersQueryError = ErrorType<ProblemDetails>
 
 
-export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTestUsers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTestUsers>>,
@@ -14777,7 +14995,7 @@ export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTestUsers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listTestUsers>>,
@@ -14787,7 +15005,7 @@ export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTestUsers>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -14795,7 +15013,7 @@ export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers
  * @summary List test accounts
  */
 
-export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<HTTPValidationError>>(
+export function useListTestUsers<TData = Awaited<ReturnType<typeof listTestUsers>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listTestUsers>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -14855,7 +15073,7 @@ return http<TokenOut>(getDevLoginUrl(),
 
 export const getDevLoginMutationKey = () => ['devLogin'] as const;
 
-export const getDevLoginMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getDevLoginMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof devLogin>>, TError,DevLoginMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof devLogin>>, TError,DevLoginMutationVariables, TContext> => {
 
@@ -14884,13 +15102,13 @@ const {mutation: mutationOptions} = options ?
 
     export type DevLoginMutationResult = NonNullable<Awaited<ReturnType<typeof devLogin>>>
     export type DevLoginMutationBody = BodyType<DevLogin>
-    export type DevLoginMutationError = ErrorType<HTTPValidationError>
+    export type DevLoginMutationError = ErrorType<ProblemDetails>
     export type DevLoginMutationVariables = {data: BodyType<DevLogin>}
 
     /**
  * @summary Sign in without verification
  */
-export const useDevLogin = <TError = ErrorType<HTTPValidationError>,
+export const useDevLogin = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof devLogin>>, TError,DevLoginMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof devLogin>>,
@@ -14938,7 +15156,7 @@ export const getSmtpConfigQueryKey = () => {
     }
 
 
-export const getSmtpConfigQueryOptions = <TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof smtpConfig>>, TError, TData>>, }
+export const getSmtpConfigQueryOptions = <TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof smtpConfig>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -14957,10 +15175,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type SmtpConfigQueryResult = NonNullable<Awaited<ReturnType<typeof smtpConfig>>>
-export type SmtpConfigQueryError = ErrorType<unknown>
+export type SmtpConfigQueryError = ErrorType<ProblemDetails>
 
 
-export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<unknown>>(
+export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof smtpConfig>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof smtpConfig>>,
@@ -14970,7 +15188,7 @@ export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TE
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<unknown>>(
+export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof smtpConfig>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof smtpConfig>>,
@@ -14980,7 +15198,7 @@ export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TE
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<unknown>>(
+export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof smtpConfig>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -14988,7 +15206,7 @@ export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TE
  * @summary What mail config is resolved
  */
 
-export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<unknown>>(
+export function useSmtpConfig<TData = Awaited<ReturnType<typeof smtpConfig>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof smtpConfig>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -15053,7 +15271,7 @@ return http<TestEmailOut>(getTestEmailUrl(),
 
 export const getTestEmailMutationKey = () => ['testEmail'] as const;
 
-export const getTestEmailMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getTestEmailMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testEmail>>, TError,TestEmailMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof testEmail>>, TError,TestEmailMutationVariables, TContext> => {
 
@@ -15082,13 +15300,13 @@ const {mutation: mutationOptions} = options ?
 
     export type TestEmailMutationResult = NonNullable<Awaited<ReturnType<typeof testEmail>>>
     export type TestEmailMutationBody = BodyType<TestEmail>
-    export type TestEmailMutationError = ErrorType<HTTPValidationError>
+    export type TestEmailMutationError = ErrorType<ProblemDetails>
     export type TestEmailMutationVariables = {data: BodyType<TestEmail>}
 
     /**
  * @summary Attempt an actual send
  */
-export const useTestEmail = <TError = ErrorType<HTTPValidationError>,
+export const useTestEmail = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof testEmail>>, TError,TestEmailMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof testEmail>>,
@@ -15144,7 +15362,7 @@ export const getNetworkProbeQueryKey = (params?: NetworkProbeParams,) => {
     }
 
 
-export const getNetworkProbeQueryOptions = <TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<HTTPValidationError>>(params?: NetworkProbeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof networkProbe>>, TError, TData>>, }
+export const getNetworkProbeQueryOptions = <TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<ProblemDetails>>(params?: NetworkProbeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof networkProbe>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -15163,10 +15381,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type NetworkProbeQueryResult = NonNullable<Awaited<ReturnType<typeof networkProbe>>>
-export type NetworkProbeQueryError = ErrorType<HTTPValidationError>
+export type NetworkProbeQueryError = ErrorType<ProblemDetails>
 
 
-export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<HTTPValidationError>>(
+export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<ProblemDetails>>(
  params: undefined |  NetworkProbeParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof networkProbe>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof networkProbe>>,
@@ -15176,7 +15394,7 @@ export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<HTTPValidationError>>(
+export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<ProblemDetails>>(
  params?: NetworkProbeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof networkProbe>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof networkProbe>>,
@@ -15186,7 +15404,7 @@ export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<HTTPValidationError>>(
+export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<ProblemDetails>>(
  params?: NetworkProbeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof networkProbe>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -15194,7 +15412,7 @@ export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>
  * @summary Diagnose outbound TCP
  */
 
-export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<HTTPValidationError>>(
+export function useNetworkProbe<TData = Awaited<ReturnType<typeof networkProbe>>, TError = ErrorType<ProblemDetails>>(
  params?: NetworkProbeParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof networkProbe>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -15259,7 +15477,7 @@ return http<EmulateOut>(getStartEmulationUrl(),
 
 export const getStartEmulationMutationKey = () => ['startEmulation'] as const;
 
-export const getStartEmulationMutationOptions = <TError = ErrorType<HTTPValidationError>,
+export const getStartEmulationMutationOptions = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startEmulation>>, TError,StartEmulationMutationVariables, TContext>, }
 ): UseMutationOptions<Awaited<ReturnType<typeof startEmulation>>, TError,StartEmulationMutationVariables, TContext> => {
 
@@ -15288,13 +15506,13 @@ const {mutation: mutationOptions} = options ?
 
     export type StartEmulationMutationResult = NonNullable<Awaited<ReturnType<typeof startEmulation>>>
     export type StartEmulationMutationBody = BodyType<EmulateIn>
-    export type StartEmulationMutationError = ErrorType<HTTPValidationError>
+    export type StartEmulationMutationError = ErrorType<ProblemDetails>
     export type StartEmulationMutationVariables = {data: BodyType<EmulateIn>}
 
     /**
  * @summary Simulate the current race
  */
-export const useStartEmulation = <TError = ErrorType<HTTPValidationError>,
+export const useStartEmulation = <TError = ErrorType<ProblemDetails>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startEmulation>>, TError,StartEmulationMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof startEmulation>>,
@@ -15342,7 +15560,7 @@ export const getIndexQueryKey = () => {
     }
 
 
-export const getIndexQueryOptions = <TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof index>>, TError, TData>>, }
+export const getIndexQueryOptions = <TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof index>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -15361,10 +15579,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type IndexQueryResult = NonNullable<Awaited<ReturnType<typeof index>>>
-export type IndexQueryError = ErrorType<unknown>
+export type IndexQueryError = ErrorType<ProblemDetails>
 
 
-export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<unknown>>(
+export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof index>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof index>>,
@@ -15374,7 +15592,7 @@ export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = Err
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<unknown>>(
+export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof index>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof index>>,
@@ -15384,7 +15602,7 @@ export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = Err
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<unknown>>(
+export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof index>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -15392,7 +15610,7 @@ export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = Err
  * @summary Entry point
  */
 
-export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<unknown>>(
+export function useIndex<TData = Awaited<ReturnType<typeof index>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof index>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -15443,7 +15661,7 @@ export const getHealthQueryKey = () => {
     }
 
 
-export const getHealthQueryOptions = <TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof health>>, TError, TData>>, }
+export const getHealthQueryOptions = <TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof health>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -15462,10 +15680,10 @@ const {query: queryOptions} = options ?? {};
 }
 
 export type HealthQueryResult = NonNullable<Awaited<ReturnType<typeof health>>>
-export type HealthQueryError = ErrorType<unknown>
+export type HealthQueryError = ErrorType<ProblemDetails>
 
 
-export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<unknown>>(
+export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<ProblemDetails>>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof health>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof health>>,
@@ -15475,7 +15693,7 @@ export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = E
       >, }
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<unknown>>(
+export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof health>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof health>>,
@@ -15485,7 +15703,7 @@ export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = E
       >, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<unknown>>(
+export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof health>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -15493,7 +15711,7 @@ export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = E
  * @summary Health
  */
 
-export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<unknown>>(
+export function useHealth<TData = Awaited<ReturnType<typeof health>>, TError = ErrorType<ProblemDetails>>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof health>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {

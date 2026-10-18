@@ -13,6 +13,7 @@ someone scanned, with a person's data on it:
 
 from __future__ import annotations
 
+import asyncio
 import io
 import uuid
 from pathlib import Path
@@ -28,12 +29,15 @@ MEDIA_TYPES = {
 MAX_BYTES = 10 * 1024 * 1024
 
 
-def validated(raw: bytes, content_type: str | None, *, code: str, what: str) -> str:
+async def validated(raw: bytes, content_type: str | None, *, code: str, what: str) -> str:
     """The media type the bytes really are — or a typed refusal.
 
     ``code`` prefixes the problem codes (``<code>-invalid-type``, ``<code>-too-large``,
     ``<code>-invalid``), so each kind keeps the codes its frontend already maps; ``what``
     names the file in the English title ("The signed form").
+
+    Async because Pillow's decode is CPU work: it runs in a thread, so a large scan does
+    not stall every other request while it is checked.
     """
     if content_type not in MEDIA_TYPES:
         raise Problem(
@@ -55,13 +59,9 @@ def validated(raw: bytes, content_type: str | None, *, code: str, what: str) -> 
         if not raw.startswith(b"%PDF"):
             raise Problem(422, f"{code}-invalid", "This file is not a readable PDF.")
         return content_type
-    from PIL import Image, UnidentifiedImageError
-
     try:
-        with Image.open(io.BytesIO(raw)) as image:
-            image.verify()
-            detected = image.format
-    except (UnidentifiedImageError, OSError, SyntaxError) as error:
+        detected = await asyncio.to_thread(_image_format, raw)
+    except ValueError as error:
         raise Problem(422, f"{code}-invalid", "This file is not a readable image.") from error
     real = {"PNG": "image/png", "JPEG": "image/jpeg"}.get(detected or "")
     if real != content_type:
@@ -72,6 +72,18 @@ def validated(raw: bytes, content_type: str | None, *, code: str, what: str) -> 
             detail=f"Declared {content_type}, found {detected or 'nothing readable'}.",
         )
     return content_type
+
+
+def _image_format(raw: bytes) -> str | None:
+    """Pillow's name for the format the bytes decode as; ``ValueError`` if they do not."""
+    from PIL import Image, UnidentifiedImageError
+
+    try:
+        with Image.open(io.BytesIO(raw)) as image:
+            image.verify()
+            return image.format
+    except (UnidentifiedImageError, OSError, SyntaxError) as error:
+        raise ValueError(str(error)) from error
 
 
 def _directory(kind: str) -> Path:

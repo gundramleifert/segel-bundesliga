@@ -242,3 +242,31 @@ class TestWhoMayCloseAnEvent:
 
         guest = await client.post(f"/api/admin/events/{event_id}/finish")
         assert guest.status_code == 401, guest.text
+
+
+class TestTheTransitionsAreTheOnlyWay:
+    """VA-10/VA-8: the status changes through start, finish, cancel and reopen — never PATCH."""
+
+    async def test_a_status_in_a_patch_changes_nothing(self, client, caplog):
+        """An organizer once PATCHed a planned event without a pairing list straight to
+        ``live`` (or ``final``), skipping the readiness check and every closing rule. The
+        field is gone from the update: it is ignored, the rest of the PATCH still lands."""
+        headers = await admin(client, caplog, "vt1@example.com")
+        created = (
+            await client.post("/api/admin/events", headers=headers, json={"title": "Patch Cup"})
+        ).json()
+
+        for target in ("live", "final", "cancelled"):
+            response = await client.patch(
+                f"/api/admin/events/{created['id']}",
+                headers=headers,
+                json={"title": f"Patch Cup {target}", "status": target},
+            )
+            assert response.status_code == 200, response.text
+            assert response.json()["title"] == f"Patch Cup {target}"
+            assert response.json()["status"] == "planned"
+            assert await status_of(created["id"]) == EventStatus.PLANNED
+
+        # The transition itself still refuses what PATCH used to let through.
+        start = await client.post(f"/api/admin/events/{created['id']}/start", headers=headers)
+        assert start.status_code == 409, start.text

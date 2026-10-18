@@ -5,11 +5,11 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
-import type { RaceSignalInSignal } from './raceSignalInSignal';
+import type { RaceSignal } from './raceSignal';
 
 /**
  * Hoist a displayed signal, or haul it down with ``null``.
  */
 export interface RaceSignalIn {
-  signal?: RaceSignalInSignal;
+  signal?: RaceSignal | null;
 }

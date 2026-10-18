@@ -5,9 +5,10 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { ClubOut } from './clubOut';
 import type { EventOut } from './eventOut';
 import type { LeagueOut } from './leagueOut';
-import type { SeriesOut } from './seriesOut';
+import type { SeasonSeriesOut } from './seasonSeriesOut';
 
 /**
  * One year of a league: its series and their events, the league's page's data.
@@ -16,6 +17,7 @@ export interface LeagueSeason {
   league: LeagueOut;
   year: number | null;
   years: number[];
-  series: SeriesOut[];
+  series: SeasonSeriesOut[];
   events: EventOut[];
+  clubs?: ClubOut[];
 }

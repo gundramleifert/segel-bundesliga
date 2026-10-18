@@ -15,4 +15,5 @@ export interface SailorMeUpdate {
   first_name?: string | null;
   last_name?: string | null;
   birth_date?: string | null;
+  profile_public?: boolean | null;
 }

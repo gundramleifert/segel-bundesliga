@@ -2,7 +2,7 @@
 
 import asyncio
 
-from app.live import Frame, Hub
+from app.live import Coalescer, Frame, Hub
 
 
 async def collect(hub: Hub, topic: str, frames: int, **kwargs) -> list[bytes]:
@@ -108,3 +108,83 @@ class TestShutdown:
             await asyncio.sleep(0)
         hub.publish("event:1")
         assert b'"version":1' in (await later)[1]
+
+
+class FakeTime:
+    """A clock that only moves when the coalescer sleeps — no test waits for real time."""
+
+    def __init__(self) -> None:
+        self.now = 0.0
+
+    def clock(self) -> float:
+        return self.now
+
+    async def sleep(self, seconds: float) -> None:
+        self.now += seconds
+        await asyncio.sleep(0)
+
+
+class TestCoalescing:
+    """Story L-1: one live snapshot per event per interval, however many phones post."""
+
+    def coalescer(self, time: FakeTime, calls: list[tuple[int, float]], during=None):
+        async def work(key: int) -> None:
+            calls.append((key, time.now))
+            if during is not None:
+                during(key)
+
+        return Coalescer(work, lambda: 1.0, clock=time.clock, sleep=time.sleep)
+
+    async def test_the_first_request_runs_at_once_and_a_burst_runs_once(self):
+        time, calls = FakeTime(), []
+        coalescer = self.coalescer(time, calls)
+        for _ in range(7):
+            coalescer.request(1)
+        await coalescer.drain()
+        assert calls == [(1, 0.0)]
+
+    async def test_requests_during_the_work_run_once_more_after_the_interval(self):
+        time, calls = FakeTime(), []
+        coalescer = None
+
+        def burst(key: int) -> None:
+            if len(calls) == 1:
+                for _ in range(6):
+                    coalescer.request(key)
+
+        coalescer = self.coalescer(time, calls, during=burst)
+        coalescer.request(1)
+        await coalescer.drain()
+        assert calls == [(1, 0.0), (1, 1.0)]
+
+    async def test_a_request_soon_after_waits_for_the_rest_of_the_interval(self):
+        time, calls = FakeTime(), []
+        coalescer = self.coalescer(time, calls)
+        coalescer.request(1)
+        await coalescer.drain()
+        time.now = 0.25
+        coalescer.request(1)
+        await coalescer.drain()
+        assert calls == [(1, 0.0), (1, 1.0)]
+
+    async def test_events_do_not_hold_each_other_back(self):
+        time, calls = FakeTime(), []
+        coalescer = self.coalescer(time, calls)
+        coalescer.request(1)
+        coalescer.request(2)
+        await coalescer.drain()
+        assert sorted(calls) == [(1, 0.0), (2, 0.0)]
+
+    async def test_a_failing_run_does_not_stop_the_next(self):
+        time, calls = FakeTime(), []
+
+        async def work(key: int) -> None:
+            calls.append((key, time.now))
+            raise RuntimeError("snapshot failed")
+
+        coalescer = Coalescer(work, lambda: 1.0, clock=time.clock, sleep=time.sleep)
+        coalescer.request(1)
+        await coalescer.drain()
+        coalescer.request(1)
+        await coalescer.drain()
+        assert calls == [(1, 0.0), (1, 1.0)]

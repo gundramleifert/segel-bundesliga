@@ -15,6 +15,7 @@ export interface SailorDetail {
   id: number;
   first_name: string;
   last_name: string;
+  profile_public?: boolean;
   teams?: SailorTeamOut[];
   events?: SailorEventOut[];
 }

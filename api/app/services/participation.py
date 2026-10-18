@@ -16,10 +16,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import Club, Event, RaceEntry, Team, TeamStatus
+from app.problems import Problem
 
 
-class ParticipationError(ValueError):
-    """A participation that isn't allowed to exist like this."""
+class ParticipationError(Problem):
+    """A participation that isn't allowed to exist like this — a typed 422."""
+
+    def __init__(self, code: str, title: str, **extra: object) -> None:
+        super().__init__(422, code, title, **extra)
 
 
 async def series_registrations(
@@ -82,10 +86,34 @@ async def squad_team(session: AsyncSession, team: Team) -> Team:
     registration = await series_registration(session, team.series_id, team.club_id)
     if registration is None:
         raise ParticipationError(
+            "squad-without-series-registration",
             "This club is entered in the event but isn't registered for its series — "
-            "so there's no squad."
+            "so there's no squad.",
         )
     return registration
+
+
+async def candidate_clubs(session: AsyncSession, event: Event) -> list[Club]:
+    """The clubs that may be entered in this event — the rule ``new_event_entry`` enforces.
+
+    For an act of a series, its **accepted** registrations; for an event standing alone,
+    every club, which is what makes the site a service to clubs outside the association's
+    own series. Asked by the organizer's clubs step, so the screen offers exactly what the
+    server will accept rather than recomputing the rule from every series and every club.
+    """
+    if event.series_id is None:
+        stmt = select(Club)
+    else:
+        stmt = (
+            select(Club)
+            .join(Team, Team.club_id == Club.id)
+            .where(
+                Team.series_id == event.series_id,
+                Team.event_id.is_(None),
+                Team.status == TeamStatus.ACCEPTED,
+            )
+        )
+    return list((await session.execute(stmt.order_by(Club.name, Club.id))).scalars())
 
 
 async def new_event_entry(
@@ -105,8 +133,10 @@ async def new_event_entry(
         registration = await series_registration(session, event.series_id, club.id)
         if registration is None or registration.status != TeamStatus.ACCEPTED:
             raise ParticipationError(
+                "series-registration-required",
                 f"{club.short_name} isn't registered for this event's series. "
-                "Register for the series first, then enter the act."
+                "Register for the series first, then enter the act.",
+                club=club.short_name,
             )
 
     team = Team(

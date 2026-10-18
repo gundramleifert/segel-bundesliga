@@ -35,6 +35,12 @@ Acceptance criteria:
   back costs nothing.
 - Markers move as fixes arrive, over B-5's stream, inline (`positions` frame) — the one
   payload that does not go through a refetch.
+- **One snapshot per event per interval, however many phones post.** A batch never
+  computes the picture itself: it marks the event, and at most one snapshot is computed
+  and sent per `SBL_TRACKING_PUBLISH_INTERVAL_S` (1 s) — the first batch after a quiet
+  spell at once, everything that arrived meanwhile in one more snapshot when the interval
+  is up, so the last batch is never left unsent. Seven phones every few seconds were
+  seven full recomputes (every fix since the start, every passing) per interval.
 - **The tracker belongs to the boat, not the team** (decision 5). One phone per boat of the
   event, `Event.boat_count` of them; who sails boat 3 in race 17 is what `RaceEntry` already
   says. This is the largest simplification against SAP's competitor↔device mapping, and it is

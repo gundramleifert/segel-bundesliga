@@ -7,6 +7,7 @@
  */
 import type { ClubOut } from './clubOut';
 import type { EventOutPrintSettings } from './eventOutPrintSettings';
+import type { EventStatus } from './eventStatus';
 import type { SeriesOut } from './seriesOut';
 import type { VenueOut } from './venueOut';
 
@@ -17,7 +18,7 @@ export interface EventOut {
   matchday?: number | null;
   starts_on?: string | null;
   ends_on?: string | null;
-  status: string;
+  status: EventStatus;
   published?: boolean;
   series?: SeriesOut | null;
   venue?: VenueOut | null;
@@ -27,6 +28,7 @@ export interface EventOut {
   team_count: number;
   boat_count: number;
   flight_count: number;
+  races_per_flight?: number;
   crew_size: number;
   squad_min?: number;
   squad_max?: number;
