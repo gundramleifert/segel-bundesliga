@@ -147,9 +147,11 @@ def ensure(
 ) -> None:
     """:func:`check`, or a typed 403 (`app/problems.py`) naming what was required."""
     if not check(user, *relations, on=on):
+        required = sorted(str(r) for r in relations)
         raise Problem(
             403,
             code,
             title,
-            detail="Required: " + ", ".join(sorted(str(r) for r in relations)) + f" on {ref(on)}.",
+            detail="Required: " + ", ".join(required) + f" on {ref(on)}.",
+            required=required,
         )

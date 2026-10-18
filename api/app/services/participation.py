@@ -16,10 +16,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import Club, Event, RaceEntry, Team, TeamStatus
+from app.problems import Problem
 
 
-class ParticipationError(ValueError):
-    """A participation that isn't allowed to exist like this."""
+class ParticipationError(Problem):
+    """A participation that isn't allowed to exist like this — a typed 422."""
+
+    def __init__(self, code: str, title: str, **extra: object) -> None:
+        super().__init__(422, code, title, **extra)
 
 
 async def series_registrations(
@@ -82,8 +86,9 @@ async def squad_team(session: AsyncSession, team: Team) -> Team:
     registration = await series_registration(session, team.series_id, team.club_id)
     if registration is None:
         raise ParticipationError(
+            "squad-without-series-registration",
             "This club is entered in the event but isn't registered for its series — "
-            "so there's no squad."
+            "so there's no squad.",
         )
     return registration
 
@@ -128,8 +133,10 @@ async def new_event_entry(
         registration = await series_registration(session, event.series_id, club.id)
         if registration is None or registration.status != TeamStatus.ACCEPTED:
             raise ParticipationError(
+                "series-registration-required",
                 f"{club.short_name} isn't registered for this event's series. "
-                "Register for the series first, then enter the act."
+                "Register for the series first, then enter the act.",
+                club=club.short_name,
             )
 
     team = Team(

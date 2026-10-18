@@ -15,7 +15,6 @@ whether *these people* may sail for *this team*. Nothing here commits.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from enum import StrEnum
 from typing import NamedTuple
 
 from sqlalchemy import delete, select
@@ -23,31 +22,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import EventCrew, Sailor, Team, TeamMembership
 from app.models.org import CrewRole
-from app.services.participation import ParticipationError, squad_team
+from app.problems import Problem
+from app.services.participation import squad_team
 
 
 class LineupMember(NamedTuple):
     sailor_id: int
     role: CrewRole = CrewRole.CREW
-
-
-class LineupRefusal(StrEnum):
-    """Why a lineup was refused — the router words it."""
-
-    LINED_UP_TWICE = "lined-up-twice"
-    NO_SQUAD = "no-squad"
-    NOT_IN_SQUAD = "not-in-squad"
-    ELSEWHERE_LINED_UP = "elsewhere-lined-up"
-
-
-class LineupError(Exception):
-    """A lineup that breaks the rules; ``status`` is the HTTP status it answers with."""
-
-    def __init__(self, reason: LineupRefusal, status: int, message: str) -> None:
-        self.reason = reason
-        self.status = status
-        self.message = message
-        super().__init__(message)
 
 
 async def set_lineup(
@@ -61,13 +42,11 @@ async def set_lineup(
     """
     desired = {member.sailor_id: member.role for member in members}
     if len(desired) != len(members):
-        raise LineupError(LineupRefusal.LINED_UP_TWICE, 422, "A person is lined up twice.")
+        raise Problem(422, "lineup-duplicate-sailor", "A person is lined up twice.")
 
     if desired:
-        try:
-            squad = await squad_team(session, team)
-        except ParticipationError as error:
-            raise LineupError(LineupRefusal.NO_SQUAD, 422, str(error)) from error
+        # Without a series registration there is no squad: a typed 422 from there.
+        squad = await squad_team(session, team)
         await _from_squad(session, squad.id, set(desired))
         await _not_elsewhere_lined_up(session, event_id, team.id, set(desired))
 
@@ -105,12 +84,13 @@ async def _from_squad(session: AsyncSession, team_id: int, sailor_ids: set[int])
             select(Sailor.id, Sailor.first_name, Sailor.last_name).where(Sailor.id.in_(external))
         )
     ).all()
-    name_list = ", ".join(f"{first} {last}" for _, first, last in names)
-    description = name_list or ", ".join(map(str, external))
-    raise LineupError(
-        LineupRefusal.NOT_IN_SQUAD,
+    sailors = [f"{first} {last}" for _, first, last in names] or sorted(map(str, external))
+    raise Problem(
         422,
-        f"Not in this team's squad: {description}. Register first, then line up.",
+        "lineup-not-in-squad",
+        "Not in this team's squad. Register first, then line up.",
+        detail="Not in this team's squad: " + ", ".join(sailors) + ".",
+        sailors=sailors,
     )
 
 
@@ -132,8 +112,9 @@ async def _not_elsewhere_lined_up(
         .all()
     )
     if duplicates:
-        raise LineupError(
-            LineupRefusal.ELSEWHERE_LINED_UP,
+        raise Problem(
             409,
+            "lineup-sailor-elsewhere",
             "This person is already lined up for another team in this matchday.",
+            sailor_ids=sorted(duplicates),
         )

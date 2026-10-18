@@ -6,13 +6,21 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.routing import APIRoute
+from fastapi.routing import APIRoute, iter_route_contexts
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.auth import requires_sign_in
 from app.config import settings
 from app.jobs import jobs
 from app.live import hub
-from app.problems import CONTENT_TYPE, Problem, http_problem_body, problem_handler
+from app.problems import (
+    CONTENT_TYPE,
+    Operation,
+    Problem,
+    declare_problems,
+    http_problem_body,
+    problem_handler,
+)
 from app.routers import (
     admin,
     applications,
@@ -146,6 +154,31 @@ if settings.dev_login:
         "Disable this in any reachable environment."
     )
     app.include_router(dev.router)
+
+
+_default_openapi = app.openapi
+
+
+def _openapi_with_problems() -> dict:
+    """The OpenAPI document, with the problem responses each operation can give
+    (``app.problems.declare_problems``) — so the generated client and ``/docs`` show
+    ``application/problem+json`` rather than only FastAPI's validation error."""
+    schema = _default_openapi()
+    if not schema.get("x-problems-declared"):
+        declare_problems(
+            schema,
+            (
+                Operation(route.path, method, requires_sign_in(route.dependant))
+                for route in iter_route_contexts(app.routes)
+                if getattr(route, "dependant", None) is not None
+                for method in route.methods or ()
+            ),
+        )
+        schema["x-problems-declared"] = True
+    return schema
+
+
+app.openapi = _openapi_with_problems
 
 
 @app.get("/", tags=["operations"], summary="Entry point")

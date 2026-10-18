@@ -7,19 +7,18 @@ here is the one read the club's own people need: who belongs, and what each is t
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
 from app.auth import current_user
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.models import Club
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.schemas.public import ClubMemberOut
 from app.services import grants
+from app.services.lookup import get_or_404
 
 router = APIRouter(tags=["clubs"])
 
@@ -33,19 +32,13 @@ async def list_club_members(
     club_id: int,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> list[ClubMemberOut]:
     """Everyone with a ``member`` tuple on the club, with what else they are to it, so the
     organizers are recognizable. Display name only — contact data is the club admin's
     business (the People panel). Open to the club's own members and organizers and to
     staff; a stranger, or a member of a *different* club, gets 403.
     """
-    club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
-    if club is None:
-        raise HTTPException(
-            status_code=404,
-            detail=tr(locale, f"Club {club_id} not found", f"Verein {club_id} nicht gefunden"),
-        )
+    club = await get_or_404(session, Club, club_id)
     if not authz.check(acting, Relation.EDITOR) and not authz.check(
         acting, Relation.MEMBER, Relation.MANAGER, on=club
     ):

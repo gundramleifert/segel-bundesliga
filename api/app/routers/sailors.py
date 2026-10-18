@@ -24,7 +24,7 @@ from collections import Counter
 from datetime import date
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from PIL import Image, ImageOps
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
@@ -36,7 +36,6 @@ from app.auth import current_user, optional_user
 from app.authz import ObjectRef
 from app.config import settings
 from app.db import get_session
-from app.i18n import Locale, resolve_locale, tr
 from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
 from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
@@ -45,6 +44,7 @@ from app.problems import Problem
 from app.schemas.public import MemberOut
 from app.services import is_minor
 from app.services.contexts import require_linked_sailor
+from app.services.lookup import get_or_404
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
 me_router = APIRouter(prefix="/api/sailors", tags=["sailors"])
@@ -309,7 +309,6 @@ async def create_sailor(
     request: SailorCreate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> SailorAdminOut:
     """Create a person.
 
@@ -318,13 +317,11 @@ async def create_sailor(
     _can_manage_master_data(acting)
 
     if request.email and await _email_taken(session, request.email):
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=f"Email {request.email} is already taken. Emails are unique.",
-                de=f"Zu {request.email} ist schon jemand angelegt. Adressen sind eindeutig.",
-            ),
+        raise Problem(
+            409,
+            "email-taken",
+            f"Email {request.email} is already taken. Emails are unique.",
+            email=request.email,
         )
 
     sailor = Sailor(**request.model_dump())
@@ -339,7 +336,6 @@ async def update_sailor(
     request: SailorUpdate,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> SailorAdminOut:
     _can_manage_master_data(acting)
     sailor = await _sailor(session, sailor_id)
@@ -348,13 +344,8 @@ async def update_sailor(
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
     if email and await _email_taken(session, email, except_id=sailor.id):
-        raise HTTPException(
-            status_code=409,
-            detail=tr(
-                locale,
-                en=f"Email {email} is already taken. Emails are unique.",
-                de=f"Zu {email} ist schon jemand angelegt. Adressen sind eindeutig.",
-            ),
+        raise Problem(
+            409, "email-taken", f"Email {email} is already taken. Emails are unique.", email=email
         )
 
     for field, value in changes.items():
@@ -391,7 +382,6 @@ async def set_squad(
     request: SquadSetRequest,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-    locale: Locale = Depends(resolve_locale),
 ) -> SquadOut:
     """Registers the people who are allowed to compete for this team — Story V-1.
 
@@ -441,9 +431,9 @@ async def set_squad(
 
     if desired:
         await _all_exist(session, set(desired))
-        await _not_already_in_series(session, team, set(desired), locale)
+        await _not_already_in_series(session, team, set(desired))
 
-    await _not_removing_lined_up(session, team, set(desired), locale)
+    await _not_removing_lined_up(session, team, set(desired))
 
     await session.execute(delete(TeamMembership).where(TeamMembership.team_id == team.id))
     session.add_all(
@@ -683,9 +673,10 @@ def _can_manage_master_data(acting: User) -> None:
         acting, Relation.MANAGER, ObjectType.CLUB
     ):
         return
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Only administration, editorial staff, and club leadership can manage sailors.",
+    raise Problem(
+        403,
+        "sailor-manage-forbidden",
+        "Only administration, editorial staff, and club leadership can manage sailors.",
     )
 
 
@@ -718,25 +709,20 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
 def _can_manage_squad(acting: User, team: Team) -> None:
     if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, team.club_id)):
         return
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Only club leadership of the same club can manage the squad.",
+    raise Problem(
+        403,
+        "squad-manage-forbidden",
+        "Only club leadership of the same club can manage the squad.",
     )
 
 
 async def _sailor(session: AsyncSession, sailor_id: int) -> Sailor:
-    sailor = (
-        await session.execute(select(Sailor).where(Sailor.id == sailor_id))
-    ).scalar_one_or_none()
-    if sailor is None:
-        raise HTTPException(status_code=404, detail=f"Sailor {sailor_id} not found")
+    sailor = await get_or_404(session, Sailor, sailor_id)
     return sailor
 
 
 async def _team(session: AsyncSession, team_id: int) -> Team:
-    team = (await session.execute(select(Team).where(Team.id == team_id))).scalar_one_or_none()
-    if team is None:
-        raise HTTPException(status_code=404, detail=f"Team {team_id} not found")
+    team = await get_or_404(session, Team, team_id)
     return team
 
 
@@ -761,9 +747,7 @@ async def _all_exist(session: AsyncSession, sailor_ids: set[int]) -> None:
         )
 
 
-async def _not_already_in_series(
-    session: AsyncSession, team: Team, sailor_ids: set[int], locale: Locale
-) -> None:
+async def _not_already_in_series(session: AsyncSession, team: Team, sailor_ids: set[int]) -> None:
     """The core rule: once per series, for whichever club."""
     if team.series_id is None:
         return
@@ -793,9 +777,7 @@ async def _not_already_in_series(
         )
 
 
-async def _not_removing_lined_up(
-    session: AsyncSession, team: Team, staying: set[int], locale: Locale
-) -> None:
+async def _not_removing_lined_up(session: AsyncSession, team: Team, staying: set[int]) -> None:
     """People selected for a matchday cannot be removed from the squad."""
     current = set(
         (

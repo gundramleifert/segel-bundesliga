@@ -6,4 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ValidationErrorCtx = { [key: string]: unknown };
+/**
+ * English elaboration of this occurrence; for `/errors/validation` the per-field list.
+ */
+export type ProblemDetailsDetail = string | { [key: string]: unknown }[] | null;

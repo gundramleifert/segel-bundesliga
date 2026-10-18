@@ -57,9 +57,10 @@ export async function apiError(response: Response): Promise<ApiError> {
 /** What a generated hook's `error` is typed as.
  *
  * orval reads this name out of the mutator module and uses it for every `TError`. Without
- * it each hook would claim `HTTPValidationError` — the only failure FastAPI documents in
- * the schema — and a screen reading `error.code` would not compile even though that is
- * exactly what arrives: `http` throws {@link ApiError} and nothing else.
+ * it each hook would claim the raw `ProblemDetails` body the schema documents for its
+ * errors (`app.problems.declare_problems`), and a screen reading `error.code` would not
+ * compile even though that is exactly what arrives: `http` throws {@link ApiError}, which
+ * carries that body as `.problem`, and nothing else.
  */
 export type ErrorType<_E> = ApiError;
 

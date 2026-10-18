@@ -43,7 +43,7 @@ class TestSeriesCreation:
             json={"name": "Test Series 2028", "year": 2028},
         )
         assert second.status_code == 409
-        assert "taken" in second.json()["detail"]
+        assert second.json()["type"] == "/errors/slug-taken"
 
     async def test_scoring_that_would_break_the_standings_is_refused(self, client, caplog):
         # Every standings read parses the stored scoring; junk saved here would fail them
@@ -131,7 +131,7 @@ class TestSeriesCreation:
             json={"clubs": []},
         )
         assert response.status_code == 409
-        assert "race results" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/registration-has-results"
 
     async def test_unknown_club_is_reported(self, client, caplog):
         headers = await as_role(client, caplog, "se6@example.com", Role.ADMIN)
@@ -141,7 +141,8 @@ class TestSeriesCreation:
             json={"name": "Wrong Series 2028", "year": 2028, "clubs": [999999]},
         )
         assert response.status_code == 404
-        assert "999999" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/clubs-not-found"
+        assert response.json()["club_ids"] == [999999]
 
     async def test_admin_sees_all_years(self, client, caplog):
         """They plan ahead — not just the current year counts."""

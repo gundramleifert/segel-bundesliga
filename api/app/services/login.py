@@ -33,11 +33,18 @@ from app import authz
 from app.config import settings
 from app.mail import MailError, send_login_code
 from app.models.auth import Identity, IdentityProvider, LoginCode, ObjectType, Relation, User
+from app.problems import Problem
 from app.services import grants, passwords
 
 
-class LoginError(Exception):
-    """Sign-in failed — the message is meant for the end user."""
+class LoginError(Problem):
+    """Sign-in failed: a typed problem (``app/problems.py``), 401 unless said otherwise.
+
+    The ``code`` is what the sign-in screen words; the English ``title`` is for logs.
+    """
+
+    def __init__(self, code: str, title: str, *, status: int = 401, **extra: object) -> None:
+        super().__init__(status, code, title, **extra)
 
 
 @dataclass(frozen=True)
@@ -77,19 +84,26 @@ def _providers() -> dict[str, OidcProvider]:
 async def login_with_oidc(session: AsyncSession, provider_name: str, id_token: str) -> User:
     provider = _providers().get(provider_name)
     if provider is None:
-        raise LoginError(f"Unknown provider: {provider_name}")
+        raise LoginError(
+            "login-provider-unknown", f"Unknown provider: {provider_name}", provider=provider_name
+        )
     if not provider.client_id:
         raise LoginError(
+            "login-provider-unconfigured",
             f"No application ID is configured for {provider_name}. "
-            "Please add one to the configuration."
+            "Please add one to the configuration.",
+            provider=provider_name,
         )
 
     claims = await asyncio.to_thread(_verify_id_token, provider, id_token)
 
     if not claims.get("email"):
-        raise LoginError("The provider didn't supply an email address.")
+        raise LoginError("login-provider-no-email", "The provider didn't supply an email address.")
     if claims.get("email_verified") is False:
-        raise LoginError("The email address isn't confirmed with the provider.")
+        raise LoginError(
+            "login-provider-email-unverified",
+            "The email address isn't confirmed with the provider.",
+        )
 
     return await _resolve_user(
         session,
@@ -120,11 +134,17 @@ def _verify_id_token(provider: OidcProvider, id_token: str) -> dict:
             options=options,
         )
     except jwt.ExpiredSignatureError as exc:
-        raise LoginError("The provider's token has expired.") from exc
+        raise LoginError(
+            "login-provider-token-expired", "The provider's token has expired."
+        ) from exc
     except jwt.InvalidTokenError as exc:
-        raise LoginError("The provider's token is invalid.") from exc
+        raise LoginError(
+            "login-provider-token-invalid", "The provider's token is invalid."
+        ) from exc
     except Exception as exc:  # Network error while fetching keys
-        raise LoginError(f"The provider could not be reached: {exc}") from exc
+        raise LoginError(
+            "login-provider-unreachable", "The provider could not be reached.", detail=str(exc)
+        ) from exc
 
 
 async def request_email_code(session: AsyncSession, email: str) -> None:
@@ -176,14 +196,16 @@ async def verify_email_code(session: AsyncSession, email: str, code: str) -> Use
     ).scalar_one_or_none()
 
     if entry is None:
-        raise LoginError("This code has expired or was already used.")
+        raise LoginError("login-code-expired", "This code has expired or was already used.")
     if entry.attempts >= settings.otp_max_attempts:
-        raise LoginError("Too many failed attempts. Please request a new code.")
+        raise LoginError(
+            "login-code-attempts-exceeded", "Too many failed attempts. Please request a new code."
+        )
 
     if not await passwords.verify_secret(entry.code_hash, code.strip()):
         entry.attempts += 1
         await session.commit()
-        raise LoginError("That code isn't correct.")
+        raise LoginError("login-code-wrong", "That code isn't correct.")
 
     entry.consumed_at = now
     user = await _resolve_user(
@@ -228,14 +250,15 @@ async def _resolve_user(
     if user is None:
         if not settings.allow_self_signup:
             raise LoginError(
-                "There's no account for this address. Please contact the league office."
+                "login-account-unknown",
+                "There's no account for this address. Please contact the league office.",
             )
         user = User(email=email, display_name=display_name)
         session.add(user)
         await session.flush()
 
     if not user.is_active:
-        raise LoginError("This account is suspended.")
+        raise LoginError("login-account-suspended", "This account is suspended.")
 
     # Whoever proves themselves here has claimed the address — via a one-time code sent to
     # it, or via a provider that already verified it. That counts as a confirmed sign-up.
@@ -275,12 +298,12 @@ async def register(session: AsyncSession, email: str, display_name: str) -> None
     ``email_verified``.
     """
     if not settings.allow_registration:
-        raise LoginError("Self-registration is disabled.")
+        raise LoginError("registration-disabled", "Self-registration is disabled.", status=400)
 
     email = email.strip().lower()
     name = display_name.strip()
     if not name:
-        raise LoginError("Please provide a name.")
+        raise LoginError("registration-name-required", "Please provide a name.", status=400)
 
     user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if user is None:

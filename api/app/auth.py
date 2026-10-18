@@ -11,11 +11,13 @@ accepted.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import UTC, datetime, timedelta
 from typing import NamedTuple
 
 import jwt
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
+from fastapi.dependencies.models import Dependant
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +27,8 @@ from app.config import settings
 from app.db import get_session
 from app.models import Event, Series
 from app.models.auth import ObjectType, Relation, User
+from app.problems import Problem
+from app.services.lookup import get_or_404
 
 ALGORITHM = "HS256"
 
@@ -33,9 +37,8 @@ _scheme = HTTPBearer(auto_error=False)
 
 def _secret() -> str:
     if not settings.jwt_secret:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="No signing secret is configured (SBL_JWT_SECRET).",
+        raise Problem(
+            503, "signing-unconfigured", "No signing secret is configured (SBL_JWT_SECRET)."
         )
     return settings.jwt_secret
 
@@ -66,9 +69,10 @@ async def current_user(
     session: AsyncSession = Depends(get_session),
 ) -> User:
     if credentials is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sign-in is required for this area.",
+        raise Problem(
+            401,
+            "not-signed-in",
+            "Sign-in is required for this area.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     try:
@@ -78,14 +82,11 @@ async def current_user(
         # changes nothing about a genuinely expired session.
         payload = jwt.decode(credentials.credentials, _secret(), algorithms=[ALGORITHM], leeway=30)
     except jwt.ExpiredSignatureError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Your session has expired. Please sign in again.",
+        raise Problem(
+            401, "session-expired", "Your session has expired. Please sign in again."
         ) from exc
     except jwt.InvalidTokenError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token."
-        ) from exc
+        raise Problem(401, "token-invalid", "Invalid access token.") from exc
 
     # Roles are deliberately fetched fresh from the database: a revoked permission should
     # take effect immediately, not only when the token expires.
@@ -93,9 +94,7 @@ async def current_user(
         await session.execute(select(User).where(User.id == int(payload["sub"])))
     ).scalar_one_or_none()
     if user is None or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="This account is not active."
-        )
+        raise Problem(401, "account-inactive", "This account is not active.")
     return user
 
 
@@ -117,15 +116,27 @@ async def optional_user(
         return None
     try:
         return await current_user(credentials, session)
-    except HTTPException:
+    except Problem:
         return None
 
 
-def _forbidden(what: str, wanted) -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail=f"You lack the permission for {what}. Required: "
-        + ", ".join(sorted(str(r) for r in wanted)),
+def requires_sign_in(dependant: Dependant) -> bool:
+    """Whether a route's dependencies reach :func:`current_user` — every guard here
+    does, at any depth. Answers which operations can refuse with 401/403."""
+    return any(d.call is current_user or requires_sign_in(d) for d in dependant.dependencies)
+
+
+def forbidden(what: str, wanted: Iterable[Relation | str]) -> Problem:
+    """The typed 403 every guard answers with: code ``forbidden``, and the relations that
+    would have passed as the ``required`` extension member (``status``/``code`` are taken,
+    see docs/gotchas)."""
+    required = sorted(str(r) for r in wanted)
+    return Problem(
+        403,
+        "forbidden",
+        "You lack the permission for this.",
+        detail=f"You lack the permission for {what}. Required: " + ", ".join(required),
+        required=required,
     )
 
 
@@ -139,7 +150,7 @@ def require_site(*relations: Relation | str):
 
     async def dependency(user: User = Depends(current_user)) -> User:
         if not authz.check(user, *wanted):
-            raise _forbidden("this", wanted)
+            raise forbidden("this", wanted)
         return user
 
     return dependency
@@ -152,7 +163,7 @@ async def require_team_manager(user: User = Depends(current_user)) -> User:
         user, Relation.MANAGER, ObjectType.CLUB
     ):
         return user
-    raise _forbidden("this", ["manager on a club"])
+    raise forbidden("this", [Relation.ADMIN, Relation.MANAGER])
 
 
 def _on_object(model, path_param: str, *relations: Relation | str):
@@ -170,12 +181,9 @@ def _on_object(model, path_param: str, *relations: Relation | str):
         user: User = Depends(current_user),
         session: AsyncSession = Depends(get_session),
     ) -> User:
-        object_id = int(request.path_params[path_param])
-        obj = await session.get(model, object_id)
-        if obj is None:
-            raise HTTPException(status_code=404, detail=f"{model.__name__} {object_id} not found")
+        obj = await get_or_404(session, model, int(request.path_params[path_param]))
         if not authz.check(user, *wanted, on=obj):
-            raise _forbidden(f"this {model.__name__.lower()}", wanted)
+            raise forbidden(f"this {model.__name__.lower()}", wanted)
         return user
 
     return dependency

@@ -242,7 +242,7 @@ class TestDecidingOnApplications:
             f"/api/admin/applications/{raced[0]['team_id']}/reject", headers=admin
         )
         assert response.status_code == 409
-        assert "race results" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/participation-has-results"
 
     async def test_a_club_account_cannot_decide(self, client, caplog, ids):
         _admin, club, application = await self._antrag(
@@ -309,7 +309,7 @@ class TestEnteringAnEvent:
             json={"club_id": club["id"], "event_id": ids.event("dsbl-1-2026-act-3")},
         )
         assert response.status_code == 422
-        assert "isn't registered for this event's series" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/series-registration-required"
 
     async def test_an_approval_from_above_lifts_the_open_application(self, client, caplog, ids):
         """The admin assigns, no consent needed — and an open application is lifted by it.
@@ -414,7 +414,7 @@ class TestOnlyTheClubOrganizerRegisters:
             json={"club_id": club["id"], "series_id": ids.series("dsbl-1-2026")},
         )
         assert response.status_code == 403
-        assert "club officers" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/participant-registration-forbidden"
 
     async def test_the_race_committee_registers_nobody_either(self, client, caplog, ids):
         """They run the races — the club registers itself."""

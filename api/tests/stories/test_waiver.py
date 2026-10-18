@@ -383,16 +383,24 @@ class TestMinors:
 class TestProblemFormat:
     """Every error is RFC 9457 application/problem+json (docs/concepts.md → Errors)."""
 
-    async def test_a_plain_http_error_still_becomes_a_problem(self, client, caplog):
+    async def test_an_unknown_thing_is_a_typed_not_found(self, client, caplog):
         admin = await _admin(client, caplog)
         response = await client.post(
             "/api/series/999999/waiver", headers=admin, json={"sailor_id": 1}
         )
         assert response.status_code == 404
+        assert response.headers["content-type"].startswith("application/problem+json")
         body = response.json()
-        assert body["type"] == "/errors/http-404"
-        # The original message is preserved where clients already read it.
-        assert "999999" in body["detail"]
+        assert body["type"] == "/errors/series-not-found"
+        assert body["id"] == 999999
+
+    async def test_a_plain_http_error_still_becomes_a_problem(self, client):
+        """No router raises a plain HTTPException any more, but the framework does — an
+        unknown route is still answered as a problem, with the generic type."""
+        response = await client.get("/api/no-such-route")
+        assert response.status_code == 404
+        assert response.headers["content-type"].startswith("application/problem+json")
+        assert response.json()["type"] == "/errors/http-404"
 
     async def test_a_validation_error_is_typed(self, client, caplog, ids):
         admin = await _admin(client, caplog)

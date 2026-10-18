@@ -24,7 +24,6 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -34,6 +33,7 @@ from app.authz import ObjectRef
 from app.db import SessionLocal
 from app.models import Club, Event, Sailor, Series, Team, TeamMembership
 from app.models.auth import ObjectType, Relation, User
+from app.problems import Problem
 from app.services import grants
 
 #: The one club, series and event the cast is about.
@@ -173,7 +173,7 @@ def _report(club: Club, sailors: int, admin: User) -> None:
     # servers against a database that was in fact complete.
     try:
         token, _ = create_access_token(admin)
-    except HTTPException:
+    except Problem:
         print("\nNo SBL_JWT_SECRET is configured, so no example token is printed here.")
         print("Set one to sign in — the seeded data itself is complete either way.")
     else:
