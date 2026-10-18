@@ -344,6 +344,17 @@ else sits in `Layout`, which uses the same top row.
   picture no small text lies bare. Write a page's content once with these, never with `bg-white/10` or `text-slate-600`
   by hand: that is what made each page look different. On a page deeper, the
   sub-menu's pages and the matchday's tabs come from **`SubBar`** / **`LeagueSubBar`**.
+- **One column, one grid** (2026-10-18). The width belongs to the frame, never to the
+  content: a chapter, and a page deeper, has one column (`data-column`), and every block in
+  it spans that column — content sets no `max-w-*` (text *inside* a card may keep a
+  readable measure). Tiles and splits sit on one 12-column grid with one gap:
+  **`CardRow`** (1, 2, 3, 4 or 6 equal tiles; fewer tiles than columns share the row, so
+  it never ends in a gap) and **`Columns`** (`halves`, or `twoToOne` — which breaks where a
+  row of three does). A block that only stacks others says so with `data-flow`, so they
+  are measured too; one meant to be as wide as its content (a pill switch, the "more"
+  link) says `data-inline`. `e2e/visitor.spec.ts` › *one column, one grid* measures every
+  official page and names the block that breaks the rule — a hand-written `grid-cols-*`
+  or `max-w-*` in a chapter fails it.
 - **`Picture`** — a big picture as photo, fade, slide or muted video (`settings.ts`).
 - **`DevSwitch`** — the open variants, mounted by `SiteShell` wherever `DEV_TOOLS` is.
 - Content without a backend comes from **`web/src/content/`**, through hooks that return

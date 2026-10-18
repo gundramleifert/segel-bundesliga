@@ -87,11 +87,13 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
                   mode === "snap" ? "min-h-[calc(100dvh-57px)] snap-start" : ""
                 }`}
               >
-                {/* `chapter-wide` (index.css): every chapter's cards span the same column. */}
-                <div className={`chapter-wide mx-auto w-full max-w-6xl px-4 pr-14 text-white lg:pr-24 ${mode === "snap" ? "py-14" : "py-10"}`}>
+                {/* One column; every block in it spans it (`Cards.tsx`, "the grid"). */}
+                <div data-column className={`mx-auto w-full max-w-6xl px-4 pr-14 text-white lg:pr-24 ${mode === "snap" ? "py-14" : "py-10"}`}>
                   <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
-                  {c.body}
-                  {c.extra && <div className="mt-8">{c.extra}</div>}
+                  <div data-flow className="space-y-6">
+                    {c.body}
+                    {c.extra}
+                  </div>
                   {c.more && <MoreLink id={c.id} more={c.more} />}
                 </div>
               </section>
@@ -127,6 +129,7 @@ function MoreLink({ id, more }: { id: string; more: { to: string; label: string 
   return (
     <Link
       to={more.to}
+      data-inline
       data-testid={`site-chapter-${id}-more`}
       className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
     >

@@ -1,4 +1,4 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { Children, createContext, useContext, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { useSiteVersion } from "./settings";
@@ -156,18 +156,48 @@ export function TextCard({ children, className = "", testId }: { children: React
   );
 }
 
-/** Cards in a grid: one column on a phone, more as the screen grows. `minmax(0,1fr)`, not
- *  `1fr`: a long word would otherwise widen the page (Story A-10). */
-export function CardRow({ children, columns = 3, testId }: { children: ReactNode; columns?: 2 | 3 | 4 | 6; testId?: string }) {
-  const wide = {
-    2: "sm:grid-cols-2",
-    3: "sm:grid-cols-2 lg:grid-cols-3",
-    4: "sm:grid-cols-2 lg:grid-cols-4",
-    6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
-  }[columns];
+// ---------------------------------------------------------------- the grid
+//
+// **The width belongs to the frame, never to the content** (2026-10-18). A chapter, and a
+// page deeper, has one column; every block in it spans the column — content sets no
+// `max-w-*` of its own (text *inside* a card may keep a readable measure). Tiles and
+// column splits sit on one 12-column grid with one gap, so their edges line up from one
+// chapter to the next: 1, 2, 3, 4 or 6 equal tiles, or 2 : 1. `e2e/visitor.spec.ts` ›
+// "one column, one grid" measures every official page and names a block that breaks it.
+
+type Split = 1 | 2 | 3 | 4 | 6;
+
+/** The span of each tile, for 1–6 equal tiles, from a phone up. */
+const SPANS: Record<Split, string> = {
+  1: "[&>*]:col-span-12",
+  2: "[&>*]:col-span-12 sm:[&>*]:col-span-6",
+  3: "[&>*]:col-span-12 sm:[&>*]:col-span-6 lg:[&>*]:col-span-4",
+  4: "[&>*]:col-span-12 sm:[&>*]:col-span-6 lg:[&>*]:col-span-3",
+  6: "[&>*]:col-span-6 sm:[&>*]:col-span-4 lg:[&>*]:col-span-2",
+};
+
+/** Equal tiles in a row. `columns` is the most there are; fewer tiles than that take the
+ *  whole row between them, so a row never ends in an empty gap. */
+export function CardRow({ children, columns = 3, testId }: { children: ReactNode; columns?: Split; testId?: string }) {
+  const count = Children.toArray(children).length;
+  const split = ([1, 2, 3, 4, 6] as const).filter((n) => n <= Math.max(1, Math.min(count, columns))).pop() ?? 1;
   return (
-    <ul className={`grid gap-4 ${columns === 6 ? "" : "grid-cols-[minmax(0,1fr)]"} ${wide}`} data-testid={testId}>
+    <ul className={`grid grid-cols-12 gap-4 ${SPANS[columns === 6 ? 6 : split]}`} data-testid={testId} data-card-row>
       {children}
     </ul>
+  );
+}
+
+/** Blocks side by side on the same grid: `halves` (1 : 1) or `twoToOne` (2 : 1, which
+ *  breaks where a row of three does). One column on a phone. */
+export function Columns({ children, split = "halves", testId }: { children: ReactNode; split?: "halves" | "twoToOne"; testId?: string }) {
+  const spans =
+    split === "halves"
+      ? "[&>*]:col-span-12 lg:[&>*]:col-span-6"
+      : "[&>*]:col-span-12 lg:[&>*:first-child]:col-span-8 lg:[&>*:last-child]:col-span-4";
+  return (
+    <div className={`grid grid-cols-12 gap-4 ${spans}`} data-testid={testId} data-card-row={split === "halves" ? "" : undefined}>
+      {children}
+    </div>
   );
 }

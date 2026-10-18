@@ -7,7 +7,7 @@ import type { Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { StandingsTable } from "../../components/StandingsTable";
-import { Card, CardRow, MediaCard, Panel, TextCard, useTone } from "../../components/site/Cards";
+import { Card, CardRow, Columns, MediaCard, Panel, TextCard, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand } from "../../components/site/Frame";
 import { YouTubePlayer } from "../../components/site/Media";
 import {
@@ -53,7 +53,7 @@ export function StandingsPage() {
             {season.series.length ? (
               // One division under the other: with a column per act, two tables side by
               // side left each too narrow to read.
-              <div>
+              <>
                 {season.series.map((s) => (
                   <Block key={s.id} title={s.name} testId={`site-standings-${s.slug}`}>
                     <Panel>
@@ -61,7 +61,7 @@ export function StandingsPage() {
                     </Panel>
                   </Block>
                 ))}
-              </div>
+              </>
             ) : (
               <TextCard>{t("standings.noSeries")}</TextCard>
             )}
@@ -194,7 +194,7 @@ export function NoticeBoardPage() {
         const act = currentAct(acts);
         return (
           <DepthPage league={league} title={t("noticeBoard.season")} kicker={kickerOf(data)} photo={OWN_PHOTOS.title}>
-            <TextCard className="mb-8 max-w-3xl">
+            <TextCard className="mb-8">
               {t("noticeBoard.intro")}{" "}
               {act && year && (
                 <Link to={href.act(league.slug, year, act.slug, "notice-board")} className={tone.link}>
@@ -446,7 +446,7 @@ export function PressPage() {
     <LeagueGate>
       {({ league }) => (
         <DepthPage league={league} title={t("press.page")} kicker={league.short_name} photo={DSBL_PHOTOS.studio}>
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <Columns split="twoToOne">
             <Block title={t("press.releases")}>
               <Card className="px-4">
                 <Releases league={league.slug} />
@@ -464,7 +464,7 @@ export function PressPage() {
                 <p className={`text-sm ${tone.muted}`}>{PRESS_CONTACT}</p>
               </Card>
             </div>
-          </div>
+          </Columns>
         </DepthPage>
       )}
     </LeagueGate>
@@ -511,7 +511,7 @@ export function LeagueAboutPage() {
         <DepthPage league={league} title={t("about.title", { league: league.short_name })} kicker={league.name} photo={about?.photo ?? leaguePhoto(slug)}>
           {about ? (
             <>
-              <TextCard className="mb-10 max-w-3xl text-lg leading-relaxed">{localized(about.intro)}</TextCard>
+              <TextCard className="mb-10 text-lg leading-relaxed">{localized(about.intro)}</TextCard>
               <Block title={t("about.stake")}>
                 <CardRow>
                   {about.facts.map((f) => (
@@ -523,7 +523,7 @@ export function LeagueAboutPage() {
               </Block>
             </>
           ) : (
-            <TextCard className="max-w-3xl text-lg leading-relaxed">{league.tagline ?? league.name}</TextCard>
+            <TextCard className="text-lg leading-relaxed">{league.tagline ?? league.name}</TextCard>
           )}
         </DepthPage>
       )}

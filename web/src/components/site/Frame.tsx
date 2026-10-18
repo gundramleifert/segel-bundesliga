@@ -391,7 +391,7 @@ function BackdropFrame({ title, kicker, photo, children }: FrameProps) {
         {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">{kicker}</p>}
         <h1 className="mt-2 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">{title}</h1>
       </header>
-      <main id="content" className="relative mx-auto max-w-6xl px-4 pb-16 text-white">
+      <main id="content" data-column className="relative mx-auto max-w-6xl px-4 pb-16 text-white">
         <Surface kind="dark">{children}</Surface>
       </main>
     </>
@@ -529,7 +529,7 @@ export function Block({
 }) {
   const tone = useTone();
   return (
-    <section className="mb-12" data-testid={testId}>
+    <section className="mb-12" data-testid={testId} data-flow>
       <div className={`mb-4 flex items-end justify-between gap-4 border-b pb-2 ${tone.line}`}>
         <h2 className={`text-xl font-semibold tracking-tight ${tone.text}`}>{title}</h2>
         {more && (

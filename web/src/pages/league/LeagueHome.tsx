@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { getGetSeriesTableQueryOptions, useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
 import type { Series } from "../../api/types";
-import { Card, CardRow, GLASS, MediaCard, TextCard } from "../../components/site/Cards";
+import { Card, CardRow, Columns, GLASS, MediaCard, TextCard } from "../../components/site/Cards";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
 import { useSiteVersion } from "../../components/site/settings";
 import {
@@ -47,16 +47,13 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const chip = full
     ? `rounded-full px-4 py-2 ${GLASS} transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]`
     : "rounded-full border border-white/40 px-4 py-2 hover:bg-white/10";
-  const table = season.series.length ? (
-    <div className={`grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-4 ${several ? "md:grid-cols-2" : ""}`}>
-      {season.series.map((s) => (
-        <div key={s.id}>
-          <TopFive series={s} label={several ? s.name : undefined} />
-        </div>
-      ))}
-    </div>
+  const fives = season.series.map((s) => <TopFive key={s.id} series={s} label={several ? s.name : undefined} />);
+  const table = !season.series.length ? (
+    <TextCard>{t("standings.noSeries")}</TextCard>
+  ) : full ? (
+    several ? <Columns>{fives}</Columns> : fives[0]
   ) : (
-    <TextCard className="max-w-xl">{t("standings.noSeries")}</TextCard>
+    <div className={`grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-4 ${several ? "md:grid-cols-2" : ""}`}>{fives}</div>
   );
   // Each chapter is titled with its name — the word on its dot (Story B-14).
   const chapters: ChapterSpec[] = [
@@ -69,10 +66,10 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       // With the sub-menu: the table on the left, the year's matchdays beside it.
       body:
         full && acts.length > 0 ? (
-          <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2" data-testid="site-standings-split">
+          <Columns testId="site-standings-split">
             {table}
             <SeasonStrip league={l} acts={acts} year={year} />
-          </div>
+          </Columns>
         ) : (
           table
         ),
@@ -87,7 +84,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             photo: DSBL_PHOTOS.podium,
             more: { to: href.act(l, year, live.slug, "results"), label: t("now.resultsOf", { act: actTitle(live) }) },
             body: full ? (
-              <Card className="max-w-3xl p-5" testId="site-live-act">
+              <Card className="p-5" testId="site-live-act">
                 <p className="text-lg text-white/90">
                   {[
                     actTitle(live),
@@ -153,7 +150,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       photo: DSBL_PHOTOS.camera,
       more: { to: href.media(l), label: t("media.more") },
       body: full ? (
-        <TextCard className="max-w-xl">{t("media.preview", { count: videos.length })}</TextCard>
+        <TextCard>{t("media.preview", { count: videos.length })}</TextCard>
       ) : (
         <p className="max-w-xl text-lg text-white/80">{t("media.preview", { count: videos.length })}</p>
       ),
@@ -166,7 +163,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       photo: OWN_PHOTOS.title,
       more: { to: href.about(l), label: t("about.more") },
       body: (
-        <div className="max-w-3xl">
+        <div className={full ? "space-y-5" : "max-w-3xl"} data-flow={full || undefined}>
           {full ? (
             <TextCard className="text-lg leading-relaxed">{about ? localized(about.intro) : league.name}</TextCard>
           ) : (
@@ -208,7 +205,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             title: t("chapters.archive"),
             photo: DSBL_PHOTOS.aerial,
             body: (
-              <ul className="flex max-w-3xl flex-wrap gap-2" data-testid="site-archive-years">
+              <ul className={`flex flex-wrap gap-2 ${full ? "" : "max-w-3xl"}`} data-testid="site-archive-years">
                 {earlier.map((y) => (
                   <li key={y}>
                     <Link to={href.standings(l, y)} className={`block ${chip} text-lg font-semibold`}>

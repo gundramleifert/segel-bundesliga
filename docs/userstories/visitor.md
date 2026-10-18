@@ -390,6 +390,9 @@ Acceptance criteria:
   **No small text lies on a picture bare**: introductions, notes, the season's list, the
   running act, club names and links are cards or glass pills, and the glass really blurs
   what is behind it.
+- **One column, one grid** (2026-10-18): one chapter's cards never end where the next
+  one's go on. Every block spans its page's column, and tiles and columns share one
+  12-column grid, so their edges line up from chapter to chapter (`docs/components.md`).
 - **The league's name in the sub-menu is its overview** — there is no entry *Overview*
   beside it (it said the same twice). Without snapping a chapter is as tall as its content — the
   screen-high chapters of the snapping mode left half a screen of empty picture between

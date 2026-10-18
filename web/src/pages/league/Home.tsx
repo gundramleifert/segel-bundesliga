@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
-import { Card, CardRow, MediaCard, TextCard, useTone } from "../../components/site/Cards";
+import { Card, CardRow, Columns, MediaCard, TextCard, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
 import { useSiteVersion } from "../../components/site/settings";
@@ -40,7 +40,7 @@ export function AssociationHome() {
       // and what each is, on one card — the classic layout had a list here and the same
       // four leagues again as cards in the next chapter.
       body: full ? (
-        <ul className="grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="site-home-now">
+        <CardRow columns={4} testId="site-home-now">
           {leagues.map((l, i) => {
             const season = seasons[i]?.data;
             const act = season ? currentAct(actsOf(season)) : null;
@@ -62,7 +62,7 @@ export function AssociationHome() {
               </li>
             );
           })}
-        </ul>
+        </CardRow>
       ) : (
         <Card className="max-w-2xl px-4" testId="site-home-now">
           {leagues.map((l, i) => {
@@ -81,7 +81,7 @@ export function AssociationHome() {
         </Card>
       ),
       extra: full && (
-        <ul className="grid max-w-2xl grid-cols-3 gap-3" data-testid="site-home-figures">
+        <CardRow testId="site-home-figures">
           {(["competitions", "clubs", "since"] as const).map((k) => (
             <li key={k}>
               <Card className="h-full p-4">
@@ -90,7 +90,7 @@ export function AssociationHome() {
               </Card>
             </li>
           ))}
-        </ul>
+        </CardRow>
       ),
     },
     // The classic layout's second chapter; with the sub-menu it is part of the first.
@@ -147,12 +147,12 @@ export function AssociationHome() {
       title: t("chapters.forClubs"),
       photo: DSBL_PHOTOS.podium,
       body: full ? (
-        <TextCard className="max-w-2xl text-lg">{association ? localized(association.service) : null}</TextCard>
+        <TextCard className="text-lg">{association ? localized(association.service) : null}</TextCard>
       ) : (
         <p className="max-w-xl text-lg text-white/80">{association ? localized(association.service) : null}</p>
       ),
       extra: full && (
-        <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="site-home-services">
+        <CardRow testId="site-home-services">
           {(["pairing", "results", "live", "waivers", "expenses", "own"] as const).map((k) => (
             <li key={k}>
               <Card className="h-full p-4">
@@ -161,7 +161,7 @@ export function AssociationHome() {
               </Card>
             </li>
           ))}
-        </ul>
+        </CardRow>
       ),
     },
     {
@@ -172,7 +172,7 @@ export function AssociationHome() {
       more: { to: href.about(), label: t("home.aboutMore") },
       body: full ? (
         // On glass: the text and the board each a card, side by side on a wide screen.
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
+        <Columns>
           {association && (
             <TextCard>
               <p className="text-lg text-white">{t("home.founded", { date: localized(association.founded) })}</p>
@@ -195,7 +195,7 @@ export function AssociationHome() {
               ))}
             </ul>
           </Card>
-        </div>
+        </Columns>
       ) : (
         <div className="max-w-2xl">
           {association && <p className="text-lg text-white/80">{t("home.founded", { date: localized(association.founded) })}</p>}
@@ -231,7 +231,7 @@ export function AssociationAboutPage() {
     <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")} photo={OWN_PHOTOS.title}>
       {association && (
         <>
-          <TextCard className="mb-10 max-w-3xl">
+          <TextCard className="mb-10">
             <p className="text-lg leading-relaxed">{localized(association.history)}</p>
             <p className={`mt-3 ${tone.faint}`}>{localized(association.record)}</p>
           </TextCard>

@@ -362,6 +362,57 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page.getByTestId("site-depth-picture").locator("img").first()).not.toHaveAttribute("src", standings!);
   });
 
+  test("one column, one grid: every block spans the column, the tiles of a row are equal", async ({ page }) => {
+    // The concept of `components/site/Cards.tsx` ("the grid"): the width belongs to the
+    // frame, never to the content. Blocks set no width of their own, so one chapter's
+    // cards can no longer end where the next one's go on.
+    const pages = [
+      "/", "/1-liga", "/2-liga", STANDINGS, "/1-liga/season", "/1-liga/notice-board", "/1-liga/clubs",
+      "/1-liga/news", "/1-liga/news/nrv-takes-the-lead", "/1-liga/media", "/1-liga/press", "/1-liga/about",
+      "/about", FINISHED_ACT, `${FINISHED_ACT}/notice-board`, `${FINISHED_ACT}/crews`,
+    ];
+    for (const path of pages) {
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+      const { problems, checked } = await page.evaluate(() => {
+        const found: string[] = [];
+        let blocks = 0;
+        const name = (el: Element) =>
+          (el as HTMLElement).dataset.testid ?? `<${el.tagName.toLowerCase()} class="${el.className}">`.slice(0, 90);
+        for (const column of document.querySelectorAll<HTMLElement>("[data-column]")) {
+          const box = column.getBoundingClientRect();
+          if (!box.height) continue;
+          const style = getComputedStyle(column);
+          const left = box.left + parseFloat(style.paddingLeft);
+          const right = box.right - parseFloat(style.paddingRight);
+          // A block's children are checked too where it only stacks them (`data-flow`).
+          const check = (parent: Element) => {
+            for (const el of parent.children) {
+              const b = el.getBoundingClientRect();
+              if (!b.height || el.hasAttribute("data-inline") || getComputedStyle(el).display.startsWith("inline")) continue;
+              blocks++;
+              if (Math.abs(b.left - left) > 1 || Math.abs(b.right - right) > 1) {
+                found.push(`${name(el)} spans ${Math.round(b.left)}–${Math.round(b.right)}, its column ${Math.round(left)}–${Math.round(right)}`);
+              }
+              if (el.hasAttribute("data-flow")) check(el);
+            }
+          };
+          check(column);
+        }
+        for (const row of document.querySelectorAll("[data-card-row]")) {
+          const widths = new Set(
+            [...row.children].map((c) => c.getBoundingClientRect()).filter((b) => b.height).map((b) => Math.round(b.width)),
+          );
+          if (widths.size > 1) found.push(`${name(row)}: tiles of ${[...widths].join(", ")} px`);
+        }
+        return { problems: found, checked: blocks };
+      });
+      // A page that marks no column would pass by checking nothing.
+      expect(checked, `${path}: blocks measured`).toBeGreaterThan(0);
+      expect(problems, path).toEqual([]);
+    }
+  });
+
   test("the glass blurs the picture behind it — on the chapters too", async ({ page }) => {
     // Pixels, not the computed style: a mask on the chapters' scroller once made every
     // card's blur see nothing while backdrop-filter still read blur(32px) (docs/gotchas).
