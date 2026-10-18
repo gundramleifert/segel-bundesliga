@@ -362,6 +362,17 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page).toHaveURL(/\/1-liga\/season$/);
   });
 
+  test("a page deeper has a picture of its own behind it, and its content on a panel", async ({ page }) => {
+    await page.goto(STANDINGS);
+    await expect(page.getByTestId("site-depth-page")).toHaveAttribute("data-frame", "backdrop");
+    const picture = page.getByTestId("site-depth-picture");
+    const standings = await picture.locator("img").first().getAttribute("src");
+    await page.getByTestId("site-footer").scrollIntoViewIfNeeded();
+    expect((await picture.boundingBox())!.y).toBe(0);
+    await page.goto("/1-liga/season");
+    await expect(page.getByTestId("site-depth-picture").locator("img").first()).not.toHaveAttribute("src", standings!);
+  });
+
   test("the classic layout is still there when the DEV switch picks it", async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem("site.layout", "classic"));
     await page.goto("/1-liga");
@@ -377,7 +388,11 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     // The DEV button itself is only in builds with the dev tools (staging, the dev
     // server); the setting it writes is what decides the frame, so this sets it directly.
     for (const frame of ["band", "sheet", "split"]) {
-      await page.addInitScript((value) => window.localStorage.setItem("site.detail", value), frame);
+      // The variants A–C are the classic layout's; the sub-menu layout has its own frame.
+      await page.addInitScript((value) => {
+        window.localStorage.setItem("site.layout", "classic");
+        window.localStorage.setItem("site.detail", value);
+      }, frame);
       await page.goto(STANDINGS);
       await expect(page.getByTestId("site-depth-page")).toHaveAttribute("data-frame", frame);
       await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);

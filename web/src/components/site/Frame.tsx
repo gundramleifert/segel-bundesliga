@@ -253,10 +253,12 @@ export function LeagueSubBar({ league, marked, overlay = false }: { league: Leag
 export function Bars({ league, subnav }: { league: League | null; subnav?: ReactNode }) {
   const version = useSiteVersion();
   if (version === "classic") return <TopBar league={league} />;
+  // On the page's picture in white, as on the chapter page; shaded and blurred, because
+  // the white content scrolls under them.
   return (
-    <div className="sticky top-0 z-40">
-      <TopBar league={league} />
-      {subnav ?? <LeagueSubBar league={league} />}
+    <div className="sticky top-0 z-40 bg-slate-950/70 backdrop-blur-md">
+      <TopBar league={league} overlay floating={false} />
+      {subnav ?? <LeagueSubBar league={league} overlay />}
     </div>
   );
 }
@@ -317,14 +319,21 @@ type FrameProps = DepthProps & {
 export function DepthPage(props: DepthProps) {
   const mode = useDetailMode();
   const version = useSiteVersion();
-  const Frame = mode === "sheet" ? SheetFrame : mode === "split" ? SplitFrame : BandFrame;
+  const classic = version === "classic";
+  // The sub-menu layout has one frame of its own: the variants A–C are the classic one's.
+  const Frame = !classic ? BackdropFrame : mode === "sheet" ? SheetFrame : mode === "split" ? SplitFrame : BandFrame;
   return (
-    <div className="min-h-dvh bg-white text-slate-900" data-testid="site-depth-page" data-frame={mode} data-version={version}>
+    <div
+      className={`min-h-dvh text-slate-900 ${classic ? "bg-white" : "bg-slate-950"}`}
+      data-testid="site-depth-page"
+      data-frame={classic ? mode : "backdrop"}
+      data-version={version}
+    >
       {/* The top row names the association and every league on every page (Story B-13);
           the league's own pages sit in each frame's own place — under A's picture, at
           B's sheet edge, in C's left column. */}
       <Bars league={props.league} subnav={props.subnav} />
-      <Frame {...props} classic={version === "classic"} />
+      <Frame {...props} classic={classic} />
       <Footer />
     </div>
   );
@@ -350,6 +359,27 @@ function Crumbs({ league, light = true }: { league: League | null; light?: boole
         </>
       )}
     </nav>
+  );
+}
+
+/** The sub-menu layout's frame: the page's own picture fixed behind the whole page — as
+ *  behind the chapters, so a page deeper is no break in style — the kicker and title on
+ *  it in white, the content on a white panel that scrolls over it. */
+function BackdropFrame({ title, kicker, photo, children }: FrameProps) {
+  return (
+    <>
+      <div aria-hidden className="fixed inset-0" data-testid="site-depth-picture">
+        <Picture photo={photo ?? SLIDES[0]} />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 via-slate-950/35 to-slate-950/75" />
+      </div>
+      <header className="relative mx-auto max-w-6xl px-4 pb-10 pt-20 text-white sm:pt-32">
+        {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">{kicker}</p>}
+        <h1 className="mt-2 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">{title}</h1>
+      </header>
+      <main id="content" className="relative mx-auto max-w-6xl pb-16 sm:px-4">
+        <div className="rounded-t-3xl bg-white px-4 py-8 shadow-2xl sm:rounded-3xl sm:px-8 sm:py-10">{children}</div>
+      </main>
+    </>
   );
 }
 
@@ -526,7 +556,7 @@ export function Footer() {
   const { t: tc } = useTranslation();
   const leagues = useLeagues();
   return (
-    <footer className="border-t border-slate-200 bg-slate-50 text-sm text-slate-600" data-testid="site-footer">
+    <footer className="relative border-t border-slate-200 bg-slate-50 text-sm text-slate-600" data-testid="site-footer">
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-8 px-4 py-10 sm:grid-cols-3">
         {leagues.map((league) => (
           <div key={league.slug}>

@@ -377,7 +377,10 @@ Acceptance criteria:
   runs along with the chapters; *Overview* stays the page you are on.
 - **In that layout the picture stands still and only the text scrolls**: a chapter page
   has one picture behind all its chapters (photo, fade, slide or video, as before), a depth
-  page's picture is fixed behind its band. Without snapping a chapter is as tall as its content — the
+  page **has its own picture behind the whole page** too (changed 2026-10-18 — a white page
+  after the chapters read as a break in style): the rows and the title lie on it in white,
+  the content on a white panel that scrolls over it, and each page has a different picture.
+  The depth frames A–C are the classic layout's. Without snapping a chapter is as tall as its content — the
   screen-high chapters of the snapping mode left half a screen of empty picture between
   two.
 

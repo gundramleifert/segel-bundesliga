@@ -84,6 +84,7 @@ function MatchdayView({
   // its season, this act), the tabs beside it — the league's pages are a step up.
   const subnav = classic ? undefined : (
     <SubBar
+      overlay
       label={t("act.tabs")}
       testId="site-act-bar"
       crumbs={[

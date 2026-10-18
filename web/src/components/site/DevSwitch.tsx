@@ -34,7 +34,8 @@ export function DevSwitch() {
           <Segment label={t("dev.version")} value={version} options={SITE_VERSIONS} onChange={setSiteVersion} testId="site-dev-version" />
           <Segment label={t("dev.chapters")} value={chapters} options={CHAPTER_MODES} onChange={setChapterMode} testId="site-dev-chapters" />
           <Segment label={t("dev.pictures")} value={media} options={MEDIA_MODES} onChange={setMediaMode} testId="site-dev-media" />
-          <Segment label={t("dev.detail")} value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="site-dev-detail" />
+          {/* The depth page's variants are the classic layout's; the sub-menu has its own. */}
+          {version === "classic" && <Segment label={t("dev.detail")} value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="site-dev-detail" />}
         </div>
       )}
       <button

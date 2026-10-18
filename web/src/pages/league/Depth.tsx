@@ -11,6 +11,7 @@ import { Block, DepthPage, Expand } from "../../components/site/Frame";
 import { Img, YouTubePlayer } from "../../components/site/Media";
 import {
   DSBL_PHOTOS,
+  OWN_PHOTOS,
   PRESS_CONTACT,
   leaguePhoto,
   tableMarks,
@@ -184,7 +185,7 @@ export function NoticeBoardPage() {
         const { league, acts, year } = data;
         const act = currentAct(acts);
         return (
-          <DepthPage league={league} title={t("noticeBoard.season")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.studio}>
+          <DepthPage league={league} title={t("noticeBoard.season")} kicker={kickerOf(data)} photo={OWN_PHOTOS.title}>
             <p className="mb-8 max-w-2xl text-slate-600">
               {t("noticeBoard.intro")}{" "}
               {act && year && (
