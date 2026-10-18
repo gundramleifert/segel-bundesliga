@@ -42,8 +42,10 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import math
+import time
 from collections import defaultdict
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -157,6 +159,71 @@ class Hub:
         """
         for topic in list(self._queues):
             self._deliver(topic, None)
+
+
+class Coalescer:
+    """Runs ``work(key)`` at most once per ``interval`` seconds per key, however often asked.
+
+    Seven phones posting a batch every few seconds each must not cost seven full live
+    snapshots per interval (Story L-1): :meth:`request` only marks the key dirty, and one
+    in-process task per key does the work — at once when the key has been quiet for an
+    interval (the leading edge, so the first batch reaches spectators promptly), then once
+    more after the interval for everything that arrived meanwhile (the trailing edge, so
+    the last batch is never left unpublished). The task ends when nothing is dirty.
+
+    The same single-process cost as the hub and ``app/jobs.py``. ``clock`` and ``sleep``
+    are injectable so a test drives time instead of waiting for it.
+    """
+
+    def __init__(
+        self,
+        work: Callable[[int], Awaitable[None]],
+        interval: Callable[[], float],
+        *,
+        clock: Callable[[], float] = time.monotonic,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None:
+        self._work = work
+        self._interval = interval
+        self._clock = clock
+        self._sleep = sleep
+        self._dirty: set[int] = set()
+        self._last: dict[int, float] = {}
+        self._tasks: dict[int, asyncio.Task[None]] = {}
+
+    def request(self, key: int) -> None:
+        """Something changed for ``key``; its work will run, soon and once."""
+        self._dirty.add(key)
+        if key not in self._tasks:
+            self._tasks[key] = asyncio.create_task(self._run(key), name=f"coalesce:{key}")
+
+    async def _run(self, key: int) -> None:
+        try:
+            while key in self._dirty:
+                wait = self._last.get(key, -math.inf) + self._interval() - self._clock()
+                if wait > 0:
+                    await self._sleep(wait)
+                self._dirty.discard(key)
+                self._last[key] = self._clock()
+                try:
+                    await self._work(key)
+                except Exception:
+                    logger.exception("coalesced work for %s failed", key)
+        finally:
+            self._tasks.pop(key, None)
+
+    async def drain(self) -> None:
+        """Waits until every pending run has happened — for tests, and an orderly stop."""
+        while self._tasks:
+            await asyncio.gather(*list(self._tasks.values()), return_exceptions=True)
+
+    async def shutdown(self) -> None:
+        """Cancels pending runs; the next :meth:`request` starts afresh."""
+        tasks = list(self._tasks.values())
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        self._dirty.clear()
 
 
 def event_topic(event_id: int) -> str:

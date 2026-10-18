@@ -15,6 +15,7 @@ with the guardian's name and a reference to the signed statement on file.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date, datetime
 from typing import Literal
 
@@ -30,7 +31,6 @@ from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale
 from app.models import (
-    AuditLog,
     Club,
     Event,
     EventStatus,
@@ -46,19 +46,20 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
+from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_sailor
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
     STATUS_CLEARED,
+    Competition,
     SailorWaiver,
+    competition_status,
     discard_scan,
     event_reference_date,
-    sailor_competitions,
+    sailor_waivers,
     scan_media_type,
     scan_path,
     series_reference_date,
-    series_waiver_status,
-    series_waivers_status,
     store_scan,
 )
 
@@ -231,7 +232,7 @@ async def my_waivers(
     organizer's list would show. 404 `no-linked-sailor-record` when the account has no
     sailor, exactly as the profile does."""
     sailor = await require_linked_sailor(session, acting)
-    return await _waivers_of(session, sailor)
+    return await _waivers_of(session, sailor, await current_waiver_text(session))
 
 
 @router.get(
@@ -255,20 +256,17 @@ async def ward_waivers(
             .order_by(Sailor.first_name, Sailor.last_name)
         )
     ).scalars()
-    return [await _waivers_of(session, ward) for ward in wards]
-
-
-async def _waivers_of(session: AsyncSession, sailor: Sailor) -> MyWaivers:
-    """A sailor's competitions with their waiver status — for the sailor (S-1) and for
-    their guardian (S-8)."""
     required = await current_waiver_text(session)
+    return [await _waivers_of(session, ward, required) for ward in wards]
+
+
+async def _waivers_of(
+    session: AsyncSession, sailor: Sailor, required: WaiverText | None
+) -> MyWaivers:
+    """A sailor's competitions with their waiver status — for the sailor (S-1) and for
+    their guardian (S-8). ``required`` is read once per request by the caller."""
     rows: list[MyCompetitionWaiver] = []
-    for competition in await sailor_competitions(session, sailor):
-        if competition.series is not None:
-            judged = await series_waiver_status(session, competition.series, sailor)
-        else:
-            assert competition.event is not None
-            judged = (await event_waiver_status(session, competition.event, [sailor.id]))[sailor.id]
+    for competition, judged in await sailor_waivers(session, sailor, required):
         rows.append(
             MyCompetitionWaiver(
                 scope=competition.scope,  # type: ignore[arg-type]
@@ -307,7 +305,10 @@ async def waiver_form(
     if required is None:
         raise Problem(404, "no-waiver-published", "No liability waiver has been published yet.")
     name, reference_date = await _scope(session, scope, scope_id)
-    pdf = render_waiver_form(
+    # ReportLab is CPU work: off the event loop. The rows it reads are loaded already, and
+    # no session work happens in the thread.
+    pdf = await asyncio.to_thread(
+        render_waiver_form,
         text=required,
         sailor=sailor,
         competition=name,
@@ -522,14 +523,13 @@ async def get_waiver_scan(
         )
     path = scan_path(row.guardian_signature_ref)
     assert path is not None and row.guardian_signature_ref is not None
-    session.add(
-        AuditLog(
-            entity_type="waiver_scan",
-            entity_id=row.id,
-            action="viewed",
-            actor=acting.email,
-            payload={"sailor_id": sailor.id},
-        )
+    audit(
+        session,
+        EntityType.WAIVER_SCAN,
+        row.id,
+        "viewed",
+        acting,
+        sailor_id=sailor.id,
     )
     await session.commit()
     return FileResponse(
@@ -572,7 +572,9 @@ async def event_waivers(
 
     required = await current_waiver_text(session)
     people = await _squad_people(session, event)
-    status_by_id = await event_waiver_status(session, event, [pid for pid, _, _, _ in people])
+    status_by_id = await event_waiver_status(
+        session, event, [pid for pid, _, _, _ in people], required
+    )
 
     rows = [_row(first, last, status_by_id[pid], club=club) for pid, first, last, club in people]
     return EventWaiverList(
@@ -644,13 +646,13 @@ async def club_waivers(
     competitions: list[ClubCompetitionWaivers] = []
     for team_id, series in squads:
         sailors = members.get(team_id, [])
-        judged = await series_waivers_status(session, series, sailors, required)
+        judged = await competition_status(session, Competition.of_series(series), sailors, required)
         competitions.append(
             _competition("series", series.id, series.name, series.starts_on, sailors, judged)
         )
     for team_id, event in entries:
         sailors = members.get(team_id, [])
-        judged = await event_waiver_status(session, event, [s.id for s in sailors], required)
+        judged = await competition_status(session, Competition.of_event(event), sailors, required)
         competitions.append(
             _competition("event", event.id, event.title, event.starts_on, sailors, judged)
         )
@@ -833,10 +835,10 @@ def _status_fields(judged: SailorWaiver) -> dict:
     )
 
 
-def _validated_scan(raw: bytes, content_type: str | None) -> str:
+async def _validated_scan(raw: bytes, content_type: str | None) -> str:
     """The media type the bytes really are — or a ``waiver-scan-…`` refusal
     (``app/services/uploads.py``). A guardian's signature is not the place to guess."""
-    return uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
+    return await uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
 
 
 async def _attach_scan(
@@ -883,7 +885,7 @@ async def _attach_scan(
         )
 
     raw = await file.read()
-    media_type = _validated_scan(raw, file.content_type)
+    media_type = await _validated_scan(raw, file.content_type)
     name = (guardian_name or "").strip() or None
 
     where_scope = (
@@ -931,20 +933,17 @@ async def _attach_scan(
         if name is not None:
             row.guardian_name = name
     await session.flush()
-    session.add(
-        AuditLog(
-            entity_type="waiver_scan",
-            entity_id=row.id,
-            action=action,
-            actor=acting.email,
-            payload={
-                "sailor_id": sailor.id,
-                "scope": scope,
-                "scope_id": scope_id,
-                "media_type": media_type,
-                "bytes": len(raw),
-            },
-        )
+    audit(
+        session,
+        EntityType.WAIVER_SCAN,
+        row.id,
+        action,
+        acting,
+        sailor_id=sailor.id,
+        scope=scope,
+        scope_id=scope_id,
+        media_type=media_type,
+        bytes=len(raw),
     )
     await session.commit()
     return _out(row, scope, scope_id, required.version, cleared=True)

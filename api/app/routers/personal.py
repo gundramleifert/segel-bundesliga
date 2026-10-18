@@ -18,10 +18,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_user
 from app.db import get_session
-from app.models import AuditLog, BankAccount, DocumentKind, PersonalDocument
+from app.models import BankAccount, DocumentKind, PersonalDocument
 from app.models.auth import User
 from app.problems import Problem
 from app.services import uploads
+from app.services.audit import EntityType, audit
 from app.services.personal import DOCUMENTS, bic_for, checked_iban, may_see_documents
 
 router = APIRouter(tags=["personal"])
@@ -92,7 +93,7 @@ async def upload_my_document(
     if kind == DocumentKind.OTHER and title is None:
         raise Problem(422, "document-title-required", "Say what this document is.")
     raw = await file.read()
-    media_type = uploads.validated(raw, file.content_type, code="document", what="A document")
+    media_type = await uploads.validated(raw, file.content_type, code="document", what="A document")
     document = PersonalDocument(
         user_id=acting.id,
         kind=kind,
@@ -163,14 +164,13 @@ async def get_document_file(
     if not await may_see_documents(session, acting, document.user_id):
         raise _forbidden()
     if acting.id != document.user_id:
-        session.add(
-            AuditLog(
-                entity_type="personal_document",
-                entity_id=document.id,
-                action="viewed",
-                actor=acting.email,
-                payload={"owner_user_id": document.user_id},
-            )
+        audit(
+            session,
+            EntityType.PERSONAL_DOCUMENT,
+            document.id,
+            "viewed",
+            acting,
+            owner_user_id=document.user_id,
         )
         await session.commit()
     return FileResponse(

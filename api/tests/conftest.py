@@ -70,6 +70,11 @@ async def client(seeded):
         transport=ASGITransport(app=app), base_url="http://testserver"
     ) as client:
         yield client
+    # Live positions are published by a task after the ingest request answered (Story
+    # L-1); let it finish inside this test's loop rather than be destroyed with it.
+    from app.tracking.service import position_publisher
+
+    await position_publisher.drain()
 
 
 class Identifiers:

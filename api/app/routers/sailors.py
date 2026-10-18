@@ -18,6 +18,7 @@ See the docstring on `_save_photo` for the storage and minors-visibility design.
 
 from __future__ import annotations
 
+import asyncio
 import io
 from collections import Counter
 from datetime import date
@@ -494,7 +495,7 @@ async def upload_my_photo(
 ) -> SailorMeOut:
     sailor = await require_linked_sailor(session, acting)
     raw = await file.read()
-    _save_photo(sailor.id, raw, content_type=file.content_type)
+    await asyncio.to_thread(_save_photo, sailor.id, raw, content_type=file.content_type)
     return _me_out(sailor)
 
 

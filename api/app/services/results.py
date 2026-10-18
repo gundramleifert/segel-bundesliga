@@ -21,10 +21,11 @@ from typing import NamedTuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import AuditLog, Event
+from app.models import Event
 from app.models.racing import Boat, Race, RaceEntry, ResultCode
 from app.problems import Problem
 from app.services import race_state
+from app.services.audit import EntityType, audit
 from app.services.standings import recompute_after_change
 
 # Codes for which the underlying finish order (``finish_position``) is real and thus
@@ -186,25 +187,22 @@ async def record_results(
 
     overwrote_existing = seen_version is not None and seen_version != race.version
     if overwrote_existing:
-        session.add(
-            AuditLog(
-                entity_type="race",
-                entity_id=race.id,
-                action="result_overwrite",
-                actor=actor,
-                payload={
-                    "submitted_on_version": seen_version,
-                    "actual_version": race.version,
-                    "discarded_entries": {
-                        str(boat_number): {
-                            "code": entry_by_boat[boat_number].code,
-                            "finish_position": entry_by_boat[boat_number].finish_position,
-                            "redress_points": entry_by_boat[boat_number].redress_points,
-                        }
-                        for boat_number in updates
-                    },
-                },
-            )
+        audit(
+            session,
+            EntityType.RACE,
+            race.id,
+            "result_overwrite",
+            actor,
+            submitted_on_version=seen_version,
+            actual_version=race.version,
+            discarded_entries={
+                str(boat_number): {
+                    "code": entry_by_boat[boat_number].code,
+                    "finish_position": entry_by_boat[boat_number].finish_position,
+                    "redress_points": entry_by_boat[boat_number].redress_points,
+                }
+                for boat_number in updates
+            },
         )
 
     for boat_number, (code, position, redress_points) in updates.items():

@@ -33,6 +33,7 @@ from app.routers import (
     tracking,
     waivers,
 )
+from app.tracking.service import position_publisher
 
 
 @asynccontextmanager
@@ -41,6 +42,7 @@ async def lifespan(_: FastAPI):
     # Cancel running optimizations cleanly instead of cutting them off mid-run, and end
     # every open live stream — otherwise the server waits on them before it stops.
     await jobs.shutdown()
+    await position_publisher.shutdown()
     await hub.shutdown()
 
 

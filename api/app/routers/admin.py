@@ -14,7 +14,7 @@ from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.jobs import Job, JobStatus, jobs
 from app.live import event_topic, hub
-from app.models import AuditLog, Event
+from app.models import Event
 from app.models.auth import User
 from app.models.org import Team
 from app.models.racing import (
@@ -61,6 +61,7 @@ from app.services import (
     require_editable_configuration,
     require_ready,
 )
+from app.services.audit import EntityType, audit
 from app.services.lookup import get_or_404
 from app.services.pairing_service import (
     PairingDraft,
@@ -730,17 +731,14 @@ async def put_team_penalty(
         )
     note = (request.note or "").strip() or None
     points = request.points
-    session.add(
-        AuditLog(
-            entity_type="team",
-            entity_id=team.id,
-            action="penalty",
-            actor=acting.email,
-            payload={
-                "before": {"points": team.penalty_points, "note": team.penalty_note},
-                "after": {"points": points, "note": note if points is not None else None},
-            },
-        )
+    audit(
+        session,
+        EntityType.TEAM,
+        team.id,
+        "penalty",
+        acting,
+        before={"points": team.penalty_points, "note": team.penalty_note},
+        after={"points": points, "note": note if points is not None else None},
     )
     team.penalty_points = points
     team.penalty_note = note if points is not None else None

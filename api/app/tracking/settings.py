@@ -87,6 +87,10 @@ class TrackingSettings(BaseSettings):
     idle_lookback_s: float = 600.0
     #: How long the picture stays on a finished race when nothing is running.
     linger_s: float = 900.0
+    #: At most one live snapshot is computed and sent per event this often, however many
+    #: phones post meanwhile: the first batch after a quiet spell goes out at once, the
+    #: rest are folded into one more snapshot when the interval is up.
+    publish_interval_s: float = 1.0
 
     @property
     def zone_radius_m(self) -> float:
