@@ -7,7 +7,7 @@ import type { Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { StandingsTable } from "../../components/StandingsTable";
-import { Card, CardRow, MediaCard, Panel, useTone } from "../../components/site/Cards";
+import { Card, CardRow, MediaCard, Panel, TextCard, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand } from "../../components/site/Frame";
 import { YouTubePlayer } from "../../components/site/Media";
 import {
@@ -63,7 +63,7 @@ export function StandingsPage() {
                 ))}
               </div>
             ) : (
-              <p className={tone.faint}>{t("standings.noSeries")}</p>
+              <TextCard>{t("standings.noSeries")}</TextCard>
             )}
             {season.years.length > 1 && (
               <Block title={t("standings.archive")}>
@@ -128,7 +128,7 @@ export function SeasonPage() {
         return (
           <DepthPage league={league} title={t("pages.season")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.aerial}>
             <Block title={t("season.matchdays")}>
-              {!acts.length && <p className={tone.faint}>{t("season.empty")}</p>}
+              {!acts.length && <TextCard>{t("season.empty")}</TextCard>}
               {acts.length > 0 && <Card className="px-4">
               {acts.map((act) => (
                 <Expand
@@ -170,7 +170,7 @@ export function SeasonPage() {
               </Card>}
             </Block>
             <Block title={t("noticeBoard.season")} more={{ to: href.noticeBoard(league.slug), label: t("noticeBoard.all") }}>
-              <p className={tone.muted}>{t("noticeBoard.seasonPreview")}</p>
+              <TextCard>{t("noticeBoard.seasonPreview")}</TextCard>
             </Block>
           </DepthPage>
         );
@@ -194,14 +194,14 @@ export function NoticeBoardPage() {
         const act = currentAct(acts);
         return (
           <DepthPage league={league} title={t("noticeBoard.season")} kicker={kickerOf(data)} photo={OWN_PHOTOS.title}>
-            <p className={`mb-8 max-w-2xl ${tone.muted}`}>
+            <TextCard className="mb-8 max-w-3xl">
               {t("noticeBoard.intro")}{" "}
               {act && year && (
                 <Link to={href.act(league.slug, year, act.slug, "notice-board")} className={tone.link}>
                   {t("noticeBoard.ofAct", { act: actTitle(act) })} →
                 </Link>
               )}
-            </p>
+            </TextCard>
             <SeasonDocuments league={league.slug} render={(group) => (
               <Card key={localized(group.title)} className="mb-4 px-4">
                 <Expand open summary={<span className="font-semibold">{localized(group.title)}</span>}>
@@ -250,12 +250,11 @@ export function DocList({ docs }: { docs: string[] }) {
 /** `/:league/clubs` — the clubs of each division, each leading to its own page. */
 export function ClubsPage() {
   const { t } = useTranslation("site");
-  const tone = useTone();
   return (
     <LeagueGate>
       {(data) => (
         <DepthPage league={data.league} title={t("pages.clubs")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.race}>
-          {!data.season.series.length && <p className={tone.faint}>{t("clubs.none")}</p>}
+          {!data.season.series.length && <TextCard>{t("clubs.none")}</TextCard>}
           {data.season.series.map((s) => (
             <Block key={s.id} title={s.name}>
               <DivisionClubs series={s} />
@@ -271,7 +270,7 @@ function DivisionClubs({ series }: { series: Series }) {
   const { t } = useTranslation("site");
   const tone = useTone();
   const clubs = useClubsOf([series]);
-  if (!clubs.length) return <p className={tone.faint}>{t("clubs.none")}</p>;
+  if (!clubs.length) return <TextCard>{t("clubs.none")}</TextCard>;
   return (
     <CardRow columns={6} testId={`site-clubs-${series.slug}`}>
       {clubs.map((club) => (
@@ -401,7 +400,6 @@ export function MediaPage() {
 
 export function MediaContent({ league, limit }: { league: string; limit?: number }) {
   const { t } = useTranslation("site");
-  const tone = useTone();
   const videos = useVideos(league);
   const gallery = useGallery(league);
   return (
@@ -430,7 +428,7 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
                   </li>
                 ))}
               </CardRow>
-              <p className={`mt-3 text-xs ${tone.faint}`}>{t("media.credits")}</p>
+              <TextCard className="mt-4 text-xs">{t("media.credits")}</TextCard>
             </>
           )}
         </Async>
@@ -513,7 +511,7 @@ export function LeagueAboutPage() {
         <DepthPage league={league} title={t("about.title", { league: league.short_name })} kicker={league.name} photo={about?.photo ?? leaguePhoto(slug)}>
           {about ? (
             <>
-              <p className={`mb-10 max-w-3xl text-lg leading-relaxed ${tone.muted}`}>{localized(about.intro)}</p>
+              <TextCard className="mb-10 max-w-3xl text-lg leading-relaxed">{localized(about.intro)}</TextCard>
               <Block title={t("about.stake")}>
                 <CardRow>
                   {about.facts.map((f) => (
@@ -525,7 +523,7 @@ export function LeagueAboutPage() {
               </Block>
             </>
           ) : (
-            <p className={`max-w-3xl text-lg leading-relaxed ${tone.muted}`}>{league.tagline ?? league.name}</p>
+            <TextCard className="max-w-3xl text-lg leading-relaxed">{league.tagline ?? league.name}</TextCard>
           )}
         </DepthPage>
       )}

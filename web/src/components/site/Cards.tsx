@@ -16,6 +16,9 @@ import { useSiteVersion } from "./settings";
 
 export type SurfaceKind = "dark" | "light";
 
+/** The glass itself, from the look's variables (index.css). */
+export const GLASS = "bg-[rgb(2_6_23/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]";
+
 const SurfaceContext = createContext<SurfaceKind | null>(null);
 
 /** Says what the content inside lies on. */
@@ -36,15 +39,14 @@ export function useTone() {
     faint: dark ? "text-[rgb(255_255_255/calc(var(--site-text)-0.2))]" : "text-slate-500",
     line: dark ? "border-white/15" : "border-slate-200",
     link: dark ? "font-medium text-white underline-offset-4 hover:underline" : "font-medium text-brand-700 hover:underline",
-    /** A small rounded link — a year, a tab of an act. */
+    /** A small rounded link — a year, a tab of an act. Glass over a picture: no small
+     *  text lies on a photo bare. */
     chip: dark
-      ? "rounded-full border border-white/30 px-3.5 py-1.5 text-white/90 hover:bg-white/10"
+      ? `rounded-full px-3.5 py-1.5 text-white ${GLASS} transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]`
       : "rounded-full border border-slate-200 px-3.5 py-1.5 text-slate-700 hover:border-slate-400",
     chipOn: dark ? "rounded-full bg-white px-3.5 py-1.5 text-slate-950" : "rounded-full bg-slate-900 px-3.5 py-1.5 text-white",
     /** The card itself, without padding. */
-    card: dark
-      ? "rounded-2xl bg-[rgb(2_6_23/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]"
-      : "rounded-2xl border border-slate-200 bg-white",
+    card: dark ? `rounded-2xl ${GLASS}` : "rounded-2xl border border-slate-200 bg-white",
     cardHover: dark
       ? "transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]"
       : "transition hover:border-slate-400 hover:shadow-sm",
@@ -140,6 +142,17 @@ export function Panel({ children, className = "", testId }: { children: ReactNod
     >
       <Surface kind="light">{children}</Surface>
     </div>
+  );
+}
+
+/** Text on its own — an introduction, a note, a line of facts — on a card, because over a
+ *  picture no text is left bare. */
+export function TextCard({ children, className = "", testId }: { children: ReactNode; className?: string; testId?: string }) {
+  const tone = useTone();
+  return (
+    <Card className={`p-4 sm:p-5 ${tone.muted} ${className}`} testId={testId}>
+      {children}
+    </Card>
   );
 }
 

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { getGetSeriesTableQueryOptions, useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
 import type { Series } from "../../api/types";
-import { Card, CardRow, MediaCard } from "../../components/site/Cards";
+import { Card, CardRow, GLASS, MediaCard, TextCard } from "../../components/site/Cards";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
 import { useSiteVersion } from "../../components/site/settings";
 import {
@@ -43,18 +43,20 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const several = season.series.length > 1;
   const l = league.slug;
 
-  const chip = "rounded-full border border-white/40 px-4 py-2 hover:bg-white/10";
+  // With the sub-menu no small text lies on the picture bare: links are glass pills.
+  const chip = full
+    ? `rounded-full px-4 py-2 ${GLASS} transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]`
+    : "rounded-full border border-white/40 px-4 py-2 hover:bg-white/10";
   const table = season.series.length ? (
     <div className={`grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-4 ${several ? "md:grid-cols-2" : ""}`}>
       {season.series.map((s) => (
         <div key={s.id}>
-          {several && <p className="mb-2 text-sm font-semibold text-white/80">{s.name}</p>}
-          <TopFive series={s} />
+          <TopFive series={s} label={several ? s.name : undefined} />
         </div>
       ))}
     </div>
   ) : (
-    <p className="text-white/70">{t("standings.noSeries")}</p>
+    <TextCard className="max-w-xl">{t("standings.noSeries")}</TextCard>
   );
   // Each chapter is titled with its name — the word on its dot (Story B-14).
   const chapters: ChapterSpec[] = [
@@ -84,7 +86,25 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             title: t("chapters.results"),
             photo: DSBL_PHOTOS.podium,
             more: { to: href.act(l, year, live.slug, "results"), label: t("now.resultsOf", { act: actTitle(live) }) },
-            body: (
+            body: full ? (
+              <Card className="max-w-3xl p-5" testId="site-live-act">
+                <p className="text-lg text-white/90">
+                  {[
+                    actTitle(live),
+                    actDates(live),
+                    locationText(live.first),
+                    live.first.host_club ? t("hostedBy", { host: live.first.host_club.name }) : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+                <div className="my-5 flex flex-wrap gap-2 text-sm">
+                  <Link to={href.act(l, year, live.slug, "live")} className="rounded-full bg-white/15 px-4 py-2 hover:bg-white/25">{t("tabs.live")}</Link>
+                  <Link to={href.act(l, year, live.slug, "notice-board")} className="rounded-full bg-white/15 px-4 py-2 hover:bg-white/25">{t("tabs.notice-board")}</Link>
+                </div>
+                <LiveProgress eventId={live.first.id} />
+              </Card>
+            ) : (
               <>
                 <p className="max-w-xl text-lg text-white/80">
                   {[
@@ -102,7 +122,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
                 </div>
               </>
             ),
-            extra: <LiveProgress eventId={live.first.id} />,
           } satisfies ChapterSpec,
         ]
       : []),
@@ -133,7 +152,11 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       title: t("chapters.media"),
       photo: DSBL_PHOTOS.camera,
       more: { to: href.media(l), label: t("media.more") },
-      body: <p className="max-w-xl text-lg text-white/80">{t("media.preview", { count: videos.length })}</p>,
+      body: full ? (
+        <TextCard className="max-w-xl">{t("media.preview", { count: videos.length })}</TextCard>
+      ) : (
+        <p className="max-w-xl text-lg text-white/80">{t("media.preview", { count: videos.length })}</p>
+      ),
       extra: <VideoTiles league={l} videos={videos} />,
     },
     {
@@ -144,7 +167,11 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       more: { to: href.about(l), label: t("about.more") },
       body: (
         <div className="max-w-3xl">
-          <p className="text-lg text-white/80">{about ? localized(about.intro) : league.name}</p>
+          {full ? (
+            <TextCard className="text-lg leading-relaxed">{about ? localized(about.intro) : league.name}</TextCard>
+          ) : (
+            <p className="text-lg text-white/80">{about ? localized(about.intro) : league.name}</p>
+          )}
           {full && about && about.facts.length > 0 && (
             <div className="mt-6">
               <CardRow testId="site-about-facts">
@@ -159,7 +186,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
           {clubs.length > 0 && (
             <ul className="mt-5 flex flex-wrap gap-2" data-testid="site-about-clubs">
               {clubs.slice(0, 36).map((c) => (
-                <li key={c.id} className="rounded-full bg-white/10 px-3 py-1 text-sm backdrop-blur">
+                <li key={c.id} className={`rounded-full px-3 py-1 text-sm ${full ? GLASS : "bg-white/10 backdrop-blur"}`}>
                   {c.short_name}
                 </li>
               ))}
@@ -204,9 +231,15 @@ function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
   return (
-    <div data-testid="site-season-strip">
-      <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-white/60">{t("season.calendar", { year: year ?? "" })}</p>
-      <ol className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-1">
+    // One card, like the table beside it: its label and its link inside, no text bare.
+    <Card className="px-4" testId="site-season-strip">
+      <p className="flex items-baseline justify-between gap-3 border-b border-white/10 py-2.5 text-sm">
+        <span className="font-semibold uppercase tracking-widest text-white/70">{t("season.calendar", { year: year ?? "" })}</span>
+        <Link to={href.season(league)} className="font-medium text-white/80 hover:text-white hover:underline">
+          {t("season.more")} →
+        </Link>
+      </p>
+      <ol className="divide-y divide-white/10">
         {acts.map((a) => {
           const inner = (
             <>
@@ -219,17 +252,18 @@ function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year
           );
           return (
             <li key={a.slug}>
-              <Card to={year ? href.act(league, year, a.slug) : undefined} className="flex items-center gap-3 px-4 py-2.5">
-                {inner}
-              </Card>
+              {year ? (
+                <Link to={href.act(league, year, a.slug)} className="flex items-center gap-3 py-2.5 hover:text-white/80">
+                  {inner}
+                </Link>
+              ) : (
+                <div className="flex items-center gap-3 py-2.5">{inner}</div>
+              )}
             </li>
           );
         })}
       </ol>
-      <Link to={href.season(league)} className="mt-3 inline-block text-sm font-medium text-white/80 hover:text-white hover:underline">
-        {t("season.more")} →
-      </Link>
-    </div>
+    </Card>
   );
 }
 
@@ -261,7 +295,8 @@ export function NewsTiles({ items, rest = [], link }: { items: Article[]; rest?:
         ))}
       </CardRow>
       {rest.length > 0 && (
-        <ul className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-2 sm:grid-cols-3">
+        <Card className="mt-4 p-4">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-3 sm:grid-cols-3">
           {rest.map((n) => (
             <li key={n.slug}>
               <Link to={link(n)} className="block border-l-2 border-white/40 pl-3 text-sm hover:border-white">
@@ -271,6 +306,7 @@ export function NewsTiles({ items, rest = [], link }: { items: Article[]; rest?:
             </li>
           ))}
         </ul>
+        </Card>
       )}
     </div>
   );
@@ -290,14 +326,15 @@ function VideoTiles({ league, videos }: { league: string; videos: Video[] }) {
 }
 
 /** The first five of a division, on the picture. */
-function TopFive({ series }: { series: Series }) {
+function TopFive({ series, label }: { series: Series; label?: string }) {
   const { t } = useTranslation("site");
   const table = useGetSeriesTable(series.id).data;
   const rows = (table?.rows ?? []).filter((r) => (r.events_sailed ?? 0) > 0).slice(0, 5);
   if (!table) return <div className="h-48 animate-pulse rounded-2xl bg-white/10" />;
-  if (!rows.length) return <p className="text-white/70">{t("standings.notYet")}</p>;
+  if (!rows.length) return <TextCard>{label ? `${label}: ` : ""}{t("standings.notYet")}</TextCard>;
   return (
     <Card className="px-4">
+    {label && <p className="border-b border-white/10 py-2.5 text-sm font-semibold uppercase tracking-widest text-white/70">{label}</p>}
     <ol className="divide-y divide-white/10" data-testid={`site-top-five-${series.slug}`}>
       {rows.map((row) => (
         <li key={row.team.id} className="flex items-center gap-3 py-2">

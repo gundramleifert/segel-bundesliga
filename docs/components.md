@@ -340,7 +340,8 @@ else sits in `Layout`, which uses the same top row.
   How dark and blurred the glass is, how far the picture is darkened and how strong the
   secondary text is are CSS variables (`--site-card-alpha`, `--site-card-blur`,
   `--site-shade`, `--site-text` in `index.css`), tuned live with the DEV switch's sliders.
-  Write a page's content once with these, never with `bg-white/10` or `text-slate-600`
+  **`TextCard`** puts a text of its own (an introduction, a note) on a card: over a
+  picture no small text lies bare. Write a page's content once with these, never with `bg-white/10` or `text-slate-600`
   by hand: that is what made each page look different. On a page deeper, the
   sub-menu's pages and the matchday's tabs come from **`SubBar`** / **`LeagueSubBar`**.
 - **`Picture`** — a big picture as photo, fade, slide or muted video (`settings.ts`).

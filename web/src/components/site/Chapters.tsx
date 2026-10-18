@@ -64,8 +64,10 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
         <div
           ref={scroller}
           tabIndex={-1}
-          // The text fades out under the rows rather than ending at a hard line.
-          className={`scrollbar-none absolute inset-0 overflow-y-auto outline-none [mask-image:linear-gradient(to_bottom,transparent,black_2rem)] ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
+          // No mask to fade the text out under the row: a mask makes this box a backdrop
+          // root, and every card's blur inside it then sees nothing of the picture behind
+          // (docs/gotchas).
+          className={`scrollbar-none absolute inset-0 overflow-y-auto outline-none ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
           data-testid="site-chapters"
           data-league={league?.slug}
           data-version="submenu"

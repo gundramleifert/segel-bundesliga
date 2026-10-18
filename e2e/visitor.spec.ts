@@ -362,6 +362,31 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page.getByTestId("site-depth-picture").locator("img").first()).not.toHaveAttribute("src", standings!);
   });
 
+  test("the glass blurs the picture behind it — on the chapters too", async ({ page }) => {
+    // Pixels, not the computed style: a mask on the chapters' scroller once made every
+    // card's blur see nothing while backdrop-filter still read blur(32px) (docs/gotchas).
+    for (const [path, card] of [
+      ["/1-liga", page.getByTestId("site-season-strip")],
+      ["/1-liga/clubs", page.locator('[data-testid^="site-clubs-"] a').first()],
+    ] as const) {
+      await page.goto(path);
+      await expect(card).toBeVisible();
+      // Every picture loaded, or the two shots differ because the photo arrived between
+      // them — which is how this test first passed with the bug in place.
+      await page.waitForFunction(() =>
+        [...document.querySelectorAll<HTMLImageElement>('[data-testid$="-picture"] img')].every((img) => img.complete),
+      );
+      const look = async (blur: string) => {
+        await page.evaluate((v) => document.documentElement.style.setProperty("--site-card-blur", v), blur);
+        await page.waitForTimeout(300);
+        return card.screenshot({ animations: "disabled" });
+      };
+      const sharp = await look("0px");
+      expect(Buffer.compare(sharp, await look("0px")), `${path}: the same look twice`).toBe(0);
+      expect(Buffer.compare(sharp, await look("32px")), `${path}: blurred`).not.toBe(0);
+    }
+  });
+
   test("the classic layout is still there when the DEV switch picks it", async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem("site.layout", "classic"));
     await page.goto("/1-liga");

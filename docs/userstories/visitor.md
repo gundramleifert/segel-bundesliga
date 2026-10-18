@@ -387,6 +387,9 @@ Acceptance criteria:
   results, pairing list and crews). The media page's videos and photos are the chapter's
   video cards. **The DEV switch tunes the glass** live — card darkness and blur, how far
   the picture is darkened, the strength of secondary text — with a reset to the defaults.
+  **No small text lies on a picture bare**: introductions, notes, the season's list, the
+  running act, club names and links are cards or glass pills, and the glass really blurs
+  what is behind it.
 - **The league's name in the sub-menu is its overview** — there is no entry *Overview*
   beside it (it said the same twice). Without snapping a chapter is as tall as its content — the
   screen-high chapters of the snapping mode left half a screen of empty picture between

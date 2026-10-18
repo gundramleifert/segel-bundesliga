@@ -8,7 +8,7 @@ import { useAccount, useAsync } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
-import { Card, Panel, useTone } from "../../components/site/Cards";
+import { Card, Panel, TextCard, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand, SubBar, TopBar, useSecondRow } from "../../components/site/Frame";
 import { useSiteVersion } from "../../components/site/settings";
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
@@ -160,12 +160,12 @@ function MatchdayView({
       {/* `panel-scroll`: a results table wider than a phone scrolls here, not the page
           (Story A-10). */}
       <div className="panel-scroll min-h-[calc(100dvh-7.5rem)]" data-testid={`site-act-${tab}`}>
-        <div className={`mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm ${tone.muted}`}>
+        <TextCard className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           <span data-testid="site-act-meta">
             {[locationText(act.first), act.first.host_club ? t("hostedBy", { host: act.first.host_club.name }) : null].filter(Boolean).join(" · ")}
           </span>
           <StateBadge state={act.state} dark={tone.dark} />
-        </div>
+        </TextCard>
         {act.events.length > 1 && tab !== "notice-board" && tab !== "media" && (
           <div role="radiogroup" aria-label={t("act.division")} className="mb-6 inline-flex rounded-full bg-slate-100 p-1" data-testid="site-division-switch">
             {act.events.map((e) => (

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
-import { Card, CardRow, MediaCard, useTone } from "../../components/site/Cards";
+import { Card, CardRow, MediaCard, TextCard, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
 import { useSiteVersion } from "../../components/site/settings";
@@ -146,7 +146,11 @@ export function AssociationHome() {
       label: t("chapters.forClubs"),
       title: t("chapters.forClubs"),
       photo: DSBL_PHOTOS.podium,
-      body: <p className="max-w-xl text-lg text-white/80">{association ? localized(association.service) : null}</p>,
+      body: full ? (
+        <TextCard className="max-w-2xl text-lg">{association ? localized(association.service) : null}</TextCard>
+      ) : (
+        <p className="max-w-xl text-lg text-white/80">{association ? localized(association.service) : null}</p>
+      ),
       extra: full && (
         <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="site-home-services">
           {(["pairing", "results", "live", "waivers", "expenses", "own"] as const).map((k) => (
@@ -166,15 +170,35 @@ export function AssociationHome() {
       title: t("chapters.about"),
       photo: DSBL_PHOTOS.studio,
       more: { to: href.about(), label: t("home.aboutMore") },
-      body: (
+      body: full ? (
+        // On glass: the text and the board each a card, side by side on a wide screen.
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
+          {association && (
+            <TextCard>
+              <p className="text-lg text-white">{t("home.founded", { date: localized(association.founded) })}</p>
+              <p className="mt-3 leading-relaxed">{localized(association.history)}</p>
+              <p className="mt-3 text-sm text-white/60">{localized(association.record)}</p>
+            </TextCard>
+          )}
+          <Card className="p-4 sm:p-5">
+            <ul className="space-y-3">
+              {BOARD.map((b) => (
+                <li key={b.name} className="flex items-center gap-3">
+                  <span className="size-12 shrink-0 overflow-hidden rounded-full bg-white/10">
+                    <Img photo={b.photo} />
+                  </span>
+                  <span className="text-sm">
+                    <b className="block">{b.name}</b>
+                    <span className="text-white/60">{localized(b.role)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
+      ) : (
         <div className="max-w-2xl">
           {association && <p className="text-lg text-white/80">{t("home.founded", { date: localized(association.founded) })}</p>}
-          {full && association && (
-            <>
-              <p className="mt-4 leading-relaxed text-white/75">{localized(association.history)}</p>
-              <p className="mt-2 text-sm text-white/60">{localized(association.record)}</p>
-            </>
-          )}
           <ul className="mt-5 flex flex-wrap gap-4">
             {BOARD.map((b) => (
               <li key={b.name} className="flex items-center gap-3">
@@ -207,8 +231,10 @@ export function AssociationAboutPage() {
     <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")} photo={OWN_PHOTOS.title}>
       {association && (
         <>
-          <p className={`max-w-3xl text-lg leading-relaxed ${tone.muted}`}>{localized(association.history)}</p>
-          <p className={`mb-10 mt-3 max-w-3xl ${tone.faint}`}>{localized(association.record)}</p>
+          <TextCard className="mb-10 max-w-3xl">
+            <p className="text-lg leading-relaxed">{localized(association.history)}</p>
+            <p className={`mt-3 ${tone.faint}`}>{localized(association.record)}</p>
+          </TextCard>
         </>
       )}
       <Block title={t("home.board")}>
