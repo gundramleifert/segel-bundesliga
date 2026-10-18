@@ -62,6 +62,50 @@ export const SITE_VERSIONS = ["classic", "submenu"] as const;
 // comparing starts on the default again — the one the site is meant to show.
 export const [useSiteVersion, setSiteVersion] = setting<SiteVersion>("site.layout", SITE_VERSIONS, "submenu");
 
+/** How the glass looks over the pictures — the playground in the DEV switch. The same
+ *  numbers are the defaults in `index.css`; the switch writes them onto the page as CSS
+ *  variables, so a build without the dev tools shows the defaults. */
+export type Look = { cardAlpha: number; cardBlur: number; shade: number; text: number };
+export const LOOK_DEFAULT: Look = { cardAlpha: 0.45, cardBlur: 12, shade: 0.45, text: 0.85 };
+
+const lookListeners = new Set<() => void>();
+let look: Look = (() => {
+  try {
+    return { ...LOOK_DEFAULT, ...JSON.parse(localStorage.getItem("site.look") ?? "{}") };
+  } catch {
+    return LOOK_DEFAULT;
+  }
+})();
+
+export function setLook(next: Look) {
+  look = next;
+  try {
+    localStorage.setItem("site.look", JSON.stringify(next));
+  } catch {
+    // Not remembered; holds until reload.
+  }
+  lookListeners.forEach((listener) => listener());
+}
+
+export function useLook() {
+  return useSyncExternalStore(
+    (listener) => {
+      lookListeners.add(listener);
+      return () => lookListeners.delete(listener);
+    },
+    () => look,
+  );
+}
+
+/** The look onto the page, as the variables `index.css` defines. */
+export function applyLook(value: Look) {
+  const root = document.documentElement.style;
+  root.setProperty("--site-card-alpha", String(value.cardAlpha));
+  root.setProperty("--site-card-blur", `${value.cardBlur}px`);
+  root.setProperty("--site-shade", String(value.shade));
+  root.setProperty("--site-text", String(value.text));
+}
+
 /** Which chapter is on screen — for the dots, and so only that chapter plays a video:
  *  the one that covers the **middle line** of the screen. `key` re-runs the observer when
  *  the set of chapters (or their layout) changes.

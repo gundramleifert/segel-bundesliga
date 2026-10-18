@@ -193,7 +193,13 @@
     "split": "C Geteilt",
     "version": "Layout",
     "classic": "Klassisch",
-    "submenu": "Sub-Menü"
+    "submenu": "Sub-Menü",
+    "look": "Glas",
+    "cardAlpha": "Karten-Dunkelheit",
+    "cardBlur": "Karten-Unschärfe",
+    "shade": "Bild-Abdunkelung",
+    "text": "Textstärke",
+    "reset": "Zurücksetzen"
   },
   "example": "Beispielinhalt — dieses Schwarze Brett ist noch nicht angebunden. Nichts hier ist ein offizieller Aushang."
 }

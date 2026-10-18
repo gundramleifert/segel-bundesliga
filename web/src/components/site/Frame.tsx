@@ -381,7 +381,11 @@ function BackdropFrame({ title, kicker, photo, children }: FrameProps) {
     <>
       <div aria-hidden className="fixed inset-0" data-testid="site-depth-picture">
         <Picture photo={photo ?? SLIDES[0]} />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 via-slate-950/35 to-slate-950/75" />
+        {/* How dark is the look's `--site-shade`; darker at the foot, where the cards pile up. */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to bottom, rgb(2 6 23 / calc(var(--site-shade) + 0.1)), rgb(2 6 23 / calc(var(--site-shade) - 0.1)) 40%, rgb(2 6 23 / calc(var(--site-shade) + 0.3)))" }}
+        />
       </div>
       <header className="relative mx-auto max-w-6xl px-4 pb-10 pt-20 text-white sm:pt-32">
         {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">{kicker}</p>}

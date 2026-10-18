@@ -193,7 +193,13 @@
     "split": "C Split",
     "version": "Layout",
     "classic": "Classic",
-    "submenu": "Sub-menu"
+    "submenu": "Sub-menu",
+    "look": "Glass",
+    "cardAlpha": "Card darkness",
+    "cardBlur": "Card blur",
+    "shade": "Picture shade",
+    "text": "Text strength",
+    "reset": "Reset"
   },
   "example": "Example content — this notice board is not connected yet. Nothing here is an official notice."
 }

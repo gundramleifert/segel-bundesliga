@@ -31,8 +31,9 @@ export function useTone() {
   return {
     dark,
     text: dark ? "text-white" : "text-slate-900",
-    muted: dark ? "text-white/75" : "text-slate-600",
-    faint: dark ? "text-white/55" : "text-slate-500",
+    // Over a picture, from the look's variables (index.css) — the DEV switch tunes them.
+    muted: dark ? "text-[rgb(255_255_255/var(--site-text))]" : "text-slate-600",
+    faint: dark ? "text-[rgb(255_255_255/calc(var(--site-text)-0.2))]" : "text-slate-500",
     line: dark ? "border-white/15" : "border-slate-200",
     link: dark ? "font-medium text-white underline-offset-4 hover:underline" : "font-medium text-brand-700 hover:underline",
     /** A small rounded link — a year, a tab of an act. */
@@ -41,8 +42,12 @@ export function useTone() {
       : "rounded-full border border-slate-200 px-3.5 py-1.5 text-slate-700 hover:border-slate-400",
     chipOn: dark ? "rounded-full bg-white px-3.5 py-1.5 text-slate-950" : "rounded-full bg-slate-900 px-3.5 py-1.5 text-white",
     /** The card itself, without padding. */
-    card: dark ? "rounded-2xl bg-white/10 backdrop-blur" : "rounded-2xl border border-slate-200 bg-white",
-    cardHover: dark ? "transition hover:bg-white/20" : "transition hover:border-slate-400 hover:shadow-sm",
+    card: dark
+      ? "rounded-2xl bg-[rgb(2_6_23/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]"
+      : "rounded-2xl border border-slate-200 bg-white",
+    cardHover: dark
+      ? "transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]"
+      : "transition hover:border-slate-400 hover:shadow-sm",
   };
 }
 
@@ -122,13 +127,15 @@ export function MediaCard({
   );
 }
 
-/** White paper for what has to be read closely — a full table, an article, a form. Inside,
- *  everything is drawn as on white, whatever the panel lies on. */
+/** Room for what is read closely — a full table, an article, a matchday's tables. Over a
+ *  picture it is a card like the others, and `.on-glass` (index.css) turns the light
+ *  colours of what is inside — tables shared with the internal screens — into the glass's;
+ *  on white it is white paper. Inside, everything is written as for white. */
 export function Panel({ children, className = "", testId }: { children: ReactNode; className?: string; testId?: string }) {
   const tone = useTone();
   return (
     <div
-      className={`rounded-2xl bg-white p-4 text-slate-900 sm:p-6 ${tone.dark ? "shadow-2xl" : "border border-slate-200"} ${className}`}
+      className={`p-4 sm:p-6 ${tone.dark ? `${tone.card} on-glass` : "rounded-2xl border border-slate-200 bg-white text-slate-900"} ${className}`}
       data-testid={testId}
     >
       <Surface kind="light">{children}</Surface>

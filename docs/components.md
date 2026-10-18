@@ -330,11 +330,16 @@ else sits in `Layout`, which uses the same top row.
   sticky second row (the matchday's) sits.
 - **`Cards.tsx`** — the official pages' building blocks, taken from the chapter page
   (2026-10-18): **`Card`** (a box, a link with `to`), **`MediaCard`** (picture first, then
-  kicker, title, text — news, videos, photos, people), **`Panel`** (white paper for what
-  is read closely: a full table, an article, the matchday's tables), **`CardRow`** (the
+  kicker, title, text — news, videos, photos, people), **`Panel`** (room for what is
+  read closely: a full table, an article, the matchday's tables — over a picture a card
+  whose `.on-glass` scope in `index.css` maps the light colours of the tables shared with
+  the internal screens to the glass's; on white, white paper), **`CardRow`** (the
   grid). They draw themselves for what they lie on — frosted glass with white type over a
   picture, bordered white cards on white — from **`Surface`** or, without one, from the
   layout; **`useTone()`** gives the type and line colours for anything else on the page.
+  How dark and blurred the glass is, how far the picture is darkened and how strong the
+  secondary text is are CSS variables (`--site-card-alpha`, `--site-card-blur`,
+  `--site-shade`, `--site-text` in `index.css`), tuned live with the DEV switch's sliders.
   Write a page's content once with these, never with `bg-white/10` or `text-slate-600`
   by hand: that is what made each page look different. On a page deeper, the
   sub-menu's pages and the matchday's tabs come from **`SubBar`** / **`LeagueSubBar`**.

@@ -383,8 +383,10 @@ Acceptance criteria:
   The depth frames A–C are the classic layout's.
 - **One design over every official page** (2026-10-18): the chapter page's cards are the
   pieces every page is built from — frosted glass on the picture for teasers, lists and
-  facts, and white paper only for what is read closely (a full table, an article, a
-  matchday's tables). The media page's videos and photos are the chapter's video cards.
+  facts, and also for what is read closely (a full table, an article, a matchday's
+  results, pairing list and crews). The media page's videos and photos are the chapter's
+  video cards. **The DEV switch tunes the glass** live — card darkness and blur, how far
+  the picture is darkened, the strength of secondary text — with a reset to the defaults.
 - **The league's name in the sub-menu is its overview** — there is no entry *Overview*
   beside it (it said the same twice). Without snapping a chapter is as tall as its content — the
   screen-high chapters of the snapping mode left half a screen of empty picture between

@@ -9,6 +9,9 @@ import { BAR_SHADE, Footer, TopBar } from "./Frame";
 import { Picture } from "./Media";
 import { useActiveChapter, useChapterMode, useSiteVersion } from "./settings";
 
+const SHADE_ACROSS =
+  "linear-gradient(to right, rgb(2 6 23 / calc(var(--site-shade) + 0.35)), rgb(2 6 23 / calc(var(--site-shade) + 0.1)) 55%, rgb(2 6 23 / calc(var(--site-shade) - 0.15)))";
+
 export type ChapterSpec = {
   id: string;
   label: string;
@@ -52,7 +55,8 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
       <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
         <Picture photo={chapters[0].photo} video={0} />
       </div>
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/30" />
+      {/* Darker on the left, where the text is; how dark is the look's `--site-shade`. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: SHADE_ACROSS }} />
       <div className={`absolute inset-x-0 top-0 z-40 ${BAR_SHADE}`}>
         <TopBar league={league} overlay floating={false} />
       </div>

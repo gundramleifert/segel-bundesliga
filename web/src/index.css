@@ -27,6 +27,16 @@
   --color-ink: #121212;
 }
 
+/* How the official pages' glass looks over their pictures (`components/site/Cards.tsx`).
+   Variables, not classes, so the DEV switch can tune them live (`LOOK_DEFAULT` in
+   `components/site/settings.ts` holds the same numbers). */
+:root {
+  --site-card-alpha: 0.45; /* a card: the site's darkest slate at this opacity */
+  --site-card-blur: 12px; /* how much a card blurs the picture behind it */
+  --site-shade: 0.45; /* how far the picture itself is darkened */
+  --site-text: 0.85; /* the opacity of secondary text on a card */
+}
+
 /* The header is `sticky top-0` and opaque (see `Layout.tsx`): 36px of logo plus 2×12px of
    padding, so about 60px of bar that is always over the top of the scrollport.
    `scroll-padding-top` tells every scroll-into-view — an in-page anchor, a keyboard focus
@@ -138,4 +148,54 @@ html {
   background-size: 8px 8px;
   background-position: 0 0, 0 4px, 4px -4px, -4px 0;
   background-color: #fff;
+}
+
+/* `.on-glass` — content built for white paper, shown on the official pages' glass
+   (`Panel` in components/site/Cards.tsx). The full tables, the pairing list and the crews
+   are shared with the internal screens and written in light colours; rather than a dark
+   copy of each, this scope maps their light colours to the glass's. Unlayered, so it wins
+   over Tailwind's utilities, and limited to this scope, so nothing else changes.
+   HeroUI's card reads its colours from its theme's variables (`--surface`, not the
+   `--color-surface` its utilities are named after — they are inlined), set here too. */
+.on-glass {
+  --surface: rgb(255 255 255 / 0.06);
+  --surface-secondary: rgb(255 255 255 / 0.08);
+  --surface-tertiary: rgb(255 255 255 / 0.1);
+  --foreground: white;
+  --muted: rgb(255 255 255 / var(--site-text));
+  --shadow-surface: none;
+  color: white;
+}
+.on-glass :is(.text-slate-900, .text-slate-800, .text-slate-700, .text-ink) {
+  color: white;
+}
+.on-glass :is(.text-slate-600, .text-slate-500) {
+  color: rgb(255 255 255 / var(--site-text));
+}
+.on-glass :is(.text-slate-400, .text-slate-300) {
+  color: rgb(255 255 255 / calc(var(--site-text) - 0.3));
+}
+.on-glass :is(.text-brand-600, .text-brand-700, .text-brand-800) {
+  color: var(--color-brand-200);
+}
+.on-glass :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-brand-50) {
+  background-color: rgb(255 255 255 / 0.07);
+}
+/* The pairing list's every other flight: a band, still, but of glass. */
+.on-glass .bg-slate-50\/70 {
+  background-color: rgb(255 255 255 / 0.05);
+}
+.on-glass :is(.hover\:bg-slate-50, .hover\:bg-slate-100):hover {
+  background-color: rgb(255 255 255 / 0.08);
+}
+.on-glass :is(.border-slate-100, .border-slate-200, .border-slate-300),
+.on-glass :is(.divide-slate-100, .divide-slate-200) > * {
+  border-color: rgb(255 255 255 / 0.12);
+}
+.on-glass :is(.ring-slate-200, .ring-slate-300) {
+  --tw-ring-color: rgb(255 255 255 / 0.2);
+}
+.on-glass .data-table {
+  background-color: transparent;
+  box-shadow: none;
 }
