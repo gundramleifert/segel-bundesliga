@@ -201,7 +201,7 @@ class TestCreatingAMatchday:
             },
         )
         assert response.status_code == 404
-        assert "not known" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/club-not-found"
 
     async def test_an_end_before_the_start_is_refused(self, client, caplog, ids):
         headers = await as_role(client, caplog, "ev9@example.com", Role.ADMIN)
@@ -263,4 +263,4 @@ class TestStandaloneEvent:
             json={"title": "Falsche Serie", "starts_on": "2026-12-12", "series": 999999},
         )
         assert response.status_code == 404
-        assert "not set up" in response.json()["detail"]
+        assert response.json()["type"] == "/errors/series-not-found"

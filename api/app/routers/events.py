@@ -16,7 +16,7 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, model_validator
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -57,7 +57,8 @@ from app.services import (
     require_editable_configuration,
     require_ready,
 )
-from app.text import slugify
+from app.services.events import MatchdayTaken, NoFreeSlug, place_event
+from app.services.lookup import get_or_404
 
 # Permissions are attached to individual routes, not the router: creating an event is also
 # permitted to the host club's leadership (Story VA-6) — everything else is modified only by
@@ -281,38 +282,32 @@ async def create_event(
     The **host club's** leadership can create events — they organize it, so they should be
     able to record the date — as well as administration, editorial, and race officers.
     """
-    series = await _series(session, request.series) if request.series else None
+    series = await get_or_404(session, Series, request.series) if request.series else None
     _can_create(acting, request.host_club_id, series.id if series else None)
-    await _check_club(session, request.host_club_id)
-    await _check_venue(session, request.venue_id)
+    if request.host_club_id is not None:
+        await get_or_404(session, Club, request.host_club_id)
+    if request.venue_id is not None:
+        await get_or_404(session, Venue, request.venue_id)
 
-    matchday = None
-    if series is not None:
-        matchday = request.matchday
-        if matchday is None:
-            highest = (
-                await session.execute(
-                    select(func.max(Event.matchday)).where(Event.series_id == series.id)
-                )
-            ).scalar_one()
-            matchday = (highest or 0) + 1
-        elif await _matchday_exists(session, series.id, matchday):
-            raise HTTPException(
-                status_code=409,
-                detail=tr(
-                    locale,
-                    en=f"This series already has Act {matchday}.",
-                    de=f"In dieser Serie gibt es den {matchday}. Act schon.",
-                ),
-            )
-        desired = f"{series.slug}-act-{matchday}"
-    else:
-        # Standalone event: the URL is created from title and year. Without a date yet,
-        # the current year stands in — the slug only has to be unique and readable.
-        year = (request.starts_on or date.today()).year
-        desired = f"{slugify(request.title)}-{year}"
-
-    slug = await _find_free_slug(session, desired)
+    try:
+        matchday, slug = await place_event(
+            session,
+            title=request.title,
+            starts_on=request.starts_on,
+            series=series,
+            matchday=request.matchday,
+        )
+    except MatchdayTaken as taken:
+        raise HTTPException(
+            status_code=409,
+            detail=tr(
+                locale,
+                en=str(taken),
+                de=f"In dieser Serie gibt es den {taken.matchday}. Act schon.",
+            ),
+        ) from taken
+    except NoFreeSlug as exhausted:
+        raise HTTPException(status_code=409, detail=str(exhausted)) from exhausted
 
     check_squad_limits(request.squad_min, request.squad_max)
     event = Event(
@@ -704,28 +699,6 @@ async def _check_venue(session: AsyncSession, venue_id: int | None) -> None:
         await session.execute(select(Venue.id).where(Venue.id == venue_id))
     ).scalar_one_or_none() is None:
         raise HTTPException(status_code=404, detail=f"Venue {venue_id} is not known.")
-
-
-async def _matchday_exists(session: AsyncSession, series_id: int, matchday: int) -> bool:
-    match = (
-        await session.execute(
-            select(Event.id).where(Event.series_id == series_id, Event.matchday == matchday)
-        )
-    ).scalar_one_or_none()
-    return match is not None
-
-
-async def _find_free_slug(session: AsyncSession, desired: str) -> str:
-    """Appends a digit if the slug is already taken — it must be unique."""
-    candidate = desired
-    for counter in range(2, 50):
-        taken = (
-            await session.execute(select(Event.id).where(Event.slug == candidate))
-        ).scalar_one_or_none()
-        if taken is None:
-            return candidate
-        candidate = f"{desired}-{counter}"
-    raise HTTPException(status_code=409, detail="Could not find a free URL.")
 
 
 async def _with_relationships(session: AsyncSession, event_id: int) -> Event:

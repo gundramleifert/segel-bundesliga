@@ -25,7 +25,6 @@ from app.models.racing import (
     Race,
     RaceEntry,
     RaceSignal,
-    ResultCode,
 )
 from app.pairing import BoatSpec, load_pairing_yaml
 from app.pairing.catalog import CatalogError, catalog_entries, load_entry, shuffle_pairing
@@ -62,12 +61,14 @@ from app.services import (
     require_editable_configuration,
     require_ready,
 )
+from app.services.lookup import get_or_404
 from app.services.pairing_service import (
     PairingDraft,
     PairingPublishError,
     PublishedPairing,
     publish_pairing,
 )
+from app.services.results import SubmittedResult, record_results
 from app.tracking.service import active_course
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -107,7 +108,7 @@ async def start_pairing_job(
     a list is exactly what one does when the catalog holds none — and its configuration
     must not be frozen: once a race has started, the list underneath it stays.
     """
-    event = await _event_by_id(session, event_id, locale)
+    event = await get_or_404(session, Event, event_id)
     await require_editable_configuration(session, event.id)
     await require_ready(session, event, ignore={CATALOG_REASON})
     teams = await event_entries(session, event.id)
@@ -214,7 +215,7 @@ async def publish_job_result(
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
 ) -> PublishResult:
-    event = await _event_by_id(session, event_id, locale)
+    event = await get_or_404(session, Event, event_id)
     await require_editable_configuration(session, event.id)
     job = jobs.get(request.job_id)
     if job is None:
@@ -315,7 +316,7 @@ async def pairing_from_catalog(
 
     If no entry matches the size, the path remains through the compute job.
     """
-    event = await _event_by_id(session, event_id)
+    event = await get_or_404(session, Event, event_id)
     # Nothing is drawn against a running matchday, and nothing is drawn for an incomplete
     # setup (Story VA-8). The readiness check answers both of the questions this endpoint
     # used to ask itself — too few teams registered, and no catalog entry for these
@@ -364,7 +365,7 @@ async def import_pairing(
     the rest of the setup must add up, and a started matchday keeps the list it is sailing
     (Story VA-8).
     """
-    event = await _event_by_id(session, event_id, locale)
+    event = await get_or_404(session, Event, event_id)
     await require_editable_configuration(session, event.id)
     await require_ready(session, event, ignore={CATALOG_REASON})
     teams = await event_entries(session, event.id)
@@ -396,11 +397,6 @@ async def import_pairing(
 
 # ------------------------------------------------------------ Race results (Story WL-2)
 
-# Codes for which the underlying finish order (``finish_position``) is real and thus
-# participates in the "no two boats in the same place" check — RDG and the
-# not-a-finish codes (DNS, DNF, ...) carry no position at all.
-_POSITION_CODES = (ResultCode.FINISHED, ResultCode.ZFP, ResultCode.SCP)
-
 
 @router.get(
     "/events/{event_id}/races",
@@ -411,7 +407,6 @@ _POSITION_CODES = (ResultCode.FINISHED, ResultCode.ZFP, ResultCode.SCP)
 async def get_admin_races(
     event_id: int,
     session: AsyncSession = Depends(get_session),
-    locale: Locale = Depends(resolve_locale),
 ) -> AdminRacesOut:
     """Everything the race committee needs to enter or correct results.
 
@@ -419,7 +414,7 @@ async def get_admin_races(
     unfinished races and the current result state of every entry — the raw fields plus the
     derived ``points``/``is_discarded`` so a correction's effect is visible immediately.
     """
-    event = await _event_by_id(session, event_id, locale)
+    event = await get_or_404(session, Event, event_id)
 
     boats = list(
         (
@@ -510,7 +505,7 @@ async def _admin_race(session: AsyncSession, event: Event, race_id: int) -> Admi
 
 async def _event_race(session: AsyncSession, event_id: int, race_id: int) -> tuple[Event, Race]:
     """The event and one of its races, or a 404 that says which one is missing."""
-    event = await _event_by_id(session, event_id)
+    event = await get_or_404(session, Event, event_id)
     race = (
         await session.execute(
             select(Race)
@@ -681,127 +676,17 @@ async def put_race_result(
     race is running. A ``finished`` race is always correctable — the protest case.
     """
     event, race = await _event_race(session, event_id, race_id)
-    race_state.guard_result_entry(race)
-    await race_state.refuse_if_another_is_running(session, event, race)
-
-    entry_rows = (
-        await session.execute(
-            select(RaceEntry, Boat.number)
-            .join(Boat, RaceEntry.boat_id == Boat.id)
-            .where(RaceEntry.race_id == race.id)
-        )
-    ).all()
-    entry_by_boat: dict[int, RaceEntry] = {number: entry for entry, number in entry_rows}
-
-    updates: dict[int, tuple[ResultCode | None, int | None, float | None]] = {}
-    for result in request.results:
-        entry = entry_by_boat.get(result.boat_number)
-        if entry is None:
-            raise Problem(
-                422,
-                "race-result-unknown-boat",
-                f"Boat {result.boat_number} has no entry in race {race_id}.",
-                boat_number=result.boat_number,
-            )
-        if result.code is None:
-            # "Nothing recorded for this boat" — not a code, and deliberately not an
-            # error. Position and redress go with it: a boat with no result must not keep
-            # the place it used to have (Story WL-2).
-            updates[result.boat_number] = (None, None, None)
-            continue
-
-        try:
-            code = ResultCode(result.code)
-        except ValueError as exc:
-            raise Problem(
-                422,
-                "race-result-invalid-code",
-                f"'{result.code}' is not a valid result code.",
-                boat_number=result.boat_number,
-            ) from exc
-
-        if code in _POSITION_CODES and result.finish_position is None:
-            raise Problem(
-                422,
-                "race-result-position-required",
-                f"Boat {result.boat_number}: a finish position is required for {code}.",
-                boat_number=result.boat_number,
-            )
-        if code == ResultCode.RDG and result.redress_points is None:
-            raise Problem(
-                422,
-                "race-result-redress-required",
-                f"Boat {result.boat_number}: redress points are required for RDG.",
-                boat_number=result.boat_number,
-            )
-
-        updates[result.boat_number] = (
-            code,
-            result.finish_position if code in _POSITION_CODES else None,
-            result.redress_points if code == ResultCode.RDG else None,
-        )
-
-    # No two boats may claim the same finish position — across the *resulting* state of
-    # the race, including entries this request doesn't touch.
-    position_owners: dict[int, int] = {}
-    for boat_number, entry in entry_by_boat.items():
-        if boat_number in updates:
-            code, position, _ = updates[boat_number]
-        else:
-            code = ResultCode(entry.code) if entry.code is not None else None
-            position = entry.finish_position
-        if code not in _POSITION_CODES or position is None:
-            continue
-        if position in position_owners:
-            raise Problem(
-                422,
-                "race-result-duplicate-position",
-                f"Finish position {position} is claimed by more than one boat.",
-                finish_position=position,
-            )
-        position_owners[position] = boat_number
-
-    original_version = race.version
-    overwrote_existing = request.version is not None and request.version != original_version
-    if overwrote_existing:
-        # Someone else changed this race since the submitter last loaded it — the later
-        # entry still wins (this is a rocking-boat matchday, not a place for a hard
-        # conflict error), but per WL-2 ("the overridden status is not lost but logged")
-        # the state about to be discarded is recorded first, not silently dropped.
-        session.add(
-            AuditLog(
-                entity_type="race",
-                entity_id=race.id,
-                action="result_overwrite",
-                actor=acting.email,
-                payload={
-                    "submitted_on_version": request.version,
-                    "actual_version": original_version,
-                    "discarded_entries": {
-                        str(boat_number): {
-                            "code": entry_by_boat[boat_number].code,
-                            "finish_position": entry_by_boat[boat_number].finish_position,
-                            "redress_points": entry_by_boat[boat_number].redress_points,
-                        }
-                        for boat_number in updates
-                    },
-                },
-            )
-        )
-
-    for boat_number, (code, position, redress_points) in updates.items():
-        entry = entry_by_boat[boat_number]
-        entry.code = code
-        entry.finish_position = position
-        entry.redress_points = redress_points
-
-    race.version += 1
-    if all(entry.code is not None for entry in entry_by_boat.values()):
-        # Every boat has a result: the race is over. The fifth transition of Story WL-3,
-        # reached through this PUT rather than a button of its own.
-        race_state.finish_race(session, race, actor=acting.email)
-
-    await recompute_after_change(session, event)
+    recorded = await record_results(
+        session,
+        event,
+        race,
+        [
+            SubmittedResult(r.boat_number, r.code, r.finish_position, r.redress_points)
+            for r in request.results
+        ],
+        actor=acting.email,
+        seen_version=request.version,
+    )
 
     await session.commit()
     # After the commit, never before it: a spectator's page refetches the moment this
@@ -815,7 +700,7 @@ async def put_race_result(
         status=race.status,
         version=race.version,
         applied=True,
-        overwrote_existing=overwrote_existing,
+        overwrote_existing=recorded.overwrote_existing,
     )
 
 
@@ -837,7 +722,7 @@ async def put_team_penalty(
     Who may enter a result may set it, and a ``final`` event still takes it — closing
     freezes nothing (Story VA-10).
     """
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
+    event = await session.get(Event, event_id)
     team = await session.get(Team, team_id)
     if event is None or team is None or team.event_id != event_id:
         raise Problem(
@@ -886,21 +771,6 @@ async def _publish(session: AsyncSession, event: Event, draft: PairingDraft) -> 
     # pairing tab both read it. After the commit (Story B-5).
     hub.publish(event_topic(event.id))
     return created
-
-
-async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale | None = None) -> Event:
-    event = (await session.execute(select(Event).where(Event.id == event_id))).scalar_one_or_none()
-    if event is None:
-        if locale is not None:
-            detail = tr(
-                locale,
-                en=f"Matchday {event_id} not found",
-                de=f"Spieltag {event_id} nicht gefunden",
-            )
-        else:
-            detail = f"Matchday {event_id} not found"
-        raise HTTPException(status_code=404, detail=detail)
-    return event
 
 
 def _job_out(job: Job) -> JobOut:
