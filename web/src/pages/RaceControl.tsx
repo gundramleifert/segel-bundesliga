@@ -48,7 +48,6 @@ import {
   PREPARATORY_FLAGS,
   type PreparatoryFlag,
   resultComplete,
-  stillOpen,
 } from "../lib/results";
 
 /** WL-3: the race committee's screen on the water — one race at a time, big targets.
@@ -119,14 +118,16 @@ export function RaceControl() {
     );
   }
 
-  // The current race is the first one neither finished nor abandoned — the same rule the
-  // results tab uses. With every race done, the last one stays on screen.
-  const currentIndex = list.findIndex(stillOpen);
+  // The current race is the server's answer (`current_sequence`, Story WL-3) — the one
+  // running, else the first still open; the results tab marks the same race. With every
+  // race done it is null, and the last one stays on screen.
+  const current = races.data.current_sequence;
+  const currentIndex = list.findIndex((r) => r.sequence === current);
   const allDone = currentIndex === -1;
   const base = allDone ? list.length - 1 : currentIndex;
   const index = Math.min(list.length - 1, Math.max(0, base + offset));
   const race = list[index];
-  const done = list.filter((r) => !stillOpen(r)).length;
+  const done = list.filter((r) => r.status === "finished" || r.status === "abandoned").length;
 
   return (
     <>

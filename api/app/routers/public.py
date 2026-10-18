@@ -76,6 +76,7 @@ from app.schemas.public import (
     SailorDetail,
     SailorEventOut,
     SailorTeamOut,
+    SeasonSeriesOut,
     SeriesOut,
     SeriesStandingRow,
     SeriesTable,
@@ -85,6 +86,7 @@ from app.schemas.public import (
 )
 from app.services import compute_event, compute_series, current_year, event_entries
 from app.services.pairing_service import TeamNotInPairing, stored_pairing
+from app.services.standings import points_by_flight, race_flights
 from app.text import slugify
 
 router = APIRouter(prefix="/api", tags=["public"])
@@ -193,13 +195,45 @@ async def get_league_season(
         if series
         else []
     )
+    clubs_of = await _registered_clubs(session, [s.id for s in series])
+    every_club = {club.id: club for clubs in clubs_of.values() for club in clubs}
     return LeagueSeason(
         league=LeagueOut.model_validate(league),
         year=effective_year,
         years=years,
-        series=[SeriesOut.model_validate(s) for s in series],
+        series=[
+            SeasonSeriesOut(
+                **SeriesOut.model_validate(s).model_dump(), clubs=clubs_of.get(s.id, [])
+            )
+            for s in series
+        ],
         events=[_event_out(e) for e in events],
+        clubs=sorted(every_club.values(), key=lambda club: (club.name, club.id)),
     )
+
+
+async def _registered_clubs(
+    session: AsyncSession, series_ids: list[int]
+) -> dict[int, list[ClubOut]]:
+    """Series ID -> the clubs registered and accepted for it, by name (Story B-14)."""
+    if not series_ids:
+        return {}
+    rows = (
+        await session.execute(
+            select(Team.series_id, Club)
+            .join(Club, Team.club_id == Club.id)
+            .where(
+                Team.series_id.in_(series_ids),
+                Team.event_id.is_(None),
+                Team.status == TeamStatus.ACCEPTED,
+            )
+            .order_by(Club.name, Club.id)
+        )
+    ).all()
+    clubs: dict[int, list[ClubOut]] = {}
+    for series_id, club in rows:
+        clubs.setdefault(series_id, []).append(ClubOut.model_validate(club))
+    return clubs
 
 
 # -------------------------------------------------------------------------- Series
@@ -823,6 +857,7 @@ async def get_event(
     races_total = await _count_races(session, event.id)
     # Get the race ID -> race number mapping once, rather than repeatedly for each team.
     sequences = await _race_sequences(session, event.id)
+    flights = await race_flights(session, event.id)
     penalty_notes = dict(
         (
             await session.execute(
@@ -843,6 +878,7 @@ async def get_event(
             points_by_race={
                 sequences[race_id]: points for race_id, points in score.points_by_race.items()
             },
+            points_by_flight=points_by_flight(score, flights),
             discarded_races=sorted(sequences[race_id] for race_id in score.discarded_races),
             penalty_points=score.penalty,
             penalty_note=penalty_notes.get(score.team_id) if score.penalty else None,
@@ -1305,6 +1341,7 @@ def _event_out(event: Event) -> EventOut:
         team_count=event.team_count,
         boat_count=event.boat_count,
         flight_count=event.flight_count,
+        races_per_flight=event.races_per_flight if event.boat_count >= 1 else 0,
         crew_size=event.crew_size,
         print_settings=event.print_settings,
     )

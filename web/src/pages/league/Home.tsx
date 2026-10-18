@@ -9,7 +9,7 @@ import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
 import { BOARD, MEMBER_LEAGUES, OWN_PHOTOS, leagueAbout, useAssociation, useLocalized, useNews, type Article } from "../../content";
 import { actsOf, currentAct, href } from "../../lib/site";
-import { NewsTiles, useClubsOf } from "./LeagueHome";
+import { NewsTiles } from "./LeagueHome";
 import { StateBadge, actDates, useActTitle } from "./shared";
 
 /** `/` — the association's home, a chapter page too: the competitions and what each is
@@ -139,7 +139,10 @@ export function AssociationAboutPage() {
   const localized = useLocalized();
   const association = useAssociation().data;
   const members = useQueries({ queries: MEMBER_LEAGUES.map((l) => getGetLeagueSeasonQueryOptions(l)) });
-  const clubs = useClubsOf(members.flatMap((m) => m.data?.series ?? []));
+  // The member leagues' clubs, once — each season names its own (Story B-14).
+  const clubs = [
+    ...new Map(members.flatMap((m) => m.data?.clubs ?? []).map((c) => [c.id, c])).values(),
+  ];
   return (
     <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")} photo={OWN_PHOTOS.title}>
       {association && (

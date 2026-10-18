@@ -436,11 +436,13 @@ async def get_admin_races(
         .order_by(Race.sequence, Boat.number)
     )
     races: dict[int, AdminRaceOut] = {}
+    race_rows: dict[int, Race] = {}
     for race, entry, flight, boat_number in (await session.execute(stmt)).all():
         row = races.get(race.id)
         if row is None:
             row = _race_out(race, flight)
             races[race.id] = row
+            race_rows[race.id] = race
         team = teams.get(entry.team_id)
         if team is None:
             continue
@@ -450,6 +452,7 @@ async def get_admin_races(
         event_id=event.id,
         boats=[BoatOut.model_validate(boat) for boat in boats],
         races=[races[key] for key in sorted(races, key=lambda race_id: races[race_id].sequence)],
+        current_sequence=race_state.current_sequence(race_rows.values()),
     )
 
 

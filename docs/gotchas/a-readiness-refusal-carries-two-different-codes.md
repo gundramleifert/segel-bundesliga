@@ -14,7 +14,7 @@ and a frontend that only knew the first showed an error for the expected case.
 single-reason code *and* `event-not-ready` with `reasons[]`. Render the reasons; never
 branch on one code alone.
 
-**Evidence** — `web/src/pages/AdminEvents.tsx::isSetupIncompleteNotice`;
+**Evidence** — `web/src/pages/admin/events/ReadinessReasons.tsx::ReadinessReasons`;
 `api/tests/stories/test_event_lifecycle.py::TestStarting` asserts both shapes.
 
 **Seen** — 2026-09-09, commit `0893578`.

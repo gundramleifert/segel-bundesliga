@@ -172,6 +172,9 @@ class AdminRacesOut(BaseModel):
     event_id: int
     boats: list[BoatOut]
     races: list[AdminRaceOut]
+    # The race the committee is on — running, else the first still open; ``None`` when all
+    # are done (Story WL-3, ``services/race_state.py::current_sequence``).
+    current_sequence: int | None = None
 
 
 _SCORING_DEFAULTS = ScoringConfig()

@@ -41,8 +41,11 @@ Acceptance criteria:
 - **A page, not a Matchday tab:** `/events/:id/race-control`, gated to the race committee
   *of that event* (see below), linked from the manage screen and the results tab. The results tab stays
   the *correction* screen — a protest heard weeks later belongs there, not here.
-- **One race on screen, the current one:** the first race that is neither `finished` nor
-  `abandoned` — the rule the results tab already uses to find the open race. Header names
+- **One race on screen, the current one:** the race on the water, else the first race that
+  is neither `finished` nor `abandoned` — decided by the server, which owns the transitions
+  (`services/race_state.py::current_sequence`), and sent as `current_sequence` with the
+  races (`GET /api/admin/events/{id}/races`); the results tab marks the same race. `null`
+  once every race is done. Header names
   the race and its flight, a progress bar shows races done over the event's total. Arrows
   reach the previous race (to correct) and the next (to preview), nothing further.
 - **Everything is sized by the event** — `Event.boat_count` chips, `ceil(team_count /
@@ -209,7 +212,7 @@ invalid ranking (two boats claiming the same place), and recomputes points/stand
 immediately, so a protest decision is a one-row correction, never a data migration. With a
 stale `version`, the later submission still wins (a rocking boat is no place for a hard
 conflict error), but the state it replaces is written to `AuditLog` first, not silently
-dropped. `web/src/pages/Matchday.tsx`'s results-entry tab (`RaceResultRow`) now makes the
+dropped. The results-entry tab (`RaceResultRow` in `web/src/pages/league/act/Results.tsx`) now makes the
 finish line the primary, fast path: tapping a boat's colored chip in finish order assigns it
 `FINISHED` + the next unused position (a normal 6-boat race is 6 taps), the chip shows the
 assigned rank as a badge, tapping again undoes just that boat, and a "reset race" action clears
@@ -252,7 +255,7 @@ Acceptance criteria:
   over the import.
 
 Endpoint: `PUT /api/admin/events/{event_id}/teams/{team_id}/penalty`. Entered in
-`web/src/pages/Matchday.tsx`'s results tab (*Penalty points for the matchday*, below the
+`web/src/pages/league/act/Results.tsx`, the results tab (*Penalty points for the matchday*, below the
 races); the standings show "incl. 3 penalty" with the reason as its tooltip.
 
 Open: no browser test covers the entry form yet.

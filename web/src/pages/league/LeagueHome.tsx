@@ -1,8 +1,7 @@
-import { useQueries } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import { getGetSeriesTableQueryOptions, useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
+import { useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
 import type { Series } from "../../api/types";
 import { Card, CardRow, Columns, MediaCard, TextCard, tone } from "../../components/site/Cards";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
@@ -32,7 +31,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const about = useLeagueAbout(league.slug).data;
   const news = useNews(league.slug).data ?? [];
   const videos = useVideos(league.slug).data ?? [];
-  const clubs = useClubsOf(season.series);
+  const clubs = season.clubs ?? [];
   const live = acts.find((a) => a.state === "live") ?? null;
   const earlier = season.years.filter((y) => y !== year);
   const several = season.series.length > 1;
@@ -301,12 +300,4 @@ function TopFive({ series, label }: { series: Series; label?: string }) {
     </ol>
     </Card>
   );
-}
-
-/** Every club entered in the year's series, once — the clubs chapter's names. */
-export function useClubsOf(series: Series[]) {
-  const tables = useQueries({ queries: series.map((s) => getGetSeriesTableQueryOptions(s.id)) });
-  const seen = new Map<number, { id: number; short_name: string; name: string }>();
-  for (const table of tables) for (const row of table.data?.rows ?? []) seen.set(row.team.club.id, row.team.club);
-  return [...seen.values()];
 }

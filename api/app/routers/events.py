@@ -44,6 +44,7 @@ from app.schemas.public import ClubOut, EventOut
 from app.services import (
     ParticipationError,
     adopt_series_registrations,
+    candidate_clubs,
     check_squad_limits,
     configuration_frozen,
     event_entries,
@@ -684,6 +685,25 @@ async def list_participants(
     """Also those requested — administration must see what it is deciding about."""
     await _event(session, event_id)
     return await _participants_out(session, event_id)
+
+
+@router.get(
+    "/{event_id}/candidate-clubs",
+    response_model=list[ClubOut],
+    dependencies=[Depends(require_event_manager_for)],
+    summary="Clubs that may enter this event",
+)
+async def list_candidate_clubs(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> list[ClubOut]:
+    """The choice the clubs step offers — Story VA-6.
+
+    An act of a series takes its series' accepted registrations, a stand-alone event any
+    club: the same rule ``PUT …/clubs`` enforces, answered from the same place
+    (``app/services/participation.py``).
+    """
+    event = await _event(session, event_id)
+    return [ClubOut.model_validate(club) for club in await candidate_clubs(session, event)]
 
 
 @router.put(

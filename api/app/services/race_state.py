@@ -33,6 +33,7 @@ The rules, each of which has a reason:
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -70,6 +71,29 @@ async def running_race(
     if other_than is not None:
         stmt = stmt.where(Race.id != other_than)
     return (await session.execute(stmt.order_by(Race.sequence).limit(1))).scalar_one_or_none()
+
+
+def current_sequence(races: Iterable[Race]) -> int | None:
+    """The sequence number of the race the committee is on: the one running, else the first
+    still open (neither finished nor abandoned). ``None`` when every race is done.
+
+    One answer for the race-control page and the results tab, from the module that owns
+    the transitions — so the screens never disagree with the state machine about which
+    race is "now".
+    """
+    ordered = sorted(races, key=lambda race: race.sequence)
+    running = next((race for race in ordered if race.status == RaceStatus.RUNNING), None)
+    if running is not None:
+        return running.sequence
+    open_race = next(
+        (
+            race
+            for race in ordered
+            if race.status not in (RaceStatus.FINISHED, RaceStatus.ABANDONED)
+        ),
+        None,
+    )
+    return open_race.sequence if open_race is not None else None
 
 
 def _already_running(other: Race) -> Problem:

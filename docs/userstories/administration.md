@@ -370,7 +370,7 @@ person.
 
 The overflow itself came from the `grid gap-*` idiom used to stack the admin sections and
 their form rows. A grid's `auto` column is sized by its items' **min-content** width, so
-one wide box — the boat-setup table in `AdminEvents.tsx` — widened its column, and because
+one wide box — the boat-setup table in `admin/events/GeneralDataStep.tsx` — widened its column, and because
 grid items stretch to the column, *every* sibling section grew with it. The fix is to make
 those columns able to be narrower than their content — which is now what `Stack` and
 `CardGrid` are for (`components/Layouts.tsx`), so it cannot be forgotten by writing the

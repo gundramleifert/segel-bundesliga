@@ -6823,6 +6823,112 @@ export const useSetParticipants = <TError = ErrorType<HTTPValidationError>,
       return useMutation(getSetParticipantsMutationOptions(options), queryClient);
     }
 
+export const getListCandidateClubsUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/candidate-clubs`
+}
+
+/**
+ * The choice the clubs step offers — Story VA-6.
+ *
+ * An act of a series takes its series' accepted registrations, a stand-alone event any
+ * club: the same rule ``PUT …/clubs`` enforces, answered from the same place
+ * (``app/services/participation.py``).
+ * @summary Clubs that may enter this event
+ */
+export const listCandidateClubs = async (eventId: number, options?: RequestInit): Promise<ClubOut[]> => {
+
+  return http<ClubOut[]>(getListCandidateClubsUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCandidateClubsQueryKey = (eventId: number,) => {
+    return [
+    `/api/admin/events/${eventId}/candidate-clubs`
+    ] as const;
+    }
+
+
+export const getListCandidateClubsQueryOptions = <TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCandidateClubsQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCandidateClubs>>> = ({ signal }) => listCandidateClubs(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListCandidateClubsQueryResult = NonNullable<Awaited<ReturnType<typeof listCandidateClubs>>>
+export type ListCandidateClubsQueryError = ErrorType<HTTPValidationError>
+
+
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCandidateClubs>>,
+          TError,
+          Awaited<ReturnType<typeof listCandidateClubs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listCandidateClubs>>,
+          TError,
+          Awaited<ReturnType<typeof listCandidateClubs>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Clubs that may enter this event
+ */
+
+export function useListCandidateClubs<TData = Awaited<ReturnType<typeof listCandidateClubs>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listCandidateClubs>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListCandidateClubsQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListAllClubsUrl = (params?: ListAllClubsParams,) => {
   const normalizedParams = new URLSearchParams();
 

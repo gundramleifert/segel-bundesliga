@@ -88,6 +88,29 @@ async def squad_team(session: AsyncSession, team: Team) -> Team:
     return registration
 
 
+async def candidate_clubs(session: AsyncSession, event: Event) -> list[Club]:
+    """The clubs that may be entered in this event — the rule ``new_event_entry`` enforces.
+
+    For an act of a series, its **accepted** registrations; for an event standing alone,
+    every club, which is what makes the site a service to clubs outside the association's
+    own series. Asked by the organizer's clubs step, so the screen offers exactly what the
+    server will accept rather than recomputing the rule from every series and every club.
+    """
+    if event.series_id is None:
+        stmt = select(Club)
+    else:
+        stmt = (
+            select(Club)
+            .join(Team, Team.club_id == Club.id)
+            .where(
+                Team.series_id == event.series_id,
+                Team.event_id.is_(None),
+                Team.status == TeamStatus.ACCEPTED,
+            )
+        )
+    return list((await session.execute(stmt.order_by(Club.name, Club.id))).scalars())
+
+
 async def new_event_entry(
     session: AsyncSession,
     event: Event,

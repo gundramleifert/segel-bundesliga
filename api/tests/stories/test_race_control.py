@@ -106,6 +106,32 @@ def full_result(boats: list[int]) -> dict:
     }
 
 
+class TestTheCurrentRace:
+    """WL-3: As race committee the screen opens on the race I am on — the server says which."""
+
+    async def test_the_current_race_follows_the_transitions(self, client, caplog):
+        """Story WL-3: first open race, then the running one, then the next after a finish."""
+        headers = await admin(client, caplog, "rc0@example.com")
+        event_id = await live_event(client, headers, "Current Race Cup", "2027-10-01")
+        (first, first_boats), *_ = await races_of(event_id)
+
+        async def current() -> int | None:
+            response = await client.get(f"/api/admin/events/{event_id}/races", headers=headers)
+            assert response.status_code == 200, response.text
+            return response.json()["current_sequence"]
+
+        assert await current() == 1
+        await client.post(f"/api/admin/events/{event_id}/races/{first}/start", headers=headers)
+        assert await current() == 1
+        finished = await client.put(
+            f"/api/admin/events/{event_id}/races/{first}/result",
+            headers=headers,
+            json=full_result(first_boats),
+        )
+        assert finished.status_code == 200, finished.text
+        assert await current() == 2
+
+
 class TestStartingARace:
     """WL-3: As race committee I start the current race with one tap."""
 

@@ -13,7 +13,10 @@ import { BARS, Block, DepthPage, Expand, PageLoading, SubBar } from "../../compo
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
 import { eventDates, locationText } from "../../lib/format";
 import { actSlug, currentAct, hasResults, href, lastSailed, stateOf, type Act } from "../../lib/site";
-import { Crew, DailyStandings, PairingList, ResultsEntry } from "../Matchday";
+import { Crew } from "./act/Crew";
+import { PairingList } from "./act/PairingList";
+import { ResultsEntry } from "./act/Results";
+import { DailyStandings } from "./act/Standings";
 import { DocList, MediaContent } from "./Depth";
 import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle } from "./shared";
 
