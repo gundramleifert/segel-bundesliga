@@ -318,16 +318,18 @@ Two rules, both from `CLAUDE.md`:
 The public site's pages draw their own frame from `web/src/components/site/`; everything
 else sits in `Layout`, which uses the same top row.
 
-- **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu. Over
-  the picture on a chapter page (`overlay`), solid and sticky elsewhere; given a `league`,
-  that league becomes a switch and its pages sit beside it.
-- **`ChapterScroller`** — a league's (or the association's) page: full-screen chapters, the
-  dots on the right, each chapter ending in its own page. Only the first chapter's title
-  is an `h1`.
-- **`DepthPage`** — the frame of a page behind a chapter, in variant A band, B sheet or
-  C split as the DEV switch says; the title is the page's `h1`. `Block` and `Expand` are
-  its section heading and its row that opens in place; `useSecondRow` says where a
-  sticky second row (the matchday's) sits.
+- **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu. On
+  an official page's picture (`overlay`), solid and sticky on the internal screens.
+  **`Bars`** is it with the sub-menu (`LeagueSubBar`, or a matchday's `SubBar`) in the
+  rows' shade; **`BARS`** their height, for scrolling and `sticky`.
+- **`ChapterScroller`** — a league's (or the association's) page: chapters at their own
+  height over one fixed `photo`, the dots on the right, each chapter ending in its own
+  page. Only the first chapter's title is an `h1`.
+- **`DepthPage`** — the frame of a page behind a chapter: its picture fixed behind it, the
+  rows, the kicker and title (the page's `h1`), the content in cards. `Block` and
+  `Expand` are its section heading and its row that opens in place.
+- **`PageLoading`** — what an official page shows while its data is on the way: the same
+  dark frame, never a white page.
 - **`Cards.tsx`** — the official pages' building blocks, taken from the chapter page
   (2026-10-18): **`Card`** (a box, a link with `to`), **`MediaCard`** (picture first, then
   kicker, title, text — news, videos, photos, people), **`Panel`** (room for what is

@@ -1,49 +1,23 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  CHAPTER_MODES,
-  DETAIL_MODES,
-  LOOK_DEFAULT,
-  applyLook,
-  setLook,
-  useLook,
-  type Look,
-  MEDIA_MODES,
-  SITE_VERSIONS,
-  setChapterMode,
-  setDetailMode,
-  setMediaMode,
-  setSiteVersion,
-  useChapterMode,
-  useDetailMode,
-  useMediaMode,
-  useSiteVersion,
-} from "./settings";
+import { LOOK_DEFAULT, MEDIA_MODES, applyLook, setLook, setMediaMode, useLook, useMediaMode, type Look } from "./settings";
 
-/** The DEV button, bottom left: the variants of the site structure still being decided
- *  (Story B-13) — the layout, classic or with a sub-menu, chapters snapping or scrolling freely, pictures as photo, fade, slide or
- *  video, and the depth page's frame. Built in wherever the role switcher is (`DEV_TOOLS`),
- *  so the stakeholders can switch on staging, on their own phones. */
+/** The DEV button, bottom left: what is still being decided (Story B-13) — the picture as
+ *  photo, fade, slide or video, and the glass over it. Built in wherever the role switcher
+ *  is (`DEV_TOOLS`), so the stakeholders can try it on staging, on their own phones. */
 export function DevSwitch() {
   const { t } = useTranslation("site");
   const [open, setOpen] = useState(false);
-  const chapters = useChapterMode();
   const media = useMediaMode();
-  const detail = useDetailMode();
-  const version = useSiteVersion();
   const look = useLook();
   useEffect(() => applyLook(look), [look]);
   return (
     <div className="fixed bottom-4 left-4 z-50 text-sm" data-testid="site-dev">
       {open && (
         <div className="mb-2 max-h-[80dvh] w-64 overflow-y-auto rounded-2xl bg-slate-900/95 p-4 text-white shadow-2xl backdrop-blur">
-          <Segment label={t("dev.version")} value={version} options={SITE_VERSIONS} onChange={setSiteVersion} testId="site-dev-version" />
-          <Segment label={t("dev.chapters")} value={chapters} options={CHAPTER_MODES} onChange={setChapterMode} testId="site-dev-chapters" />
           <Segment label={t("dev.pictures")} value={media} options={MEDIA_MODES} onChange={setMediaMode} testId="site-dev-media" />
-          {/* The depth page's variants are the classic layout's; the sub-menu has its own. */}
-          {version === "classic" && <Segment label={t("dev.detail")} value={detail} options={DETAIL_MODES} onChange={setDetailMode} testId="site-dev-detail" />}
-          {version === "submenu" && <LookSliders look={look} />}
+          <LookSliders look={look} />
         </div>
       )}
       <button

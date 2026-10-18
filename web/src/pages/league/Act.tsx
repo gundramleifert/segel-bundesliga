@@ -1,6 +1,6 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate, NavLink, useParams, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 
 import { getGetEventQueryKey, useGetEvent, useListLeagues } from "../../api/generated/sbl";
 import type { EventSummary, League } from "../../api/types";
@@ -9,8 +9,7 @@ import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
 import { Card, Columns, Panel, TextCard, useTone } from "../../components/site/Cards";
-import { Block, DepthPage, Expand, SubBar, TopBar, useSecondRow } from "../../components/site/Frame";
-import { useSiteVersion } from "../../components/site/settings";
+import { BARS, Block, DepthPage, Expand, PageLoading, SubBar } from "../../components/site/Frame";
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
 import { eventDates, locationText } from "../../lib/format";
 import { currentAct, hasResults, href, lastSailed, type Act } from "../../lib/site";
@@ -61,8 +60,6 @@ function MatchdayView({
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
   const { hasRole } = useAccount();
-  const second = useSecondRow();
-  const classic = useSiteVersion() === "classic";
   const tone = useTone();
   const [params, setParams] = useSearchParams();
   // A tab click scrolls the page so the matchday row sits right under the top bar and the
@@ -72,8 +69,8 @@ function MatchdayView({
   useEffect(() => {
     if (!clicked.current || !anchor.current) return;
     clicked.current = false;
-    window.scrollTo({ top: anchor.current.getBoundingClientRect().top + window.scrollY - second.offset });
-  }, [tabParam, second.offset]);
+    window.scrollTo({ top: anchor.current.getBoundingClientRect().top + window.scrollY - BARS.offset });
+  }, [tabParam]);
 
   const canEnterResults = hasRole("admin", "race_officer");
   const tabs = TABS.filter((tb) => tb !== "entry" || canEnterResults);
@@ -82,9 +79,9 @@ function MatchdayView({
   const event = act.events.find((e) => String(e.id) === params.get("division")) ?? act.events[0];
   const kicker = [league?.short_name, actDates(act), act.first.venue?.water ?? act.first.venue?.name].filter(Boolean).join(" · ");
 
-  // With a sub-menu, the matchday's tabs are it: where you are on the left (the league,
-  // its season, this act), the tabs beside it — the league's pages are a step up.
-  const subnav = classic ? undefined : (
+  // The matchday's tabs are its sub-menu: where you are on the left (the league, its
+  // season, this act), the tabs beside it — the league's pages are a step up.
+  const subnav = (
     <SubBar
       overlay
       label={t("act.tabs")}
@@ -123,38 +120,7 @@ function MatchdayView({
       {/* Which matchday this is and what it has, in one row that stays under the top bar
           — the second and last row of navigation (Story B-13). */}
       <div ref={anchor} aria-hidden />
-      {classic && <nav
-        aria-label={t("act.tabs")}
-        data-testid="site-act-bar"
-        className={`scrollbar-none sticky z-10 -mx-4 mb-8 overflow-x-auto border-b border-slate-200 bg-white/95 px-4 backdrop-blur ${second.top}`}
-      >
-        <ul className="flex items-center gap-1">
-          <li className="mr-2 shrink-0 border-r border-slate-200 py-2 pr-4">
-            <p className="text-sm font-semibold text-slate-900">{actTitle(act)}</p>
-            <p className="text-xs text-slate-500">{actDates(act)}</p>
-          </li>
-          {tabs.map((tb) => (
-            <li key={tb} className="shrink-0">
-              <NavLink
-                to={{ pathname: tabHref(tb), search: params.toString() }}
-                // This page scrolls itself on a tab click (above); the site's reset to the
-                // top on a new page must not undo that.
-                state={{ keepScroll: true }}
-                onClick={() => {
-                  clicked.current = true;
-                }}
-                data-testid={`site-act-tab-${tb}`}
-                aria-current={tb === tab ? "page" : undefined}
-                className={`-mb-px block whitespace-nowrap border-b-2 px-3 py-4 text-sm font-medium ${
-                  tb === tab ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"
-                }`}
-              >
-                {t(`tabs.${tb}`)}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>}
+
 
       {/* At least a screen tall, so a short tab can still be scrolled up to the row. */}
       {/* `panel-scroll`: a results table wider than a phone scrolls here, not the page
@@ -331,8 +297,8 @@ export function EventPage() {
   const [params] = useSearchParams();
   const leagues = useListLeagues();
   const detail = useAsync(useGetEvent(Number(id)));
-  if (detail.loading) return <Bare><Loading testId="matchday-loading" /></Bare>;
-  if (detail.error) return <Bare><ErrorMessage text={detail.error} testId="matchday-error" /></Bare>;
+  if (detail.loading) return <PageLoading><Loading testId="matchday-loading" /></PageLoading>;
+  if (detail.error) return <PageLoading><ErrorMessage text={detail.error} testId="matchday-error" /></PageLoading>;
   if (!detail.data) return null;
 
   const event = detail.data.event;
@@ -340,7 +306,7 @@ export function EventPage() {
   const leagueId = event.series?.league_id;
   // Waits for the leagues only while they are on their way: if that request fails, the
   // event's own page is the honest answer, not a spinner that never ends.
-  if (leagueId != null && leagues.isPending) return <Bare><Loading testId="matchday-loading" /></Bare>;
+  if (leagueId != null && leagues.isPending) return <PageLoading><Loading testId="matchday-loading" /></PageLoading>;
   const league = leagues.data?.find((l) => l.id === leagueId);
   if (league && event.series?.year) {
     // The same slug `actsOf` gives the act, so an event with no matchday — a cup's one
@@ -360,14 +326,6 @@ function stateOfEvent(event: EventSummary): Act["state"] {
   return "planned";
 }
 
-function Bare({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-dvh bg-white">
-      <TopBar />
-      <main id="content" className="mx-auto max-w-6xl px-4">{children}</main>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------- short paths
 

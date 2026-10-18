@@ -14,7 +14,6 @@ import { GlassFooter } from "./Footer";
 
 export { BAR_SHADE } from "./Cards";
 import { Picture } from "./Media";
-import { useDetailMode, useSiteVersion } from "./settings";
 
 // The frame of the site (`docs/site-structure.md`, Stories B-13, B-14). Clean on purpose:
 // white and slate, one accent (the brand blue), generous space, type doing the work.
@@ -25,17 +24,15 @@ export function useLeagues(): League[] {
 }
 
 /** The one navigation row: logo and *Association* (the association's home), the leagues,
- *  the account. Over the picture on a chapter page, solid and sticky everywhere else — and
+ *  the account. On the picture on every official page, solid on the internal screens — and
  *  the same entries everywhere, the current one marked (Story B-13). */
 export function TopBar({
   overlay = false,
-  floating = true,
   league,
 }: {
+  /** On an official page's picture, in white; the page shades the rows together. Without
+   *  it the row is solid white and sticky — the internal screens' (`Layout`). */
   overlay?: boolean;
-  /** Over the picture, fixed to the top with its own shade — or, `false`, placed by the
-   *  page, which shades the bars together (the sub-menu layout's chapter page). */
-  floating?: boolean;
   /** The league the page belongs to, marked in the row. */
   league?: League | null;
 }) {
@@ -54,9 +51,7 @@ export function TopBar({
     <header
       className={`z-40 text-sm ${
         overlay
-          ? floating
-            ? "fixed inset-x-0 top-0 bg-gradient-to-b from-slate-950/70 to-transparent text-white/80"
-            : "relative border-b border-white/15 text-white/80"
+          ? "relative border-b border-white/15 text-white/80"
           : "sticky top-0 border-b border-slate-200 bg-white/95 text-slate-600 backdrop-blur"
       }`}
       data-testid="site-top-bar"
@@ -131,8 +126,8 @@ export function TopBar({
   );
 }
 
-/** The top row and the sub-menu under it, together, in the layout with a sub-menu: in
- *  pixels for scrolling, as a class for `sticky`. 57 + 48 — the row's border included. */
+/** The top row and the sub-menu under it, together: in pixels for scrolling, as a class
+ *  for `sticky`. 57 + 48 — the row's border included. */
 export const BARS = { offset: 105, top: "top-[105px]" };
 
 /** One entry of a sub-menu. */
@@ -258,16 +253,31 @@ export function LeagueSubBar({ league, overlay = false }: { league: League | nul
   );
 }
 
-/** The top row and, in the layout with a sub-menu, the sub-menu under it — sticking
- *  together. `subnav` replaces the league's pages, as a matchday's tabs do. */
+/** The top row and the sub-menu under it, sticking together, on the page's picture in
+ *  white — shaded and blurred, as on the chapter page. `subnav` replaces the league's
+ *  pages, as a matchday's tabs do. */
 export function Bars({ league, subnav }: { league: League | null; subnav?: ReactNode }) {
-  const version = useSiteVersion();
-  if (version === "classic") return <TopBar league={league} />;
-  // On the page's picture in white, shaded and blurred — the same as on the chapter page.
   return (
     <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
-      <TopBar league={league} overlay floating={false} />
+      <TopBar league={league} overlay />
       {subnav ?? <LeagueSubBar league={league} overlay />}
+    </div>
+  );
+}
+
+/** What an official page shows while its data is on the way: the same dark frame, the rows
+ *  in their place — never a white page. A white one flashed on every change of league,
+ *  where the next league's year is fetched before its page can be drawn. */
+export function PageLoading({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-dvh bg-slate-950 text-white">
+      <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
+        <TopBar overlay />
+        <div className="h-12 border-b border-white/15" />
+      </div>
+      <main id="content" className="mx-auto max-w-6xl px-4 py-16">
+        <Surface kind="dark">{children}</Surface>
+      </main>
     </div>
   );
 }
@@ -312,72 +322,17 @@ type DepthProps = {
   kicker?: string;
   photo?: Photo;
   children: ReactNode;
-  /** The sub-menu in the layout with one, instead of the league's pages — a matchday's
-   *  tabs. Ignored in the classic layout, where the page draws its own row. */
+  /** The sub-menu, instead of the league's pages — a matchday's tabs. */
   subnav?: ReactNode;
 };
 
-type FrameProps = DepthProps & {
-  /** Classic: the frame shows the league's pages itself. With a sub-menu they are in it. */
-  classic: boolean;
-};
-
-/** The frame of a depth page, in the layout the DEV switch picks (A band, B sheet, C split).
- *  The content is the same in all three — only the frame differs. The title is the page's
- *  one `h1`. */
-export function DepthPage(props: DepthProps) {
-  const mode = useDetailMode();
-  const version = useSiteVersion();
-  const classic = version === "classic";
-  // The sub-menu layout has one frame of its own: the variants A–C are the classic one's.
-  const Frame = !classic ? BackdropFrame : mode === "sheet" ? SheetFrame : mode === "split" ? SplitFrame : BandFrame;
+/** The frame of a page behind a chapter: the page's own picture fixed behind the whole
+ *  page — as behind the chapters, so a page deeper is no break in style — the rows, the
+ *  kicker, the title and the content on it, in the chapters' cards (`Cards.tsx`); what
+ *  needs close reading sits on a `Panel`. The title is the page's one `h1`. */
+export function DepthPage({ league, title, kicker, photo, children, subnav }: DepthProps) {
   return (
-    <div
-      className={`min-h-dvh text-slate-900 ${classic ? "bg-white" : "bg-slate-950"}`}
-      data-testid="site-depth-page"
-      data-frame={classic ? mode : "backdrop"}
-      data-version={version}
-    >
-      {/* The top row names the association and every league on every page (Story B-13);
-          the league's own pages sit in each frame's own place — under A's picture, at
-          B's sheet edge, in C's left column. */}
-      <Bars league={props.league} subnav={props.subnav} />
-      <Frame {...props} classic={classic} />
-      <Footer glass={!classic} />
-    </div>
-  );
-}
-
-/** Where a depth page's sticky second row sits: under the top bar, and in variant B also
- *  under the sheet's own row of pills. In pixels, for scrolling; as a class, for `sticky`. */
-export function useSecondRow() {
-  const mode = useDetailMode();
-  const version = useSiteVersion();
-  if (version === "submenu") return BARS;
-  return mode === "sheet" ? { offset: 113, top: "top-[113px]" } : { offset: 56, top: "top-14" };
-}
-
-function Crumbs({ league, light = true }: { league: League | null; light?: boolean }) {
-  const tone = light ? "text-white/70 hover:text-white" : "text-slate-500 hover:text-slate-900";
-  return (
-    <nav aria-label="Breadcrumb" className={`text-sm ${light ? "text-white/70" : "text-slate-500"}`}>
-      <Link to={href.home()} className={tone}>Deutsche Segel-Liga</Link>
-      {league && (
-        <>
-          {" "}› <Link to={href.league(league.slug)} className={tone}>{league.short_name}</Link>
-        </>
-      )}
-    </nav>
-  );
-}
-
-/** The sub-menu layout's frame: the page's own picture fixed behind the whole page — as
- *  behind the chapters, so a page deeper is no break in style — the kicker, the title and
- *  the content on it, in the chapters' cards (`Cards.tsx`); what needs white paper sits on
- *  a `Panel`. */
-function BackdropFrame({ title, kicker, photo, children }: FrameProps) {
-  return (
-    <>
+    <div className="min-h-dvh bg-slate-950 text-white" data-testid="site-depth-page">
       <div aria-hidden className="fixed inset-0" data-testid="site-depth-picture">
         <Picture photo={photo ?? SLIDES[0]} />
         {/* How dark is the look's `--site-shade`; darker at the foot, where the cards pile up. */}
@@ -386,130 +341,17 @@ function BackdropFrame({ title, kicker, photo, children }: FrameProps) {
           style={{ background: "linear-gradient(to bottom, rgb(2 6 23 / calc(var(--site-shade) + 0.1)), rgb(2 6 23 / calc(var(--site-shade) - 0.1)) 40%, rgb(2 6 23 / calc(var(--site-shade) + 0.3)))" }}
         />
       </div>
-      <header className="relative mx-auto max-w-6xl px-4 pb-10 pt-20 text-white sm:pt-32">
+      {/* The top row names the association and every league on every page (Story B-13);
+          the sub-menu under it, the league's pages or the matchday's tabs. */}
+      <Bars league={league} subnav={subnav} />
+      <header className="relative mx-auto max-w-6xl px-4 pb-10 pt-20 sm:pt-32">
         {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">{kicker}</p>}
         <h1 className="mt-2 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">{title}</h1>
       </header>
-      <main id="content" data-column className="relative mx-auto max-w-6xl px-4 pb-16 text-white">
+      <main id="content" data-column className="relative mx-auto max-w-6xl px-4 pb-16">
         <Surface kind="dark">{children}</Surface>
       </main>
-    </>
-  );
-}
-
-/** A · Band — a big picture with the kicker and title on it, the league's pages in a row
- *  under it, then the content on white. Under a league the top row already says where you
- *  are; a breadcrumb would repeat it. */
-function BandFrame({ league, title, kicker, photo, children, classic }: FrameProps) {
-  return (
-    <>
-      {/* With the sub-menu the picture stands still and the page scrolls over it: fixed to
-          the screen, and cut to the band by the clip-path, which — unlike overflow —
-          clips a fixed child too. */}
-      <header className={`relative h-[52vh] max-h-[34rem] min-h-72 overflow-hidden bg-slate-900 ${classic ? "" : "[clip-path:inset(0)]"}`}>
-        {classic ? (
-          <Picture photo={photo ?? SLIDES[0]} className="opacity-80" />
-        ) : (
-          <div className="fixed inset-0">
-            <Picture photo={photo ?? SLIDES[0]} className="opacity-80" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-8 text-white">
-          {!league && classic && <Crumbs league={league} />}
-          {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/70" data-testid="site-kicker">{kicker}</p>}
-          <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-6xl">{title}</h1>
-        </div>
-      </header>
-      {/* Not sticky: a matchday page's tabs are the one second row that sticks (B-15). */}
-      {league && classic && <SiblingPills league={league} sticky={false} />}
-      <main id="content" className="mx-auto max-w-6xl px-4 py-10">{children}</main>
-    </>
-  );
-}
-
-/** The sibling pages as a row of pills — under A's picture, and sticking under the top bar
- *  at the edge of B's sheet. */
-function SiblingPills({ league, className = "", sticky = true }: { league: League | null; className?: string; sticky?: boolean }) {
-  const { t } = useTranslation("site");
-  const current = useCurrentSibling(league);
-  return (
-    <nav aria-label={t("nav.pages")} data-testid="site-league-pages" className={`scrollbar-none ${sticky ? "sticky top-14 z-20" : ""} overflow-x-auto border-b border-slate-100 bg-white/95 backdrop-blur ${className}`}>
-      <ul className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-3">
-        {siblings(league).map((s) => (
-          <li key={s.to} className="shrink-0">
-            <Link
-              to={s.to}
-              data-testid={`site-page-${s.key}`}
-              className={`block rounded-full px-3.5 py-1.5 text-sm font-medium transition ${current === s.to ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
-            >
-              {t(`pages.${s.key}`)}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-}
-
-/** B · Sheet — a big picture with a big title, and the content as a white sheet sliding
- *  up over it, the sibling pages as pills at its top edge. */
-function SheetFrame({ league, title, kicker, photo, children, classic }: FrameProps) {
-  return (
-    <>
-      <header className="relative h-[62vh] min-h-[22rem] overflow-hidden bg-slate-950">
-        <Picture photo={photo ?? SLIDES[0]} />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-slate-950/20" />
-        <div className="absolute inset-x-0 bottom-24 mx-auto max-w-6xl px-4 text-white">
-          {classic && <Crumbs league={league} />}
-          {kicker && <p className="mt-4 font-mono text-xs tracking-widest text-white/60" data-testid="site-kicker">{kicker}</p>}
-          <h1 className="mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-7xl">{title}</h1>
-        </div>
-      </header>
-      <main id="content" className="relative z-10 -mt-16 rounded-t-[2rem] bg-white shadow-[0_-12px_40px_rgba(2,6,23,0.25)]">
-        {classic && <SiblingPills league={league} className="rounded-t-[2rem]" />}
-        <div className="mx-auto max-w-6xl px-4 py-10">{children}</div>
-      </main>
-    </>
-  );
-}
-
-/** C · Split — the page's picture, title and siblings fixed on the left, the content
- *  scrolling on the right; on a phone the left column becomes a compact head with pills. */
-function SplitFrame({ league, title, kicker, photo, children, classic }: FrameProps) {
-  const { t } = useTranslation("site");
-  const current = useCurrentSibling(league);
-  return (
-    <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] lg:grid-cols-[19rem_minmax(0,1fr)] lg:gap-10 lg:px-6">
-      <aside className={`lg:sticky lg:overflow-y-auto lg:py-8 ${classic ? "lg:top-14 lg:h-[calc(100dvh-3.5rem)]" : "lg:top-[105px] lg:h-[calc(100dvh-105px)]"}`}>
-        <div className="relative h-40 overflow-hidden bg-slate-900 lg:aspect-[4/3] lg:h-auto lg:rounded-2xl">
-          <Picture photo={photo ?? SLIDES[0]} />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 to-transparent lg:hidden" />
-        </div>
-        <div className="px-4 pt-5 lg:px-0">
-          {classic && <Crumbs league={league} light={false} />}
-          {kicker && <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600" data-testid="site-kicker">{kicker}</p>}
-          <h1 className="mt-1 text-3xl font-semibold leading-tight tracking-tight">{title}</h1>
-        </div>
-        {classic && <nav aria-label={t("nav.pages")} className="scrollbar-none mt-5 overflow-x-auto px-4 lg:mt-8 lg:overflow-visible lg:px-0">
-          <ul className="flex gap-1 pb-1 lg:flex-col lg:gap-0.5">
-            {siblings(league).map((s) => (
-              <li key={s.to} className="shrink-0">
-                <Link
-                  to={s.to}
-                  data-testid={`site-page-${s.key}`}
-                  className={`block rounded-full px-3.5 py-1.5 text-sm font-medium transition lg:rounded-lg lg:px-3 lg:py-2 ${
-                    current === s.to ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                  }`}
-                >
-                  {t(`pages.${s.key}`)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>}
-      </aside>
-      <main id="content" className="min-w-0 border-t border-slate-100 px-4 py-8 lg:border-0 lg:px-0 lg:py-10">{children}</main>
+      <Footer glass />
     </div>
   );
 }
@@ -567,7 +409,7 @@ export function Expand({
 }
 
 /** Each league's pages, and the legal pages § 5 DDG wants reachable from every page —
- *  `glass` on the official pages in the sub-menu layout (`Footer.tsx`), light elsewhere. */
+ *  `glass` on the official pages (`Footer.tsx`), light on the internal screens. */
 export function Footer({ glass = false }: { glass?: boolean }) {
   if (glass) return <GlassFooter />;
   return <LightFooter />;

@@ -7,7 +7,7 @@ import type { Photo } from "../../content";
 import { Surface } from "./Cards";
 import { BAR_SHADE, Footer, TopBar } from "./Frame";
 import { Picture } from "./Media";
-import { useActiveChapter, useChapterMode, useSiteVersion } from "./settings";
+import { useActiveChapter } from "./settings";
 
 const SHADE_ACROSS =
   "linear-gradient(to right, rgb(2 6 23 / calc(var(--site-shade) + 0.35)), rgb(2 6 23 / calc(var(--site-shade) + 0.1)) 55%, rgb(2 6 23 / calc(var(--site-shade) - 0.15)))";
@@ -16,52 +16,40 @@ export type ChapterSpec = {
   id: string;
   label: string;
   title: string;
-  photo: Photo;
   more?: { to: string; label: string };
   body: ReactNode;
-  /** More of the chapter, shown in the layout with a sub-menu — the classic chapters stay
-   *  as they were, so the two can be compared. */
+  /** More of the chapter, under its body. */
   extra?: ReactNode;
 };
 
-/** The face of a league (or of the association): full-screen chapters, dots on the right,
- *  each chapter a preview that ends in its own page (Story B-14) — in the layout the DEV
- *  switch picks. */
-export function ChapterScroller(props: { chapters: ChapterSpec[]; league?: League | null }) {
-  return useSiteVersion() === "classic" ? <ClassicChapters {...props} /> : <SubmenuChapters {...props} />;
-}
-
-/** The scroller takes the focus when the page opens (without moving), so Space, Page Down
- *  and the arrows reach it: the document behind has nothing to scroll. */
-function useScrollerFocus() {
+/** The face of a league (or of the association): its chapters, dots on the right, each a
+ *  preview that ends in its own page (Story B-14). **One** picture behind everything —
+ *  photo, slideshow or video, as the DEV switch says — reaching up behind the top row,
+ *  which lies on it in white; only the text scrolls, in a box that starts under the row.
+ *  A chapter is as tall as its content: chapters that each filled the screen and clicked
+ *  into place left half a screen of picture between two (removed 2026-10-18). The
+ *  overview has no sub-menu: the chapters are its contents, and each leads to its page,
+ *  where the sub-menu is. */
+export function ChapterScroller({ chapters, photo, league }: { chapters: ChapterSpec[]; photo: Photo; league?: League | null }) {
+  const current = useActiveChapter(chapters[0].id, chapters.map((c) => c.id).join());
+  // The document behind has nothing to scroll, so Space, Page Down and the arrows have to
+  // reach this box: it takes the focus when the page opens (without moving).
   const scroller = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (document.activeElement === document.body) scroller.current?.focus({ preventScroll: true });
   }, []);
-  return scroller;
-}
-
-/** The sub-menu layout's chapter page: **one** picture fixed behind everything — photo,
- *  slideshow or video, as the DEV switch says — reaching up behind the top row, which
- *  lies on it in white; only the text scrolls, in a box that starts under the row. The
- *  overview has no sub-menu: the chapters are its contents, and each leads to its page,
- *  where the sub-menu is. */
-function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
-  const mode = useChapterMode();
-  const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}|submenu`);
-  const scroller = useScrollerFocus();
   // The dots step aside over the footer: on a phone they lay on its cards.
   const footer = useRef<HTMLDivElement>(null);
   const footerInView = useInView(footer);
   return (
     <div className="fixed inset-0 bg-slate-950">
       <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
-        <Picture photo={chapters[0].photo} video={0} />
+        <Picture photo={photo} video={0} />
       </div>
       {/* Darker on the left, where the text is; how dark is the look's `--site-shade`. */}
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: SHADE_ACROSS }} />
       <div className={`absolute inset-x-0 top-0 z-40 ${BAR_SHADE}`}>
-        <TopBar league={league} overlay floating={false} />
+        <TopBar league={league} overlay />
       </div>
       <div className="absolute inset-x-0 bottom-0 top-[57px]">
         <div
@@ -70,40 +58,35 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
           // No mask to fade the text out under the row: a mask makes this box a backdrop
           // root, and every card's blur inside it then sees nothing of the picture behind
           // (docs/gotchas).
-          className={`scrollbar-none absolute inset-0 overflow-y-auto outline-none ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
+          className="scrollbar-none absolute inset-0 overflow-y-auto outline-none"
           data-testid="site-chapters"
           data-league={league?.slug}
-          data-version="submenu"
         >
           <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} hidden={footerInView} />
           <Surface kind="dark">
-          <main id="content">
-            {chapters.map((c, i) => (
-              <section
-                key={c.id}
-                id={c.id}
-                data-chapter={c.id}
-                data-testid={`site-chapter-${c.id}`}
-                // Free: a chapter is as tall as its content — the screen-high boxes of the
-                // snapping mode left half a screen of picture between two chapters.
-                className={`relative flex items-center border-t border-white/10 first:border-0 ${
-                  mode === "snap" ? "min-h-[calc(100dvh-57px)] snap-start" : ""
-                }`}
-              >
-                {/* One column; every block in it spans it (`Cards.tsx`, "the grid"). */}
-                <div data-column className={`mx-auto w-full max-w-6xl px-4 pr-14 text-white lg:pr-24 ${mode === "snap" ? "py-14" : "py-10"}`}>
-                  <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
-                  <div data-flow className="space-y-6">
-                    {c.body}
-                    {c.extra}
+            <main id="content">
+              {chapters.map((c, i) => (
+                <section
+                  key={c.id}
+                  id={c.id}
+                  data-chapter={c.id}
+                  data-testid={`site-chapter-${c.id}`}
+                  className="relative border-t border-white/10 first:border-0"
+                >
+                  {/* One column; every block in it spans it (`Cards.tsx`, "the grid"). */}
+                  <div data-column className="mx-auto w-full max-w-6xl px-4 py-10 pr-14 text-white lg:pr-24">
+                    <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
+                    <div data-flow className="space-y-6">
+                      {c.body}
+                      {c.extra}
+                    </div>
+                    {c.more && <MoreLink id={c.id} more={c.more} />}
                   </div>
-                  {c.more && <MoreLink id={c.id} more={c.more} />}
-                </div>
-              </section>
-            ))}
-          </main>
+                </section>
+              ))}
+            </main>
           </Surface>
-          <div className="snap-start" ref={footer}>
+          <div ref={footer}>
             <Footer glass />
           </div>
         </div>
@@ -138,61 +121,6 @@ function MoreLink({ id, more }: { id: string; more: { to: string; label: string 
     >
       {more.label} <span aria-hidden>→</span>
     </Link>
-  );
-}
-
-/** Classic: each chapter over its own picture, the top row lying over it. */
-function ClassicChapters({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
-  const mode = useChapterMode();
-  const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}`);
-  // A click anywhere in the box keeps the focus there. Tab still starts at the top row,
-  // which is inside it.
-  const scroller = useScrollerFocus();
-  return (
-    // Its own scroller, fixed over the screen, so the document behind has nothing to
-    // scroll and the snapping (when on) is this box's alone.
-    <div
-      ref={scroller}
-      tabIndex={-1}
-      className={`scrollbar-none fixed inset-0 overflow-y-auto bg-slate-950 outline-none ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
-      data-testid="site-chapters"
-      data-league={league?.slug}
-    >
-      <TopBar overlay />
-      <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} />
-      <Surface kind="dark">
-      <main id="content">
-        {chapters.map((c, i) => (
-          <Chapter key={c.id} spec={c} n={i + 1} of={chapters.length} playing={current === c.id} />
-        ))}
-      </main>
-      </Surface>
-      <div className="snap-start">
-        <Footer />
-      </div>
-    </div>
-  );
-}
-
-/** One full-screen chapter: a picture, a number, a title, a short preview — and the link
- *  to the chapter's own page, which is what option E adds. */
-function Chapter({ spec, n, of, playing }: { spec: ChapterSpec; n: number; of: number; playing: boolean }) {
-  const mode = useChapterMode();
-  return (
-    <section
-      id={spec.id}
-      data-chapter={spec.id}
-      data-testid={`site-chapter-${spec.id}`}
-      className={`relative flex items-end overflow-hidden ${mode === "snap" ? "min-h-dvh snap-start" : "min-h-[85dvh]"}`}
-    >
-      <Picture photo={spec.photo} play={playing} video={n - 1} />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-slate-950/25" />
-      <div className="relative mx-auto w-full max-w-6xl px-4 pb-16 pr-14 pt-24 text-white lg:pr-24">
-        <ChapterHead n={n} of={of} title={spec.title} />
-        {spec.body}
-        {spec.more && <MoreLink id={spec.id} more={spec.more} />}
-      </div>
-    </section>
   );
 }
 

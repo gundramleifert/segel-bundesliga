@@ -52,7 +52,8 @@ league's pages under the bar made three rows on a matchday page and was dropped
 
 ## The league's page: chapters
 
-`/1-liga` is one page of full-screen chapters, each over its own picture, with a column of
+`/1-liga` is one page of chapters over one picture that stands still (changed 2026-10-18;
+they were full-screen chapters, each over its own picture), with a column of
 dots on the right to jump between them. A thumb can slide along the dots, which shows
 every chapter's name, and the page follows. Each chapter is a **preview** that ends in a
 link to its **own page**. That link is what option E adds to option A.
@@ -156,10 +157,13 @@ Each is to be decided on the real device, not argued in the abstract:
 
 | Variant | Options |
 |---|---|
-| Chapters | **snap** — every chapter fills the screen and clicks into place; **free** — chapters keep their height but scroll freely |
 | Pictures | **photo** · **fade** (cross-fade, slow zoom) · **slide** (pushed in from the right) · **video** (a muted loop; only the chapter on screen plays) |
-| Layout | **Sub-menu** (default since 2026-10-18) — like my space: the top row solid, a sticky sub-menu under it (where you are · the league's pages, or a matchday's tabs), one fixed picture behind the chapters that only the text scrolls over, fuller chapters · **Classic** — each chapter over its own picture, the top row over it, the league's pages in each depth frame |
-| Detail page | **A band** — a big picture (about half the screen) with the kicker and title on it, content on white, the league's pages in the top row · **B sheet** — a big picture with a big title, the content a white sheet sliding up over it, the league's pages as sticky pills at its top edge (three rows on a matchday page) · **C split** — picture, title and the league's pages fixed on the left, the content scrolling on the right (on a phone: a compact head with pills) |
+| Glass | card darkness, card blur, picture shade, text strength — sliders, with a reset |
+
+**Decided 2026-10-18:** the layout with a sub-menu (like my space: the rows on the
+picture, a sticky sub-menu of pills with crumbs, one fixed picture, the content in glass
+cards), chapters scrolling freely at their own height. The classic layout, chapters
+snapping into place and the depth frames A band, B sheet, C split were removed.
 
 ## Content sources
 

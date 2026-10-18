@@ -6,7 +6,7 @@ import { useGetLeagueSeason } from "../../api/generated/sbl";
 import type { EventSummary, League, LeagueSeason } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { ErrorMessage, Loading } from "../../components/Blocks";
-import { TopBar } from "../../components/site/Frame";
+import { PageLoading } from "../../components/site/Frame";
 import { actsOf, href, type Act, type ActState } from "../../lib/site";
 import { eventDates } from "../../lib/format";
 
@@ -18,24 +18,16 @@ export function LeagueGate({ children }: { children: (data: LeagueYear) => React
   const { league = "", year } = useParams();
   const query = useGetLeagueSeason(league, year ? { year: Number(year) } : undefined);
   const season = useAsync(query);
-  if (season.loading) return <Frameless><Loading testId="league-loading" /></Frameless>;
+  if (season.loading) return <PageLoading><Loading testId="league-loading" /></PageLoading>;
   // A path that names no league goes home: `/whatever` lands here, because a league's
   // path is a single free segment. Any other failure says so.
   if (query.error?.status === 404) return <Navigate to={href.home()} replace />;
-  if (season.error) return <Frameless><ErrorMessage text={season.error} testId="league-error" /></Frameless>;
+  if (season.error) return <PageLoading><ErrorMessage text={season.error} testId="league-error" /></PageLoading>;
   if (!season.data) return null;
   const data = season.data;
   return <>{children({ league: data.league, season: data, acts: actsOf(data), year: data.year ?? null })}</>;
 }
 
-function Frameless({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-dvh bg-white">
-      <TopBar />
-      <main id="content" className="mx-auto max-w-6xl px-4">{children}</main>
-    </div>
-  );
-}
 
 /** "Act 2 · Kiel" — the act's number and its place. */
 export function useActTitle() {

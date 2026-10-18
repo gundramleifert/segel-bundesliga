@@ -36,31 +36,10 @@ function setting<T extends string>(key: string, values: readonly T[], fallback: 
   return [use, set] as const;
 }
 
-/** Do the chapters snap into place, or scroll freely? */
-export type ChapterMode = "snap" | "free";
-export const CHAPTER_MODES = ["snap", "free"] as const;
-export const [useChapterMode, setChapterMode] = setting<ChapterMode>("site.chapters", CHAPTER_MODES, "snap");
-
 /** What a big picture shows: the photo, a cross-fading or a sliding slideshow, a muted video. */
 export type MediaMode = "photo" | "fade" | "slide" | "video";
 export const MEDIA_MODES = ["photo", "fade", "slide", "video"] as const;
 export const [useMediaMode, setMediaMode] = setting<MediaMode>("site.media", MEDIA_MODES, "photo");
-
-/** How a depth page is framed: A a band of picture, B a sheet over a big picture, C a split
- *  with the picture and the league's pages fixed on the left. */
-export type DetailMode = "band" | "sheet" | "split";
-export const DETAIL_MODES = ["band", "sheet", "split"] as const;
-export const [useDetailMode, setDetailMode] = setting<DetailMode>("site.detail", DETAIL_MODES, "band");
-
-/** The site's layout: **classic** — the chapters each over their own picture, the top row
- *  over it, the league's pages in each depth frame; **submenu** — like my space: the top
- *  row solid with a sticky sub-menu under it (the league's pages, or a matchday's tabs),
- *  one fixed picture behind the chapters that the text scrolls over, fuller chapters. */
-export type SiteVersion = "classic" | "submenu";
-export const SITE_VERSIONS = ["classic", "submenu"] as const;
-// A new key (it was `site.version`), so a browser that once picked "classic" while
-// comparing starts on the default again — the one the site is meant to show.
-export const [useSiteVersion, setSiteVersion] = setting<SiteVersion>("site.layout", SITE_VERSIONS, "submenu");
 
 /** How the glass looks over the pictures — the playground in the DEV switch. The same
  *  numbers are the defaults in `index.css`; the switch writes them onto the page as CSS

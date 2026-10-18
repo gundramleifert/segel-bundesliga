@@ -351,9 +351,8 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await expect(page).toHaveURL(/\/1-liga\/season$/);
   });
 
-  test("a page deeper has a picture of its own behind it, and its content on a panel", async ({ page }) => {
+  test("a page deeper has a picture of its own behind it", async ({ page }) => {
     await page.goto(STANDINGS);
-    await expect(page.getByTestId("site-depth-page")).toHaveAttribute("data-frame", "backdrop");
     const picture = page.getByTestId("site-depth-picture");
     const standings = await picture.locator("img").first().getAttribute("src");
     await page.getByTestId("site-footer").scrollIntoViewIfNeeded();
@@ -440,31 +439,6 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     }
   });
 
-  test("the classic layout is still there when the DEV switch picks it", async ({ page }) => {
-    await page.addInitScript(() => window.localStorage.setItem("site.layout", "classic"));
-    await page.goto("/1-liga");
-    await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
-    await expect(page.getByTestId("site-league-pages")).toHaveCount(0);
-    await expect(page.getByTestId("site-season-strip")).toHaveCount(0);
-    await page.goto(FINISHED_ACT);
-    await expect(page.getByTestId("site-depth-page")).toHaveAttribute("data-version", "classic");
-    await expect(page.getByTestId("site-act-bar").getByTestId("site-sub-crumbs")).toHaveCount(0);
-  });
-
-  test("the frame of a depth page is the one the DEV switch chose", async ({ page }) => {
-    // The DEV button itself is only in builds with the dev tools (staging, the dev
-    // server); the setting it writes is what decides the frame, so this sets it directly.
-    for (const frame of ["band", "sheet", "split"]) {
-      // The variants A–C are the classic layout's; the sub-menu layout has its own frame.
-      await page.addInitScript((value) => {
-        window.localStorage.setItem("site.layout", "classic");
-        window.localStorage.setItem("site.detail", value);
-      }, frame);
-      await page.goto(STANDINGS);
-      await expect(page.getByTestId("site-depth-page")).toHaveAttribute("data-frame", frame);
-      await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-    }
-  });
 });
 
 describeStory("B-14: a league's page in chapters", () => {
@@ -525,8 +499,7 @@ describeStory("B-14: a league's page in chapters", () => {
     const before = await page.evaluate(() => history.length);
     await page.locator('[data-dot="news"]').click();
     await expect(page.locator('[data-dot="news"]')).toHaveAttribute("aria-current", "true");
-    // At the top of the scrolling box — which starts under the bars in the layout with a
-    // sub-menu, and at the top of the screen in the classic one.
+    // At the top of the scrolling box, which starts under the top row.
     await expect
       .poll(() =>
         page.getByTestId("site-chapter-news").evaluate((el) => {
@@ -544,11 +517,7 @@ describeStory("B-14: a league's page in chapters", () => {
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     // A chapter three screens tall: at 55% visible, the rule this replaced, it could never
-    // be marked. Free mode, so the box can stop inside it.
-    await page.evaluate(() => {
-      localStorage.setItem("site.chapters", "free");
-    });
-    await page.reload();
+    // be marked.
     const tall = page.getByTestId("site-chapter-standings");
     await tall.evaluate((el) => (el.style.minHeight = "300vh"));
     await page.getByTestId("site-chapters").evaluate((box) => {

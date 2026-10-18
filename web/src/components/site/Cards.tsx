@@ -1,18 +1,15 @@
 import { Children, createContext, useContext, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-import { useSiteVersion } from "./settings";
-
 // The building blocks of the official pages: one card, one card with a picture, one panel
 // for what needs white paper — so a page deeper looks like the chapter it came from, and a
 // new look is written here once, not on every page (2026-10-18).
 //
-// **What they lie on decides how they are drawn.** Over a picture (the chapters, and every
-// page in the sub-menu layout) a card is frosted glass with white type; on white (the
-// classic layout's depth pages) it is a bordered white card. The frame says which with
-// `Surface`, and the content is written once for both. Without one, the layout decides:
-// a page component reads its tone *before* its frame is drawn around it, and in the
-// sub-menu layout every official page lies on its picture.
+// **What they lie on decides how they are drawn.** Every official page lies on its
+// picture, so a card is frosted glass with white type — that is the default, because a
+// page component reads its tone *before* its frame is drawn around it. Inside a `Panel`
+// (`Surface kind="light"`) the shared light components keep their own colours, which
+// `.on-glass` (index.css) turns into the glass's.
 
 export type SurfaceKind = "dark" | "light";
 
@@ -33,9 +30,8 @@ export function Surface({ kind, children }: { kind: SurfaceKind; children: React
 
 /** The type and lines of the surface a component lies on. */
 export function useTone() {
-  const declared = useContext(SurfaceContext);
-  const layout = useSiteVersion();
-  const dark = (declared ?? (layout === "submenu" ? "dark" : "light")) === "dark";
+  // Undeclared is an official page's content: they all lie on a picture.
+  const dark = (useContext(SurfaceContext) ?? "dark") === "dark";
   return {
     dark,
     text: dark ? "text-white" : "text-slate-900",
