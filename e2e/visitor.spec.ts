@@ -390,7 +390,8 @@ describeStory("B-13: one row of navigation names the leagues", () => {
           const check = (parent: Element) => {
             for (const el of parent.children) {
               const b = el.getBoundingClientRect();
-              if (!b.height || el.hasAttribute("data-inline") || getComputedStyle(el).display.startsWith("inline")) continue;
+              // A block as wide as its content (a pill switch, the "more" link) is inline-*.
+              if (!b.height || getComputedStyle(el).display.startsWith("inline")) continue;
               blocks++;
               if (Math.abs(b.left - left) > 1 || Math.abs(b.right - right) > 1) {
                 found.push(`${name(el)} spans ${Math.round(b.left)}–${Math.round(b.right)}, its column ${Math.round(left)}–${Math.round(right)}`);

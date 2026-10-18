@@ -9,10 +9,8 @@ import { DEV_TOOLS } from "../../dev/devTools";
 import { SLIDES, type Photo } from "../../content";
 import { href } from "../../lib/site";
 import { UserMenu } from "../UserMenu";
-import { BAR_SHADE, Surface, useTone } from "./Cards";
+import { BAR_SHADE, PAGE_TITLE, SHADE_DOWN, tone } from "./Cards";
 import { GlassFooter } from "./Footer";
-
-export { BAR_SHADE } from "./Cards";
 import { Picture } from "./Media";
 
 // The frame of the site (`docs/site-structure.md`, Stories B-13, B-14). Clean on purpose:
@@ -130,6 +128,9 @@ export function TopBar({
  *  for `sticky`. 57 + 48 — the row's border included. */
 export const BARS = { offset: 105, top: "top-[105px]" };
 
+/** The top row alone — a chapter page has no sub-menu under it. */
+export const TOP_ROW = { offset: 57, top: "top-[57px]" };
+
 /** One entry of a sub-menu. */
 export type SubItem = {
   key: string;
@@ -141,19 +142,16 @@ export type SubItem = {
   onClick?: () => void;
 };
 
-/** The sub-menu under the top row, in the layout with a sub-menu — drawn like my space's
- *  (`Layout`): where you are on the left, what is beside it as tabs on the right, sticking
- *  under the top row. On a league's page it holds the league's pages, on a matchday page
- *  the matchday's tabs. One `nav`: the crumbs are part of it, not a second navigation. */
+/** The sub-menu under the top row, on the picture in white — drawn like my space's
+ *  (`Layout`): where you are on the left, the pages beside it as pills, sticking under the
+ *  top row. On a league's page it holds the league's pages, on a matchday page the
+ *  matchday's tabs. One `nav`: the crumbs are part of it, not a second navigation. */
 export function SubBar({
   crumbs,
   items,
   label,
   testId,
-  overlay = false,
 }: {
-  /** Over the picture: no background of its own, white type. */
-  overlay?: boolean;
   /** `current`: this crumb is the page you are on — the league's own page. */
   crumbs: { label: string; to?: string; current?: boolean }[];
   items: SubItem[];
@@ -162,43 +160,41 @@ export function SubBar({
 }) {
   // The current entry kept in view: on a phone the row is wider than the screen.
   const bar = useRef<HTMLElement>(null);
-  const marked = items.find((item) => item.current)?.key;
+  const current = items.find((item) => item.current)?.key;
   useEffect(() => {
     const row = bar.current;
     const entry = row?.querySelector<HTMLElement>('[aria-current="page"]');
     if (!row || !entry) return;
     const left = entry.offsetLeft - row.clientWidth / 2 + entry.offsetWidth / 2;
     row.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
-  }, [marked]);
+  }, [current]);
   return (
-    // The row scrolls sideways inside itself on a phone, crumbs and tabs together — a
+    // The row scrolls sideways inside itself on a phone, crumbs and pills together — a
     // row wider than the screen would zoom the page out (Story A-10).
-    <nav ref={bar} aria-label={label} data-testid={testId} className={`scrollbar-none h-12 overflow-x-auto border-b text-sm ${overlay ? "border-white/15" : "border-slate-200 bg-white/95 backdrop-blur"}`}>
+    <nav ref={bar} aria-label={label} data-testid={testId} className="scrollbar-none h-12 overflow-x-auto border-b border-white/15 text-sm">
       <div className="mx-auto flex h-full max-w-6xl items-stretch px-4">
-        <ol className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 ${overlay ? "text-white/70" : "text-slate-500"}`} data-testid="site-sub-crumbs">
+        <ol className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 text-white/70" data-testid="site-sub-crumbs">
           {crumbs.map((c, i) => (
             <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
-              {i > 0 && <span aria-hidden className={overlay ? "text-white/40" : "text-slate-300"}>›</span>}
+              {i > 0 && <span aria-hidden className="text-white/40">›</span>}
               {c.to ? (
                 <Link
                   to={c.to}
                   aria-current={c.current ? "page" : undefined}
                   data-testid={c.current ? "site-sub-crumb-current" : undefined}
-                  className={`hover:underline ${c.current ? `font-semibold ${overlay ? "text-white" : "text-slate-900"}` : ""} ${overlay ? "hover:text-white" : "hover:text-slate-900"}`}
+                  className={`hover:text-white hover:underline ${c.current ? "font-semibold text-white" : ""}`}
                 >
                   {c.label}
                 </Link>
               ) : (
-                <span className={`font-medium ${overlay ? "text-white" : "text-slate-700"}`}>{c.label}</span>
+                <span className="font-medium text-white">{c.label}</span>
               )}
             </li>
           ))}
         </ol>
         {/* Pills, like the top row's leagues. */}
-        <ul className={`my-2 flex shrink-0 items-center gap-1 border-l pl-2 ${overlay ? "border-white/20" : "border-slate-200"}`}>
-          {items.map((item) => {
-            const on = item.current;
-            return (
+        <ul className="my-2 flex shrink-0 items-center gap-1 border-l border-white/20 pl-2">
+          {items.map((item) => (
             <li key={item.key} className="shrink-0">
               <Link
                 to={item.to}
@@ -207,20 +203,13 @@ export function SubBar({
                 aria-current={item.current ? "page" : undefined}
                 data-testid={item.testId}
                 className={`block whitespace-nowrap rounded-full px-3 py-1.5 font-medium transition-colors ${
-                  on
-                    ? overlay
-                      ? "bg-white text-slate-950"
-                      : "bg-slate-900 text-white"
-                    : overlay
-                      ? "text-white/75 hover:bg-white/10 hover:text-white"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  item.current ? "bg-white text-slate-950" : "text-white/75 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 {item.label}
               </Link>
             </li>
-            );
-          })}
+          ))}
         </ul>
       </div>
     </nav>
@@ -228,27 +217,22 @@ export function SubBar({
 }
 
 /** A league's pages as the sub-menu — or the association's, outside a league. */
-export function LeagueSubBar({ league, overlay = false }: { league: League | null; overlay?: boolean }) {
+export function LeagueSubBar({ league }: { league: League | null }) {
   const { t } = useTranslation("site");
   const current = useCurrentSibling(league);
   return (
     <SubBar
       label={t("nav.pages")}
       testId="site-league-pages"
-      overlay={overlay}
       // The league's name is its overview: an entry *Overview* beside it said the same twice.
       crumbs={[
         league
           ? { label: league.short_name, to: href.league(league.slug), current: current === href.league(league.slug) }
           : { label: "Deutsche Segel-Liga", to: href.home(), current: current === href.home() },
       ]}
-      items={siblings(league).filter((s) => s.key !== "overview" && s.key !== "home").map((s) => ({
-        key: s.key,
-        to: s.to,
-        label: t(`pages.${s.key}`),
-        current: current === s.to,
-        testId: `site-page-${s.key}`,
-      }))}
+      items={siblings(league)
+        .filter((s) => s.key !== "overview" && s.key !== "home")
+        .map((s) => ({ key: s.key, to: s.to, label: t(`pages.${s.key}`), current: current === s.to, testId: `site-page-${s.key}` }))}
     />
   );
 }
@@ -260,23 +244,20 @@ export function Bars({ league, subnav }: { league: League | null; subnav?: React
   return (
     <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
       <TopBar league={league} overlay />
-      {subnav ?? <LeagueSubBar league={league} overlay />}
+      {subnav ?? <LeagueSubBar league={league} />}
     </div>
   );
 }
 
-/** What an official page shows while its data is on the way: the same dark frame, the rows
- *  in their place — never a white page. A white one flashed on every change of league,
- *  where the next league's year is fetched before its page can be drawn. */
+/** What an official page shows while its data is on the way: the same frame and rows, an
+ *  empty sub-menu of the same height — never a white page. A white one flashed on every
+ *  change of league, where the next league's year is fetched before its page is drawn. */
 export function PageLoading({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-slate-950 text-white">
-      <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
-        <TopBar overlay />
-        <div className="h-12 border-b border-white/15" />
-      </div>
+      <Bars league={null} subnav={<div className="h-12 border-b border-white/15" />} />
       <main id="content" className="mx-auto max-w-6xl px-4 py-16">
-        <Surface kind="dark">{children}</Surface>
+        {children}
       </main>
     </div>
   );
@@ -335,23 +316,19 @@ export function DepthPage({ league, title, kicker, photo, children, subnav }: De
     <div className="min-h-dvh bg-slate-950 text-white" data-testid="site-depth-page">
       <div aria-hidden className="fixed inset-0" data-testid="site-depth-picture">
         <Picture photo={photo ?? SLIDES[0]} />
-        {/* How dark is the look's `--site-shade`; darker at the foot, where the cards pile up. */}
-        <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(to bottom, rgb(2 6 23 / calc(var(--site-shade) + 0.1)), rgb(2 6 23 / calc(var(--site-shade) - 0.1)) 40%, rgb(2 6 23 / calc(var(--site-shade) + 0.3)))" }}
-        />
+        <div className="absolute inset-0" style={{ background: SHADE_DOWN }} />
       </div>
       {/* The top row names the association and every league on every page (Story B-13);
           the sub-menu under it, the league's pages or the matchday's tabs. */}
       <Bars league={league} subnav={subnav} />
       <header className="relative mx-auto max-w-6xl px-4 pb-10 pt-20 sm:pt-32">
         {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">{kicker}</p>}
-        <h1 className="mt-2 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">{title}</h1>
+        <h1 className={`mt-2 ${PAGE_TITLE}`}>{title}</h1>
       </header>
       <main id="content" data-column className="relative mx-auto max-w-6xl px-4 pb-16">
-        <Surface kind="dark">{children}</Surface>
+        {children}
       </main>
-      <Footer glass />
+      <GlassFooter />
     </div>
   );
 }
@@ -368,7 +345,6 @@ export function Block({
   children: ReactNode;
   testId?: string;
 }) {
-  const tone = useTone();
   return (
     <section className="mb-12" data-testid={testId} data-flow>
       <div className={`mb-4 flex items-end justify-between gap-4 border-b pb-2 ${tone.line}`}>
@@ -396,7 +372,6 @@ export function Expand({
   open?: boolean;
   testId?: string;
 }) {
-  const tone = useTone();
   return (
     <details open={open} className={`group border-b last:border-0 ${tone.line}`} data-testid={testId}>
       <summary className={`flex cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden ${tone.text}`}>
@@ -408,14 +383,9 @@ export function Expand({
   );
 }
 
-/** Each league's pages, and the legal pages § 5 DDG wants reachable from every page —
- *  `glass` on the official pages (`Footer.tsx`), light on the internal screens. */
-export function Footer({ glass = false }: { glass?: boolean }) {
-  if (glass) return <GlassFooter />;
-  return <LightFooter />;
-}
-
-function LightFooter() {
+/** The internal screens' footer: each league's pages, and the legal pages § 5 DDG wants
+ *  reachable from every page. The official pages have `GlassFooter` (`Footer.tsx`). */
+export function Footer() {
   const { t } = useTranslation("site");
   const { t: tc } = useTranslation();
   const leagues = useLeagues();

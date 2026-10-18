@@ -7,7 +7,7 @@ import type { Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { StandingsTable } from "../../components/StandingsTable";
-import { Card, CardRow, Columns, MediaCard, Panel, TextCard, useTone } from "../../components/site/Cards";
+import { Card, CardRow, Columns, MediaCard, Panel, TextCard, tone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand } from "../../components/site/Frame";
 import { YouTubePlayer } from "../../components/site/Media";
 import {
@@ -33,8 +33,7 @@ import { currentAct, href } from "../../lib/site";
 import { useClubsOf } from "./LeagueHome";
 import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
 
-// The depth pages behind a league's chapters (Story B-14). Each is a `DepthPage`, framed
-// by whichever variant the DEV switch picks; the content is the same in all three.
+// The depth pages behind a league's chapters (Story B-14), each a `DepthPage`.
 
 const kickerOf = ({ league, year }: LeagueYear) => (year ? `${league.short_name} · ${year}` : league.short_name);
 
@@ -43,7 +42,6 @@ const kickerOf = ({ league, year }: LeagueYear) => (year ? `${league.short_name}
 /** `/:league/standings` and `/:league/:year/standings` — every division's full table. */
 export function StandingsPage() {
   const { t } = useTranslation("site");
-  const tone = useTone();
   return (
     <LeagueGate>
       {(data) => {
@@ -120,7 +118,6 @@ function DivisionTable({ series, marks, league, year }: { series: Series; marks:
 export function SeasonPage() {
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
-  const tone = useTone();
   return (
     <LeagueGate>
       {(data) => {
@@ -139,7 +136,7 @@ export function SeasonPage() {
                     <span className="flex items-center gap-4">
                       <span className={`w-32 shrink-0 text-sm ${tone.faint}`}>{actDates(act)}</span>
                       <span className="min-w-0 flex-1 truncate font-medium">{actTitle(act)}</span>
-                      <StateBadge state={act.state} dark={tone.dark} />
+                      <StateBadge state={act.state} />
                     </span>
                   }
                 >
@@ -184,7 +181,6 @@ export function SeasonPage() {
 /** `/:league/notice-board` — the season's documents; the act's own notices are on its page. */
 export function NoticeBoardPage() {
   const { t } = useTranslation("site");
-  const tone = useTone();
   const localized = useLocalized();
   const actTitle = useActTitle();
   return (
@@ -231,12 +227,11 @@ function SeasonDocuments({ league, render }: { league: string; render: (group: D
 }
 
 export function DocList({ docs }: { docs: string[] }) {
-  const tone = useTone();
   return (
     <ul className="space-y-1.5">
       {docs.map((doc) => (
         <li key={doc} className="flex items-center gap-3">
-          <span className={`grid size-8 shrink-0 place-items-center rounded-md text-[10px] font-bold ${tone.dark ? "bg-white/15 text-white/80" : "bg-slate-100 text-slate-500"}`}>PDF</span>
+          <span className={`grid size-8 shrink-0 place-items-center rounded-md text-[10px] font-bold bg-white/15 text-white/80`}>PDF</span>
           {/* No download mark until there is a file to download. */}
           <span className={`flex-1 ${tone.text}`}>{doc}</span>
         </li>
@@ -268,7 +263,6 @@ export function ClubsPage() {
 
 function DivisionClubs({ series }: { series: Series }) {
   const { t } = useTranslation("site");
-  const tone = useTone();
   const clubs = useClubsOf([series]);
   if (!clubs.length) return <TextCard>{t("clubs.none")}</TextCard>;
   return (
@@ -276,7 +270,7 @@ function DivisionClubs({ series }: { series: Series }) {
       {clubs.map((club) => (
         <li key={club.id}>
           <Card to={href.club(club.id)} className="flex h-full flex-col items-center gap-2 p-4 text-center">
-            <span className={`grid size-12 place-items-center rounded-full text-sm font-bold ${tone.dark ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"}`}>{club.short_name}</span>
+            <span className={`grid size-12 place-items-center rounded-full text-sm font-bold bg-white/15 text-white`}>{club.short_name}</span>
             <span className={`line-clamp-2 text-xs ${tone.muted}`}>{club.name}</span>
           </Card>
         </li>
@@ -441,7 +435,6 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
 
 export function PressPage() {
   const { t } = useTranslation("site");
-  const tone = useTone();
   return (
     <LeagueGate>
       {({ league }) => (
@@ -472,7 +465,6 @@ export function PressPage() {
 }
 
 function Releases({ league }: { league: string }) {
-  const tone = useTone();
   const press = usePress(league);
   return (
     <Async state={press} testId="site-press">
@@ -501,7 +493,6 @@ function Releases({ league }: { league: string }) {
 /** `/:league/about` — what the league is and what is at stake. */
 export function LeagueAboutPage() {
   const { t } = useTranslation("site");
-  const tone = useTone();
   const localized = useLocalized();
   const { league: slug = "" } = useParams();
   const about = useLeagueAbout(slug).data;

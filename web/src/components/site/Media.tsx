@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { SLIDES, VIDEOS, type Photo } from "../../content";
-import { useTone } from "./Cards";
+import { tone } from "./Cards";
 import { useMediaMode } from "./settings";
 
 /** A photo that fills its box, crediting its source in the tooltip. */
@@ -20,26 +20,15 @@ export function Img({ photo, className = "" }: { photo: Photo; className?: strin
 /** A stable small number per picture, so slideshows on one page do not change in step. */
 const pick = (key: string, count: number) => [...key].reduce((sum, c) => sum + c.charCodeAt(0), 0) % count;
 
-/** A big picture: the photo, a slideshow (fading or sliding), or a muted YouTube loop —
- *  as the DEV switch says (Story B-13). `play` is false for a chapter not on screen, so a
- *  page of chapters plays one video, not eight. */
-export function Picture({
-  photo,
-  className = "",
-  play = true,
-  video = 0,
-}: {
-  photo: Photo;
-  className?: string;
-  play?: boolean;
-  video?: number;
-}) {
+/** The page's one big picture: the photo, a slideshow (fading or sliding), or a muted
+ *  YouTube loop — as the DEV switch says (Story B-13). */
+export function Picture({ photo }: { photo: Photo }) {
   const mode = useMediaMode();
-  const box = `absolute inset-0 overflow-hidden ${className}`;
+  const box = "absolute inset-0 overflow-hidden";
   // No slide marks: on a chapter they read as a second set of dots beside the chapter dots.
   if (mode === "fade") return <Slideshow key="fade" photo={photo} className={box} kind="fade" />;
   if (mode === "slide") return <Slideshow key="push" photo={photo} className={box} kind="push" />;
-  if (mode === "video" && play) return <YouTubeBackground video={video} photo={photo} className={box} />;
+  if (mode === "video") return <YouTubeBackground photo={photo} className={box} />;
   return <Img photo={photo} className={box} />;
 }
 
@@ -88,8 +77,8 @@ function Slideshow({ photo, className, kind }: { photo: Photo; className: string
   );
 }
 
-function YouTubeBackground({ video, photo, className }: { video: number; photo: Photo; className: string }) {
-  const clip = VIDEOS[video % VIDEOS.length];
+function YouTubeBackground({ photo, className }: { photo: Photo; className: string }) {
+  const clip = VIDEOS[0];
   const params = new URLSearchParams({
     autoplay: "1",
     mute: "1",
@@ -118,7 +107,6 @@ function YouTubeBackground({ video, photo, className }: { video: number; photo: 
 
 /** A YouTube player with controls, for the media pages — a card like every other. */
 export function YouTubePlayer({ id, title }: { id: string; title: string }) {
-  const tone = useTone();
   return (
     <figure className={`${tone.card} h-full overflow-hidden`}>
       <iframe

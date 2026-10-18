@@ -142,11 +142,11 @@ C's idea, kept inside E.
 
 ## Design
 
-Clean: white and slate, one accent (the brand blue), generous space, type doing the work.
-Pictures carry the chapter pages. A depth page opens on a big picture with its kicker
+Clean: a picture under a dark shade, white type on frosted glass, one accent (the brand
+blue), generous space, type doing the work. Pictures carry every page. A depth page opens on a big picture with its kicker
 (*"DSBL · 15–17 Oct 2026 · Wannsee"*) and title (*"Final · Berlin"*) on it — decided
-2026-10-11; the title below the picture made the picture a thin strip. The content follows
-on white. How the frame looks otherwise is still open (variant "Detail page" below). A
+2026-10-11; the title below the picture made the picture a thin strip. The picture stays
+behind the whole page and the content lies on it in glass cards (decided 2026-10-18). A
 slideshow shows no slide marks: on a chapter they read as a second set of dots beside the
 chapter dots.
 

@@ -1,25 +1,22 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-/** The variants of the site structure still open (`docs/site-structure.md`, Story B-13),
- *  each switched by the DEV button and decided on a real device, not in the abstract.
- *
- *  One value for the whole site, shared by every component that reads it, remembered in
- *  this browser — a convenience: storage may fail, and then the setting holds until reload.
- *  Once a variant is decided, its setting goes and the chosen branch stays. */
-function setting<T extends string>(key: string, values: readonly T[], fallback: T) {
+/** One value for the whole site, shared by every component that reads it, remembered in
+ *  this browser — for what the DEV switch tries out (`docs/site-structure.md`, Story B-13).
+ *  A convenience: storage may fail, and then the value holds until reload. `read` turns
+ *  what is stored (or nothing) into a value, falling back where it cannot. */
+function setting<T>(key: string, read: (saved: string | null) => T, write: (value: T) => string) {
   const listeners = new Set<() => void>();
   let value: T = (() => {
     try {
-      const saved = localStorage.getItem(key);
-      return values.includes(saved as T) ? (saved as T) : fallback;
+      return read(localStorage.getItem(key));
     } catch {
-      return fallback;
+      return read(null);
     }
   })();
   const set = (next: T) => {
     value = next;
     try {
-      localStorage.setItem(key, next);
+      localStorage.setItem(key, write(next));
     } catch {
       // Not remembered; holds until reload.
     }
@@ -39,42 +36,22 @@ function setting<T extends string>(key: string, values: readonly T[], fallback: 
 /** What a big picture shows: the photo, a cross-fading or a sliding slideshow, a muted video. */
 export type MediaMode = "photo" | "fade" | "slide" | "video";
 export const MEDIA_MODES = ["photo", "fade", "slide", "video"] as const;
-export const [useMediaMode, setMediaMode] = setting<MediaMode>("site.media", MEDIA_MODES, "photo");
+export const [useMediaMode, setMediaMode] = setting<MediaMode>(
+  "site.media",
+  (saved) => MEDIA_MODES.find((mode) => mode === saved) ?? "photo",
+  (mode) => mode,
+);
 
 /** How the glass looks over the pictures — the playground in the DEV switch. The same
  *  numbers are the defaults in `index.css`; the switch writes them onto the page as CSS
  *  variables, so a build without the dev tools shows the defaults. */
 export type Look = { cardAlpha: number; cardBlur: number; shade: number; text: number };
 export const LOOK_DEFAULT: Look = { cardAlpha: 0.45, cardBlur: 12, shade: 0.45, text: 0.85 };
-
-const lookListeners = new Set<() => void>();
-let look: Look = (() => {
-  try {
-    return { ...LOOK_DEFAULT, ...JSON.parse(localStorage.getItem("site.look") ?? "{}") };
-  } catch {
-    return LOOK_DEFAULT;
-  }
-})();
-
-export function setLook(next: Look) {
-  look = next;
-  try {
-    localStorage.setItem("site.look", JSON.stringify(next));
-  } catch {
-    // Not remembered; holds until reload.
-  }
-  lookListeners.forEach((listener) => listener());
-}
-
-export function useLook() {
-  return useSyncExternalStore(
-    (listener) => {
-      lookListeners.add(listener);
-      return () => lookListeners.delete(listener);
-    },
-    () => look,
-  );
-}
+export const [useLook, setLook] = setting<Look>(
+  "site.look",
+  (saved) => ({ ...LOOK_DEFAULT, ...JSON.parse(saved ?? "{}") }),
+  (look) => JSON.stringify(look),
+);
 
 /** The look onto the page, as the variables `index.css` defines. */
 export function applyLook(value: Look) {

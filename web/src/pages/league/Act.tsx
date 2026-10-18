@@ -8,11 +8,11 @@ import { useAccount, useAsync } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
-import { Card, Columns, Panel, TextCard, useTone } from "../../components/site/Cards";
+import { Card, Columns, Panel, PillSwitch, TextCard, tone } from "../../components/site/Cards";
 import { BARS, Block, DepthPage, Expand, PageLoading, SubBar } from "../../components/site/Frame";
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
 import { eventDates, locationText } from "../../lib/format";
-import { currentAct, hasResults, href, lastSailed, type Act } from "../../lib/site";
+import { actSlug, currentAct, hasResults, href, lastSailed, stateOf, type Act } from "../../lib/site";
 import { Crew, DailyStandings, PairingList, ResultsEntry } from "../Matchday";
 import { DocList, MediaContent } from "./Depth";
 import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle } from "./shared";
@@ -60,7 +60,6 @@ function MatchdayView({
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
   const { hasRole } = useAccount();
-  const tone = useTone();
   const [params, setParams] = useSearchParams();
   // A tab click scrolls the page so the matchday row sits right under the top bar and the
   // tab starts below it. A page opened by its URL keeps its picture in view.
@@ -83,7 +82,6 @@ function MatchdayView({
   // season, this act), the tabs beside it — the league's pages are a step up.
   const subnav = (
     <SubBar
-      overlay
       label={t("act.tabs")}
       testId="site-act-bar"
       crumbs={[
@@ -117,45 +115,35 @@ function MatchdayView({
       photo={hasResults(act) ? DSBL_PHOTOS.podium : league ? leaguePhoto(league.slug) : DSBL_PHOTOS.race}
       subnav={subnav}
     >
-      {/* Which matchday this is and what it has, in one row that stays under the top bar
-          — the second and last row of navigation (Story B-13). */}
+      {/* Where a tab click scrolls to: the tab's top, just under the rows. */}
       <div ref={anchor} aria-hidden />
-
-
-      {/* At least a screen tall, so a short tab can still be scrolled up to the row. */}
-      {/* `panel-scroll`: a results table wider than a phone scrolls here, not the page
+      {/* At least a screen tall, so a short tab can still be scrolled up to the rows;
+          `panel-scroll`: a results table wider than a phone scrolls here, not the page
           (Story A-10). */}
       <div className="panel-scroll min-h-[calc(100dvh-7.5rem)]" data-testid={`site-act-${tab}`} data-flow>
         <TextCard className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           <span data-testid="site-act-meta">
             {[locationText(act.first), act.first.host_club ? t("hostedBy", { host: act.first.host_club.name }) : null].filter(Boolean).join(" · ")}
           </span>
-          <StateBadge state={act.state} dark={tone.dark} />
+          <StateBadge state={act.state} />
         </TextCard>
         {act.events.length > 1 && tab !== "notice-board" && tab !== "media" && (
-          <div role="radiogroup" aria-label={t("act.division")} data-inline className="mb-6 inline-flex rounded-full bg-slate-100 p-1" data-testid="site-division-switch">
-            {act.events.map((e) => (
-              <button
-                key={e.id}
-                type="button"
-                role="radio"
-                aria-checked={e.id === event.id}
-                data-testid={`site-division-${e.id}`}
-                onClick={() => {
-                  const next = new URLSearchParams(params);
-                  next.set("division", String(e.id));
-                  setParams(next, { replace: true });
-                }}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium ${e.id === event.id ? "bg-white text-slate-900 shadow" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                {divisionName(e)}
-              </button>
-            ))}
-          </div>
+          <PillSwitch
+            label={t("act.division")}
+            className="mb-6"
+            testId="site-division-switch"
+            value={String(event.id)}
+            options={act.events.map((e) => ({ value: String(e.id), label: divisionName(e), testId: `site-division-${e.id}` }))}
+            onChange={(id) => {
+              const next = new URLSearchParams(params);
+              next.set("division", id);
+              setParams(next, { replace: true });
+            }}
+          />
         )}
 
         {tab === "notice-board" && <NoticeBoard events={act.events} />}
-        {/* The tables need white paper; everything else lies on the picture in cards. */}
+        {/* The tables on a panel, which turns their light colours into the glass's. */}
         {tab === "results" && <Panel><Results key={event.id} event={event} /></Panel>}
         {tab === "pairing" && <Panel><PairingList key={event.id} eventId={event.id} /></Panel>}
         {tab === "crews" && <Panel><Crew key={event.id} eventId={event.id} /></Panel>}
@@ -169,7 +157,6 @@ function MatchdayView({
 
 function NoticeBoard({ events }: { events: EventSummary[] }) {
   const { t } = useTranslation("site");
-  const tone = useTone();
   const board = useActNotices(events.map((e) => e.id));
   return (
     <Async state={board} testId="site-act-notices">
@@ -263,20 +250,19 @@ function useEventLive(event: EventSummary) {
 /** The live map while racing, a replay afterwards — or the live view the event names. */
 function LiveTab({ event }: { event: EventSummary }) {
   const { t } = useTranslation("site");
-  const tone = useTone();
   const title = event.status === "live" ? t("live.now") : event.status === "final" ? t("live.replay") : t("live.from", { dates: eventDates(event) });
-  const button = tone.dark ? "bg-white text-slate-950" : "bg-slate-900 text-white";
+  const button = "mt-5 inline-block rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950";
   return (
     <Card className="p-8 text-center" testId="site-live">
       <p className={`text-lg font-semibold ${tone.text}`}>{title}</p>
       <p className={`mt-1 ${tone.muted}`}>{t("live.text")}</p>
       <p className="mt-3"><StatusBadge status={event.status} /></p>
       {event.live_url ? (
-        <a href={event.live_url} target="_blank" rel="noopener noreferrer" data-testid="matchday-live-external-link" className={`mt-5 inline-block rounded-full px-5 py-2.5 text-sm font-semibold ${button}`}>
+        <a href={event.live_url} target="_blank" rel="noopener noreferrer" data-testid="matchday-live-external-link" className={button}>
           {t("live.external")}
         </a>
       ) : (
-        <Link to={`/events/${event.id}/live`} data-testid="matchday-live-map-link" className={`mt-5 inline-block rounded-full px-5 py-2.5 text-sm font-semibold ${button}`}>
+        <Link to={`/events/${event.id}/live`} data-testid="matchday-live-map-link" className={button}>
           {t("live.open")}
         </Link>
       )}
@@ -309,23 +295,12 @@ export function EventPage() {
   if (leagueId != null && leagues.isPending) return <PageLoading><Loading testId="matchday-loading" /></PageLoading>;
   const league = leagues.data?.find((l) => l.id === leagueId);
   if (league && event.series?.year) {
-    // The same slug `actsOf` gives the act, so an event with no matchday — a cup's one
-    // weekend — has one page, not two.
-    const slug = event.matchday != null ? `act-${event.matchday}` : `event-${event.id}`;
-    const to = href.act(league.slug, event.series.year, slug, wanted);
+    const to = href.act(league.slug, event.series.year, actSlug(event), wanted);
     return <Navigate to={`${to}?division=${event.id}`} replace />;
   }
-  const act: Act = { slug: `event-${event.id}`, matchday: event.matchday ?? null, events: [event], first: event, state: stateOfEvent(event) };
+  const act: Act = { slug: `event-${event.id}`, matchday: event.matchday ?? null, events: [event], first: event, state: stateOf([event]) };
   return <MatchdayView league={null} act={act} tab={wanted} tabHref={(tb) => href.event(event.id, tb)} />;
 }
-
-function stateOfEvent(event: EventSummary): Act["state"] {
-  if (event.status === "live") return "live";
-  if (event.status === "final") return "done";
-  if (event.status === "cancelled") return "cancelled";
-  return "planned";
-}
-
 
 // ---------------------------------------------------------------- short paths
 

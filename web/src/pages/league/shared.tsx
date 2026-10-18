@@ -29,32 +29,15 @@ export function LeagueGate({ children }: { children: (data: LeagueYear) => React
 }
 
 
-/** "Act 2 · Kiel" — the act's number and its place. */
-export function useActTitle() {
-  const { t } = useTranslation("site");
-  return (act: Act) => {
-    const place = act.first.venue?.city ?? act.first.host_club?.short_name;
-    const name = act.matchday != null ? t("act.title", { n: act.matchday }) : act.first.title;
-    return place ? `${name} · ${place}` : name;
-  };
-}
+export { useActTitle } from "../../components/site/acts";
 
 /** The act's date line, short: "17–19 Apr". */
 export const actDates = (act: Act) => eventDates(act.first);
 
-/** Where an act stands, as a small badge. */
-export function StateBadge({ state, dark = false }: { state: ActState; dark?: boolean }) {
+/** Where an act stands, as a small badge on the glass. */
+export function StateBadge({ state }: { state: ActState }) {
   const { t } = useTranslation("site");
-  const tone =
-    state === "live"
-      ? "bg-red-600 text-white"
-      : state === "next"
-        ? dark
-          ? "bg-white text-slate-950"
-          : "bg-brand-600 text-white"
-        : dark
-          ? "bg-white/10 text-white/80"
-          : "bg-slate-100 text-slate-600";
+  const tone = state === "live" ? "bg-red-600 text-white" : state === "next" ? "bg-white text-slate-950" : "bg-white/10 text-white/80";
   return (
     <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${tone}`} data-testid={`act-state-${state}`}>
       {t(`state.${state}`)}

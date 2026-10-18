@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
-import { Card, CardRow, Columns, MediaCard, TextCard, useTone } from "../../components/site/Cards";
+import { Card, CardRow, Columns, MediaCard, TextCard, tone } from "../../components/site/Cards";
 import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
 import { BOARD, MEMBER_LEAGUES, OWN_PHOTOS, leagueAbout, useAssociation, useLocalized, useNews, type Article } from "../../content";
@@ -33,6 +33,7 @@ export function AssociationHome() {
       // The competitions in one chapter: what each is sailing now and what each is, on
       // one card — once a list here and the same four leagues as cards in a second one.
       body: (
+        <>
         <CardRow columns={4} testId="site-home-now">
           {leagues.map((l, i) => {
             const season = seasons[i]?.data;
@@ -45,7 +46,7 @@ export function AssociationHome() {
                   {act ? (
                     <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
                       <span className="font-medium">{actTitle(act)}</span>
-                      <StateBadge state={act.state} dark />
+                      <StateBadge state={act.state} />
                       <span className="w-full text-white/60">{actDates(act)}</span>
                     </p>
                   ) : null}
@@ -56,8 +57,6 @@ export function AssociationHome() {
             );
           })}
         </CardRow>
-      ),
-      extra: (
         <CardRow testId="site-home-figures">
           {(["competitions", "clubs", "since"] as const).map((k) => (
             <li key={k}>
@@ -68,6 +67,7 @@ export function AssociationHome() {
             </li>
           ))}
         </CardRow>
+        </>
       ),
     },
     {
@@ -80,8 +80,9 @@ export function AssociationHome() {
       id: "clubs",
       label: t("chapters.forClubs"),
       title: t("chapters.forClubs"),
-      body: <TextCard className="text-lg">{association ? localized(association.service) : null}</TextCard>,
-      extra: (
+      body: (
+        <>
+        <TextCard className="text-lg">{association ? localized(association.service) : null}</TextCard>
         <CardRow testId="site-home-services">
           {(["pairing", "results", "live", "waivers", "expenses", "own"] as const).map((k) => (
             <li key={k}>
@@ -92,6 +93,7 @@ export function AssociationHome() {
             </li>
           ))}
         </CardRow>
+        </>
       ),
     },
     {
@@ -138,7 +140,6 @@ export function AssociationAboutPage() {
   const association = useAssociation().data;
   const members = useQueries({ queries: MEMBER_LEAGUES.map((l) => getGetLeagueSeasonQueryOptions(l)) });
   const clubs = useClubsOf(members.flatMap((m) => m.data?.series ?? []));
-  const tone = useTone();
   return (
     <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")} photo={OWN_PHOTOS.title}>
       {association && (
@@ -164,7 +165,7 @@ export function AssociationAboutPage() {
             <ul className={`grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-1 text-sm md:grid-cols-2 ${tone.muted}`}>
               {clubs.map((c) => (
                 <li key={c.id}>
-                  <Link to={href.club(c.id)} className={`hover:underline ${tone.dark ? "hover:text-white" : "hover:text-slate-900"}`}>
+                  <Link to={href.club(c.id)} className="hover:text-white hover:underline">
                     <b className={`inline-block w-24 ${tone.text}`}>{c.short_name}</b>
                     {c.name}
                   </Link>

@@ -4,13 +4,11 @@ import { Link } from "react-router-dom";
 
 import type { League } from "../../api/types";
 import type { Photo } from "../../content";
-import { Surface } from "./Cards";
-import { BAR_SHADE, Footer, TopBar } from "./Frame";
+import { BAR_SHADE, PAGE_TITLE, SHADE_ACROSS } from "./Cards";
+import { GlassFooter } from "./Footer";
+import { TOP_ROW, TopBar } from "./Frame";
 import { Picture } from "./Media";
 import { useActiveChapter } from "./settings";
-
-const SHADE_ACROSS =
-  "linear-gradient(to right, rgb(2 6 23 / calc(var(--site-shade) + 0.35)), rgb(2 6 23 / calc(var(--site-shade) + 0.1)) 55%, rgb(2 6 23 / calc(var(--site-shade) - 0.15)))";
 
 export type ChapterSpec = {
   id: string;
@@ -18,8 +16,6 @@ export type ChapterSpec = {
   title: string;
   more?: { to: string; label: string };
   body: ReactNode;
-  /** More of the chapter, under its body. */
-  extra?: ReactNode;
 };
 
 /** The face of a league (or of the association): its chapters, dots on the right, each a
@@ -44,14 +40,13 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
   return (
     <div className="fixed inset-0 bg-slate-950">
       <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
-        <Picture photo={photo} video={0} />
+        <Picture photo={photo} />
       </div>
-      {/* Darker on the left, where the text is; how dark is the look's `--site-shade`. */}
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: SHADE_ACROSS }} />
       <div className={`absolute inset-x-0 top-0 z-40 ${BAR_SHADE}`}>
         <TopBar league={league} overlay />
       </div>
-      <div className="absolute inset-x-0 bottom-0 top-[57px]">
+      <div className={`absolute inset-x-0 bottom-0 ${TOP_ROW.top}`}>
         <div
           ref={scroller}
           tabIndex={-1}
@@ -63,31 +58,28 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
           data-league={league?.slug}
         >
           <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} hidden={footerInView} />
-          <Surface kind="dark">
-            <main id="content">
-              {chapters.map((c, i) => (
-                <section
-                  key={c.id}
-                  id={c.id}
-                  data-chapter={c.id}
-                  data-testid={`site-chapter-${c.id}`}
-                  className="relative border-t border-white/10 first:border-0"
-                >
-                  {/* One column; every block in it spans it (`Cards.tsx`, "the grid"). */}
-                  <div data-column className="mx-auto w-full max-w-6xl px-4 py-10 pr-14 text-white lg:pr-24">
-                    <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
-                    <div data-flow className="space-y-6">
-                      {c.body}
-                      {c.extra}
-                    </div>
-                    {c.more && <MoreLink id={c.id} more={c.more} />}
+          <main id="content">
+            {chapters.map((c, i) => (
+              <section
+                key={c.id}
+                id={c.id}
+                data-chapter={c.id}
+                data-testid={`site-chapter-${c.id}`}
+                className="relative border-t border-white/10 first:border-0"
+              >
+                {/* One column; every block in it spans it (`Cards.tsx`, "the grid"). */}
+                <div data-column className="mx-auto w-full max-w-6xl px-4 py-10 pr-14 text-white lg:pr-24">
+                  <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
+                  <div data-flow className="space-y-6">
+                    {c.body}
                   </div>
-                </section>
-              ))}
-            </main>
-          </Surface>
+                  {c.more && <MoreLink id={c.id} more={c.more} />}
+                </div>
+              </section>
+            ))}
+          </main>
           <div ref={footer}>
-            <Footer glass />
+            <GlassFooter />
           </div>
         </div>
       </div>
@@ -96,17 +88,14 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
 }
 
 function ChapterHead({ n, of, title }: { n: number; of: number; title: string }) {
+  // The first chapter's title is the page's heading; the others are its sections.
+  const Heading = n === 1 ? "h1" : "h2";
   return (
     <>
       <p className="font-mono text-xs tracking-widest text-white/60">
         {String(n).padStart(2, "0")} / {String(of).padStart(2, "0")}
       </p>
-      {/* The first chapter's title is the page's heading; the others are its sections. */}
-      {n === 1 ? (
-        <h1 className="mb-6 mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">{title}</h1>
-      ) : (
-        <h2 className="mb-6 mt-2 text-4xl font-semibold leading-[1.02] tracking-tight sm:text-6xl">{title}</h2>
-      )}
+      <Heading className={`mb-6 mt-2 ${PAGE_TITLE}`}>{title}</Heading>
     </>
   );
 }
@@ -115,13 +104,24 @@ function MoreLink({ id, more }: { id: string; more: { to: string; label: string 
   return (
     <Link
       to={more.to}
-      data-inline
       data-testid={`site-chapter-${id}-more`}
       className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
     >
       {more.label} <span aria-hidden>→</span>
     </Link>
   );
+}
+
+/** Whether any of the element is on screen. */
+function useInView(ref: React.RefObject<HTMLElement | null>) {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref]);
+  return inView;
 }
 
 /** The column of dots on the right. A tap jumps; a thumb sliding along the column shows
@@ -136,18 +136,6 @@ function MoreLink({ id, more }: { id: string; more: { to: string; label: string 
  *    sideways, and once it left the column the slide froze on the last chapter.
  *  - **A tap scrolls, it does not navigate**: following `#season` scrolled a second time
  *    and put every tap into the history, so Back walked the chapters. */
-/** Whether any of the element is on screen. */
-function useInView(ref: React.RefObject<HTMLElement | null>) {
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [ref]);
-  return inView;
-}
-
 function ChapterDots({
   chapters,
   active,
