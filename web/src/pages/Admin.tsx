@@ -21,7 +21,7 @@ import { WHOLE_LIST, mayOpenAdmin, useAsyncRows, useInvalidate, useAccount } fro
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { AccountsAdmin } from "./AdminAccounts";
-import { EventsAdmin } from "./AdminEvents";
+import { EventsAdmin } from "./admin/events/EventList";
 import { SailorsAdmin } from "./AdminSailors";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
 import { Section, Field, Message } from "../components/Form";

@@ -19,6 +19,15 @@ so that **everything else follows from it**.
 
 Acceptance criteria:
 - Only **name and date** are required. Everything else has sensible defaults.
+- **The size starts from what is known**, never from a league's numbers in the screen: for
+  an act of a series, the catalog size for as many teams as the series has registered
+  clubs (they are adopted as its entries); otherwise the catalog's first size. The
+  organizer's choice wins from then on.
+- **The clubs step offers exactly the clubs that may enter**, asked from the server
+  (`GET /api/admin/events/{id}/candidate-clubs`): an act of a series its series' accepted
+  registrations, a stand-alone event every club — the rule `PUT …/clubs` enforces
+  (`app/services/participation.py`). The screen used to fetch every series and every club
+  to recompute it.
 - The configuration consists of **number of teams, number of boats, and number of flights**. From
   it the number of races per flight is calculated — no constants in code. Teams and boats
   are picked as one of the catalog's combinations, the flights then from 1 up to that
@@ -57,9 +66,10 @@ Acceptance criteria:
   sailor, an event) is the same shape: the plus in the same corner, a page per entry, and
   "Back to the list" when it is done.
 
-Endpoints: `POST /api/admin/events`
+Endpoints: `POST /api/admin/events`, `GET /api/admin/events/{id}/candidate-clubs`
 
 Tests: `api/tests/stories/test_create_event.py::TestCreateEvent`,
+`api/tests/stories/test_create_event.py::TestWhoMayEnter`,
 `e2e/lifecycle.spec.ts::VA-6: creating an event in three steps`
 
 ### A-2 ● Create matchday
@@ -146,7 +156,7 @@ Endpoints: `GET /api/admin/events`, `GET /api/admin/events/{id}/readiness`,
 `POST /api/admin/series/{id}/unpublish`; `published` also on `POST /api/admin/events`,
 `PATCH /api/admin/events/{id}`, `POST /api/admin/series`, `PATCH /api/admin/series/{id}`.
 Computed in `api/app/services/event_readiness.py`. The admin screen is
-`web/src/pages/AdminEvents.tsx` — a three-step creation whose first step gates almost
+`web/src/pages/admin/events/` — a three-step creation whose first step gates almost
 nothing (VA-6), and a manage panel per event carrying the readiness reasons, the date, the
 entered clubs, the draw, publication and the start.
 

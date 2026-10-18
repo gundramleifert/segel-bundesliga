@@ -158,7 +158,9 @@ describeStory("VA-6: creating an event in three steps", () => {
 
     // Teams and boats are one choice, the flights another: the stored list is the
     // longest day, and a shorter one sails its first flights (Story VA-7). The league's
-    // 18 on 6 offers 16, and picking 10 makes 30 races.
+    // 18 on 6 offers 16, and picking 10 makes 30 races. Picked explicitly: with no series
+    // chosen yet the form starts on the catalog's first size, not on a league's.
+    await page.getByTestId("admin-events-catalog-select").selectOption("18-6");
     const flightsSelect = page.getByTestId("admin-events-flights-select");
     await expect(flightsSelect.locator("option")).toHaveCount(16);
     await flightsSelect.selectOption("10");
