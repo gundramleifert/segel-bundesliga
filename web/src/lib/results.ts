@@ -6,21 +6,14 @@
  * position, and what a redress suggestion is. Pure functions, no React: the state that
  * uses them is `useFinishOrder` in `components/FinishOrderPad.tsx`.
  */
-import type { AdminRace, RaceResultInput, StandingRow } from "../api/types";
+import type { RaceResultInput, StandingRow } from "../api/types";
 
 /** `races_per_flight = ceil(team_count / boat_count)` — the one formula (`CLAUDE.md`: "The
- *  Event defines the configuration"), read by the matchday's grid and by the event form's
- *  summary. Guarded against `boat_count === 0` and half-typed input while an event is
+ *  Event defines the configuration"), for the event form's summary before the event
+ *  exists — an existing event carries `races_per_flight` from the server. Guarded against `boat_count === 0` and half-typed input while an event is
  *  still being set up: 0 then, never `Infinity` or `NaN`. */
 export function racesPerFlight(event: { team_count: number; boat_count: number }): number {
   return event.boat_count > 0 ? Math.ceil(event.team_count / event.boat_count) || 0 : 0;
-}
-
-/** A race not yet finished (or abandoned) — the client-side "current race". Races run
- *  strictly one at a time in sequence, so the first such race is the one on the water,
- *  for the results tab and the race-control page alike. */
-export function stillOpen(race: AdminRace): boolean {
-  return race.status !== "finished" && race.status !== "abandoned";
 }
 
 /** One boat's result as the screens hold it before it is sent. */

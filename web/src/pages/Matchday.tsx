@@ -24,9 +24,7 @@ import {
   NOT_FINISHED_CODES,
   SPECIAL_CODES,
   needsOwnInput,
-  racesPerFlight,
   redressSuggestion,
-  stillOpen,
 } from "../lib/results";
 import {
   ErrorMessage,
@@ -41,33 +39,20 @@ import {
 } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 
-/** Sum of a team's `points_by_race` for the races that belong to one flight, or `null` when
- *  none of that flight's races have a result yet for this team. Keys of `points_by_race` are
- *  JSON object keys (always strings) even though the backend type is `dict[int, float]`. */
-function pointsInFlight(row: StandingRow, flight: number, perFlight: number): number | null {
-  const start = (flight - 1) * perFlight + 1;
-  const end = flight * perFlight;
-  let sum = 0;
-  let present = false;
-  for (const [sequenceText, value] of Object.entries(row.points_by_race)) {
-    const sequence = Number(sequenceText);
-    if (sequence >= start && sequence <= end) {
-      sum += value;
-      present = true;
-    }
-  }
-  return present ? sum : null;
+/** A team's points in one flight, or `null` when it has no result in that flight yet. The
+ *  sums are the server's (`points_by_flight`, Story B-2), keyed by flight number — computed
+ *  from each race's own flight, never from sequence numbers here. */
+function pointsInFlight(row: StandingRow, flight: number): number | null {
+  return row.points_by_flight?.[flight] ?? null;
 }
 
 /** Which flights have at least one recorded result, for *any* team — a flight nobody has
  *  raced in yet gets a plain "–" for everyone, not a grey estimate: an estimate only makes
  *  sense once the flight is actually under way (someone else's race in it already ran). */
-function startedFlights(standings: StandingRow[], perFlight: number): Set<number> {
+function startedFlights(standings: StandingRow[]): Set<number> {
   const started = new Set<number>();
   for (const row of standings) {
-    for (const sequenceText of Object.keys(row.points_by_race)) {
-      started.add(Math.ceil(Number(sequenceText) / perFlight));
-    }
+    for (const flight of Object.keys(row.points_by_flight ?? {})) started.add(Number(flight));
   }
   return started;
 }
@@ -91,15 +76,8 @@ function expectedAverage(row: StandingRow, boatCount: number): number {
  *  keeps a projection from ever drifting more than a single race's worth above the real
  *  total, without needing a separate cap to enforce it. A flight nobody has reached yet is
  *  never estimated: there is no evidence it is under way. */
-function estimatedFlights(
-  row: StandingRow,
-  flights: number[],
-  perFlight: number,
-  started: Set<number>,
-): number[] {
-  return flights.filter(
-    (flight) => started.has(flight) && pointsInFlight(row, flight, perFlight) === null,
-  );
+function estimatedFlights(row: StandingRow, flights: number[], started: Set<number>): number[] {
+  return flights.filter((flight) => started.has(flight) && pointsInFlight(row, flight) === null);
 }
 
 // The tabs of a matchday (Stories B-2, B-3, B-12, WL-2), mounted by the matchday page
@@ -121,10 +99,9 @@ export function DailyStandings({
     return <Empty testId="matchday-standings-not-sailed">{t("notSailedYet")}</Empty>;
   }
 
-  const perFlight = racesPerFlight(event);
   const flights = Array.from({ length: event.flight_count }, (_, i) => i + 1);
 
-  return <StandingsTable standings={standings} event={event} flights={flights} perFlight={perFlight} t={t} />;
+  return <StandingsTable standings={standings} event={event} flights={flights} t={t} />;
 }
 
 /** How the one points column reads a team that hasn't sailed every started flight yet.
@@ -141,13 +118,11 @@ function StandingsTable({
   standings,
   event,
   flights,
-  perFlight,
   t,
 }: {
   standings: StandingRow[];
   event: EventSummary;
   flights: number[];
-  perFlight: number;
   t: (key: string, options?: Record<string, unknown>) => string;
 }) {
   const [chosenMode, setMode] = useState<PointsMode>("exact");
@@ -158,7 +133,7 @@ function StandingsTable({
   // pinned to `exact` rather than left wherever it happened to be when racing ended.
   const canProject = event.status === "live";
   const mode: PointsMode = canProject ? chosenMode : "exact";
-  const flightsStarted = startedFlights(standings, perFlight);
+  const flightsStarted = startedFlights(standings);
 
   // Rows always keep the backend's own order — `rank`, official, fewer points ranking higher
   // (`app/services/standings.py`). There is deliberately no client-side sorting: the one
@@ -244,7 +219,7 @@ function StandingsTable({
         <tbody>
           {standings.map((row) => {
             const average = expectedAverage(row, event.boat_count);
-            const estimated = estimatedFlights(row, flights, perFlight, flightsStarted);
+            const estimated = estimatedFlights(row, flights, flightsStarted);
             // The projected total is exactly the row's own cells added up: real flight sums
             // plus one expected average per greyed cell. Nothing is added that isn't shown.
             const extrapolated = row.total + estimated.length * average;
@@ -307,7 +282,7 @@ function StandingsTable({
                   {row.races_scored}
                 </td>
                 {flights.map((flight) => {
-                  const value = pointsInFlight(row, flight, perFlight);
+                  const value = pointsInFlight(row, flight);
                   if (value != null) {
                     return (
                       <td key={flight} className="text-right tabular-nums text-slate-500">
@@ -640,12 +615,12 @@ export function ResultsEntry({
   // below — narrowing on `data` itself doesn't survive into a nested function body.
   const races = data.races;
 
-  // Everything before the first still-open race is already finished, everything after it
-  // can't have started yet — so there's never more than one "current" race, one "previous"
-  // (just finished) and one "next" (drawn but not run) worth focusing on at a time. Default
-  // to that neighborhood instead of all 48 rows; "show all" stays available for correcting
-  // an older result later (a protest decision isn't limited to the most recent race).
-  const currentIndex = races.findIndex(stillOpen);
+  // The current race is the server's (`current_sequence`, Story WL-3): races run one at a
+  // time, so there's never more than one "current" race, one "previous" (just finished) and
+  // one "next" (drawn but not run) worth focusing on at a time. Default to that
+  // neighborhood instead of all 48 rows; "show all" stays available for correcting an older
+  // result later (a protest decision isn't limited to the most recent race).
+  const currentIndex = races.findIndex((race) => race.sequence === data.current_sequence);
   const displayed = showAll
     ? races
     : currentIndex === -1

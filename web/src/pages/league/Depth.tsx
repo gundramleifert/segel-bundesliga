@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams } from "react-router-dom";
 
 import { useGetSeriesTable } from "../../api/generated/sbl";
-import type { Series } from "../../api/types";
+import type { LeagueSeason, Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { StandingsTable } from "../../components/StandingsTable";
@@ -30,7 +30,6 @@ import {
 } from "../../content";
 import { formatDate, locationText } from "../../lib/format";
 import { currentAct, href } from "../../lib/site";
-import { useClubsOf } from "./LeagueHome";
 import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
 
 // The depth pages behind a league's chapters (Story B-14), each a `DepthPage`.
@@ -261,9 +260,9 @@ export function ClubsPage() {
   );
 }
 
-function DivisionClubs({ series }: { series: Series }) {
+function DivisionClubs({ series }: { series: LeagueSeason["series"][number] }) {
   const { t } = useTranslation("site");
-  const clubs = useClubsOf([series]);
+  const clubs = series.clubs ?? [];
   if (!clubs.length) return <TextCard>{t("clubs.none")}</TextCard>;
   return (
     <CardRow columns={6} testId={`site-clubs-${series.slug}`}>
