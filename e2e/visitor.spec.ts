@@ -332,7 +332,9 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     await expect(page.getByTestId("site-league-pages").getByTestId("site-page-overview")).toHaveAttribute("aria-current", "page");
-    const picture = page.getByTestId("site-chapters").locator("xpath=preceding-sibling::div[1]");
+    const picture = page.getByTestId("site-chapters-picture");
+    // It starts at the top of the screen, behind the two rows.
+    expect((await picture.boundingBox())!.y).toBe(0);
     const before = (await picture.boundingBox())!;
     await page.locator('[data-dot="news"]').click();
     await expect(page.locator('[data-dot="news"]')).toHaveAttribute("aria-current", "true");

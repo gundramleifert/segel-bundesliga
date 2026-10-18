@@ -25,9 +25,13 @@ export function useLeagues(): League[] {
  *  the same entries everywhere, the current one marked (Story B-13). */
 export function TopBar({
   overlay = false,
+  floating = true,
   league,
 }: {
   overlay?: boolean;
+  /** Over the picture, fixed to the top with its own shade — or, `false`, placed by the
+   *  page, which shades the bars together (the sub-menu layout's chapter page). */
+  floating?: boolean;
   /** The league the page belongs to, marked in the row. */
   league?: League | null;
 }) {
@@ -46,7 +50,9 @@ export function TopBar({
     <header
       className={`z-40 text-sm ${
         overlay
-          ? "fixed inset-x-0 top-0 bg-gradient-to-b from-slate-950/70 to-transparent text-white/80"
+          ? floating
+            ? "fixed inset-x-0 top-0 bg-gradient-to-b from-slate-950/70 to-transparent text-white/80"
+            : "relative border-b border-white/15 text-white/80"
           : "sticky top-0 border-b border-slate-200 bg-white/95 text-slate-600 backdrop-blur"
       }`}
       data-testid="site-top-bar"
@@ -148,7 +154,10 @@ export function SubBar({
   items,
   label,
   testId,
+  overlay = false,
 }: {
+  /** Over the picture: no background of its own, white type. */
+  overlay?: boolean;
   crumbs: { label: string; to?: string }[];
   items: SubItem[];
   label: string;
@@ -168,21 +177,21 @@ export function SubBar({
   return (
     // The row scrolls sideways inside itself on a phone, crumbs and tabs together — a
     // row wider than the screen would zoom the page out (Story A-10).
-    <nav ref={bar} aria-label={label} data-testid={testId} className="scrollbar-none h-12 overflow-x-auto border-b border-slate-200 bg-white/95 text-sm backdrop-blur">
+    <nav ref={bar} aria-label={label} data-testid={testId} className={`scrollbar-none h-12 overflow-x-auto border-b text-sm ${overlay ? "border-white/15" : "border-slate-200 bg-white/95 backdrop-blur"}`}>
       <div className="mx-auto flex h-full max-w-6xl items-stretch px-4">
-        <ol className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 text-slate-500" data-testid="site-sub-crumbs">
+        <ol className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 ${overlay ? "text-white/70" : "text-slate-500"}`} data-testid="site-sub-crumbs">
           {crumbs.map((c, i) => (
             <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
-              {i > 0 && <span aria-hidden className="text-slate-300">›</span>}
+              {i > 0 && <span aria-hidden className={overlay ? "text-white/40" : "text-slate-300"}>›</span>}
               {c.to ? (
-                <Link to={c.to} className="hover:text-slate-900 hover:underline">{c.label}</Link>
+                <Link to={c.to} className={`hover:underline ${overlay ? "hover:text-white" : "hover:text-slate-900"}`}>{c.label}</Link>
               ) : (
-                <span className="font-medium text-slate-700">{c.label}</span>
+                <span className={`font-medium ${overlay ? "text-white" : "text-slate-700"}`}>{c.label}</span>
               )}
             </li>
           ))}
         </ol>
-        <ul className="flex shrink-0 items-stretch gap-1 border-l border-slate-200 pl-1">
+        <ul className={`flex shrink-0 items-stretch gap-1 border-l pl-1 ${overlay ? "border-white/20" : "border-slate-200"}`}>
           {items.map((item) => {
             const on = item.marked ?? item.current;
             return (
@@ -195,7 +204,13 @@ export function SubBar({
                 data-marked={on}
                 data-testid={item.testId}
                 className={`-mb-px flex items-center whitespace-nowrap border-b-2 px-3 font-medium transition-colors ${
-                  on ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"
+                  on
+                    ? overlay
+                      ? "border-white text-white"
+                      : "border-slate-900 text-slate-900"
+                    : overlay
+                      ? "border-transparent text-white/70 hover:text-white"
+                      : "border-transparent text-slate-500 hover:text-slate-900"
                 }`}
               >
                 {item.label}
@@ -212,13 +227,14 @@ export function SubBar({
 /** A league's pages as the sub-menu — or the association's, outside a league. `marked`
  *  names the entry to underline instead of the current page: on a chapter page, the page
  *  the chapter on screen leads to. */
-export function LeagueSubBar({ league, marked }: { league: League | null; marked?: string | null }) {
+export function LeagueSubBar({ league, marked, overlay = false }: { league: League | null; marked?: string | null; overlay?: boolean }) {
   const { t } = useTranslation("site");
   const current = useCurrentSibling(league);
   return (
     <SubBar
       label={t("nav.pages")}
       testId="site-league-pages"
+      overlay={overlay}
       crumbs={[league ? { label: league.short_name, to: href.league(league.slug) } : { label: "Deutsche Segel-Liga", to: href.home() }]}
       items={siblings(league).map((s) => ({
         key: s.key,

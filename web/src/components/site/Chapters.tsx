@@ -40,28 +40,30 @@ function useScrollerFocus() {
   return scroller;
 }
 
-/** With a sub-menu: the top row and the league's pages solid above, **one** picture fixed
- *  behind every chapter — photo, slideshow or video, as the DEV switch says — and only the
- *  text scrolling over it. */
+/** With a sub-menu: **one** picture fixed behind everything — photo, slideshow or video,
+ *  as the DEV switch says — reaching up behind the top row and the league's pages, which
+ *  lie on it in white; only the text scrolls, in a box that starts under the two rows. */
 function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
   const mode = useChapterMode();
   const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}|submenu`);
   const scroller = useScrollerFocus();
   return (
-    <div className="fixed inset-0 flex flex-col bg-slate-950">
-      <div className="relative z-40 shrink-0">
-        <TopBar league={league} />
-        <LeagueSubBar league={league ?? null} marked={chapters.find((c) => c.id === current)?.page ?? null} />
+    <div className="fixed inset-0 bg-slate-950">
+      <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
+        <Picture photo={chapters[0].photo} video={0} />
       </div>
-      <div className="relative min-h-0 flex-1">
-        <div aria-hidden className="absolute inset-0">
-          <Picture photo={chapters[0].photo} video={0} />
-        </div>
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/30" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/30" />
+      {/* The rows' own shade, so white type reads on a bright sky. */}
+      <div className="absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-slate-950/75 via-slate-950/45 to-slate-950/10">
+        <TopBar league={league} overlay floating={false} />
+        <LeagueSubBar league={league ?? null} marked={chapters.find((c) => c.id === current)?.page ?? null} overlay />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 top-[105px]">
         <div
           ref={scroller}
           tabIndex={-1}
-          className={`scrollbar-none absolute inset-0 overflow-y-auto outline-none ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
+          // The text fades out under the rows rather than ending at a hard line.
+          className={`scrollbar-none absolute inset-0 overflow-y-auto outline-none [mask-image:linear-gradient(to_bottom,transparent,black_2rem)] ${mode === "snap" ? "snap-y snap-mandatory" : ""}`}
           data-testid="site-chapters"
           data-league={league?.slug}
           data-version="submenu"
