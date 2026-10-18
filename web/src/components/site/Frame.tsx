@@ -9,6 +9,7 @@ import { DEV_TOOLS } from "../../dev/devTools";
 import { SLIDES, type Photo } from "../../content";
 import { href } from "../../lib/site";
 import { UserMenu } from "../UserMenu";
+import { Surface, useTone } from "./Cards";
 import { Picture } from "./Media";
 import { useDetailMode, useSiteVersion } from "./settings";
 
@@ -131,15 +132,16 @@ export function TopBar({
  *  pixels for scrolling, as a class for `sticky`. 57 + 48 — the row's border included. */
 export const BARS = { offset: 105, top: "top-[105px]" };
 
+/** The rows' background in the sub-menu layout, everywhere: the picture shows through,
+ *  darkened and blurred, so white type reads on any photo and on content passing under. */
+export const BAR_SHADE = "bg-slate-950/70 backdrop-blur-md";
+
 /** One entry of a sub-menu. */
 export type SubItem = {
   key: string;
   to: To;
   label: string;
   current: boolean;
-  /** Underlined, where `current` would be — the chapter on screen, on a chapter page.
-   *  Defaults to `current`. */
-  marked?: boolean;
   testId: string;
   state?: unknown;
   onClick?: () => void;
@@ -158,18 +160,18 @@ export function SubBar({
 }: {
   /** Over the picture: no background of its own, white type. */
   overlay?: boolean;
-  crumbs: { label: string; to?: string }[];
+  /** `current`: this crumb is the page you are on — the league's own page. */
+  crumbs: { label: string; to?: string; current?: boolean }[];
   items: SubItem[];
   label: string;
   testId: string;
 }) {
-  // The marked entry kept in view: on a phone the row is wider than the screen, and the
-  // mark follows the chapters as they scroll by.
+  // The current entry kept in view: on a phone the row is wider than the screen.
   const bar = useRef<HTMLElement>(null);
-  const marked = items.find((item) => item.marked ?? item.current)?.key;
+  const marked = items.find((item) => item.current)?.key;
   useEffect(() => {
     const row = bar.current;
-    const entry = row?.querySelector<HTMLElement>('[data-marked="true"]');
+    const entry = row?.querySelector<HTMLElement>('[aria-current="page"]');
     if (!row || !entry) return;
     const left = entry.offsetLeft - row.clientWidth / 2 + entry.offsetWidth / 2;
     row.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
@@ -184,33 +186,40 @@ export function SubBar({
             <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
               {i > 0 && <span aria-hidden className={overlay ? "text-white/40" : "text-slate-300"}>›</span>}
               {c.to ? (
-                <Link to={c.to} className={`hover:underline ${overlay ? "hover:text-white" : "hover:text-slate-900"}`}>{c.label}</Link>
+                <Link
+                  to={c.to}
+                  aria-current={c.current ? "page" : undefined}
+                  data-testid={c.current ? "site-sub-crumb-current" : undefined}
+                  className={`hover:underline ${c.current ? `font-semibold ${overlay ? "text-white" : "text-slate-900"}` : ""} ${overlay ? "hover:text-white" : "hover:text-slate-900"}`}
+                >
+                  {c.label}
+                </Link>
               ) : (
                 <span className={`font-medium ${overlay ? "text-white" : "text-slate-700"}`}>{c.label}</span>
               )}
             </li>
           ))}
         </ol>
-        <ul className={`flex shrink-0 items-stretch gap-1 border-l pl-1 ${overlay ? "border-white/20" : "border-slate-200"}`}>
+        {/* Pills, like the top row's leagues. */}
+        <ul className={`my-2 flex shrink-0 items-center gap-1 border-l pl-2 ${overlay ? "border-white/20" : "border-slate-200"}`}>
           {items.map((item) => {
-            const on = item.marked ?? item.current;
+            const on = item.current;
             return (
-            <li key={item.key} className="flex shrink-0">
+            <li key={item.key} className="shrink-0">
               <Link
                 to={item.to}
                 state={item.state}
                 onClick={item.onClick}
                 aria-current={item.current ? "page" : undefined}
-                data-marked={on}
                 data-testid={item.testId}
-                className={`-mb-px flex items-center whitespace-nowrap border-b-2 px-3 font-medium transition-colors ${
+                className={`block whitespace-nowrap rounded-full px-3 py-1.5 font-medium transition-colors ${
                   on
                     ? overlay
-                      ? "border-white text-white"
-                      : "border-slate-900 text-slate-900"
+                      ? "bg-white text-slate-950"
+                      : "bg-slate-900 text-white"
                     : overlay
-                      ? "border-transparent text-white/70 hover:text-white"
-                      : "border-transparent text-slate-500 hover:text-slate-900"
+                      ? "text-white/75 hover:bg-white/10 hover:text-white"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
                 {item.label}
@@ -224,10 +233,8 @@ export function SubBar({
   );
 }
 
-/** A league's pages as the sub-menu — or the association's, outside a league. `marked`
- *  names the entry to underline instead of the current page: on a chapter page, the page
- *  the chapter on screen leads to. */
-export function LeagueSubBar({ league, marked, overlay = false }: { league: League | null; marked?: string | null; overlay?: boolean }) {
+/** A league's pages as the sub-menu — or the association's, outside a league. */
+export function LeagueSubBar({ league, overlay = false }: { league: League | null; overlay?: boolean }) {
   const { t } = useTranslation("site");
   const current = useCurrentSibling(league);
   return (
@@ -235,13 +242,17 @@ export function LeagueSubBar({ league, marked, overlay = false }: { league: Leag
       label={t("nav.pages")}
       testId="site-league-pages"
       overlay={overlay}
-      crumbs={[league ? { label: league.short_name, to: href.league(league.slug) } : { label: "Deutsche Segel-Liga", to: href.home() }]}
-      items={siblings(league).map((s) => ({
+      // The league's name is its overview: an entry *Overview* beside it said the same twice.
+      crumbs={[
+        league
+          ? { label: league.short_name, to: href.league(league.slug), current: current === href.league(league.slug) }
+          : { label: "Deutsche Segel-Liga", to: href.home(), current: current === href.home() },
+      ]}
+      items={siblings(league).filter((s) => s.key !== "overview" && s.key !== "home").map((s) => ({
         key: s.key,
         to: s.to,
         label: t(`pages.${s.key}`),
         current: current === s.to,
-        marked: marked ? marked === s.key : undefined,
         testId: `site-page-${s.key}`,
       }))}
     />
@@ -253,10 +264,9 @@ export function LeagueSubBar({ league, marked, overlay = false }: { league: Leag
 export function Bars({ league, subnav }: { league: League | null; subnav?: ReactNode }) {
   const version = useSiteVersion();
   if (version === "classic") return <TopBar league={league} />;
-  // On the page's picture in white, as on the chapter page; shaded and blurred, because
-  // the white content scrolls under them.
+  // On the page's picture in white, shaded and blurred — the same as on the chapter page.
   return (
-    <div className="sticky top-0 z-40 bg-slate-950/70 backdrop-blur-md">
+    <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
       <TopBar league={league} overlay floating={false} />
       {subnav ?? <LeagueSubBar league={league} overlay />}
     </div>
@@ -363,8 +373,9 @@ function Crumbs({ league, light = true }: { league: League | null; light?: boole
 }
 
 /** The sub-menu layout's frame: the page's own picture fixed behind the whole page — as
- *  behind the chapters, so a page deeper is no break in style — the kicker and title on
- *  it in white, the content on a white panel that scrolls over it. */
+ *  behind the chapters, so a page deeper is no break in style — the kicker, the title and
+ *  the content on it, in the chapters' cards (`Cards.tsx`); what needs white paper sits on
+ *  a `Panel`. */
 function BackdropFrame({ title, kicker, photo, children }: FrameProps) {
   return (
     <>
@@ -376,8 +387,8 @@ function BackdropFrame({ title, kicker, photo, children }: FrameProps) {
         {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">{kicker}</p>}
         <h1 className="mt-2 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">{title}</h1>
       </header>
-      <main id="content" className="relative mx-auto max-w-6xl pb-16 sm:px-4">
-        <div className="rounded-t-3xl bg-white px-4 py-8 shadow-2xl sm:rounded-3xl sm:px-8 sm:py-10">{children}</div>
+      <main id="content" className="relative mx-auto max-w-6xl px-4 pb-16 text-white">
+        <Surface kind="dark">{children}</Surface>
       </main>
     </>
   );
@@ -512,12 +523,13 @@ export function Block({
   children: ReactNode;
   testId?: string;
 }) {
+  const tone = useTone();
   return (
     <section className="mb-12" data-testid={testId}>
-      <div className="mb-4 flex items-end justify-between gap-4 border-b border-slate-200 pb-2">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+      <div className={`mb-4 flex items-end justify-between gap-4 border-b pb-2 ${tone.line}`}>
+        <h2 className={`text-xl font-semibold tracking-tight ${tone.text}`}>{title}</h2>
         {more && (
-          <Link to={more.to} className="shrink-0 text-sm font-medium text-brand-700 hover:underline">
+          <Link to={more.to} className={`shrink-0 text-sm ${tone.link}`}>
             {more.label} →
           </Link>
         )}
@@ -539,13 +551,14 @@ export function Expand({
   open?: boolean;
   testId?: string;
 }) {
+  const tone = useTone();
   return (
-    <details open={open} className="group border-b border-slate-200 last:border-0" data-testid={testId}>
-      <summary className="flex cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden">
+    <details open={open} className={`group border-b last:border-0 ${tone.line}`} data-testid={testId}>
+      <summary className={`flex cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden ${tone.text}`}>
         <span className="min-w-0 flex-1">{summary}</span>
-        <span aria-hidden className="text-slate-400 transition group-open:rotate-90">›</span>
+        <span aria-hidden className={`transition group-open:rotate-90 ${tone.faint}`}>›</span>
       </summary>
-      <div className="pb-4 pl-1 text-sm text-slate-600">{children}</div>
+      <div className={`pb-4 pl-1 text-sm ${tone.muted}`}>{children}</div>
     </details>
   );
 }

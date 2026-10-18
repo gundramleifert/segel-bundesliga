@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 
 import type { League } from "../../api/types";
 import type { Photo } from "../../content";
-import { Footer, LeagueSubBar, TopBar } from "./Frame";
+import { Surface } from "./Cards";
+import { BAR_SHADE, Footer, TopBar } from "./Frame";
 import { Picture } from "./Media";
 import { useActiveChapter, useChapterMode, useSiteVersion } from "./settings";
 
@@ -15,9 +16,6 @@ export type ChapterSpec = {
   photo: Photo;
   more?: { to: string; label: string };
   body: ReactNode;
-  /** The sub-menu's entry this chapter belongs to (`pages.<key>`) — underlined while the
-   *  chapter is on screen. None: the page's own entry. */
-  page?: string;
   /** More of the chapter, shown in the layout with a sub-menu — the classic chapters stay
    *  as they were, so the two can be compared. */
   extra?: ReactNode;
@@ -40,9 +38,11 @@ function useScrollerFocus() {
   return scroller;
 }
 
-/** With a sub-menu: **one** picture fixed behind everything — photo, slideshow or video,
- *  as the DEV switch says — reaching up behind the top row and the league's pages, which
- *  lie on it in white; only the text scrolls, in a box that starts under the two rows. */
+/** The sub-menu layout's chapter page: **one** picture fixed behind everything — photo,
+ *  slideshow or video, as the DEV switch says — reaching up behind the top row, which
+ *  lies on it in white; only the text scrolls, in a box that starts under the row. The
+ *  overview has no sub-menu: the chapters are its contents, and each leads to its page,
+ *  where the sub-menu is. */
 function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league?: League | null }) {
   const mode = useChapterMode();
   const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}|submenu`);
@@ -53,12 +53,10 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
         <Picture photo={chapters[0].photo} video={0} />
       </div>
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/60 to-slate-950/30" />
-      {/* The rows' own shade, so white type reads on a bright sky. */}
-      <div className="absolute inset-x-0 top-0 z-40 bg-gradient-to-b from-slate-950/75 via-slate-950/45 to-slate-950/10">
+      <div className={`absolute inset-x-0 top-0 z-40 ${BAR_SHADE}`}>
         <TopBar league={league} overlay floating={false} />
-        <LeagueSubBar league={league ?? null} marked={chapters.find((c) => c.id === current)?.page ?? null} overlay />
       </div>
-      <div className="absolute inset-x-0 bottom-0 top-[105px]">
+      <div className="absolute inset-x-0 bottom-0 top-[57px]">
         <div
           ref={scroller}
           tabIndex={-1}
@@ -69,6 +67,7 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
           data-version="submenu"
         >
           <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} />
+          <Surface kind="dark">
           <main id="content">
             {chapters.map((c, i) => (
               <section
@@ -79,7 +78,7 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
                 // Free: a chapter is as tall as its content — the screen-high boxes of the
                 // snapping mode left half a screen of picture between two chapters.
                 className={`relative flex items-center border-t border-white/10 first:border-0 ${
-                  mode === "snap" ? "min-h-[calc(100dvh-105px)] snap-start" : ""
+                  mode === "snap" ? "min-h-[calc(100dvh-57px)] snap-start" : ""
                 }`}
               >
                 <div className={`mx-auto w-full max-w-6xl px-4 pr-14 text-white lg:pr-24 ${mode === "snap" ? "py-14" : "py-10"}`}>
@@ -91,6 +90,7 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
               </section>
             ))}
           </main>
+          </Surface>
           <div className="snap-start bg-white">
             <Footer />
           </div>
@@ -147,11 +147,13 @@ function ClassicChapters({ chapters, league }: { chapters: ChapterSpec[]; league
     >
       <TopBar overlay />
       <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} />
+      <Surface kind="dark">
       <main id="content">
         {chapters.map((c, i) => (
           <Chapter key={c.id} spec={c} n={i + 1} of={chapters.length} playing={current === c.id} />
         ))}
       </main>
+      </Surface>
       <div className="snap-start">
         <Footer />
       </div>

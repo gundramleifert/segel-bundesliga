@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
+import { Card, CardRow, MediaCard, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
 import { useSiteVersion } from "../../components/site/settings";
@@ -36,7 +37,7 @@ export function AssociationHome() {
       title: "Deutsche Segel-Liga e.V.",
       photo: OWN_PHOTOS.title,
       body: (
-        <div className="max-w-2xl rounded-2xl bg-white/10 px-4 backdrop-blur" data-testid="site-home-now">
+        <Card className="max-w-2xl px-4" testId="site-home-now">
           {leagues.map((l, i) => {
             const season = seasons[i]?.data;
             const act = season ? currentAct(actsOf(season)) : null;
@@ -50,14 +51,16 @@ export function AssociationHome() {
               </Link>
             );
           })}
-        </div>
+        </Card>
       ),
       extra: full && (
         <ul className="grid max-w-2xl grid-cols-3 gap-3" data-testid="site-home-figures">
           {(["competitions", "clubs", "since"] as const).map((k) => (
-            <li key={k} className="rounded-2xl bg-white/10 p-4 backdrop-blur">
+            <li key={k}>
+              <Card className="h-full p-4">
               <p className="text-3xl font-semibold tabular-nums">{t(`home.figures.${k}.value`, { count: leagues.length })}</p>
               <p className="mt-1 text-xs uppercase tracking-widest text-white/60">{t(`home.figures.${k}.label`)}</p>
+              </Card>
             </li>
           ))}
         </ul>
@@ -72,13 +75,13 @@ export function AssociationHome() {
         <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {leagues.map((l) => (
             <li key={l.slug}>
-              <Link to={href.league(l.slug)} className="block h-full rounded-2xl bg-white/10 p-5 backdrop-blur transition hover:bg-white/20">
+              <Card to={href.league(l.slug)} className="h-full p-5">
                 <p className="text-2xl font-semibold">{l.short_name}</p>
                 <p className="mt-1 text-sm text-white/75">{l.tagline}</p>
                 {full && leagueAbout(l.slug) && (
                   <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-white/60">{localized(leagueAbout(l.slug)!.intro)}</p>
                 )}
-              </Link>
+              </Card>
             </li>
           ))}
         </ul>
@@ -118,9 +121,11 @@ export function AssociationHome() {
       extra: full && (
         <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-3" data-testid="site-home-services">
           {(["pairing", "results", "live", "waivers", "expenses", "own"] as const).map((k) => (
-            <li key={k} className="rounded-2xl bg-white/10 p-4 backdrop-blur">
-              <p className="font-semibold">{t(`home.services.${k}.title`)}</p>
-              <p className="mt-1 text-sm leading-relaxed text-white/70">{t(`home.services.${k}.text`)}</p>
+            <li key={k}>
+              <Card className="h-full p-4">
+                <p className="font-semibold">{t(`home.services.${k}.title`)}</p>
+                <p className="mt-1 text-sm leading-relaxed text-white/70">{t(`home.services.${k}.text`)}</p>
+              </Card>
             </li>
           ))}
         </ul>
@@ -128,7 +133,6 @@ export function AssociationHome() {
     },
     {
       id: "about",
-      page: "about",
       label: t("chapters.about"),
       title: t("chapters.about"),
       photo: DSBL_PHOTOS.studio,
@@ -169,39 +173,38 @@ export function AssociationAboutPage() {
   const association = useAssociation().data;
   const members = useQueries({ queries: MEMBER_LEAGUES.map((l) => getGetLeagueSeasonQueryOptions(l)) });
   const clubs = useClubsOf(members.flatMap((m) => m.data?.series ?? []));
+  const tone = useTone();
   return (
     <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")} photo={OWN_PHOTOS.title}>
       {association && (
         <>
-          <p className="max-w-3xl text-lg leading-relaxed text-slate-700">{localized(association.history)}</p>
-          <p className="mt-3 max-w-3xl text-slate-600">{localized(association.record)}</p>
+          <p className={`max-w-3xl text-lg leading-relaxed ${tone.muted}`}>{localized(association.history)}</p>
+          <p className={`mb-10 mt-3 max-w-3xl ${tone.faint}`}>{localized(association.record)}</p>
         </>
       )}
       <Block title={t("home.board")}>
-        <ul className="grid grid-cols-[minmax(0,1fr)] gap-6 sm:grid-cols-3">
+        <CardRow>
           {BOARD.map((b) => (
             <li key={b.name}>
-              <div className="aspect-[2/3] overflow-hidden rounded-xl bg-slate-100">
-                <Img photo={b.photo} />
-              </div>
-              <p className="mt-3 font-semibold">{b.name}</p>
-              <p className="text-sm text-slate-500">{localized(b.role)}</p>
+              <MediaCard image={b.photo} aspect="aspect-[4/5]" title={b.name} text={localized(b.role)} />
             </li>
           ))}
-        </ul>
+        </CardRow>
       </Block>
       {clubs.length > 0 && (
         <Block title={t("home.members", { count: clubs.length })}>
-          <ul className="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-1 text-sm text-slate-700 md:grid-cols-2">
-            {clubs.map((c) => (
-              <li key={c.id}>
-                <Link to={href.club(c.id)} className="hover:underline">
-                  <b className="inline-block w-24">{c.short_name}</b>
-                  {c.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <Card className="p-4">
+            <ul className={`grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-1 text-sm md:grid-cols-2 ${tone.muted}`}>
+              {clubs.map((c) => (
+                <li key={c.id}>
+                  <Link to={href.club(c.id)} className={`hover:underline ${tone.dark ? "hover:text-white" : "hover:text-slate-900"}`}>
+                    <b className={`inline-block w-24 ${tone.text}`}>{c.short_name}</b>
+                    {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
         </Block>
       )}
     </DepthPage>

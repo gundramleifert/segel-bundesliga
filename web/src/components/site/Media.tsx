@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { SLIDES, VIDEOS, type Photo } from "../../content";
+import { useTone } from "./Cards";
 import { useMediaMode } from "./settings";
 
 /** A photo that fills its box, crediting its source in the tooltip. */
@@ -115,18 +116,19 @@ function YouTubeBackground({ video, photo, className }: { video: number; photo: 
   );
 }
 
-/** A YouTube player with controls, for the media pages. */
+/** A YouTube player with controls, for the media pages — a card like every other. */
 export function YouTubePlayer({ id, title }: { id: string; title: string }) {
+  const tone = useTone();
   return (
-    <figure>
+    <figure className={`${tone.card} h-full overflow-hidden`}>
       <iframe
         title={title}
         src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`}
         allow="encrypted-media; picture-in-picture; fullscreen"
         loading="lazy"
-        className="aspect-video w-full rounded-xl border-0 bg-slate-900"
+        className="block aspect-video w-full border-0 bg-slate-900"
       />
-      <figcaption className="mt-2 text-sm font-medium text-slate-700">{title}</figcaption>
+      <figcaption className={`p-4 text-sm font-semibold ${tone.text}`}>{title}</figcaption>
     </figure>
   );
 }

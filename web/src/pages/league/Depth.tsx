@@ -7,8 +7,9 @@ import type { Series } from "../../api/types";
 import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { StandingsTable } from "../../components/StandingsTable";
+import { Card, CardRow, MediaCard, Panel, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand } from "../../components/site/Frame";
-import { Img, YouTubePlayer } from "../../components/site/Media";
+import { YouTubePlayer } from "../../components/site/Media";
 import {
   DSBL_PHOTOS,
   OWN_PHOTOS,
@@ -42,6 +43,7 @@ const kickerOf = ({ league, year }: LeagueYear) => (year ? `${league.short_name}
 /** `/:league/standings` and `/:league/:year/standings` — every division's full table. */
 export function StandingsPage() {
   const { t } = useTranslation("site");
+  const tone = useTone();
   return (
     <LeagueGate>
       {(data) => {
@@ -54,12 +56,14 @@ export function StandingsPage() {
               <div>
                 {season.series.map((s) => (
                   <Block key={s.id} title={s.name} testId={`site-standings-${s.slug}`}>
-                    <DivisionTable series={s} marks={tableMarks(league.slug, s.level)} league={league.slug} year={year} />
+                    <Panel>
+                      <DivisionTable series={s} marks={tableMarks(league.slug, s.level)} league={league.slug} year={year} />
+                    </Panel>
                   </Block>
                 ))}
               </div>
             ) : (
-              <p className="text-slate-500">{t("standings.noSeries")}</p>
+              <p className={tone.faint}>{t("standings.noSeries")}</p>
             )}
             {season.years.length > 1 && (
               <Block title={t("standings.archive")}>
@@ -68,7 +72,7 @@ export function StandingsPage() {
                     <li key={y}>
                       <Link
                         to={href.standings(league.slug, y)}
-                        className={`block rounded-full border px-4 py-1.5 ${y === year ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}
+                        className={`block ${y === year ? tone.chipOn : tone.chip}`}
                       >
                         {y}
                       </Link>
@@ -116,6 +120,7 @@ function DivisionTable({ series, marks, league, year }: { series: Series; marks:
 export function SeasonPage() {
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
+  const tone = useTone();
   return (
     <LeagueGate>
       {(data) => {
@@ -123,7 +128,8 @@ export function SeasonPage() {
         return (
           <DepthPage league={league} title={t("pages.season")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.aerial}>
             <Block title={t("season.matchdays")}>
-              {!acts.length && <p className="text-slate-500">{t("season.empty")}</p>}
+              {!acts.length && <p className={tone.faint}>{t("season.empty")}</p>}
+              {acts.length > 0 && <Card className="px-4">
               {acts.map((act) => (
                 <Expand
                   key={act.slug}
@@ -131,9 +137,9 @@ export function SeasonPage() {
                   open={act.state === "next" || act.state === "live"}
                   summary={
                     <span className="flex items-center gap-4">
-                      <span className="w-32 shrink-0 text-sm text-slate-500">{actDates(act)}</span>
+                      <span className={`w-32 shrink-0 text-sm ${tone.faint}`}>{actDates(act)}</span>
                       <span className="min-w-0 flex-1 truncate font-medium">{actTitle(act)}</span>
-                      <StateBadge state={act.state} />
+                      <StateBadge state={act.state} dark={tone.dark} />
                     </span>
                   }
                 >
@@ -152,7 +158,7 @@ export function SeasonPage() {
                         <Link
                           key={tab}
                           to={href.act(league.slug, year, act.slug, tab)}
-                          className="rounded-full border border-slate-200 px-3 py-1 text-slate-700 hover:border-slate-400"
+                          className={tone.chip}
                         >
                           {t(`tabs.${tab}`)}
                         </Link>
@@ -161,9 +167,10 @@ export function SeasonPage() {
                   )}
                 </Expand>
               ))}
+              </Card>}
             </Block>
             <Block title={t("noticeBoard.season")} more={{ to: href.noticeBoard(league.slug), label: t("noticeBoard.all") }}>
-              <p className="text-slate-600">{t("noticeBoard.seasonPreview")}</p>
+              <p className={tone.muted}>{t("noticeBoard.seasonPreview")}</p>
             </Block>
           </DepthPage>
         );
@@ -177,6 +184,7 @@ export function SeasonPage() {
 /** `/:league/notice-board` — the season's documents; the act's own notices are on its page. */
 export function NoticeBoardPage() {
   const { t } = useTranslation("site");
+  const tone = useTone();
   const localized = useLocalized();
   const actTitle = useActTitle();
   return (
@@ -186,18 +194,20 @@ export function NoticeBoardPage() {
         const act = currentAct(acts);
         return (
           <DepthPage league={league} title={t("noticeBoard.season")} kicker={kickerOf(data)} photo={OWN_PHOTOS.title}>
-            <p className="mb-8 max-w-2xl text-slate-600">
+            <p className={`mb-8 max-w-2xl ${tone.muted}`}>
               {t("noticeBoard.intro")}{" "}
               {act && year && (
-                <Link to={href.act(league.slug, year, act.slug, "notice-board")} className="font-medium text-brand-700 hover:underline">
+                <Link to={href.act(league.slug, year, act.slug, "notice-board")} className={tone.link}>
                   {t("noticeBoard.ofAct", { act: actTitle(act) })} →
                 </Link>
               )}
             </p>
             <SeasonDocuments league={league.slug} render={(group) => (
-              <Expand key={localized(group.title)} open summary={<span className="font-semibold">{localized(group.title)}</span>}>
-                <DocList docs={group.docs} />
-              </Expand>
+              <Card key={localized(group.title)} className="mb-4 px-4">
+                <Expand open summary={<span className="font-semibold">{localized(group.title)}</span>}>
+                  <DocList docs={group.docs} />
+                </Expand>
+              </Card>
             )} />
           </DepthPage>
         );
@@ -221,13 +231,14 @@ function SeasonDocuments({ league, render }: { league: string; render: (group: D
 }
 
 export function DocList({ docs }: { docs: string[] }) {
+  const tone = useTone();
   return (
     <ul className="space-y-1.5">
       {docs.map((doc) => (
         <li key={doc} className="flex items-center gap-3">
-          <span className="grid size-8 shrink-0 place-items-center rounded-md bg-slate-100 text-[10px] font-bold text-slate-500">PDF</span>
+          <span className={`grid size-8 shrink-0 place-items-center rounded-md text-[10px] font-bold ${tone.dark ? "bg-white/15 text-white/80" : "bg-slate-100 text-slate-500"}`}>PDF</span>
           {/* No download mark until there is a file to download. */}
-          <span className="flex-1 text-slate-800">{doc}</span>
+          <span className={`flex-1 ${tone.text}`}>{doc}</span>
         </li>
       ))}
     </ul>
@@ -239,11 +250,12 @@ export function DocList({ docs }: { docs: string[] }) {
 /** `/:league/clubs` — the clubs of each division, each leading to its own page. */
 export function ClubsPage() {
   const { t } = useTranslation("site");
+  const tone = useTone();
   return (
     <LeagueGate>
       {(data) => (
         <DepthPage league={data.league} title={t("pages.clubs")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.race}>
-          {!data.season.series.length && <p className="text-slate-500">{t("clubs.none")}</p>}
+          {!data.season.series.length && <p className={tone.faint}>{t("clubs.none")}</p>}
           {data.season.series.map((s) => (
             <Block key={s.id} title={s.name}>
               <DivisionClubs series={s} />
@@ -257,19 +269,20 @@ export function ClubsPage() {
 
 function DivisionClubs({ series }: { series: Series }) {
   const { t } = useTranslation("site");
+  const tone = useTone();
   const clubs = useClubsOf([series]);
-  if (!clubs.length) return <p className="text-slate-500">{t("clubs.none")}</p>;
+  if (!clubs.length) return <p className={tone.faint}>{t("clubs.none")}</p>;
   return (
-    <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" data-testid={`site-clubs-${series.slug}`}>
+    <CardRow columns={6} testId={`site-clubs-${series.slug}`}>
       {clubs.map((club) => (
         <li key={club.id}>
-          <Link to={href.club(club.id)} className="flex h-full flex-col items-center gap-2 rounded-xl border border-slate-200 p-4 text-center transition hover:border-slate-400">
-            <span className="grid size-12 place-items-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{club.short_name}</span>
-            <span className="line-clamp-2 text-xs text-slate-600">{club.name}</span>
-          </Link>
+          <Card to={href.club(club.id)} className="flex h-full flex-col items-center gap-2 p-4 text-center">
+            <span className={`grid size-12 place-items-center rounded-full text-sm font-bold ${tone.dark ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"}`}>{club.short_name}</span>
+            <span className={`line-clamp-2 text-xs ${tone.muted}`}>{club.name}</span>
+          </Card>
         </li>
       ))}
-    </ul>
+    </CardRow>
   );
 }
 
@@ -300,20 +313,20 @@ function NewsGrid({ league }: { league: string }) {
 /** Articles as cards: picture, date, title, teaser — each leading to its own page. */
 function NewsCards({ league, items }: { league: string; items: Article[] }) {
   return (
-    <ul className="grid grid-cols-[minmax(0,1fr)] gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <CardRow>
       {items.map((n) => (
         <li key={n.slug}>
-          <Link to={href.article(league, n.slug)} className="group block" data-testid={`site-news-${n.slug}`}>
-            <div className="aspect-[3/2] overflow-hidden rounded-xl bg-slate-100">
-              <Img photo={n.photo} className="transition group-hover:scale-105" />
-            </div>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-brand-600">{formatDate(n.date)}</p>
-            <p className="mt-1 text-lg font-semibold leading-snug group-hover:underline">{n.title}</p>
-            <p className="mt-1 text-sm text-slate-600">{n.teaser}</p>
-          </Link>
+          <MediaCard
+            to={href.article(league, n.slug)}
+            image={n.photo}
+            kicker={formatDate(n.date)}
+            title={n.title}
+            text={n.teaser}
+            testId={`site-news-${n.slug}`}
+          />
         </li>
       ))}
-    </ul>
+    </CardRow>
   );
 }
 
@@ -332,6 +345,8 @@ export function ArticlePage() {
         ) : (
           <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
             {article.example && <ExampleNote text={t("news.example")} />}
+            {/* Text to read closely goes on white paper. */}
+            <Panel className="mb-12 sm:p-10">
             <article className="max-w-2xl" data-testid="site-article">
               <p className="text-xl font-medium leading-relaxed text-slate-900" data-testid="site-article-lead">{article.teaser}</p>
               {article.author && (
@@ -351,11 +366,12 @@ export function ArticlePage() {
                 </blockquote>
               )}
             </article>
-            <p className="mb-12 mt-10">
+            <p className="mt-10">
               <Link to={href.news(league.slug)} className="font-medium text-brand-700 hover:underline" data-testid="site-article-back">
                 ← {t("news.more")}
               </Link>
             </p>
+            </Panel>
             {more.length > 0 && (
               <Block title={t("news.related")} more={{ to: href.news(league.slug), label: t("news.more") }} testId="site-article-related">
                 <NewsCards league={league.slug} items={more} />
@@ -385,6 +401,7 @@ export function MediaPage() {
 
 export function MediaContent({ league, limit }: { league: string; limit?: number }) {
   const { t } = useTranslation("site");
+  const tone = useTone();
   const videos = useVideos(league);
   const gallery = useGallery(league);
   return (
@@ -392,11 +409,13 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
       <Block title={t("media.videos")}>
         <Async state={videos} testId="site-videos" empty={t("media.none")}>
           {(items) => (
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-3">
+            <CardRow>
               {items.slice(0, limit).map((v) => (
-                <YouTubePlayer key={v.id} id={v.id} title={v.title} />
+                <li key={v.id}>
+                  <YouTubePlayer id={v.id} title={v.title} />
+                </li>
               ))}
-            </div>
+            </CardRow>
           )}
         </Async>
       </Block>
@@ -404,14 +423,14 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
         <Async state={gallery} testId="site-gallery" empty={t("media.none")}>
           {(photos) => (
             <>
-              <ul className="grid grid-cols-2 gap-2 md:grid-cols-3">
+              <CardRow>
                 {photos.slice(0, limit ? limit + 1 : undefined).map((p) => (
-                  <li key={p.src} className="aspect-[3/2] overflow-hidden rounded-lg bg-slate-100">
-                    <Img photo={p} />
+                  <li key={p.src}>
+                    <MediaCard image={p} aspect="aspect-[3/2]" text={p.alt} />
                   </li>
                 ))}
-              </ul>
-              <p className="mt-3 text-xs text-slate-500">{t("media.credits")}</p>
+              </CardRow>
+              <p className={`mt-3 text-xs ${tone.faint}`}>{t("media.credits")}</p>
             </>
           )}
         </Async>
@@ -424,25 +443,28 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
 
 export function PressPage() {
   const { t } = useTranslation("site");
+  const tone = useTone();
   return (
     <LeagueGate>
       {({ league }) => (
         <DepthPage league={league} title={t("press.page")} kicker={league.short_name} photo={DSBL_PHOTOS.studio}>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <Block title={t("press.releases")}>
-              <Releases league={league.slug} />
+              <Card className="px-4">
+                <Releases league={league.slug} />
+              </Card>
             </Block>
             <div>
               {(["kit", "photos", "accreditation"] as const).map((key) => (
-                <div key={key} className="mb-3 rounded-xl border border-slate-200 p-4">
-                  <p className="font-semibold">{t(`press.${key}`)}</p>
-                  <p className="text-sm text-slate-600">{t(`press.${key}Text`)}</p>
-                </div>
+                <Card key={key} className="mb-3 p-4">
+                  <p className={`font-semibold ${tone.text}`}>{t(`press.${key}`)}</p>
+                  <p className={`text-sm ${tone.muted}`}>{t(`press.${key}Text`)}</p>
+                </Card>
               ))}
-              <div className="mb-3 rounded-xl border border-slate-200 p-4">
-                <p className="font-semibold">{t("press.contact")}</p>
-                <p className="text-sm text-slate-600">{PRESS_CONTACT}</p>
-              </div>
+              <Card className="mb-3 p-4">
+                <p className={`font-semibold ${tone.text}`}>{t("press.contact")}</p>
+                <p className={`text-sm ${tone.muted}`}>{PRESS_CONTACT}</p>
+              </Card>
             </div>
           </div>
         </DepthPage>
@@ -452,6 +474,7 @@ export function PressPage() {
 }
 
 function Releases({ league }: { league: string }) {
+  const tone = useTone();
   const press = usePress(league);
   return (
     <Async state={press} testId="site-press">
@@ -462,7 +485,7 @@ function Releases({ league }: { league: string }) {
             open={i === 0}
             summary={
               <span className="flex items-baseline gap-4">
-                <span className="w-28 shrink-0 text-sm text-slate-500">{formatDate(p.date)}</span>
+                <span className={`w-28 shrink-0 text-sm ${tone.faint}`}>{formatDate(p.date)}</span>
                 <span className="font-medium">{p.title}</span>
               </span>
             }
@@ -480,6 +503,7 @@ function Releases({ league }: { league: string }) {
 /** `/:league/about` — what the league is and what is at stake. */
 export function LeagueAboutPage() {
   const { t } = useTranslation("site");
+  const tone = useTone();
   const localized = useLocalized();
   const { league: slug = "" } = useParams();
   const about = useLeagueAbout(slug).data;
@@ -489,20 +513,19 @@ export function LeagueAboutPage() {
         <DepthPage league={league} title={t("about.title", { league: league.short_name })} kicker={league.name} photo={about?.photo ?? leaguePhoto(slug)}>
           {about ? (
             <>
-              <p className="max-w-3xl text-lg leading-relaxed text-slate-700">{localized(about.intro)}</p>
+              <p className={`mb-10 max-w-3xl text-lg leading-relaxed ${tone.muted}`}>{localized(about.intro)}</p>
               <Block title={t("about.stake")}>
-                <ul className="max-w-3xl space-y-2 text-slate-700">
+                <CardRow>
                   {about.facts.map((f) => (
-                    <li key={f.en} className="flex gap-3">
-                      <span aria-hidden className="text-brand-600">—</span>
-                      {localized(f)}
+                    <li key={f.en}>
+                      <Card className={`h-full p-4 text-sm leading-relaxed ${tone.muted}`}>{localized(f)}</Card>
                     </li>
                   ))}
-                </ul>
+                </CardRow>
               </Block>
             </>
           ) : (
-            <p className="max-w-3xl text-lg leading-relaxed text-slate-700">{league.tagline ?? league.name}</p>
+            <p className={`max-w-3xl text-lg leading-relaxed ${tone.muted}`}>{league.tagline ?? league.name}</p>
           )}
         </DepthPage>
       )}

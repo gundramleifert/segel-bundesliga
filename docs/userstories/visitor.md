@@ -367,20 +367,26 @@ Acceptance criteria:
   classic one stays selectable to compare): the public site is built like my space. The
   top row is solid everywhere, and under it a **sub-menu row sticks** — where you are on
   the left (*1. Liga*; on a matchday *1. Liga › Season › Act 2 · Kiel*), the pages beside
-  it as tabs on the right: the league's pages (*Overview · Standings · Season · Notice
+  it on the right: the league's pages (*Standings · Season · Notice
   board · Clubs · News · Media · Press · About*), the association's on its own pages, a
-  matchday's tabs on a matchday page. It is there on the chapter page too, so a deeper
-  page is one tap away from the first screen. Still at most two rows: on a matchday page
-  the matchday's tabs *are* the sub-menu, the league's pages a step up its crumbs.
-  On a chapter page the sub-menu **underlines the page the chapter on screen leads to**
-  (*Standings* while the standings chapter is in view, *News* at the news), so the mark
-  runs along with the chapters; *Overview* stays the page you are on.
+  matchday's tabs on a matchday page — as **pills**, like the top row's leagues. Still at
+  most two rows: on a matchday page the matchday's tabs *are* the sub-menu, the league's
+  pages a step up its crumbs. **The overview has no sub-menu** (changed 2026-10-18; it
+  had one, with the chapter on screen marked in it): the chapters are the overview's
+  contents and each leads to its page, which has the sub-menu. Both rows have **one
+  background everywhere** — the picture through a dark, blurred shade.
 - **In that layout the picture stands still and only the text scrolls**: a chapter page
   has one picture behind all its chapters (photo, fade, slide or video, as before), a depth
   page **has its own picture behind the whole page** too (changed 2026-10-18 — a white page
   after the chapters read as a break in style): the rows and the title lie on it in white,
   the content on a white panel that scrolls over it, and each page has a different picture.
-  The depth frames A–C are the classic layout's. Without snapping a chapter is as tall as its content — the
+  The depth frames A–C are the classic layout's.
+- **One design over every official page** (2026-10-18): the chapter page's cards are the
+  pieces every page is built from — frosted glass on the picture for teasers, lists and
+  facts, and white paper only for what is read closely (a full table, an article, a
+  matchday's tables). The media page's videos and photos are the chapter's video cards.
+- **The league's name in the sub-menu is its overview** — there is no entry *Overview*
+  beside it (it said the same twice). Without snapping a chapter is as tall as its content — the
   screen-high chapters of the snapping mode left half a screen of empty picture between
   two.
 

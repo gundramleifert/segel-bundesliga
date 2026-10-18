@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { getGetSeriesTableQueryOptions, useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
 import type { Series } from "../../api/types";
+import { Card, CardRow, MediaCard } from "../../components/site/Cards";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
 import { useSiteVersion } from "../../components/site/settings";
 import {
@@ -59,7 +60,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const chapters: ChapterSpec[] = [
     {
       id: "standings",
-      page: "standings",
       label: t("chapters.standings"),
       title: t("chapters.standings"),
       photo: leaguePhoto(l),
@@ -80,7 +80,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       ? [
           {
             id: "results",
-            page: "season",
             label: t("chapters.results"),
             title: t("chapters.results"),
             photo: DSBL_PHOTOS.podium,
@@ -109,7 +108,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       : []),
     {
       id: "news",
-      page: "news",
       label: t("chapters.news"),
       title: t("chapters.news"),
       photo: DSBL_PHOTOS.swimmer,
@@ -131,7 +129,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
     },
     {
       id: "media",
-      page: "media",
       label: t("chapters.media"),
       title: t("chapters.media"),
       photo: DSBL_PHOTOS.camera,
@@ -141,7 +138,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
     },
     {
       id: "about",
-      page: "about",
       label: t("chapters.about"),
       title: t("chapters.about"),
       photo: OWN_PHOTOS.title,
@@ -150,13 +146,15 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
         <div className="max-w-3xl">
           <p className="text-lg text-white/80">{about ? localized(about.intro) : league.name}</p>
           {full && about && about.facts.length > 0 && (
-            <ul className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-3" data-testid="site-about-facts">
-              {about.facts.map((f) => (
-                <li key={f.en} className="rounded-2xl bg-white/10 p-4 text-sm leading-relaxed text-white/85 backdrop-blur">
-                  {localized(f)}
-                </li>
-              ))}
-            </ul>
+            <div className="mt-6">
+              <CardRow testId="site-about-facts">
+                {about.facts.map((f) => (
+                  <li key={f.en}>
+                    <Card className="h-full p-4 text-sm leading-relaxed text-white/85">{localized(f)}</Card>
+                  </li>
+                ))}
+              </CardRow>
+            </div>
           )}
           {clubs.length > 0 && (
             <ul className="mt-5 flex flex-wrap gap-2" data-testid="site-about-clubs">
@@ -179,7 +177,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       ? [
           {
             id: "archive",
-            page: "standings",
             label: t("chapters.archive"),
             title: t("chapters.archive"),
             photo: DSBL_PHOTOS.aerial,
@@ -220,14 +217,11 @@ function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year
               <StateBadge state={a.state} dark />
             </>
           );
-          const box = "flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5 backdrop-blur";
           return (
             <li key={a.slug}>
-              {year ? (
-                <Link to={href.act(league, year, a.slug)} className={`${box} transition hover:bg-white/20`}>{inner}</Link>
-              ) : (
-                <div className={box}>{inner}</div>
-              )}
+              <Card to={year ? href.act(league, year, a.slug) : undefined} className="flex items-center gap-3 px-4 py-2.5">
+                {inner}
+              </Card>
             </li>
           );
         })}
@@ -259,22 +253,13 @@ function LiveProgress({ eventId }: { eventId: number }) {
 export function NewsTiles({ items, rest = [], link }: { items: Article[]; rest?: Article[]; link: (n: Article) => string }) {
   return (
     <div data-testid="site-news-tiles">
-      <ul className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
+      <CardRow>
         {items.map((n) => (
           <li key={n.slug}>
-            <Link to={link(n)} className="group block h-full overflow-hidden rounded-2xl bg-white/10 backdrop-blur transition hover:bg-white/20">
-              <div className="aspect-[16/9] overflow-hidden">
-                <img src={n.photo.src} alt={n.photo.alt} loading="lazy" className="block h-full w-full object-cover transition group-hover:scale-105" />
-              </div>
-              <div className="p-4">
-                <p className="text-xs uppercase tracking-widest text-white/60">{formatDate(n.date)}</p>
-                <p className="mt-1 font-semibold leading-snug">{n.title}</p>
-                <p className="mt-1 line-clamp-2 text-sm text-white/70">{n.teaser}</p>
-              </div>
-            </Link>
+            <MediaCard to={link(n)} image={n.photo} kicker={formatDate(n.date)} title={n.title} text={n.teaser} />
           </li>
         ))}
-      </ul>
+      </CardRow>
       {rest.length > 0 && (
         <ul className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-2 sm:grid-cols-3">
           {rest.map((n) => (
@@ -294,19 +279,13 @@ export function NewsTiles({ items, rest = [], link }: { items: Article[]; rest?:
 /** The league's videos as stills, each leading to the media page. */
 function VideoTiles({ league, videos }: { league: string; videos: Video[] }) {
   return (
-    <ul className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3" data-testid="site-video-tiles">
+    <CardRow testId="site-video-tiles">
       {videos.map((v) => (
         <li key={v.id}>
-          <Link to={href.media(league)} className="group block overflow-hidden rounded-2xl bg-white/10 backdrop-blur transition hover:bg-white/20">
-            <div className="relative aspect-video overflow-hidden bg-slate-900">
-              <img src={`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`} alt="" loading="lazy" className="block h-full w-full object-cover opacity-90 transition group-hover:scale-105" />
-              <span aria-hidden className="absolute inset-0 m-auto flex size-12 items-center justify-center rounded-full bg-white/90 pl-1 text-slate-950">▶</span>
-            </div>
-            <p className="p-3 text-sm font-medium">{v.title}</p>
-          </Link>
+          <MediaCard to={href.media(league)} image={{ src: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`, alt: "" }} title={v.title} play />
         </li>
       ))}
-    </ul>
+    </CardRow>
   );
 }
 
@@ -318,7 +297,8 @@ function TopFive({ series }: { series: Series }) {
   if (!table) return <div className="h-48 animate-pulse rounded-2xl bg-white/10" />;
   if (!rows.length) return <p className="text-white/70">{t("standings.notYet")}</p>;
   return (
-    <ol className="divide-y divide-white/10 rounded-2xl bg-white/10 px-4 backdrop-blur" data-testid={`site-top-five-${series.slug}`}>
+    <Card className="px-4">
+    <ol className="divide-y divide-white/10" data-testid={`site-top-five-${series.slug}`}>
       {rows.map((row) => (
         <li key={row.team.id} className="flex items-center gap-3 py-2">
           <span className="w-6 text-white/50">{row.rank}</span>
@@ -327,6 +307,7 @@ function TopFive({ series }: { series: Series }) {
         </li>
       ))}
     </ol>
+    </Card>
   );
 }
 

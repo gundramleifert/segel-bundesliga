@@ -8,6 +8,7 @@ import { useAccount, useAsync } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
+import { Card, Panel, useTone } from "../../components/site/Cards";
 import { Block, DepthPage, Expand, SubBar, TopBar, useSecondRow } from "../../components/site/Frame";
 import { useSiteVersion } from "../../components/site/settings";
 import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
@@ -62,6 +63,7 @@ function MatchdayView({
   const { hasRole } = useAccount();
   const second = useSecondRow();
   const classic = useSiteVersion() === "classic";
+  const tone = useTone();
   const [params, setParams] = useSearchParams();
   // A tab click scrolls the page so the matchday row sits right under the top bar and the
   // tab starts below it. A page opened by its URL keeps its picture in view.
@@ -158,11 +160,11 @@ function MatchdayView({
       {/* `panel-scroll`: a results table wider than a phone scrolls here, not the page
           (Story A-10). */}
       <div className="panel-scroll min-h-[calc(100dvh-7.5rem)]" data-testid={`site-act-${tab}`}>
-        <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+        <div className={`mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm ${tone.muted}`}>
           <span data-testid="site-act-meta">
             {[locationText(act.first), act.first.host_club ? t("hostedBy", { host: act.first.host_club.name }) : null].filter(Boolean).join(" · ")}
           </span>
-          <StateBadge state={act.state} />
+          <StateBadge state={act.state} dark={tone.dark} />
         </div>
         {act.events.length > 1 && tab !== "notice-board" && tab !== "media" && (
           <div role="radiogroup" aria-label={t("act.division")} className="mb-6 inline-flex rounded-full bg-slate-100 p-1" data-testid="site-division-switch">
@@ -187,12 +189,13 @@ function MatchdayView({
         )}
 
         {tab === "notice-board" && <NoticeBoard events={act.events} />}
-        {tab === "results" && <Results key={event.id} event={event} />}
-        {tab === "pairing" && <PairingList key={event.id} eventId={event.id} />}
-        {tab === "crews" && <Crew key={event.id} eventId={event.id} />}
+        {/* The tables need white paper; everything else lies on the picture in cards. */}
+        {tab === "results" && <Panel><Results key={event.id} event={event} /></Panel>}
+        {tab === "pairing" && <Panel><PairingList key={event.id} eventId={event.id} /></Panel>}
+        {tab === "crews" && <Panel><Crew key={event.id} eventId={event.id} /></Panel>}
         {tab === "live" && <LiveTab event={event} />}
         {tab === "media" && <MediaContent league={league?.slug ?? ""} limit={3} />}
-        {tab === "entry" && <Entry key={event.id} event={event} />}
+        {tab === "entry" && <Panel><Entry key={event.id} event={event} /></Panel>}
       </div>
     </DepthPage>
   );
@@ -200,6 +203,7 @@ function MatchdayView({
 
 function NoticeBoard({ events }: { events: EventSummary[] }) {
   const { t } = useTranslation("site");
+  const tone = useTone();
   const board = useActNotices(events.map((e) => e.id));
   return (
     <Async state={board} testId="site-act-notices">
@@ -208,13 +212,14 @@ function NoticeBoard({ events }: { events: EventSummary[] }) {
         {example && <ExampleNote />}
         <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <Block title={t("noticeBoard.announcements")}>
+            <Card className="px-4">
             {notices.map((n, i) => (
               <Expand
                 key={n.title}
                 open={i === 0}
                 summary={
                   <span className="flex items-baseline gap-4">
-                    <span className="w-20 shrink-0 text-sm text-slate-500">{n.time}</span>
+                    <span className={`w-20 shrink-0 text-sm ${tone.faint}`}>{n.time}</span>
                     <span
                       className={`shrink-0 rounded-full px-2 text-xs font-semibold ${
                         n.from === "jury" ? "bg-amber-50 text-amber-800" : n.from === "organizer" ? "bg-slate-100 text-slate-600" : "bg-brand-50 text-brand-700"
@@ -229,9 +234,12 @@ function NoticeBoard({ events }: { events: EventSummary[] }) {
                 {n.body}
               </Expand>
             ))}
+            </Card>
           </Block>
           <Block title={t("noticeBoard.documents")}>
-            <DocList docs={documents} />
+            <Card className="p-4">
+              <DocList docs={documents} />
+            </Card>
           </Block>
         </div>
         </>
@@ -289,22 +297,24 @@ function useEventLive(event: EventSummary) {
 /** The live map while racing, a replay afterwards — or the live view the event names. */
 function LiveTab({ event }: { event: EventSummary }) {
   const { t } = useTranslation("site");
+  const tone = useTone();
   const title = event.status === "live" ? t("live.now") : event.status === "final" ? t("live.replay") : t("live.from", { dates: eventDates(event) });
+  const button = tone.dark ? "bg-white text-slate-950" : "bg-slate-900 text-white";
   return (
-    <div className="rounded-2xl border border-slate-200 p-8 text-center" data-testid="site-live">
-      <p className="text-lg font-semibold">{title}</p>
-      <p className="mt-1 text-slate-600">{t("live.text")}</p>
+    <Card className="p-8 text-center" testId="site-live">
+      <p className={`text-lg font-semibold ${tone.text}`}>{title}</p>
+      <p className={`mt-1 ${tone.muted}`}>{t("live.text")}</p>
       <p className="mt-3"><StatusBadge status={event.status} /></p>
       {event.live_url ? (
-        <a href={event.live_url} target="_blank" rel="noopener noreferrer" data-testid="matchday-live-external-link" className="mt-5 inline-block rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white">
+        <a href={event.live_url} target="_blank" rel="noopener noreferrer" data-testid="matchday-live-external-link" className={`mt-5 inline-block rounded-full px-5 py-2.5 text-sm font-semibold ${button}`}>
           {t("live.external")}
         </a>
       ) : (
-        <Link to={`/events/${event.id}/live`} data-testid="matchday-live-map-link" className="mt-5 inline-block rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white">
+        <Link to={`/events/${event.id}/live`} data-testid="matchday-live-map-link" className={`mt-5 inline-block rounded-full px-5 py-2.5 text-sm font-semibold ${button}`}>
           {t("live.open")}
         </Link>
       )}
-    </div>
+    </Card>
   );
 }
 

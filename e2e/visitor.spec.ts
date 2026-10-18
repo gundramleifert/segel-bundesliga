@@ -328,28 +328,17 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     expect((await sub.boundingBox())!.y).toBeLessThan(60);
   });
 
-  test("on a chapter page the sub-menu holds the league's pages, and the picture stands still", async ({ page }) => {
+  test("the overview has no sub-menu, and its picture stands still behind the top row", async ({ page }) => {
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
-    await expect(page.getByTestId("site-league-pages").getByTestId("site-page-overview")).toHaveAttribute("aria-current", "page");
+    // The chapters are the overview's contents; the sub-menu is on the pages they lead to.
+    await expect(page.getByTestId("site-league-pages")).toHaveCount(0);
     const picture = page.getByTestId("site-chapters-picture");
-    // It starts at the top of the screen, behind the two rows.
+    // It starts at the top of the screen, behind the row.
     expect((await picture.boundingBox())!.y).toBe(0);
-    const before = (await picture.boundingBox())!;
     await page.locator('[data-dot="news"]').click();
     await expect(page.locator('[data-dot="news"]')).toHaveAttribute("aria-current", "true");
-    expect((await picture.boundingBox())!.y).toBe(before.y);
-  });
-
-  test("the sub-menu marks the page the chapter on screen leads to", async ({ page }) => {
-    await page.goto("/1-liga");
-    const sub = page.getByTestId("site-league-pages");
-    await expect(sub.getByTestId("site-page-standings")).toHaveAttribute("data-marked", "true");
-    await page.locator('[data-dot="news"]').click();
-    await expect(sub.getByTestId("site-page-news")).toHaveAttribute("data-marked", "true");
-    await expect(sub.getByTestId("site-page-standings")).toHaveAttribute("data-marked", "false");
-    // Still the page you are on, for a screen reader.
-    await expect(sub.getByTestId("site-page-overview")).toHaveAttribute("aria-current", "page");
+    expect((await picture.boundingBox())!.y).toBe(0);
   });
 
   test("on a matchday page the sub-menu is the matchday's: where it hangs, and its tabs", async ({ page }) => {

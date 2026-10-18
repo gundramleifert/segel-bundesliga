@@ -328,6 +328,16 @@ else sits in `Layout`, which uses the same top row.
   C split as the DEV switch says; the title is the page's `h1`. `Block` and `Expand` are
   its section heading and its row that opens in place; `useSecondRow` says where a
   sticky second row (the matchday's) sits.
+- **`Cards.tsx`** — the official pages' building blocks, taken from the chapter page
+  (2026-10-18): **`Card`** (a box, a link with `to`), **`MediaCard`** (picture first, then
+  kicker, title, text — news, videos, photos, people), **`Panel`** (white paper for what
+  is read closely: a full table, an article, the matchday's tables), **`CardRow`** (the
+  grid). They draw themselves for what they lie on — frosted glass with white type over a
+  picture, bordered white cards on white — from **`Surface`** or, without one, from the
+  layout; **`useTone()`** gives the type and line colours for anything else on the page.
+  Write a page's content once with these, never with `bg-white/10` or `text-slate-600`
+  by hand: that is what made each page look different. On a page deeper, the
+  sub-menu's pages and the matchday's tabs come from **`SubBar`** / **`LeagueSubBar`**.
 - **`Picture`** — a big picture as photo, fade, slide or muted video (`settings.ts`).
 - **`DevSwitch`** — the open variants, mounted by `SiteShell` wherever `DEV_TOOLS` is.
 - Content without a backend comes from **`web/src/content/`**, through hooks that return
