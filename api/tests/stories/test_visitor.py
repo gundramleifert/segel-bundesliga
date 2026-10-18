@@ -67,6 +67,14 @@ class TestMatchdayResult:
         assert all(1 <= n <= 48 for n in numbers)
         assert sum(row["points_by_race"].values()) == pytest.approx(row["total"])
 
+    async def test_points_per_flight_come_from_each_races_flight(self, client, ids):
+        """Story B-2: the flight columns are the server's sums, by flight number."""
+        detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()
+        assert detail["event"]["races_per_flight"] == 3
+        for row in detail["standings"]:
+            assert sorted(int(n) for n in row["points_by_flight"]) == list(range(1, 17))
+            assert sum(row["points_by_flight"].values()) == pytest.approx(row["total"])
+
     async def test_without_discards_net_equals_total_points(self, client, ids):
         """At a Bundesliga matchday, races are sailed without discards."""
         detail = (await client.get(f"/api/events/{ids.event('dsbl-1-2026-act-1')}")).json()

@@ -78,9 +78,11 @@ class LeagueSeason(BaseModel):
     year: int | None
     #: Every year the league has published series in, newest first — the archive.
     years: list[int]
-    series: list[SeriesOut]
+    series: list[SeasonSeriesOut]
     #: The events of those series in date order; an act is the events sharing a matchday.
     events: list[EventOut]
+    #: Every club registered (accepted) for one of those series, once, by name.
+    clubs: list[ClubOut] = []
 
 
 class SeriesOut(BaseModel):
@@ -106,6 +108,12 @@ class SeriesOut(BaseModel):
     published: bool = False
     # Free-text, Markdown, for the public standings page. Absent unless an admin set one.
     description: str | None = None
+
+
+class SeasonSeriesOut(SeriesOut):
+    """A series on its league's page, with the clubs registered (accepted) for it."""
+
+    clubs: list[ClubOut] = []
 
 
 class VenueOut(BaseModel):
@@ -223,6 +231,8 @@ class EventOut(BaseModel):
     team_count: int
     boat_count: int
     flight_count: int
+    # ceil(team_count / boat_count): the races of one flight, so every team sails once.
+    races_per_flight: int = 0
     crew_size: int
     # The squad's size when the event stands alone (Story V-1); a series event uses its
     # series' limits.
@@ -243,6 +253,9 @@ class EventStandingRow(BaseModel):
     races_scored: int
     # Points per race, key is the sequential race number (1..48).
     points_by_race: dict[int, float]
+    # The same points summed per flight (key: flight number), only for flights this team
+    # has a result in — computed from each race's own flight (Story B-2).
+    points_by_flight: dict[int, float] = {}
     discarded_races: list[int]
     # The matchday penalty, already inside ``total`` and ``net`` (Story WL-4) — shown so a
     # total that is not the sum of its races explains itself.

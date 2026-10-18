@@ -10,6 +10,7 @@ from app.services.event_readiness import (
 from app.services.participation import (
     ParticipationError,
     adopt_series_registrations,
+    candidate_clubs,
     check_squad_limits,
     delete_event_entries,
     event_entries,
@@ -47,6 +48,7 @@ __all__ = [
     "SailorWaiver",
     "SeriesRow",
     "adopt_series_registrations",
+    "candidate_clubs",
     "check_squad_limits",
     "compute_event",
     "compute_series",

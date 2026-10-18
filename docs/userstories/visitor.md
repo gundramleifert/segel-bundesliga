@@ -79,6 +79,11 @@ Acceptance criteria:
 - Complete daily standings across 18 teams; each team sailed once in 16 flights.
 - The points are broken down by race, and the sum gives the overall standings.
 - A running matchday shows an interim standing, a planned one shows no results yet.
+- The **points per flight** come from the server (`EventStandingRow.points_by_flight`, keyed
+  by flight number, summed from each race's own flight), and the event says how many races
+  a flight has (`EventOut.races_per_flight`). The page used to rebuild flights from race
+  sequence numbers and an assumed flight length — which breaks the day a flight is
+  re-sailed or a race renumbered. Only the projection stays display math in the browser.
 
 `EventStandingRow.points_by_race`/`discarded_races` (`api/app/schemas/public.py`) carried the
 per-race breakdown from the start, but `web/src/pages/Matchday.tsx`'s daily standings only
@@ -428,6 +433,9 @@ Acceptance criteria:
   not in the future (Story A-4's rule, asked per league — the DSBL publishing next year's
   series must not empty the Junioren-Liga's page). `GET /api/leagues/{slug}` answers with
   the year, the years in the archive, the year's series and their events. Published only.
+  **Each series carries its clubs** (its accepted registrations), and the season the clubs
+  of all its series once — the *About* chapter, `/:league/clubs` and the association's
+  member list read them there instead of fetching every series' full table for its names.
 - **The 1. and the 2. Liga are two leagues** (`/1-liga`, `/2-liga`), each with one
   series a year. They sail the same weekends at the same venues, but each has its own
   page, its own standings and its own matchday pages; promotion and relegation are named

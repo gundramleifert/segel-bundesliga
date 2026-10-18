@@ -12,4 +12,5 @@ export interface AdminRacesOut {
   event_id: number;
   boats: BoatOut[];
   races: AdminRaceOut[];
+  current_sequence?: number | null;
 }

@@ -91,6 +91,29 @@ async def compute_event(session: AsyncSession, event_id: int) -> list[TeamScore]
     return score_event(by_team, config, penalties)
 
 
+async def race_flights(session: AsyncSession, event_id: int) -> dict[int, int]:
+    """Race ID -> the number of the flight it belongs to — read from the race, never
+    reconstructed from its sequence number and an assumed flight length."""
+    stmt = (
+        select(Race.id, Flight.number)
+        .join(Flight, Race.flight_id == Flight.id)
+        .where(Flight.event_id == event_id)
+    )
+    return dict((await session.execute(stmt)).all())
+
+
+def points_by_flight(score: TeamScore, flights: Mapping[int, int]) -> dict[int, float]:
+    """A team's points summed per flight, only for flights it has a result in.
+
+    A flight without a key is one this team has not sailed yet — a dash on the standings,
+    not a zero. ``flights`` is ``race_flights``' answer for the event.
+    """
+    sums: dict[int, float] = defaultdict(float)
+    for race_id, points in score.points_by_race.items():
+        sums[flights[race_id]] += points
+    return dict(sums)
+
+
 async def recompute_event(session: AsyncSession, event_id: int) -> list[TeamScore]:
     """Computes the daily standings and writes points and table forward.
 

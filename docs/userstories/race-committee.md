@@ -41,8 +41,11 @@ Acceptance criteria:
 - **A page, not a Matchday tab:** `/events/:id/race-control`, gated to `admin` and
   `race_officer`, linked from the manage screen and the results tab. The results tab stays
   the *correction* screen — a protest heard weeks later belongs there, not here.
-- **One race on screen, the current one:** the first race that is neither `finished` nor
-  `abandoned` — the rule the results tab already uses to find the open race. Header names
+- **One race on screen, the current one:** the race on the water, else the first race that
+  is neither `finished` nor `abandoned` — decided by the server, which owns the transitions
+  (`services/race_state.py::current_sequence`), and sent as `current_sequence` with the
+  races (`GET /api/admin/events/{id}/races`); the results tab marks the same race. `null`
+  once every race is done. Header names
   the race and its flight, a progress bar shows races done over the event's total. Arrows
   reach the previous race (to correct) and the next (to preview), nothing further.
 - **Everything is sized by the event** — `Event.boat_count` chips, `ceil(team_count /
