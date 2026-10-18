@@ -203,7 +203,7 @@ invalid ranking (two boats claiming the same place), and recomputes points/stand
 immediately, so a protest decision is a one-row correction, never a data migration. With a
 stale `version`, the later submission still wins (a rocking boat is no place for a hard
 conflict error), but the state it replaces is written to `AuditLog` first, not silently
-dropped. `web/src/pages/Matchday.tsx`'s results-entry tab (`RaceResultRow`) now makes the
+dropped. The results-entry tab (`RaceResultRow` in `web/src/pages/league/act/Results.tsx`) now makes the
 finish line the primary, fast path: tapping a boat's colored chip in finish order assigns it
 `FINISHED` + the next unused position (a normal 6-boat race is 6 taps), the chip shows the
 assigned rank as a badge, tapping again undoes just that boat, and a "reset race" action clears
@@ -245,7 +245,7 @@ Acceptance criteria:
   over the import.
 
 Endpoint: `PUT /api/admin/events/{event_id}/teams/{team_id}/penalty`. Entered in
-`web/src/pages/Matchday.tsx`'s results tab (*Penalty points for the matchday*, below the
+`web/src/pages/league/act/Results.tsx`, the results tab (*Penalty points for the matchday*, below the
 races); the standings show "incl. 3 penalty" with the reason as its tooltip.
 
 Open: no browser test covers the entry form yet.

@@ -86,7 +86,7 @@ Acceptance criteria:
   re-sailed or a race renumbered. Only the projection stays display math in the browser.
 
 `EventStandingRow.points_by_race`/`discarded_races` (`api/app/schemas/public.py`) carried the
-per-race breakdown from the start, but `web/src/pages/Matchday.tsx`'s daily standings only
+per-race breakdown from the start, but the daily standings (now `web/src/pages/league/act/Standings.tsx`) only
 rendered rank/team/net/total until now — the second acceptance criterion was met by the API but
 not actually visible anywhere. The page now adds one column per flight (16, not 48 individual
 races — clearer to read, still sums to the same total) showing that team's points for the
@@ -106,7 +106,7 @@ comes from**, so that **the table is recognisable at a glance and the partners a
 
 Acceptance criteria:
 - **A club crest sits beside the club name in every results table** — the league/series
-  `StandingsTable` (Stories B-1, B-14) and the matchday daily standings (`Matchday.tsx`,
+  `StandingsTable` (Stories B-1, B-14) and the matchday daily standings (`league/act/Standings.tsx`,
   Story B-2). Same emblem the club page already shows (B-7), at a small, fixed row height so
   no row grows and the table still fits a phone (Story A-10).
 - **The crest is our own, not hot-linked.** It is `Club.logo_url` / the club crest already in
@@ -247,7 +247,7 @@ issues no query at all.
 Endpoints: `GET /api/events/{id}/crew`
 
 Tests: `api/tests/stories/test_visitor.py::TestMatchdayCrew`. The tab itself
-(`web/src/pages/Matchday.tsx`) has no automated test yet — same state as B-2's flight
+(`web/src/pages/league/act/Crew.tsx`) has no automated test yet — same state as B-2's flight
 columns; Playwright coverage for this page is a separate, not-yet-started task.
 
 ### B-5 ◐ Follow live updates
@@ -577,7 +577,7 @@ Acceptance criteria:
     next" and "how did they do", so it carries the club's placing per event where one
     exists.
 - The tab lives in the **URL** (`/clubs/:id/team`, or a query parameter — the existing
-  matchday tabs in `web/src/pages/Matchday.tsx` are the pattern to follow), so a tab can be
+  matchday tabs in `web/src/pages/league/act/` are the pattern to follow), so a tab can be
   linked and survives a reload. `/clubs/:id` opens Info.
 - **Everyone sees all three tabs** without signing in — but the Team tab's two lists differ:
   **participation is public, affiliation is not.** Whoever a club registers for a series or

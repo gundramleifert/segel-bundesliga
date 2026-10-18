@@ -1,6 +1,6 @@
 /** What a race result is made of, shared by the two screens that enter one (Stories WL-2, WL-3).
  *
- * The results tab in `pages/Matchday.tsx` and the race-control page both turn taps and
+ * The results tab in `pages/league/act/Results.tsx` and the race-control page both turn taps and
  * codes into the raw fields the endpoint wants — `code`, `finish_position`,
  * `redress_points` — and both have to agree on what "complete" means, which codes need a
  * position, and what a redress suggestion is. Pure functions, no React: the state that

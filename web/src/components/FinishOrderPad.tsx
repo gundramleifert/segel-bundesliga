@@ -1,6 +1,6 @@
 /** The finish line as taps: the state of one race's result, and the chips that enter it.
  *
- * Two screens record results — the results tab in `pages/Matchday.tsx` (Story WL-2, the
+ * Two screens record results — the results tab in `pages/league/act/Results.tsx` (Story WL-2, the
  * correction screen) and the race-control page (Story WL-3, the one used on the water) —
  * and they must not drift apart on what a tap means, which position comes next, or what is
  * sent. So the state lives in one hook, `useFinishOrder`, and the chip a boat is tapped on
