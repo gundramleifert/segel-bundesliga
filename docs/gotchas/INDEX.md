@@ -9,6 +9,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [A failed maven package leaves a truncated jar behind, and it fails because the sandbox denies /tmp](a-failed-maven-package-leaves-a-truncated-jar-behind-and-it-fails-because-the-sa.md)
 - [A mask-image on a scrolling box makes it a backdrop root, so every backdrop-blur inside it blurs nothing](a-mask-image-on-a-scrolling-box-makes-it-a-backdrop-root-so-every-backdrop-blur-.md)
 - [A mutation fired from a ticking effect repeats until its refetch lands, and each repeat's invalidation cancels that refetch](a-mutation-fired-from-a-ticking-effect-repeats-until-its-refetch-lands-and-each-.md)
+- [A native select takes its text colour from the page but paints its own white field and list, so on a white-text surface it is white on white](a-native-select-takes-its-text-colour-from-the-page-but-paints-its-own-white-fie.md)
 - [A PDF from the pairing tool is never byte-identical twice, so equal bytes prove the cache and unequal bytes prove nothing](a-pdf-from-the-pairing-tool-is-never-byte-identical-twice-so-equal-bytes-prove-t.md)
 - [`require_ready` answers with a *different* code depending on how many things are missing](a-readiness-refusal-carries-two-different-codes.md)
 - [A relationship on a row you just appended is not loaded after the commit, and reading it in the response fails with MissingGreenlet](a-relationship-on-a-row-you-just-appended-is-not-loaded-after-the-commit-and-rea.md)

@@ -396,8 +396,10 @@ Acceptance criteria:
   one's go on. Every block spans its page's column, and tiles and columns share one
   12-column grid, so their edges line up from chapter to chapter (`docs/components.md`).
 - **The footer is the last band on the picture** (2026-10-18): the rows' shade, the same column and grid — a card per league (its act now or next, standings,
-  season, notice board, press), the association beside the account (sign in or my space,
-  the language), and the legal notice and privacy on every page. On a chapter page the
+  season, notice board, press), the association, and the legal notice and privacy on every
+  page. **No account card** (removed 2026-10-18): signing in, my space and the language are
+  the account menu's in the top row, on every page, so a second copy at the foot only
+  repeated it. On a chapter page the
   dots step aside while the footer is on screen. The internal screens keep the light
   footer.
 - **The league's name in the sub-menu is its overview** — there is no entry *Overview*
@@ -508,6 +510,12 @@ Acceptance criteria:
 - **The page follows the stream** (Story B-5): when the race committee starts or finishes
   the event, the live badge and the act's state change without a reload — the league's
   year is refetched with the event.
+- **Every dropdown is legible on the glass** (2026-10-18): the pairing list's "all clubs"
+  picker was white on white — a native select takes its text colour from the page, which
+  is white on the glass, while the browser still draws a white field and list. Every
+  dropdown on the site is one component, `Select` (`docs/components.md`), which sets its
+  own colours, and the glass gives its open list a dark scheme; `oxlint` refuses a bare
+  `<select>`.
 
 Tests: `e2e/visitor.spec.ts::B-15: the matchday page`
 

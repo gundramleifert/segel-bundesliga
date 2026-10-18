@@ -18,6 +18,7 @@ import { SquadPanel } from "../components/SquadPanel";
 import { INPUT_CLASS } from "../lib/admin";
 import { Section, Field } from "../components/Form";
 import { AddButton } from "../components/AddButton";
+import { Select } from "../components/Select";
 
 /** Stories V-4 and V-1: Create sailors and register a squad for a series.
  *
@@ -152,11 +153,10 @@ function Squad() {
 
       {seriesList.data && (
         <Field label={t("squad.seriesLabel")}>
-          <select
-            className={INPUT_CLASS}
+          <Select
             value={seriesId ?? ""}
             onChange={(e) => setSeriesId(e.target.value ? Number(e.target.value) : null)}
-            data-testid="admin-squad-series-select"
+            testId="admin-squad-series-select"
           >
             <option value="">{t("squad.seriesNone")}</option>
             {seriesList.data.map((s) => (
@@ -164,7 +164,7 @@ function Squad() {
                 {s.name}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
       )}
 
@@ -186,11 +186,10 @@ function SeriesSquad({ series }: { series: SeriesAdmin }) {
   return (
     <>
       <Field label={t("squad.clubLabel")}>
-        <select
-          className={INPUT_CLASS}
+        <Select
           value={teamId ?? ""}
           onChange={(e) => setzeTeamId(e.target.value ? Number(e.target.value) : null)}
-          data-testid="admin-squad-club-select"
+          testId="admin-squad-club-select"
         >
           <option value="">{t("squad.clubNone")}</option>
           {clubs.map((clubName) => (
@@ -198,7 +197,7 @@ function SeriesSquad({ series }: { series: SeriesAdmin }) {
               {clubName.name}
             </option>
           ))}
-        </select>
+        </Select>
       </Field>
 
       {selectedClub && <SquadPanel teamId={selectedClub.team_id} title={selectedClub.name} />}

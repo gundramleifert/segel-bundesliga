@@ -613,6 +613,22 @@ describeStory("B-15: the matchday page", () => {
     await expect(page.getByTestId("site-act-tab-entry")).toHaveCount(0);
   });
 
+  test("the pairing list's club picker is legible on the glass, open or closed", async ({ page }) => {
+    await page.goto("/1-liga/2026/act-2/pairing");
+    const picker = page.getByTestId("matchday-pairing-pdf-club");
+    await expect(picker).toBeVisible();
+    // The field is glass with white text, and the list the browser opens is dark with white
+    // text — before, both were white text on the browser's white.
+    const look = await picker.evaluate((el) => {
+      const option = getComputedStyle(el.querySelector("option")!);
+      return { scheme: getComputedStyle(el).colorScheme, text: option.color, background: option.backgroundColor };
+    });
+    expect(look.scheme).toBe("dark");
+    expect(look.text).toBe("rgb(255, 255, 255)");
+    expect(look.background).not.toBe("rgb(255, 255, 255)");
+    expect(look.background).not.toBe(look.text);
+  });
+
   test("the live tab leads to the map", async ({ page }) => {
     await page.goto("/1-liga/2026/act-2/live");
     await page.getByTestId("matchday-live-map-link").click();

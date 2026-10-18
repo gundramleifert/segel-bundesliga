@@ -30,6 +30,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, leading to its `/admin/<area>/new` page |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and the club's page in my space (`/me/club/:id`) |
+| `Select.tsx` | `Select` — **the** dropdown: a native `<select>` that sets its own colours, sized `field` / `inline` / `row` / `touch`; `oxlint` refuses a bare `<select>` |
 | `RoleSelect.tsx` | `RoleSelect` — helm / crew / substitute beside a name on the right pane of `SquadPanel` and `LineupPanel`; their shared draft is `useRosterDraft` (`lib/useRosterDraft.ts`) |
 | `SailorName.tsx` | `SailorName` — a sailor's name in a squad or lineup: a link to their page, or plain text when they switched it off (Story S-4). Never hand-write a link to `/sailors/:id` |
 | `PersonDocuments.tsx` | `PersonDocuments` — a person's licences on demand, for their organizers, on a person's row (Story S-5); hides itself on `documents-forbidden`. `ExpiredBadge` |
@@ -395,3 +396,20 @@ italics, the rule in its tooltip). One table for a series' own page (`/series/:i
 each division on a league's standings page, where `marks` (the league's promotion,
 relegation and requalification ranks) colour the row's edge and add a legend. `actHref`
 says where an act's heading leads; `testId` prefixes every testid.
+
+## `Select` — one dropdown, both surfaces
+
+A native `<select>` paints its own field and option list but takes its **text colour from
+the page**. On paper that is fine; on the official pages' glass (`.on-glass`) the text is
+white while the browser still draws white — the pairing list's "all clubs" picker was white
+on white. `Select` names `bg-white text-slate-900` itself, which `.on-glass` maps to glass,
+and `index.css` gives a select on glass `color-scheme: dark` and dark options, so the open
+list is dark too. Every dropdown is this component; `.oxlintrc.json` forbids `<select>`
+anywhere else.
+
+- **`size` says where it stands:** `field` (a labelled form control, full width, in
+  `Field`), `inline` (a toolbar, as wide as its options), `row` (beside a name in a list,
+  `RoleSelect`), `touch` (a thumb target on the water, `RaceControl`).
+- **`invalid`** draws the red border and sets `aria-invalid`.
+- **`className` is for layout only** — `flex-1`, `w-32`. A colour or padding there wins or
+  loses by its place in Tailwind's stylesheet, not by its place in the list (docs/gotchas).

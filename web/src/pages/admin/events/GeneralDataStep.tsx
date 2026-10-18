@@ -30,6 +30,7 @@ import {
   type Size,
 } from "./setup";
 import { StepActions } from "./StepActions";
+import { Select } from "../../../components/Select";
 
 /** Step 1: name, dates, series, host, size and boats — and the create request. Only the
  *  title and the boat names gate it: a missing date and the wrong number of clubs are the
@@ -152,11 +153,10 @@ export function GeneralDataStep({
 
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
           <Field label={t("events.seriesLabel")} hint={t("events.seriesHint")}>
-            <select
-              className={INPUT_CLASS}
+            <Select
               value={seriesId}
               onChange={(e) => setSeriesId(e.target.value)}
-              data-testid="admin-events-series-select"
+              testId="admin-events-series-select"
             >
               <option value="">{t("events.seriesNone")}</option>
               {seriesList.data?.map((s) => (
@@ -164,14 +164,13 @@ export function GeneralDataStep({
                   {s.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label={t("events.hostLabel")} hint={t("events.hostHint")}>
-            <select
-              className={INPUT_CLASS}
+            <Select
               value={hostClubId}
               onChange={(e) => setHostClubId(e.target.value)}
-              data-testid="admin-events-host-select"
+              testId="admin-events-host-select"
             >
               <option value="">{t("events.hostNone")}</option>
               {clubs.data?.map((v) => (
@@ -179,7 +178,7 @@ export function GeneralDataStep({
                   {v.name}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
 
@@ -192,8 +191,7 @@ export function GeneralDataStep({
               empty={t("events.catalogEmptyText")}
             >
               {() => (
-                <select
-                  className={INPUT_CLASS}
+                <Select
                   value={size ? sizeKey(size) : ""}
                   onChange={(e) => {
                     const picked = sizes.find((candidate) => sizeKey(candidate) === e.target.value);
@@ -204,14 +202,14 @@ export function GeneralDataStep({
                     setChosenFlights(null);
                     setChosenRows(resizedBoatRows(boatRows, picked.boats));
                   }}
-                  data-testid="admin-events-catalog-select"
+                  testId="admin-events-catalog-select"
                 >
                   {sizes.map((option) => (
                     <option key={sizeKey(option)} value={sizeKey(option)}>
                       {t("events.sizeOption", { teams: option.teams, boats: option.boats })}
                     </option>
                   ))}
-                </select>
+                </Select>
               )}
             </Async>
           </Field>
@@ -219,18 +217,17 @@ export function GeneralDataStep({
               shorter one is its first flights (Story VA-7). */}
           {maxFlights > 0 && (
             <Field label={t("events.flightsLabel")} hint={t("events.flightsHint", { max: maxFlights })}>
-              <select
-                className={INPUT_CLASS}
+              <Select
                 value={flights}
                 onChange={(e) => setChosenFlights(e.target.value)}
-                data-testid="admin-events-flights-select"
+                testId="admin-events-flights-select"
               >
                 {Array.from({ length: maxFlights }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>
                     {n}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
           )}
         </div>
@@ -292,8 +289,9 @@ export function GeneralDataStep({
                        *  "Custom" (so a hand-picked color never sits silently under a named
                        *  option it no longer matches). */}
                       <div className="flex flex-nowrap items-center gap-2">
-                        <select
-                          className={`${sizedInput("w-32")} shrink-0`}
+                        <Select
+                          size="inline"
+                          className="w-32 shrink-0"
                           aria-label={`${t("events.boatColorLabel")} ${index + 1}`}
                           value={row.color}
                           onChange={(e) => {
@@ -306,7 +304,7 @@ export function GeneralDataStep({
                                   : boatColor(nextColor).hex,
                             });
                           }}
-                          data-testid={`admin-events-boat-color-select-${index}`}
+                          testId={`admin-events-boat-color-select-${index}`}
                         >
                           {PREDEFINED_COLORS.map((code) => (
                             <option key={code} value={code}>
@@ -314,7 +312,7 @@ export function GeneralDataStep({
                             </option>
                           ))}
                           <option value={CUSTOM_COLOR}>{t("events.boatColorCustom")}</option>
-                        </select>
+                        </Select>
                         <input
                           type="color"
                           className="h-9 w-9 shrink-0 cursor-pointer rounded border border-slate-300 p-0.5"

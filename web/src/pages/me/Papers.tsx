@@ -40,6 +40,7 @@ import { ExpiredBadge } from "../../components/PersonDocuments";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { openFile } from "../../lib/files";
 import { formatDate, formatMoney, parseCents } from "../../lib/format";
+import { Select } from "../../components/Select";
 
 /** The papers of my space (Stories S-5, S-6, F-2, F-5): documents and licences, the bank
  * account costs go back to, and claims. Sections of `/me/profile` — and the claims, with
@@ -168,18 +169,17 @@ function UploadDocument() {
     <Section title={t("documents.uploadTitle")} testId="my-space-document-upload">
       <form onSubmit={submit} className="flex flex-col gap-3">
         <Field label={t("documents.kindLabel")} testId="my-space-document-kind-field">
-          <select
-            className={INPUT_CLASS}
+          <Select
             value={kind}
             onChange={(e) => setKind(e.target.value as DocumentKind)}
-            data-testid="my-space-document-kind"
+            testId="my-space-document-kind"
           >
             {Object.values(DocumentKind).map((value) => (
               <option key={value} value={value}>
                 {t(`kinds.${value}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
         <Field label={t("documents.titleLabel")} hint={t("documents.titleHint")} testId="my-space-document-title-field">
           <input
@@ -436,11 +436,10 @@ function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => voi
             <form onSubmit={submit} className="flex flex-col gap-3">
               {!fixed && (
               <Field label={t("claims.targetLabel")} testId="my-space-claim-target-field">
-                <select
-                  className={INPUT_CLASS}
+                <Select
                   value={targetKey(target)}
                   onChange={(e) => setChosen(e.target.value)}
-                  data-testid="my-space-claim-target"
+                  testId="my-space-claim-target"
                 >
                   {events.length > 0 && (
                     <optgroup label={t("claims.targetEvents")}>
@@ -460,7 +459,7 @@ function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => voi
                       ))}
                     </optgroup>
                   )}
-                </select>
+                </Select>
               </Field>
               )}
               <Field label={t("claims.titleLabel")} testId="my-space-claim-title-field">
@@ -653,18 +652,17 @@ function AddItem({ claim }: { claim: Claim }) {
       <div className="flex flex-wrap gap-3">
         <div className="min-w-40 flex-1">
           <Field label={t("claims.kindLabel")} testId={`${id}-kind-field`}>
-            <select
-              className={INPUT_CLASS}
+            <Select
               value={kind}
               onChange={(e) => setKind(e.target.value as ExpenseKind)}
-              data-testid={`${id}-kind`}
+              testId={`${id}-kind`}
             >
               {Object.values(ExpenseKind).map((value) => (
                 <option key={value} value={value}>
                   {t(`itemKinds.${value}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
         <div className="min-w-40 flex-1">
@@ -751,11 +749,10 @@ function UploadReceipt({ claim }: { claim: Claim }) {
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-40 flex-1">
           <Field label={t("claims.receiptFor")} testId={`${id}-item-field`}>
-            <select
-              className={INPUT_CLASS}
+            <Select
               value={itemId}
               onChange={(e) => setItemId(e.target.value)}
-              data-testid={`${id}-item`}
+              testId={`${id}-item`}
             >
               <option value="">{t("claims.receiptWholeClaim")}</option>
               {claim.items.map((item) => (
@@ -763,7 +760,7 @@ function UploadReceipt({ claim }: { claim: Claim }) {
                   {`${t(`itemKinds.${item.kind}`)} · ${item.description} · ${formatMoney(item.amount_cents)}`}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
         <div className="min-w-40 flex-1">

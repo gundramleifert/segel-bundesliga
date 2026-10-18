@@ -24,6 +24,7 @@ import { useListParams, type ListParams } from "../lib/listParams";
 import { ErrorMessage, Loading } from "../components/Blocks";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Section, Field } from "../components/Form";
+import { Select } from "../components/Select";
 
 /** Stories Z-2 and Z-3: search accounts, write and delete the relation tuples that give
  *  them access. Admin only — the accounts list is admin-exclusive on the backend, and showing this to an editor would just mean every
@@ -248,46 +249,43 @@ function TupleForm({ account, onDone }: { account: Account; onDone: () => void }
     >
       <label className="flex flex-col text-xs text-slate-500">
         {t("accounts.tupleTypeLabel")}
-        <select
-          className={INPUT_CLASS}
+        <Select
           value={objectType}
           onChange={(e) => { setObjectType(e.target.value as ObjectType); setObjectId(""); }}
-          data-testid={`admin-accounts-tuple-type-${account.id}`}
+          testId={`admin-accounts-tuple-type-${account.id}`}
         >
           {types.map((entry) => (
             <option key={entry.type} value={entry.type}>
               {t(`accounts.objectTypeLabels.${entry.type}`)}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <label className="flex flex-col text-xs text-slate-500">
         {t("accounts.tupleRelationLabel")}
-        <select
-          className={INPUT_CLASS}
+        <Select
           value={chosen ?? ""}
           onChange={(e) => setRelation(e.target.value as Relation)}
-          data-testid={`admin-accounts-tuple-relation-${account.id}`}
+          testId={`admin-accounts-tuple-relation-${account.id}`}
         >
           {relations.map((r) => (
             <option key={r} value={r}>{t(`accounts.relationLabels.${r}`)}</option>
           ))}
-        </select>
+        </Select>
       </label>
       {needsObject && (
         <label className="flex flex-col text-xs text-slate-500">
           {t("accounts.tupleObjectLabel")}
-          <select
-            className={INPUT_CLASS}
+          <Select
             value={objectId}
             onChange={(e) => setObjectId(e.target.value ? Number(e.target.value) : "")}
-            data-testid={`admin-accounts-tuple-object-${account.id}`}
+            testId={`admin-accounts-tuple-object-${account.id}`}
           >
             <option value="">—</option>
             {objects.map((o) => (
               <option key={o.id} value={o.id}>{o.label}</option>
             ))}
-          </select>
+          </Select>
         </label>
       )}
       <Button
