@@ -363,6 +363,8 @@ describeStory("B-13: one row of navigation names the leagues", () => {
   });
 
   test("one column, one grid: every block spans the column, the tiles of a row are equal", async ({ page }) => {
+    // Sixteen pages, each to its last request.
+    test.setTimeout(120_000);
     // The concept of `components/site/Cards.tsx` ("the grid"): the width belongs to the
     // frame, never to the content. Blocks set no width of their own, so one chapter's
     // cards can no longer end where the next one's go on.

@@ -355,6 +355,8 @@ else sits in `Layout`, which uses the same top row.
   link) says `data-inline`. `e2e/visitor.spec.ts` › *one column, one grid* measures every
   official page and names the block that breaks the rule — a hand-written `grid-cols-*`
   or `max-w-*` in a chapter fails it.
+- **`Footer`** — `glass` on the official pages in the sub-menu layout (`Footer.tsx`, the
+  last band on the picture, in the same column and grid), light everywhere else.
 - **`Picture`** — a big picture as photo, fade, slide or muted video (`settings.ts`).
 - **`DevSwitch`** — the open variants, mounted by `SiteShell` wherever `DEV_TOOLS` is.
 - Content without a backend comes from **`web/src/content/`**, through hooks that return

@@ -393,6 +393,12 @@ Acceptance criteria:
 - **One column, one grid** (2026-10-18): one chapter's cards never end where the next
   one's go on. Every block spans its page's column, and tiles and columns share one
   12-column grid, so their edges line up from chapter to chapter (`docs/components.md`).
+- **The footer is the last band on the picture** (2026-10-18, sub-menu layout): the rows'
+  shade, the same column and grid — a card per league (its act now or next, standings,
+  season, notice board, press), the association beside the account (sign in or my space,
+  the language), and the legal notice and privacy on every page. On a chapter page the
+  dots step aside while the footer is on screen. The classic layout and the internal
+  screens keep the light footer.
 - **The league's name in the sub-menu is its overview** — there is no entry *Overview*
   beside it (it said the same twice). Without snapping a chapter is as tall as its content — the
   screen-high chapters of the snapping mode left half a screen of empty picture between

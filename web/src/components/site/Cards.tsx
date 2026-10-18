@@ -16,6 +16,11 @@ import { useSiteVersion } from "./settings";
 
 export type SurfaceKind = "dark" | "light";
 
+/** The rows' background in the sub-menu layout, everywhere — and the footer's: the
+ *  picture shows through, darkened and blurred, so white type reads on any photo and on
+ *  content passing under. */
+export const BAR_SHADE = "bg-slate-950/70 backdrop-blur-md";
+
 /** The glass itself, from the look's variables (index.css). */
 export const GLASS = "bg-[rgb(2_6_23/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]";
 

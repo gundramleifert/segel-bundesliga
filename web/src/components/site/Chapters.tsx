@@ -50,6 +50,9 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
   const mode = useChapterMode();
   const current = useActiveChapter(chapters[0].id, `${chapters.map((c) => c.id).join()}|${mode}|submenu`);
   const scroller = useScrollerFocus();
+  // The dots step aside over the footer: on a phone they lay on its cards.
+  const footer = useRef<HTMLDivElement>(null);
+  const footerInView = useInView(footer);
   return (
     <div className="fixed inset-0 bg-slate-950">
       <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
@@ -72,7 +75,7 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
           data-league={league?.slug}
           data-version="submenu"
         >
-          <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} />
+          <ChapterDots chapters={chapters.map((c) => [c.id, c.label] as const)} active={current} hidden={footerInView} />
           <Surface kind="dark">
           <main id="content">
             {chapters.map((c, i) => (
@@ -100,8 +103,8 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
             ))}
           </main>
           </Surface>
-          <div className="snap-start bg-white">
-            <Footer />
+          <div className="snap-start" ref={footer}>
+            <Footer glass />
           </div>
         </div>
       </div>
@@ -205,7 +208,27 @@ function Chapter({ spec, n, of, playing }: { spec: ChapterSpec; n: number; of: n
  *    sideways, and once it left the column the slide froze on the last chapter.
  *  - **A tap scrolls, it does not navigate**: following `#season` scrolled a second time
  *    and put every tap into the history, so Back walked the chapters. */
-function ChapterDots({ chapters, active }: { chapters: readonly (readonly [id: string, label: string])[]; active: string }) {
+/** Whether any of the element is on screen. */
+function useInView(ref: React.RefObject<HTMLElement | null>) {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref]);
+  return inView;
+}
+
+function ChapterDots({
+  chapters,
+  active,
+  hidden = false,
+}: {
+  chapters: readonly (readonly [id: string, label: string])[];
+  active: string;
+  hidden?: boolean;
+}) {
   const { t } = useTranslation("site");
   const [scrub, setScrub] = useState<string | null>(null);
   const list = useRef<HTMLOListElement>(null);
@@ -236,9 +259,10 @@ function ChapterDots({ chapters, active }: { chapters: readonly (readonly [id: s
       aria-label={t("nav.chapters")}
       data-testid="site-chapter-dots"
       data-scrubbing={scrub ? "" : undefined}
+      aria-hidden={hidden || undefined}
       // `touch-none`: sliding along the dots is this control's gesture, not a page scroll —
       // and the box is the dots and nothing more, so it claims no other swipe.
-      className="fixed right-0 top-1/2 z-40 -translate-y-1/2 touch-none select-none py-2 pr-1 lg:pr-4"
+      className={`fixed right-0 top-1/2 z-40 -translate-y-1/2 touch-none select-none py-2 pr-1 transition-opacity lg:pr-4 ${hidden ? "pointer-events-none opacity-0" : ""}`}
       onPointerDown={(event) => {
         if (event.pointerType === "mouse") return;
         try {

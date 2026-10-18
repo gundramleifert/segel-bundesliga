@@ -9,7 +9,10 @@ import { DEV_TOOLS } from "../../dev/devTools";
 import { SLIDES, type Photo } from "../../content";
 import { href } from "../../lib/site";
 import { UserMenu } from "../UserMenu";
-import { Surface, useTone } from "./Cards";
+import { BAR_SHADE, Surface, useTone } from "./Cards";
+import { GlassFooter } from "./Footer";
+
+export { BAR_SHADE } from "./Cards";
 import { Picture } from "./Media";
 import { useDetailMode, useSiteVersion } from "./settings";
 
@@ -131,10 +134,6 @@ export function TopBar({
 /** The top row and the sub-menu under it, together, in the layout with a sub-menu: in
  *  pixels for scrolling, as a class for `sticky`. 57 + 48 — the row's border included. */
 export const BARS = { offset: 105, top: "top-[105px]" };
-
-/** The rows' background in the sub-menu layout, everywhere: the picture shows through,
- *  darkened and blurred, so white type reads on any photo and on content passing under. */
-export const BAR_SHADE = "bg-slate-950/70 backdrop-blur-md";
 
 /** One entry of a sub-menu. */
 export type SubItem = {
@@ -344,7 +343,7 @@ export function DepthPage(props: DepthProps) {
           B's sheet edge, in C's left column. */}
       <Bars league={props.league} subnav={props.subnav} />
       <Frame {...props} classic={classic} />
-      <Footer />
+      <Footer glass={!classic} />
     </div>
   );
 }
@@ -567,8 +566,14 @@ export function Expand({
   );
 }
 
-/** Each league's pages, and the legal pages § 5 DDG wants reachable from every page. */
-export function Footer() {
+/** Each league's pages, and the legal pages § 5 DDG wants reachable from every page —
+ *  `glass` on the official pages in the sub-menu layout (`Footer.tsx`), light elsewhere. */
+export function Footer({ glass = false }: { glass?: boolean }) {
+  if (glass) return <GlassFooter />;
+  return <LightFooter />;
+}
+
+function LightFooter() {
   const { t } = useTranslation("site");
   const { t: tc } = useTranslation();
   const leagues = useLeagues();
