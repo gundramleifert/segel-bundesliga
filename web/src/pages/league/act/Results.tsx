@@ -9,13 +9,14 @@ import {
   usePutRaceResult,
   usePutTeamPenalty,
 } from "../../../api/generated/sbl";
-import type { AdminRace, BoatOut, StandingRow } from "../../../api/types";
+import { ResultCode, type AdminRace, type BoatOut, type StandingRow } from "../../../api/types";
 import { useAsync, useInvalidate } from "../../../api/useApi";
 import { FinishChip, useFinishOrder } from "../../../components/FinishOrderPad";
 import {
   NOT_FINISHED_CODES,
   SPECIAL_CODES,
   needsOwnInput,
+  parseResultCode,
   redressSuggestion,
 } from "../../../lib/results";
 import {
@@ -258,13 +259,13 @@ function RaceResultRow({
   const dnfPoints = starter + 1;
   const zfpPenalty = Math.max(1, Math.round(starter * 0.2));
 
-  function codeTitle(code: string): string {
-    if (code === "FINISHED") return t("codeTooltip.FINISHED");
+  function codeTitle(code: ResultCode): string {
+    if (code === ResultCode.FINISHED) return t("codeTooltip.FINISHED");
     if (NOT_FINISHED_CODES.has(code)) return t(`codeTooltip.${code}`, { points: dnfPoints });
-    if (code === "ZFP" || code === "SCP") {
+    if (code === ResultCode.ZFP || code === ResultCode.SCP) {
       return t(`codeTooltip.${code}`, { cap: dnfPoints, penalty: zfpPenalty });
     }
-    if (code === "RDG") return t("codeTooltip.RDG");
+    if (code === ResultCode.RDG) return t("codeTooltip.RDG");
     return code;
   }
 
@@ -325,12 +326,12 @@ function RaceResultRow({
         }
         const color = boatColor(boat.color);
         const suggestion =
-          row.code === "RDG" ? redressSuggestion(existing.team.id, race.sequence, standings) : null;
+          row.code === ResultCode.RDG ? redressSuggestion(existing.team.id, race.sequence, standings) : null;
         // The merged dropdown's own value: a finish position shows as its number, every
         // other code shows as itself, and "FINISHED with nothing picked yet" shows as the
         // empty placeholder rather than a bare "FINISHED" that isn't a real option anymore.
         const selectValue =
-          row.code === "FINISHED"
+          row.code === ResultCode.FINISHED
             ? row.finish_position != null
               ? String(row.finish_position)
               : ""
@@ -361,17 +362,18 @@ function RaceResultRow({
                     const nextValue = e.target.value;
                     const asPosition = Number(nextValue);
                     if (nextValue !== "" && Number.isInteger(asPosition) && asPosition > 0) {
-                      setField(boat.number, { code: "FINISHED", finish_position: asPosition });
+                      setField(boat.number, { code: ResultCode.FINISHED, finish_position: asPosition });
                       return;
                     }
-                    if (nextValue === "RDG") {
+                    const code = parseResultCode(nextValue);
+                    if (code === ResultCode.RDG) {
                       const suggestionOnSwitch = redressSuggestion(
                         existing.team.id,
                         race.sequence,
                         standings,
                       );
                       setField(boat.number, {
-                        code: nextValue,
+                        code,
                         // Most redress cases are the plain A10 average — default to "auto"
                         // whenever one can actually be computed, "fixed" only when there's
                         // nothing yet to average (this team hasn't scored another race).
@@ -380,7 +382,7 @@ function RaceResultRow({
                       });
                       return;
                     }
-                    setField(boat.number, { code: nextValue });
+                    if (code) setField(boat.number, { code });
                   }}
                   data-testid={`matchday-results-code-select-${race.id}-${boat.number}`}
                 >
@@ -388,7 +390,7 @@ function RaceResultRow({
                     {t("resultPlaceholder")}
                   </option>
                   {Array.from({ length: starter }, (_, i) => i + 1).map((position) => (
-                    <option key={position} value={position} title={codeTitle("FINISHED")}>
+                    <option key={position} value={position} title={codeTitle(ResultCode.FINISHED)}>
                       {position}
                     </option>
                   ))}
@@ -425,7 +427,7 @@ function RaceResultRow({
                 data-testid={`matchday-results-position-input-${race.id}-${boat.number}`}
               />
             )}
-            {row.code === "RDG" && (
+            {row.code === ResultCode.RDG && (
               <div className="mt-1 space-y-1">
                 <div className="flex gap-1" role="group" aria-label={t("redressModeLabel")}>
                   {(["auto", "fixed"] as const).map((mode) => (

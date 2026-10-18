@@ -28,7 +28,7 @@ from app.i18n import Locale, resolve_locale, tr
 from app.jobs import jobs
 from app.mail import MailError, send_login_code
 from app.models import Club
-from app.models.auth import ObjectType, Relation, User
+from app.models.auth import ObjectType, Relation, Role, User
 from app.problems import Problem
 from app.schemas.auth import TokenOut
 from app.tracking.emulate_job import emulate_event
@@ -44,7 +44,7 @@ class TestUserOut(BaseModel):
     id: int
     email: str
     display_name: str
-    roles: list[str]
+    roles: list[Role]
     club: str | None = None
     group: Group
     description: str

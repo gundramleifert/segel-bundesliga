@@ -5,6 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { EventDocumentKind } from './eventDocumentKind';
 
 /**
  * A document on an event's notice board — a link to where it was published
@@ -13,7 +14,7 @@
 export interface EventDocumentOut {
   id: number;
   title: string;
-  kind: string;
+  kind: EventDocumentKind;
   url: string;
   extension?: string | null;
   published_at?: string | null;

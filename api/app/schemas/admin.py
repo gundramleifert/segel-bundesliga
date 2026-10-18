@@ -7,6 +7,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, PositiveInt, field_serializer, field_validator
 
+from app.jobs import JobStatus
+from app.models.racing import PreparatoryFlag, RaceSignal, RaceStatus, ResultCode
 from app.schemas.public import BoatOut, StartSequence, TeamOut
 from app.scoring import ScoringConfig
 
@@ -29,7 +31,7 @@ class PairingJobRequest(BaseModel):
 class JobOut(BaseModel):
     id: str
     kind: str
-    status: str
+    status: JobStatus
     progress: float
     message: str
     error: str | None = None
@@ -69,7 +71,7 @@ class RaceResultIn(BaseModel):
     """
 
     boat_number: int
-    code: str | None = None
+    code: ResultCode | None = None
     finish_position: int | None = None
     redress_points: float | None = None
 
@@ -90,7 +92,7 @@ class RaceResultsIn(BaseModel):
 class RaceResultsOut(BaseModel):
     race_id: int
     sequence: int
-    status: str
+    status: RaceStatus
     version: int
     applied: bool
     overwrote_existing: bool = False
@@ -116,7 +118,7 @@ class RaceEntryOut(BaseModel):
 
     boat_number: int
     team: TeamOut
-    code: str | None = None
+    code: ResultCode | None = None
     finish_position: int | None = None
     redress_points: float | None = None
     points: float | None = None
@@ -130,16 +132,16 @@ class AdminRaceOut(BaseModel):
     sequence: int
     flight: int
     race_in_flight: int
-    status: str
+    status: RaceStatus
     version: int
     # Set by the race committee's transitions (Story WL-3). A race finished from the
     # correction tab without ever being started has `finished_at` and no `started_at`.
     started_at: datetime | None = None
     finished_at: datetime | None = None
     # The signal currently displayed: AP, X or S — None when nothing is up.
-    signal: str | None = None
+    signal: RaceSignal | None = None
     # The preparatory flag of the start; decides what an over-early boat is scored as.
-    preparatory: str = "P"
+    preparatory: PreparatoryFlag = PreparatoryFlag.P
     # The start sequence the committee's screen stored, for the live page (B-5).
     start_sequence: StartSequence | None = None
     entries: list[RaceEntryOut]
@@ -159,13 +161,13 @@ class AdminRaceOut(BaseModel):
 class RaceStartIn(BaseModel):
     """What the gun needs to know: which preparatory flag was flying (RRS 26, 30)."""
 
-    preparatory: Literal["P", "I", "Z", "U", "BLACK"] = "P"
+    preparatory: PreparatoryFlag = PreparatoryFlag.P
 
 
 class RaceSignalIn(BaseModel):
     """Hoist a displayed signal, or haul it down with ``null``."""
 
-    signal: Literal["AP", "X", "S"] | None = None
+    signal: RaceSignal | None = None
 
 
 class AdminRacesOut(BaseModel):

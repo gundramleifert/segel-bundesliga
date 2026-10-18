@@ -13,7 +13,7 @@ import {
   useStartEmulation,
 } from "../api/generated/sbl";
 import type { StartSequence } from "../api/generated/model/startSequence";
-import type { Course, LiveBoat, LiveRace } from "../api/types";
+import { MarkRole, RaceStatus, type Course, type LiveBoat, type LiveRace } from "../api/types";
 import { useAsync, useEventAccess, useInvalidate } from "../api/useApi";
 import { useLive } from "../api/useLive";
 import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Blocks";
@@ -169,10 +169,10 @@ function RaceLine({ snapshot, state }: { snapshot: LiveRace | null; state: "live
     <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm" data-testid="live-race-line">
       <span className="font-semibold text-slate-900" data-testid="live-race-heading">
         {race
-          ? t(race.status === "running" ? "race.running" : "race.finished", { sequence: race.sequence })
+          ? t(race.status === RaceStatus.running ? "race.running" : "race.finished", { sequence: race.sequence })
           : t("race.none")}
       </span>
-      {race?.status === "running" && race.started_at && (
+      {race?.status === RaceStatus.running && race.started_at && (
         <span className="tabular-nums text-slate-600" data-testid="live-elapsed">
           {t("race.elapsed", { time: clock(now - Date.parse(race.started_at)) })}
         </span>
@@ -238,7 +238,7 @@ function circle(at: LngLat, radiusM: number, points = 48): LngLat[] {
  *  committee boat gets its zone only when it is also the finish line's end. */
 function zones(course: Course, radiusM: number): Data {
   const zoned = course.marks.filter(
-    (m) => m.role !== "start_pin" && !(m.role === "committee_boat" && course.finish_upwind),
+    (m) => m.role !== MarkRole.start_pin && !(m.role === MarkRole.committee_boat && course.finish_upwind),
   );
   return {
     type: "FeatureCollection",
@@ -368,14 +368,14 @@ type LineFeature = {
 /** The start and finish lines. Nothing joins the gate marks — a gate is two marks with
  *  water between them — and no leg line: the boats' trails and the laylines show the way. */
 function courseLines(course: Course): Data {
-  const at = (role: string) => {
+  const at = (role: MarkRole) => {
     const mark = course.marks.find((m) => m.role === role);
     return mark ? lngLat(mark) : null;
   };
-  const committee = at("committee_boat");
-  const pin = at("start_pin");
-  const windward = at("windward");
-  const finishPin = at("finish_pin");
+  const committee = at(MarkRole.committee_boat);
+  const pin = at(MarkRole.start_pin);
+  const windward = at(MarkRole.windward);
+  const finishPin = at(MarkRole.finish_pin);
   const features: LineFeature[] = [];
   const line = (kind: string, points: (LngLat | null)[]) => {
     if (points.every(Boolean)) {
@@ -447,10 +447,10 @@ function boatElement(hex: string, label: string): HTMLDivElement {
   return symbolWithLabel(arrow, label, "font-semibold text-slate-900");
 }
 
-function markElement(role: string, label: string): HTMLDivElement {
+function markElement(role: MarkRole, label: string): HTMLDivElement {
   const dot = document.createElement("div");
   dot.className = `rounded-full border-2 border-white shadow ${
-    role === "committee_boat" ? "bg-slate-900" : role === "finish_pin" ? "bg-blue-600" : "bg-orange-500"
+    role === MarkRole.committee_boat ? "bg-slate-900" : role === MarkRole.finish_pin ? "bg-blue-600" : "bg-orange-500"
   }`;
   dot.style.width = "14px";
   dot.style.height = "14px";

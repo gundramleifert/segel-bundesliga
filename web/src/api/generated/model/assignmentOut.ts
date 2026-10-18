@@ -6,9 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SeriesOut } from './seriesOut';
+import type { TeamStatus } from './teamStatus';
 
 export interface AssignmentOut {
   series: SeriesOut;
-  status: string;
+  status: TeamStatus;
   decision_note?: string | null;
 }

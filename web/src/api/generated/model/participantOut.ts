@@ -6,12 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClubOut } from './clubOut';
+import type { TeamStatus } from './teamStatus';
 
 /**
  * An entry to this event.
  */
 export interface ParticipantOut {
   team_id: number;
-  status: string;
+  status: TeamStatus;
   club: ClubOut;
 }

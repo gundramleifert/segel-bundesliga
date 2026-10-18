@@ -17,7 +17,7 @@ import {
   useUnpublishEvent,
   useUpdateEvent,
 } from "../../../api/generated/sbl";
-import type { EventSummary } from "../../../api/types";
+import { EventStatus, type EventSummary } from "../../../api/types";
 import { useAsync, useInvalidate } from "../../../api/useApi";
 import { AccessPanel } from "../../../components/AccessPanel";
 import { Async } from "../../../components/Async";
@@ -119,7 +119,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
   // Closed as in "declared over", not as in "locked": results stay editable forever and
   // both closings undo with one press (Story VA-10). This only decides which buttons the
   // closing block offers.
-  const closed = event.status === "final" || event.status === "cancelled";
+  const closed = event.status === EventStatus.final || event.status === EventStatus.cancelled;
 
   return (
     <Stack gap={5} className="mt-4  border-t border-slate-100 pt-4" testId={`admin-manage-event-panel-${event.id}`}>
@@ -414,11 +414,11 @@ export function EventPanel({ event }: { event: EventSummary }) {
           </Button>
           <Button
             size="sm"
-            isDisabled={start.isPending || !ready || !hasPairing || event.status === "live"}
+            isDisabled={start.isPending || !ready || !hasPairing || event.status === EventStatus.live}
             onPress={() => start.mutate({ eventId: event.id })}
             data-testid={`admin-manage-event-start-${event.id}`}
           >
-            {event.status === "live" ? t("manage.startedButton") : t("manage.startButton")}
+            {event.status === EventStatus.live ? t("manage.startedButton") : t("manage.startButton")}
           </Button>
           <Link
             to={`/events/${event.id}`}
@@ -436,7 +436,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
             {t("manage.openRaceControlLink")}
           </Link>
         </div>
-        {event.status !== "live" && (!ready || !hasPairing) && (
+        {event.status !== EventStatus.live && (!ready || !hasPairing) && (
           <p className="text-sm text-slate-500">{t("manage.startNeedsHint")}</p>
         )}
         <Message
@@ -470,7 +470,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
         <p className="text-sm text-slate-600">
           {closed
             ? t(
-                event.status === "final"
+                event.status === EventStatus.final
                   ? "manage.finishedHint"
                   : "manage.cancelledHint",
               )
@@ -485,7 +485,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
               data-testid={`admin-manage-event-reopen-${event.id}`}
             >
               {t(
-                event.status === "final"
+                event.status === EventStatus.final
                   ? "manage.reopenFinishedButton"
                   : "manage.reopenCancelledButton",
               )}
@@ -498,7 +498,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
                   exactly on the day the wind died after flight 13. */}
               <Button
                 size="sm"
-                isDisabled={closingPending || event.status !== "live"}
+                isDisabled={closingPending || event.status !== EventStatus.live}
                 onPress={() => finish.mutate({ eventId: event.id })}
                 data-testid={`admin-manage-event-finish-${event.id}`}
               >
@@ -518,7 +518,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
             </>
           )}
         </div>
-        {!closed && event.status !== "live" && (
+        {!closed && event.status !== EventStatus.live && (
           <p className="text-sm text-slate-500">{t("manage.finishNeedsLiveHint")}</p>
         )}
         <Message

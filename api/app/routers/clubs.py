@@ -82,7 +82,7 @@ class SeriesAssignment(BaseModel):
 
 class AssignmentOut(BaseModel):
     series: SeriesOut
-    status: str
+    status: TeamStatus
     decision_note: str | None = None
 
 

@@ -15,7 +15,7 @@ import {
 } from "../../api/generated/sbl";
 import { ApiError } from "../../api/http";
 import { useInvalidate } from "../../api/useApi";
-import type { MyCompetitionWaiver, MyWaivers, WaiverText } from "../../api/types";
+import { WaiverMethod, WaiverStatus, type MyCompetitionWaiver, type MyWaivers, type WaiverText } from "../../api/types";
 import { ErrorMessage, Loading } from "../../components/Blocks";
 import { FileDropzone } from "../../components/FileDropzone";
 import { Message } from "../../components/Form";
@@ -191,16 +191,20 @@ export function Wards() {
   );
 }
 
-const STATUS_STYLE: Record<string, string> = {
-  cleared: "bg-emerald-100 text-emerald-800 ring-emerald-300",
-  missing: "bg-amber-100 text-amber-800 ring-amber-300",
-  version_outdated: "bg-amber-100 text-amber-800 ring-amber-300",
-  guardian_signature_missing: "bg-amber-100 text-amber-800 ring-amber-300",
-  birth_date_unknown: "bg-slate-100 text-slate-700 ring-slate-300",
-  not_required: "bg-slate-100 text-slate-600 ring-slate-200",
+const STATUS_STYLE: Record<WaiverStatus, string> = {
+  [WaiverStatus.cleared]: "bg-emerald-100 text-emerald-800 ring-emerald-300",
+  [WaiverStatus.missing]: "bg-amber-100 text-amber-800 ring-amber-300",
+  [WaiverStatus.version_outdated]: "bg-amber-100 text-amber-800 ring-amber-300",
+  [WaiverStatus.guardian_signature_missing]: "bg-amber-100 text-amber-800 ring-amber-300",
+  [WaiverStatus.birth_date_unknown]: "bg-slate-100 text-slate-700 ring-slate-300",
+  [WaiverStatus.not_required]: "bg-slate-100 text-slate-600 ring-slate-200",
 };
 
-const OPEN = new Set(["missing", "version_outdated", "guardian_signature_missing"]);
+const OPEN: ReadonlySet<WaiverStatus> = new Set([
+  WaiverStatus.missing,
+  WaiverStatus.version_outdated,
+  WaiverStatus.guardian_signature_missing,
+]);
 
 function CompetitionRow({
   row,
@@ -230,7 +234,7 @@ function CompetitionRow({
 
   const id = `${row.scope}-${row.scope_id}`;
   const open = OPEN.has(row.status) && birthDateKnown && row.minor !== null;
-  const noBirthDate = !birthDateKnown || row.status === "birth_date_unknown";
+  const noBirthDate = !birthDateKnown || row.status === WaiverStatus.birth_date_unknown;
 
   async function run<T>(what: typeof busy, action: () => Promise<T>, done?: string) {
     setBusy(what);
@@ -314,11 +318,11 @@ function CompetitionRow({
                   version: row.confirmed_version,
                   date: formatDate(row.confirmed_at),
                 })}
-                {row.method === "guardian" && row.guardian_name
+                {row.method === WaiverMethod.guardian && row.guardian_name
                   ? `, ${t("waiver.methodGuardian", { name: row.guardian_name })}`
-                  : row.method === "guardian_online" && row.guardian_name
+                  : row.method === WaiverMethod.guardian_online && row.guardian_name
                     ? `, ${t("waiver.methodGuardianOnline", { name: row.guardian_name })}`
-                  : row.method === "online"
+                  : row.method === WaiverMethod.online
                     ? `, ${t("waiver.methodOnline")}`
                     : ""}
               </>
@@ -328,14 +332,14 @@ function CompetitionRow({
         <span
           data-testid={`${prefix}-status-${id}`}
           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-            STATUS_STYLE[row.status] ?? STATUS_STYLE.not_required
+            STATUS_STYLE[row.status]
           }`}
         >
           {t(`waiver.status.${row.status}`)}
         </span>
       </div>
 
-      {noBirthDate && row.status !== "cleared" && (
+      {noBirthDate && row.status !== WaiverStatus.cleared && (
         <p className="mt-3 text-sm text-slate-700" data-testid={`${prefix}-need-birth-date-${id}`}>
           {t("waiver.needBirthDate")}
         </p>

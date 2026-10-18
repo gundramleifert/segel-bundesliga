@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Tip } from "../../../components/Tip";
-import type { EventSummary, StandingRow } from "../../../api/types";
+import { EventStatus, type EventSummary, type StandingRow } from "../../../api/types";
 import { Empty, TableFrame } from "../../../components/Blocks";
 import { formatPoints } from "../../../lib/format";
 
@@ -98,7 +98,7 @@ function EventStandingsTable({
   // nothing left to project and the "provisional" column would be the same numbers with
   // an italic face and a disclaimer — so the choice is not offered, and the mode is
   // pinned to `exact` rather than left wherever it happened to be when racing ended.
-  const canProject = event.status === "live";
+  const canProject = event.status === EventStatus.live;
   const mode: PointsMode = canProject ? chosenMode : "exact";
   const flightsStarted = startedFlights(standings);
 

@@ -27,6 +27,7 @@ from app.models.auth import (
     Grant,
     ObjectType,
     Relation,
+    Role,
     User,
     writable,
 )
@@ -122,7 +123,7 @@ class TupleOut(BaseModel):
     user_id: int
     user: str = Field(description="The account's email — the user identifier of the tuple")
     user_name: str
-    relation: str
+    relation: Relation
     object: str = Field(description='"site", or "<type>:<id>" such as "event:3"')
     object_type: ObjectType
     object_id: int | None
@@ -151,7 +152,7 @@ class UserOut(BaseModel):
     display_name: str
     is_active: bool
     email_verified: bool
-    roles: list[str] = Field(
+    roles: list[Role] = Field(
         description="The summary roles derived from the tuples — what the navigation shows tabs by"
     )
     tuples: list[TupleOut]

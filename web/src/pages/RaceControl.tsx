@@ -15,7 +15,17 @@ import {
   useStartEvent,
   useStartRace,
 } from "../api/generated/sbl";
-import type { AdminRace, BoatOut, EventSummary, StandingRow } from "../api/types";
+import {
+  EventStatus,
+  PreparatoryFlag,
+  RaceSignal,
+  RaceStatus,
+  ResultCode,
+  type AdminRace,
+  type BoatOut,
+  type EventSummary,
+  type StandingRow,
+} from "../api/types";
 import { useAsync, useEventAccess, useInvalidate } from "../api/useApi";
 import { useLive } from "../api/useLive";
 import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Blocks";
@@ -46,7 +56,7 @@ import { boatColor } from "../lib/format";
 import {
   OVER_EARLY_CODE,
   PREPARATORY_FLAGS,
-  type PreparatoryFlag,
+  parseResultCode,
   resultComplete,
 } from "../lib/results";
 
@@ -99,7 +109,7 @@ export function RaceControl() {
   const list = races.data.races;
   const boats = races.data.boats;
 
-  if (event.status !== "live") {
+  if (event.status !== EventStatus.live) {
     return (
       <>
         <PageHeader title={t("title")} testId="race-control-header" />
@@ -127,7 +137,7 @@ export function RaceControl() {
   const base = allDone ? list.length - 1 : currentIndex;
   const index = Math.min(list.length - 1, Math.max(0, base + offset));
   const race = list[index];
-  const done = list.filter((r) => r.status === "finished" || r.status === "abandoned").length;
+  const done = list.filter((r) => r.status === RaceStatus.finished || r.status === RaceStatus.abandoned).length;
 
   return (
     <>
@@ -256,7 +266,7 @@ function EventGate({ event, eventId }: { event: EventSummary; eventId: number })
   const start = useStartEvent({
     mutation: { onSuccess: () => invalidate(getGetEventQueryKey(eventId)) },
   });
-  if (event.status === "planned") {
+  if (event.status === EventStatus.planned) {
     return (
       <Stack gap={3}>
         <p className="text-slate-700" data-testid="race-control-event-planned">
@@ -279,7 +289,7 @@ function EventGate({ event, eventId }: { event: EventSummary; eventId: number })
   return (
     <Stack gap={3}>
       <p className="text-slate-700" data-testid={`race-control-event-${event.status}`}>
-        {event.status === "final" ? t("event.final") : t("event.cancelled")}
+        {event.status === EventStatus.final ? t("event.final") : t("event.cancelled")}
       </p>
       <Link to="/admin?tab=events" className="underline underline-offset-2">
         {t("event.manageLink")}
@@ -296,7 +306,16 @@ const BIG_DANGER = `${BIG} border-2 border-red-300 bg-red-50 text-red-900 hover:
 
 /** Codes the committee gives on the water. RDG, ZFP and SCP need a number the jury decides
  *  and belong in the results tab. */
-const ON_WATER_CODES = ["OCS", "UFD", "BFD", "DNF", "DNS", "DSQ", "DNE", "RET"] as const;
+const ON_WATER_CODES: readonly ResultCode[] = [
+  ResultCode.OCS,
+  ResultCode.UFD,
+  ResultCode.BFD,
+  ResultCode.DNF,
+  ResultCode.DNS,
+  ResultCode.DSQ,
+  ResultCode.DNE,
+  ResultCode.RET,
+];
 
 /** A wall-clock time as the committee reads it off a watch: 14:05. */
 function hhmm(millis: number): string {
@@ -415,7 +434,7 @@ function RaceCard({
   const invalidate = useInvalidate();
   const refresh = () => invalidate(getGetEventQueryKey(eventId), getGetAdminRacesQueryKey(eventId));
   // The start sequence (lib/startSequence.ts): its state, mirrored per race on the device.
-  const [sequence, dispatch] = useStartSequence(race.id, race.status === "scheduled");
+  const [sequence, dispatch] = useStartSequence(race.id, race.status === RaceStatus.scheduled);
   // Any tap on this screen unlocks the sound — not only the sequence buttons: a sequence
   // restored after a reload has had no tap yet, and would run silently.
   useEffect(() => {
@@ -478,10 +497,10 @@ function RaceCard({
       // AP tapped during the sequence, and its time has come: up it goes — its sounds are
       // already booked by the player — and the sequence is over.
       dispatch({ type: "abort" });
-      signal.mutate({ eventId, raceId: race.id, data: { signal: "AP" } });
+      signal.mutate({ eventId, raceId: race.id, data: { signal: RaceSignal.AP } });
       return;
     }
-    if (phase.apDown && race.signal === "AP" && !apDownSent.current) {
+    if (phase.apDown && race.signal === RaceSignal.AP && !apDownSent.current) {
       apDownSent.current = true;
       signal.mutate(
         { eventId, raceId: race.id, data: { signal: null } },
@@ -522,7 +541,7 @@ function RaceCard({
   // The AP button only hoists: while AP is up, the two sequence buttons are the way down.
   // AP up during a sequence is refused once tapped, and in the last 8 s (`apUpTime`).
   const apPossible =
-    race.signal === "AP"
+    race.signal === RaceSignal.AP
       ? false
       : sequence.kind !== "armed" || (sequence.apUpAt === null && apUpTime(sequence, now) !== null);
   // The First Substitute is up after a general recall, until its lowering comes due.
@@ -535,7 +554,7 @@ function RaceCard({
   // the full minute, counted in like any signal, the club flag a minute after. Tapped
   // again, it re-times.
   const flagUp: Lowering | null =
-    race.signal === "AP" ? "AP" : firstSubstituteUp ? "firstSubstitute" : null;
+    race.signal === RaceSignal.AP ? "AP" : firstSubstituteUp ? "firstSubstitute" : null;
   const sequenceFrom = (at: "now" | "minute") => {
     if (!flagUp) return beginSequence(at);
     const tap = rebook();
@@ -546,7 +565,7 @@ function RaceCard({
   const busy =
     start.isPending || recall.isPending || abandon.isPending || signal.isPending || finish.isPending;
   const failure = [start, recall, abandon, signal, finish].find((m) => m.isError);
-  const setSignal = (value: "AP" | "X" | "S" | null) =>
+  const setSignal = (value: RaceSignal | null) =>
     signal.mutate({ eventId, raceId: race.id, data: { signal: value } });
 
   const statusLine = (
@@ -574,7 +593,7 @@ function RaceCard({
           {t("signal.firstSubstitute")}
         </span>
       )}
-      {race.status === "running" && race.started_at && (
+      {race.status === RaceStatus.running && race.started_at && (
         <span className="text-sm tabular-nums text-slate-600" data-testid="race-control-elapsed">
           {t("elapsed", { time: clock(now - Date.parse(race.started_at)) })}
         </span>
@@ -582,7 +601,7 @@ function RaceCard({
     </div>
   );
 
-  if (race.status === "scheduled") {
+  if (race.status === RaceStatus.scheduled) {
     return (
       <Stack gap={4}>
         {statusLine}
@@ -689,12 +708,12 @@ function RaceCard({
                 abortSequence();
                 unlockHorn();
                 hornSounds("short", 2);
-                setSignal("AP");
+                setSignal(RaceSignal.AP);
               }
             }}
             data-testid="race-control-ap"
           >
-            {race.signal === "AP" ? t("buttons.apIsUp") : t("buttons.ap")}
+            {race.signal === RaceSignal.AP ? t("buttons.apIsUp") : t("buttons.ap")}
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -739,8 +758,8 @@ function RaceCard({
     );
   }
 
-  if (race.status === "running") {
-    const overEarly = race.signal === "X" ? (OVER_EARLY_CODE[race.preparatory ?? "P"] ?? "OCS") : null;
+  if (race.status === RaceStatus.running) {
+    const overEarly = race.signal === RaceSignal.X ? OVER_EARLY_CODE[race.preparatory ?? PreparatoryFlag.P] : null;
     const canFinish = order.complete && order.duplicateBoats.size === 0 && !busy;
     return (
       <Stack gap={4}>
@@ -781,10 +800,10 @@ function RaceCard({
                 <select
                   aria-label={t("codeLabel", { boat: color.name })}
                   className="min-h-11 flex-1 rounded-md border border-slate-300 px-2"
-                  value={row.code === "FINISHED" ? "" : row.code}
+                  value={row.code === ResultCode.FINISHED ? "" : row.code}
                   onChange={(e) =>
                     order.setField(boat.number, {
-                      code: e.target.value || "FINISHED",
+                      code: parseResultCode(e.target.value) ?? ResultCode.FINISHED,
                       finish_position: null,
                     })
                   }
@@ -819,24 +838,24 @@ function RaceCard({
             className={BIG_WARN}
             disabled={busy}
             onClick={() => {
-              if (race.signal !== "X") {
+              if (race.signal !== RaceSignal.X) {
                 unlockHorn();
                 hornSounds("long", 2); // X up: two long sounds
               }
-              setSignal(race.signal === "X" ? null : "X");
+              setSignal(race.signal === RaceSignal.X ? null : RaceSignal.X);
             }}
             data-testid="race-control-x"
           >
-            {race.signal === "X" ? t("buttons.xDown") : t("buttons.x")}
+            {race.signal === RaceSignal.X ? t("buttons.xDown") : t("buttons.x")}
           </button>
           <button
             type="button"
             className={BIG_SECONDARY}
             disabled={busy}
-            onClick={() => setSignal(race.signal === "S" ? null : "S")}
+            onClick={() => setSignal(race.signal === RaceSignal.S ? null : RaceSignal.S)}
             data-testid="race-control-s"
           >
-            {race.signal === "S" ? t("buttons.shortenDown") : t("buttons.shorten")}
+            {race.signal === RaceSignal.S ? t("buttons.shortenDown") : t("buttons.shorten")}
           </button>
           <button
             type="button"
@@ -895,7 +914,7 @@ function RaceCard({
   const complete = race.entries.every((entry) =>
     resultComplete({
       boat_number: entry.boat_number,
-      code: entry.code ?? "FINISHED",
+      code: entry.code ?? ResultCode.FINISHED,
       finish_position: entry.finish_position ?? null,
       redress_points: entry.redress_points ?? null,
       redress_mode: "fixed",
@@ -905,7 +924,7 @@ function RaceCard({
     <Stack gap={4}>
       {statusLine}
       <FinishOrderPad race={race} boats={boats} order={order} disabled testIdPrefix="race-control" />
-      {race.status === "finished" && !complete && (
+      {race.status === RaceStatus.finished && !complete && (
         <p className="text-sm text-slate-500">{t("duplicateWarning")}</p>
       )}
       <Link

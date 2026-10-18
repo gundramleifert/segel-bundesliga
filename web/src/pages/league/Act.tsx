@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 
 import { getGetEventQueryKey, useGetEvent, useListLeagues } from "../../api/generated/sbl";
-import type { EventSummary, League } from "../../api/types";
+import { EventStatus, type EventSummary, type League } from "../../api/types";
 import { useAsync, useEventAccess } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
@@ -218,7 +218,7 @@ function Results({ event }: { event: EventSummary }) {
             <span data-testid="matchday-races-count">{t("racesCount", { scored: data.races_scored, total: data.races_total })}</span>
             {/* The status from the event's own query, which the stream refreshes — the
                 act's list from the league's year is a snapshot of when the page opened. */}
-            {data.event.status === "live" && <LiveBadge state={live} testId="matchday-live-badge" />}
+            {data.event.status === EventStatus.live && <LiveBadge state={live} testId="matchday-live-badge" />}
           </p>
           <DailyStandings standings={data.standings} event={data.event} />
         </>
@@ -254,7 +254,7 @@ function useEventLive(event: EventSummary) {
 /** The live map while racing, a replay afterwards — or the live view the event names. */
 function LiveTab({ event }: { event: EventSummary }) {
   const { t } = useTranslation("site");
-  const title = event.status === "live" ? t("live.now") : event.status === "final" ? t("live.replay") : t("live.from", { dates: eventDates(event) });
+  const title = event.status === EventStatus.live ? t("live.now") : event.status === EventStatus.final ? t("live.replay") : t("live.from", { dates: eventDates(event) });
   const button = "mt-5 inline-block rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950";
   return (
     <Card className="p-8 text-center" testId="site-live">

@@ -73,7 +73,7 @@ class ApplicationEventOut(BaseModel):
 
 class ApplicationOut(BaseModel):
     team_id: int
-    status: str
+    status: TeamStatus
     decision_note: str | None = None
     club: ClubOut
     # Exactly one is set: the competition in question.
@@ -182,7 +182,7 @@ async def withdraw_application(
 async def list_pending_applications(
     series_id: int | None = None,
     event_id: int | None = None,
-    status_filter: str = "requested",
+    status_filter: TeamStatus = TeamStatus.REQUESTED,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> list[ApplicationOut]:

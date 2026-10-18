@@ -7,6 +7,7 @@ import {
   useGetSeriesTable,
   useListSeries,
 } from "../api/generated/sbl";
+import { EventStatus } from "../api/types";
 import { useAsync } from "../api/useApi";
 import { useLive } from "../api/useLive";
 import {
@@ -50,8 +51,8 @@ export function Standings() {
   // Story B-5: live is an event, never a series. The table changes because one of its
   // events does, so this page listens on the running event — or, with none running, on
   // the next planned one, so it hears the start — and refetches its own table.
-  const runningEvent = data?.events.find((event) => event.status === "live");
-  const liveTopicEvent = runningEvent ?? data?.events.find((event) => event.status === "planned");
+  const runningEvent = data?.events.find((event) => event.status === EventStatus.live);
+  const liveTopicEvent = runningEvent ?? data?.events.find((event) => event.status === EventStatus.planned);
   const live = useLive(
     liveTopicEvent ? `event:${liveTopicEvent.id}` : null,
     seriesId !== null ? [getGetSeriesTableQueryKey(seriesId)] : [],

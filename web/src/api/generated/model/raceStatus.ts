@@ -6,13 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type StartSequencePreparatory = typeof StartSequencePreparatory[keyof typeof StartSequencePreparatory];
+export type RaceStatus = typeof RaceStatus[keyof typeof RaceStatus];
 
 
-export const StartSequencePreparatory = {
-  P: 'P',
-  I: 'I',
-  Z: 'Z',
-  U: 'U',
-  BLACK: 'BLACK',
+export const RaceStatus = {
+  scheduled: 'scheduled',
+  running: 'running',
+  finished: 'finished',
+  abandoned: 'abandoned',
 } as const;

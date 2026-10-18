@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ObjectType } from './objectType';
+import type { Relation } from './relation';
 
 /**
  * One relation tuple in FGA's notation — ``user`` · ``relation`` · ``object`` — plus
@@ -17,7 +18,7 @@ export interface TupleOut {
   /** The account's email — the user identifier of the tuple */
   user: string;
   user_name: string;
-  relation: string;
+  relation: Relation;
   /** "site", or "<type>:<id>" such as "event:3" */
   object: string;
   object_type: ObjectType;

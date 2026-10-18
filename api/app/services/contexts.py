@@ -43,8 +43,7 @@ from app.models.org import TeamStatus
 from app.problems import Problem
 from app.services import expenses
 from app.services.waivers import (
-    STATUS_CLEARED,
-    STATUS_NOT_REQUIRED,
+    WaiverStatus,
     current_waiver_text,
     event_waiver_status,
     sailor_waivers,
@@ -230,7 +229,7 @@ async def _waivers(session: AsyncSession, sailor: Sailor, required: WaiverText |
     """Where the signature is given — the series, or an event in no series (S-1). The
     series' events I sail in ask for it too (`_series_waiver_on_events`)."""
     for competition, judged in await sailor_waivers(session, sailor, required):
-        if judged.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED):
+        if judged.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED):
             at(competition.scope, competition.scope_id).need("waiver")
 
 
@@ -374,7 +373,10 @@ async def _organizer(
         by_event.setdefault((event.id, club_id), (event, []))[1].append(sailor_id)
     for (_, club_id), (event, sailor_ids) in by_event.items():
         judged = await event_waiver_status(session, event, sailor_ids, required)
-        if any(j.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED) for j in judged.values()):
+        if any(
+            j.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED)
+            for j in judged.values()
+        ):
             contexts[("club", club_id)].need("crew_waiver_missing")
 
 
@@ -390,7 +392,7 @@ async def _ward_waivers(session: AsyncSession, user: User, required: WaiverText 
     for ward in wards:
         for _, judged in await sailor_waivers(session, ward, required):
             if (
-                judged.status not in (STATUS_CLEARED, STATUS_NOT_REQUIRED)
+                judged.status not in (WaiverStatus.CLEARED, WaiverStatus.NOT_REQUIRED)
                 and judged.minor is not False
             ):
                 count += 1

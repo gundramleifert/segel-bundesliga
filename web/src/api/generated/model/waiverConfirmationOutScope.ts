@@ -6,13 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type RaceStartInPreparatory = typeof RaceStartInPreparatory[keyof typeof RaceStartInPreparatory];
+export type WaiverConfirmationOutScope = typeof WaiverConfirmationOutScope[keyof typeof WaiverConfirmationOutScope];
 
 
-export const RaceStartInPreparatory = {
-  P: 'P',
-  I: 'I',
-  Z: 'Z',
-  U: 'U',
-  BLACK: 'BLACK',
+export const WaiverConfirmationOutScope = {
+  series: 'series',
+  event: 'event',
 } as const;

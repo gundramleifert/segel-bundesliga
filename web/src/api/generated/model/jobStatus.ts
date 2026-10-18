@@ -6,14 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type MarkInRole = typeof MarkInRole[keyof typeof MarkInRole];
+export type JobStatus = typeof JobStatus[keyof typeof JobStatus];
 
 
-export const MarkInRole = {
-  committee_boat: 'committee_boat',
-  start_pin: 'start_pin',
-  windward: 'windward',
-  gate_left: 'gate_left',
-  gate_right: 'gate_right',
-  finish_pin: 'finish_pin',
+export const JobStatus = {
+  running: 'running',
+  done: 'done',
+  failed: 'failed',
+  cancelled: 'cancelled',
 } as const;

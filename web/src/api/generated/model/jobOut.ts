@@ -6,11 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { JobOutQuality } from './jobOutQuality';
+import type { JobStatus } from './jobStatus';
 
 export interface JobOut {
   id: string;
   kind: string;
-  status: string;
+  status: JobStatus;
   progress: number;
   message: string;
   error?: string | null;

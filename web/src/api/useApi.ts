@@ -6,7 +6,7 @@ import i18n from "../i18n";
 import { getGetEventAccessQueryKey, useGetEventAccess, useMe } from "./generated/sbl";
 import { ApiError } from "./http";
 import { getToken, onTokenChange } from "./session";
-import type { Account, EventAccess } from "./types";
+import { Role, type Account, type EventAccess } from "./types";
 
 export interface AsyncState<T> {
   data: T | null;
@@ -153,7 +153,7 @@ export function useToken(): string | null {
 export interface AccountState {
   account: Account | null;
   loading: boolean;
-  hasRole: (...roles: string[]) => boolean;
+  hasRole: (...roles: Role[]) => boolean;
 }
 
 /** The own account, including roles. Without a token, it's not even requested. */
@@ -206,7 +206,13 @@ export function useEventAccess(eventId: number): EventAccess & { loading: boolea
  * One list, read by the frame's account menu (whether to offer the link) and by the
  * administration's own guard (whether to let someone in): two copies would drift, and a
  * link that ends in a 403 is worse than no link. */
-const ADMIN_ROLES = ["admin", "editor", "series_manager", "event_manager", "jury"];
+const ADMIN_ROLES: readonly Role[] = [
+  Role.admin,
+  Role.editor,
+  Role.series_manager,
+  Role.event_manager,
+  Role.jury,
+];
 
 /** Whether this account may open the administration at all. */
 export function mayOpenAdmin(account: Account | null): boolean {

@@ -1,19 +1,20 @@
 import { useState } from "react";
 
+import { CrewRole } from "../api/types";
+
 /** The roles a person holds in a squad (Story V-1) or a matchday's crew (Story V-2). */
-export const ROSTER_ROLES = ["helm", "crew", "substitute"] as const;
-export type RosterRole = (typeof ROSTER_ROLES)[number];
+export const ROSTER_ROLES: readonly CrewRole[] = Object.values(CrewRole);
+export type RosterRole = CrewRole;
 
 /** Helm first, then crew, then substitutes — the order both lists are shown in. */
-const ORDER: Record<RosterRole, number> = { helm: 0, crew: 1, substitute: 2 };
+const ORDER: Record<RosterRole, number> = {
+  [CrewRole.helm]: 0,
+  [CrewRole.crew]: 1,
+  [CrewRole.substitute]: 2,
+};
 
 /** One person on the list, as the endpoints take it. */
 export type RosterEntry = { sailor_id: number; role: RosterRole };
-
-/** A role as the server sent it, read as one of ours — anything unknown counts as crew. */
-export function asRosterRole(value: string): RosterRole {
-  return (ROSTER_ROLES as readonly string[]).includes(value) ? (value as RosterRole) : "crew";
-}
 
 /** The edited copy of a saved roster — the right pane of `SquadPanel` and `LineupPanel`
  *  until Save.
@@ -26,13 +27,13 @@ export function asRosterRole(value: string): RosterRole {
  *
  * `draft` is `null` exactly while `saved` is: nothing to edit yet.
  */
-export function useRosterDraft(saved: readonly { id: number; role: string }[] | null) {
+export function useRosterDraft(saved: readonly { id: number; role: RosterRole }[] | null) {
   const [edit, setEdit] = useState<{ on: typeof saved; entries: RosterEntry[] } | null>(null);
   const draft: RosterEntry[] | null = !saved
     ? null
     : edit && edit.on === saved
       ? edit.entries
-      : saved.map((m) => ({ sailor_id: m.id, role: asRosterRole(m.role) }));
+      : saved.map((m) => ({ sailor_id: m.id, role: m.role }));
 
   const change = (entries: RosterEntry[]) => setEdit({ on: saved, entries });
   const current = draft ?? [];
@@ -44,7 +45,7 @@ export function useRosterDraft(saved: readonly { id: number; role: string }[] | 
       saved !== null &&
       (current.length !== saved.length ||
         current.some((d) => saved.find((m) => m.id === d.sailor_id)?.role !== d.role)),
-    roleOf: (id: number): RosterRole => current.find((d) => d.sailor_id === id)?.role ?? "crew",
+    roleOf: (id: number): RosterRole => current.find((d) => d.sailor_id === id)?.role ?? CrewRole.crew,
     /** The draft's people in display order, helm first. */
     ordered: () => [...current].sort((a, b) => ORDER[a.role] - ORDER[b.role]),
     add: (sailorId: number, role: RosterRole) => change([...current, { sailor_id: sailorId, role }]),

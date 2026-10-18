@@ -2,8 +2,6 @@ import { Button } from "@heroui/react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DocumentKind } from "../../api/generated/model/documentKind";
-import { ExpenseKind } from "../../api/generated/model/expenseKind";
 import {
   getGetDocumentFileUrl,
   useAddClaimItem,
@@ -23,7 +21,15 @@ import {
   useUploadMyDocument,
   useWithdrawClaim,
 } from "../../api/generated/sbl";
-import type { BankAccount, Claim, ClaimTarget, PersonalDocument } from "../../api/types";
+import {
+  ClaimStatus,
+  DocumentKind,
+  ExpenseKind,
+  type BankAccount,
+  type Claim,
+  type ClaimTarget,
+  type PersonalDocument,
+} from "../../api/types";
 import { useAsync, useInvalidate } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../../components/ClaimParts";
@@ -499,7 +505,7 @@ function ClaimCard({ claim, open, onToggle }: { claim: Claim; open: boolean; onT
           {open ? t("claims.close") : t("claims.open")}
         </Button>
       </div>
-      {claim.decision_note && (claim.status === "returned" || claim.status === "rejected") && (
+      {claim.decision_note && (claim.status === ClaimStatus.returned || claim.status === ClaimStatus.rejected) && (
         <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid={`my-space-claim-note-${claim.id}`}>
           {t("claims.decisionNote", { note: claim.decision_note })}
         </p>
@@ -575,7 +581,7 @@ function ClaimDetail({ claim }: { claim: Claim }) {
             {t("claims.submit")}
           </Button>
         )}
-        {withdrawable && claim.status !== "draft" && (
+        {withdrawable && claim.status !== ClaimStatus.draft && (
           <Button
             variant="outline"
             isDisabled={withdraw.isPending}
@@ -585,7 +591,7 @@ function ClaimDetail({ claim }: { claim: Claim }) {
             {t("claims.withdraw")}
           </Button>
         )}
-        {claim.status === "draft" && (
+        {claim.status === ClaimStatus.draft && (
           <Button
             variant="danger"
             isDisabled={remove.isPending}

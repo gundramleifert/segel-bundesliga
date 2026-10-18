@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PairingRowTeamsByBoat } from './pairingRowTeamsByBoat';
+import type { RaceStatus } from './raceStatus';
 
 /**
  * A race in the pairing list: which team on which boat.
@@ -14,6 +15,6 @@ export interface PairingRow {
   sequence: number;
   flight: number;
   race_in_flight: number;
-  status: string;
+  status: RaceStatus;
   teams_by_boat: PairingRowTeamsByBoat;
 }

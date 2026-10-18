@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import NamedTuple
 
@@ -27,6 +28,7 @@ from app.models import (
     TeamMembership,
     TeamStatus,
     WaiverConfirmation,
+    WaiverMethod,
     WaiverText,
 )
 from app.services import uploads
@@ -81,24 +83,27 @@ async def current_waiver_text(session: AsyncSession) -> WaiverText | None:
 # ---------------------------------------------------------------- Coverage
 
 
-# Why a sailor is not cleared — a stable token the UI can translate and style.
-STATUS_CLEARED = "cleared"
-STATUS_NOT_REQUIRED = "not_required"
-STATUS_MISSING = "missing"
-STATUS_OUTDATED = "version_outdated"
-STATUS_GUARDIAN_UNSIGNED = "guardian_signature_missing"
-STATUS_BIRTH_DATE_UNKNOWN = "birth_date_unknown"
+class WaiverStatus(StrEnum):
+    """Where a sailor stands with the waiver — and, when not cleared, why: a stable token
+    the UI can translate and style."""
+
+    CLEARED = "cleared"
+    NOT_REQUIRED = "not_required"
+    MISSING = "missing"
+    OUTDATED = "version_outdated"
+    GUARDIAN_UNSIGNED = "guardian_signature_missing"
+    BIRTH_DATE_UNKNOWN = "birth_date_unknown"
 
 
 @dataclass
 class SailorWaiver:
     sailor_id: int
-    status: str
+    status: WaiverStatus
     required_version: int | None
     minor: bool | None
     confirmed_version: int | None = None
     confirmed_at: datetime | None = None
-    method: str | None = None
+    method: WaiverMethod | None = None
     # The row the status was read from — what a scan upload completes, and what the
     # scan endpoint is addressed by. ``None`` when nothing was ever confirmed.
     confirmation_id: int | None = None
@@ -114,7 +119,7 @@ def _judge(
     confirmations: list[WaiverConfirmation],
 ) -> SailorWaiver:
     if required is None:
-        return SailorWaiver(sailor_id, STATUS_NOT_REQUIRED, None, minor)
+        return SailorWaiver(sailor_id, WaiverStatus.NOT_REQUIRED, None, minor)
 
     base = dict(sailor_id=sailor_id, required_version=required.version, minor=minor)
 
@@ -127,7 +132,7 @@ def _judge(
         if latest is not None:
             return SailorWaiver(
                 **base,
-                status=STATUS_OUTDATED,
+                status=WaiverStatus.OUTDATED,
                 confirmed_version=latest.waiver_text.version,
                 confirmed_at=latest.confirmed_at,
                 method=latest.method,
@@ -135,7 +140,7 @@ def _judge(
                 guardian_name=latest.guardian_name,
                 scan_available=has_scan(latest.guardian_signature_ref),
             )
-        return SailorWaiver(**base, status=STATUS_MISSING)
+        return SailorWaiver(**base, status=WaiverStatus.MISSING)
 
     chosen = max(for_current, key=lambda c: c.confirmed_at)
     seen = dict(
@@ -148,10 +153,10 @@ def _judge(
     )
 
     if minor is None:
-        return SailorWaiver(**base, **seen, status=STATUS_BIRTH_DATE_UNKNOWN)
+        return SailorWaiver(**base, **seen, status=WaiverStatus.BIRTH_DATE_UNKNOWN)
     if minor and not any(c.is_guardian_signed for c in for_current):
-        return SailorWaiver(**base, **seen, status=STATUS_GUARDIAN_UNSIGNED)
-    return SailorWaiver(**base, **seen, status=STATUS_CLEARED)
+        return SailorWaiver(**base, **seen, status=WaiverStatus.GUARDIAN_UNSIGNED)
+    return SailorWaiver(**base, **seen, status=WaiverStatus.CLEARED)
 
 
 class _Unread:
