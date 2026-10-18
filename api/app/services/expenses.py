@@ -24,7 +24,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import authz
 from app.authz import ObjectRef
 from app.models import (
-    AuditLog,
     BankAccount,
     ClaimStatus,
     Club,
@@ -39,6 +38,7 @@ from app.models import (
 )
 from app.models.auth import SCHEMA, ObjectType, Relation, User
 from app.problems import Problem
+from app.services.audit import EntityType, audit
 
 #: The site's default, for a club that has set none — and the fallback for every key a
 #: club's policy leaves out or gets wrong (``Club.expense_policy``).
@@ -553,12 +553,5 @@ def pay(
 def _audit(
     session: AsyncSession, claim: ExpenseClaim, action: str, user: User, **payload: Any
 ) -> None:
-    session.add(
-        AuditLog(
-            entity_type="expense_claim",
-            entity_id=claim.id,
-            action=action,
-            actor=user.email,
-            payload={k: v for k, v in payload.items() if v is not None},
-        )
-    )
+    present = {k: v for k, v in payload.items() if v is not None}
+    audit(session, EntityType.EXPENSE_CLAIM, claim.id, action, user, **present)

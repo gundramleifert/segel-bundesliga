@@ -19,6 +19,8 @@ from datetime import UTC, datetime, timedelta
 from app.db import SessionLocal
 from app.models import Race
 from app.tracking.emulate_job import emulate_event
+from app.tracking.service import position_publisher
+from app.tracking.settings import tracking_settings
 from tests.stories.test_create_event import admin, event_with_participants
 from tests.stories.test_event_lifecycle import draw
 from tests.stories.test_live_updates import stream_until
@@ -143,11 +145,11 @@ class TestTheLivePicture:
         trackers = await trackers_of(client, headers, event_id)
         token = trackers[2]["device_token"]
 
-        sent = await stream_until(
-            client,
-            f"event:{event_id}",
-            lambda: client.post("/api/track/fixes", json=batch(token, at=datetime.now(UTC))),
-        )
+        async def post_and_publish():
+            await client.post("/api/track/fixes", json=batch(token, at=datetime.now(UTC)))
+            await position_publisher.drain()
+
+        sent = await stream_until(client, f"event:{event_id}", post_and_publish)
         assert "event: positions" in sent
         assert f'"event_id":{event_id}' in sent
         assert '"boat_number":3' in sent
@@ -161,6 +163,31 @@ class TestTheLivePicture:
         assert abs(boat["sog_kn"] - 3.0 / (1852 / 3600)) < 0.01
         assert boat["cog"] == 20.0
         assert len(boat["trail"]) == 3
+
+    async def test_a_burst_of_batches_is_one_snapshot_now_and_one_after_the_interval(
+        self, client, caplog, monkeypatch
+    ):
+        """L-1: seven phones posting at once cost two snapshots, not seven — the first
+        batch goes out at once, the rest are folded into one when the interval is up."""
+        monkeypatch.setattr(tracking_settings, "publish_interval_s", 0.5)
+        headers = await admin(client, caplog, "tr8@example.com")
+        event_id = await live_event(client, headers, "Burst Cup", "2027-11-27")
+        trackers = await trackers_of(client, headers, event_id)
+
+        async def every_boat_posts():
+            at = datetime.now(UTC)
+            for tracker in trackers:
+                response = await client.post(
+                    "/api/track/fixes", json=batch(tracker["device_token"], at=at)
+                )
+                assert response.status_code == 200, response.text
+            await position_publisher.drain()
+
+        sent = await stream_until(client, f"event:{event_id}", every_boat_posts)
+        frames = sent.split("event: positions")[1:]
+        assert 1 < len(frames) < len(trackers)
+        # The trailing snapshot carries every boat that posted, the last one included.
+        assert all(f'"boat_number":{n}' in frames[-1] for n in range(1, 7))
 
     async def test_an_unpublished_event_has_no_live_picture(self, client, caplog):
         """A draft's boats are as private as the draft: its live picture answers 404."""

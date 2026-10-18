@@ -112,9 +112,9 @@ async def post_fixes(
         raise Problem(401, "tracker-unknown", "No active tracker carries this token.") from exc
     await session.commit()
     if stored:
-        event = await session.get(Event, tracker.event_id)
-        assert event is not None
-        await service.publish_positions(session, event)
+        # After the commit, and coalesced: one snapshot per event per interval, however
+        # many boats posted in it (Story L-1).
+        service.position_publisher.request(tracker.event_id)
     return FixBatchOut(stored=stored, duplicates=duplicates)
 
 

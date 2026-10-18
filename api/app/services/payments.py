@@ -26,7 +26,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
 from app.models import (
-    AuditLog,
     ClaimStatus,
     ClubBankAccount,
     ExpenseClaim,
@@ -38,6 +37,7 @@ from app.models import (
 )
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
+from app.services.audit import EntityType, audit
 from app.services.expenses import may_pay_for, own_claim
 
 #: The format German banks take since the SEPA 2025 changes (DK data format 3.7+).
@@ -192,10 +192,10 @@ async def create_run(
             payment.allocations.append(
                 PaymentAllocation(claim=claim, amount_cents=claim.open_cents)
             )
-            _audit(session, "expense_claim", claim.id, "issued", user)
+            audit(session, EntityType.EXPENSE_CLAIM, claim.id, "issued", user)
         run.payments.append(payment)
     await session.flush()
-    _audit(session, "payment_run", run.id, "created", user, claims=len(chosen))
+    audit(session, EntityType.PAYMENT_RUN, run.id, "created", user, claims=len(chosen))
     return run
 
 
@@ -293,7 +293,7 @@ def settle_run(session: AsyncSession, user: User, run: PaymentRun, on: date | No
         if payment.status == PaymentStatus.ISSUED:
             payment.status = PaymentStatus.SETTLED
             payment.settled_on = day
-    _audit(session, "payment_run", run.id, "settled", user)
+    audit(session, EntityType.PAYMENT_RUN, run.id, "settled", user)
 
 
 def fail_payment(session: AsyncSession, user: User, payment: Payment, reason: str) -> None:
@@ -309,7 +309,7 @@ def fail_payment(session: AsyncSession, user: User, payment: Payment, reason: st
         )
     payment.status = PaymentStatus.FAILED
     payment.failure_reason = reason
-    _audit(session, "payment", payment.id, "failed", user, reason=reason)
+    audit(session, EntityType.PAYMENT, payment.id, "failed", user, reason=reason)
 
 
 # ---------------------------------------------------------------------- spreadsheets
@@ -421,14 +421,3 @@ def _bic(iban: str | None) -> str | None:
 
 def _day(moment: datetime | None) -> date | None:
     return moment.date() if moment is not None else None
-
-
-def _audit(
-    session: AsyncSession, entity: str, entity_id: int, action: str, user: User, **payload
-) -> None:
-    session.add(
-        AuditLog(
-            entity_type=entity, entity_id=entity_id, action=action, actor=user.email,
-            payload=payload,
-        )
-    )  # fmt: skip

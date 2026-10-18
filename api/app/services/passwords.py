@@ -31,8 +31,8 @@ from argon2.exceptions import InvalidHashError, VerificationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import AuditLog
 from app.models.auth import Identity, IdentityProvider, PasswordCredential, User
+from app.services.audit import EntityType, audit
 
 MIN_LENGTH = 12
 MAX_LENGTH = 128
@@ -110,17 +110,6 @@ async def credential_of(session: AsyncSession, user_id: int) -> PasswordCredenti
     ).scalar_one_or_none()
 
 
-def _audit(user: User, action: str, actor: User | None = None) -> AuditLog:
-    """Who did what to whose password — never the password, never the hash."""
-    return AuditLog(
-        entity_type="user",
-        entity_id=user.id,
-        action=action,
-        actor=(actor or user).email,
-        payload={},
-    )
-
-
 async def _check(session: AsyncSession, user: User, row: PasswordCredential, password: str) -> bool:
     """Verify against one account's credential, counting a failure and locking on every
     fifth. While locked, even the right password fails — and still pays for a verify."""
@@ -132,7 +121,7 @@ async def _check(session: AsyncSession, user: User, row: PasswordCredential, pas
             if row.failed_attempts % FAILURES_PER_LOCK == 0:
                 step = min(row.failed_attempts // FAILURES_PER_LOCK, len(LOCK_STEPS)) - 1
                 row.locked_until = now + LOCK_STEPS[step]
-                session.add(_audit(user, "password_locked"))
+                audit(session, EntityType.USER, user.id, "password_locked", user)
         return False
     clear_failures(row)
     if _hasher.check_needs_rehash(row.hash):
@@ -177,13 +166,13 @@ async def set_password(
             user.identities.append(
                 Identity(user_id=user.id, provider=IdentityProvider.PASSWORD, subject=user.email)
             )
-        session.add(_audit(user, "password_set"))
+        audit(session, EntityType.USER, user.id, "password_set", user)
         return
     if current_password is None or not await _check(session, user, row, current_password):
         raise CurrentPasswordWrong
     row.hash = await _hash(new_password)
     row.changed_at = now
-    session.add(_audit(user, "password_changed"))
+    audit(session, EntityType.USER, user.id, "password_changed", user)
 
 
 async def remove_password(session: AsyncSession, user: User, actor: User | None = None) -> bool:
@@ -196,5 +185,7 @@ async def remove_password(session: AsyncSession, user: User, actor: User | None 
     await session.delete(row)
     for identity in [i for i in user.identities if i.provider == IdentityProvider.PASSWORD]:
         user.identities.remove(identity)
-    session.add(_audit(user, "password_cleared" if actor else "password_removed", actor))
+    # Who did what to whose password — never the password, never the hash.
+    action = "password_cleared" if actor else "password_removed"
+    audit(session, EntityType.USER, user.id, action, actor or user)
     return True

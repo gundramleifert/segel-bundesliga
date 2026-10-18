@@ -14,7 +14,7 @@ from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
 from app.jobs import Job, JobStatus, jobs
 from app.live import event_topic, hub
-from app.models import AuditLog, Event
+from app.models import Event
 from app.models.auth import User
 from app.models.org import Team
 from app.models.racing import (
@@ -62,6 +62,7 @@ from app.services import (
     require_editable_configuration,
     require_ready,
 )
+from app.services.audit import EntityType, audit
 from app.services.pairing_service import (
     PairingDraft,
     PairingPublishError,
@@ -768,25 +769,22 @@ async def put_race_result(
         # entry still wins (this is a rocking-boat matchday, not a place for a hard
         # conflict error), but per WL-2 ("the overridden status is not lost but logged")
         # the state about to be discarded is recorded first, not silently dropped.
-        session.add(
-            AuditLog(
-                entity_type="race",
-                entity_id=race.id,
-                action="result_overwrite",
-                actor=acting.email,
-                payload={
-                    "submitted_on_version": request.version,
-                    "actual_version": original_version,
-                    "discarded_entries": {
-                        str(boat_number): {
-                            "code": entry_by_boat[boat_number].code,
-                            "finish_position": entry_by_boat[boat_number].finish_position,
-                            "redress_points": entry_by_boat[boat_number].redress_points,
-                        }
-                        for boat_number in updates
-                    },
-                },
-            )
+        audit(
+            session,
+            EntityType.RACE,
+            race.id,
+            "result_overwrite",
+            acting,
+            submitted_on_version=request.version,
+            actual_version=original_version,
+            discarded_entries={
+                str(boat_number): {
+                    "code": entry_by_boat[boat_number].code,
+                    "finish_position": entry_by_boat[boat_number].finish_position,
+                    "redress_points": entry_by_boat[boat_number].redress_points,
+                }
+                for boat_number in updates
+            },
         )
 
     for boat_number, (code, position, redress_points) in updates.items():
@@ -845,17 +843,14 @@ async def put_team_penalty(
         )
     note = (request.note or "").strip() or None
     points = request.points
-    session.add(
-        AuditLog(
-            entity_type="team",
-            entity_id=team.id,
-            action="penalty",
-            actor=acting.email,
-            payload={
-                "before": {"points": team.penalty_points, "note": team.penalty_note},
-                "after": {"points": points, "note": note if points is not None else None},
-            },
-        )
+    audit(
+        session,
+        EntityType.TEAM,
+        team.id,
+        "penalty",
+        acting,
+        before={"points": team.penalty_points, "note": team.penalty_note},
+        after={"points": points, "note": note if points is not None else None},
     )
     team.penalty_points = points
     team.penalty_note = note if points is not None else None

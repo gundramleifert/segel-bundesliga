@@ -28,6 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import AuditLog, Boat, Event, Flight, Race, RaceEntry, RaceStatus
 from app.pairing.catalog import CatalogError, cached_entry, catalog_entries
 from app.problems import Problem
+from app.services.audit import EntityType
 from app.services.participation import event_entries
 
 # The one reason that only binds the catalog path — see `require_ready(ignore=...)`.
@@ -197,7 +198,7 @@ async def configuration_frozen(session: AsyncSession, event_id: int) -> FrozenCo
         (
             await session.execute(
                 select(func.count(AuditLog.id)).where(
-                    AuditLog.entity_type == "race",
+                    AuditLog.entity_type == EntityType.RACE,
                     AuditLog.action == RACE_STARTED_ACTION,
                     AuditLog.entity_id.in_(
                         select(Race.id)

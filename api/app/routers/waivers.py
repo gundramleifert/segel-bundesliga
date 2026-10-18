@@ -30,7 +30,6 @@ from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale
 from app.models import (
-    AuditLog,
     Club,
     Event,
     EventStatus,
@@ -46,6 +45,7 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
+from app.services.audit import EntityType, audit
 from app.services.contexts import require_linked_sailor
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
@@ -522,14 +522,13 @@ async def get_waiver_scan(
         )
     path = scan_path(row.guardian_signature_ref)
     assert path is not None and row.guardian_signature_ref is not None
-    session.add(
-        AuditLog(
-            entity_type="waiver_scan",
-            entity_id=row.id,
-            action="viewed",
-            actor=acting.email,
-            payload={"sailor_id": sailor.id},
-        )
+    audit(
+        session,
+        EntityType.WAIVER_SCAN,
+        row.id,
+        "viewed",
+        acting,
+        sailor_id=sailor.id,
     )
     await session.commit()
     return FileResponse(
@@ -931,20 +930,17 @@ async def _attach_scan(
         if name is not None:
             row.guardian_name = name
     await session.flush()
-    session.add(
-        AuditLog(
-            entity_type="waiver_scan",
-            entity_id=row.id,
-            action=action,
-            actor=acting.email,
-            payload={
-                "sailor_id": sailor.id,
-                "scope": scope,
-                "scope_id": scope_id,
-                "media_type": media_type,
-                "bytes": len(raw),
-            },
-        )
+    audit(
+        session,
+        EntityType.WAIVER_SCAN,
+        row.id,
+        action,
+        acting,
+        sailor_id=sailor.id,
+        scope=scope,
+        scope_id=scope_id,
+        media_type=media_type,
+        bytes=len(raw),
     )
     await session.commit()
     return _out(row, scope, scope_id, required.version, cleared=True)

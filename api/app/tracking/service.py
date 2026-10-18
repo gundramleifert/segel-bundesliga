@@ -15,7 +15,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.live import event_topic, hub
+from app.db import SessionLocal
+from app.live import Coalescer, event_topic, hub
 from app.models import (
     Boat,
     Course,
@@ -532,3 +533,16 @@ async def publish_positions(session: AsyncSession, event: Event) -> LiveRaceOut:
     snapshot = await live_snapshot(session, event)
     hub.send(event_topic(event.id), "positions", snapshot.model_dump(mode="json"))
     return snapshot
+
+
+async def _publish_event(event_id: int) -> None:
+    async with SessionLocal() as session:
+        event = await session.get(Event, event_id)
+        if event is not None:
+            await publish_positions(session, event)
+
+
+#: Ingest asks this, not :func:`publish_positions`: with a phone per boat posting every few
+#: seconds, a snapshot per batch recomputed every passing seven times per interval. Its own
+#: session, because it runs after the request that asked has answered.
+position_publisher = Coalescer(_publish_event, lambda: tracking_settings.publish_interval_s)

@@ -30,10 +30,11 @@ from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import AuditLog, Club, Event, Series, Team, TeamStatus
+from app.models import Club, Event, Series, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import ParticipationError, has_results, new_event_entry
+from app.services.audit import EntityType, audit
 
 router = APIRouter(tags=["applications"])
 
@@ -457,14 +458,14 @@ async def _decide(
     team.decided_at = datetime.now(UTC)
 
     # Who decided what and when must be auditable.
-    session.add(
-        AuditLog(
-            entity_type="team",
-            entity_id=team.id,
-            action="decide_participation",
-            actor=acting.email,
-            payload={"from": previous_status, "to": new_status, "note": note},
-        )
+    audit(
+        session,
+        EntityType.TEAM,
+        team.id,
+        "decide_participation",
+        acting,
+        # "from" is a Python keyword, so this payload stays a mapping.
+        **{"from": previous_status, "to": new_status, "note": note},
     )
     await session.commit()
     return await _with_relations(session, team.id, locale)
