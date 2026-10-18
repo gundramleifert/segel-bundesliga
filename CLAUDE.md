@@ -255,7 +255,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
   takes the event out of `SCORED_STATES` — so a called-off day costs nobody the
   "participants + 1" that missing an event would. Both undo via `reopen` (`final` → `live`,
   `cancelled` → `planned`). Closing freezes nothing: a protest heard weeks later still has
-  to land on a `final` event.
+  to land on a `final` event. The status changes **only** through these transitions
+  (`app/services/event_state.py`) — `PATCH` does not carry it.
+- **An event's tools are gated on what the model answers for that event**
+  (`GET /api/events/{id}/access`, Story WL-3), never on `hasRole`: a summary role says
+  someone is a race officer *somewhere*, not here.
 - **The printed pairing list is the Java tool's job, and its settings belong to the Event.**
   `api/app/pairing/pdf.py` calls `PdfExport` in `reference/PairingList` — the layout lives
   there and is not reimplemented here. What varies per event is stored in
