@@ -13,8 +13,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
+from typing import NamedTuple
 
-from sqlalchemy import select
+from sqlalchemy import ColumnElement, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -132,7 +133,7 @@ def _judge(
                 method=latest.method,
                 confirmation_id=latest.id,
                 guardian_name=latest.guardian_name,
-                scan_available=scan_path(latest.guardian_signature_ref) is not None,
+                scan_available=has_scan(latest.guardian_signature_ref),
             )
         return SailorWaiver(**base, status=STATUS_MISSING)
 
@@ -143,7 +144,7 @@ def _judge(
         method=chosen.method,
         confirmation_id=chosen.id,
         guardian_name=chosen.guardian_name,
-        scan_available=scan_path(chosen.guardian_signature_ref) is not None,
+        scan_available=has_scan(chosen.guardian_signature_ref),
     )
 
     if minor is None:
@@ -153,18 +154,26 @@ def _judge(
     return SailorWaiver(**base, **seen, status=STATUS_CLEARED)
 
 
+class _Unread:
+    """The default of ``required``: distinct from ``None``, which means "none published"."""
+
+
+UNREAD = _Unread()
+
+
 async def event_waiver_status(
     session: AsyncSession,
     event: Event,
     sailor_ids: list[int],
-    required: WaiverText | None = None,
+    required: WaiverText | None | _Unread = UNREAD,
 ) -> dict[int, SailorWaiver]:
     """Clearance for each of ``sailor_ids`` for one event.
 
     A confirmation counts if it is scoped to this event, or to the event's series. Pass
-    ``required`` when the caller has already read the waiver text in force.
+    ``required`` when the caller has already read the waiver text in force — ``None``
+    included, so a site with no text published is not asked again per event.
     """
-    if required is None:
+    if isinstance(required, _Unread):
         required = await current_waiver_text(session)
     if not sailor_ids:
         return {}
@@ -178,24 +187,9 @@ async def event_waiver_status(
         ).all()
     )
 
-    scope = WaiverConfirmation.event_id == event.id
-    if event.series_id is not None:
-        scope = scope | (WaiverConfirmation.series_id == event.series_id)
-
-    rows = (
-        (
-            await session.execute(
-                select(WaiverConfirmation)
-                .options(selectinload(WaiverConfirmation.waiver_text))
-                .where(WaiverConfirmation.sailor_id.in_(sailor_ids), scope)
-            )
-        )
-        .scalars()
-        .all()
+    by_sailor = await _confirmations(
+        session, sailor_ids, Competition.of_event(event).confirmation_filter()
     )
-    by_sailor: dict[int, list[WaiverConfirmation]] = {}
-    for row in rows:
-        by_sailor.setdefault(row.sailor_id, []).append(row)
 
     return {
         sid: _judge(
@@ -205,58 +199,6 @@ async def event_waiver_status(
             confirmations=by_sailor.get(sid, []),
         )
         for sid in sailor_ids
-    }
-
-
-async def series_waiver_status(
-    session: AsyncSession, series: Series, sailor: Sailor
-) -> SailorWaiver:
-    """Clearance of one sailor for a series — only series-scoped confirmations count.
-
-    An event confirmation covers that event alone, so it never clears the series; the
-    organizer's per-event list (`event_waiver_status`) is where it shows up.
-    """
-    return (await series_waivers_status(session, series, [sailor]))[sailor.id]
-
-
-async def series_waivers_status(
-    session: AsyncSession,
-    series: Series,
-    sailors: list[Sailor],
-    required: WaiverText | None = None,
-) -> dict[int, SailorWaiver]:
-    """`series_waiver_status` for many sailors of one series, in one query. Pass
-    ``required`` when the caller has already read the waiver text in force."""
-    if required is None:
-        required = await current_waiver_text(session)
-    if not sailors:
-        return {}
-    rows = (
-        (
-            await session.execute(
-                select(WaiverConfirmation)
-                .options(selectinload(WaiverConfirmation.waiver_text))
-                .where(
-                    WaiverConfirmation.sailor_id.in_([s.id for s in sailors]),
-                    WaiverConfirmation.series_id == series.id,
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    by_sailor: dict[int, list[WaiverConfirmation]] = {}
-    for row in rows:
-        by_sailor.setdefault(row.sailor_id, []).append(row)
-    reference = series_reference_date(series)
-    return {
-        sailor.id: _judge(
-            sailor_id=sailor.id,
-            minor=is_minor(sailor.birth_date, reference),
-            required=required,
-            confirmations=by_sailor.get(sailor.id, []),
-        )
-        for sailor in sailors
     }
 
 
@@ -273,6 +215,115 @@ class Competition:
     reference_date: date
     series: Series | None = None
     event: Event | None = None
+
+    @classmethod
+    def of_series(cls, series: Series) -> Competition:
+        return cls("series", series.id, series.name, series_reference_date(series), series=series)
+
+    @classmethod
+    def of_event(cls, event: Event) -> Competition:
+        return cls("event", event.id, event.title, event_reference_date(event), event=event)
+
+    def confirmation_filter(self) -> ColumnElement[bool]:
+        """The confirmations that count here, as SQL: a series' own, or an event's own
+        and its series' (an event confirmation never clears a series)."""
+        if self.series is not None:
+            return WaiverConfirmation.series_id == self.series.id
+        assert self.event is not None
+        scope = WaiverConfirmation.event_id == self.event.id
+        if self.event.series_id is not None:
+            scope = scope | (WaiverConfirmation.series_id == self.event.series_id)
+        return scope
+
+    def covers(self, row: WaiverConfirmation) -> bool:
+        """:meth:`confirmation_filter` in Python, for confirmations already loaded."""
+        if self.series is not None:
+            return row.series_id == self.series.id
+        assert self.event is not None
+        return row.event_id == self.event.id or (
+            self.event.series_id is not None and row.series_id == self.event.series_id
+        )
+
+
+class CompetitionWaiver(NamedTuple):
+    competition: Competition
+    status: SailorWaiver
+
+
+async def _confirmations(
+    session: AsyncSession, sailor_ids: list[int], scope: ColumnElement[bool]
+) -> dict[int, list[WaiverConfirmation]]:
+    rows = (
+        (
+            await session.execute(
+                select(WaiverConfirmation)
+                .options(selectinload(WaiverConfirmation.waiver_text))
+                .where(WaiverConfirmation.sailor_id.in_(sailor_ids), scope)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    by_sailor: dict[int, list[WaiverConfirmation]] = {}
+    for row in rows:
+        by_sailor.setdefault(row.sailor_id, []).append(row)
+    return by_sailor
+
+
+async def competition_status(
+    session: AsyncSession,
+    competition: Competition,
+    sailors: list[Sailor],
+    required: WaiverText | None,
+) -> dict[int, SailorWaiver]:
+    """Clearance of many sailors for one competition, in one query.
+
+    ``required`` is the waiver text in force, read once by the caller for the whole
+    request (``None``: nothing published, nobody needs to sign). A series counts only its
+    own confirmations; an event its own and its series'.
+    """
+    if not sailors:
+        return {}
+    by_sailor = await _confirmations(
+        session, [s.id for s in sailors], competition.confirmation_filter()
+    )
+    return {
+        sailor.id: _judge(
+            sailor_id=sailor.id,
+            minor=is_minor(sailor.birth_date, competition.reference_date),
+            required=required,
+            confirmations=by_sailor.get(sailor.id, []),
+        )
+        for sailor in sailors
+    }
+
+
+async def sailor_waivers(
+    session: AsyncSession, sailor: Sailor, required: WaiverText | None
+) -> list[CompetitionWaiver]:
+    """Every competition the sailor must sign for, with its status — the account page
+    (S-1), a guardian's page (S-8) and "mine" (Z-8). One query for the competitions' rows
+    and one for all of the sailor's confirmations, however many competitions."""
+    competitions = await sailor_competitions(session, sailor)
+    if not competitions:
+        return []
+    rows = (
+        await _confirmations(
+            session, [sailor.id], or_(*(c.confirmation_filter() for c in competitions))
+        )
+    ).get(sailor.id, [])
+    return [
+        CompetitionWaiver(
+            competition,
+            _judge(
+                sailor_id=sailor.id,
+                minor=is_minor(sailor.birth_date, competition.reference_date),
+                required=required,
+                confirmations=[r for r in rows if competition.covers(r)],
+            ),
+        )
+        for competition in competitions
+    ]
 
 
 async def sailor_competitions(session: AsyncSession, sailor: Sailor) -> list[Competition]:
@@ -318,9 +369,9 @@ async def sailor_competitions(session: AsyncSession, sailor: Sailor) -> list[Com
         .scalars()
         .all()
     )
-    return [
-        Competition("series", s.id, s.name, series_reference_date(s), series=s) for s in series_rows
-    ] + [Competition("event", e.id, e.title, event_reference_date(e), event=e) for e in event_rows]
+    return [Competition.of_series(s) for s in series_rows] + [
+        Competition.of_event(e) for e in event_rows
+    ]
 
 
 # ---------------------------------------------------------------- The scan on file
@@ -342,6 +393,13 @@ def scan_path(ref: str | None) -> Path | None:
     if not ref or not ref.startswith(SCAN_REF_PREFIX):
         return None
     return uploads.path(SCANS, ref[len(SCAN_REF_PREFIX) :])
+
+
+def has_scan(ref: str | None) -> bool:
+    """Whether the reference names an uploaded scan — read off the row, no disk access,
+    so judging a club's whole squad touches no file. A file lost since reads as
+    available here and answers 404 where it is served (``scan_path``)."""
+    return bool(ref) and ref.startswith(SCAN_REF_PREFIX)
 
 
 def scan_media_type(ref: str) -> str:

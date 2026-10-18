@@ -51,15 +51,15 @@ from app.services.contexts import require_linked_sailor
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
     STATUS_CLEARED,
+    Competition,
     SailorWaiver,
+    competition_status,
     discard_scan,
     event_reference_date,
-    sailor_competitions,
+    sailor_waivers,
     scan_media_type,
     scan_path,
     series_reference_date,
-    series_waiver_status,
-    series_waivers_status,
     store_scan,
 )
 
@@ -232,7 +232,7 @@ async def my_waivers(
     organizer's list would show. 404 `no-linked-sailor-record` when the account has no
     sailor, exactly as the profile does."""
     sailor = await require_linked_sailor(session, acting)
-    return await _waivers_of(session, sailor)
+    return await _waivers_of(session, sailor, await current_waiver_text(session))
 
 
 @router.get(
@@ -256,20 +256,17 @@ async def ward_waivers(
             .order_by(Sailor.first_name, Sailor.last_name)
         )
     ).scalars()
-    return [await _waivers_of(session, ward) for ward in wards]
-
-
-async def _waivers_of(session: AsyncSession, sailor: Sailor) -> MyWaivers:
-    """A sailor's competitions with their waiver status — for the sailor (S-1) and for
-    their guardian (S-8)."""
     required = await current_waiver_text(session)
+    return [await _waivers_of(session, ward, required) for ward in wards]
+
+
+async def _waivers_of(
+    session: AsyncSession, sailor: Sailor, required: WaiverText | None
+) -> MyWaivers:
+    """A sailor's competitions with their waiver status — for the sailor (S-1) and for
+    their guardian (S-8). ``required`` is read once per request by the caller."""
     rows: list[MyCompetitionWaiver] = []
-    for competition in await sailor_competitions(session, sailor):
-        if competition.series is not None:
-            judged = await series_waiver_status(session, competition.series, sailor)
-        else:
-            assert competition.event is not None
-            judged = (await event_waiver_status(session, competition.event, [sailor.id]))[sailor.id]
+    for competition, judged in await sailor_waivers(session, sailor, required):
         rows.append(
             MyCompetitionWaiver(
                 scope=competition.scope,  # type: ignore[arg-type]
@@ -575,7 +572,9 @@ async def event_waivers(
 
     required = await current_waiver_text(session)
     people = await _squad_people(session, event)
-    status_by_id = await event_waiver_status(session, event, [pid for pid, _, _, _ in people])
+    status_by_id = await event_waiver_status(
+        session, event, [pid for pid, _, _, _ in people], required
+    )
 
     rows = [_row(first, last, status_by_id[pid], club=club) for pid, first, last, club in people]
     return EventWaiverList(
@@ -647,13 +646,13 @@ async def club_waivers(
     competitions: list[ClubCompetitionWaivers] = []
     for team_id, series in squads:
         sailors = members.get(team_id, [])
-        judged = await series_waivers_status(session, series, sailors, required)
+        judged = await competition_status(session, Competition.of_series(series), sailors, required)
         competitions.append(
             _competition("series", series.id, series.name, series.starts_on, sailors, judged)
         )
     for team_id, event in entries:
         sailors = members.get(team_id, [])
-        judged = await event_waiver_status(session, event, [s.id for s in sailors], required)
+        judged = await competition_status(session, Competition.of_event(event), sailors, required)
         competitions.append(
             _competition("event", event.id, event.title, event.starts_on, sailors, judged)
         )
