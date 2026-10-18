@@ -21,6 +21,8 @@ export type { SeriesTable } from "./generated/model/seriesTable";
 export type { SeriesStandingRow as SeriesRow } from "./generated/model/seriesStandingRow";
 export type { EventOut as EventSummary } from "./generated/model/eventOut";
 export type { EventDetail } from "./generated/model/eventDetail";
+/** Story WL-3: what the person asking may do on one event — gates the committee's tools. */
+export type { EventAccess } from "./generated/model/eventAccess";
 export type { EventStandingRow as StandingRow } from "./generated/model/eventStandingRow";
 /** Story B-12: one team entered in a matchday, and the crew sailing it there. */
 export type { TeamCrewOut as TeamCrew } from "./generated/model/teamCrewOut";

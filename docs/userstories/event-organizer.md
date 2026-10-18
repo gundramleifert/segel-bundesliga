@@ -376,6 +376,11 @@ Acceptance criteria:
   withdraw — `published` remains the only thing that decides who can see the event
   (VA-8).
 - Permissions are the same as for starting: `admin`, `editor`, `race_officer`.
+- **The transitions are the only way to change the status.** `PATCH …/{id}` no longer
+  carries `status` (a `status` sent there is ignored): an organizer used to be able to
+  PATCH an event to `live` without a pairing list, or to `final` from `planned`, skipping
+  every rule above and VA-8's readiness check. The rules live in one service,
+  `app/services/event_state.py`, like the races' in `race_state.py`.
 
 In the interface, the three transitions live in their own block at the bottom of the manage
 panel — after publication and the start, because that is the order an organizer does them

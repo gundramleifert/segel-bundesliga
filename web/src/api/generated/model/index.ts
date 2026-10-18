@@ -68,6 +68,7 @@ export * from './emailRequest202';
 export * from './emailVerify';
 export * from './emulateIn';
 export * from './emulateOut';
+export * from './eventAccess';
 export * from './eventCreate';
 export * from './eventCrewList';
 export * from './eventDetail';

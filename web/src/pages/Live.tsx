@@ -14,7 +14,7 @@ import {
 } from "../api/generated/sbl";
 import type { StartSequence } from "../api/generated/model/startSequence";
 import type { Course, LiveBoat, LiveRace } from "../api/types";
-import { useAccount, useAsync, useInvalidate } from "../api/useApi";
+import { useAsync, useEventAccess, useInvalidate } from "../api/useApi";
 import { useLive } from "../api/useLive";
 import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Blocks";
 import { DEV_TOOLS } from "../dev/devTools";
@@ -36,8 +36,9 @@ export function Live() {
   const { t } = useTranslation("live");
   const { id = "" } = useParams();
   const eventId = Number(id);
-  const { hasRole } = useAccount();
-  const committee = hasRole("admin", "race_officer");
+  // The course controls are this event's race committee's (Story WL-3), not every
+  // race officer's.
+  const committee = useEventAccess(eventId).record_results;
 
   const detail = useAsync(useGetEvent(eventId));
   const initial = useAsync(useGetEventLive(eventId));

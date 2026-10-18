@@ -339,9 +339,7 @@ class TestTheCompleteLifecycle:
 
         # ------------------------------------------------------- 10. Wrapping up
         step("J-1.14", "the race committee declares the event final")
-        final = await client.patch(
-            f"/api/admin/events/{event_id}", headers=headers, json={"status": "final"}
-        )
+        final = await client.post(f"/api/admin/events/{event_id}/finish", headers=headers)
         assert final.status_code == 200, final.text
         assert final.json()["status"] == "final"
 

@@ -14,7 +14,6 @@ export interface EventUpdate {
   title?: string | null;
   starts_on?: string | null;
   ends_on?: string | null;
-  status?: string | null;
   published?: boolean | null;
   host_club_id?: number | null;
   logo_url?: string | null;

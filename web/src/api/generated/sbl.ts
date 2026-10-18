@@ -66,6 +66,7 @@ import type {
   EmailVerify,
   EmulateIn,
   EmulateOut,
+  EventAccess,
   EventCreate,
   EventCrewList,
   EventDetail,
@@ -1973,6 +1974,112 @@ export function useGetEvent<TData = Awaited<ReturnType<typeof getEvent>>, TError
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetEventQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetEventAccessUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/access`
+}
+
+/**
+ * Story WL-3: the race committee's tools appear on the events a person runs.
+ *
+ * A request of its own rather than a field on the event detail: the detail is the same
+ * for everyone and cached as such, this answer depends on who asks. Same visibility as
+ * the detail — what a visitor cannot see is a 404.
+ * @summary What the person asking may do on this event
+ */
+export const getEventAccess = async (eventId: number, options?: RequestInit): Promise<EventAccess> => {
+
+  return http<EventAccess>(getGetEventAccessUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEventAccessQueryKey = (eventId: number,) => {
+    return [
+    `/api/events/${eventId}/access`
+    ] as const;
+    }
+
+
+export const getGetEventAccessQueryOptions = <TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<HTTPValidationError>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventAccessQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventAccess>>> = ({ signal }) => getEventAccess(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEventAccessQueryResult = NonNullable<Awaited<ReturnType<typeof getEventAccess>>>
+export type GetEventAccessQueryError = ErrorType<HTTPValidationError>
+
+
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventAccess>>,
+          TError,
+          Awaited<ReturnType<typeof getEventAccess>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEventAccess>>,
+          TError,
+          Awaited<ReturnType<typeof getEventAccess>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What the person asking may do on this event
+ */
+
+export function useGetEventAccess<TData = Awaited<ReturnType<typeof getEventAccess>>, TError = ErrorType<HTTPValidationError>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEventAccess>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEventAccessQueryOptions(eventId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -5835,8 +5942,9 @@ export const getUpdateEventUrl = (eventId: number,) => {
  *
  * Never refuses because the event is incomplete: a half-filled event is savable, and the
  * only thing that stands in the way of a change is the **first race**, which freezes the
- * configuration (dimensions, series, matchday). Title, dates, venue, host, logo, status
- * and publication stay editable throughout — a typo has to be fixable on a race day too.
+ * configuration (dimensions, series, matchday). Title, dates, venue, host, logo and
+ * publication stay editable throughout — a typo has to be fixable on a race day too. The
+ * status is not among them: it moves only through the transitions below (Story VA-10).
  * @summary Update Event
  */
 export const updateEvent = async (eventId: number,
