@@ -2,11 +2,11 @@ import { Button } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 
 import { getGetCrewQueryKey, useGetCrew, useGetSquad, useSetCrew } from "../api/generated/sbl";
-import type { Member } from "../api/types";
+import { CrewRole, type Member } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { roleText } from "../lib/format";
-import { asRosterRole, useRosterDraft } from "../lib/useRosterDraft";
+import { useRosterDraft } from "../lib/useRosterDraft";
 import { RoleSelect } from "./RoleSelect";
 import { Empty, ErrorMessage, Loading } from "./Blocks";
 import { Message } from "./Form";
@@ -91,7 +91,7 @@ export function LineupPanel({
         <h4 className="font-medium">{t("lineup.title")}</h4>
         <p data-testid={`${testIdPrefix}-size-hint`} className="text-sm text-slate-500">
           {t("lineup.sizeHint", { count: draft.length, usual: crewSize })}
-          {!readOnly && !draft.some((d) => d.role === "helm") && draft.length > 0 && (
+          {!readOnly && !draft.some((d) => d.role === CrewRole.helm) && draft.length > 0 && (
             <>
               {" · "}
               <span className="text-amber-700" data-testid={`${testIdPrefix}-no-helm`}>
@@ -140,7 +140,7 @@ export function LineupPanel({
             secondary={(m) => roleText(m.role)}
             matches={(m, term) => `${m.first_name} ${m.last_name}`.toLowerCase().includes(term)}
             // Named in the role they hold in the squad; corrected in place on the right.
-            onSelect={(m) => roster.add(m.id, asRosterRole(m.role))}
+            onSelect={(m) => roster.add(m.id, m.role)}
             onDeselect={(m) => roster.remove(m.id)}
             selectedExtra={(m) => (
               <RoleSelect

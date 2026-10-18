@@ -51,9 +51,9 @@ from app.services.contexts import require_linked_sailor
 from app.services.lookup import get_or_404
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
-    STATUS_CLEARED,
     Competition,
     SailorWaiver,
+    WaiverStatus,
     competition_status,
     discard_scan,
     event_reference_date,
@@ -118,9 +118,9 @@ class WaiverConfirmationOut(BaseModel):
     id: int
     sailor_id: int
     version: int
-    scope: str
+    scope: Scope
     scope_id: int
-    method: str
+    method: WaiverMethod
     locale_shown: str
     confirmed_at: datetime
     guardian_name: str | None = None
@@ -133,12 +133,12 @@ class SailorWaiverRow(BaseModel):
     first_name: str
     last_name: str
     club: str | None = None
-    status: str
+    status: WaiverStatus
     minor: bool | None = None
     required_version: int | None = None
     confirmed_version: int | None = None
     confirmed_at: datetime | None = None
-    method: str | None = None
+    method: WaiverMethod | None = None
     guardian_name: str | None = None
     # The uploaded form, if there is one — the organizer opens it from the list.
     confirmation_id: int | None = None
@@ -180,12 +180,12 @@ class MyCompetitionWaiver(BaseModel):
     name: str
     reference_date: date
     sailor_id: int
-    status: str
+    status: WaiverStatus
     minor: bool | None = None
     required_version: int | None = None
     confirmed_version: int | None = None
     confirmed_at: datetime | None = None
-    method: str | None = None
+    method: WaiverMethod | None = None
     guardian_name: str | None = None
     # The row behind the status — the address of the scan endpoint. Empty until something
     # was recorded.
@@ -1022,8 +1022,8 @@ def _row(
 def _tally(rows: list[SailorWaiverRow]) -> dict:
     """The rows with who still has to sign at the top — that is what someone opens the
     list for — and the two counts above them."""
-    rows.sort(key=lambda r: (r.status == STATUS_CLEARED, r.last_name, r.first_name))
-    cleared = sum(1 for r in rows if r.status == STATUS_CLEARED)
+    rows.sort(key=lambda r: (r.status == WaiverStatus.CLEARED, r.last_name, r.first_name))
+    cleared = sum(1 for r in rows if r.status == WaiverStatus.CLEARED)
     return dict(cleared=cleared, outstanding=len(rows) - cleared, sailors=rows)
 
 

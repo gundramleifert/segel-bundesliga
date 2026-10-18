@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import current_user
 from app.db import get_session
+from app.models import EventStatus
 from app.models.auth import User
 from app.services.contexts import my_space
 
@@ -55,7 +56,7 @@ class MyContextOut(BaseModel):
     starts_on: date | None = None
     ends_on: date | None = None
     #: Events only.
-    status: str | None = None
+    status: EventStatus | None = None
     #: A draft is listed for the people already named on it.
     published: bool = True
     #: An event's series, for the link from its page.

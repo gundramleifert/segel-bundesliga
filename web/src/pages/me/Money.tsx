@@ -22,7 +22,7 @@ import {
 import type { RunOut } from "../../api/generated/model/runOut";
 import type { RunPaymentOut } from "../../api/generated/model/runPaymentOut";
 import { ApiError } from "../../api/http";
-import type { Claim } from "../../api/types";
+import { PaymentStatus, type Claim } from "../../api/types";
 import { useAsync, useInvalidate } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../../components/ClaimParts";
@@ -435,7 +435,7 @@ function RunPayment({ payment, runId }: { payment: RunPaymentOut; runId: number 
         {t(`bankRun.paymentStatus.${payment.status}`)}
         {payment.failure_reason ? ` — ${payment.failure_reason}` : ""}
       </p>
-      {payment.status === "issued" &&
+      {payment.status === PaymentStatus.issued &&
         (open ? (
           <div className="flex flex-col gap-2">
             <Field label={t("bankRun.returnReason")} hint={t("bankRun.returnReasonHint")} testId={`${id}-reason-field`}>

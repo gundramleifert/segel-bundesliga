@@ -5,9 +5,10 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { TeamStatus } from './teamStatus';
 
 export type ListPendingApplicationsParams = {
 series_id?: number | null;
 event_id?: number | null;
-status_filter?: string;
+status_filter?: TeamStatus;
 };

@@ -637,7 +637,7 @@ class ParticipantOut(BaseModel):
     """An entry to this event."""
 
     team_id: int
-    status: str
+    status: TeamStatus
     club: ClubOut
 
 

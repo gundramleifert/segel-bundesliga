@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { StartSequence } from "../api/generated/model/startSequence";
 import { soundSpacing, type Tone } from "./horn";
-import type { PreparatoryFlag } from "./results";
+import { PreparatoryFlag } from "../api/types";
 
 export const MINUTE = 60_000;
 /** A sequence never begins sooner than this after the tap — time to reach the flags, and
@@ -342,5 +342,5 @@ function restore(key: string, scheduled: boolean): SequenceState {
   } catch {
     // unreadable: start from idle
   }
-  return { kind: "idle", preparatory: "P", firstSubstitute: false };
+  return { kind: "idle", preparatory: PreparatoryFlag.P, firstSubstitute: false };
 }

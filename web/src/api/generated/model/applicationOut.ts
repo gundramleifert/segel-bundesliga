@@ -8,10 +8,11 @@
 import type { ApplicationEventOut } from './applicationEventOut';
 import type { ClubOut } from './clubOut';
 import type { SeriesOut } from './seriesOut';
+import type { TeamStatus } from './teamStatus';
 
 export interface ApplicationOut {
   team_id: number;
-  status: string;
+  status: TeamStatus;
   decision_note?: string | null;
   club: ClubOut;
   series?: SeriesOut | null;

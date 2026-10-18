@@ -127,7 +127,7 @@ class SailorRegistrationOut(BaseModel):
     team_id: int
     club: SquadClubOut
     series: SquadSeriesOut
-    role: str
+    role: CrewRole
 
 
 class SailorAdminOut(BaseModel):

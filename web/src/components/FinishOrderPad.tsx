@@ -17,7 +17,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { AdminRace, BoatOut, RaceResultsInput, StandingRow } from "../api/types";
+import { ResultCode, type AdminRace, type BoatOut, type RaceResultsInput, type StandingRow } from "../api/types";
 import { boatColor } from "../lib/format";
 import {
   type ResultRow,
@@ -34,7 +34,7 @@ export interface FinishOrder {
   /** Tap a boat: the next free finish position, or undo its own. With `overEarlyCode` set
    *  (flag X is up), the tap marks the boat over the line with that code instead — and a
    *  second tap clears the mark again. */
-  tap: (boatNumber: number, overEarlyCode?: string | null) => void;
+  tap: (boatNumber: number, overEarlyCode?: ResultCode | null) => void;
   setField: (boatNumber: number, patch: Partial<ResultRow>) => void;
   /** Boats whose finish position another boat also claims. Nothing is sent while non-empty. */
   duplicateBoats: Set<number>;
@@ -85,12 +85,12 @@ function writeMirror(key: string | undefined, version: number, rows: Record<numb
 function initialRows(race: AdminRace, standings: StandingRow[]): Record<number, ResultRow> {
   return Object.fromEntries(
     race.entries.map((entry) => {
-      const code = entry.code ?? "FINISHED";
+      const code = entry.code ?? ResultCode.FINISHED;
       const redress_points = entry.redress_points ?? null;
       // No backend field says whether a stored RDG value was the auto-average or a jury's
       // own figure — guess "auto" when it still matches today's average, "fixed" otherwise.
       let redress_mode: "auto" | "fixed" = "auto";
-      if (code === "RDG" && redress_points != null) {
+      if (code === ResultCode.RDG && redress_points != null) {
         const suggestion = redressSuggestion(entry.team.id, race.sequence, standings);
         redress_mode =
           suggestion != null && Math.abs(suggestion - redress_points) < 0.05 ? "auto" : "fixed";
@@ -126,7 +126,7 @@ export function useFinishOrder(
   // In "auto" mode the stored `redress_points` can be stale (the average moves as other
   // races get scored) — resolve it fresh from `standings` when sending.
   function effectiveRedress(row: ResultRow): number | null {
-    if (row.code !== "RDG") return null;
+    if (row.code !== ResultCode.RDG) return null;
     if (row.redress_mode === "fixed") return row.redress_points;
     const teamId = byBoat.get(row.boat_number)?.team.id;
     if (teamId == null) return row.redress_points;
@@ -155,7 +155,7 @@ export function useFinishOrder(
         // and black the code stands, and taking it back is a deliberate correction too.
         next =
           row.code === overEarlyCode
-            ? { ...row, code: "FINISHED", finish_position: null }
+            ? { ...row, code: ResultCode.FINISHED, finish_position: null }
             : { ...row, code: overEarlyCode, finish_position: null };
       } else if (!canBeTapped(row)) {
         return;
@@ -204,7 +204,7 @@ export function FinishChip({
   const { t } = useTranslation("matchday");
   const color = boatColor(boat.color);
   const complete = resultComplete(row);
-  const finished = row.code === "FINISHED";
+  const finished = row.code === ResultCode.FINISHED;
   const tappable = !disabled && canBeTapped(row);
   // What the chip shows: a finish position, a code, or nothing yet.
   const mark = finished ? (row.finish_position != null ? String(row.finish_position) : null) : row.code;
@@ -276,7 +276,7 @@ export function FinishOrderPad({
   boats: BoatOut[];
   order: FinishOrder;
   /** While flag X is up: the code a tapped boat gets instead of a finish position. */
-  overEarlyCode?: string | null;
+  overEarlyCode?: ResultCode | null;
   disabled?: boolean;
   testIdPrefix: string;
 }) {

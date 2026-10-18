@@ -20,10 +20,8 @@ from app.models.racing import (
     BOAT_COLORS,
     Boat,
     Flight,
-    PreparatoryFlag,
     Race,
     RaceEntry,
-    RaceSignal,
 )
 from app.pairing import BoatSpec, load_pairing_yaml
 from app.pairing.catalog import CatalogError, catalog_entries, load_entry, shuffle_pairing
@@ -507,7 +505,7 @@ async def start_race(
     second tap on a running race answers with the race, unchanged.
     """
     event, race = await _event_race(session, event_id, race_id)
-    preparatory = PreparatoryFlag((request or RaceStartIn()).preparatory)
+    preparatory = (request or RaceStartIn()).preparatory
     await race_state.start_race(session, event, race, actor=acting.email, preparatory=preparatory)
     # The course this race is sailed on (Story L-2): a re-lay between races must not move
     # the marks under a race that is over.
@@ -577,7 +575,7 @@ async def set_race_signal(
     (shortened course) only while it is ``running``. One at a time; ``null`` hauls it down.
     """
     event, race = await _event_race(session, event_id, race_id)
-    signal = None if request.signal is None else RaceSignal(request.signal)
+    signal = request.signal
     await race_state.set_signal(session, event, race, actor=acting.email, signal=signal)
     return await _transition_done(session, event, race)
 

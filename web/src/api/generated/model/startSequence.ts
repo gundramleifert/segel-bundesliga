@@ -5,8 +5,8 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { PreparatoryFlag } from './preparatoryFlag';
 import type { StartSequenceLowering } from './startSequenceLowering';
-import type { StartSequencePreparatory } from './startSequencePreparatory';
 
 /**
  * The start sequence as the race committee's screen holds it — Stories WL-3, B-5.
@@ -16,7 +16,7 @@ import type { StartSequencePreparatory } from './startSequencePreparatory';
  * from them with the same code (`web/src/lib/startSequence.ts`).
  */
 export interface StartSequence {
-  preparatory: StartSequencePreparatory;
+  preparatory: PreparatoryFlag;
   /** When the club flag goes up (3 minutes to go), ms since the epoch; null while no sequence is armed */
   first_signal_at?: number | null;
   /** The flag lowered one minute before the club flag goes up, if any */

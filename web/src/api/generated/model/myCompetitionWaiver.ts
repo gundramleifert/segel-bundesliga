@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MyCompetitionWaiverScope } from './myCompetitionWaiverScope';
+import type { WaiverMethod } from './waiverMethod';
+import type { WaiverStatus } from './waiverStatus';
 
 /**
  * One competition the signed-in sailor has to sign for, and where they stand.
@@ -16,12 +18,12 @@ export interface MyCompetitionWaiver {
   name: string;
   reference_date: string;
   sailor_id: number;
-  status: string;
+  status: WaiverStatus;
   minor?: boolean | null;
   required_version?: number | null;
   confirmed_version?: number | null;
   confirmed_at?: string | null;
-  method?: string | null;
+  method?: WaiverMethod | null;
   guardian_name?: string | null;
   confirmation_id?: number | null;
   scan_available?: boolean;

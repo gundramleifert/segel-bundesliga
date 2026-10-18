@@ -7,15 +7,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from app.models.racing import RaceSignal, RaceStatus
 from app.schemas.public import StartSequence, TeamOut
-
-MarkRoleName = Literal[
-    "committee_boat", "start_pin", "windward", "gate_left", "gate_right", "finish_pin"
-]
+from app.tracking.course import MarkRole
 
 
 class MarkIn(BaseModel):
-    role: MarkRoleName
+    role: MarkRole
     lat: float
     lon: float
 
@@ -48,7 +46,7 @@ class DefaultCourseIn(BaseModel):
 
 
 class MarkOut(BaseModel):
-    role: str
+    role: MarkRole
     lat: float
     lon: float
 
@@ -70,7 +68,7 @@ class CourseOut(BaseModel):
 class TrackerOut(BaseModel):
     id: int
     boat_number: int | None
-    mark_role: str | None
+    mark_role: MarkRole | None
     device_token: str
     active_from: datetime
 
@@ -123,16 +121,16 @@ class LiveRaceInfo(BaseModel):
     id: int
     sequence: int
     flight: int
-    status: str
+    status: RaceStatus
     started_at: datetime | None
     finished_at: datetime | None
-    signal: str | None
+    signal: RaceSignal | None
     #: The start sequence as the committee runs it — flags and countdown for spectators.
     start_sequence: StartSequence | None = None
 
 
 class LaylineOut(BaseModel):
-    mark: str
+    mark: MarkRole
     #: From the mark outward, as [lat, lon].
     points: list[list[float]]
 

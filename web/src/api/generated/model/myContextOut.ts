@@ -5,6 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { EventStatus } from './eventStatus';
 import type { MyContextOutKind } from './myContextOutKind';
 import type { NeedOut } from './needOut';
 import type { SailingTeamOut } from './sailingTeamOut';
@@ -19,7 +20,7 @@ export interface MyContextOut {
   teams: SailingTeamOut[];
   starts_on?: string | null;
   ends_on?: string | null;
-  status?: string | null;
+  status?: EventStatus | null;
   published?: boolean;
   series_id?: number | null;
   year?: number | null;

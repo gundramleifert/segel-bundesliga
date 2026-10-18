@@ -2,7 +2,7 @@ import { Spinner } from "@heroui/react";
 import { useEffect, type HTMLAttributes, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { EventSummary } from "../api/types";
+import { EventStatus, type EventSummary } from "../api/types";
 import { POLL_MILLIS, type LiveState } from "../api/useLive";
 import { locationText, matchdaySubtitle, statusText, eventDates } from "../lib/format";
 import { setPageTitle } from "./breadcrumb";
@@ -87,18 +87,18 @@ export function Badge({
   );
 }
 
-const STATUS_TONE: Record<string, BadgeTone> = {
-  planned: "neutral",
-  live: "success",
-  final: "brand",
-  cancelled: "danger",
+const STATUS_TONE: Record<EventStatus, BadgeTone> = {
+  [EventStatus.planned]: "neutral",
+  [EventStatus.live]: "success",
+  [EventStatus.final]: "brand",
+  [EventStatus.cancelled]: "danger",
 };
 
-export function StatusBadge({ status, testId }: { status: string; testId?: string }) {
+export function StatusBadge({ status, testId }: { status: EventStatus; testId?: string }) {
   return (
     <Badge
-      tone={STATUS_TONE[status] ?? "neutral"}
-      pulse={status === "live"}
+      tone={STATUS_TONE[status]}
+      pulse={status === EventStatus.live}
       testId={testId ?? `status-badge-${status}`}
     >
       {statusText(status)}

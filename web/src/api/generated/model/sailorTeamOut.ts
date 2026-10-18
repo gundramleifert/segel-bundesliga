@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClubOut } from './clubOut';
+import type { CrewRole } from './crewRole';
 import type { SeriesOut } from './seriesOut';
 
 /**
@@ -13,7 +14,7 @@ import type { SeriesOut } from './seriesOut';
  */
 export interface SailorTeamOut {
   team_id: number;
-  role: string;
+  role: CrewRole;
   club: ClubOut;
   series: SeriesOut;
 }

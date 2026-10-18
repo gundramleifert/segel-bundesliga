@@ -1,4 +1,4 @@
-import type { EventSummary, LeagueSeason } from "../api/types";
+import { EventStatus, type EventSummary, type LeagueSeason } from "../api/types";
 
 /** The site's URL scheme (`docs/site-structure.md`, Stories B-13–B-16). Route words are
  *  English; the league's slug is data. One place, so a link cannot drift from its route. */
@@ -64,9 +64,9 @@ export const actSlug = (event: EventSummary) => (event.matchday != null ? `act-$
 
 /** Where the events of an act stand together. */
 export function stateOf(events: EventSummary[]): ActState {
-  if (events.some((e) => e.status === "live")) return "live";
-  if (events.every((e) => e.status === "cancelled")) return "cancelled";
-  if (events.every((e) => e.status === "final" || e.status === "cancelled")) return "done";
+  if (events.some((e) => e.status === EventStatus.live)) return "live";
+  if (events.every((e) => e.status === EventStatus.cancelled)) return "cancelled";
+  if (events.every((e) => e.status === EventStatus.final || e.status === EventStatus.cancelled)) return "done";
   return "planned";
 }
 

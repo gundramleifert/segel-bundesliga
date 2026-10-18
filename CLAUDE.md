@@ -101,6 +101,11 @@ failing build is the whole point, and is what a hand-written client could not gi
   **path prefix**, `invalidate("/api/clubs")`, which covers the list, each club and each
   club's members in one. Never a key written out by hand: one that matches no query
   invalidates nothing, silently.
+- **A closed set is an enum in the schema, never `str`** — `status: EventStatus`, not
+  `status: str`. It becomes a named OpenAPI schema and a generated constant
+  (`EventStatus.live`, re-exported from `types.ts`), so the frontend compares against a
+  member the compiler knows, and an unknown value in a request is a 422 at validation
+  rather than a check written again in the router.
 
 **Authentication:** Identity comes from Google, Microsoft (OIDC token verification against
 provider keys), a one-time code by email, or a **password** (Story Z-9, since 2026-10-05 —

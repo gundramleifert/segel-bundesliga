@@ -13,7 +13,10 @@ from typing import Any, Literal, NamedTuple
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.crests import crest_url
+from app.models.auth import Relation
+from app.models.competition import EventDocumentKind, EventStatus
 from app.models.org import CrewRole, Sailor
+from app.models.racing import PreparatoryFlag, RaceStatus
 
 
 class ClubOut(BaseModel):
@@ -142,13 +145,13 @@ class MemberOut(BaseModel):
     id: int
     first_name: str
     last_name: str
-    role: str
+    role: CrewRole
     # Story S-4: whether the name may link to the profile page. False renders the name as
     # plain text — it is never hidden, only the page is.
     profile_public: bool = True
 
     @classmethod
-    def of(cls, sailor: Sailor, role: str) -> MemberOut:
+    def of(cls, sailor: Sailor, role: CrewRole | str) -> MemberOut:
         """A sailor as a squad or lineup names them: the name, the role, nothing personal."""
         return cls(
             id=sailor.id,
@@ -186,7 +189,7 @@ class ClubMemberOut(BaseModel):
 
     user_id: int
     display_name: str
-    relations: list[str] = Field(
+    relations: list[Relation] = Field(
         default_factory=list, description="What this person is to the club: member, manager, …"
     )
     organizer: bool = False
@@ -231,7 +234,7 @@ class EventOut(BaseModel):
     # (Story VA-8). It cannot be started without one.
     starts_on: date | None = None
     ends_on: date | None = None
-    status: str
+    status: EventStatus
     # Public visibility, orthogonal to `status`. Always true on public routes.
     published: bool = False
     series: SeriesOut | None = None
@@ -364,7 +367,7 @@ class StartSequence(BaseModel):
     from them with the same code (`web/src/lib/startSequence.ts`).
     """
 
-    preparatory: Literal["P", "I", "Z", "U", "BLACK"]
+    preparatory: PreparatoryFlag
     first_signal_at: int | None = Field(
         default=None,
         description="When the club flag goes up (3 minutes to go), ms since the epoch; "
@@ -400,8 +403,7 @@ class EventDocumentOut(BaseModel):
 
     id: int
     title: str
-    # notice_of_race, sailing_instructions, notice, other.
-    kind: str
+    kind: EventDocumentKind
     url: str
     extension: str | None = None
     published_at: datetime | None = None
@@ -413,7 +415,7 @@ class PairingRow(BaseModel):
     sequence: int
     flight: int
     race_in_flight: int
-    status: str
+    status: RaceStatus
     # Boat number -> Team
     teams_by_boat: dict[int, TeamOut]
 
@@ -432,7 +434,7 @@ class SailorTeamOut(BaseModel):
     """Which club and which series a person is registered for in a season."""
 
     team_id: int
-    role: str
+    role: CrewRole
     club: ClubOut
     series: SeriesOut
 
@@ -442,7 +444,7 @@ class SailorEventOut(BaseModel):
 
     event: EventOut
     team_id: int
-    role: str
+    role: CrewRole
 
 
 class SailorDetail(BaseModel):
@@ -492,7 +494,7 @@ class MyEventOut(BaseModel):
     title: str
     starts_on: date | None = None
     ends_on: date | None = None
-    status: str
+    status: EventStatus
     #: A draft is listed for its own participants — they line up before it goes public.
     published: bool
     matchday: int | None = None
