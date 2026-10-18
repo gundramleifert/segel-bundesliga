@@ -233,10 +233,10 @@ Acceptance criteria:
 - **No login.** Participation is public — the pairing list, the results and the standings
   carry these names anyway, so putting the lineup behind a session would be theatre. The
   private thing is club *membership* (Story V-10), which this is not.
-- Each name links to its sailor page; once Story S-4 exists, a sailor who has switched their
+- Each name links to its sailor page; a sailor who has switched their
   profile off appears here as plain text under the same name, never hidden and never omitted.
-- **No contact details**, exactly as in the squad: `MemberOut` carries id, name and role and
-  nothing else.
+- **No contact details**, exactly as in the squad: `MemberOut` carries id, name, role and whether the
+  name may link (`profile_public`, Story S-4), nothing else.
 - A draft matchday answers 404 here as it does everywhere public (Story VA-8).
 
 Deliberately a **new public endpoint** rather than widening `EventDetail`: the standings are

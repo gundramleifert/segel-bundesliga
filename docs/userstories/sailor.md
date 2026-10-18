@@ -317,7 +317,7 @@ the *guardian's* signature recorded separately in S-1).
 
 Tests: `api/tests/stories/test_sailor_profile.py`
 
-### S-4 ○ Decide whether my own profile is public
+### S-4 ● Decide whether my own profile is public
 As a **sailor** I want to **decide whether my profile page is public**,
 so that I **can compete without having a page about me on the open internet**.
 
@@ -359,7 +359,16 @@ Open: whether a guardian can set this for a minor. Today only the sailor's own l
 account can, exactly as with the photo (S-2) — noted there as out of scope for the same
 reason.
 
-Tests: none yet
+**How it is stored:** `Sailor.profile_public_choice` is the sailor's own answer and stays
+empty until they give one; `Sailor.profile_public` reads the choice, else the age default.
+So a minor who never touched the switch gets a public page on their eighteenth birthday by
+itself, while one who decided keeps that decision. The squad and lineup outputs
+(`MemberOut`) carry the effective `profile_public`, and the frontend's `SailorName` renders
+the name as a link or as plain text from it. The photo follows the page: a hidden
+profile's `GET /api/sailors/{id}/photo` answers the same 404 as a sailor without one, for
+everyone outside the circle above (a minor's photo keeps S-2's 403 first).
+
+Tests: `api/tests/stories/test_profile_visibility.py::TestProfileVisibility`
 
 ### Z-7 ● Delete my own account
 

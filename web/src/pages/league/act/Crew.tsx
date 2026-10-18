@@ -7,6 +7,7 @@ import type { TeamCrew } from "../../../api/types";
 import { useAsync } from "../../../api/useApi";
 import { Async } from "../../../components/Async";
 import { CardGrid } from "../../../components/Layouts";
+import { SailorName } from "../../../components/SailorName";
 import { roleText } from "../../../lib/format";
 
 /** B-12: who sails for each team at this matchday.
@@ -81,13 +82,11 @@ function TeamCrewCard({ entry }: { entry: TeamCrew }) {
                 data-testid={`matchday-crew-row-${team.id}-${member.id}`}
                 className="flex items-center justify-between gap-3 py-2"
               >
-                <Link
-                  to={`/sailors/${member.id}`}
-                  data-testid={`matchday-crew-sailor-link-${team.id}-${member.id}`}
-                  className="truncate font-medium underline-offset-2 hover:underline"
-                >
-                  {member.first_name} {member.last_name}
-                </Link>
+                <SailorName
+                  member={member}
+                  testId={`matchday-crew-sailor-link-${team.id}-${member.id}`}
+                  className="truncate font-medium"
+                />
                 <span className="shrink-0 text-slate-500">{roleText(member.role)}</span>
               </li>
             ))}

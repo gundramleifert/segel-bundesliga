@@ -3,5 +3,6 @@
   "registrations": "Meldungen für Serien",
   "noRegistrations": "In diesem Jahr für keine Serie gemeldet.",
   "lineups": "Aufgestellt bei",
-  "noLineups": "Bei keiner Veranstaltung aufgestellt. Im Kader zu stehen heißt nicht, jeden Act zu segeln."
+  "noLineups": "Bei keiner Veranstaltung aufgestellt. Im Kader zu stehen heißt nicht, jeden Act zu segeln.",
+  "notPublic": "Diese Seite ist nicht öffentlich. Sie sehen sie, weil Sie mit dieser Person verbunden sind; Besucher sehen sie nicht."
 }

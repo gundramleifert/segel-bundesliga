@@ -13,7 +13,7 @@ from typing import Any, Literal, NamedTuple
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.crests import crest_url
-from app.models.org import CrewRole
+from app.models.org import CrewRole, Sailor
 
 
 class ClubOut(BaseModel):
@@ -143,6 +143,20 @@ class MemberOut(BaseModel):
     first_name: str
     last_name: str
     role: str
+    # Story S-4: whether the name may link to the profile page. False renders the name as
+    # plain text — it is never hidden, only the page is.
+    profile_public: bool = True
+
+    @classmethod
+    def of(cls, sailor: Sailor, role: str) -> MemberOut:
+        """A sailor as a squad or lineup names them: the name, the role, nothing personal."""
+        return cls(
+            id=sailor.id,
+            first_name=sailor.first_name,
+            last_name=sailor.last_name,
+            role=role,
+            profile_public=sailor.profile_public,
+        )
 
     def announce_order(self) -> AnnounceOrder:
         """Sort key: helm, crew, substitute — the order a crew is announced — then name."""
@@ -437,6 +451,9 @@ class SailorDetail(BaseModel):
     id: int
     first_name: str
     last_name: str
+    # Story S-4: false when only a connected viewer (the sailor, admin/editor, their club's
+    # manager) gets to see this page — the page says so to them.
+    profile_public: bool = True
     teams: list[SailorTeamOut] = Field(default_factory=list)
     events: list[SailorEventOut] = Field(default_factory=list)
 

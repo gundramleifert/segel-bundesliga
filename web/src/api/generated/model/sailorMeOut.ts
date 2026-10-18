@@ -16,4 +16,5 @@ export interface SailorMeOut {
   last_name: string;
   birth_date?: string | null;
   has_photo?: boolean;
+  profile_public?: boolean;
 }

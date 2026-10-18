@@ -24,6 +24,13 @@ export function Sailor() {
         title={`${data.first_name} ${data.last_name}`}
         testId="sailor-header"
       />
+      {/* Story S-4: only a connected viewer reaches a hidden page — say so, so they do
+          not take it for what a guest sees. */}
+      {data.profile_public === false && (
+        <p data-testid="sailor-not-public" className="mb-6 text-sm text-slate-500">
+          {t("notPublic")}
+        </p>
+      )}
 
       <section data-testid="sailor-registrations-section" className="mb-8">
         <h2 className="mb-3 text-lg font-semibold">{t("registrations")}</h2>

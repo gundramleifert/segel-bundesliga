@@ -844,7 +844,7 @@
  },
  "S-4": {
   "title": "Decide whether my own profile is public",
-  "status": "○",
+  "status": "●",
   "role": "Sailor",
   "phase": "My profile",
   "file": "docs/userstories/sailor.md",
