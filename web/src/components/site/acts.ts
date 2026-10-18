@@ -5,13 +5,18 @@ import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
 import { actsOf, currentAct, type Act } from "../../lib/site";
 
+/** "Act 2" — the act's number, or its event's title when it has none. */
+export function useActName() {
+  const { t } = useTranslation("site");
+  return (act: Act) => (act.matchday != null ? t("act.title", { n: act.matchday }) : act.first.title);
+}
+
 /** "Act 2 · Kiel" — the act's number and its place. */
 export function useActTitle() {
-  const { t } = useTranslation("site");
+  const actName = useActName();
   return (act: Act) => {
     const place = act.first.venue?.city ?? act.first.host_club?.short_name;
-    const name = act.matchday != null ? t("act.title", { n: act.matchday }) : act.first.title;
-    return place ? `${name} · ${place}` : name;
+    return place ? `${actName(act)} · ${place}` : actName(act);
   };
 }
 

@@ -29,7 +29,7 @@ export function LeagueGate({ children }: { children: (data: LeagueYear) => React
 }
 
 
-export { useActTitle } from "../../components/site/acts";
+export { useActName, useActTitle } from "../../components/site/acts";
 
 /** The act's date line, short: "17–19 Apr". */
 export const actDates = (act: Act) => eventDates(act.first);

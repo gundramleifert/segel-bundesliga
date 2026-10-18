@@ -443,14 +443,21 @@ describeStory("B-13: one row of navigation names the leagues", () => {
 });
 
 describeStory("B-14: a league's page in chapters", () => {
-  test("the chapters lead to their own pages, Standings first and titled so", async ({ page }) => {
+  test("the chapters lead to their own pages, Results first and titled so while a matchday is live", async ({ page }) => {
     await page.goto("/1-liga");
-    // Act 2 is being sailed, so Results is there; the seed has no earlier year, so no Archive.
-    for (const id of ["standings", "results", "news", "media", "about"]) {
-      await expect(page.getByTestId(`site-chapter-${id}`)).toHaveCount(1);
-    }
+    // Act 2 is being sailed, so Results is there and opens the page; the seed has no
+    // earlier year, so no Archive.
+    const chapters = page.getByTestId("site-chapters").locator("section[data-chapter]");
+    await expect(chapters).toHaveCount(5);
+    expect(await chapters.evaluateAll((els) => els.map((el) => el.getAttribute("data-chapter")))).toEqual([
+      "results",
+      "standings",
+      "news",
+      "media",
+      "about",
+    ]);
     await expect(page.getByTestId("site-chapter-dots").getByRole("link")).toHaveCount(5);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Standings");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Results Act 2");
     await expect(page.getByTestId("site-chapter-archive")).toHaveCount(0);
     // The 1. Liga's first five, from the real table.
     await expect(page.getByTestId("site-top-five-dsbl-1-2026").getByRole("listitem")).toHaveCount(5);
@@ -471,6 +478,8 @@ describeStory("B-14: a league's page in chapters", () => {
     await page.goto("/2-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
+    // With nothing live, Standings opens the page.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Standings");
     // Its own division's block — empty, because the seed enters no team in the 2. Liga.
     await expect(page.getByTestId("site-top-five-dsbl-2-2026")).toHaveCount(1);
     await expect(page.getByTestId("site-top-five-dsbl-2-2026").locator("[data-empty]")).toHaveCount(1);

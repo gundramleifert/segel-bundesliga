@@ -16,7 +16,7 @@ import {
 } from "../../content";
 import { formatDate, locationText } from "../../lib/format";
 import { href, type Act } from "../../lib/site";
-import { LeagueGate, StateBadge, actDates, useActTitle, type LeagueYear } from "./shared";
+import { LeagueGate, StateBadge, actDates, useActName, useActTitle, type LeagueYear } from "./shared";
 
 /** `/:league` — the league's page in chapters, each a preview ending in its own page
  *  (Story B-14). */
@@ -28,6 +28,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const { t } = useTranslation("site");
   const localized = useLocalized();
   const actTitle = useActTitle();
+  const actName = useActName();
   const about = useLeagueAbout(league.slug).data;
   const news = useNews(league.slug).data ?? [];
   const videos = useVideos(league.slug).data ?? [];
@@ -47,28 +48,16 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   );
   // Each chapter is titled with its name — the word on its dot (Story B-14).
   const chapters: ChapterSpec[] = [
-    {
-      id: "standings",
-      label: t("chapters.standings"),
-      title: t("chapters.standings"),
-      more: { to: href.standings(l), label: t("standings.more") },
-      // The table on the left, the year's matchdays beside it.
-      body: acts.length ? (
-        <Columns testId="site-standings-split">
-          {table}
-          <SeasonStrip league={l} acts={acts} year={year} />
-        </Columns>
-      ) : (
-        table
-      ),
-    },
-    // Only while a matchday is live: between matchdays the season's page has the calendar.
+    // Only while a matchday is live, and then it opens the page — on a race day that is
+    // what a fan comes for (Story B-14). Between matchdays the season's page has the calendar.
     ...(live && year
       ? [
           {
             id: "results",
             label: t("chapters.results"),
-            title: t("chapters.results"),
+            // About one act, so its title names it: "Results Act 2" — and, opening the page,
+            // that is the page's heading.
+            title: t("now.resultsOf", { act: actName(live) }),
             more: { to: href.act(l, year, live.slug, "results"), label: t("now.resultsOf", { act: actTitle(live) }) },
             body: (
               <Card className="p-5" testId="site-live-act">
@@ -92,6 +81,21 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
           } satisfies ChapterSpec,
         ]
       : []),
+    {
+      id: "standings",
+      label: t("chapters.standings"),
+      title: t("chapters.standings"),
+      more: { to: href.standings(l), label: t("standings.more") },
+      // The table on the left, the year's matchdays beside it.
+      body: acts.length ? (
+        <Columns testId="site-standings-split">
+          {table}
+          <SeasonStrip league={l} acts={acts} year={year} />
+        </Columns>
+      ) : (
+        table
+      ),
+    },
     {
       id: "news",
       label: t("chapters.news"),

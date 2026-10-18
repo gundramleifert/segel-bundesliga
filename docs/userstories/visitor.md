@@ -422,11 +422,15 @@ Acceptance criteria:
   Standings, Season, Clubs, News, Media, Press, About*.)
 - **A chapter's title is its name** — *Standings*, *News* — the same word as its dot.
   The slogans it replaced ("Where everyone stands.") did not say what the chapter is;
-  the association's home follows the same rule.
-- ***Standings* opens the page**: the top five of the year's table, leading to the full
-  standings. ***Results* is there only while a matchday is live** — the act, its venue and
-  host, links to its live map, results and notice board; between matchdays the season's
-  page holds the calendar. ***About*** carries the league's text, its clubs and the link
+  the association's home follows the same rule. *Results* names its matchday too —
+  *Results Act 2* — because it is about that one act, not the year.
+- ***Results* is there only while a matchday is live, and then it opens the page**
+  (2026-10-18) — the act, its venue and host, links to its live map, results and notice
+  board. On a race day the question a fan arrives with is "how is it going", not the
+  year's table; the first chapter's title is the page's heading, so the heading says
+  so too. Between matchdays it is left out and the season's page holds the calendar.
+- ***Standings*** is the top five of the year's table, leading to the full standings, and
+  **opens the page whenever no matchday is live**. ***About*** carries the league's text, its clubs and the link
   to the press centre. ***Archive*** lists the earlier years, each leading to that year's
   standings; with no earlier year it is left out.
 - **The league's page shows its current year**: the newest year of *its* series that is
