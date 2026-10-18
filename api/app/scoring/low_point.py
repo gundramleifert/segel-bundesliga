@@ -7,7 +7,7 @@ Points are never stored, but always calculated from raw data (``RaceEntry.code``
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, NamedTuple
 
 from app.models.racing import ResultCode
 
@@ -44,9 +44,10 @@ class ScoringConfig:
     @classmethod
     def from_json(cls, data: dict[str, Any] | None) -> ScoringConfig:
         data = data or {}
+        default = cls()
         return cls(
-            discard_after=tuple(data.get("discard_after", ())),
-            penalty_percent=int(data.get("penalty_percent", 20)),
+            discard_after=tuple(data.get("discard_after", default.discard_after)),
+            penalty_percent=int(data.get("penalty_percent", default.penalty_percent)),
         )
 
 
@@ -108,7 +109,17 @@ def race_points(result: RaceResult, config: ScoringConfig) -> float:
     return base
 
 
-def _tiebreak_key(score: TeamScore, results: list[RaceResult], config: ScoringConfig) -> tuple:
+class TiebreakKey(NamedTuple):
+    """What a placement sorts by, in order: lower is better in each."""
+
+    net: float
+    #: Counted points, best first — comparing these is A8.1's count of places.
+    points: list[float]
+    #: Points in the last race sailed (A8.2).
+    last_points: float
+
+
+def _tiebreak_key(score: TeamScore, results: list[RaceResult]) -> TiebreakKey:
     """RRS A8: on a tie, the better series decides, finally the last race.
 
     A8.1 compares the count of first, second, third … places; A8.2 decides by
@@ -118,7 +129,7 @@ def _tiebreak_key(score: TeamScore, results: list[RaceResult], config: ScoringCo
     points = sorted(score.points_by_race[r.race_id] for r in counted)
     last = max(counted, key=lambda r: r.sequence, default=None)
     last_points = score.points_by_race[last.race_id] if last else 0.0
-    return (score.net, points, last_points)
+    return TiebreakKey(score.net, points, last_points)
 
 
 def score_event(
@@ -156,7 +167,7 @@ def score_event(
             )
         )
 
-    scores.sort(key=lambda s: _tiebreak_key(s, results_by_team[s.team_id], config))
+    scores.sort(key=lambda s: _tiebreak_key(s, results_by_team[s.team_id]))
     for rank, score in enumerate(scores, start=1):
         score.rank = rank
     return scores

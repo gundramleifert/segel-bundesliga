@@ -357,7 +357,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   finish pin left or right. Nothing else is modelled until real data asks for it.
 - **Legs, passings, distance to go and rank are derived, never stored** — the same rule as
   points. The algorithms sit behind Protocols (`api/app/tracking/`) and are chosen in one
-  place, `default_pipeline()`, so a change is decided on recorded data with `compare.py`.
+  place, `default_pipeline()`, so a change can be decided on recorded data (a `compare.py` for that is planned).
 - **A claim is on an event or on a club, and its manager or treasurer settles it**
   (Stories F-2, F-3, decision of 2026-10-07, `app/services/expenses.py`). On an event the
   host club pays and those holding a relation *directly* on it (or its series) file; on a

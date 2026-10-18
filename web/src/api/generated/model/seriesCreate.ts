@@ -5,7 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
-import type { SeriesCreateScoring } from './seriesCreateScoring';
+import type { ScoringIn } from './scoringIn';
 
 /**
  * Name and year suffice for creation; clubs can be selected immediately.
@@ -28,7 +28,7 @@ export interface SeriesCreate {
   league_id?: number | null;
   /** Clubs participating in this series */
   clubs?: number[];
-  scoring?: SeriesCreateScoring;
+  scoring?: ScoringIn | null;
   /** Whether the series is visible on the public site right away. A series is usually planned first and published once the field is settled; publishing locks nothing. */
   published?: boolean;
   /** If absent, it is generated from the name. */

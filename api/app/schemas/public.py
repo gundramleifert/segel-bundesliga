@@ -8,11 +8,12 @@ API client is generated (``scripts/gen-api-client.sh``).
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Any, Literal
+from typing import Any, Literal, NamedTuple
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.crests import crest_url
+from app.models.org import CrewRole
 
 
 class ClubOut(BaseModel):
@@ -134,6 +135,22 @@ class MemberOut(BaseModel):
     first_name: str
     last_name: str
     role: str
+
+    def announce_order(self) -> AnnounceOrder:
+        """Sort key: helm, crew, substitute — the order a crew is announced — then name."""
+        return AnnounceOrder(
+            ROLE_ORDER.get(self.role, len(ROLE_ORDER)), self.last_name, self.first_name
+        )
+
+
+class AnnounceOrder(NamedTuple):
+    role_rank: int
+    last_name: str
+    first_name: str
+
+
+# Helm first, then crew, then substitute — the order a crew is announced.
+ROLE_ORDER: dict[str, int] = {CrewRole.HELM: 0, CrewRole.CREW: 1, CrewRole.SUBSTITUTE: 2}
 
 
 class ClubMemberOut(BaseModel):

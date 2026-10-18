@@ -10,7 +10,6 @@ Kept out of the router because two questions need answering in more than one pla
 
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -19,7 +18,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.config import settings
 from app.models import (
     Event,
     Sailor,
@@ -30,6 +28,7 @@ from app.models import (
     WaiverConfirmation,
     WaiverText,
 )
+from app.services import uploads
 
 MAJORITY_AGE = 18
 
@@ -328,18 +327,8 @@ async def sailor_competitions(session: AsyncSession, sailor: Sailor) -> list[Com
 
 # A `guardian_signature_ref` that names an uploaded file rather than a paper folder.
 SCAN_REF_PREFIX = "upload:"
-SCAN_MEDIA_TYPES = {
-    "application/pdf": "pdf",
-    "image/jpeg": "jpg",
-    "image/png": "png",
-}
-SCAN_MAX_BYTES = 10 * 1024 * 1024
-
-
-def _scan_dir() -> Path:
-    directory = Path(settings.uploads_dir) / "waivers"
-    directory.mkdir(parents=True, exist_ok=True)
-    return directory
+# The scans' directory in the private upload store, `uploads/waivers/`.
+SCANS = "waivers"
 
 
 def scan_path(ref: str | None) -> Path | None:
@@ -352,25 +341,19 @@ def scan_path(ref: str | None) -> Path | None:
     """
     if not ref or not ref.startswith(SCAN_REF_PREFIX):
         return None
-    name = ref[len(SCAN_REF_PREFIX) :]
-    if "/" in name or "\\" in name or name.startswith("."):
-        return None
-    path = _scan_dir() / name
-    return path if path.is_file() else None
+    return uploads.path(SCANS, ref[len(SCAN_REF_PREFIX) :])
 
 
 def scan_media_type(ref: str) -> str:
     suffix = ref.rsplit(".", 1)[-1]
     return next(
-        (m for m, ext in SCAN_MEDIA_TYPES.items() if ext == suffix), "application/octet-stream"
+        (m for m, ext in uploads.MEDIA_TYPES.items() if ext == suffix), "application/octet-stream"
     )
 
 
 def store_scan(raw: bytes, media_type: str) -> str:
     """Writes a validated scan and returns its ``guardian_signature_ref``."""
-    name = f"{uuid.uuid4().hex}.{SCAN_MEDIA_TYPES[media_type]}"
-    (_scan_dir() / name).write_bytes(raw)
-    return SCAN_REF_PREFIX + name
+    return SCAN_REF_PREFIX + uploads.store(SCANS, raw, media_type)
 
 
 def discard_scan(ref: str | None) -> None:

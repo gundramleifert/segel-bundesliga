@@ -15,7 +15,7 @@ import { helpFor, helpPath } from "../handbook";
  * about the page being read — so they were four things competing with the navigation for
  * room in the frame. Collected here, the frame carries only what someone came for.
  *
- * The button itself is the same in both layouts: initials when signed in, a plain account
+ * The button shows initials when signed in, a plain account
  * icon when not. Signed out the menu still opens, because the language switcher and the
  * legal pages belong to a guest as much as to anybody.
  *
@@ -30,17 +30,12 @@ export function UserMenu({
   account,
   loading,
   admin = false,
-  placement = "bottom",
 }: {
   account: Account | null;
   loading: boolean;
   /** Whether the administration is offered — only to the roles that can use it, because a
    *  link that ends in a 403 is worse than no link (Story A-12). */
   admin?: boolean;
-  /** Which way the panel opens. The button sits at the **foot** of the sidebar on a wide
-   *  screen, so a panel below it falls off the bottom of the window — there it opens
-   *  upward. On a phone the button is in the top bar and it opens downward. */
-  placement?: "top" | "bottom";
 }) {
   const { t, i18n } = useTranslation();
   const menu = useDisclosure("user-menu");
@@ -116,9 +111,7 @@ export function UserMenu({
           data-testid="layout-user-menu"
           // Anchored to the button and pinned to its right edge, so it opens inward from
           // whichever corner the button is in and never off the side of the screen.
-          className={`absolute right-0 z-50 w-56 rounded-xl bg-white p-2 shadow-xl ring-1 ring-slate-900/5 ${
-            placement === "top" ? "bottom-full mb-2" : "mt-2"
-          }`}
+          className="absolute right-0 z-50 mt-2 w-56 rounded-xl bg-white p-2 shadow-xl ring-1 ring-slate-900/5"
         >
           {account && (
             <p className="truncate px-3 pb-2 pt-1 text-sm font-medium text-slate-900">

@@ -44,7 +44,7 @@ import { formatDate, formatMoney, parseCents } from "../../lib/format";
  */
 
 /** Where a claim is filed: an event, or a club. */
-export type ClaimTargetRef = { kind: "event" | "club"; id: number };
+type ClaimTargetRef = { kind: "event" | "club"; id: number };
 
 // ------------------------------------------------------------------ documents (S-5)
 

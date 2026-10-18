@@ -27,12 +27,8 @@ from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
-from app.services import (
-    adopt_series_registrations,
-    current_year,
-    delete_event_entries,
-    has_results,
-)
+from app.services import current_year
+from app.services.registrations import Registration, RegistrationHasResults, sync_registrations
 from app.text import slugify
 
 router = APIRouter(
@@ -204,62 +200,42 @@ async def set_series(
             )
         desired[series.id] = series
 
-    existing = {
-        team.series_id: team
-        for team in (
-            await session.execute(
-                select(Team).where(Team.club_id == club.id, Team.event_id.is_(None))
-            )
-        ).scalars()
-    }
-
-    for series_id, team in existing.items():
-        if series_id in desired:
-            continue
-        if await has_results(session, team):
-            raise HTTPException(
-                status_code=409,
-                detail=tr(
-                    locale,
-                    (
-                        "The assignment cannot be removed: this series already has"
-                        " race results for the club."
-                    ),
-                    (
-                        "Die Zuordnung lässt sich nicht aufheben: in dieser Serie"
-                        " liegen für den Verein bereits Wettfahrtergebnisse vor."
-                    ),
+    existing = (
+        await session.execute(select(Team).where(Team.club_id == club.id, Team.event_id.is_(None)))
+    ).scalars()
+    try:
+        await sync_registrations(
+            session,
+            existing,
+            (Registration(club.id, series_id, club.short_name) for series_id in desired),
+        )
+    except RegistrationHasResults:
+        raise HTTPException(
+            status_code=409,
+            detail=tr(
+                locale,
+                (
+                    "The assignment cannot be removed: this series already has"
+                    " race results for the club."
                 ),
-            )
-        # Without series registration, no entry in its events.
-        await delete_event_entries(session, series_id, club.id)
-        await session.delete(team)
-
-    for series_id in desired:
-        if series_id not in existing:
-            # Admin assigns directly — that's immediate participation.
-            session.add(
-                Team(
-                    name=club.short_name,
-                    club_id=club.id,
-                    series_id=series_id,
-                    status=TeamStatus.ACCEPTED,
-                )
-            )
-
-    await session.flush()
-    await _backfill_event_entries(session, desired.keys())
+                (
+                    "Die Zuordnung lässt sich nicht aufheben: in dieser Serie"
+                    " liegen für den Verein bereits Wettfahrtergebnisse vor."
+                ),
+            ),
+        ) from None
     await session.commit()
     club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one()
     return (await _compose(session, [club]))[0]
 
 
-@router.post("", response_model=ClubOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ClubAdminOut, status_code=status.HTTP_201_CREATED)
 async def create_club(
     request: ClubCreate,
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
-) -> Club:
+) -> ClubAdminOut:
+    """A new club — answered in the shape the admin list has, so a client needs one type."""
     slug = slugify(request.slug or request.short_name or request.name)
     if await _slug_taken(session, slug):
         raise HTTPException(
@@ -285,16 +261,16 @@ async def create_club(
     )
     session.add(club)
     await session.commit()
-    return club
+    return (await _compose(session, [club]))[0]
 
 
-@router.patch("/{club_id}", response_model=ClubOut)
+@router.patch("/{club_id}", response_model=ClubAdminOut)
 async def update_club(
     club_id: int,
     request: ClubUpdate,
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
-) -> Club:
+) -> ClubAdminOut:
     club = (await session.execute(select(Club).where(Club.id == club_id))).scalar_one_or_none()
     if club is None:
         raise HTTPException(
@@ -306,7 +282,7 @@ async def update_club(
         setattr(club, field, value.strip() if isinstance(value, str) else value)
 
     await session.commit()
-    return club
+    return (await _compose(session, [club]))[0]
 
 
 # ------------------------------------------------------------------- Crest (V-3)
@@ -379,28 +355,3 @@ async def _slug_taken(session: AsyncSession, slug: str) -> bool:
     """Check if a slug is already taken."""
     hit = (await session.execute(select(Club.id).where(Club.slug == slug))).scalar_one_or_none()
     return hit is not None
-
-
-async def _backfill_event_entries(session: AsyncSession, series_ids) -> None:
-    """Register newly assigned clubs in unraced events of their series.
-
-    Normally, the same clubs enter every event of a series. If a club joins later,
-    it shouldn't need to be added individually to upcoming events — adding it to an
-    already-raced event would falsify the results.
-    """
-    from app.models import Event, EventStatus
-
-    for series_id in series_ids:
-        events = (
-            (
-                await session.execute(
-                    select(Event).where(
-                        Event.series_id == series_id, Event.status == EventStatus.PLANNED
-                    )
-                )
-            )
-            .scalars()
-            .all()
-        )
-        for event in events:
-            await adopt_series_registrations(session, event)

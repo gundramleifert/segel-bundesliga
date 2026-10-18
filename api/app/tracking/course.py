@@ -113,6 +113,7 @@ def lay_course(
     leg_length: float | None = None,
     line_length: float | None = None,
     gate_width: float | None = None,
+    gate_offset: float | None = None,
     laps: int = 2,
     finish_upwind: bool = False,
     finish_pin_side: Literal["left", "right"] = "right",
@@ -121,20 +122,21 @@ def lay_course(
 
     The start line sits at the centre, square to the wind, the pin to port of the committee
     boat (looking upwind); the windward mark ``leg_length`` upwind; the leeward gate a
-    little *above* the line, so the downwind leg to a finish at the committee boat is a
-    downwind leg; the finish pin on the chosen side of the committee boat — or, finishing
-    upwind, of the windward mark.
+    little (``gate_offset``) *above* the line, so the downwind leg to a finish at the
+    committee boat is a downwind leg; the finish pin on the chosen side of the committee
+    boat — or, finishing upwind, of the windward mark.
     """
     from app.tracking.geo import heading_vector
 
     leg_length = tracking_settings.default_leg_length_m if leg_length is None else leg_length
     line_length = tracking_settings.default_line_length_m if line_length is None else line_length
     gate_width = tracking_settings.default_gate_width_m if gate_width is None else gate_width
+    gate_offset = tracking_settings.default_gate_offset_m if gate_offset is None else gate_offset
     up = heading_vector(wind_from_deg)  # toward where the wind comes from = upwind
     port = up.left()
     committee = centre - port.scale(line_length / 2)
     pin = centre + port.scale(line_length / 2)
-    gate_centre = centre + up.scale(50.0)
+    gate_centre = centre + up.scale(gate_offset)
     windward = centre + up.scale(leg_length)
     finish_side = port if finish_pin_side == "left" else port.scale(-1)
     finish_anchor = windward if finish_upwind else committee

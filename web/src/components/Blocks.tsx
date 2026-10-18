@@ -1,5 +1,5 @@
 import { Spinner } from "@heroui/react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, type HTMLAttributes, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { EventSummary } from "../api/types";
@@ -43,33 +43,73 @@ export function Empty({ children, testId }: { children: ReactNode; testId?: stri
   );
 }
 
-const STATUS_STYLE: Record<string, string> = {
-  planned: "bg-slate-100 text-slate-700 ring-slate-200",
-  live: "bg-emerald-100 text-emerald-800 ring-emerald-300",
-  final: "bg-brand-100 text-brand-800 ring-brand-200",
-  cancelled: "bg-red-100 text-red-800 ring-red-200",
+/** What a badge's colour says. Named by meaning, not by colour, so a status map reads as
+ *  a decision ("cancelled is danger") rather than as a palette. */
+export type BadgeTone = "neutral" | "muted" | "success" | "warning" | "caution" | "danger" | "brand";
+
+const TONE_STYLE: Record<BadgeTone, string> = {
+  neutral: "bg-slate-100 text-slate-700 ring-slate-200",
+  muted: "bg-slate-100 text-slate-500 ring-slate-200",
+  success: "bg-emerald-100 text-emerald-800 ring-emerald-300",
+  warning: "bg-amber-100 text-amber-800 ring-amber-300",
+  caution: "bg-orange-100 text-orange-800 ring-orange-300",
+  danger: "bg-red-100 text-red-800 ring-red-200",
+  brand: "bg-brand-100 text-brand-800 ring-brand-200",
 };
 
-export function StatusBadge({ status, testId }: { status: string; testId?: string }) {
+/** A small rounded label — a status, a role, a warning — in one of a few tones.
+ *
+ *     <Badge tone="danger" testId="doc-expired">{t("documents.expired")}</Badge>
+ *
+ * `pulse` adds the green dot that says "happening now". Any other attribute (`role`,
+ * `data-state`, …) is passed through to the `<span>`. */
+export function Badge({
+  tone = "neutral",
+  pulse = false,
+  testId,
+  children,
+  ...rest
+}: {
+  tone?: BadgeTone;
+  pulse?: boolean;
+  testId?: string;
+  children: ReactNode;
+} & Omit<HTMLAttributes<HTMLSpanElement>, "className" | "children">) {
   return (
     <span
-      data-testid={testId ?? `status-badge-${status}`}
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-        STATUS_STYLE[status] ?? STATUS_STYLE.planned
-      }`}
+      {...rest}
+      data-testid={testId}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${TONE_STYLE[tone]}`}
     >
-      {status === "live" && (
-        <span className="size-1.5 animate-pulse rounded-full bg-emerald-600" aria-hidden />
-      )}
-      {statusText(status)}
+      {pulse && <span className="size-1.5 animate-pulse rounded-full bg-emerald-600" aria-hidden />}
+      {children}
     </span>
   );
 }
 
-const LIVE_STYLE: Record<LiveState, string> = {
-  live: "bg-emerald-100 text-emerald-800 ring-emerald-300",
-  reconnecting: "bg-amber-100 text-amber-800 ring-amber-300",
-  off: "bg-slate-100 text-slate-600 ring-slate-200",
+const STATUS_TONE: Record<string, BadgeTone> = {
+  planned: "neutral",
+  live: "success",
+  final: "brand",
+  cancelled: "danger",
+};
+
+export function StatusBadge({ status, testId }: { status: string; testId?: string }) {
+  return (
+    <Badge
+      tone={STATUS_TONE[status] ?? "neutral"}
+      pulse={status === "live"}
+      testId={testId ?? `status-badge-${status}`}
+    >
+      {statusText(status)}
+    </Badge>
+  );
+}
+
+const LIVE_TONE: Record<LiveState, BadgeTone> = {
+  live: "success",
+  reconnecting: "warning",
+  off: "muted",
 };
 
 /** What `useLive` reports, as a badge (Story B-5).
@@ -82,17 +122,15 @@ const LIVE_STYLE: Record<LiveState, string> = {
 export function LiveBadge({ state, testId }: { state: LiveState; testId?: string }) {
   const { t } = useTranslation();
   return (
-    <span
-      data-testid={testId ?? "live-badge"}
+    <Badge
+      tone={LIVE_TONE[state]}
+      pulse={state === "live"}
+      testId={testId ?? "live-badge"}
       data-state={state}
       role="status"
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${LIVE_STYLE[state]}`}
     >
-      {state === "live" && (
-        <span className="size-1.5 animate-pulse rounded-full bg-emerald-600" aria-hidden />
-      )}
       {t(`live.${state}`, { seconds: POLL_MILLIS / 1000 })}
-    </span>
+    </Badge>
   );
 }
 

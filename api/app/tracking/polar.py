@@ -22,7 +22,11 @@ from __future__ import annotations
 import bisect
 import math
 from dataclasses import dataclass
+from functools import cache
 from pathlib import Path
+from typing import NamedTuple
+
+from app.tracking.geo import angle_diff
 
 #: Metres per second in one knot.
 KNOT = 1852.0 / 3600.0
@@ -37,6 +41,14 @@ def _interp(x: float, xs: tuple[float, ...], ys: tuple[float, ...]) -> float:
     i = bisect.bisect_right(xs, x)
     x0, x1, y0, y1 = xs[i - 1], xs[i], ys[i - 1], ys[i]
     return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+
+
+class Optimum(NamedTuple):
+    """The best-VMG point of one polar column: true wind angle (degrees) and boat speed
+    (knots)."""
+
+    angle: float
+    speed: float
 
 
 @dataclass(frozen=True)
@@ -93,7 +105,7 @@ class Polar:
 
     def speed(self, tws: float, twa: float) -> float:
         """Boat speed in knots at this true wind speed and angle (0..180)."""
-        twa = abs(angle_to_180(twa))
+        twa = abs(angle_diff(twa, 0.0))
         beat_a, beat_s = self.best_upwind(tws)
         gybe_a, gybe_s = self.best_downwind(tws)
         if twa <= beat_a:
@@ -112,13 +124,13 @@ class Polar:
             return ys[-1] * max(0.6, 1 - (twa - xs[-1]) / 90)
         return _interp(twa, xs, ys)
 
-    def best_upwind(self, tws: float) -> tuple[float, float]:
-        """(true wind angle, boat speed) of the best VMG to windward."""
-        return self._column(self.beat_angle, tws), self._column(self.beat_speed, tws)
+    def best_upwind(self, tws: float) -> Optimum:
+        """The best VMG to windward."""
+        return Optimum(self._column(self.beat_angle, tws), self._column(self.beat_speed, tws))
 
-    def best_downwind(self, tws: float) -> tuple[float, float]:
-        """(true wind angle, boat speed) of the best VMG downwind."""
-        return self._column(self.gybe_angle, tws), self._column(self.gybe_speed, tws)
+    def best_downwind(self, tws: float) -> Optimum:
+        """The best VMG downwind."""
+        return Optimum(self._column(self.gybe_angle, tws), self._column(self.gybe_speed, tws))
 
     def vmg_upwind(self, tws: float) -> float:
         angle, speed = self.best_upwind(tws)
@@ -142,10 +154,6 @@ class Polar:
         )
 
 
-def angle_to_180(deg: float) -> float:
-    return (deg + 180.0) % 360.0 - 180.0
-
-
 def _sog_from_vmg(vmg: tuple[float, ...], angles: tuple[float, ...]) -> tuple[float, ...]:
     return tuple(v / abs(math.cos(math.radians(a))) for v, a in zip(vmg, angles, strict=True))
 
@@ -154,3 +162,9 @@ def _sog_from_vmg(vmg: tuple[float, ...], angles: tuple[float, ...]) -> tuple[fl
 #: Ships with the package, not with the tests: the emulator and the ranker read it at
 #: runtime, and the Docker image leaves ``tests/`` out.
 J70 = Path(__file__).resolve().parent / "polars" / "j70.csv"
+
+
+@cache
+def default_polar() -> Polar:
+    """The J/70 polar, read once per process: the live picture asks for it on every fix."""
+    return Polar.load(J70)

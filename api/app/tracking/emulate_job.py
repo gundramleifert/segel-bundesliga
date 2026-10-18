@@ -26,7 +26,7 @@ from app.jobs import Job
 from app.live import event_topic, hub
 from app.models import Boat, Event, EventStatus, Flight, Race, RaceEntry, RaceStatus, ResultCode
 from app.schemas.tracking import DefaultCourseIn, FixIn
-from app.services import race_state, recompute_event, recompute_series
+from app.services import race_state, recompute_after_change
 from app.tracking import service
 from app.tracking.emulate import emulated_race
 from app.tracking.polar import J70, Polar
@@ -219,8 +219,6 @@ async def _finish(event_id: int, race_id: int, finish_order: list[int]) -> None:
             entry.redress_points = None
         race.version += 1
         race_state.finish_race(session, race, actor=EMULATOR_ACTOR)
-        await recompute_event(session, event.id)
-        if event.series_id is not None:
-            await recompute_series(session, event.series_id)
+        await recompute_after_change(session, event)
         await session.commit()
         hub.publish(event_topic(event.id))

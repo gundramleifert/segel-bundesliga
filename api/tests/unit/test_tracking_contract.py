@@ -14,11 +14,11 @@ from app.tracking.analysis import RaceAnalysis, default_pipeline
 from app.tracking.course import MarkRole, lay_course
 from app.tracking.distance import StraightLineDistance
 from app.tracking.emulate import emulated_race
-from app.tracking.geo import XY, LocalTangentPlane
+from app.tracking.geo import XY, LatLon, LocalTangentPlane
 from app.tracking.polar import J70, Polar
 from app.tracking.ranking import ByLegThenDistance, ByTimeToGo
 
-ORIGIN = (54.42, 10.19)  # Kiel Fjord
+ORIGIN = LatLon(54.42, 10.19)  # Kiel Fjord
 BOATS = [1, 2, 3, 4, 5, 6]
 START = datetime(2026, 9, 15, 12, 0, tzinfo=UTC)
 

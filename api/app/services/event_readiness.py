@@ -26,7 +26,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AuditLog, Boat, Event, Flight, Race, RaceEntry, RaceStatus
-from app.pairing.catalog import CatalogError, catalog_entries, load_entry
+from app.pairing.catalog import CatalogError, cached_entry, catalog_entries
 from app.problems import Problem
 from app.services.participation import event_entries
 
@@ -90,11 +90,15 @@ class FrozenConfiguration:
 RACE_STARTED_ACTION = "start"
 
 
-async def event_readiness(session: AsyncSession, event: Event) -> list[ReadinessReason]:
+async def event_readiness(
+    session: AsyncSession, event: Event, *, ignore: Collection[str] = ()
+) -> list[ReadinessReason]:
     """Everything that still stands between this event and its first race.
 
     An empty list means ready. The order is the order in which an organizer fixes them:
     first the entered clubs, then the boats, then the dimensions as a whole, then the date.
+    A reason in ``ignore`` is left out — and the catalog, read from disk, is then not even
+    consulted.
     """
     reasons: list[ReadinessReason] = []
 
@@ -125,7 +129,8 @@ async def event_readiness(session: AsyncSession, event: Event) -> list[Readiness
     # The draw itself: without a stored list for these dimensions there is nothing to take
     # from the catalog, and computing one is a job of minutes (see `docs/findings.md`).
     try:
-        load_entry(event.team_count, event.boat_count, event.flight_count)
+        if CATALOG_REASON not in ignore:
+            cached_entry(event.team_count, event.boat_count, event.flight_count)
     except CatalogError:
         reasons.append(
             ReadinessReason(
@@ -153,7 +158,7 @@ async def event_readiness(session: AsyncSession, event: Event) -> list[Readiness
             )
         )
 
-    return reasons
+    return [reason for reason in reasons if reason.code not in ignore]
 
 
 async def configuration_frozen(session: AsyncSession, event_id: int) -> FrozenConfiguration | None:
@@ -244,9 +249,7 @@ async def require_ready(
     list already exists — pass it here rather than being blocked by the one thing they are
     the answer to.
     """
-    reasons = [
-        reason for reason in await event_readiness(session, event) if reason.code not in ignore
-    ]
+    reasons = await event_readiness(session, event, ignore=ignore)
     if not reasons:
         return
 

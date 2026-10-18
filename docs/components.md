@@ -17,7 +17,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | File | Holds |
 |---|---|
 | `Async.tsx` | `Async` — one request, rendered |
-| `Blocks.tsx` | `Loading`, `ErrorMessage`, `Empty`, `PageHeader`, `StatusBadge`, `LiveBadge`, `TableFrame`, `MatchdayCard` |
+| `Blocks.tsx` | `Loading`, `ErrorMessage`, `Empty`, `PageHeader`, `Badge`, `StatusBadge`, `LiveBadge`, `TableFrame`, `MatchdayCard` |
 | `Layouts.tsx` | `Stack`, `CardGrid` |
 | `LinkCard.tsx` | `LinkCard` |
 | `Tip.tsx` | `Tip` — the tooltip, in place of `title` |
@@ -30,6 +30,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, leading to its `/admin/<area>/new` page |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and the club's page in my space (`/me/club/:id`) |
+| `RoleSelect.tsx` | `RoleSelect` — helm / crew / substitute beside a name on the right pane of `SquadPanel` and `LineupPanel`; their shared draft is `useRosterDraft` (`lib/useRosterDraft.ts`) |
 | `PersonDocuments.tsx` | `PersonDocuments` — a person's licences on demand, for their organizers, on a person's row (Story S-5); hides itself on `documents-forbidden`. `ExpiredBadge` |
 | `FileDropzone.tsx` | `FileDropzone` — a file field you drop a file onto or tap to choose; checks the type on drop, keeps a hidden `<input type="file">` carrying the `testId` for `setInputFiles` |
 | `CrestEditor.tsx` | `CrestEditor` — a club's crest, edited from the crest itself (Story V-3); the admin club list and the club's page in my space |
@@ -145,6 +146,21 @@ page has renders nothing, so a link is never a "?" that lands on an empty page. 
 testid is `help-link-<anchor>`. For "help for the whole screen" use `helpFor(pathname)`
 from the same module, as the account menu does — never write a `/help/…` path by hand.
 
+### `Badge` — a small label in a tone
+
+```tsx
+<Badge tone="danger" testId={`doc-expired-${doc.id}`}>{t("documents.expired")}</Badge>
+<Badge tone="success" pulse>{statusText("live")}</Badge>
+```
+
+The rounded pill every status, role and warning label is: `StatusBadge`, `LiveBadge`,
+`ClaimStatusBadge`, `ExpiredBadge`, a member's relations, the "minor" mark. Tones are
+named by meaning — `neutral`, `muted`, `success`, `warning`, `caution`, `danger`,
+`brand` — so a status map reads as a decision ("cancelled is danger") rather than as a
+palette, and six hand-written copies of the same class string no longer drift apart in
+padding and shade. `pulse` adds the green "happening now" dot; any other attribute
+(`role`, `data-state`) is passed through to the `<span>`.
+
 ### `LiveBadge` and `useLive` — the page hears about changes
 
 ```tsx
@@ -236,7 +252,7 @@ so nobody has to find out where a screen hides its "new".
 
 ```tsx
 const [offset, setOffset] = useState(0);
-const query = useListEvents({ limit: PAGE_SIZE, offset },
+const query = useListEvents({ limit: PAGE_SIZE, offset },   // PAGE_SIZE from api/useApi
   { query: { placeholderData: keepPreviousData } });
 ...
 <Pager page={query.data} onOffset={setOffset} testId="events" />

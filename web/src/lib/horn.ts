@@ -127,7 +127,6 @@ export function hornSounds(tone: Tone, count: number): void {
   for (let i = 0; i < count; i += 1) horn(tone, latency + i * soundSpacing(tone), base);
 }
 
-/** Cancels every booked tone — an aborted sequence must not beep on for another second. */
 /** `horn`, but at most once per `key` — a sequence's tone is its exact time and kind. The
  *  look-ahead books each window once, yet a remounted card or a re-run effect starts with no
  *  memory of what was booked; this is the one place that remembers, so a beep is never
@@ -138,6 +137,7 @@ export function hornOnce(key: string, tone: Tone, inSeconds: number, base?: numb
   horn(tone, inSeconds, base);
 }
 
+/** Cancels every booked tone — an aborted sequence must not beep on for another second. */
 export function silenceHorn(): void {
   bookedKeys.clear();
   for (const oscillator of pending) {

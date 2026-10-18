@@ -6,7 +6,8 @@ the in-process interpreter behind it could one day be an OpenFGA server and the 
 would not notice:
 
 * :class:`ObjectRef` — an object as ``type:id`` (``club:3``; the site has no id). FGA's
-  object notation, never an ORM instance's class name.
+  object notation, never an ORM instance's class name. Defined in `app/models/auth.py`
+  (a ``Grant`` names its object with it) and taken from here.
 * :func:`check` — FGA ``Check``: does any of these relations hold on the object, directly
   or through the rewrite rules? The one answer to "may this person …".
 * :func:`read` — FGA ``Read``: is this exact tuple written? For the few places where the
@@ -28,34 +29,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-from app.models.auth import SCHEMA, ObjectType, Relation
+from app.models.auth import SCHEMA, SITE, ObjectRef, ObjectType, Relation
 from app.problems import Problem
 
 if TYPE_CHECKING:
     from app.models.auth import User
 
 
-class ObjectRef(NamedTuple):
-    """An object a relation is held on: ``club:3``, or the ``site``."""
+class RelationTuple(NamedTuple):
+    """A tuple as FGA's ``Read`` returns it, the user left implicit."""
 
-    type: ObjectType
-    id: int | None = None
+    relation: str
+    object: ObjectRef
 
-    def __str__(self) -> str:
-        return "site" if self.type is ObjectType.SITE else f"{self.type.value}:{self.id}"
-
-    @classmethod
-    def parse(cls, text: str) -> ObjectRef:
-        """``"event:3"`` → ``ObjectRef(EVENT, 3)``; ``"site"`` → :data:`SITE`."""
-        if text == "site":
-            return SITE
-        kind, _, ident = text.partition(":")
-        if not ident.isdigit() or kind not in {t.value for t in ObjectType} or kind == "site":
-            raise ValueError(f"not an object: {text!r} (expected type:id, e.g. event:3, or site)")
-        return cls(ObjectType(kind), int(ident))
-
-
-SITE = ObjectRef(ObjectType.SITE)
 
 #: What may name an object: a ref, ``"club:3"``, ``ObjectType.SITE``, or a loaded
 #: ``Club``/``Series``/``Event``/``Sailor`` (an event this way brings its containers).
@@ -102,9 +88,9 @@ def read(user: User, relation: Relation | str, on: On = SITE) -> bool:
     return any(g.relation == relation and g.ref == target for g in user.grants)
 
 
-def tuples(user: User) -> list[tuple[str, ObjectRef]]:
+def tuples(user: User) -> list[RelationTuple]:
     """FGA ``Read`` by user: every tuple this person holds, as ``(relation, object)``."""
-    return [(g.relation, g.ref) for g in user.grants]
+    return [RelationTuple(g.relation, g.ref) for g in user.grants]
 
 
 def check(user: User, *relations: Relation | str, on: On = SITE) -> bool:

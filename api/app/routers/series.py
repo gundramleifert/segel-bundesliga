@@ -11,7 +11,6 @@ multiple series, here a series is attached to multiple clubs. Both write the sam
 from __future__ import annotations
 
 from datetime import date
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -22,23 +21,17 @@ from app import authz
 from app.auth import current_user, require_admin, require_series_manager_for
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
-from app.models import Club, Event, EventStatus, League, Series, Team, TeamStatus
+from app.models import Club, Event, League, Series, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
+from app.schemas.admin import ScoringIn
 from app.schemas.public import ClubOut, SeriesOut
-from app.services import (
-    adopt_series_registrations,
-    check_squad_limits,
-    delete_event_entries,
-    has_results,
-)
+from app.services import check_squad_limits
+from app.services.registrations import Registration, RegistrationHasResults, sync_registrations
 from app.text import slugify
 
 router = APIRouter(prefix="/api/admin/series", tags=["admin"])
-
-# At the matchday, racing without discards; percent penalty follows RRS 44.3.
-DEFAULT_SCORING: dict[str, Any] = {"discard_after": [], "penalty_percent": 20}
 
 
 class SeriesCreate(BaseModel):
@@ -59,7 +52,7 @@ class SeriesCreate(BaseModel):
         description="The league this is a year of; without one it is not on a league's page",
     )
     clubs: list[int] = Field(default_factory=list, description="Clubs participating in this series")
-    scoring: dict[str, Any] | None = None
+    scoring: ScoringIn | None = None
     published: bool = Field(
         default=False,
         description=(
@@ -88,7 +81,7 @@ class SeriesUpdate(BaseModel):
     ends_on: date | None = None
     level: int | None = None
     league_id: int | None = None
-    scoring: dict[str, Any] | None = None
+    scoring: ScoringIn | None = None
     published: bool | None = None
     description: str | None = Field(default=None, max_length=4000)
     squad_min: int | None = Field(default=None, ge=1, le=50)
@@ -248,7 +241,7 @@ async def create_series(
         level=request.level,
         league_id=request.league_id,
         published=request.published,
-        scoring=request.scoring if request.scoring is not None else dict(DEFAULT_SCORING),
+        scoring=(request.scoring or ScoringIn()).model_dump(),
         description=request.description.strip() if request.description else None,
         squad_min=request.squad_min,
         squad_max=request.squad_max,
@@ -282,6 +275,9 @@ async def update_series(
 ) -> SeriesAdminOut:
     series = await _get_series(session, series_id, locale)
     changes = request.model_dump(exclude_unset=True)
+    if request.scoring is not None:
+        # Whole, with defaults: ``exclude_unset`` would otherwise store a partial object.
+        changes["scoring"] = request.scoring.model_dump()
     check_squad_limits(
         changes.get("squad_min", series.squad_min), changes.get("squad_max", series.squad_max)
     )
@@ -356,46 +352,29 @@ async def set_clubs(
     series = await _get_series(session, series_id, locale)
     desired = {club.id: club for club in await _resolve_clubs(session, request.clubs, locale)}
 
-    existing = {
-        team.club_id: team
-        for team in (
-            await session.execute(
-                select(Team).where(Team.series_id == series.id, Team.event_id.is_(None))
-            )
-        ).scalars()
-    }
-
-    for club_id, team in existing.items():
-        if club_id in desired:
-            continue
-        if await has_results(session, team):
-            raise HTTPException(
-                status_code=409,
-                detail=tr(
-                    locale,
-                    ("This club cannot be removed: this series already has race results for it."),
-                    (
-                        "Dieser Verein lässt sich nicht entfernen: in dieser Serie"
-                        " liegen für ihn bereits Wettfahrtergebnisse vor."
-                    ),
-                ),
-            )
-        # Without series registration, no entry in its events.
-        await delete_event_entries(session, series.id, club_id)
-        await session.delete(team)
-
-    session.add_all(
-        Team(
-            name=club.short_name,
-            club_id=club.id,
-            series_id=series.id,
-            status=TeamStatus.ACCEPTED,
+    existing = (
+        await session.execute(
+            select(Team).where(Team.series_id == series.id, Team.event_id.is_(None))
         )
-        for club_id, club in desired.items()
-        if club_id not in existing
-    )
-    await session.flush()
-    await _backfill_event_entries(session, series.id)
+    ).scalars()
+    try:
+        await sync_registrations(
+            session,
+            existing,
+            (Registration(club.id, series.id, club.short_name) for club in desired.values()),
+        )
+    except RegistrationHasResults:
+        raise HTTPException(
+            status_code=409,
+            detail=tr(
+                locale,
+                ("This club cannot be removed: this series already has race results for it."),
+                (
+                    "Dieser Verein lässt sich nicht entfernen: in dieser Serie"
+                    " liegen für ihn bereits Wettfahrtergebnisse vor."
+                ),
+            ),
+        ) from None
     await session.commit()
     return await _series_out(session, series.id)
 
@@ -449,29 +428,6 @@ async def _series_out(session: AsyncSession, series_id: int) -> SeriesAdminOut:
     """The current state of one series, in the same shape the list answers with."""
     series = (await session.execute(select(Series).where(Series.id == series_id))).scalar_one()
     return (await _compose(session, [series]))[0]
-
-
-async def _backfill_event_entries(session: AsyncSession, series_id: int) -> None:
-    """Register the series' clubs in unraced events of the series.
-
-    Normally, the same clubs enter every event of a series; if a club joins later,
-    it shouldn't need to be added individually to upcoming events. An already-raced
-    event remains untouched — otherwise someone would appear in the list who never
-    started.
-    """
-    events = (
-        (
-            await session.execute(
-                select(Event).where(
-                    Event.series_id == series_id, Event.status == EventStatus.PLANNED
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    for event in events:
-        await adopt_series_registrations(session, event)
 
 
 async def _check_league(session: AsyncSession, league_id: int | None) -> None:

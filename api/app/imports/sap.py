@@ -19,7 +19,8 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any
+from functools import partial
+from typing import Any, NamedTuple
 from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
@@ -29,12 +30,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.imports.common import (
     Report,
-    finish_run,
     link,
     link_key,
     linked,
     resolve_club,
-    start_run,
+    run_import,
     unique_slug,
 )
 from app.models import (
@@ -53,6 +53,7 @@ from app.models import (
     Venue,
 )
 from app.models.racing import RaceStatus, ResultCode
+from app.schemas.admin import ScoringIn
 from app.services.standings import recompute_event
 from app.text import slugify
 
@@ -226,32 +227,17 @@ async def import_sap(
         except httpx.HTTPError as error:
             report.warnings.append(f"{regatta.name}: no crests ({error})")
             crests = {}
-        async with sessions() as session:
-            run = await start_run(session, SOURCE, regatta.name)
-            own = Report()
-            try:
-                await _import_regatta(
-                    session, own, regatta, leaderboard, crests, matchdays.get(regatta.name), publish
-                )
-            except Exception as error:  # noqa: BLE001 — reported, and the next regatta runs
-                await session.rollback()
-                # Nothing of it was kept, so nothing of it is counted.
-                own = Report(errors=[f"{regatta.name}: {type(error).__name__}: {error}"])
-                run = await start_run(session, SOURCE, regatta.name)
-            finish_run(run, own)
-            await session.commit()
-        _merge(report, own)
+
+        work = partial(
+            _import_regatta,
+            regatta=regatta,
+            leaderboard=leaderboard,
+            crests=crests,
+            matchday=matchdays.get(regatta.name),
+            publish=publish,
+        )
+        report.merge(await run_import(sessions, SOURCE, regatta.name, work))
     return report
-
-
-def _merge(into: Report, part: Report) -> None:
-    into.created.update(part.created)
-    into.updated.update(part.updated)
-    into.unchanged.update(part.unchanged)
-    into.conflicts.extend(part.conflicts)
-    into.unassigned.extend(part.unassigned)
-    into.warnings.extend(part.warnings)
-    into.errors.extend(part.errors)
 
 
 async def _number_matchdays(
@@ -379,13 +365,21 @@ async def _import_regatta(
 
     boats = await _boats(session, report, event, boats_seen)
     races = await _races(session, report, event, columns, fleet_names, fleets_by_column)
+    entries = {
+        EntryKey(entry.race_id, entry.team_id): entry
+        for entry in (
+            await session.execute(
+                select(RaceEntry).where(RaceEntry.race_id.in_([r.id for r in races.values()]))
+            )
+        ).scalars()
+    }
 
     for competitor in competitors:
         team = teams.get(competitor["id"])
         if team is None:
             continue
         for column, cell in _cells(competitor).items():
-            await _result(session, report, regatta, races, boats, team, column, cell)
+            _result(session, report, regatta, races, boats, entries, team, column, cell)
         _penalty(report, regatta, team, competitor.get("carriedPoints"))
 
     await session.flush()
@@ -420,7 +414,7 @@ async def _series(
             year=regatta.year,
             level=regatta.level,
             league_id=(await _league(session, report, regatta.level)).id,
-            scoring={"discard_after": [], "penalty_percent": 20},
+            scoring=ScoringIn().model_dump(),
             published=publish,
         )
         session.add(series)
@@ -436,9 +430,7 @@ async def _series(
 async def _league(session: AsyncSession, report: Report, level: int) -> League:
     """The division's league — the 1. and 2. Liga are two leagues (Story B-14)."""
     slug = f"{level}-liga"
-    league = (
-        await session.execute(select(League).where(League.slug == slug))
-    ).scalar_one_or_none()
+    league = (await session.execute(select(League).where(League.slug == slug))).scalar_one_or_none()
     if league is None:
         league = League(
             slug=slug,
@@ -685,12 +677,20 @@ async def _races(
     return races
 
 
-async def _result(
+class EntryKey(NamedTuple):
+    """A result's place: one team in one race."""
+
+    race_id: int
+    team_id: int
+
+
+def _result(
     session: AsyncSession,
     report: Report,
     regatta: RegattaName,
     races: dict[tuple[str, str], Race],
     boats: dict[str, Boat],
+    entries: dict[EntryKey, RaceEntry],
     team: Team,
     column: str,
     cell: dict[str, Any],
@@ -710,22 +710,18 @@ async def _result(
     if warning:
         report.warnings.append(f"{where}: {warning}")
 
-    entry = (
-        await session.execute(
-            select(RaceEntry).where(RaceEntry.race_id == race.id, RaceEntry.team_id == team.id)
-        )
-    ).scalar_one_or_none()
+    key = EntryKey(race.id, team.id)
+    entry = entries.get(key)
     if entry is None:
-        session.add(
-            RaceEntry(
-                race_id=race.id,
-                team_id=team.id,
-                boat_id=boat.id,
-                code=code,
-                finish_position=position,
-                redress_points=redress,
-            )
+        entries[key] = RaceEntry(
+            race_id=race.id,
+            team_id=team.id,
+            boat_id=boat.id,
+            code=code,
+            finish_position=position,
+            redress_points=redress,
         )
+        session.add(entries[key])
         report.tally("created", "results")
         return
     if entry.code is None and entry.boat_id == boat.id:

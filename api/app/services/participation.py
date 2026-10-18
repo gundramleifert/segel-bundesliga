@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models import Club, Event, RaceEntry, Team, TeamStatus
 
@@ -32,13 +33,18 @@ async def series_registrations(
 
 
 async def event_entries(
-    session: AsyncSession, event_id: int, *, accepted_only: bool = True
+    session: AsyncSession, event_id: int, *, accepted_only: bool = True, with_club: bool = False
 ) -> list[Team]:
-    """The teams entered in this event.
+    """The teams entered in this event — the one query for it.
 
-    Sorted by name so the same input always produces the same pairing.
+    The pairing list belongs to the event, and so do the teams in it: the draw is among
+    those entering *here*, not among everyone registered for the series. Sorted by name so
+    the same input always produces the same pairing — a draw has to be reproducible.
+    ``with_club`` loads each team's club with it, for a page that names it.
     """
     stmt = select(Team).where(Team.event_id == event_id)
+    if with_club:
+        stmt = stmt.options(selectinload(Team.club))
     if accepted_only:
         stmt = stmt.where(Team.status == TeamStatus.ACCEPTED)
     return list((await session.execute(stmt.order_by(Team.name, Team.id))).scalars())

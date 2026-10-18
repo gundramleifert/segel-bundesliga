@@ -31,6 +31,7 @@ import yaml
 
 from app.config import settings
 from app.pairing.importer import BoatSpec, ImportedPairing, load_pairing_yaml
+from app.pairing.java import require_jar, tail
 from app.pairing.logistics import LogisticsReport, logistics_report
 from app.pairing.schedule import pairing_report
 
@@ -150,7 +151,6 @@ class GenerationResult:
     pairing: ImportedPairing
     quality: dict[str, int]
     logistics: LogisticsReport
-    pdf_paths: list[Path]
     log: str
 
     def summary(self) -> dict:
@@ -164,21 +164,10 @@ async def generate_pairing(
     jar: Path | None = None,
     display_config: str | None = None,
     timeout: int | None = None,
-    keep_workdir: bool = False,
     on_progress: ProgressCallback | None = None,
 ) -> GenerationResult:
     """Starts the Java optimizer and reads its result."""
-    jar_path = Path(jar) if jar else Path(settings.pairing_jar)
-    if not jar_path.is_file():
-        raise PairingGeneratorError(
-            f"The pairing JAR is missing at {jar_path}. "
-            "Build with: mvn -DskipTests package in the reference/PairingList directory"
-        )
-    if shutil.which(settings.java_binary) is None:
-        raise PairingGeneratorError(
-            f"Java was not found ('{settings.java_binary}'). "
-            "The pairing generator needs a Java runtime version 17 or later."
-        )
+    jar_path = require_jar(jar, PairingGeneratorError, "The pairing generator")
 
     workdir = Path(tempfile.mkdtemp(prefix="sbl-pairing-"))
     try:
@@ -194,9 +183,7 @@ async def generate_pairing(
 
         out_yaml = workdir / "out.yml"
         if not out_yaml.is_file():
-            raise PairingGeneratorError(
-                "The optimizer did not write a pairing list.\n" + _tail(log)
-            )
+            raise PairingGeneratorError("The optimizer did not write a pairing list.\n" + tail(log))
 
         pairing = load_pairing_yaml(
             schedule_cfg.read_text(encoding="utf-8"), out_yaml.read_text(encoding="utf-8")
@@ -205,13 +192,10 @@ async def generate_pairing(
             pairing=pairing,
             quality=pairing_report(pairing.slots, len(request.teams), len(request.boats)),
             logistics=logistics_report(pairing.slots, len(request.boats)),
-            pdf_paths=sorted(workdir.glob("*.pdf")),
             log=log,
         )
     finally:
-        # Die PDFs liegen im Arbeitsverzeichnis; wer sie braucht, muss es behalten.
-        if not keep_workdir:
-            shutil.rmtree(workdir, ignore_errors=True)
+        shutil.rmtree(workdir, ignore_errors=True)
 
 
 async def _run_optimizer(
@@ -253,7 +237,7 @@ async def _run_optimizer(
 
     if process.returncode != 0:
         raise PairingGeneratorError(
-            f"The optimizer exited with code {process.returncode}.\n" + _tail(log)
+            f"The optimizer exited with code {process.returncode}.\n" + tail(log)
         )
     return log
 
@@ -309,10 +293,6 @@ def parse_optimizer_log(log: str) -> dict[str, int] | None:
         "saved_shuttles_at_sea": int(at_sea),
         "boat_changes": int(changes),
     }
-
-
-def _tail(log: str, lines: int = 15) -> str:
-    return "\n".join(log.strip().splitlines()[-lines:])
 
 
 # Field names as in DisplayConfig of the Java tool. It would silently ignore unknown keys

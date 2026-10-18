@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
+import i18n from "../i18n";
 import { useMe } from "./generated/sbl";
 import { ApiError } from "./http";
 import { getToken, onTokenChange } from "./session";
@@ -31,7 +32,7 @@ export function useAsync<Q extends QueryLike>(query: Q): AsyncState<Payload<Q>> 
   const { t } = useTranslation();
   return {
     data: (query.data ?? null) as Payload<Q> | null,
-    error: query.isError ? errorMessage(query.error, t("errors.loadFailed")) : null,
+    error: query.isError ? errorText(query.error, t("errors.loadFailed")) : null,
     loading: query.isPending,
   };
 }
@@ -45,6 +46,14 @@ export function useAsync<Q extends QueryLike>(query: Q): AsyncState<Payload<Q>> 
  * screens say what they are doing instead of passing a bare `100`.
  */
 export const WHOLE_LIST = 100;
+
+/** Rows per page on the screens that page.
+ *
+ * The same number the backend defaults to (`app/pagination.py::DEFAULT_LIMIT`), named
+ * beside {@link WHOLE_LIST} so that asking for a page and asking for the whole list read
+ * as two different decisions rather than two magic numbers.
+ */
+export const PAGE_SIZE = 25;
 
 /** The rows of a paged answer, for a screen that wants the list and not the envelope.
  *
@@ -90,8 +99,17 @@ interface QueryLike {
  */
 type Payload<Q extends QueryLike> = NonNullable<Q["data"]>;
 
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof ApiError ? error.message : fallback;
+/** The sentence to show for a failed request or mutation.
+ *
+ * The server's own message, not a made-up one — an `ApiError` already carries one,
+ * translated from its problem code, and it says what went wrong. Anything else (a network
+ * failure, a bug) falls back to a generic sentence: `fallback`, or "the action failed".
+ * The one place this decision is made — `useAsync` and every mutation's error use it.
+ */
+export function errorText(error: unknown, fallback?: string): string {
+  return error instanceof ApiError
+    ? error.message
+    : (fallback ?? i18n.t("common:errors.actionFailed"));
 }
 
 /** Invalidates cached queries — after every mutation. Takes two kinds of argument:
@@ -124,11 +142,12 @@ export function useInvalidate() {
   };
 }
 
-/** Whether someone is currently signed in. Reacts to sign-in/out in the same tab. */
+/** Whether someone is currently signed in. Reacts to sign-in/out in the same tab.
+ *
+ * `useSyncExternalStore` over a state copy kept in step by an effect: the first render
+ * already has the token, and no render ever sees a stale one. */
 export function useToken(): string | null {
-  const [token, setStoredToken] = useState(getToken);
-  useEffect(() => onTokenChange(() => setStoredToken(getToken())), []);
-  return token;
+  return useSyncExternalStore(onTokenChange, getToken, () => null);
 }
 
 export interface AccountState {
@@ -158,4 +177,16 @@ export function useAccount(): AccountState {
     loading: Boolean(token) && query.isPending,
     hasRole: (...roles) => Boolean(account && roles.some((r) => account.roles.includes(r))),
   };
+}
+
+/** The summary roles the administration has something for (Story A-12).
+ *
+ * One list, read by the frame's account menu (whether to offer the link) and by the
+ * administration's own guard (whether to let someone in): two copies would drift, and a
+ * link that ends in a 403 is worse than no link. */
+const ADMIN_ROLES = ["admin", "editor", "series_manager", "event_manager", "jury"];
+
+/** Whether this account may open the administration at all. */
+export function mayOpenAdmin(account: Account | null): boolean {
+  return Boolean(account && ADMIN_ROLES.some((role) => account.roles.includes(role)));
 }

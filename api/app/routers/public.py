@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import re
+from collections.abc import Iterable
 from datetime import date
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
@@ -31,7 +32,6 @@ from app.live import hub
 from app.models import (
     Boat,
     Club,
-    CrewRole,
     Event,
     EventCrew,
     EventDocument,
@@ -82,7 +82,7 @@ from app.schemas.public import (
     TeamOut,
     VenueOut,
 )
-from app.services import compute_event, compute_series, current_year
+from app.services import compute_event, compute_series, current_year, event_entries
 from app.services.pairing_service import TeamNotInPairing, stored_pairing
 from app.text import slugify
 
@@ -93,7 +93,6 @@ _EVENT_RELATIONSHIPS = ("series", "venue", "host_club")
 _EVENT_LOAD = tuple(selectinload(getattr(Event, name)) for name in _EVENT_RELATIONSHIPS)
 
 # Helm first, then crew, then substitute — the order a crew is announced.
-_ROLE_ORDER = {CrewRole.HELM: 0, CrewRole.CREW: 1, CrewRole.SUBSTITUTE: 2}
 
 
 def _only_public_events(stmt):
@@ -904,7 +903,7 @@ async def get_event_crew(
             )
         )
     for members in crew_by_team.values():
-        members.sort(key=lambda m: (_ROLE_ORDER.get(m.role, 9), m.last_name, m.first_name))
+        members.sort(key=MemberOut.announce_order)
 
     return EventCrewList(
         event=_event_out(event),
@@ -1099,7 +1098,7 @@ async def _teams_of_event(session: AsyncSession, event_id: int) -> dict[int, Tea
     Event standings and pairing list depend on the event — so do the teams in them.
     If no one participates, both remain empty.
     """
-    return await _as_teamout(session, Team.event_id == event_id, Team.status == TeamStatus.ACCEPTED)
+    return _team_outs(await event_entries(session, event_id, with_club=True))
 
 
 async def _teams_of_series(session: AsyncSession, series_id: int) -> dict[int, TeamOut]:
@@ -1116,9 +1115,13 @@ async def _teams_of_series(session: AsyncSession, series_id: int) -> dict[int, T
 
 async def _as_teamout(session: AsyncSession, *conditions) -> dict[int, TeamOut]:
     result = await session.execute(select(Team).options(selectinload(Team.club)).where(*conditions))
+    return _team_outs(result.scalars())
+
+
+def _team_outs(teams: Iterable[Team]) -> dict[int, TeamOut]:
     return {
         team.id: TeamOut(id=team.id, name=team.name, club=ClubOut.model_validate(team.club))
-        for team in result.scalars()
+        for team in teams
     }
 
 
@@ -1150,7 +1153,7 @@ async def _squad(session: AsyncSession, team_ids: list[int]) -> dict[int, list[M
             )
         )
     for members in by_team.values():
-        members.sort(key=lambda m: (_ROLE_ORDER.get(m.role, 9), m.last_name, m.first_name))
+        members.sort(key=MemberOut.announce_order)
     return by_team
 
 
@@ -1205,7 +1208,7 @@ async def _events_by_team(
             )
         )
     for members in crew_by_event.values():
-        members.sort(key=lambda m: (_ROLE_ORDER.get(m.role, 9), m.last_name, m.first_name))
+        members.sort(key=MemberOut.announce_order)
 
     return {
         team_id: [

@@ -17,7 +17,7 @@ import {
   useUpdateSeries,
 } from "../api/generated/sbl";
 import type { ClubAdmin, SeriesAdmin } from "../api/types";
-import { WHOLE_LIST, useAsyncRows, useInvalidate, useAccount } from "../api/useApi";
+import { WHOLE_LIST, mayOpenAdmin, useAsyncRows, useInvalidate, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { TabbedView, type TabDef } from "../components/Tabs";
 import { AccountsAdmin } from "./AdminAccounts";
@@ -60,9 +60,7 @@ export function AdminAccess({
       <ErrorMessage text={t("auth.notSignedInError")} testId="admin-auth-error" />
     );
   }
-  const allowed = adminOnly
-    ? hasRole("admin")
-    : hasRole("admin", "editor", "series_manager", "event_manager", "jury");
+  const allowed = adminOnly ? hasRole("admin") : mayOpenAdmin(account);
   if (!allowed) {
     return (
       <ErrorMessage text={t("auth.noAccessError")} testId="admin-access-error" />
@@ -208,13 +206,10 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
 
 // ----------------------------------------------------------------------- Series
 
+/** The early return sits here, above the component that asks for the lists, so a role
+ *  that only sees the notice never fetches every series and every club for nothing. */
 function Series({ editorOnly }: { editorOnly: boolean }) {
   const { t } = useTranslation("admin");
-  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
-  // The rows' club selectors have to offer every club, so this asks for the whole list.
-  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
-  const invalidate = useInvalidate();
-
   if (editorOnly) {
     return (
       <Section title={t("series.title")} testId="admin-series-section">
@@ -222,6 +217,15 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
       </Section>
     );
   }
+  return <SeriesList />;
+}
+
+function SeriesList() {
+  const { t } = useTranslation("admin");
+  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
+  // The rows' club selectors have to offer every club, so this asks for the whole list.
+  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
+  const invalidate = useInvalidate();
 
   return (
     <Section

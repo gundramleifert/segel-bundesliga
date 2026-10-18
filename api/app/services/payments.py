@@ -12,7 +12,7 @@ from __future__ import annotations
 import io
 import uuid
 from collections import defaultdict
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import segno.helpers
@@ -25,7 +25,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
-from app.authz import ObjectRef
 from app.models import (
     AuditLog,
     ClaimStatus,
@@ -39,6 +38,7 @@ from app.models import (
 )
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
+from app.services.expenses import may_pay_for, own_claim
 
 #: The format German banks take since the SEPA 2025 changes (DK data format 3.7+).
 SEPA_SCHEMA = "pain.001.001.09"
@@ -47,14 +47,6 @@ REMITTANCE_MAX = 140
 
 
 # ---------------------------------------------------------------------- who
-
-
-def may_pay_for(user: User, club_id: int) -> bool:
-    """The club's manager or treasurer (and their admins): the people who hold its money
-    (Story F-3). The club's account and its runs are theirs alone."""
-    return authz.check(
-        user, Relation.MANAGER, Relation.TREASURER, on=ObjectRef(ObjectType.CLUB, club_id)
-    )
 
 
 def require_pay_for(user: User, club_id: int) -> None:
@@ -90,9 +82,15 @@ async def load_run(session: AsyncSession, run_id: int) -> PaymentRun:
 
 async def open_runs(session: AsyncSession, user: User) -> list[PaymentRun]:
     """Runs still waiting for the bank, of every club this person pays for."""
-    runs = (
-        (await session.execute(select(PaymentRun).order_by(PaymentRun.id.desc()))).scalars().all()
-    )
+    stmt = select(PaymentRun).order_by(PaymentRun.id.desc())
+    if not authz.check(user, Relation.ADMIN):
+        # The clubs whose manager, treasurer or admin this person is — the site's admin
+        # pays for every club. `may_pay_for` still has the last word.
+        clubs = authz.list_objects(user, (Relation.MANAGER, Relation.TREASURER), ObjectType.CLUB)
+        if not clubs:
+            return []
+        stmt = stmt.where(PaymentRun.payer_club_id.in_(clubs))
+    runs = (await session.execute(stmt)).scalars().all()
     return [run for run in runs if run.open and may_pay_for(user, run.payer_club_id)]
 
 
@@ -157,7 +155,7 @@ async def create_run(
                     claim_id=claim_id,
                 )
             if claim.claimant_user_id == user.id:
-                raise Problem(403, "claim-own-decision", "Nobody decides or pays their own claim.")
+                raise own_claim()
             chosen.append(claim)
     if not chosen:
         raise Problem(422, "payment-run-empty", "There is nothing to pay.")
@@ -263,7 +261,7 @@ def girocode_svg(user: User, claim: ExpenseClaim) -> bytes:
     Only while something is open: a code for a claim already in a run would pay it twice.
     """
     if claim.claimant_user_id == user.id:
-        raise Problem(403, "claim-own-decision", "Nobody decides or pays their own claim.")
+        raise own_claim()
     if claim.open_cents <= 0 or claim.iban is None:
         raise Problem(
             422,
@@ -369,18 +367,19 @@ def book_workbook(claims: list[ExpenseClaim]) -> bytes:
 async def claims_for_books(session: AsyncSession, club_id: int, year: int) -> list[ExpenseClaim]:
     """Every claim the club pays that was submitted in this year. A draft has no payer
     yet and is the claimant's own, so it is never in the books."""
-    rows = (
+    return list(
         (
             await session.execute(
                 select(ExpenseClaim)
-                .where(ExpenseClaim.payer_club_id == club_id)
+                .where(
+                    ExpenseClaim.payer_club_id == club_id,
+                    ExpenseClaim.submitted_at >= datetime(year, 1, 1, tzinfo=UTC),
+                    ExpenseClaim.submitted_at < datetime(year + 1, 1, 1, tzinfo=UTC),
+                )
                 .order_by(ExpenseClaim.submitted_at, ExpenseClaim.id)
             )
-        )
-        .scalars()
-        .all()
+        ).scalars()
     )
-    return [c for c in rows if c.submitted_at is not None and c.submitted_at.year == year]
 
 
 def _workbook(title: str, columns: list[str], rows: list[list], *, money: set[str]) -> bytes:

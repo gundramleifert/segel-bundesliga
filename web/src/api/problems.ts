@@ -37,7 +37,6 @@ export function problemCode(problem: ProblemDetail): string | null {
 
 const RESERVED = new Set(["type", "title", "status", "detail", "instance"]);
 
-/** The message to show a user for a problem: the translation for its code, or a fallback. */
 /** An extension member as it can appear inside a sentence.
  *
  * A problem carries its facts as data — `sailors: ["Ada Lovelace", "Grace Hopper"]`,
@@ -55,6 +54,7 @@ function readable(value: unknown): unknown {
   return value;
 }
 
+/** The message to show a user for a problem: the translation for its code, or a fallback. */
 export function describeProblem(problem: ProblemDetail): string {
   const code = problemCode(problem);
   const values: Record<string, unknown> = {};

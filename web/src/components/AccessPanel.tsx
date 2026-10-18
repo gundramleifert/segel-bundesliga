@@ -14,7 +14,8 @@ import type { ObjectType } from "../api/generated/model/objectType";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Section } from "./Form";
-import { Empty, ErrorMessage, Loading } from "./Blocks";
+import { Async } from "./Async";
+import { ErrorMessage } from "./Blocks";
 import { PersonDocuments } from "./PersonDocuments";
 
 /** Story Z-2: who holds what on one object — FGA's "read" for `object`, e.g. `event:3`.
@@ -56,36 +57,33 @@ export function AccessPanel({
   return (
     <Section title={t("access.title")} testId={testId}>
       <p className="mb-2 text-sm text-slate-600">{t("access.hint")}</p>
-      {tuples.loading && <Loading testId={`${testId}-loading`} />}
-      {tuples.error && <ErrorMessage text={tuples.error} testId={`${testId}-error`} />}
-      {tuples.data && tuples.data.length === 0 && (
-        <Empty testId={`${testId}-empty`}>{t("access.empty")}</Empty>
-      )}
-      {tuples.data && tuples.data.length > 0 && (
-        <ul className="flex flex-col gap-1.5" data-testid={`${testId}-list`}>
-          {tuples.data.map((row) => (
-            <li key={row.id} className="flex flex-wrap items-center gap-2" data-testid={`${testId}-tuple-${row.id}`}>
-              <span className="font-medium">{t(`accounts.relationLabels.${row.relation}`, { defaultValue: row.relation })}</span>
-              <span>
-                {row.user_name} <span className="text-slate-500">({row.user})</span>
-              </span>
-              <PersonDocuments userId={row.user_id} name={row.user_name} testId={`${testId}-documents-${row.id}`} />
-              <button
-                type="button"
-                className="text-slate-400 hover:text-red-700"
-                aria-label={t("access.revoke")}
-                title={t("access.revoke")}
-                disabled={remove.isPending}
-                onClick={() => remove.mutate({ tupleId: row.id })}
-                data-testid={`${testId}-revoke-${row.id}`}
-              >
-                ✕
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {remove.error && <p className="text-red-700">{errorText(remove.error)}</p>}
+      <Async state={tuples} testId={testId} empty={t("access.empty")}>
+        {(rows) => (
+          <ul className="flex flex-col gap-1.5" data-testid={`${testId}-list`}>
+            {rows.map((row) => (
+              <li key={row.id} className="flex flex-wrap items-center gap-2" data-testid={`${testId}-tuple-${row.id}`}>
+                <span className="font-medium">{t(`accounts.relationLabels.${row.relation}`, { defaultValue: row.relation })}</span>
+                <span>
+                  {row.user_name} <span className="text-slate-500">({row.user})</span>
+                </span>
+                <PersonDocuments userId={row.user_id} name={row.user_name} testId={`${testId}-documents-${row.id}`} />
+                <button
+                  type="button"
+                  className="text-slate-400 hover:text-red-700"
+                  aria-label={t("access.revoke")}
+                  title={t("access.revoke")}
+                  disabled={remove.isPending}
+                  onClick={() => remove.mutate({ tupleId: row.id })}
+                  data-testid={`${testId}-revoke-${row.id}`}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Async>
+      {remove.error && <ErrorMessage text={errorText(remove.error)} testId={`${testId}-revoke-error`} />}
 
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <label className="flex min-w-0 flex-1 flex-col text-xs text-slate-500">
@@ -121,7 +119,11 @@ export function AccessPanel({
         >
           {t("access.addButton")}
         </Button>
-        {write.error && <p className="w-full text-red-700">{errorText(write.error)}</p>}
+        {write.error && (
+          <div className="w-full">
+            <ErrorMessage text={errorText(write.error)} testId={`${testId}-add-error`} />
+          </div>
+        )}
       </div>
     </Section>
   );

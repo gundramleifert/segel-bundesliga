@@ -29,6 +29,7 @@ from app.jobs import jobs
 from app.mail import MailError, send_login_code
 from app.models import Club
 from app.models.auth import ObjectType, Relation, User
+from app.schemas.auth import TokenOut
 from app.tracking.emulate_job import emulate_event
 
 router = APIRouter(prefix="/api/dev", tags=["development"])
@@ -67,12 +68,6 @@ def _group(user: User) -> Group:
 
 class DevLogin(BaseModel):
     email: EmailStr
-
-
-class TokenOut(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    expires_in: int
 
 
 DESCRIPTION: dict[str, str] = {

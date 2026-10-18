@@ -27,12 +27,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.imports.common import (
     Report,
-    finish_run,
     link,
     link_key,
     linked,
     resolve_club,
-    start_run,
+    run_import,
     unique_slug,
 )
 from app.models import (
@@ -138,30 +137,23 @@ async def import_m2s(
         for document in await client.documents(event_uuid, owner):
             documents.setdefault(document["Id"], document)
 
-    async with sessions() as session:
-        run = await start_run(session, SOURCE, event_uuid)
-        try:
-            event = await _event(
-                session,
-                report,
-                event_uuid,
-                page,
-                to_event,
-                series_slug,
-                matchday,
-                publish,
-                team_count=len(entries),
-            )
-            await _links(session, report, links or {})
-            await _entries(session, report, event, entries)
-            await _documents(session, report, event, documents.values())
-        except Exception as error:  # noqa: BLE001 — the run records it
-            await session.rollback()
-            report = Report(errors=[f"{event_uuid}: {type(error).__name__}: {error}"])
-            run = await start_run(session, SOURCE, event_uuid)
-        finish_run(run, report)
-        await session.commit()
-    return report
+    async def work(session: AsyncSession, report: Report) -> None:
+        event = await _event(
+            session,
+            report,
+            event_uuid,
+            page,
+            to_event,
+            series_slug,
+            matchday,
+            publish,
+            team_count=len(entries),
+        )
+        await _links(session, report, links or {})
+        await _entries(session, report, event, entries)
+        await _documents(session, report, event, documents.values())
+
+    return await run_import(sessions, SOURCE, event_uuid, work, report)
 
 
 def _same(stored: Any, value: Any) -> bool:

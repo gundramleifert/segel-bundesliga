@@ -187,8 +187,8 @@ def _cheap_argon2(monkeypatch):
     (test_password_login.py)."""
     from argon2 import PasswordHasher
 
-    from app.services import login, passwords
+    from app.services import passwords
 
+    # One hasher for passwords and one-time codes alike (login.py borrows passwords').
     cheap = PasswordHasher(time_cost=1, memory_cost=8, parallelism=1)
-    monkeypatch.setattr(login, "_hasher", cheap)
     monkeypatch.setattr(passwords, "_hasher", cheap)

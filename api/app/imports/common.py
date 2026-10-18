@@ -8,13 +8,14 @@ the first time; from then on the `ExternalId` row is the link.
 
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models import Club, ExternalId, ImportRun
 from app.models.base import Base
@@ -41,6 +42,16 @@ class Report:
         {"created": self.created, "updated": self.updated, "unchanged": self.unchanged}[kind][
             what
         ] += n
+
+    def merge(self, part: Report) -> None:
+        """Adds another run's counts and lines to this one — a total over several runs."""
+        self.created.update(part.created)
+        self.updated.update(part.updated)
+        self.unchanged.update(part.unchanged)
+        self.conflicts.extend(part.conflicts)
+        self.unassigned.extend(part.unassigned)
+        self.warnings.extend(part.warnings)
+        self.errors.extend(part.errors)
 
     def as_json(self) -> dict[str, Any]:
         return {
@@ -85,6 +96,33 @@ def finish_run(run: ImportRun, report: Report) -> None:
     run.finished_at = datetime.now(UTC)
     run.ok = not report.errors
     run.summary = report.as_json()
+
+
+async def run_import(
+    sessions: async_sessionmaker[AsyncSession],
+    source: str,
+    reference: str,
+    work: Callable[[AsyncSession, Report], Awaitable[None]],
+    report: Report | None = None,
+) -> Report:
+    """One transaction and one ``ImportRun``: ``work`` fills a report, the run records it.
+
+    A ``work`` that raises is rolled back whole, and its run records only the error —
+    nothing of it was kept, so nothing of it is counted. The exception is not re-raised:
+    the caller reads it from the report, and a batch goes on with its next item.
+    """
+    report = report if report is not None else Report()
+    async with sessions() as session:
+        run = await start_run(session, source, reference)
+        try:
+            await work(session, report)
+        except Exception as error:  # noqa: BLE001 — the run records it
+            await session.rollback()
+            report = Report(errors=[f"{reference}: {type(error).__name__}: {error}"])
+            run = await start_run(session, source, reference)
+        finish_run(run, report)
+        await session.commit()
+    return report
 
 
 async def linked[M: Base](session: AsyncSession, model: type[M], source: str, key: str) -> M | None:
@@ -151,18 +189,31 @@ async def club_by_code(session: AsyncSession, code: str, source: str) -> Club | 
     SQLite's `lower()` folds ASCII only and would never find `BYCÜ` from `BYCü`, where
     Postgres would. Two clubs with the same code here means nothing is guessed.
     """
-    wanted = code.strip().casefold()
-    candidates = [
-        club
-        for club in (await session.execute(select(Club))).scalars()
-        if club.short_name.strip().casefold() == wanted
-    ]
+    candidates = (await _clubs_by_code(session)).get(code.strip().casefold(), [])
     if len(candidates) != 1:
         return None
     club = candidates[0]
     if await link_key(session, Club, source, club.id) is not None:
         return None
     return club
+
+
+_CLUBS_BY_CODE = "imports.clubs_by_code"
+
+
+async def _clubs_by_code(session: AsyncSession) -> dict[str, list[Club]]:
+    """Every club here by its case-folded code, read once per session — one run.
+
+    Once is enough: a club this run creates is linked at once, and a linked club is never
+    a code match, so the clubs that existed before the run are the only candidates.
+    """
+    index = session.info.get(_CLUBS_BY_CODE)
+    if index is None:
+        index = defaultdict(list)
+        for club in (await session.execute(select(Club))).scalars():
+            index[club.short_name.strip().casefold()].append(club)
+        session.info[_CLUBS_BY_CODE] = index
+    return index
 
 
 async def resolve_club(

@@ -9,8 +9,8 @@ Two implementations are known today, hence the ``Protocol``:
 * ``StraightLineDistance`` — plain distance to the target; better on the last hundred metres
   to a mark, worse everywhere else.
 
-Which one the live page uses is decided in ``analysis.default_pipeline``, and can be decided
-on recorded data with ``compare.py`` rather than argued.
+Which one the live page uses is decided in ``analysis.default_pipeline`` — on recorded data
+rather than argued, once the planned ``compare.py`` exists.
 """
 
 from __future__ import annotations

@@ -32,6 +32,7 @@ from app.models.auth import (
 )
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
+from app.schemas.auth import TokenOut
 from app.services import grants, passwords, personal
 from app.services.login import (
     LoginError,
@@ -43,12 +44,6 @@ from app.services.login import (
 )
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
-
-
-class TokenOut(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    expires_in: int
 
 
 class EmailRequest(BaseModel):

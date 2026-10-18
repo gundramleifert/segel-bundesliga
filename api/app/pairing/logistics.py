@@ -58,6 +58,32 @@ def to_flights(slots: list[PairingSlot], boats: int = 6) -> list[list[list[int]]
     return [flights[key] for key in sorted(flights)]
 
 
+def seat_rows(slots: list[PairingSlot], teams: int, boats: int) -> list[list[str]]:
+    """The draw as the Java tool and the catalog write it: per flight, each race as
+    comma-separated 0-based team indices, position = boat.
+
+    An empty seat — a fleet the boats do not divide evenly — is written as an index *past*
+    the last team, counting up within the flight. The tool pads its team list to
+    ``races * boats`` the same way and ``load_pairing_yaml`` reads such an index as "boat
+    does not sail", so every seat keeps its position; dropping it would shift every boat
+    after the gap.
+    """
+    rows: list[list[str]] = []
+    for races in to_flights(slots, boats):
+        empty_seat = teams
+        flight: list[str] = []
+        for race in races:
+            seats: list[str] = []
+            for index in race:
+                if index < 0:
+                    index = empty_seat
+                    empty_seat += 1
+                seats.append(str(index))
+            flight.append(",".join(seats))
+        rows.append(flight)
+    return rows
+
+
 def logistics_report(slots: list[PairingSlot], boats: int = 6) -> LogisticsReport:
     flights = to_flights(slots, boats)
     if len(flights) < 2:

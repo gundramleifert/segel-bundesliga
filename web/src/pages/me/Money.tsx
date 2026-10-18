@@ -148,6 +148,8 @@ function ClubMoney({ club, toPay, runs }: { club: PayingClub; toPay: Claim[]; ru
   );
 }
 
+/** Everything a money mutation can change: the claims (the decider's and the claimant's),
+ *  the payment runs, the club's books and bank account, and what needs someone in my space. */
 function useMoneyRefresh() {
   const invalidate = useInvalidate();
   return () => invalidate("/api/claims", "/api/me/claims", "/api/payment-runs", "/api/clubs", "/api/me/contexts");
@@ -553,11 +555,9 @@ function PendingClaim({ claim }: { claim: Claim }) {
   );
 }
 
+/** {@link useMoneyRefresh} as the options a generated mutation hook takes. */
 function useRefresh() {
-  const invalidate = useInvalidate();
-  return {
-    mutation: { onSuccess: () => invalidate("/api/claims", "/api/me/claims", "/api/payment-runs", "/api/me/contexts") },
-  };
+  return { mutation: { onSuccess: useMoneyRefresh() } };
 }
 
 /** Approve, optionally lowering items, or send it back with a note. An item's field

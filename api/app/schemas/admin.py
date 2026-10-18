@@ -5,9 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, PositiveInt, field_serializer, field_validator
 
 from app.schemas.public import BoatOut, StartSequence, TeamOut
+from app.scoring import ScoringConfig
 
 
 class PairingJobRequest(BaseModel):
@@ -171,3 +172,33 @@ class AdminRacesOut(BaseModel):
     event_id: int
     boats: list[BoatOut]
     races: list[AdminRaceOut]
+
+
+_SCORING_DEFAULTS = ScoringConfig()
+
+
+class ScoringIn(BaseModel):
+    """A series' scoring parameters, stored as ``Series.scoring`` (JSON).
+
+    Validated on the way in because ``ScoringConfig.from_json`` reads the stored JSON on
+    every standings request: a junk value saved here would break every one of them. The
+    defaults are ``ScoringConfig``'s — racing without discards, a 20 % penalty (RRS 44.3).
+    """
+
+    discard_after: list[PositiveInt] = Field(
+        default_factory=lambda: list(_SCORING_DEFAULTS.discard_after),
+        description="After how many races sailed each discard applies, ascending.",
+    )
+    penalty_percent: int = Field(
+        default=_SCORING_DEFAULTS.penalty_percent,
+        ge=0,
+        le=100,
+        description="Percentage penalty (ZFP/SCP) based on starters.",
+    )
+
+    @field_validator("discard_after")
+    @classmethod
+    def _ascending(cls, value: list[int]) -> list[int]:
+        if value != sorted(set(value)):
+            raise ValueError("discard_after must be strictly ascending")
+        return value
