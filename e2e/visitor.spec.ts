@@ -496,7 +496,9 @@ describeStory("B-14: a league's page in chapters", () => {
     await page.goto("/2-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
+    // Its own division's block — empty, because the seed enters no team in the 2. Liga.
     await expect(page.getByTestId("site-top-five-dsbl-2-2026")).toHaveCount(1);
+    await expect(page.getByTestId("site-top-five-dsbl-2-2026").locator("[data-empty]")).toHaveCount(1);
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-about-clubs").getByRole("listitem").first()).toBeVisible();
   });

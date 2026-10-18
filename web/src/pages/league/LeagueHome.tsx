@@ -328,7 +328,14 @@ function TopFive({ series, label }: { series: Series; label?: string }) {
   const table = useGetSeriesTable(series.id).data;
   const rows = (table?.rows ?? []).filter((r) => (r.events_sailed ?? 0) > 0).slice(0, 5);
   if (!table) return <div className="h-48 animate-pulse rounded-2xl bg-white/10" />;
-  if (!rows.length) return <TextCard>{label ? `${label}: ` : ""}{t("standings.notYet")}</TextCard>;
+  // The same block when nothing is sailed yet — the division's place on the page, empty.
+  if (!rows.length) {
+    return (
+      <TextCard testId={`site-top-five-${series.slug}`}>
+        <span data-empty>{label ? `${label}: ` : ""}{t("standings.notYet")}</span>
+      </TextCard>
+    );
+  }
   return (
     <Card className="px-4">
     {label && <p className="border-b border-white/10 py-2.5 text-sm font-semibold uppercase tracking-widest text-white/70">{label}</p>}

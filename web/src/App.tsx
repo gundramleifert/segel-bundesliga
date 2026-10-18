@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { Layout, SiteShell } from "./components/Layout";
@@ -37,6 +38,27 @@ import { AssociationAboutPage, AssociationHome } from "./pages/league/Home";
 import { LeagueHome } from "./pages/league/LeagueHome";
 import { SeriesPage } from "./pages/league/SeriesPage";
 
+/** Every page of a league, by its path under `/:league` — one list, so the old DSBL
+ *  addresses below cannot miss a page the league has. */
+const LEAGUE_ROUTES: [sub: string, page: ReactElement][] = [
+  ["", <LeagueHome />],
+  ["about", <LeagueAboutPage />],
+  ["standings", <StandingsPage />],
+  [":year/standings", <StandingsPage />],
+  ["season", <SeasonPage />],
+  [":year/season", <SeasonPage />],
+  ["notice-board", <NoticeBoardPage />],
+  ["clubs", <ClubsPage />],
+  ["news", <NewsPage />],
+  ["news/:slug", <ArticlePage />],
+  ["media", <MediaPage />],
+  ["press", <PressPage />],
+  ["live", <LiveRedirect />],
+  ["results", <ResultsRedirect />],
+  [":year/:act", <ActPage />],
+  [":year/:act/:tab", <ActPage />],
+];
+
 export default function App() {
   return (
     <Routes>
@@ -50,25 +72,17 @@ export default function App() {
           They draw their own frame. A league's path is one free segment, so the static
           routes below (`/me`, `/admin`, …) win over it by react-router's ranking. */}
       <Route index element={<AssociationHome />} />
-      {/* The DSBL was one league until 2026-10-16; its 1. Liga is its heir (Story B-16). */}
-      <Route path="dsbl/*" element={<PrefixRedirect from="dsbl" to="1-liga" />} />
+      {/* The DSBL was one league until 2026-10-16; its 1. Liga is its heir (Story B-16).
+          Every path a league has, spelled out under `dsbl/`: a splat `dsbl/*` ranks below
+          `:league/standings` (a static segment and a dynamic one beat a static one and a
+          splat), so `/dsbl/standings` was the league "dsbl" — unknown, hence home. */}
+      {LEAGUE_ROUTES.map(([sub]) => (
+        <Route key={`dsbl/${sub}`} path={sub ? `dsbl/${sub}` : "dsbl"} element={<PrefixRedirect from="dsbl" to="1-liga" />} />
+      ))}
       <Route path="about" element={<AssociationAboutPage />} />
-      <Route path=":league" element={<LeagueHome />} />
-      <Route path=":league/about" element={<LeagueAboutPage />} />
-      <Route path=":league/standings" element={<StandingsPage />} />
-      <Route path=":league/:year/standings" element={<StandingsPage />} />
-      <Route path=":league/season" element={<SeasonPage />} />
-      <Route path=":league/:year/season" element={<SeasonPage />} />
-      <Route path=":league/notice-board" element={<NoticeBoardPage />} />
-      <Route path=":league/clubs" element={<ClubsPage />} />
-      <Route path=":league/news" element={<NewsPage />} />
-      <Route path=":league/news/:slug" element={<ArticlePage />} />
-      <Route path=":league/media" element={<MediaPage />} />
-      <Route path=":league/press" element={<PressPage />} />
-      <Route path=":league/live" element={<LiveRedirect />} />
-      <Route path=":league/results" element={<ResultsRedirect />} />
-      <Route path=":league/:year/:act" element={<ActPage />} />
-      <Route path=":league/:year/:act/:tab" element={<ActPage />} />
+      {LEAGUE_ROUTES.map(([sub, page]) => (
+        <Route key={`:league/${sub}`} path={sub ? `:league/${sub}` : ":league"} element={page} />
+      ))}
       {/* An event in no league keeps its page; one in a league goes to its act (B-15, B-16). */}
       <Route path="events/:id" element={<EventPage />} />
       <Route path="events/:id/:tab" element={<EventPage />} />
