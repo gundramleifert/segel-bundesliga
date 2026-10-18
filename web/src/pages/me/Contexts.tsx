@@ -12,7 +12,7 @@ import { Section } from "../../components/Form";
 import { Stack } from "../../components/Layouts";
 import { TabbedView, type TabDef } from "../../components/Tabs";
 import { eventDates } from "../../lib/format";
-import { AccountInfo, DeleteAccount, SailorProfile, SignInMethods } from "../Account";
+import { AccountInfo, DeleteAccount, SailorProfile, SignInMethods } from "./Profile";
 import { ClubEvents, ClubTeams, ClubWaivers } from "./ClubSections";
 import { ClubMoneyTab, EventClaimsTab } from "./Money";
 import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
