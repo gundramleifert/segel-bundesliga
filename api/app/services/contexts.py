@@ -39,6 +39,7 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.models.competition import EventStatus
 from app.models.org import TeamStatus
+from app.problems import Problem
 from app.services import expenses
 from app.services.waivers import (
     STATUS_CLEARED,
@@ -117,14 +118,37 @@ class MySpace:
 
 
 async def linked_sailor(session: AsyncSession, user: User) -> Sailor | None:
-    """The sailor record under this account's **verified** address — the same rule as the
-    profile (`routers/sailors.py::_my_sailor`), without its 404: having no sailor record is
-    a normal answer here."""
+    """The sailor record under this account's **verified** address — without a 404:
+    having no sailor record is a normal answer here."""
     if not user.email_verified:
         return None
     return (
         await session.execute(select(Sailor).where(Sailor.email == user.email.lower()))
     ).scalar_one_or_none()
+
+
+async def require_linked_sailor(session: AsyncSession, user: User) -> Sailor:
+    """:func:`linked_sailor`, for a page about *my* sailor record — the profile, my
+    waivers — where having none is a 404.
+
+    Requires the address to be **verified**: an account that merely claims an email
+    proves nothing, and matching on it would let anyone view or edit any sailor's record
+    just by typing their address at sign-up. The 404 is worded the same whether the
+    reason is "no verified email at all" or "no sailor row uses this email" — a caller has
+    no legitimate use for telling those apart.
+    """
+    sailor = await linked_sailor(session, user)
+    if sailor is None:
+        raise Problem(
+            404,
+            "no-linked-sailor-record",
+            "No sailor record is linked to this account yet.",
+            detail=(
+                "An administrator or your club's leadership can create your sailor "
+                "record and link it to this email address."
+            ),
+        )
+    return sailor
 
 
 async def my_space(session: AsyncSession, user: User) -> MySpace:

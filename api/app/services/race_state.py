@@ -42,7 +42,7 @@ from app.models import AuditLog, Event, EventStatus, Flight, Race, RaceEntry, Ra
 from app.models.racing import PreparatoryFlag, RaceSignal
 from app.problems import Problem
 from app.services.event_readiness import RACE_STARTED_ACTION
-from app.services.standings import recompute_event, recompute_series
+from app.services.standings import recompute_after_change
 
 
 def require_live(event: Event) -> None:
@@ -111,12 +111,6 @@ async def _clear_entries(session: AsyncSession, race: Race) -> int:
     return len(entries)
 
 
-async def _recompute(session: AsyncSession, event: Event) -> None:
-    await recompute_event(session, event.id)
-    if event.series_id is not None:
-        await recompute_series(session, event.series_id)
-
-
 async def start_race(
     session: AsyncSession,
     event: Event,
@@ -169,7 +163,7 @@ async def recall_race(session: AsyncSession, event: Event, race: Race, *, actor:
     race.signal = None
     race.version += 1
     _audit(session, race, "recall", actor, cleared_entries=cleared)
-    await _recompute(session, event)
+    await recompute_after_change(session, event)
     return race
 
 
@@ -190,7 +184,7 @@ async def abandon_race(
     race.signal = None
     race.version += 1
     _audit(session, race, "abandon", actor, resail=resail, cleared_entries=cleared)
-    await _recompute(session, event)
+    await recompute_after_change(session, event)
     return race
 
 
@@ -232,7 +226,7 @@ async def set_signal(
     return race
 
 
-def guard_result_entry(session: AsyncSession, event: Event, race: Race) -> None:
+def guard_result_entry(race: Race) -> None:
     """What the result PUT must refuse, so this state machine is not advisory.
 
     Synchronous on purpose so the caller can also use it before it has loaded entries;

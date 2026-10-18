@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol
+from typing import NamedTuple, Protocol
 
 #: Mean earth radius in metres (IUGG).
 EARTH_RADIUS = 6_371_008.8
@@ -69,10 +69,17 @@ class Fix:
     cog: float
 
 
+class LatLon(NamedTuple):
+    """A position in degrees, WGS 84."""
+
+    lat: float
+    lon: float
+
+
 class Projection(Protocol):
     def to_xy(self, lat: float, lon: float) -> XY: ...
 
-    def to_geo(self, xy: XY) -> tuple[float, float]: ...
+    def to_geo(self, xy: XY) -> LatLon: ...
 
 
 @dataclass(frozen=True)
@@ -86,9 +93,9 @@ class LocalTangentPlane:
         k = EARTH_RADIUS * math.cos(math.radians(self.lat0))
         return XY(k * math.radians(lon - self.lon0), EARTH_RADIUS * math.radians(lat - self.lat0))
 
-    def to_geo(self, xy: XY) -> tuple[float, float]:
+    def to_geo(self, xy: XY) -> LatLon:
         k = EARTH_RADIUS * math.cos(math.radians(self.lat0))
-        return (
+        return LatLon(
             self.lat0 + math.degrees(xy.y / EARTH_RADIUS),
             self.lon0 + math.degrees(xy.x / k),
         )

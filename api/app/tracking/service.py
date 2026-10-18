@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import NamedTuple
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,7 +46,7 @@ from app.schemas.tracking import (
 from app.tracking.analysis import default_pipeline
 from app.tracking.course import Course as CourseGeometry
 from app.tracking.course import MarkRole, lay_course
-from app.tracking.geo import XY, LocalTangentPlane, bearing_deg
+from app.tracking.geo import XY, LatLon, LocalTangentPlane, bearing_deg
 from app.tracking.geo import Fix as GeoFix
 from app.tracking.polar import KNOT
 from app.tracking.ranking import metres_to_go
@@ -74,17 +75,24 @@ async def active_course(session: AsyncSession, event_id: int) -> Course | None:
     ).scalar_one_or_none()
 
 
-def course_origin(course: Course) -> tuple[float, float]:
+def course_origin(course: Course) -> LatLon:
     lats = [m.lat for m in course.marks]
     lons = [m.lon for m in course.marks]
-    return sum(lats) / len(lats), sum(lons) / len(lons)
+    return LatLon(sum(lats) / len(lats), sum(lons) / len(lons))
 
 
-def course_geometry(course: Course) -> tuple[CourseGeometry, LocalTangentPlane]:
+class ProjectedCourse(NamedTuple):
+    """A stored course in metres, and the projection that put it there."""
+
+    geometry: CourseGeometry
+    projection: LocalTangentPlane
+
+
+def course_geometry(course: Course) -> ProjectedCourse:
     """The stored marks, projected around their centre."""
     projection = LocalTangentPlane(*course_origin(course))
     marks = {MarkRole(m.role): projection.to_xy(m.lat, m.lon) for m in course.marks}
-    return (
+    return ProjectedCourse(
         CourseGeometry(
             marks,
             laps=course.laps,
@@ -247,9 +255,15 @@ class UnknownTracker(Exception):
     """No active tracker carries this token."""
 
 
-async def ingest_fixes(
-    session: AsyncSession, token: str, fixes: list[FixIn]
-) -> tuple[Tracker, int, int]:
+class Ingested(NamedTuple):
+    tracker: Tracker
+    #: Fixes stored by this batch.
+    stored: int
+    #: Fixes of the batch already stored before (or twice in it).
+    duplicates: int
+
+
+async def ingest_fixes(session: AsyncSession, token: str, fixes: list[FixIn]) -> Ingested:
     """Stores a batch; returns the tracker, how many were new and how many it already had.
 
     Idempotent by ``(tracker, t)``: a phone that retries a batch after a dropped connection
@@ -284,7 +298,7 @@ async def ingest_fixes(
         )
         stored += 1
     await session.flush()
-    return tracker, stored, len(fixes) - stored
+    return Ingested(tracker, stored, len(fixes) - stored)
 
 
 # --------------------------------------------------------------------- the picture
@@ -318,10 +332,6 @@ async def _race_with_flight(
     return (row[0], row[1]) if row else None
 
 
-#: How long the picture stays on a finished race when nothing is running.
-_LINGER = timedelta(minutes=15)
-
-
 async def _recently_finished(
     session: AsyncSession, event_id: int, now: datetime
 ) -> tuple[Race, Flight] | None:
@@ -333,7 +343,7 @@ async def _recently_finished(
                 Flight.event_id == event_id,
                 Race.status == RaceStatus.FINISHED,
                 Race.finished_at.is_not(None),
-                Race.finished_at >= now - _LINGER,
+                Race.finished_at >= now - timedelta(seconds=tracking_settings.linger_s),
             )
             .order_by(Race.finished_at.desc())
             .limit(1)
@@ -381,9 +391,9 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
         ).all()
     )
     since = (
-        _aware(race.started_at) - timedelta(seconds=tracking_settings.emulator_warmup_s + 30)
+        _aware(race.started_at) - timedelta(seconds=tracking_settings.snapshot_lookback_s)
         if race is not None and race.started_at is not None
-        else now - timedelta(minutes=10)
+        else now - timedelta(seconds=tracking_settings.idle_lookback_s)
     )
     tracker_ids = [t.id for t, _ in trackers]
     fixes = (
@@ -421,12 +431,11 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
         leg_count = len(waypoints) - 1
         wind_from = round(bearing_deg(geometry.axis), 1)
         pipeline = default_pipeline(course_origin(course), tws=course.tws_kn)
-        polar = pipeline.ranker.polar  # type: ignore[attr-defined]
         lines = [
             LaylineOut(
                 mark=str(line.mark), points=[list(projection.to_geo(p)) for p in line.points]
             )
-            for line in laylines(geometry, polar, pipeline.tws)
+            for line in laylines(geometry, pipeline.polar, pipeline.tws)
         ]
     if course is not None and race is not None:
         tracks = {
@@ -464,7 +473,7 @@ async def live_snapshot(session: AsyncSession, event: Event) -> LiveRaceOut:
             continue
         last = track[-1]
         trail = [f for f in track if _aware(f.t) >= trail_from]
-        step = max(1, len(trail) // 30)
+        step = max(1, len(trail) // tracking_settings.trail_max_points)
         r = ranked.get(boat.number)
         leg = r.state.leg if r else None
         boats.append(

@@ -1,6 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 
-import { PAGE_SIZE } from "../components/Pager";
+import { PAGE_SIZE } from "../api/useApi";
 
 /** Page, sort and search — in the URL, where they can be linked and survive a reload.
  *

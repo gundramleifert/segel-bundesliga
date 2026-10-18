@@ -9,13 +9,12 @@ Each boat sails toward its next waypoint with the polar's optimum angles: upwind
 until the layline (with a random overstand), then the other tack; downwind the same with
 the gybe angle; a random gate side; speed from the polar with a per-boat skill factor. The
 fixes it emits carry Gaussian GPS noise on position, course and speed. Deterministic by
-seed. It posts nothing itself — ``app/tracking/emulate_client.py`` and the dev endpoint feed
-its fixes through the real ingest path, the same one the phones will use.
+seed. It posts nothing itself — ``app/tracking/emulate_job.py`` feeds its fixes through the
+real ingest path, the same one the phones will use.
 """
 
 from __future__ import annotations
 
-import math
 import random
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
@@ -314,11 +313,3 @@ def emulated_race(
         seed=seed,
         **kwargs,  # type: ignore[arg-type]
     )
-
-
-def knots(metres_per_second: float) -> float:
-    return metres_per_second / KNOT
-
-
-def degrees_true(vector: XY) -> float:
-    return math.degrees(math.atan2(vector.x, vector.y)) % 360.0

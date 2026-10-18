@@ -5,7 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
-import type { SeriesUpdateScoring } from './seriesUpdateScoring';
+import type { ScoringIn } from './scoringIn';
 
 export interface SeriesUpdate {
   name?: string | null;
@@ -15,7 +15,7 @@ export interface SeriesUpdate {
   ends_on?: string | null;
   level?: number | null;
   league_id?: number | null;
-  scoring?: SeriesUpdateScoring;
+  scoring?: ScoringIn | null;
   published?: boolean | null;
   description?: string | null;
   squad_min?: number | null;

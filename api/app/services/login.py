@@ -23,10 +23,9 @@ import asyncio
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from functools import cache
 
 import jwt
-from argon2 import PasswordHasher
-from argon2.exceptions import InvalidHashError, VerifyMismatchError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,8 +34,6 @@ from app.config import settings
 from app.mail import MailError, send_login_code
 from app.models.auth import Identity, IdentityProvider, LoginCode, ObjectType, Relation, User
 from app.services import grants, passwords
-
-_hasher = PasswordHasher()
 
 
 class LoginError(Exception):
@@ -103,9 +100,16 @@ async def login_with_oidc(session: AsyncSession, provider_name: str, id_token: s
     )
 
 
+@cache
+def _jwks_client(jwks_uri: str) -> jwt.PyJWKClient:
+    """One client per provider key set, kept for the process: ``PyJWKClient`` caches the
+    keys it fetched, which a client built per sign-in would throw away each time."""
+    return jwt.PyJWKClient(jwks_uri)
+
+
 def _verify_id_token(provider: OidcProvider, id_token: str) -> dict:
     try:
-        signing_key = jwt.PyJWKClient(provider.jwks_uri).get_signing_key_from_jwt(id_token)
+        signing_key = _jwks_client(provider.jwks_uri).get_signing_key_from_jwt(id_token)
         options = {"verify_iss": bool(provider.issuers)}
         return jwt.decode(
             id_token,
@@ -138,7 +142,7 @@ async def request_email_code(session: AsyncSession, email: str) -> None:
     session.add(
         LoginCode(
             email=email,
-            code_hash=_hasher.hash(code),
+            code_hash=await passwords.hash_secret(code),
             expires_at=datetime.now(UTC) + timedelta(minutes=settings.otp_lifetime_minutes),
         )
     )
@@ -176,7 +180,7 @@ async def verify_email_code(session: AsyncSession, email: str, code: str) -> Use
     if entry.attempts >= settings.otp_max_attempts:
         raise LoginError("Too many failed attempts. Please request a new code.")
 
-    if not _matches(code, entry.code_hash):
+    if not await passwords.verify_secret(entry.code_hash, code.strip()):
         entry.attempts += 1
         await session.commit()
         raise LoginError("That code isn't correct.")
@@ -214,14 +218,6 @@ async def login_with_password(session: AsyncSession, email: str, password: str) 
     )
     await session.commit()
     return user
-
-
-def _matches(code: str, code_hash: str) -> bool:
-    try:
-        _hasher.verify(code_hash, code.strip())
-    except (VerifyMismatchError, InvalidHashError):
-        return False
-    return True
 
 
 async def _resolve_user(

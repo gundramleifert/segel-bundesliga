@@ -226,7 +226,6 @@ async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOu
             .where(EventCrew.event_id == event.id, EventCrew.team_id == team_id)
         )
     ).all()
-    order = {CrewRole.HELM: 0, CrewRole.CREW: 1, CrewRole.SUBSTITUTE: 2}
     members = sorted(
         (
             MemberOut(
@@ -237,7 +236,7 @@ async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOu
             )
             for crew, sailor in rows
         ),
-        key=lambda m: (order.get(m.role, 9), m.last_name, m.first_name),
+        key=MemberOut.announce_order,
     )
     return CrewOut(
         event_slug=event.slug,

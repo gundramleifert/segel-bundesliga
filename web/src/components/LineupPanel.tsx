@@ -1,5 +1,4 @@
 import { Button } from "@heroui/react";
-import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getGetCrewQueryKey, useGetCrew, useGetSquad, useSetCrew } from "../api/generated/sbl";
@@ -7,6 +6,8 @@ import type { Member } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { roleText } from "../lib/format";
+import { asRosterRole, useRosterDraft } from "../lib/useRosterDraft";
+import { RoleSelect } from "./RoleSelect";
 import { Empty, ErrorMessage, Loading } from "./Blocks";
 import { Message } from "./Form";
 import { TransferList } from "./TransferList";
@@ -27,16 +28,6 @@ import { TransferList } from "./TransferList";
  * rather than disabled, since the server would refuse the click anyway; the squad is then
  * not requested at all.
  */
-const ROLES = ["helm", "crew", "substitute"] as const;
-type Role = (typeof ROLES)[number];
-const ORDER: Record<Role, number> = { helm: 0, crew: 1, substitute: 2 };
-
-type Named = { sailor_id: number; role: Role };
-
-function asRole(value: string): Role {
-  return (ROLES as readonly string[]).includes(value) ? (value as Role) : "crew";
-}
-
 export function LineupPanel({
   eventId,
   teamId,
@@ -66,13 +57,11 @@ export function LineupPanel({
     },
   });
 
-  // The draft: what the right pane shows until Save. Reset whenever the saved crew
-  // arrives or changes — the same rule as the clubs panel.
+  // The draft: what the right pane shows until Save. Back to the saved crew whenever that
+  // changes — the same rule as the squad panel.
   const saved = crew.data?.members ?? null;
-  const [draft, setDraft] = useState<Named[] | null>(null);
-  useEffect(() => {
-    if (saved) setDraft(saved.map((m) => ({ sailor_id: m.id, role: asRole(m.role) })));
-  }, [saved]);
+  const roster = useRosterDraft(saved);
+  const { draft, dirty, roleOf } = roster;
 
   if (crew.loading || (draft === null && !crew.error)) {
     return <Loading testId={`${testIdPrefix}-loading`} />;
@@ -85,15 +74,11 @@ export function LineupPanel({
   for (const m of squad.data?.members ?? []) people.set(m.id, m);
 
   const named = new Set(draft.map((d) => d.sailor_id));
-  const selected = [...draft]
-    .sort((a, b) => ORDER[a.role] - ORDER[b.role])
+  const selected = roster
+    .ordered()
     .map((d) => people.get(d.sailor_id))
     .filter((m): m is Member => Boolean(m));
   const available = (squad.data?.members ?? []).filter((m) => !named.has(m.id));
-  const roleOf = (id: number) => draft.find((d) => d.sailor_id === id)?.role ?? "crew";
-  const dirty =
-    draft.length !== saved.length ||
-    draft.some((d) => saved.find((m) => m.id === d.sailor_id)?.role !== d.role);
 
   const save = () => setCrew.mutate({ eventId, data: { team_id: teamId, members: draft } });
 
@@ -155,28 +140,15 @@ export function LineupPanel({
             secondary={(m) => roleText(m.role)}
             matches={(m, term) => `${m.first_name} ${m.last_name}`.toLowerCase().includes(term)}
             // Named in the role they hold in the squad; corrected in place on the right.
-            onSelect={(m) => setDraft([...draft, { sailor_id: m.id, role: asRole(m.role) }])}
-            onDeselect={(m) => setDraft(draft.filter((d) => d.sailor_id !== m.id))}
+            onSelect={(m) => roster.add(m.id, asRosterRole(m.role))}
+            onDeselect={(m) => roster.remove(m.id)}
             selectedExtra={(m) => (
-              <select
-                className="shrink-0 rounded border border-slate-300 px-1.5 py-0.5 text-xs"
+              <RoleSelect
                 value={roleOf(m.id)}
-                aria-label={t("lineup.roleLabel")}
-                onChange={(e) =>
-                  setDraft(
-                    draft.map((d) =>
-                      d.sailor_id === m.id ? { ...d, role: e.target.value as Role } : d,
-                    ),
-                  )
-                }
-                data-testid={`${testIdPrefix}-role-${m.id}`}
-              >
-                {ROLES.map((value) => (
-                  <option key={value} value={value}>
-                    {roleText(value)}
-                  </option>
-                ))}
-              </select>
+                onChange={(role) => roster.setRole(m.id, role)}
+                label={t("lineup.roleLabel")}
+                testId={`${testIdPrefix}-role-${m.id}`}
+              />
             )}
           />
           <div className="flex flex-wrap items-center gap-3">

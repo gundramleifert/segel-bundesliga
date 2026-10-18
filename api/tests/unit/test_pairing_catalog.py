@@ -112,7 +112,28 @@ class TestStoringACatalogEntry:
         """""Without this round, the catalog would only be as good as the file it contains.""" ""
         pairing = load_entry(12, 6, 8)
         datei = tmp_path / "t12-b6-f8.yml"
-        datei.write_text(to_yaml(pairing.slots, pairing.flights), encoding="utf-8")
+        datei.write_text(
+            to_yaml(pairing.slots, len(pairing.teams), len(pairing.boats)), encoding="utf-8"
+        )
 
         wieder = load_entry(12, 6, 8, base=tmp_path)
         assert wieder.slots == pairing.slots
+
+    def test_a_fleet_the_boats_do_not_divide_keeps_its_empty_seats(self):
+        """17 teams on 6 boats leave one seat empty per flight; written without it, every
+        race would be short and the file unreadable. The Java tool's own list for 17 teams
+        is the reference: the empty seat is an index past the last team, in its place."""
+        from pathlib import Path
+
+        import yaml
+
+        from app.pairing import load_pairing_yaml
+
+        fixture = Path(__file__).parent.parent / "fixtures" / "pairing-17teams"
+        written = (fixture / "pairing_list.yml").read_text(encoding="utf-8")
+        pairing = load_pairing_yaml(
+            (fixture / "schedule_cfg.yml").read_text(encoding="utf-8"), written
+        )
+
+        ours = yaml.safe_load(to_yaml(pairing.slots, 17, 6))
+        assert ours == yaml.safe_load(written)

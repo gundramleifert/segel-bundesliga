@@ -8,7 +8,6 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from app.auth import require_admin, require_event_officer
 from app.db import get_session
@@ -17,7 +16,7 @@ from app.jobs import Job, JobStatus, jobs
 from app.live import event_topic, hub
 from app.models import AuditLog, Event
 from app.models.auth import User
-from app.models.org import Team, TeamStatus
+from app.models.org import Team
 from app.models.racing import (
     BOAT_COLORS,
     Boat,
@@ -57,17 +56,17 @@ from app.schemas.admin import (
 from app.schemas.public import BoatOut, ClubOut, StartSequence, TeamOut
 from app.services import (
     CATALOG_REASON,
+    event_entries,
     race_state,
-    recompute_event,
-    recompute_series,
+    recompute_after_change,
     require_editable_configuration,
     require_ready,
 )
 from app.services.pairing_service import (
     PairingDraft,
     PairingPublishError,
+    PublishedPairing,
     publish_pairing,
-    teams_for_event,
 )
 from app.tracking.service import active_course
 
@@ -111,7 +110,7 @@ async def start_pairing_job(
     event = await _event_by_id(session, event_id, locale)
     await require_editable_configuration(session, event.id)
     await require_ready(session, event, ignore={CATALOG_REASON})
-    teams = await teams_for_event(session, event)
+    teams = await event_entries(session, event.id)
     if len(teams) < request.boats:
         raise HTTPException(
             status_code=422,
@@ -247,7 +246,7 @@ async def publish_job_result(
             ),
         )
 
-    return PublishResult(**await _publish(session, event, draft), quality=draft.quality)
+    return PublishResult(**(await _publish(session, event, draft))._asdict(), quality=draft.quality)
 
 
 class CatalogEntryOut(BaseModel):
@@ -325,7 +324,7 @@ async def pairing_from_catalog(
     await require_editable_configuration(session, event.id)
     await require_ready(session, event)
 
-    teams = await teams_for_event(session, event)
+    teams = await event_entries(session, event.id)
     try:
         pairing = load_entry(len(teams), event.boat_count, event.flight_count)
     except CatalogError as exc:  # pragma: no cover - readiness already ruled this out
@@ -341,7 +340,7 @@ async def pairing_from_catalog(
 
     seed = request.seed if request else 0
     draft = PairingDraft.from_import(shuffle_pairing(pairing, seed), [team.id for team in teams])
-    return PublishResult(**await _publish(session, event, draft), quality=draft.quality)
+    return PublishResult(**(await _publish(session, event, draft))._asdict(), quality=draft.quality)
 
 
 @router.post(
@@ -368,7 +367,7 @@ async def import_pairing(
     event = await _event_by_id(session, event_id, locale)
     await require_editable_configuration(session, event.id)
     await require_ready(session, event, ignore={CATALOG_REASON})
-    teams = await teams_for_event(session, event)
+    teams = await event_entries(session, event.id)
 
     try:
         pairing = load_pairing_yaml(request.schedule_config, request.pairing_list)
@@ -392,7 +391,7 @@ async def import_pairing(
         )
 
     draft = PairingDraft.from_import(pairing, [team.id for team in teams])
-    return PublishResult(**await _publish(session, event, draft), quality=draft.quality)
+    return PublishResult(**(await _publish(session, event, draft))._asdict(), quality=draft.quality)
 
 
 # ------------------------------------------------------------ Race results (Story WL-2)
@@ -682,7 +681,7 @@ async def put_race_result(
     race is running. A ``finished`` race is always correctable — the protest case.
     """
     event, race = await _event_race(session, event_id, race_id)
-    race_state.guard_result_entry(session, event, race)
+    race_state.guard_result_entry(race)
     await race_state.refuse_if_another_is_running(session, event, race)
 
     entry_rows = (
@@ -802,9 +801,7 @@ async def put_race_result(
         # reached through this PUT rather than a button of its own.
         race_state.finish_race(session, race, actor=acting.email)
 
-    await recompute_event(session, event.id)
-    if event.series_id is not None:
-        await recompute_series(session, event.series_id)
+    await recompute_after_change(session, event)
 
     await session.commit()
     # After the commit, never before it: a spectator's page refetches the moment this
@@ -863,38 +860,32 @@ async def put_team_penalty(
     team.penalty_points = points
     team.penalty_note = note if points is not None else None
 
-    await recompute_event(session, event.id)
-    if event.series_id is not None:
-        await recompute_series(session, event.series_id)
+    await recompute_after_change(session, event)
     await session.commit()
     hub.publish(event_topic(event.id))
     return TeamPenaltyOut(team_id=team.id, points=team.penalty_points, note=team.penalty_note)
 
 
 async def _teams_of_event(session: AsyncSession, event_id: int) -> dict[int, TeamOut]:
-    """The teams participating in this event, keyed by team id.
-
-    Local to the admin router — the equivalent in ``app.routers.public`` is a private
-    helper of that module.
-    """
-    result = await session.execute(
-        select(Team)
-        .options(selectinload(Team.club))
-        .where(Team.event_id == event_id, Team.status == TeamStatus.ACCEPTED)
-    )
+    """The teams participating in this event, keyed by team id."""
     return {
         team.id: TeamOut(id=team.id, name=team.name, club=ClubOut.model_validate(team.club))
-        for team in result.scalars()
+        for team in await event_entries(session, event_id, with_club=True)
     }
 
 
-async def _publish(session: AsyncSession, event: Event, draft: PairingDraft) -> dict[str, int]:
+async def _publish(session: AsyncSession, event: Event, draft: PairingDraft) -> PublishedPairing:
     try:
-        return await publish_pairing(session, event, draft)
+        created = await publish_pairing(session, event, draft)
     except PairingPublishError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except PairingGeneratorError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+    await session.commit()
+    # A new pairing list changes who is on which boat — the running-race view and the
+    # pairing tab both read it. After the commit (Story B-5).
+    hub.publish(event_topic(event.id))
+    return created
 
 
 async def _event_by_id(session: AsyncSession, event_id: int, locale: Locale | None = None) -> Event:

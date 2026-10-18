@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -15,6 +15,8 @@ import { Message } from "./Form";
 import { TransferList } from "./TransferList";
 import { roleText } from "../lib/format";
 import { errorText } from "../lib/admin";
+import { useRosterDraft } from "../lib/useRosterDraft";
+import { RoleSelect } from "./RoleSelect";
 
 /** Registering who may sail for one team — Story V-1.
  *
@@ -35,10 +37,6 @@ import { errorText } from "../lib/admin";
  * panes. Absent rather than disabled — a disabled button is a promise the server will
  * not keep.
  */
-const ROLES = ["helm", "crew", "substitute"] as const;
-type SquadRole = (typeof ROLES)[number];
-const ORDER: Record<SquadRole, number> = { helm: 0, crew: 1, substitute: 2 };
-
 /** One helm is the usual shape — guidance the screen shows, never a rule (Story V-1). The
  *  squad's *size* comes with the squad (`squad_min`, `squad_max`, set per series or per
  *  stand-alone event): the maximum is enforced on save and the left pane offers nobody
@@ -46,12 +44,7 @@ const ORDER: Record<SquadRole, number> = { helm: 0, crew: 1, substitute: 2 };
  *  built up over weeks. */
 const USUAL_HELM_COUNT = 1;
 
-type Entry = { sailor_id: number; role: SquadRole };
 type Person = { id: number; first_name: string; last_name: string; registrations?: SailorRegistration[] | null };
-
-function asRole(value: string): SquadRole {
-  return (ROLES as readonly string[]).includes(value) ? (value as SquadRole) : "crew";
-}
 
 export function SquadPanel({
   teamId,
@@ -80,12 +73,10 @@ export function SquadPanel({
     },
   });
 
-  // The draft: the right pane until Save. Reset whenever the saved squad arrives or changes.
+  // The draft: the right pane until Save. Back to the saved squad whenever that changes.
   const saved = squad.data?.members ?? null;
-  const [draft, setDraft] = useState<Entry[] | null>(null);
-  useEffect(() => {
-    if (saved) setDraft(saved.map((m) => ({ sailor_id: m.id, role: asRole(m.role) })));
-  }, [saved]);
+  const roster = useRosterDraft(saved);
+  const { draft, dirty, roleOf } = roster;
 
   if (squad.loading || (draft === null && !squad.error)) {
     return <Loading text={t("squad.loadingText")} testId="admin-squad-members-loading" />;
@@ -101,18 +92,14 @@ export function SquadPanel({
   for (const p of results.data ?? []) people.set(p.id, p);
 
   const inDraft = new Set(draft.map((d) => d.sailor_id));
-  const roleOf = (id: number) => draft.find((d) => d.sailor_id === id)?.role ?? "crew";
-  const selected = [...draft]
-    .sort((a, b) => ORDER[a.role] - ORDER[b.role])
+  const selected = roster
+    .ordered()
     .map((d) => people.get(d.sailor_id))
     .filter((p): p is Person => Boolean(p));
   const available = (results.data ?? []).filter((p) => !inDraft.has(p.id));
   const helmCount = draft.filter((d) => d.role === "helm").length;
   const { squad_min: squadMin, squad_max: squadMax } = squad.data;
   const full = draft.length >= squadMax;
-  const dirty =
-    draft.length !== saved.length ||
-    draft.some((d) => saved.find((m) => m.id === d.sailor_id)?.role !== d.role);
 
   /** Where this person already sails, and whether that rules them out here.
    *
@@ -207,28 +194,15 @@ export function SquadPanel({
             onFilterChange={setSearch}
             filterPlaceholder={t("squad.addPlaceholder")}
             availableLoading={results.loading}
-            onSelect={(p) => setDraft([...draft, { sailor_id: p.id, role: "crew" }])}
-            onDeselect={(p) => setDraft(draft.filter((d) => d.sailor_id !== p.id))}
+            onSelect={(p) => roster.add(p.id, "crew")}
+            onDeselect={(p) => roster.remove(p.id)}
             selectedExtra={(p) => (
-              <select
-                className="shrink-0 rounded border border-slate-300 px-1.5 py-0.5 text-xs"
+              <RoleSelect
                 value={roleOf(p.id)}
-                aria-label={t("squad.addRoleLabel")}
-                onChange={(e) =>
-                  setDraft(
-                    draft.map((d) =>
-                      d.sailor_id === p.id ? { ...d, role: e.target.value as SquadRole } : d,
-                    ),
-                  )
-                }
-                data-testid={`admin-squad-role-${p.id}`}
-              >
-                {ROLES.map((value) => (
-                  <option key={value} value={value}>
-                    {roleText(value)}
-                  </option>
-                ))}
-              </select>
+                onChange={(role) => roster.setRole(p.id, role)}
+                label={t("squad.addRoleLabel")}
+                testId={`admin-squad-role-${p.id}`}
+              />
             )}
           />
           <div className="flex flex-wrap items-center gap-3">

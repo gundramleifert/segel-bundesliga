@@ -45,6 +45,7 @@ import i18n from "../i18n";
 import { BOAT_COLORS, boatColor, eventDates } from "../lib/format";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
 import { openFile } from "../lib/files";
+import { racesPerFlight } from "../lib/results";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { Steps } from "../components/Steps";
@@ -301,7 +302,7 @@ function GeneralDataStep({
   const maxFlights =
     sizes.find((size) => sizeKey(size) === sizeKey({ teams: Number(teams), boats: Number(boats) }))
       ?.maxFlights ?? 0;
-  const racesPerFlight = Math.ceil(Number(teams) / Number(boats)) || 0;
+  const perFlight = racesPerFlight({ team_count: Number(teams), boat_count: Number(boats) });
 
   const create = useCreateEvent({
     mutation: {
@@ -461,9 +462,9 @@ function GeneralDataStep({
           {t("events.formatText", {
             teams,
             boats,
-            races: racesPerFlight,
+            races: perFlight,
             flights,
-            total: racesPerFlight * (Number(flights) || 0),
+            total: perFlight * (Number(flights) || 0),
           })}
         </p>
 

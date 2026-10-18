@@ -68,6 +68,9 @@ class SequentialCourseDetector:
     #: `SBL_TRACKING_GATE_MARGIN_M`): a finite segment plus the size of the noise.
     line_margin: float = field(default_factory=lambda: tracking_settings.line_margin_m)
     gate_margin: float = field(default_factory=lambda: tracking_settings.gate_margin_m)
+    #: Below this speed over ground (m/s) the fix's course is noise and the displacement is
+    #: used instead (`SBL_TRACKING_COG_MIN_SOG_MS`).
+    cog_min_sog: float = field(default_factory=lambda: tracking_settings.cog_min_sog_ms)
 
     def detect(
         self, track: Sequence[TrackPoint], waypoints: Sequence[Waypoint], axis: XY
@@ -83,7 +86,7 @@ class SequentialCourseDetector:
                 # Judged by the heading the boat *approached* with: a boat through a gate
                 # rounds the mark at once, and at one fix a second the arrival fix's course
                 # is already upwind — read there, a clean crossing looks like the wrong way.
-                move = _direction(track[i - 1], p1 - p0)
+                move = self._direction(track[i - 1], p1 - p0)
                 margin = self.gate_margin if target.kind == "gate" else self.line_margin
                 a, b = _extended(target.points[0], target.points[1], margin)
                 if segment_crosses_line(p0, p1, a, b) and move.dot(axis) * target.direction > 0:
@@ -92,20 +95,15 @@ class SequentialCourseDetector:
                     t0, t1 = track[i - 1].t, track[i].t
                     passings.append(Passing(expected, t0 + (t1 - t0) * fraction))
             else:
-                move = _direction(track[i], p1 - p0)
+                move = self._direction(track[i], p1 - p0)
                 near = distance(p1, target.centre) < self.mark_radius
                 turned_down = move.dot(axis) * target.direction < 0
                 if near and turned_down:
                     passings.append(Passing(expected, track[i].t))
         return passings
 
-
-#: Below this speed over ground (m/s) a receiver's course is noise; use the displacement.
-_COG_MIN_SOG = 0.5
-
-
-def _direction(point: TrackPoint, displacement: XY) -> XY:
-    return heading_vector(point.cog) if point.sog >= _COG_MIN_SOG else displacement
+    def _direction(self, point: TrackPoint, displacement: XY) -> XY:
+        return heading_vector(point.cog) if point.sog >= self.cog_min_sog else displacement
 
 
 def _extended(a: XY, b: XY, margin: float) -> tuple[XY, XY]:

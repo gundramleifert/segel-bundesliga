@@ -45,6 +45,35 @@ class TestSeriesCreation:
         assert second.status_code == 409
         assert "taken" in second.json()["detail"]
 
+    async def test_scoring_that_would_break_the_standings_is_refused(self, client, caplog):
+        # Every standings read parses the stored scoring; junk saved here would fail them
+        # all, so it is refused at the door instead.
+        headers = await as_role(client, caplog, "se2@example.com", Role.ADMIN)
+        for scoring in (
+            {"discard_after": ["x"]},
+            {"discard_after": [8, 4]},
+            {"penalty_percent": 150},
+        ):
+            response = await client.post(
+                "/api/admin/series",
+                headers=headers,
+                json={"name": "Scored Series 2029", "year": 2029, "scoring": scoring},
+            )
+            assert response.status_code == 422, (scoring, response.text)
+
+        created = await client.post(
+            "/api/admin/series",
+            headers=headers,
+            json={"name": "Scored Series 2029", "year": 2029, "scoring": {"discard_after": [8]}},
+        )
+        assert created.status_code == 201, created.text
+        patched = await client.patch(
+            f"/api/admin/series/{created.json()['id']}",
+            headers=headers,
+            json={"scoring": {"penalty_percent": "lots"}},
+        )
+        assert patched.status_code == 422, patched.text
+
     async def test_selected_clubs_appear_in_series(self, client, caplog):
         headers = await as_role(client, caplog, "se3@example.com", Role.ADMIN)
         selected = await clubs(client, 2)

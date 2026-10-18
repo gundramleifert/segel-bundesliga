@@ -12,6 +12,7 @@ accepted.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from typing import NamedTuple
 
 import jwt
 from fastapi import Depends, HTTPException, Request, status
@@ -39,7 +40,13 @@ def _secret() -> str:
     return settings.jwt_secret
 
 
-def create_access_token(user: User) -> tuple[str, int]:
+class AccessToken(NamedTuple):
+    token: str
+    #: Validity in seconds.
+    expires_in: int
+
+
+def create_access_token(user: User) -> AccessToken:
     """Returns token and validity duration in seconds."""
     lifetime = timedelta(minutes=settings.jwt_lifetime_minutes)
     now = datetime.now(UTC)
@@ -49,7 +56,9 @@ def create_access_token(user: User) -> tuple[str, int]:
         "iat": int(now.timestamp()),
         "exp": int((now + lifetime).timestamp()),
     }
-    return jwt.encode(payload, _secret(), algorithm=ALGORITHM), int(lifetime.total_seconds())
+    return AccessToken(
+        jwt.encode(payload, _secret(), algorithm=ALGORITHM), int(lifetime.total_seconds())
+    )
 
 
 async def current_user(

@@ -17,7 +17,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { AdminRace, BoatOut, StandingRow } from "../api/types";
+import type { AdminRace, BoatOut, RaceResultsInput, StandingRow } from "../api/types";
 import { boatColor } from "../lib/format";
 import {
   type ResultRow,
@@ -41,7 +41,7 @@ export interface FinishOrder {
   /** Every boat has a position or a code — what "Finish" waits for. */
   complete: boolean;
   /** The request body for the current rows, redress averages resolved at this moment. */
-  body: () => { results: ReturnType<typeof toResultIn>[] };
+  body: () => RaceResultsInput;
   /** Forget the mirrored taps (after a successful finish). */
   clearMirror: () => void;
 }
@@ -49,7 +49,7 @@ export interface FinishOrder {
 interface Options {
   /** Called with the new rows after every change that has no duplicate positions —
    *  the results tab saves from here. */
-  onChange?: (body: { results: ReturnType<typeof toResultIn>[] }) => void;
+  onChange?: (body: RaceResultsInput) => void;
   /** `localStorage` key under which taps are kept between renders of the same race. */
   mirrorKey?: string;
 }

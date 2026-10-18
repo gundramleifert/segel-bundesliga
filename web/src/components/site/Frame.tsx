@@ -4,7 +4,7 @@ import { Link, useLocation, type To } from "react-router-dom";
 
 import { useListLeagues } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
-import { useAccount } from "../../api/useApi";
+import { mayOpenAdmin, useAccount } from "../../api/useApi";
 import { DEV_TOOLS } from "../../dev/devTools";
 import { SLIDES, type Photo } from "../../content";
 import { href } from "../../lib/site";
@@ -37,7 +37,7 @@ export function TopBar({
   const { t } = useTranslation("site");
   const leagues = useLeagues();
   const { pathname } = useLocation();
-  const { account, loading, hasRole } = useAccount();
+  const { account, loading } = useAccount();
   const inLeague = (slug: string) =>
     league?.slug === slug || pathname === href.league(slug) || pathname.startsWith(`${href.league(slug)}/`);
   const atHome = !league && (pathname === href.home() || pathname === href.about());
@@ -117,7 +117,7 @@ export function TopBar({
         <UserMenu
           account={account}
           loading={loading}
-          admin={hasRole("admin", "editor", "series_manager", "event_manager", "jury")}
+          admin={mayOpenAdmin(account)}
         />
       </div>
     </header>

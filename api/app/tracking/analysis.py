@@ -2,8 +2,8 @@
 
 ``RaceAnalysis`` is the composition of the interchangeable parts — projection, leg
 distance, passing detector, ranker — and ``default_pipeline`` is the **one** place the
-concrete classes are named. Swap an implementation here, or run several against one
-recorded track with ``compare.py``, and nothing else moves.
+concrete classes are named. Swap an implementation here (or, once the planned
+``compare.py`` exists, run several against one recorded track) and nothing else moves.
 
 Everything here is derived and nothing is stored (decision 12): legs, passings, distance
 and time to go, rank — the same rule as points.
@@ -16,9 +16,9 @@ from dataclasses import dataclass, field
 
 from app.tracking.course import Course
 from app.tracking.distance import AxisProjectionDistance, LegDistance
-from app.tracking.geo import Fix, LocalTangentPlane, Projection
+from app.tracking.geo import Fix, LatLon, LocalTangentPlane, Projection
 from app.tracking.passings import PassingDetector, SequentialCourseDetector, TrackPoint
-from app.tracking.polar import J70, Polar
+from app.tracking.polar import Polar, default_polar
 from app.tracking.ranking import BoatState, ByTimeToGo, Ranked, Ranker
 from app.tracking.settings import tracking_settings
 
@@ -29,6 +29,9 @@ class RaceAnalysis:
     distance: LegDistance
     detector: PassingDetector
     ranker: Ranker
+    #: The boat's polar — what the ranker turns metres into seconds with, and what the
+    #: laylines are drawn from.
+    polar: Polar = field(default_factory=default_polar)
     #: True wind speed in knots, for the polar column the ranking uses.
     tws: float = field(default_factory=lambda: tracking_settings.default_tws_kn)
 
@@ -57,13 +60,15 @@ class RaceAnalysis:
 
 
 def default_pipeline(
-    origin: tuple[float, float], *, polar: Polar | None = None, tws: float | None = None
+    origin: LatLon, *, polar: Polar | None = None, tws: float | None = None
 ) -> RaceAnalysis:
     """What the live page runs: the plan's defaults, named once."""
+    polar = polar or default_polar()
     return RaceAnalysis(
         projection=LocalTangentPlane(*origin),
         distance=AxisProjectionDistance(),
         detector=SequentialCourseDetector(),
-        ranker=ByTimeToGo(polar or Polar.load(J70)),
+        ranker=ByTimeToGo(polar),
+        polar=polar,
         tws=tracking_settings.default_tws_kn if tws is None else tws,
     )

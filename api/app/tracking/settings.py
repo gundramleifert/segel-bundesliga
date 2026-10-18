@@ -37,16 +37,24 @@ class TrackingSettings(BaseSettings):
     #: A gate counts this far beyond its marks: boats round a gate mark close to it, and
     #: the noised track of a boat passing a metre inside may fall a few metres outside.
     gate_margin_m: float = 15.0
+    #: Below this speed over ground (m/s) a receiver's course is noise, and the direction
+    #: of travel is taken from the displacement between two fixes instead.
+    cog_min_sog_ms: float = 0.5
 
     # ------------------------------------------------------------------- ranking
     #: True wind speed assumed for the polar column when nobody has typed one in.
     default_tws_kn: float = 10.0
+    #: Speed floor (m/s) when turning metres into seconds, so a polar with no way made
+    #: good at some wind speed cannot divide by zero.
+    min_vmg_ms: float = 0.1
 
     # ------------------------------------------------------ the course, when laid here
     #: A short course: the emulator's and the "lay a default course" button's leg.
     default_leg_length_m: float = 300.0
     default_line_length_m: float = 80.0
     default_gate_width_m: float = 40.0
+    #: How far above the start line the leeward gate is laid.
+    default_gate_offset_m: float = 50.0
     #: Where a course is laid when the venue has no coordinates: Kiel Fjord.
     default_lat: float = 54.42
     default_lon: float = 10.19
@@ -70,6 +78,15 @@ class TrackingSettings(BaseSettings):
     #: The leader's line — through the leading boat, square to its leg — reaches this far
     #: to either side.
     leader_line_half_m: float = 100.0
+    #: At most about this many points per trail are sent; a longer one is thinned evenly.
+    trail_max_points: int = 30
+    #: Fixes are read from this long before the race's start, so the approach to the line
+    #: is in the picture (and in the detector's track) at the gun.
+    snapshot_lookback_s: float = 60.0
+    #: With no race started, fixes are read from this far back.
+    idle_lookback_s: float = 600.0
+    #: How long the picture stays on a finished race when nothing is running.
+    linger_s: float = 900.0
 
     @property
     def zone_radius_m(self) -> float:

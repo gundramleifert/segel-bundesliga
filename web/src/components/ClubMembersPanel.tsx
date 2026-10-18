@@ -9,7 +9,8 @@ import { errorText } from "../lib/admin";
 import { AccessPanel } from "./AccessPanel";
 import { CrestEditor } from "./CrestEditor";
 import { GuardiansPanel } from "./GuardiansPanel";
-import { Empty, ErrorMessage, Loading } from "./Blocks";
+import { Async } from "./Async";
+import { Badge, Empty, ErrorMessage } from "./Blocks";
 import { PersonDocuments } from "./PersonDocuments";
 
 /** The Members tab of "Our club" — Stories V-10, Z-5, V-8, V-9 on one screen (V-12).
@@ -57,51 +58,52 @@ export function ClubMembersPanel({
   return (
     <div data-testid="my-club-members" className="grid grid-cols-[minmax(0,1fr)] gap-6">
       <section>
-        {roster.loading && <Loading testId="my-club-members-loading" />}
-        {roster.error && <ErrorMessage text={roster.error} testId="my-club-members-error" />}
-        {roster.data && (
-          <>
-            <h3 className="font-medium">{t("members.listTitle", { count: roster.data.length })}</h3>
-            {roster.data.length ? (
-              <ul
-                data-testid="my-club-members-list"
-                className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm"
-              >
-                {roster.data.map((member) => (
-                  <li
-                    key={member.user_id}
-                    data-testid={`my-club-member-${member.user_id}`}
-                    className="flex flex-wrap items-center gap-2 py-2"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{member.display_name}</span>
-                    {(member.relations ?? [])
-                      .filter((relation) => relation !== "member")
-                      .map((relation) => (
-                        <span
-                          key={relation}
-                          data-testid={`my-club-member-relation-${member.user_id}-${relation}`}
-                          className="rounded-full bg-brand-50 px-2 py-0.5 text-xs text-brand-800 ring-1 ring-inset ring-brand-200"
-                        >
-                          {t(`members.relations.${relation}`, { defaultValue: relation })}
-                        </span>
-                      ))}
-                    {member.user_id === account?.id ? (
-                      <span className="text-xs text-slate-500">{t("members.you")}</span>
-                    ) : (
-                      <PersonDocuments
-                        userId={member.user_id}
-                        name={member.display_name}
-                        testId={`my-club-member-documents-${member.user_id}`}
-                      />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Empty testId="my-club-members-empty">{t("members.empty")}</Empty>
-            )}
-          </>
-        )}
+        {/* No `empty`: the heading, with its count, stays over an empty roster too. */}
+        <Async state={roster} testId="my-club-members">
+          {(members) => (
+            <>
+              <h3 className="font-medium">{t("members.listTitle", { count: members.length })}</h3>
+              {members.length ? (
+                <ul
+                  data-testid="my-club-members-list"
+                  className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm"
+                >
+                  {members.map((member) => (
+                    <li
+                      key={member.user_id}
+                      data-testid={`my-club-member-${member.user_id}`}
+                      className="flex flex-wrap items-center gap-2 py-2"
+                    >
+                      <span className="min-w-0 flex-1 truncate">{member.display_name}</span>
+                      {(member.relations ?? [])
+                        .filter((relation) => relation !== "member")
+                        .map((relation) => (
+                          <Badge
+                            key={relation}
+                            tone="brand"
+                            testId={`my-club-member-relation-${member.user_id}-${relation}`}
+                          >
+                            {t(`members.relations.${relation}`, { defaultValue: relation })}
+                          </Badge>
+                        ))}
+                      {member.user_id === account?.id ? (
+                        <span className="text-xs text-slate-500">{t("members.you")}</span>
+                      ) : (
+                        <PersonDocuments
+                          userId={member.user_id}
+                          name={member.display_name}
+                          testId={`my-club-member-documents-${member.user_id}`}
+                        />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Empty testId="my-club-members-empty">{t("members.empty")}</Empty>
+              )}
+            </>
+          )}
+        </Async>
       </section>
 
       {own && (

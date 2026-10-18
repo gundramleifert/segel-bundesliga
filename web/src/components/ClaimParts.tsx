@@ -6,6 +6,7 @@ import type { Claim, ClaimItem } from "../api/types";
 import { errorText } from "../lib/admin";
 import { openFile } from "../lib/files";
 import { formatDate, formatMoney } from "../lib/format";
+import { Badge, type BadgeTone } from "./Blocks";
 
 /** The parts of an expense claim both sides of it show — the claimant on "My space"
  * (Stories F-2, F-5) and the manager or treasurer on "Reimbursements" (F-3, F-6).
@@ -17,14 +18,14 @@ import { formatDate, formatMoney } from "../lib/format";
  * takes.
  */
 
-const STATUS_STYLE: Record<string, string> = {
-  draft: "bg-slate-100 text-slate-700 ring-slate-200",
-  submitted: "bg-amber-100 text-amber-800 ring-amber-300",
-  returned: "bg-orange-100 text-orange-800 ring-orange-300",
-  approved: "bg-emerald-100 text-emerald-800 ring-emerald-300",
-  rejected: "bg-red-100 text-red-800 ring-red-200",
-  withdrawn: "bg-slate-100 text-slate-500 ring-slate-200",
-  paid: "bg-brand-100 text-brand-800 ring-brand-200",
+const STATUS_TONE: Record<string, BadgeTone> = {
+  draft: "neutral",
+  submitted: "warning",
+  returned: "caution",
+  approved: "success",
+  rejected: "danger",
+  withdrawn: "muted",
+  paid: "brand",
 };
 
 /** Where the claim stands — and once approved, whether it is paid, which is the part the
@@ -37,16 +38,14 @@ export function ClaimStatusBadge({ claim, testId }: { claim: Claim; testId?: str
       ? `${t(`statuses.${claim.status}`)} · ${t(`paymentStates.${claim.payment_state}`)}`
       : t(`statuses.${claim.status}`);
   return (
-    <span
-      data-testid={testId ?? `claim-status-${claim.id}`}
+    <Badge
+      tone={STATUS_TONE[paid ? "paid" : claim.status] ?? "neutral"}
+      testId={testId ?? `claim-status-${claim.id}`}
       data-status={claim.status}
       data-payment-state={claim.payment_state ?? undefined}
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
-        STATUS_STYLE[paid ? "paid" : claim.status] ?? STATUS_STYLE.draft
-      }`}
     >
       {label}
-    </span>
+    </Badge>
   );
 }
 

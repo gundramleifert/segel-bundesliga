@@ -162,9 +162,10 @@ async def index() -> dict[str, object]:
             "clubs": "/api/clubs",
             "leagues": "/api/leagues",
             "events": "/api/events",
-            "matchday": "/api/events/{slug}",
-            "pairing_list": "/api/events/{slug}/pairing",
-            "league_table": "/api/leagues/{slug}/table/{year}",
+            "matchday": "/api/events/{event_id}",
+            "pairing_list": "/api/events/{event_id}/pairing",
+            "league_year": "/api/leagues/{slug}?year={year}",
+            "series_table": "/api/series/{series_id}/table",
             "login_methods": "/api/auth/providers",
         },
     }

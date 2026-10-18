@@ -6837,9 +6837,10 @@ export const getCreateClubUrl = () => {
 }
 
 /**
+ * A new club — answered in the shape the admin list has, so a client needs one type.
  * @summary Create Club
  */
-export const createClub = async (clubCreate: ClubCreate, options?: RequestInit): Promise<ClubOut> => {
+export const createClub = async (clubCreate: ClubCreate, options?: RequestInit): Promise<ClubAdminOut> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -6855,7 +6856,7 @@ export const createClub = async (clubCreate: ClubCreate, options?: RequestInit):
     }
     return headers;
   };
-return http<ClubOut>(getCreateClubUrl(),
+return http<ClubAdminOut>(getCreateClubUrl(),
   {
     ...options,
     method: 'POST',
@@ -7022,7 +7023,7 @@ export const getUpdateClubUrl = (clubId: number,) => {
  * @summary Update Club
  */
 export const updateClub = async (clubId: number,
-    clubUpdate: ClubUpdate, options?: RequestInit): Promise<ClubOut> => {
+    clubUpdate: ClubUpdate, options?: RequestInit): Promise<ClubAdminOut> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -7038,7 +7039,7 @@ export const updateClub = async (clubId: number,
     }
     return headers;
   };
-return http<ClubOut>(getUpdateClubUrl(clubId),
+return http<ClubAdminOut>(getUpdateClubUrl(clubId),
   {
     ...options,
     method: 'PATCH',

@@ -16,9 +16,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import Any, Literal, NamedTuple
 
-from sqlalchemy import select
+from sqlalchemy import ColumnElement, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
@@ -50,6 +50,9 @@ DEFAULT_POLICY: dict[str, Any] = {
 
 #: Relations a series can hand down to its events' claims. ``helper`` is per event only.
 _SERIES_RELATIONS = {Relation.RACE_OFFICER, Relation.JURY, Relation.MANAGER}
+
+#: Every relation's name, to read a club's policy without trusting it.
+_RELATION_NAMES = frozenset(relation.value for relation in Relation)
 
 #: The claimant may change a claim in these states, and only these.
 EDITABLE = (ClaimStatus.DRAFT, ClaimStatus.RETURNED)
@@ -90,10 +93,8 @@ def policy_for(club: Club | None) -> Policy:
 def may_file_on_event(user: User, event: Event, policy: Policy) -> bool:
     """A relation the policy names, held **directly** on the event or its series — a
     relation inherited from the site entitles nobody to travel costs (Story F-2)."""
-    for name in policy.eligible:
-        relation = Relation(name) if name in Relation._value2member_map_ else None
-        if relation is None:
-            continue
+    for name in policy.eligible & _RELATION_NAMES:
+        relation = Relation(name)
         if authz.read(user, relation, ObjectRef(ObjectType.EVENT, event.id)):
             return True
         if (
@@ -103,6 +104,20 @@ def may_file_on_event(user: User, event: Event, policy: Policy) -> bool:
         ):
             return True
     return False
+
+
+def may_pay_for(user: User, club_id: int) -> bool:
+    """The club's manager or treasurer (and their admins): the people who hold its money
+    (Story F-3). The club's claims, account and payment runs are theirs alone."""
+    return authz.check(
+        user, Relation.MANAGER, Relation.TREASURER, on=ObjectRef(ObjectType.CLUB, club_id)
+    )
+
+
+def own_claim() -> Problem:
+    """Four eyes (Story F-3): nobody decides or pays their own claim, whatever else they
+    hold — the one refusal for it, wherever a claim is decided or paid."""
+    return Problem(403, "claim-own-decision", "Nobody decides or pays their own claim.")
 
 
 def may_decide(user: User, claim: ExpenseClaim) -> bool:
@@ -120,9 +135,7 @@ def may_decide(user: User, claim: ExpenseClaim) -> bool:
             user, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, event.host_club_id)
         )
     assert claim.club_id is not None
-    return authz.check(
-        user, Relation.MANAGER, Relation.TREASURER, on=ObjectRef(ObjectType.CLUB, claim.club_id)
-    )
+    return may_pay_for(user, claim.club_id)
 
 
 def may_see(user: User, claim: ExpenseClaim) -> bool:
@@ -146,8 +159,7 @@ def require_editable(claim: ExpenseClaim) -> None:
 
 def require_decider(user: User, claim: ExpenseClaim) -> None:
     if claim.claimant_user_id == user.id:
-        # Four eyes (Story F-3): whatever else this person holds.
-        raise Problem(403, "claim-own-decision", "Nobody decides or pays their own claim.")
+        raise own_claim()
     if not may_decide(user, claim):
         raise Problem(
             403,
@@ -172,7 +184,14 @@ async def load(session: AsyncSession, claim_id: int) -> ExpenseClaim:
     return claim
 
 
-async def targets(session: AsyncSession, user: User) -> list[tuple[str, Event | Club]]:
+class ClaimTarget(NamedTuple):
+    """Something a claim can be filed on."""
+
+    kind: Literal["event", "club"]
+    target: Event | Club
+
+
+async def targets(session: AsyncSession, user: User) -> list[ClaimTarget]:
     """Every event and club this person may file a claim on (Story F-2), events first."""
     # Any relation held there; which ones entitle to a claim is the host's policy, below.
     direct = authz.list_objects(user, tuple(SCHEMA[ObjectType.EVENT]), ObjectType.EVENT)
@@ -199,8 +218,8 @@ async def targets(session: AsyncSession, user: User) -> list[tuple[str, Event | 
         ]
     members = sorted(authz.list_objects(user, Relation.MEMBER, ObjectType.CLUB))
     member_clubs = await _clubs(session, set(members))
-    return [("event", e) for e in events] + [
-        ("club", member_clubs[c]) for c in members if c in member_clubs
+    return [ClaimTarget("event", e) for e in events] + [
+        ClaimTarget("club", member_clubs[c]) for c in members if c in member_clubs
     ]
 
 
@@ -215,22 +234,43 @@ async def pending(session: AsyncSession, user: User) -> list[ExpenseClaim]:
     """What waits for this person (Story F-6): ``submitted`` claims to decide and
     ``approved`` ones with something still open, on whatever they hold the money of —
     never their own, never a draft."""
+    stmt = select(ExpenseClaim).where(
+        ExpenseClaim.status.in_([ClaimStatus.SUBMITTED, ClaimStatus.APPROVED]),
+        (ExpenseClaim.claimant_user_id != user.id) | ExpenseClaim.claimant_user_id.is_(None),
+    )
+    if not authz.check(user, Relation.ADMIN):
+        # Only where this person holds a tuple that can make them a decider — a superset
+        # of :func:`may_decide`, which still has the last word below. The site's admin
+        # decides everywhere, so for them every claim is a candidate.
+        within = _decider_scope(user)
+        if within is None:
+            return []
+        stmt = stmt.where(within)
     candidates = (
-        (
-            await session.execute(
-                select(ExpenseClaim)
-                .where(
-                    ExpenseClaim.status.in_([ClaimStatus.SUBMITTED, ClaimStatus.APPROVED]),
-                    (ExpenseClaim.claimant_user_id != user.id)
-                    | ExpenseClaim.claimant_user_id.is_(None),
-                )
-                .order_by(ExpenseClaim.submitted_at, ExpenseClaim.id)
-            )
-        )
+        (await session.execute(stmt.order_by(ExpenseClaim.submitted_at, ExpenseClaim.id)))
         .scalars()
         .all()
     )
     return [claim for claim in candidates if may_decide(user, claim) and action(claim)]
+
+
+def _decider_scope(user: User) -> ColumnElement[bool] | None:
+    """The claims :func:`may_decide` can say yes to for someone who is not the site's
+    admin, as a condition — ``None`` when there are none. Read off the model: an event's
+    treasurer or manager is its own tuple, its admin's (the event's, its series', its host
+    club's) or its host club's manager's or treasurer's; a club's are its manager's,
+    treasurer's or admin's."""
+    clubs = authz.list_objects(user, (Relation.MANAGER, Relation.TREASURER), ObjectType.CLUB)
+    events = authz.list_objects(user, (Relation.MANAGER, Relation.TREASURER), ObjectType.EVENT)
+    series = authz.list_objects(user, Relation.ADMIN, ObjectType.SERIES)
+    if not (clubs or events or series):
+        return None
+    hosted = select(Event.id).where(Event.host_club_id.in_(clubs) | Event.series_id.in_(series))
+    return (
+        ExpenseClaim.club_id.in_(clubs)
+        | ExpenseClaim.event_id.in_(events)
+        | ExpenseClaim.event_id.in_(hosted)
+    )
 
 
 def action(claim: ExpenseClaim) -> str | None:

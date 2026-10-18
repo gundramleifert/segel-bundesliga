@@ -80,11 +80,3 @@ export function Pager({
     </div>
   );
 }
-
-/** Rows per page on the screens that page.
- *
- * The same number the backend defaults to (`app/pagination.py::DEFAULT_LIMIT`), named here
- * so that asking for a page and asking for the whole list (`WHOLE_LIST` in `api/useApi`)
- * read as two different decisions rather than two magic numbers.
- */
-export const PAGE_SIZE = 25;

@@ -36,7 +36,8 @@ import yaml
 
 from app.config import settings
 from app.pairing.importer import BoatSpec
-from app.pairing.logistics import to_flights
+from app.pairing.java import require_jar, tail
+from app.pairing.logistics import seat_rows
 from app.pairing.schedule import PairingSlot
 
 MAIN_CLASS = "gundramleifert.pairing_list.PdfExport"
@@ -156,27 +157,10 @@ class PdfRequest:
         }
 
     def _flight_rows(self) -> list[dict[str, list[str]]]:
-        """The draw as the tool reads it: 0-based team indices, position = boat.
-
-        An empty seat — a fleet the boats do not divide evenly — is written as an index
-        *past* the last team. The tool pads its own team list to ``races * boats`` with
-        empty names, so those indices resolve to "empty boat" and, crucially, every seat
-        keeps its position; dropping them would shift every boat after the gap.
-        """
-        rows = []
-        for races in to_flights(self.slots, len(self.boats)):
-            empty_seat = len(self.teams)
-            flight = []
-            for race in races:
-                seats = []
-                for index in race:
-                    if index < 0:
-                        index = empty_seat
-                        empty_seat += 1
-                    seats.append(str(index))
-                flight.append(",".join(seats))
-            rows.append({"races": flight})
-        return rows
+        """The draw as the tool reads it — ``seat_rows``, empty seats included."""
+        return [
+            {"races": races} for races in seat_rows(self.slots, len(self.teams), len(self.boats))
+        ]
 
 
 async def render_pdf(
@@ -239,18 +223,7 @@ def renderer_available(jar: Path | None = None) -> bool:
 
 def _require_renderer(jar: Path | None = None) -> Path:
     """The JAR to run, or the reason there is none."""
-    jar_path = Path(jar) if jar else Path(settings.pairing_jar)
-    if not jar_path.is_file():
-        raise PairingPdfError(
-            f"The pairing JAR is missing at {jar_path}. "
-            "Build with: mvn -DskipTests package in the reference/PairingList directory"
-        )
-    if shutil.which(settings.java_binary) is None:
-        raise PairingPdfError(
-            f"Java was not found ('{settings.java_binary}'). "
-            "Printing a pairing list needs a Java runtime version 17 or later."
-        )
-    return jar_path
+    return require_jar(jar, PairingPdfError, "Printing a pairing list")
 
 
 async def _render(
@@ -300,12 +273,12 @@ async def _render(
         log = output.decode("utf-8", errors="replace")
         if process.returncode != 0:
             raise PairingPdfError(
-                f"The renderer exited with code {process.returncode}.\n{_tail(log)}"
+                f"The renderer exited with code {process.returncode}.\n{tail(log)}"
             )
 
         out = workdir / "out.pdf"
         if not out.is_file():
-            raise PairingPdfError(f"The renderer wrote no PDF.\n{_tail(log)}")
+            raise PairingPdfError(f"The renderer wrote no PDF.\n{tail(log)}")
         return out.read_bytes()
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
@@ -313,7 +286,3 @@ async def _render(
 
 def _yaml(data: dict) -> str:
     return yaml.safe_dump(data, sort_keys=False, allow_unicode=True)
-
-
-def _tail(log: str, lines: int = 15) -> str:
-    return "\n".join(log.strip().splitlines()[-lines:])

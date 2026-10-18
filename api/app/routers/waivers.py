@@ -45,8 +45,8 @@ from app.models import (
 )
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
-from app.routers.sailors import _my_sailor as my_sailor
 from app.services import current_waiver_text, event_waiver_status, is_minor, uploads
+from app.services.contexts import require_linked_sailor
 from app.services.waiver_form import render_waiver_form
 from app.services.waivers import (
     STATUS_CLEARED,
@@ -230,7 +230,7 @@ async def my_waivers(
     in and per stand-alone event they are entered in, each with the same status the
     organizer's list would show. 404 `no-linked-sailor-record` when the account has no
     sailor, exactly as the profile does."""
-    sailor = await my_sailor(session, acting)
+    sailor = await require_linked_sailor(session, acting)
     return await _waivers_of(session, sailor)
 
 

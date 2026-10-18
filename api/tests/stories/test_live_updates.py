@@ -145,6 +145,19 @@ class TestEveryWriterPublishes:
             assert response.status_code == 200, (action, response.text)
             assert hub.version(topic) == before + 1, f"{action} did not publish"
 
+    async def test_editing_the_event_publishes(self, client, caplog):
+        # A renamed event or a moved date is on the spectator's page as much as a result.
+        headers = await admin(client, caplog, "live9@example.com")
+        event_id = await event_with_participants(client, headers, "Edit Cup", "2027-08-14")
+        topic = f"event:{event_id}"
+
+        before = hub.version(topic)
+        response = await client.patch(
+            f"/api/admin/events/{event_id}", headers=headers, json={"title": "Edited Cup"}
+        )
+        assert response.status_code == 200, response.text
+        assert hub.version(topic) == before + 1, "the edit did not publish"
+
 
 class TestWhereToGoNow:
     """B-5: if there is no matchday now, the page leads to the next date."""

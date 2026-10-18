@@ -75,15 +75,26 @@ def _dummy_hash() -> str:
     return _hasher.hash("no account has this password")
 
 
-async def _verify(stored: str, password: str) -> bool:
+async def hash_secret(secret: str) -> str:
+    """Argon2 hash of ``secret``, off the event loop — for a password or a one-time code
+    (``app/services/login.py``), which share this one hasher."""
+    return await asyncio.to_thread(_hasher.hash, secret)
+
+
+async def verify_secret(stored: str, secret: str) -> bool:
+    """Whether ``secret`` matches the Argon2 hash ``stored``, off the event loop."""
     try:
-        return await asyncio.to_thread(_hasher.verify, stored, _normalize(password))
+        return await asyncio.to_thread(_hasher.verify, stored, secret)
     except (VerificationError, InvalidHashError):
         return False
 
 
+async def _verify(stored: str, password: str) -> bool:
+    return await verify_secret(stored, _normalize(password))
+
+
 async def _hash(password: str) -> str:
-    return await asyncio.to_thread(_hasher.hash, _normalize(password))
+    return await hash_secret(_normalize(password))
 
 
 def _utc(value: datetime | None) -> datetime | None:

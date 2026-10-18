@@ -11,8 +11,8 @@ Finished boats come first in either, in the order they finished.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Protocol
 
@@ -20,6 +20,7 @@ from app.tracking.course import Waypoint
 from app.tracking.geo import XY
 from app.tracking.passings import Passing
 from app.tracking.polar import KNOT, Polar
+from app.tracking.settings import tracking_settings
 
 
 @dataclass(frozen=True)
@@ -39,16 +40,13 @@ class BoatState:
         """Index of the waypoint the boat is heading for; equals the waypoint count once done."""
         return len(self.passings)
 
-    @property
-    def finished_at(self) -> datetime | None:
-        return None
-
 
 @dataclass(frozen=True)
 class Ranked:
     state: BoatState
     rank: int
-    #: Seconds to the finish at the polar's best VMG; None for a finished boat.
+    #: Seconds to the finish at the polar's best VMG; None for a finished boat, and from a
+    #: ranker that has no time (``ByLegThenDistance``).
     time_to_go: float | None
     finished_at: datetime | None
 
@@ -72,23 +70,39 @@ def _finished_at(state: BoatState, waypoints: Sequence[Waypoint]) -> datetime | 
     return state.passings[-1].t if state.leg >= len(waypoints) and state.passings else None
 
 
-def _order(boats: Sequence[BoatState], waypoints: Sequence[Waypoint], key) -> list[Ranked]:
-    finished = sorted(
-        (b for b in boats if _finished_at(b, waypoints) is not None),
-        key=lambda b: _finished_at(b, waypoints),  # type: ignore[arg-type, return-value]
-    )
-    racing = sorted((b for b in boats if _finished_at(b, waypoints) is None), key=key)
-    out: list[Ranked] = []
-    for b in finished:
-        out.append(Ranked(b, len(out) + 1, None, _finished_at(b, waypoints)))
-    for b in racing:
-        out.append(Ranked(b, len(out) + 1, key(b), None))
+def _order(
+    boats: Sequence[BoatState],
+    waypoints: Sequence[Waypoint],
+    key: Callable[[BoatState], float],
+    seconds: Callable[[BoatState], float] | None = None,
+) -> list[Ranked]:
+    """Finished boats first, by finish time; then the rest by ``key``, smallest first.
+
+    ``seconds`` is what a racing boat's ``time_to_go`` reports — None when the ranker has no
+    time, as ``key`` need not be one. Passing the same function as ``key`` reuses its value.
+    """
+    done: list[tuple[datetime, BoatState]] = []
+    racing: list[tuple[float, BoatState]] = []
+    for b in boats:
+        at = _finished_at(b, waypoints)
+        if at is None:
+            racing.append((key(b), b))
+        else:
+            done.append((at, b))
+    done.sort(key=lambda pair: pair[0])
+    racing.sort(key=lambda pair: pair[0])
+    out = [Ranked(b, rank, None, at) for rank, (at, b) in enumerate(done, start=1)]
+    for value, b in racing:
+        time_to_go = value if seconds is key else (seconds(b) if seconds else None)
+        out.append(Ranked(b, len(out) + 1, time_to_go, None))
     return out
 
 
 @dataclass(frozen=True)
 class ByTimeToGo:
     polar: Polar
+    #: Speed floor in m/s (`SBL_TRACKING_MIN_VMG_MS`).
+    min_speed: float = field(default_factory=lambda: tracking_settings.min_vmg_ms)
 
     def seconds_to_go(
         self, state: BoatState, waypoints: Sequence[Waypoint], axis: XY, tws: float
@@ -100,13 +114,16 @@ class ByTimeToGo:
         for i in range(state.leg, len(waypoints)):
             metres = state.to_go if i == state.leg else lengths[i]
             speed = up if waypoints[i].upwind else down
-            total += metres / max(speed, 0.1)
+            total += metres / max(speed, self.min_speed)
         return total
 
     def rank(
         self, boats: Sequence[BoatState], waypoints: Sequence[Waypoint], axis: XY, tws: float
     ) -> list[Ranked]:
-        return _order(boats, waypoints, lambda b: self.seconds_to_go(b, waypoints, axis, tws))
+        def seconds(b: BoatState) -> float:
+            return self.seconds_to_go(b, waypoints, axis, tws)
+
+        return _order(boats, waypoints, seconds, seconds)
 
 
 def metres_to_go(state: BoatState, waypoints: Sequence[Waypoint], axis: XY) -> float:

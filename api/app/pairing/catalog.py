@@ -43,6 +43,7 @@ from pathlib import Path
 import yaml
 
 from app.pairing.importer import ImportedPairing, PairingImportError, load_pairing_yaml
+from app.pairing.logistics import seat_rows
 from app.pairing.schedule import PairingSlot
 
 SCHEDULE_DIR = Path(__file__).parent / "schedules"
@@ -208,6 +209,12 @@ def _cached(teams: int, boats: int, flights: int) -> ImportedPairing:
     return load_entry(teams, boats, flights)
 
 
+def cached_entry(teams: int, boats: int, flights: int) -> ImportedPairing:
+    """``load_entry`` from the stored catalog, kept once found — for callers that ask the
+    same size over and over, like the readiness check behind every event page."""
+    return _cached(teams, boats, flights)
+
+
 def shuffled(teams: int, boats: int, flights: int, seed: int) -> ImportedPairing:
     """Fetch catalog entry and shuffle — the path taken by the UI."""
     return shuffle_pairing(_cached(teams, boats, flights), seed)
@@ -216,22 +223,17 @@ def shuffled(teams: int, boats: int, flights: int, seed: int) -> ImportedPairing
 # --------------------------------------------------------------- Extend catalog
 
 
-def to_yaml(slots: list[PairingSlot], flights: int) -> str:
-    """Writes a draw in catalog format (0-based starting position numbers)."""
-    by_race: dict[tuple[int, int], dict[int, int]] = {}
-    for slot in slots:
-        by_race.setdefault((slot.flight, slot.race_in_flight), {})[slot.boat_number] = (
-            slot.team_index
-        )
+def to_yaml(slots: list[PairingSlot], teams: int, boats: int) -> str:
+    """Writes a draw in catalog format (0-based starting position numbers).
 
+    The same rows the Java tool writes, empty seats included (``seat_rows``): a size
+    the boats do not divide evenly would otherwise write short races that
+    ``load_pairing_yaml`` refuses.
+    """
     lines = ["flights:"]
-    for flight in range(1, flights + 1):
+    for races in seat_rows(slots, teams, boats):
         lines.append("- races:")
-        for _, race_in_flight in sorted(key for key in by_race if key[0] == flight):
-            boats_by_number = by_race[(flight, race_in_flight)]
-            lines.append(
-                "  - " + ",".join(str(boats_by_number[nr]) for nr in sorted(boats_by_number))
-            )
+        lines.extend(f"  - {race}" for race in races)
     return "\n".join(lines) + "\n"
 
 
@@ -266,7 +268,7 @@ async def _generate(teams: int, boats: int, flights: int, seed: int, loops: int)
         print(f"Java tool unavailable ({error}) — Python generator as fallback.")
         slots = build_pairing(team_count=teams, flights=flights, boats=boats, seed=seed)
 
-    return to_yaml(slots, flights)
+    return to_yaml(slots, teams, boats)
 
 
 def main() -> None:

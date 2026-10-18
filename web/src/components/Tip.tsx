@@ -84,14 +84,24 @@ export function Tip({
 
   const show = (event: { currentTarget: Element }) =>
     setAnchor(event.currentTarget.getBoundingClientRect());
+  const hide = () => setAnchor(null);
+  // The child's own handlers still run: a cloned prop replaces, it does not add, and a
+  // trigger that loses its `onFocus` to a tooltip is a bug nobody would look for here.
+  const also =
+    (name: string, ours: (event: { currentTarget: Element }) => void) =>
+    (event: { currentTarget: Element }) => {
+      const theirs = children.props[name];
+      if (typeof theirs === "function") theirs(event);
+      ours(event);
+    };
 
   return (
     <>
       {cloneElement(children, {
-        onPointerEnter: show,
-        onPointerLeave: () => setAnchor(null),
-        onFocus: show,
-        onBlur: () => setAnchor(null),
+        onPointerEnter: also("onPointerEnter", show),
+        onPointerLeave: also("onPointerLeave", hide),
+        onFocus: also("onFocus", show),
+        onBlur: also("onBlur", hide),
         "aria-describedby": anchor ? id : undefined,
       })}
       {anchor &&

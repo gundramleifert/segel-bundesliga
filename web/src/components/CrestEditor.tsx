@@ -133,8 +133,11 @@ export function CrestEditor({
           {t("crest.remove")}
         </Button>
       )}
-      {upload.isError && (
-        <ErrorMessage text={errorText(upload.error)} testId={`${testIdPrefix}-error-${club.id}`} />
+      {(upload.isError || remove.isError) && (
+        <ErrorMessage
+          text={errorText(upload.error ?? remove.error)}
+          testId={`${testIdPrefix}-error-${club.id}`}
+        />
       )}
     </>
   );

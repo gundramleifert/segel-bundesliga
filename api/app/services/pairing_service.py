@@ -8,14 +8,15 @@ already sailed is never overwritten (Story VA-3).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import NamedTuple
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.live import event_topic, hub
-from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus, Team, TeamStatus
+from app.models import Boat, Event, Flight, Race, RaceEntry, RaceStatus, Team
 from app.pairing import BoatSpec, ImportedPairing, PairingSlot, logistics_report, pairing_report
 from app.pairing.pdf import PdfRequest, PrintSettings
+from app.services.participation import event_entries
 
 
 class PairingPublishError(RuntimeError):
@@ -24,6 +25,15 @@ class PairingPublishError(RuntimeError):
 
 class TeamNotInPairing(RuntimeError):
     """This team has no seat in the list that was drawn."""
+
+
+class PublishedPairing(NamedTuple):
+    """What publishing a pairing list created."""
+
+    boats: int
+    flights: int
+    races: int
+    entries: int
 
 
 @dataclass
@@ -57,22 +67,6 @@ class PairingDraft:
                 **logistics_report(pairing.slots, len(pairing.boats)).as_dict(),
             },
         )
-
-
-async def teams_for_event(session: AsyncSession, event: Event) -> list[Team]:
-    """The teams entering this event, in a stable order.
-
-    The pairing list belongs to the event, and so do the teams in it: the draw is among
-    those entering *here*, not among everyone registered for the series. Sorted by club
-    name so the same input always yields the same assignment — a draw has to be
-    reproducible.
-    """
-    result = await session.execute(
-        select(Team)
-        .where(Team.event_id == event.id, Team.status == TeamStatus.ACCEPTED)
-        .order_by(Team.name, Team.id)
-    )
-    return list(result.scalars())
 
 
 async def stored_pairing(
@@ -152,8 +146,10 @@ async def sailed_races(session: AsyncSession, event_id: int) -> int:
 
 async def publish_pairing(
     session: AsyncSession, event: Event, draft: PairingDraft
-) -> dict[str, int]:
-    """Replaces a matchday's pairing list. Returns what was created."""
+) -> PublishedPairing:
+    """Replaces a matchday's pairing list. Returns what was created.
+
+    Doesn't commit: the caller commits, then publishes the change to ``app.live``."""
     already_sailed = await sailed_races(session, event.id)
     if already_sailed:
         raise PairingPublishError(
@@ -161,7 +157,7 @@ async def publish_pairing(
             "A new draw would discard them."
         )
 
-    known_teams = {team.id for team in await teams_for_event(session, event)}
+    known_teams = {team.id for team in await event_entries(session, event.id)}
     unknown = [team_id for team_id in draft.team_ids if team_id not in known_teams]
     if unknown:
         raise PairingPublishError(f"These teams are not entered in this event: {unknown}")
@@ -199,16 +195,13 @@ async def publish_pairing(
             )
         )
 
-    await session.commit()
-    # A new pairing list changes who is on which boat — the running-race view and the
-    # pairing tab both read it. After the commit (Story B-5).
-    hub.publish(event_topic(event.id))
-    return {
-        "boats": len(boats),
-        "flights": len(flights),
-        "races": len(races),
-        "entries": len(draft.slots),
-    }
+    await session.flush()
+    return PublishedPairing(
+        boats=len(boats),
+        flights=len(flights),
+        races=len(races),
+        entries=len(draft.slots),
+    )
 
 
 async def _boats(session: AsyncSession, event: Event, specs: list[BoatSpec]) -> list[Boat]:

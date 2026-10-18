@@ -48,6 +48,7 @@ import {
   PREPARATORY_FLAGS,
   type PreparatoryFlag,
   resultComplete,
+  stillOpen,
 } from "../lib/results";
 
 /** WL-3: the race committee's screen on the water — one race at a time, big targets.
@@ -216,10 +217,6 @@ export function RaceControl() {
       </Stack>
     </>
   );
-}
-
-function stillOpen(race: AdminRace): boolean {
-  return race.status !== "finished" && race.status !== "abandoned";
 }
 
 function NavButton({

@@ -24,7 +24,9 @@ import {
   NOT_FINISHED_CODES,
   SPECIAL_CODES,
   needsOwnInput,
+  racesPerFlight,
   redressSuggestion,
+  stillOpen,
 } from "../lib/results";
 import {
   ErrorMessage,
@@ -38,13 +40,6 @@ import {
   roleText,
 } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
-
-/** `races_per_flight = ceil(team_count / boat_count)` — same formula as
- *  `Verwaltung.tsx`'s `events.formatText` (`CLAUDE.md`: "The Event defines the
- *  configuration"). Guarded against `boat_count === 0` while an event is still being set up. */
-function racesPerFlight(event: Pick<EventSummary, "team_count" | "boat_count">): number {
-  return event.boat_count > 0 ? Math.ceil(event.team_count / event.boat_count) : 0;
-}
 
 /** Sum of a team's `points_by_race` for the races that belong to one flight, or `null` when
  *  none of that flight's races have a result yet for this team. Keys of `points_by_race` are
@@ -626,12 +621,6 @@ export function PairingList({ eventId }: { eventId: number }) {
  *  `code`/`finish_position`/`redress_points` — `points` are always derived
  *  (`app/services/standings.py`), never entered here.
  */
-/** A race not yet finished (or abandoned) — races run strictly one at a time in sequence,
- *  so at most one race in the whole matchday is ever actually "open" at once. */
-function stillOpen(race: AdminRace): boolean {
-  return race.status !== "finished" && race.status !== "abandoned";
-}
-
 export function ResultsEntry({
   eventId,
   standings,

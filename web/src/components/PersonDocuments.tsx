@@ -6,6 +6,7 @@ import { getGetDocumentFileUrl, useListPersonDocuments } from "../api/generated/
 import { errorText } from "../lib/admin";
 import { openFile } from "../lib/files";
 import { formatDate } from "../lib/format";
+import { Badge, ErrorMessage } from "./Blocks";
 
 /** A person's documents, for their organizers (Story S-5) — the RIB driver's boat
  * licence, checked before the day.
@@ -52,7 +53,9 @@ export function PersonDocuments({
           aria-label={t("personDocuments.title", { name })}
         >
           {documents.isPending && <p className="text-slate-500">…</p>}
-          {documents.isError && <p className="text-red-700">{errorText(documents.error)}</p>}
+          {documents.isError && (
+            <ErrorMessage text={errorText(documents.error)} testId={`${testId}-error`} />
+          )}
           {documents.data && documents.data.length === 0 && (
             <p className="text-slate-500" data-testid={`${testId}-empty`}>
               {t("personDocuments.empty")}
@@ -83,7 +86,7 @@ export function PersonDocuments({
               ))}
             </ul>
           )}
-          {fileError && <p className="text-red-700">{fileError}</p>}
+          {fileError && <ErrorMessage text={fileError} testId={`${testId}-file-error`} />}
         </div>
       )}
     </div>
@@ -95,11 +98,8 @@ export function PersonDocuments({
 export function ExpiredBadge({ testId }: { testId?: string }) {
   const { t } = useTranslation("space");
   return (
-    <span
-      data-testid={testId}
-      className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-800 ring-1 ring-inset ring-red-200"
-    >
+    <Badge tone="danger" testId={testId}>
       {t("documents.expired")}
-    </span>
+    </Badge>
   );
 }

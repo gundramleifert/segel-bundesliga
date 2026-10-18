@@ -5,7 +5,15 @@
  */
 const STORAGE_KEY = "sbl.token";
 
-let token: string | null = localStorage.getItem(STORAGE_KEY);
+// Storage can be blocked (private window, site data disabled): then nobody is signed in
+// on load, and a sign-in holds until reload rather than taking the whole app down.
+let token: string | null = (() => {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+})();
 const listeners = new Set<() => void>();
 
 export function getToken(): string | null {
@@ -14,8 +22,12 @@ export function getToken(): string | null {
 
 export function setToken(next: string | null): void {
   token = next;
-  if (next) localStorage.setItem(STORAGE_KEY, next);
-  else localStorage.removeItem(STORAGE_KEY);
+  try {
+    if (next) localStorage.setItem(STORAGE_KEY, next);
+    else localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Not remembered; holds until reload.
+  }
   listeners.forEach((fn) => fn());
 }
 

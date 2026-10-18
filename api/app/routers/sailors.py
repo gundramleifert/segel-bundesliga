@@ -43,6 +43,7 @@ from app.pagination import Page, PageInput, PageParams, apply_search, page_of, p
 from app.problems import Problem
 from app.schemas.public import MemberOut
 from app.services import is_minor
+from app.services.contexts import require_linked_sailor
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
 me_router = APIRouter(prefix="/api/sailors", tags=["sailors"])
@@ -465,7 +466,7 @@ async def get_my_sailor(
     Not every account has a linked sailor — an admin-only account, for instance. That is
     not an error, just nothing to show here (404, not a crash).
     """
-    sailor = await _my_sailor(session, acting)
+    sailor = await require_linked_sailor(session, acting)
     return _me_out(sailor)
 
 
@@ -478,7 +479,7 @@ async def update_my_sailor(
     """A sailor corrects their own name or birthdate — the same fields a team manager or
     admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
     record" instead of requiring `_can_manage_master_data`."""
-    sailor = await _my_sailor(session, acting)
+    sailor = await require_linked_sailor(session, acting)
     for field, value in request.model_dump(exclude_unset=True).items():
         setattr(sailor, field, value)
     await session.commit()
@@ -491,7 +492,7 @@ async def upload_my_photo(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> SailorMeOut:
-    sailor = await _my_sailor(session, acting)
+    sailor = await require_linked_sailor(session, acting)
     raw = await file.read()
     _save_photo(sailor.id, raw, content_type=file.content_type)
     return _me_out(sailor)
@@ -503,7 +504,7 @@ async def delete_my_photo(
     acting: User = Depends(current_user),
 ) -> Response:
     """Removing a photo that doesn't exist is not an error — there is simply nothing to do."""
-    sailor = await _my_sailor(session, acting)
+    sailor = await require_linked_sailor(session, acting)
     _photo_path(sailor.id).unlink(missing_ok=True)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -551,34 +552,6 @@ def _me_out(sailor: Sailor) -> SailorMeOut:
         birth_date=sailor.birth_date,
         has_photo=_photo_path(sailor.id).exists(),
     )
-
-
-async def _my_sailor(session: AsyncSession, acting: User) -> Sailor:
-    """The `Sailor` row linked to the signed-in account's email — never someone else's.
-
-    Requires the address to be **verified**: an account that merely claims an email (not
-    yet redeemed via a one-time code or provider token) proves nothing, and matching on
-    it would let anyone view or edit any sailor's record just by typing their address at
-    sign-up. The 404 is worded the same whether the reason is "no verified email at all"
-    or "no sailor row uses this email" — a caller has no legitimate use for telling those
-    apart, and the frontend shows one plain "nothing to edit yet" message either way.
-    """
-    sailor = None
-    if acting.email_verified:
-        sailor = (
-            await session.execute(select(Sailor).where(Sailor.email == acting.email.lower()))
-        ).scalar_one_or_none()
-    if sailor is None:
-        raise Problem(
-            404,
-            "no-linked-sailor-record",
-            "No sailor record is linked to this account yet.",
-            detail=(
-                "An administrator or your club's leadership can create your sailor "
-                "record and link it to this email address."
-            ),
-        )
-    return sailor
 
 
 def _photo_path(sailor_id: int) -> Path:
@@ -870,7 +843,6 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
             .where(TeamMembership.team_id == team.id)
         )
     ).all()
-    order = {CrewRole.HELM: 0, CrewRole.CREW: 1, CrewRole.SUBSTITUTE: 2}
     members = sorted(
         (
             MemberOut(
@@ -881,7 +853,7 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
             )
             for membership, sailor in rows
         ),
-        key=lambda m: (order.get(m.role, 9), m.last_name, m.first_name),
+        key=MemberOut.announce_order,
     )
     return SquadOut(
         team_id=team.id,

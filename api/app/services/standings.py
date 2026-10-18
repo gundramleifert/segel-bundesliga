@@ -15,6 +15,7 @@ everything else follows from that.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
@@ -154,8 +155,16 @@ class SeriesRow:
         return len(self.event_ranks) - len(self.missed_events)
 
 
-async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRow]:
+async def compute_series(
+    session: AsyncSession,
+    series_id: int,
+    event_scores: Mapping[int, list[TeamScore]] | None = None,
+) -> list[SeriesRow]:
     """Series table: the placements of all acts, summed. Lower is better.
+
+    ``event_scores`` carries daily standings the caller already computed, keyed by event
+    id, so an act is scored once per change rather than twice; any act missing from it is
+    computed here.
 
     **Whoever misses an act gets field size + 1 there.** The same logic as an unsailed
     race: not entering must never be better than entering and finishing last. A club can
@@ -205,9 +214,13 @@ async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRo
         ).all()
     )
 
+    known = event_scores or {}
     for event in scored_events:
         ranks_by_row: dict[int, int] = {}
-        for score in await compute_event(session, event.id):
+        scores = known.get(event.id)
+        if scores is None:
+            scores = await compute_event(session, event.id)
+        for score in scores:
             club_id = club_id_by_entry.get(score.team_id)
             # Without a series registration, the entry stands on its own — it then shows
             # up below as its own row instead of silently disappearing.
@@ -245,16 +258,28 @@ async def compute_series(session: AsyncSession, series_id: int) -> list[SeriesRo
     return rows
 
 
-async def recompute_series(session: AsyncSession, series_id: int) -> list[SeriesRow]:
-    """Rebuilds the series table and writes it forward."""
+async def recompute_series(
+    session: AsyncSession,
+    series_id: int,
+    recomputed: Mapping[int, list[TeamScore]] | None = None,
+) -> list[SeriesRow]:
+    """Rebuilds the series table and writes it forward.
+
+    Every scored act is recomputed first — except those in ``recomputed``, whose daily
+    standings the caller has just written.
+    """
     events = (
         await session.execute(select(Event.id, Event.status).where(Event.series_id == series_id))
     ).all()
+    event_scores: dict[int, list[TeamScore]] = {}
     for event_id, status in events:
         if status in SCORED_STATES:
-            await recompute_event(session, event_id)
+            scores = (recomputed or {}).get(event_id)
+            if scores is None:
+                scores = await recompute_event(session, event_id)
+            event_scores[event_id] = scores
 
-    rows = await compute_series(session, series_id)
+    rows = await compute_series(session, series_id, event_scores)
 
     now = datetime.now(UTC)
     await session.execute(delete(SeriesStanding).where(SeriesStanding.series_id == series_id))
@@ -272,6 +297,14 @@ async def recompute_series(session: AsyncSession, series_id: int) -> list[Series
     )
     await session.flush()
     return rows
+
+
+async def recompute_after_change(session: AsyncSession, event: Event) -> None:
+    """What every change to an event's raw data is followed by: its daily standings, then
+    its series' table — each act scored once. Doesn't commit."""
+    scores = await recompute_event(session, event.id)
+    if event.series_id is not None:
+        await recompute_series(session, event.series_id, {event.id: scores})
 
 
 def _latest_rank(row: SeriesRow) -> int:

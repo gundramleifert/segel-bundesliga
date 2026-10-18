@@ -409,6 +409,9 @@ async def update_event(
         )
 
     await session.commit()
+    # After the commit, like every event mutation: a viewer refetching earlier would read
+    # the old row and stay stale (Story B-5).
+    hub.publish(event_topic(event.id))
     return _event_out(await _with_relationships(session, event.id))
 
 

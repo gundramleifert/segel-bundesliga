@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from sqlalchemy import Boolean, CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
@@ -81,6 +81,31 @@ class ObjectType(StrEnum):
     SERIES = "series"
     EVENT = "event"
     SAILOR = "sailor"
+
+
+class ObjectRef(NamedTuple):
+    """An object a relation is held on: ``club:3``, or the ``site``. FGA's object
+    notation, never an ORM instance's class name. Defined with the tuples it names and
+    re-exported by `app/authz.py`, where callers take it from."""
+
+    type: ObjectType
+    id: int | None = None
+
+    def __str__(self) -> str:
+        return "site" if self.type is ObjectType.SITE else f"{self.type.value}:{self.id}"
+
+    @classmethod
+    def parse(cls, text: str) -> ObjectRef:
+        """``"event:3"`` → ``ObjectRef(EVENT, 3)``; ``"site"`` → :data:`SITE`."""
+        if text == "site":
+            return SITE
+        kind, _, ident = text.partition(":")
+        if not ident.isdigit() or kind not in {t.value for t in ObjectType} or kind == "site":
+            raise ValueError(f"not an object: {text!r} (expected type:id, e.g. event:3, or site)")
+        return cls(ObjectType(kind), int(ident))
+
+
+SITE = ObjectRef(ObjectType.SITE)
 
 
 #: The authorization model, in OpenFGA's DSL — and this string *is* the definition:
@@ -151,9 +176,13 @@ type sailor
     define guardian: [user]
 """
 
-#: One term of a ``define``: ``direct`` for ``[user]``, else the relation to check on
-#: ``self`` or on the object behind ``edge``.
-Term = tuple[str, str | None]  # (relation or "direct", edge or None)
+
+class Term(NamedTuple):
+    """One term of a ``define``: ``direct`` for ``[user]``, else the relation to check on
+    ``self`` or on the object behind ``edge``."""
+
+    relation: str
+    edge: str | None = None
 
 
 def _parse_model(text: str) -> dict[ObjectType, dict[Relation, tuple[Term, ...]]]:
@@ -178,12 +207,12 @@ def _parse_model(text: str) -> dict[ObjectType, dict[Relation, tuple[Term, ...]]
             for part in expr.split(" or "):
                 part = part.strip()
                 if part == "[user]":
-                    terms.append(("direct", None))
+                    terms.append(Term("direct"))
                 elif " from " in part:
                     relation, edge = part.split(" from ")
-                    terms.append((relation.strip(), edge.strip()))
+                    terms.append(Term(relation.strip(), edge.strip()))
                 else:
-                    terms.append((part, None))
+                    terms.append(Term(part))
             schema[current][Relation(head.strip())] = tuple(terms)
     return schema
 
@@ -273,6 +302,8 @@ class User(Base, TimestampMixin):
     def can(self, *relations: Relation | str, on: object = ObjectType.SITE) -> bool:
         """``authz.check(self, …)`` — the one permission check, in the form the routers
         read best. Everything else about permissions is `app/authz.py`."""
+        # Imported here: `app.authz` interprets this module's model, so it imports this
+        # module, and a top-level import back would be a cycle.
         from app import authz
 
         return authz.check(self, *relations, on=on)
@@ -353,10 +384,8 @@ class Grant(Base, TimestampMixin):
         return self.club_id or self.series_id or self.event_id or self.sailor_id
 
     @property
-    def ref(self):
-        """The tuple's object as an ``authz.ObjectRef``."""
-        from app.authz import ObjectRef
-
+    def ref(self) -> ObjectRef:
+        """The tuple's object as an :class:`ObjectRef`."""
         return ObjectRef(self.object_type, self.object_id)
 
     @property

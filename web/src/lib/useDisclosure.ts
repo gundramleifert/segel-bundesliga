@@ -3,8 +3,8 @@ import { useLocation } from "react-router-dom";
 
 /** A panel that opens, and closes for all the reasons a panel has to close.
  *
- * The frame has two of them — the burger menu and the account menu — and they agree on
- * everything that is easy to forget and invisible when missing: **Escape** closes it,
+ * The account menu is one, and it needs everything that is easy to forget and invisible
+ * when missing: **Escape** closes it,
  * a click **outside** closes it, and any **navigation** closes it. A menu left standing
  * over the page it just navigated to reads as a broken link.
  *
