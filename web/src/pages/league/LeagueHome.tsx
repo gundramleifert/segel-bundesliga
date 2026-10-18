@@ -43,6 +43,18 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const l = league.slug;
 
   const chip = "rounded-full border border-white/40 px-4 py-2 hover:bg-white/10";
+  const table = season.series.length ? (
+    <div className={`grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-4 ${several ? "md:grid-cols-2" : ""}`}>
+      {season.series.map((s) => (
+        <div key={s.id}>
+          {several && <p className="mb-2 text-sm font-semibold text-white/80">{s.name}</p>}
+          <TopFive series={s} />
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-white/70">{t("standings.noSeries")}</p>
+  );
   // Each chapter is titled with its name — the word on its dot (Story B-14).
   const chapters: ChapterSpec[] = [
     {
@@ -52,19 +64,16 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       title: t("chapters.standings"),
       photo: leaguePhoto(l),
       more: { to: href.standings(l), label: t("standings.more") },
-      body: season.series.length ? (
-        <div className={`grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-4 ${several ? "md:grid-cols-2" : ""}`}>
-          {season.series.map((s) => (
-            <div key={s.id}>
-              {several && <p className="mb-2 text-sm font-semibold text-white/80">{s.name}</p>}
-              <TopFive series={s} />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-white/70">{t("standings.noSeries")}</p>
-      ),
-      extra: acts.length > 0 && <SeasonStrip league={l} acts={acts} year={year} />,
+      // With the sub-menu: the table on the left, the year's matchdays beside it.
+      body:
+        full && acts.length > 0 ? (
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2" data-testid="site-standings-split">
+            {table}
+            <SeasonStrip league={l} acts={acts} year={year} />
+          </div>
+        ) : (
+          table
+        ),
     },
     // Only while a matchday is live: between matchdays the season's page has the calendar.
     ...(live && year
@@ -192,15 +201,15 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   return <ChapterScroller chapters={chapters} league={league} />;
 }
 
-/** The year's matchdays in a row, each with its state — the season at a glance, on the
- *  standings chapter (the layout with a sub-menu). */
+/** The year's matchdays, each with its state — the season at a glance, beside the table
+ *  on the standings chapter (the layout with a sub-menu). */
 function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year: number | null }) {
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
   return (
     <div data-testid="site-season-strip">
       <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-white/60">{t("season.calendar", { year: year ?? "" })}</p>
-      <ol className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      <ol className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-1">
         {acts.map((a) => {
           const inner = (
             <>
