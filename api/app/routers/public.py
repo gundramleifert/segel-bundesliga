@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import authz
-from app.auth import current_user
+from app.auth import current_user, optional_user
 from app.crests import crest_path
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
@@ -51,6 +51,7 @@ from app.models.auth import ObjectType, Relation, User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
 from app.problems import Problem
+from app.routers.sailors import connected_to_sailor
 from app.schemas.public import (
     BoatOut,
     ClubDetail,
@@ -664,6 +665,7 @@ async def get_sailor(
     year: int | None = Query(default=None, description="Year; otherwise the current one"),
     session: AsyncSession = Depends(get_session),
     locale: Locale = Depends(resolve_locale),
+    acting: User | None = Depends(optional_user),
 ) -> SailorDetail:
     """The sailor page: which club and series someone is registered with, where they compete.
 
@@ -671,11 +673,17 @@ async def get_sailor(
     Being on the squad does not mean sailing every event.
 
     Deliberately no email or birth year — same as on the club page.
+
+    A sailor who switched their page off (Story S-4) gets the **same** 404 as nobody at
+    all, so the page does not confirm to a guesser that the person exists; the people
+    connected to them (`connected_to_sailor`) still open it.
     """
     sailor = (
         await session.execute(select(Sailor).where(Sailor.id == sailor_id))
     ).scalar_one_or_none()
-    if sailor is None:
+    if sailor is None or (
+        not sailor.profile_public and not await connected_to_sailor(session, acting, sailor)
+    ):
         raise HTTPException(
             status_code=404,
             detail=tr(
@@ -736,6 +744,7 @@ async def get_sailor(
         id=sailor.id,
         first_name=sailor.first_name,
         last_name=sailor.last_name,
+        profile_public=sailor.profile_public,
         teams=teams,
         events=events,
     )
@@ -894,14 +903,7 @@ async def get_event_crew(
 
     crew_by_team: dict[int, list[MemberOut]] = {}
     for crew, sailor in rows:
-        crew_by_team.setdefault(crew.team_id, []).append(
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=crew.role,
-            )
-        )
+        crew_by_team.setdefault(crew.team_id, []).append(MemberOut.of(sailor, crew.role))
     for members in crew_by_team.values():
         members.sort(key=MemberOut.announce_order)
 
@@ -1144,14 +1146,7 @@ async def _squad(session: AsyncSession, team_ids: list[int]) -> dict[int, list[M
 
     by_team: dict[int, list[MemberOut]] = {}
     for membership, sailor in rows:
-        by_team.setdefault(membership.team_id, []).append(
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=membership.role,
-            )
-        )
+        by_team.setdefault(membership.team_id, []).append(MemberOut.of(sailor, membership.role))
     for members in by_team.values():
         members.sort(key=MemberOut.announce_order)
     return by_team
@@ -1199,14 +1194,7 @@ async def _events_by_team(
 
     crew_by_event: dict[int, list[MemberOut]] = {}
     for crew, sailor in lineups:
-        crew_by_event.setdefault(crew.event_id, []).append(
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=crew.role,
-            )
-        )
+        crew_by_event.setdefault(crew.event_id, []).append(MemberOut.of(sailor, crew.role))
     for members in crew_by_event.values():
         members.sort(key=MemberOut.announce_order)
 

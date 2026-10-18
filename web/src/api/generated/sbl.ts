@@ -1672,6 +1672,10 @@ export const getGetSailorUrl = (sailorId: number,
  * Being on the squad does not mean sailing every event.
  *
  * Deliberately no email or birth year — same as on the club page.
+ *
+ * A sailor who switched their page off (Story S-4) gets the **same** 404 as nobody at
+ * all, so the page does not confirm to a guesser that the person exists; the people
+ * connected to them (`connected_to_sailor`) still open it.
  * @summary Get Sailor
  */
 export const getSailor = async (sailorId: number,

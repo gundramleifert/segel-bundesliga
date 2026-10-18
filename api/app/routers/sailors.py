@@ -139,6 +139,9 @@ class SailorAdminOut(BaseModel):
     last_name: str
     email: str | None = None
     birth_date: date | None = None
+    # Story S-4: management sees the sailor's choice, never sets it (`SailorUpdate` has
+    # no such field).
+    profile_public: bool = True
     # How many series this person is registered for. Says at a glance whether they're
     # in a squad anywhere.
     squads: int = 0
@@ -161,6 +164,8 @@ class SailorMeOut(BaseModel):
     birth_date: date | None = None
     # Whether a photo file exists — never the binary itself, see `get_sailor_photo`.
     has_photo: bool = False
+    # Story S-4: whether the profile page is public — the choice, or the age default.
+    profile_public: bool = True
 
 
 class SailorMeUpdate(SailorFields):
@@ -171,6 +176,9 @@ class SailorMeUpdate(SailorFields):
     first_name: str | None = Field(default=None, min_length=1, max_length=80)
     last_name: str | None = Field(default=None, min_length=1, max_length=80)
     birth_date: date | None = Field(default=None, le=date.today())
+    # Story S-4 — the one field here management cannot set for someone else. Null (or
+    # absent) leaves the choice as it is.
+    profile_public: bool | None = None
 
 
 class SquadMemberIn(BaseModel):
@@ -480,7 +488,11 @@ async def update_my_sailor(
     admin can already set via `PATCH /api/admin/sailors/{id}`, just scoped to "my own
     record" instead of requiring `_can_manage_master_data`."""
     sailor = await require_linked_sailor(session, acting)
-    for field, value in request.model_dump(exclude_unset=True).items():
+    changes = request.model_dump(exclude_unset=True)
+    profile_public = changes.pop("profile_public", None)
+    if profile_public is not None:
+        sailor.profile_public_choice = profile_public
+    for field, value in changes.items():
         setattr(sailor, field, value)
     await session.commit()
     return _me_out(sailor)
@@ -530,9 +542,10 @@ async def get_sailor_photo(
     # "adult" therefore requires the connected-viewer check. A sailor lifts the restriction
     # on their own photo by filling in their birth date in the same self-service form they
     # uploaded it from. `app/routers/waivers.py` treats the same unknown as blocking.
-    if is_minor(sailor.birth_date, date.today()) is not False and not await _may_view_minor_photo(
-        session, acting, sailor
-    ):
+    minor = is_minor(sailor.birth_date, date.today()) is not False
+    if (minor or not sailor.profile_public) and await connected_to_sailor(session, acting, sailor):
+        return FileResponse(path, media_type="image/jpeg")
+    if minor:
         raise Problem(
             403,
             "sailor-photo-protected",
@@ -540,6 +553,10 @@ async def get_sailor_photo(
             "only shown to a signed-in account connected to them: the sailor themselves, "
             "administration/editorial staff, or their club's leadership.",
         )
+    # Story S-4: a hidden profile takes its photo with it — the same 404 as a sailor
+    # without one, for whoever is not connected to the person.
+    if not sailor.profile_public:
+        raise Problem(404, "sailor-photo-not-found", "This sailor has no photo.")
 
     return FileResponse(path, media_type="image/jpeg")
 
@@ -551,6 +568,7 @@ def _me_out(sailor: Sailor) -> SailorMeOut:
         last_name=sailor.last_name,
         birth_date=sailor.birth_date,
         has_photo=_photo_path(sailor.id).exists(),
+        profile_public=sailor.profile_public,
     )
 
 
@@ -616,8 +634,9 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
     image.save(_photo_path(sailor_id), format="JPEG", quality=_JPEG_QUALITY)
 
 
-async def _may_view_minor_photo(session: AsyncSession, acting: User | None, sailor: Sailor) -> bool:
-    """Who may see a photo that is not public — Story S-2's own open question, resolved here.
+async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor: Sailor) -> bool:
+    """Who may see a photo or a profile page that is not public — Story S-2's own open
+    question, resolved here, and the same circle Story S-4 opens a hidden page for.
 
     An **adult's** photo is public: "so that people see who sails for the club" is the whole
     point of S-2, and there is no reason to gate it. A minor's photo is sensitive in exactly
@@ -844,15 +863,7 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
         )
     ).all()
     members = sorted(
-        (
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=membership.role,
-            )
-            for membership, sailor in rows
-        ),
+        (MemberOut.of(sailor, membership.role) for membership, sailor in rows),
         key=MemberOut.announce_order,
     )
     return SquadOut(

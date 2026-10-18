@@ -265,6 +265,8 @@ export function SailorProfile() {
 
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
+  const [visibilityBusy, setVisibilityBusy] = useState(false);
+  const profilePublic = sailor?.profile_public ?? true;
 
   useEffect(() => {
     let active = true;
@@ -295,7 +297,7 @@ export function SailorProfile() {
 
   // The photo itself needs the bearer token — a plain `<img src>` never sends it, and a
   // minor's photo is only ever served to a signed-in, connected account (see
-  // `app/routers/sailors.py::_may_view_minor_photo`). Fetching it here and turning it
+  // `app/routers/sailors.py::connected_to_sailor`). Fetching it here and turning it
   // into an object URL works for that case exactly as it does for a public, adult photo.
   useEffect(() => {
     if (!sailor?.has_photo) {
@@ -351,6 +353,20 @@ export function SailorProfile() {
       setError(errorText(err));
     } finally {
       setPhotoBusy(false);
+    }
+  }
+
+  // Story S-4: the one setting only the sailor makes. It saves on its own, like a switch
+  // does, rather than waiting for the name form's Save.
+  async function setProfilePublic(profilePublic: boolean) {
+    setVisibilityBusy(true);
+    setError(null);
+    try {
+      setSailor(await updateMySailor({ profile_public: profilePublic }));
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setVisibilityBusy(false);
     }
   }
 
@@ -434,6 +450,23 @@ export function SailorProfile() {
                 )}
               </div>
             </div>
+
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={profilePublic}
+                disabled={visibilityBusy}
+                onChange={(e) => setProfilePublic(e.target.checked)}
+                className="mt-0.5"
+                data-testid="account-profile-public-toggle"
+              />
+              <span>
+                <span className="font-medium text-slate-700">{t("profile.publicLabel")}</span>
+                <span className="block text-slate-500" data-testid="account-profile-public-hint">
+                  {profilePublic ? t("profile.publicOn") : t("profile.publicOff")}
+                </span>
+              </span>
+            </label>
 
             <form onSubmit={save} data-testid="account-profile-form" className="space-y-3">
               <CardGrid gap={3} as="div">

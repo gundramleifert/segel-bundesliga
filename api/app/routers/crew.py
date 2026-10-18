@@ -227,15 +227,7 @@ async def _crew_out(session: AsyncSession, event: Event, team_id: int) -> CrewOu
         )
     ).all()
     members = sorted(
-        (
-            MemberOut(
-                id=sailor.id,
-                first_name=sailor.first_name,
-                last_name=sailor.last_name,
-                role=crew.role,
-            )
-            for crew, sailor in rows
-        ),
+        (MemberOut.of(sailor, crew.role) for crew, sailor in rows),
         key=MemberOut.announce_order,
     )
     return CrewOut(

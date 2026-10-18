@@ -8,7 +8,7 @@ id supplied by the caller — so there is no way to point them at someone else's
 Photo visibility resolves S-2's own open question: an adult's (or unknown-birthdate's)
 photo is public, a minor's is shown only to a signed-in account connected to them (the
 sailor themselves, admin/editor, or a manager of a club they're registered with) — see
-`app/routers/sailors.py::_may_view_minor_photo`.
+`app/routers/sailors.py::connected_to_sailor`.
 """
 
 import io
@@ -91,6 +91,7 @@ class TestOwnProfile:
             "last_name": "Fil",
             "birth_date": _ADULT_BIRTH,
             "has_photo": False,
+            "profile_public": True,
         }
 
         edited = await client.patch(

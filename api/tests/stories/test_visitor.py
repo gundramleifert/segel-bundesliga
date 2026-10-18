@@ -250,7 +250,7 @@ class TestMatchdayCrew:
 
         for entry in lineups["teams"]:
             for member in entry["crew"]:
-                assert set(member) == {"id", "first_name", "last_name", "role"}
+                assert set(member) == {"id", "first_name", "last_name", "role", "profile_public"}
 
     async def test_a_draft_matchday_has_no_public_lineup(self, client, caplog):
         """Publication is orthogonal to everything else — a draft is a 404 (Story VA-8)."""

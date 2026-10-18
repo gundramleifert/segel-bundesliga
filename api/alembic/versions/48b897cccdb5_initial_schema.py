@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 57be07647f4f
+Revision ID: 48b897cccdb5
 Revises: 
-Create Date: 2026-10-17 07:35:42.394479
+Create Date: 2026-10-18 21:55:19.944813
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '57be07647f4f'
+revision: str = '48b897cccdb5'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -132,6 +132,7 @@ def upgrade() -> None:
     sa.Column('email', sa.String(length=254), nullable=True),
     sa.Column('birth_date', sa.Date(), nullable=True),
     sa.Column('federation_id', sa.String(length=40), nullable=True),
+    sa.Column('profile_public_choice', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_sailor'))
@@ -678,7 +679,8 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_team_membership_sailor_id_sailor')),
     sa.ForeignKeyConstraint(['team_id'], ['team.id'], name=op.f('fk_team_membership_team_id_team')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_team_membership'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_team_membership')),
+    sa.UniqueConstraint('team_id', 'sailor_id', name=op.f('uq_team_membership_team_id'))
     )
     with op.batch_alter_table('team_membership', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_team_membership_sailor_id'), ['sailor_id'], unique=False)

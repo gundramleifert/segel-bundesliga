@@ -17,4 +17,5 @@ export interface MemberOut {
   first_name: string;
   last_name: string;
   role: string;
+  profile_public?: boolean;
 }

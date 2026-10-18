@@ -46,7 +46,13 @@ class TestClubPage:
         assert len(first["members"]) == 10, "Ten members per season (Story V-1)"
         # Helm first — the order a crew is announced.
         assert first["members"][0]["role"] == "helm"
-        assert set(first["members"][0]) == {"id", "first_name", "last_name", "role"}
+        assert set(first["members"][0]) == {
+            "id",
+            "first_name",
+            "last_name",
+            "role",
+            "profile_public",
+        }
 
     async def test_different_year_can_be_retrieved(self, client):
         response = await client.get(f"/api/clubs/{await first_club()}", params={"year": 1999})
