@@ -36,7 +36,34 @@ export function AssociationHome() {
       // The page's one h1 names the page; every other chapter is titled with its name.
       title: "Deutsche Segel-Liga e.V.",
       photo: OWN_PHOTOS.title,
-      body: (
+      // With the sub-menu the competitions are one chapter, not two: what each is sailing now
+      // and what each is, on one card — the classic layout had a list here and the same
+      // four leagues again as cards in the next chapter.
+      body: full ? (
+        <ul className="grid max-w-5xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-4" data-testid="site-home-now">
+          {leagues.map((l, i) => {
+            const season = seasons[i]?.data;
+            const act = season ? currentAct(actsOf(season)) : null;
+            const about = leagueAbout(l.slug);
+            return (
+              <li key={l.slug}>
+                <Card to={href.league(l.slug)} className="flex h-full flex-col p-5">
+                  <p className="text-2xl font-semibold">{l.short_name}</p>
+                  {act ? (
+                    <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                      <span className="font-medium">{actTitle(act)}</span>
+                      <StateBadge state={act.state} dark />
+                      <span className="w-full text-white/60">{actDates(act)}</span>
+                    </p>
+                  ) : null}
+                  <p className="mt-3 text-sm text-white/80">{l.tagline}</p>
+                  {about && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-white/60">{localized(about.intro)}</p>}
+                </Card>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
         <Card className="max-w-2xl px-4" testId="site-home-now">
           {leagues.map((l, i) => {
             const season = seasons[i]?.data;
@@ -66,27 +93,29 @@ export function AssociationHome() {
         </ul>
       ),
     },
-    {
-      id: "leagues",
-      label: t("chapters.leagues"),
-      title: t("chapters.leagues"),
-      photo: DSBL_PHOTOS.race,
-      body: (
-        <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {leagues.map((l) => (
-            <li key={l.slug}>
-              <Card to={href.league(l.slug)} className="h-full p-5">
-                <p className="text-2xl font-semibold">{l.short_name}</p>
-                <p className="mt-1 text-sm text-white/75">{l.tagline}</p>
-                {full && leagueAbout(l.slug) && (
-                  <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-white/60">{localized(leagueAbout(l.slug)!.intro)}</p>
-                )}
-              </Card>
-            </li>
-          ))}
-        </ul>
-      ),
-    },
+    // The classic layout's second chapter; with the sub-menu it is part of the first.
+    ...(full
+      ? []
+      : [
+          {
+            id: "leagues",
+          label: t("chapters.leagues"),
+          title: t("chapters.leagues"),
+          photo: DSBL_PHOTOS.race,
+          body: (
+            <ul className="grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {leagues.map((l) => (
+                <li key={l.slug}>
+                  <Card to={href.league(l.slug)} className="h-full p-5">
+                    <p className="text-2xl font-semibold">{l.short_name}</p>
+                    <p className="mt-1 text-sm text-white/75">{l.tagline}</p>
+                  </Card>
+                </li>
+              ))}
+            </ul>
+          ),
+        } satisfies ChapterSpec,
+        ]),
     {
       id: "news",
       label: t("chapters.news"),

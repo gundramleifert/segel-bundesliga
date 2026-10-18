@@ -85,7 +85,8 @@ function SubmenuChapters({ chapters, league }: { chapters: ChapterSpec[]; league
                   mode === "snap" ? "min-h-[calc(100dvh-57px)] snap-start" : ""
                 }`}
               >
-                <div className={`mx-auto w-full max-w-6xl px-4 pr-14 text-white lg:pr-24 ${mode === "snap" ? "py-14" : "py-10"}`}>
+                {/* `chapter-wide` (index.css): every chapter's cards span the same column. */}
+                <div className={`chapter-wide mx-auto w-full max-w-6xl px-4 pr-14 text-white lg:pr-24 ${mode === "snap" ? "py-14" : "py-10"}`}>
                   <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
                   {c.body}
                   {c.extra && <div className="mt-8">{c.extra}</div>}

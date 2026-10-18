@@ -450,7 +450,9 @@ Acceptance criteria:
   were the problem). A document carries no download mark until there is a file.
 - The association's home `/` is a chapter page too: *Now* (every league's current act),
   *Leagues*, *News*, *For clubs*, *About* — titled with those names, except the first,
-  whose title is the page's heading: *Deutsche Segel-Liga e.V.*
+  whose title is the page's heading: *Deutsche Segel-Liga e.V.* In the layout with a sub-menu *Now* and *Leagues* are one
+  chapter (2026-10-18 — both showed the same four competitions): a card per league with
+  the act it is sailing or sails next, its state, its tagline and its introduction.
 - **Old addresses of the DSBL** (`/dsbl`, `/dsbl/…`) go to the 1. Liga's same page
   (Story B-16).
 - **The chapters are filled** in the layout with a sub-menu (Story B-13; the classic

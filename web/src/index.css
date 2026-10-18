@@ -199,3 +199,11 @@ html {
   background-color: transparent;
   box-shadow: none;
 }
+
+/* The sub-menu layout's chapters: the same width in each. Their content was written with
+   a width of its own (max-w-xl … max-w-5xl), so one chapter's cards ended where the
+   next one's went on; here every block spans the chapter's column. A paragraph keeps its
+   measure — a line of text across the whole screen is hard to read. */
+.chapter-wide :where(:not(p)[class*="max-w-"]) {
+  max-width: none;
+}
