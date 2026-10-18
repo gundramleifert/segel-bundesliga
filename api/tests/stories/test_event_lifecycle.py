@@ -412,11 +412,10 @@ class TestFreezeAfterTheFirstRace:
         patched = await client.patch(
             f"/api/admin/events/{event_id}",
             headers=headers,
-            json={"title": "Frozen Cup (corrected)", "status": "final"},
+            json={"title": "Frozen Cup (corrected)"},
         )
         assert patched.status_code == 200, patched.text
         assert patched.json()["title"] == "Frozen Cup (corrected)"
-        assert patched.json()["status"] == "final"
 
     async def test_a_started_race_freezes_even_without_a_result(self, client, caplog):
         """The trigger is the first start, not the first result — a race under way already

@@ -16,7 +16,7 @@ import {
   useStartRace,
 } from "../api/generated/sbl";
 import type { AdminRace, BoatOut, EventSummary, StandingRow } from "../api/types";
-import { useAccount, useAsync, useInvalidate } from "../api/useApi";
+import { useAsync, useEventAccess, useInvalidate } from "../api/useApi";
 import { useLive } from "../api/useLive";
 import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Blocks";
 import { FinishOrderPad, useFinishOrder } from "../components/FinishOrderPad";
@@ -67,8 +67,9 @@ export function RaceControl() {
   const { t } = useTranslation("racecontrol");
   const { id = "" } = useParams();
   const eventId = Number(id);
-  const { hasRole, loading: accountLoading } = useAccount();
-  const allowed = hasRole("admin", "race_officer");
+  // This event's race committee — directly, or through its series, host club or the
+  // site (Story WL-3) — and nobody else's.
+  const { record_results: allowed, loading: accountLoading } = useEventAccess(eventId);
 
   const detail = useAsync(useGetEvent(eventId));
   const races = useAsync(useGetAdminRaces(eventId, { query: { enabled: allowed } }));

@@ -4,7 +4,7 @@ import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 
 import { getGetEventQueryKey, useGetEvent, useListLeagues } from "../../api/generated/sbl";
 import type { EventSummary, League } from "../../api/types";
-import { useAccount, useAsync } from "../../api/useApi";
+import { useAsync, useEventAccess } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
@@ -59,7 +59,6 @@ function MatchdayView({
 }) {
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
-  const { hasRole } = useAccount();
   const [params, setParams] = useSearchParams();
   // A tab click scrolls the page so the matchday row sits right under the top bar and the
   // tab starts below it. A page opened by its URL keeps its picture in view.
@@ -71,11 +70,13 @@ function MatchdayView({
     window.scrollTo({ top: anchor.current.getBoundingClientRect().top + window.scrollY - BARS.offset });
   }, [tabParam]);
 
-  const canEnterResults = hasRole("admin", "race_officer");
+  const event = act.events.find((e) => String(e.id) === params.get("division")) ?? act.events[0];
+  // The entry tab is the race committee's of *this* division's event (Story WL-3) — the
+  // server's answer, not a role held somewhere.
+  const canEnterResults = useEventAccess(event.id).record_results;
   const tabs = TABS.filter((tb) => tb !== "entry" || canEnterResults);
   const fallback: Tab = hasResults(act) ? "results" : "notice-board";
   const tab: Tab = (tabs as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : fallback;
-  const event = act.events.find((e) => String(e.id) === params.get("division")) ?? act.events[0];
   const kicker = [league?.short_name, actDates(act), act.first.venue?.water ?? act.first.venue?.name].filter(Boolean).join(" · ");
 
   // The matchday's tabs are its sub-menu: where you are on the left (the league, its

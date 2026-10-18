@@ -3,10 +3,10 @@ import { useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import i18n from "../i18n";
-import { useMe } from "./generated/sbl";
+import { getGetEventAccessQueryKey, useGetEventAccess, useMe } from "./generated/sbl";
 import { ApiError } from "./http";
 import { getToken, onTokenChange } from "./session";
-import type { Account } from "./types";
+import type { Account, EventAccess } from "./types";
 
 export interface AsyncState<T> {
   data: T | null;
@@ -177,6 +177,28 @@ export function useAccount(): AccountState {
     loading: Boolean(token) && query.isPending,
     hasRole: (...roles) => Boolean(account && roles.some((r) => account.roles.includes(r))),
   };
+}
+
+const NO_ACCESS: EventAccess = { record_results: false, control: false, manage: false };
+
+/** What the signed-in person may do on this event (Story WL-3) — the server's answer,
+ *  computed with the permission model, so a race officer of one event sees the
+ *  committee's tools there and nowhere else, and one appointed through the series or the
+ *  host club sees them too. Never gate an event's tools on `hasRole`: the summary roles
+ *  say *somewhere*, not *here*.
+ *
+ *  The token is part of the key for the same reason as `useAccount`'s: the answer depends
+ *  on who asks, and switching accounts must not be answered from the last one's cache. */
+export function useEventAccess(eventId: number): EventAccess & { loading: boolean } {
+  const token = useToken();
+  const query = useGetEventAccess(eventId, {
+    query: {
+      queryKey: [...getGetEventAccessQueryKey(eventId), token],
+      enabled: Boolean(token) && Number.isFinite(eventId),
+    },
+  });
+  if (!token) return { ...NO_ACCESS, loading: false };
+  return { ...(query.data ?? NO_ACCESS), loading: query.isPending };
 }
 
 /** The summary roles the administration has something for (Story A-12).

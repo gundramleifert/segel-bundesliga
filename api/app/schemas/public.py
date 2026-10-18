@@ -257,6 +257,24 @@ class EventDetail(BaseModel):
     races_scored: int
 
 
+class EventAccess(BaseModel):
+    """What the person asking may do on one event — Story WL-3.
+
+    Answered per event with the permission model (``app/authz.py``), so a race officer of
+    one event sees the committee's tools there and nowhere else, and one appointed through
+    the series or the host club sees them too. A guest gets ``false`` throughout. The
+    summary roles (``User.roles``) are for navigation and never answer this.
+    """
+
+    #: The race committee's tools: results, race control, the course, trackers
+    #: (``race_officer`` on the event — directly or through its series, host club, site).
+    record_results: bool = False
+    #: Start, finish, cancel and reopen the day (``manager`` or ``race_officer``).
+    control: bool = False
+    #: The organizer's setup screen (``manager`` on the event).
+    manage: bool = False
+
+
 class TeamCrewOut(BaseModel):
     """One team entered in an event, and who sails it there.
 

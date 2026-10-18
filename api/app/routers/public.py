@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import authz
-from app.auth import current_user
+from app.auth import current_user, optional_user
 from app.crests import crest_path
 from app.db import get_session
 from app.i18n import Locale, resolve_locale, tr
@@ -57,6 +57,7 @@ from app.schemas.public import (
     ClubEventOut,
     ClubOut,
     ClubTeamOut,
+    EventAccess,
     EventCrewList,
     EventDetail,
     EventDocumentOut,
@@ -855,6 +856,33 @@ async def get_event(
         standings=rows,
         races_total=races_total,
         races_scored=await _count_scored_races(session, event.id),
+    )
+
+
+@router.get(
+    "/events/{event_id}/access",
+    response_model=EventAccess,
+    summary="What the person asking may do on this event",
+)
+async def get_event_access(
+    event_id: int,
+    session: AsyncSession = Depends(get_session),
+    locale: Locale = Depends(resolve_locale),
+    user: User | None = Depends(optional_user),
+) -> EventAccess:
+    """Story WL-3: the race committee's tools appear on the events a person runs.
+
+    A request of its own rather than a field on the event detail: the detail is the same
+    for everyone and cached as such, this answer depends on who asks. Same visibility as
+    the detail — what a visitor cannot see is a 404.
+    """
+    event = await _event_by_id(session, event_id, locale)
+    if user is None:
+        return EventAccess()
+    return EventAccess(
+        record_results=authz.check(user, Relation.RACE_OFFICER, on=event),
+        control=authz.check(user, Relation.MANAGER, Relation.RACE_OFFICER, on=event),
+        manage=authz.check(user, Relation.MANAGER, on=event),
     )
 
 

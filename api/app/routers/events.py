@@ -31,8 +31,6 @@ from app.models import (
     Club,
     Event,
     EventStatus,
-    Flight,
-    Race,
     Series,
     Team,
     TeamStatus,
@@ -41,21 +39,19 @@ from app.models import (
 from app.models.auth import ObjectType, Relation, User
 from app.models.racing import BOAT_COLORS
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
-from app.problems import Problem
 from app.routers.public import _EVENT_LOAD, _event_out, search_events
 from app.schemas.public import ClubOut, EventOut
 from app.services import (
-    CATALOG_REASON,
     ParticipationError,
     adopt_series_registrations,
     check_squad_limits,
     configuration_frozen,
     event_entries,
     event_readiness,
+    event_state,
     has_results,
     new_event_entry,
     require_editable_configuration,
-    require_ready,
 )
 from app.services.events import MatchdayTaken, NoFreeSlug, place_event
 from app.services.lookup import get_or_404
@@ -181,7 +177,9 @@ class EventUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=3, max_length=200)
     starts_on: date | None = None
     ends_on: date | None = None
-    status: str | None = None
+    # No ``status``: it changes only through start/finish/cancel/reopen (Story VA-10,
+    # ``services/event_state.py``) — here it once skipped every one of their rules. A
+    # ``status`` sent anyway is ignored, like any other unknown field.
     published: bool | None = None
     host_club_id: int | None = None
     logo_url: str | None = None
@@ -200,7 +198,7 @@ class EventUpdate(BaseModel):
 # The fields that make up the **configuration** of the event: what gets drawn and sailed.
 # Once racing has started these are frozen (Story VA-8) — a pairing list is sailed against
 # these numbers, and moving an event into another series would re-home results that are
-# already in a standings table. Everything else (title, dates, venue, host, logo, status,
+# already in a standings table. Everything else (title, dates, venue, host, logo,
 # publication) stays editable: a typo or a moved venue must remain fixable while racing.
 _CONFIGURATION_FIELDS = frozenset(
     {"team_count", "boat_count", "flight_count", "series", "matchday"}
@@ -355,8 +353,9 @@ async def update_event(
 
     Never refuses because the event is incomplete: a half-filled event is savable, and the
     only thing that stands in the way of a change is the **first race**, which freezes the
-    configuration (dimensions, series, matchday). Title, dates, venue, host, logo, status
-    and publication stay editable throughout — a typo has to be fixable on a race day too.
+    configuration (dimensions, series, matchday). Title, dates, venue, host, logo and
+    publication stay editable throughout — a typo has to be fixable on a race day too. The
+    status is not among them: it moves only through the transitions below (Story VA-10).
     """
     event = await _event(session, event_id)
 
@@ -375,17 +374,6 @@ async def update_event(
         await _check_club(session, changes["host_club_id"])
     if "venue_id" in changes:
         await _check_venue(session, changes["venue_id"])
-    if "status" in changes and changes["status"] not in set(EventStatus):
-        possible_statuses = ", ".join(sorted(EventStatus))
-        raise HTTPException(
-            status_code=422,
-            detail=tr(
-                locale,
-                en=f"Unknown status. Possible: {possible_statuses}",
-                de=f"Unbekannter Status. Möglich: {possible_statuses}",
-            ),
-        )
-
     for field, value in changes.items():
         setattr(event, field, value)
 
@@ -462,7 +450,7 @@ async def get_readiness(
         event_id=event.id,
         ready=not reasons,
         reasons=[ReadinessReasonOut(**reason.as_dict()) for reason in reasons],
-        has_pairing_list=await _has_pairing_list(session, event.id),
+        has_pairing_list=await event_state.has_pairing_list(session, event.id),
         configuration_frozen=frozen is not None,
         races_started=frozen.races_started if frozen else 0,
         results_recorded=frozen.results_recorded if frozen else 0,
@@ -515,22 +503,8 @@ async def start_event(event_id: int, session: AsyncSession = Depends(get_session
     doesn't hold is just as valid.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.LIVE:
-        return _event_out(await _with_relationships(session, event.id))
-
-    await require_ready(session, event, ignore={CATALOG_REASON})
-    if not await _has_pairing_list(session, event.id):
-        raise Problem(
-            409,
-            "event-without-pairing-list",
-            "This event has no pairing list yet, so there is nothing to sail.",
-            event_id=event.id,
-        )
-
-    event.status = EventStatus.LIVE
-    await session.commit()
-    hub.publish(event_topic(event.id))
-    return _event_out(await _with_relationships(session, event.id))
+    await event_state.start_event(session, event)
+    return await _committed(session, event)
 
 
 @router.post(
@@ -556,17 +530,8 @@ async def finish_event(event_id: int, session: AsyncSession = Depends(get_sessio
     heard weeks later still has to land, which is what the race-committee screens are for.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.FINAL:
-        return _event_out(await _with_relationships(session, event.id))
-    if event.status != EventStatus.LIVE:
-        raise Problem(
-            409,
-            "event-not-started",
-            "This event has not been started, so there is nothing to declare over.",
-            event_id=event.id,
-            event_status=event.status,
-        )
-    return await _set_status(session, event, EventStatus.FINAL)
+    event_state.finish_event(event)
+    return await _committed(session, event)
 
 
 @router.post(
@@ -591,9 +556,8 @@ async def cancel_event(event_id: int, session: AsyncSession = Depends(get_sessio
     must never be worse than staying home.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.CANCELLED:
-        return _event_out(await _with_relationships(session, event.id))
-    return await _set_status(session, event, EventStatus.CANCELLED)
+    event_state.cancel_event(event)
+    return await _committed(session, event)
 
 
 @router.post(
@@ -611,26 +575,17 @@ async def reopen_event(event_id: int, session: AsyncSession = Depends(get_sessio
     reinstated day is prepared again, not resumed mid-race.
     """
     event = await _event(session, event_id)
-    if event.status == EventStatus.FINAL:
-        return await _set_status(session, event, EventStatus.LIVE)
-    if event.status == EventStatus.CANCELLED:
-        return await _set_status(session, event, EventStatus.PLANNED)
-    raise Problem(
-        409,
-        "event-not-closed",
-        "This event is neither finished nor cancelled, so there is nothing to reopen.",
-        event_id=event.id,
-        event_status=event.status,
-    )
+    event_state.reopen_event(event)
+    return await _committed(session, event)
 
 
-async def _set_status(session: AsyncSession, event: Event, status_value: EventStatus) -> EventOut:
-    """Writes a status and nothing else.
+async def _committed(session: AsyncSession, event: Event) -> EventOut:
+    """Commits a transition and tells live pages about it.
 
-    Publication is deliberately untouched: ``published`` is the only thing that decides who
-    can see an event, and closing one says nothing about that (Story VA-8).
+    The transition itself is ``services/event_state.py``'s; an idempotent repeat changes
+    nothing and is committed all the same — it costs nothing and keeps one path. Publication
+    is deliberately untouched (Story VA-8).
     """
-    event.status = status_value
     await session.commit()
     # Every transition is something a live page must hear — after the commit (Story B-5).
     hub.publish(event_topic(event.id))
@@ -645,18 +600,6 @@ async def _set_published(session: AsyncSession, event_id: int, published: bool) 
     # (or back), and the series table gains or loses a column.
     hub.publish(event_topic(event.id))
     return _event_out(await _with_relationships(session, event.id))
-
-
-async def _has_pairing_list(session: AsyncSession, event_id: int) -> bool:
-    hit = (
-        await session.execute(
-            select(Race.id)
-            .join(Flight, Race.flight_id == Flight.id)
-            .where(Flight.event_id == event_id)
-            .limit(1)
-        )
-    ).scalar_one_or_none()
-    return hit is not None
 
 
 # ------------------------------------------------------------------ Helpers
