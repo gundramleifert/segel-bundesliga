@@ -339,11 +339,10 @@ Acceptance criteria:
   1. and 2. Liga were one entry, *DSBL*, and the association had only the logo.)
 - **The leagues are data** (`GET /api/leagues`), never a list in the code: the row names
   whatever leagues exist. A site with one league shows one.
-- On a league's chapter page the row lies over the picture. On a depth page it is solid
-  and sticky, **and it keeps naming the association and every league**, the current one
-  marked — it no longer turns into a league switch. The league's own pages are a row of
-  links under the depth page's picture (variant A) or the sheet's pills (variant B); on a
-  matchday page its tabs are the second row (Story B-15).
+- On every official page the row lies on the page's picture, **and it keeps naming the
+  association and every league**, the current one marked — it no longer turns into a
+  league switch. The league's own pages are the sub-menu under it (below); on a matchday
+  page its tabs are (Story B-15).
 - **At most two rows of navigation, ever.** The second exists only on a matchday page
   (Story B-15).
 - **On a phone the entries are a menu**: one button names where you are (*☰ 1. Liga*) and
@@ -357,14 +356,13 @@ Acceptance criteria:
 - The fixed dev switches keep clear of the footer, where the legal links are.
 - The account button keeps its menu (Story A-12): language, profile, help, legal pages —
   and *Administration* for whoever can use it.
-- The variants still open (`docs/site-structure.md`) are switched by the **DEV** button
+- What is still open (`docs/site-structure.md`) is switched by the **DEV** button
   (not tested in the browser suite, whose build leaves the dev tools out — the setting it
-  writes is),
-  bottom left, wherever the role switcher is built in (`DEV_TOOLS`): chapters snap or
-  scroll freely; pictures as photo, fade, slide or video; the depth page as A band,
-  B sheet or C split. The choice is remembered in this browser.
-- **The layout with a sub-menu** (2026-10-18, the DEV switch's *Layout*, the default; the
-  classic one stays selectable to compare): the public site is built like my space. The
+  writes is), bottom left, wherever the role switcher is built in (`DEV_TOOLS`): the
+  picture as photo, fade, slide or video, and the glass over it. The choice is remembered
+  in this browser. (Until 2026-10-18 it also switched a classic layout, chapters snapping
+  into place, and three depth frames A–C; the layout below was chosen and the rest went.)
+- **The layout with a sub-menu** (2026-10-18): the public site is built like my space. The
   top row is solid everywhere, and under it a **sub-menu row sticks** — where you are on
   the left (*1. Liga*; on a matchday *1. Liga › Season › Act 2 · Kiel*), the pages beside
   it on the right: the league's pages (*Standings · Season · Notice
@@ -375,12 +373,11 @@ Acceptance criteria:
   had one, with the chapter on screen marked in it): the chapters are the overview's
   contents and each leads to its page, which has the sub-menu. Both rows have **one
   background everywhere** — the picture through a dark, blurred shade.
-- **In that layout the picture stands still and only the text scrolls**: a chapter page
+- **The picture stands still and only the text scrolls**: a chapter page
   has one picture behind all its chapters (photo, fade, slide or video, as before), a depth
   page **has its own picture behind the whole page** too (changed 2026-10-18 — a white page
   after the chapters read as a break in style): the rows and the title lie on it in white,
-  the content on a white panel that scrolls over it, and each page has a different picture.
-  The depth frames A–C are the classic layout's.
+  the content in cards that scroll over it, and each page has a different picture.
 - **One design over every official page** (2026-10-18): the chapter page's cards are the
   pieces every page is built from — frosted glass on the picture for teasers, lists and
   facts, and also for what is read closely (a full table, an article, a matchday's
@@ -393,16 +390,18 @@ Acceptance criteria:
 - **One column, one grid** (2026-10-18): one chapter's cards never end where the next
   one's go on. Every block spans its page's column, and tiles and columns share one
   12-column grid, so their edges line up from chapter to chapter (`docs/components.md`).
-- **The footer is the last band on the picture** (2026-10-18, sub-menu layout): the rows'
-  shade, the same column and grid — a card per league (its act now or next, standings,
+- **The footer is the last band on the picture** (2026-10-18): the rows' shade, the same column and grid — a card per league (its act now or next, standings,
   season, notice board, press), the association beside the account (sign in or my space,
   the language), and the legal notice and privacy on every page. On a chapter page the
-  dots step aside while the footer is on screen. The classic layout and the internal
-  screens keep the light footer.
+  dots step aside while the footer is on screen. The internal screens keep the light
+  footer.
 - **The league's name in the sub-menu is its overview** — there is no entry *Overview*
-  beside it (it said the same twice). Without snapping a chapter is as tall as its content — the
-  screen-high chapters of the snapping mode left half a screen of empty picture between
-  two.
+  beside it (it said the same twice).
+- **A chapter is as tall as its content** and the page scrolls freely: chapters that
+  each filled the screen and clicked into place left half a screen of empty picture
+  between two (removed 2026-10-18).
+- **No white page while one loads**: a page whose data is still on the way shows the same
+  dark frame, its rows in their place — a white one flashed on every change of league.
 
 Tests: `e2e/visitor.spec.ts::B-13: one row of navigation names the leagues`
 
@@ -412,7 +411,7 @@ deeper from there**, so that **the first screen answers the common question and 
 other one is a tap away**.
 
 Acceptance criteria:
-- `/:league` (`/1-liga`) is one page of full-screen chapters over pictures, with dots on
+- `/:league` (`/1-liga`) is one page of chapters over one picture, with dots on
   the right to jump between them: **Standings, Results, News, Media, About, Archive**.
   Each is a preview that ends in a link to its own page. (Changed 2026-10-16, from *Now,
   Standings, Season, Clubs, News, Media, Press, About*.)
@@ -446,7 +445,7 @@ Acceptance criteria:
   - the marked dot is the chapter crossing the **middle of the screen**. "At least 55%
     visible" could never be true of a chapter taller than about 1.8 screens.
 - **The chapter page scrolls from the keyboard.** It is its own scrolling box (so the
-  chapters can snap), and the document behind has nothing to scroll — so the box takes the
+  picture behind stands still), and the document behind has nothing to scroll — so the box takes the
   focus when the page opens, and Space, Page Down and the arrows move it.
 - The depth pages: `/:league/standings` (each division's full table, a column per act; promotion,
   relegation and requalification marked on the row's edge and named in a legend, where
@@ -462,13 +461,12 @@ Acceptance criteria:
   were the problem). A document carries no download mark until there is a file.
 - The association's home `/` is a chapter page too: *Now* (every league's current act),
   *Leagues*, *News*, *For clubs*, *About* — titled with those names, except the first,
-  whose title is the page's heading: *Deutsche Segel-Liga e.V.* In the layout with a sub-menu *Now* and *Leagues* are one
+  whose title is the page's heading: *Deutsche Segel-Liga e.V.* *Now* and *Leagues* are one
   chapter (2026-10-18 — both showed the same four competitions): a card per league with
   the act it is sailing or sails next, its state, its tagline and its introduction.
 - **Old addresses of the DSBL** (`/dsbl`, `/dsbl/…`) go to the 1. Liga's same page
   (Story B-16).
-- **The chapters are filled** in the layout with a sub-menu (Story B-13; the classic
-  chapters stay as they were): *Standings* also lists the year's matchdays with their
+- **The chapters are filled** (2026-10-18): *Standings* also lists the year's matchdays with their
   state, each leading to its page; *Results* how many races are sailed; *News* the newest
   three as cards with picture and teaser and three more headlines; *Media* the videos as
   stills; *About* the league's facts. On the association's home: figures, the service for

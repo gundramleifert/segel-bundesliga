@@ -318,25 +318,29 @@ Two rules, both from `CLAUDE.md`:
 The public site's pages draw their own frame from `web/src/components/site/`; everything
 else sits in `Layout`, which uses the same top row.
 
-- **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu. Over
-  the picture on a chapter page (`overlay`), solid and sticky elsewhere; given a `league`,
-  that league becomes a switch and its pages sit beside it.
-- **`ChapterScroller`** — a league's (or the association's) page: full-screen chapters, the
-  dots on the right, each chapter ending in its own page. Only the first chapter's title
-  is an `h1`.
-- **`DepthPage`** — the frame of a page behind a chapter, in variant A band, B sheet or
-  C split as the DEV switch says; the title is the page's `h1`. `Block` and `Expand` are
-  its section heading and its row that opens in place; `useSecondRow` says where a
-  sticky second row (the matchday's) sits.
+- **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu. On
+  an official page's picture (`overlay`), solid and sticky on the internal screens.
+  **`Bars`** is it with the sub-menu (`LeagueSubBar`, or a matchday's `SubBar`) in the
+  rows' shade; **`BARS`** their height, for scrolling and `sticky`.
+- **`ChapterScroller`** — a league's (or the association's) page: chapters at their own
+  height over one fixed `photo`, the dots on the right, each chapter ending in its own
+  page. Only the first chapter's title is an `h1`.
+- **`DepthPage`** — the frame of a page behind a chapter: its picture fixed behind it, the
+  rows, the kicker and title (the page's `h1`), the content in cards. `Block` and
+  `Expand` are its section heading and its row that opens in place.
+- **`PageLoading`** — what an official page shows while its data is on the way: the same
+  dark frame, never a white page.
 - **`Cards.tsx`** — the official pages' building blocks, taken from the chapter page
   (2026-10-18): **`Card`** (a box, a link with `to`), **`MediaCard`** (picture first, then
   kicker, title, text — news, videos, photos, people), **`Panel`** (room for what is
   read closely: a full table, an article, the matchday's tables — over a picture a card
   whose `.on-glass` scope in `index.css` maps the light colours of the tables shared with
-  the internal screens to the glass's; on white, white paper), **`CardRow`** (the
-  grid). They draw themselves for what they lie on — frosted glass with white type over a
-  picture, bordered white cards on white — from **`Surface`** or, without one, from the
-  layout; **`useTone()`** gives the type and line colours for anything else on the page.
+  the internal screens to the glass's), **`CardRow`** and **`Columns`** (the grid),
+  **`PillSwitch`** (one of a few, as pills — a matchday's division, the language). All
+  are frosted glass with white type, because every official page lies on its picture;
+  **`tone`** gives the type, line and pill classes for anything else on the glass, and
+  `GLASS`, `BAR_SHADE`, `SHADE_ACROSS`, `SHADE_DOWN` and `PAGE_TITLE` the look's other
+  pieces — written here once.
   How dark and blurred the glass is, how far the picture is darkened and how strong the
   secondary text is are CSS variables (`--site-card-alpha`, `--site-card-blur`,
   `--site-shade`, `--site-text` in `index.css`), tuned live with the DEV switch's sliders.
@@ -351,13 +355,17 @@ else sits in `Layout`, which uses the same top row.
   **`CardRow`** (1, 2, 3, 4 or 6 equal tiles; fewer tiles than columns share the row, so
   it never ends in a gap) and **`Columns`** (`halves`, or `twoToOne` — which breaks where a
   row of three does). A block that only stacks others says so with `data-flow`, so they
-  are measured too; one meant to be as wide as its content (a pill switch, the "more"
-  link) says `data-inline`. `e2e/visitor.spec.ts` › *one column, one grid* measures every
+  are measured too — the frames' business (`ChapterScroller`, `DepthPage`, `Block`, the
+  footer), not a page's; one meant to be as wide as its content (a pill switch, the
+  "more" link) is `inline-*` and left out. `e2e/visitor.spec.ts` › *one column, one grid* measures every
   official page and names the block that breaks the rule — a hand-written `grid-cols-*`
   or `max-w-*` in a chapter fails it.
-- **`Footer`** — `glass` on the official pages in the sub-menu layout (`Footer.tsx`, the
-  last band on the picture, in the same column and grid), light everywhere else.
-- **`Picture`** — a big picture as photo, fade, slide or muted video (`settings.ts`).
+- **`GlassFooter`** (`Footer.tsx`) — the official pages' footer, the last band on the
+  picture in the same column and grid; **`Footer`** the internal screens' light one.
+- **`Picture`** — a page's one big picture as photo, fade, slide or muted video
+  (`settings.ts`).
+- **`useActTitle`**, **`useCurrentActs`** (`acts.ts`) — "Act 2 · Kiel"; each league's
+  act now or next, kept for minutes, for the footer and the association's home.
 - **`DevSwitch`** — the open variants, mounted by `SiteShell` wherever `DEV_TOOLS` is.
 - Content without a backend comes from **`web/src/content/`**, through hooks that return
   an `AsyncState` like a generated query — render it with `Async`, and the page does not

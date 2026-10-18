@@ -1,62 +1,48 @@
-import { Children, createContext, useContext, type ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-import { useSiteVersion } from "./settings";
-
 // The building blocks of the official pages: one card, one card with a picture, one panel
-// for what needs white paper — so a page deeper looks like the chapter it came from, and a
-// new look is written here once, not on every page (2026-10-18).
-//
-// **What they lie on decides how they are drawn.** Over a picture (the chapters, and every
-// page in the sub-menu layout) a card is frosted glass with white type; on white (the
-// classic layout's depth pages) it is a bordered white card. The frame says which with
-// `Surface`, and the content is written once for both. Without one, the layout decides:
-// a page component reads its tone *before* its frame is drawn around it, and in the
-// sub-menu layout every official page lies on its picture.
+// for what is read closely — so a page deeper looks like the chapter it came from, and a
+// new look is written here once, not on every page (2026-10-18). Every official page lies
+// on its picture, so they are frosted glass with white type. The tables shared with the
+// internal screens are written in light colours; inside a `Panel`, `.on-glass` (index.css)
+// turns those into the glass's.
 
-export type SurfaceKind = "dark" | "light";
+/** The look over the pictures: variables in index.css, tuned live by the DEV switch. */
+const HOVER_GLASS = "hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]";
 
-/** The rows' background in the sub-menu layout, everywhere — and the footer's: the
- *  picture shows through, darkened and blurred, so white type reads on any photo and on
- *  content passing under. */
-export const BAR_SHADE = "bg-slate-950/70 backdrop-blur-md";
-
-/** The glass itself, from the look's variables (index.css). */
+/** The glass itself. */
 export const GLASS = "bg-[rgb(2_6_23/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]";
 
-const SurfaceContext = createContext<SurfaceKind | null>(null);
+/** The rows' background on every official page: the picture shows through, darkened and
+ *  blurred, so white type reads on any photo and on content passing under. */
+export const BAR_SHADE = "bg-slate-950/70 backdrop-blur-md";
 
-/** Says what the content inside lies on. */
-export function Surface({ kind, children }: { kind: SurfaceKind; children: ReactNode }) {
-  return <SurfaceContext.Provider value={kind}>{children}</SurfaceContext.Provider>;
-}
+/** The picture's shade behind a chapter page — darker on the left, where the text is. */
+export const SHADE_ACROSS =
+  "linear-gradient(to right, rgb(2 6 23 / calc(var(--site-shade) + 0.35)), rgb(2 6 23 / calc(var(--site-shade) + 0.1)) 55%, rgb(2 6 23 / calc(var(--site-shade) - 0.15)))";
 
-/** The type and lines of the surface a component lies on. */
-export function useTone() {
-  const declared = useContext(SurfaceContext);
-  const layout = useSiteVersion();
-  const dark = (declared ?? (layout === "submenu" ? "dark" : "light")) === "dark";
-  return {
-    dark,
-    text: dark ? "text-white" : "text-slate-900",
-    // Over a picture, from the look's variables (index.css) — the DEV switch tunes them.
-    muted: dark ? "text-[rgb(255_255_255/var(--site-text))]" : "text-slate-600",
-    faint: dark ? "text-[rgb(255_255_255/calc(var(--site-text)-0.2))]" : "text-slate-500",
-    line: dark ? "border-white/15" : "border-slate-200",
-    link: dark ? "font-medium text-white underline-offset-4 hover:underline" : "font-medium text-brand-700 hover:underline",
-    /** A small rounded link — a year, a tab of an act. Glass over a picture: no small
-     *  text lies on a photo bare. */
-    chip: dark
-      ? `rounded-full px-3.5 py-1.5 text-white ${GLASS} transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]`
-      : "rounded-full border border-slate-200 px-3.5 py-1.5 text-slate-700 hover:border-slate-400",
-    chipOn: dark ? "rounded-full bg-white px-3.5 py-1.5 text-slate-950" : "rounded-full bg-slate-900 px-3.5 py-1.5 text-white",
-    /** The card itself, without padding. */
-    card: dark ? `rounded-2xl ${GLASS}` : "rounded-2xl border border-slate-200 bg-white",
-    cardHover: dark
-      ? "transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]"
-      : "transition hover:border-slate-400 hover:shadow-sm",
-  };
-}
+/** The picture's shade behind a page deeper — darker at the foot, where the cards pile up. */
+export const SHADE_DOWN =
+  "linear-gradient(to bottom, rgb(2 6 23 / calc(var(--site-shade) + 0.1)), rgb(2 6 23 / calc(var(--site-shade) - 0.1)) 40%, rgb(2 6 23 / calc(var(--site-shade) + 0.3)))";
+
+/** A page's title — a chapter page's first chapter, a page deeper's heading. */
+export const PAGE_TITLE = "text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl";
+
+/** The type and lines for anything on the glass that is not one of the cards below. */
+export const tone = {
+  text: "text-white",
+  muted: "text-[rgb(255_255_255/var(--site-text))]",
+  faint: "text-[rgb(255_255_255/calc(var(--site-text)-0.2))]",
+  line: "border-white/15",
+  link: "font-medium text-white underline-offset-4 hover:underline",
+  /** A small rounded link — a year, a tab of an act; glass, as no small text lies bare. */
+  chip: `rounded-full px-3.5 py-1.5 text-white ${GLASS} transition ${HOVER_GLASS}`,
+  chipOn: "rounded-full bg-white px-3.5 py-1.5 text-slate-950",
+  /** The card itself, without padding. */
+  card: `rounded-2xl ${GLASS}`,
+  cardHover: `transition ${HOVER_GLASS}`,
+};
 
 /** A card: a box of its own, a link when it has `to`. */
 export function Card({
@@ -70,7 +56,6 @@ export function Card({
   className?: string;
   testId?: string;
 }) {
-  const tone = useTone();
   if (to) {
     return (
       <Link to={to} className={`block ${tone.card} ${tone.cardHover} ${className}`} data-testid={testId}>
@@ -106,7 +91,6 @@ export function MediaCard({
   aspect?: string;
   testId?: string;
 }) {
-  const tone = useTone();
   return (
     <Card to={to} className="group h-full overflow-hidden" testId={testId}>
       <div className={`relative overflow-hidden bg-slate-900 ${aspect}`}>
@@ -134,18 +118,13 @@ export function MediaCard({
   );
 }
 
-/** Room for what is read closely — a full table, an article, a matchday's tables. Over a
- *  picture it is a card like the others, and `.on-glass` (index.css) turns the light
- *  colours of what is inside — tables shared with the internal screens — into the glass's;
- *  on white it is white paper. Inside, everything is written as for white. */
+/** Room for what is read closely — a full table, an article, a matchday's tables: a card
+ *  like the others, whose `.on-glass` scope (index.css) turns the light colours of the
+ *  tables shared with the internal screens into the glass's. */
 export function Panel({ children, className = "", testId }: { children: ReactNode; className?: string; testId?: string }) {
-  const tone = useTone();
   return (
-    <div
-      className={`p-4 sm:p-6 ${tone.dark ? `${tone.card} on-glass` : "rounded-2xl border border-slate-200 bg-white text-slate-900"} ${className}`}
-      data-testid={testId}
-    >
-      <Surface kind="light">{children}</Surface>
+    <div className={`p-4 sm:p-6 ${tone.card} on-glass ${className}`} data-testid={testId}>
+      {children}
     </div>
   );
 }
@@ -153,7 +132,6 @@ export function Panel({ children, className = "", testId }: { children: ReactNod
 /** Text on its own — an introduction, a note, a line of facts — on a card, because over a
  *  picture no text is left bare. */
 export function TextCard({ children, className = "", testId }: { children: ReactNode; className?: string; testId?: string }) {
-  const tone = useTone();
   return (
     <Card className={`p-4 sm:p-5 ${tone.muted} ${className}`} testId={testId}>
       {children}
@@ -203,6 +181,41 @@ export function Columns({ children, split = "halves", testId }: { children: Reac
   return (
     <div className={`grid grid-cols-12 gap-4 ${spans}`} data-testid={testId} data-card-row={split === "halves" ? "" : undefined}>
       {children}
+    </div>
+  );
+}
+
+/** One of a few, as pills on the glass — a matchday's division, the language. */
+export function PillSwitch<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+  className = "",
+  testId,
+}: {
+  label: string;
+  value: T;
+  options: readonly { value: T; label: string; testId?: string }[];
+  onChange: (value: T) => void;
+  className?: string;
+  testId?: string;
+}) {
+  return (
+    <div role="radiogroup" aria-label={label} className={`inline-flex rounded-full bg-white/10 p-1 ${className}`} data-testid={testId}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={o.value === value}
+          onClick={() => onChange(o.value)}
+          data-testid={o.testId}
+          className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${o.value === value ? "bg-white text-slate-950" : "text-white/75 hover:text-white"}`}
+        >
+          {o.label}
+        </button>
+      ))}
     </div>
   );
 }

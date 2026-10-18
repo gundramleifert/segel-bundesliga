@@ -42,7 +42,7 @@ export type Act = {
 export function actsOf(season: LeagueSeason): Act[] {
   const groups = new Map<string, EventSummary[]>();
   for (const event of season.events) {
-    const key = event.matchday != null ? `act-${event.matchday}` : `event-${event.id}`;
+    const key = actSlug(event);
     groups.set(key, [...(groups.get(key) ?? []), event]);
   }
   // Each act's events in the order of the year's series: the top division first.
@@ -58,7 +58,12 @@ export function actsOf(season: LeagueSeason): Act[] {
   return acts;
 }
 
-function stateOf(events: EventSummary[]): ActState {
+/** The act an event belongs to, as its address names it: `act-<matchday>`, or
+ *  `event-<id>` for one without a matchday — a cup's one weekend has one page, not two. */
+export const actSlug = (event: EventSummary) => (event.matchday != null ? `act-${event.matchday}` : `event-${event.id}`);
+
+/** Where the events of an act stand together. */
+export function stateOf(events: EventSummary[]): ActState {
   if (events.some((e) => e.status === "live")) return "live";
   if (events.every((e) => e.status === "cancelled")) return "cancelled";
   if (events.every((e) => e.status === "final" || e.status === "cancelled")) return "done";

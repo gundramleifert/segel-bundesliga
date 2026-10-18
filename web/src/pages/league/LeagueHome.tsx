@@ -4,12 +4,9 @@ import { Link } from "react-router-dom";
 
 import { getGetSeriesTableQueryOptions, useGetEvent, useGetSeriesTable } from "../../api/generated/sbl";
 import type { Series } from "../../api/types";
-import { Card, CardRow, Columns, GLASS, MediaCard, TextCard } from "../../components/site/Cards";
+import { Card, CardRow, Columns, MediaCard, TextCard, tone } from "../../components/site/Cards";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
-import { useSiteVersion } from "../../components/site/settings";
 import {
-  DSBL_PHOTOS,
-  OWN_PHOTOS,
   leaguePhoto,
   useLeagueAbout,
   useLocalized,
@@ -33,9 +30,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const localized = useLocalized();
   const actTitle = useActTitle();
   const about = useLeagueAbout(league.slug).data;
-  const full = useSiteVersion() === "submenu";
-  const allNews = useNews(league.slug).data ?? [];
-  const news = allNews.slice(0, 3);
+  const news = useNews(league.slug).data ?? [];
   const videos = useVideos(league.slug).data ?? [];
   const clubs = useClubsOf(season.series);
   const live = acts.find((a) => a.state === "live") ?? null;
@@ -43,17 +38,13 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
   const several = season.series.length > 1;
   const l = league.slug;
 
-  // With the sub-menu no small text lies on the picture bare: links are glass pills.
-  const chip = full
-    ? `rounded-full px-4 py-2 ${GLASS} transition hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]`
-    : "rounded-full border border-white/40 px-4 py-2 hover:bg-white/10";
   const fives = season.series.map((s) => <TopFive key={s.id} series={s} label={several ? s.name : undefined} />);
   const table = !season.series.length ? (
     <TextCard>{t("standings.noSeries")}</TextCard>
-  ) : full ? (
-    several ? <Columns>{fives}</Columns> : fives[0]
+  ) : several ? (
+    <Columns>{fives}</Columns>
   ) : (
-    <div className={`grid max-w-4xl grid-cols-[minmax(0,1fr)] gap-4 ${several ? "md:grid-cols-2" : ""}`}>{fives}</div>
+    fives[0]
   );
   // Each chapter is titled with its name — the word on its dot (Story B-14).
   const chapters: ChapterSpec[] = [
@@ -61,18 +52,16 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       id: "standings",
       label: t("chapters.standings"),
       title: t("chapters.standings"),
-      photo: leaguePhoto(l),
       more: { to: href.standings(l), label: t("standings.more") },
-      // With the sub-menu: the table on the left, the year's matchdays beside it.
-      body:
-        full && acts.length > 0 ? (
-          <Columns testId="site-standings-split">
-            {table}
-            <SeasonStrip league={l} acts={acts} year={year} />
-          </Columns>
-        ) : (
-          table
-        ),
+      // The table on the left, the year's matchdays beside it.
+      body: acts.length ? (
+        <Columns testId="site-standings-split">
+          {table}
+          <SeasonStrip league={l} acts={acts} year={year} />
+        </Columns>
+      ) : (
+        table
+      ),
     },
     // Only while a matchday is live: between matchdays the season's page has the calendar.
     ...(live && year
@@ -81,9 +70,8 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             id: "results",
             label: t("chapters.results"),
             title: t("chapters.results"),
-            photo: DSBL_PHOTOS.podium,
             more: { to: href.act(l, year, live.slug, "results"), label: t("now.resultsOf", { act: actTitle(live) }) },
-            body: full ? (
+            body: (
               <Card className="p-5" testId="site-live-act">
                 <p className="text-lg text-white/90">
                   {[
@@ -101,23 +89,6 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
                 </div>
                 <LiveProgress eventId={live.first.id} />
               </Card>
-            ) : (
-              <>
-                <p className="max-w-xl text-lg text-white/80">
-                  {[
-                    actTitle(live),
-                    actDates(live),
-                    locationText(live.first),
-                    live.first.host_club ? t("hostedBy", { host: live.first.host_club.name }) : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-                <div className="mt-5 flex flex-wrap gap-2 text-sm">
-                  <Link to={href.act(l, year, live.slug, "live")} className={chip}>{t("tabs.live")}</Link>
-                  <Link to={href.act(l, year, live.slug, "notice-board")} className={chip}>{t("tabs.notice-board")}</Link>
-                </div>
-              </>
             ),
           } satisfies ChapterSpec,
         ]
@@ -126,74 +97,55 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
       id: "news",
       label: t("chapters.news"),
       title: t("chapters.news"),
-      photo: DSBL_PHOTOS.swimmer,
       more: { to: href.news(l), label: t("news.more") },
-      body: full ? (
-        <NewsTiles items={allNews.slice(0, 3)} rest={allNews.slice(3, 6)} link={(n) => href.article(l, n.slug)} />
-      ) : (
-        <ul className="max-w-2xl space-y-4">
-          {news.map((n) => (
-            <li key={n.slug}>
-              <Link to={href.article(l, n.slug)} className="block border-l-2 border-white/50 pl-4 hover:border-white">
-                <p className="text-xs uppercase tracking-widest text-white/60">{formatDate(n.date)}</p>
-                <p className="text-xl font-semibold">{n.title}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      ),
+      body: <NewsTiles items={news.slice(0, 3)} rest={news.slice(3, 6)} link={(n) => href.article(l, n.slug)} />,
     },
     {
       id: "media",
       label: t("chapters.media"),
       title: t("chapters.media"),
-      photo: DSBL_PHOTOS.camera,
       more: { to: href.media(l), label: t("media.more") },
-      body: full ? (
-        <TextCard>{t("media.preview", { count: videos.length })}</TextCard>
-      ) : (
-        <p className="max-w-xl text-lg text-white/80">{t("media.preview", { count: videos.length })}</p>
+      body: (
+        <>
+          <TextCard>{t("media.preview", { count: videos.length })}</TextCard>
+          <VideoTiles league={l} videos={videos} />
+        </>
       ),
-      extra: <VideoTiles league={l} videos={videos} />,
     },
     {
       id: "about",
       label: t("chapters.about"),
       title: t("chapters.about"),
-      photo: OWN_PHOTOS.title,
       more: { to: href.about(l), label: t("about.more") },
       body: (
-        <div className={full ? "space-y-5" : "max-w-3xl"} data-flow={full || undefined}>
-          {full ? (
-            <TextCard className="text-lg leading-relaxed">{about ? localized(about.intro) : league.name}</TextCard>
-          ) : (
-            <p className="text-lg text-white/80">{about ? localized(about.intro) : league.name}</p>
-          )}
-          {full && about && about.facts.length > 0 && (
-            <div className="mt-6">
-              <CardRow testId="site-about-facts">
-                {about.facts.map((f) => (
-                  <li key={f.en}>
-                    <Card className="h-full p-4 text-sm leading-relaxed text-white/85">{localized(f)}</Card>
-                  </li>
-                ))}
-              </CardRow>
-            </div>
-          )}
-          {clubs.length > 0 && (
-            <ul className="mt-5 flex flex-wrap gap-2" data-testid="site-about-clubs">
-              {clubs.slice(0, 36).map((c) => (
-                <li key={c.id} className={`rounded-full px-3 py-1 text-sm ${full ? GLASS : "bg-white/10 backdrop-blur"}`}>
-                  {c.short_name}
+        <>
+          <TextCard className="text-lg leading-relaxed">{about ? localized(about.intro) : league.name}</TextCard>
+          {about && about.facts.length > 0 && (
+            <CardRow testId="site-about-facts">
+              {about.facts.map((f) => (
+                <li key={f.en}>
+                  <Card className="h-full p-4 text-sm leading-relaxed text-white/85">{localized(f)}</Card>
                 </li>
               ))}
-            </ul>
+            </CardRow>
           )}
-          <div className="mt-5 flex flex-wrap gap-2 text-sm">
-            <Link to={href.clubs(l)} className={chip}>{t("clubs.more")}</Link>
-            <Link to={href.press(l)} className={chip}>{t("press.more")}</Link>
+          {/* One card of names, not 36 pills of glass: each would blur the picture again. */}
+          {clubs.length > 0 && (
+            <Card className="p-4">
+              <ul className="flex flex-wrap gap-2" data-testid="site-about-clubs">
+                {clubs.slice(0, 36).map((c) => (
+                  <li key={c.id} className="rounded-full bg-white/10 px-3 py-1 text-sm">
+                    {c.short_name}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+          <div className="flex flex-wrap gap-2 text-sm">
+            <Link to={href.clubs(l)} className={tone.chip}>{t("clubs.more")}</Link>
+            <Link to={href.press(l)} className={tone.chip}>{t("press.more")}</Link>
           </div>
-        </div>
+        </>
       ),
     },
     // The earlier years, each leading to its standings; none yet, no chapter.
@@ -203,12 +155,11 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             id: "archive",
             label: t("chapters.archive"),
             title: t("chapters.archive"),
-            photo: DSBL_PHOTOS.aerial,
             body: (
-              <ul className={`flex flex-wrap gap-2 ${full ? "" : "max-w-3xl"}`} data-testid="site-archive-years">
+              <ul className="flex flex-wrap gap-2" data-testid="site-archive-years">
                 {earlier.map((y) => (
                   <li key={y}>
-                    <Link to={href.standings(l, y)} className={`block ${chip} text-lg font-semibold`}>
+                    <Link to={href.standings(l, y)} className={`block ${tone.chip} text-lg font-semibold`}>
                       {y}
                     </Link>
                   </li>
@@ -219,11 +170,11 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
         ]
       : []),
   ];
-  return <ChapterScroller chapters={chapters} league={league} />;
+  return <ChapterScroller chapters={chapters} photo={leaguePhoto(l)} league={league} />;
 }
 
 /** The year's matchdays, each with its state — the season at a glance, beside the table
- *  on the standings chapter (the layout with a sub-menu). */
+ *  on the standings chapter. */
 function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year: number | null }) {
   const { t } = useTranslation("site");
   const actTitle = useActTitle();
@@ -244,7 +195,7 @@ function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year
                 <span className="block truncate font-semibold">{actTitle(a)}</span>
                 <span className="block text-xs text-white/60">{actDates(a)}</span>
               </span>
-              <StateBadge state={a.state} dark />
+              <StateBadge state={a.state} />
             </>
           );
           return (

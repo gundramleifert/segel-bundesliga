@@ -1,20 +1,18 @@
-import { useQueries } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import { getGetLeagueSeasonQueryOptions } from "../../api/generated/sbl";
 import { useAccount } from "../../api/useApi";
 import { DEV_TOOLS } from "../../dev/devTools";
 import { SUPPORTED_LANGUAGES } from "../../i18n";
 import { useAssociation, useLocalized } from "../../content";
 import { eventDates } from "../../lib/format";
-import { actsOf, currentAct, href, type Act } from "../../lib/site";
-import { BAR_SHADE, Card, CardRow, Columns, TextCard } from "./Cards";
+import { href, type Act } from "../../lib/site";
+import { useActTitle, useCurrentActs } from "./acts";
+import { Card, CardRow, Columns, PillSwitch, TextCard } from "./Cards";
 import { useLeagues } from "./Frame";
 
-/** The official pages' footer in the sub-menu layout: the last band on the picture, built
- *  from the same pieces as the page above it — one column, the same grid (`Cards.tsx`),
- *  the rows' shade behind it. A card per league, the association and the account beside
+/** The official pages' footer: the last band on the picture, built from the same pieces
+ *  as the page above it — one column, the same grid (`Cards.tsx`), darkened behind it. A card per league, the association and the account beside
  *  each other, and the line § 5 DDG wants on every page: the legal notice and privacy. */
 export function GlassFooter() {
   const { t } = useTranslation("site");
@@ -23,15 +21,16 @@ export function GlassFooter() {
   const leagues = useLeagues();
   const association = useAssociation().data;
   const { account } = useAccount();
-  const seasons = useQueries({ queries: leagues.map((l) => getGetLeagueSeasonQueryOptions(l.slug)) });
+  const acts = useCurrentActs(leagues);
   const link = "text-white/80 hover:text-white hover:underline";
   return (
-    <footer className={`relative text-sm text-white ${BAR_SHADE}`} data-testid="site-footer">
+    // Darkened but not blurred: a blur here would make the footer a backdrop root, and its
+    // cards' own glass could then blur nothing but this shade (docs/gotchas).
+    <footer className="relative bg-slate-950/70 text-sm text-white" data-testid="site-footer">
       <div data-column className="mx-auto max-w-6xl space-y-4 px-4 py-10">
         <CardRow columns={4} testId="site-footer-leagues">
           {leagues.map((league, i) => {
-            const season = seasons[i]?.data;
-            const act = season ? currentAct(actsOf(season)) : null;
+            const act = acts[i];
             return (
               <li key={league.slug}>
                 <Card className="h-full p-4" testId={`site-footer-league-${league.slug}`}>
@@ -73,23 +72,13 @@ export function GlassFooter() {
               )}
               {account && <Link to="/help" className={link}>{tc("userMenu.help")}</Link>}
             </p>
-            <div role="radiogroup" aria-label={t("footer.language")} className="mt-3 inline-flex rounded-full bg-white/10 p-0.5">
-              {SUPPORTED_LANGUAGES.map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  role="radio"
-                  aria-checked={i18n.language?.startsWith(lang)}
-                  onClick={() => void i18n.changeLanguage(lang)}
-                  data-testid={`site-footer-language-${lang}`}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase ${
-                    i18n.language?.startsWith(lang) ? "bg-white text-slate-950" : "text-white/75 hover:text-white"
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
+            <PillSwitch
+              label={t("footer.language")}
+              className="mt-3"
+              value={SUPPORTED_LANGUAGES.find((lang) => i18n.language?.startsWith(lang)) ?? SUPPORTED_LANGUAGES[0]}
+              options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang, label: lang.toUpperCase(), testId: `site-footer-language-${lang}` }))}
+              onChange={(lang) => void i18n.changeLanguage(lang)}
+            />
           </Card>
         </Columns>
         {/* The foot of every page, so the clearance for the fixed dev switches belongs here:
@@ -109,9 +98,7 @@ export function GlassFooter() {
 /** The league's act now or next, in one line. */
 function NextAct({ act }: { act: Act }) {
   const { t } = useTranslation("site");
-  const place = act.first.venue?.city ?? act.first.host_club?.short_name;
-  const name = act.matchday != null ? t("act.title", { n: act.matchday }) : act.first.title;
-  const title = place ? `${name} · ${place}` : name;
+  const title = useActTitle()(act);
   if (act.state === "done" || act.state === "cancelled") return null;
   return (
     <p className="mt-1 text-xs text-white/70">
