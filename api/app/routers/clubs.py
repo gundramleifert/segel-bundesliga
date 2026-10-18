@@ -10,6 +10,8 @@ module's router-level `require_master_data`. See `crest_router`.
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
@@ -304,7 +306,9 @@ async def upload_club_logo(
     """
     _can_manage_crest(acting, club_id)
     club = await _club(session, club_id)
-    save_crest(club.id, await file.read(), content_type=file.content_type)
+    raw = await file.read()
+    # Decoding and resizing is CPU work: off the event loop, with no session in the thread.
+    await asyncio.to_thread(save_crest, club.id, raw, content_type=file.content_type)
     return ClubOut.model_validate(club)
 
 

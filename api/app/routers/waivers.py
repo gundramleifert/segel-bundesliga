@@ -15,6 +15,7 @@ with the guardian's name and a reference to the signed statement on file.
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date, datetime
 from typing import Literal
 
@@ -307,7 +308,10 @@ async def waiver_form(
     if required is None:
         raise Problem(404, "no-waiver-published", "No liability waiver has been published yet.")
     name, reference_date = await _scope(session, scope, scope_id)
-    pdf = render_waiver_form(
+    # ReportLab is CPU work: off the event loop. The rows it reads are loaded already, and
+    # no session work happens in the thread.
+    pdf = await asyncio.to_thread(
+        render_waiver_form,
         text=required,
         sailor=sailor,
         competition=name,
@@ -832,10 +836,10 @@ def _status_fields(judged: SailorWaiver) -> dict:
     )
 
 
-def _validated_scan(raw: bytes, content_type: str | None) -> str:
+async def _validated_scan(raw: bytes, content_type: str | None) -> str:
     """The media type the bytes really are — or a ``waiver-scan-…`` refusal
     (``app/services/uploads.py``). A guardian's signature is not the place to guess."""
-    return uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
+    return await uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
 
 
 async def _attach_scan(
@@ -882,7 +886,7 @@ async def _attach_scan(
         )
 
     raw = await file.read()
-    media_type = _validated_scan(raw, file.content_type)
+    media_type = await _validated_scan(raw, file.content_type)
     name = (guardian_name or "").strip() or None
 
     where_scope = (

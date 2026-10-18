@@ -364,7 +364,7 @@ async def upload_claim_document(
     if item_id is not None and all(i.id != item_id for i in claim.items):
         raise Problem(404, "expense-item-unknown", "That item is not on this claim.")
     raw = await file.read()
-    media_type = uploads.validated(
+    media_type = await uploads.validated(
         raw, file.content_type, code="expense-document", what="A receipt"
     )
     claim.documents.append(

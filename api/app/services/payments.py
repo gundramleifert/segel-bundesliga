@@ -9,6 +9,7 @@ the XSD, ``schwifty`` checks IBANs and finds BICs, ``openpyxl`` writes the sprea
 
 from __future__ import annotations
 
+import asyncio
 import io
 import uuid
 from collections import defaultdict
@@ -223,10 +224,13 @@ class _RunTransfer(SepaTransfer):
         super()._create_header()
 
 
-def sepa_file(run: PaymentRun) -> bytes:
+async def sepa_file(run: PaymentRun) -> bytes:
     """The run as pain.001.001.09, validated against its XSD by ``sepaxml``. Every
     payment the run issued is in it, whatever became of it since: the file is what was
-    sent, and its message id is the run's, so a bank refuses it a second time."""
+    sent, and its message id is the run's, so a bank refuses it a second time.
+
+    The rows are read here; writing and validating the XML is CPU work and runs in a
+    thread on plain dicts, never on the session."""
     config = {
         "name": run.debtor_name,
         "IBAN": run.debtor_iban,
@@ -235,10 +239,10 @@ def sepa_file(run: PaymentRun) -> bytes:
     }
     if run.debtor_bic:
         config["BIC"] = run.debtor_bic
-    transfer = _RunTransfer(config, run.message_id)
+    transfers = []
     for payment in run.payments:
         assert payment.iban is not None
-        transfer.add_payment(
+        transfers.append(
             {
                 "name": payment.payee_name,
                 "IBAN": payment.iban,
@@ -248,6 +252,13 @@ def sepa_file(run: PaymentRun) -> bytes:
                 "endtoend_id": f"SBL-P-{payment.id}",
             }
         )
+    return await asyncio.to_thread(_export_sepa, config, run.message_id, transfers)
+
+
+def _export_sepa(config: dict, message_id: str, transfers: list[dict]) -> bytes:
+    transfer = _RunTransfer(config, message_id)
+    for entry in transfers:
+        transfer.add_payment(entry)
     return transfer.export(validate=True)
 
 
@@ -341,10 +352,12 @@ async def run_workbook(session: AsyncSession, run: PaymentRun) -> bytes:
                 allocation.amount_cents / 100, payment.reference, run.execution_date,
                 payment.status,
             ])  # fmt: skip
-    return _workbook("Payment run", RUN_COLUMNS, rows, money={"Amount (EUR)"})
+    return await asyncio.to_thread(
+        _workbook, "Payment run", RUN_COLUMNS, rows, money={"Amount (EUR)"}
+    )
 
 
-def book_workbook(claims: list[ExpenseClaim]) -> bytes:
+async def book_workbook(claims: list[ExpenseClaim]) -> bytes:
     """A year's claims of a club, one row per item — what a cash audit asks for."""
     rows = []
     for claim in claims:
@@ -359,9 +372,8 @@ def book_workbook(claims: list[ExpenseClaim]) -> bytes:
         if rows and claim.items:
             # The paid total belongs to the claim, not to an item: on its first row.
             rows[-len(claim.items)][-1] = claim.paid_cents / 100
-    return _workbook(
-        "Claims", BOOK_COLUMNS, rows, money={"Claimed (EUR)", "Approved (EUR)", "Paid (EUR)"}
-    )
+    money = {"Claimed (EUR)", "Approved (EUR)", "Paid (EUR)"}
+    return await asyncio.to_thread(_workbook, "Claims", BOOK_COLUMNS, rows, money=money)
 
 
 async def claims_for_books(session: AsyncSession, club_id: int, year: int) -> list[ExpenseClaim]:
@@ -383,6 +395,7 @@ async def claims_for_books(session: AsyncSession, club_id: int, year: int) -> li
 
 
 def _workbook(title: str, columns: list[str], rows: list[list], *, money: set[str]) -> bytes:
+    """openpyxl on plain values — CPU work, run in a thread by its callers."""
     book = Workbook()
     sheet = book.active
     assert sheet is not None

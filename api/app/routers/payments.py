@@ -194,7 +194,7 @@ async def download_payment_run_sepa(
 ) -> Response:
     run = await _run(session, run_id, acting)
     return Response(
-        payments.sepa_file(run),
+        await payments.sepa_file(run),
         media_type="application/xml",
         headers={
             "Content-Disposition": f'attachment; filename="sepa-{run.message_id}.xml"',
@@ -266,7 +266,7 @@ async def download_club_claims_xlsx(
     club = await _club(session, club_id, acting)
     year = year or date.today().year
     claims = await payments.claims_for_books(session, club_id, year)
-    return _xlsx(payments.book_workbook(claims), f"claims-{club.slug}-{year}.xlsx")
+    return _xlsx(await payments.book_workbook(claims), f"claims-{club.slug}-{year}.xlsx")
 
 
 def _xlsx(content: bytes, filename: str) -> Response:
