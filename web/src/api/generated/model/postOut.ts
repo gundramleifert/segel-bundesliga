@@ -8,7 +8,7 @@
 import type { PostKind } from './postKind';
 
 /**
- * A post as the public site shows it.
+ * A post as its own page shows it.
  */
 export interface PostOut {
   id: number;
@@ -20,12 +20,12 @@ export interface PostOut {
   /** The league's slug; empty for the association's own posts. */
   league?: string | null;
   teaser?: string | null;
+  photo_url?: string | null;
+  photo_credit?: string | null;
+  example?: boolean;
   /** HTML from the editor, cleaned to its few elements on write. */
   body: string;
   author?: string | null;
   quote?: string | null;
   quote_by?: string | null;
-  photo_url?: string | null;
-  photo_credit?: string | null;
-  example?: boolean;
 }

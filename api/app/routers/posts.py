@@ -41,8 +41,9 @@ _JPEG_QUALITY = 85
 _PHOTOS = "posts"
 
 
-class PostOut(BaseModel):
-    """A post as the public site shows it."""
+class PostSummary(BaseModel):
+    """A post as a list shows it — a card or a line: no text, which only its own page
+    reads. A list of a few dozen posts need not carry each one's whole article."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -58,13 +59,22 @@ class PostOut(BaseModel):
         description="The league's slug; empty for the association's own posts.",
     )
     teaser: str | None = None
+    photo_url: str | None = None
+    photo_credit: str | None = None
+    example: bool = False
+
+
+class PostOut(PostSummary):
+    """A post as its own page shows it."""
+
     body: str = Field(description="HTML from the editor, cleaned to its few elements on write.")
     author: str | None = None
     quote: str | None = None
     quote_by: str | None = None
-    photo_url: str | None = None
-    photo_credit: str | None = None
-    example: bool = False
+
+
+class PostAdminSummary(PostSummary):
+    published: bool
 
 
 class PostAdminOut(PostOut):
@@ -148,7 +158,7 @@ def _with_league():
     return select(Post).options(selectinload(Post.league))
 
 
-@router.get("", response_model=list[PostOut], summary="Published news or press releases")
+@router.get("", response_model=list[PostSummary], summary="Published news or press releases")
 async def list_posts(
     kind: PostKind = Query(default=PostKind.NEWS),
     league: str | None = Query(
@@ -157,8 +167,9 @@ async def list_posts(
     ),
     limit: int = Query(default=50, ge=1, le=200),
     session: AsyncSession = Depends(get_session),
-) -> list[PostOut]:
-    """Newest first. Drafts never appear here."""
+) -> list[PostSummary]:
+    """Newest first, without their text — that is ``GET /api/posts/{slug}``. Drafts never
+    appear here."""
     stmt = _with_league().where(Post.published.is_(True), Post.kind == kind)
     if league is not None:
         stmt = stmt.outerjoin(League, Post.league_id == League.id).where(
@@ -166,7 +177,7 @@ async def list_posts(
         )
     stmt = stmt.order_by(Post.published_on.desc(), Post.id.desc()).limit(limit)
     posts = (await session.execute(stmt)).scalars().all()
-    return [PostOut.model_validate(post) for post in posts]
+    return [PostSummary.model_validate(post) for post in posts]
 
 
 @router.get("/photos/{name}", summary="A post's uploaded picture")
@@ -194,14 +205,14 @@ async def get_post(slug: str, session: AsyncSession = Depends(get_session)) -> P
 POST_SORT = {"published_on": Post.published_on, "title": Post.title}
 
 
-@admin_router.get("", response_model=Page[PostAdminOut], summary="All posts, drafts included")
+@admin_router.get("", response_model=Page[PostAdminSummary], summary="All posts, drafts included")
 async def list_all_posts(
     kind: PostKind | None = Query(default=None),
     q: str | None = Query(default=None, description="Search in the title"),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     _: User = Depends(require_editor),
-) -> Page[PostAdminOut]:
+) -> Page[PostAdminSummary]:
     stmt = apply_search(_with_league(), q, Post.title)
     if kind is not None:
         stmt = stmt.where(Post.kind == kind)
@@ -212,7 +223,7 @@ async def list_all_posts(
         sortable=POST_SORT,
         default_order=[Post.published_on.desc(), Post.id.desc()],
     )
-    return page_of([PostAdminOut.model_validate(post) for post in posts], total, params)
+    return page_of([PostAdminSummary.model_validate(post) for post in posts], total, params)
 
 
 @admin_router.post(

@@ -115,7 +115,7 @@ import type {
   PageClubAdminOut,
   PageClubOut,
   PageEventOut,
-  PagePostAdminOut,
+  PagePostAdminSummary,
   PageSailorAdminOut,
   PageSeriesAdminOut,
   PageUserOut,
@@ -132,6 +132,7 @@ import type {
   PostAdminOut,
   PostCreate,
   PostOut,
+  PostSummary,
   PostUpdate,
   ProblemDetails,
   ProvidersOut,
@@ -14955,12 +14956,13 @@ export const getListPostsUrl = (params?: ListPostsParams,) => {
 }
 
 /**
- * Newest first. Drafts never appear here.
+ * Newest first, without their text — that is ``GET /api/posts/{slug}``. Drafts never
+ * appear here.
  * @summary Published news or press releases
  */
-export const listPosts = async (params?: ListPostsParams, options?: RequestInit): Promise<PostOut[]> => {
+export const listPosts = async (params?: ListPostsParams, options?: RequestInit): Promise<PostSummary[]> => {
 
-  return http<PostOut[]>(getListPostsUrl(params),
+  return http<PostSummary[]>(getListPostsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -15270,9 +15272,9 @@ export const getListAllPostsUrl = (params?: ListAllPostsParams,) => {
 /**
  * @summary All posts, drafts included
  */
-export const listAllPosts = async (params?: ListAllPostsParams, options?: RequestInit): Promise<PagePostAdminOut> => {
+export const listAllPosts = async (params?: ListAllPostsParams, options?: RequestInit): Promise<PagePostAdminSummary> => {
 
-  return http<PagePostAdminOut>(getListAllPostsUrl(params),
+  return http<PagePostAdminSummary>(getListAllPostsUrl(params),
   {
     ...options,
     method: 'GET'

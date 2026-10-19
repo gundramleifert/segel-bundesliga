@@ -5,10 +5,10 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
-import type { PostAdminOut } from './postAdminOut';
+import type { PostAdminSummary } from './postAdminSummary';
 
-export interface PagePostAdminOut {
-  items: PostAdminOut[];
+export interface PagePostAdminSummary {
+  items: PostAdminSummary[];
   /** Rows matching the filter, not rows on this page */
   total: number;
   limit: number;

@@ -54,6 +54,23 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(body.locator("strong")).toHaveText("Ten o'clock");
   });
 
+  test("the press centre reads a release's text when it is opened", async ({ page }) => {
+    // The list carries dates and titles only; each text comes from the release's own address.
+    await page.goto("/1-liga/press");
+    const releases = page.getByTestId(/^site-press-release-/);
+    await expect(releases.first()).toBeVisible();
+    expect(await releases.count()).toBeGreaterThan(1);
+    const slugOf = async (i: number) =>
+      ((await releases.nth(i).getAttribute("data-testid")) ?? "").replace("site-press-release-", "");
+
+    // The newest is open from the start, with its text.
+    await expect(page.getByTestId(`site-press-text-${await slugOf(0)}`)).not.toBeEmpty();
+    const second = await slugOf(1);
+    await expect(page.getByTestId(`site-press-text-${second}`)).toHaveCount(0);
+    await releases.nth(1).click(); // closed, it is only its summary line
+    await expect(page.getByTestId(`site-press-text-${second}`)).not.toBeEmpty();
+  });
+
   test("a club's team manager has no News tab", async ({ page }) => {
     await signIn(page, MANAGER);
     await page.goto("/admin");

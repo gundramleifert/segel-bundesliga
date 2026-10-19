@@ -3,7 +3,10 @@ import { Suspense, lazy, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
+  getGetAdminPostQueryKey,
+  getListAllPostsQueryKey,
   useCreatePost,
   useDeletePost,
   useGetAdminPost,
@@ -91,20 +94,26 @@ function PostForm({ post }: { post?: PostAdmin }) {
     setDraft((d) => ({ ...d, [key]: value }));
   };
 
-  // The prefixes cover this post's own query too, so a save refreshes the page.
-  const refresh = () => invalidate(...POST_PATHS);
+  // The answer to a save *is* the post as it now stands: it goes straight into this
+  // post's query instead of being asked for again. Only the lists and the public site,
+  // which show it among others, are refetched.
+  const queryClient = useQueryClient();
+  const stored = (saved: PostAdmin) => {
+    queryClient.setQueryData(getGetAdminPostQueryKey(saved.id), saved);
+    invalidate(getListAllPostsQueryKey(), "/api/posts");
+  };
   const create = useCreatePost({
     mutation: {
       onSuccess: (created) => {
-        refresh();
+        stored(created);
         navigate(`/admin/news/${created.id}`, { replace: true });
       },
     },
   });
   const update = useUpdatePost({
     mutation: {
-      onSuccess: () => {
-        refresh();
+      onSuccess: (updated) => {
+        stored(updated);
         setSaved(true);
       },
     },

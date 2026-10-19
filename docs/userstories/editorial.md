@@ -30,6 +30,9 @@ Acceptance criteria:
   rather than overwriting another post.
 - **The date is the one shown**, set by editorial; it defaults to today. Lists are newest
   first.
+- **A list carries no text.** News cards and the press centre's lines show the title, date,
+  lead and picture; the text is read from the post's own address — for a release, once it
+  is opened.
 - **A picture is uploaded or chosen from the site's pictures.** An upload is a JPEG or PNG,
   checked by content, stored under a random name and served publicly; its credit is a line
   of text beside it. Without a picture the league's own stands in.

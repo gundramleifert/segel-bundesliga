@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams } from "react-router-dom";
 
@@ -25,7 +25,7 @@ import {
   usePress,
   useSeasonDocuments,
   useVideos,
-  type Article,
+  type ArticleSummary,
   type DocGroup,
   type TableMarks,
 } from "../../content";
@@ -305,7 +305,7 @@ function NewsGrid({ league }: { league: string }) {
 }
 
 /** Articles as cards: picture, date, title, teaser — each leading to its own page. */
-function NewsCards({ league, items }: { league: string; items: Article[] }) {
+function NewsCards({ league, items }: { league: string; items: ArticleSummary[] }) {
   return (
     <CardRow>
       {items.map((n) => (
@@ -470,22 +470,37 @@ function Releases({ league }: { league: string }) {
   const press = usePress(league);
   return (
     <Async state={press} testId="site-press">
-      {(items) =>
-        items.map((p, i) => (
-          <Expand
-            key={p.slug}
-            open={i === 0}
-            summary={
-              <span className="flex items-baseline gap-4">
-                <span className={`w-28 shrink-0 text-sm ${tone.faint}`}>{formatDate(p.date)}</span>
-                <span className="font-medium">{p.title}</span>
-              </span>
-            }
-          >
-            <RichText html={p.body} />
-          </Expand>
-        ))
+      {(items) => items.map((p, i) => <Release key={p.slug} release={p} first={i === 0} />)}
+    </Async>
+  );
+}
+
+/** One release: its date and title, and its text read once it is opened — the list does
+ *  not carry the text (Story R-1). The newest is open from the start. */
+function Release({ release, first }: { release: ArticleSummary; first: boolean }) {
+  const [opened, setOpened] = useState(first);
+  return (
+    <Expand
+      open={first}
+      onToggle={(open) => open && setOpened(true)}
+      testId={`site-press-release-${release.slug}`}
+      summary={
+        <span className="flex items-baseline gap-4">
+          <span className={`w-28 shrink-0 text-sm ${tone.faint}`}>{formatDate(release.date)}</span>
+          <span className="font-medium">{release.title}</span>
+        </span>
       }
+    >
+      {opened && <ReleaseText slug={release.slug} />}
+    </Expand>
+  );
+}
+
+function ReleaseText({ slug }: { slug: string }) {
+  const article = useArticle(slug);
+  return (
+    <Async state={article} testId={`site-press-text-${slug}`}>
+      {(a) => <RichText html={a.body} testId={`site-press-text-${slug}`} />}
     </Async>
   );
 }

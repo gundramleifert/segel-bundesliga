@@ -7,7 +7,7 @@ import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapter
 import { Card, CardRow, Columns, MediaCard, TextCard, tone } from "../../components/site/Cards";
 import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
-import { BOARD, MEMBER_LEAGUES, OWN_PHOTOS, leagueAbout, useAssociation, useLocalized, useNews, type Article } from "../../content";
+import { BOARD, MEMBER_LEAGUES, OWN_PHOTOS, leagueAbout, useAssociation, useLocalized, useNews, type ArticleSummary } from "../../content";
 import { actsOf, currentAct, href } from "../../lib/site";
 import { NewsTiles } from "./LeagueHome";
 import { StateBadge, actDates, useActTitle } from "./shared";
@@ -21,7 +21,7 @@ export function AssociationHome() {
   const leagues = useLeagues();
   const association = useAssociation().data;
   const news = useNews().data ?? [];
-  const articleHref = (n: Article) => href.article(n.league ?? MEMBER_LEAGUES[0], n.slug);
+  const articleHref = (n: ArticleSummary) => href.article(n.league ?? MEMBER_LEAGUES[0], n.slug);
   const seasons = useQueries({ queries: leagues.map((l) => getGetLeagueSeasonQueryOptions(l.slug)) });
 
   const chapters: ChapterSpec[] = [

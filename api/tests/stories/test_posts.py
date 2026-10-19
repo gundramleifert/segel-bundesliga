@@ -43,6 +43,14 @@ class TestReadPosts:
         assert dates == sorted(dates, reverse=True)
         assert all(post["kind"] == "news" for post in news)
 
+    async def test_a_list_carries_no_text_its_cards_do_not_show(self, client):
+        """R-1: a list is cards and lines — the text is read on the article's own page."""
+        news = (await client.get("/api/posts", params={"league": "1-liga"})).json()
+
+        assert news
+        assert all("body" not in post and "quote" not in post for post in news)
+        assert all(post["slug"] and post["title"] for post in news)
+
     async def test_an_article_has_its_own_address(self, client):
         """R-1: one article by its slug, with the text as paragraphs and its picture."""
         article = (await client.get("/api/posts/nrv-takes-the-lead")).json()

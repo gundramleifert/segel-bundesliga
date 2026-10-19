@@ -11,7 +11,7 @@ import {
   useLocalized,
   useNews,
   useVideos,
-  type Article,
+  type ArticleSummary,
   type Video,
 } from "../../content";
 import { formatDate, locationText } from "../../lib/format";
@@ -235,7 +235,7 @@ function LiveProgress({ eventId }: { eventId: number }) {
 }
 
 /** The newest articles as cards over the picture, the next few as headlines. */
-export function NewsTiles({ items, rest = [], link }: { items: Article[]; rest?: Article[]; link: (n: Article) => string }) {
+export function NewsTiles({ items, rest = [], link }: { items: ArticleSummary[]; rest?: ArticleSummary[]; link: (n: ArticleSummary) => string }) {
   return (
     <div data-testid="site-news-tiles">
       <CardRow>

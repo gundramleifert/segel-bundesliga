@@ -14,7 +14,7 @@
 import { useTranslation } from "react-i18next";
 
 import { useGetPost, useListPosts } from "../api/generated/sbl";
-import { PostKind, type Post } from "../api/types";
+import { PostKind, type Post, type PostSummary } from "../api/types";
 import { useAsync, type AsyncState } from "../api/useApi";
 import { DSBL_PHOTOS, OWN_PHOTOS, type Photo } from "./photos";
 
@@ -144,9 +144,10 @@ export const tableMarks = (league: string, level: number | null | undefined): Ta
 
 // ---------------------------------------------------------------- news and press
 
-/** An article as the pages show it. Written by editorial on the site (Story R-1) — the
- *  hooks below read `GET /api/posts` and turn a post into this shape. */
-export type Article = {
+/** An article as a list shows it — a card or a line. Written by editorial on the site
+ *  (Story R-1) — the hooks below read `GET /api/posts` and turn a post into this shape.
+ *  The text is not here: a list does not carry it, the article's own page reads it. */
+export type ArticleSummary = {
   slug: string;
   title: string;
   date: string;
@@ -154,16 +155,20 @@ export type Article = {
   league: string | null;
   teaser: string;
   photo: Photo;
-  /** HTML from the editor, cleaned by the server on every write — shown as it is. */
-  body: string;
-  author?: string;
-  quote?: { text: string; by: string };
   /** Written to fill the page, not real news — the article says so (Story B-14). */
   example?: boolean;
 };
 
+/** An article as its own page shows it. */
+export type Article = ArticleSummary & {
+  /** HTML from the editor, cleaned by the server on every write — shown as it is. */
+  body: string;
+  author?: string;
+  quote?: { text: string; by: string };
+};
+
 /** A post's own picture, or its league's when it has none. */
-function postPhoto(post: Post): Photo {
+function postPhoto(post: PostSummary): Photo {
   if (!post.photo_url) return leaguePhoto(post.league ?? MEMBER_LEAGUES[0]);
   return {
     src: post.photo_url,
@@ -174,7 +179,7 @@ function postPhoto(post: Post): Photo {
   };
 }
 
-function toArticle(post: Post): Article {
+function toSummary(post: PostSummary): ArticleSummary {
   return {
     slug: post.slug,
     title: post.title,
@@ -182,26 +187,32 @@ function toArticle(post: Post): Article {
     league: post.league ?? null,
     teaser: post.teaser ?? "",
     photo: postPhoto(post),
+    example: post.example,
+  };
+}
+
+function toArticle(post: Post): Article {
+  return {
+    ...toSummary(post),
     body: post.body,
     author: post.author ?? undefined,
     quote: post.quote ? { text: post.quote, by: post.quote_by ?? "" } : undefined,
-    example: post.example,
   };
 }
 
 // `select`, not a map after the fact: the query memoizes it, so a page gets the same
 // array back until the posts change.
-const toArticles = (posts: Post[]) => posts.map(toArticle);
+const toSummaries = (posts: PostSummary[]) => posts.map(toSummary);
 
 /** A league's news and the association's, newest first; without a league, everything. */
 export function useNews(league?: string) {
-  return useAsync(useListPosts({ kind: PostKind.news, league }, { query: { select: toArticles } }));
+  return useAsync(useListPosts({ kind: PostKind.news, league }, { query: { select: toSummaries } }));
 }
 
-/** A league's press releases and the association's, newest first — as articles, of which
- *  the press centre reads the title, the date and the text. */
+/** A league's press releases and the association's, newest first — the press centre
+ *  lists their dates and titles, and reads a release's text with `useArticle`. */
 export function usePress(league: string) {
-  return useAsync(useListPosts({ kind: PostKind.press, league }, { query: { select: toArticles } }));
+  return useAsync(useListPosts({ kind: PostKind.press, league }, { query: { select: toSummaries } }));
 }
 
 /** One published article. `notFound` tells an unknown or withdrawn one (a 404) from a

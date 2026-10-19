@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useListAllPosts } from "../../../api/generated/sbl";
-import type { PostAdmin, PostPage } from "../../../api/types";
+import type { PostAdminSummary, PostPage } from "../../../api/types";
 import { useAsync } from "../../../api/useApi";
 import { AddButton } from "../../../components/AddButton";
 import { Badge, ErrorMessage, Loading } from "../../../components/Blocks";
@@ -51,7 +51,7 @@ export function PostsAdmin() {
   );
 }
 
-const column = createColumnHelper<typeof TABLE_FEATURES, PostAdmin>();
+const column = createColumnHelper<typeof TABLE_FEATURES, PostAdminSummary>();
 
 function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
   const { t } = useTranslation("admin");

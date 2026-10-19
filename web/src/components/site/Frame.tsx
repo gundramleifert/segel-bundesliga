@@ -366,15 +366,23 @@ export function Expand({
   summary,
   children,
   open = false,
+  onToggle,
   testId,
 }: {
   summary: ReactNode;
   children: ReactNode;
   open?: boolean;
+  /** Told whether it is now open — for content loaded only once someone opens it. */
+  onToggle?: (open: boolean) => void;
   testId?: string;
 }) {
   return (
-    <details open={open} className={`group border-b last:border-0 ${tone.line}`} data-testid={testId}>
+    <details
+      open={open}
+      onToggle={onToggle && ((e) => onToggle(e.currentTarget.open))}
+      className={`group border-b last:border-0 ${tone.line}`}
+      data-testid={testId}
+    >
       <summary className={`flex cursor-pointer list-none items-center gap-3 py-3 [&::-webkit-details-marker]:hidden ${tone.text}`}>
         <span className="min-w-0 flex-1">{summary}</span>
         <span aria-hidden className={`transition group-open:rotate-90 ${tone.faint}`}>›</span>
