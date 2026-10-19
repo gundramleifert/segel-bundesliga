@@ -525,7 +525,7 @@ async function drawMarks(page: Page, marks: Mark[]): Promise<Box | null> {
         borderRadius: "12px",
         // Two layers of glow, an inner strong one and a wide soft one; nothing drawn on
         // the control's own edge.
-        boxShadow: "0 0 10px 3px rgba(245,158,11,.75), 0 0 26px 10px rgba(245,158,11,.4)",
+        boxShadow: "0 0 10px 4px rgba(245,158,11,.9), 0 0 28px 12px rgba(245,158,11,.55)",
       });
       layer.appendChild(frame);
       // Up and left of the corner, overlapping the frame only a little, so a small
@@ -542,7 +542,7 @@ async function drawMarks(page: Page, marks: Mark[]): Promise<Box | null> {
         font: "700 14px/22px system-ui, sans-serif", textAlign: "center",
       });
       badges.push(badge);
-      const glow = 30;
+      const glow = 34;
       cover.left = Math.min(cover.left, badgeLeft, left - glow);
       cover.top = Math.min(cover.top, badgeTop, top - glow);
       cover.right = Math.max(cover.right, left + width + glow);

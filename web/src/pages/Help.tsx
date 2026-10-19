@@ -552,7 +552,7 @@ function ShotImage({ id, caption, locale, narrow }: { id: string; caption: strin
           src={`${import.meta.env.BASE_URL}handbook/screenshots/${candidates[attempt]}.png`}
           alt={caption}
           onError={() => setAttempt((n) => n + 1)}
-          className="block h-auto max-w-full rounded-lg ring-1 ring-slate-200"
+          className="block h-auto max-w-full rounded-lg shadow-md ring-2 ring-slate-400"
         />
       )}
       {caption && <span className="mt-1 block text-sm text-slate-500">{caption}</span>}
