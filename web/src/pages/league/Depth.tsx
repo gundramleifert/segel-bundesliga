@@ -8,7 +8,8 @@ import { useAsync } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { StandingsTable } from "../../components/StandingsTable";
 import { Card, CardRow, Columns, MediaCard, Panel, TextCard, tone } from "../../components/site/Cards";
-import { Block, DepthPage, Expand } from "../../components/site/Frame";
+import { Block, DepthPage, Expand, PageLoading } from "../../components/site/Frame";
+import { ErrorMessage, Loading } from "../../components/Blocks";
 import { YouTubePlayer } from "../../components/site/Media";
 import {
   DSBL_PHOTOS,
@@ -328,17 +329,18 @@ function NewsCards({ league, items }: { league: string; items: Article[] }) {
 export function ArticlePage() {
   const { t } = useTranslation("site");
   const { slug, league: leagueSlug = "" } = useParams();
-  const articleState = useArticle(slug);
-  const article = articleState.data;
+  const { data: article, loading, error, notFound } = useArticle(slug);
   const more = (useNews(leagueSlug).data ?? []).filter((n) => n.slug !== slug).slice(0, 3);
-  // While the article loads there is nothing to show; an unknown or withdrawn one leads
-  // back to the league's news rather than to an error page.
-  if (articleState.loading) return null;
   return (
     <LeagueGate>
       {({ league }) =>
-        !article ? (
+        // An unknown or withdrawn article leads back to the league's news; a failure says so.
+        notFound ? (
           <Navigate to={href.news(league.slug)} replace />
+        ) : loading ? (
+          <PageLoading><Loading testId="site-article-loading" /></PageLoading>
+        ) : error || !article ? (
+          <PageLoading><ErrorMessage text={error ?? ""} testId="site-article-error" /></PageLoading>
         ) : (
           <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
             {article.example && <ExampleNote text={t("news.example")} />}

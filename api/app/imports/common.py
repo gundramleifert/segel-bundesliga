@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.models import Club, ExternalId, ImportRun
 from app.models.base import Base
-from app.text import slugify
+from app.services.lookup import unique_slug
 
 USER_AGENT = "dsl-website-import/1.0 (+https://sbl-web.onrender.com)"
 
@@ -164,21 +164,6 @@ async def link(session: AsyncSession, row: Base, source: str, key: str) -> None:
         )
     )
     await session.flush()
-
-
-async def unique_slug(session: AsyncSession, model: type[Base], base: str) -> str:
-    """``base``, or ``base-2``, ``base-3`` … — whichever no row of ``model`` has yet."""
-    slug_column = model.slug  # type: ignore[attr-defined]
-    base = slugify(base)
-    taken = set(
-        (await session.execute(select(slug_column).where(slug_column.like(f"{base}%")))).scalars()
-    )
-    if base not in taken:
-        return base
-    n = 2
-    while f"{base}-{n}" in taken:
-        n += 1
-    return f"{base}-{n}"
 
 
 async def club_by_code(session: AsyncSession, code: str, source: str) -> Club | None:

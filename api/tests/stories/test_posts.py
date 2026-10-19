@@ -151,6 +151,12 @@ class TestWritePosts:
         assert corrected.json()["title"] == "Season review 2026"
         assert corrected.json()["teaser"] is None
 
+        for blank in (None, "   "):
+            refused = await client.patch(
+                f"/api/admin/posts/{first['id']}", headers=headers, json={"title": blank}
+            )
+            assert refused.status_code == 422, blank
+
     async def test_a_post_is_deleted(self, client, caplog):
         headers = await editor(client, caplog)
         post = (

@@ -1,19 +1,12 @@
 import { useTranslation } from "react-i18next";
 
-/** Public or draft (Story VA-8) — on each row of the list and on the wizard's last screen. */
-export function PublicationBadge({
-  published,
-  eventId,
-  testId,
-}: {
-  published: boolean;
-  eventId: number;
-  testId?: string;
-}) {
+/** Public or draft (Stories VA-8, R-1) — on each row of the events and the posts list,
+ *  and on the wizard's last screen. */
+export function PublicationBadge({ published, testId }: { published: boolean; testId: string }) {
   const { t } = useTranslation("admin");
   return (
     <span
-      data-testid={testId ?? `admin-manage-event-publication-${eventId}`}
+      data-testid={testId}
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
         published
           ? "bg-brand-50 text-brand-800 ring-brand-200"

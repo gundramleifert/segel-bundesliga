@@ -263,7 +263,7 @@ function ReadyStep({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <PublicationBadge published={published} eventId={event.id} testId="admin-events-publication" />
+        <PublicationBadge published={published} testId="admin-events-publication" />
         <Button
           size="sm"
           variant={published ? "ghost" : "primary"}

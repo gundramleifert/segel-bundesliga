@@ -5,11 +5,12 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useListAllPosts } from "../../../api/generated/sbl";
-import type { PostAdmin } from "../../../api/types";
+import type { PostAdmin, PostPage } from "../../../api/types";
 import { useAsync } from "../../../api/useApi";
 import { AddButton } from "../../../components/AddButton";
 import { Badge, ErrorMessage, Loading } from "../../../components/Blocks";
 import { DataTable } from "../../../components/DataTable";
+import { PublicationBadge } from "../events/PublicationBadge";
 import { Field, Section } from "../../../components/Form";
 import { INPUT_CLASS } from "../../../lib/admin";
 import { formatDate } from "../../../lib/format";
@@ -52,7 +53,7 @@ export function PostsAdmin() {
 
 const column = createColumnHelper<typeof TABLE_FEATURES, PostAdmin>();
 
-function PostTable({ page, params }: { page: { items: PostAdmin[]; total: number; limit: number; offset: number }; params: ListParams }) {
+function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
   const { t } = useTranslation("admin");
   const columns = useMemo(
     () =>
@@ -91,9 +92,7 @@ function PostTable({ page, params }: { page: { items: PostAdmin[]; total: number
           enableSorting: false,
           cell: ({ row }) => (
             <span className="flex flex-wrap gap-1">
-              <Badge tone={row.original.published ? "brand" : "warning"} testId={`admin-posts-state-${row.original.id}`}>
-                {row.original.published ? t("manage.publishedBadge") : t("manage.draftBadge")}
-              </Badge>
+              <PublicationBadge published={row.original.published} testId={`admin-posts-state-${row.original.id}`} />
               {row.original.example && <Badge>{t("posts.exampleBadge")}</Badge>}
             </span>
           ),

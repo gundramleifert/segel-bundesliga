@@ -1,11 +1,9 @@
 import { Button } from "@heroui/react";
-import { Suspense, lazy, useEffect, useRef, useState, type FormEvent } from "react";
+import { Suspense, lazy, useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
-  getGetAdminPostQueryKey,
-  uploadPostPhoto,
   useCreatePost,
   useDeletePost,
   useGetAdminPost,
@@ -14,13 +12,15 @@ import {
 } from "../../../api/generated/sbl";
 import { PostKind, type PostAdmin, type PostCreate } from "../../../api/types";
 import { useAsync, useInvalidate } from "../../../api/useApi";
-import { ErrorMessage, Loading, PageHeader } from "../../../components/Blocks";
-import { Field, Message, Section } from "../../../components/Form";
+import { ErrorMessage, Loading } from "../../../components/Blocks";
+import { Field, Message } from "../../../components/Form";
 import { Select } from "../../../components/Select";
 import { DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, leaguePhoto } from "../../../content";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
+import { todayIso } from "../../../lib/format";
 import { href } from "../../../lib/site";
-import { AdminAccess } from "../../Admin";
+import { usePhotoUpload } from "../../../lib/usePhotoUpload";
+import { NewEntryPage } from "../../AdminNewPage";
 
 // TipTap and ProseMirror are only needed here — not by a single reader of the site.
 const RichTextEditor = lazy(() => import("../../../components/RichTextEditor"));
@@ -33,39 +33,24 @@ const LIBRARY = [...Object.values(DSBL_PHOTOS), ...Object.values(OWN_PHOTOS)];
 type TextFields = "teaser" | "author" | "quote" | "quote_by" | "photo_credit" | "published_on";
 type Draft = Required<Omit<PostCreate, TextFields>> & Record<TextFields, string>;
 
-const today = () => new Date().toISOString().slice(0, 10);
+/** Where a change to a post shows: editorial's list and page, and the public site. */
+const POST_PATHS = ["/api/admin/posts", "/api/posts"];
 
-function emptyDraft(): Draft {
+/** The form's state for this post — or for a new one, a news draft dated today. */
+function draftOf(post?: PostAdmin): Draft {
   return {
-    kind: PostKind.news,
-    title: "",
-    published_on: today(),
-    league_id: null,
-    teaser: "",
-    body: "",
-    author: "",
-    quote: "",
-    quote_by: "",
-    photo_url: null,
-    photo_credit: "",
-    published: false,
-  };
-}
-
-function draftOf(post: PostAdmin): Draft {
-  return {
-    kind: post.kind,
-    title: post.title,
-    published_on: post.published_on,
-    league_id: post.league_id ?? null,
-    teaser: post.teaser ?? "",
-    body: post.body,
-    author: post.author ?? "",
-    quote: post.quote ?? "",
-    quote_by: post.quote_by ?? "",
-    photo_url: post.photo_url ?? null,
-    photo_credit: post.photo_credit ?? "",
-    published: post.published,
+    kind: post?.kind ?? PostKind.news,
+    title: post?.title ?? "",
+    published_on: post?.published_on ?? todayIso(),
+    league_id: post?.league_id ?? null,
+    teaser: post?.teaser ?? "",
+    body: post?.body ?? "",
+    author: post?.author ?? "",
+    quote: post?.quote ?? "",
+    quote_by: post?.quote_by ?? "",
+    photo_url: post?.photo_url ?? null,
+    photo_credit: post?.photo_credit ?? "",
+    published: post?.published ?? false,
   };
 }
 
@@ -80,20 +65,17 @@ export function AdminPostPage() {
   const title = postId === null ? t("posts.newButton") : (post.data?.title ?? t("posts.title"));
 
   return (
-    <AdminAccess>
-      <PageHeader title={title} testId="admin-post-header" />
-      <Section title={title} testId="admin-post">
-        {postId === null ? (
-          <PostForm />
-        ) : (
-          <>
-            {post.loading && <Loading testId="admin-post-loading" />}
-            {post.error && <ErrorMessage text={post.error} testId="admin-post-error" />}
-            {post.data && <PostForm post={post.data} key={post.data.id} />}
-          </>
-        )}
-      </Section>
-    </AdminAccess>
+    <NewEntryPage title={title} testId="admin-post">
+      {postId === null ? (
+        <PostForm />
+      ) : (
+        <>
+          {post.loading && <Loading testId="admin-post-loading" />}
+          {post.error && <ErrorMessage text={post.error} testId="admin-post-error" />}
+          {post.data && <PostForm post={post.data} key={post.data.id} />}
+        </>
+      )}
+    </NewEntryPage>
   );
 }
 
@@ -102,14 +84,15 @@ function PostForm({ post }: { post?: PostAdmin }) {
   const navigate = useNavigate();
   const invalidate = useInvalidate();
   const leagues = useAsync(useListLeagues());
-  const [draft, setDraft] = useState<Draft>(() => (post ? draftOf(post) : emptyDraft()));
+  const [draft, setDraft] = useState<Draft>(() => draftOf(post));
   const [saved, setSaved] = useState(false);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setSaved(false);
     setDraft((d) => ({ ...d, [key]: value }));
   };
 
-  const refresh = () => invalidate("/api/admin/posts", "/api/posts");
+  // The prefixes cover this post's own query too, so a save refreshes the page.
+  const refresh = () => invalidate(...POST_PATHS);
   const create = useCreatePost({
     mutation: {
       onSuccess: (created) => {
@@ -122,7 +105,6 @@ function PostForm({ post }: { post?: PostAdmin }) {
     mutation: {
       onSuccess: () => {
         refresh();
-        if (post) invalidate(getGetAdminPostQueryKey(post.id));
         setSaved(true);
       },
     },
@@ -131,13 +113,15 @@ function PostForm({ post }: { post?: PostAdmin }) {
   const failure = create.error ?? update.error;
 
   const save = (published = draft.published) => {
-    const data = { ...draft, published, published_on: draft.published_on || today() };
+    const data = { ...draft, published, published_on: draft.published_on || todayIso() };
     if (post) update.mutate({ postId: post.id, data });
     else create.mutate({ data });
     set("published", published);
   };
 
   const news = draft.kind === PostKind.news;
+  // An association's post is shown under the first member league (`content`, `Home.tsx`).
+  const publicLeague = post?.league ?? MEMBER_LEAGUES[0];
   const leagueSlug = leagues.data?.find((l) => l.id === draft.league_id)?.slug ?? MEMBER_LEAGUES[0];
 
   return (
@@ -255,7 +239,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
         </Button>
         {post?.published && (
           <Link
-            to={post.kind === PostKind.news ? href.article(post.league ?? MEMBER_LEAGUES[0], post.slug) : href.press(post.league ?? MEMBER_LEAGUES[0])}
+            to={post.kind === PostKind.news ? href.article(publicLeague, post.slug) : href.press(publicLeague)}
             className="text-sm font-medium text-brand-700 hover:underline"
             data-testid="admin-post-view-link"
           >
@@ -285,23 +269,8 @@ function PhotoPicker({
   onChange: (url: string | null, credit: string) => void;
 }) {
   const { t } = useTranslation("admin");
-  const input = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fromLibrary = LIBRARY.find((photo) => photo.src === url);
-
-  const upload = async (file: File) => {
-    setBusy(true);
-    setError(null);
-    try {
-      const { url: uploaded } = await uploadPostPhoto({ file });
-      onChange(uploaded, "");
-    } catch (e) {
-      setError(errorText(e, t("posts.photoError")));
-    } finally {
-      setBusy(false);
-    }
-  };
+  const photo = usePhotoUpload((uploaded) => onChange(uploaded, ""));
+  const fromLibrary = LIBRARY.find((p) => p.src === url);
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 text-sm sm:grid-cols-[12rem_minmax(0,1fr)]">
@@ -317,8 +286,8 @@ function PhotoPicker({
           {!url && <span className="ml-2 font-normal text-slate-500">{t("posts.photoNone")}</span>}
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="outline" isDisabled={busy} onPress={() => input.current?.click()} data-testid="admin-post-photo-upload-button">
-            {busy ? t("posts.photoUploading") : t("posts.photoUpload")}
+          <Button size="sm" variant="outline" isDisabled={photo.busy} onPress={photo.pick} data-testid="admin-post-photo-upload-button">
+            {photo.busy ? t("posts.photoUploading") : t("posts.photoUpload")}
           </Button>
           <Select
             size="inline"
@@ -343,24 +312,13 @@ function PhotoPicker({
             </Button>
           )}
         </div>
-        <input
-          ref={input}
-          type="file"
-          accept="image/jpeg,image/png"
-          className="hidden"
-          data-testid="admin-post-photo-input"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
-            if (file) void upload(file);
-          }}
-        />
+        <input {...photo.input} data-testid="admin-post-photo-input" />
         {url && (
           <Field label={t("posts.photoCreditLabel")}>
             <input className={INPUT_CLASS} value={credit} onChange={(e) => onChange(url, e.target.value)} data-testid="admin-post-photo-credit-input" />
           </Field>
         )}
-        {error && <ErrorMessage text={error} testId="admin-post-photo-error" />}
+        {photo.error && <ErrorMessage text={photo.error} testId="admin-post-photo-error" />}
       </div>
     </div>
   );
@@ -375,7 +333,7 @@ function DeleteButton({ postId }: { postId: number }) {
   const remove = useDeletePost({
     mutation: {
       onSuccess: () => {
-        invalidate("/api/admin/posts", "/api/posts");
+        invalidate(...POST_PATHS);
         navigate("/admin?tab=news");
       },
     },

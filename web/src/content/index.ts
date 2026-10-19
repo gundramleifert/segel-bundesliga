@@ -162,8 +162,6 @@ export type Article = {
   example?: boolean;
 };
 
-export type Release = { slug: string; title: string; date: string; body: string; example?: boolean };
-
 /** A post's own picture, or its league's when it has none. */
 function postPhoto(post: Post): Photo {
   if (!post.photo_url) return leaguePhoto(post.league ?? MEMBER_LEAGUES[0]);
@@ -176,7 +174,7 @@ function postPhoto(post: Post): Photo {
   };
 }
 
-export function toArticle(post: Post): Article {
+function toArticle(post: Post): Article {
   return {
     slug: post.slug,
     title: post.title,
@@ -187,33 +185,30 @@ export function toArticle(post: Post): Article {
     body: post.body,
     author: post.author ?? undefined,
     quote: post.quote ? { text: post.quote, by: post.quote_by ?? "" } : undefined,
-    example: post.example ?? false,
+    example: post.example,
   };
 }
 
-const mapped = <T, U>(state: AsyncState<T>, map: (data: T) => U): AsyncState<U> => ({
-  ...state,
-  data: state.data === null ? null : map(state.data),
-});
+// `select`, not a map after the fact: the query memoizes it, so a page gets the same
+// array back until the posts change.
+const toArticles = (posts: Post[]) => posts.map(toArticle);
 
 /** A league's news and the association's, newest first; without a league, everything. */
 export function useNews(league?: string) {
-  const state = useAsync(useListPosts({ kind: PostKind.news, league }));
-  return mapped(state, (posts) => posts.map(toArticle));
+  return useAsync(useListPosts({ kind: PostKind.news, league }, { query: { select: toArticles } }));
 }
 
-/** One published article; `data` stays null while it loads and when there is none. */
-export function useArticle(slug: string | undefined) {
-  const state = useAsync(useGetPost(slug ?? "", { query: { enabled: !!slug, retry: false } }));
-  return mapped(state, toArticle);
-}
-
-/** A league's press releases and the association's, newest first. */
+/** A league's press releases and the association's, newest first — as articles, of which
+ *  the press centre reads the title, the date and the text. */
 export function usePress(league: string) {
-  const state = useAsync(useListPosts({ kind: PostKind.press, league }));
-  return mapped(state, (posts) =>
-    posts.map((p): Release => ({ slug: p.slug, title: p.title, date: p.published_on, body: p.body, example: p.example ?? false })),
-  );
+  return useAsync(useListPosts({ kind: PostKind.press, league }, { query: { select: toArticles } }));
+}
+
+/** One published article. `notFound` tells an unknown or withdrawn one (a 404) from a
+ *  failure, so the page can lead back to the news for the one and say so for the other. */
+export function useArticle(slug: string | undefined) {
+  const query = useGetPost(slug ?? "", { query: { enabled: !!slug, select: toArticle } });
+  return { ...useAsync(query), notFound: query.error?.status === 404 };
 }
 
 export const PRESS_CONTACT = "presse@segelliga.example.com";

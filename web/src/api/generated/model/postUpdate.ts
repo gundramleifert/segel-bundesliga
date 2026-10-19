@@ -9,18 +9,26 @@ import type { PostKind } from './postKind';
 
 /**
  * Only what is sent changes. The slug is not here: it is made once (Story R-1).
+ *
+ * The required columns default to ``None`` only so that they may be left out: an explicit
+ * ``null`` for one of them is a 422, never silently ignored.
  */
 export interface PostUpdate {
-  kind?: PostKind | null;
-  title?: string | null;
-  published_on?: string | null;
+  kind?: PostKind;
+  /**
+     * @minLength 3
+     * @maxLength 200
+     */
+  title?: string;
+  published_on?: string;
   league_id?: number | null;
   teaser?: string | null;
-  body?: string | null;
+  /** @maxLength 50000 */
+  body?: string;
   author?: string | null;
   quote?: string | null;
   quote_by?: string | null;
   photo_url?: string | null;
   photo_credit?: string | null;
-  published?: boolean | null;
+  published?: boolean;
 }

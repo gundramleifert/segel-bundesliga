@@ -9,8 +9,6 @@ Cleaning on write rather than on read keeps the stored text the text that is sho
 
 from __future__ import annotations
 
-import html
-
 import nh3
 
 #: What the toolbar makes (`web/src/components/RichTextEditor.tsx`): paragraphs, two levels
@@ -40,10 +38,3 @@ def clean_html(value: str) -> str:
         link_rel="noopener noreferrer",
     ).strip()
     return "" if cleaned in {"", "<p></p>"} else cleaned
-
-
-def paragraphs_to_html(text: str) -> str:
-    """Plain paragraphs, separated by an empty line, as the editor's HTML."""
-    return "".join(
-        f"<p>{html.escape(part.strip())}</p>" for part in text.split("\n\n") if part.strip()
-    )

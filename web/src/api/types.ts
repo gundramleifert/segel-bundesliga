@@ -20,6 +20,7 @@ export type { SeriesOut as Series } from "./generated/model/seriesOut";
 /** Story R-1: a news article or a press release, as the public site and editorial see it. */
 export type { PostOut as Post } from "./generated/model/postOut";
 export type { PostAdminOut as PostAdmin } from "./generated/model/postAdminOut";
+export type { PagePostAdminOut as PostPage } from "./generated/model/pagePostAdminOut";
 export type { PostCreate, PostUpdate } from "./generated/model";
 export type { SeriesTable } from "./generated/model/seriesTable";
 export type { SeriesStandingRow as SeriesRow } from "./generated/model/seriesStandingRow";

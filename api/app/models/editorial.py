@@ -58,3 +58,8 @@ class Post(Base, TimestampMixin):
     example: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
     league: Mapped[League | None] = relationship()
+
+    @property
+    def league_slug(self) -> str | None:
+        """Where the public site shows it — ``PostOut.league``; load ``league`` first."""
+        return self.league.slug if self.league else None

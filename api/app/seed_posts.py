@@ -8,13 +8,13 @@ league pages are not blank.
 
 from __future__ import annotations
 
+import html
 from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import League, Post, PostKind
-from app.services.rich_text import paragraphs_to_html
+from app.models import League, Post
 from app.text import slugify
 
 POSTS: list[dict] = [
@@ -238,7 +238,6 @@ POSTS: list[dict] = [
     },
     {
         "kind": "press",
-        "slug": None,
         "title": "Act 5: NRV takes over the lead",
         "published_on": "2026-09-21",
         "league": "1-liga",
@@ -248,7 +247,6 @@ POSTS: list[dict] = [
     },
     {
         "kind": "press",
-        "slug": None,
         "title": "Season 2027: calendar and venues confirmed",
         "published_on": "2026-09-02",
         "league": "1-liga",
@@ -258,7 +256,6 @@ POSTS: list[dict] = [
     },
     {
         "kind": "press",
-        "slug": None,
         "title": "Media kit 2026: logos, fact sheet, contacts",
         "published_on": "2026-04-01",
         "league": "1-liga",
@@ -267,6 +264,11 @@ POSTS: list[dict] = [
         "example": True,
     },
 ]
+
+
+def _paragraphs(text: str) -> str:
+    """The rows' plain paragraphs, separated by an empty line, as the editor's HTML."""
+    return "".join(f"<p>{html.escape(part)}</p>" for part in text.split("\n\n"))
 
 
 async def seed_posts(session: AsyncSession) -> None:
@@ -279,11 +281,10 @@ async def seed_posts(session: AsyncSession) -> None:
             Post(
                 **fields
                 | {
-                    "kind": PostKind(fields["kind"]),
-                    "slug": fields["slug"] or slugify(fields["title"]),
+                    "slug": fields.get("slug") or slugify(fields["title"]),
                     "published_on": date.fromisoformat(fields["published_on"]),
-                    "body": paragraphs_to_html(fields["body"]),
-                    "league_id": leagues.get(league) if league else None,
+                    "body": _paragraphs(fields["body"]),
+                    "league_id": leagues.get(league),
                     "published": True,
                 },
             )

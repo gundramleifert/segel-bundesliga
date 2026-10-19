@@ -3,11 +3,11 @@ import Image from "@tiptap/extension-image";
 import { TableKit } from "@tiptap/extension-table";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { uploadPostPhoto } from "../api/generated/sbl";
-import { INPUT_CLASS, errorText } from "../lib/admin";
+import { INPUT_CLASS } from "../lib/admin";
+import { usePhotoUpload } from "../lib/usePhotoUpload";
 import { ErrorMessage } from "./Blocks";
 import { Select } from "./Select";
 import { Tip } from "./Tip";
@@ -75,6 +75,26 @@ export default function RichTextEditor({
 
 type Style = "paragraph" | "h2" | "h3";
 
+type Chain = ReturnType<Editor["chain"]>;
+
+/** A toggle of the toolbar: the mark or node it switches (also what `isActive` asks), its
+ *  label's key, its testid and glyph, and the command. One list drives the buttons and
+ *  the "is it on here?" state, so a new toggle is one line — and one tag on the server. */
+type Toggle = { name: string; label: string; testId: string; glyph: ReactNode; toggle: (chain: Chain) => Chain };
+
+const MARKS: Toggle[] = [
+  { name: "bold", label: "posts.bold", testId: "bold", glyph: <span className="font-bold">B</span>, toggle: (c) => c.toggleBold() },
+  { name: "italic", label: "posts.italic", testId: "italic", glyph: <span className="font-serif italic">I</span>, toggle: (c) => c.toggleItalic() },
+  { name: "underline", label: "posts.underline", testId: "underline", glyph: <span className="underline">U</span>, toggle: (c) => c.toggleUnderline() },
+  { name: "strike", label: "posts.strike", testId: "strike", glyph: <span className="line-through">S</span>, toggle: (c) => c.toggleStrike() },
+];
+
+const BLOCKS: Toggle[] = [
+  { name: "bulletList", label: "posts.bulletList", testId: "bullet-list", glyph: "•≡", toggle: (c) => c.toggleBulletList() },
+  { name: "orderedList", label: "posts.orderedList", testId: "ordered-list", glyph: "1.≡", toggle: (c) => c.toggleOrderedList() },
+  { name: "blockquote", label: "posts.quote", testId: "quote", glyph: "❝", toggle: (c) => c.toggleBlockquote() },
+];
+
 function Toolbar({ editor, testId }: { editor: Editor; testId: string }) {
   const { t } = useTranslation("admin");
   const [linking, setLinking] = useState(false);
@@ -84,23 +104,22 @@ function Toolbar({ editor, testId }: { editor: Editor; testId: string }) {
     editor,
     selector: ({ editor: e }) => ({
       style: (e.isActive("heading", { level: 2 }) ? "h2" : e.isActive("heading", { level: 3 }) ? "h3" : "paragraph") as Style,
-      bold: e.isActive("bold"),
-      italic: e.isActive("italic"),
-      underline: e.isActive("underline"),
-      strike: e.isActive("strike"),
-      bulletList: e.isActive("bulletList"),
-      orderedList: e.isActive("orderedList"),
-      blockquote: e.isActive("blockquote"),
+      active: Object.fromEntries([...MARKS, ...BLOCKS].map((f) => [f.name, e.isActive(f.name)])),
       link: e.isActive("link"),
       table: e.isActive("table"),
     }),
   });
 
-  const setStyle = (style: Style) => {
-    const chain = editor.chain().focus();
-    if (style === "paragraph") chain.setParagraph().run();
-    else chain.setHeading({ level: style === "h2" ? 2 : 3 }).run();
-  };
+  // Every command starts from the text's focus, so the cursor stays where it was.
+  const run = (command: (chain: Chain) => Chain) => command(editor.chain().focus()).run();
+  const setStyle = (style: Style) =>
+    run((c) => (style === "paragraph" ? c.setParagraph() : c.setHeading({ level: style === "h2" ? 2 : 3 })));
+  const toggles = (list: Toggle[]) =>
+    list.map((f) => (
+      <Tool key={f.name} label={t(f.label)} active={state.active[f.name]} onPress={() => run(f.toggle)} testId={`${testId}-${f.testId}`}>
+        {f.glyph}
+      </Tool>
+    ));
 
   return (
     <div className="border-b border-slate-200 bg-slate-50">
@@ -117,28 +136,9 @@ function Toolbar({ editor, testId }: { editor: Editor; testId: string }) {
           <option value="h3">{t("posts.styleSubheading")}</option>
         </Select>
         <Divider />
-        <Tool label={t("posts.bold")} active={state.bold} onPress={() => editor.chain().focus().toggleBold().run()} testId={`${testId}-bold`}>
-          <span className="font-bold">B</span>
-        </Tool>
-        <Tool label={t("posts.italic")} active={state.italic} onPress={() => editor.chain().focus().toggleItalic().run()} testId={`${testId}-italic`}>
-          <span className="font-serif italic">I</span>
-        </Tool>
-        <Tool label={t("posts.underline")} active={state.underline} onPress={() => editor.chain().focus().toggleUnderline().run()} testId={`${testId}-underline`}>
-          <span className="underline">U</span>
-        </Tool>
-        <Tool label={t("posts.strike")} active={state.strike} onPress={() => editor.chain().focus().toggleStrike().run()} testId={`${testId}-strike`}>
-          <span className="line-through">S</span>
-        </Tool>
+        {toggles(MARKS)}
         <Divider />
-        <Tool label={t("posts.bulletList")} active={state.bulletList} onPress={() => editor.chain().focus().toggleBulletList().run()} testId={`${testId}-bullet-list`}>
-          •≡
-        </Tool>
-        <Tool label={t("posts.orderedList")} active={state.orderedList} onPress={() => editor.chain().focus().toggleOrderedList().run()} testId={`${testId}-ordered-list`}>
-          1.≡
-        </Tool>
-        <Tool label={t("posts.quote")} active={state.blockquote} onPress={() => editor.chain().focus().toggleBlockquote().run()} testId={`${testId}-quote`}>
-          ❝
-        </Tool>
+        {toggles(BLOCKS)}
         <Divider />
         <Tool label={t("posts.link")} active={state.link || linking} onPress={() => setLinking((open) => !open)} testId={`${testId}-link`}>
           🔗
@@ -147,16 +147,16 @@ function Toolbar({ editor, testId }: { editor: Editor; testId: string }) {
         <Tool
           label={t("posts.table")}
           active={state.table}
-          onPress={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+          onPress={() => run((c) => c.insertTable({ rows: 3, cols: 3, withHeaderRow: true }))}
           testId={`${testId}-table`}
         >
           ▦
         </Tool>
         <Divider />
-        <Tool label={t("posts.undo")} onPress={() => editor.chain().focus().undo().run()} testId={`${testId}-undo`}>
+        <Tool label={t("posts.undo")} onPress={() => run((c) => c.undo())} testId={`${testId}-undo`}>
           ↶
         </Tool>
-        <Tool label={t("posts.redo")} onPress={() => editor.chain().focus().redo().run()} testId={`${testId}-redo`}>
+        <Tool label={t("posts.redo")} onPress={() => run((c) => c.redo())} testId={`${testId}-redo`}>
           ↷
         </Tool>
       </div>
@@ -260,41 +260,14 @@ function LinkBar({ editor, onClose, testId }: { editor: Editor; onClose: () => v
 /** A picture in the text: uploaded like the post's own picture, then inserted. */
 function ImageTool({ editor, testId }: { editor: Editor; testId: string }) {
   const { t } = useTranslation("admin");
-  const input = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const upload = async (file: File) => {
-    setBusy(true);
-    setError(null);
-    try {
-      const { url } = await uploadPostPhoto({ file });
-      editor.chain().focus().setImage({ src: url, alt: file.name.replace(/\.[^.]+$/, "") }).run();
-    } catch (e) {
-      setError(errorText(e, t("posts.photoError")));
-    } finally {
-      setBusy(false);
-    }
-  };
-
+  const photo = usePhotoUpload((src, alt) => editor.chain().focus().setImage({ src, alt }).run());
   return (
     <>
-      <Tool label={busy ? t("posts.photoUploading") : t("posts.image")} onPress={() => input.current?.click()} testId={`${testId}-image`}>
+      <Tool label={photo.busy ? t("posts.photoUploading") : t("posts.image")} onPress={photo.pick} testId={`${testId}-image`}>
         🖼
       </Tool>
-      <input
-        ref={input}
-        type="file"
-        accept="image/jpeg,image/png"
-        className="hidden"
-        data-testid={`${testId}-image-input`}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          e.target.value = "";
-          if (file) void upload(file);
-        }}
-      />
-      {error && <ErrorMessage text={error} testId={`${testId}-image-error`} />}
+      <input {...photo.input} data-testid={`${testId}-image-input`} />
+      {photo.error && <ErrorMessage text={photo.error} testId={`${testId}-image-error`} />}
     </>
   );
 }

@@ -10,9 +10,8 @@ from __future__ import annotations
 
 import asyncio
 import io
-import uuid
 from datetime import date
-from pathlib import Path
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from fastapi.responses import FileResponse, Response
@@ -22,16 +21,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth import require_editor
-from app.config import settings
 from app.db import get_session
 from app.models import League, Post, PostKind
 from app.models.auth import User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services.lookup import get_or_404
+from app.services import uploads
+from app.services.lookup import get_or_404, unique_slug
 from app.services.rich_text import clean_html
-from app.services.uploads import validated
-from app.text import slugify
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 admin_router = APIRouter(prefix="/api/admin/posts", tags=["admin"])
@@ -40,6 +37,8 @@ admin_router = APIRouter(prefix="/api/admin/posts", tags=["admin"])
 # re-encoded so a phone's EXIF (location included) never reaches the public site.
 _PHOTO_EDGE = 2000
 _JPEG_QUALITY = 85
+# Their directory under `uploads/` (`app/services/uploads.py`).
+_PHOTOS = "posts"
 
 
 class PostOut(BaseModel):
@@ -54,7 +53,9 @@ class PostOut(BaseModel):
     published_on: date
     league_id: int | None = None
     league: str | None = Field(
-        default=None, description="The league's slug; empty for the association's own posts."
+        default=None,
+        validation_alias="league_slug",
+        description="The league's slug; empty for the association's own posts.",
     )
     teaser: str | None = None
     body: str = Field(description="HTML from the editor, cleaned to its few elements on write.")
@@ -70,74 +71,70 @@ class PostAdminOut(PostOut):
     published: bool
 
 
-def _out[T: PostOut](post: Post, schema: type[T]) -> T:
-    return schema.model_validate(
-        {
-            **{name: getattr(post, name) for name in schema.model_fields if name != "league"},
-            "league": post.league.slug if post.league else None,
-        }
-    )
+# Each limit once, for creating and correcting alike — the columns' sizes (`Post`).
+Title = Annotated[str, Field(min_length=3, max_length=200)]
+Body = Annotated[str, Field(max_length=50_000)]
+Lead = Annotated[str | None, Field(max_length=500)]
+Name = Annotated[str | None, Field(max_length=120)]
+PhotoUrl = Annotated[str | None, Field(max_length=500)]
+Credit = Annotated[str | None, Field(max_length=160)]
 
 
 class PostFields(BaseModel):
-    """What editorial writes — the same rules for creating and correcting."""
+    """What editorial writes — the same rules for creating and correcting. Surrounding
+    whitespace is a typo, so it is stripped before any length is checked: a title of
+    blanks is too short, not empty."""
 
-    @field_validator(
-        "title",
-        "teaser",
-        "author",
-        "quote",
-        "quote_by",
-        "photo_credit",
-        mode="after",
-        check_fields=False,
-    )
-    @classmethod
-    def _strip(cls, value: str | None) -> str | None:
-        """Surrounding whitespace is a typo; an emptied optional field means "none"."""
-        if value is None:
-            return None
-        return value.strip() or None
+    model_config = ConfigDict(str_strip_whitespace=True)
 
-    @field_validator("body", mode="after", check_fields=False)
+    @field_validator("teaser", "author", "quote", "quote_by", "photo_credit", check_fields=False)
     @classmethod
-    def _clean(cls, value: str | None) -> str | None:
+    def _none_if_empty(cls, value: str | None) -> str | None:
+        """An emptied optional field means "none"."""
+        return value or None
+
+    @field_validator("body", check_fields=False)
+    @classmethod
+    def _clean(cls, value: str) -> str:
         """HTML from the editor, reduced to what its toolbar makes — see `rich_text`."""
-        return None if value is None else clean_html(value)
+        return clean_html(value)
 
 
 class PostCreate(PostFields):
     kind: PostKind = PostKind.NEWS
-    title: str = Field(min_length=3, max_length=200)
+    title: Title
     published_on: date | None = Field(default=None, description="The date shown; today if absent.")
     league_id: int | None = Field(
         default=None, description="The league it belongs to; empty for the association's."
     )
-    teaser: str | None = Field(default=None, max_length=500)
-    body: str = Field(default="", max_length=50_000)
-    author: str | None = Field(default=None, max_length=120)
-    quote: str | None = Field(default=None, max_length=500)
-    quote_by: str | None = Field(default=None, max_length=120)
-    photo_url: str | None = Field(default=None, max_length=500)
-    photo_credit: str | None = Field(default=None, max_length=160)
+    teaser: Lead = None
+    body: Body = ""
+    author: Name = None
+    quote: Lead = None
+    quote_by: Name = None
+    photo_url: PhotoUrl = None
+    photo_credit: Credit = None
     published: bool = Field(default=False, description="Drafts are invisible on the public site.")
 
 
 class PostUpdate(PostFields):
-    """Only what is sent changes. The slug is not here: it is made once (Story R-1)."""
+    """Only what is sent changes. The slug is not here: it is made once (Story R-1).
 
-    kind: PostKind | None = None
-    title: str | None = Field(default=None, min_length=3, max_length=200)
-    published_on: date | None = None
+    The required columns default to ``None`` only so that they may be left out: an explicit
+    ``null`` for one of them is a 422, never silently ignored."""
+
+    kind: PostKind = None  # type: ignore[assignment]
+    title: Title = None  # type: ignore[assignment]
+    published_on: date = None  # type: ignore[assignment]
     league_id: int | None = None
-    teaser: str | None = Field(default=None, max_length=500)
-    body: str | None = Field(default=None, max_length=50_000)
-    author: str | None = Field(default=None, max_length=120)
-    quote: str | None = Field(default=None, max_length=500)
-    quote_by: str | None = Field(default=None, max_length=120)
-    photo_url: str | None = Field(default=None, max_length=500)
-    photo_credit: str | None = Field(default=None, max_length=160)
-    published: bool | None = None
+    teaser: Lead = None
+    body: Body = None  # type: ignore[assignment]
+    author: Name = None
+    quote: Lead = None
+    quote_by: Name = None
+    photo_url: PhotoUrl = None
+    photo_credit: Credit = None
+    published: bool = None  # type: ignore[assignment]
 
 
 class PhotoOut(BaseModel):
@@ -169,14 +166,14 @@ async def list_posts(
         )
     stmt = stmt.order_by(Post.published_on.desc(), Post.id.desc()).limit(limit)
     posts = (await session.execute(stmt)).scalars().all()
-    return [_out(post, PostOut) for post in posts]
+    return [PostOut.model_validate(post) for post in posts]
 
 
 @router.get("/photos/{name}", summary="A post's uploaded picture")
 async def get_post_photo(name: str) -> FileResponse:
     """Public: a picture is uploaded to be shown. The name is random, never a path."""
-    path = _photo_dir() / name
-    if path.parent != _photo_dir() or not path.is_file():
+    path = uploads.path(_PHOTOS, name)
+    if path is None:
         raise Problem(404, "post-photo-not-found", "No such picture.")
     return FileResponse(path, media_type="image/jpeg")
 
@@ -189,7 +186,7 @@ async def get_post(slug: str, session: AsyncSession = Depends(get_session)) -> P
     ).scalar_one_or_none()
     if post is None:
         raise Problem(404, "post-not-found", "No such post.", slug=slug)
-    return _out(post, PostOut)
+    return PostOut.model_validate(post)
 
 
 # ---------------------------------------------------------------- editorial
@@ -215,7 +212,7 @@ async def list_all_posts(
         sortable=POST_SORT,
         default_order=[Post.published_on.desc(), Post.id.desc()],
     )
-    return page_of([_out(post, PostAdminOut) for post in posts], total, params)
+    return page_of([PostAdminOut.model_validate(post) for post in posts], total, params)
 
 
 @admin_router.post(
@@ -230,10 +227,11 @@ async def create_post(
     await _check_league(session, body.league_id)
     fields = body.model_dump()
     fields["published_on"] = fields["published_on"] or date.today()
-    post = Post(**fields, slug=await _free_slug(session, body.title))
+    # Cut before the slug is made, so a long title's slug still fits with a number added.
+    post = Post(**fields, slug=await unique_slug(session, Post, body.title[:100]))
     session.add(post)
     await session.commit()
-    return await _admin_out(session, post.id)
+    return await _admin_out(session, post)
 
 
 @admin_router.get("/{post_id}", response_model=PostAdminOut, summary="One post, draft or not")
@@ -242,7 +240,7 @@ async def get_admin_post(
     session: AsyncSession = Depends(get_session),
     _: User = Depends(require_editor),
 ) -> PostAdminOut:
-    return await _admin_out(session, post_id)
+    return await _admin_out(session, await get_or_404(session, Post, post_id))
 
 
 @admin_router.patch("/{post_id}", response_model=PostAdminOut, summary="Correct a post")
@@ -257,13 +255,10 @@ async def update_post(
     changes = body.model_dump(exclude_unset=True)
     if "league_id" in changes:
         await _check_league(session, changes["league_id"])
-    for required in ("kind", "title", "published_on", "body", "published"):
-        if required in changes and changes[required] is None:
-            del changes[required]
     for name, value in changes.items():
         setattr(post, name, value)
     await session.commit()
-    return await _admin_out(session, post_id)
+    return await _admin_out(session, post)
 
 
 @admin_router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a post")
@@ -286,26 +281,21 @@ async def upload_post_photo(
     """A JPEG or PNG, checked by content, re-encoded and stored under a random name. The
     answer is the address to put in a post's ``photo_url``."""
     raw = await file.read()
-    content_type = await validated(raw, file.content_type, code="post-photo", what="The picture")
-    if content_type == "application/pdf":
-        raise Problem(422, "post-photo-invalid-type", "The picture must be a JPEG or a PNG.")
-    name = f"{uuid.uuid4().hex}.jpg"
-    await asyncio.to_thread(_save_photo, raw, _photo_dir() / name)
+    await uploads.validated(
+        raw, file.content_type, code="post-photo", what="The picture", accept=uploads.IMAGE_TYPES
+    )
+    jpeg = await asyncio.to_thread(_reencode, raw)
+    name = uploads.store(_PHOTOS, jpeg, "image/jpeg")
     return PhotoOut(url=f"/api/posts/photos/{name}")
 
 
 # ---------------------------------------------------------------- helpers
 
 
-async def _admin_out(session: AsyncSession, post_id: int) -> PostAdminOut:
-    post = (
-        await session.execute(
-            _with_league().where(Post.id == post_id).execution_options(populate_existing=True)
-        )
-    ).scalar_one_or_none()
-    if post is None:
-        raise Problem(404, "post-not-found", f"Post {post_id} not found.", id=post_id)
-    return _out(post, PostAdminOut)
+async def _admin_out(session: AsyncSession, post: Post) -> PostAdminOut:
+    """The post as editorial sees it, its league (re)loaded — it may just have changed."""
+    await session.refresh(post, ["league"])
+    return PostAdminOut.model_validate(post)
 
 
 async def _check_league(session: AsyncSession, league_id: int | None) -> None:
@@ -313,29 +303,16 @@ async def _check_league(session: AsyncSession, league_id: int | None) -> None:
         await get_or_404(session, League, league_id)
 
 
-async def _free_slug(session: AsyncSession, title: str) -> str:
-    """The title's slug, numbered if another post already has it — never overwritten."""
-    base = slugify(title)[:100]
-    taken = set(
-        (await session.execute(select(Post.slug).where(Post.slug.like(f"{base}%")))).scalars()
-    )
-    if base not in taken:
-        return base
-    number = 2
-    while f"{base}-{number}" in taken:
-        number += 1
-    return f"{base}-{number}"
-
-
-def _photo_dir() -> Path:
-    return Path(settings.uploads_dir).resolve() / "posts"
-
-
-def _save_photo(raw: bytes, path: Path) -> None:
+def _reencode(raw: bytes) -> bytes:
+    """Upright, at most `_PHOTO_EDGE` on its longer side, as a JPEG without EXIF."""
     from PIL import Image, ImageOps
 
     image = Image.open(io.BytesIO(raw))
+    # Decode a large JPEG at a fraction of its size straight away — a phone's 48 MP photo
+    # need never exist in memory at full size to end up 2000 px wide.
+    image.draft("RGB", (_PHOTO_EDGE, _PHOTO_EDGE))
     image = (ImageOps.exif_transpose(image) or image).convert("RGB")
     image.thumbnail((_PHOTO_EDGE, _PHOTO_EDGE), Image.LANCZOS)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(path, format="JPEG", quality=_JPEG_QUALITY)
+    out = io.BytesIO()
+    image.save(out, format="JPEG", quality=_JPEG_QUALITY)
+    return out.getvalue()

@@ -14,9 +14,11 @@ from __future__ import annotations
 
 import re
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.problems import Problem
+from app.text import slugify
 
 
 def not_found_code(model: type) -> str:
@@ -40,3 +42,18 @@ async def get_or_404[Row](
             id=row_id,
         )
     return row
+
+
+async def unique_slug(session: AsyncSession, model: type, base: str) -> str:
+    """``base``, or ``base-2``, ``base-3`` … — whichever no row of ``model`` has yet."""
+    slug_column = model.slug  # type: ignore[attr-defined]
+    base = slugify(base)
+    taken = set(
+        (await session.execute(select(slug_column).where(slug_column.like(f"{base}%")))).scalars()
+    )
+    if base not in taken:
+        return base
+    n = 2
+    while f"{base}-{n}" in taken:
+        n += 1
+    return f"{base}-{n}"

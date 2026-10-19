@@ -26,24 +26,36 @@ MEDIA_TYPES = {
     "image/jpeg": "jpg",
     "image/png": "png",
 }
+#: A picture to show (a post's, Story R-1) rather than a paper to keep: no PDF.
+IMAGE_TYPES = {"image/jpeg": "jpg", "image/png": "png"}
+_NAMES = {"application/pdf": "a PDF", "image/jpeg": "a JPEG", "image/png": "a PNG"}
 MAX_BYTES = 10 * 1024 * 1024
 
 
-async def validated(raw: bytes, content_type: str | None, *, code: str, what: str) -> str:
+async def validated(
+    raw: bytes,
+    content_type: str | None,
+    *,
+    code: str,
+    what: str,
+    accept: dict[str, str] = MEDIA_TYPES,
+) -> str:
     """The media type the bytes really are — or a typed refusal.
 
     ``code`` prefixes the problem codes (``<code>-invalid-type``, ``<code>-too-large``,
     ``<code>-invalid``), so each kind keeps the codes its frontend already maps; ``what``
-    names the file in the English title ("The signed form").
+    names the file in the English title ("The signed form"); ``accept`` narrows the types
+    (:data:`IMAGE_TYPES` for a picture).
 
     Async because Pillow's decode is CPU work: it runs in a thread, so a large scan does
     not stall every other request while it is checked.
     """
-    if content_type not in MEDIA_TYPES:
+    if content_type not in accept:
+        names = [_NAMES[media_type] for media_type in accept]
         raise Problem(
             422,
             f"{code}-invalid-type",
-            f"{what} must be a PDF, a JPEG or a PNG.",
+            f"{what} must be {', '.join(names[:-1])} or {names[-1]}.",
             detail=f"Got content type '{content_type}'.",
         )
     if not raw:

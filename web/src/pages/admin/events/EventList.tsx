@@ -110,7 +110,7 @@ function EventRow({ event }: { event: EventSummary }) {
               {event.title}
             </Link>
             <StatusBadge status={event.status} testId={`admin-manage-event-status-${event.id}`} />
-            <PublicationBadge published={event.published ?? false} eventId={event.id} />
+            <PublicationBadge published={event.published ?? false} testId={`admin-manage-event-publication-${event.id}`} />
           </div>
           <p className="text-sm text-slate-600">
             {[

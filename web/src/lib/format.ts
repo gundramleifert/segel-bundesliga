@@ -129,3 +129,10 @@ export function parseCents(text: string): number | null {
   if (!match) return null;
   return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
 }
+
+/** Today as `YYYY-MM-DD` in the reader's own time zone — `toISOString()` is UTC, which
+ *  in Germany is still yesterday for the first hour or two after midnight. */
+export function todayIso(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
