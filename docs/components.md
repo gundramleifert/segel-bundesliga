@@ -219,6 +219,14 @@ linked, survives a reload, and the Back button steps between tabs. It owns the r
 tabindex, the arrow keys, and the horizontal scroll guard — the parts that get dropped
 when a strip is copied.
 
+**Who sees which tab of my space and of the administration is declared in
+`lib/spaceTabs.ts`**, not in the page: `PROFILE_TABS`, `CLUB_TABS`, `SERIES_TABS`,
+`EVENT_TABS` (each tab's key and the relations that show it, spread into a section with
+`tabRule`) and `adminTabs(hasRole)`. The help's places (`handbook/places.ts`, Story B-18)
+read the same declarations to decide whether a reader gets a link to a tab or plain
+words — so a new tab there, or a changed `for`, is declared in that file first, never
+only in the screen.
+
 ### `Steps` — where you are in a short, ordered sequence
 
 ```tsx

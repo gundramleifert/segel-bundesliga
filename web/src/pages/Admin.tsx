@@ -24,6 +24,7 @@ import { AccountsAdmin } from "./AdminAccounts";
 import { EventsAdmin } from "./admin/events/EventList";
 import { SailorsAdmin } from "./AdminSailors";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
+import { adminTabs, type AdminTab } from "../lib/spaceTabs";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { AddButton } from "../components/AddButton";
@@ -86,35 +87,16 @@ function AdminTabs() {
   // that — they would be created on every render of this component regardless.
   // The labels are each area's own section title, not a second set of strings: a tab whose
   // wording drifts from the heading it opens is a translation bug waiting to happen.
-  // The league office sees every area; a series' organizer its series and events; the
-  // organizer or jury of one event the events tab alone — a tab a role may not use does
-  // not exist for it (Story A-11).
-  const office = hasRole("admin", "editor");
-  const seriesTab: TabDef<AdminTab> = {
-    key: "series",
-    label: t("series.title"),
-    render: () => <Series editorOnly={!hasRole("admin")} />,
+  // Which tabs this person has is `adminTabs` (`lib/spaceTabs.ts`, Story A-11) — declared
+  // there so the help's places link only to a tab that exists for the reader (B-18).
+  const panels: Record<AdminTab, TabDef<AdminTab>> = {
+    clubs: { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
+    series: { key: "series", label: t("series.title"), render: () => <Series editorOnly={!hasRole("admin")} /> },
+    events: { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
+    sailors: { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
+    accounts: { key: "accounts", label: t("accounts.title"), render: () => <AccountsAdmin /> },
   };
-  const eventsTab: TabDef<AdminTab> = {
-    key: "events",
-    label: t("events.title"),
-    render: () => <EventsAdmin />,
-  };
-  const tabs: TabDef<AdminTab>[] = office
-    ? [
-        { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
-        seriesTab,
-        eventsTab,
-        { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
-      ]
-    : hasRole("series_manager")
-      ? [seriesTab, eventsTab]
-      : [eventsTab];
-  // Accounts is admin-only, so for an editor the tab does not exist rather than existing
-  // and refusing — the same rule the section already followed.
-  if (hasRole("admin")) {
-    tabs.push({ key: "accounts", label: t("accounts.title"), render: () => <AccountsAdmin /> });
-  }
+  const tabs = adminTabs(hasRole).map((key) => panels[key]);
 
   return (
     <>
@@ -139,9 +121,7 @@ function AdminTabs() {
   );
 }
 
-/** The areas of the admin screen. Also the values `?tab=` accepts — an unknown one falls
- *  back to the first tab rather than erroring (Story A-11). */
-export type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
+export type { AdminTab };
 
 // ---------------------------------------------------------------------- Clubs
 

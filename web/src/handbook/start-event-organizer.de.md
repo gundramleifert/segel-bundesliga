@@ -15,8 +15,8 @@ title: "Hilfe für die Organisation einer Veranstaltung"
 Sie führen eine Veranstaltung vom ersten Entwurf bis zum Ende der Wettfahrten – als
 Organisation der Veranstaltung, ihrer Serie oder ihres Ausrichters ([Rollen](#roles-list)).
 
-Ihr Bildschirm: *Verwaltung* (Benutzermenü) › *Veranstaltungen* › *Bearbeiten* oder der
-Reiter *Organisieren* der Veranstaltung in *Mein Bereich*. Heute öffnet er sich nur für
+Ihr Bildschirm: [*Verwaltung* (Benutzermenü) › *Veranstaltungen*](place:admin.events) › *Bearbeiten* oder der
+[Reiter *Organisieren* der Veranstaltung in *Mein Bereich*](place:event.organize). Heute öffnet er sich nur für
 die Geschäftsstelle und die Organisation einer Serie oder Veranstaltung; organisieren Sie
 nur den Ausrichter, wenden Sie sich an die Geschäftsstelle.
 
@@ -53,4 +53,4 @@ nur den Ausrichter, wenden Sie sich an die Geschäftsstelle.
 - [Eine Serienleitung richtet eine Serie ein](#journey-series)
 - [Die Crew eines Vereins wird für einen Spieltag freigegeben](#journey-crew-cleared)
 
-[Verwaltung öffnen](/admin)
+[Verwaltung öffnen](place:admin.events)

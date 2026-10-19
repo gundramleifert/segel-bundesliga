@@ -36,4 +36,4 @@ Zahlung finden alle in *Mein Bereich* statt.
 
 Welche Rollen die Kasse führen: [Rollen](#roles-list).
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

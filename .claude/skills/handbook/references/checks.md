@@ -21,6 +21,10 @@ Store:
 - the same `###` anchor twice in the store; a `###` without an anchor; a `#anchor` link no
   page owns; the anchor sets of the two locales differ;
 - an internal link or `route` that is not a route in `web/src/App.tsx`;
+- a `place:<id>` that is not a key of `PLACES` in `web/src/handbook/places.ts`; a place
+  whose path is not a route; an internal link to a path a place covers (`/me`,
+  `/me/profile?tab=…`, `/admin`, …) — the message names the place to use instead; the
+  places of the two locales differing (same ids, same order);
 - a `shot:` id differing between locales;
 - a reserved page (`roles`, `terms`, a `start-<audience>` for each audience in use) missing,
   or missing its fixed anchors.

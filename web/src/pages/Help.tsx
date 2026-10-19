@@ -1,4 +1,4 @@
-import { Children, useEffect, useMemo, useState, type ReactNode } from "react";
+import { Children, Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useParams } from "react-router-dom";
 import Markdown, { defaultUrlTransform, type Components, type ExtraProps } from "react-markdown";
@@ -22,6 +22,7 @@ import {
   startPageId,
   type Audience,
 } from "../handbook";
+import { usePlace } from "../handbook/places";
 import { useMediaQuery } from "../lib/useMediaQuery";
 
 /** Story B-18: the help for what I do.
@@ -448,10 +449,15 @@ function calloutKind(node: HastNode | undefined): "note" | "careful" | null {
   return null;
 }
 
-/** Links: `#anchor` opens the page owning it, `/path` is a router link (no reload),
- *  anything else opens outside the site. */
+const LINK_CLASS = "text-brand-700 underline underline-offset-2 hover:text-brand-800";
+const PLACE = "place:";
+
+/** Links: `place:<id>` is a place of the site, resolved for the reader (`PlaceLink`),
+ *  `#anchor` opens the page owning it, `/path` is a router link (no reload), anything else
+ *  opens outside the site. */
 function HelpAnchor({ href = "", children }: { href?: string; children?: ReactNode }) {
-  const className = "text-brand-700 underline underline-offset-2 hover:text-brand-800";
+  const className = LINK_CLASS;
+  if (href.startsWith(PLACE)) return <PlaceLink id={href.slice(PLACE.length)}>{children}</PlaceLink>;
   if (href.startsWith("#")) {
     return (
       <Link to={anchorPath(href.slice(1)) ?? href} className={className}>
@@ -470,6 +476,51 @@ function HelpAnchor({ href = "", children }: { href?: string; children?: ReactNo
     <a href={href} target="_blank" rel="noreferrer" className={className}>
       {children}
     </a>
+  );
+}
+
+/** `[*Me* → *Waivers*](place:profile.waivers)` — the click path, as a link to where it
+ *  leads *for this reader* (`handbook/places.ts`):
+ *
+ * - **none** — the tab is not there for them, or the contexts are still loading, or the id
+ *   is unknown (`check-docs.py` refuses that one): the words, emphasis kept, no link. The
+ *   path still explains the screen; a link that ends in a 403 is worse than none (A-12).
+ * - **one** — the words are the link.
+ * - **several** — one per club, series or event they have it on: the words, then the
+ *   contexts by name, "(NRV · KYC)".
+ *
+ * `data-reachable` says which (`pending` while loading), so a test can tell them apart. */
+function PlaceLink({ id, children }: { id: string; children?: ReactNode }) {
+  const place = usePlace(id);
+  const testId = `help-place-${id}`;
+  if (place.status !== "ready" || place.targets.length === 0) {
+    return (
+      <span data-testid={testId} data-place={id} data-reachable={place.status === "loading" ? "pending" : "false"}>
+        {children}
+      </span>
+    );
+  }
+  const [only, ...more] = place.targets;
+  if (!more.length) {
+    return (
+      <Link to={only.to} className={LINK_CLASS} data-testid={testId} data-place={id} data-reachable="true">
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <span data-testid={testId} data-place={id} data-reachable="true">
+      {children} (
+      {place.targets.map((target, index) => (
+        <Fragment key={target.key}>
+          {index > 0 && " · "}
+          <Link to={target.to} className={LINK_CLASS} data-testid={`${testId}-${target.key}`}>
+            {target.name}
+          </Link>
+        </Fragment>
+      ))}
+      )
+    </span>
   );
 }
 
@@ -574,9 +625,10 @@ const COMPONENTS: Components = {
   ),
 };
 
-/** `shot:` is ours; everything else gets react-markdown's own URL sanitising. */
+/** `shot:` and `place:` are ours; everything else gets react-markdown's own URL
+ *  sanitising, which would empty an unknown scheme. */
 function urlTransform(url: string): string {
-  return url.startsWith(SHOT) ? url : defaultUrlTransform(url);
+  return url.startsWith(SHOT) || url.startsWith(PLACE) ? url : defaultUrlTransform(url);
 }
 
 function HelpMarkdown({ body }: { body: string }) {

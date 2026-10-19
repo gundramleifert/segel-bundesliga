@@ -13,8 +13,8 @@ title: "Die Check-in-Liste: wer einen Haftungsausschluss hat"
 ## Die Check-in-Liste: wer einen Haftungsausschluss hat
 
 Am Steg wird nichts unterschrieben: Die Segler bestätigen den Haftungsausschluss vorab,
-und der Block *Haftungsausschlüsse* im Panel der Veranstaltung (*Verwaltung*, Reiter
-*Veranstaltungen*, *Bearbeiten*) zeigt, wer es getan hat.
+und der Block *Haftungsausschlüsse* im Panel der Veranstaltung ([*Verwaltung*, Reiter
+*Veranstaltungen*](place:admin.events), *Bearbeiten*) zeigt, wer es getan hat.
 
 ### Die Liste lesen {#event-checkin-list}
 
@@ -68,4 +68,4 @@ Ein für eine ganze Serie unterschriebenes Formular gehört zu keiner einzelnen
 Veranstaltung: Organisieren Sie nur diese Veranstaltung und nicht den Verein der Person,
 wird das Öffnen abgelehnt — wenden Sie sich an die Geschäftsstelle.
 
-[Verwaltung öffnen](/admin)
+[Verwaltung öffnen](place:admin.events)

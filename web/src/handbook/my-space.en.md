@@ -34,9 +34,9 @@ Tap a card; its tabs depend on what you are there.
 
 | Page | As a sailor |
 |---|---|
-| *Me* | *Account*, *Documents*, *Bank account*, *Waivers*, *Claims* — see [profile](#profile-sailor) |
-| a series | *My team*: the club you sail for; *Events* |
-| an event | *My crew*; once the event is published, a link to its crews and pairing list |
+| *Me* | [*Account*](place:profile.account), [*Documents*](place:profile.documents), [*Bank account*](place:profile.bank), [*Waivers*](place:profile.waivers), [*Claims*](place:profile.claims) — see [profile](#profile-sailor) |
+| a series | [*My team*](place:series.team): the club you sail for; [*Events*](place:series.events) |
+| an event | [*My crew*](place:event.crew); once the event is published, a link to its crews and pairing list |
 
 An unsigned waiver is a notice above the tabs, with its button ([waiver](#waiver-adult)).
 A tab with something to do shows the count in its label.
@@ -48,15 +48,15 @@ acceptance. Ask your club; you need an [account](#account-register) first.
 
 On the club's page:
 
-- *Members*: every member by display name, with marks such as *organizer*. Seen only by
+- [*Members*](place:club.members): every member by display name, with marks such as *organizer*. Seen only by
   the club's members and organizers and the league office's admin and editors.
-- *Matchdays* and *Series & squads*: read only; the club's organizer edits them.
-- *My claims*: expense claims to the club ([file a claim](#file-a-claim-where)).
+- [*Matchdays*](place:club.events) and [*Series & squads*](place:club.series): read only; the club's organizer edits them.
+- [*My claims*](place:club.claims): expense claims to the club ([file a claim](#file-a-claim-where)).
 
 ### Leave a club {#my-space-leave}
 
-*Members* → *Leave the club*, then confirm with *Leave the club*. Only the membership
+[*Members*](place:club.members) → *Leave the club*, then confirm with *Leave the club*. Only the membership
 ends: your other roles in the club stay, as do your places in its squads until the club
 changes them. To come back, the club's admin adds you again.
 
-[Open my space](/me)
+[Open my space](place:space)

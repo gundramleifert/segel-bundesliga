@@ -51,4 +51,4 @@ Verein, zu dem Sie gehören):
 
 Wer was darf: [Rollen](#roles-list).
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

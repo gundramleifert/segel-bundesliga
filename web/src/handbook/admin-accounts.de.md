@@ -28,7 +28,7 @@ darf. *Konten* gehört allein der Verwaltung der Seite.
 
 ### Zugriff vergeben {#admin-accounts-grant}
 
-1. Reiter *Konten*: die Person nach Name oder E-Mail suchen.
+1. [Reiter *Konten*](place:admin.accounts): die Person nach Name oder E-Mail suchen.
 2. Spalte *Zugriff*: *＋ Zugriff vergeben*.
 3. *Für* (*Gesamte Seite*, *Einen Verein*, *Eine Serie*, *Eine Veranstaltung*), *Als*,
    *Welche*.
@@ -40,7 +40,7 @@ darf. *Konten* gehört allein der Verwaltung der Seite.
 - Rollen auf der *Gesamte Seite* — *Verwaltung*, *Redaktion*, *Wettfahrtleitung* — werden
   nur hier vergeben.
 - Ebenso im Feld *Personen* einer Serie ([Organisation der Serie](#admin-series-manager))
-  oder einer Veranstaltung unter *Veranstaltungen*.
+  oder einer Veranstaltung unter [*Veranstaltungen*](place:admin.events).
 - Abgelehnt: eine Rolle, die die Person dort schon hat. Was jede Rolle darf:
   [Rollen](#roles-list). Änderungen gelten sofort, ohne neue Anmeldung.
 
@@ -65,4 +65,4 @@ darf. *Konten* gehört allein der Verwaltung der Seite.
 | Adresse | enthält Seite, Sortierung und Suche: Neu laden behält sie; ein geschickter Link zeigt genau diese Liste |
 | *Vereine*, *Serien* | alle Zeilen auf einmal, ohne Suche |
 
-[Verwaltung öffnen](/admin)
+[Verwaltung öffnen](place:admin.accounts)

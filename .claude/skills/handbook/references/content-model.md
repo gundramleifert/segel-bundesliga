@@ -101,8 +101,78 @@ Four conventions, all plain markdown so GitHub renders the files readably too:
 |---|---|---|
 | Screenshot | `![Caption saying what to look at](shot:lineup-panel)` on its own line | the PNG for the current locale (and `_phone` on narrow screens if it exists); a missing PNG renders a "screenshot pending" box |
 | Callout | a blockquote starting `> **Note:**` / `> **Careful:**` (de: `**Hinweis:**` / `**Achtung:**`) | the site's warning/info style; at most one per page; *Careful* only for the irreversible |
-| Link into the site | `[Open my space](/me)` | router link, no reload. The target must be a route in `App.tsx` |
+| Link to a place of the site | `[*Me* → *Waivers*](place:profile.waivers)` | a link to that screen and tab **for this reader**, or the plain words when it is not there for them — § Links to the site: places |
+| Link into the site | `[Sign in](/account)` | router link, no reload. Only for a route no place covers (the sign-in page, a public page); `check-docs.py` refuses a raw path a place covers |
 | Link to another page | `[squad size](#squad-and-lineup-size)` | opens the page owning the anchor. Never a file path |
+
+## Links to the site: places
+
+A page **names a place, never a URL**. The link text stays the click path a reader
+follows by hand — it is still read on a screenshot, in a mail, on someone else's phone —
+and the target is a place id:
+
+```markdown
+In my space: [*Me* → *Account*](place:profile.account) → *Sign-in methods*.
+Your club's page in [*My space*, tab *Money*](place:club.money).
+[*Administration*, tab *Clubs*](place:admin.clubs): [*New club*](place:admin.new-club) ①.
+[Open my space](place:space)
+```
+
+Put the link around the part that **opens a screen or a tab**; what is done inside it
+(*Sign-in methods*, *Leave the club*, a button) stays plain text after it.
+
+**Why ids, not URLs.** Routes and tab keys change (`/club` became `/me/club/:id`, the
+claims screen became a tab); a hundred hand-written addresses in two languages would
+drift without a sound. A place is one line in the registry. And an address is not even
+the same for two readers: *my* club is NRV for one and KYC for another.
+
+**Why hidden, not refused.** Each reader gets a link only where that screen or tab is
+there for them; for anyone else the same words render as plain text. A link that ends in
+a 403 or an empty page is worse than none (Story A-12), and the help is read by people
+about to take on a role. The rule lives in one place — see "Who may use it" below.
+
+### The families
+
+The registry is `web/src/handbook/places.ts` (`PLACES`):
+
+| Place | Leads to | A link for |
+|---|---|---|
+| `space` | `/me` | every signed-in reader (the help is only for them) |
+| `profile.<tab>` — `account`, `documents`, `bank`, `waivers`, `claims` | `/me/profile?tab=<tab>` | every signed-in reader |
+| `club.<tab>` — `members`, `events` (*Matchdays*), `series` (*Series & squads*), `waivers`, `claims` (*My claims*), `money` | `/me/club/<id>?tab=<tab>` | each club in the reader's space where that tab is there for their relations — one link per club |
+| `series.<tab>` — `team`, `events`, `organize` | `/me/series/<id>?tab=<tab>` | likewise, per series |
+| `event.<tab>` — `crew`, `claims`, `decide`, `race`, `organize` | `/me/event/<id>?tab=<tab>` | likewise, per event |
+| `admin`, `admin.<tab>` — `clubs`, `series`, `events`, `sailors`, `accounts` | `/admin`, `/admin?tab=<tab>` | a reader who has that administration tab |
+| `admin.new-club`, `admin.new-series`, `admin.new-event` | `/admin/<area>/new` | a reader who has the tab that page is reached from (`new-series`: the site's admin alone) |
+
+The tab keys are the screens' own (`?tab=` values), not the labels: *Matchdays* is
+`club.events`, *Series & squads* is `club.series`, *Claims to decide* is `event.decide`,
+*Race control* is `event.race`. When the label in a page and the key disagree, the key
+in `lib/spaceTabs.ts` is right.
+
+### Who may use it
+
+**Not decided in `places.ts`.** The screens build their tabs from the declarations in
+`web/src/lib/spaceTabs.ts` — `PROFILE_TABS`, `CLUB_TABS`, `SERIES_TABS`, `EVENT_TABS`
+(each tab's `for`: the relations that show it) and `adminTabs(hasRole)`,
+`mayCreateIn(area, hasRole)` for the administration. A place only points at one of
+them, and the viewer asks the same declarations with the reader's relations from
+`GET /api/me/contexts`. A change to who sees a tab is therefore one edit, and the help
+follows it without being touched.
+
+### Adding a place
+
+Only when a page names it (plus the obvious tab siblings):
+
+1. The tab exists in `lib/spaceTabs.ts` (the screen declares it there; a new screen tab
+   is declared there first, never only in the page).
+2. One line in `PLACES`: `"club.money": { path: "/me/club/:id", tab: "money" },` —
+   literal, one entry per line: `check-docs.py` reads the keys and paths with a regex.
+   `PlaceDef` types the `tab` by the path, so a tab the screen does not declare does not
+   compile.
+3. A new **family** (another route) also needs a branch in `resolvePlace` — who may use
+   it, from the screen's own rule — and a row in the table above.
+4. Use it in both locales — the same places, in the same order (`check-docs.py`).
 
 ## Structure lock
 

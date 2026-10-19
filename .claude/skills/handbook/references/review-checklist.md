@@ -45,6 +45,8 @@ Verify each finding in the code before reporting it.
 ### Blocking
 - `de` not fully translated: English sentences left, a stub, a dropped section.
 - A screenshot, callout or link in one locale only, or pointing elsewhere.
+- A click path that opens a screen or a tab but is not a place link, or a place pointing
+  at a different tab than its words name (*Matchdays* is `club.events`).
 - A domain word that differs from the `de` catalogs' (*Kader*, *Aufstellung*, *Spieltag*,
   *Ausrichter*, …), or the wrong register (not the one chosen in the interview).
 - A caption left in the other language.

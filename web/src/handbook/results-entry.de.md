@@ -63,4 +63,4 @@ Besprechung, Schaden am Boot.
 - Erneutes Speichern ersetzt sie; ein leeres Feld und *Speichern* entfernt sie. Auch eine
   abgeschlossene Veranstaltung nimmt sie noch an.
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

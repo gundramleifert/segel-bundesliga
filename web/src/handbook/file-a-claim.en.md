@@ -18,16 +18,17 @@ series — or for a club you are a *Member* of. The event's host club, or your c
 
 ### Where you file {#file-a-claim-where}
 
-1. On your profile in *My space*, tab *Bank account*: enter *Account holder* and *IBAN*
+1. On your profile in [*My space*, tab *Bank account*](place:profile.bank): enter *Account holder* and *IBAN*
    (*BIC* is optional) and press *Save*. Only you see it there.
-2. Open the tab *Claims* on your profile, or *My claims* on the event's or club's page.
+2. Open the [tab *Claims* on your profile](place:profile.claims), or *My claims* on the
+   [event's](place:event.claims) or [club's](place:club.claims) page.
 3. Under *New claim*, choose the event or club in *For* ①, enter a *Title* ② and press
    *Start claim* ③. The claim is a *Draft*.
 
 ![New claim: *For* ①, *Title* ②, *Start claim* ③](shot:help-claim-new)
 
 *For* lists only what you may claim on; a role held for the whole site entitles nobody to
-travel costs. A series role? File from your profile's *Claims* tab.
+travel costs. A series role? File from your profile's [*Claims* tab](place:profile.claims).
 
 ### Add the items {#file-a-claim-items}
 
@@ -59,4 +60,4 @@ claim; every look by someone else is logged.
 
 Refused? See the [FAQ](#faq-treasurer).
 
-[Open my profile](/me/profile)
+[Open my profile](place:profile.claims)

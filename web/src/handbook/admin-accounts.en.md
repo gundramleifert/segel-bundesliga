@@ -27,7 +27,7 @@ site admin's alone.
 
 ### Grant access {#admin-accounts-grant}
 
-1. Tab *Accounts*: search the person by name or email.
+1. [Tab *Accounts*](place:admin.accounts): search the person by name or email.
 2. *Access* column: *＋ Grant access*.
 3. *On* (*Whole site*, *One club*, *One series*, *One event*), *As*, *Which*.
 4. *Grant*. The new line shows the role and where it is held.
@@ -36,7 +36,7 @@ site admin's alone.
   names its own members and organizers ([club members](#club-members-add)).
 - Roles on the *Whole site* — *Admin*, *Editor*, *Race officer* — are granted only here.
 - Also on the *People* panel of a series ([series manager](#admin-series-manager)) or of
-  an event in *Events*.
+  an event in [*Events*](place:admin.events).
 - Refused: a role the person already holds there. What each role allows:
   [roles](#roles-list). Changes apply at once, without signing in again.
 
@@ -60,4 +60,4 @@ site admin's alone.
 | Address | holds page, sort and search: a reload keeps them; a sent link shows exactly this list |
 | *Clubs*, *Series* | every row at once, without a search |
 
-[Open Administration](/admin)
+[Open Administration](place:admin.accounts)

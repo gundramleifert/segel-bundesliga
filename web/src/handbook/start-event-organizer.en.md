@@ -15,8 +15,8 @@ title: "Help for event organizers"
 You run one event from first draft to the end of racing, as manager of the event, its
 series or its host club ([roles](#roles-list)).
 
-Your screen: *Administration* (user menu) › *Events* › *Manage*, or the event's *Organize*
-tab in *My space*. Today it opens only for the league office and series or event
+Your screen: [*Administration* (user menu) › *Events*](place:admin.events) › *Manage*, or the event's
+[*Organize* tab in *My space*](place:event.organize). Today it opens only for the league office and series or event
 managers; if you manage only the host club, ask the league office.
 
 ### Before the event {#start-event-organizer-before}
@@ -49,4 +49,4 @@ managers; if you manage only the host club, ask the league office.
 - [An organizer sets up a series](#journey-series)
 - [A club's crew is cleared for a matchday](#journey-crew-cleared)
 
-[Open the administration](/admin)
+[Open the administration](place:admin.events)

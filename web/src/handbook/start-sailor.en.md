@@ -40,4 +40,4 @@ account is for what is yours: your liability waiver, your profile, your club.
 - [A club's crew is cleared for a matchday](#journey-crew-cleared) — from the squad to a
   signed waiver.
 
-[Open my space](/me)
+[Open my space](place:space)

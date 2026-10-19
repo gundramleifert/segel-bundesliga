@@ -18,7 +18,7 @@ an.*
 
 ### Eine Serie anlegen {#admin-series-create}
 
-1. *Verwaltung*, Reiter *Serien*: *Neue Serie* ①.
+1. [*Verwaltung*, Reiter *Serien*](place:admin.series): [*Neue Serie*](place:admin.new-series) ①.
 2. *Name*: mindestens drei Zeichen. *Jahrgang*, *Beginn* und *Ende* sind optional.
 3. Die *Teilnehmende Vereine* anhaken; sie sind von Anfang an dabei.
 4. *Serie anlegen*.
@@ -65,4 +65,4 @@ Die Person hat ein Konto ([woher Konten kommen](#admin-accounts-create)).
 
 ✕ *Entfernen* nimmt eine Rolle weg. Siehe [Rollen](#roles-list).
 
-[Eine Serie anlegen](/admin/series/new)
+[Eine Serie anlegen](place:admin.new-series)

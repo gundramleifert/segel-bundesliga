@@ -37,11 +37,49 @@ Pick the file for `i18n.resolvedLanguage`, falling back to `en`.
   with a `shot:` src resolves to `/handbook/screenshots/<id>_<locale>.png` (the `_phone`
   variant under the `md` breakpoint when it exists) with the alt text as caption, and a
   "screenshot pending" box when it does not load; `a` with an internal path renders the
-  router's `Link`, with `#anchor` resolves to `/help/<page>#anchor`; `blockquote` starting
+  router's `Link`, with `#anchor` resolves to `/help/<page>#anchor`, with `place:<id>`
+  renders `PlaceLink` (§ Places, below); `blockquote` starting
   with **Note/Hinweis** or **Careful/Achtung** renders the site's info or warning style.
 - Layout from `Stack`; tables in `TableFrame` so a wide table scrolls inside itself and
   never the page (Story A-10, `e2e/layout.ts::expectNoSidewaysScroll`).
 - The page's `h1` is `PageHeader`; the markdown never renders an `h1`.
+
+## Places — links resolved per reader
+
+`[*Me* → *Waivers*](place:profile.waivers)` (`content-model.md` § Links to the site:
+places). `urlTransform` lets `place:` through — react-markdown's default would empty an
+unknown scheme — and the `a` renderer hands it to `PlaceLink` in `Help.tsx`, which asks
+`usePlace(id)` (`web/src/handbook/places.ts`) for the reader's **targets**:
+
+```
+usePlace(id)
+  unknown id                → { status: "unknown" }   (check-docs.py refuses it before a build)
+  account or contexts load  → { status: "loading" }
+  otherwise                 → { status: "ready", targets: resolvePlace(def, hasRole, contexts) }
+
+resolvePlace
+  /me, /me/profile          → one target: every signed-in reader
+  /me/<kind>/:id + tab      → one per context of that kind in GET /api/me/contexts whose
+                              relations show the tab (CONTEXT_TABS[kind][tab].for)
+  /admin (+ tab)            → one target if adminTabs(hasRole) has the tab (any tab, bare)
+  /admin/<area>/new         → one target if mayCreateIn(area, hasRole)
+```
+
+| Targets | Rendered as |
+|---|---|
+| none, still loading, or unknown | the link's children as they are (emphasis kept), **no link** — `data-reachable="false"`, `"pending"` while loading. No layout jump to a link that may turn out wrong |
+| one | the children as a router `Link` to it |
+| several | the children, then one link per context named by it: "*Money* (NRV · KYC)" |
+
+Every rendering carries `data-testid="help-place-<id>"` and `data-place`; with several
+targets each link is `help-place-<id>-<kind>-<contextId>`. The contexts come from the same
+query the audience tiles use, so a page full of places costs no extra request.
+
+**Why the viewer never decides access itself:** `places.ts` imports the tab
+declarations from `web/src/lib/spaceTabs.ts`, which `pages/me/Contexts.tsx` and
+`pages/Admin.tsx` are built from. A rule copied into the help would drift from the screen
+and send a reader to a tab that is not there — a link that ends in a 403 or an empty page
+is worse than none (Story A-12).
 
 ## The landing page `/help`
 
@@ -87,7 +125,11 @@ Tests, under the story the first pass wrote (`describeStory("B-n: …")`, both p
 - a cross-page anchor link opens the right page; an internal link navigates without reload;
 - switching to German shows the German page with the same anchors;
 - no sideways scroll on the widest page (`expectNoSidewaysScroll`);
-- "help for this page" on `/me/club/:id` opens the team manager's guide.
+- "help for this page" on `/me/club/:id` opens the team manager's guide;
+- a place is a link to the reader's own screen and tab where they have it, and plain words
+  (`data-reachable="false"`) where they do not — a sailor's `profile.waivers`, a club
+  treasurer's and admin's `club.money`, a plain member's `club.money` (words) and
+  `club.members` (link).
 
 A unit test for the frontmatter parser and the anchor index lives beside the other web
 unit tests, if the web project has them; otherwise the e2e tests carry it.

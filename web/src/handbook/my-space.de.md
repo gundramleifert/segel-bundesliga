@@ -36,9 +36,9 @@ Tippen Sie auf eine Karte; ihre Reiter hängen davon ab, was Sie dort sind.
 
 | Seite | Als Segler |
 |---|---|
-| *Ich* | *Konto*, *Dokumente*, *Bankverbindung*, *Haftungsausschlüsse*, *Abrechnungen* – siehe [Profil](#profile-sailor) |
-| eine Serie | *Mein Team*: der Verein, für den Sie segeln; *Veranstaltungen* |
-| eine Veranstaltung | *Meine Crew*; ist die Veranstaltung veröffentlicht, ein Link zu ihren Crews und ihrer Pairing-Liste |
+| *Ich* | [*Konto*](place:profile.account), [*Dokumente*](place:profile.documents), [*Bankverbindung*](place:profile.bank), [*Haftungsausschlüsse*](place:profile.waivers), [*Abrechnungen*](place:profile.claims) – siehe [Profil](#profile-sailor) |
+| eine Serie | [*Mein Team*](place:series.team): der Verein, für den Sie segeln; [*Veranstaltungen*](place:series.events) |
+| eine Veranstaltung | [*Meine Crew*](place:event.crew); ist die Veranstaltung veröffentlicht, ein Link zu ihren Crews und ihrer Pairing-Liste |
 
 Ein nicht bestätigter Haftungsausschluss steht als Hinweis über den Reitern, mit seiner
 Schaltfläche ([Haftungsausschluss](#waiver-adult)). Ein Reiter, auf dem etwas zu tun ist,
@@ -52,19 +52,19 @@ ohne Antrag, ohne Bestätigung. Fragen Sie Ihren Verein; zuerst brauchen Sie ein
 
 Auf der Seite des Vereins:
 
-- *Mitglieder*: jedes Mitglied mit Anzeigenamen, mit Kennzeichen wie *Organisator:in*.
+- [*Mitglieder*](place:club.members): jedes Mitglied mit Anzeigenamen, mit Kennzeichen wie *Organisator:in*.
   Sichtbar nur für Mitglieder und Organisation des Vereins sowie Admin und Redaktion der
   Geschäftsstelle.
-- *Spieltage* und *Serien & Kader*: nur zum Lesen; die Organisation des Vereins bearbeitet
+- [*Spieltage*](place:club.events) und [*Serien & Kader*](place:club.series): nur zum Lesen; die Organisation des Vereins bearbeitet
   sie.
-- *Meine Abrechnungen*: Abrechnungen an den Verein
+- [*Meine Abrechnungen*](place:club.claims): Abrechnungen an den Verein
   ([Abrechnung einreichen](#file-a-claim-where)).
 
 ### Einen Verein verlassen {#my-space-leave}
 
-*Mitglieder* → *Verein verlassen*, dann mit *Verein verlassen* bestätigen. Nur die
+[*Mitglieder*](place:club.members) → *Verein verlassen*, dann mit *Verein verlassen* bestätigen. Nur die
 Mitgliedschaft endet: andere Rollen im Verein bleiben, ebenso Ihre Plätze in seinen
 Kadern, bis der Verein sie ändert. Zurück kommen Sie, wenn der Admin des Vereins Sie
 wieder aufnimmt.
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

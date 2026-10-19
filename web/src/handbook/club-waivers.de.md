@@ -19,8 +19,8 @@ fehlt.
 
 ### Wessen Haftungsausschluss vorliegt {#club-waivers-overview}
 
-Teammanager und Vereinsverwaltung: Seite des Vereins in *Mein Bereich*, Reiter
-*Haftungsausschlüsse*. Ein Block je Wettbewerb, in dem der Verein gemeldet ist und der
+Teammanager und Vereinsverwaltung: Seite des Vereins in [*Mein Bereich*, Reiter
+*Haftungsausschlüsse*](place:club.waivers). Ein Block je Wettbewerb, in dem der Verein gemeldet ist und der
 noch nicht beendet ist: jeder Kader einer Serie und jede Meldung zu einer
 Veranstaltung ohne Serie, die geplant ist oder läuft. Jeder Block nennt *… von …
 vollständig* und listet den ganzen Kader, die Offenen zuerst, *unter 18* neben dem Namen.
@@ -59,7 +59,7 @@ die Seite des Vereins hat keinen eigenen Upload.
 Sie können eine Crew aufstellen, bevor deren Haftungsausschlüsse vorliegen; gesperrt wird
 nichts. Stattdessen:
 
-- die Karte Ihres Vereins in *Mein Bereich* und der Reiter *Haftungsausschlüsse* zählen
+- die Karte Ihres Vereins in *Mein Bereich* und der [Reiter *Haftungsausschlüsse*](place:club.waivers) zählen
   die kommenden Spieltage, bei denen einem Crewmitglied der Haftungsausschluss fehlt;
 - der eigene *Mein Bereich* des Seglers, und der eines verknüpften Elternteils, sagt,
   dass seiner noch aussteht;
@@ -68,4 +68,4 @@ nichts. Stattdessen:
 
 Gehen Sie fehlenden Haftungsausschlüssen vor dem Spieltag nach, nicht erst beim Check-in.
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

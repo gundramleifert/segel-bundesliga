@@ -18,7 +18,7 @@ Sache der Verwaltung.
 
 ### Einen Verein anlegen {#admin-clubs-create}
 
-1. *Verwaltung*, Reiter *Vereine*: *Neuer Verein* ①.
+1. [*Verwaltung*, Reiter *Vereine*](place:admin.clubs): [*Neuer Verein*](place:admin.new-club) ①.
 2. *Name*: mindestens drei Zeichen. *Kürzel* und *Ort* sind optional; ohne Kürzel
    verwendet der Verein seinen Namen.
 3. *Anlegen*; *Noch eine anlegen* beginnt den nächsten.
@@ -39,7 +39,7 @@ Sache der Verwaltung.
 
 Die Serie besteht ([Serie anlegen](#admin-series-create)).
 
-1. Reiter *Serien*: *Vereine ändern* bei der Serie.
+1. [Reiter *Serien*](place:admin.series): *Vereine ändern* bei der Serie.
 2. Die teilnehmenden Vereine anhaken, die übrigen abhaken.
 3. *… Vereine setzen*.
 
@@ -56,4 +56,4 @@ Serie eingetragen.
 Vereine können sich auf der Seite nicht für eine Serie bewerben: Ein Verein fragt bei
 der Geschäftsstelle an, und die Verwaltung [trägt ihn ein](#admin-clubs-series). Ablehnungen: [FAQ](#faq-administration).
 
-[Verwaltung öffnen](/admin)
+[Verwaltung öffnen](place:admin.clubs)

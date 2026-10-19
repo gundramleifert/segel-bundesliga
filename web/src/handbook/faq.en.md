@@ -94,7 +94,7 @@ You need a role held by name on the event or its series; for a club claim, membe
 League office roles do not count: [where to claim](#file-a-claim-where).
 
 #### My claim cannot be submitted.
-Save your *Bank account*, add an item, and attach the receipts it needs:
+Save your [*Bank account*](place:profile.bank), add an item, and attach the receipts it needs:
 [bank account](#profile-bank), [receipts](#file-a-claim-receipts).
 
 #### Why can't I decide this claim?

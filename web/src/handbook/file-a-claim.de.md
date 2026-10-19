@@ -19,10 +19,10 @@ dem Sie *Mitglied* sind. Es zahlt der Ausrichter der Veranstaltung bzw. Ihr Vere
 
 ### Wo Sie abrechnen {#file-a-claim-where}
 
-1. In Ihrem Profil in *Mein Bereich*, Reiter *Bankverbindung*: *Kontoinhaber* und
+1. In Ihrem Profil in [*Mein Bereich*, Reiter *Bankverbindung*](place:profile.bank): *Kontoinhaber* und
    *IBAN* eintragen (*BIC* ist optional) und *Speichern*. Dort sehen nur Sie sie.
-2. Den Reiter *Abrechnungen* in Ihrem Profil öffnen, oder *Meine Abrechnungen* auf der
-   Seite der Veranstaltung bzw. des Vereins.
+2. Den [Reiter *Abrechnungen* in Ihrem Profil](place:profile.claims) öffnen, oder *Meine Abrechnungen*
+   auf der Seite der [Veranstaltung](place:event.claims) bzw. des [Vereins](place:club.claims).
 3. Unter *Neue Abrechnung* bei *Für* ① die Veranstaltung oder den Verein wählen, einen
    *Titel* ② eingeben und *Abrechnung anlegen* ③ drücken. Die Abrechnung ist ein
    *Entwurf*.
@@ -30,8 +30,8 @@ dem Sie *Mitglied* sind. Es zahlt der Ausrichter der Veranstaltung bzw. Ihr Vere
 ![Neue Abrechnung: *Für* ①, *Titel* ②, *Abrechnung anlegen* ③](shot:help-claim-new)
 
 *Für* zeigt nur, wofür Sie abrechnen dürfen; eine Aufgabe für die ganze Website
-berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über den Reiter
-*Abrechnungen* in Ihrem Profil abrechnen.
+berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über den [Reiter
+*Abrechnungen* in Ihrem Profil](place:profile.claims) abrechnen.
 
 ### Positionen erfassen {#file-a-claim-items}
 
@@ -67,4 +67,4 @@ protokolliert.
 
 Abgelehnt? Siehe die [häufigen Fragen](#faq-treasurer).
 
-[Mein Profil öffnen](/me/profile)
+[Mein Profil öffnen](place:profile.claims)

@@ -11,8 +11,8 @@ title: "Run the races from the water"
 ---
 ## Run the races from the water
 
-*Race control* shows the current race; races run one at a time. Open it from your event
-in *My space* (*Open race control*) or the *Enter results* tab. For race officers and the
+*Race control* shows the current race; races run one at a time. Open it from [your event
+in *My space*](place:event.race) (*Open race control*) or the *Enter results* tab. For race officers and the
 site's administrators.
 
 ![The current race on a phone: its boats, the teams on them, the preparatory flag ①, *Sequence in 10 s* ②](shot:help-race-control)
@@ -59,4 +59,4 @@ Taps stay on this phone until *Finish race*, even through a reload. *Previous ra
 to *Correct in the results tab*: [corrections](#results-entry-correct), RDG, ZFP and SCP
 belong there. Refused? See [questions](#faq-race-committee).
 
-[Open my space](/me)
+[Open my space](place:space)

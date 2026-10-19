@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 import { describeStory, expect, test } from "./fixtures";
 import { chooseLanguage, expectNoSidewaysScroll, openUserMenu } from "./layout";
-import { bearer, managedClub, signIn } from "./session";
+import { bearer, bornIn, managedClub, seededSailors, signIn } from "./session";
 
 /** Story B-18: the help for what I do — the `/help` viewer over `web/src/handbook/`.
  *
@@ -228,3 +228,60 @@ describeStory("B-18: as anyone signed in I find the help for what I do", () => {
     await expect(page).toHaveURL(/\/help$/);
   });
 });
+
+/** The places a page names (`place:<id>`, `web/src/handbook/places.ts`): a link to the
+ *  screen and tab for whoever can use it there, plain words for whoever cannot. */
+describeStory("B-18: a click path in the help opens that place, for the reader who can use it", () => {
+  const BOARD = "board@nrv.example.com";
+  const TREASURER = "treasurer@nrv.example.com";
+
+  /** One NRV sailor with an account and no organizing relation — a plain member. */
+  async function plainSailor(request: Parameters<typeof seededSailors>[0]): Promise<string> {
+    const sailors = await seededSailors(request, "nrv.example.com");
+    return sailors.find((s) => s.email && bornIn(s) < new Date().getFullYear() - 19)!.email!;
+  }
+
+  test("a sailor reading the waiver page opens the Waivers tab of their profile", async ({ page, request }) => {
+    await signIn(page, await plainSailor(request));
+    await page.goto("/help/waiver");
+    const place = page.getByTestId("help-place-profile.waivers").first();
+    await expect(place).toHaveAttribute("data-reachable", "true");
+    await expect(place).toHaveAttribute("href", "/me/profile?tab=waivers");
+    await place.click();
+    await expect(page).toHaveURL(/\/me\/profile\?tab=waivers$/);
+    await expect(page.getByTestId("me-context-waivers-tab")).toHaveAttribute("aria-selected", "true");
+  });
+
+  for (const who of [BOARD, TREASURER]) {
+    test(`${who.split("@")[0]} gets a link to their club's Money tab`, async ({ page, request }) => {
+      const club = await clubOf(request, who);
+      await signIn(page, who);
+      await page.goto("/help/decide-claims");
+      const place = page.getByTestId("help-place-club.money").first();
+      await expect(place).toHaveAttribute("data-reachable", "true");
+      await expect(place).toHaveAttribute("href", `/me/club/${club}?tab=money`);
+      await place.click();
+      await expect(page.getByTestId("me-context-money-tab")).toHaveAttribute("aria-selected", "true");
+    });
+  }
+
+  test("a plain sailor reads the Money path as words, not as a link", async ({ page, request }) => {
+    await signIn(page, await plainSailor(request));
+    await page.goto("/help/decide-claims");
+    const place = page.getByTestId("help-place-club.money").first();
+    await expect(place).toHaveAttribute("data-reachable", "false");
+    await expect(place.locator("a")).toHaveCount(0);
+    await expect(place).not.toHaveAttribute("href", /./);
+    // The same sailor is a member, so the Members tab of their club is theirs to open.
+    await page.goto("/help/club-members");
+    await expect(page.getByTestId("help-place-club.members").first()).toHaveAttribute("data-reachable", "true");
+  });
+});
+
+/** The club in this person's space — from the contexts, because a treasurer who is not a
+ *  member is not in `/api/clubs/mine`. */
+async function clubOf(request: Parameters<typeof bearer>[0], email: string): Promise<number> {
+  const response = await request.get("/api/me/contexts", { headers: await bearer(request, email) });
+  const { contexts } = (await response.json()) as { contexts: { kind: string; id: number }[] };
+  return contexts.find((c) => c.kind === "club")!.id;
+}

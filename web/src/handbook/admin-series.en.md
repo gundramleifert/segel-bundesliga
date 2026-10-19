@@ -17,7 +17,7 @@ shows only *Series are created by the business office only.*
 
 ### Create a series {#admin-series-create}
 
-1. *Administration*, tab *Series*: *New series* ①.
+1. [*Administration*, tab *Series*](place:admin.series): [*New series*](place:admin.new-series) ①.
 2. *Name*: at least three characters. *Year*, *Starts* and *Ends* are optional.
 3. Tick the *Participating clubs*; they take part from the start.
 4. *Create Series*.
@@ -59,4 +59,4 @@ The person has an account ([where accounts come from](#admin-accounts-create)).
 
 ✕ *Remove* takes a role away. See [roles](#roles-list).
 
-[Create a series](/admin/series/new)
+[Create a series](place:admin.new-series)

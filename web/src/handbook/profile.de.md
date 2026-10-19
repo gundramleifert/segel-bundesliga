@@ -12,11 +12,11 @@ title: Profil, Dokumente und Bankverbindung
 
 ## Profil, Dokumente und Bankverbindung
 
-Alles unter *Ich* in [Mein Bereich](/me/profile).
+Alles unter [*Ich* in Mein Bereich](place:profile.account).
 
 ### Segler-Profil {#profile-sailor}
 
-*Konto* → *Mein Segler-Profil*: Ihr *Vorname*, *Nachname* und *Geburtsdatum*, wie die
+[*Konto*](place:profile.account) → *Mein Segler-Profil*: Ihr *Vorname*, *Nachname* und *Geburtsdatum*, wie die
 Seite sie zeigt; *Speichern*.
 
 Die Karte erscheint, sobald ein Segler-Datensatz die bestätigte E-Mail-Adresse Ihres
@@ -35,7 +35,7 @@ Ihr Geburtsdatum entscheidet auch, wie Sie den
 
 ### Dokumente und Scheine {#profile-documents}
 
-*Dokumente* → *Dokument hinzufügen*:
+[*Dokumente*](place:profile.documents) → *Dokument hinzufügen*:
 
 1. Wählen Sie eine *Art* ① – Sportbootführerschein, Funkzeugnis, Erste Hilfe,
    Schiedsrichter- oder Wettfahrtleiter-Lizenz oder *Sonstiges* (dann ist *Titel*
@@ -57,7 +57,7 @@ Jeder Blick durch andere wird protokolliert.
 
 ### Bankverbindung {#profile-bank}
 
-*Bankverbindung*: *Kontoinhaber*, *IBAN*, *BIC* (optional, aus der IBAN ermittelt);
+[*Bankverbindung*](place:profile.bank): *Kontoinhaber*, *IBAN*, *BIC* (optional, aus der IBAN ermittelt);
 *Speichern*. Eine falsche IBAN oder BIC wird abgelehnt, und nichts wird gespeichert.
 
 Nur Sie lesen sie – keine Organisation, kein Kassenwart, kein Admin. Beim Einreichen einer
@@ -66,4 +66,4 @@ Abrechnung werden Kontoinhaber und IBAN für die zahlende Person in sie übernom
 einreichen. Eine spätere Änderung berührt keine eingereichte
 Abrechnung. *Entfernen* löscht sie.
 
-[Mein Profil öffnen](/me/profile)
+[Mein Profil öffnen](place:profile.account)

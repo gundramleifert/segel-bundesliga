@@ -102,7 +102,7 @@ ist; für eine Abrechnung beim Verein die Mitgliedschaft. Rollen der Geschäftss
 zählen nicht: [wo abrechnen](#file-a-claim-where).
 
 #### Meine Abrechnung lässt sich nicht einreichen.
-Speichern Sie Ihre *Bankverbindung*, fügen Sie eine Position hinzu und laden Sie die
+Speichern Sie Ihre [*Bankverbindung*](place:profile.bank), fügen Sie eine Position hinzu und laden Sie die
 nötigen Belege hoch: [Bankverbindung](#profile-bank), [Belege](#file-a-claim-receipts).
 
 #### Warum kann ich über diese Abrechnung nicht entscheiden?

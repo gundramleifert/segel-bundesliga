@@ -13,8 +13,8 @@ title: Help for the league office
 ## Help for the league office
 
 You set up the clubs, the series of a year and who sails in it, and who may do what. All
-of it is on *Administration*, in tabs: *Clubs*, *Series*,
-*Events*, *Sailors*, *Accounts*. The league office holds one of two
+of it is on *Administration*, in tabs: [*Clubs*](place:admin.clubs), [*Series*](place:admin.series),
+[*Events*](place:admin.events), [*Sailors*](place:admin.sailors), [*Accounts*](place:admin.accounts). The league office holds one of two
 [roles](#roles-list) on the whole site:
 
 | | Admin | Editor |
@@ -47,4 +47,4 @@ of it is on *Administration*, in tabs: *Clubs*, *Series*,
 - [A new club gets going and runs itself](#journey-club)
 - [An organizer sets up a series](#journey-series)
 
-[Open Administration](/admin)
+[Open Administration](place:admin)

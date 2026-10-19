@@ -55,4 +55,4 @@ For a penalty in no single race: a late crew list, a missed briefing, boat damag
 - Saving again replaces them; an empty field and *Save* removes them. A closed event
   still takes them.
 
-[Open my space](/me)
+[Open my space](place:space)

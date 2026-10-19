@@ -12,7 +12,7 @@ title: "Mitglieder, Organisation und Stander"
 
 ## Mitglieder, Organisation und Stander
 
-Öffnen Sie die Karte Ihres Vereins in *Mein Bereich*, Reiter *Mitglieder*. Jedes Mitglied
+Öffnen Sie die Karte Ihres Vereins in [*Mein Bereich*, Reiter *Mitglieder*](place:club.members). Jedes Mitglied
 sieht die Mitgliederliste; die Vereinsverwaltung sieht zusätzlich den Stander und das
 Feld *Personen*, der Teammanager den Abschnitt *Erziehungsberechtigte*.
 
@@ -73,4 +73,4 @@ bei den Crews eines Spieltags.
 
 Abgelehnt? Siehe [FAQ](#faq-club).
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

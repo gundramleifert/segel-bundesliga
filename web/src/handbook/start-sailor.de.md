@@ -42,4 +42,4 @@ Profil, Ihren Verein.
 - [Die Crew eines Vereins ist für einen Spieltag freigegeben](#journey-crew-cleared) –
   vom Kader bis zum bestätigten Haftungsausschluss.
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

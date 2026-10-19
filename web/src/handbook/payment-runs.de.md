@@ -15,7 +15,7 @@ title: "Über die Bank des Vereins zahlen"
 Die genehmigten Abrechnungen, die Ihr Verein schuldet, werden eine SEPA-Datei für das
 Online-Banking des Vereins. Die Website verbindet sich nie mit der Bank und speichert
 keinen Bank-Zugang. Hier arbeiten nur *Organisation*, *Kassenwart* und *Verwaltung* des
-Vereins: auf seiner Seite in *Mein Bereich*, Reiter *Finanzen*.
+Vereins: auf seiner Seite in [*Mein Bereich*, Reiter *Finanzen*](place:club.money).
 
 ### Das Konto des Vereins {#payment-runs-bank}
 
@@ -65,4 +65,4 @@ wurde sie schon hochgeladen, lehnt die Bank sie ab.
 | **einen Zahlungslauf** | *Excel (.xlsx)* | eine Zeile je Abrechnung mit Empfänger, IBAN, BIC, Betrag, Verwendungszweck, Veranstaltung oder Verein, Ausführungsdatum und Status – auch für eine Bank, die kein XML annimmt |
 | **ein Jahr** | unter *Buchhaltung* das *Jahr*, dann *Abrechnungen herunterladen (Excel)* | jede Abrechnung, die der Verein gezahlt hat oder schuldet, in dem Jahr eingereicht, eine Zeile je Position, mit beantragtem und genehmigtem Betrag, Entscheidung und Zahlungsstand, für die Kassenprüfung; Entwürfe sind nicht enthalten |
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

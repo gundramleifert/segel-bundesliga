@@ -18,7 +18,7 @@ for them on this page; it sees who is missing.
 
 ### Whose waivers are in {#club-waivers-overview}
 
-Team manager and club admin: the club's page in *My space*, tab *Waivers*. One block per
+Team manager and club admin: the club's page in [*My space*, tab *Waivers*](place:club.waivers). One block per
 competition the club is in and has not finished: each series squad, and each entry in an event in no series that is planned or live. Each block says
 *… of … cleared* and lists the whole squad, those still to do first, *under 18* beside
 the name.
@@ -53,7 +53,7 @@ upload of its own.
 
 You can name a crew before its waivers are in; nothing is locked. Instead:
 
-- your club's card in *My space*, and the *Waivers* tab, count the upcoming matchdays
+- your club's card in *My space*, and the [*Waivers* tab](place:club.waivers), count the upcoming matchdays
   where a crew member has no cleared waiver;
 - the sailor's own *My space*, and a linked parent's, says theirs is waiting;
 - the event's organizer sees everyone of your squad on the
@@ -61,4 +61,4 @@ You can name a crew before its waivers are in; nothing is locked. Instead:
 
 Chase the missing ones before the matchday, not at check-in.
 
-[Open my space](/me)
+[Open my space](place:space)

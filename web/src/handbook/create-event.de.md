@@ -20,7 +20,7 @@ Ausrichters (nur mit dem eigenen Verein als Ausrichter).
 
 ### Die drei Schritte {#create-event-wizard}
 
-1. *Verwaltung*, Reiter *Veranstaltungen*: *＋ Neue Veranstaltung*.
+1. [*Verwaltung*, Reiter *Veranstaltungen*](place:admin.events): [*＋ Neue Veranstaltung*](place:admin.new-event).
 2. *Allgemeines*: Pflicht ist nur *Name* ① (mindestens drei Zeichen). *Veranstaltung
    anlegen* ② speichert einen Entwurf, den sonst niemand sieht.
 3. *Vereine*: die Teilnehmer ankreuzen, dann *… Vereine eintragen und weiter*. In einer
@@ -59,4 +59,4 @@ Zuschnitt, Serie und Vereine stehen fest, sobald die erste Wettfahrt startet
 - Boote gehören zur Veranstaltung: Eine neue Auslosung ändert, wer welches Boot segelt,
   nicht die Boote. Das Panel kann Boote nicht bearbeiten — prüfen Sie sie hier.
 
-[Veranstaltung anlegen](/admin/events/new)
+[Veranstaltung anlegen](place:admin.new-event)

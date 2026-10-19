@@ -12,11 +12,11 @@ title: Profile, documents and bank account
 
 ## Profile, documents and bank account
 
-All on *Me* in [my space](/me/profile).
+All on [*Me* in my space](place:profile.account).
 
 ### Sailor profile {#profile-sailor}
 
-*Account* → *My sailor profile*: your *First name*, *Last name* and *Birthdate* as the
+[*Account*](place:profile.account) → *My sailor profile*: your *First name*, *Last name* and *Birthdate* as the
 site shows them; *Save*.
 
 The card appears once a sailor record carries your account's email address, confirmed.
@@ -33,7 +33,7 @@ Your birthdate also decides how you sign the [waiver](#waiver-birth-date).
 
 ### Documents and licences {#profile-documents}
 
-*Documents* → *Add a document*:
+[*Documents*](place:profile.documents) → *Add a document*:
 
 1. Pick a *Label* ① — boat licence, radio certificate, first aid, jury or race officer
    licence, or *Other* (then *Title* is required).
@@ -54,11 +54,11 @@ Every look by someone else is logged.
 
 ### Bank account {#profile-bank}
 
-*Bank account*: *Account holder*, *IBAN*, *BIC* (optional, taken from the IBAN); *Save*.
+[*Bank account*](place:profile.bank): *Account holder*, *IBAN*, *BIC* (optional, taken from the IBAN); *Save*.
 A wrong IBAN or BIC is refused, and nothing is saved.
 
 Only you read it — no organizer, treasurer or admin. Submitting an expense claim copies
 holder and IBAN onto it for whoever pays ([file a claim](#file-a-claim-where)); without
 them no claim can be submitted. A later change touches no submitted claim. *Remove* deletes it.
 
-[Open my profile](/me/profile)
+[Open my profile](place:profile.account)

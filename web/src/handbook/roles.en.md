@@ -97,8 +97,8 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
 
 - **An account first.** Signing in does not create one. You create it yourself with
   *Create an account*; neither your club nor the league office can do it for you.
-- **League office roles:** its admin grants them under *Accounts*.
-- **Club:** the club's admin adds people on the *Members* tab, by an existing account's
+- **League office roles:** its admin grants them under [*Accounts*](place:admin.accounts).
+- **Club:** the club's admin adds people on the [*Members* tab](place:club.members), by an existing account's
   email. One *Admin* must always remain.
 - **Series, event:** its admin, in the *People* panel. For an event, on screen that is the
   event's own admin, the series' admin or the league office — never the event's organizer;
@@ -109,4 +109,4 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
 - **Ending a role:** a member leaves with *Leave the club*. Other roles are removed by
   whoever can grant them.
 
-[Open my space](/me)
+[Open my space](place:space)

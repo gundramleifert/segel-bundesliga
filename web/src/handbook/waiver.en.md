@@ -17,7 +17,7 @@ every event of that series — and once for each event that belongs to no series
 
 ### Which waivers you need {#waiver-which}
 
-[My space](/me/profile): *Me* → *Waivers* lists each competition with its status.
+My space: [*Me* → *Waivers*](place:profile.waivers) lists each competition with its status.
 
 | Status | What to do |
 |---|---|
@@ -63,7 +63,7 @@ Nobody else; every look is logged.
 ### A parent accepts online {#waiver-guardian-online}
 
 Once your club [links your parent's account](#club-members-guardians) to you, your parent
-accepts in their own space: *Me* → *Waivers* → *My children*, *Read and confirm*, tick,
+accepts in their own space: [*Me* → *Waivers*](place:profile.waivers) → *My children*, *Read and confirm*, tick,
 *Confirm*. This clears you like the signed form — only while you are under 18 on the
 reference date.
 

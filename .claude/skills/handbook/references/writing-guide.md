@@ -71,7 +71,7 @@ soften it.
 ## Help for team managers
 
 You register your club's people for a series, name the crew for each matchday, and keep
-the member list. All of it is on your club's page in *My space*.
+the member list. All of it is on your club's page in [*My space*, tab *Members*](place:club.members).
 
 ### Before the season {#start-club-season}
 - [Register the squad](#squad-and-lineup-squad) for each series your club is entered in.
@@ -84,7 +84,7 @@ the member list. All of it is on your club's page in *My space*.
 ### Where this fits {#start-club-journeys}
 - [A crew is cleared for a matchday](#journey-crew-cleared) — what the sailors and the organizer do around you.
 
-[Open my space](/me)
+[Open my space](place:space)
 ```
 
 Ordered like the person's year (the story files are ordered by phase: master data, season,
@@ -94,10 +94,12 @@ matchday, aftermath).
 
 - State the **starting state** before the steps ("Your club is entered in the series.")
   and the **result** after them ("The squad shows *4 of 4–10 registered*.").
-- Numbered steps, one action each, labels quoted.
+- Numbered steps, one action each, labels quoted. The step that opens a screen or a tab
+  is a place link around its click path — `[*My space*, tab *Money*](place:club.money)` —
+  never a URL (`content-model.md` § Links to the site: places).
 - One screenshot per `###` at most; a phone screenshot for anything done on the water.
 - The refusals a person meets here, each in one line with what to do — or a link to the FAQ.
-- End with the link into the site.
+- End with the link into the site — a place (`[Open my space](place:space)`).
 
 ### `journey` — the order across people
 

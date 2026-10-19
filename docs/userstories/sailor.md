@@ -572,6 +572,20 @@ Acceptance criteria:
 - **Help for this page:** the account menu's *Help* entry opens the page that explains the
   current screen when there is one, `/help` otherwise.
 - No page scrolls sideways on a phone (Story A-10); a wide table scrolls inside itself.
+- **A click path is a link to the place it describes — for the reader who can use it.**
+  "*Me* → *Waivers*" opens `/me/profile?tab=waivers`; "*Members*" on a club guide opens
+  *my* club's page on its *Members* tab, one link per club when I organize several
+  ("(NRV · KYC)"). A reader for whom that tab does not exist — a sailor reading the
+  treasurer's guide — sees the same words as plain text: the path still explains the
+  screen. The page names a **place** (`place:club.members`), never a URL, and one
+  registry (`web/src/handbook/places.ts`) turns it into an address per reader, using the
+  same declarations of who sees which tab that the screens themselves are built from.
+  *Why names, not URLs:* routes and tab keys change, and a hundred hand-written
+  addresses in two languages would drift silently; a place is one line to change, and
+  `scripts/check-docs.py` refuses a place nobody declared and a raw address a place
+  covers. *Why hidden, not refused:* a link that ends in a 403 or an empty page is worse
+  than none (Story A-12's rule for the administration link) — and the help is read by
+  people about to take on a role, who must not be led to doors that do not open for them.
 - The pages are files in `web/src/handbook/`, built from the stories and journeys by the
   `handbook` skill; `scripts/check-docs.py` holds them to the stories, the journeys, the
   routes and each other (both languages present, anchors unique, links resolve, the
@@ -580,6 +594,6 @@ Acceptance criteria:
 Not a secret: the pages ship in the site's JavaScript like every other text, so the
 sign-in is about whom the help is written for, not about hiding it.
 
-Frontend: `web/src/pages/Help.tsx`, `web/src/handbook/`, `web/src/components/HelpLink.tsx`
+Frontend: `web/src/pages/Help.tsx`, `web/src/handbook/` (places: `places.ts`), `web/src/lib/spaceTabs.ts`, `web/src/components/HelpLink.tsx`
 
-Tests: `e2e/help.spec.ts::B-18: as a guest I am asked to sign in for the help`, `e2e/help.spec.ts::B-18: as anyone signed in I find the help for what I do`
+Tests: `e2e/help.spec.ts::B-18: as a guest I am asked to sign in for the help`, `e2e/help.spec.ts::B-18: as anyone signed in I find the help for what I do`, `e2e/help.spec.ts::B-18: a click path in the help opens that place, for the reader who can use it`

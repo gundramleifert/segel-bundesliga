@@ -20,7 +20,7 @@ May create one: the league office, the series' manager, and the host club's mana
 
 ### The three steps {#create-event-wizard}
 
-1. *Administration*, tab *Events*: *＋ New event*.
+1. [*Administration*, tab *Events*](place:admin.events): [*＋ New event*](place:admin.new-event).
 2. *General data*: only *Name* ① (three characters or more) is required. *Create Event*
    ② saves a draft nobody else sees.
 3. *Clubs*: tick the entrants, then *Enter … clubs and continue*. In a series only its
@@ -57,4 +57,4 @@ Size, series and clubs are fixed once the first race starts
 - Boats belong to the event: a new draw changes who sails which boat, not the boats. The
   panel cannot edit boats — check them here.
 
-[Create an event](/admin/events/new)
+[Create an event](place:admin.new-event)

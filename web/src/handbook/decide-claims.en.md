@@ -26,9 +26,9 @@ host. **Nobody decides or pays their own claim**, whatever roles they hold. More
 
 ### What waits for you {#decide-claims-pending}
 
-- **On your club's page in *My space*, tab *Money*:** claims on the club and on every
+- **On your club's page in [*My space*, tab *Money*](place:club.money):** claims on the club and on every
   event it hosts — *To decide* first, then *Approved, to pay* under *Paying for …*.
-- **On an event's page, tab *Claims to decide*:** if you are its organizer or treasurer
+- **On an [event's page, tab *Claims to decide*](place:event.decide):** if you are its organizer or treasurer
   yourself.
 - The overview of *My space* counts them: *… claims wait for you*.
 
@@ -61,4 +61,4 @@ is never paid twice. For several claims, the [SEPA file](#payment-runs-create) i
 
 Refused? See the [FAQ](#faq-treasurer).
 
-[Open my space](/me)
+[Open my space](place:space)

@@ -557,6 +557,10 @@ LOCALES = ("en", "de")
 BASELINE = HANDBOOK / ".baseline" / "structure.json"
 SCREENSHOTS = ROOT / "web" / "public" / "handbook" / "screenshots"
 APP_TSX = ROOT / "web" / "src" / "App.tsx"
+PLACES_TS = HANDBOOK / "places.ts"
+# One entry of `PLACES` in places.ts: `"club.money": { path: "/me/club/:id", tab: "money" },`
+PLACE_ENTRY = re.compile(r'^\s*"(?P<id>[a-z0-9.-]+)":\s*\{\s*path:\s*"(?P<path>[^"]+)"(?:,\s*tab:\s*"(?P<tab>[^"]+)")?', re.M)
+PLACE_LINK = "place:"
 PAGE_FILE = re.compile(r"^(?P<id>[a-z0-9-]+)\.(?P<locale>[a-z]{2})\.md$")
 FRONTMATTER = re.compile(r"\A---\n(?P<meta>.*?)\n---\n(?P<body>.*)\Z", re.S)
 META_LINE = re.compile(r"^(?P<key>[a-z_]+):\s*(?P<value>.*)$")
@@ -770,6 +774,11 @@ def write_baseline(structure: Structure) -> None:
                                    ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
 
+def _places_named(page: Page) -> list[str]:
+    """The `place:<id>` links of a page, in order — a translation names the same places."""
+    return [m["target"][len(PLACE_LINK):] for m in MD_LINK.finditer(page.prose) if m["target"].startswith(PLACE_LINK)]
+
+
 def _check_locales(pid: str, en: Page, others: list[Page]) -> list[str]:
     """Both locales are one page: same frontmatter but the title, same anchors, same shots."""
     problems: list[str] = []
@@ -782,6 +791,9 @@ def _check_locales(pid: str, en: Page, others: list[Page]) -> list[str]:
             problems.append(f"{other.file}: anchors differ from {en.file}: {sorted(set(other.anchors) ^ set(en.anchors))}")
         if other.shots != en.shots:
             problems.append(f"{other.file}: screenshots differ from {en.file}")
+        if _places_named(other) != _places_named(en):
+            problems.append(f"{other.file}: places differ from {en.file} — {', '.join(_places_named(other))} "
+                            f"against {', '.join(_places_named(en))}")
     return problems
 
 
@@ -799,9 +811,34 @@ def _check_journey_page(page: Page, journey: Journey) -> list[str]:
     return problems
 
 
-def _check_body(page: Page, owners: dict[str, str], routes: list[str]) -> list[str]:
-    """Headings carry their anchors, and every link lands: on an anchor some page owns, or
-    on a route the site has."""
+class PlaceRoute(NamedTuple):
+    """Where a place of places.ts leads: the route as App.tsx writes it, and its `?tab=`."""
+    path: str
+    tab: str | None
+
+
+def handbook_places() -> dict[str, PlaceRoute]:
+    """The places a page may link to (`place:<id>`, Story B-18), read from `PLACES` in
+    web/src/handbook/places.ts."""
+    if not PLACES_TS.exists():
+        return {}
+    text = PLACES_TS.read_text(encoding="utf-8")
+    table = re.search(r"export const PLACES = \{(.*?)\n\}", text, re.S)
+    return {m["id"]: PlaceRoute(m["path"], m["tab"]) for m in PLACE_ENTRY.finditer(table.group(1) if table else "")}
+
+
+def _covering_places(target: str, places: dict[str, PlaceRoute]) -> list[str]:
+    """The places a raw link's address is one of — those with its `?tab=` first, if any."""
+    on_path = sorted(pid for pid, place in places.items() if _matches_route(target, [place.path]))
+    tab = re.search(r"[?&]tab=([\w-]+)", target)
+    exact = [pid for pid in on_path if places[pid].tab == (tab[1] if tab else None)]
+    return exact or on_path
+
+
+def _check_body(page: Page, owners: dict[str, str], routes: list[str], places: dict[str, PlaceRoute]) -> list[str]:
+    """Headings carry their anchors, and every link lands: on an anchor some page owns, on
+    a place places.ts declares, or on a route the site has that no place covers — a place
+    is resolved per reader and survives a renamed route or tab, a raw address does not."""
     problems: list[str] = []
     for m in H3.finditer(page.prose):
         if "{#" not in m["text"]:
@@ -817,8 +854,15 @@ def _check_body(page: Page, owners: dict[str, str], routes: list[str]) -> list[s
         target = m["target"]
         if target.startswith("#") and target[1:] not in owners:
             problems.append(f"{page.file}: link to {target}, which no page owns")
+        elif target.startswith(PLACE_LINK) and target[len(PLACE_LINK):] not in places:
+            problems.append(f"{page.file}: link to {target}, which is not a place in web/src/handbook/places.ts")
         elif target.startswith("/") and not _known_route(target, routes):
             problems.append(f"{page.file}: link to {target}, which is not a route in web/src/App.tsx")
+        elif target.startswith("/"):
+            covering = _covering_places(target, places)
+            if covering:
+                problems.append(f"{page.file}: link to {target} — name the place instead "
+                                f"({', '.join('place:' + pid for pid in covering)}), so it is resolved per reader")
     return problems
 
 
@@ -852,6 +896,11 @@ def check_handbook(markers: StoryMarkers, all_journeys: list[Journey], files: St
     for page in store.pages:
         by_id.setdefault(page.id, {})[page.locale] = page
     routes = app_routes()
+    places = handbook_places()
+    if not places:
+        problems.append(f"{PLACES_TS.relative_to(ROOT)}: no PLACES found — the help's links into the site come from there")
+    problems += [f"{PLACES_TS.relative_to(ROOT)}: place {pid} leads to {path}, which is not a route in web/src/App.tsx"
+                 for pid, (path, _tab) in places.items() if not _known_route(path, routes)]
     owners: dict[str, str] = {pid: pid for pid in by_id}  # anchor → the page that owns it
     for page in store.pages:
         if page.locale != "en":
@@ -911,7 +960,7 @@ def check_handbook(markers: StoryMarkers, all_journeys: list[Journey], files: St
         elif meta.journey:
             problems.append(f"{en.file}: only a journey page names a journey")
         for page in locales.values():
-            problems += _check_body(page, owners, routes)
+            problems += _check_body(page, owners, routes, places)
             shots_used.update(page.shots)
         budget = BUDGET.get(meta.type or "")
         if budget and en.words > budget * 1.2:

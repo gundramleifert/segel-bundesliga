@@ -36,4 +36,4 @@ the people who work its events. Filing a claim, deciding it and paying it all ha
 
 Which roles hold the money: [roles](#roles-list).
 
-[Open my space](/me)
+[Open my space](place:space)

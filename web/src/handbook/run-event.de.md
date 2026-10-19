@@ -11,7 +11,7 @@ title: "Eine Veranstaltung vorbereiten und starten"
 ---
 ## Eine Veranstaltung vorbereiten und starten
 
-*Verwaltung*, Reiter *Veranstaltungen*, *Bearbeiten*. Jeder Block speichert für sich,
+[*Verwaltung*, Reiter *Veranstaltungen*](place:admin.events), *Bearbeiten*. Jeder Block speichert für sich,
 auch bei einer unvollständigen Veranstaltung.
 
 ### Was noch fehlt {#run-event-readiness}
@@ -79,4 +79,4 @@ erfasst ist, zeigt das Panel *Es wird gesegelt …*.
 | *Helfer* (RIB, Steg, Boote) | haben keine Befugnis über die Veranstaltung, dürfen aber [eine Abrechnung einreichen](#file-a-claim-where); ihre Organisation darf ihre Dokumente sehen |
 | wer hier schreibt | auf der Website die Verwaltung der Veranstaltung selbst, die Verwaltung ihrer Serie und die Geschäftsstelle; wer nur Organisation ist, sieht einen Fehler, und die Verwaltung des Ausrichters erreicht diesen Bereich nicht — wenden Sie sich an eine dieser Stellen |
 
-[Verwaltung öffnen](/admin)
+[Verwaltung öffnen](place:admin.events)

@@ -17,7 +17,7 @@ editor creates clubs; entering a club in a series is the admin's.
 
 ### Create a club {#admin-clubs-create}
 
-1. *Administration*, tab *Clubs*: *New club* ①.
+1. [*Administration*, tab *Clubs*](place:admin.clubs): [*New club*](place:admin.new-club) ①.
 2. *Name*: at least three characters. *Short name* and *City* are optional; without a
    short name the club uses its name.
 3. *Create*; *Create another* starts the next one.
@@ -35,7 +35,7 @@ editor creates clubs; entering a club in a series is the admin's.
 
 The series exists ([create a series](#admin-series-create)).
 
-1. Tab *Series*: *Edit clubs* on the series.
+1. [Tab *Series*](place:admin.series): *Edit clubs* on the series.
 2. Tick the clubs that take part, untick the others.
 3. *Set … clubs*.
 
@@ -51,4 +51,4 @@ The ticked clubs take part and are entered in the series' events still planned.
 Clubs cannot apply for a series on the site: a club asks the league office, and an
 admin [enters it](#admin-clubs-series). Refusals: [FAQ](#faq-administration).
 
-[Open Administration](/admin)
+[Open Administration](place:admin.clubs)

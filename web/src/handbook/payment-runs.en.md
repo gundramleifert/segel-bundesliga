@@ -14,8 +14,8 @@ title: "Pay through the club's bank"
 
 The approved claims your club owes become one SEPA file for the club's online banking.
 The site never connects to the bank and stores no bank login. Only the club's
-*Organizer*, *Treasurer* and *Admin* work here: the club's page in *My space*, tab
-*Money*.
+*Organizer*, *Treasurer* and *Admin* work here: the club's page in [*My space*, tab
+*Money*](place:club.money).
 
 ### The club's account {#payment-runs-bank}
 
@@ -61,4 +61,4 @@ refuses it if it was already uploaded.
 | **one run** | *Excel (.xlsx)* | one row per claim with payee, IBAN, BIC, amount, reference, event or club, execution date and status — also for a bank that takes no XML |
 | **one year** | under *Books*, the *Year*, then *Download claims (Excel)* | every claim the club paid or owes, submitted that year, one row per item, with claimed and approved amounts, decision and payment state, for the cash audit; drafts are not in it |
 
-[Open my space](/me)
+[Open my space](place:space)

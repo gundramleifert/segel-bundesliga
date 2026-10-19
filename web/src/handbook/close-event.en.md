@@ -12,7 +12,7 @@ title: "Close an event, or call it off"
 
 ## Close an event, or call it off
 
-*Closing* is the last block of the event's panel (*Administration*, tab *Events*,
+*Closing* is the last block of the event's panel ([*Administration*, tab *Events*](place:admin.events),
 *Manage*), for the event's organizers — a race officer has no access to *Administration*
 and asks an organizer to close the event. It shows only what applies now
 and never asks for confirmation: everything here is one press to undo and deletes
@@ -48,4 +48,4 @@ A closed event shows one button:
 - *Reinstate the event* — a called-off event is planned again; start it again with
   *Start event* ([start](#run-event-start)).
 
-[Open the administration](/admin)
+[Open the administration](place:admin.events)

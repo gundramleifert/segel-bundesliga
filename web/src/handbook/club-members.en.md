@@ -12,7 +12,7 @@ title: "Members, organizers and the crest"
 
 ## Members, organizers and the crest
 
-Open your club's card in *My space*, tab *Members*. Every member sees the member list;
+Open your club's card in [*My space*, tab *Members*](place:club.members). Every member sees the member list;
 the club admin also sees the crest and the *People* panel, the team manager the
 *Guardians* section.
 
@@ -68,4 +68,4 @@ on the matchday's crews.
 
 Refused? See the [FAQ](#faq-club).
 
-[Open my space](/me)
+[Open my space](place:space)

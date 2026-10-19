@@ -12,7 +12,7 @@ title: "Wettfahrten vom Wasser aus leiten"
 ## Wettfahrten vom Wasser aus leiten
 
 *Wettfahrtleitung* zeigt die aktuelle Wettfahrt; Wettfahrten laufen nacheinander. Öffnen
-über Ihre Veranstaltung in *Mein Bereich* (*Wettfahrtleitung öffnen*) oder den Tab
+über [Ihre Veranstaltung in *Mein Bereich*](place:event.race) (*Wettfahrtleitung öffnen*) oder den Tab
 *Ergebnisse eingeben*. Für die Wettfahrtleitung und die Verwaltung der Website.
 
 ![Die aktuelle Wettfahrt auf dem Telefon: ihre Boote, die Teams darauf, das Vorbereitungssignal ①, *Startfolge in 10 s* ②](shot:help-race-control)
@@ -64,4 +64,4 @@ Die Eingaben bleiben bis *Wettfahrt beenden* auf diesem Telefon, auch über ein 
 [Korrekturen](#results-entry-correct), RDG, ZFP und SCP gehören dorthin. Abgelehnt? Siehe
 [Fragen](#faq-race-committee).
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

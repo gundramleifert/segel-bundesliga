@@ -18,7 +18,7 @@ keiner Serie gehört.
 
 ### Welche Erklärungen Sie brauchen {#waiver-which}
 
-[Mein Bereich](/me/profile): *Ich* → *Haftungsausschlüsse* listet jeden
+Mein Bereich: [*Ich* → *Haftungsausschlüsse*](place:profile.waivers) listet jeden
 Wettbewerb mit seinem Stand.
 
 | Stand | Was zu tun ist |
@@ -68,7 +68,7 @@ Sonst niemand; jeder Blick wird protokolliert.
 ### Ein Elternteil nimmt online an {#waiver-guardian-online}
 
 Sobald Ihr Verein [das Konto eines Elternteils mit Ihnen verknüpft](#club-members-guardians)
-hat, nimmt dieser in seinem eigenen Bereich an: *Ich* → *Haftungsausschlüsse* →
+hat, nimmt dieser in seinem eigenen Bereich an: [*Ich* → *Haftungsausschlüsse*](place:profile.waivers) →
 *Meine Kinder*, *Lesen und bestätigen*, Haken setzen, *Bestätigen*. Das gibt Sie frei wie
 das unterschriebene Formular – nur solange Sie am Stichtag unter 18 sind.
 

@@ -30,7 +30,7 @@ office creates them with their sign-in address.
 
 Your club is in the series.
 
-1. Your club's page in *My space*, tab *Series & squads*: *Squad*.
+1. Your club's page in [*My space*, tab *Series & squads*](place:club.series): *Squad*.
 2. Click people under *Available* ①; they move to *Selected*.
 3. Beside each name choose *Helm*, *Crew* or *Reserve* ②.
 4. Press *Save squad* ③.
@@ -40,7 +40,7 @@ Your club is in the series.
 - Saving replaces the whole squad.
 - *Already sailing for … in this series* cannot be added.
 - Someone lined up for a matchday stays until the lineup changes.
-- An event in no series has its squad on *Matchdays*: *Squad for this event*.
+- An event in no series has its squad on [*Matchdays*](place:club.events): *Squad for this event*.
 
 ### Squad size {#squad-and-lineup-size}
 
@@ -57,7 +57,7 @@ event's panel — 4 to 10 unless changed.
 
 The squad is registered.
 
-1. Tab *Matchdays* lists every matchday your club is entered in: *Lineup*.
+1. [Tab *Matchdays*](place:club.events) lists every matchday your club is entered in: *Lineup*.
 2. Move people from the squad ① to *Selected*; adjust *Role on the day* ②.
 3. Press *Save lineup* ③.
 
@@ -69,4 +69,4 @@ admin names the crew on screen; anyone else asks the club. A [missing waiver](#c
 
 Refused? See the [FAQ](#faq-club).
 
-[Open my space](/me)
+[Open my space](place:space)

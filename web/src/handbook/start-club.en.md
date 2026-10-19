@@ -49,4 +49,4 @@ Two roles run a club, both on its page in *My space* (one card per club you belo
 
 Who may do what: [roles](#roles-list).
 
-[Open my space](/me)
+[Open my space](place:space)

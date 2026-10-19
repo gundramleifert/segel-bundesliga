@@ -19,6 +19,14 @@ import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
 import { Wards, Waivers } from "./Waivers";
 import { NeedsLine, RelationChips } from "./Chips";
 import { contextPath, useMySpace } from "./shared";
+import {
+  CLUB_TABS,
+  EVENT_TABS,
+  PROFILE_TABS,
+  SERIES_TABS,
+  tabRule,
+  tabVisible,
+} from "../../lib/spaceTabs";
 
 /** Story S-7: my page in a club, a series or an event — and my own, `/me/profile`.
  *
@@ -37,8 +45,9 @@ import { contextPath, useMySpace } from "./shared";
 type SectionDef = {
   key: string;
   label: string;
-  /** Shown when I hold one of these there (`sailor` included); none — always. */
-  for?: string[];
+  /** Shown when I hold one of these there (`sailor` included); none — always. A tab's
+   *  `key` and `for` come from `lib/spaceTabs.ts`, which the help's places read too. */
+  for?: readonly string[];
   /** Overview "needs" codes this tab is where to act on. */
   needs?: string[];
   /** Not a tab: shown above the tabs, and only while one of its `needs` is there. */
@@ -47,7 +56,7 @@ type SectionDef = {
 };
 
 function visible(sections: SectionDef[], relations: string[]): SectionDef[] {
-  return sections.filter((s) => !s.for || s.for.some((r) => relations.includes(r)));
+  return sections.filter((s) => tabVisible(s, relations));
 }
 
 function labelled(section: SectionDef, needs: Need[]): string {
@@ -180,8 +189,6 @@ function MyTeams({ context, testId }: { context: MyContext; testId: string }) {
   );
 }
 
-const ORGANIZERS = ["admin", "manager"];
-
 // ---------------------------------------------------------------------------- me
 
 /** `/me/profile` — my own things: the account, papers, bank, waivers, all my claims. */
@@ -203,7 +210,7 @@ export function ProfilePage() {
         className="grid grid-cols-[minmax(0,1fr)]"
         tabs={[
           {
-            key: "account",
+            ...tabRule(PROFILE_TABS, "account"),
             label: t("context.tabs.account"),
             render: () => (
               <Stack gap={4}>
@@ -214,10 +221,10 @@ export function ProfilePage() {
               </Stack>
             ),
           },
-          { key: "documents", label: t("tabs.documents"), render: () => <DocumentsTab /> },
-          { key: "bank", label: t("tabs.bank"), render: () => <BankTab /> },
+          { ...tabRule(PROFILE_TABS, "documents"), label: t("tabs.documents"), render: () => <DocumentsTab /> },
+          { ...tabRule(PROFILE_TABS, "bank"), label: t("tabs.bank"), render: () => <BankTab /> },
           {
-            key: "waivers",
+            ...tabRule(PROFILE_TABS, "waivers"),
             label: t("context.tabs.waivers"),
             // Mine (S-1), then my children's (S-8) — a parent with no sailor record of
             // their own sees only the second.
@@ -228,7 +235,7 @@ export function ProfilePage() {
               </div>
             ),
           },
-          { key: "claims", label: t("tabs.claims"), render: () => <ClaimsTab /> },
+          { ...tabRule(PROFILE_TABS, "claims"), label: t("tabs.claims"), render: () => <ClaimsTab /> },
         ]}
       />
     </Stack>
@@ -254,15 +261,15 @@ export function ClubPage() {
         const entry = clubs.data?.find((e) => e.club.id === c.id);
         const club: SectionDef[] = entry
           ? [
-              { key: "members", label: t("context.tabs.members"), render: () => <ClubMembersPanel entry={entry} onLeft={() => navigate("/me")} /> },
+              { ...tabRule(CLUB_TABS, "members"), label: t("context.tabs.members"), render: () => <ClubMembersPanel entry={entry} onLeft={() => navigate("/me")} /> },
               {
-                key: "events",
+                ...tabRule(CLUB_TABS, "events"),
                 label: t("context.tabs.matchdays"),
                 needs: ["crew_missing"],
                 render: () => <ClubEvents entry={entry} />,
               },
               {
-                key: "series",
+                ...tabRule(CLUB_TABS, "series"),
                 label: t("context.tabs.squads"),
                 needs: ["squad_below_min"],
                 render: () => <ClubTeams entry={entry} />,
@@ -272,22 +279,19 @@ export function ClubPage() {
         return [
           ...club,
           {
-            key: "waivers",
+            ...tabRule(CLUB_TABS, "waivers"),
             label: t("context.tabs.waivers"),
-            for: ORGANIZERS,
             needs: ["crew_waiver_missing"],
             render: () => <ClubWaivers clubId={c.id} />,
           },
           {
-            key: "claims",
+            ...tabRule(CLUB_TABS, "claims"),
             label: t("context.tabs.myClaims"),
-            for: ["member"],
             render: () => <ClaimsTab target={{ kind: "club", id: c.id }} />,
           },
           {
-            key: "money",
+            ...tabRule(CLUB_TABS, "money"),
             label: t("context.tabs.money"),
-            for: [...ORGANIZERS, "treasurer"],
             needs: ["claims"],
             render: () => <ClubMoneyTab clubId={c.id} clubName={c.name} />,
           },
@@ -309,16 +313,14 @@ export function SeriesPage() {
       sections={(c) => [
         waiverNotice(t, "series", c.id),
         {
-          key: "team",
+          ...tabRule(SERIES_TABS, "team"),
           label: t("context.tabs.team"),
-          for: ["sailor"],
           render: () => <MyTeams context={c} testId="me-series-teams" />,
         },
-        { key: "events", label: t("context.tabs.events"), render: () => <SeriesEvents seriesId={c.id} /> },
+        { ...tabRule(SERIES_TABS, "events"), label: t("context.tabs.events"), render: () => <SeriesEvents seriesId={c.id} /> },
         {
-          key: "organize",
+          ...tabRule(SERIES_TABS, "organize"),
           label: t("context.tabs.organize"),
-          for: ORGANIZERS,
           render: () => (
             <Door
               text={t("context.organizeSeries")}
@@ -375,9 +377,8 @@ export function EventPage() {
       sections={(c) => [
         c.series_id != null ? waiverNotice(t, "series", c.series_id) : waiverNotice(t, "event", c.id),
         {
-          key: "crew",
+          ...tabRule(EVENT_TABS, "crew"),
           label: t("context.tabs.crew"),
-          for: ["sailor"],
           render: () => (
             <Stack gap={3}>
               <MyTeams context={c} testId="me-event-teams" />
@@ -390,23 +391,20 @@ export function EventPage() {
           ),
         },
         {
-          key: "claims",
-          label: t("context.tabs.myClaims"),
           // Those who work the event file claims on it (Story F-2); sailing is not work.
-          for: ["admin", "manager", "treasurer", "race_officer", "jury", "helper"],
+          ...tabRule(EVENT_TABS, "claims"),
+          label: t("context.tabs.myClaims"),
           render: () => <ClaimsTab target={{ kind: "event", id: c.id }} />,
         },
         {
-          key: "decide",
+          ...tabRule(EVENT_TABS, "decide"),
           label: t("context.tabs.toDecide"),
-          for: [...ORGANIZERS, "treasurer"],
           needs: ["claims"],
           render: () => <EventClaimsTab eventId={c.id} />,
         },
         {
-          key: "race",
+          ...tabRule(EVENT_TABS, "race"),
           label: t("context.tabs.raceControl"),
-          for: [...ORGANIZERS, "race_officer"],
           render: () => (
             <Door
               text={t("context.raceControl")}
@@ -417,9 +415,8 @@ export function EventPage() {
           ),
         },
         {
-          key: "organize",
+          ...tabRule(EVENT_TABS, "organize"),
           label: t("context.tabs.organize"),
-          for: ORGANIZERS,
           render: () => (
             <Door
               text={t("context.organizeEvent")}

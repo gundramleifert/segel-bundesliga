@@ -27,10 +27,10 @@ Mehr unter [Rollen](#roles-list).
 
 ### Was auf Sie wartet {#decide-claims-pending}
 
-- **Auf der Seite Ihres Vereins in *Mein Bereich*, Reiter *Finanzen*:** Abrechnungen für
+- **Auf der Seite Ihres Vereins in [*Mein Bereich*, Reiter *Finanzen*](place:club.money):** Abrechnungen für
   den Verein und für jede Veranstaltung, die er ausrichtet – zuerst *Zu entscheiden*,
   dann *Freigegeben, zu zahlen* unter *Zahlungen für …*.
-- **Auf der Seite einer Veranstaltung, Reiter *Zu entscheiden*:** wenn Sie selbst ihre
+- **Auf der [Seite einer Veranstaltung, Reiter *Zu entscheiden*](place:event.decide):** wenn Sie selbst ihre
   Organisation oder ihr Kassenwart sind.
 - Die Übersicht in *Mein Bereich* zählt sie: *… Abrechnungen warten auf Sie*.
 
@@ -65,4 +65,4 @@ verlässt diese Liste und wird so nie doppelt gezahlt. Für mehrere Abrechnungen
 
 Abgelehnt? Siehe die [häufigen Fragen](#faq-treasurer).
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

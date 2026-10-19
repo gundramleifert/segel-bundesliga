@@ -13,7 +13,7 @@ title: "The check-in list: who has a waiver"
 ## The check-in list: who has a waiver
 
 Nothing is signed on the dock: sailors confirm the liability waiver in advance, and the
-block *Liability waivers* in the event's panel (*Administration*, tab *Events*, *Manage*)
+block *Liability waivers* in the event's panel ([*Administration*, tab *Events*](place:admin.events), *Manage*)
 shows who has.
 
 ### Read the list {#event-checkin-list}
@@ -65,4 +65,4 @@ Every opening is logged with who opened it.
 A form signed for a whole series belongs to no single event: if you organize only this
 event and not the sailor's club, opening it is refused — ask the league office.
 
-[Open the administration](/admin)
+[Open the administration](place:admin.events)

@@ -11,7 +11,7 @@ title: "Prepare and start an event"
 ---
 ## Prepare and start an event
 
-*Administration*, tab *Events*, *Manage*. Each block saves on its own, even on an
+[*Administration*, tab *Events*](place:admin.events), *Manage*. Each block saves on its own, even on an
 incomplete event.
 
 ### What is still missing {#run-event-readiness}
@@ -75,4 +75,4 @@ says *Racing has started …*.
 | a *Helper* (RIB, pontoon, boats) | has no power on the event, but may [file a claim](#file-a-claim-where); its organizers may see their documents |
 | who writes here | on screen, the event's own admin, its series' admin and the league office; a manager alone gets an error, and the host club's admin cannot reach this panel — ask one of them |
 
-[Open the administration](/admin)
+[Open the administration](place:admin.events)

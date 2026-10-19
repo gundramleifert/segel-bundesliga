@@ -39,4 +39,4 @@ Who may do what: [roles](#roles-list). Stuck: [questions](#faq-race-committee).
 - [From an empty series to a scored matchday](#journey-lifecycle) — what the league
   office and the organizer do before your day, and what the public site shows after it.
 
-[Open my space](/me)
+[Open my space](place:space)

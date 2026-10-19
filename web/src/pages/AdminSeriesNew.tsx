@@ -12,6 +12,7 @@ import { Loading } from "../components/Blocks";
 import { ClubSelector } from "../components/ClubSelector";
 import { Field, Message } from "../components/Form";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
+import { ADMIN_NEW_PAGES } from "../lib/spaceTabs";
 import { AfterCreate, CancelButton, NewEntryPage } from "./AdminNewPage";
 
 /** `/admin/series/new` — Stories A-4 and A-6: a series and its clubs in one step. Admin
@@ -44,7 +45,7 @@ export function AdminSeriesNew() {
   };
 
   return (
-    <NewEntryPage title={t("series.newButton")} adminOnly testId="admin-series-new">
+    <NewEntryPage title={t("series.newButton")} adminOnly={ADMIN_NEW_PAGES.series.adminOnly} testId="admin-series-new">
       {!create.isSuccess && (
         <form
           data-testid="admin-series-create-form"

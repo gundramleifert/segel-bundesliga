@@ -6,7 +6,8 @@ import i18n from "../i18n";
 import { getGetEventAccessQueryKey, useGetEventAccess, useMe } from "./generated/sbl";
 import { ApiError } from "./http";
 import { getToken, onTokenChange } from "./session";
-import { Role, type Account, type EventAccess } from "./types";
+import { ADMIN_ROLES } from "../lib/spaceTabs";
+import type { Account, EventAccess, Role } from "./types";
 
 export interface AsyncState<T> {
   data: T | null;
@@ -201,20 +202,8 @@ export function useEventAccess(eventId: number): EventAccess & { loading: boolea
   return { ...(query.data ?? NO_ACCESS), loading: query.isPending };
 }
 
-/** The summary roles the administration has something for (Story A-12).
- *
- * One list, read by the frame's account menu (whether to offer the link) and by the
- * administration's own guard (whether to let someone in): two copies would drift, and a
- * link that ends in a 403 is worse than no link. */
-const ADMIN_ROLES: readonly Role[] = [
-  Role.admin,
-  Role.editor,
-  Role.series_manager,
-  Role.event_manager,
-  Role.jury,
-];
-
-/** Whether this account may open the administration at all. */
+/** Whether this account may open the administration at all — `ADMIN_ROLES`, declared
+ *  beside the tabs it opens (`lib/spaceTabs.ts`). */
 export function mayOpenAdmin(account: Account | null): boolean {
   return Boolean(account && ADMIN_ROLES.some((role) => account.roles.includes(role)));
 }

@@ -12,8 +12,8 @@ title: "Eine Veranstaltung abschließen oder absagen"
 
 ## Eine Veranstaltung abschließen oder absagen
 
-*Abschluss* ist der letzte Block im Panel der Veranstaltung (*Verwaltung*, Reiter
-*Veranstaltungen*, *Bearbeiten*), für die Organisation der Veranstaltung — die
+*Abschluss* ist der letzte Block im Panel der Veranstaltung ([*Verwaltung*, Reiter
+*Veranstaltungen*](place:admin.events), *Bearbeiten*), für die Organisation der Veranstaltung — die
 Wettfahrtleitung erreicht die *Verwaltung* nicht und bittet die Organisation, die
 Veranstaltung abzuschließen. Er zeigt nur, was gerade möglich ist, und fragt nie nach: Alles hier lässt
 sich mit einem Tippen zurücknehmen und löscht nichts.
@@ -49,4 +49,4 @@ Eine abgeschlossene Veranstaltung zeigt genau einen Knopf:
 - *Absage zurücknehmen* — eine abgesagte Veranstaltung ist wieder geplant; starten Sie
   sie erneut mit *Veranstaltung starten* ([Start](#run-event-start)).
 
-[Verwaltung öffnen](/admin)
+[Verwaltung öffnen](place:admin.events)

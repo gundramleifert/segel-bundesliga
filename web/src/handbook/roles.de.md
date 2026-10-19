@@ -101,8 +101,8 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 
 - **Zuerst ein Konto.** Die Anmeldung legt keines an. Sie legen es selbst mit *Konto
   anlegen* an; weder Ihr Verein noch die Geschäftsstelle kann das für Sie tun.
-- **Rollen der Geschäftsstelle:** vergibt deren Verwaltung unter *Konten*.
-- **Verein:** Die Vereinsverwaltung trägt Personen im Tab *Mitglieder* ein, mit der
+- **Rollen der Geschäftsstelle:** vergibt deren Verwaltung unter [*Konten*](place:admin.accounts).
+- **Verein:** Die Vereinsverwaltung trägt Personen im [Tab *Mitglieder*](place:club.members) ein, mit der
   E-Mail-Adresse eines bestehenden Kontos. Eine *Verwaltung* muss immer bleiben.
 - **Serie, Veranstaltung:** deren Verwaltung, im Bereich *Personen*. Bei einer
   Veranstaltung ist das auf der Website die Verwaltung der Veranstaltung selbst, der Serie
@@ -115,4 +115,4 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 - **Eine Rolle beenden:** Ein Mitglied tritt mit *Verein verlassen* aus. Andere Rollen
   entfernt, wer sie vergeben kann.
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)

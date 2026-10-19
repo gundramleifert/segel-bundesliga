@@ -31,7 +31,7 @@ jemand? Die Geschäftsstelle legt die Person mit ihrer Anmeldeadresse an.
 
 Ihr Verein ist für die Serie gemeldet.
 
-1. Seite Ihres Vereins in *Mein Bereich*, Reiter *Serien & Kader*: *Kader*.
+1. Seite Ihres Vereins in [*Mein Bereich*, Reiter *Serien & Kader*](place:club.series): *Kader*.
 2. Klicken Sie Personen unter *Verfügbar* ① an; sie wandern nach *Ausgewählt*.
 3. Wählen Sie neben jedem Namen *Steuermann*, *Crew* oder *Reserve* ②.
 4. Drücken Sie *Kader speichern* ③.
@@ -41,7 +41,7 @@ Ihr Verein ist für die Serie gemeldet.
 - Speichern ersetzt den ganzen Kader.
 - *Segelt in dieser Serie schon für …* lässt sich nicht hinzufügen.
 - Wer für einen Spieltag aufgestellt ist, bleibt, bis die Aufstellung geändert ist.
-- Eine Veranstaltung ohne Serie hat ihren Kader unter *Spieltage*: *Kader für diese
+- Eine Veranstaltung ohne Serie hat ihren Kader unter [*Spieltage*](place:club.events): *Kader für diese
   Veranstaltung*.
 
 ### Kadergröße {#squad-and-lineup-size}
@@ -59,7 +59,7 @@ Organisation im Panel der Veranstaltung – 4 bis 10, wenn niemand etwas ändert
 
 Der Kader ist gemeldet.
 
-1. Der Reiter *Spieltage* listet jeden Spieltag, für den Ihr Verein gemeldet ist:
+1. Der [Reiter *Spieltage*](place:club.events) listet jeden Spieltag, für den Ihr Verein gemeldet ist:
    *Aufstellung*.
 2. Verschieben Sie Personen aus dem Kader ① nach *Ausgewählt*; passen Sie die *Rolle am
    Spieltag* ② an.
@@ -75,4 +75,4 @@ Verein. Ein
 
 Abgelehnt? Siehe [FAQ](#faq-club).
 
-[Mein Bereich öffnen](/me)
+[Mein Bereich öffnen](place:space)
