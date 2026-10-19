@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { Suspense, lazy, useState, type FormEvent } from "react";
+import { Suspense, lazy, useState, type DragEvent, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -23,7 +23,7 @@ import { DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, leaguePhoto } from "../../../c
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
 import { href } from "../../../lib/site";
-import { usePhotoUpload } from "../../../lib/usePhotoUpload";
+import { photosIn, usePhotoUpload } from "../../../lib/usePhotoUpload";
 import { NewEntryPage } from "../../AdminNewPage";
 
 // TipTap and ProseMirror are only needed here — not by a single reader of the site.
@@ -281,15 +281,35 @@ function PhotoPicker({
   const { t } = useTranslation("admin");
   const photo = usePhotoUpload((uploaded) => onChange(uploaded, ""));
   const fromLibrary = LIBRARY.find((p) => p.src === url);
+  const [over, setOver] = useState(false);
+
+  // The preview is the drop target: a picture dragged out of a folder onto it replaces it.
+  const drop = (event: DragEvent) => {
+    event.preventDefault();
+    setOver(false);
+    const [file] = photosIn(event.dataTransfer.files);
+    if (file) void photo.upload(file).then((done) => done && onChange(done.url, ""));
+  };
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 text-sm sm:grid-cols-[12rem_minmax(0,1fr)]">
-      <img
-        src={url ?? fallback}
-        alt=""
-        className={`aspect-[3/2] w-full rounded-md object-cover ${url ? "" : "opacity-50"}`}
-        data-testid="admin-post-photo-preview"
-      />
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={drop}
+        className={`rounded-md ${over ? "ring-2 ring-brand-500 ring-offset-2" : ""}`}
+        data-testid="admin-post-photo-dropzone"
+      >
+        <img
+          src={url ?? fallback}
+          alt=""
+          className={`aspect-[3/2] w-full rounded-md object-cover ${url ? "" : "opacity-50"} ${photo.busy ? "animate-pulse" : ""}`}
+          data-testid="admin-post-photo-preview"
+        />
+      </div>
       <div className="grid content-start gap-3">
         <p className="font-medium text-slate-700">
           {t("posts.photoLabel")}
@@ -316,6 +336,7 @@ function PhotoPicker({
               </option>
             ))}
           </Select>
+          <span className="text-xs text-slate-500">{t("posts.photoDrop")}</span>
           {url && (
             <Button size="sm" variant="ghost" onPress={() => onChange(null, "")} data-testid="admin-post-photo-remove-button">
               {t("posts.photoRemove")}

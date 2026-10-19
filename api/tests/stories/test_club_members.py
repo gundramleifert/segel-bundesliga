@@ -292,7 +292,6 @@ class TestOrganizers:
         assert refused.status_code == 409, refused.text
         assert _problem_code(refused) == "last-organizer"
 
-
     async def test_the_last_admin_cannot_go_while_only_managers_remain(self, client, caplog):
         """Story A-8: a manager beside the admin is not enough — the admin decides who is
         in the club, and a club of managers only could not add anyone any more. With a

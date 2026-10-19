@@ -37,8 +37,7 @@ def _guarded_routes() -> list[RouteContext]:
     return [
         route
         for route in iter_route_contexts(app.routes)
-        if getattr(route, "dependant", None) is not None
-        and _uses(route.dependant, current_user)
+        if getattr(route, "dependant", None) is not None and _uses(route.dependant, current_user)
     ]
 
 
@@ -49,9 +48,7 @@ def _path(route: RouteContext) -> str:
 
 async def _token(email: str) -> str:
     async with SessionLocal() as session:
-        user = (
-            await session.execute(select(User).where(User.email == email))
-        ).scalar_one_or_none()
+        user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
         if user is None:
             user = User(email=email, display_name=email.split("@")[0])
             session.add(user)
@@ -78,9 +75,7 @@ class TestGuardProblems:
 
     def test_the_api_document_declares_the_refusals_as_problems(self):
         """The generated client reads its error type from here."""
-        responses = app.openapi()["paths"]["/api/admin/events/{event_id}/races"]["get"][
-            "responses"
-        ]
+        responses = app.openapi()["paths"]["/api/admin/events/{event_id}/races"]["get"]["responses"]
         for status in ("401", "403", "404"):
             schema = responses[status]["content"][PROBLEM]["schema"]
             assert schema == {"$ref": "#/components/schemas/ProblemDetails"}
@@ -88,9 +83,7 @@ class TestGuardProblems:
     @pytest.mark.parametrize(
         "route", _guarded_routes(), ids=lambda r: f"{sorted(r.methods)[0]} {r.path}"
     )
-    async def test_every_guarded_route_answers_a_stranger_with_not_signed_in(
-        self, client, route
-    ):
+    async def test_every_guarded_route_answers_a_stranger_with_not_signed_in(self, client, route):
         method = sorted(route.methods)[0]
         response = await client.request(method, _path(route))
         assert response.status_code == 401
@@ -132,17 +125,13 @@ class TestGuardProblems:
             settings.jwt_secret,
             algorithm=ALGORITHM,
         )
-        response = await client.get(
-            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         _assert_typed(response, "session-expired")
 
     async def test_a_forged_token_is_invalid(self, client):
         token = jwt.encode({"sub": "1"}, "not-our-secret", algorithm=ALGORITHM)
-        response = await client.get(
-            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         _assert_typed(response, "token-invalid")
 
@@ -153,8 +142,6 @@ class TestGuardProblems:
             session.add(user)
             await session.commit()
             token = create_access_token(user).token
-        response = await client.get(
-            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = await client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 401
         _assert_typed(response, "account-inactive")

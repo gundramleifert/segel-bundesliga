@@ -33,9 +33,19 @@ Acceptance criteria:
 - **A list carries no text.** News cards and the press centre's lines show the title, date,
   lead and picture; the text is read from the post's own address — for a release, once it
   is opened.
-- **A picture is uploaded or chosen from the site's pictures.** An upload is a JPEG or PNG,
-  checked by content, stored under a random name and served publicly; its credit is a line
-  of text beside it. Without a picture the league's own stands in.
+- **A picture is uploaded or chosen from the site's pictures.** An upload is a JPEG, PNG
+  or WebP, checked by content, re-encoded, stored under a random name and served publicly;
+  its credit is a line of text beside it. Without a picture the league's own stands in.
+- **A picture goes into the text the way it does in WordPress** (decided 2026-10-19 — the
+  toolbar's file chooser alone was found fiddly): dragged from a folder onto the text, or
+  pasted with Ctrl+V, it is uploaded and lands where it was dropped or where the cursor
+  is. The post's own picture takes a dropped file the same way.
+- **A link is one shortcut away.** Ctrl+K (⌘K) opens the address row; with text selected
+  the text becomes the link, with nothing selected the link is inserted with a text of its
+  own (the address if none is given). An address without its `https://` gets it, an email
+  address becomes `mailto:`, a path on this site (`/1-liga/standings`) stays a path.
+  Pasting an address over selected text links it. With the cursor in a link a row shows
+  where it leads, to open, change or remove it.
 - **The text is written in a rich-text editor** (decided 2026-10-19 — editorial knows
   WordPress, not Markdown): a toolbar for the paragraph style (text, heading, subheading),
   bold, italic, underline, strike, lists, quote, link, picture and table, each with a

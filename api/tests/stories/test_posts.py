@@ -203,7 +203,7 @@ class TestWritePosts:
         assert allowed.status_code == 201
 
     async def test_a_picture_is_uploaded_and_served(self, client, caplog):
-        """R-1: a JPEG or PNG, checked by content, served publicly under a random name."""
+        """R-1: a JPEG, PNG or WebP, checked by content, served publicly under a random name."""
         headers = await editor(client, caplog)
         uploaded = await client.post(
             "/api/admin/posts/photo",
@@ -217,6 +217,17 @@ class TestWritePosts:
         served = await client.get(url)
         assert served.status_code == 200
         assert served.headers["content-type"] == "image/jpeg"
+
+        webp = io.BytesIO()
+        Image.new("RGB", (40, 30), "navy").save(webp, format="WEBP")
+        from_phone = await client.post(
+            "/api/admin/posts/photo",
+            headers=headers,
+            files={"file": ("harbour.webp", webp.getvalue(), "image/webp")},
+        )
+        assert from_phone.status_code == 200, from_phone.text
+        stored = await client.get(from_phone.json()["url"])
+        assert stored.headers["content-type"] == "image/jpeg"
 
         refused = await client.post(
             "/api/admin/posts/photo",

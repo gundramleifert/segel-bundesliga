@@ -54,6 +54,57 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(body.locator("strong")).toHaveText("Ten o'clock");
   });
 
+  test("a picture is pasted into the text or dropped onto the cover, a link is Ctrl+K", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin/news/new");
+    await page.getByTestId("admin-post-title-input").fill("Pictures and links");
+    const content = page.getByTestId("admin-post-editor-content");
+    await content.click();
+    await page.keyboard.type("Read more at ");
+
+    // Pasted: uploaded, and in the text where the cursor was.
+    await content.evaluate(async (el) => {
+      const data = new DataTransfer();
+      data.items.add(await picture("pasted.png"));
+      el.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }));
+      async function picture(name: string) {
+        const canvas = Object.assign(document.createElement("canvas"), { width: 40, height: 30 });
+        canvas.getContext("2d")!.fillRect(0, 0, 40, 30);
+        const blob = await new Promise<Blob>((done) => canvas.toBlob((b) => done(b!), "image/png"));
+        return new File([blob], name, { type: "image/png" });
+      }
+    });
+    await expect(content.getByRole("img")).toHaveAttribute("src", /^\/api\/posts\/photos\//);
+    await expect(content.getByRole("img")).toHaveAttribute("alt", "pasted");
+
+    // Dropped onto the cover's preview: it becomes the post's picture.
+    await page.getByTestId("admin-post-photo-dropzone").evaluate(async (el) => {
+      const canvas = Object.assign(document.createElement("canvas"), { width: 60, height: 40 });
+      const blob = await new Promise<Blob>((done) => canvas.toBlob((b) => done(b!), "image/png"));
+      const data = new DataTransfer();
+      data.items.add(new File([blob], "cover.png", { type: "image/png" }));
+      el.dispatchEvent(new DragEvent("drop", { dataTransfer: data, bubbles: true, cancelable: true }));
+    });
+    await expect(page.getByTestId("admin-post-photo-preview")).toHaveAttribute("src", /^\/api\/posts\/photos\//);
+
+    // Ctrl+K with nothing selected: the address and a text of its own, linked.
+    await content.getByText("Read more at").click();
+    await page.keyboard.press("End");
+    await page.keyboard.press("ControlOrMeta+k");
+    await page.getByTestId("admin-post-editor-link-input").fill("deutsche-segelliga.de");
+    await page.getByTestId("admin-post-editor-link-text-input").fill("the association");
+    await page.keyboard.press("Enter");
+    const link = content.getByRole("link", { name: "the association" });
+    await expect(link).toHaveAttribute("href", "https://deutsche-segelliga.de");
+
+    // The cursor in the link says where it leads, and removes it.
+    await link.click();
+    await expect(page.getByTestId("admin-post-editor-link-info-href")).toHaveText("https://deutsche-segelliga.de");
+    await page.getByTestId("admin-post-editor-link-remove").click();
+    await expect(content.getByRole("link")).toHaveCount(0);
+    await expect(content).toContainText("the association");
+  });
+
   test("the press centre reads a release's text when it is opened", async ({ page }) => {
     // The list carries dates and titles only; each text comes from the release's own address.
     await page.goto("/1-liga/press");

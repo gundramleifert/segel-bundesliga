@@ -3,11 +3,11 @@ import Image from "@tiptap/extension-image";
 import { TableKit } from "@tiptap/extension-table";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import { INPUT_CLASS } from "../lib/admin";
-import { usePhotoUpload } from "../lib/usePhotoUpload";
+import { photosIn, usePhotoUpload } from "../lib/usePhotoUpload";
 import { ErrorMessage } from "./Blocks";
 import { Select } from "./Select";
 import { Tip } from "./Tip";
@@ -25,6 +25,10 @@ import { Tip } from "./Tip";
  * makes exactly what the server keeps (`api/app/services/rich_text.py`); a control added
  * here needs its element added there, or it is silently dropped on save.
  *
+ * **A picture is dropped or pasted, a link is Ctrl+K** — the two things editorial does in
+ * every article, so neither should need the toolbar (Story R-1). A dropped or pasted
+ * picture is uploaded and placed where it fell or where the cursor is.
+ *
  * The default export, so the editing page loads it with `React.lazy`: TipTap and
  * ProseMirror are a few hundred kilobytes that no reader of the site needs.
  */
@@ -38,6 +42,12 @@ export default function RichTextEditor({
   testId: string;
 }) {
   const { t } = useTranslation("admin");
+  const [linking, setLinking] = useState(false);
+  // ProseMirror keeps the handlers it was first given, and they need the editor they are
+  // handlers of: through a ref, filled once the editor exists.
+  const handlers = useRef<Handlers | null>(null);
+  const photo = usePhotoUpload((src, alt) => handlers.current?.insertImage(src, alt));
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -56,9 +66,46 @@ export default function RichTextEditor({
         "data-testid": `${testId}-content`,
         "aria-label": t("posts.bodyLabel"),
       },
+      handleDrop: (view, event, _slice, moved) => {
+        const files = photosIn(event.dataTransfer?.files);
+        if (moved || files.length === 0) return false;
+        event.preventDefault();
+        const at = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos ?? view.state.selection.from;
+        void handlers.current?.insertPhotos(files, at);
+        return true;
+      },
+      handlePaste: (view, event) => {
+        const files = photosIn(event.clipboardData?.files);
+        if (files.length === 0) return false;
+        void handlers.current?.insertPhotos(files, view.state.selection.from);
+        return true;
+      },
+      handleKeyDown: (_view, event) => {
+        if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "k") return false;
+        event.preventDefault();
+        handlers.current?.openLink();
+        return true;
+      },
     },
     // The empty editor is one empty paragraph; the server stores that as no text at all.
     onUpdate: ({ editor }) => onChange(editor.isEmpty ? "" : editor.getHTML()),
+  });
+
+  useEffect(() => {
+    if (!editor) return;
+    handlers.current = {
+      insertImage: (src, alt) => editor.chain().focus().setImage({ src, alt }).run(),
+      // One after another, the first at `at`, each next after the one before.
+      insertPhotos: async (files, at) => {
+        for (const [i, file] of files.entries()) {
+          const done = await photo.upload(file);
+          if (!done) continue;
+          const where = i === 0 ? at : editor.state.selection.to;
+          editor.chain().focus().insertContentAt(where, { type: "image", attrs: { src: done.url, alt: done.name } }).run();
+        }
+      },
+      openLink: () => setLinking(true),
+    };
   });
 
   if (!editor) return null;
@@ -67,11 +114,20 @@ export default function RichTextEditor({
       className="overflow-hidden rounded-md border border-slate-300 bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-200"
       data-testid={testId}
     >
-      <Toolbar editor={editor} testId={testId} />
+      <Toolbar editor={editor} photo={photo} linking={linking} setLinking={setLinking} testId={testId} />
       <EditorContent editor={editor} />
+      <p className="border-t border-slate-100 px-4 py-1.5 text-xs text-slate-500" data-testid={`${testId}-hint`}>
+        {photo.busy ? t("posts.photoUploading") : t("posts.editorHint")}
+      </p>
     </div>
   );
 }
+
+type Handlers = {
+  insertImage: (src: string, alt: string) => void;
+  insertPhotos: (files: File[], at: number) => Promise<void>;
+  openLink: () => void;
+};
 
 type Style = "paragraph" | "h2" | "h3";
 
@@ -95,9 +151,22 @@ const BLOCKS: Toggle[] = [
   { name: "blockquote", label: "posts.quote", testId: "quote", glyph: "❝", toggle: (c) => c.toggleBlockquote() },
 ];
 
-function Toolbar({ editor, testId }: { editor: Editor; testId: string }) {
+type PhotoUpload = ReturnType<typeof usePhotoUpload>;
+
+function Toolbar({
+  editor,
+  photo,
+  linking,
+  setLinking,
+  testId,
+}: {
+  editor: Editor;
+  photo: PhotoUpload;
+  linking: boolean;
+  setLinking: (open: boolean | ((open: boolean) => boolean)) => void;
+  testId: string;
+}) {
   const { t } = useTranslation("admin");
-  const [linking, setLinking] = useState(false);
   // Read through `useEditorState`, so the toolbar re-renders when the selection moves —
   // the editor object itself never changes identity.
   const state = useEditorState({
@@ -143,7 +212,7 @@ function Toolbar({ editor, testId }: { editor: Editor; testId: string }) {
         <Tool label={t("posts.link")} active={state.link || linking} onPress={() => setLinking((open) => !open)} testId={`${testId}-link`}>
           🔗
         </Tool>
-        <ImageTool editor={editor} testId={testId} />
+        <ImageTool photo={photo} testId={testId} />
         <Tool
           label={t("posts.table")}
           active={state.table}
@@ -160,7 +229,11 @@ function Toolbar({ editor, testId }: { editor: Editor; testId: string }) {
           ↷
         </Tool>
       </div>
-      {linking && <LinkBar editor={editor} onClose={() => setLinking(false)} testId={testId} />}
+      {linking ? (
+        <LinkBar editor={editor} onClose={() => setLinking(false)} testId={testId} />
+      ) : (
+        state.link && <LinkInfo editor={editor} onChange={() => setLinking(true)} testId={testId} />
+      )}
       {state.table && <TableBar editor={editor} testId={testId} />}
     </div>
   );
@@ -206,17 +279,46 @@ function Divider() {
   return <span aria-hidden className="mx-1 h-5 w-px bg-slate-300" />;
 }
 
+/** What was typed as a link's address, as the address: `example.com` gets its `https://`,
+ *  an email address its `mailto:`; a full address, a path on this site (`/1-liga/…`) or
+ *  an anchor stays as it is. Empty means "no link". */
+function linkTarget(typed: string): string {
+  const value = typed.trim();
+  if (!value || /^(https?:|mailto:|\/|#)/i.test(value)) return value;
+  if (/^[^\s@/]+@[^\s@/]+\.[^\s@/]+$/.test(value)) return `mailto:${value}`;
+  return `https://${value}`;
+}
+
 /** The address of a link, typed in a row under the toolbar — not the browser's `prompt`,
- *  which blocks the page and cannot be styled or translated. */
+ *  which blocks the page and cannot be styled or translated. With no text selected and no
+ *  link under the cursor there is nothing to link yet, so the row asks for the text too. */
 function LinkBar({ editor, onClose, testId }: { editor: Editor; onClose: () => void; testId: string }) {
   const { t } = useTranslation("admin");
   const [href, setHref] = useState<string>(() => editor.getAttributes("link").href ?? "");
+  const [text, setText] = useState("");
+  const inLink = editor.isActive("link");
+  const insert = editor.state.selection.empty && !inLink;
 
-  const apply = () => {
-    const chain = editor.chain().focus().extendMarkRange("link");
-    if (href.trim()) chain.setLink({ href: href.trim() }).run();
-    else chain.unsetLink().run();
+  const close = () => {
     onClose();
+    editor.commands.focus();
+  };
+  const apply = () => {
+    const target = linkTarget(href);
+    const chain = editor.chain().focus();
+    if (!target) chain.extendMarkRange("link").unsetLink().run();
+    else if (insert) {
+      const label = text.trim() || href.trim();
+      chain.insertContent({ type: "text", text: label, marks: [{ type: "link", attrs: { href: target } }] }).run();
+    } else chain.extendMarkRange("link").setLink({ href: target }).run();
+    onClose();
+  };
+  const keys = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      apply();
+    }
+    if (e.key === "Escape") close();
   };
 
   return (
@@ -225,42 +327,64 @@ function LinkBar({ editor, onClose, testId }: { editor: Editor; onClose: () => v
         className={`${INPUT_CLASS} max-w-md flex-1`}
         value={href}
         onChange={(e) => setHref(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            apply();
-          }
-          if (e.key === "Escape") onClose();
-        }}
+        onKeyDown={keys}
         placeholder={t("posts.linkPlaceholder")}
         aria-label={t("posts.linkLabel")}
         autoFocus
         data-testid={`${testId}-link-input`}
       />
+      {insert && (
+        <input
+          className={`${INPUT_CLASS} max-w-xs flex-1`}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={keys}
+          placeholder={t("posts.linkTextPlaceholder")}
+          aria-label={t("posts.linkTextLabel")}
+          data-testid={`${testId}-link-text-input`}
+        />
+      )}
       <Button size="sm" onPress={apply} data-testid={`${testId}-link-apply`}>
         {t("posts.linkApply")}
       </Button>
-      {editor.isActive("link") && (
-        <Button
-          size="sm"
-          variant="ghost"
-          onPress={() => {
-            editor.chain().focus().extendMarkRange("link").unsetLink().run();
-            onClose();
-          }}
-          data-testid={`${testId}-link-remove`}
-        >
-          {t("posts.linkRemove")}
-        </Button>
-      )}
+      <Button size="sm" variant="ghost" onPress={close} data-testid={`${testId}-link-cancel`}>
+        {t("posts.linkCancel")}
+      </Button>
     </div>
   );
 }
 
-/** A picture in the text: uploaded like the post's own picture, then inserted. */
-function ImageTool({ editor, testId }: { editor: Editor; testId: string }) {
+/** Where the link under the cursor leads, with a way to open, change or remove it — so a
+ *  link can be checked without hovering, and changed without finding the toolbar's button. */
+function LinkInfo({ editor, onChange, testId }: { editor: Editor; onChange: () => void; testId: string }) {
   const { t } = useTranslation("admin");
-  const photo = usePhotoUpload((src, alt) => editor.chain().focus().setImage({ src, alt }).run());
+  const href: string = editor.getAttributes("link").href ?? "";
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-3 py-1.5 text-sm" data-testid={`${testId}-link-info`}>
+      <span className="text-slate-500">{t("posts.linkLeadsTo")}</span>
+      <a href={href} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-brand-700 underline" data-testid={`${testId}-link-info-href`}>
+        {href}
+      </a>
+      <span className="flex-1" />
+      <Button size="sm" variant="ghost" preventFocusOnPress onPress={onChange} data-testid={`${testId}-link-change`}>
+        {t("posts.linkChange")}
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        preventFocusOnPress
+        onPress={() => editor.chain().focus().extendMarkRange("link").unsetLink().run()}
+        data-testid={`${testId}-link-remove`}
+      >
+        {t("posts.linkRemove")}
+      </Button>
+    </div>
+  );
+}
+
+/** A picture in the text, chosen from a folder — the same upload as a dropped one. */
+function ImageTool({ photo, testId }: { photo: PhotoUpload; testId: string }) {
+  const { t } = useTranslation("admin");
   return (
     <>
       <Tool label={photo.busy ? t("posts.photoUploading") : t("posts.image")} onPress={photo.pick} testId={`${testId}-image`}>

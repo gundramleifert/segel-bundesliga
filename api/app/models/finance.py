@@ -121,15 +121,11 @@ class ExpenseClaim(Base, TimestampMixin):
 
     __tablename__ = "expense_claim"
     __table_args__ = (
-        CheckConstraint(
-            "(event_id IS NOT NULL) + (club_id IS NOT NULL) = 1", name="event_or_club"
-        ),
+        CheckConstraint("(event_id IS NOT NULL) + (club_id IS NOT NULL) = 1", name="event_or_club"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    event_id: Mapped[int | None] = mapped_column(
-        ForeignKey("event.id"), index=True, default=None
-    )
+    event_id: Mapped[int | None] = mapped_column(ForeignKey("event.id"), index=True, default=None)
     # A claim on the club itself (Story F-2): what a member spent for it.
     club_id: Mapped[int | None] = mapped_column(ForeignKey("club.id"), index=True, default=None)
     claimant_user_id: Mapped[int | None] = mapped_column(
@@ -152,9 +148,7 @@ class ExpenseClaim(Base, TimestampMixin):
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     # The decision — approved, returned or rejected — and who made it. Never the claimant
     # (four eyes, enforced by the service).
-    decided_by_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("app_user.id"), default=None
-    )
+    decided_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("app_user.id"), default=None)
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     decision_note: Mapped[str | None] = mapped_column(String(1000), default=None)
 
@@ -284,9 +278,7 @@ class ExpenseDocument(Base, TimestampMixin):
     original_name: Mapped[str] = mapped_column(String(255))
     content_type: Mapped[str] = mapped_column(String(64))
     size_bytes: Mapped[int] = mapped_column()
-    uploaded_by_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("app_user.id"), default=None
-    )
+    uploaded_by_user_id: Mapped[int | None] = mapped_column(ForeignKey("app_user.id"), default=None)
 
     claim: Mapped[ExpenseClaim] = relationship(back_populates="documents")
 

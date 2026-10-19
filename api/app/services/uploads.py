@@ -26,9 +26,15 @@ MEDIA_TYPES = {
     "image/jpeg": "jpg",
     "image/png": "png",
 }
-#: A picture to show (a post's, Story R-1) rather than a paper to keep: no PDF.
-IMAGE_TYPES = {"image/jpeg": "jpg", "image/png": "png"}
-_NAMES = {"application/pdf": "a PDF", "image/jpeg": "a JPEG", "image/png": "a PNG"}
+#: A picture to show (a post's, Story R-1) rather than a paper to keep: no PDF, and WebP
+#: too — it is re-encoded as a JPEG before it is stored, so only the check needs to know it.
+IMAGE_TYPES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+_NAMES = {
+    "application/pdf": "a PDF",
+    "image/jpeg": "a JPEG",
+    "image/png": "a PNG",
+    "image/webp": "a WebP",
+}
 MAX_BYTES = 10 * 1024 * 1024
 
 
@@ -75,7 +81,7 @@ async def validated(
         detected = await asyncio.to_thread(_image_format, raw)
     except ValueError as error:
         raise Problem(422, f"{code}-invalid", "This file is not a readable image.") from error
-    real = {"PNG": "image/png", "JPEG": "image/jpeg"}.get(detected or "")
+    real = {"PNG": "image/png", "JPEG": "image/jpeg", "WEBP": "image/webp"}.get(detected or "")
     if real != content_type:
         raise Problem(
             422,
