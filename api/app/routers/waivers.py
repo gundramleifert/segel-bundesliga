@@ -688,6 +688,17 @@ async def _confirm(
             "The sailor's date of birth is required to confirm the waiver.",
             sailor_id=sailor.id,
         )
+    if (
+        minor
+        and capacity == STAFF
+        and request.method != WaiverMethod.GUARDIAN
+        and not (request.guardian_signature_ref or "").strip()
+        and authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.SAILOR, sailor.id))
+    ):
+        # Story S-8: in a small club the team manager is often a sailor's parent. Linked
+        # as guardian, their own click is the parent's online acceptance; the club's paper
+        # path is for when they send a guardian's name or a scan.
+        capacity = GUARDIAN
     if capacity == GUARDIAN and not minor:
         # Story S-8: an adult's own click is their statement — the guardianship gives
         # the parent nothing to sign once the child is of age.

@@ -218,6 +218,10 @@ Acceptance criteria:
   `guardian_online`: who (the guardian's account, `recorded_by_user_id`), their name as
   `guardian_name`, when, which version, in which language. It **clears the minor** like a
   signed scan does; the paper path stays for those without a linked account.
+- **A parent who also runs the club is still the parent** (2026-10-19): in a small club
+  the team manager is often a sailor's mother or father. Linked as guardian, their click
+  from *My children* is a `guardian_online` acceptance; the club's paper path applies only
+  when they send a guardian's name or a scan.
 - **Only while the child is a minor** on the reference date: for an adult ward the guardian
   is refused (`waiver-ward-is-adult`, 422) — an adult's own click is their statement. A
   guardian may also print the form and upload a scan for the child, as the club may.

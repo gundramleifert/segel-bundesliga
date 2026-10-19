@@ -143,6 +143,25 @@ class TestAGuardianConfirms:
         ward = next(w for w in wards.json() if w["sailor_id"] == child_id)
         assert all(c["status"] == "cleared" for c in ward["competitions"])
 
+    async def test_a_parent_who_also_runs_the_club_accepts_as_the_parent(self, client, caplog):
+        """S-8: in a small club the team manager is often a sailor's parent. Linked as
+        guardian, their click from "My children" is the parent's online acceptance — not
+        the club's paper path, which would ask for a name and a scan."""
+        the, child_id, _ = await _minor_in_squad(client, caplog)
+        manager_email = f"j5-manager-{the.tag}@example.com"
+        assert (await _link(client, the.manager, child_id, manager_email)).status_code == 201
+
+        confirmed = await client.post(
+            f"/api/series/{the.series_id}/waiver",
+            headers=the.manager,
+            json={"sailor_id": child_id, "locale_shown": "de"},
+        )
+        assert confirmed.status_code == 201, confirmed.text
+        assert (confirmed.json()["method"], confirmed.json()["cleared"]) == (
+            "guardian_online",
+            True,
+        )
+
     async def test_an_adult_ward_confirms_for_themselves(self, client, caplog):
         the = _Setting(client, caplog)
         await the.series_matchday()
