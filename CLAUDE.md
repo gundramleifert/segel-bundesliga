@@ -388,6 +388,13 @@ These points were deliberately decided this way; bypassing them costs a lot late
   refuses the same file twice. Formats come from libraries — `sepaxml`, `schwifty` (IBAN,
   BIC), `openpyxl` (the spreadsheets), `segno` (the GiroCode for one claim, Story F-8) —
   never written by hand.
+- **News and press releases are posts editorial writes on the site** (Story R-1,
+  `app/routers/posts.py`): the site's `editor` (and `admin`) alone; a draft until
+  published, like an event; one league's or the association's. The text is HTML from a
+  TipTap editor, **cleaned to an allowlist on every write** (`app/services/rich_text.py`,
+  `nh3`) — the public page shows the stored HTML as it is, so nothing may reach the table
+  around that cleaner. An editor library must be MIT or Apache licensed (decided
+  2026-10-19), which ruled out CKEditor 5 and TinyMCE.
 - **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
   boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
   Mövenstein dataset and its detectors are used once, locally, to check ours

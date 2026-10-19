@@ -28,6 +28,7 @@ from app.models import (
     EventStatus,
     Flight,
     League,
+    Post,
     Race,
     RaceEntry,
     RaceStatus,
@@ -42,6 +43,7 @@ from app.models import (
 )
 from app.models.racing import BOAT_COLORS
 from app.pairing import build_pairing
+from app.seed_posts import seed_posts
 from app.services.standings import recompute_series
 from app.text import slugify
 
@@ -386,6 +388,10 @@ async def seed() -> None:
             await recompute_series(session, series.id)
         await session.commit()
 
+        # What the news and press pages showed when they were static content (Story R-1).
+        await seed_posts(session)
+        await session.commit()
+
     print(
         f"Seed complete: {len(CLUBS)} clubs with {SQUAD_SIZE} members each, 4 series, 3 acts, "
         f"{FLIGHTS * 3} races per act"
@@ -469,6 +475,7 @@ async def _wipe(session) -> None:
     # Order by foreign keys: Team points to Event and Series, so it must
     # be deleted before both.
     for model in (
+        Post,
         RaceEntry,
         Race,
         Flight,

@@ -39,6 +39,7 @@ import type {
   BodyUploadEventWaiverScan,
   BodyUploadMyDocument,
   BodyUploadMyPhoto,
+  BodyUploadPostPhoto,
   BodyUploadSeriesWaiverScan,
   CatalogEntryOut,
   ClaimCreate,
@@ -92,10 +93,12 @@ import type {
   LinkGuardian,
   ListAllClubsParams,
   ListAllEventsParams,
+  ListAllPostsParams,
   ListAllSeriesParams,
   ListClubsParams,
   ListEventsParams,
   ListPendingApplicationsParams,
+  ListPostsParams,
   ListSailorsParams,
   ListSeriesParams,
   ListUsersParams,
@@ -112,6 +115,7 @@ import type {
   PageClubAdminOut,
   PageClubOut,
   PageEventOut,
+  PagePostAdminOut,
   PageSailorAdminOut,
   PageSeriesAdminOut,
   PageUserOut,
@@ -124,6 +128,11 @@ import type {
   PasswordSet,
   PayBody,
   PersonalDocumentOut,
+  PhotoOut,
+  PostAdminOut,
+  PostCreate,
+  PostOut,
+  PostUpdate,
   ProblemDetails,
   ProvidersOut,
   PublishRequest,
@@ -14929,6 +14938,859 @@ export function useListEventTrackers<TData = Awaited<ReturnType<typeof listEvent
 
 
 
+
+export const getListPostsUrl = (params?: ListPostsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/posts?${stringifiedParams}` : `/api/posts`
+}
+
+/**
+ * Newest first. Drafts never appear here.
+ * @summary Published news or press releases
+ */
+export const listPosts = async (params?: ListPostsParams, options?: RequestInit): Promise<PostOut[]> => {
+
+  return http<PostOut[]>(getListPostsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPostsQueryKey = (params?: ListPostsParams,) => {
+    return [
+    `/api/posts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPostsQueryOptions = <TData = Awaited<ReturnType<typeof listPosts>>, TError = ErrorType<ProblemDetails>>(params?: ListPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosts>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPostsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPosts>>> = ({ signal }) => listPosts(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListPostsQueryResult = NonNullable<Awaited<ReturnType<typeof listPosts>>>
+export type ListPostsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListPosts<TData = Awaited<ReturnType<typeof listPosts>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListPostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPosts>>,
+          TError,
+          Awaited<ReturnType<typeof listPosts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPosts<TData = Awaited<ReturnType<typeof listPosts>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listPosts>>,
+          TError,
+          Awaited<ReturnType<typeof listPosts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListPosts<TData = Awaited<ReturnType<typeof listPosts>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosts>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Published news or press releases
+ */
+
+export function useListPosts<TData = Awaited<ReturnType<typeof listPosts>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listPosts>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListPostsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPostPhotoUrl = (name: string,) => {
+
+
+
+
+  return `/api/posts/photos/${name}`
+}
+
+/**
+ * Public: a picture is uploaded to be shown. The name is random, never a path.
+ * @summary A post's uploaded picture
+ */
+export const getPostPhoto = async (name: string, options?: RequestInit): Promise<unknown> => {
+
+  return http<unknown>(getGetPostPhotoUrl(name),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPostPhotoQueryKey = (name: string,) => {
+    return [
+    `/api/posts/photos/${name}`
+    ] as const;
+    }
+
+
+export const getGetPostPhotoQueryOptions = <TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPostPhotoQueryKey(name);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPostPhoto>>> = ({ signal }) => getPostPhoto(name, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: name !== null && name !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPostPhotoQueryResult = NonNullable<Awaited<ReturnType<typeof getPostPhoto>>>
+export type GetPostPhotoQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPostPhoto>>,
+          TError,
+          Awaited<ReturnType<typeof getPostPhoto>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPostPhoto>>,
+          TError,
+          Awaited<ReturnType<typeof getPostPhoto>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A post's uploaded picture
+ */
+
+export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPostPhotoQueryOptions(name,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPostUrl = (slug: string,) => {
+
+
+
+
+  return `/api/posts/${slug}`
+}
+
+/**
+ * A draft answers 404, like a draft event (Story VA-8).
+ * @summary One published post
+ */
+export const getPost = async (slug: string, options?: RequestInit): Promise<PostOut> => {
+
+  return http<PostOut>(getGetPostUrl(slug),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPostQueryKey = (slug: string,) => {
+    return [
+    `/api/posts/${slug}`
+    ] as const;
+    }
+
+
+export const getGetPostQueryOptions = <TData = Awaited<ReturnType<typeof getPost>>, TError = ErrorType<ProblemDetails>>(slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPostQueryKey(slug);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPost>>> = ({ signal }) => getPost(slug, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: slug !== null && slug !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetPostQueryResult = NonNullable<Awaited<ReturnType<typeof getPost>>>
+export type GetPostQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetPost<TData = Awaited<ReturnType<typeof getPost>>, TError = ErrorType<ProblemDetails>>(
+ slug: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPost>>,
+          TError,
+          Awaited<ReturnType<typeof getPost>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPost<TData = Awaited<ReturnType<typeof getPost>>, TError = ErrorType<ProblemDetails>>(
+ slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPost>>,
+          TError,
+          Awaited<ReturnType<typeof getPost>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetPost<TData = Awaited<ReturnType<typeof getPost>>, TError = ErrorType<ProblemDetails>>(
+ slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One published post
+ */
+
+export function useGetPost<TData = Awaited<ReturnType<typeof getPost>>, TError = ErrorType<ProblemDetails>>(
+ slug: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPost>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetPostQueryOptions(slug,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAllPostsUrl = (params?: ListAllPostsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/admin/posts?${stringifiedParams}` : `/api/admin/posts`
+}
+
+/**
+ * @summary All posts, drafts included
+ */
+export const listAllPosts = async (params?: ListAllPostsParams, options?: RequestInit): Promise<PagePostAdminOut> => {
+
+  return http<PagePostAdminOut>(getListAllPostsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAllPostsQueryKey = (params?: ListAllPostsParams,) => {
+    return [
+    `/api/admin/posts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAllPostsQueryOptions = <TData = Awaited<ReturnType<typeof listAllPosts>>, TError = ErrorType<ProblemDetails>>(params?: ListAllPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllPosts>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAllPostsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllPosts>>> = ({ signal }) => listAllPosts(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAllPosts>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAllPostsQueryResult = NonNullable<Awaited<ReturnType<typeof listAllPosts>>>
+export type ListAllPostsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListAllPosts<TData = Awaited<ReturnType<typeof listAllPosts>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListAllPostsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllPosts>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAllPosts>>,
+          TError,
+          Awaited<ReturnType<typeof listAllPosts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAllPosts<TData = Awaited<ReturnType<typeof listAllPosts>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListAllPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllPosts>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAllPosts>>,
+          TError,
+          Awaited<ReturnType<typeof listAllPosts>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAllPosts<TData = Awaited<ReturnType<typeof listAllPosts>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListAllPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllPosts>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary All posts, drafts included
+ */
+
+export function useListAllPosts<TData = Awaited<ReturnType<typeof listAllPosts>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListAllPostsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllPosts>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAllPostsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePostUrl = () => {
+
+
+
+
+  return `/api/admin/posts`
+}
+
+/**
+ * A draft unless ``published`` says otherwise. The slug is made from the title.
+ * @summary Write a post
+ */
+export const createPost = async (postCreate: PostCreate, options?: RequestInit): Promise<PostAdminOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<PostAdminOut>(getCreatePostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(postCreate)
+  }
+);}
+
+
+
+
+
+export const getCreatePostMutationKey = () => ['createPost'] as const;
+
+export const getCreatePostMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPost>>, TError,CreatePostMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createPost>>, TError,CreatePostMutationVariables, TContext> => {
+
+const mutationKey = getCreatePostMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPost>>, CreatePostMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPost(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePostMutationResult = NonNullable<Awaited<ReturnType<typeof createPost>>>
+    export type CreatePostMutationBody = BodyType<PostCreate>
+    export type CreatePostMutationError = ErrorType<ProblemDetails>
+    export type CreatePostMutationVariables = {data: BodyType<PostCreate>}
+
+    /**
+ * @summary Write a post
+ */
+export const useCreatePost = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPost>>, TError,CreatePostMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createPost>>,
+        TError,
+        CreatePostMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePostMutationOptions(options), queryClient);
+    }
+
+export const getGetAdminPostUrl = (postId: number,) => {
+
+
+
+
+  return `/api/admin/posts/${postId}`
+}
+
+/**
+ * @summary One post, draft or not
+ */
+export const getAdminPost = async (postId: number, options?: RequestInit): Promise<PostAdminOut> => {
+
+  return http<PostAdminOut>(getGetAdminPostUrl(postId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminPostQueryKey = (postId: number,) => {
+    return [
+    `/api/admin/posts/${postId}`
+    ] as const;
+    }
+
+
+export const getGetAdminPostQueryOptions = <TData = Awaited<ReturnType<typeof getAdminPost>>, TError = ErrorType<ProblemDetails>>(postId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminPost>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminPostQueryKey(postId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminPost>>> = ({ signal }) => getAdminPost(postId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: postId !== null && postId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminPost>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminPostQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminPost>>>
+export type GetAdminPostQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetAdminPost<TData = Awaited<ReturnType<typeof getAdminPost>>, TError = ErrorType<ProblemDetails>>(
+ postId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminPost>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminPost>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminPost>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminPost<TData = Awaited<ReturnType<typeof getAdminPost>>, TError = ErrorType<ProblemDetails>>(
+ postId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminPost>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminPost>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminPost>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminPost<TData = Awaited<ReturnType<typeof getAdminPost>>, TError = ErrorType<ProblemDetails>>(
+ postId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminPost>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One post, draft or not
+ */
+
+export function useGetAdminPost<TData = Awaited<ReturnType<typeof getAdminPost>>, TError = ErrorType<ProblemDetails>>(
+ postId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminPost>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminPostQueryOptions(postId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdatePostUrl = (postId: number,) => {
+
+
+
+
+  return `/api/admin/posts/${postId}`
+}
+
+/**
+ * Publishing and withdrawing are a change of ``published`` — nothing is locked.
+ * @summary Correct a post
+ */
+export const updatePost = async (postId: number,
+    postUpdate: PostUpdate, options?: RequestInit): Promise<PostAdminOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<PostAdminOut>(getUpdatePostUrl(postId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(postUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdatePostMutationKey = () => ['updatePost'] as const;
+
+export const getUpdatePostMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePost>>, TError,UpdatePostMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updatePost>>, TError,UpdatePostMutationVariables, TContext> => {
+
+const mutationKey = getUpdatePostMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePost>>, UpdatePostMutationVariables> = (props) => {
+          const {postId,data} = props ?? {};
+
+          return  updatePost(postId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePostMutationResult = NonNullable<Awaited<ReturnType<typeof updatePost>>>
+    export type UpdatePostMutationBody = BodyType<PostUpdate>
+    export type UpdatePostMutationError = ErrorType<ProblemDetails>
+    export type UpdatePostMutationVariables = {postId: number;data: BodyType<PostUpdate>}
+
+    /**
+ * @summary Correct a post
+ */
+export const useUpdatePost = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePost>>, TError,UpdatePostMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updatePost>>,
+        TError,
+        UpdatePostMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdatePostMutationOptions(options), queryClient);
+    }
+
+export const getDeletePostUrl = (postId: number,) => {
+
+
+
+
+  return `/api/admin/posts/${postId}`
+}
+
+/**
+ * @summary Delete a post
+ */
+export const deletePost = async (postId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getDeletePostUrl(postId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeletePostMutationKey = () => ['deletePost'] as const;
+
+export const getDeletePostMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePost>>, TError,DeletePostMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deletePost>>, TError,DeletePostMutationVariables, TContext> => {
+
+const mutationKey = getDeletePostMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePost>>, DeletePostMutationVariables> = (props) => {
+          const {postId} = props ?? {};
+
+          return  deletePost(postId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePostMutationResult = NonNullable<Awaited<ReturnType<typeof deletePost>>>
+
+    export type DeletePostMutationError = ErrorType<ProblemDetails>
+    export type DeletePostMutationVariables = {postId: number}
+
+    /**
+ * @summary Delete a post
+ */
+export const useDeletePost = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePost>>, TError,DeletePostMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deletePost>>,
+        TError,
+        DeletePostMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeletePostMutationOptions(options), queryClient);
+    }
+
+export const getUploadPostPhotoUrl = () => {
+
+
+
+
+  return `/api/admin/posts/photo`
+}
+
+/**
+ * A JPEG or PNG, checked by content, re-encoded and stored under a random name. The
+ * answer is the address to put in a post's ``photo_url``.
+ * @summary Upload a picture for a post
+ */
+export const uploadPostPhoto = async (bodyUploadPostPhoto: BodyUploadPostPhoto, options?: RequestInit): Promise<PhotoOut> => {
+    const formData = new FormData();
+formData.append(`file`, bodyUploadPostPhoto.file);
+
+  return http<PhotoOut>(getUploadPostPhotoUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadPostPhotoMutationKey = () => ['uploadPostPhoto'] as const;
+
+export const getUploadPostPhotoMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadPostPhoto>>, TError,UploadPostPhotoMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof uploadPostPhoto>>, TError,UploadPostPhotoMutationVariables, TContext> => {
+
+const mutationKey = getUploadPostPhotoMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadPostPhoto>>, UploadPostPhotoMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  uploadPostPhoto(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadPostPhotoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadPostPhoto>>>
+    export type UploadPostPhotoMutationBody = BodyType<BodyUploadPostPhoto>
+    export type UploadPostPhotoMutationError = ErrorType<ProblemDetails>
+    export type UploadPostPhotoMutationVariables = {data: BodyType<BodyUploadPostPhoto>}
+
+    /**
+ * @summary Upload a picture for a post
+ */
+export const useUploadPostPhoto = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadPostPhoto>>, TError,UploadPostPhotoMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof uploadPostPhoto>>,
+        TError,
+        UploadPostPhotoMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUploadPostPhotoMutationOptions(options), queryClient);
+    }
 
 export const getListTestUsersUrl = () => {
 

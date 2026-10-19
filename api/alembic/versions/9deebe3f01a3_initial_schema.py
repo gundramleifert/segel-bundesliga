@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 48b897cccdb5
+Revision ID: 9deebe3f01a3
 Revises: 
-Create Date: 2026-10-18 21:55:19.944813
+Create Date: 2026-10-19 12:44:29.558789
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '48b897cccdb5'
+revision: str = '9deebe3f01a3'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -262,6 +262,32 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_personal_document_user_id'), ['user_id'], unique=False)
+
+    op.create_table('post',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('kind', sa.String(length=16), nullable=False),
+    sa.Column('slug', sa.String(length=120), nullable=False),
+    sa.Column('league_id', sa.Integer(), nullable=True),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('published_on', sa.Date(), nullable=False),
+    sa.Column('teaser', sa.String(length=500), nullable=True),
+    sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('author', sa.String(length=120), nullable=True),
+    sa.Column('quote', sa.String(length=500), nullable=True),
+    sa.Column('quote_by', sa.String(length=120), nullable=True),
+    sa.Column('photo_url', sa.String(length=500), nullable=True),
+    sa.Column('photo_credit', sa.String(length=160), nullable=True),
+    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
+    sa.Column('example', sa.Boolean(), server_default='0', nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['league_id'], ['league.id'], name=op.f('fk_post_league_id_league'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_post'))
+    )
+    with op.batch_alter_table('post', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_post_kind'), ['kind'], unique=False)
+        batch_op.create_index(batch_op.f('ix_post_league_id'), ['league_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_post_slug'), ['slug'], unique=True)
 
     op.create_table('series',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -903,6 +929,12 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_series_league_id'))
 
     op.drop_table('series')
+    with op.batch_alter_table('post', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_post_slug'))
+        batch_op.drop_index(batch_op.f('ix_post_league_id'))
+        batch_op.drop_index(batch_op.f('ix_post_kind'))
+
+    op.drop_table('post')
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
 

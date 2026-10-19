@@ -7,6 +7,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 
 - [A card grid's 1fr track is floored at min-content, so the overflow only appears once test data is long enough](a-card-grid-s-1fr-track-is-floored-at-min-content-so-the-overflow-only-appears-o.md)
 - [A failed maven package leaves a truncated jar behind, and it fails because the sandbox denies /tmp](a-failed-maven-package-leaves-a-truncated-jar-behind-and-it-fails-because-the-sa.md)
+- [A HeroUI Button takes the focus on press, so an editor's toolbar loses the next keystroke unless it sets preventFocusOnPress](a-heroui-button-takes-the-focus-on-press-so-an-editor-s-toolbar-loses-the-next-k.md)
 - [A mask-image on a scrolling box makes it a backdrop root, so every backdrop-blur inside it blurs nothing](a-mask-image-on-a-scrolling-box-makes-it-a-backdrop-root-so-every-backdrop-blur-.md)
 - [A mutation fired from a ticking effect repeats until its refetch lands, and each repeat's invalidation cancels that refetch](a-mutation-fired-from-a-ticking-effect-repeats-until-its-refetch-lands-and-each-.md)
 - [A native select takes its text colour from the page but paints its own white field and list, so on a white-text surface it is white on white](a-native-select-takes-its-text-colour-from-the-page-but-paints-its-own-white-fie.md)

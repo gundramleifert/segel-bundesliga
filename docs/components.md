@@ -330,6 +330,16 @@ row a link you can send, and what stops a reload from throwing the work away. It
 its own keys, so `?view=pairing` and `?tab=events` survive, and it uses `replace` — paging
 should not fill the Back button with every step on the way.
 
+### `RichText` and `RichTextEditor` — formatted text, shown and written
+
+`RichText` shows the HTML of a post (Story R-1) as it is — safe **only** because the
+server cleaned it on write (`api/app/services/rich_text.py`); never pass it anything else.
+`RichTextEditor` is the TipTap editor editorial writes it in, a toolbar of HeroUI buttons
+with `Tip`s. Both style the text with `.rich-text` (`index.css`), so the editor shows what
+the page will. The editor is the module's default export, loaded with `React.lazy`:
+TipTap is a few hundred kilobytes no reader needs. A toolbar control added there needs its
+element added to the server's allowlist, or it is dropped on save.
+
 ## Adding to this
 
 Two rules, both from `CLAUDE.md`:

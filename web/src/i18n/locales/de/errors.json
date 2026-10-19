@@ -194,5 +194,10 @@
   "tracker-unknown": "Dieser Tracker ist unbekannt oder nicht mehr aktiv.",
   "claim-not-found": "Diese Abrechnung gibt es nicht.",
   "expense-document-not-found": "Diesen Beleg gibt es zu dieser Abrechnung nicht.",
-  "document-not-found": "Dieses Dokument gibt es nicht."
+  "document-not-found": "Dieses Dokument gibt es nicht.",
+  "post-not-found": "Diesen Beitrag gibt es nicht, oder er ist nicht veröffentlicht.",
+  "post-photo-not-found": "Dieses Bild gibt es nicht.",
+  "post-photo-invalid-type": "Das Bild muss ein JPEG oder PNG sein.",
+  "post-photo-invalid": "Diese Datei ist kein lesbares Bild.",
+  "post-photo-too-large": "Das Bild ist zu groß. Bitte eine kleinere Datei verwenden."
 }

@@ -30,6 +30,7 @@ import {
 } from "../../content";
 import { formatDate, locationText } from "../../lib/format";
 import { currentAct, href } from "../../lib/site";
+import { RichText } from "../../components/RichText";
 import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
 
 // The depth pages behind a league's chapters (Story B-14), each a `DepthPage`.
@@ -327,8 +328,12 @@ function NewsCards({ league, items }: { league: string; items: Article[] }) {
 export function ArticlePage() {
   const { t } = useTranslation("site");
   const { slug, league: leagueSlug = "" } = useParams();
-  const article = useArticle(slug).data;
+  const articleState = useArticle(slug);
+  const article = articleState.data;
   const more = (useNews(leagueSlug).data ?? []).filter((n) => n.slug !== slug).slice(0, 3);
+  // While the article loads there is nothing to show; an unknown or withdrawn one leads
+  // back to the league's news rather than to an error page.
+  if (articleState.loading) return null;
   return (
     <LeagueGate>
       {({ league }) =>
@@ -346,11 +351,7 @@ export function ArticlePage() {
                   {t("news.byline", { author: article.author, date: formatDate(article.date) })}
                 </p>
               )}
-              <div className="mt-8 space-y-5 text-lg leading-relaxed text-slate-700">
-                {article.body.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
+              <RichText html={article.body} className="mt-8 text-lg leading-relaxed text-slate-700" testId="site-article-body" />
               {article.quote && (
                 <blockquote className="my-10 border-l-4 border-brand-600 pl-6">
                   <p className="text-2xl font-semibold leading-snug tracking-tight text-slate-900">“{article.quote.text}”</p>
@@ -470,7 +471,7 @@ function Releases({ league }: { league: string }) {
       {(items) =>
         items.map((p, i) => (
           <Expand
-            key={p.title}
+            key={p.slug}
             open={i === 0}
             summary={
               <span className="flex items-baseline gap-4">
@@ -479,7 +480,7 @@ function Releases({ league }: { league: string }) {
               </span>
             }
           >
-            <p>{p.body}</p>
+            <RichText html={p.body} />
           </Expand>
         ))
       }

@@ -35,6 +35,7 @@ from app.routers import (
     me,
     payments,
     personal,
+    posts,
     public,
     sailors,
     series,
@@ -146,6 +147,8 @@ app.include_router(expenses.router)
 app.include_router(payments.router)
 app.include_router(tracking.router)
 app.include_router(tracking.admin_router)
+app.include_router(posts.router)
+app.include_router(posts.admin_router)
 
 if settings.dev_login:
     # Development only: login without verification to try out roles.

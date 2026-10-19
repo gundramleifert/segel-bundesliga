@@ -194,5 +194,10 @@
   "tracker-unknown": "This tracker is not known or no longer active.",
   "claim-not-found": "This claim does not exist.",
   "expense-document-not-found": "This receipt is not on this claim.",
-  "document-not-found": "This document does not exist."
+  "document-not-found": "This document does not exist.",
+  "post-not-found": "This post does not exist, or it is not published.",
+  "post-photo-not-found": "This picture does not exist.",
+  "post-photo-invalid-type": "The picture must be a JPEG or a PNG.",
+  "post-photo-invalid": "This file is not a readable picture.",
+  "post-photo-too-large": "The picture is too large. Please use a smaller file."
 }

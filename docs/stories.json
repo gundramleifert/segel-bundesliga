@@ -818,6 +818,14 @@
   "file": "docs/userstories/live.md",
   "anchor": "l-4--the-phone-on-the-boat-is-the-tracker"
  },
+ "R-1": {
+  "title": "Write news and press releases",
+  "status": "●",
+  "role": "Editorial",
+  "phase": "Writing",
+  "file": "docs/userstories/editorial.md",
+  "anchor": "r-1--write-news-and-press-releases"
+ },
  "S-1": {
   "title": "Submit the liability waiver for each competition I am entered in",
   "status": "●",

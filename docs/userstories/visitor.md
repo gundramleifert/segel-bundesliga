@@ -467,9 +467,11 @@ Acceptance criteria:
   (every act, expanding to its venue, host and links into its tabs), `/:league/clubs`,
   `/:league/notice-board`, `/:league/news`, `/:league/media`, `/:league/press`,
   `/:league/about`, and `/about` for the association.
-- **News, press, media, documents and the about texts are static content for now**,
-  behind hooks shaped like the API calls that will replace them
-  (`web/src/content/`), so a page does not change when its data becomes dynamic.
+- **News and press releases are written by editorial on the site** (Story
+  [R-1](editorial.md#r-1--write-news-and-press-releases), `GET /api/posts`); media,
+  documents and the about texts are static content for now, behind hooks shaped like the
+  API calls that will replace them (`web/src/content/`), so a page does not change when
+  its data becomes dynamic.
 - **Placeholder content that could read as official says it is an example**: the season's
   documents and a matchday's notice board (invented jury decisions on a real matchday
   were the problem). A document carries no download mark until there is a file.

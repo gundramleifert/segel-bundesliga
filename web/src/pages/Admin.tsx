@@ -23,6 +23,7 @@ import { TabbedView, type TabDef } from "../components/Tabs";
 import { AccountsAdmin } from "./AdminAccounts";
 import { EventsAdmin } from "./admin/events/EventList";
 import { SailorsAdmin } from "./AdminSailors";
+import { PostsAdmin } from "./admin/posts/PostList";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
 import { adminTabs, type AdminTab } from "../lib/spaceTabs";
 import { Section, Field, Message } from "../components/Form";
@@ -94,6 +95,7 @@ function AdminTabs() {
     series: { key: "series", label: t("series.title"), render: () => <Series editorOnly={!hasRole("admin")} /> },
     events: { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
     sailors: { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
+    news: { key: "news", label: t("posts.title"), render: () => <PostsAdmin /> },
     accounts: { key: "accounts", label: t("accounts.title"), render: () => <AccountsAdmin /> },
   };
   const tabs = adminTabs(hasRole).map((key) => panels[key]);

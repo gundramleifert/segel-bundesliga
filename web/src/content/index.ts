@@ -1,11 +1,11 @@
 // The site's editorial content — news, press, media, documents, the about texts.
 //
-// **Static for now, shaped for an API later** (Story B-14). Nothing here has a backend
-// yet: who writes news and releases, and whether documents are the official notice board,
-// are open questions of issue #14. So every page reads this content through a hook that
-// returns what a generated query returns — `{ data, error, loading }` — and renders it
-// through `Async`. The day an endpoint exists, the hook's body becomes
-// `useAsync(useListNews({ league }))` and no page changes.
+// **News and press releases come from the API** — editorial writes them on the site
+// (Story R-1). The rest is **static for now, shaped for an API later** (Story B-14):
+// whether documents are the official notice board is an open question of issue #14. So
+// every page reads its content through a hook that returns what a generated query returns
+// — `{ data, error, loading }` — and renders it through `Async`; the day an endpoint
+// exists, the hook's body becomes a generated query and no page changes.
 //
 // Content is data, not interface copy: an article stays in the language it was written
 // in. The texts that describe the leagues and the association are given in both
@@ -13,7 +13,9 @@
 
 import { useTranslation } from "react-i18next";
 
-import type { AsyncState } from "../api/useApi";
+import { useGetPost, useListPosts } from "../api/generated/sbl";
+import { PostKind, type Post } from "../api/types";
+import { useAsync, type AsyncState } from "../api/useApi";
 import { DSBL_PHOTOS, OWN_PHOTOS, type Photo } from "./photos";
 
 export type { Photo } from "./photos";
@@ -140,8 +142,10 @@ const TABLE_MARKS: Record<string, Record<number, TableMarks>> = {
 export const tableMarks = (league: string, level: number | null | undefined): TableMarks =>
   (level != null && TABLE_MARKS[league]?.[level]) || {};
 
-// ---------------------------------------------------------------- news
+// ---------------------------------------------------------------- news and press
 
+/** An article as the pages show it. Written by editorial on the site (Story R-1) — the
+ *  hooks below read `GET /api/posts` and turn a post into this shape. */
 export type Article = {
   slug: string;
   title: string;
@@ -150,200 +154,66 @@ export type Article = {
   league: string | null;
   teaser: string;
   photo: Photo;
-  body: string[];
+  /** HTML from the editor, cleaned by the server on every write — shown as it is. */
+  body: string;
   author?: string;
   quote?: { text: string; by: string };
   /** Written to fill the page, not real news — the article says so (Story B-14). */
   example?: boolean;
 };
 
-const NEWS: Article[] = [
-  {
-    // The association's real article, from deutsche-segelliga.de/category/news.
-    slug: "neuer-vorstand-gewaehlt",
-    title: "Neuer Vorstand gewählt – es geht los!",
-    date: "2026-01-27",
-    league: null,
-    teaser: "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 von 36 Vereinen getroffen.",
-    photo: OWN_PHOTOS.title,
-    author: "Gundram Leifert",
-    body: [
-      "Was für ein Tag in Düsseldorf! Mitten im Trubel der boot haben wir uns mit 34 von 36 Vereinen getroffen – und gemeinsam die Weichen für die Zukunft der Segel-Bundesliga gestellt.",
-    ],
-  },
-  {
-    slug: "nrv-takes-the-lead",
-    title: "NRV takes the lead after a perfect Sunday",
-    date: "2026-09-21",
-    league: "1-liga",
-    teaser: "Six wins in eight races — and the table has a new name at the top.",
-    photo: DSBL_PHOTOS.podium,
-    author: "League office",
-    example: true,
-    body: [
-      "Saturday had been a day of waiting: the wind came late, turned twice and left the race committee with four flights. Sunday made up for it. A steady 12 knots from the west, flat water, and a crew from Hamburg that did not put a foot wrong.",
-      "Six wins in eight races carried them past the leaders of the morning, who lost two places in the last flight after a penalty at the leeward gate. The gap at the top is now two points with one matchday to go.",
-      "Behind them the table is as tight as it has been all season. Four clubs are separated by three points between places five and eight, and the fight against relegation will be decided on the final weekend.",
-    ],
-    quote: { text: "We kept it simple: good starts, the right side, no fouls. Everything else followed.", by: "the winning helm" },
-  },
-  {
-    slug: "promotion-race",
-    title: "Promotion race: three clubs within two points",
-    date: "2026-09-14",
-    league: "2-liga",
-    teaser: "Before the final act, nothing is decided.",
-    photo: DSBL_PHOTOS.race,
-    author: "League office",
-    example: true,
-    body: [
-      "Four places go up to the 1. Liga, and five clubs still have a realistic chance of one of them. The leaders are safe; behind them, three clubs are within two points of each other.",
-      "The last matchday is sailed at the same venue as the 1. Liga's final, which means a full harbour, a broadcast and the knowledge that every race counts double in the minds of the crews.",
-      "At the other end of the table, places 13 to 18 will have to requalify at the DSL-Pokal in autumn.",
-    ],
-  },
-  {
-    slug: "junioren-liga-champion",
-    title: "Junioren-Liga crowns its champion on the Alster",
-    date: "2026-08-30",
-    league: "junioren-liga",
-    teaser: "The youngest crew in the field wins the last flight and the title.",
-    photo: DSBL_PHOTOS.swimmer,
-    author: "League office",
-    example: true,
-    body: [
-      "The average age of the crew was seventeen. Their lead before the last flight was one point. They won the race, and with it the title.",
-      "Three days on the Alster brought every condition the city lake has to offer: gusts off the buildings, holes behind the trees and a final day with a breeze that made the J/70s plane downwind.",
-      "The best teams of the season qualify for the DSL-Pokal, where they meet crews of the 1. and 2. Liga.",
-    ],
-    quote: { text: "We trained for exactly this: one race, everything on it.", by: "the champions' helm" },
-  },
-  {
-    slug: "dsl-pokal-registration",
-    title: "DSL-Pokal: registration opens",
-    date: "2026-08-12",
-    league: "dsl-pokal",
-    teaser: "Every member club can enter one crew. Deadline 31 January.",
-    photo: DSBL_PHOTOS.aerial,
-    author: "League office",
-    example: true,
-    body: [
-      "The DSL-Pokal is the one weekend of the year on which clubs of every level race each other — and the way into the 2. Liga for clubs not yet in a Bundesliga.",
-      "Each member club can enter one crew. Entries are made by the club's team manager on this site, under the club's page in My space. Squads can be completed until the deadline.",
-      "The notice of race and the entry fee will be published on the notice board.",
-    ],
-  },
-  {
-    slug: "live-tracking",
-    title: "Live tracking: every boat on the map, from every phone",
-    date: "2026-07-28",
-    league: null,
-    teaser: "From this season the tracker is the sailor's own phone.",
-    photo: DSBL_PHOTOS.camera,
-    author: "League office",
-    example: true,
-    body: [
-      "No more boxes to charge and hand out on the pontoon: from this season a phone on board is the tracker. The race committee's phone marks the start and finish lines.",
-      "Spectators see every boat on the map, the ranking of the race and the wind, while it happens. After the race the replay stays on the matchday's page.",
-      "The tracking is the association's own and comes with every event organised on this site, the clubs' own regattas included.",
-    ],
-  },
-  {
-    slug: "season-2027-calendar",
-    title: "Season 2027: six weekends, six venues",
-    date: "2026-10-02",
-    league: "1-liga",
-    teaser: "The calendar for next season is set — two venues are new.",
-    photo: DSBL_PHOTOS.aerial,
-    author: "League office",
-    example: true,
-    body: [
-      "The league office and the host clubs have agreed the calendar for 2027. The season opens in May and ends in late September with the final.",
-      "Two venues are new to the league, and both bring a sailing area close to the shore — good for spectators and for the broadcast.",
-      "Every matchday is shared with the 2. Liga, which sails the same weekends at the same venues.",
-    ],
-  },
-  {
-    slug: "relegation-battle",
-    title: "Relegation: one weekend, four clubs, two places",
-    date: "2026-09-07",
-    league: "1-liga",
-    teaser: "The last four go down — and nobody below seventh is safe.",
-    photo: DSBL_PHOTOS.race,
-    author: "League office",
-    example: true,
-    body: [
-      "The rules are simple and hard: the last four of the 1. Liga go down to the 2. Liga. With one matchday left, the clubs between places 12 and 16 are separated by four points.",
-      "A matchday is scored by the sum of all races, so a single bad flight can cost three places. Consistency, not brilliance, is what keeps a club in the league.",
-    ],
-  },
-  {
-    slug: "media-kit",
-    title: "Broadcast and media: every matchday live",
-    date: "2026-05-15",
-    league: null,
-    teaser: "A studio on the pontoon, cameras on the water, the live map on screen.",
-    photo: DSBL_PHOTOS.studio,
-    author: "Press office",
-    example: true,
-    body: [
-      "Every matchday of the 1. Liga is broadcast live: a studio on the pontoon, cameras on RIBs, commentary and the live map with the boats' positions.",
-      "Journalists find photos, the press kit and the accreditation form in each league's press centre.",
-    ],
-  },
-  {
-    slug: "junioren-new-clubs",
-    title: "Junioren-Liga grows: five new clubs",
-    date: "2026-03-20",
-    league: "junioren-liga",
-    teaser: "More youth teams than ever have entered this season.",
-    photo: DSBL_PHOTOS.podium,
-    author: "League office",
-    example: true,
-    body: [
-      "Five clubs sail the Junioren-Liga for the first time this season. The league is open to youth teams of every German sailing club, from AK16 to AK21.",
-      "The boats are provided by the Heinz Nixdorf Verein, so a club needs a crew, a coach and the will to travel — nothing more.",
-    ],
-  },
-  {
-    slug: "club-service",
-    title: "Run your own regatta here",
-    date: "2026-04-10",
-    league: null,
-    teaser: "Pairing lists, results, tracking and waivers — the association's service for every club.",
-    photo: OWN_PHOTOS.title,
-    author: "Deutsche Segel-Liga e.V.",
-    example: true,
-    body: [
-      "Everything the league uses on a matchday is available to every club that organises its own event: the pairing list, the race committee's result entry, live tracking from phones, the liability waivers and the expense claims afterwards.",
-      "An event need not belong to a league. A club's leadership creates it, names its boats and invites its helpers — and the event has its own page on this site.",
-    ],
-  },
-];
+export type Release = { slug: string; title: string; date: string; body: string; example?: boolean };
 
-const byDate = <T extends { date: string }>(items: T[]) => [...items].sort((a, b) => b.date.localeCompare(a.date));
+/** A post's own picture, or its league's when it has none. */
+function postPhoto(post: Post): Photo {
+  if (!post.photo_url) return leaguePhoto(post.league ?? MEMBER_LEAGUES[0]);
+  return {
+    src: post.photo_url,
+    alt: post.title,
+    credit: post.photo_credit ?? "",
+    license: "",
+    page: "",
+  };
+}
+
+export function toArticle(post: Post): Article {
+  return {
+    slug: post.slug,
+    title: post.title,
+    date: post.published_on,
+    league: post.league ?? null,
+    teaser: post.teaser ?? "",
+    photo: postPhoto(post),
+    body: post.body,
+    author: post.author ?? undefined,
+    quote: post.quote ? { text: post.quote, by: post.quote_by ?? "" } : undefined,
+    example: post.example ?? false,
+  };
+}
+
+const mapped = <T, U>(state: AsyncState<T>, map: (data: T) => U): AsyncState<U> => ({
+  ...state,
+  data: state.data === null ? null : map(state.data),
+});
 
 /** A league's news and the association's, newest first; without a league, everything. */
 export function useNews(league?: string) {
-  return ready(byDate(NEWS.filter((n) => !league || n.league === league || n.league === null)));
+  const state = useAsync(useListPosts({ kind: PostKind.news, league }));
+  return mapped(state, (posts) => posts.map(toArticle));
 }
 
+/** One published article; `data` stays null while it loads and when there is none. */
 export function useArticle(slug: string | undefined) {
-  return ready(NEWS.find((n) => n.slug === slug) ?? null);
+  const state = useAsync(useGetPost(slug ?? "", { query: { enabled: !!slug, retry: false } }));
+  return mapped(state, toArticle);
 }
 
-// ---------------------------------------------------------------- press
-
-export type Release = { title: string; date: string; body: string };
-
-const PRESS: Release[] = [
-  { title: "Act 5: NRV takes over the lead", date: "2026-09-21", body: "Placeholder text of the release: the facts in the first paragraph, a quote, the next dates, and the press contact." },
-  { title: "Season 2027: calendar and venues confirmed", date: "2026-09-02", body: "Placeholder text of the release: the facts in the first paragraph, a quote, the next dates, and the press contact." },
-  { title: "Media kit 2026: logos, fact sheet, contacts", date: "2026-04-01", body: "Placeholder text of the release: the facts in the first paragraph, a quote, the next dates, and the press contact." },
-];
-
-export function usePress(_league: string) {
-  return ready(byDate(PRESS));
+/** A league's press releases and the association's, newest first. */
+export function usePress(league: string) {
+  const state = useAsync(useListPosts({ kind: PostKind.press, league }));
+  return mapped(state, (posts) =>
+    posts.map((p): Release => ({ slug: p.slug, title: p.title, date: p.published_on, body: p.body, example: p.example ?? false })),
+  );
 }
 
 export const PRESS_CONTACT = "presse@segelliga.example.com";

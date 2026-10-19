@@ -16,6 +16,7 @@ per phase.
 | [sailor.md](sailor.md) | Sailor: account, club, waiver, profile |
 | [visitor.md](visitor.md) | Visitor and fans: everything that is public |
 | [treasurer.md](treasurer.md) | Treasurer: the expense claims of an event, paid by its host club |
+| [editorial.md](editorial.md) | Editorial: news and press releases |
 | [journeys.md](journeys.md) | Journeys: the index of `docs/journeys/`, the actors and the format — several stories in the order they really happen, walked by one test |
 | [live.md](live.md) | Live and tracking — spectator, race committee and the phone on the boat share these; the plan is `docs/PLAN_LIVE_IMPLEMENTATION.md` |
 
@@ -66,4 +67,4 @@ Sensible next areas:
 - **Deadlines:** deliberately left out for now. Series and event each have a **time range**
   (`starts_on`, `ends_on`); a deadline concept is derived from this if it becomes clear what
   is needed.
-- **R-…** Editorial: publish post, create gallery.
+- **R-…** Editorial: create gallery (posts are [R-1](editorial.md#r-1--write-news-and-press-releases)).

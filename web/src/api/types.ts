@@ -17,6 +17,10 @@ export type { MemberOut as Member } from "./generated/model/memberOut";
 export type { LeagueOut as League } from "./generated/model/leagueOut";
 export type { LeagueSeason } from "./generated/model/leagueSeason";
 export type { SeriesOut as Series } from "./generated/model/seriesOut";
+/** Story R-1: a news article or a press release, as the public site and editorial see it. */
+export type { PostOut as Post } from "./generated/model/postOut";
+export type { PostAdminOut as PostAdmin } from "./generated/model/postAdminOut";
+export type { PostCreate, PostUpdate } from "./generated/model";
 export type { SeriesTable } from "./generated/model/seriesTable";
 export type { SeriesStandingRow as SeriesRow } from "./generated/model/seriesStandingRow";
 export type { EventOut as EventSummary } from "./generated/model/eventOut";
@@ -107,6 +111,7 @@ export { ExpenseKind } from "./generated/model/expenseKind";
  *  (`EventStatus.live`), so a comparison names a member the compiler knows — a typo or a
  *  renamed value is a build error rather than a branch that silently never runs. */
 export { EventStatus } from "./generated/model/eventStatus";
+export { PostKind } from "./generated/model/postKind";
 export { RaceStatus } from "./generated/model/raceStatus";
 export { RaceSignal } from "./generated/model/raceSignal";
 export { PreparatoryFlag } from "./generated/model/preparatoryFlag";

@@ -123,6 +123,77 @@ html {
   .data-table :where(th:last-child, td:last-child) {
     padding-inline-end: 0.75rem;
   }
+
+  /* Text from the editor (Story R-1) — the few elements its toolbar makes, styled the
+     same in the editor and on the article page so what editorial sees is what is shown.
+     `:where` keeps every rule at zero specificity: a page may still size the text. */
+  .rich-text :where(p, ul, ol, blockquote, table, img, hr) {
+    margin-block: 0 1.25em;
+  }
+  .rich-text :where(h2) {
+    margin-block: 1.6em 0.6em;
+    font-size: 1.5em;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-slate-900);
+  }
+  .rich-text :where(h3) {
+    margin-block: 1.4em 0.5em;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--color-slate-900);
+  }
+  .rich-text :where(ul) {
+    list-style: disc;
+    padding-inline-start: 1.5em;
+  }
+  .rich-text :where(ol) {
+    list-style: decimal;
+    padding-inline-start: 1.5em;
+  }
+  .rich-text :where(li > p) {
+    margin-block: 0.25em;
+  }
+  .rich-text :where(a) {
+    color: var(--color-brand-700);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .rich-text :where(blockquote) {
+    border-inline-start: 4px solid var(--color-brand-600);
+    padding-inline-start: 1.25em;
+    font-style: italic;
+  }
+  .rich-text :where(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+  }
+  .rich-text :where(hr) {
+    border-color: var(--color-slate-200);
+  }
+  /* A wide table scrolls inside itself rather than widening the page (Story A-10). */
+  .rich-text :where(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.9em;
+  }
+  .rich-text :where(th, td) {
+    border: 1px solid var(--color-slate-200);
+    padding: 0.4em 0.6em;
+    vertical-align: top;
+    min-width: 4em;
+  }
+  .rich-text :where(th) {
+    background-color: var(--color-slate-50);
+    font-weight: 600;
+    text-align: start;
+  }
+  .rich-text :where(th, td) > :where(p) {
+    margin: 0;
+  }
 }
 
 /* Hides the native scrollbar track on an element that still scrolls (touch/wheel/JS) —
