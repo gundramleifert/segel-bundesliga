@@ -484,9 +484,9 @@ type Box = { left: number; top: number; right: number; bottom: number };
  * coordinates — or throws when a target is missing or invisible: a mark the text refers
  * to and the picture lacks is worse than no mark.
  *
- * Each mark is an amber frame a few pixels outside the control, with a white and a dark
- * outer ring so it stands out on a white card and on the dark glass pages alike, and a
- * filled amber badge with its number just outside the frame's top-left corner. Absolutely
+ * Each mark is a soft amber glow around the control — no frame or ring: the glow alone
+ * reads on a white card and on the dark glass pages, and does not box the control in —
+ * and a filled amber badge with its number just outside its top-left corner. Absolutely
  * positioned in the document, so a full-page clip carries it; pointer-events none. */
 async function drawMarks(page: Page, marks: Mark[]): Promise<Box | null> {
   if (!marks.length) return null;
@@ -522,8 +522,10 @@ async function drawMarks(page: Page, marks: Mark[]): Promise<Box | null> {
       Object.assign(frame.style, {
         position: "absolute", left: `${left}px`, top: `${top}px`,
         width: `${width}px`, height: `${height}px`, boxSizing: "border-box",
-        border: `3px solid ${AMBER}`, borderRadius: "10px",
-        boxShadow: `0 0 0 2px #fff, 0 0 0 3.5px rgba(17,24,39,.6), 0 0 16px 5px rgba(245,158,11,.55)`,
+        borderRadius: "12px",
+        // Two layers of glow, an inner strong one and a wide soft one; nothing drawn on
+        // the control's own edge.
+        boxShadow: "0 0 10px 3px rgba(245,158,11,.75), 0 0 26px 10px rgba(245,158,11,.4)",
       });
       layer.appendChild(frame);
       // Up and left of the corner, overlapping the frame only a little, so a small
@@ -540,7 +542,7 @@ async function drawMarks(page: Page, marks: Mark[]): Promise<Box | null> {
         font: "700 14px/22px system-ui, sans-serif", textAlign: "center",
       });
       badges.push(badge);
-      const glow = 8;
+      const glow = 30;
       cover.left = Math.min(cover.left, badgeLeft, left - glow);
       cover.top = Math.min(cover.top, badgeTop, top - glow);
       cover.right = Math.max(cover.right, left + width + glow);

@@ -53,7 +53,7 @@ HANDBOOK_SHOTS=1 pnpm exec playwright test e2e/handbook-shots.spec.ts --project 
 
 ## Marks: where to click
 
-A shot may carry **marks**: an amber frame around a control with a numbered badge just
+A shot may carry **marks**: a soft amber glow around a control with a numbered badge just
 outside its top-left corner, drawn into the page before the picture is taken.
 
 ```ts
@@ -77,13 +77,14 @@ outside its top-left corner, drawn into the page before the picture is taken.
   label; for a file drop zone, the visible zone, not the hidden input. A missing or
   invisible target **fails the shot** — never a picture whose text refers to a mark it lacks.
 - The spec waits until the targets stop moving (a list that lands late pushes the rest
-  down) and widens the clip to cover every frame and badge. The frame has a white and a
-  dark outer ring, so it reads on white cards and on the dark glass pages alike.
+  down) and widens the clip to cover every glow and badge. Only a glow, two layers, no
+  frame or ring (2026-10-19, the user's call: the glow alone looks better and reads on
+  white cards and on the dark glass pages alike).
 - A phone shot of the viewport (`phoneViewport`) shows only marks inside the viewport —
   look at the PNG.
 
-Look at every marked PNG after capturing: a badge over a neighbour's frame, a mark cut by
-the clip, or a frame beside its control (layout moved) are the failures to catch.
+Look at every marked PNG after capturing: a badge over a neighbour's glow, a mark cut by
+the clip, or a glow beside its control (layout moved) are the failures to catch.
 
 ## The data must say something
 
