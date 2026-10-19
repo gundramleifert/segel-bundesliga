@@ -98,7 +98,8 @@ export async function chooseLanguage(page: Page, language: "en" | "de"): Promise
   const guest = page.getByTestId("layout-language");
   await expect(guest.or(page.getByTestId("layout-profile-button"))).toBeVisible();
   if (await guest.isVisible()) {
-    await guest.selectOption(language);
+    await guest.click();
+    await page.getByTestId(`language-switcher-${language}`).click();
     return;
   }
   await openUserMenu(page);

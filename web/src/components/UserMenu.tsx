@@ -7,7 +7,6 @@ import type { Account } from "../api/types";
 import { useDisclosure } from "../lib/useDisclosure";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
 import { helpFor, helpPath } from "../handbook";
-import { Select } from "./Select";
 
 /** Everything that is about *you*, top right in the one row (Story A-12).
  *
@@ -136,31 +135,12 @@ export function UserMenu({
   );
 }
 
-/** A guest's two things, in the row itself: the language and the way in.
- *
- *  The language is the site's one dropdown (`Select`), not an EN|DE pair — a third
- *  language fits a dropdown and would not fit the pair — and each language is named in
- *  itself, "English", "Deutsch": someone looking for their own language looks for the
- *  word they would recognise. */
+/** A guest's two things, in the row itself: the language and the way in. */
 function GuestControls({ overlay }: { overlay: boolean }) {
-  const { t, i18n } = useTranslation();
-  const current = (i18n.resolvedLanguage ?? i18n.language) as SupportedLanguage;
+  const { t } = useTranslation();
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-      <Select
-        tone="bar"
-        dark={overlay}
-        aria-label={t("language.label")}
-        value={current}
-        onChange={(event) => void i18n.changeLanguage(event.target.value)}
-        testId="layout-language"
-      >
-        {SUPPORTED_LANGUAGES.map((lang) => (
-          <option key={lang} value={lang}>
-            {t(`language.${lang}`)}
-          </option>
-        ))}
-      </Select>
+      <LanguageMenu overlay={overlay} />
       <Link
         to="/account"
         data-testid="layout-sign-in"
@@ -168,6 +148,76 @@ function GuestControls({ overlay }: { overlay: boolean }) {
       >
         {t("userMenu.signIn")}
       </Link>
+    </div>
+  );
+}
+
+/** The guest's language: an entry of the row that opens a small menu in the account
+ *  menu's style — a panel, each language named **in itself** ("English", "Deutsch":
+ *  someone looking for their own language looks for the word they would recognise), the
+ *  current one checked. Not a native `<select>`: the list a browser opens for one cannot
+ *  be styled, and on the site it looked like a form, not like the row it hangs from. Not
+ *  an EN|DE pair either: a third language fits a list and would not fit the pair. */
+function LanguageMenu({ overlay }: { overlay: boolean }) {
+  const { t, i18n } = useTranslation();
+  const menu = useDisclosure("language-menu");
+  const current = (i18n.resolvedLanguage ?? i18n.language) as SupportedLanguage;
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        {...menu.triggerProps}
+        aria-haspopup="menu"
+        aria-label={`${t("language.label")}: ${t(`language.${current}`)}`}
+        data-testid="layout-language"
+        className={`flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[13px] font-medium transition sm:px-3 sm:text-sm ${
+          overlay ? "hover:bg-white/10 hover:text-white" : "hover:bg-slate-100 hover:text-slate-950"
+        } ${menu.open ? (overlay ? "bg-white/10 text-white" : "bg-slate-100 text-slate-950") : ""}`}
+      >
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="size-4">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z" />
+        </svg>
+        <span className="uppercase">{current}</span>
+        <svg
+          aria-hidden
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`size-3.5 transition-transform ${menu.open ? "rotate-180" : ""}`}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {menu.open && (
+        <div {...menu.panelProps} className="absolute right-0 z-50 mt-2 w-44 rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5">
+        <ul role="menu" data-testid="language-switcher">
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <li key={lang} role="none">
+              <button
+                type="button"
+                role="menuitemradio"
+                aria-checked={current === lang}
+                onClick={() => {
+                  void i18n.changeLanguage(lang);
+                  menu.close();
+                }}
+                data-testid={`language-switcher-${lang}`}
+                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-100 ${
+                  current === lang ? "bg-brand-50 font-semibold text-brand-700" : "text-slate-700"
+                }`}
+              >
+                <span>{t(`language.${lang}`)}</span>
+                <span className="text-xs uppercase text-slate-400">{lang}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        </div>
+      )}
     </div>
   );
 }
