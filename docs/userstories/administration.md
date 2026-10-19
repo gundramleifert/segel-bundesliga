@@ -570,34 +570,30 @@ row. What is left of this story is the account menu and the page's name.
 
 Acceptance criteria:
 - **Neither the row nor the menu may widen the page** (Story A-10).
-- **The account button opens a menu**, on every device, holding everything that is
-  about the *reader* rather than the page: the language, Profile, Help, and the two legal
-  pages. Each of those is used rarely, and as separate items in the frame they
-  competed with the navigation for room — Help was a main nav entry beside Series and
-  Clubs, which is not what someone comes to the site for.
-  - **The language is a flyout submenu**, not a pair of toggle buttons. It opens beside
-    the row — to the right, or to the left when there is no room there, decided from the
-    row's own rectangle when it opens: the account menu is anchored to the top right of
-    the window, so "to the right" is off-screen as often as not. The chosen language stays
-    on the row itself, so the menu says what it is without being opened. Two languages fitted an
-    EN|DE segmented control; a third would not, and the control read as a widget wedged
-    into a list of links rather than as one of its entries. The row says what the language
-    currently is and opens to the choices, which is the same shape as everything else in
-    the menu and does not change when a language is added. Each language is named **in
-    itself** — "English", "Deutsch", never translated: someone looking for their own
-    language is looking for the word they would recognise, which is not the word for it in
-    a language they cannot read.
-  - It opens for a guest as well. The language and the legal pages belong to a visitor as
-    much as to anybody; only the avatar changes, from initials to a plain account icon.
+- **A guest gets no menu** (2026-10-18): top right sits the **language** — a dropdown
+  (`Select`), each language named **in itself**, "English", "Deutsch", never translated:
+  someone looking for their own language is looking for the word they would recognise —
+  and **Sign in**. Those are the only two things about the reader a guest has, and a
+  menu that opened to show two entries was a tap more than either needed. A dropdown, not
+  an EN|DE pair, because a third language fits a dropdown and would not fit the pair.
+- **Signed in, the account button opens a menu**, on every device, holding everything
+  that is about the *reader* rather than the page: my space (with its badge), Profile,
+  *Administration* for the roles that can use it, Help, and the language. Each of those is
+  used rarely, and as separate items in the frame they competed with the navigation for
+  room — Help was a main nav entry beside Series and Clubs, which is not what someone
+  comes to the site for.
+  - **The language is a flyout submenu** there. It opens beside the row — to the right,
+    or to the left when there is no room there, decided from the row's own rectangle when
+    it opens: the account menu is anchored to the top right of the window, so "to the
+    right" is off-screen as often as not. The chosen language stays on the row itself, so
+    the menu says what it is without being opened.
   - On a phone it sits **top right**, where a phone's account button belongs, and opens
     downward pinned to that edge.
   - Escape closes it, a click outside closes it, following a link in it closes it —
     the three rules `useDisclosure` gives every panel on this site.
-  - The legal pages are here on every page, and in the footer that the site structure
-    brought back (it also lists each league's pages) — § 5 DDG wants them reachable from
-    every page, and the menu is what guarantees that.
-  - *Administration* is in this menu too, for the roles that can use it: the row on top
-    has room for the leagues and nothing else.
+- **The legal pages are in the footer, not in the menu** (2026-10-18). Both footers — the
+  official pages' and the internal screens' — carry the legal notice and privacy on every
+  page, which is what § 5 DDG asks; a second copy in the menu only repeated them.
 - **The page states its name once, and that place is its `<h1>`.** On the pages outside
   the leagues (my space, administration, a club, a sailor) a breadcrumb under the row
   names the page. The breadcrumb's last

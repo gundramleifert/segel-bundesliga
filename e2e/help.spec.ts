@@ -55,9 +55,9 @@ describeStory("B-18: as a guest I am asked to sign in for the help", () => {
     });
   }
 
-  test("a guest's account menu offers no help", async ({ page }) => {
+  test("a guest is offered no help in the top row", async ({ page }) => {
     await page.goto("/");
-    await openUserMenu(page);
+    await expect(page.getByTestId("layout-sign-in")).toBeVisible();
     await expect(page.getByTestId("layout-user-menu-help")).toHaveCount(0);
   });
 });

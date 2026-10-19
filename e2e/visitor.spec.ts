@@ -1,6 +1,7 @@
 import { describeStory, expect, test } from "./fixtures";
 
 import { chooseLanguage, expectNoSidewaysScroll, openUserMenu } from "./layout";
+import { signIn } from "./session";
 
 /** E2E cut along the user stories — see docs/userstories/.
  *
@@ -203,20 +204,11 @@ test.describe("Foundations", () => {
 
   test("the mandatory legal pages are reachable from every page", async ({ page }) => {
     // § 5 DDG requires them to be reachable from anywhere on a German public site. They
-    // are in the account menu (Story A-12), which is in the one row of every page, and in
-    // the footer.
+    // are in the footer of every page — the internal screens' and the official pages'
+    // (Story A-12); the account menu no longer repeats them.
     await page.goto("/clubs");
-    await openUserMenu(page);
-    await page.getByTestId("layout-user-menu-legalNotice").click();
+    await page.getByTestId("site-footer-legal-notice").click();
     await expect(page).toHaveURL(/\/legal-notice$/);
-
-    await page.goto("/1-liga/season");
-    // Once loaded: the loading frame has a top bar of its own, and a menu opened in it
-    // closes when the page's frame replaces it.
-    await expect(page.getByTestId("site-season-act").first()).toBeVisible();
-    await openUserMenu(page);
-    await page.getByTestId("layout-user-menu-privacy").click();
-    await expect(page).toHaveURL(/\/privacy$/);
 
     await page.goto("/1-liga/clubs");
     await page.getByTestId("site-footer-legal-notice").click();
@@ -673,54 +665,49 @@ describeStory("A-12: the account menu and the page's name", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   });
 
-  test("the account button opens what is about the reader, not about the page", async ({
-    page,
-  }) => {
+  test("a guest gets no menu: the language and Sign in, side by side", async ({ page }) => {
     await page.goto("/");
-
-    // Nothing is open until it is asked for — the row carries only the leagues.
+    await expect(page.getByTestId("layout-profile-button")).toHaveCount(0);
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
-    await expect(page.getByTestId("layout-profile-button")).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
+    await expect(page.getByTestId("layout-sign-in")).toHaveAttribute("href", "/account");
+
+    // A dropdown, each language named in itself, the current one chosen.
+    const language = page.getByTestId("layout-language");
+    await expect(language.locator("option")).toHaveText(["English", "Deutsch"]);
+    await expect(language).toHaveValue("en");
+    await language.selectOption("de");
+    await expect(page.getByTestId("layout-sign-in")).toHaveText("Anmelden");
+    await expect(language).toHaveValue("de");
+  });
+
+  test("signed in, the account button opens what is about the reader, not the legal pages", async ({ page }) => {
+    await signIn(page, "admin@sbl.example.com");
+    await page.goto("/");
+    await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
+    await expect(page.getByTestId("layout-profile-button")).toHaveAttribute("aria-expanded", "false");
+    await expect(page.getByTestId("layout-language")).toHaveCount(0);
 
     await openUserMenu(page);
-    // A guest's way in is "Sign in"; my space, my profile and the help (internal, Story
-    // B-18) are for the signed-in.
-    await expect(page.getByTestId("layout-user-menu-help")).toHaveCount(0);
-    for (const key of ["language", "signIn", "legalNotice", "privacy"]) {
+    for (const key of ["mySpace", "profile", "admin", "help", "language"]) {
       await expect(page.getByTestId(`layout-user-menu-${key}`)).toBeVisible();
+    }
+    // The legal pages are the footer's (§ 5 DDG), not repeated here.
+    for (const key of ["legalNotice", "privacy", "signIn"]) {
+      await expect(page.getByTestId(`layout-user-menu-${key}`)).toHaveCount(0);
     }
 
     // The language is a submenu: closed until asked for, then one entry per language,
-    // each named in its own language and the current one marked.
+    // each named in its own language and the current one marked. `menuitemradio`, not
+    // `listitem`: the panel is a `role="menu"`, which replaces its children's list roles.
     await expect(page.getByTestId("language-switcher")).toHaveCount(0);
     await page.getByTestId("layout-user-menu-language").click();
-    // `menuitemradio`, not `listitem`: the panel is a `role="menu"`, which replaces its
-    // children's implicit list roles — and radio is what these are, a set of alternatives
-    // of which exactly one holds.
-    const languages = page
-      .getByTestId("language-switcher")
-      .getByRole("menuitemradio");
-    await expect(languages).toHaveCount(2);
+    await expect(page.getByTestId("language-switcher").getByRole("menuitemradio")).toHaveCount(2);
     await expect(page.getByTestId("language-switcher-de")).toHaveText("Deutsch");
-    await expect(page.getByTestId("language-switcher-en")).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
+    await expect(page.getByTestId("language-switcher-en")).toHaveAttribute("aria-checked", "true");
     await page.getByTestId("layout-user-menu-language").click();
     await expect(page.getByTestId("language-switcher")).toHaveCount(0);
-
-    // A guest is offered no administration.
-    await expect(page.getByTestId("layout-user-menu-admin")).toHaveCount(0);
 
     await page.keyboard.press("Escape");
-    await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
-
-    await openUserMenu(page);
-    await page.getByTestId("layout-user-menu-legalNotice").click();
-    await expect(page).toHaveURL(/\/legal-notice$/);
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
   });
 });
