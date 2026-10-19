@@ -26,8 +26,10 @@ export function NewEntryPage({
 }) {
   return (
     <AdminAccess adminOnly={adminOnly}>
+      {/* The page's name is in the breadcrumb (`PageHeader`); a heading above the form
+          would only say it a second time. */}
       <PageHeader title={title} testId={`${testId}-header`} />
-      <Section title={title} testId={testId}>
+      <Section testId={testId}>
         {children}
       </Section>
     </AdminAccess>
