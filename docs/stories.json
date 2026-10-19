@@ -826,6 +826,14 @@
   "file": "docs/userstories/editorial.md",
   "anchor": "r-1--write-news-and-press-releases"
  },
+ "R-2": {
+  "title": "Keep the pictures in a library, fed by an import API",
+  "status": "◐",
+  "role": "Editorial",
+  "phase": "Pictures",
+  "file": "docs/userstories/editorial.md",
+  "anchor": "r-2--keep-the-pictures-in-a-library-fed-by-an-import-api"
+ },
  "S-1": {
   "title": "Submit the liability waiver for each competition I am entered in",
   "status": "●",

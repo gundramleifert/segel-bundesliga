@@ -1,0 +1,17 @@
+{
+  "title": "Bilder senden",
+  "noKey": "Diese Seite braucht den Upload-Link, den du bekommen hast — bitte diesen Link öffnen.",
+  "for": "Für: {label}",
+  "validUntil": "gültig bis {date}",
+  "creditLabel": "Dein Name, für den Bildnachweis",
+  "creditHint": "Steht auf der Website bei jedem Bild. Wird auf diesem Gerät gemerkt.",
+  "choose": "Bilder auswählen",
+  "chooseHint": "oder hierher ziehen — JPEG, PNG oder WebP, mehrere auf einmal",
+  "summary": "{received} von {count, plural, one {# Bild} other {# Bildern}} angekommen",
+  "status": {
+    "waiting": "wartet",
+    "sending": "wird gesendet…",
+    "received": "angekommen",
+    "known": "war schon da"
+  }
+}

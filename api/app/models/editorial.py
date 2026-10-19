@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Date, ForeignKey, String, Text
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
@@ -49,8 +49,8 @@ class Post(Base, TimestampMixin):
     author: Mapped[str | None] = mapped_column(String(120), default=None)
     quote: Mapped[str | None] = mapped_column(String(500), default=None)
     quote_by: Mapped[str | None] = mapped_column(String(120), default=None)
-    # An uploaded picture (`/api/posts/photos/<name>`) or one of the site's own — linked,
-    # never copied (docs/site-structure.md § Content sources).
+    # A picture from the library (`/api/media/<name>.jpg`, Story R-2) or one of the site's
+    # own — linked, never copied (docs/site-structure.md § Content sources).
     photo_url: Mapped[str | None] = mapped_column(String(500), default=None)
     photo_credit: Mapped[str | None] = mapped_column(String(160), default=None)
     published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
@@ -63,3 +63,75 @@ class Post(Base, TimestampMixin):
     def league_slug(self) -> str | None:
         """Where the public site shows it — ``PostOut.league``; load ``league`` first."""
         return self.league.slug if self.league else None
+
+
+class MediaSource(StrEnum):
+    """How a picture reached the library — Story R-2."""
+
+    UPLOAD = "upload"  # editorial, from the editor or the Media tab
+    IMPORT = "import"  # a source with an import key: the upload page, later a bridge
+
+
+class ImportKey(Base, TimestampMixin):
+    """What lets a source deliver pictures without a person's sign-in — Story R-2.
+
+    Editorial makes one per source ("Photos Kiel, act 3") and sees it **once**; only its
+    SHA-256 is stored. A revoked key keeps its row, so the pictures it delivered still say
+    where they came from. How many it delivered, and when last, is counted from
+    `MediaItem.import_key_id`, never stored.
+    """
+
+    __tablename__ = "import_key"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    label: Mapped[str] = mapped_column(String(120))
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    # The key's first characters, so editorial can tell two keys apart in the list.
+    prefix: Mapped[str] = mapped_column(String(16))
+    # Put on every picture that arrives without a credit of its own.
+    credit: Mapped[str | None] = mapped_column(String(160), default=None)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    created_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="SET NULL"), default=None
+    )
+
+
+class MediaItem(Base, TimestampMixin):
+    """One picture in the library — Story R-2, `docs/PLAN_MEDIA.md`.
+
+    The files are `uploads/media/<name>.jpg` (at most 2400 px) and `<name>-thumb.jpg`;
+    ``name`` is random, so a picture nobody has used yet cannot be found by counting.
+    ``sha256`` is of the bytes as uploaded: the same file twice is one entry.
+    """
+
+    __tablename__ = "media_item"
+    __table_args__ = (UniqueConstraint("import_key_id", "external_id", name="import_external_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    source: Mapped[str] = mapped_column(String(16), default=MediaSource.UPLOAD)
+    sha256: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    original_name: Mapped[str] = mapped_column(String(255), default="")
+    alt: Mapped[str] = mapped_column(String(300), default="")
+    credit: Mapped[str | None] = mapped_column(String(160), default=None)
+    width: Mapped[int] = mapped_column(Integer)
+    height: Mapped[int] = mapped_column(Integer)
+    # The camera's date, read before EXIF is dropped; the location never is kept.
+    taken_on: Mapped[date | None] = mapped_column(Date, default=None)
+    import_key_id: Mapped[int | None] = mapped_column(
+        ForeignKey("import_key.id", ondelete="SET NULL"), index=True, default=None
+    )
+    # The source's own id for the picture: sent twice with one key, it is one entry.
+    external_id: Mapped[str | None] = mapped_column(String(200), default=None)
+    uploaded_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="SET NULL"), default=None
+    )
+
+    @property
+    def url(self) -> str:
+        return f"/api/media/{self.name}.jpg"
+
+    @property
+    def thumb_url(self) -> str:
+        return f"/api/media/{self.name}-thumb.jpg"

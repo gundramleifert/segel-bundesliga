@@ -32,6 +32,7 @@ belong to any Series, and why a club's leadership can create an event their own 
 | `docs/site-structure.md` | **The site structure** — leagues, chapter pages, depth pages, URLs and redirects (option E of #14), built in `web/src/pages/league/` |
 | `scripts/` | `dev-stack.sh` (servers for e2e), `check.sh` (everything that must be green), `gen-api-client.sh` (the frontend's API client) |
 | `docs/deploy.md` | Free test-instance deployment (`render.yaml`, `api/Dockerfile`) |
+| `docs/PLAN_MEDIA.md` | **Pictures** — the media library and the automatic layout (galleries, shapes, crops), the plan Story R-2 is written from |
 | `docs/PLAN_LIVE_IMPLEMENTATION.md` | **Live data, tracking, race control** — the agreed plan, make/buy vs SAP Sailing Analytics, phases |
 | `api/app/imports/` | **Imports** from SAP Sailing (past DSBL matchdays, results) and Manage2Sail (entries, notice-board documents) — `uv run python -m app.imports --help`, Story A-14 |
 | `api/app/tracking/` | **Boats on the water** — geometry, polar, course, passings, ranking, the emulator; `settings.py` holds every tuned constant (`SBL_TRACKING_*`) |

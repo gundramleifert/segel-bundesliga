@@ -70,3 +70,54 @@ Endpoints: `GET /api/posts`, `GET /api/posts/{slug}`, `GET /api/admin/posts`,
 Tests: `api/tests/stories/test_posts.py::TestWritePosts`,
 `api/tests/stories/test_posts.py::TestReadPosts`,
 `e2e/editorial.spec.ts::R-1: editorial writes news and press releases`
+
+## Pictures
+
+### R-2 ◐ Keep the pictures in a library, fed by an import API
+As **editorial** I want **every picture the site shows in one library, and photographers
+able to deliver pictures into it without an account**, so that **a photo is uploaded once,
+used in any post, and arrives from wherever the photographers already are**
+(`docs/PLAN_MEDIA.md`, phase 1).
+
+Acceptance criteria:
+- **Every upload is a library entry** — from the editor (dropped, pasted, chosen) and from
+  the import API alike. An entry knows the picture, a small preview, its measurements, the
+  file's original name, alt text, credit, the camera's date and where it came from. The
+  picture is re-encoded as for R-1 (upright, at most 2400 px, no EXIF — the camera's date is
+  read before EXIF is dropped, the location never kept).
+- **The same picture twice is one entry.** An upload whose bytes match an entry's answers
+  that entry instead of storing a copy.
+- **A picture is addressed by a random name** (`/api/media/<name>.jpg`), never by its row
+  number, so an imported picture nobody used yet cannot be found by counting.
+- **The import API is for machines** (decided 2026-10-19): `POST /api/import/media` takes a
+  picture and, optionally, its alt text, credit and the source's own id for it, with an
+  **import key** in the `X-Import-Key` header — not a person's sign-in. A source's id sent
+  twice with the same key answers the entry already made, so a bridge that retries never
+  duplicates. Every source — the upload page below, later a Nextcloud or Flickr bridge —
+  uses this one endpoint and nothing else.
+- **Import keys are made and revoked by editorial**, on the *Media* tab: a label ("Photos
+  Kiel, act 3"), an optional credit put on every picture that arrives without one, and how
+  long it is valid. The key is shown **once**, as an upload link; only its hash is stored.
+  A revoked or expired key is refused, and what arrived with it stays. How many pictures a
+  key delivered and when it was last used are counted, not stored.
+- **The first source is our own upload page** (`/upload`), opened from that link on a
+  phone: it says whose upload it is, takes several pictures at once — dropped or chosen —
+  asks for the credit once and remembers it, and shows each picture's progress. It uses the
+  import API like any other source would. The key travels in the link's `#fragment`, so it
+  never appears in a server's log or a referrer.
+- **The *Media* tab** lists the library newest first with a search over name, alt text and
+  credit; an entry's alt text and credit can be corrected there, and it says which posts use
+  it. **Deleting is refused while a post uses the picture**, naming those posts.
+- Editorial alone — like posts (R-1). The upload page needs nothing but a valid key.
+
+Endpoints: `GET|POST /api/admin/media`, `GET|PATCH|DELETE /api/admin/media/{id}`,
+`GET|POST /api/admin/import-keys`, `DELETE /api/admin/import-keys/{id}`,
+`GET /api/import/key`, `POST /api/import/media`, `GET /api/media/{name}`
+
+Not yet: the picker panel in the editor (`docs/PLAN_MEDIA.md` §2.2) — the editor's own
+uploads already land in the library, but choosing an existing entry is still the site's
+dropdown and a new upload. Hence ◐.
+
+Tests: `api/tests/stories/test_media.py::TestLibrary`,
+`api/tests/stories/test_media.py::TestImport`,
+`e2e/media.spec.ts::R-2: a picture library fed by upload links`

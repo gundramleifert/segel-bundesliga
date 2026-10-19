@@ -45,13 +45,15 @@ async def validated(
     code: str,
     what: str,
     accept: dict[str, str] = MEDIA_TYPES,
+    max_bytes: int = MAX_BYTES,
 ) -> str:
     """The media type the bytes really are — or a typed refusal.
 
     ``code`` prefixes the problem codes (``<code>-invalid-type``, ``<code>-too-large``,
     ``<code>-invalid``), so each kind keeps the codes its frontend already maps; ``what``
     names the file in the English title ("The signed form"); ``accept`` narrows the types
-    (:data:`IMAGE_TYPES` for a picture).
+    (:data:`IMAGE_TYPES` for a picture); ``max_bytes`` raises the limit for a phone's photo,
+    which is re-encoded anyway.
 
     Async because Pillow's decode is CPU work: it runs in a thread, so a large scan does
     not stall every other request while it is checked.
@@ -66,12 +68,12 @@ async def validated(
         )
     if not raw:
         raise Problem(422, f"{code}-invalid", "The upload is empty.")
-    if len(raw) > MAX_BYTES:
+    if len(raw) > max_bytes:
         raise Problem(
             422,
             f"{code}-too-large",
             f"{what} is too large.",
-            detail=f"At most {MAX_BYTES // (1024 * 1024)} MB.",
+            detail=f"At most {max_bytes // (1024 * 1024)} MB.",
         )
     if content_type == "application/pdf":
         if not raw.startswith(b"%PDF"):

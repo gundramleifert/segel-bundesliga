@@ -34,12 +34,13 @@ import type {
   ApproveBody,
   BankAccountIn,
   BankAccountOut,
+  BodyImportMedia,
   BodyUploadClaimDocument,
   BodyUploadClubLogo,
   BodyUploadEventWaiverScan,
+  BodyUploadMedia,
   BodyUploadMyDocument,
   BodyUploadMyPhoto,
-  BodyUploadPostPhoto,
   BodyUploadSeriesWaiverScan,
   CatalogEntryOut,
   ClaimCreate,
@@ -85,6 +86,11 @@ import type {
   GetSailorParams,
   GuardianOut,
   Health200,
+  ImportKeyCreate,
+  ImportKeyCreated,
+  ImportKeyInfo,
+  ImportKeyOut,
+  ImportedOut,
   Index200,
   ItemCreate,
   JobOut,
@@ -97,6 +103,7 @@ import type {
   ListAllSeriesParams,
   ListClubsParams,
   ListEventsParams,
+  ListMediaParams,
   ListPendingApplicationsParams,
   ListPostsParams,
   ListSailorsParams,
@@ -104,6 +111,8 @@ import type {
   ListUsersParams,
   LiveNowOut,
   LiveRaceOut,
+  MediaDetail,
+  MediaFields,
   ModelOut,
   MyClubOut,
   MySpaceOut,
@@ -115,6 +124,7 @@ import type {
   PageClubAdminOut,
   PageClubOut,
   PageEventOut,
+  PageMediaOut,
   PagePostAdminSummary,
   PageSailorAdminOut,
   PageSeriesAdminOut,
@@ -128,7 +138,6 @@ import type {
   PasswordSet,
   PayBody,
   PersonalDocumentOut,
-  PhotoOut,
   PostAdminOut,
   PostCreate,
   PostOut,
@@ -15050,108 +15059,6 @@ export function useListPosts<TData = Awaited<ReturnType<typeof listPosts>>, TErr
 
 
 
-export const getGetPostPhotoUrl = (name: string,) => {
-
-
-
-
-  return `/api/posts/photos/${name}`
-}
-
-/**
- * Public: a picture is uploaded to be shown. The name is random, never a path.
- * @summary A post's uploaded picture
- */
-export const getPostPhoto = async (name: string, options?: RequestInit): Promise<unknown> => {
-
-  return http<unknown>(getGetPostPhotoUrl(name),
-  {
-    ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
-
-
-export const getGetPostPhotoQueryKey = (name: string,) => {
-    return [
-    `/api/posts/photos/${name}`
-    ] as const;
-    }
-
-
-export const getGetPostPhotoQueryOptions = <TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>>, }
-) => {
-
-const {query: queryOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getGetPostPhotoQueryKey(name);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPostPhoto>>> = ({ signal }) => getPostPhoto(name, { signal });
-
-
-
-
-
-   return  { queryKey, queryFn, enabled: name !== null && name !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetPostPhotoQueryResult = NonNullable<Awaited<ReturnType<typeof getPostPhoto>>>
-export type GetPostPhotoQueryError = ErrorType<ProblemDetails>
-
-
-export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
- name: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>> & Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPostPhoto>>,
-          TError,
-          Awaited<ReturnType<typeof getPostPhoto>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
- name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>> & Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof getPostPhoto>>,
-          TError,
-          Awaited<ReturnType<typeof getPostPhoto>>
-        > , 'initialData'
-      >, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
- name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>>, }
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary A post's uploaded picture
- */
-
-export function useGetPostPhoto<TData = Awaited<ReturnType<typeof getPostPhoto>>, TError = ErrorType<ProblemDetails>>(
- name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getPostPhoto>>, TError, TData>>, }
- , queryClient?: QueryClient
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-
-  const queryOptions = getGetPostPhotoQueryOptions(name,options)
-
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
-
 export const getGetPostUrl = (slug: string,) => {
 
 
@@ -15716,24 +15623,133 @@ export const useDeletePost = <TError = ErrorType<ProblemDetails>,
       return useMutation(getDeletePostMutationOptions(options), queryClient);
     }
 
-export const getUploadPostPhotoUrl = () => {
+export const getListMediaUrl = (params?: ListMediaParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/admin/posts/photo`
+  return stringifiedParams.length > 0 ? `/api/admin/media?${stringifiedParams}` : `/api/admin/media`
 }
 
 /**
- * A JPEG or PNG, checked by content, re-encoded and stored under a random name. The
- * answer is the address to put in a post's ``photo_url``.
- * @summary Upload a picture for a post
+ * Newest first.
+ * @summary The picture library
  */
-export const uploadPostPhoto = async (bodyUploadPostPhoto: BodyUploadPostPhoto, options?: RequestInit): Promise<PhotoOut> => {
-    const formData = new FormData();
-formData.append(`file`, bodyUploadPostPhoto.file);
+export const listMedia = async (params?: ListMediaParams, options?: RequestInit): Promise<PageMediaOut> => {
 
-  return http<PhotoOut>(getUploadPostPhotoUrl(),
+  return http<PageMediaOut>(getListMediaUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMediaQueryKey = (params?: ListMediaParams,) => {
+    return [
+    `/api/admin/media`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMediaQueryOptions = <TData = Awaited<ReturnType<typeof listMedia>>, TError = ErrorType<ProblemDetails>>(params?: ListMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMedia>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMediaQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMedia>>> = ({ signal }) => listMedia(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMedia>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListMediaQueryResult = NonNullable<Awaited<ReturnType<typeof listMedia>>>
+export type ListMediaQueryError = ErrorType<ProblemDetails>
+
+
+export function useListMedia<TData = Awaited<ReturnType<typeof listMedia>>, TError = ErrorType<ProblemDetails>>(
+ params: undefined |  ListMediaParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMedia>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMedia>>,
+          TError,
+          Awaited<ReturnType<typeof listMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMedia<TData = Awaited<ReturnType<typeof listMedia>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMedia>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listMedia>>,
+          TError,
+          Awaited<ReturnType<typeof listMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListMedia<TData = Awaited<ReturnType<typeof listMedia>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The picture library
+ */
+
+export function useListMedia<TData = Awaited<ReturnType<typeof listMedia>>, TError = ErrorType<ProblemDetails>>(
+ params?: ListMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListMediaQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadMediaUrl = () => {
+
+
+
+
+  return `/api/admin/media`
+}
+
+/**
+ * A JPEG, PNG or WebP, re-encoded. 201 for a new entry, 200 with the entry it already
+ * is for a picture the library holds.
+ * @summary Upload a picture into the library
+ */
+export const uploadMedia = async (bodyUploadMedia: BodyUploadMedia, options?: RequestInit): Promise<ImportedOut> => {
+    const formData = new FormData();
+formData.append(`file`, bodyUploadMedia.file);
+
+  return http<ImportedOut>(getUploadMediaUrl(),
   {
     ...options,
     method: 'POST'
@@ -15746,13 +15762,13 @@ formData.append(`file`, bodyUploadPostPhoto.file);
 
 
 
-export const getUploadPostPhotoMutationKey = () => ['uploadPostPhoto'] as const;
+export const getUploadMediaMutationKey = () => ['uploadMedia'] as const;
 
-export const getUploadPostPhotoMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadPostPhoto>>, TError,UploadPostPhotoMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof uploadPostPhoto>>, TError,UploadPostPhotoMutationVariables, TContext> => {
+export const getUploadMediaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadMedia>>, TError,UploadMediaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof uploadMedia>>, TError,UploadMediaMutationVariables, TContext> => {
 
-const mutationKey = getUploadPostPhotoMutationKey();
+const mutationKey = getUploadMediaMutationKey();
 const {mutation: mutationOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -15762,10 +15778,10 @@ const {mutation: mutationOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadPostPhoto>>, UploadPostPhotoMutationVariables> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadMedia>>, UploadMediaMutationVariables> = (props) => {
           const {data} = props ?? {};
 
-          return  uploadPostPhoto(data,)
+          return  uploadMedia(data,)
         }
 
 
@@ -15775,24 +15791,847 @@ const {mutation: mutationOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type UploadPostPhotoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadPostPhoto>>>
-    export type UploadPostPhotoMutationBody = BodyType<BodyUploadPostPhoto>
-    export type UploadPostPhotoMutationError = ErrorType<ProblemDetails>
-    export type UploadPostPhotoMutationVariables = {data: BodyType<BodyUploadPostPhoto>}
+    export type UploadMediaMutationResult = NonNullable<Awaited<ReturnType<typeof uploadMedia>>>
+    export type UploadMediaMutationBody = BodyType<BodyUploadMedia>
+    export type UploadMediaMutationError = ErrorType<ProblemDetails>
+    export type UploadMediaMutationVariables = {data: BodyType<BodyUploadMedia>}
 
     /**
- * @summary Upload a picture for a post
+ * @summary Upload a picture into the library
  */
-export const useUploadPostPhoto = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadPostPhoto>>, TError,UploadPostPhotoMutationVariables, TContext>, }
+export const useUploadMedia = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadMedia>>, TError,UploadMediaMutationVariables, TContext>, }
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof uploadPostPhoto>>,
+        Awaited<ReturnType<typeof uploadMedia>>,
         TError,
-        UploadPostPhotoMutationVariables,
+        UploadMediaMutationVariables,
         TContext
       > => {
-      return useMutation(getUploadPostPhotoMutationOptions(options), queryClient);
+      return useMutation(getUploadMediaMutationOptions(options), queryClient);
     }
+
+export const getGetMediaUrl = (mediaId: number,) => {
+
+
+
+
+  return `/api/admin/media/${mediaId}`
+}
+
+/**
+ * @summary One picture
+ */
+export const getMedia = async (mediaId: number, options?: RequestInit): Promise<MediaDetail> => {
+
+  return http<MediaDetail>(getGetMediaUrl(mediaId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMediaQueryKey = (mediaId: number,) => {
+    return [
+    `/api/admin/media/${mediaId}`
+    ] as const;
+    }
+
+
+export const getGetMediaQueryOptions = <TData = Awaited<ReturnType<typeof getMedia>>, TError = ErrorType<ProblemDetails>>(mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedia>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMediaQueryKey(mediaId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMedia>>> = ({ signal }) => getMedia(mediaId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: mediaId !== null && mediaId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMedia>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMediaQueryResult = NonNullable<Awaited<ReturnType<typeof getMedia>>>
+export type GetMediaQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetMedia<TData = Awaited<ReturnType<typeof getMedia>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedia>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMedia>>,
+          TError,
+          Awaited<ReturnType<typeof getMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMedia<TData = Awaited<ReturnType<typeof getMedia>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedia>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMedia>>,
+          TError,
+          Awaited<ReturnType<typeof getMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMedia<TData = Awaited<ReturnType<typeof getMedia>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One picture
+ */
+
+export function useGetMedia<TData = Awaited<ReturnType<typeof getMedia>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMediaQueryOptions(mediaId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateMediaUrl = (mediaId: number,) => {
+
+
+
+
+  return `/api/admin/media/${mediaId}`
+}
+
+/**
+ * @summary Correct a picture's alt text or credit
+ */
+export const updateMedia = async (mediaId: number,
+    mediaFields: MediaFields, options?: RequestInit): Promise<MediaDetail> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<MediaDetail>(getUpdateMediaUrl(mediaId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mediaFields)
+  }
+);}
+
+
+
+
+
+export const getUpdateMediaMutationKey = () => ['updateMedia'] as const;
+
+export const getUpdateMediaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMedia>>, TError,UpdateMediaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateMedia>>, TError,UpdateMediaMutationVariables, TContext> => {
+
+const mutationKey = getUpdateMediaMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMedia>>, UpdateMediaMutationVariables> = (props) => {
+          const {mediaId,data} = props ?? {};
+
+          return  updateMedia(mediaId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMediaMutationResult = NonNullable<Awaited<ReturnType<typeof updateMedia>>>
+    export type UpdateMediaMutationBody = BodyType<MediaFields>
+    export type UpdateMediaMutationError = ErrorType<ProblemDetails>
+    export type UpdateMediaMutationVariables = {mediaId: number;data: BodyType<MediaFields>}
+
+    /**
+ * @summary Correct a picture's alt text or credit
+ */
+export const useUpdateMedia = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMedia>>, TError,UpdateMediaMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateMedia>>,
+        TError,
+        UpdateMediaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateMediaMutationOptions(options), queryClient);
+    }
+
+export const getDeleteMediaUrl = (mediaId: number,) => {
+
+
+
+
+  return `/api/admin/media/${mediaId}`
+}
+
+/**
+ * Refused (409 ``media-in-use``, naming the posts) while a post shows it.
+ * @summary Delete a picture
+ */
+export const deleteMedia = async (mediaId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getDeleteMediaUrl(mediaId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMediaMutationKey = () => ['deleteMedia'] as const;
+
+export const getDeleteMediaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMedia>>, TError,DeleteMediaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMedia>>, TError,DeleteMediaMutationVariables, TContext> => {
+
+const mutationKey = getDeleteMediaMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMedia>>, DeleteMediaMutationVariables> = (props) => {
+          const {mediaId} = props ?? {};
+
+          return  deleteMedia(mediaId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMediaMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMedia>>>
+
+    export type DeleteMediaMutationError = ErrorType<ProblemDetails>
+    export type DeleteMediaMutationVariables = {mediaId: number}
+
+    /**
+ * @summary Delete a picture
+ */
+export const useDeleteMedia = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMedia>>, TError,DeleteMediaMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMedia>>,
+        TError,
+        DeleteMediaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteMediaMutationOptions(options), queryClient);
+    }
+
+export const getListImportKeysUrl = () => {
+
+
+
+
+  return `/api/admin/import-keys`
+}
+
+/**
+ * Newest first, revoked ones included — their pictures still say where they came from.
+ * @summary The import keys
+ */
+export const listImportKeys = async ( options?: RequestInit): Promise<ImportKeyOut[]> => {
+
+  return http<ImportKeyOut[]>(getListImportKeysUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListImportKeysQueryKey = () => {
+    return [
+    `/api/admin/import-keys`
+    ] as const;
+    }
+
+
+export const getListImportKeysQueryOptions = <TData = Awaited<ReturnType<typeof listImportKeys>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportKeys>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListImportKeysQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listImportKeys>>> = ({ signal }) => listImportKeys({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listImportKeys>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListImportKeysQueryResult = NonNullable<Awaited<ReturnType<typeof listImportKeys>>>
+export type ListImportKeysQueryError = ErrorType<ProblemDetails>
+
+
+export function useListImportKeys<TData = Awaited<ReturnType<typeof listImportKeys>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportKeys>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listImportKeys>>,
+          TError,
+          Awaited<ReturnType<typeof listImportKeys>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListImportKeys<TData = Awaited<ReturnType<typeof listImportKeys>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportKeys>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listImportKeys>>,
+          TError,
+          Awaited<ReturnType<typeof listImportKeys>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListImportKeys<TData = Awaited<ReturnType<typeof listImportKeys>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportKeys>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The import keys
+ */
+
+export function useListImportKeys<TData = Awaited<ReturnType<typeof listImportKeys>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listImportKeys>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListImportKeysQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateImportKeyUrl = () => {
+
+
+
+
+  return `/api/admin/import-keys`
+}
+
+/**
+ * The answer carries the key itself, the only time it is shown.
+ * @summary Make an import key
+ */
+export const createImportKey = async (importKeyCreate: ImportKeyCreate, options?: RequestInit): Promise<ImportKeyCreated> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<ImportKeyCreated>(getCreateImportKeyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(importKeyCreate)
+  }
+);}
+
+
+
+
+
+export const getCreateImportKeyMutationKey = () => ['createImportKey'] as const;
+
+export const getCreateImportKeyMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createImportKey>>, TError,CreateImportKeyMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createImportKey>>, TError,CreateImportKeyMutationVariables, TContext> => {
+
+const mutationKey = getCreateImportKeyMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createImportKey>>, CreateImportKeyMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createImportKey(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateImportKeyMutationResult = NonNullable<Awaited<ReturnType<typeof createImportKey>>>
+    export type CreateImportKeyMutationBody = BodyType<ImportKeyCreate>
+    export type CreateImportKeyMutationError = ErrorType<ProblemDetails>
+    export type CreateImportKeyMutationVariables = {data: BodyType<ImportKeyCreate>}
+
+    /**
+ * @summary Make an import key
+ */
+export const useCreateImportKey = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createImportKey>>, TError,CreateImportKeyMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createImportKey>>,
+        TError,
+        CreateImportKeyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateImportKeyMutationOptions(options), queryClient);
+    }
+
+export const getRevokeImportKeyUrl = (keyId: number,) => {
+
+
+
+
+  return `/api/admin/import-keys/${keyId}`
+}
+
+/**
+ * Refused from now on; what arrived with it stays.
+ * @summary Revoke an import key
+ */
+export const revokeImportKey = async (keyId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getRevokeImportKeyUrl(keyId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevokeImportKeyMutationKey = () => ['revokeImportKey'] as const;
+
+export const getRevokeImportKeyMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeImportKey>>, TError,RevokeImportKeyMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof revokeImportKey>>, TError,RevokeImportKeyMutationVariables, TContext> => {
+
+const mutationKey = getRevokeImportKeyMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeImportKey>>, RevokeImportKeyMutationVariables> = (props) => {
+          const {keyId} = props ?? {};
+
+          return  revokeImportKey(keyId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeImportKeyMutationResult = NonNullable<Awaited<ReturnType<typeof revokeImportKey>>>
+
+    export type RevokeImportKeyMutationError = ErrorType<ProblemDetails>
+    export type RevokeImportKeyMutationVariables = {keyId: number}
+
+    /**
+ * @summary Revoke an import key
+ */
+export const useRevokeImportKey = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeImportKey>>, TError,RevokeImportKeyMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof revokeImportKey>>,
+        TError,
+        RevokeImportKeyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRevokeImportKeyMutationOptions(options), queryClient);
+    }
+
+export const getGetImportKeyUrl = () => {
+
+
+
+
+  return `/api/import/key`
+}
+
+/**
+ * 401 ``import-key-invalid`` for a key that is unknown, revoked or expired.
+ * @summary The key this source holds
+ */
+export const getImportKey = async ( options?: RequestInit): Promise<ImportKeyInfo> => {
+
+  return http<ImportKeyInfo>(getGetImportKeyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetImportKeyQueryKey = () => {
+    return [
+    `/api/import/key`
+    ] as const;
+    }
+
+
+export const getGetImportKeyQueryOptions = <TData = Awaited<ReturnType<typeof getImportKey>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportKey>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetImportKeyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImportKey>>> = ({ signal }) => getImportKey({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImportKey>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetImportKeyQueryResult = NonNullable<Awaited<ReturnType<typeof getImportKey>>>
+export type GetImportKeyQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetImportKey<TData = Awaited<ReturnType<typeof getImportKey>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportKey>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImportKey>>,
+          TError,
+          Awaited<ReturnType<typeof getImportKey>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImportKey<TData = Awaited<ReturnType<typeof getImportKey>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportKey>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImportKey>>,
+          TError,
+          Awaited<ReturnType<typeof getImportKey>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImportKey<TData = Awaited<ReturnType<typeof getImportKey>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportKey>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The key this source holds
+ */
+
+export function useGetImportKey<TData = Awaited<ReturnType<typeof getImportKey>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImportKey>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetImportKeyQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getImportMediaUrl = () => {
+
+
+
+
+  return `/api/import/media`
+}
+
+/**
+ * The one way a source puts a picture into the library. 201 for a new entry; 200 with
+ * the existing one for the same bytes, or the same ``external_id`` from this key.
+ * @summary Deliver a picture
+ */
+export const importMedia = async (bodyImportMedia: BodyImportMedia, options?: RequestInit): Promise<ImportedOut> => {
+    const formData = new FormData();
+formData.append(`file`, bodyImportMedia.file);
+if(bodyImportMedia.alt !== undefined && bodyImportMedia.alt !== null) {
+ formData.append(`alt`, bodyImportMedia.alt);
+ }
+if(bodyImportMedia.credit !== undefined && bodyImportMedia.credit !== null) {
+ formData.append(`credit`, bodyImportMedia.credit);
+ }
+if(bodyImportMedia.external_id !== undefined && bodyImportMedia.external_id !== null) {
+ formData.append(`external_id`, bodyImportMedia.external_id);
+ }
+
+  return http<ImportedOut>(getImportMediaUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getImportMediaMutationKey = () => ['importMedia'] as const;
+
+export const getImportMediaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importMedia>>, TError,ImportMediaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof importMedia>>, TError,ImportMediaMutationVariables, TContext> => {
+
+const mutationKey = getImportMediaMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importMedia>>, ImportMediaMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  importMedia(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportMediaMutationResult = NonNullable<Awaited<ReturnType<typeof importMedia>>>
+    export type ImportMediaMutationBody = BodyType<BodyImportMedia>
+    export type ImportMediaMutationError = ErrorType<ProblemDetails>
+    export type ImportMediaMutationVariables = {data: BodyType<BodyImportMedia>}
+
+    /**
+ * @summary Deliver a picture
+ */
+export const useImportMedia = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importMedia>>, TError,ImportMediaMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof importMedia>>,
+        TError,
+        ImportMediaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getImportMediaMutationOptions(options), queryClient);
+    }
+
+export const getGetMediaFileUrl = (fileName: string,) => {
+
+
+
+
+  return `/api/media/${fileName}`
+}
+
+/**
+ * ``<name>.jpg`` or ``<name>-thumb.jpg``. The name is random and a file never changes
+ * under it, so it is cached for good.
+ * @summary A picture from the library
+ */
+export const getMediaFile = async (fileName: string, options?: RequestInit): Promise<unknown> => {
+
+  return http<unknown>(getGetMediaFileUrl(fileName),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMediaFileQueryKey = (fileName: string,) => {
+    return [
+    `/api/media/${fileName}`
+    ] as const;
+    }
+
+
+export const getGetMediaFileQueryOptions = <TData = Awaited<ReturnType<typeof getMediaFile>>, TError = ErrorType<ProblemDetails>>(fileName: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaFile>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMediaFileQueryKey(fileName);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMediaFile>>> = ({ signal }) => getMediaFile(fileName, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: fileName !== null && fileName !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMediaFile>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMediaFileQueryResult = NonNullable<Awaited<ReturnType<typeof getMediaFile>>>
+export type GetMediaFileQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetMediaFile<TData = Awaited<ReturnType<typeof getMediaFile>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaFile>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMediaFile>>,
+          TError,
+          Awaited<ReturnType<typeof getMediaFile>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMediaFile<TData = Awaited<ReturnType<typeof getMediaFile>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaFile>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMediaFile>>,
+          TError,
+          Awaited<ReturnType<typeof getMediaFile>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMediaFile<TData = Awaited<ReturnType<typeof getMediaFile>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaFile>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A picture from the library
+ */
+
+export function useGetMediaFile<TData = Awaited<ReturnType<typeof getMediaFile>>, TError = ErrorType<ProblemDetails>>(
+ fileName: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaFile>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMediaFileQueryOptions(fileName,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getListTestUsersUrl = () => {
 

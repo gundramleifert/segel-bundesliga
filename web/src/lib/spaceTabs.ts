@@ -82,7 +82,7 @@ export function tabRule<T extends Record<string, TabRule>, K extends keyof T & s
 
 /** The areas of the administration. Also the values `?tab=` accepts — an unknown one falls
  *  back to the first tab rather than erroring (Story A-11). */
-export type AdminTab = "clubs" | "series" | "events" | "sailors" | "news" | "accounts";
+export type AdminTab = "clubs" | "series" | "events" | "sailors" | "news" | "media" | "accounts";
 
 export type HasRole = (...roles: Role[]) => boolean;
 
@@ -101,12 +101,12 @@ export const ADMIN_ROLES: readonly Role[] = [
 /** The administration's tabs this person has, in the order the work happens (Story A-11).
  *  The league office sees every area; a series' organizer its series and events; the
  *  organizer or jury of one event the events tab alone — a tab a role may not use does not
- *  exist for it. *News* is editorial's (Story R-1), *Accounts* the admin's alone. Nobody
+ *  exist for it. *News* and *Media* are editorial's (Stories R-1, R-2), *Accounts* the admin's alone. Nobody
  *  outside `ADMIN_ROLES` has any. */
 export function adminTabs(hasRole: HasRole): AdminTab[] {
   if (!hasRole(...ADMIN_ROLES)) return [];
   const tabs: AdminTab[] = hasRole(Role.admin, Role.editor)
-    ? ["clubs", "series", "events", "sailors", "news"]
+    ? ["clubs", "series", "events", "sailors", "news", "media"]
     : hasRole(Role.series_manager)
       ? ["series", "events"]
       : ["events"];

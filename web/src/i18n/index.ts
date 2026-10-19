@@ -35,6 +35,7 @@ import sailorDe from "./locales/de/sailor.json";
 import siteDe from "./locales/de/site.json";
 import spaceDe from "./locales/de/space.json";
 import standingsDe from "./locales/de/standings.json";
+import uploadDe from "./locales/de/upload.json";
 import accountEn from "./locales/en/account.json";
 import adminEn from "./locales/en/admin.json";
 import clubEn from "./locales/en/club.json";
@@ -52,6 +53,7 @@ import sailorEn from "./locales/en/sailor.json";
 import siteEn from "./locales/en/site.json";
 import spaceEn from "./locales/en/space.json";
 import standingsEn from "./locales/en/standings.json";
+import uploadEn from "./locales/en/upload.json";
 
 export const SUPPORTED_LANGUAGES = ["en", "de"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -80,6 +82,7 @@ void i18n
         legal: legalEn,
         live: liveEn,
         space: spaceEn,
+        upload: uploadEn,
       },
       de: {
         common: commonDe,
@@ -99,6 +102,7 @@ void i18n
         legal: legalDe,
         live: liveDe,
         space: spaceDe,
+        upload: uploadDe,
       },
     },
     fallbackLng: "en",
@@ -121,6 +125,7 @@ void i18n
       "legal",
       "live",
       "space",
+      "upload",
     ],
     defaultNS: "common",
     interpolation: { escapeValue: false },

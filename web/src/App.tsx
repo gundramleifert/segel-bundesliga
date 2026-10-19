@@ -17,6 +17,7 @@ import { AdminClubNew } from "./pages/AdminClubNew";
 import { AdminEventNew } from "./pages/AdminEventNew";
 import { AdminSailorNew } from "./pages/AdminSailorNew";
 import { AdminPostPage } from "./pages/admin/posts/PostEdit";
+import { UploadPage } from "./pages/Upload";
 import { AdminSeriesNew } from "./pages/AdminSeriesNew";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
@@ -121,6 +122,8 @@ export default function App() {
         <Route path="admin/sailors/new" element={<AdminSailorNew />} />
         <Route path="admin/news/new" element={<AdminPostPage />} />
         <Route path="admin/news/:id" element={<AdminPostPage />} />
+        {/* Story R-2: a photographer's upload link — the key in its #fragment. */}
+        <Route path="upload" element={<UploadPage />} />
         {/* Story B-18: the handbook, pages from web/src/handbook/. */}
         <Route path="help" element={<HelpLanding />} />
         <Route path="help/:page" element={<HelpPageView />} />

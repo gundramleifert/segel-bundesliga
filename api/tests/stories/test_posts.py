@@ -203,16 +203,16 @@ class TestWritePosts:
         assert allowed.status_code == 201
 
     async def test_a_picture_is_uploaded_and_served(self, client, caplog):
-        """R-1: a JPEG, PNG or WebP, checked by content, served publicly under a random name."""
+        """R-1, R-2: a JPEG, PNG or WebP, checked by content, into the library, served publicly."""
         headers = await editor(client, caplog)
         uploaded = await client.post(
-            "/api/admin/posts/photo",
+            "/api/admin/media",
             headers=headers,
             files={"file": ("harbour.png", png(), "image/png")},
         )
-        assert uploaded.status_code == 200, uploaded.text
+        assert uploaded.status_code == 201, uploaded.text
         url = uploaded.json()["url"]
-        assert url.startswith("/api/posts/photos/")
+        assert url.startswith("/api/media/")
 
         served = await client.get(url)
         assert served.status_code == 200
@@ -221,23 +221,23 @@ class TestWritePosts:
         webp = io.BytesIO()
         Image.new("RGB", (40, 30), "navy").save(webp, format="WEBP")
         from_phone = await client.post(
-            "/api/admin/posts/photo",
+            "/api/admin/media",
             headers=headers,
             files={"file": ("harbour.webp", webp.getvalue(), "image/webp")},
         )
-        assert from_phone.status_code == 200, from_phone.text
+        assert from_phone.status_code == 201, from_phone.text
         stored = await client.get(from_phone.json()["url"])
         assert stored.headers["content-type"] == "image/jpeg"
 
         refused = await client.post(
-            "/api/admin/posts/photo",
+            "/api/admin/media",
             headers=headers,
             files={"file": ("notes.pdf", b"%PDF-1.4 not a picture", "application/pdf")},
         )
         assert refused.status_code == 422
-        assert refused.json()["type"].endswith("/post-photo-invalid-type")
+        assert refused.json()["type"].endswith("/media-invalid-type")
 
-        assert (await client.get("/api/posts/photos/..%2Fsbl.db")).status_code == 404
+        assert (await client.get("/api/media/..%2Fsbl.db")).status_code == 404
 
     async def test_the_text_keeps_its_formatting_and_nothing_else(self, client, caplog):
         """R-1: the editor's HTML is cleaned to what its toolbar makes, on every write."""

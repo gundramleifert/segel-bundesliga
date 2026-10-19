@@ -8,12 +8,11 @@ are Story VA-11, posts by participants VA-4.
 
 from __future__ import annotations
 
-import asyncio
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
-from fastapi.responses import FileResponse, Response
+from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,17 +24,11 @@ from app.models import League, Post, PostKind
 from app.models.auth import User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services import pictures, uploads
 from app.services.lookup import get_or_404, unique_slug
 from app.services.rich_text import clean_html
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 admin_router = APIRouter(prefix="/api/admin/posts", tags=["admin"])
-
-# A picture for the web, not an archive: the longest edge a card or a page header needs.
-_PHOTO_EDGE = 2000
-# Their directory under `uploads/` (`app/services/uploads.py`).
-_PHOTOS = "posts"
 
 
 class PostSummary(BaseModel):
@@ -144,10 +137,6 @@ class PostUpdate(PostFields):
     published: bool = None  # type: ignore[assignment]
 
 
-class PhotoOut(BaseModel):
-    url: str
-
-
 # ---------------------------------------------------------------- public
 
 
@@ -175,15 +164,6 @@ async def list_posts(
     stmt = stmt.order_by(Post.published_on.desc(), Post.id.desc()).limit(limit)
     posts = (await session.execute(stmt)).scalars().all()
     return [PostSummary.model_validate(post) for post in posts]
-
-
-@router.get("/photos/{name}", summary="A post's uploaded picture")
-async def get_post_photo(name: str) -> FileResponse:
-    """Public: a picture is uploaded to be shown. The name is random, never a path."""
-    path = uploads.path(_PHOTOS, name)
-    if path is None:
-        raise Problem(404, "post-photo-not-found", "No such picture.")
-    return FileResponse(path, media_type="image/jpeg")
 
 
 @router.get("/{slug}", response_model=PostOut, summary="One published post")
@@ -281,22 +261,6 @@ async def delete_post(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@admin_router.post("/photo", response_model=PhotoOut, summary="Upload a picture for a post")
-async def upload_post_photo(
-    file: UploadFile = File(...),
-    _: User = Depends(require_editor),
-) -> PhotoOut:
-    """A JPEG or PNG, checked by content, re-encoded and stored under a random name. The
-    answer is the address to put in a post's ``photo_url``."""
-    raw = await file.read()
-    await uploads.validated(
-        raw, file.content_type, code="post-photo", what="The picture", accept=uploads.IMAGE_TYPES
-    )
-    jpeg = await asyncio.to_thread(_reencode, raw)
-    name = uploads.store(_PHOTOS, jpeg, "image/jpeg")
-    return PhotoOut(url=f"/api/posts/photos/{name}")
-
-
 # ---------------------------------------------------------------- helpers
 
 
@@ -309,9 +273,3 @@ async def _admin_out(session: AsyncSession, post: Post) -> PostAdminOut:
 async def _check_league(session: AsyncSession, league_id: int | None) -> None:
     if league_id is not None:
         await get_or_404(session, League, league_id)
-
-
-def _reencode(raw: bytes) -> bytes:
-    """Upright, at most `_PHOTO_EDGE` on its longer side, as a JPEG without EXIF."""
-    image = pictures.upright(raw, code="post-photo", edge=_PHOTO_EDGE)
-    return pictures.jpeg(pictures.bounded(image, _PHOTO_EDGE))

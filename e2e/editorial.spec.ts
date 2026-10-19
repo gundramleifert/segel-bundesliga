@@ -74,7 +74,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
         return new File([blob], name, { type: "image/png" });
       }
     });
-    await expect(content.getByRole("img")).toHaveAttribute("src", /^\/api\/posts\/photos\//);
+    await expect(content.getByRole("img")).toHaveAttribute("src", /^\/api\/media\//);
     await expect(content.getByRole("img")).toHaveAttribute("alt", "pasted");
 
     // Dropped onto the cover's preview: it becomes the post's picture.
@@ -85,7 +85,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
       data.items.add(new File([blob], "cover.png", { type: "image/png" }));
       el.dispatchEvent(new DragEvent("drop", { dataTransfer: data, bubbles: true, cancelable: true }));
     });
-    await expect(page.getByTestId("admin-post-photo-preview")).toHaveAttribute("src", /^\/api\/posts\/photos\//);
+    await expect(page.getByTestId("admin-post-photo-preview")).toHaveAttribute("src", /^\/api\/media\//);
 
     // Ctrl+K with nothing selected: the address and a text of its own, linked.
     await content.getByText("Read more at").click();

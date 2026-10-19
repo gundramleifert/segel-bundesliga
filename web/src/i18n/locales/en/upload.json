@@ -1,0 +1,17 @@
+{
+  "title": "Send pictures",
+  "noKey": "This page needs the upload link you were sent — open that link instead.",
+  "for": "For: {label}",
+  "validUntil": "valid until {date}",
+  "creditLabel": "Your name, for the photo credit",
+  "creditHint": "Shown with each picture on the site. Remembered on this device.",
+  "choose": "Choose pictures",
+  "chooseHint": "or drop them here — JPEG, PNG or WebP, several at once",
+  "summary": "{received} of {count, plural, one {# picture} other {# pictures}} received",
+  "status": {
+    "waiting": "waiting",
+    "sending": "sending…",
+    "received": "received",
+    "known": "was already there"
+  }
+}

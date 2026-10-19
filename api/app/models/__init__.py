@@ -10,7 +10,7 @@ from app.models.competition import (
     Series,
     Venue,
 )
-from app.models.editorial import Post, PostKind
+from app.models.editorial import ImportKey, MediaItem, MediaSource, Post, PostKind
 from app.models.finance import (
     ClaimStatus,
     ClubBankAccount,
@@ -55,6 +55,9 @@ from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "ImportKey",
+    "MediaItem",
+    "MediaSource",
     "Post",
     "PostKind",
     "League",

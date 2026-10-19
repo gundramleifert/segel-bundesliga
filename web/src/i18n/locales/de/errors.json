@@ -196,8 +196,10 @@
   "expense-document-not-found": "Diesen Beleg gibt es zu dieser Abrechnung nicht.",
   "document-not-found": "Dieses Dokument gibt es nicht.",
   "post-not-found": "Diesen Beitrag gibt es nicht, oder er ist nicht veröffentlicht.",
-  "post-photo-not-found": "Dieses Bild gibt es nicht.",
-  "post-photo-invalid-type": "Das Bild muss ein JPEG oder PNG sein.",
-  "post-photo-invalid": "Diese Datei ist kein lesbares Bild.",
-  "post-photo-too-large": "Das Bild ist zu groß. Bitte eine kleinere Datei verwenden."
+  "media-not-found": "Dieses Bild gibt es nicht.",
+  "media-invalid-type": "Das Bild muss ein JPEG, PNG oder WebP sein.",
+  "media-invalid": "Diese Datei ist kein lesbares Bild.",
+  "media-too-large": "Das Bild ist zu groß (höchstens 25 MB).",
+  "media-in-use": "Ein Beitrag zeigt dieses Bild noch. Bitte zuerst dort herausnehmen.",
+  "import-key-invalid": "Dieser Upload-Link gilt nicht (mehr). Bitte bei der Redaktion einen neuen anfragen."
 }

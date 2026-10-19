@@ -6,6 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface PhotoOut {
-  url: string;
-}
+/**
+ * How a picture reached the library — Story R-2.
+ */
+export type MediaSource = typeof MediaSource[keyof typeof MediaSource];
+
+
+export const MediaSource = {
+  upload: 'upload',
+  import: 'import',
+} as const;

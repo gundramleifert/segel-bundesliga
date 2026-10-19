@@ -1,11 +1,11 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 
-import { uploadPostPhoto } from "../api/generated/sbl";
+import { uploadMedia } from "../api/generated/sbl";
 import { errorText } from "./admin";
 
 /** What the server takes for a post's picture (`uploads.IMAGE_TYPES`). */
-const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 /** The pictures among dropped or pasted files — a dropped file skips the chooser's
  *  `accept`, and a clipboard may carry text and a picture at once. */
@@ -15,8 +15,9 @@ export function photosIn(files: FileList | null | undefined): File[] {
 
 export type UploadedPhoto = { url: string; name: string };
 
-/** Picking a picture for a post and uploading it — Story R-1. One hidden file input, a
- *  busy flag and the error, for the post's own picture and a picture in its text alike.
+/** Picking a picture for a post and uploading it into the library — Stories R-1, R-2. One
+ *  hidden file input, a busy flag and the error, for the post's own picture and a picture
+ *  in its text alike. A picture the library already holds answers its entry, not a copy.
  *
  *     const photo = usePhotoUpload((url, name) => …);
  *     <Button onPress={photo.pick}>…</Button>
@@ -34,8 +35,8 @@ export function usePhotoUpload(onUploaded: (url: string, name: string) => void) 
     setBusy(true);
     setError(null);
     try {
-      const { url } = await uploadPostPhoto({ file });
-      return { url, name: file.name.replace(/\.[^.]+$/, "") };
+      const { url, alt } = await uploadMedia({ file });
+      return { url, name: alt };
     } catch (e) {
       setError(errorText(e, t("posts.photoError")));
       return null;

@@ -6,6 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface BodyUploadPostPhoto {
-  file: Blob;
+export interface ImportKeyCreate {
+  /**
+     * @minLength 3
+     * @maxLength 120
+     */
+  label: string;
+  credit?: string | null;
+  /** How long it works; empty: until revoked. */
+  valid_days?: number | null;
 }

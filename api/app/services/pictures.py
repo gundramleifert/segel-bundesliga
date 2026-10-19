@@ -17,8 +17,9 @@ uploaded, see `app/services/uploads.py`.
 from __future__ import annotations
 
 import io
+from datetime import date
 
-from PIL import Image, ImageOps
+from PIL import ExifTags, Image, ImageOps
 
 from app.problems import Problem
 
@@ -107,3 +108,18 @@ def png(image: Image.Image) -> bytes:
     out = io.BytesIO()
     image.save(out, format="PNG", optimize=True)
     return out.getvalue()
+
+
+def taken_on(raw: bytes) -> date | None:
+    """The day the camera says it took the picture — read before the re-encoding drops
+    EXIF, and the only thing kept of it (never the location). ``None`` when it does not
+    say, or says nonsense."""
+    try:
+        exif = Image.open(io.BytesIO(raw)).getexif()
+        stamp = exif.get_ifd(ExifTags.IFD.Exif).get(ExifTags.Base.DateTimeOriginal) or exif.get(
+            ExifTags.Base.DateTime
+        )
+        year, month, day = (int(part) for part in str(stamp)[:10].split(":"))
+        return date(year, month, day)
+    except Exception:
+        return None
