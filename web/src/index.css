@@ -140,17 +140,13 @@ html {
   .rich-text :where(p, ul, ol, blockquote, table, img, hr) {
     margin-block: 0 1.25em;
   }
+  /* The text's one heading — a section of the article, never a second title: the title
+     is the page's `h1`, far larger, set from the form (Story R-1). */
   .rich-text :where(h2) {
-    margin-block: 1.6em 0.6em;
-    font-size: 1.5em;
+    margin-block: 1.5em 0.5em;
+    font-size: 1.25em;
     font-weight: 600;
-    line-height: 1.25;
-    color: var(--rich-heading);
-  }
-  .rich-text :where(h3) {
-    margin-block: 1.4em 0.5em;
-    font-size: 1.2em;
-    font-weight: 600;
+    line-height: 1.3;
     color: var(--rich-heading);
   }
   .rich-text :where(ul) {

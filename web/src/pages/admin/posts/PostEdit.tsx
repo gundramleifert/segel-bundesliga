@@ -23,6 +23,7 @@ import { Select } from "../../../components/Select";
 import { DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, leaguePhoto } from "../../../content";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
+import { repeatsTitle } from "../../../lib/postTitle";
 import { href } from "../../../lib/site";
 import { filesIn, usePhotoUpload } from "../../../lib/usePhotoUpload";
 import { NewEntryPage } from "../../AdminNewPage";
@@ -121,6 +122,8 @@ function PostForm({ post }: { post?: PostAdmin }) {
     },
   });
   const pending = create.isPending || update.isPending;
+  // The title is a field of its own: a text that starts with it again cannot be saved.
+  const titleInText = repeatsTitle(draft.body, draft.title);
   const failure = create.error ?? update.error;
 
   const save = (published = draft.published) => {
@@ -176,7 +179,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
         </Field>
       </div>
 
-      <Field label={t("posts.titleLabel")}>
+      <Field label={t("posts.titleLabel")} hint={t("posts.titleHint")}>
         <input
           className={`${INPUT_CLASS} text-lg font-semibold`}
           value={draft.title}
@@ -207,6 +210,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
         <Suspense fallback={<Loading testId="admin-post-editor-loading" />}>
           <RichTextEditor value={draft.body} onChange={(html) => set("body", html)} testId="admin-post-editor" />
         </Suspense>
+        {titleInText && <ErrorMessage text={t("posts.titleInText")} testId="admin-post-title-in-text" />}
       </div>
 
       {news && (
@@ -237,12 +241,12 @@ function PostForm({ post }: { post?: PostAdmin }) {
       <Message success={saved ? t("posts.saved") : null} error={failure ? errorText(failure, t("posts.saveError")) : null} testId="admin-post-save" />
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" isDisabled={pending} data-testid="admin-post-save-button">
+        <Button type="submit" isDisabled={pending || titleInText} data-testid="admin-post-save-button">
           {draft.published ? t("posts.saveButton") : t("posts.saveDraftButton")}
         </Button>
         <Button
           variant={draft.published ? "outline" : "primary"}
-          isDisabled={pending || draft.title.trim().length < 3}
+          isDisabled={pending || titleInText || draft.title.trim().length < 3}
           onPress={() => save(!draft.published)}
           data-testid={draft.published ? "admin-post-unpublish-button" : "admin-post-publish-button"}
         >

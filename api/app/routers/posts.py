@@ -25,7 +25,7 @@ from app.models.auth import User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.services.lookup import get_or_404, unique_slug
-from app.services.rich_text import clean_html
+from app.services.rich_text import clean_html, repeats_title
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 admin_router = APIRouter(prefix="/api/admin/posts", tags=["admin"])
@@ -213,6 +213,7 @@ async def create_post(
 ) -> PostAdminOut:
     """A draft unless ``published`` says otherwise. The slug is made from the title."""
     await _check_league(session, body.league_id)
+    _title_not_in_text(body.title, body.body)
     fields = body.model_dump()
     fields["published_on"] = fields["published_on"] or date.today()
     # Cut before the slug is made, so a long title's slug still fits with a number added.
@@ -241,6 +242,8 @@ async def update_post(
     """Publishing and withdrawing are a change of ``published`` — nothing is locked."""
     post = await get_or_404(session, Post, post_id)
     changes = body.model_dump(exclude_unset=True)
+    # The title and the text as they will be: a new title alone may repeat the text too.
+    _title_not_in_text(changes.get("title", post.title), changes.get("body", post.body))
     if "league_id" in changes:
         await _check_league(session, changes["league_id"])
     for name, value in changes.items():
@@ -268,6 +271,16 @@ async def _admin_out(session: AsyncSession, post: Post) -> PostAdminOut:
     """The post as editorial sees it, its league (re)loaded — it may just have changed."""
     await session.refresh(post, ["league"])
     return PostAdminOut.model_validate(post)
+
+
+def _title_not_in_text(title: str, body: str) -> None:
+    if repeats_title(body, title):
+        raise Problem(
+            422,
+            "post-title-in-text",
+            "The text starts with the title again.",
+            detail="The title is shown above the text; start the text with what follows it.",
+        )
 
 
 async def _check_league(session: AsyncSession, league_id: int | None) -> None:

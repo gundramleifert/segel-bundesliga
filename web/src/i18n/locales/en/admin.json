@@ -398,7 +398,6 @@
     "styleLabel": "Paragraph style",
     "styleParagraph": "Paragraph",
     "styleHeading": "Heading",
-    "styleSubheading": "Subheading",
     "bold": "Bold",
     "italic": "Italic",
     "underline": "Underline",
@@ -427,7 +426,9 @@
     "tableRowDelete": "Delete row",
     "tableColumnDelete": "Delete column",
     "tableDelete": "Delete table",
-    "photoFromLibrary": "From the library"
+    "photoFromLibrary": "From the library",
+    "titleHint": "The article's heading, shown above the text. The text starts with what follows it.",
+    "titleInText": "The text starts with the title again. The title is shown above the text — start the text with what follows it."
   },
   "media": {
     "title": "Media",

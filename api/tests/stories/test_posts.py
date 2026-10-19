@@ -239,6 +239,54 @@ class TestWritePosts:
 
         assert (await client.get("/api/media/..%2Fsbl.db")).status_code == 404
 
+    async def test_the_title_is_a_field_never_the_texts_first_line(self, client, caplog):
+        """R-1: a text that starts with the title again is refused — nothing is cut away."""
+        headers = await editor(client, caplog)
+        refused = await client.post(
+            "/api/admin/posts",
+            headers=headers,
+            json={"title": "Harbour day", "body": "<h2>Harbour day</h2><p>Open doors.</p>"},
+        )
+        assert refused.status_code == 422
+        assert refused.json()["type"].endswith("/post-title-in-text")
+
+        post = (
+            await client.post(
+                "/api/admin/posts",
+                headers=headers,
+                json={"title": "Harbour day", "body": "<p>Open doors.</p><h2>Harbour day</h2>"},
+            )
+        ).json()
+        # The same words further down are text, and stay as they were written.
+        assert post["body"] == "<p>Open doors.</p><h2>Harbour day</h2>"
+
+        bold = await client.patch(
+            f"/api/admin/posts/{post['id']}",
+            headers=headers,
+            json={"body": "<p><strong> harbour  DAY </strong></p><p>Open doors.</p>"},
+        )
+        assert bold.status_code == 422
+        renamed = await client.patch(
+            f"/api/admin/posts/{post['id']}", headers=headers, json={"title": "Open doors."}
+        )
+        assert renamed.status_code == 422
+        unchanged = await client.get(f"/api/admin/posts/{post['id']}", headers=headers)
+        assert unchanged.json()["title"] == "Harbour day"
+        assert unchanged.json()["body"] == "<p>Open doors.</p><h2>Harbour day</h2>"
+
+    async def test_the_text_has_one_kind_of_heading(self, client, caplog):
+        """R-1: a pasted title (h1) or subheading (h3) arrives as the text's one heading."""
+        headers = await editor(client, caplog)
+        post = await client.post(
+            "/api/admin/posts",
+            headers=headers,
+            json={
+                "title": "Levels",
+                "body": "<p>Intro</p><h1>From Word</h1><h3 class='x'>Smaller</h3><p>End</p>",
+            },
+        )
+        assert post.json()["body"] == "<p>Intro</p><h2>From Word</h2><h2>Smaller</h2><p>End</p>"
+
     async def test_the_text_keeps_its_formatting_and_nothing_else(self, client, caplog):
         """R-1: the editor's HTML is cleaned to what its toolbar makes, on every write."""
         headers = await editor(client, caplog)

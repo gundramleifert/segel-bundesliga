@@ -122,6 +122,26 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(page.getByTestId(`site-press-text-${second}`)).not.toBeEmpty();
   });
 
+  test("the title is set in the form: a text that starts with it again cannot be saved", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin/news/new");
+    await page.getByTestId("admin-post-title-input").fill("Harbour day");
+    // The editor has a paragraph and one heading — nothing for a title.
+    const style = page.getByTestId("admin-post-editor-style");
+    await expect(style.locator("option")).toHaveCount(2);
+
+    const content = page.getByTestId("admin-post-editor-content");
+    await content.click();
+    await style.selectOption("h2");
+    await page.keyboard.type("Harbour day");
+    await expect(page.getByTestId("admin-post-title-in-text")).toBeVisible();
+    await expect(page.getByTestId("admin-post-save-button")).toBeDisabled();
+
+    await page.keyboard.type(": the programme");
+    await expect(page.getByTestId("admin-post-title-in-text")).toHaveCount(0);
+    await expect(page.getByTestId("admin-post-save-button")).toBeEnabled();
+  });
+
   test("a club's team manager has no News tab", async ({ page }) => {
     await signIn(page, MANAGER);
     await page.goto("/admin");

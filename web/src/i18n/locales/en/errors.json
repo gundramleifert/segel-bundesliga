@@ -204,5 +204,6 @@
   "import-key-invalid": "This upload link is not valid (any more). Ask editorial for a new one.",
   "media-context-both": "A picture belongs to an event or to a series, not both.",
   "media-url-invalid": "That address cannot be fetched — only public web addresses (http or https).",
-  "media-url-unreachable": "The picture could not be fetched from that address."
+  "media-url-unreachable": "The picture could not be fetched from that address.",
+  "post-title-in-text": "The text starts with the title again — the title is shown above it."
 }

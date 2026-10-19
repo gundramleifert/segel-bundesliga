@@ -56,7 +56,9 @@ export default function RichTextEditor({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: { levels: [2, 3] },
+        // One heading, `h2`: the page's `h1` is the post's title, set in the form and
+        // never in the text (Story R-1). A pasted heading of any level becomes this one.
+        heading: { levels: [2] },
         code: false,
         codeBlock: false,
         link: { openOnClick: false, autolink: true, defaultProtocol: "https" },
@@ -156,7 +158,7 @@ type Handlers = {
   openLink: () => void;
 };
 
-type Style = "paragraph" | "h2" | "h3";
+type Style = "paragraph" | "h2";
 
 type Chain = ReturnType<Editor["chain"]>;
 
@@ -203,7 +205,7 @@ function Toolbar({
   const state = useEditorState({
     editor,
     selector: ({ editor: e }) => ({
-      style: (e.isActive("heading", { level: 2 }) ? "h2" : e.isActive("heading", { level: 3 }) ? "h3" : "paragraph") as Style,
+      style: (e.isActive("heading", { level: 2 }) ? "h2" : "paragraph") as Style,
       active: Object.fromEntries([...MARKS, ...BLOCKS].map((f) => [f.name, e.isActive(f.name)])),
       link: e.isActive("link"),
       table: e.isActive("table"),
@@ -213,7 +215,7 @@ function Toolbar({
   // Every command starts from the text's focus, so the cursor stays where it was.
   const run = (command: (chain: Chain) => Chain) => command(editor.chain().focus()).run();
   const setStyle = (style: Style) =>
-    run((c) => (style === "paragraph" ? c.setParagraph() : c.setHeading({ level: style === "h2" ? 2 : 3 })));
+    run((c) => (style === "paragraph" ? c.setParagraph() : c.setHeading({ level: 2 })));
   const toggles = (list: Toggle[]) =>
     list.map((f) => (
       <Tool key={f.name} label={t(f.label)} active={state.active[f.name]} onPress={() => run(f.toggle)} testId={`${testId}-${f.testId}`}>
@@ -233,7 +235,6 @@ function Toolbar({
         >
           <option value="paragraph">{t("posts.styleParagraph")}</option>
           <option value="h2">{t("posts.styleHeading")}</option>
-          <option value="h3">{t("posts.styleSubheading")}</option>
         </Select>
         <Divider />
         {toggles(MARKS)}

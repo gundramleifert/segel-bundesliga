@@ -398,7 +398,6 @@
     "styleLabel": "Absatzformat",
     "styleParagraph": "Absatz",
     "styleHeading": "Überschrift",
-    "styleSubheading": "Zwischenüberschrift",
     "bold": "Fett",
     "italic": "Kursiv",
     "underline": "Unterstrichen",
@@ -427,7 +426,9 @@
     "tableRowDelete": "Zeile löschen",
     "tableColumnDelete": "Spalte löschen",
     "tableDelete": "Tabelle löschen",
-    "photoFromLibrary": "Aus der Mediathek"
+    "photoFromLibrary": "Aus der Mediathek",
+    "titleHint": "Die Überschrift des Artikels, über dem Text gezeigt. Der Text beginnt mit dem, was danach kommt.",
+    "titleInText": "Der Text beginnt noch einmal mit dem Titel. Der Titel steht über dem Text — bitte mit dem beginnen, was danach kommt."
   },
   "media": {
     "title": "Medien",

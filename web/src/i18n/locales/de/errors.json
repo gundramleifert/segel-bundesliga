@@ -204,5 +204,6 @@
   "import-key-invalid": "Dieser Upload-Link gilt nicht (mehr). Bitte bei der Redaktion einen neuen anfragen.",
   "media-context-both": "Ein Bild gehört zu einer Veranstaltung oder zu einer Serie, nicht zu beiden.",
   "media-url-invalid": "Diese Adresse lässt sich nicht holen — nur öffentliche Webadressen (http oder https).",
-  "media-url-unreachable": "Das Bild ließ sich von dieser Adresse nicht holen."
+  "media-url-unreachable": "Das Bild ließ sich von dieser Adresse nicht holen.",
+  "post-title-in-text": "Der Text beginnt noch einmal mit dem Titel — der Titel steht schon darüber."
 }

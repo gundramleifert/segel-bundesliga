@@ -46,11 +46,19 @@ Acceptance criteria:
   address becomes `mailto:`, a path on this site (`/1-liga/standings`) stays a path.
   Pasting an address over selected text links it. With the cursor in a link a row shows
   where it leads, to open, change or remove it.
+- **The title is set in the form, the text has paragraphs and one kind of heading**
+  (decided 2026-10-19 — an article showed its title twice): the title is a field of its
+  own, set above the lead as the page's only top-level heading. The editor offers
+  *Paragraph* and *Heading* and nothing in between — a section heading inside the text,
+  never a second title; any other heading pasted or sent (from Word, an `h1`, an `h3`)
+  arrives as that one heading, its words kept. A text that starts with the title again is
+  **refused**, never cut: the editor says so and will not save, the server answers
+  `post-title-in-text`.
 - **The text is written in a rich-text editor** (decided 2026-10-19 — editorial knows
-  WordPress, not Markdown): a toolbar for the paragraph style (text, heading, subheading),
-  bold, italic, underline, strike, lists, quote, link, picture and table, each with a
+  WordPress, not Markdown): a toolbar for bold, italic, underline, strike, lists, quote,
+  link, picture and table, and the paragraph style (paragraph or heading), each with a
   tooltip. Pasting from Word or a web page keeps headings, lists and tables where the
-  clipboard carries them. The editor is **TipTap** (MIT): CKEditor 5 and TinyMCE were the
+  clipboard carries them — every heading as the one heading the text has. The editor is **TipTap** (MIT): CKEditor 5 and TinyMCE were the
   most complete, but are GPL or commercial, and a licence other than MIT or Apache rules an
   editor out; between TipTap and Plate, which scored the same, TipTap is the more
   established. It is loaded only on the editing page.
