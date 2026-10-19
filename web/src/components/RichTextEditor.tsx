@@ -7,7 +7,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 
 import { useTranslation } from "react-i18next";
 
 import { INPUT_CLASS } from "../lib/admin";
-import { photosIn, usePhotoUpload } from "../lib/usePhotoUpload";
+import { filesIn, usePhotoUpload } from "../lib/usePhotoUpload";
 import { ErrorMessage } from "./Blocks";
 import { Select } from "./Select";
 import { Tip } from "./Tip";
@@ -67,7 +67,7 @@ export default function RichTextEditor({
         "aria-label": t("posts.bodyLabel"),
       },
       handleDrop: (view, event, _slice, moved) => {
-        const files = photosIn(event.dataTransfer?.files);
+        const files = filesIn(event.dataTransfer?.files);
         if (moved || files.length === 0) return false;
         event.preventDefault();
         const at = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos ?? view.state.selection.from;
@@ -75,7 +75,7 @@ export default function RichTextEditor({
         return true;
       },
       handlePaste: (view, event) => {
-        const files = photosIn(event.clipboardData?.files);
+        const files = filesIn(event.clipboardData?.files);
         if (files.length === 0) return false;
         void handlers.current?.insertPhotos(files, view.state.selection.from);
         return true;

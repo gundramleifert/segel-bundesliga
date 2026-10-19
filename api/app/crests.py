@@ -61,7 +61,7 @@ def delete_crest(club_id: int) -> None:
     crest_path(club_id).unlink(missing_ok=True)
 
 
-def save_crest(club_id: int, raw: bytes, *, content_type: str | None) -> None:
+def save_crest(club_id: int, raw: bytes) -> None:
     """Validates, downscales and stores an uploaded crest — Story V-3.
 
     **Deliberately not a sailor photo's JPEG square** (`app/services/pictures.py`). Do not
@@ -81,9 +81,7 @@ def save_crest(club_id: int, raw: bytes, *, content_type: str | None) -> None:
     Shared with every picture (`pictures.check`, `pictures.upright`): cheap checks first,
     Pillow as the final arbiter of "is this really an image", and upright orientation.
     """
-    pictures.check(
-        raw, content_type, code="club-crest", what="The crest", max_bytes=MAX_UPLOAD_BYTES
-    )
+    pictures.check(raw, code="club-crest", what="The crest", max_bytes=MAX_UPLOAD_BYTES)
     image = pictures.bounded(pictures.upright(raw, code="club-crest", alpha=True), MAX_EDGE)
     path = crest_path(club_id)
     path.parent.mkdir(parents=True, exist_ok=True)

@@ -823,10 +823,10 @@ def _status_fields(judged: SailorWaiver) -> dict:
     )
 
 
-async def _validated_scan(raw: bytes, content_type: str | None) -> str:
+async def _validated_scan(raw: bytes) -> str:
     """The media type the bytes really are — or a ``waiver-scan-…`` refusal
     (``app/services/uploads.py``). A guardian's signature is not the place to guess."""
-    return await uploads.validated(raw, content_type, code="waiver-scan", what="The signed form")
+    return await uploads.validated(raw, code="waiver-scan", what="The signed form")
 
 
 async def _attach_scan(
@@ -873,7 +873,7 @@ async def _attach_scan(
         )
 
     raw = await file.read()
-    media_type = await _validated_scan(raw, file.content_type)
+    media_type = await _validated_scan(raw)
     name = (guardian_name or "").strip() or None
 
     where_scope = (

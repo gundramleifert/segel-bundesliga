@@ -626,8 +626,9 @@ class TestScans:
             data={"sailor_id": str(sailor_id), "guardian_name": "R. Ver"},
             files={"file": ("signed.png", b"not really a png", "image/png")},
         )
+        # Named and declared a PNG, but the content is text: the content decides.
         assert fake.status_code == 422
-        assert fake.json()["type"] == "/errors/waiver-scan-invalid"
+        assert fake.json()["type"] == "/errors/waiver-scan-invalid-type"
 
         nameless = await client.post(
             f"/api/series/{series_id}/waiver/scan",

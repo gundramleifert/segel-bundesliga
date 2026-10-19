@@ -4,13 +4,15 @@ import { useTranslation } from "react-i18next";
 import { uploadMedia } from "../api/generated/sbl";
 import { errorText } from "./admin";
 
-/** What the server takes for a post's picture (`uploads.IMAGE_TYPES`). */
-export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+/** For the file chooser only: it offers pictures first, and on a phone the camera and the
+ *  gallery. Never a check — whether a file is a picture is the server's to say, from its
+ *  content (`uploads.sniffed`), since a browser names a file's type after its extension. */
+export const PHOTO_ACCEPT = "image/*";
 
-/** The pictures among dropped or pasted files — a dropped file skips the chooser's
- *  `accept`, and a clipboard may carry text and a picture at once. */
-export function photosIn(files: FileList | null | undefined): File[] {
-  return Array.from(files ?? []).filter((file) => PHOTO_TYPES.includes(file.type));
+/** Every file dropped or pasted, as it is: the server tells a picture by its content, and
+ *  a file named wrongly is still a picture. A clipboard with only text carries no file. */
+export function filesIn(files: FileList | null | undefined): File[] {
+  return Array.from(files ?? []);
 }
 
 export type UploadedPhoto = { url: string; name: string };
@@ -53,7 +55,7 @@ export function usePhotoUpload(onUploaded: (url: string, name: string) => void) 
     input: {
       ref,
       type: "file",
-      accept: PHOTO_TYPES.join(","),
+      accept: PHOTO_ACCEPT,
       className: "hidden",
       onChange: (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

@@ -106,7 +106,6 @@ def _alt_from(original_name: str) -> str:
 async def store(
     session: AsyncSession,
     raw: bytes,
-    content_type: str | None,
     *,
     original_name: str,
     arrival: Arrival,
@@ -116,12 +115,10 @@ async def store(
     """Puts a picture into the library — or answers the entry it already is."""
     await uploads.validated(
         raw,
-        content_type,
         code="media",
         what="The picture",
         accept=uploads.IMAGE_TYPES,
         max_bytes=MAX_BYTES,
-        by_content=True,
     )
     key = arrival.import_key
     if key is not None and arrival.external_id:

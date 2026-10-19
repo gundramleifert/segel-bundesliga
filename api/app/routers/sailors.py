@@ -494,7 +494,7 @@ async def upload_my_photo(
 ) -> SailorMeOut:
     sailor = await require_linked_sailor(session, acting)
     raw = await file.read()
-    await asyncio.to_thread(_save_photo, sailor.id, raw, content_type=file.content_type)
+    await asyncio.to_thread(_save_photo, sailor.id, raw)
     return _me_out(sailor)
 
 
@@ -566,7 +566,7 @@ def _photo_path(sailor_id: int) -> Path:
     return directory / f"{sailor_id}.jpg"
 
 
-def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None:
+def _save_photo(sailor_id: int, raw: bytes) -> None:
     """Validates, then center-crops and downsizes the upload — Story S-2.
 
     **Storage**: a deterministic path (`uploads/sailors/{id}.jpg`) needs no database
@@ -587,9 +587,7 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
     Pillow itself: if it can't decode it, it wasn't a real image regardless of what the
     upload claimed to be.
     """
-    pictures.check(
-        raw, content_type, code="sailor-photo", what="The photo", max_bytes=_MAX_UPLOAD_BYTES
-    )
+    pictures.check(raw, code="sailor-photo", what="The photo", max_bytes=_MAX_UPLOAD_BYTES)
     image = pictures.square(pictures.upright(raw, code="sailor-photo"), _PHOTO_SIZE)
     _photo_path(sailor_id).write_bytes(pictures.jpeg(image))
 

@@ -273,7 +273,7 @@ async def upload_club_logo(
     club = await _club(session, club_id)
     raw = await file.read()
     # Decoding and resizing is CPU work: off the event loop, with no session in the thread.
-    await asyncio.to_thread(save_crest, club.id, raw, content_type=file.content_type)
+    await asyncio.to_thread(save_crest, club.id, raw)
     return ClubOut.model_validate(club)
 
 

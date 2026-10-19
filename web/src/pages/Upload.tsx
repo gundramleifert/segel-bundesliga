@@ -9,7 +9,7 @@ import { PageHeader } from "../components/Blocks";
 import { Field } from "../components/Form";
 import { INPUT_CLASS } from "../lib/admin";
 import { formatDate } from "../lib/format";
-import { PHOTO_TYPES, photosIn } from "../lib/usePhotoUpload";
+import { PHOTO_ACCEPT, filesIn } from "../lib/usePhotoUpload";
 
 /** The key from `#key=…` — a fragment, so it never reaches a server's log or a referrer. */
 function keyFromHash(): string | null {
@@ -119,7 +119,7 @@ function Uploader({ importKey, defaultCredit }: { importKey: string; defaultCred
   const drop = (event: DragEvent) => {
     event.preventDefault();
     setOver(false);
-    add(photosIn(event.dataTransfer.files));
+    add(filesIn(event.dataTransfer.files));
   };
   const received = items.filter((item) => item.status === "received" || item.status === "known").length;
 
@@ -150,10 +150,10 @@ function Uploader({ importKey, defaultCredit }: { importKey: string; defaultCred
         ref={input}
         type="file"
         multiple
-        accept={PHOTO_TYPES.join(",")}
+        accept={PHOTO_ACCEPT}
         className="hidden"
         onChange={(e) => {
-          add(photosIn(e.target.files));
+          add(filesIn(e.target.files));
           e.target.value = "";
         }}
         data-testid="upload-input"

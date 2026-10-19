@@ -93,7 +93,7 @@ async def upload_my_document(
     if kind == DocumentKind.OTHER and title is None:
         raise Problem(422, "document-title-required", "Say what this document is.")
     raw = await file.read()
-    media_type = await uploads.validated(raw, file.content_type, code="document", what="A document")
+    media_type = await uploads.validated(raw, code="document", what="A document")
     document = PersonalDocument(
         user_id=acting.id,
         kind=kind,

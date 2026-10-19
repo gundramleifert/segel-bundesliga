@@ -1,6 +1,8 @@
 import { useRef, useState, type DragEvent } from "react";
 import { useTranslation } from "react-i18next";
 
+import { accepted, sniff } from "../lib/sniff";
+
 /** A file field you can drop a file onto — or tap, which opens the chooser as before.
  *
  * Replaced three bare `<input type="file">`s (personal documents, claim receipts, the
@@ -8,8 +10,9 @@ import { useTranslation } from "react-i18next";
  * unstyled, and no target for a scan dragged out of a folder. The real input stays inside,
  * hidden, and carries `testId`, so a spec's `setInputFiles` reaches it unchanged.
  *
- * A dropped file skips the chooser's `accept` filter, so the same types are checked here;
- * the server checks the content anyway. The input is cleared after every pick: choosing
+ * A dropped file skips the chooser's `accept` filter, so the same types are checked here —
+ * by the file's first bytes (`lib/sniff`), never its name or `File.type`, which a browser
+ * takes from the extension. The server checks the content again on its own. The input is cleared after every pick: choosing
  * the same file twice in a row fires no change event otherwise, so a retry after a failed
  * upload would do nothing.
  */
@@ -38,14 +41,9 @@ export function FileDropzone({
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
   const [refused, setRefused] = useState<string | null>(null);
-  const types = accept.split(",").map((type) => type.trim());
-
-  const take = (file: File | undefined) => {
+  const take = async (file: File | undefined) => {
     if (!file || disabled) return;
-    const allowed = types.some((type) =>
-      type.endsWith("/*") ? file.type.startsWith(type.slice(0, -1)) : file.type === type,
-    );
-    if (!allowed) {
+    if (!accepted(await sniff(file), accept)) {
       setRefused(file.name);
       return;
     }
@@ -56,7 +54,7 @@ export function FileDropzone({
   const drop = (event: DragEvent) => {
     event.preventDefault();
     setOver(false);
-    take(event.dataTransfer.files[0]);
+    void take(event.dataTransfer.files[0]);
   };
 
   return (
@@ -112,7 +110,7 @@ export function FileDropzone({
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = "";
-          take(file);
+          void take(file);
         }}
         data-testid={testId}
       />

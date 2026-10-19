@@ -30,8 +30,9 @@ FROM python:3.12-slim
 # A headless JRE for the pairing renderer above — Debian bookworm's default is 17, which
 # is what the tool needs. `--no-install-recommends` keeps the fonts and X11 bits out; the
 # renderer draws into a pdf and never touches a display.
+# `libmagic1` tells an upload's type from its content (`app/services/uploads.py`).
 RUN apt-get update \
- && apt-get install -y --no-install-recommends default-jre-headless \
+ && apt-get install -y --no-install-recommends default-jre-headless libmagic1 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=pairing \

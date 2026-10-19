@@ -26,19 +26,15 @@ from app.problems import Problem
 JPEG_QUALITY = 85
 
 
-def check(raw: bytes, content_type: str | None, *, code: str, what: str, max_bytes: int) -> None:
-    """The cheap checks, before Pillow decodes anything: the declared type, then the size.
+def check(raw: bytes, *, code: str, what: str, max_bytes: int) -> None:
+    """The cheap checks, before Pillow decodes anything: the size, then that the bytes are
+    a picture at all — sniffed from the content (`uploads.sniffed`), never the file's name.
 
     ``code`` prefixes the problem codes (``<code>-invalid-type``, ``<code>-invalid``,
     ``<code>-too-large``), so each kind keeps the codes its frontend maps; ``what`` names
     the file in the English title ("The photo")."""
-    if content_type is not None and not content_type.startswith("image/"):
-        raise Problem(
-            422,
-            f"{code}-invalid-type",
-            "The upload must be an image.",
-            detail=f"Got content type '{content_type}'.",
-        )
+    from app.services.uploads import sniffed
+
     if not raw:
         raise Problem(422, f"{code}-invalid", "The upload is empty.")
     if len(raw) > max_bytes:
@@ -46,6 +42,14 @@ def check(raw: bytes, content_type: str | None, *, code: str, what: str, max_byt
             413,
             f"{code}-too-large",
             f"{what} must be at most {max_bytes // (1024 * 1024)} MB.",
+        )
+    found = sniffed(raw)
+    if not found.startswith("image/"):
+        raise Problem(
+            422,
+            f"{code}-invalid-type",
+            "The upload must be an image.",
+            detail=f"The file is {found}.",
         )
 
 

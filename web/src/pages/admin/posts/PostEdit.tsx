@@ -23,7 +23,7 @@ import { DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, leaguePhoto } from "../../../c
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
 import { href } from "../../../lib/site";
-import { photosIn, usePhotoUpload } from "../../../lib/usePhotoUpload";
+import { filesIn, usePhotoUpload } from "../../../lib/usePhotoUpload";
 import { NewEntryPage } from "../../AdminNewPage";
 
 // TipTap and ProseMirror are only needed here — not by a single reader of the site.
@@ -287,7 +287,7 @@ function PhotoPicker({
   const drop = (event: DragEvent) => {
     event.preventDefault();
     setOver(false);
-    const [file] = photosIn(event.dataTransfer.files);
+    const [file] = filesIn(event.dataTransfer.files);
     if (file) void photo.upload(file).then((done) => done && onChange(done.url, ""));
   };
 

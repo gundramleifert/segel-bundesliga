@@ -149,12 +149,11 @@ async def upload_media(
     session: AsyncSession = Depends(get_session),
     user: User = Depends(require_editor),
 ) -> ImportedOut:
-    """A JPEG, PNG or WebP, re-encoded. 201 for a new entry, 200 with the entry it already
-    is for a picture the library holds."""
+    """A JPEG, PNG or WebP — told by its content, not its name — re-encoded. 201 for a new
+    entry, 200 with the entry it already is for a picture the library holds."""
     stored = await media.store(
         session,
         await file.read(),
-        file.content_type,
         original_name=file.filename or "",
         arrival=media.Arrival(user_id=user.id),
     )
@@ -285,7 +284,6 @@ async def import_media(
     stored = await media.store(
         session,
         await file.read(),
-        file.content_type,
         original_name=file.filename or "",
         arrival=media.Arrival(import_key=key, external_id=(external_id or "").strip() or None),
         alt=(alt or "").strip() or None,
