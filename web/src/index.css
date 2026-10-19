@@ -198,10 +198,12 @@ html {
 /* A dropdown's open list is drawn by the browser, not by these classes: on glass its text
    is white (above), so the list needs a dark scheme too, or it is white on white
    (`components/Select.tsx`). */
-.on-glass select {
+.on-glass select,
+select.on-dark {
   color-scheme: dark;
 }
-.on-glass option {
+.on-glass option,
+select.on-dark option {
   background-color: var(--color-slate-900);
   color: white;
 }

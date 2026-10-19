@@ -674,6 +674,14 @@ describeStory("A-12: the account menu and the page's name", () => {
     // A dropdown, each language named in itself, the current one chosen.
     const language = page.getByTestId("layout-language");
     await expect(language.locator("option")).toHaveText(["English", "Deutsch"]);
+    // An entry of the row, not a white field: no box of its own, and on the picture its
+    // open list is dark, or its white text would sit on the browser's white.
+    expect(
+      await language.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return [style.backgroundColor, style.colorScheme];
+      }),
+    ).toEqual(["rgba(0, 0, 0, 0)", "dark"]);
     await expect(language).toHaveValue("en");
     await language.selectOption("de");
     await expect(page.getByTestId("layout-sign-in")).toHaveText("Anmelden");

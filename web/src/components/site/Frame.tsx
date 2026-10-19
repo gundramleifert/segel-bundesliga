@@ -117,6 +117,7 @@ export function TopBar({
         <UserMenu
           account={account}
           loading={loading}
+          overlay={overlay}
           admin={mayOpenAdmin(account)}
         />
       </div>

@@ -32,9 +32,12 @@ export function UserMenu({
   account,
   loading,
   admin = false,
+  overlay = false,
 }: {
   account: Account | null;
   loading: boolean;
+  /** The row is on a picture, in white (`TopBar`). */
+  overlay?: boolean;
   /** Whether the administration is offered — only to the roles that can use it, because a
    *  link that ends in a 403 is worse than no link (Story A-12). */
   admin?: boolean;
@@ -56,7 +59,7 @@ export function UserMenu({
   if (!account && loading) {
     return <div aria-hidden className="size-8 shrink-0 animate-pulse rounded-full bg-slate-100" />;
   }
-  if (!account) return <GuestControls />;
+  if (!account) return <GuestControls overlay={overlay} />;
 
   // My space and my own page in it (Stories Z-8, S-7).
   const links = [
@@ -139,13 +142,14 @@ export function UserMenu({
  *  language fits a dropdown and would not fit the pair — and each language is named in
  *  itself, "English", "Deutsch": someone looking for their own language looks for the
  *  word they would recognise. */
-function GuestControls() {
+function GuestControls({ overlay }: { overlay: boolean }) {
   const { t, i18n } = useTranslation();
   const current = (i18n.resolvedLanguage ?? i18n.language) as SupportedLanguage;
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <div className="flex shrink-0 items-center gap-1 sm:gap-2">
       <Select
-        size="inline"
+        tone="bar"
+        dark={overlay}
         aria-label={t("language.label")}
         value={current}
         onChange={(event) => void i18n.changeLanguage(event.target.value)}

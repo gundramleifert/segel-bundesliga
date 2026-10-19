@@ -410,6 +410,9 @@ anywhere else.
 - **`size` says where it stands:** `field` (a labelled form control, full width, in
   `Field`), `inline` (a toolbar, as wide as its options), `row` (beside a name in a list,
   `RoleSelect`), `touch` (a thumb target on the water, `RaceControl`).
+- **`tone="bar"`** is an entry of the top row rather than a field: no box, the row's own
+  text, its pill shape and hover, a chevron of its own — the guest's language (Story
+  A-12). `dark` gives its open list the dark scheme when the row is on a picture.
 - **`invalid`** draws the red border and sets `aria-invalid`.
 - **`className` is for layout only** — `flex-1`, `w-32`. A colour or padding there wins or
   loses by its place in Tailwind's stylesheet, not by its place in the list (docs/gotchas).

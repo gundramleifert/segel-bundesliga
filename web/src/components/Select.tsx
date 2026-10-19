@@ -23,6 +23,11 @@ import type { SelectHTMLAttributes } from "react";
  *  (docs/gotchas, "Appending a Tailwind class…"), so those are props here. */
 export type SelectSize = "field" | "inline" | "row" | "touch";
 
+/** `paper` — a field: a white box with a border, on paper and (mapped) on glass.
+ *  `bar` — an entry of the top row: no box, the row's own text, its pill shape and hover,
+ *  a chevron of its own; on a picture (`dark`) its open list is dark. */
+export type SelectTone = "paper" | "bar";
+
 const BASE =
   "rounded-md border bg-white text-slate-900 outline-none " +
   "focus:border-brand-500 focus:ring-2 focus:ring-brand-200 disabled:opacity-60";
@@ -36,17 +41,48 @@ const SIZES: Record<SelectSize, string> = {
 
 export function Select({
   size = "field",
+  tone = "paper",
+  dark = false,
   invalid = false,
   testId,
   className = "",
   ...rest
 }: {
   size?: SelectSize;
+  tone?: SelectTone;
+  /** On a dark surface outside `.on-glass` — the top row over a picture: the open list
+   *  gets the dark scheme, or its white text would sit on the browser's white. */
+  dark?: boolean;
   /** Marks the field wrong — the red border, and `aria-invalid` for a screen reader. */
   invalid?: boolean;
   testId?: string;
   className?: string;
 } & Omit<SelectHTMLAttributes<HTMLSelectElement>, "className" | "size">) {
+  if (tone === "bar") {
+    return (
+      <span className={`relative inline-flex shrink-0 items-center ${className}`}>
+        <select
+          {...rest}
+          data-testid={testId}
+          className={`cursor-pointer appearance-none rounded-full bg-transparent py-1.5 pl-2.5 pr-6 text-[13px] font-medium text-inherit outline-none transition focus-visible:ring-2 focus-visible:ring-current sm:pl-3 sm:pr-7 sm:text-sm ${
+            dark ? "on-dark hover:text-white" : "hover:text-slate-950"
+          }`}
+        />
+        <svg
+          aria-hidden
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="pointer-events-none absolute right-1.5 size-3.5 sm:right-2"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </span>
+    );
+  }
   const border = invalid ? "border-red-500 ring-2 ring-red-200" : "border-slate-300";
   return (
     <select

@@ -571,7 +571,8 @@ row. What is left of this story is the account menu and the page's name.
 Acceptance criteria:
 - **Neither the row nor the menu may widen the page** (Story A-10).
 - **A guest gets no menu** (2026-10-18): top right sits the **language** — a dropdown
-  (`Select`), each language named **in itself**, "English", "Deutsch", never translated:
+  (`Select`) drawn as an entry of the row, like the leagues beside it, not as a form
+  field; each language named **in itself**, "English", "Deutsch", never translated:
   someone looking for their own language is looking for the word they would recognise —
   and **Sign in**. Those are the only two things about the reader a guest has, and a
   menu that opened to show two entries was a tap more than either needed. A dropdown, not
