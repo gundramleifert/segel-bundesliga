@@ -22,6 +22,7 @@ import { errorText } from "../lib/admin";
 import { boatColor } from "../lib/format";
 import { fromServer, phaseAt } from "../lib/startSequence";
 import { clock, countdown, useAlignedNow, useNow } from "../lib/useNow";
+import { Select } from "../components/Select";
 
 /** Stories L-1 and L-2: the boats on a real map, with the course, their legs and a live rank.
  *
@@ -833,15 +834,15 @@ function CommitteeControls({
         </label>
         <label className="flex flex-col text-xs text-slate-600">
           {t("controls.finishLine")}
-          <select
+          <Select
             value={finishSide}
             onChange={(e) => setFinishSide(e.target.value as "left" | "right")}
-            className="rounded-md border border-slate-300 px-2 py-1 text-sm"
-            data-testid="live-finish-side"
+            size="inline"
+            testId="live-finish-side"
           >
             <option value="right">{t("controls.finishSeparate")}</option>
             <option value="left">{t("controls.finishCombined")}</option>
-          </select>
+          </Select>
         </label>
         <button
           type="button"
@@ -866,11 +867,11 @@ function CommitteeControls({
       {DEV_TOOLS && (
         <div className="space-y-2 border-t border-slate-200 pt-3">
           <div className="flex flex-wrap items-center gap-2">
-            <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="rounded-md border border-slate-300 px-2 py-1" data-testid="live-speed">
+            <Select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} size="inline" testId="live-speed">
               {[1, 5, 10, 20].map((factor) => (
                 <option key={factor} value={factor}>{t("controls.speed", { factor })}</option>
               ))}
-            </select>
+            </Select>
             <button
               type="button"
               className="rounded-md border-2 border-brand-600 px-3 py-1.5 font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50"

@@ -27,6 +27,7 @@ import {
 } from "../../../components/Blocks";
 import { boatColor, formatPoints } from "../../../lib/format";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
+import { Select } from "../../../components/Select";
 
 // ---------------------------------------------------------------- Story WL-2: results
 
@@ -285,7 +286,7 @@ function RaceResultRow({
 
   // The taps and codes of this race, shared with the race-control page (Story WL-3). This
   // screen writes through on every change; `rows` stays the single source of truth — the
-  // <select> and position <input> below just read it back, so tap-assignment and manual
+  // <Select> and position <input> below just read it back, so tap-assignment and manual
   // entry can never drift apart.
   const order = useFinishOrder(race, standings, {
     onChange: (body) => save.mutate({ eventId, raceId: race.id, data: body }),
@@ -351,13 +352,11 @@ function RaceResultRow({
             )}
             <div className="flex items-center gap-1.5">
               <Tip text={codeTitle(row.code)}>
-                <select
+                <Select
                   aria-label={t("codeHeader")}
-                  className={`${INPUT_CLASS} flex-1 ${
-                    duplicateBoats.has(boat.number) ? "border-red-500 ring-2 ring-red-200" : ""
-                  }`}
+                  className="flex-1"
                   value={selectValue}
-                  aria-invalid={duplicateBoats.has(boat.number)}
+                  invalid={duplicateBoats.has(boat.number)}
                   onChange={(e) => {
                     const nextValue = e.target.value;
                     const asPosition = Number(nextValue);
@@ -384,7 +383,7 @@ function RaceResultRow({
                     }
                     if (code) setField(boat.number, { code });
                   }}
-                  data-testid={`matchday-results-code-select-${race.id}-${boat.number}`}
+                  testId={`matchday-results-code-select-${race.id}-${boat.number}`}
                 >
                   <option value="" disabled hidden>
                     {t("resultPlaceholder")}
@@ -399,7 +398,7 @@ function RaceResultRow({
                       {code}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Tip>
               <FinishChip
                 boat={boat}

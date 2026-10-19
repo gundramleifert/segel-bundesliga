@@ -77,7 +77,7 @@ export async function expectNoSidewaysScroll(page: Page, testInfo: TestInfo): Pr
   }
 }
 
-/** Opens the account menu — language, profile, help and the legal pages live behind it.
+/** Opens the account menu — signed in only; language, profile and help live behind it.
  *
  * The account button is in the one row on top at every width (Stories A-12, B-13), so
  * this needs no viewport check.
@@ -87,14 +87,20 @@ export async function openUserMenu(page: Page): Promise<void> {
   await expect(page.getByTestId("layout-user-menu")).toBeVisible();
 }
 
-/** Picks a language through the account menu.
+/** Picks a language, wherever this reader has it (Story A-12).
  *
- * Three steps rather than one click, because the language is a submenu now (Story A-12):
- * the account button opens the menu, the "Language" row opens the choices, and the choice
- * itself is the third. Written once here so a spec that only cares about the *result* of
- * switching language does not have to spell the path out.
+ * A guest has it in the top row, a dropdown; signed in it is a submenu of the account
+ * menu — the button opens the menu, the "Language" row the choices, and the choice is the
+ * third step. Written once here so a spec that only cares about the *result* of switching
+ * language does not have to know which reader it is.
  */
 export async function chooseLanguage(page: Page, language: "en" | "de"): Promise<void> {
+  const guest = page.getByTestId("layout-language");
+  await expect(guest.or(page.getByTestId("layout-profile-button"))).toBeVisible();
+  if (await guest.isVisible()) {
+    await guest.selectOption(language);
+    return;
+  }
   await openUserMenu(page);
   await page.getByTestId("layout-user-menu-language").click();
   await expect(page.getByTestId("language-switcher")).toBeVisible();

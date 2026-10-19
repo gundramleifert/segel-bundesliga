@@ -31,6 +31,7 @@ import { Stack } from "../../components/Layouts";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { downloadFile, fetchFileUrl } from "../../lib/files";
 import { formatDate, formatMoney, parseCents } from "../../lib/format";
+import { Select } from "../../components/Select";
 
 /** Money — what waits for a manager or treasurer (Stories F-3, F-4, F-6, F-7), as
  * sections of a club's and an event's page in my space (Story S-7).
@@ -498,18 +499,17 @@ function Books({ clubId }: { clubId: number }) {
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-32">
           <Field label={t("bankRun.year")} testId={`${id}-year-field`}>
-            <select
-              className={INPUT_CLASS}
+            <Select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              data-testid={`${id}-year`}
+              testId={`${id}-year`}
             >
               {[0, 1, 2, 3, 4].map((back) => (
                 <option key={back} value={thisYear - back}>
                   {thisYear - back}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
         </div>
         <Button variant="outline" isDisabled={busy} onPress={download} data-testid={`${id}-download`}>

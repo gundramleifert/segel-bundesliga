@@ -7,17 +7,19 @@ import type { Account } from "../api/types";
 import { useDisclosure } from "../lib/useDisclosure";
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from "../i18n";
 import { helpFor, helpPath } from "../handbook";
+import { Select } from "./Select";
 
-/** Everything that is about *you* and about the site, behind the account button.
+/** Everything that is about *you*, top right in the one row (Story A-12).
  *
- * Language, profile, help (signed in only — the handbook is internal) and the legal pages
- * are each used rarely and none of them is
- * about the page being read — so they were four things competing with the navigation for
- * room in the frame. Collected here, the frame carries only what someone came for.
+ * **A guest gets no menu**: the language, as a dropdown, and *Sign in*, side by side —
+ * the only two things about the reader a guest has, so a menu that opened to two entries
+ * was a tap more than either needed.
  *
- * The button shows initials when signed in, a plain account
- * icon when not. Signed out the menu still opens, because the language switcher and the
- * legal pages belong to a guest as much as to anybody.
+ * **Signed in**, the account button opens a menu: my space, profile, administration (for
+ * the roles that can use it), help (the handbook is internal) and the language. Each is
+ * used rarely and none is about the page being read, so as separate items they competed
+ * with the navigation for room. The legal pages are not here: both footers carry them on
+ * every page, which is what § 5 DDG asks.
  *
  * Signed in, the button carries a **badge** with the number of things that need the
  * person — my space's `total`, each thing once (Story Z-8) — so it is seen from any page,
@@ -49,19 +51,19 @@ export function UserMenu({
   // offered it, and a public screen never has a page of its own (`helpFor`).
   const pageHelp = account ? helpFor(pathname, i18n.resolvedLanguage) : undefined;
 
-  // Signed in, my space and my own page in it (Stories Z-8, S-7); signed out, the way in.
-  const own = account
-    ? [
-        { to: "/me", key: "mySpace" },
-        { to: "/me/profile", key: "profile" },
-      ]
-    : [{ to: "/account", key: "signIn" }];
+  // Not known yet: a quiet placeholder of the button's size, so the row does not jump
+  // from the guest's controls to the avatar when a stored session turns out valid.
+  if (!account && loading) {
+    return <div aria-hidden className="size-8 shrink-0 animate-pulse rounded-full bg-slate-100" />;
+  }
+  if (!account) return <GuestControls />;
+
+  // My space and my own page in it (Stories Z-8, S-7).
   const links = [
-    ...own,
+    { to: "/me", key: "mySpace" },
+    { to: "/me/profile", key: "profile" },
     ...(admin ? [{ to: "/admin", key: "admin" }] : []),
-    ...(account ? [{ to: pageHelp ? helpPath(pageHelp.id) : helpPath(), key: "help" }] : []),
-    { to: "/legal-notice", key: "legalNotice" },
-    { to: "/privacy", key: "privacy" },
+    { to: pageHelp ? helpPath(pageHelp.id) : helpPath(), key: "help" },
   ];
 
   return (
@@ -71,11 +73,7 @@ export function UserMenu({
         {...menu.triggerProps}
         aria-label={needs ? `${t("userMenu.label")} — ${t("userMenu.needs", { count: needs })}` : t("userMenu.label")}
         data-testid="layout-profile-button"
-        className={`relative grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold uppercase transition-colors ${
-          account
-            ? "bg-brand-600 text-white hover:bg-brand-700"
-            : `bg-slate-100 text-slate-500 hover:bg-slate-200 ${loading ? "animate-pulse" : ""}`
-        }`}
+        className="relative grid size-8 shrink-0 place-items-center rounded-full bg-brand-600 text-xs font-bold uppercase text-white transition-colors hover:bg-brand-700"
       >
         {needs > 0 && (
           <span
@@ -86,23 +84,7 @@ export function UserMenu({
             {needs > 9 ? "9+" : needs}
           </span>
         )}
-        {account ? (
-          initials(account.display_name)
-        ) : (
-          <svg
-            aria-hidden
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="size-4"
-          >
-            <circle cx="12" cy="8" r="3.5" />
-            <path d="M4.5 20c0-3.6 3.4-6.5 7.5-6.5s7.5 2.9 7.5 6.5" />
-          </svg>
-        )}
+        {initials(account.display_name)}
       </button>
 
       {menu.open && (
@@ -113,16 +95,11 @@ export function UserMenu({
           // whichever corner the button is in and never off the side of the screen.
           className="absolute right-0 z-50 mt-2 w-56 rounded-xl bg-white p-2 shadow-xl ring-1 ring-slate-900/5"
         >
-          {account && (
-            <p className="truncate px-3 pb-2 pt-1 text-sm font-medium text-slate-900">
-              {account.display_name}
-            </p>
-          )}
+          <p className="truncate px-3 pb-2 pt-1 text-sm font-medium text-slate-900">
+            {account.display_name}
+          </p>
 
           <ul>
-            <li>
-              <LanguageChoice />
-            </li>
             {links.map((link) => (
               <li key={link.key}>
                 <Link
@@ -146,9 +123,47 @@ export function UserMenu({
                 </Link>
               </li>
             ))}
+            <li>
+              <LanguageChoice />
+            </li>
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+/** A guest's two things, in the row itself: the language and the way in.
+ *
+ *  The language is the site's one dropdown (`Select`), not an EN|DE pair — a third
+ *  language fits a dropdown and would not fit the pair — and each language is named in
+ *  itself, "English", "Deutsch": someone looking for their own language looks for the
+ *  word they would recognise. */
+function GuestControls() {
+  const { t, i18n } = useTranslation();
+  const current = (i18n.resolvedLanguage ?? i18n.language) as SupportedLanguage;
+  return (
+    <div className="flex shrink-0 items-center gap-2">
+      <Select
+        size="inline"
+        aria-label={t("language.label")}
+        value={current}
+        onChange={(event) => void i18n.changeLanguage(event.target.value)}
+        testId="layout-language"
+      >
+        {SUPPORTED_LANGUAGES.map((lang) => (
+          <option key={lang} value={lang}>
+            {t(`language.${lang}`)}
+          </option>
+        ))}
+      </Select>
+      <Link
+        to="/account"
+        data-testid="layout-sign-in"
+        className="whitespace-nowrap rounded-full bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+      >
+        {t("userMenu.signIn")}
+      </Link>
     </div>
   );
 }

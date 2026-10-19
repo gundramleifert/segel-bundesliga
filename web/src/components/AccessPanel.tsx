@@ -17,6 +17,7 @@ import { Section } from "./Form";
 import { Async } from "./Async";
 import { ErrorMessage } from "./Blocks";
 import { PersonDocuments } from "./PersonDocuments";
+import { Select } from "./Select";
 
 /** Story Z-2: who holds what on one object — FGA's "read" for `object`, e.g. `event:3`.
  *
@@ -98,18 +99,17 @@ export function AccessPanel({
         </label>
         <label className="flex flex-col text-xs text-slate-500">
           {t("access.relationLabel")}
-          <select
-            className={INPUT_CLASS}
+          <Select
             value={chosen ?? ""}
             onChange={(e) => setRelation(e.target.value as Relation)}
-            data-testid={`${testId}-relation`}
+            testId={`${testId}-relation`}
           >
             {relations.map((r) => (
               <option key={r} value={r}>
                 {t(`accounts.relationLabels.${r}`)}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <Button
           size="sm"

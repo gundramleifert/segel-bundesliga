@@ -177,8 +177,6 @@
     "calendar": "Termine",
     "allClubs": "Alle Vereine",
     "credits": "Fotos und Videos © Deutsche Segel-Bundesliga, verlinkt von deutsche-segelbundesliga.de.",
-    "account": "Ihr Konto",
-    "language": "Sprache",
     "now": "Jetzt: {act} · {dates}",
     "next": "Als Nächstes: {act} · {dates}"
   },

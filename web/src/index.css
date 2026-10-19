@@ -195,6 +195,16 @@ html {
 .on-glass :is(.ring-slate-200, .ring-slate-300) {
   --tw-ring-color: rgb(255 255 255 / 0.2);
 }
+/* A dropdown's open list is drawn by the browser, not by these classes: on glass its text
+   is white (above), so the list needs a dark scheme too, or it is white on white
+   (`components/Select.tsx`). */
+.on-glass select {
+  color-scheme: dark;
+}
+.on-glass option {
+  background-color: var(--color-slate-900);
+  color: white;
+}
 .on-glass .data-table {
   background-color: transparent;
   box-shadow: none;

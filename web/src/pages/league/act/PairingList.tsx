@@ -11,6 +11,7 @@ import {
   TableFrame,
 } from "../../../components/Blocks";
 import { boatColor } from "../../../lib/format";
+import { Select } from "../../../components/Select";
 
 export function PairingList({ eventId }: { eventId: number }) {
   const { t } = useTranslation("matchday");
@@ -49,18 +50,12 @@ export function PairingList({ eventId }: { eventId: number }) {
         <label className="sr-only" htmlFor="pairing-pdf-club">
           {t("pairingPdfForClub")}
         </label>
-        <select
+        <Select
           id="pairing-pdf-club"
           value={club}
           onChange={(event) => setClub(event.target.value)}
-          data-testid="matchday-pairing-pdf-club"
-          // Its own classes, not INPUT_CLASS plus overrides: that one carries `w-full` and
-          // `py-2`, and a conflicting Tailwind class wins by its place in the stylesheet,
-          // not in this list — `w-auto` lost, and the picker spanned the whole page.
-          className={
-            "w-auto max-w-full rounded-md border border-slate-300 px-2 py-1 text-sm outline-none " +
-            "focus:border-brand-500 focus:ring-2 focus:ring-brand-200"
-          }
+          testId="matchday-pairing-pdf-club"
+          size="inline"
         >
           <option value="">{t("pairingPdfAllClubs")}</option>
           {teams.map((team) => (
@@ -68,7 +63,7 @@ export function PairingList({ eventId }: { eventId: number }) {
               {team.name}
             </option>
           ))}
-        </select>
+        </Select>
         <a
           href={getDownloadPairingPdfUrl(eventId, club ? { team: Number(club) } : undefined)}
           download

@@ -1,26 +1,23 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import { useAccount } from "../../api/useApi";
 import { DEV_TOOLS } from "../../dev/devTools";
-import { SUPPORTED_LANGUAGES } from "../../i18n";
 import { useAssociation, useLocalized } from "../../content";
 import { eventDates } from "../../lib/format";
 import { href, type Act } from "../../lib/site";
 import { useActTitle, useCurrentActs } from "./acts";
-import { Card, CardRow, Columns, PillSwitch, TextCard } from "./Cards";
+import { Card, CardRow, TextCard } from "./Cards";
 import { useLeagues } from "./Frame";
 
 /** The official pages' footer: the last band on the picture, built from the same pieces
- *  as the page above it — one column, the same grid (`Cards.tsx`), darkened behind it. A card per league, the association and the account beside
- *  each other, and the line § 5 DDG wants on every page: the legal notice and privacy. */
+ *  as the page above it — one column, the same grid (`Cards.tsx`), darkened behind it. A card per league, the association (signing in and the language are the account menu's,
+ *  in the top row), and the line § 5 DDG wants on every page: the legal notice and privacy. */
 export function GlassFooter() {
   const { t } = useTranslation("site");
-  const { t: tc, i18n } = useTranslation();
+  const { t: tc } = useTranslation();
   const localized = useLocalized();
   const leagues = useLeagues();
   const association = useAssociation().data;
-  const { account } = useAccount();
   const acts = useCurrentActs(leagues);
   const link = "text-white/80 hover:text-white hover:underline";
   return (
@@ -51,36 +48,16 @@ export function GlassFooter() {
             );
           })}
         </CardRow>
-        <Columns split="twoToOne">
-          <TextCard>
-            <Link to={href.about()} className="text-base font-semibold text-white hover:underline">
-              Deutsche Segel-Liga e.V.
-            </Link>
-            {association && <p className="mt-2 leading-relaxed">{localized(association.service)}</p>}
-            <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
-              <Link to="/events" className={link}>{t("footer.calendar")}</Link>
-              <Link to="/clubs" className={link}>{t("footer.allClubs")}</Link>
-            </p>
-          </TextCard>
-          <Card className="p-4 sm:p-5" testId="site-footer-account">
-            <p className="text-base font-semibold">{t("footer.account")}</p>
-            <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-              {account ? (
-                <Link to="/me" className={link}>{tc("userMenu.mySpace")}</Link>
-              ) : (
-                <Link to="/account" className={link}>{tc("userMenu.signIn")}</Link>
-              )}
-              {account && <Link to="/help" className={link}>{tc("userMenu.help")}</Link>}
-            </p>
-            <PillSwitch
-              label={t("footer.language")}
-              className="mt-3"
-              value={SUPPORTED_LANGUAGES.find((lang) => i18n.language?.startsWith(lang)) ?? SUPPORTED_LANGUAGES[0]}
-              options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang, label: lang.toUpperCase(), testId: `site-footer-language-${lang}` }))}
-              onChange={(lang) => void i18n.changeLanguage(lang)}
-            />
-          </Card>
-        </Columns>
+        <TextCard>
+          <Link to={href.about()} className="text-base font-semibold text-white hover:underline">
+            Deutsche Segel-Liga e.V.
+          </Link>
+          {association && <p className="mt-2 leading-relaxed">{localized(association.service)}</p>}
+          <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
+            <Link to="/events" className={link}>{t("footer.calendar")}</Link>
+            <Link to="/clubs" className={link}>{t("footer.allClubs")}</Link>
+          </p>
+        </TextCard>
         {/* The foot of every page, so the clearance for the fixed dev switches belongs here:
             without it they sit on the legal links § 5 DDG wants reachable. */}
         <div className={`flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-white/15 pt-4 text-xs text-white/70 ${DEV_TOOLS ? "pb-20" : ""}`}>

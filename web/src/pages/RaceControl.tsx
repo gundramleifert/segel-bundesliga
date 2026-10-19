@@ -59,6 +59,7 @@ import {
   parseResultCode,
   resultComplete,
 } from "../lib/results";
+import { Select } from "../components/Select";
 
 /** WL-3: the race committee's screen on the water — one race at a time, big targets.
  *
@@ -797,9 +798,10 @@ function RaceCard({
                   className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
                   style={{ backgroundColor: color.hex }}
                 />
-                <select
+                <Select
                   aria-label={t("codeLabel", { boat: color.name })}
-                  className="min-h-11 flex-1 rounded-md border border-slate-300 px-2"
+                  size="touch"
+                  className="flex-1"
                   value={row.code === ResultCode.FINISHED ? "" : row.code}
                   onChange={(e) =>
                     order.setField(boat.number, {
@@ -807,7 +809,7 @@ function RaceCard({
                       finish_position: null,
                     })
                   }
-                  data-testid={`race-control-code-${boat.number}`}
+                  testId={`race-control-code-${boat.number}`}
                 >
                   <option value="">
                     {row.finish_position != null ? t("position", { position: row.finish_position }) : "—"}
@@ -817,7 +819,7 @@ function RaceCard({
                       {code}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             );
           })}
