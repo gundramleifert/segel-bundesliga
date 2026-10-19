@@ -18,9 +18,11 @@ Wettfahrtleitung erreicht die *Verwaltung* nicht und bittet die Organisation, di
 Veranstaltung abzuschließen. Er zeigt nur, was gerade möglich ist, und fragt nie nach: Alles hier lässt
 sich mit einem Tippen zurücknehmen und löscht nichts.
 
+![Der Block *Abschluss* einer laufenden Veranstaltung: *Wettfahrten sind beendet* ①, *Veranstaltung absagen* ②](shot:help-close-event)
+
 ### Die Wettfahrten sind beendet {#close-event-finish}
 
-1. Auf *Wettfahrten sind beendet* tippen. Die Veranstaltung ist nun beendet.
+1. Auf *Wettfahrten sind beendet* ① tippen. Die Veranstaltung ist nun beendet.
 
 - Nur eine laufende Veranstaltung lässt sich beenden; vor dem Start sagt das Panel das.
 - Es müssen nicht alle Wettfahrten gesegelt sein: Ein Tag, der seine letzten Flights an
@@ -31,7 +33,7 @@ sich mit einem Tippen zurücknehmen und löscht nichts.
 
 ### Die Veranstaltung absagen {#close-event-cancel}
 
-1. Auf *Veranstaltung absagen* tippen — vor dem Start oder mitten am Tag.
+1. Auf *Veranstaltung absagen* ② tippen — vor dem Start oder mitten am Tag.
 
 - Nichts wird gelöscht: Pairing-Liste und erfasste Ergebnisse bleiben, wie sie sind.
 - Eine abgesagte Veranstaltung zählt in keiner Serienwertung, und niemand bekommt die

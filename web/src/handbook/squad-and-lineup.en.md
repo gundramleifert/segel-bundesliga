@@ -31,11 +31,11 @@ office creates them with their sign-in address.
 Your club is in the series.
 
 1. Your club's page in *My space*, tab *Series & squads*: *Squad*.
-2. Click people under *Available*; they move to *Selected*.
-3. Beside each name choose *Helm*, *Crew* or *Reserve*.
-4. Press *Save squad*.
+2. Click people under *Available* ①; they move to *Selected*.
+3. Beside each name choose *Helm*, *Crew* or *Reserve* ②.
+4. Press *Save squad* ③.
 
-![A squad with the search on the left and the squad on the right](shot:help-club-squad)
+![A squad: a person under Available ①, the role ②, *Save squad* ③](shot:help-club-squad)
 
 - Saving replaces the whole squad.
 - *Already sailing for … in this series* cannot be added.
@@ -58,10 +58,10 @@ event's panel — 4 to 10 unless changed.
 The squad is registered.
 
 1. Tab *Matchdays* lists every matchday your club is entered in: *Lineup*.
-2. Move people from the squad to *Selected*; adjust *Role on the day*.
-3. Press *Save lineup*.
+2. Move people from the squad ① to *Selected*; adjust *Role on the day* ②.
+3. Press *Save lineup* ③.
 
-![The lineup for one matchday](shot:help-club-lineup)
+![The lineup for one matchday: the squad ①, the role ②, *Save lineup* ③](shot:help-club-lineup)
 
 Only the squad is offered; the number is free (*usually …*). Nobody sails for two teams
 on one matchday; an empty list removes the lineup. Only the club's team manager or

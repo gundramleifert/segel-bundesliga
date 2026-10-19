@@ -21,16 +21,16 @@ incomplete event.
 
 | It says | What to do |
 |---|---|
-| the clubs entered do not match the setup | tick or untick clubs under *Clubs entered: … of …*, then *Enter … clubs* |
-| no date yet | set *Starts on*, press *Save date* |
+| the clubs entered do not match the setup | tick or untick clubs under *Clubs entered: … of …*, then *Enter … clubs* ② |
+| no date yet | set *Starts on*, press *Save date* ① |
 | no pre-computed list for this size, or the boats do not match | the panel cannot change the size or the boats — ask the league office |
 
-![The panel: what is still missing, the clubs, the draw](shot:help-event-readiness)
+![The panel: what is still missing, *Save date* ①, the clubs and *Enter … clubs* ②, the draw ③](shot:help-event-readiness)
 
 ### Draw the pairing list {#run-event-draw}
 
 Today only the league office's administrators draw: when *Still missing* is empty, ask
-them. The event's manager sees *Draw*, but gets a permission error.
+them. The event's manager sees *Draw* ③, but gets a permission error.
 
 - The *Draw seed* shuffles the pre-computed list's starting positions; the same seed
   gives the same draw, provable later.

@@ -15,13 +15,13 @@ title: "Run the races from the water"
 in *My space* (*Open race control*) or the *Enter results* tab. For race officers and the
 site's administrators.
 
-![The current race on a phone: its boats, the teams on them, the start buttons](shot:help-race-control)
+![The current race on a phone: its boats, the teams on them, the preparatory flag ①, *Sequence in 10 s* ②](shot:help-race-control)
 
 ### Start a race {#race-control-start}
 
-1. Choose the *Preparatory flag*: P, I, Z, U or *Black* — the penalty for a boat over the
+1. Choose the *Preparatory flag* ①: P, I, Z, U or *Black* — the penalty for a boat over the
    line.
-2. Tap *Sequence in 10 s*, or *Sequence at …* (next full minute at least 10 s away). The
+2. Tap *Sequence in 10 s* ②, or *Sequence at …* (next full minute at least 10 s away). The
    time is when the club flag goes up.
 3. Do what the biggest line says: next signal and countdown. 3-2-1-0: club flag up,
    preparatory flag up, preparatory flag down, club flag down — start recorded at zero.

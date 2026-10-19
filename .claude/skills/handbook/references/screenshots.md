@@ -47,9 +47,43 @@ Run:
 
 ```bash
 scripts/dev-stack.sh --workers 1 &      # in the background, wait for it
-HANDBOOK_SHOTS=1 pnpm exec playwright test e2e/handbook-shots.spec.ts --project chromium
-HANDBOOK_SHOTS=1 pnpm exec playwright test e2e/handbook-shots.spec.ts --project mobile --grep @phone
+HANDBOOK_SHOTS=1 pnpm exec playwright test e2e/handbook-shots.spec.ts --project chromium --workers 1   # one stack: more workers look for :5174+
+HANDBOOK_SHOTS=1 pnpm exec playwright test e2e/handbook-shots.spec.ts --project mobile --grep @phone --workers 1
 ```
+
+## Marks: where to click
+
+A shot may carry **marks**: an amber frame around a control with a numbered badge just
+outside its top-left corner, drawn into the page before the picture is taken.
+
+```ts
+{ id: "help-claim-new", …,
+  marks: () => [
+    { target: tid("my-space-claim-target") },   // ①
+    { target: tid("my-space-claim-title") },    // ②
+    { target: tid("my-space-claim-create") },   // ③
+  ] }
+```
+
+- **When:** mark the control the paragraph next to the shot tells the reader to click or
+  tap — a step's button, field or toggle. Not decoration: a shot of a list to *read* (a
+  status table, the check-in list) gets none.
+- **At most about three per shot.** More marks than steps teach nothing; split the shot.
+- **Numbered in the order the text names them** — `{ target, n? }`, `n` defaults to the
+  mark's place in the list from 1. The text says ①②③ in **both** locales, beside the label
+  it quotes (*Save squad* ③), and the shot's alt text names them too.
+- **`target` is a selector for one visible element** — prefer the `data-testid`; for a
+  field with its label above it, mark the `label:has(…)` so the badge does not cover the
+  label; for a file drop zone, the visible zone, not the hidden input. A missing or
+  invisible target **fails the shot** — never a picture whose text refers to a mark it lacks.
+- The spec waits until the targets stop moving (a list that lands late pushes the rest
+  down) and widens the clip to cover every frame and badge. The frame has a white and a
+  dark outer ring, so it reads on white cards and on the dark glass pages alike.
+- A phone shot of the viewport (`phoneViewport`) shows only marks inside the viewport —
+  look at the PNG.
+
+Look at every marked PNG after capturing: a badge over a neighbour's frame, a mark cut by
+the clip, or a frame beside its control (layout moved) are the failures to catch.
 
 ## The data must say something
 

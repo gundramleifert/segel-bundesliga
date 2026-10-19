@@ -43,11 +43,14 @@ ends the lock.
 In [my space](/me/profile): *Me* → *Account* → *Sign-in methods*. Your address must be
 confirmed — signing in with a code once does that.
 
-- First time: *Set a password*, then *Set password*. 12 to 128 characters, no other rule.
+- First time: type it under *Set a password* ①, then *Set password* ②. 12 to 128
+  characters, no other rule.
 - Change: *Current password* and *New password*, then *Change password*. A wrong current
   password counts towards the lock.
 - *Remove password*: the code by email remains your way in.
 - Forgotten: *Forgot your password? Sign in with a code*, then set a new one here.
+
+![Sign-in methods without a password yet: the field ① and *Set password* ②](shot:help-account-password)
 
 ### Delete your account {#account-delete}
 

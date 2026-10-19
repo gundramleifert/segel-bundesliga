@@ -37,11 +37,13 @@ Ihr Geburtsdatum entscheidet auch, wie Sie den
 
 *Dokumente* → *Dokument hinzufügen*:
 
-1. Wählen Sie eine *Art* – Sportbootführerschein, Funkzeugnis, Erste Hilfe,
+1. Wählen Sie eine *Art* ① – Sportbootführerschein, Funkzeugnis, Erste Hilfe,
    Schiedsrichter- oder Wettfahrtleiter-Lizenz oder *Sonstiges* (dann ist *Titel*
    Pflicht).
 2. *Gültig bis*, falls es abläuft.
-3. *Datei*: PDF, JPEG oder PNG, höchstens 10 MB. *Hochladen*.
+3. *Datei* ②: PDF, JPEG oder PNG, höchstens 10 MB. *Hochladen* ③.
+
+![Dokument hinzufügen: die Art ①, die Datei ②, *Hochladen* ③](shot:help-profile-documents)
 
 Ein abgelaufenes Dokument bleibt, markiert als *abgelaufen*, und die Karte *Ich* weist
 darauf hin. Nur Sie fügen Dokumente hinzu oder löschen sie; außer Ihnen sehen sie nur:

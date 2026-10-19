@@ -35,10 +35,12 @@ Your birthdate also decides how you sign the [waiver](#waiver-birth-date).
 
 *Documents* → *Add a document*:
 
-1. Pick a *Label* — boat licence, radio certificate, first aid, jury or race officer
+1. Pick a *Label* ① — boat licence, radio certificate, first aid, jury or race officer
    licence, or *Other* (then *Title* is required).
 2. *Valid until* if it expires.
-3. *File*: PDF, JPEG or PNG, at most 10 MB. *Upload*.
+3. *File* ②: PDF, JPEG or PNG, at most 10 MB. *Upload* ③.
+
+![Add a document: the label ①, the file ②, *Upload* ③](shot:help-profile-documents)
 
 An expired document stays, marked *expired*, and the *Me* card says so. Only you add or
 delete documents; besides you, only these see them:

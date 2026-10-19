@@ -16,10 +16,12 @@ The matchday page's *Enter results* tab is for corrections; on the water use
 previous, current and next race. Changes save at once, no save button; points and tables
 follow live on the public pages.
 
+![The previous, current and next race: a boat's chip ①, its dropdown ②, *Show all races* ③](shot:help-results-entry)
+
 ### Enter a result {#results-entry-enter}
 
-1. Tap the boats' chips in finish order: each gets the next free place. Tap again to undo.
-2. Or choose a place or a code from a boat's dropdown.
+1. Tap the boats' chips ① in finish order: each gets the next free place. Tap again to undo.
+2. Or choose a place or a code from a boat's dropdown ②.
 3. RDG: *Auto* (the RRS A10 average of the team's other scored races, a suggestion) or
    *Fixed* and type the points.
 4. ZFP and SCP: also enter the finish position.
@@ -32,7 +34,7 @@ follow live on the public pages.
 
 ### Correct a result {#results-entry-correct}
 
-1. *Enter results*, tap *Show all races*.
+1. *Enter results*, tap *Show all races* ③.
 2. Change the boat's dropdown, for example to DSQ.
 
 - Saves at once; standings follow. Two devices on one race: the later change wins.

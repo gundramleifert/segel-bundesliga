@@ -18,12 +18,12 @@ an.*
 
 ### Eine Serie anlegen {#admin-series-create}
 
-1. *Verwaltung*, Reiter *Serien*: *Neue Serie*.
+1. *Verwaltung*, Reiter *Serien*: *Neue Serie* ①.
 2. *Name*: mindestens drei Zeichen. *Jahrgang*, *Beginn* und *Ende* sind optional.
 3. Die *Teilnehmende Vereine* anhaken; sie sind von Anfang an dabei.
 4. *Serie anlegen*.
 
-Die Serie ist ein *Entwurf*. *Vereine ändern* in ihrer Zeile öffnet den Rest ihrer
+Die Serie ist ein *Entwurf*. *Vereine ändern* ② in ihrer Zeile öffnet den Rest ihrer
 Einrichtung:
 
 - die Vereine — [einen Verein in eine Serie eintragen](#admin-clubs-series);
@@ -37,11 +37,13 @@ Ein Name, dessen Adresse eine andere Serie schon hat, wird abgelehnt. Name, Jahr
 Daten lassen sich nach dem Anlegen auf keiner Seite mehr ändern — erlaubt wäre es, eine
 Bedienung dafür gibt es noch nicht.
 
+![Der Reiter Serien: *Neue Serie* ①, in jeder Zeile *Vereine ändern* ② und *Veröffentlichen* bzw. *Zurückziehen* ③](shot:help-admin-series)
+
 ### Eine Serie veröffentlichen {#admin-series-publish}
 
 - **Entwurf:** Die Serie und ihre Veranstaltungen sind öffentlich verborgen; ihre Seite
   antwortet mit „nicht gefunden“, und ihre Vereine werden über sie nicht aufgeführt.
-- *Veröffentlichen* — das Abzeichen wird *Öffentlich*. Das sperrt nichts; jede
+- *Veröffentlichen* ③ — das Abzeichen wird *Öffentlich*. Das sperrt nichts; jede
   Veranstaltung wird weiter einzeln veröffentlicht
   ([eine Veranstaltung veröffentlichen](#run-event-publish)).
 - *Zurückziehen* — zurück zum *Entwurf*; Tabellen und Veranstaltungen bleiben.

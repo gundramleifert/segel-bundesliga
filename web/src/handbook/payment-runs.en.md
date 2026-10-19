@@ -27,11 +27,13 @@ organizer and treasurer see it — not its members.
 
 Starting state: claims are listed under *Approved, to pay*.
 
-1. Under *Pay by SEPA file*, every claim is ticked; untick those to leave out.
-2. Check the *Execution date* (default today).
-3. Press *Create SEPA file*. The file (pain.001.001.09, `.xml`) downloads.
+1. Under *Pay by SEPA file*, every claim is ticked ①; untick those to leave out.
+2. Check the *Execution date* ② (default today).
+3. Press *Create SEPA file* ③. The file (pain.001.001.09, `.xml`) downloads.
 4. Upload it in the club's online banking as a collective transfer and confirm it with
    one TAN.
+
+![Pay by SEPA file: a ticked claim ①, the *Execution date* ②, *Create SEPA file* ③](shot:help-payment-sepa)
 
 Each payee gets one transfer naming all their claims, which now read *In payment* and
 leave the list to pay. Refused: no club account saved; your own claim among them;

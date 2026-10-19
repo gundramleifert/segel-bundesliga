@@ -17,11 +17,13 @@ und Verwaltung der Website: vorherige, aktuelle und nächste Wettfahrt. Änderun
 sofort gespeichert, ohne Speichern-Knopf; Punkte und Tabellen folgen live auf den
 öffentlichen Seiten.
 
+![Vorherige, aktuelle und nächste Wettfahrt: das Farbfeld eines Boots ①, seine Auswahlliste ②, *Alle Wettfahrten anzeigen* ③](shot:help-results-entry)
+
 ### Ein Ergebnis eintragen {#results-entry-enter}
 
-1. Die Farbfelder der Boote in Zielreihenfolge antippen: Jedes bekommt den nächsten
+1. Die Farbfelder der Boote ① in Zielreihenfolge antippen: Jedes bekommt den nächsten
    freien Platz. Erneut tippen macht es rückgängig.
-2. Oder in der Auswahlliste eines Boots einen Platz oder einen Code wählen.
+2. Oder in der Auswahlliste eines Boots ② einen Platz oder einen Code wählen.
 3. RDG: *Automatisch* (der RRS-A10-Durchschnitt der übrigen gewerteten Wettfahrten des
    Teams, ein Vorschlag) oder *Fest* und die Punkte eintragen.
 4. ZFP und SCP: zusätzlich den Zielplatz eintragen.
@@ -36,7 +38,7 @@ sofort gespeichert, ohne Speichern-Knopf; Punkte und Tabellen folgen live auf de
 
 ### Ein Ergebnis korrigieren {#results-entry-correct}
 
-1. *Ergebnisse eingeben*, *Alle Wettfahrten anzeigen* tippen.
+1. *Ergebnisse eingeben*, *Alle Wettfahrten anzeigen* ③ tippen.
 2. Die Auswahl des Boots ändern, zum Beispiel auf DSQ.
 
 - Sofort gespeichert; die Tabellen folgen. Zwei Geräte an einer Wettfahrt: Die spätere

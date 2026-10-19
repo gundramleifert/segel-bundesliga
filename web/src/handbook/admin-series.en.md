@@ -17,12 +17,12 @@ shows only *Series are created by the business office only.*
 
 ### Create a series {#admin-series-create}
 
-1. *Administration*, tab *Series*: *New series*.
+1. *Administration*, tab *Series*: *New series* ①.
 2. *Name*: at least three characters. *Year*, *Starts* and *Ends* are optional.
 3. Tick the *Participating clubs*; they take part from the start.
 4. *Create Series*.
 
-The series is a *Draft*. *Edit clubs* in its row opens the rest of its setup:
+The series is a *Draft*. *Edit clubs* ② in its row opens the rest of its setup:
 
 - the clubs — [enter a club in a series](#admin-clubs-series);
 - *Squad minimum* and *Squad maximum*, then *Save squad size*: the maximum is enforced
@@ -33,11 +33,13 @@ The series is a *Draft*. *Edit clubs* in its row opens the rest of its setup:
 A name whose address another series already has is refused. The screen cannot change
 name, year or dates afterwards — the site would allow it, but no screen offers it yet.
 
+![The Series tab: *New series* ①, and on each row *Edit clubs* ② and *Publish* or *Unpublish* ③](shot:help-admin-series)
+
 ### Publish a series {#admin-series-publish}
 
 - **Draft:** the series and its events are hidden publicly; its page answers "not found",
   and its clubs are not listed through it.
-- *Publish* — the badge turns *Public*. It locks nothing; each event is still published on
+- *Publish* ③ — the badge turns *Public*. It locks nothing; each event is still published on
   its own ([publish an event](#run-event-publish)).
 - *Unpublish* — back to *Draft*; standings and events stay.
 

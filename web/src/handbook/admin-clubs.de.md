@@ -18,12 +18,12 @@ Sache der Verwaltung.
 
 ### Einen Verein anlegen {#admin-clubs-create}
 
-1. *Verwaltung*, Reiter *Vereine*: *Neuer Verein*.
+1. *Verwaltung*, Reiter *Vereine*: *Neuer Verein* ①.
 2. *Name*: mindestens drei Zeichen. *Kürzel* und *Ort* sind optional; ohne Kürzel
    verwendet der Verein seinen Namen.
 3. *Anlegen*; *Noch eine anlegen* beginnt den nächsten.
 
-![Der Reiter Vereine: die Vereine, wie viele in diesem Jahrgang sichtbar sind, und Neuer Verein](shot:help-admin-tabs)
+![Der Reiter Vereine: die Vereine, wie viele in diesem Jahrgang sichtbar sind, und *Neuer Verein* ①](shot:help-admin-tabs)
 
 - Die Adresse des Vereins entsteht aus dem Kürzel, sonst aus dem Namen; hat ein anderer
   Verein sie schon, wird das Anlegen abgelehnt — wählen Sie ein anderes Kürzel.

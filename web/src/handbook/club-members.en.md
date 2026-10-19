@@ -23,9 +23,11 @@ the club admin also sees the crest and the *People* panel, the team manager the
 Club admin only. The person needs an account, which they [register](#account-register)
 themselves; without one: "No account with this address. Create it first."
 
-1. In *People*, enter their address in *Email of an existing account*.
-2. In *As*, choose the member entry — the list starts at *Admin*.
-3. Press *Add*.
+1. In *People*, enter their address in *Email of an existing account* ①.
+2. In *As* ②, choose the member entry — the list starts at *Admin*.
+3. Press *Add* ③.
+
+![The foot of the People panel: address ①, *As* ②, *Add* ③](shot:help-club-people)
 
 They are a member at once, with nothing to accept; ✕ beside a line removes it. A person
 can be in several clubs, and leaves one with *Leave the club*.

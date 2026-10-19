@@ -23,8 +23,11 @@ dem Sie *Mitglied* sind. Es zahlt der Ausrichter der Veranstaltung bzw. Ihr Vere
    *IBAN* eintragen (*BIC* ist optional) und *Speichern*. Dort sehen nur Sie sie.
 2. Den Reiter *Abrechnungen* in Ihrem Profil öffnen, oder *Meine Abrechnungen* auf der
    Seite der Veranstaltung bzw. des Vereins.
-3. Unter *Neue Abrechnung* bei *Für* die Veranstaltung oder den Verein wählen, einen
-   *Titel* eingeben und *Abrechnung anlegen* drücken. Die Abrechnung ist ein *Entwurf*.
+3. Unter *Neue Abrechnung* bei *Für* ① die Veranstaltung oder den Verein wählen, einen
+   *Titel* ② eingeben und *Abrechnung anlegen* ③ drücken. Die Abrechnung ist ein
+   *Entwurf*.
+
+![Neue Abrechnung: *Für* ①, *Titel* ②, *Abrechnung anlegen* ③](shot:help-claim-new)
 
 *Für* zeigt nur, wofür Sie abrechnen dürfen; eine Aufgabe für die ganze Website
 berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über den Reiter
@@ -32,18 +35,20 @@ berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über 
 
 ### Positionen erfassen {#file-a-claim-items}
 
-1. Die Abrechnung mit *Details* öffnen, dann unter *Position hinzufügen* die *Art*
+1. Die Abrechnung mit *Details* öffnen, dann unter *Position hinzufügen* die *Art* ①
    wählen: *Auto*, *Öffentliche Verkehrsmittel*, *Unterkunft*, *Tagegeld*, *Verpflegung*
    oder *Sonstiges*.
-2. *Datum*, *Beschreibung* und *Betrag (€)* eintragen, dann *Position hinzufügen*. Bei
+2. *Datum*, *Beschreibung* und *Betrag (€)* eintragen, dann *Position hinzufügen* ②. Bei
    *Auto* die *Kilometer*: Es gilt der Kilometersatz des zahlenden Vereins, beim
    Einreichen festgeschrieben.
+
+![Ein geöffneter Entwurf: *Art* ①, *Position hinzufügen* ② und unten *Einreichen* ③](shot:help-claim-items)
 
 ### Belege und Einreichen {#file-a-claim-receipts}
 
 1. *Beleg hochladen* für eine Position oder für *die ganze Abrechnung* (deckt alle
    Positionen ab): PDF, JPEG oder PNG, je höchstens 10 MB.
-2. *Einreichen* drücken. *Öffentliche Verkehrsmittel*, *Unterkunft* und *Sonstiges*
+2. *Einreichen* ③ drücken. *Öffentliche Verkehrsmittel*, *Unterkunft* und *Sonstiges*
    brauchen einen Beleg; fehlt er, wird die Abrechnung abgelehnt und die Positionen
    werden genannt.
 

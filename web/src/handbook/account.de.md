@@ -44,12 +44,14 @@ Code per E-Mail funktioniert weiterhin und hebt die Sperre auf.
 In [Mein Bereich](/me/profile): *Ich* → *Konto* → *Anmeldewege*. Ihre Adresse muss
 bestätigt sein – eine Anmeldung mit Code erledigt das.
 
-- Zum ersten Mal: *Passwort festlegen*, dann die Schaltfläche *Passwort festlegen*.
-  12 bis 128 Zeichen, sonst keine Regel.
+- Zum ersten Mal: unter *Passwort festlegen* ① eintippen, dann die Schaltfläche
+  *Passwort festlegen* ②. 12 bis 128 Zeichen, sonst keine Regel.
 - Ändern: *Aktuelles Passwort* und *Neues Passwort*, dann *Passwort ändern*. Ein falsches
   aktuelles Passwort zählt als Fehlversuch.
 - *Passwort entfernen*: Der Code per E-Mail bleibt Ihr Weg hinein.
 - Vergessen: *Passwort vergessen? Mit Code anmelden*, dann hier ein neues festlegen.
+
+![Anmeldewege ohne Passwort: das Feld ① und *Passwort festlegen* ②](shot:help-account-password)
 
 ### Konto löschen {#account-delete}
 

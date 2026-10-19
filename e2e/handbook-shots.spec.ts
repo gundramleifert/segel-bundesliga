@@ -11,8 +11,8 @@ import { bearer, bornIn, managedClub, seededSailors, signIn } from "./session";
  *
  * Not a test of anything, so it covers no story and stays out of the normal run:
  *
- *   HANDBOOK_SHOTS=1 node_modules/.bin/playwright test e2e/handbook-shots.spec.ts --project chromium
- *   HANDBOOK_SHOTS=1 node_modules/.bin/playwright test e2e/handbook-shots.spec.ts --project mobile --grep @phone
+ *   HANDBOOK_SHOTS=1 node_modules/.bin/playwright test e2e/handbook-shots.spec.ts --project chromium --workers 1
+ *   HANDBOOK_SHOTS=1 node_modules/.bin/playwright test e2e/handbook-shots.spec.ts --project mobile --grep @phone --workers 1
  *
  * Each shot is taken in English and German (`<id>_<locale>.png`, on the phone
  * `<id>_<locale>_phone.png`), and the two must differ — a missing translation would
@@ -33,18 +33,30 @@ const TREASURER = "treasurer@nrv.example.com";
 const TEST_SERIES = "dsbl-1-2026";
 const TEST_EVENT = "dsbl-1-2026-act-3"; // the seed's planned act (app/seed_users.py)
 
-type Ids = { clubId: number; eventId: number; liveEventId: number; sailor: string };
+type Ids = {
+  clubId: number;
+  eventId: number;
+  liveEventId: number;
+  sailor: string;
+  /** Made by a shot's `setup`, for the shots that need it. */
+  draftClaimId?: number;
+};
 
 /** Where a shot's picture is cut from: one element, or the span from one to another,
  * at most `maxHeight` tall. No clip: the viewport as the person sees it. */
-type Clip = { from: string; to?: string; maxHeight?: number };
+type Clip = { from: string; to?: string; maxHeight?: number; pad?: number };
+
+/** A control the handbook's text tells the reader to press: framed, with a numbered badge
+ * the text refers to as ①②③. `n` defaults to the mark's place in the list, from 1. */
+type Mark = { target: string; n?: number };
 
 type Shot = {
   id: string;
   as: (ids: Ids) => string;
   path: (ids: Ids) => string;
-  /** Data the shot needs that the seed does not have, made through the API. */
-  setup?: (request: APIRequestContext, ids: Ids) => Promise<void>;
+  /** Data the shot needs that the seed does not have, made through the API; what it
+   * returns is added to the ids. */
+  setup?: (request: APIRequestContext, ids: Ids) => Promise<Partial<Ids> | void>;
   /** Clicks after the page loaded — opening a panel. */
   open?: (page: Page, ids: Ids) => Promise<void>;
   waitFor: (ids: Ids) => string;
@@ -53,6 +65,8 @@ type Shot = {
   phoneViewport?: boolean;
   /** Changes made to the page before the shot, for privacy. */
   redact?: (page: Page) => Promise<void>;
+  /** Where to click, in the order the text names it — at most about three. */
+  marks?: (ids: Ids) => Mark[];
   phone: boolean;
 };
 
@@ -73,7 +87,60 @@ const SHOTS: Shot[] = [
     path: () => "/me/profile?tab=waivers",
     waitFor: () => tid("account-waivers-list"),
     clip: () => ({ from: tid("account-waivers-card") }),
+    marks: () => [{ target: `${tid("account-waivers-list")} [data-testid*="-read-"]` }],
     phone: true,
+  },
+  {
+    id: "help-account-password",
+    as: (d) => d.sailor,
+    path: () => "/me/profile?tab=account",
+    waitFor: () => tid("account-password-form"),
+    clip: () => ({ from: tid("account-signin-methods-card") }),
+    marks: () => [{ target: tid("account-password-new-input") }, { target: tid("account-password-save-button") }],
+    phone: false,
+  },
+  {
+    id: "help-profile-documents",
+    as: (d) => d.sailor,
+    path: () => "/me/profile?tab=documents",
+    waitFor: () => tid("my-space-document-upload"),
+    clip: () => ({ from: tid("my-space-document-upload") }),
+    marks: () => [
+      { target: tid("my-space-document-kind") },
+      { target: tid("my-space-document-file-zone") },
+      { target: tid("my-space-document-submit") },
+    ],
+    phone: false,
+  },
+  {
+    id: "help-claim-new",
+    as: (d) => d.sailor,
+    path: () => "/me/profile?tab=claims",
+    waitFor: () => tid("my-space-claim-target"),
+    clip: () => ({ from: tid("my-space-claim-new") }),
+    marks: () => [
+      { target: tid("my-space-claim-target") },
+      { target: tid("my-space-claim-title") },
+      { target: tid("my-space-claim-create") },
+    ],
+    phone: false,
+  },
+  {
+    id: "help-claim-items",
+    as: (d) => d.sailor,
+    path: () => "/me/profile?tab=claims",
+    setup: aDraftClaim,
+    open: async (page, d) => {
+      await page.getByTestId(`my-space-claim-toggle-${d.draftClaimId}`).click();
+    },
+    waitFor: (d) => tid(`my-space-claim-${d.draftClaimId}-detail`),
+    clip: (d) => ({ from: tid(`my-space-claim-${d.draftClaimId}`) }),
+    marks: (d) => [
+      { target: tid(`my-space-claim-${d.draftClaimId}-add-kind`) },
+      { target: tid(`my-space-claim-${d.draftClaimId}-add-submit`) },
+      { target: tid(`my-space-claim-${d.draftClaimId}-submit`) },
+    ],
+    phone: false,
   },
   {
     id: "help-club-members",
@@ -81,6 +148,20 @@ const SHOTS: Shot[] = [
     path: (d) => `/me/club/${d.clubId}?tab=members`,
     waitFor: () => tid("my-club-members-list"),
     clip: () => ({ from: tid("my-club-members"), maxHeight: 640 }),
+    phone: false,
+  },
+  {
+    // The form under the club's People panel: whom, as what, Add.
+    id: "help-club-people",
+    as: () => CLUB_ADMIN,
+    path: (d) => `/me/club/${d.clubId}?tab=members`,
+    waitFor: (d) => tid(`my-club-access-${d.clubId}-add`),
+    clip: (d) => ({ from: tid(`my-club-access-${d.clubId}-form`), pad: 24 }),
+    marks: (d) => [
+      { target: `label:has(${tid(`my-club-access-${d.clubId}-email`)})` },
+      { target: `label:has(${tid(`my-club-access-${d.clubId}-relation`)})` },
+      { target: tid(`my-club-access-${d.clubId}-add`) },
+    ],
     phone: false,
   },
   {
@@ -92,6 +173,11 @@ const SHOTS: Shot[] = [
     },
     waitFor: () => tid("admin-squad-management"),
     clip: () => ({ from: tid("admin-squad-management") }),
+    marks: () => [
+      { target: '[data-testid^="admin-squad-panes-available-row-"]' },
+      { target: '[data-testid^="admin-squad-role-"]' },
+      { target: tid("admin-squad-save") },
+    ],
     phone: false,
   },
   {
@@ -103,6 +189,11 @@ const SHOTS: Shot[] = [
     },
     waitFor: (d) => tid(`my-club-lineup-${d.eventId}`),
     clip: (d) => ({ from: tid(`my-club-lineup-${d.eventId}`) }),
+    marks: (d) => [
+      { target: `[data-testid^="my-club-lineup-${d.eventId}-panes-available-row-"]` },
+      { target: `[data-testid^="my-club-lineup-${d.eventId}-role-"]` },
+      { target: tid(`my-club-lineup-${d.eventId}-save`) },
+    ],
     phone: true,
   },
   {
@@ -120,6 +211,7 @@ const SHOTS: Shot[] = [
     path: () => "/admin/events/new",
     waitFor: () => tid("admin-events-create-form"),
     clip: () => ({ from: tid("admin-events-wizard") }),
+    marks: () => [{ target: tid("admin-events-title-input") }, { target: tid("admin-events-create-button") }],
     phone: false,
   },
   {
@@ -136,6 +228,11 @@ const SHOTS: Shot[] = [
       to: tid(`admin-manage-event-draw-${d.eventId}`),
       maxHeight: 1100,
     }),
+    marks: (d) => [
+      { target: tid(`admin-manage-event-save-dates-${d.eventId}`) },
+      { target: tid(`admin-manage-event-save-clubs-${d.eventId}`) },
+      { target: tid(`admin-manage-event-draw-${d.eventId}`) },
+    ],
     phone: false,
   },
   {
@@ -150,6 +247,23 @@ const SHOTS: Shot[] = [
     phone: false,
   },
   {
+    // The live act's closing block — the league office's admin sees every event.
+    id: "help-close-event",
+    as: () => ADMIN,
+    path: () => "/admin?tab=events",
+    open: async (page, d) => {
+      await page.getByTestId(`admin-manage-event-toggle-${d.liveEventId}`).click();
+    },
+    // The waiver list above loads last and pushes the block down.
+    waitFor: (d) => tid(`admin-manage-event-waivers-summary-${d.liveEventId}`),
+    clip: (d) => ({ from: tid(`admin-manage-event-closing-${d.liveEventId}`) }),
+    marks: (d) => [
+      { target: tid(`admin-manage-event-finish-${d.liveEventId}`) },
+      { target: tid(`admin-manage-event-cancel-${d.liveEventId}`) },
+    ],
+    phone: false,
+  },
+  {
     // The live act: the seed's race officer `regatta@` holds the planned one only, so the
     // league office's race officer runs this one.
     id: "help-race-control",
@@ -157,7 +271,28 @@ const SHOTS: Shot[] = [
     path: (d) => `/events/${d.liveEventId}/race-control`,
     waitFor: () => tid("race-control-pad"),
     clip: () => ({ from: tid("race-control-heading"), to: tid("race-control-ap") }),
+    marks: () => [
+      { target: 'fieldset:has([data-testid^="race-control-flag-"])' },
+      { target: tid("race-control-start-sequence") },
+    ],
     phoneViewport: true,
+    phone: true,
+  },
+  {
+    // The correction screen of the live act: the race before, the current one, the next.
+    id: "help-results-entry",
+    as: () => SITE_RACE_OFFICER,
+    path: (d) => `/events/${d.liveEventId}/entry`,
+    waitFor: () => tid("matchday-results-table"),
+    clip: () => ({ from: tid("matchday-results-focus-hint"), to: tid("matchday-results-table-frame") }),
+    marks: () => {
+      const current = `${tid("matchday-results-table")} tbody tr:nth-child(2)`;
+      return [
+        { target: `${current} [data-testid^="matchday-results-tap-"]` },
+        { target: `${current} [data-testid^="matchday-results-code-select-"]` },
+        { target: tid("matchday-results-show-all-toggle") },
+      ];
+    },
     phone: true,
   },
   {
@@ -169,6 +304,30 @@ const SHOTS: Shot[] = [
     // The list only — the club's bank-account form below it stays out.
     clip: () => ({ from: tid("reimbursements-list") }),
     redact: maskIbans,
+    marks: () => {
+      const claim = `${tid("reimbursements-list")} > li:first-child`;
+      return [
+        { target: `${claim} [data-testid$="-approve"]` },
+        { target: `${claim} [data-testid$="-return"]` },
+        { target: `${claim} [data-testid$="-reject"]` },
+      ];
+    },
+    phone: false,
+  },
+  {
+    // The SEPA block only — the club's account above it, with its IBAN, stays out.
+    id: "help-payment-sepa",
+    as: () => TREASURER,
+    path: (d) => `/me/club/${d.clubId}?tab=money`,
+    setup: aClaimToPay,
+    waitFor: (d) => tid(`reimbursements-club-${d.clubId}-sepa-create`),
+    clip: (d) => ({ from: tid(`reimbursements-club-${d.clubId}-sepa`) }),
+    redact: maskIbans,
+    marks: (d) => [
+      { target: `${tid(`reimbursements-club-${d.clubId}-sepa-claims`)} > li:first-child label` },
+      { target: tid(`reimbursements-club-${d.clubId}-sepa-date`) },
+      { target: tid(`reimbursements-club-${d.clubId}-sepa-create`) },
+    ],
     phone: false,
   },
   {
@@ -177,6 +336,23 @@ const SHOTS: Shot[] = [
     path: () => "/admin",
     waitFor: () => tid("admin-clubs-list"),
     clip: () => ({ from: tid("admin-tabs"), to: tid("admin-panel-clubs"), maxHeight: 640 }),
+    marks: () => [{ target: tid("admin-clubs-new-button") }],
+    phone: false,
+  },
+  {
+    id: "help-admin-series",
+    as: () => ADMIN,
+    path: () => "/admin?tab=series",
+    waitFor: () => tid("admin-series-list"),
+    clip: () => ({ from: tid("admin-series-section"), maxHeight: 520 }),
+    marks: () => {
+      const first = `${tid("admin-series-list")} > li:first-child`;
+      return [
+        { target: tid("admin-series-new-button") },
+        { target: `${first} [data-testid^="admin-series-edit-button-"]` },
+        { target: `${first} [data-testid^="admin-series-publish-button-"]` },
+      ];
+    },
     phone: false,
   },
 ];
@@ -209,21 +385,23 @@ async function lookUp(request: APIRequestContext): Promise<Ids> {
 
 // ------------------------------------------------------------------- data for a shot
 
-/** A submitted claim on the club, from one of its sailors, waiting for the treasurer —
- * made once; a second run finds it there. */
-async function aClaimToDecide(request: APIRequestContext, ids: Ids): Promise<void> {
-  const treasurer = await bearer(request, TREASURER);
-  const pending = (await (await request.get("/api/claims/pending", { headers: treasurer })).json()) as {
-    payer_club_id: number | null;
-    action: string | null;
-  }[];
-  if (pending.some((c) => c.payer_club_id === ids.clubId && c.action === "decide")) return;
+type ApiResponse = Awaited<ReturnType<APIRequestContext["get"]>>;
 
+async function ok<T = { id: number }>(response: ApiResponse): Promise<T> {
+  expect(response.ok(), await response.text()).toBeTruthy();
+  return response.json() as Promise<T>;
+}
+
+type PendingClaim = { id: number; payer_club_id: number | null; action: string | null; title: string };
+
+async function pendingOfTreasurer(request: APIRequestContext): Promise<PendingClaim[]> {
+  return ok<PendingClaim[]>(await request.get("/api/claims/pending", { headers: await bearer(request, TREASURER) }));
+}
+
+/** A claim on the club by one of its sailors, with two items — submitted unless `draft`.
+ * The sailor's bank account is saved first: submitting copies it onto the claim. */
+async function aClaim(request: APIRequestContext, ids: Ids, title: string, draft = false): Promise<number> {
   const headers = await bearer(request, ids.sailor);
-  const ok = async (response: Awaited<ReturnType<APIRequestContext["get"]>>) => {
-    expect(response.ok(), await response.text()).toBeTruthy();
-    return response.json() as Promise<{ id: number }>;
-  };
   // The standard example IBAN of the German banking association — and masked in the shot.
   await ok(
     await request.put("/api/me/bank-account", {
@@ -231,9 +409,7 @@ async function aClaimToDecide(request: APIRequestContext, ids: Ids): Promise<voi
       data: { holder: "Bober Daberberg", iban: "DE89 3704 0044 0532 0130 00" },
     }),
   );
-  const claim = await ok(
-    await request.post("/api/claims", { headers, data: { title: "Training weekend Kiel", club_id: ids.clubId } }),
-  );
+  const claim = await ok(await request.post("/api/claims", { headers, data: { title, club_id: ids.clubId } }));
   await ok(
     await request.post(`/api/claims/${claim.id}/items`, {
       headers,
@@ -246,7 +422,42 @@ async function aClaimToDecide(request: APIRequestContext, ids: Ids): Promise<voi
       data: { kind: "per_diem", incurred_on: "2026-07-18", description: "Per diem, two days", amount_cents: 2800 },
     }),
   );
-  await ok(await request.post(`/api/claims/${claim.id}/submit`, { headers }));
+  if (!draft) await ok(await request.post(`/api/claims/${claim.id}/submit`, { headers }));
+  return claim.id;
+}
+
+/** A submitted claim on the club waiting for the treasurer — made once; a second run
+ * finds it there. */
+async function aClaimToDecide(request: APIRequestContext, ids: Ids): Promise<void> {
+  const pending = await pendingOfTreasurer(request);
+  if (pending.some((c) => c.payer_club_id === ids.clubId && c.action === "decide")) return;
+  await aClaim(request, ids, "Training weekend Kiel");
+}
+
+/** An approved claim the club still owes, and the club's own account saved, so the SEPA
+ * block offers its file. */
+async function aClaimToPay(request: APIRequestContext, ids: Ids): Promise<void> {
+  const treasurer = await bearer(request, TREASURER);
+  await ok(
+    await request.put(`/api/clubs/${ids.clubId}/bank-account`, {
+      headers: treasurer,
+      data: { holder: "Norddeutscher Regatta Verein", iban: "DE02 1203 0000 0000 2020 51", bic: null },
+    }),
+  );
+  const pending = await pendingOfTreasurer(request);
+  if (pending.some((c) => c.payer_club_id === ids.clubId && c.action === "pay")) return;
+  const claimId = await aClaim(request, ids, "Coach boat fuel, Kiel Week");
+  await ok(await request.post(`/api/claims/${claimId}/approve`, { headers: treasurer, data: { items: [], note: null } }));
+}
+
+/** A draft claim of the sailor's own, still open to items — made once. */
+async function aDraftClaim(request: APIRequestContext, ids: Ids): Promise<Partial<Ids>> {
+  const title = "Matchday Warnemünde";
+  const mine = await ok<{ id: number; title: string; status: string }[]>(
+    await request.get("/api/me/claims", { headers: await bearer(request, ids.sailor) }),
+  );
+  const draft = mine.find((c) => c.title === title && c.status === "draft");
+  return { draftClaimId: draft ? draft.id : await aClaim(request, ids, title, true) };
 }
 
 /** Never a full IBAN in a picture: the country and the last four, the rest dotted out. */
@@ -267,9 +478,107 @@ async function maskIbans(page: Page): Promise<void> {
 
 // -------------------------------------------------------------------------- capture
 
-/** The clip in page coordinates, so a panel below the fold is cut from the full page. */
-async function clipBox(page: Page, clip: Clip) {
-  return page.evaluate(({ from, to, maxHeight }) => {
+type Box = { left: number; top: number; right: number; bottom: number };
+
+/** Draws the shot's marks over the page and returns the box they cover, in page
+ * coordinates — or throws when a target is missing or invisible: a mark the text refers
+ * to and the picture lacks is worse than no mark.
+ *
+ * Each mark is an amber frame a few pixels outside the control, with a white and a dark
+ * outer ring so it stands out on a white card and on the dark glass pages alike, and a
+ * filled amber badge with its number just outside the frame's top-left corner. Absolutely
+ * positioned in the document, so a full-page clip carries it; pointer-events none. */
+async function drawMarks(page: Page, marks: Mark[]): Promise<Box | null> {
+  if (!marks.length) return null;
+  await settled(page, marks.map((m) => m.target));
+  return page.evaluate((list) => {
+    const AMBER = "#f59e0b";
+    const INK = "#111827";
+    const PAD = 5;
+    const BADGE = 26;
+    document.getElementById("handbook-marks")?.remove();
+    const layer = document.createElement("div");
+    layer.id = "handbook-marks";
+    Object.assign(layer.style, {
+      position: "absolute", left: "0", top: "0", width: "0", height: "0",
+      zIndex: "2147483647", pointerEvents: "none",
+    });
+    document.body.appendChild(layer);
+    const badges: HTMLElement[] = [];
+    const cover = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+    list.forEach((mark, index) => {
+      const element = document.querySelector(mark.target);
+      if (!element) throw new Error(`mark ${index + 1}: no element ${mark.target}`);
+      const r = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      if (r.width === 0 || r.height === 0 || style.visibility === "hidden" || style.display === "none") {
+        throw new Error(`mark ${index + 1}: ${mark.target} is not visible`);
+      }
+      const left = r.left + scrollX - PAD;
+      const top = r.top + scrollY - PAD;
+      const width = r.width + 2 * PAD;
+      const height = r.height + 2 * PAD;
+      const frame = document.createElement("div");
+      Object.assign(frame.style, {
+        position: "absolute", left: `${left}px`, top: `${top}px`,
+        width: `${width}px`, height: `${height}px`, boxSizing: "border-box",
+        border: `3px solid ${AMBER}`, borderRadius: "10px",
+        boxShadow: `0 0 0 2px #fff, 0 0 0 3.5px rgba(17,24,39,.6), 0 0 16px 5px rgba(245,158,11,.55)`,
+      });
+      layer.appendChild(frame);
+      // Up and left of the corner, overlapping the frame only a little, so a small
+      // control (a checkbox, a label) is not hidden under its own number.
+      const badgeLeft = Math.max(2, left - BADGE + 7);
+      const badgeTop = Math.max(2, top - BADGE + 7);
+      const badge = document.createElement("div");
+      badge.textContent = String(mark.n ?? index + 1);
+      Object.assign(badge.style, {
+        position: "absolute", left: `${badgeLeft}px`, top: `${badgeTop}px`,
+        width: `${BADGE}px`, height: `${BADGE}px`, boxSizing: "border-box",
+        borderRadius: "50%", background: AMBER, color: INK, border: "2px solid #fff",
+        boxShadow: "0 0 0 1px rgba(17,24,39,.6), 0 2px 6px rgba(0,0,0,.45)",
+        font: "700 14px/22px system-ui, sans-serif", textAlign: "center",
+      });
+      badges.push(badge);
+      const glow = 8;
+      cover.left = Math.min(cover.left, badgeLeft, left - glow);
+      cover.top = Math.min(cover.top, badgeTop, top - glow);
+      cover.right = Math.max(cover.right, left + width + glow);
+      cover.bottom = Math.max(cover.bottom, top + height + glow);
+    });
+    // Over every frame: a badge beside a neighbour's frame must not vanish under it.
+    for (const badge of badges) layer.appendChild(badge);
+    return cover;
+  }, marks);
+}
+
+/** Waits until the targets stop moving: a list that lands late pushes everything below
+ * it down, and a mark drawn before that sits beside its control in the picture. */
+async function settled(page: Page, targets: string[]): Promise<void> {
+  const where = () =>
+    page.evaluate(
+      (list) =>
+        list
+          .map((selector) => {
+            const r = document.querySelector(selector)?.getBoundingClientRect();
+            return r ? `${r.left + scrollX},${r.top + scrollY},${r.width},${r.height}` : "-";
+          })
+          .join(";"),
+      targets,
+    );
+  let before = await where();
+  for (let i = 0; i < 20; i++) {
+    await page.waitForTimeout(250);
+    const now = await where();
+    if (now === before) return;
+    before = now;
+  }
+}
+
+/** The clip in page coordinates, so a panel below the fold is cut from the full page —
+ * widened to every mark, which may sit just outside the panel. */
+async function clipBox(page: Page, clip: Clip, marks: Box | null) {
+  return page.evaluate(({ from, to, maxHeight, pad = 8, marks }) => {
     const box = (selector: string) => {
       const element = document.querySelector(selector);
       if (!element) throw new Error(`no element ${selector}`);
@@ -278,14 +587,20 @@ async function clipBox(page: Page, clip: Clip) {
     };
     const a = box(from);
     const b = to ? box(to) : a;
-    const pad = 8;
-    const left = Math.max(0, Math.min(a.left, b.left) - pad);
-    const top = Math.max(0, Math.min(a.top, b.top) - pad);
-    const right = Math.min(document.documentElement.scrollWidth, Math.max(a.right, b.right) + pad);
+    const pageWidth = document.documentElement.scrollWidth;
+    let left = Math.max(0, Math.min(a.left, b.left) - pad);
+    let top = Math.max(0, Math.min(a.top, b.top) - pad);
+    let right = Math.min(pageWidth, Math.max(a.right, b.right) + pad);
     let bottom = Math.max(a.bottom, b.bottom) + pad;
     if (maxHeight) bottom = Math.min(bottom, top + maxHeight);
+    if (marks) {
+      left = Math.max(0, Math.min(left, marks.left));
+      top = Math.max(0, Math.min(top, marks.top));
+      right = Math.min(pageWidth, Math.max(right, marks.right));
+      bottom = Math.max(bottom, marks.bottom);
+    }
     return { x: left, y: top, width: right - left, height: bottom - top };
-  }, clip);
+  }, { ...clip, marks });
 }
 
 test.describe("Foundations: handbook screenshots", () => {
@@ -298,7 +613,7 @@ test.describe("Foundations: handbook screenshots", () => {
       if (!phone) await page.setViewportSize({ width: 1280, height: 800 });
 
       const ids = await lookUp(request);
-      await shot.setup?.(request, ids);
+      Object.assign(ids, (await shot.setup?.(request, ids)) ?? {});
       await signIn(page, shot.as(ids));
       mkdirSync(OUT, { recursive: true });
 
@@ -329,6 +644,7 @@ test.describe("Foundations: handbook screenshots", () => {
         await expect(page.locator(shot.waitFor(ids)).first()).toBeVisible();
         await page.waitForLoadState("networkidle");
         await shot.redact?.(page);
+        const marked = await drawMarks(page, shot.marks?.(ids) ?? []);
 
         const file = `${OUT}${shot.id}_${locale}${phone ? "_phone" : ""}.png`;
         const picture =
@@ -337,7 +653,7 @@ test.describe("Foundations: handbook screenshots", () => {
             : await page.screenshot({
                 path: file,
                 fullPage: true,
-                clip: shot.clip ? await clipBox(page, shot.clip(ids)) : undefined,
+                clip: shot.clip ? await clipBox(page, shot.clip(ids), marked) : undefined,
               });
         pictures.push(picture);
       }

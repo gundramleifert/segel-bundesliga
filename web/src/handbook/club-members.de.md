@@ -24,9 +24,11 @@ Nur die Vereinsverwaltung. Die Person braucht ein Konto, das sie selbst
 [anlegt](#account-register); ohne Konto: „Kein Konto mit dieser Adresse. Bitte zuerst
 anlegen.“
 
-1. Geben Sie unter *Personen* ihre Adresse in *E-Mail eines bestehenden Kontos* ein.
-2. Wählen Sie unter *Als* den Eintrag für Mitglieder – die Liste beginnt mit *Verwaltung*.
-3. Drücken Sie *Hinzufügen*.
+1. Geben Sie unter *Personen* ihre Adresse in *E-Mail eines bestehenden Kontos* ① ein.
+2. Wählen Sie unter *Als* ② den Eintrag für Mitglieder – die Liste beginnt mit *Verwaltung*.
+3. Drücken Sie *Hinzufügen* ③.
+
+![Der Fuß des Felds Personen: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
 
 Die Person ist sofort Mitglied, ohne zuzustimmen; ✕ neben einer Zeile entfernt sie. Eine
 Person kann in mehreren Vereinen sein und tritt mit *Verein verlassen* aus einem aus.

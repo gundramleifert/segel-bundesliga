@@ -36,14 +36,14 @@ Mehr unter [Rollen](#roles-list).
 
 Entwürfe und Ihre eigenen Abrechnungen erscheinen nie.
 
-![Die wartenden Abrechnungen im Reiter Finanzen des Vereins](shot:help-claims-pending)
+![Eine wartende Abrechnung im Reiter Finanzen des Vereins: *Genehmigen* ①, *Zurückgeben* ②, *Ablehnen* ③](shot:help-claims-pending)
 
 ### Genehmigen, zurückgeben oder ablehnen {#decide-claims-decide}
 
 1. Positionen und *Belege* prüfen. Das Öffnen eines Belegs wird protokolliert.
-2. *Genehmigen*. Um für eine Position weniger zu zahlen, sie unter *Genehmigen mit (€)*
+2. *Genehmigen* ①. Um für eine Position weniger zu zahlen, sie unter *Genehmigen mit (€)*
    senken – nie über den beantragten Betrag. Der *Hinweis* ist hier optional.
-3. Oder die Abrechnung *Zurückgeben*, damit sie geändert wird, oder *Ablehnen*. Beides
+3. Oder die Abrechnung *Zurückgeben* ②, damit sie geändert wird, oder *Ablehnen* ③. Beides
    braucht einen *Hinweis*, den die abrechnende Person liest.
 
 Entschieden wird nur eine Abrechnung im Status *Eingereicht*; jede Entscheidung wird mit

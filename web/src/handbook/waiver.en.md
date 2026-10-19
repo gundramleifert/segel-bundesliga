@@ -29,14 +29,14 @@ every event of that series — and once for each event that belongs to no series
 
 Until cleared, each also waits as a notice on your page for that series or event.
 
-![A competition with its status and the button to confirm](shot:help-waiver-card)
+![A competition with its status and *Read and confirm* ①](shot:help-waiver-card)
 
 ### From 18: confirm online {#waiver-adult}
 
 Your age counts on the reference date: the series' start (else 1 January of its year),
 or the event's start.
 
-1. Tap *Read and confirm* and read the text.
+1. Tap *Read and confirm* ① and read the text.
 2. Tick *I have read the statement above and agree to it for this competition.*
 3. Tap *Confirm*.
 

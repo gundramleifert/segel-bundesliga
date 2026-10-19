@@ -32,11 +32,11 @@ jemand? Die Geschäftsstelle legt die Person mit ihrer Anmeldeadresse an.
 Ihr Verein ist für die Serie gemeldet.
 
 1. Seite Ihres Vereins in *Mein Bereich*, Reiter *Serien & Kader*: *Kader*.
-2. Klicken Sie Personen unter *Verfügbar* an; sie wandern nach *Ausgewählt*.
-3. Wählen Sie neben jedem Namen *Steuermann*, *Crew* oder *Reserve*.
-4. Drücken Sie *Kader speichern*.
+2. Klicken Sie Personen unter *Verfügbar* ① an; sie wandern nach *Ausgewählt*.
+3. Wählen Sie neben jedem Namen *Steuermann*, *Crew* oder *Reserve* ②.
+4. Drücken Sie *Kader speichern* ③.
 
-![Ein Kader mit der Suche links und dem Kader rechts](shot:help-club-squad)
+![Ein Kader: eine Person unter Verfügbar ①, die Rolle ②, *Kader speichern* ③](shot:help-club-squad)
 
 - Speichern ersetzt den ganzen Kader.
 - *Segelt in dieser Serie schon für …* lässt sich nicht hinzufügen.
@@ -61,11 +61,11 @@ Der Kader ist gemeldet.
 
 1. Der Reiter *Spieltage* listet jeden Spieltag, für den Ihr Verein gemeldet ist:
    *Aufstellung*.
-2. Verschieben Sie Personen aus dem Kader nach *Ausgewählt*; passen Sie die *Rolle am
-   Spieltag* an.
-3. Drücken Sie *Aufstellung speichern*.
+2. Verschieben Sie Personen aus dem Kader ① nach *Ausgewählt*; passen Sie die *Rolle am
+   Spieltag* ② an.
+3. Drücken Sie *Aufstellung speichern* ③.
 
-![Die Aufstellung für einen Spieltag](shot:help-club-lineup)
+![Die Aufstellung für einen Spieltag: der Kader ①, die Rolle ②, *Aufstellung speichern* ③](shot:help-club-lineup)
 
 Angeboten wird nur der Kader; die Anzahl ist frei (*üblich …*). Niemand segelt an einem
 Spieltag für zwei Teams; eine leere Liste entfernt die Aufstellung. Auf der Website stellt

@@ -15,13 +15,13 @@ title: "Wettfahrten vom Wasser aus leiten"
 über Ihre Veranstaltung in *Mein Bereich* (*Wettfahrtleitung öffnen*) oder den Tab
 *Ergebnisse eingeben*. Für die Wettfahrtleitung und die Verwaltung der Website.
 
-![Die aktuelle Wettfahrt auf dem Telefon: ihre Boote, die Teams darauf, die Startknöpfe](shot:help-race-control)
+![Die aktuelle Wettfahrt auf dem Telefon: ihre Boote, die Teams darauf, das Vorbereitungssignal ①, *Startfolge in 10 s* ②](shot:help-race-control)
 
 ### Eine Wettfahrt starten {#race-control-start}
 
-1. *Vorbereitungssignal* wählen: P, I, Z, U oder *Schwarz* — die Strafe für ein Boot über
+1. *Vorbereitungssignal* ① wählen: P, I, Z, U oder *Schwarz* — die Strafe für ein Boot über
    der Linie.
-2. *Startfolge in 10 s* tippen oder *Startfolge um …* (nächste volle Minute, mindestens
+2. *Startfolge in 10 s* ② tippen oder *Startfolge um …* (nächste volle Minute, mindestens
    10 s entfernt). Die Uhrzeit ist die, zu der die Clubflagge hochgeht.
 3. Tun, was die größte Zeile sagt: nächstes Signal und Countdown. 3-2-1-0: Clubflagge
    hoch, Vorbereitungssignal hoch, Vorbereitungssignal runter, Clubflagge runter — Start

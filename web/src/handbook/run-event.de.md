@@ -21,16 +21,16 @@ auch bei einer unvollständigen Veranstaltung.
 
 | Es steht dort | Was zu tun ist |
 |---|---|
-| die gemeldeten Vereine passen nicht zum Zuschnitt | unter *Gemeldete Vereine: … von …* Vereine an- oder abwählen, dann *… Vereine melden* |
-| noch kein Datum | *Beginn* setzen, *Datum speichern* |
+| die gemeldeten Vereine passen nicht zum Zuschnitt | unter *Gemeldete Vereine: … von …* Vereine an- oder abwählen, dann *… Vereine melden* ② |
+| noch kein Datum | *Beginn* setzen, *Datum speichern* ① |
 | keine vorberechnete Liste für diesen Zuschnitt, oder die Boote passen nicht | das Panel kann Zuschnitt und Boote nicht ändern — wenden Sie sich an die Geschäftsstelle |
 
-![Das Panel: was noch fehlt, die Vereine, die Auslosung](shot:help-event-readiness)
+![Das Panel: was noch fehlt, *Datum speichern* ①, die Vereine und *… Vereine melden* ②, die Auslosung ③](shot:help-event-readiness)
 
 ### Die Pairing-Liste auslosen {#run-event-draw}
 
 Heute lost nur die Verwaltung der Geschäftsstelle aus: Ist *Es fehlt noch* leer, bitten
-Sie sie darum. Die Organisation der Veranstaltung sieht *Auslosen*, erhält aber einen
+Sie sie darum. Die Organisation der Veranstaltung sieht *Auslosen* ③, erhält aber einen
 Berechtigungsfehler.
 
 - Der *Los-Seed* mischt die Startpositionen der vorberechneten Liste; derselbe Seed

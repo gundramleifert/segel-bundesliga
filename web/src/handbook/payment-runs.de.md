@@ -27,13 +27,15 @@ Organisation und Kassenwart des Vereins sehen es – nicht seine Mitglieder.
 
 Ausgangslage: Unter *Freigegeben, zu zahlen* stehen Abrechnungen.
 
-1. Unter *Per SEPA-Datei zahlen* ist jede Abrechnung angehakt; Haken bei denen
+1. Unter *Per SEPA-Datei zahlen* ist jede Abrechnung angehakt ①; Haken bei denen
    entfernen, die nicht mit sollen.
-2. Das *Ausführungsdatum* prüfen (Vorgabe: heute).
-3. *SEPA-Datei erstellen* drücken. Die Datei (pain.001.001.09, `.xml`) wird
+2. Das *Ausführungsdatum* ② prüfen (Vorgabe: heute).
+3. *SEPA-Datei erstellen* ③ drücken. Die Datei (pain.001.001.09, `.xml`) wird
    heruntergeladen.
 4. Im Online-Banking des Vereins als Sammelüberweisung hochladen und mit einer TAN
    freigeben.
+
+![Per SEPA-Datei zahlen: eine angehakte Abrechnung ①, das *Ausführungsdatum* ②, *SEPA-Datei erstellen* ③](shot:help-payment-sepa)
 
 Jeder Empfänger bekommt eine Überweisung, die alle seine Abrechnungen nennt; diese
 stehen nun auf *In Zahlung* und verlassen die Liste der zu zahlenden.

@@ -21,8 +21,8 @@ May create one: the league office, the series' manager, and the host club's mana
 ### The three steps {#create-event-wizard}
 
 1. *Administration*, tab *Events*: *＋ New event*.
-2. *General data*: only *Name* (three characters or more) is required. *Create Event*
-   saves a draft nobody else sees.
+2. *General data*: only *Name* ① (three characters or more) is required. *Create Event*
+   ② saves a draft nobody else sees.
 3. *Clubs*: tick the entrants, then *Enter … clubs and continue*. In a series only its
    registered clubs can enter, already ticked; outside a series, any club.
 4. *Pairing list*: [the draw](#run-event-draw).
@@ -32,7 +32,7 @@ May create one: the league office, the series' manager, and the host club's mana
 Steps 2 and 3 have *Skip for now*; finish the rest in the event's panel
 ([what is missing](#run-event-readiness)).
 
-![The first step: name, dates, series, host club, size and boats](shot:help-event-wizard)
+![The first step: *Name* ①, dates, series, host club, size and boats, *Create Event* ②](shot:help-event-wizard)
 
 ### Size, series and dates {#create-event-config}
 

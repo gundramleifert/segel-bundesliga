@@ -17,12 +17,12 @@ editor creates clubs; entering a club in a series is the admin's.
 
 ### Create a club {#admin-clubs-create}
 
-1. *Administration*, tab *Clubs*: *New club*.
+1. *Administration*, tab *Clubs*: *New club* ①.
 2. *Name*: at least three characters. *Short name* and *City* are optional; without a
    short name the club uses its name.
 3. *Create*; *Create another* starts the next one.
 
-![The Clubs tab: the clubs, how many are visible this year, and New club](shot:help-admin-tabs)
+![The Clubs tab: the clubs, how many are visible this year, and *New club* ①](shot:help-admin-tabs)
 
 - The club's address is made from the short name, else the name; if another club has it,
   creating is refused — choose another short name. `BYC (BA)` and `BYC (BE)` are two clubs.

@@ -21,8 +21,8 @@ Ausrichters (nur mit dem eigenen Verein als Ausrichter).
 ### Die drei Schritte {#create-event-wizard}
 
 1. *Verwaltung*, Reiter *Veranstaltungen*: *＋ Neue Veranstaltung*.
-2. *Allgemeines*: Pflicht ist nur *Name* (mindestens drei Zeichen). *Veranstaltung
-   anlegen* speichert einen Entwurf, den sonst niemand sieht.
+2. *Allgemeines*: Pflicht ist nur *Name* ① (mindestens drei Zeichen). *Veranstaltung
+   anlegen* ② speichert einen Entwurf, den sonst niemand sieht.
 3. *Vereine*: die Teilnehmer ankreuzen, dann *… Vereine eintragen und weiter*. In einer
    Serie können nur ihre gemeldeten Vereine antreten, schon angekreuzt; ohne Serie jeder
    Verein.
@@ -33,7 +33,7 @@ Ausrichters (nur mit dem eigenen Verein als Ausrichter).
 Schritte 2 und 3 haben *Vorerst überspringen*; den Rest ergänzen Sie im Panel der
 Veranstaltung ([was noch fehlt](#run-event-readiness)).
 
-![Der erste Schritt: Name, Daten, Serie, Ausrichter, Zuschnitt und Boote](shot:help-event-wizard)
+![Der erste Schritt: *Name* ①, Daten, Serie, Ausrichter, Zuschnitt und Boote, *Veranstaltung anlegen* ②](shot:help-event-wizard)
 
 ### Zuschnitt, Serie und Daten {#create-event-config}
 

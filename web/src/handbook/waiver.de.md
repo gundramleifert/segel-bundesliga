@@ -32,14 +32,14 @@ Wettbewerb mit seinem Stand.
 Bis sie erledigt ist, wartet jede auch als Hinweis auf Ihrer Seite für diese Serie oder
 Veranstaltung.
 
-![Ein Wettbewerb mit seinem Stand und der Schaltfläche zum Bestätigen](shot:help-waiver-card)
+![Ein Wettbewerb mit seinem Stand und *Lesen und bestätigen* ①](shot:help-waiver-card)
 
 ### Ab 18: online bestätigen {#waiver-adult}
 
 Ihr Alter zählt am Stichtag: Beginn der Serie (sonst 1. Januar ihres Jahres) oder Beginn
 der Veranstaltung.
 
-1. Tippen Sie auf *Lesen und bestätigen* und lesen Sie den Text.
+1. Tippen Sie auf *Lesen und bestätigen* ① und lesen Sie den Text.
 2. Haken Sie *Ich habe die obige Erklärung gelesen und stimme ihr für diesen Wettbewerb
    zu.* an.
 3. Tippen Sie auf *Bestätigen*.

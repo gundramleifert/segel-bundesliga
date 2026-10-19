@@ -18,9 +18,11 @@ and asks an organizer to close the event. It shows only what applies now
 and never asks for confirmation: everything here is one press to undo and deletes
 nothing.
 
+![The *Closing* block of a running event: *Racing is over* ①, *Call the event off* ②](shot:help-close-event)
+
 ### Racing is over {#close-event-finish}
 
-1. Press *Racing is over*. The event is now final.
+1. Press *Racing is over* ①. The event is now final.
 
 - Only a running event can be declared over; before the start the panel says so.
 - Not every race has to be sailed: a day that lost its last flights to the wind is over
@@ -31,7 +33,7 @@ nothing.
 
 ### Call the event off {#close-event-cancel}
 
-1. Press *Call the event off* — before the start or halfway through the day.
+1. Press *Call the event off* ② — before the start or halfway through the day.
 
 - Nothing is deleted: the pairing list and any results stay as they are.
 - A called-off event counts in no series table, and nobody gets the points for a missed

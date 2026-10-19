@@ -465,7 +465,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
           Neither closing asks for confirmation. Both undo with one press and neither
           deletes anything — not the pairing list, not a single result — so a dialog would
           buy nothing and cost a tap on a rocking boat. */}
-      <Stack gap={3}>
+      <Stack gap={3} testId={`admin-manage-event-closing-${event.id}`}>
         <h3 className="text-sm font-semibold text-slate-700">{t("manage.closingTitle")}</h3>
         <p className="text-sm text-slate-600">
           {closed

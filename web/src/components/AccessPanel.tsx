@@ -86,7 +86,7 @@ export function AccessPanel({
       </Async>
       {remove.error && <ErrorMessage text={errorText(remove.error)} testId={`${testId}-revoke-error`} />}
 
-      <div className="mt-3 flex flex-wrap items-end gap-2">
+      <div className="mt-3 flex flex-wrap items-end gap-2" data-testid={`${testId}-form`}>
         <label className="flex min-w-0 flex-1 flex-col text-xs text-slate-500">
           {t("access.emailLabel")}
           <input
