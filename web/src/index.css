@@ -126,7 +126,17 @@ html {
 
   /* Text from the editor (Story R-1) — the few elements its toolbar makes, styled the
      same in the editor and on the article page so what editorial sees is what is shown.
-     `:where` keeps every rule at zero specificity: a page may still size the text. */
+     `:where` keeps every rule at zero specificity: a page may still size the text.
+     Colours come from `--rich-*`, so the same text reads on white paper and on the
+     official pages' glass (`.on-glass` below sets them) — a colour written into a rule
+     here is one the glass cannot reach, which is how headings once went dark on dark. */
+  .rich-text {
+    --rich-heading: var(--color-slate-900);
+    --rich-link: var(--color-brand-700);
+    --rich-accent: var(--color-brand-600);
+    --rich-line: var(--color-slate-200);
+    --rich-head-cell: var(--color-slate-50);
+  }
   .rich-text :where(p, ul, ol, blockquote, table, img, hr) {
     margin-block: 0 1.25em;
   }
@@ -135,13 +145,13 @@ html {
     font-size: 1.5em;
     font-weight: 600;
     line-height: 1.25;
-    color: var(--color-slate-900);
+    color: var(--rich-heading);
   }
   .rich-text :where(h3) {
     margin-block: 1.4em 0.5em;
     font-size: 1.2em;
     font-weight: 600;
-    color: var(--color-slate-900);
+    color: var(--rich-heading);
   }
   .rich-text :where(ul) {
     list-style: disc;
@@ -154,23 +164,46 @@ html {
   .rich-text :where(li > p) {
     margin-block: 0.25em;
   }
+  .rich-text :where(strong) {
+    font-weight: 600;
+    color: var(--rich-heading);
+  }
   .rich-text :where(a) {
-    color: var(--color-brand-700);
+    color: var(--rich-link);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
   .rich-text :where(blockquote) {
-    border-inline-start: 4px solid var(--color-brand-600);
+    border-inline-start: 4px solid var(--rich-accent);
     padding-inline-start: 1.25em;
     font-style: italic;
   }
+  /* A picture is a block of its own, centred, as wide as the column at most and never
+     taller than most of the screen — an upright phone photo would otherwise fill three
+     screens (docs/PLAN_MEDIA.md §3.1). A small one keeps its own size. */
   .rich-text :where(img) {
+    display: block;
     max-width: 100%;
+    max-height: 70vh;
+    width: auto;
     height: auto;
+    margin-inline: auto;
+    margin-block: 1.75em;
     border-radius: 0.5rem;
   }
+  /* While writing, a picture stands for itself: small enough to keep the text around it
+     in view, outlined when it is the selection — so it is clear what Delete removes. */
+  .ProseMirror.rich-text :where(img) {
+    max-width: min(100%, 32rem);
+    max-height: 16rem;
+    cursor: pointer;
+  }
+  .ProseMirror.rich-text :where(img.ProseMirror-selectednode) {
+    outline: 3px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
   .rich-text :where(hr) {
-    border-color: var(--color-slate-200);
+    border-color: var(--rich-line);
   }
   /* A wide table scrolls inside itself rather than widening the page (Story A-10). */
   .rich-text :where(table) {
@@ -181,13 +214,13 @@ html {
     font-size: 0.9em;
   }
   .rich-text :where(th, td) {
-    border: 1px solid var(--color-slate-200);
+    border: 1px solid var(--rich-line);
     padding: 0.4em 0.6em;
     vertical-align: top;
     min-width: 4em;
   }
   .rich-text :where(th) {
-    background-color: var(--color-slate-50);
+    background-color: var(--rich-head-cell);
     font-weight: 600;
     text-align: start;
   }
@@ -236,6 +269,14 @@ html {
   --muted: rgb(255 255 255 / var(--site-text));
   --shadow-surface: none;
   color: white;
+}
+/* Text from the editor, on glass: white headings, light links and lines. */
+.on-glass .rich-text {
+  --rich-heading: white;
+  --rich-link: var(--color-brand-200);
+  --rich-accent: var(--color-brand-300);
+  --rich-line: rgb(255 255 255 / 0.15);
+  --rich-head-cell: rgb(255 255 255 / 0.07);
 }
 .on-glass :is(.text-slate-900, .text-slate-800, .text-slate-700, .text-ink) {
   color: white;

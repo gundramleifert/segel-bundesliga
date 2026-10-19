@@ -344,9 +344,9 @@ export function ArticlePage() {
         ) : (
           <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
             {article.example && <ExampleNote text={t("news.example")} />}
-            {/* Text to read closely goes on white paper. */}
+            {/* Text to read closely: one column of a reading width, centred on its glass. */}
             <Panel className="mb-12 sm:p-10">
-            <article className="max-w-2xl" data-testid="site-article">
+            <article className="mx-auto max-w-2xl" data-testid="site-article">
               <p className="text-xl font-medium leading-relaxed text-slate-900" data-testid="site-article-lead">{article.teaser}</p>
               {article.author && (
                 <p className="mt-3 text-sm text-slate-500" data-testid="site-article-byline">
@@ -361,7 +361,7 @@ export function ArticlePage() {
                 </blockquote>
               )}
             </article>
-            <p className="mt-10">
+            <p className="mx-auto mt-10 max-w-2xl">
               <Link to={href.news(league.slug)} className="font-medium text-brand-700 hover:underline" data-testid="site-article-back">
                 ← {t("news.more")}
               </Link>
