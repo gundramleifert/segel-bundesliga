@@ -46,6 +46,7 @@ async def validated(
     what: str,
     accept: dict[str, str] = MEDIA_TYPES,
     max_bytes: int = MAX_BYTES,
+    by_content: bool = False,
 ) -> str:
     """The media type the bytes really are — or a typed refusal.
 
@@ -55,10 +56,17 @@ async def validated(
     (:data:`IMAGE_TYPES` for a picture); ``max_bytes`` raises the limit for a phone's photo,
     which is re-encoded anyway.
 
+    ``by_content``: the bytes decide, not the declared type — for a picture that is
+    re-encoded before it is stored, where a JPEG saved as `chart.png` (and so declared PNG
+    by the browser, which goes by the extension) is still a JPEG worth taking. A paper that
+    is stored as uploaded keeps the strict rule: one that lies about its type is refused.
+
     Async because Pillow's decode is CPU work: it runs in a thread, so a large scan does
     not stall every other request while it is checked.
     """
-    if content_type not in accept:
+    if content_type not in accept and not (
+        by_content and (content_type or "").startswith("image/")
+    ):
         names = [_NAMES[media_type] for media_type in accept]
         raise Problem(
             422,
@@ -84,6 +92,8 @@ async def validated(
     except ValueError as error:
         raise Problem(422, f"{code}-invalid", "This file is not a readable image.") from error
     real = {"PNG": "image/png", "JPEG": "image/jpeg", "WEBP": "image/webp"}.get(detected or "")
+    if by_content and real in accept:
+        return real
     if real != content_type:
         raise Problem(
             422,

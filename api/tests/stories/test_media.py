@@ -80,6 +80,24 @@ class TestLibrary:
         assert again.status_code == 200
         assert again.json()["id"] == item["id"] and again.json()["created"] is False
 
+    async def test_a_picture_with_the_wrong_extension_is_taken_by_its_content(self, client, caplog):
+        """R-2: a JPEG saved as `.png` (the browser then declares PNG) is still a picture."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        misnamed = await client.post(
+            "/api/admin/media",
+            headers=headers,
+            files={"file": ("Organizational_chart.png", picture("JPEG"), "image/png")},
+        )
+        assert misnamed.status_code == 201, misnamed.text
+
+        not_a_picture = await client.post(
+            "/api/admin/media",
+            headers=headers,
+            files={"file": ("chart.png", b"%PDF-1.4 a document", "image/png")},
+        )
+        assert not_a_picture.status_code == 422
+        assert not_a_picture.json()["type"].endswith("/media-invalid")
+
     async def test_the_camera_date_is_kept_and_the_rest_of_exif_is_not(self, client, caplog):
         """R-2: the day the photo was taken survives the re-encoding; the location does not."""
         headers = await editor(client, caplog, "media-editor@example.com")

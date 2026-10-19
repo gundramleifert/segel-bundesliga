@@ -121,6 +121,7 @@ async def store(
         what="The picture",
         accept=uploads.IMAGE_TYPES,
         max_bytes=MAX_BYTES,
+        by_content=True,
     )
     key = arrival.import_key
     if key is not None and arrival.external_id:
