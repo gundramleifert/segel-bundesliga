@@ -55,7 +55,7 @@ export function StandingsPage() {
               <>
                 {season.series.map((s) => (
                   <Block key={s.id} title={s.name} testId={`site-standings-${s.slug}`}>
-                    <Panel>
+                    <Panel width="content">
                       <DivisionTable series={s} marks={tableMarks(league.slug, s.level)} league={league.slug} year={year} />
                     </Panel>
                   </Block>
@@ -345,8 +345,8 @@ export function ArticlePage() {
           <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
             {article.example && <ExampleNote text={t("news.example")} />}
             {/* Text to read closely: one column of a reading width, centred on its glass. */}
-            <Panel className="mb-12 sm:p-10">
-            <article className="mx-auto max-w-2xl" data-testid="site-article">
+            <Panel width="reading" className="mb-12 sm:p-10">
+            <article data-testid="site-article">
               <p className="text-xl font-medium leading-relaxed text-slate-900" data-testid="site-article-lead">{article.teaser}</p>
               {article.author && (
                 <p className="mt-3 text-sm text-slate-500" data-testid="site-article-byline">
@@ -361,7 +361,7 @@ export function ArticlePage() {
                 </blockquote>
               )}
             </article>
-            <p className="mx-auto mt-10 max-w-2xl">
+            <p className="mt-10">
               <Link to={href.news(league.slug)} className="font-medium text-brand-700 hover:underline" data-testid="site-article-back">
                 ← {t("news.more")}
               </Link>

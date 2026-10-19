@@ -121,9 +121,36 @@ export function MediaCard({
 /** Room for what is read closely — a full table, an article, a matchday's tables: a card
  *  like the others, whose `.on-glass` scope (index.css) turns the light colours of the
  *  tables shared with the internal screens into the glass's. */
-export function Panel({ children, className = "", testId }: { children: ReactNode; className?: string; testId?: string }) {
+/** How wide a panel is. `column`, the rule: the page's column (Story B-13). The one
+ *  exception, for what has a width of its own — where a full-width panel left empty glass
+ *  beside it — and marked `data-fit` so the grid's check knows:
+ *  - `reading`: an article's reading width (~70 characters a line), centred, whatever the
+ *    text's length — a short article must not shrink its panel;
+ *  - `content`: as wide as what it holds — a table sized by its numbers — under its
+ *    heading. Never wider than the column: a wider table scrolls inside. */
+const PANEL_WIDTH = {
+  column: "",
+  reading: "mx-auto w-full max-w-3xl",
+  content: "w-fit max-w-full",
+} as const;
+
+export function Panel({
+  children,
+  className = "",
+  testId,
+  width = "column",
+}: {
+  children: ReactNode;
+  className?: string;
+  testId?: string;
+  width?: keyof typeof PANEL_WIDTH;
+}) {
   return (
-    <div className={`p-4 sm:p-6 ${tone.card} on-glass ${className}`} data-testid={testId}>
+    <div
+      className={`p-4 sm:p-6 ${tone.card} on-glass ${PANEL_WIDTH[width]} ${className}`}
+      data-testid={testId}
+      data-fit={width === "column" ? undefined : width}
+    >
       {children}
     </div>
   );

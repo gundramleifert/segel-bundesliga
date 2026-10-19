@@ -385,6 +385,14 @@ describeStory("B-13: one row of navigation names the leagues", () => {
               // A block as wide as its content (a pill switch, the "more" link) is inline-*.
               if (!b.height || getComputedStyle(el).display.startsWith("inline")) continue;
               blocks++;
+              // A panel with a width of its own (`Panel width`: an article, a table) need not
+              // reach both edges — but stays inside them.
+              if (el.hasAttribute("data-fit")) {
+                if (b.left < left - 1 || b.right > right + 1) {
+                  found.push(`${name(el)} spans ${Math.round(b.left)}–${Math.round(b.right)}, beyond its column ${Math.round(left)}–${Math.round(right)}`);
+                }
+                continue;
+              }
               if (Math.abs(b.left - left) > 1 || Math.abs(b.right - right) > 1) {
                 found.push(`${name(el)} spans ${Math.round(b.left)}–${Math.round(b.right)}, its column ${Math.round(left)}–${Math.round(right)}`);
               }
