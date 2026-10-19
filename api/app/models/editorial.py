@@ -4,13 +4,23 @@ from datetime import date, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
-    from app.models.competition import League
+    from app.models.competition import Event, League, Series
 
 
 class PostKind(StrEnum):
@@ -82,6 +92,9 @@ class ImportKey(Base, TimestampMixin):
     """
 
     __tablename__ = "import_key"
+    __table_args__ = (
+        CheckConstraint("event_id IS NULL OR series_id IS NULL", name="event_or_series"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     label: Mapped[str] = mapped_column(String(120))
@@ -92,9 +105,20 @@ class ImportKey(Base, TimestampMixin):
     credit: Mapped[str | None] = mapped_column(String(160), default=None)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # What its pictures are of — an event or a series, never both, and neither required
+    # (Story R-2). An event implies its series; a series' pictures are its events' too.
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("event.id", ondelete="SET NULL"), index=True, default=None
+    )
+    series_id: Mapped[int | None] = mapped_column(
+        ForeignKey("series.id", ondelete="SET NULL"), index=True, default=None
+    )
     created_by_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("app_user.id", ondelete="SET NULL"), default=None
     )
+
+    event: Mapped[Event | None] = relationship()
+    series: Mapped[Series | None] = relationship()
 
 
 class MediaItem(Base, TimestampMixin):
@@ -106,7 +130,10 @@ class MediaItem(Base, TimestampMixin):
     """
 
     __tablename__ = "media_item"
-    __table_args__ = (UniqueConstraint("import_key_id", "external_id", name="import_external_id"),)
+    __table_args__ = (
+        UniqueConstraint("import_key_id", "external_id", name="import_external_id"),
+        CheckConstraint("event_id IS NULL OR series_id IS NULL", name="event_or_series"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(32), unique=True, index=True)
@@ -127,6 +154,17 @@ class MediaItem(Base, TimestampMixin):
     uploaded_by_user_id: Mapped[int | None] = mapped_column(
         ForeignKey("app_user.id", ondelete="SET NULL"), default=None
     )
+    # What the picture is of — an event or a series, never both, and neither required
+    # (Story R-2). An event implies its series; a series' pictures are its events' too.
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("event.id", ondelete="SET NULL"), index=True, default=None
+    )
+    series_id: Mapped[int | None] = mapped_column(
+        ForeignKey("series.id", ondelete="SET NULL"), index=True, default=None
+    )
+
+    event: Mapped[Event | None] = relationship()
+    series: Mapped[Series | None] = relationship()
 
     @property
     def url(self) -> str:
@@ -135,3 +173,11 @@ class MediaItem(Base, TimestampMixin):
     @property
     def thumb_url(self) -> str:
         return f"/api/media/{self.name}-thumb.jpg"
+
+
+def context_of(row: ImportKey | MediaItem) -> str | None:
+    """What a key's or a picture's pictures are of, as a name — load ``event`` and
+    ``series`` first."""
+    if row.event is not None:
+        return row.event.title
+    return row.series.name if row.series is not None else None

@@ -73,7 +73,7 @@ Tests: `api/tests/stories/test_posts.py::TestWritePosts`,
 
 ## Pictures
 
-### R-2 ◐ Keep the pictures in a library, fed by an import API
+### R-2 ● Keep the pictures in a library, fed by an import API
 As **editorial** I want **every picture the site shows in one library, and photographers
 able to deliver pictures into it without an account**, so that **a photo is uploaded once,
 used in any post, and arrives from wherever the photographers already are**
@@ -105,6 +105,25 @@ Acceptance criteria:
   asks for the credit once and remembers it, and shows each picture's progress. It uses the
   import API like any other source would. The key travels in the link's `#fragment`, so it
   never appears in a server's log or a referrer.
+- **A picture may belong to an event or to a series** (decided 2026-10-19), never
+  required: a regatta's photos to its event, a season's portrait to its series. An event
+  implies its series, so a series' pictures are its own and its events'. An upload link
+  may carry one, and every picture sent with it belongs there on arrival — the
+  photographer chooses nothing; the upload page says what the pictures are for. It can
+  be changed or taken off on the *Media* tab.
+- **The library is where a post's pictures come from.** The toolbar's picture button and
+  the post's own picture open the library beside the text, with every way in at hand:
+  - **pick one** from the library — search, and a filter by event or series;
+  - **from the computer** or, on a phone, the camera or the gallery;
+  - **from a web address** — the site fetches the picture into the library rather than
+    linking to someone else's server (public addresses only, at most 25 MB; a page that
+    is not a picture is refused);
+  - and still **dropped or pasted** straight onto the text.
+
+  Whatever arrives lands in the library first. A click puts the picture at the cursor
+  (with its alt text), or makes it the post's picture (with its credit).
+- **Whether a file is a picture is told by its content**, never its name or the type the
+  browser declares for it — a JPEG saved as `chart.png` is a JPEG (decided 2026-10-19).
 - **The *Media* tab** lists the library newest first with a search over name, alt text and
   credit; an entry's alt text and credit can be corrected there, and it says which posts use
   it. **Deleting is refused while a post uses the picture**, naming those posts.
@@ -112,12 +131,11 @@ Acceptance criteria:
 
 Endpoints: `GET|POST /api/admin/media`, `GET|PATCH|DELETE /api/admin/media/{id}`,
 `GET|POST /api/admin/import-keys`, `DELETE /api/admin/import-keys/{id}`,
-`GET /api/import/key`, `POST /api/import/media`, `GET /api/media/{name}`
-
-Not yet: the picker panel in the editor (`docs/PLAN_MEDIA.md` §2.2) — the editor's own
-uploads already land in the library, but choosing an existing entry is still the site's
-dropdown and a new upload. Hence ◐.
+`POST /api/admin/media/from-url`, `GET /api/import/key`, `POST /api/import/media`,
+`GET /api/media/{name}`
 
 Tests: `api/tests/stories/test_media.py::TestLibrary`,
 `api/tests/stories/test_media.py::TestImport`,
+`api/tests/stories/test_media.py::TestContext`,
+`api/tests/stories/test_media.py::TestFromAddress`,
 `e2e/media.spec.ts::R-2: a picture library fed by upload links`

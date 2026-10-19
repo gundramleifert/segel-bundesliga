@@ -55,6 +55,7 @@ export function UploadPage() {
             <>
               <p className="mb-6 text-slate-700" data-testid="upload-for">
                 {t("for", { label: about.label })}
+                {about.context && <span className="font-medium"> · {about.context}</span>}
                 {about.expires_at && <span className="text-slate-500"> · {t("validUntil", { date: formatDate(about.expires_at) })}</span>}
               </p>
               <Uploader importKey={key} defaultCredit={about.credit ?? ""} />

@@ -396,6 +396,16 @@ These points were deliberately decided this way; bypassing them costs a lot late
   `nh3`) — the public page shows the stored HTML as it is, so nothing may reach the table
   around that cleaner. An editor library must be MIT or Apache licensed (decided
   2026-10-19), which ruled out CKEditor 5 and TinyMCE.
+- **An upload's type is its content, never its name** (decided 2026-10-19,
+  `app/services/uploads.py::sniffed`, libmagic): a browser declares a file's type from its
+  extension, so neither the name nor `content_type` is read; the browser checks early by
+  first bytes (`web/src/lib/sniff.ts`). Pictures must also decode in Pillow.
+- **Every picture is a library entry, fed through one import API** (Story R-2,
+  `app/services/media.py`, `docs/PLAN_MEDIA.md`): editorial's uploads and every outside
+  source (our `/upload` page first, later Nextcloud or Flickr bridges) end in `MediaItem`;
+  a source holds an **import key** (hashed, shown once, revocable) and uses only
+  `/api/import/*`. A picture may belong to an event *or* a series; a web picture is
+  copied, never hot-linked.
 - **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
   boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
   Mövenstein dataset and its detectors are used once, locally, to check ours

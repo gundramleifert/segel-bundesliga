@@ -30,11 +30,17 @@ async function choosePictures(page: import("@playwright/test").Page, count: numb
 }
 
 describeStory("R-2: a picture library fed by upload links", () => {
-  test("editorial makes a link, a photographer sends pictures, they arrive with the credit", async ({ page, browser }, testInfo) => {
+  test("editorial makes a link for an event, a photographer sends pictures, they arrive there", async ({ page, browser }, testInfo) => {
     const label = `Photos ${testInfo.project.name} ${Date.now()}`;
     await signIn(page, EDITOR);
     await page.goto("/admin?tab=media");
     await page.getByTestId("admin-import-key-label-input").fill(label);
+    // The first event on offer (values `e<id>`; a series is `s<id>`): its pictures.
+    const contextSelect = page.getByTestId("admin-import-key-context-select");
+    await expect(contextSelect.locator('option[value^="e"]').first()).toBeAttached();
+    const option = contextSelect.locator('option[value^="e"]').first();
+    await contextSelect.selectOption((await option.getAttribute("value"))!);
+    const event = (await option.textContent())!.trim();
     await page.getByTestId("admin-import-key-create-button").click();
     const link = await page.getByTestId("admin-import-key-link").inputValue();
     expect(link).toMatch(/\/upload#key=sbl_imp_/);
@@ -44,14 +50,17 @@ describeStory("R-2: a picture library fed by upload links", () => {
     const phone = await photographer.newPage();
     await phone.goto(link);
     await expect(phone.getByTestId("upload-for")).toContainText(label);
+    await expect(phone.getByTestId("upload-for")).toContainText(event);
     await phone.getByTestId("upload-credit-input").fill("C. Photographer");
     await choosePictures(phone, 2);
     await expect(phone.getByTestId("upload-summary")).toHaveText("2 of 2 pictures received");
 
-    // Editorial: in the library, with the credit.
+    // Editorial: in the library, with the credit, and found by the event.
     await page.reload();
+    await page.getByTestId("admin-media-context-filter").selectOption({ label: event });
     const first = page.getByTestId("admin-media-grid").getByRole("listitem").first();
     await expect(first).toContainText("C. Photographer");
+    await expect(first).toContainText(event);
     await first.getByRole("button").click();
     await expect(page.getByTestId("admin-media-credit-input")).toHaveValue("C. Photographer");
     await expect(page.getByTestId("admin-media-used-in")).toHaveText("Not used in any post.");
@@ -64,6 +73,48 @@ describeStory("R-2: a picture library fed by upload links", () => {
     await phone.reload();
     await expect(phone.getByTestId("upload-key-error")).toContainText("not valid");
     await photographer.close();
+  });
+
+  test("a post takes its pictures from the library — in the text and as its own picture", async ({ page }, testInfo) => {
+    const name = `harbour ${testInfo.project.name} ${Date.now()}`;
+    await signIn(page, EDITOR);
+    // A picture of its own in the library, uploaded through the Media path of the picker.
+    await page.goto("/admin/news/new");
+    await page.getByTestId("admin-post-title-input").fill("Pictures from the library");
+    await page.getByTestId("admin-post-editor-content").click();
+    await page.getByTestId("admin-post-editor-image").click();
+    const picker = page.getByTestId("admin-post-editor-picker");
+    await expect(picker).toBeVisible();
+    await picker.getByTestId("admin-post-editor-picker-input").evaluate(async (input: HTMLInputElement, file) => {
+      const canvas = Object.assign(document.createElement("canvas"), { width: 90, height: 60 });
+      const context = canvas.getContext("2d")!;
+      context.fillStyle = `hsl(${Math.random() * 360} 60% 40%)`;
+      context.fillRect(0, 0, 90, 60);
+      context.fillText(String(Date.now()), 4, 30);
+      const blob = await new Promise<Blob>((done) => canvas.toBlob((b) => done(b!), "image/png"));
+      const data = new DataTransfer();
+      // A PNG named .jpg: the content decides, not the name.
+      data.items.add(new File([blob], `${file.replaceAll(" ", "-")}.jpg`, { type: "image/jpeg" }));
+      input.files = data.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }, name);
+    const content = page.getByTestId("admin-post-editor-content");
+    await expect(content.getByRole("img")).toHaveAttribute("src", /^\/api\/media\//);
+    await expect(content.getByRole("img")).toHaveAttribute("alt", name);
+    await expect(picker).toHaveCount(0);
+    const src = await content.getByRole("img").getAttribute("src");
+
+    // Picked again, from the library's grid: once more into the text, and as the cover.
+    await page.getByTestId("admin-post-editor-image").click();
+    await picker.getByTestId("admin-post-editor-picker-search").fill(name);
+    await picker.getByTestId("admin-post-editor-picker-grid").getByRole("button").first().click();
+    await expect(content.getByRole("img")).toHaveCount(2);
+
+    await page.getByTestId("admin-post-photo-library-button").click();
+    const cover = page.getByTestId("admin-post-photo-picker");
+    await cover.getByTestId("admin-post-photo-picker-search").fill(name);
+    await cover.getByTestId("admin-post-photo-picker-grid").getByRole("button").first().click();
+    await expect(page.getByTestId("admin-post-photo-preview")).toHaveAttribute("src", src!);
   });
 
   test("a link without its key says what to do", async ({ page }) => {

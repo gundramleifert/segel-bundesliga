@@ -91,6 +91,7 @@ export * from './fixBatchIn';
 export * from './fixBatchOut';
 export * from './fixIn';
 export * from './fromCatalogRequest';
+export * from './fromUrl';
 export * from './getClubParams';
 export * from './getLeagueSeasonParams';
 export * from './getSailorParams';

@@ -12,19 +12,23 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import ipaddress
 import re
 import secrets
+import socket
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import NamedTuple
+from urllib.parse import urljoin, urlsplit
 
-from sqlalchemy import func, or_, select
+import httpx
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.models import ImportKey, MediaItem, MediaSource, Post
+from app.models import Event, ImportKey, MediaItem, MediaSource, Post, Series
 from app.models.base import utcnow
 from app.problems import Problem
 from app.services import pictures, uploads
@@ -150,6 +154,8 @@ async def store(
         height=encoded.height,
         taken_on=encoded.taken_on,
         import_key_id=key.id if key else None,
+        event_id=key.event_id if key else None,
+        series_id=key.series_id if key else None,
         external_id=arrival.external_id if key else None,
         uploaded_by_user_id=arrival.user_id,
     )
@@ -187,6 +193,98 @@ async def delete(session: AsyncSession, item: MediaItem) -> None:
     await session.commit()
 
 
+# ---------------------------------------------------------------- event or series
+
+
+async def check_context(session: AsyncSession, event_id: int | None, series_id: int | None) -> None:
+    """An event or a series, never both — and one that exists."""
+    if event_id is not None and series_id is not None:
+        raise Problem(
+            422, "media-context-both", "A picture belongs to an event or to a series, not both."
+        )
+    if event_id is not None and await session.get(Event, event_id) is None:
+        raise Problem(404, "event-not-found", "No such event.", event_id=event_id)
+    if series_id is not None and await session.get(Series, series_id) is None:
+        raise Problem(404, "series-not-found", "No such series.", series_id=series_id)
+
+
+def in_context(stmt: Select, event_id: int | None, series_id: int | None) -> Select:
+    """The pictures of an event, or of a series — its own and its events'."""
+    if event_id is not None:
+        stmt = stmt.where(MediaItem.event_id == event_id)
+    if series_id is not None:
+        events = select(Event.id).where(Event.series_id == series_id)
+        stmt = stmt.where(or_(MediaItem.series_id == series_id, MediaItem.event_id.in_(events)))
+    return stmt
+
+
+# ---------------------------------------------------------------- from a web address
+
+#: Long enough for a slow press server, short enough not to hold a request open.
+_FETCH_SECONDS = 15
+_REDIRECTS = 3
+#: Swapped in tests for an `httpx.MockTransport`: no test calls a live server.
+_transport: httpx.AsyncBaseTransport | None = None
+
+
+class Fetched(NamedTuple):
+    raw: bytes
+    name: str
+
+
+async def _public(host: str) -> bool:
+    """Whether every address the name resolves to is on the public internet — so a web
+    address cannot make the server fetch from itself or its network (SSRF). The name is
+    resolved again when httpx connects; a host that answers differently the second time
+    (DNS rebinding) is the remaining gap, acceptable for an endpoint only editorial can
+    reach."""
+    try:
+        infos = await asyncio.get_running_loop().getaddrinfo(host, None, type=socket.SOCK_STREAM)
+    except OSError:
+        return False
+    return bool(infos) and all(ipaddress.ip_address(info[4][0]).is_global for info in infos)
+
+
+async def fetch(url: str) -> Fetched:
+    """The picture at a web address, copied rather than linked (Story R-2): http or https,
+    a public host — checked again on every redirect — at most `MAX_BYTES`, within
+    `_FETCH_SECONDS`. Whether it *is* a picture is `store`'s question, by its content."""
+    current = url.strip()
+    async with httpx.AsyncClient(
+        transport=_transport, timeout=_FETCH_SECONDS, follow_redirects=False
+    ) as client:
+        for _ in range(_REDIRECTS + 1):
+            parts = urlsplit(current)
+            if parts.scheme not in ("http", "https") or not parts.hostname:
+                raise Problem(422, "media-url-invalid", "That is not a web address.")
+            if not await _public(parts.hostname):
+                raise Problem(422, "media-url-invalid", "That address is not on the internet.")
+            try:
+                async with client.stream("GET", current) as answer:
+                    if answer.is_redirect and "location" in answer.headers:
+                        current = urljoin(current, answer.headers["location"])
+                        continue
+                    if answer.status_code != 200:
+                        raise Problem(
+                            422,
+                            "media-url-unreachable",
+                            "The picture could not be fetched.",
+                            detail=f"The server answered {answer.status_code}.",
+                        )
+                    raw = bytearray()
+                    async for chunk in answer.aiter_bytes():
+                        raw += chunk
+                        if len(raw) > MAX_BYTES:
+                            raise Problem(422, "media-too-large", "The picture is too large.")
+            except httpx.HTTPError as error:
+                raise Problem(
+                    422, "media-url-unreachable", "The picture could not be fetched."
+                ) from error
+            name = Path(parts.path).name or parts.hostname
+            return Fetched(bytes(raw), name)
+    raise Problem(422, "media-url-unreachable", "The address redirects too often.")
+
+
 # ---------------------------------------------------------------- import keys
 
 
@@ -201,6 +299,8 @@ async def make_key(
     credit: str | None,
     valid_days: int | None,
     user_id: int,
+    event_id: int | None = None,
+    series_id: int | None = None,
 ) -> NewKey:
     """A new key, valid for ``valid_days`` (``None``: until revoked). Only its hash is
     kept; the key itself is answered this once."""
@@ -212,6 +312,8 @@ async def make_key(
         credit=credit,
         expires_at=utcnow() + timedelta(days=valid_days) if valid_days else None,
         created_by_user_id=user_id,
+        event_id=event_id,
+        series_id=series_id,
     )
     session.add(row)
     await session.commit()

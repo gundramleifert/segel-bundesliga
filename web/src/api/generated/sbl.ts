@@ -81,6 +81,7 @@ import type {
   FixBatchIn,
   FixBatchOut,
   FromCatalogRequest,
+  FromUrl,
   GetClubParams,
   GetLeagueSeasonParams,
   GetSailorParams,
@@ -15741,8 +15742,8 @@ export const getUploadMediaUrl = () => {
 }
 
 /**
- * A JPEG, PNG or WebP, re-encoded. 201 for a new entry, 200 with the entry it already
- * is for a picture the library holds.
+ * A JPEG, PNG or WebP — told by its content, not its name — re-encoded. 201 for a new
+ * entry, 200 with the entry it already is for a picture the library holds.
  * @summary Upload a picture into the library
  */
 export const uploadMedia = async (bodyUploadMedia: BodyUploadMedia, options?: RequestInit): Promise<ImportedOut> => {
@@ -15808,6 +15809,97 @@ export const useUploadMedia = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getUploadMediaMutationOptions(options), queryClient);
+    }
+
+export const getFetchMediaUrl = () => {
+
+
+
+
+  return `/api/admin/media/from-url`
+}
+
+/**
+ * Copied into the library, never linked: a picture on someone else's server can vanish
+ * or change. Public addresses only (``media-url-invalid``); ``media-url-unreachable`` when
+ * it cannot be fetched; refused like an upload when it is not a picture.
+ * @summary Fetch a picture from a web address
+ */
+export const fetchMedia = async (fromUrl: FromUrl, options?: RequestInit): Promise<ImportedOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<ImportedOut>(getFetchMediaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(fromUrl)
+  }
+);}
+
+
+
+
+
+export const getFetchMediaMutationKey = () => ['fetchMedia'] as const;
+
+export const getFetchMediaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fetchMedia>>, TError,FetchMediaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof fetchMedia>>, TError,FetchMediaMutationVariables, TContext> => {
+
+const mutationKey = getFetchMediaMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof fetchMedia>>, FetchMediaMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  fetchMedia(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type FetchMediaMutationResult = NonNullable<Awaited<ReturnType<typeof fetchMedia>>>
+    export type FetchMediaMutationBody = BodyType<FromUrl>
+    export type FetchMediaMutationError = ErrorType<ProblemDetails>
+    export type FetchMediaMutationVariables = {data: BodyType<FromUrl>}
+
+    /**
+ * @summary Fetch a picture from a web address
+ */
+export const useFetchMedia = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof fetchMedia>>, TError,FetchMediaMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof fetchMedia>>,
+        TError,
+        FetchMediaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getFetchMediaMutationOptions(options), queryClient);
     }
 
 export const getGetMediaUrl = (mediaId: number,) => {

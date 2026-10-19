@@ -22,6 +22,8 @@ import { Async } from "../../../components/Async";
 import { Badge, Empty, ErrorMessage } from "../../../components/Blocks";
 import { ConfirmButton } from "../../../components/ConfirmButton";
 import { Field, Message, Section } from "../../../components/Form";
+import { MediaContextSelect } from "../../../components/MediaContextSelect";
+import { NO_CONTEXT, type MediaContext } from "../../../lib/mediaContext";
 import { Pager } from "../../../components/Pager";
 import { INPUT_CLASS } from "../../../lib/admin";
 import { formatDate } from "../../../lib/format";
@@ -44,8 +46,12 @@ function Library() {
   const { t } = useTranslation("admin");
   const list = useListParams(PAGE);
   const [selected, setSelected] = useState<number | null>(null);
+  const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   const media = useAsync(
-    useListMedia({ ...list.request, q: list.q || undefined }, { query: { placeholderData: keepPreviousData } }),
+    useListMedia(
+      { ...list.request, q: list.q || undefined, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined },
+      { query: { placeholderData: keepPreviousData } },
+    ),
   );
 
   return (
@@ -58,6 +64,14 @@ function Library() {
           onChange={(e) => list.setQuery(e.target.value)}
           placeholder={t("media.searchPlaceholder")}
           data-testid="admin-media-search-input"
+        />
+      </Field>
+      <Field label={t("media.contextLabel")}>
+        <MediaContextSelect
+          value={context}
+          onChange={(c) => (setContext(c), list.setPage(1))}
+          noneLabel={t("media.contextAll")}
+          testId="admin-media-context-filter"
         />
       </Field>
       {selected !== null && <Entry id={selected} onClose={() => setSelected(null)} key={selected} />}
@@ -92,6 +106,7 @@ function Tile({ item, active, onPress }: { item: Media; active: boolean; onPress
       <img src={item.thumb_url} alt={item.alt} loading="lazy" className="aspect-square w-full rounded object-cover" />
       <span className="truncate text-slate-700">{item.alt || item.original_name}</span>
       {item.credit && <span className="truncate text-slate-500">© {item.credit}</span>}
+      {item.context && <span className="truncate text-brand-700">{item.context}</span>}
     </button>
   );
 }
@@ -111,6 +126,7 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
   const invalidate = useInvalidate();
   const [alt, setAlt] = useState(item.alt);
   const [credit, setCredit] = useState(item.credit ?? "");
+  const [context, setContext] = useState<MediaContext>({ event_id: item.event_id ?? null, series_id: item.series_id ?? null });
   const [saved, setSaved] = useState(false);
   const refresh = () => invalidate("/api/admin/media", getGetMediaQueryKey(item.id));
   const update = useUpdateMedia({ mutation: { onSuccess: () => (refresh(), setSaved(true)) } });
@@ -123,7 +139,7 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
       data-testid="admin-media-entry-form"
       onSubmit={(e: FormEvent) => {
         e.preventDefault();
-        update.mutate({ mediaId: item.id, data: { alt, credit } });
+        update.mutate({ mediaId: item.id, data: { alt, credit, ...context } });
       }}
     >
       <a href={item.url} target="_blank" rel="noopener noreferrer">
@@ -139,6 +155,14 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
         </Field>
         <Field label={t("media.creditLabel")}>
           <input className={INPUT_CLASS} value={credit} onChange={(e) => (setCredit(e.target.value), setSaved(false))} data-testid="admin-media-credit-input" />
+        </Field>
+        <Field label={t("media.contextLabel")} hint={t("importKeys.optional")}>
+          <MediaContextSelect
+            value={context}
+            onChange={(c) => (setContext(c), setSaved(false))}
+            noneLabel={t("media.contextNone")}
+            testId="admin-media-context-select"
+          />
         </Field>
         <div className="text-sm" data-testid="admin-media-used-in">
           {item.used_in.length === 0 ? (
@@ -218,12 +242,14 @@ function NewKey({ onMade }: { onMade: (made: ImportKeyCreated) => void }) {
   const [label, setLabel] = useState("");
   const [credit, setCredit] = useState("");
   const [days, setDays] = useState("30");
+  const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   const create = useCreateImportKey({
     mutation: {
       onSuccess: (made) => {
         invalidate(getListImportKeysQueryKey());
         setLabel("");
         setCredit("");
+        setContext(NO_CONTEXT);
         onMade(made);
       },
     },
@@ -231,11 +257,11 @@ function NewKey({ onMade }: { onMade: (made: ImportKeyCreated) => void }) {
 
   return (
     <form
-      className="grid grid-cols-[minmax(0,1fr)] items-end gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_6rem_auto]"
+      className="grid grid-cols-[minmax(0,1fr)] items-end gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(0,2fr)_6rem_auto]"
       data-testid="admin-import-key-form"
       onSubmit={(e: FormEvent) => {
         e.preventDefault();
-        create.mutate({ data: { label, credit: credit || null, valid_days: days ? Number(days) : null } });
+        create.mutate({ data: { label, credit: credit || null, valid_days: days ? Number(days) : null, ...context } });
       }}
     >
       <Field label={t("importKeys.labelLabel")}>
@@ -243,6 +269,9 @@ function NewKey({ onMade }: { onMade: (made: ImportKeyCreated) => void }) {
       </Field>
       <Field label={t("importKeys.creditLabel")} hint={t("importKeys.optional")}>
         <input className={INPUT_CLASS} value={credit} onChange={(e) => setCredit(e.target.value)} data-testid="admin-import-key-credit-input" />
+      </Field>
+      <Field label={t("importKeys.contextLabel")} hint={t("importKeys.optional")}>
+        <MediaContextSelect value={context} onChange={setContext} noneLabel={t("media.contextNone")} testId="admin-import-key-context-select" />
       </Field>
       <Field label={t("importKeys.daysLabel")}>
         <input className={INPUT_CLASS} type="number" min={1} max={366} value={days} onChange={(e) => setDays(e.target.value)} data-testid="admin-import-key-days-input" />
@@ -294,6 +323,7 @@ function KeyRow({ row }: { row: ImportKey }) {
           {row.last_used_at && ` · ${t("importKeys.lastUsed", { date: formatDate(row.last_used_at) })}`}
           {row.expires_at && row.active && ` · ${t("importKeys.validUntil", { date: formatDate(row.expires_at) })}`}
           {row.credit && ` · © ${row.credit}`}
+          {row.context && ` · ${row.context}`}
         </span>
       </span>
       <Badge tone={row.active ? "success" : "muted"} testId={`admin-import-key-${row.id}-state`}>

@@ -9,4 +9,8 @@
 export interface MediaFields {
   alt?: string | null;
   credit?: string | null;
+  /** Sent: the picture is this event's. */
+  event_id?: number | null;
+  /** Sent: the picture is this series'. */
+  series_id?: number | null;
 }

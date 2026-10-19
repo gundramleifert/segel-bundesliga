@@ -22,6 +22,10 @@ export interface MediaDetail {
   taken_on?: string | null;
   source: MediaSource;
   created_at: string;
+  event_id?: number | null;
+  series_id?: number | null;
+  /** The event's title or the series' name. */
+  context?: string | null;
   /** The posts that show it — counted, not stored. */
   used_in: PostRef[];
 }

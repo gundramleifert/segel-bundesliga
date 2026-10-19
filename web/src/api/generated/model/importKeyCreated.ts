@@ -15,6 +15,9 @@ export interface ImportKeyCreated {
   expires_at?: string | null;
   revoked_at?: string | null;
   created_at: string;
+  event_id?: number | null;
+  series_id?: number | null;
+  context?: string | null;
   active: boolean;
   /** How many pictures arrived with it. */
   pictures: number;

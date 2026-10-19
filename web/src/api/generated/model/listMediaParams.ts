@@ -12,6 +12,14 @@ export type ListMediaParams = {
  */
 q?: string | null;
 /**
+ * An event's pictures
+ */
+event_id?: number | null;
+/**
+ * A series' pictures — its own and its events'
+ */
+series_id?: number | null;
+/**
  * Rows per page
  * @minimum 1
  * @maximum 100

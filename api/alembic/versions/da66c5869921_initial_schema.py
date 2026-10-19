@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 867506071d91
+Revision ID: da66c5869921
 Revises: 
-Create Date: 2026-10-19 20:41:33.925156
+Create Date: 2026-10-19 21:24:57.160014
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '867506071d91'
+revision: str = 'da66c5869921'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -211,23 +211,6 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_identity_provider'), ['provider'], unique=False)
         batch_op.create_index(batch_op.f('ix_identity_user_id'), ['user_id'], unique=False)
 
-    op.create_table('import_key',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('label', sa.String(length=120), nullable=False),
-    sa.Column('key_hash', sa.String(length=64), nullable=False),
-    sa.Column('prefix', sa.String(length=16), nullable=False),
-    sa.Column('credit', sa.String(length=160), nullable=True),
-    sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('revoked_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('created_by_user_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['created_by_user_id'], ['app_user.id'], name=op.f('fk_import_key_created_by_user_id_app_user'), ondelete='SET NULL'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_import_key'))
-    )
-    with op.batch_alter_table('import_key', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_import_key_key_hash'), ['key_hash'], unique=True)
-
     op.create_table('password_credential',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -366,32 +349,6 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_event_series_id'), ['series_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_event_slug'), ['slug'], unique=True)
         batch_op.create_index(batch_op.f('ix_event_venue_id'), ['venue_id'], unique=False)
-
-    op.create_table('media_item',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=32), nullable=False),
-    sa.Column('source', sa.String(length=16), nullable=False),
-    sa.Column('sha256', sa.String(length=64), nullable=False),
-    sa.Column('original_name', sa.String(length=255), nullable=False),
-    sa.Column('alt', sa.String(length=300), nullable=False),
-    sa.Column('credit', sa.String(length=160), nullable=True),
-    sa.Column('width', sa.Integer(), nullable=False),
-    sa.Column('height', sa.Integer(), nullable=False),
-    sa.Column('taken_on', sa.Date(), nullable=True),
-    sa.Column('import_key_id', sa.Integer(), nullable=True),
-    sa.Column('external_id', sa.String(length=200), nullable=True),
-    sa.Column('uploaded_by_user_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['import_key_id'], ['import_key.id'], name=op.f('fk_media_item_import_key_id_import_key'), ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['uploaded_by_user_id'], ['app_user.id'], name=op.f('fk_media_item_uploaded_by_user_id_app_user'), ondelete='SET NULL'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_media_item')),
-    sa.UniqueConstraint('import_key_id', 'external_id', name='import_external_id')
-    )
-    with op.batch_alter_table('media_item', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_media_item_import_key_id'), ['import_key_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_media_item_name'), ['name'], unique=True)
-        batch_op.create_index(batch_op.f('ix_media_item_sha256'), ['sha256'], unique=True)
 
     op.create_table('payment',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -542,6 +499,30 @@ def upgrade() -> None:
     with op.batch_alter_table('flight', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_flight_event_id'), ['event_id'], unique=False)
 
+    op.create_table('import_key',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('label', sa.String(length=120), nullable=False),
+    sa.Column('key_hash', sa.String(length=64), nullable=False),
+    sa.Column('prefix', sa.String(length=16), nullable=False),
+    sa.Column('credit', sa.String(length=160), nullable=True),
+    sa.Column('expires_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('revoked_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('series_id', sa.Integer(), nullable=True),
+    sa.Column('created_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('event_id IS NULL OR series_id IS NULL', name=op.f('ck_import_key_event_or_series')),
+    sa.ForeignKeyConstraint(['created_by_user_id'], ['app_user.id'], name=op.f('fk_import_key_created_by_user_id_app_user'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_import_key_event_id_event'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_import_key_series_id_series'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_import_key'))
+    )
+    with op.batch_alter_table('import_key', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_import_key_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_import_key_key_hash'), ['key_hash'], unique=True)
+        batch_op.create_index(batch_op.f('ix_import_key_series_id'), ['series_id'], unique=False)
+
     op.create_table('team',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=120), nullable=False),
@@ -675,6 +656,39 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('mark', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_mark_course_id'), ['course_id'], unique=False)
+
+    op.create_table('media_item',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=32), nullable=False),
+    sa.Column('source', sa.String(length=16), nullable=False),
+    sa.Column('sha256', sa.String(length=64), nullable=False),
+    sa.Column('original_name', sa.String(length=255), nullable=False),
+    sa.Column('alt', sa.String(length=300), nullable=False),
+    sa.Column('credit', sa.String(length=160), nullable=True),
+    sa.Column('width', sa.Integer(), nullable=False),
+    sa.Column('height', sa.Integer(), nullable=False),
+    sa.Column('taken_on', sa.Date(), nullable=True),
+    sa.Column('import_key_id', sa.Integer(), nullable=True),
+    sa.Column('external_id', sa.String(length=200), nullable=True),
+    sa.Column('uploaded_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('series_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('event_id IS NULL OR series_id IS NULL', name=op.f('ck_media_item_event_or_series')),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_media_item_event_id_event'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['import_key_id'], ['import_key.id'], name=op.f('fk_media_item_import_key_id_import_key'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_media_item_series_id_series'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['uploaded_by_user_id'], ['app_user.id'], name=op.f('fk_media_item_uploaded_by_user_id_app_user'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_media_item')),
+    sa.UniqueConstraint('import_key_id', 'external_id', name='import_external_id')
+    )
+    with op.batch_alter_table('media_item', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_media_item_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_media_item_import_key_id'), ['import_key_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_media_item_name'), ['name'], unique=True)
+        batch_op.create_index(batch_op.f('ix_media_item_series_id'), ['series_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_media_item_sha256'), ['sha256'], unique=True)
 
     op.create_table('payment_allocation',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -883,6 +897,14 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_payment_allocation_claim_id'))
 
     op.drop_table('payment_allocation')
+    with op.batch_alter_table('media_item', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_media_item_sha256'))
+        batch_op.drop_index(batch_op.f('ix_media_item_series_id'))
+        batch_op.drop_index(batch_op.f('ix_media_item_name'))
+        batch_op.drop_index(batch_op.f('ix_media_item_import_key_id'))
+        batch_op.drop_index(batch_op.f('ix_media_item_event_id'))
+
+    op.drop_table('media_item')
     with op.batch_alter_table('mark', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_mark_course_id'))
 
@@ -919,6 +941,12 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_team_club_id'))
 
     op.drop_table('team')
+    with op.batch_alter_table('import_key', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_import_key_series_id'))
+        batch_op.drop_index(batch_op.f('ix_import_key_key_hash'))
+        batch_op.drop_index(batch_op.f('ix_import_key_event_id'))
+
+    op.drop_table('import_key')
     with op.batch_alter_table('flight', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_flight_event_id'))
 
@@ -959,12 +987,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_payment_payee_user_id'))
 
     op.drop_table('payment')
-    with op.batch_alter_table('media_item', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_media_item_sha256'))
-        batch_op.drop_index(batch_op.f('ix_media_item_name'))
-        batch_op.drop_index(batch_op.f('ix_media_item_import_key_id'))
-
-    op.drop_table('media_item')
     with op.batch_alter_table('event', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_event_venue_id'))
         batch_op.drop_index(batch_op.f('ix_event_slug'))
@@ -993,10 +1015,6 @@ def downgrade() -> None:
 
     op.drop_table('payment_run')
     op.drop_table('password_credential')
-    with op.batch_alter_table('import_key', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_import_key_key_hash'))
-
-    op.drop_table('import_key')
     with op.batch_alter_table('identity', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_identity_user_id'))
         batch_op.drop_index(batch_op.f('ix_identity_provider'))

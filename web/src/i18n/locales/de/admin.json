@@ -426,7 +426,8 @@
     "tableColumnAdd": "Spalte hinzufügen",
     "tableRowDelete": "Zeile löschen",
     "tableColumnDelete": "Spalte löschen",
-    "tableDelete": "Tabelle löschen"
+    "tableDelete": "Tabelle löschen",
+    "photoFromLibrary": "Aus der Mediathek"
   },
   "media": {
     "title": "Medien",
@@ -446,7 +447,12 @@
     "deleteButton": "Löschen",
     "deleteConfirm": "Endgültig löschen",
     "deleteCancel": "Behalten",
-    "inUse": "Ein Beitrag zeigt dieses Bild noch — bitte zuerst dort herausnehmen."
+    "inUse": "Ein Beitrag zeigt dieses Bild noch — bitte zuerst dort herausnehmen.",
+    "contextLabel": "Veranstaltung oder Serie",
+    "contextAll": "Alle Bilder",
+    "contextNone": "Keine",
+    "contextWholeSeries": "{name} — die ganze Serie",
+    "contextLoneEvents": "Veranstaltungen ohne Serie"
   },
   "importKeys": {
     "title": "Upload-Links",
@@ -470,6 +476,17 @@
     "revoked": "widerrufen",
     "revokeButton": "Widerrufen",
     "revokeConfirm": "Endgültig widerrufen",
-    "revokeCancel": "Behalten"
+    "revokeCancel": "Behalten",
+    "contextLabel": "Bilder von"
+  },
+  "picker": {
+    "fromComputer": "Vom Computer",
+    "fromAddress": "Von einer Webadresse",
+    "addressLabel": "Die Webadresse des Bildes",
+    "fetch": "Holen",
+    "fetching": "Wird geholt…",
+    "close": "Schließen",
+    "empty": "Hier gibt es noch keine Bilder — eins hochladen oder den Filter ändern.",
+    "hint": "Ein Klick fügt das Bild ein. Ein Bild lässt sich auch auf diese Fläche ziehen."
   }
 }

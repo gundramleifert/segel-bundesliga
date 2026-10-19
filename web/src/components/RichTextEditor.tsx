@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { INPUT_CLASS } from "../lib/admin";
 import { filesIn, usePhotoUpload } from "../lib/usePhotoUpload";
 import { ErrorMessage } from "./Blocks";
+import { MediaPicker } from "./MediaPicker";
 import { Select } from "./Select";
 import { Tip } from "./Tip";
 
@@ -24,6 +25,9 @@ import { Tip } from "./Tip";
  * a tooltip, the paragraph style a dropdown like WordPress's classic editor. The toolbar
  * makes exactly what the server keeps (`api/app/services/rich_text.py`); a control added
  * here needs its element added there, or it is silently dropped on save.
+ *
+ * **Pictures come from the library** (Story R-2): the picture button opens `MediaPicker`,
+ * which also uploads, fetches from a web address and takes a drop.
  *
  * **A picture is dropped or pasted, a link is Ctrl+K** — the two things editorial does in
  * every article, so neither should need the toolbar (Story R-1). A dropped or pasted
@@ -43,10 +47,11 @@ export default function RichTextEditor({
 }) {
   const { t } = useTranslation("admin");
   const [linking, setLinking] = useState(false);
+  const [picking, setPicking] = useState(false);
   // ProseMirror keeps the handlers it was first given, and they need the editor they are
   // handlers of: through a ref, filled once the editor exists.
   const handlers = useRef<Handlers | null>(null);
-  const photo = usePhotoUpload((src, alt) => handlers.current?.insertImage(src, alt));
+  const photo = usePhotoUpload((item) => handlers.current?.insertImage(item.url, item.alt));
 
   const editor = useEditor({
     extensions: [
@@ -94,14 +99,17 @@ export default function RichTextEditor({
   useEffect(() => {
     if (!editor) return;
     handlers.current = {
-      insertImage: (src, alt) => editor.chain().focus().setImage({ src, alt }).run(),
+      // After the selection, never over it: a picture just inserted stays selected, and
+      // `setImage` would replace it with the next one.
+      insertImage: (src, alt) =>
+        editor.chain().focus().insertContentAt(editor.state.selection.to, { type: "image", attrs: { src, alt } }).run(),
       // One after another, the first at `at`, each next after the one before.
       insertPhotos: async (files, at) => {
         for (const [i, file] of files.entries()) {
-          const done = await photo.upload(file);
-          if (!done) continue;
+          const item = await photo.upload(file);
+          if (!item) continue;
           const where = i === 0 ? at : editor.state.selection.to;
-          editor.chain().focus().insertContentAt(where, { type: "image", attrs: { src: done.url, alt: done.name } }).run();
+          editor.chain().focus().insertContentAt(where, { type: "image", attrs: { src: item.url, alt: item.alt } }).run();
         }
       },
       openLink: () => setLinking(true),
@@ -114,8 +122,27 @@ export default function RichTextEditor({
       className="overflow-hidden rounded-md border border-slate-300 bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-200"
       data-testid={testId}
     >
-      <Toolbar editor={editor} photo={photo} linking={linking} setLinking={setLinking} testId={testId} />
+      <Toolbar
+        editor={editor}
+        photo={photo}
+        linking={linking}
+        setLinking={setLinking}
+        picking={picking}
+        onPicture={() => setPicking((open) => !open)}
+        testId={testId}
+      />
+      {picking && (
+        <MediaPicker
+          onPick={(item) => {
+            handlers.current?.insertImage(item.url, item.alt);
+            setPicking(false);
+          }}
+          onClose={() => setPicking(false)}
+          testId={`${testId}-picker`}
+        />
+      )}
       <EditorContent editor={editor} />
+      {photo.error && <ErrorMessage text={photo.error} testId={`${testId}-image-error`} />}
       <p className="border-t border-slate-100 px-4 py-1.5 text-xs text-slate-500" data-testid={`${testId}-hint`}>
         {photo.busy ? t("posts.photoUploading") : t("posts.editorHint")}
       </p>
@@ -158,12 +185,16 @@ function Toolbar({
   photo,
   linking,
   setLinking,
+  picking,
+  onPicture,
   testId,
 }: {
   editor: Editor;
   photo: PhotoUpload;
   linking: boolean;
   setLinking: (open: boolean | ((open: boolean) => boolean)) => void;
+  picking: boolean;
+  onPicture: () => void;
   testId: string;
 }) {
   const { t } = useTranslation("admin");
@@ -212,7 +243,9 @@ function Toolbar({
         <Tool label={t("posts.link")} active={state.link || linking} onPress={() => setLinking((open) => !open)} testId={`${testId}-link`}>
           🔗
         </Tool>
-        <ImageTool photo={photo} testId={testId} />
+        <Tool label={photo.busy ? t("posts.photoUploading") : t("posts.image")} active={picking} onPress={onPicture} testId={`${testId}-image`}>
+          🖼
+        </Tool>
         <Tool
           label={t("posts.table")}
           active={state.table}
@@ -379,20 +412,6 @@ function LinkInfo({ editor, onChange, testId }: { editor: Editor; onChange: () =
         {t("posts.linkRemove")}
       </Button>
     </div>
-  );
-}
-
-/** A picture in the text, chosen from a folder — the same upload as a dropped one. */
-function ImageTool({ photo, testId }: { photo: PhotoUpload; testId: string }) {
-  const { t } = useTranslation("admin");
-  return (
-    <>
-      <Tool label={photo.busy ? t("posts.photoUploading") : t("posts.image")} onPress={photo.pick} testId={`${testId}-image`}>
-        🖼
-      </Tool>
-      <input {...photo.input} data-testid={`${testId}-image-input`} />
-      {photo.error && <ErrorMessage text={photo.error} testId={`${testId}-image-error`} />}
-    </>
   );
 }
 

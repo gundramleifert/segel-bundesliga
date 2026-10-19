@@ -18,6 +18,7 @@ import { useAsync, useInvalidate } from "../../../api/useApi";
 import { ErrorMessage, Loading } from "../../../components/Blocks";
 import { ConfirmButton } from "../../../components/ConfirmButton";
 import { Field, Message } from "../../../components/Form";
+import { MediaPicker } from "../../../components/MediaPicker";
 import { Select } from "../../../components/Select";
 import { DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, leaguePhoto } from "../../../content";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
@@ -279,16 +280,17 @@ function PhotoPicker({
   onChange: (url: string | null, credit: string) => void;
 }) {
   const { t } = useTranslation("admin");
-  const photo = usePhotoUpload((uploaded) => onChange(uploaded, ""));
+  const photo = usePhotoUpload((item) => onChange(item.url, item.credit ?? ""));
   const fromLibrary = LIBRARY.find((p) => p.src === url);
   const [over, setOver] = useState(false);
+  const [picking, setPicking] = useState(false);
 
   // The preview is the drop target: a picture dragged out of a folder onto it replaces it.
   const drop = (event: DragEvent) => {
     event.preventDefault();
     setOver(false);
     const [file] = filesIn(event.dataTransfer.files);
-    if (file) void photo.upload(file).then((done) => done && onChange(done.url, ""));
+    if (file) void photo.upload(file).then((item) => item && onChange(item.url, item.credit ?? ""));
   };
 
   return (
@@ -316,6 +318,9 @@ function PhotoPicker({
           {!url && <span className="ml-2 font-normal text-slate-500">{t("posts.photoNone")}</span>}
         </p>
         <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onPress={() => setPicking((open) => !open)} data-testid="admin-post-photo-library-button">
+            {t("posts.photoFromLibrary")}
+          </Button>
           <Button size="sm" variant="outline" isDisabled={photo.busy} onPress={photo.pick} data-testid="admin-post-photo-upload-button">
             {photo.busy ? t("posts.photoUploading") : t("posts.photoUpload")}
           </Button>
@@ -344,6 +349,16 @@ function PhotoPicker({
           )}
         </div>
         <input {...photo.input} data-testid="admin-post-photo-input" />
+        {picking && (
+          <MediaPicker
+            onPick={(item) => {
+              onChange(item.url, item.credit ?? "");
+              setPicking(false);
+            }}
+            onClose={() => setPicking(false)}
+            testId="admin-post-photo-picker"
+          />
+        )}
         {url && (
           <Field label={t("posts.photoCreditLabel")}>
             <input className={INPUT_CLASS} value={credit} onChange={(e) => onChange(url, e.target.value)} data-testid="admin-post-photo-credit-input" />

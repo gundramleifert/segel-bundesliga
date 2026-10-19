@@ -274,3 +274,121 @@ class TestImport:
             r["id"]: r for r in (await client.get("/api/admin/import-keys", headers=headers)).json()
         }
         assert rows[revoked["id"]]["active"] is False and rows[expired["id"]]["active"] is False
+
+
+class TestContext:
+    """As editorial I find a regatta's pictures by its event or series — Story R-2."""
+
+    async def test_a_link_for_an_event_puts_its_pictures_there(self, client, caplog, ids):
+        """R-2: pictures sent with an event's link are that event's, and its series' too."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        event_id = ids.event("dsbl-1-2026-act-3")
+        series_id = ids.series("dsbl-1-2026")
+        key = await make_key(client, headers, event_id=event_id)
+        assert key["context"]
+
+        info = (await client.get("/api/import/key", headers={"X-Import-Key": key["key"]})).json()
+        assert info["context"] == key["context"]
+        delivered = (await deliver(client, key["key"], picture())).json()
+        assert delivered["event_id"] == event_id and delivered["context"] == key["context"]
+
+        for params in ({"event_id": event_id}, {"series_id": series_id}):
+            found = (await client.get("/api/admin/media", headers=headers, params=params)).json()
+            assert delivered["id"] in [item["id"] for item in found["items"]]
+        other = (
+            await client.get(
+                "/api/admin/media",
+                headers=headers,
+                params={"series_id": ids.series("junioren-2026")},
+            )
+        ).json()
+        assert delivered["id"] not in [item["id"] for item in other["items"]]
+
+    async def test_the_context_is_changed_one_at_a_time(self, client, caplog, ids):
+        """R-2: an event or a series, never both; it can be changed and taken off."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("c.jpg", picture(), "image/jpeg")},
+            )
+        ).json()
+        url = f"/api/admin/media/{item['id']}"
+        to_series = await client.patch(
+            url, headers=headers, json={"series_id": ids.series("dsbl-1-2026")}
+        )
+        assert to_series.json()["series_id"] and to_series.json()["event_id"] is None
+        to_event = await client.patch(
+            url, headers=headers, json={"event_id": ids.event("dsbl-1-2026-act-3")}
+        )
+        assert to_event.json()["event_id"] and to_event.json()["series_id"] is None
+        both = await client.patch(
+            url,
+            headers=headers,
+            json={
+                "event_id": ids.event("dsbl-1-2026-act-3"),
+                "series_id": ids.series("dsbl-1-2026"),
+            },
+        )
+        assert both.status_code == 422 and both.json()["type"].endswith("/media-context-both")
+        off = await client.patch(url, headers=headers, json={"event_id": None})
+        assert off.json()["event_id"] is None and off.json()["context"] is None
+
+
+class TestFromAddress:
+    """As editorial I take a picture from a web address into the library — Story R-2."""
+
+    async def test_a_picture_is_fetched_and_copied(self, client, caplog, monkeypatch):
+        """R-2: fetched, copied into the library, following a redirect; never a live server."""
+        import httpx
+
+        from app.services import media
+
+        data = picture()
+
+        def answer(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/old.jpg":
+                return httpx.Response(301, headers={"location": "/photos/start.jpg"})
+            if request.url.path == "/photos/start.jpg":
+                return httpx.Response(200, content=data)
+            return httpx.Response(404)
+
+        async def public(host: str) -> bool:
+            return host == "press.example.com"
+
+        monkeypatch.setattr(media, "_transport", httpx.MockTransport(answer))
+        monkeypatch.setattr(media, "_public", public)
+        headers = await editor(client, caplog, "media-editor@example.com")
+
+        fetched = await client.post(
+            "/api/admin/media/from-url",
+            headers=headers,
+            json={"url": "https://press.example.com/old.jpg"},
+        )
+        assert fetched.status_code == 201, fetched.text
+        assert fetched.json()["original_name"] == "start.jpg"
+
+        missing = await client.post(
+            "/api/admin/media/from-url",
+            headers=headers,
+            json={"url": "https://press.example.com/gone.jpg"},
+        )
+        assert missing.status_code == 422 and missing.json()["type"].endswith(
+            "/media-url-unreachable"
+        )
+
+    async def test_an_address_inside_the_network_is_refused(self, client, caplog):
+        """R-2: only public addresses — the server never fetches from itself or its network."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        for url in (
+            "http://localhost:8000/api/health",
+            "http://10.0.0.7/x.jpg",
+            "http://169.254.169.254/latest",
+            "file:///etc/passwd",
+        ):
+            refused = await client.post(
+                "/api/admin/media/from-url", headers=headers, json={"url": url}
+            )
+            assert refused.status_code == 422, url
+            assert refused.json()["type"].endswith("/media-url-invalid"), url

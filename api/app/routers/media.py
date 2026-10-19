@@ -20,12 +20,14 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.auth import require_editor
 from app.db import get_session
 from app.models import ImportKey, MediaItem, MediaSource
 from app.models.auth import User
 from app.models.base import utcnow
+from app.models.editorial import context_of
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.services import media
@@ -52,6 +54,9 @@ class MediaOut(BaseModel):
     taken_on: date | None = None
     source: MediaSource
     created_at: datetime
+    event_id: int | None = None
+    series_id: int | None = None
+    context: str | None = Field(default=None, description="The event's title or the series' name.")
 
 
 class PostRef(BaseModel):
@@ -74,6 +79,8 @@ class MediaFields(BaseModel):
 
     alt: str | None = Field(default=None, max_length=300)
     credit: str | None = Field(default=None, max_length=160)
+    event_id: int | None = Field(default=None, description="Sent: the picture is this event's.")
+    series_id: int | None = Field(default=None, description="Sent: the picture is this series'.")
 
     @field_validator("credit")
     @classmethod
@@ -89,6 +96,9 @@ class ImportKeyOut(BaseModel):
     expires_at: datetime | None = None
     revoked_at: datetime | None = None
     created_at: datetime
+    event_id: int | None = None
+    series_id: int | None = None
+    context: str | None = None
     active: bool
     pictures: int = Field(description="How many pictures arrived with it.")
     last_used_at: datetime | None = None
@@ -106,6 +116,12 @@ class ImportKeyCreate(BaseModel):
     valid_days: int | None = Field(
         default=30, ge=1, le=366, description="How long it works; empty: until revoked."
     )
+    event_id: int | None = Field(default=None, description="Its pictures are this event's.")
+    series_id: int | None = Field(default=None, description="Its pictures are this series'.")
+
+
+class FromUrl(BaseModel):
+    url: str = Field(min_length=8, max_length=2000)
 
 
 class ImportKeyInfo(BaseModel):
@@ -114,6 +130,7 @@ class ImportKeyInfo(BaseModel):
     label: str
     credit: str | None = None
     expires_at: datetime | None = None
+    context: str | None = Field(default=None, description="What the pictures are for.")
 
 
 # ---------------------------------------------------------------- editorial: the library
@@ -122,13 +139,19 @@ class ImportKeyInfo(BaseModel):
 @admin_router.get("/media", response_model=Page[MediaOut], summary="The picture library")
 async def list_media(
     q: str | None = Query(default=None, description="Search in name, alt text and credit"),
+    event_id: int | None = Query(default=None, description="An event's pictures"),
+    series_id: int | None = Query(
+        default=None, description="A series' pictures — its own and its events'"
+    ),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     _: User = Depends(require_editor),
 ) -> Page[MediaOut]:
     """Newest first."""
-    stmt = apply_search(
-        select(MediaItem), q, MediaItem.original_name, MediaItem.alt, MediaItem.credit
+    stmt = media.in_context(
+        apply_search(_with_context(), q, MediaItem.original_name, MediaItem.alt, MediaItem.credit),
+        event_id,
+        series_id,
     )
     items, total = await paginate(
         session,
@@ -137,7 +160,7 @@ async def list_media(
         sortable={"created_at": MediaItem.created_at},
         default_order=[MediaItem.created_at.desc(), MediaItem.id.desc()],
     )
-    return page_of([MediaOut.model_validate(item) for item in items], total, params)
+    return page_of([_out(item) for item in items], total, params)
 
 
 @admin_router.post(
@@ -157,7 +180,26 @@ async def upload_media(
         original_name=file.filename or "",
         arrival=media.Arrival(user_id=user.id),
     )
-    return _imported(response, stored)
+    return await _imported(session, response, stored)
+
+
+@admin_router.post(
+    "/media/from-url", response_model=ImportedOut, summary="Fetch a picture from a web address"
+)
+async def fetch_media(
+    response: Response,
+    body: FromUrl,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_editor),
+) -> ImportedOut:
+    """Copied into the library, never linked: a picture on someone else's server can vanish
+    or change. Public addresses only (``media-url-invalid``); ``media-url-unreachable`` when
+    it cannot be fetched; refused like an upload when it is not a picture."""
+    fetched = await media.fetch(body.url)
+    stored = await media.store(
+        session, fetched.raw, original_name=fetched.name, arrival=media.Arrival(user_id=user.id)
+    )
+    return await _imported(session, response, stored)
 
 
 @admin_router.get("/media/{media_id}", response_model=MediaDetail, summary="One picture")
@@ -181,7 +223,13 @@ async def update_media(
     _: User = Depends(require_editor),
 ) -> MediaDetail:
     item = await get_or_404(session, MediaItem, media_id)
-    for name, value in body.model_dump(exclude_unset=True).items():
+    changes = body.model_dump(exclude_unset=True)
+    if "event_id" in changes or "series_id" in changes:
+        # One of them is the picture's context; sending one replaces the other.
+        event_id, series_id = changes.pop("event_id", None), changes.pop("series_id", None)
+        await media.check_context(session, event_id, series_id)
+        item.event_id, item.series_id = event_id, series_id
+    for name, value in changes.items():
         setattr(item, name, value if name == "credit" else (value or ""))
     await session.commit()
     return await _detail(session, item)
@@ -209,7 +257,15 @@ async def list_import_keys(
     _: User = Depends(require_editor),
 ) -> list[ImportKeyOut]:
     """Newest first, revoked ones included — their pictures still say where they came from."""
-    keys = list((await session.execute(select(ImportKey).order_by(ImportKey.id.desc()))).scalars())
+    keys = list(
+        (
+            await session.execute(
+                select(ImportKey)
+                .options(selectinload(ImportKey.event), selectinload(ImportKey.series))
+                .order_by(ImportKey.id.desc())
+            )
+        ).scalars()
+    )
     use = await media.key_use(session, [key.id for key in keys])
     return [_key_out(key, use.get(key.id)) for key in keys]
 
@@ -226,13 +282,17 @@ async def create_import_key(
     user: User = Depends(require_editor),
 ) -> ImportKeyCreated:
     """The answer carries the key itself, the only time it is shown."""
+    await media.check_context(session, body.event_id, body.series_id)
     made = await media.make_key(
         session,
         label=body.label,
         credit=body.credit or None,
         valid_days=body.valid_days,
         user_id=user.id,
+        event_id=body.event_id,
+        series_id=body.series_id,
     )
+    await session.refresh(made.row, ["event", "series"])
     return ImportKeyCreated(**_key_out(made.row, None).model_dump(), key=made.key)
 
 
@@ -262,9 +322,14 @@ async def _source_key(
 
 
 @import_router.get("/key", response_model=ImportKeyInfo, summary="The key this source holds")
-async def get_import_key(key: ImportKey = Depends(_source_key)) -> ImportKeyInfo:
+async def get_import_key(
+    key: ImportKey = Depends(_source_key), session: AsyncSession = Depends(get_session)
+) -> ImportKeyInfo:
     """401 ``import-key-invalid`` for a key that is unknown, revoked or expired."""
-    return ImportKeyInfo(label=key.label, credit=key.credit, expires_at=key.expires_at)
+    await session.refresh(key, ["event", "series"])
+    return ImportKeyInfo(
+        label=key.label, credit=key.credit, expires_at=key.expires_at, context=context_of(key)
+    )
 
 
 @import_router.post("/media", response_model=ImportedOut, summary="Deliver a picture")
@@ -289,7 +354,7 @@ async def import_media(
         alt=(alt or "").strip() or None,
         credit=(credit or "").strip() or None,
     )
-    return _imported(response, stored)
+    return await _imported(session, response, stored)
 
 
 # ---------------------------------------------------------------- everyone
@@ -312,15 +377,26 @@ async def get_media_file(file_name: str) -> FileResponse:
 # ---------------------------------------------------------------- helpers
 
 
-def _imported(response: Response, stored: media.Stored) -> ImportedOut:
+def _with_context():
+    return select(MediaItem).options(selectinload(MediaItem.event), selectinload(MediaItem.series))
+
+
+def _out(item: MediaItem) -> MediaOut:
+    """Load ``event`` and ``series`` first."""
+    return MediaOut.model_validate(item).model_copy(update={"context": context_of(item)})
+
+
+async def _imported(session: AsyncSession, response: Response, stored: media.Stored) -> ImportedOut:
     response.status_code = status.HTTP_201_CREATED if stored.created else status.HTTP_200_OK
-    return ImportedOut(**MediaOut.model_validate(stored.item).model_dump(), created=stored.created)
+    await session.refresh(stored.item, ["event", "series"])
+    return ImportedOut(**_out(stored.item).model_dump(), created=stored.created)
 
 
 async def _detail(session: AsyncSession, item: MediaItem) -> MediaDetail:
+    await session.refresh(item, ["event", "series"])
     posts = await media.used_in(session, item)
     return MediaDetail(
-        **MediaOut.model_validate(item).model_dump(),
+        **_out(item).model_dump(),
         used_in=[PostRef.model_validate(post) for post in posts],
     )
 
@@ -338,6 +414,9 @@ def _key_out(key: ImportKey, use: media.KeyUse | None) -> ImportKeyOut:
         expires_at=key.expires_at,
         revoked_at=key.revoked_at,
         created_at=key.created_at,
+        event_id=key.event_id,
+        series_id=key.series_id,
+        context=context_of(key),
         active=key.revoked_at is None and (expires is None or expires > now),
         pictures=use.pictures if use else 0,
         last_used_at=use.last_used_at if use else None,

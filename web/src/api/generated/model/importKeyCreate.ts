@@ -15,4 +15,8 @@ export interface ImportKeyCreate {
   credit?: string | null;
   /** How long it works; empty: until revoked. */
   valid_days?: number | null;
+  /** Its pictures are this event's. */
+  event_id?: number | null;
+  /** Its pictures are this series'. */
+  series_id?: number | null;
 }

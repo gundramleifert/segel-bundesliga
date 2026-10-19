@@ -426,7 +426,8 @@
     "tableColumnAdd": "Add column",
     "tableRowDelete": "Delete row",
     "tableColumnDelete": "Delete column",
-    "tableDelete": "Delete table"
+    "tableDelete": "Delete table",
+    "photoFromLibrary": "From the library"
   },
   "media": {
     "title": "Media",
@@ -446,7 +447,12 @@
     "deleteButton": "Delete",
     "deleteConfirm": "Delete for good",
     "deleteCancel": "Keep",
-    "inUse": "A post still shows this picture — take it out of the post first."
+    "inUse": "A post still shows this picture — take it out of the post first.",
+    "contextLabel": "Event or series",
+    "contextAll": "All pictures",
+    "contextNone": "None",
+    "contextWholeSeries": "{name} — the whole series",
+    "contextLoneEvents": "Events in no series"
   },
   "importKeys": {
     "title": "Upload links",
@@ -470,6 +476,17 @@
     "revoked": "revoked",
     "revokeButton": "Revoke",
     "revokeConfirm": "Revoke for good",
-    "revokeCancel": "Keep"
+    "revokeCancel": "Keep",
+    "contextLabel": "Pictures of"
+  },
+  "picker": {
+    "fromComputer": "From the computer",
+    "fromAddress": "From a web address",
+    "addressLabel": "The picture's web address",
+    "fetch": "Fetch",
+    "fetching": "Fetching…",
+    "close": "Close",
+    "empty": "No pictures here yet — upload one, or change the filter.",
+    "hint": "A click puts the picture in. You can also drop a picture onto this panel."
   }
 }

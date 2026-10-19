@@ -13,4 +13,6 @@ export interface ImportKeyInfo {
   label: string;
   credit?: string | null;
   expires_at?: string | null;
+  /** What the pictures are for. */
+  context?: string | null;
 }

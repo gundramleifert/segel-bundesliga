@@ -24,4 +24,8 @@ export interface MediaOut {
   taken_on?: string | null;
   source: MediaSource;
   created_at: string;
+  event_id?: number | null;
+  series_id?: number | null;
+  /** The event's title or the series' name. */
+  context?: string | null;
 }

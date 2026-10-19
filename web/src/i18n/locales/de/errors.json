@@ -201,5 +201,8 @@
   "media-invalid": "Diese Datei ist kein lesbares Bild.",
   "media-too-large": "Das Bild ist zu groß (höchstens 25 MB).",
   "media-in-use": "Ein Beitrag zeigt dieses Bild noch. Bitte zuerst dort herausnehmen.",
-  "import-key-invalid": "Dieser Upload-Link gilt nicht (mehr). Bitte bei der Redaktion einen neuen anfragen."
+  "import-key-invalid": "Dieser Upload-Link gilt nicht (mehr). Bitte bei der Redaktion einen neuen anfragen.",
+  "media-context-both": "Ein Bild gehört zu einer Veranstaltung oder zu einer Serie, nicht zu beiden.",
+  "media-url-invalid": "Diese Adresse lässt sich nicht holen — nur öffentliche Webadressen (http oder https).",
+  "media-url-unreachable": "Das Bild ließ sich von dieser Adresse nicht holen."
 }

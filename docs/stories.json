@@ -828,7 +828,7 @@
  },
  "R-2": {
   "title": "Keep the pictures in a library, fed by an import API",
-  "status": "○",
+  "status": "●",
   "role": "Editorial",
   "phase": "Pictures",
   "file": "docs/userstories/editorial.md",

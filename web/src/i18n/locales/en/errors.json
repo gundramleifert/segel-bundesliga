@@ -201,5 +201,8 @@
   "media-invalid": "This file is not a readable picture.",
   "media-too-large": "The picture is too large (at most 25 MB).",
   "media-in-use": "A post still shows this picture. Take it out of the post first.",
-  "import-key-invalid": "This upload link is not valid (any more). Ask editorial for a new one."
+  "import-key-invalid": "This upload link is not valid (any more). Ask editorial for a new one.",
+  "media-context-both": "A picture belongs to an event or to a series, not both.",
+  "media-url-invalid": "That address cannot be fetched — only public web addresses (http or https).",
+  "media-url-unreachable": "The picture could not be fetched from that address."
 }
