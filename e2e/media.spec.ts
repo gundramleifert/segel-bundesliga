@@ -12,8 +12,8 @@ import { signIn } from "./session";
 const EDITOR = "redaktion@sbl.example.com";
 
 /** Picks pictures no run has sent before — the library would answer those as known. */
-async function choosePictures(page: import("@playwright/test").Page, count: number) {
-  await page.getByTestId("upload-input").evaluate(async (input: HTMLInputElement, n) => {
+async function choosePictures(page: import("@playwright/test").Page, count: number, input = "upload-input") {
+  await page.getByTestId(input).evaluate(async (input: HTMLInputElement, n) => {
     const data = new DataTransfer();
     for (let i = 0; i < n; i++) {
       const canvas = Object.assign(document.createElement("canvas"), { width: 80, height: 60 });
@@ -115,6 +115,33 @@ describeStory("R-2: a picture library fed by upload links", () => {
     await cover.getByTestId("admin-post-photo-picker-search").fill(name);
     await cover.getByTestId("admin-post-photo-picker-grid").getByRole("button").first().click();
     await expect(page.getByTestId("admin-post-photo-preview")).toHaveAttribute("src", src!);
+  });
+
+  test("editorial uploads a batch on the Media tab, without a link, for an event", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin?tab=media");
+    await page.getByTestId("admin-media-upload-toggle").click();
+    const select = page.getByTestId("admin-media-upload-context");
+    const option = select.locator('option[value^="e"]').first();
+    await expect(option).toBeAttached();
+    await select.selectOption((await option.getAttribute("value"))!);
+    const event = (await option.textContent())!.trim();
+    await page.getByTestId("admin-media-upload-credit-input").fill("E. Editor");
+    await choosePictures(page, 2, "admin-media-upload-input");
+    await expect(page.getByTestId("admin-media-upload-summary")).toHaveText("2 of 2 pictures received");
+
+    // In the library at once — the list is refreshed as each one arrives.
+    const first = page.getByTestId("admin-media-grid").getByRole("listitem").first();
+    await expect(first).toContainText("E. Editor");
+    await expect(first).toContainText(event);
+  });
+
+  test("signed in as editorial, the upload page needs no link", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/upload");
+    await expect(page.getByTestId("upload-signed-in")).toBeVisible();
+    await choosePictures(page, 1);
+    await expect(page.getByTestId("upload-summary")).toHaveText("1 of 1 picture received");
   });
 
   test("a link without its key says what to do", async ({ page }) => {

@@ -452,7 +452,10 @@
     "contextAll": "All pictures",
     "contextNone": "None",
     "contextWholeSeries": "{name} — the whole series",
-    "contextLoneEvents": "Events in no series"
+    "contextLoneEvents": "Events in no series",
+    "uploadTitle": "Upload pictures",
+    "uploadButton": "Upload",
+    "uploadClose": "Close"
   },
   "importKeys": {
     "title": "Upload links",

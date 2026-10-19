@@ -59,11 +59,14 @@ class NewKey(NamedTuple):
 
 @dataclass(frozen=True)
 class Arrival:
-    """Who and what brought a picture: a person (editorial) or a source (an import key)."""
+    """Who and what brought a picture: a person (editorial) or a source (an import key) —
+    and what it is of, which a key carries for its source and editorial says itself."""
 
     user_id: int | None = None
     import_key: ImportKey | None = None
     external_id: str | None = None
+    event_id: int | None = None
+    series_id: int | None = None
 
 
 class _Encoded(NamedTuple):
@@ -154,8 +157,8 @@ async def store(
         height=encoded.height,
         taken_on=encoded.taken_on,
         import_key_id=key.id if key else None,
-        event_id=key.event_id if key else None,
-        series_id=key.series_id if key else None,
+        event_id=key.event_id if key else arrival.event_id,
+        series_id=key.series_id if key else arrival.series_id,
         external_id=arrival.external_id if key else None,
         uploaded_by_user_id=arrival.user_id,
     )

@@ -392,3 +392,29 @@ class TestFromAddress:
             )
             assert refused.status_code == 422, url
             assert refused.json()["type"].endswith("/media-url-invalid"), url
+
+
+class TestUploadWithoutLink:
+    """As editorial I upload a batch myself, without a link — Story R-2."""
+
+    async def test_editorial_uploads_with_credit_and_event(self, client, caplog, ids):
+        """R-2: editorial's own upload takes a credit and an event for the batch."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        event_id = ids.event("dsbl-1-2026-act-3")
+        uploaded = await client.post(
+            "/api/admin/media",
+            headers=headers,
+            data={"credit": "D. Editor", "event_id": str(event_id)},
+            files={"file": ("batch.jpg", picture(), "image/jpeg")},
+        )
+        assert uploaded.status_code == 201, uploaded.text
+        assert uploaded.json()["credit"] == "D. Editor"
+        assert uploaded.json()["event_id"] == event_id and uploaded.json()["source"] == "upload"
+
+        both = await client.post(
+            "/api/admin/media",
+            headers=headers,
+            data={"event_id": str(event_id), "series_id": str(ids.series("dsbl-1-2026"))},
+            files={"file": ("both.jpg", picture(), "image/jpeg")},
+        )
+        assert both.status_code == 422 and both.json()["type"].endswith("/media-context-both")

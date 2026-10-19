@@ -1,6 +1,6 @@
 {
   "title": "Bilder senden",
-  "noKey": "Diese Seite braucht den Upload-Link, den du bekommen hast — bitte diesen Link öffnen.",
+  "noKey": "Diese Seite braucht den Upload-Link, den du bekommen hast — bitte diesen Link öffnen oder als Redaktion anmelden.",
   "for": "Für: {label}",
   "validUntil": "gültig bis {date}",
   "creditLabel": "Dein Name, für den Bildnachweis",
@@ -13,5 +13,9 @@
     "sending": "wird gesendet…",
     "received": "angekommen",
     "known": "war schon da"
-  }
+  },
+  "signedIn": "Als Redaktion angemeldet: die Bilder kommen unter deinem Konto in die Mediathek.",
+  "contextLabel": "Bilder von",
+  "contextHint": "Optional — eine Veranstaltung oder Serie für alle jetzt gesendeten Bilder.",
+  "contextNone": "Keine"
 }

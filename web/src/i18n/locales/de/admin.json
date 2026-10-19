@@ -452,7 +452,10 @@
     "contextAll": "Alle Bilder",
     "contextNone": "Keine",
     "contextWholeSeries": "{name} — die ganze Serie",
-    "contextLoneEvents": "Veranstaltungen ohne Serie"
+    "contextLoneEvents": "Veranstaltungen ohne Serie",
+    "uploadTitle": "Bilder hochladen",
+    "uploadButton": "Hochladen",
+    "uploadClose": "Schließen"
   },
   "importKeys": {
     "title": "Upload-Links",

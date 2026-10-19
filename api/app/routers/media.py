@@ -169,16 +169,24 @@ async def list_media(
 async def upload_media(
     response: Response,
     file: UploadFile = File(...),
+    alt: str | None = Form(default=None, max_length=300),
+    credit: str | None = Form(default=None, max_length=160),
+    event_id: int | None = Form(default=None, description="The picture is this event's."),
+    series_id: int | None = Form(default=None, description="The picture is this series'."),
     session: AsyncSession = Depends(get_session),
     user: User = Depends(require_editor),
 ) -> ImportedOut:
     """A JPEG, PNG or WebP — told by its content, not its name — re-encoded. 201 for a new
-    entry, 200 with the entry it already is for a picture the library holds."""
+    entry, 200 with the entry it already is for a picture the library holds (which keeps
+    its own alt text, credit and context)."""
+    await media.check_context(session, event_id, series_id)
     stored = await media.store(
         session,
         await file.read(),
         original_name=file.filename or "",
-        arrival=media.Arrival(user_id=user.id),
+        arrival=media.Arrival(user_id=user.id, event_id=event_id, series_id=series_id),
+        alt=(alt or "").strip() or None,
+        credit=(credit or "").strip() or None,
     )
     return await _imported(session, response, stored)
 

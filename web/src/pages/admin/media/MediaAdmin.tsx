@@ -14,11 +14,13 @@ import {
   useListMedia,
   useRevokeImportKey,
   useUpdateMedia,
+  uploadMedia,
 } from "../../../api/generated/sbl";
 import { ApiError } from "../../../api/http";
 import type { ImportKey, ImportKeyCreated, Media, MediaDetail } from "../../../api/types";
 import { errorText, useAsync, useInvalidate } from "../../../api/useApi";
 import { Async } from "../../../components/Async";
+import { BatchUpload } from "../../../components/BatchUpload";
 import { Badge, Empty, ErrorMessage } from "../../../components/Blocks";
 import { ConfirmButton } from "../../../components/ConfirmButton";
 import { Field, Message, Section } from "../../../components/Form";
@@ -36,9 +38,44 @@ const PAGE = 24;
 export function MediaAdmin() {
   return (
     <>
+      <Upload />
       <Library />
       <ImportKeys />
     </>
+  );
+}
+
+/** Editorial's own upload — a batch, with a credit and an event or series for all of it;
+ *  no link needed (Story R-2). Folded until asked for, so the library stays on top. */
+function Upload() {
+  const { t } = useTranslation("admin");
+  const invalidate = useInvalidate();
+  const [open, setOpen] = useState(false);
+  const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
+  return (
+    <Section
+      title={t("media.uploadTitle")}
+      testId="admin-media-upload-section"
+      action={
+        <Button size="sm" variant={open ? "ghost" : "primary"} onPress={() => setOpen((o) => !o)} data-testid="admin-media-upload-toggle">
+          {open ? t("media.uploadClose") : t("media.uploadButton")}
+        </Button>
+      }
+    >
+      {open && (
+        <BatchUpload
+          send={(file, credit) =>
+            uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined })
+          }
+          onArrived={() => invalidate("/api/admin/media")}
+          testId="admin-media-upload"
+        >
+          <Field label={t("media.contextLabel")} hint={t("importKeys.optional")}>
+            <MediaContextSelect value={context} onChange={setContext} noneLabel={t("media.contextNone")} testId="admin-media-upload-context" />
+          </Field>
+        </BatchUpload>
+      )}
+    </Section>
   );
 }
 

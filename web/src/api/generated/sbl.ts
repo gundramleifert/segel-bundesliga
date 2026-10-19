@@ -15743,12 +15743,25 @@ export const getUploadMediaUrl = () => {
 
 /**
  * A JPEG, PNG or WebP — told by its content, not its name — re-encoded. 201 for a new
- * entry, 200 with the entry it already is for a picture the library holds.
+ * entry, 200 with the entry it already is for a picture the library holds (which keeps
+ * its own alt text, credit and context).
  * @summary Upload a picture into the library
  */
 export const uploadMedia = async (bodyUploadMedia: BodyUploadMedia, options?: RequestInit): Promise<ImportedOut> => {
     const formData = new FormData();
 formData.append(`file`, bodyUploadMedia.file);
+if(bodyUploadMedia.alt !== undefined && bodyUploadMedia.alt !== null) {
+ formData.append(`alt`, bodyUploadMedia.alt);
+ }
+if(bodyUploadMedia.credit !== undefined && bodyUploadMedia.credit !== null) {
+ formData.append(`credit`, bodyUploadMedia.credit);
+ }
+if(bodyUploadMedia.event_id !== undefined && bodyUploadMedia.event_id !== null) {
+ formData.append(`event_id`, bodyUploadMedia.event_id.toString())
+ }
+if(bodyUploadMedia.series_id !== undefined && bodyUploadMedia.series_id !== null) {
+ formData.append(`series_id`, bodyUploadMedia.series_id.toString())
+ }
 
   return http<ImportedOut>(getUploadMediaUrl(),
   {

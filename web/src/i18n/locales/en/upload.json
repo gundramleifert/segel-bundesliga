@@ -1,6 +1,6 @@
 {
   "title": "Send pictures",
-  "noKey": "This page needs the upload link you were sent — open that link instead.",
+  "noKey": "This page needs the upload link you were sent — open that link instead, or sign in as editorial.",
   "for": "For: {label}",
   "validUntil": "valid until {date}",
   "creditLabel": "Your name, for the photo credit",
@@ -13,5 +13,9 @@
     "sending": "sending…",
     "received": "received",
     "known": "was already there"
-  }
+  },
+  "signedIn": "Signed in as editorial: the pictures go into the library under your account.",
+  "contextLabel": "Pictures of",
+  "contextHint": "Optional — an event or a series for all pictures sent now.",
+  "contextNone": "None"
 }

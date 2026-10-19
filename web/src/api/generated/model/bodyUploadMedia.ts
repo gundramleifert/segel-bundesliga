@@ -8,4 +8,10 @@
 
 export interface BodyUploadMedia {
   file: Blob;
+  alt?: string | null;
+  credit?: string | null;
+  /** The picture is this event's. */
+  event_id?: number | null;
+  /** The picture is this series'. */
+  series_id?: number | null;
 }
