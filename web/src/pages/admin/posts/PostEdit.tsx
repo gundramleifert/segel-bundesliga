@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { Suspense, lazy, useEffect, useState, type FormEvent } from "react";
+import { Suspense, lazy, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +16,7 @@ import {
 import { PostKind, type PostAdmin, type PostCreate } from "../../../api/types";
 import { useAsync, useInvalidate } from "../../../api/useApi";
 import { ErrorMessage, Loading } from "../../../components/Blocks";
+import { ConfirmButton } from "../../../components/ConfirmButton";
 import { Field, Message } from "../../../components/Form";
 import { Select } from "../../../components/Select";
 import { DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, leaguePhoto } from "../../../content";
@@ -333,12 +334,10 @@ function PhotoPicker({
   );
 }
 
-/** Deleting asks once more, in place — not with the browser's `confirm`. */
 function DeleteButton({ postId }: { postId: number }) {
   const { t } = useTranslation("admin");
   const navigate = useNavigate();
   const invalidate = useInvalidate();
-  const [asking, setAsking] = useState(false);
   const remove = useDeletePost({
     mutation: {
       onSuccess: () => {
@@ -347,19 +346,14 @@ function DeleteButton({ postId }: { postId: number }) {
       },
     },
   });
-  useEffect(() => {
-    if (!asking) return;
-    const timer = setTimeout(() => setAsking(false), 5000);
-    return () => clearTimeout(timer);
-  }, [asking]);
-
-  return asking ? (
-    <Button variant="danger" isDisabled={remove.isPending} onPress={() => remove.mutate({ postId })} data-testid="admin-post-delete-confirm-button">
-      {t("posts.deleteConfirm")}
-    </Button>
-  ) : (
-    <Button variant="ghost" onPress={() => setAsking(true)} data-testid="admin-post-delete-button">
-      {t("posts.deleteButton")}
-    </Button>
+  return (
+    <ConfirmButton
+      label={t("posts.deleteButton")}
+      confirmLabel={t("posts.deleteConfirm")}
+      cancelLabel={t("posts.deleteCancel")}
+      busy={remove.isPending}
+      onConfirm={() => remove.mutate({ postId })}
+      testId="admin-post-delete"
+    />
   );
 }

@@ -393,6 +393,7 @@
     "viewLink": "Auf der Seite ansehen",
     "deleteButton": "Löschen",
     "deleteConfirm": "Wirklich löschen?",
+    "deleteCancel": "Behalten",
     "toolbarLabel": "Formatierung",
     "styleLabel": "Absatzformat",
     "styleParagraph": "Absatz",

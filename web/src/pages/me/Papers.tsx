@@ -33,6 +33,7 @@ import {
 import { useAsync, useInvalidate } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { ClaimItems, ClaimReceipts, ClaimStatusBadge, ClaimSummary } from "../../components/ClaimParts";
+import { ConfirmButton } from "../../components/ConfirmButton";
 import { Field, Message, Section } from "../../components/Form";
 import { Stack } from "../../components/Layouts";
 import { FileDropzone } from "../../components/FileDropzone";
@@ -84,7 +85,6 @@ export function DocumentsTab() {
 function DocumentRow({ doc }: { doc: PersonalDocument }) {
   const { t } = useTranslation("space");
   const invalidate = useInvalidate();
-  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const remove = useDeleteMyDocument({ mutation: { onSuccess: () => invalidate("/api/me/documents", "/api/me/contexts") } });
 
@@ -107,31 +107,15 @@ function DocumentRow({ doc }: { doc: PersonalDocument }) {
       >
         {t("documents.open")}
       </Button>
-      {confirming ? (
-        <>
-          <Button
-            size="sm"
-            variant="danger"
-            isDisabled={remove.isPending}
-            onPress={() => remove.mutate({ documentId: doc.id })}
-            data-testid={`my-space-document-delete-confirm-${doc.id}`}
-          >
-            {t("documents.deleteConfirm")}
-          </Button>
-          <Button size="sm" variant="ghost" onPress={() => setConfirming(false)}>
-            {t("documents.cancel")}
-          </Button>
-        </>
-      ) : (
-        <Button
-          size="sm"
-          variant="outline"
-          onPress={() => setConfirming(true)}
-          data-testid={`my-space-document-delete-${doc.id}`}
-        >
-          {t("documents.delete")}
-        </Button>
-      )}
+      <ConfirmButton
+        size="sm"
+        label={t("documents.delete")}
+        confirmLabel={t("documents.deleteConfirm")}
+        cancelLabel={t("documents.cancel")}
+        busy={remove.isPending}
+        onConfirm={() => remove.mutate({ documentId: doc.id })}
+        testId={`my-space-document-delete-${doc.id}`}
+      />
       {(error || remove.error) && (
         <p className="w-full text-sm text-red-700">{error ?? errorText(remove.error)}</p>
       )}

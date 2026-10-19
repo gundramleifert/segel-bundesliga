@@ -9,7 +9,6 @@ are Story VA-11, posts by participants VA-4.
 from __future__ import annotations
 
 import asyncio
-import io
 from datetime import date
 from typing import Annotated
 
@@ -26,17 +25,15 @@ from app.models import League, Post, PostKind
 from app.models.auth import User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services import uploads
+from app.services import pictures, uploads
 from app.services.lookup import get_or_404, unique_slug
 from app.services.rich_text import clean_html
 
 router = APIRouter(prefix="/api/posts", tags=["posts"])
 admin_router = APIRouter(prefix="/api/admin/posts", tags=["admin"])
 
-# A picture for the web, not an archive: the longest edge a card or a page header needs,
-# re-encoded so a phone's EXIF (location included) never reaches the public site.
+# A picture for the web, not an archive: the longest edge a card or a page header needs.
 _PHOTO_EDGE = 2000
-_JPEG_QUALITY = 85
 # Their directory under `uploads/` (`app/services/uploads.py`).
 _PHOTOS = "posts"
 
@@ -316,14 +313,5 @@ async def _check_league(session: AsyncSession, league_id: int | None) -> None:
 
 def _reencode(raw: bytes) -> bytes:
     """Upright, at most `_PHOTO_EDGE` on its longer side, as a JPEG without EXIF."""
-    from PIL import Image, ImageOps
-
-    image = Image.open(io.BytesIO(raw))
-    # Decode a large JPEG at a fraction of its size straight away — a phone's 48 MP photo
-    # need never exist in memory at full size to end up 2000 px wide.
-    image.draft("RGB", (_PHOTO_EDGE, _PHOTO_EDGE))
-    image = (ImageOps.exif_transpose(image) or image).convert("RGB")
-    image.thumbnail((_PHOTO_EDGE, _PHOTO_EDGE), Image.LANCZOS)
-    out = io.BytesIO()
-    image.save(out, format="JPEG", quality=_JPEG_QUALITY)
-    return out.getvalue()
+    image = pictures.upright(raw, code="post-photo", edge=_PHOTO_EDGE)
+    return pictures.jpeg(pictures.bounded(image, _PHOTO_EDGE))

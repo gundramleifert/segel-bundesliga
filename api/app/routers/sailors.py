@@ -19,14 +19,12 @@ See the docstring on `_save_photo` for the storage and minors-visibility design.
 from __future__ import annotations
 
 import asyncio
-import io
 from collections import Counter
 from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from fastapi.responses import FileResponse, Response
-from PIL import Image, ImageOps
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,7 +40,7 @@ from app.models.org import CrewRole
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import MemberOut
-from app.services import is_minor
+from app.services import is_minor, pictures
 from app.services.contexts import require_linked_sailor
 from app.services.lookup import get_or_404
 
@@ -452,7 +450,6 @@ _MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 # camera aspect ratio ends up the same shape, and the file stays small regardless of
 # what was uploaded.
 _PHOTO_SIZE = 512
-_JPEG_QUALITY = 85
 
 
 @me_router.get("/me", response_model=SailorMeOut, summary="My own sailor record")
@@ -590,39 +587,11 @@ def _save_photo(sailor_id: int, raw: bytes, *, content_type: str | None) -> None
     Pillow itself: if it can't decode it, it wasn't a real image regardless of what the
     upload claimed to be.
     """
-    if content_type is not None and not content_type.startswith("image/"):
-        raise Problem(
-            422,
-            "sailor-photo-invalid-type",
-            "The upload must be an image.",
-            detail=f"Got content type '{content_type}'.",
-        )
-    if not raw:
-        raise Problem(422, "sailor-photo-invalid", "The upload is empty.")
-    if len(raw) > _MAX_UPLOAD_BYTES:
-        raise Problem(
-            413,
-            "sailor-photo-too-large",
-            f"The photo must be at most {_MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
-        )
-
-    try:
-        image = Image.open(io.BytesIO(raw))
-        image.load()
-    except Exception as exc:
-        raise Problem(422, "sailor-photo-invalid", "This file is not a readable image.") from exc
-
-    image = ImageOps.exif_transpose(image) or image
-    image = image.convert("RGB")
-
-    width, height = image.size
-    side = min(width, height)
-    left = (width - side) // 2
-    top = (height - side) // 2
-    image = image.crop((left, top, left + side, top + side))
-    image = image.resize((_PHOTO_SIZE, _PHOTO_SIZE), Image.LANCZOS)
-
-    image.save(_photo_path(sailor_id), format="JPEG", quality=_JPEG_QUALITY)
+    pictures.check(
+        raw, content_type, code="sailor-photo", what="The photo", max_bytes=_MAX_UPLOAD_BYTES
+    )
+    image = pictures.square(pictures.upright(raw, code="sailor-photo"), _PHOTO_SIZE)
+    _photo_path(sailor_id).write_bytes(pictures.jpeg(image))
 
 
 async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor: Sailor) -> bool:

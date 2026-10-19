@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { Tip } from "../../../components/Tip";
+import { Crest } from "../../../components/Crest";
 import { useGetEventCrew } from "../../../api/generated/sbl";
 import type { TeamCrew } from "../../../api/types";
 import { useAsync } from "../../../api/useApi";
@@ -52,9 +53,7 @@ function TeamCrewCard({ entry }: { entry: TeamCrew }) {
     <Card className="h-full">
       <Card.Header>
         <div className="flex items-start gap-3">
-          {team.club.logo_url && (
-            <img src={team.club.logo_url} alt="" className="size-8 shrink-0 object-contain" />
-          )}
+          <Crest src={team.club.logo_url} short={team.club.short_name} size="sm" />
           {/* `min-w-0` so a long club name truncates instead of widening the grid track
               and zooming the page out on a phone (Story A-10). */}
           <div className="min-w-0 flex-1">

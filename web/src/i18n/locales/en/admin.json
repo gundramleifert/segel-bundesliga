@@ -393,6 +393,7 @@
     "viewLink": "View on the site",
     "deleteButton": "Delete",
     "deleteConfirm": "Really delete?",
+    "deleteCancel": "Keep",
     "toolbarLabel": "Formatting",
     "styleLabel": "Paragraph style",
     "styleParagraph": "Paragraph",

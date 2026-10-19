@@ -6,6 +6,7 @@ import type { Club } from "../api/types";
 import { useAsync } from "../api/useApi";
 import { Empty, PageHeader } from "../components/Blocks";
 import { Async } from "../components/Async";
+import { Crest } from "../components/Crest";
 import { CardGrid } from "../components/Layouts";
 import { LinkCard } from "../components/LinkCard";
 import { Pager } from "../components/Pager";
@@ -79,24 +80,7 @@ function ClubList({
               testId={`club-card-${club.id}`}
               title={club.name}
               description={club.city}
-              lead={
-                club.logo_url ? (
-                  <img
-                    src={club.logo_url}
-                    alt=""
-                    className="size-10 shrink-0 rounded-lg bg-white object-contain p-1 ring-1 ring-slate-200"
-                  />
-                ) : (
-                  // No crest uploaded: the abbreviation, rather than a grey placeholder
-                  // that says nothing (Story V-3).
-                  <span
-                    aria-hidden
-                    className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-600 text-xs font-bold text-white"
-                  >
-                    {club.short_name.slice(0, 4)}
-                  </span>
-                )
-              }
+              lead={<Crest src={club.logo_url} short={club.short_name} />}
             />
           </li>
         ))}

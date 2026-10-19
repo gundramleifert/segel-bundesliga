@@ -15,13 +15,10 @@ router that writes the file, and `app.schemas.public.ClubOut`, which resolves
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 
-from PIL import Image, ImageOps
-
 from app.config import settings
-from app.problems import Problem
+from app.services import pictures
 
 # Cap applied before any decoding — the whole raw upload is read into memory once. Lower
 # than the sailor photo's 5 MB: a crest is a piece of vector-ish artwork exported small,
@@ -67,9 +64,9 @@ def delete_crest(club_id: int) -> None:
 def save_crest(club_id: int, raw: bytes, *, content_type: str | None) -> None:
     """Validates, downscales and stores an uploaded crest — Story V-3.
 
-    **Deliberately not `_save_photo`.** Do not "fix" this into consistency with the sailor
-    photo path: that one converts to RGB and re-encodes as JPEG, which is right for a
-    photograph and wrong here. A crest is drawn *over* colored surfaces — the home-page
+    **Deliberately not a sailor photo's JPEG square** (`app/services/pictures.py`). Do not
+    "fix" this into consistency with it: converting to RGB and re-encoding as JPEG is
+    right for a photograph and wrong here. A crest is drawn *over* colored surfaces — the home-page
     hero and the event cards sit on brand blue — so flattening its alpha channel onto a
     solid background produces a visible white (or black) box around the emblem. Hence:
 
@@ -78,50 +75,16 @@ def save_crest(club_id: int, raw: bytes, *, content_type: str | None) -> None:
       opaque source is stored as RGB PNG. PNG for everything, because it is the one
       lossless format that carries alpha and every browser reads.
     * **No center-crop to a square.** Only the longest edge is bounded, the aspect ratio
-      is preserved; a pennant cropped square is a mutilated pennant.
+      is preserved, and a crest exported at 180 px stays 180 px; a pennant cropped square
+      is a mutilated pennant.
 
-    What is kept from the sailor path: cheap checks first (declared content type, then
-    size, both before Pillow decodes anything), Pillow itself as the final arbiter of
-    "is this really an image", EXIF-upright orientation, and a bounded stored size.
+    Shared with every picture (`pictures.check`, `pictures.upright`): cheap checks first,
+    Pillow as the final arbiter of "is this really an image", and upright orientation.
     """
-    if content_type is not None and not content_type.startswith("image/"):
-        raise Problem(
-            422,
-            "club-crest-invalid-type",
-            "The upload must be an image.",
-            detail=f"Got content type '{content_type}'.",
-        )
-    if not raw:
-        raise Problem(422, "club-crest-invalid", "The upload is empty.")
-    if len(raw) > MAX_UPLOAD_BYTES:
-        raise Problem(
-            413,
-            "club-crest-too-large",
-            f"The crest must be at most {MAX_UPLOAD_BYTES // (1024 * 1024)} MB.",
-        )
-
-    try:
-        image = Image.open(io.BytesIO(raw))
-        image.load()
-    except Exception as exc:
-        raise Problem(422, "club-crest-invalid", "This file is not a readable image.") from exc
-
-    image = ImageOps.exif_transpose(image) or image
-    image = image.convert("RGBA" if _has_alpha(image) else "RGB")
-    # `thumbnail`, not `resize`/`contain`: it shrinks to fit the box and leaves anything
-    # already smaller alone, so a crest exported at 180 px is stored at 180 px instead of
-    # being blown up into a blurry 512.
-    image.thumbnail((MAX_EDGE, MAX_EDGE), Image.LANCZOS)
-
+    pictures.check(
+        raw, content_type, code="club-crest", what="The crest", max_bytes=MAX_UPLOAD_BYTES
+    )
+    image = pictures.bounded(pictures.upright(raw, code="club-crest", alpha=True), MAX_EDGE)
     path = crest_path(club_id)
     path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(path, format="PNG", optimize=True)
-
-
-def _has_alpha(image: Image.Image) -> bool:
-    """Whether this image carries transparency in any of the ways Pillow expresses it.
-
-    `mode` alone is not enough: a palette PNG ("P") keeps its transparent color in
-    `info["transparency"]`, and converting it to RGB would silently drop that.
-    """
-    return image.mode in ("RGBA", "LA", "PA") or "transparency" in image.info
+    path.write_bytes(pictures.png(image))

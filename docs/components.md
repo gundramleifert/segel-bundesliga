@@ -35,6 +35,8 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `SailorName.tsx` | `SailorName` — a sailor's name in a squad or lineup: a link to their page, or plain text when they switched it off (Story S-4). Never hand-write a link to `/sailors/:id` |
 | `PersonDocuments.tsx` | `PersonDocuments` — a person's licences on demand, for their organizers, on a person's row (Story S-5); hides itself on `documents-forbidden`. `ExpiredBadge` |
 | `FileDropzone.tsx` | `FileDropzone` — a file field you drop a file onto or tap to choose; checks the type on drop, keeps a hidden `<input type="file">` carrying the `testId` for `setInputFiles` |
+| `Crest.tsx` | `Crest` — a club's crest or an event's logo, `sm` / `md` / `lg`, the abbreviation standing in when there is none (Story V-3). Never a bare `<img src={…logo_url}>` |
+| `ConfirmButton.tsx` | `ConfirmButton` — an action that cannot be taken back asks once more, in place: prompt, the real button, a way out |
 | `CrestEditor.tsx` | `CrestEditor` — a club's crest, edited from the crest itself (Story V-3); the admin club list and the club's page in my space |
 | `ClaimParts.tsx` | `ClaimStatusBadge`, `ClaimSummary`, `ClaimItems`, `ClaimReceipts` — one expense claim as both the claimant and the decider see it, in my space (`/me/…`) (Stories F-2 to F-6) |
 | `HelpLink.tsx` | `HelpLink` — the "?" beside a heading that opens the help on that one thing, by handbook anchor (Story B-18) |

@@ -22,6 +22,7 @@ import { ApiError } from "../../api/http";
 import type { Account as AccountData, SailorMe } from "../../api/types";
 import { getToken, setToken } from "../../api/session";
 import { ErrorMessage, Loading } from "../../components/Blocks";
+import { ConfirmButton } from "../../components/ConfirmButton";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 
 /** Who is signed in, and the way out — the head of `/me/profile`. */
@@ -477,12 +478,9 @@ export function SailorProfile() {
 }
 
 /** Story Z-7: delete the signed-in account outright — a testing-phase convenience, not
- *  the permanent behavior (see the endpoint's docstring and docs/userstories.md). A plain
- *  two-step confirm instead of a modal: this project has no dialog primitive elsewhere,
- *  and a destructive action deserves an explicit second click regardless. */
+ *  the permanent behavior (see the endpoint's docstring and docs/userstories.md). */
 export function DeleteAccount() {
   const { t } = useTranslation("account");
-  const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -506,39 +504,18 @@ export function DeleteAccount() {
       </Card.Header>
       <Card.Content>
         {error && <ErrorMessage text={error} testId="account-delete-error" />}
-        {confirming ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <p data-testid="account-delete-confirm-prompt" className="text-sm font-medium text-red-800">
-              {t("deleteAccount.confirmPrompt")}
-            </p>
-            <Button
-              className="bg-red-600 text-white hover:bg-red-700"
-              isDisabled={busy}
-              onPress={deleteAccount}
-              data-testid="account-delete-confirm-button"
-            >
-              {busy ? t("deleteAccount.deleting") : t("deleteAccount.confirmButton")}
-            </Button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              disabled={busy}
-              data-testid="account-delete-cancel-button"
-              className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900"
-            >
-              {t("deleteAccount.cancelButton")}
-            </button>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            className="border-red-300 text-red-700 hover:bg-red-50"
-            onPress={() => setConfirming(true)}
-            data-testid="account-delete-button"
-          >
-            {t("deleteAccount.button")}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <ConfirmButton
+            label={t("deleteAccount.button")}
+            prompt={t("deleteAccount.confirmPrompt")}
+            confirmLabel={t("deleteAccount.confirmButton")}
+            cancelLabel={t("deleteAccount.cancelButton")}
+            busy={busy}
+            busyLabel={t("deleteAccount.deleting")}
+            onConfirm={deleteAccount}
+            testId="account-delete"
+          />
+        </div>
       </Card.Content>
     </Card>
   );

@@ -7,6 +7,7 @@ import { POLL_MILLIS, type LiveState } from "../api/useLive";
 import { locationText, matchdaySubtitle, statusText, eventDates } from "../lib/format";
 import { setPageTitle } from "./breadcrumb";
 import { LinkCard } from "./LinkCard";
+import { Crest } from "./Crest";
 import { slugify } from "../lib/testids";
 
 export function Loading({ text, testId }: { text?: string; testId?: string }) {
@@ -148,11 +149,7 @@ export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: 
       testId={testId ?? `event-card-${event.id}`}
       title={event.title}
       description={subtitle}
-      lead={
-        event.logo_url ? (
-          <img src={event.logo_url} alt="" className="size-8 shrink-0 object-contain" />
-        ) : undefined
-      }
+      lead={<Crest src={event.logo_url} size="sm" />}
       aside={<StatusBadge status={event.status} />}
     >
       <p className="text-sm text-slate-600">{eventDates(event)}</p>

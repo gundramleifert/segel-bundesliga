@@ -6,6 +6,7 @@ import { useGetClub, useListClubMembers } from "../api/generated/sbl";
 import type { ClubDetail, ClubMemberSummary, Member } from "../api/types";
 import { useAsync, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, StatusBadge } from "../components/Blocks";
+import { Crest } from "../components/Crest";
 import { SailorName } from "../components/SailorName";
 import { locationText, roleText, eventDates } from "../lib/format";
 
@@ -25,20 +26,7 @@ export function Club() {
   return (
     <>
       <header data-testid="club-header" className="mb-8 flex flex-wrap items-start gap-5">
-        {data.logo_url ? (
-          <img
-            src={data.logo_url}
-            alt=""
-            className="size-20 shrink-0 rounded-xl bg-white object-contain p-2 ring-1 ring-slate-200"
-          />
-        ) : (
-          <span
-            aria-hidden
-            className="grid size-20 shrink-0 place-items-center rounded-xl bg-brand-600 text-lg font-bold text-white"
-          >
-            {data.short_name.slice(0, 4)}
-          </span>
-        )}
+        <Crest src={data.logo_url} short={data.short_name} size="lg" />
 
         <div className="min-w-0 flex-1">
           <h1 data-testid="club-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">

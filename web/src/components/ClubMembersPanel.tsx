@@ -1,5 +1,3 @@
-import { Button } from "@heroui/react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useDeleteTuple, useListClubMembers } from "../api/generated/sbl";
@@ -11,6 +9,7 @@ import { CrestEditor } from "./CrestEditor";
 import { GuardiansPanel } from "./GuardiansPanel";
 import { Async } from "./Async";
 import { Badge, Empty, ErrorMessage } from "./Blocks";
+import { ConfirmButton } from "./ConfirmButton";
 import { PersonDocuments } from "./PersonDocuments";
 
 /** The Members tab of "Our club" — Stories V-10, Z-5, V-8, V-9 on one screen (V-12).
@@ -39,7 +38,6 @@ export function ClubMembersPanel({
   const invalidate = useInvalidate();
   const clubId = entry.club.id;
   const roster = useAsync(useListClubMembers(clubId));
-  const [leaving, setLeaving] = useState(false);
 
   const own = account?.tuples.find(
     (row) => row.object_type === ObjectType.club && row.object_id === clubId && row.relation === Relation.member,
@@ -48,7 +46,6 @@ export function ClubMembersPanel({
   const leave = useDeleteTuple({
     mutation: {
       onSuccess: () => {
-        setLeaving(false);
         refresh();
         onLeft?.();
       },
@@ -108,27 +105,16 @@ export function ClubMembersPanel({
 
       {own && (
         <div className="flex flex-wrap items-center gap-3">
-          {leaving ? (
-            <>
-              <span className="text-sm text-slate-700">{t("members.leaveConfirm")}</span>
-              <Button
-                size="sm"
-                variant="danger"
-                isDisabled={leave.isPending}
-                onPress={() => leave.mutate({ tupleId: own.id })}
-                data-testid="my-club-leave-confirm"
-              >
-                {t("members.leave")}
-              </Button>
-              <Button size="sm" variant="ghost" onPress={() => setLeaving(false)}>
-                {t("members.leaveCancel")}
-              </Button>
-            </>
-          ) : (
-            <Button size="sm" variant="outline" onPress={() => setLeaving(true)} data-testid="my-club-leave">
-              {t("members.leave")}
-            </Button>
-          )}
+          <ConfirmButton
+            size="sm"
+            label={t("members.leave")}
+            prompt={t("members.leaveConfirm")}
+            confirmLabel={t("members.leave")}
+            cancelLabel={t("members.leaveCancel")}
+            busy={leave.isPending}
+            onConfirm={() => leave.mutate({ tupleId: own.id })}
+            testId="my-club-leave"
+          />
           {leave.isError && <ErrorMessage text={errorText(leave.error)} />}
         </div>
       )}
