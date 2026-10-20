@@ -38,7 +38,7 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
   const footer = useRef<HTMLDivElement>(null);
   const footerInView = useInView(footer);
   return (
-    <div className="fixed inset-0 bg-slate-950">
+    <div className="fixed inset-0 bg-background">
       <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
         <Picture photo={photo} />
       </div>
@@ -65,10 +65,10 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
                 id={c.id}
                 data-chapter={c.id}
                 data-testid={`site-chapter-${c.id}`}
-                className="relative border-t border-white/10 first:border-0"
+                className="relative border-t border-separator first:border-0"
               >
                 {/* One column; every block in it spans it (`Cards.tsx`, "the grid"). */}
-                <div data-column className="mx-auto w-full max-w-6xl px-4 py-10 pr-14 text-white lg:pr-24">
+                <div data-column className="mx-auto w-full max-w-6xl px-4 py-10 pr-14 text-foreground lg:pr-24">
                   <ChapterHead n={i + 1} of={chapters.length} title={c.title} />
                   <div data-flow className="space-y-6">
                     {c.body}
@@ -92,7 +92,7 @@ function ChapterHead({ n, of, title }: { n: number; of: number; title: string })
   const Heading = n === 1 ? "h1" : "h2";
   return (
     <>
-      <p className="font-mono text-xs tracking-widest text-white/60">
+      <p className="font-mono text-xs tracking-widest text-muted">
         {String(n).padStart(2, "0")} / {String(of).padStart(2, "0")}
       </p>
       <Heading className={`mb-6 mt-2 ${PAGE_TITLE}`}>{title}</Heading>
@@ -105,7 +105,7 @@ function MoreLink({ id, more }: { id: string; more: { to: string; label: string 
     <Link
       to={more.to}
       data-testid={`site-chapter-${id}-more`}
-      className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-white/90"
+      className="mt-8 inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition hover:bg-foreground/90"
     >
       {more.label} <span aria-hidden>→</span>
     </Link>
@@ -197,7 +197,7 @@ function ChapterDots({
           Decoration only: it takes no pointer. */}
       <span
         aria-hidden
-        className={`pointer-events-none absolute inset-y-0 right-0 w-72 bg-gradient-to-l from-slate-950/95 via-slate-950/80 to-slate-950/0 transition-opacity ${
+        className={`pointer-events-none absolute inset-y-0 right-0 w-72 bg-gradient-to-l from-background/95 via-background/80 to-background/0 transition-opacity ${
           scrub ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -223,14 +223,14 @@ function ChapterDots({
                   className={`pointer-events-none absolute right-full mr-1 whitespace-nowrap rounded-full text-xs font-semibold uppercase tracking-widest transition ${
                     scrub
                       ? current
-                        ? "bg-white px-3 py-1 text-sm text-slate-950"
-                        : "text-white/70"
-                      : "text-white/0 group-hover:text-white/80"
+                        ? "bg-foreground px-3 py-1 text-sm text-background"
+                        : "text-muted"
+                      : "text-transparent group-hover:text-muted"
                   }`}
                 >
                   {label}
                 </span>
-                <span className={`block shrink-0 rounded-full transition-all ${current ? "h-6 w-2 bg-white" : "size-2 bg-white/40 group-hover:bg-white/80"}`} />
+                <span className={`block shrink-0 rounded-full transition-all ${current ? "h-6 w-2 bg-foreground" : "size-2 bg-foreground/40 group-hover:bg-foreground/80"}`} />
               </a>
             </li>
           );

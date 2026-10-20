@@ -26,13 +26,13 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
   return (
     <>
       {header && (
-        <header className="relative mb-6 overflow-hidden rounded-2xl bg-slate-950 text-white" data-testid="site-article-header">
+        <header className="relative mb-6 overflow-hidden rounded-2xl bg-background text-foreground" data-testid="site-article-header">
           <div aria-hidden className="absolute inset-0">
             <Img photo={article.photo} />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-slate-950/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-background/10" />
           </div>
           <div className="relative px-4 pb-8 pt-32 sm:px-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted" data-testid="site-kicker">
               {`${t("pages.news")} · ${formatDate(article.date)}`}
             </p>
             <h1 className={`mt-2 ${PAGE_TITLE}`}>{article.title}</h1>

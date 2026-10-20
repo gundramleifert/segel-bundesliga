@@ -18,6 +18,7 @@ import { useTheme } from "./site/settings";
 export function SiteShell() {
   const { t } = useTranslation();
   useScrollToTop();
+  useDocumentTheme();
   return (
     <>
       {/* Once, for every page: the chapter pages and the depth pages draw their own frame,
@@ -38,6 +39,19 @@ export function SiteShell() {
       {DEV_TOOLS && <DevSwitch />}
     </>
   );
+}
+
+/** The theme onto the document (Story B-19): `data-theme` is what gives the colour names
+ *  their values (index.css), `dark` is HeroUI's. `index.html` sets it before the first
+ *  paint; this keeps it in step when the switch is used. */
+function useDocumentTheme() {
+  const theme = useTheme();
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    root.classList.toggle("dark", theme === "dark");
+    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#020617" : "#ebedf2");
+  }, [theme]);
 }
 
 /** A new page opens at its top. The router keeps the window's scroll position, so a link
@@ -61,27 +75,21 @@ function useScrollToTop() {
  * breadcrumb, whose last crumb is the page's `h1`), the page's own tabs beside it as pills
  * (`InHeader`) — and the same footer.
  *
- * **The theme is set here and only here**: the pages name their colours (`text-muted`,
- * `bg-surface` — index.css), and `data-theme` gives the names their values, for this frame
- * and everything in it, HeroUI's components included. Which one is this browser's choice
- * from the top row's switch, dark unless it chose light (Story B-19). The official pages
- * stay dark, on their pictures.
+ * In the document's theme, like every page (`SiteShell`, Story B-19).
  */
 
 export function Layout() {
   // State, not a ref: the page's portal has to render again once the slot exists.
   const [slot, setSlot] = useState<HTMLElement | null>(null);
-  const theme = useTheme();
   return (
     <div
-      data-theme={theme}
       data-testid="layout"
       // `glass-plain`: the cards that are glass over a picture take the theme's surface on
       // this plain ground.
-      className={`${theme === "dark" ? "dark" : ""} glass-plain flex min-h-dvh flex-col bg-background text-foreground`}
+      className={`glass-plain flex min-h-dvh flex-col bg-background text-foreground`}
     >
       <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
-        <TopBar themeSwitch />
+        <TopBar />
         {/* With a sub-menu the whole row scrolls sideways on a phone, name and tabs
             together, as the league's row does — squeezed, the name wrapped into a column.
             Without one, the name truncates instead (`Breadcrumb`). */}

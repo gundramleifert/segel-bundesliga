@@ -27,13 +27,9 @@ export function useLeagues(): League[] {
  *  together and makes them stick (`Bars`, `Layout`). */
 export function TopBar({
   league,
-  themeSwitch = false,
 }: {
   /** The league the page belongs to, marked in the row. */
   league?: League | null;
-  /** Offers dark and light (Story B-19) — on the internal screens only: the official
-   *  pages lie on their pictures and stay dark. */
-  themeSwitch?: boolean;
 }) {
   const { t } = useTranslation("site");
   const leagues = useLeagues();
@@ -103,7 +99,7 @@ export function TopBar({
             ))}
           </ul>
         </nav>
-        {themeSwitch && <ThemeSwitch />}
+        <ThemeSwitch />
         <UserMenu
           account={account}
           loading={loading}

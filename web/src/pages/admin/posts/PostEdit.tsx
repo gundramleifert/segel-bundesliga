@@ -499,9 +499,9 @@ function Preview({ draft, onBack }: { draft: Draft; onBack: () => void }) {
       {preview.isPending && <Loading testId="admin-post-preview-loading" />}
       {preview.error && <ErrorMessage text={errorText(preview.error, t("posts.previewError"))} testId="admin-post-preview-error" />}
       {preview.data && (
-        // The public page sets the article on its league's dark backdrop, in the dark
-        // theme whatever the editor's own; so does this.
-        <div data-theme="dark" className="dark overflow-hidden rounded-lg bg-background p-3 text-foreground sm:p-6" data-testid="admin-post-preview-article">
+        // The public page sets the article on its league's backdrop; so does this, in the
+        // reader's theme.
+        <div className="overflow-hidden rounded-lg bg-background p-3 text-foreground sm:p-6" data-testid="admin-post-preview-article">
           <ArticleView post={preview.data} header />
         </div>
       )}

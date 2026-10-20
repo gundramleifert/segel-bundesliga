@@ -20,11 +20,11 @@ export const BAR_SHADE = "bg-background/70 backdrop-blur-md";
 
 /** The picture's shade behind a chapter page — darker on the left, where the text is. */
 export const SHADE_ACROSS =
-  "linear-gradient(to right, rgb(2 6 23 / calc(var(--site-shade) + 0.35)), rgb(2 6 23 / calc(var(--site-shade) + 0.1)) 55%, rgb(2 6 23 / calc(var(--site-shade) - 0.15)))";
+  "linear-gradient(to right, rgb(var(--veil) / calc(var(--veil-amount) + 0.35)), rgb(var(--veil) / calc(var(--veil-amount) + 0.1)) 55%, rgb(var(--veil) / calc(var(--veil-amount) - 0.15)))";
 
 /** The picture's shade behind a page deeper — darker at the foot, where the cards pile up. */
 export const SHADE_DOWN =
-  "linear-gradient(to bottom, rgb(2 6 23 / calc(var(--site-shade) + 0.1)), rgb(2 6 23 / calc(var(--site-shade) - 0.1)) 40%, rgb(2 6 23 / calc(var(--site-shade) + 0.3)))";
+  "linear-gradient(to bottom, rgb(var(--veil) / calc(var(--veil-amount) + 0.1)), rgb(var(--veil) / calc(var(--veil-amount) - 0.1)) 40%, rgb(var(--veil) / calc(var(--veil-amount) + 0.3)))";
 
 /** A page's title — a chapter page's first chapter, a page deeper's heading. */
 export const PAGE_TITLE = "text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl";
@@ -97,7 +97,7 @@ export function MediaCard({
 }) {
   return (
     <Card to={to} className="group h-full overflow-hidden" testId={testId}>
-      <div className={`relative overflow-hidden bg-slate-900 ${aspect}`}>
+      <div className={`relative overflow-hidden bg-default ${aspect}`}>
         <img
           src={image.src}
           srcSet={image.srcset}

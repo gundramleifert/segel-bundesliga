@@ -12,10 +12,18 @@ no longer the seed. What misled: the stash-and-rerun reproduced the failure, whi
 like proof it predated the change — but it ran on the same database, so it proved only
 that the *stack* was dirty. On a fresh `dev-stack.sh --workers 4` all three passed.
 
+Corrected the same day: the help test is a second kind. It failed again on a *fresh*
+4-worker stack. It is **order-dependent**: `help.spec.ts::clubOf` takes the account's
+first club of any kind, while the help links only the clubs whose Money tab the account
+may open (`handbook/places.ts::resolvePlace`) — once another spec on the same worker has
+made the board account a member somewhere else, the two differ. Not a dirty stack, and
+not the change under test either.
+
 **Rule** — before calling a browser failure pre-existing, rerun it on a freshly seeded
 stack (`dev-stack.sh --workers 4`, the suite's own setup), never on one you have been using.
 A run writes (`lifecycle.spec.ts`, waivers, posts), so the second run on the same database
-is a different test.
+is a different test. And a test that fails on one fresh run and passes on the next is
+order-dependent: look for what it reads that another spec on its worker writes.
 
 **Evidence** — the same tree: 3 failed of 130 on the hours-old `--dev` stack
 (`--workers 1 --project=chromium`), 259 passed of 260 (1 skipped) on a fresh

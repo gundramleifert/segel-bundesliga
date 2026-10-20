@@ -61,7 +61,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             more: { to: href.act(l, year, live.slug, "results"), label: t("now.resultsOf", { act: actTitle(live) }) },
             body: (
               <Card className="p-5" testId="site-live-act">
-                <p className="text-lg text-white/90">
+                <p className="text-lg text-muted">
                   {[
                     actTitle(live),
                     actDates(live),
@@ -72,8 +72,8 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
                     .join(" · ")}
                 </p>
                 <div className="my-5 flex flex-wrap gap-2 text-sm">
-                  <Link to={href.act(l, year, live.slug, "live")} className="rounded-full bg-white/15 px-4 py-2 hover:bg-white/25">{t("tabs.live")}</Link>
-                  <Link to={href.act(l, year, live.slug, "notice-board")} className="rounded-full bg-white/15 px-4 py-2 hover:bg-white/25">{t("tabs.notice-board")}</Link>
+                  <Link to={href.act(l, year, live.slug, "live")} className="rounded-full bg-default px-4 py-2 hover:bg-default-hover">{t("tabs.live")}</Link>
+                  <Link to={href.act(l, year, live.slug, "notice-board")} className="rounded-full bg-default px-4 py-2 hover:bg-default-hover">{t("tabs.notice-board")}</Link>
                 </div>
                 <LiveProgress eventId={live.first.id} />
               </Card>
@@ -127,7 +127,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             <CardRow testId="site-about-facts">
               {about.facts.map((f) => (
                 <li key={f.en}>
-                  <Card className="h-full p-4 text-sm leading-relaxed text-white/85">{localized(f)}</Card>
+                  <Card className="h-full p-4 text-sm leading-relaxed text-muted">{localized(f)}</Card>
                 </li>
               ))}
             </CardRow>
@@ -137,7 +137,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
             <Card className="p-4">
               <ul className="flex flex-wrap gap-2" data-testid="site-about-clubs">
                 {clubs.slice(0, 36).map((c) => (
-                  <li key={c.id} className="rounded-full bg-white/10 px-3 py-1 text-sm">
+                  <li key={c.id} className="rounded-full bg-default px-3 py-1 text-sm">
                     {c.short_name}
                   </li>
                 ))}
@@ -184,19 +184,19 @@ function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year
   return (
     // One card, like the table beside it: its label and its link inside, no text bare.
     <Card className="px-4" testId="site-season-strip">
-      <p className="flex items-baseline justify-between gap-3 border-b border-white/10 py-2.5 text-sm">
-        <span className="font-semibold uppercase tracking-widest text-white/70">{t("season.calendar", { year: year ?? "" })}</span>
-        <Link to={href.season(league)} className="font-medium text-white/80 hover:text-white hover:underline">
+      <p className="flex items-baseline justify-between gap-3 border-b border-separator py-2.5 text-sm">
+        <span className="font-semibold uppercase tracking-widest text-muted">{t("season.calendar", { year: year ?? "" })}</span>
+        <Link to={href.season(league)} className="font-medium text-muted hover:text-foreground hover:underline">
           {t("season.more")} →
         </Link>
       </p>
-      <ol className="divide-y divide-white/10">
+      <ol className="divide-y divide-separator">
         {acts.map((a) => {
           const inner = (
             <>
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{actTitle(a)}</span>
-                <span className="block text-xs text-white/60">{actDates(a)}</span>
+                <span className="block text-xs text-muted">{actDates(a)}</span>
               </span>
               <StateBadge state={a.state} />
             </>
@@ -204,7 +204,7 @@ function SeasonStrip({ league, acts, year }: { league: string; acts: Act[]; year
           return (
             <li key={a.slug}>
               {year ? (
-                <Link to={href.act(league, year, a.slug)} className="flex items-center gap-3 py-2.5 hover:text-white/80">
+                <Link to={href.act(league, year, a.slug)} className="flex items-center gap-3 py-2.5 hover:text-muted">
                   {inner}
                 </Link>
               ) : (
@@ -226,9 +226,9 @@ function LiveProgress({ eventId }: { eventId: number }) {
   const share = Math.round((100 * data.races_scored) / data.races_total);
   return (
     <div className="max-w-md" data-testid="site-live-progress">
-      <p className="mb-2 text-sm text-white/80">{t("live.progress", { scored: data.races_scored, total: data.races_total })}</p>
-      <div className="h-2 overflow-hidden rounded-full bg-white/15">
-        <div className="h-full rounded-full bg-white" style={{ width: `${share}%` }} />
+      <p className="mb-2 text-sm text-muted">{t("live.progress", { scored: data.races_scored, total: data.races_total })}</p>
+      <div className="h-2 overflow-hidden rounded-full bg-default">
+        <div className="h-full rounded-full bg-foreground" style={{ width: `${share}%` }} />
       </div>
     </div>
   );
@@ -250,8 +250,8 @@ export function NewsTiles({ items, rest = [], link }: { items: ArticleSummary[];
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-3 sm:grid-cols-3">
           {rest.map((n) => (
             <li key={n.slug}>
-              <Link to={link(n)} className="block border-l-2 border-white/40 pl-3 text-sm hover:border-white">
-                <span className="block text-xs text-white/50">{formatDate(n.date)}</span>
+              <Link to={link(n)} className="block border-l-2 border-border pl-3 text-sm hover:border-foreground">
+                <span className="block text-xs text-faint">{formatDate(n.date)}</span>
                 <span className="font-medium">{n.title}</span>
               </Link>
             </li>
@@ -281,7 +281,7 @@ function TopFive({ series, label }: { series: Series; label?: string }) {
   const { t } = useTranslation("site");
   const table = useGetSeriesTable(series.id).data;
   const rows = (table?.rows ?? []).filter((r) => (r.events_sailed ?? 0) > 0).slice(0, 5);
-  if (!table) return <div className="h-48 animate-pulse rounded-2xl bg-white/10" />;
+  if (!table) return <div className="h-48 animate-pulse rounded-2xl bg-default" />;
   // The same block when nothing is sailed yet — the division's place on the page, empty.
   if (!rows.length) {
     return (
@@ -292,11 +292,11 @@ function TopFive({ series, label }: { series: Series; label?: string }) {
   }
   return (
     <Card className="px-4">
-    {label && <p className="border-b border-white/10 py-2.5 text-sm font-semibold uppercase tracking-widest text-white/70">{label}</p>}
-    <ol className="divide-y divide-white/10" data-testid={`site-top-five-${series.slug}`}>
+    {label && <p className="border-b border-separator py-2.5 text-sm font-semibold uppercase tracking-widest text-muted">{label}</p>}
+    <ol className="divide-y divide-separator" data-testid={`site-top-five-${series.slug}`}>
       {rows.map((row) => (
         <li key={row.team.id} className="flex items-center gap-3 py-2">
-          <span className="w-6 text-white/50">{row.rank}</span>
+          <span className="w-6 text-faint">{row.rank}</span>
           <span className="flex-1 font-semibold">{row.team.club.short_name}</span>
           <span className="tabular-nums">{row.points}</span>
         </li>

@@ -47,11 +47,11 @@ export function AssociationHome() {
                     <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
                       <span className="font-medium">{actTitle(act)}</span>
                       <StateBadge state={act.state} />
-                      <span className="w-full text-white/60">{actDates(act)}</span>
+                      <span className="w-full text-muted">{actDates(act)}</span>
                     </p>
                   ) : null}
-                  <p className="mt-3 text-sm text-white/80">{l.tagline}</p>
-                  {about && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-white/60">{localized(about.intro)}</p>}
+                  <p className="mt-3 text-sm text-muted">{l.tagline}</p>
+                  {about && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">{localized(about.intro)}</p>}
                 </Card>
               </li>
             );
@@ -62,7 +62,7 @@ export function AssociationHome() {
             <li key={k}>
               <Card className="h-full p-4">
                 <p className="text-3xl font-semibold tabular-nums">{t(`home.figures.${k}.value`, { count: leagues.length })}</p>
-                <p className="mt-1 text-xs uppercase tracking-widest text-white/60">{t(`home.figures.${k}.label`)}</p>
+                <p className="mt-1 text-xs uppercase tracking-widest text-muted">{t(`home.figures.${k}.label`)}</p>
               </Card>
             </li>
           ))}
@@ -88,7 +88,7 @@ export function AssociationHome() {
             <li key={k}>
               <Card className="h-full p-4">
                 <p className="font-semibold">{t(`home.services.${k}.title`)}</p>
-                <p className="mt-1 text-sm leading-relaxed text-white/70">{t(`home.services.${k}.text`)}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{t(`home.services.${k}.text`)}</p>
               </Card>
             </li>
           ))}
@@ -106,21 +106,21 @@ export function AssociationHome() {
         <Columns>
           {association && (
             <TextCard>
-              <p className="text-lg text-white">{t("home.founded", { date: localized(association.founded) })}</p>
+              <p className="text-lg text-foreground">{t("home.founded", { date: localized(association.founded) })}</p>
               <p className="mt-3 leading-relaxed">{localized(association.history)}</p>
-              <p className="mt-3 text-sm text-white/60">{localized(association.record)}</p>
+              <p className="mt-3 text-sm text-muted">{localized(association.record)}</p>
             </TextCard>
           )}
           <Card className="p-4 sm:p-5">
             <ul className="space-y-3">
               {BOARD.map((b) => (
                 <li key={b.name} className="flex items-center gap-3">
-                  <span className="size-12 shrink-0 overflow-hidden rounded-full bg-white/10">
+                  <span className="size-12 shrink-0 overflow-hidden rounded-full bg-default">
                     <Img photo={b.photo} />
                   </span>
                   <span className="text-sm">
                     <b className="block">{b.name}</b>
-                    <span className="text-white/60">{localized(b.role)}</span>
+                    <span className="text-muted">{localized(b.role)}</span>
                   </span>
                 </li>
               ))}
@@ -168,7 +168,7 @@ export function AssociationAboutPage() {
             <ul className={`grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-1 text-sm md:grid-cols-2 ${tone.muted}`}>
               {clubs.map((c) => (
                 <li key={c.id}>
-                  <Link to={href.club(c.id)} className="hover:text-white hover:underline">
+                  <Link to={href.club(c.id)} className="hover:text-foreground hover:underline">
                     <b className={`inline-block w-24 ${tone.text}`}>{c.short_name}</b>
                     {c.name}
                   </Link>

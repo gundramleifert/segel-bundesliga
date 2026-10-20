@@ -7,18 +7,13 @@ import { join, relative } from "node:path";
 
 const root = new URL("../src/", import.meta.url).pathname;
 
-/** What lies on a picture, or *is* one, keeps its colours in either theme. */
+/** What lies on a picture and is part of it — a play button, the map's marks — or is a
+ *  picture itself, keeps its colours in either theme. */
 const FIXED = {
   "prototype/": "the throwaway prototype of issue #14",
-  "components/site/Chapters.tsx": "the chapter page's text over its big picture",
-  "components/site/Media.tsx": "a picture's placeholder",
-  "components/site/Gallery.tsx": "a picture's placeholder",
-  "components/site/Cards.tsx": "a card's picture: its placeholder and play button",
+  "components/site/Cards.tsx": "the play button on a video's still",
   "components/site/Frame.tsx": "the logo's white plate",
   "components/site/DevSwitch.tsx": "a development tool over the picture",
-  "pages/league/Home.tsx": "the association's chapter page, over its picture",
-  "pages/league/LeagueHome.tsx": "a league's chapter page, over its picture",
-  "pages/league/ArticleView.tsx": "the article's title over its picture",
   "components/Lightbox.tsx": "a photo viewer: black, whatever the page",
   "components/CrestEditor.tsx": "the shade over a crest being replaced",
   "components/FinishOrderPad.tsx": "the boats' own colours",

@@ -32,7 +32,7 @@ export function Gallery({ photos, grouped = true }: { photos: GalleryPhoto[]; gr
                   aria-label={t("media.open", { alt: photo.alt })}
                   data-testid={`site-media-photo-${photo.id}`}
                 >
-                  <span className="block aspect-[3/2] overflow-hidden bg-slate-900">
+                  <span className="block aspect-[3/2] overflow-hidden bg-default">
                     <img
                       src={photo.src}
                       srcSet={photo.srcset}

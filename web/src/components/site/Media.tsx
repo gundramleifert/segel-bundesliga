@@ -116,7 +116,7 @@ export function YouTubePlayer({ id, title }: { id: string; title: string }) {
         src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`}
         allow="encrypted-media; picture-in-picture; fullscreen"
         loading="lazy"
-        className="block aspect-video w-full border-0 bg-slate-900"
+        className="block aspect-video w-full border-0 bg-default"
       />
       <figcaption className={`p-4 text-sm font-semibold ${tone.text}`}>{title}</figcaption>
     </figure>

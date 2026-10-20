@@ -31,10 +31,10 @@
  * components and our markup follow the same values, and **a theme is only these
  * variables**: the light ones below, the dark ones under `[data-theme="dark"]`.
  *
- * Which theme a part of the page is in is the frame's business: the document is dark
- * (`index.html` — the official pages lie on their pictures), and `Layout` sets the
- * internal screens' own (`THEME`). Never name a shade in a page: one shade has no second
- * value, and that is how a page stops working in the other theme.
+ * The theme is the document's (`data-theme` on `<html>`): dark unless this browser chose
+ * light with the top row's switch (Story B-19) — set before the first paint by
+ * `index.html`, kept in step by `SiteShell`. Never name a shade in a page: one shade has
+ * no second value, and that is how a page stops working in the other theme.
  *
  * Our names must not be HeroUI's: it owns `--color-surface`, and a token of ours by that
  * name once made every card the colour of the page under it (docs/gotchas). */
@@ -60,6 +60,13 @@
   --accent-foreground: white;
   --link: #23477c;
   --focus: #3166b1;
+
+  /* Over a picture: white frosted glass, and a white veil that washes the photo out
+     enough for dark type to read on it. */
+  --veil: 255 255 255;
+  --veil-amount: 0.5;
+  --glass: rgb(255 255 255 / 0.72);
+  --glass-hover: rgb(255 255 255 / 0.88);
 }
 
 /* Dark — the official pages' look: white type, and surfaces of white at a low opacity, so
@@ -83,27 +90,29 @@
   --link: #b4cbe9;
   --focus: #85a9da;
   --surface-shadow: none;
+
+  /* Over a picture: dark glass, and the photo darkened — both tuned live by the DEV
+     switch (`--site-card-alpha`, `--site-shade`). */
+  --veil: 2 6 23;
+  --veil-amount: var(--site-shade);
+  --glass: rgb(2 6 23 / var(--site-card-alpha));
+  --glass-hover: rgb(2 6 23 / calc(var(--site-card-alpha) + var(--site-card-hover)));
 }
 
-/* How the official pages' glass looks over their pictures (`components/site/Cards.tsx`).
+/* How the dark theme's glass looks over the pictures (`components/site/Cards.tsx`).
    Variables, not classes, so the DEV switch can tune them live (`LOOK_DEFAULT` in
    `components/site/settings.ts` holds the same numbers). */
 :root {
-  --site-glass: 2 6 23; /* a card's tint: the site's darkest slate */
-  --site-card-alpha: 0.45; /* a card: that tint at this opacity */
+  --site-card-alpha: 0.45; /* a card: the site's darkest slate at this opacity */
   --site-card-hover: 0.15; /* how much more of it under the pointer */
   --site-card-blur: 12px; /* how much a card blurs the picture behind it */
   --site-shade: 0.45; /* how far the picture itself is darkened */
   --site-text: 0.85; /* the opacity of secondary text on a card */
 }
 
-/* A card's glass: the dark tint above over a picture; on a plain ground — the internal
-   screens (`Layout`), in either theme — simply the theme's surface, as HeroUI's cards
-   are: dark glass on the dark ground would be the ground's own colour. */
-:root {
-  --glass: rgb(var(--site-glass) / var(--site-card-alpha));
-  --glass-hover: rgb(var(--site-glass) / calc(var(--site-card-alpha) + var(--site-card-hover)));
-}
+/* A card's glass is the theme's `--glass` over a picture; on a plain ground — the
+   internal screens (`Layout`) — simply the theme's surface, as HeroUI's cards are: dark
+   glass on the dark ground would be the ground's own colour. */
 .glass-plain {
   --glass: var(--surface);
   --glass-hover: var(--surface-secondary);

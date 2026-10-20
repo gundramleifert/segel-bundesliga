@@ -5,15 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Deutsche Segel-Liga</title>
-    <!-- The official pages are dark (their picture under a shade): before the stylesheet
-         and the app are there, the document is too — otherwise every load showed a white
-         flash first. The internal screens draw their own white (Layout). -->
+    <!-- The theme, before the stylesheet and the app are there (Story B-19): dark unless
+         this browser chose light — otherwise every load showed the other colour first.
+         `SiteShell` keeps it in step afterwards; the key is `useTheme`'s in
+         src/components/site/settings.ts. -->
     <meta name="theme-color" content="#020617" />
     <style>
       html {
         background-color: #020617;
       }
+      html[data-theme="light"] {
+        background-color: #ebedf2;
+      }
     </style>
+    <script>
+      try {
+        if (localStorage.getItem("site.theme") === "light") {
+          document.documentElement.dataset.theme = "light";
+          document.documentElement.classList.remove("dark");
+          document.querySelector('meta[name="theme-color"]').content = "#ebedf2";
+        }
+      } catch {
+        // No storage: dark, as the default.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

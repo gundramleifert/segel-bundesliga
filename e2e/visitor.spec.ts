@@ -726,20 +726,21 @@ describeStory("A-12: the account menu and the page's name", () => {
 });
 
 describeStory("B-19: switch between dark and light", () => {
-  test("a guest switches the internal screens to light and back, and the choice stays", async ({ page }) => {
+  test("a guest switches to light and back, and the choice stays", async ({ page }) => {
     await page.goto("/legal-notice");
-    const frame = page.getByTestId("layout");
+    const html = page.locator("html");
     // Dark is the default.
-    await expect(frame).toHaveAttribute("data-theme", "dark");
+    await expect(html).toHaveAttribute("data-theme", "dark");
     await page.getByTestId("layout-theme").click();
-    await expect(frame).toHaveAttribute("data-theme", "light");
-    // Remembered across a reload and on the next page.
+    await expect(html).toHaveAttribute("data-theme", "light");
+    // Remembered across a reload — set before the first paint, not after — and on the
+    // next page.
     await page.reload();
-    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "light");
+    await expect(html).toHaveAttribute("data-theme", "light");
     await page.goto("/privacy");
-    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "light");
+    await expect(html).toHaveAttribute("data-theme", "light");
     await page.getByTestId("layout-theme").click();
-    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "dark");
+    await expect(html).toHaveAttribute("data-theme", "dark");
   });
 
   test("the button sits beside the account button once signed in", async ({ page }) => {
@@ -747,13 +748,17 @@ describeStory("B-19: switch between dark and light", () => {
     await page.goto("/me");
     await expect(page.getByTestId("layout-profile-button")).toBeVisible();
     await page.getByTestId("layout-theme").click();
-    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "light");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   });
 
-  test("the official pages stay dark on their pictures, without the button", async ({ page }) => {
+  test("the official pages switch too, their pictures under a light veil", async ({ page }) => {
     await page.goto(STANDINGS);
-    await expect(page.getByTestId("site-top-bar")).toBeVisible();
-    await expect(page.getByTestId("layout-theme")).toHaveCount(0);
-    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.getByTestId("layout-theme").click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    // The page's type is dark on the light theme: the colour names, not white.
+    const title = page.getByRole("heading", { level: 1 });
+    await expect(title).toHaveCSS("color", "rgb(15, 23, 42)");
+    await page.goto(FINISHED_ACT);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   });
 });

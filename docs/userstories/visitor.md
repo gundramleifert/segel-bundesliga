@@ -758,23 +758,24 @@ Open: The legal review by the association's board, and the placeholder values, a
 missing — see the open questions rendered on the pages themselves.
 
 ### B-19 ● Switch between dark and light
-As **anyone using the site's screens** — my space, the help, administration, a club's
-page — I want to **switch between a dark and a light look**, so that I **can read
-comfortably in a bright room, on a pontoon in the sun, or at night**.
+As **anyone using the site** I want to **switch between a dark and a light look**, so that
+I **can read comfortably in a bright room, on a pontoon in the sun, or at night**.
 
 Acceptance criteria:
 - A button in the top row, beside the language (a guest's) or the account button (when
-  signed in), switches the internal screens between **dark** and **light**. Its label
-  says what it switches to.
+  signed in), switches the whole site between **dark** and **light**. Its label says what
+  it switches to.
 - **Dark is the default.** The choice is remembered in this browser, across reloads and
-  pages; nothing is stored on the account, and a guest can choose too.
-- The official pages — a league's chapters and the pages behind them — lie on their
-  pictures and **stay dark**; the button is not offered there, because it would change
-  nothing a reader can see.
+  pages, and applied before the page is drawn — no flash of the other colour. Nothing is
+  stored on the account; a guest can choose too.
+- The official pages switch as well (changed 2026-10-21; at first they stayed dark): in
+  light their picture lies under a **white veil**, the cards are **white frosted glass**
+  and the type is dark — the same look as the dark one, mirrored.
 - Switching changes no page: every page names its colours (`docs/components.md`
   § Colours), and the theme is the values behind the names.
 
 Frontend: `web/src/components/ThemeSwitch.tsx`, `useTheme` in
-`web/src/components/site/settings.ts`, `Layout`.
+`web/src/components/site/settings.ts`, `SiteShell` (the document's `data-theme`), the
+inline script in `web/index.html`, the per-theme glass and veil in `index.css`.
 
 Tests: `e2e/visitor.spec.ts::B-19: switch between dark and light`
