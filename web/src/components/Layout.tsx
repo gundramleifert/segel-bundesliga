@@ -10,6 +10,7 @@ import { DevSwitch } from "./site/DevSwitch";
 import { BAR_SHADE } from "./site/Cards";
 import { GlassFooter } from "./site/Footer";
 import { TopBar } from "./site/Frame";
+import { useTheme } from "./site/settings";
 
 /** Around every page: the development tools, wherever they are built in (`DEV_TOOLS`) —
  *  the role switcher bottom right, the DEV switch for the open variants bottom left
@@ -60,26 +61,27 @@ function useScrollToTop() {
  * breadcrumb, whose last crumb is the page's `h1`), the page's own tabs beside it as pills
  * (`InHeader`) — and the same footer.
  *
- * **The theme is set here and only here** (`THEME`): the pages name their colours
- * (`text-muted`, `bg-surface` — index.css), and `data-theme` gives the names their values,
- * for this frame and everything in it, HeroUI's components included. The official pages
- * stay dark, on their pictures. A light/dark switch is this value.
+ * **The theme is set here and only here**: the pages name their colours (`text-muted`,
+ * `bg-surface` — index.css), and `data-theme` gives the names their values, for this frame
+ * and everything in it, HeroUI's components included. Which one is this browser's choice
+ * from the top row's switch, dark unless it chose light (Story B-19). The official pages
+ * stay dark, on their pictures.
  */
-const THEME: "light" | "dark" = "dark";
 
 export function Layout() {
   // State, not a ref: the page's portal has to render again once the slot exists.
   const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const theme = useTheme();
   return (
     <div
-      data-theme={THEME}
+      data-theme={theme}
       data-testid="layout"
       // `glass-plain`: the cards that are glass over a picture take the theme's surface on
       // this plain ground.
-      className={`${THEME === "dark" ? "dark" : ""} glass-plain flex min-h-dvh flex-col bg-background text-foreground`}
+      className={`${theme === "dark" ? "dark" : ""} glass-plain flex min-h-dvh flex-col bg-background text-foreground`}
     >
       <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
-        <TopBar />
+        <TopBar themeSwitch />
         {/* With a sub-menu the whole row scrolls sideways on a phone, name and tabs
             together, as the league's row does — squeezed, the name wrapped into a column.
             Without one, the name truncates instead (`Breadcrumb`). */}

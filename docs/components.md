@@ -366,8 +366,9 @@ variables** (`index.css`, "colours"): light under `:root`, dark under
 `[data-theme="dark"]`. Floating panels (menus, popovers) take `bg-overlay`: a surface is
 see-through on the dark theme. A selected pill is `bg-foreground text-background`.
 
-The document is dark (`index.html`); `Layout` sets the internal screens' theme (`THEME`,
-dark by default) — a light/dark switch is that one value, nothing in a page changes. What
+The document is dark (`index.html`); `Layout` sets the internal screens' theme from the
+top row's **`ThemeSwitch`** (Story B-19: dark by default, remembered in this browser by
+`useTheme` in `site/settings.ts`) — nothing in a page changes. What
 lies on a picture keeps its fixed colours — the chapter pages' text over their photo, a
 photo's placeholder, the lightbox, the map's marks, the boats' own colours.
 `pnpm check:colours` (in `check.sh`) fails on a shade anywhere else, and lists the files
@@ -380,7 +381,7 @@ else — my space, administration, help, a club, a sailor, the legal pages — s
 `Layout`, which looks like a page deeper without its picture (2026-10-21): the same dark
 ground, the top row and the sub-menu row sticking together (the breadcrumb on the left,
 its last crumb the page's `h1`; a page's `TabbedView inHeader` beside it as pills), the
-same `GlassFooter`, in the theme `THEME` sets (above).
+same `GlassFooter`, in the theme the switch chose (above).
 
 - **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu, in
   the theme's colours; the page puts the shade under it and makes it stick.

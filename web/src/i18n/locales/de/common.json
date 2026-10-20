@@ -96,5 +96,9 @@
     "replace": "Stander ersetzen",
     "remove": "Stander entfernen",
     "title": "Stander"
+  },
+  "theme": {
+    "toLight": "Hell darstellen",
+    "toDark": "Dunkel darstellen"
   }
 }

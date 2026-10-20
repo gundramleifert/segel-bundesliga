@@ -724,3 +724,36 @@ describeStory("A-12: the account menu and the page's name", () => {
     await expect(page.getByTestId("layout-user-menu")).toHaveCount(0);
   });
 });
+
+describeStory("B-19: switch between dark and light", () => {
+  test("a guest switches the internal screens to light and back, and the choice stays", async ({ page }) => {
+    await page.goto("/legal-notice");
+    const frame = page.getByTestId("layout");
+    // Dark is the default.
+    await expect(frame).toHaveAttribute("data-theme", "dark");
+    await page.getByTestId("layout-theme").click();
+    await expect(frame).toHaveAttribute("data-theme", "light");
+    // Remembered across a reload and on the next page.
+    await page.reload();
+    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "light");
+    await page.goto("/privacy");
+    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "light");
+    await page.getByTestId("layout-theme").click();
+    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("the button sits beside the account button once signed in", async ({ page }) => {
+    await signIn(page, "board@nrv.example.com");
+    await page.goto("/me");
+    await expect(page.getByTestId("layout-profile-button")).toBeVisible();
+    await page.getByTestId("layout-theme").click();
+    await expect(page.getByTestId("layout")).toHaveAttribute("data-theme", "light");
+  });
+
+  test("the official pages stay dark on their pictures, without the button", async ({ page }) => {
+    await page.goto(STANDINGS);
+    await expect(page.getByTestId("site-top-bar")).toBeVisible();
+    await expect(page.getByTestId("layout-theme")).toHaveCount(0);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  });
+});

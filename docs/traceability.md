@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**93 stories** — ● 68 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 75 · with browser tests: 41 · walked by a journey: 31 · **with no test at all: 10**.
+**94 stories** — ● 69 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 75 · with browser tests: 42 · walked by a journey: 31 · **with no test at all: 10**.
 
 ## Journeys
 

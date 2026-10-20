@@ -42,6 +42,15 @@ export const [useMediaMode, setMediaMode] = setting<MediaMode>(
   (mode) => mode,
 );
 
+/** The internal screens' theme (Story B-19): dark unless this browser chose light. The
+ *  official pages lie on their pictures and stay dark whatever it says. */
+export type Theme = "dark" | "light";
+export const [useTheme, setTheme] = setting<Theme>(
+  "site.theme",
+  (saved) => (saved === "light" ? "light" : "dark"),
+  (theme) => theme,
+);
+
 /** How the glass looks over the pictures — the playground in the DEV switch. The same
  *  numbers are the defaults in `index.css`; the switch writes them onto the page as CSS
  *  variables, so a build without the dev tools shows the defaults. */

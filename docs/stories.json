@@ -191,6 +191,14 @@
   "file": "docs/userstories/sailor.md",
   "anchor": "b-18--the-help-for-what-i-do"
  },
+ "B-19": {
+  "title": "Switch between dark and light",
+  "status": "●",
+  "role": "Visitor and Fans",
+  "phase": "The site",
+  "file": "docs/userstories/visitor.md",
+  "anchor": "b-19--switch-between-dark-and-light"
+ },
  "B-2": {
   "title": "Review matchday results",
   "status": "●",

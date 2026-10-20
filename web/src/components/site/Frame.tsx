@@ -7,6 +7,7 @@ import type { League } from "../../api/types";
 import { mayOpenAdmin, useAccount } from "../../api/useApi";
 import { SLIDES, type Photo } from "../../content";
 import { href } from "../../lib/site";
+import { ThemeSwitch } from "../ThemeSwitch";
 import { UserMenu } from "../UserMenu";
 import { BAR_SHADE, PAGE_TITLE, SHADE_DOWN, tone } from "./Cards";
 import { GlassFooter } from "./Footer";
@@ -26,9 +27,13 @@ export function useLeagues(): League[] {
  *  together and makes them stick (`Bars`, `Layout`). */
 export function TopBar({
   league,
+  themeSwitch = false,
 }: {
   /** The league the page belongs to, marked in the row. */
   league?: League | null;
+  /** Offers dark and light (Story B-19) — on the internal screens only: the official
+   *  pages lie on their pictures and stay dark. */
+  themeSwitch?: boolean;
 }) {
   const { t } = useTranslation("site");
   const leagues = useLeagues();
@@ -98,6 +103,7 @@ export function TopBar({
             ))}
           </ul>
         </nav>
+        {themeSwitch && <ThemeSwitch />}
         <UserMenu
           account={account}
           loading={loading}
