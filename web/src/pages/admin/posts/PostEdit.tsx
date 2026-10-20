@@ -25,6 +25,7 @@ import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
 import { repeatsTitle } from "../../../lib/postTitle";
 import { href } from "../../../lib/site";
+import { useLeaveGuard } from "../../../lib/useLeaveGuard";
 import { filesIn, usePhotoUpload } from "../../../lib/usePhotoUpload";
 import { NewEntryPage } from "../../AdminNewPage";
 
@@ -92,8 +93,12 @@ function PostForm({ post }: { post?: PostAdmin }) {
   const leagues = useAsync(useListLeagues());
   const [draft, setDraft] = useState<Draft>(() => draftOf(post));
   const [saved, setSaved] = useState(false);
+  // Changed since it was loaded or last saved: leaving then asks first.
+  const [dirty, setDirty] = useState(false);
+  useLeaveGuard(dirty, t("posts.leaveUnsaved"));
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setSaved(false);
+    setDirty(true);
     setDraft((d) => ({ ...d, [key]: value }));
   };
 
@@ -109,6 +114,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
     mutation: {
       onSuccess: (created) => {
         stored(created);
+        setDirty(false);
         navigate(`/admin/news/${created.id}`, { replace: true });
       },
     },
@@ -117,6 +123,9 @@ function PostForm({ post }: { post?: PostAdmin }) {
     mutation: {
       onSuccess: (updated) => {
         stored(updated);
+        // Published or not is what the server now holds — never what was asked for.
+        setDraft((d) => ({ ...d, published: updated.published }));
+        setDirty(false);
         setSaved(true);
       },
     },
@@ -130,7 +139,6 @@ function PostForm({ post }: { post?: PostAdmin }) {
     const data = { ...draft, published, published_on: draft.published_on || todayIso() };
     if (post) update.mutate({ postId: post.id, data });
     else create.mutate({ data });
-    set("published", published);
   };
 
   const news = draft.kind === PostKind.news;

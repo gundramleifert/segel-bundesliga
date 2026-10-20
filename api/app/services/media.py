@@ -25,6 +25,7 @@ from urllib.parse import urljoin, urlsplit
 
 import httpx
 from sqlalchemy import Select, func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -144,8 +145,9 @@ async def store(
     encoded = await asyncio.to_thread(_encode, raw)
     name = uuid.uuid4().hex
     directory = _directory()
-    (directory / f"{name}.jpg").write_bytes(encoded.master)
-    (directory / f"{name}-thumb.jpg").write_bytes(encoded.thumb)
+    files = (directory / f"{name}.jpg", directory / f"{name}-thumb.jpg")
+    files[0].write_bytes(encoded.master)
+    files[1].write_bytes(encoded.thumb)
     item = MediaItem(
         name=name,
         source=MediaSource.IMPORT if key is not None else MediaSource.UPLOAD,
@@ -163,7 +165,20 @@ async def store(
         uploaded_by_user_id=arrival.user_id,
     )
     session.add(item)
-    await session.commit()
+    try:
+        await session.commit()
+    except Exception as error:
+        # Nothing stored, so nothing on disk either. The same bytes arriving twice at once
+        # both pass the look-up above; the one that commits second is answered the entry
+        # the first one made, as if it had come a moment later.
+        await session.rollback()
+        for path in files:
+            path.unlink(missing_ok=True)
+        if isinstance(error, IntegrityError):
+            same = await session.scalar(select(MediaItem).where(MediaItem.sha256 == digest))
+            if same is not None:
+                return Stored(same, created=False)
+        raise
     return Stored(item, created=True)
 
 

@@ -274,6 +274,20 @@ class TestWritePosts:
         assert unchanged.json()["title"] == "Harbour day"
         assert unchanged.json()["body"] == "<p>Open doors.</p><h2>Harbour day</h2>"
 
+    async def test_a_title_with_an_ampersand_is_read_as_the_editor_reads_it(self, client, caplog):
+        """R-1: the text is compared as a reader sees it — `&amp;` is `&`, as in the editor."""
+        headers = await editor(client, caplog)
+        refused = await client.post(
+            "/api/admin/posts",
+            headers=headers,
+            json={
+                "title": "Kiel & Travemünde",
+                "body": "<p>Kiel &amp; Travemünde</p><p>Two acts.</p>",
+            },
+        )
+        assert refused.status_code == 422
+        assert refused.json()["type"].endswith("/post-title-in-text")
+
     async def test_the_text_has_one_kind_of_heading(self, client, caplog):
         """R-1: a pasted title (h1) or subheading (h3) arrives as the text's one heading."""
         headers = await editor(client, caplog)

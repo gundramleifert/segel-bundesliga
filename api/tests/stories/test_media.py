@@ -8,6 +8,7 @@ and a picture a post shows cannot be deleted.
 import io
 import secrets
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from PIL import Image
 from sqlalchemy import update
@@ -202,6 +203,30 @@ class TestLibrary:
         assert made.status_code == 403
         assert (await client.get("/api/media/..%2Fsbl.db")).status_code == 404
         assert (await client.get("/api/media/0123.jpg")).status_code == 404
+
+    async def test_the_same_bytes_arriving_at_once_are_one_entry(self, client, caplog):
+        """R-2: two deliveries of one file at the same moment — a link and editorial, or a
+        retry — are one entry, the second answered as known, and no file is left over."""
+        import asyncio
+
+        from app.config import settings
+        from app.services import media
+
+        data = picture()
+        directory = Path(settings.uploads_dir) / "media"
+        before = set(directory.glob("*")) if directory.exists() else set()
+
+        async def once():
+            async with SessionLocal() as session:
+                stored = await media.store(
+                    session, data, original_name="same.jpg", arrival=media.Arrival()
+                )
+                return stored.item.id, stored.created
+
+        first, second = await asyncio.gather(once(), once())
+        assert first[0] == second[0]
+        assert sorted([first[1], second[1]]) == [False, True]
+        assert len(set(directory.glob("*")) - before) == 2  # one picture, one preview
 
 
 class TestImport:

@@ -54,10 +54,16 @@ export function BatchUpload({
   // still to send; one loop works it off while it runs, and a new pick joins the line.
   const queue = useRef<Item[]>([]);
   const running = useRef(false);
+  // The loop outlives the render that started it: what it reads must be today's — the
+  // credit, and `send`, which carries the event or series chosen now, not at the start.
   const creditNow = useRef(credit);
+  const sendNow = useRef(send);
+  const arrivedNow = useRef(onArrived);
   useEffect(() => {
     creditNow.current = credit;
-  }, [credit]);
+    sendNow.current = send;
+    arrivedNow.current = onArrived;
+  });
 
   const pump = async () => {
     if (running.current) return;
@@ -71,9 +77,9 @@ export function BatchUpload({
         // Remembering the name is a convenience; without storage it is asked again.
       }
       try {
-        const done = await send(item.file, name || undefined);
+        const done = await sendNow.current(item.file, name || undefined);
         set(item.id, { status: done.created ? "received" : "known" });
-        onArrived?.();
+        arrivedNow.current?.();
       } catch (error) {
         set(item.id, { status: "failed", error: errorText(error) });
       }

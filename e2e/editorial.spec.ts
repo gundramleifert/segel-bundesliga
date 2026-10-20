@@ -142,6 +142,32 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(page.getByTestId("admin-post-save-button")).toBeEnabled();
   });
 
+  test("leaving a post with unsaved changes asks first", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin/news/new");
+    const back = page.getByTestId("admin-post-back-link");
+
+    // Nothing written yet: the link just goes.
+    await back.click();
+    await expect(page).toHaveURL(/\/admin\?tab=news/);
+
+    await page.goto("/admin/news/new");
+    await page.getByTestId("admin-post-title-input").fill("Harbour day");
+    const asked: string[] = [];
+    page.once("dialog", (dialog) => {
+      asked.push(dialog.type());
+      void dialog.dismiss();
+    });
+    await back.click();
+    expect(asked).toEqual(["confirm"]);
+    await expect(page).toHaveURL(/\/admin\/news\/new/);
+    await expect(page.getByTestId("admin-post-title-input")).toHaveValue("Harbour day");
+
+    page.once("dialog", (dialog) => void dialog.accept());
+    await back.click();
+    await expect(page).toHaveURL(/\/admin\?tab=news/);
+  });
+
   test("a club's team manager has no News tab", async ({ page }) => {
     await signIn(page, MANAGER);
     await page.goto("/admin");

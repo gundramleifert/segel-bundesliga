@@ -386,6 +386,7 @@
     "photoError": "The picture could not be uploaded.",
     "saved": "Saved.",
     "saveError": "The post could not be saved.",
+    "leaveUnsaved": "This post has changes that are not saved. Leave anyway?",
     "saveButton": "Save",
     "saveDraftButton": "Save draft",
     "publishButton": "Publish",

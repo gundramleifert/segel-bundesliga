@@ -386,6 +386,7 @@
     "photoError": "Das Bild konnte nicht hochgeladen werden.",
     "saved": "Gespeichert.",
     "saveError": "Der Beitrag konnte nicht gespeichert werden.",
+    "leaveUnsaved": "Dieser Beitrag hat ungespeicherte Änderungen. Trotzdem verlassen?",
     "saveButton": "Speichern",
     "saveDraftButton": "Entwurf speichern",
     "publishButton": "Veröffentlichen",

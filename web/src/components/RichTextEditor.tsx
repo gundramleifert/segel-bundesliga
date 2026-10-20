@@ -1,6 +1,7 @@
 import { Button } from "@heroui/react";
 import Image from "@tiptap/extension-image";
 import { TableKit } from "@tiptap/extension-table";
+import type { Transaction } from "@tiptap/pm/state";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
@@ -105,13 +106,25 @@ export default function RichTextEditor({
       // `setImage` would replace it with the next one.
       insertImage: (src, alt) =>
         editor.chain().focus().insertContentAt(editor.state.selection.to, { type: "image", attrs: { src, alt } }).run(),
-      // One after another, the first at `at`, each next after the one before.
+      // One after another, the first at `at`, each next after the one before. An upload
+      // takes seconds and the writing goes on meanwhile, so `at` is carried through every
+      // change made in between — a paragraph deleted above would otherwise move the
+      // picture, or put `at` past the end of the text.
       insertPhotos: async (files, at) => {
-        for (const [i, file] of files.entries()) {
-          const item = await photo.upload(file);
-          if (!item) continue;
-          const where = i === 0 ? at : editor.state.selection.to;
-          editor.chain().focus().insertContentAt(where, { type: "image", attrs: { src: item.url, alt: item.alt } }).run();
+        let where = at;
+        const follow = ({ transaction }: { transaction: Transaction }) => {
+          where = transaction.mapping.map(where);
+        };
+        editor.on("transaction", follow);
+        try {
+          for (const file of files) {
+            const item = await photo.upload(file);
+            if (!item || editor.isDestroyed) continue;
+            editor.chain().focus().insertContentAt(where, { type: "image", attrs: { src: item.url, alt: item.alt } }).run();
+            where = editor.state.selection.to;
+          }
+        } finally {
+          editor.off("transaction", follow);
         }
       },
       openLink: () => setLinking(true),

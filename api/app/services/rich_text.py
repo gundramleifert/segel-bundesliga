@@ -9,6 +9,7 @@ Cleaning on write rather than on read keeps the stored text the text that is sho
 
 from __future__ import annotations
 
+import html
 import re
 
 import nh3
@@ -53,8 +54,14 @@ def clean_html(value: str) -> str:
 _FIRST_BLOCK = re.compile(r"^\s*<(h2|p)>(.*?)</\1>\s*", re.S)
 
 
-def _words(html: str) -> str:
-    return " ".join(re.sub(r"<[^>]+>", " ", html).split()).casefold()
+def _words(text: str) -> str:
+    return " ".join(text.split()).casefold()
+
+
+def _text_of(markup: str) -> str:
+    """The words a reader sees: tags dropped, `&amp;` read as `&` — as the editor's own
+    check (`web/src/lib/postTitle.ts`) reads `textContent`."""
+    return html.unescape(re.sub(r"<[^>]+>", " ", markup))
 
 
 def repeats_title(body: str, title: str) -> bool:
@@ -63,4 +70,4 @@ def repeats_title(body: str, title: str) -> bool:
     it twice — and it is refused, never cut away: the writer decides what goes instead.
     The same words further down are text."""
     first = _FIRST_BLOCK.match(body)
-    return first is not None and _words(first.group(2)) == _words(title)
+    return first is not None and _words(_text_of(first.group(2))) == _words(title)
