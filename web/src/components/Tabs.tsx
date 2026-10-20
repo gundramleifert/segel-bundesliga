@@ -124,8 +124,9 @@ export function TabbedView<K extends string>({
             data-testid={`${testIdPrefix}-${tab.key}-tab`}
             className={
               inHeader
-                ? `-mb-px whitespace-nowrap border-b-2 px-3 py-4 text-sm font-medium ${
-                    isSelected ? "border-slate-900 text-slate-900" : "border-transparent text-slate-500 hover:text-slate-900"
+                ? // Pills, like the sub-menu of a league's pages (`SubBar`).
+                  `whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                    isSelected ? "bg-white text-slate-950" : "text-white/75 hover:bg-white/10 hover:text-white"
                   }`
                 : `whitespace-nowrap rounded-md px-4 py-1.5 text-sm transition-colors ${
                     isSelected ? "bg-brand-600 font-medium text-white" : "text-slate-600 hover:bg-slate-100"
@@ -148,7 +149,7 @@ export function TabbedView<K extends string>({
           where it belongs. In the header, the header row is that box (`Layout`). */}
       {inHeader ? (
         <InHeader>
-          <div className="shrink-0 border-l border-slate-200 pl-1">{tablist}</div>
+          <div className="shrink-0 border-l border-white/20 pl-2">{tablist}</div>
         </InHeader>
       ) : (
         <div className="mb-4 overflow-x-auto">{tablist}</div>

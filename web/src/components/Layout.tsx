@@ -7,7 +7,9 @@ import { RoleSwitcher } from "../dev/RoleSwitcher";
 import { Breadcrumb } from "./Breadcrumb";
 import { HeaderSlotContext } from "./HeaderSlot";
 import { DevSwitch } from "./site/DevSwitch";
-import { Footer, TopBar } from "./site/Frame";
+import { BAR_SHADE } from "./site/Cards";
+import { GlassFooter } from "./site/Footer";
+import { TopBar } from "./site/Frame";
 
 /** Around every page: the development tools, wherever they are built in (`DEV_TOOLS`) —
  *  the role switcher bottom right, the DEV switch for the open variants bottom left
@@ -50,33 +52,42 @@ function useScrollToTop() {
   }, [pathname, type, keep]);
 }
 
-/** The frame of the pages outside the leagues — my space, administration, a club, a
+/** The frame of the pages outside the leagues — my space, administration, help, a club, a
  *  sailor, the legal pages (Stories B-13, A-12).
  *
- * The same one row on top as everywhere else: logo, the leagues, the account button. It
- * replaced a column of links on the left and a burger on a phone — the leagues *are* the
- * navigation now, and the account menu holds the rest. Under the row, a breadcrumb names
- * the page; it is the page's `h1`.
+ * Drawn like a page behind a league's chapter (`DepthPage`), without its picture: the same
+ * dark ground, the top row and a sub-menu row under it, sticking together — where you are
+ * on the left (the breadcrumb, whose last crumb is the page's `h1`), the page's own tabs
+ * beside it as pills (`InHeader`) — and the same footer. The pages are written in light
+ * colours, as they always were; `.on-glass` (index.css) turns them into the dark ground's,
+ * and HeroUI's `dark` theme does the same for its own components.
+ *
+ * **The theme is set here and only here** (`THEME`). A light mode is meant to come — a
+ * switch in the account menu — and then it is this value: light drops `dark` and
+ * `.on-glass`, which leaves the pages in the colours they are written in, and the rows
+ * take the top row's solid variant.
  */
+const THEME = "dark";
+
 export function Layout() {
   // State, not a ref: the page's portal has to render again once the slot exists.
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   return (
-    <div className="flex min-h-dvh flex-col bg-white text-ink">
-      <TopBar />
-      {/* A page with a sub-menu (`InHeader`) puts it beside the breadcrumb — the row then
-          stays under the top bar, as the matchday page's tabs do (Story S-7). `:has`, so
-          a page without one keeps a row that scrolls away. */}
-      <div
-        data-testid="layout-header"
-        className="z-10 bg-white/95 backdrop-blur has-[[role=tablist]]:sticky has-[[role=tablist]]:top-14 has-[[role=tablist]]:border-b has-[[role=tablist]]:border-slate-200"
-      >
-        {/* With a sub-menu the whole row scrolls sideways on a phone, name and tabs together,
-            as the matchday row does — squeezed, the name wrapped into a column. */}
-        <div
-          className="scrollbar-none mx-auto flex w-full max-w-6xl min-w-0 items-center gap-3 px-4 py-3 has-[[role=tablist]]:overflow-x-auto has-[[role=tablist]]:py-0 has-[[role=tablist]]:[&>nav]:shrink-0 has-[[role=tablist]]:[&>nav]:whitespace-nowrap lg:px-6">
-          <Breadcrumb />
-          <div ref={setSlot} data-testid="layout-header-slot" className="contents" />
+    <div
+      data-theme={THEME}
+      data-testid="layout"
+      className={`${THEME} glass-light flex min-h-dvh flex-col bg-slate-950 text-white`}
+    >
+      <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
+        <TopBar overlay />
+        {/* With a sub-menu the whole row scrolls sideways on a phone, name and tabs
+            together, as the league's row does — squeezed, the name wrapped into a column.
+            Without one, the name truncates instead (`Breadcrumb`). */}
+        <div data-testid="layout-header" className="border-b border-white/15 text-sm">
+          <div className="scrollbar-none mx-auto flex h-12 w-full max-w-6xl min-w-0 items-center gap-3 px-4 has-[[role=tablist]]:overflow-x-auto has-[[role=tablist]]:[&>nav]:shrink-0 has-[[role=tablist]]:[&>nav]:whitespace-nowrap">
+            <Breadcrumb />
+            <div ref={setSlot} data-testid="layout-header-slot" className="contents" />
+          </div>
         </div>
       </div>
       <main
@@ -84,7 +95,7 @@ export function Layout() {
         data-testid="layout-main"
         // `panel-scroll`: a table wider than the panel scrolls the panel, not the document
         // (Story A-10).
-        className="panel-scroll w-full min-w-0 flex-1 rounded-t-2xl bg-page px-4 py-6 lg:px-6 lg:py-8"
+        className="on-glass panel-scroll w-full min-w-0 flex-1 px-4 pb-16 pt-8 sm:pt-12"
       >
         <div className="mx-auto w-full max-w-6xl">
           <HeaderSlotContext.Provider value={slot}>
@@ -92,7 +103,7 @@ export function Layout() {
           </HeaderSlotContext.Provider>
         </div>
       </main>
-      <Footer />
+      <GlassFooter />
     </div>
   );
 }

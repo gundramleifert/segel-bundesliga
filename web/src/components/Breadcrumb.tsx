@@ -53,16 +53,16 @@ export function Breadcrumb() {
       data-testid="layout-breadcrumb"
       className="min-w-0"
     >
-      <ol className="flex min-w-0 items-center gap-1.5 text-sm text-slate-500">
+      <ol className="flex min-w-0 items-center gap-1.5 text-sm text-white/70">
         {crumbs.map((crumb, index) => (
           <li key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-1.5">
             {index > 0 && (
-              <span aria-hidden className="text-slate-300">
+              <span aria-hidden className="text-white/40">
                 ›
               </span>
             )}
             {crumb.to && index < crumbs.length - 1 ? (
-              <Link to={crumb.to} className="hover:text-slate-900 hover:underline">
+              <Link to={crumb.to} className="hover:text-white hover:underline">
                 {crumb.label}
               </Link>
             ) : (
@@ -107,7 +107,7 @@ function PageName({ label }: { label: string }) {
       <h1
         ref={heading}
         aria-current="page"
-        className="truncate text-sm font-medium text-slate-700"
+        className="truncate text-sm font-semibold text-white"
       >
         {label}
       </h1>

@@ -120,6 +120,7 @@ function AdminTabs() {
         testIdPrefix="admin"
         label={t("page.tabsLabel")}
         className="grid grid-cols-[minmax(0,1fr)]"
+        inHeader
       />
     </>
   );

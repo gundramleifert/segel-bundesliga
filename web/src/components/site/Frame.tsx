@@ -5,7 +5,6 @@ import { Link, useLocation, type To } from "react-router-dom";
 import { useListLeagues } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
 import { mayOpenAdmin, useAccount } from "../../api/useApi";
-import { DEV_TOOLS } from "../../dev/devTools";
 import { SLIDES, type Photo } from "../../content";
 import { href } from "../../lib/site";
 import { UserMenu } from "../UserMenu";
@@ -28,8 +27,9 @@ export function TopBar({
   overlay = false,
   league,
 }: {
-  /** On an official page's picture, in white; the page shades the rows together. Without
-   *  it the row is solid white and sticky — the internal screens' (`Layout`). */
+  /** On a dark ground — an official page's picture, the internal screens' (`Layout`) — in
+   *  white; the page shades the rows together. Without it the row is solid white and
+   *  sticky, for a light theme to come. */
   overlay?: boolean;
   /** The league the page belongs to, marked in the row. */
   league?: League | null;
@@ -389,40 +389,5 @@ export function Expand({
       </summary>
       <div className={`pb-4 pl-1 text-sm ${tone.muted}`}>{children}</div>
     </details>
-  );
-}
-
-/** The internal screens' footer: each league's pages, and the legal pages § 5 DDG wants
- *  reachable from every page. The official pages have `GlassFooter` (`Footer.tsx`). */
-export function Footer() {
-  const { t } = useTranslation("site");
-  const { t: tc } = useTranslation();
-  const leagues = useLeagues();
-  return (
-    <footer className="relative border-t border-slate-200 bg-slate-50 text-sm text-slate-600" data-testid="site-footer">
-      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-8 px-4 py-10 sm:grid-cols-3">
-        {leagues.map((league) => (
-          <div key={league.slug}>
-            <Link to={href.league(league.slug)} className="font-semibold text-slate-900">{league.short_name}</Link>
-            <ul className="mt-2 space-y-1">
-              <li><Link to={href.standings(league.slug)} className="hover:text-slate-900">{t("pages.standings")}</Link></li>
-              <li><Link to={href.season(league.slug)} className="hover:text-slate-900">{t("pages.season")}</Link></li>
-              <li><Link to={href.noticeBoard(league.slug)} className="hover:text-slate-900">{t("pages.noticeBoard")}</Link></li>
-              <li><Link to={href.press(league.slug)} className="hover:text-slate-900">{t("pages.press")}</Link></li>
-            </ul>
-          </div>
-        ))}
-      </div>
-      {/* The foot of every page, so the clearance for the fixed dev switches belongs here:
-          without it they sit on the legal links § 5 DDG wants reachable. The same
-          constant as the switches themselves (`SiteShell`). */}
-      <div className={`border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500 ${DEV_TOOLS ? "pb-24" : ""}`}>
-        <Link to="/events" className="hover:text-slate-900">{t("footer.calendar")}</Link> ·{" "}
-        <Link to="/clubs" className="hover:text-slate-900">{t("footer.allClubs")}</Link> ·{" "}
-        <Link to="/legal-notice" className="hover:text-slate-900" data-testid="site-footer-legal-notice">{tc("userMenu.legalNotice")}</Link> ·{" "}
-        <Link to="/privacy" className="hover:text-slate-900">{tc("userMenu.privacy")}</Link>
-        <p className="mt-2">{t("footer.credits")}</p>
-      </div>
-    </footer>
   );
 }

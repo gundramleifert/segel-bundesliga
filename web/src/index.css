@@ -31,24 +31,35 @@
    Variables, not classes, so the DEV switch can tune them live (`LOOK_DEFAULT` in
    `components/site/settings.ts` holds the same numbers). */
 :root {
-  --site-card-alpha: 0.45; /* a card: the site's darkest slate at this opacity */
+  --site-glass: 2 6 23; /* a card's tint: the site's darkest slate */
+  --site-card-alpha: 0.45; /* a card: that tint at this opacity */
+  --site-card-hover: 0.15; /* how much more of it under the pointer */
   --site-card-blur: 12px; /* how much a card blurs the picture behind it */
   --site-shade: 0.45; /* how far the picture itself is darkened */
   --site-text: 0.85; /* the opacity of secondary text on a card */
 }
 
-/* The header is `sticky top-0` and opaque (see `Layout.tsx`): 36px of logo plus 2×12px of
-   padding, so about 60px of bar that is always over the top of the scrollport.
+/* The internal screens (`Layout`) lie on a plain dark ground, not on a picture: there the
+   glass is a light tint, as HeroUI's cards on it are (`.on-glass`) — dark glass would be
+   the ground's own colour. */
+.glass-light {
+  --site-glass: 255 255 255;
+  --site-card-alpha: 0.06;
+  --site-card-hover: 0.04;
+}
+
+/* The rows on top are sticky (`Bars`, `Layout`): the top row and the sub-menu, 105px of
+   bar that is always over the top of the scrollport.
    `scroll-padding-top` tells every scroll-into-view — an in-page anchor, a keyboard focus
    moving down a long admin list, a script scrolling a row into view — to leave that much
    room, instead of parking the target underneath the header where it cannot be read or
-   tapped. 5rem is the bar plus a little breathing space.
+   tapped. 7.5rem is the bars plus a little breathing space.
 
    This was not cosmetic: on a 412px viewport it made the admin rows *unusable*. Any
    control near the bottom of the page gets scrolled to the top edge, i.e. behind the
    header, and the tap then lands on the header's own buttons (Story A-10). */
 html {
-  scroll-padding-top: 5rem;
+  scroll-padding-top: 7.5rem;
 }
 
 /* Smooth scrolling is a preference, not a default: `prefers-reduced-motion` exists because
@@ -268,14 +279,65 @@ html {
   background-color: #fff;
 }
 
-/* `.on-glass` — content built for white paper, shown on the official pages' glass
-   (`Panel` in components/site/Cards.tsx). The full tables, the pairing list and the crews
-   are shared with the internal screens and written in light colours; rather than a dark
-   copy of each, this scope maps their light colours to the glass's. Unlayered, so it wins
-   over Tailwind's utilities, and limited to this scope, so nothing else changes.
-   HeroUI's card reads its colours from its theme's variables (`--surface`, not the
-   `--color-surface` its utilities are named after — they are inlined), set here too. */
+/* `.on-glass` — content written for white paper, shown on a dark ground: the official
+   pages' glass (`Panel` in components/site/Cards.tsx) and every internal screen
+   (`Layout`). Rather than a dark copy of each page, the scope **redefines the palette**:
+   Tailwind's utilities read their colour from `--color-*`, so `text-slate-600` and
+   `bg-amber-50` follow whatever the variable says here. Unlayered, so it wins; limited to
+   this scope, so nothing else changes. A light theme is this scope left off.
+
+   The pale shades become white at a low opacity (surfaces, lines), the dark ones white at
+   a high one (text). Two kinds of shade cannot be swapped, because they serve as text
+   *and* as a ground under white type: slate 900/950 and the brand's 600–800. Those keep
+   their value and are handled per class below. */
 .on-glass {
+  --color-slate-50: rgb(255 255 255 / 0.05);
+  --color-slate-100: rgb(255 255 255 / 0.08);
+  --color-slate-200: rgb(255 255 255 / 0.12);
+  --color-slate-300: rgb(255 255 255 / 0.25);
+  --color-slate-400: rgb(255 255 255 / 0.55);
+  --color-slate-500: rgb(255 255 255 / 0.7);
+  --color-slate-600: rgb(255 255 255 / var(--site-text));
+  --color-slate-700: rgb(255 255 255 / 0.92);
+  --color-slate-800: white;
+  --color-brand-50: rgb(255 255 255 / 0.07);
+  --color-brand-100: color-mix(in oklab, #5786c7 25%, transparent);
+  --color-brand-200: color-mix(in oklab, #85a9da 45%, transparent);
+
+  /* The status colours: a pale tint with dark type turns into a dim tint with light type. */
+  --color-amber-50: color-mix(in oklab, #fbbf24 12%, transparent);
+  --color-amber-100: color-mix(in oklab, #fbbf24 20%, transparent);
+  --color-amber-200: color-mix(in oklab, #fbbf24 30%, transparent);
+  --color-amber-300: color-mix(in oklab, #fbbf24 45%, transparent);
+  --color-amber-400: color-mix(in oklab, #fbbf24 60%, transparent);
+  --color-amber-700: #fde68a;
+  --color-amber-800: #fde68a;
+  --color-amber-900: #fde68a;
+  --color-amber-950: #fef3c7;
+  --color-orange-100: color-mix(in oklab, #fb923c 15%, transparent);
+  --color-orange-300: color-mix(in oklab, #fb923c 45%, transparent);
+  --color-orange-800: #fed7aa;
+  --color-red-50: color-mix(in oklab, #f87171 12%, transparent);
+  --color-red-100: color-mix(in oklab, #f87171 20%, transparent);
+  --color-red-200: color-mix(in oklab, #f87171 35%, transparent);
+  --color-red-300: color-mix(in oklab, #f87171 50%, transparent);
+  --color-red-700: #fca5a5;
+  --color-red-800: #fca5a5;
+  --color-red-900: #fecaca;
+  --color-emerald-50: color-mix(in oklab, #34d399 12%, transparent);
+  --color-emerald-100: color-mix(in oklab, #34d399 18%, transparent);
+  --color-emerald-200: color-mix(in oklab, #34d399 35%, transparent);
+  --color-emerald-300: color-mix(in oklab, #34d399 50%, transparent);
+  --color-emerald-700: #6ee7b7;
+  --color-emerald-800: #6ee7b7;
+  --color-sky-50: color-mix(in oklab, #38bdf8 12%, transparent);
+  --color-sky-200: color-mix(in oklab, #38bdf8 35%, transparent);
+  --color-sky-700: #bae6fd;
+  --color-sky-800: #bae6fd;
+  --color-sky-900: #e0f2fe;
+
+  /* HeroUI's components read their own theme variables (`--surface`, not the
+     `--color-surface` its utilities are named after — they are inlined). */
   --surface: rgb(255 255 255 / 0.06);
   --surface-secondary: rgb(255 255 255 / 0.08);
   --surface-tertiary: rgb(255 255 255 / 0.1);
@@ -284,53 +346,45 @@ html {
   --shadow-surface: none;
   color: white;
 }
-/* Text from the editor, on glass: white headings, light links and lines. */
-.on-glass .rich-text {
-  --rich-heading: white;
-  --rich-link: var(--color-brand-200);
-  --rich-accent: var(--color-brand-300);
-  --rich-line: rgb(255 255 255 / 0.15);
-  --rich-head-cell: rgb(255 255 255 / 0.07);
-}
-.on-glass :is(.text-slate-900, .text-slate-800, .text-slate-700, .text-ink) {
+
+/* The shades kept above, as text; and paper itself. */
+.on-glass :is(.text-slate-900, .text-slate-950, .text-ink, .hover\:text-slate-900:hover, .hover\:text-slate-950:hover) {
   color: white;
 }
-.on-glass :is(.text-slate-600, .text-slate-500) {
-  color: rgb(255 255 255 / var(--site-text));
-}
-.on-glass :is(.text-slate-400, .text-slate-300) {
-  color: rgb(255 255 255 / calc(var(--site-text) - 0.3));
-}
 .on-glass :is(.text-brand-600, .text-brand-700, .text-brand-800) {
-  color: var(--color-brand-200);
+  color: #b4cbe9;
 }
-.on-glass :is(.bg-white, .bg-slate-50, .bg-slate-100, .bg-brand-50) {
+.on-glass :is(.hover\:text-brand-700, .hover\:text-brand-800):hover {
+  color: #d8e4f4;
+}
+.on-glass .bg-white {
   background-color: rgb(255 255 255 / 0.07);
 }
-/* The pairing list's every other flight: a band, still, but of glass. */
-.on-glass .bg-slate-50\/70 {
-  background-color: rgb(255 255 255 / 0.05);
+
+/* Text from the editor: white headings, light links and lines. */
+.on-glass .rich-text {
+  --rich-heading: white;
+  --rich-link: #b4cbe9;
+  --rich-accent: #85a9da;
 }
-.on-glass :is(.hover\:bg-slate-50, .hover\:bg-slate-100):hover {
-  background-color: rgb(255 255 255 / 0.08);
-}
-.on-glass :is(.border-slate-100, .border-slate-200, .border-slate-300),
-.on-glass :is(.divide-slate-100, .divide-slate-200) > * {
-  border-color: rgb(255 255 255 / 0.12);
-}
-.on-glass :is(.ring-slate-200, .ring-slate-300) {
-  --tw-ring-color: rgb(255 255 255 / 0.2);
-}
-/* A dropdown's open list is drawn by the browser, not by these classes: on glass its text
-   is white (above), so the list needs a dark scheme too, or it is white on white
+
+/* A field reads as a field on paper by its outline against white; on the dark ground a
+   hairline alone is lost, so it gets a faint fill. Its open list is drawn by the browser,
+   not by these classes, so it needs the dark scheme too, or it is white on white
    (`components/Select.tsx`). */
+.on-glass :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]), textarea, select) {
+  background-color: rgb(255 255 255 / 0.06);
+}
+.on-glass ::placeholder {
+  color: rgb(255 255 255 / 0.45);
+}
 .on-glass select,
 select.on-dark {
   color-scheme: dark;
 }
 .on-glass option,
 select.on-dark option {
-  background-color: var(--color-slate-900);
+  background-color: #0f172a;
   color: white;
 }
 .on-glass .data-table {

@@ -357,10 +357,18 @@ Two rules, both from `CLAUDE.md`:
 ## The site frame (issue #14, Stories B-13–B-16)
 
 The public site's pages draw their own frame from `web/src/components/site/`; everything
-else sits in `Layout`, which uses the same top row.
+else — my space, administration, help, a club, a sailor, the legal pages — sits in
+`Layout`, which looks like a page deeper without its picture (2026-10-21): the same dark
+ground, the top row and the sub-menu row sticking together (the breadcrumb on the left,
+its last crumb the page's `h1`; a page's `TabbedView inHeader` beside it as pills), the
+same `GlassFooter`. Its pages stay written in light colours: `.on-glass` on its `main`
+**redefines Tailwind's palette** (`--color-slate-*`, the status hues) and HeroUI's
+`dark` theme does the same for HeroUI's components. The theme is one value, `THEME` in
+`Layout.tsx` — where a light/dark switch will hook in; light is the scope left off.
 
 - **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu. On
-  an official page's picture (`overlay`), solid and sticky on the internal screens.
+  a dark ground (`overlay`) — an official page's picture or `Layout`'s; solid white
+  without it, for a light theme.
   **`Bars`** is it with the sub-menu (`LeagueSubBar`, or a matchday's `SubBar`) in the
   rows' shade; **`BARS`** their height, for scrolling and `sticky`.
 - **`ChapterScroller`** — a league's (or the association's) page: chapters at their own
@@ -375,14 +383,15 @@ else sits in `Layout`, which uses the same top row.
   (2026-10-18): **`Card`** (a box, a link with `to`), **`MediaCard`** (picture first, then
   kicker, title, text — news, videos, photos, people), **`Panel`** (room for what is
   read closely: a full table, an article, the matchday's tables — over a picture a card
-  whose `.on-glass` scope in `index.css` maps the light colours of the tables shared with
-  the internal screens to the glass's), **`CardRow`** and **`Columns`** (the grid),
+  whose `.on-glass` scope in `index.css` redefines the palette, so the tables written in
+  light colours for the internal screens read on the glass), **`CardRow`** and **`Columns`** (the grid),
   **`PillSwitch`** (one of a few, as pills — a matchday's division, the language). All
   are frosted glass with white type, because every official page lies on its picture;
   **`tone`** gives the type, line and pill classes for anything else on the glass, and
   `GLASS`, `BAR_SHADE`, `SHADE_ACROSS`, `SHADE_DOWN` and `PAGE_TITLE` the look's other
   pieces — written here once.
-  How dark and blurred the glass is, how far the picture is darkened and how strong the
+  The glass's tint is `--site-glass` — dark over a picture, light (`.glass-light`) on
+  `Layout`'s plain ground, where dark glass would be the ground's own colour. How dark and blurred the glass is, how far the picture is darkened and how strong the
   secondary text is are CSS variables (`--site-card-alpha`, `--site-card-blur`,
   `--site-shade`, `--site-text` in `index.css`), tuned live with the DEV switch's sliders.
   **`TextCard`** puts a text of its own (an introduction, a note) on a card: over a
@@ -402,7 +411,7 @@ else sits in `Layout`, which uses the same top row.
   official page and names the block that breaks the rule — a hand-written `grid-cols-*`
   or `max-w-*` in a chapter fails it.
 - **`GlassFooter`** (`Footer.tsx`) — the official pages' footer, the last band on the
-  picture in the same column and grid; **`Footer`** the internal screens' light one.
+  picture in the same column and grid — and the internal screens' too.
 - **`Picture`** — a page's one big picture as photo, fade, slide or muted video
   (`settings.ts`).
 - **`useActTitle`**, **`useCurrentActs`** (`acts.ts`) — "Act 2 · Kiel"; each league's

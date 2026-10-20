@@ -8,11 +8,13 @@ import { Link } from "react-router-dom";
 // internal screens are written in light colours; inside a `Panel`, `.on-glass` (index.css)
 // turns those into the glass's.
 
-/** The look over the pictures: variables in index.css, tuned live by the DEV switch. */
-const HOVER_GLASS = "hover:bg-[rgb(2_6_23/calc(var(--site-card-alpha)+0.15))]";
+/** The look over the pictures: variables in index.css, tuned live by the DEV switch. Its
+ *  tint is a variable too: dark over a picture, light over the internal screens' plain
+ *  dark ground (`Layout`), where dark glass would be the ground's own colour. */
+const HOVER_GLASS = "hover:bg-[rgb(var(--site-glass)/calc(var(--site-card-alpha)+var(--site-card-hover)))]";
 
 /** The glass itself. */
-export const GLASS = "bg-[rgb(2_6_23/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]";
+export const GLASS = "bg-[rgb(var(--site-glass)/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]";
 
 /** The rows' background on every official page: the picture shows through, darkened and
  *  blurred, so white type reads on any photo and on content passing under. */
