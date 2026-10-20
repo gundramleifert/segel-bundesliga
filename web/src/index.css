@@ -187,6 +187,24 @@ html {
     margin-block: 1.75em;
     border-radius: 0.5rem;
   }
+  /* A library picture as a reader gets it (Story R-1): the server wraps it in a figure on
+     read, with its width and height — so the page keeps its place while it loads — and
+     its credit as the caption. As wide as the column at most, never blown up past its
+     own size; the caption small and quiet under it. */
+  .rich-text :where(figure.media-figure) {
+    margin-block: 1.75em;
+    margin-inline: 0;
+  }
+  .rich-text :where(figure.media-figure img) {
+    margin-block: 0;
+  }
+  .rich-text :where(figure.media-figure figcaption) {
+    margin-block-start: 0.5em;
+    text-align: center;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--color-slate-500);
+  }
   /* While writing, a picture stands for itself: small enough to keep the text around it
      in view, outlined when it is the selection — so it is clear what Delete removes. */
   .ProseMirror.rich-text :where(img) {

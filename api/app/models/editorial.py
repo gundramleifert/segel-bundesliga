@@ -42,6 +42,9 @@ class Post(Base, TimestampMixin):
     """
 
     __tablename__ = "post"
+    __table_args__ = (
+        CheckConstraint("event_id IS NULL OR series_id IS NULL", name="post_event_or_series"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     kind: Mapped[str] = mapped_column(String(16), default=PostKind.NEWS, index=True)
@@ -67,7 +70,18 @@ class Post(Base, TimestampMixin):
     # Written to fill the page, not real news: the page says so (Story B-14).
     example: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
 
+    # The regatta the post is about — an event, or a whole series — whose public pictures
+    # end its page (Story R-1). Neither is required, never both.
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("event.id", ondelete="SET NULL"), index=True, default=None
+    )
+    series_id: Mapped[int | None] = mapped_column(
+        ForeignKey("series.id", ondelete="SET NULL"), index=True, default=None
+    )
+
     league: Mapped[League | None] = relationship()
+    event: Mapped[Event | None] = relationship()
+    series: Mapped[Series | None] = relationship()
 
     @property
     def league_slug(self) -> str | None:
@@ -124,8 +138,10 @@ class ImportKey(Base, TimestampMixin):
 class MediaItem(Base, TimestampMixin):
     """One picture in the library — Story R-2, `docs/PLAN_MEDIA.md`.
 
-    The files are `uploads/media/<name>.jpg` (at most 2400 px) and `<name>-thumb.jpg`;
-    ``name`` is random, so a picture nobody has used yet cannot be found by counting.
+    The upload is kept as it came, privately; the site serves WebP made from it at a few
+    widths (`app/services/media.py`). ``width``/``height`` are the largest one's, at most
+    2400 px. ``name`` is random, so a picture nobody has used yet cannot be found by
+    counting.
     ``sha256`` is of the bytes as uploaded: the same file twice is one entry.
     """
 
@@ -141,6 +157,9 @@ class MediaItem(Base, TimestampMixin):
     sha256: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     original_name: Mapped[str] = mapped_column(String(255), default="")
     alt: Mapped[str] = mapped_column(String(300), default="")
+    # False while ``alt`` is still the file's name: the library marks it, a screen
+    # reader would read "DSC 0471" (Story R-2). Set once someone writes one.
+    alt_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     credit: Mapped[str | None] = mapped_column(String(160), default=None)
     width: Mapped[int] = mapped_column(Integer)
     height: Mapped[int] = mapped_column(Integer)
@@ -168,14 +187,44 @@ class MediaItem(Base, TimestampMixin):
 
     @property
     def url(self) -> str:
-        return f"/api/media/{self.name}.jpg"
+        """The largest variant — what a post's text and cover point at."""
+        return f"/api/media/{self.name}.webp"
 
     @property
     def thumb_url(self) -> str:
-        return f"/api/media/{self.name}-thumb.jpg"
+        return f"/api/media/{self.name}-480.webp"
 
 
-def context_of(row: ImportKey | MediaItem) -> str | None:
+class Video(Base, TimestampMixin):
+    """A video on a league's media page — a YouTube link, never a file (Story R-3,
+    `docs/PLAN_MEDIA.md` §6). Belongs to an event or a series like a picture, and is shown
+    where they are public."""
+
+    __tablename__ = "video"
+    __table_args__ = (
+        CheckConstraint("event_id IS NULL OR series_id IS NULL", name="video_event_or_series"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    youtube_id: Mapped[str] = mapped_column(String(16))
+    title: Mapped[str] = mapped_column(String(200))
+    # Where playing starts, in seconds — a recording's first minutes are often the wait.
+    start: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    event_id: Mapped[int | None] = mapped_column(
+        ForeignKey("event.id", ondelete="SET NULL"), index=True, default=None
+    )
+    series_id: Mapped[int | None] = mapped_column(
+        ForeignKey("series.id", ondelete="SET NULL"), index=True, default=None
+    )
+    created_by_user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="SET NULL"), default=None
+    )
+
+    event: Mapped[Event | None] = relationship()
+    series: Mapped[Series | None] = relationship()
+
+
+def context_of(row: ImportKey | MediaItem | Video | Post) -> str | None:
     """What a key's or a picture's pictures are of, as a name — load ``event`` and
     ``series`` first."""
     if row.event is not None:

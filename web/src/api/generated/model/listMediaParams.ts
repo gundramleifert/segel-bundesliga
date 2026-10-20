@@ -20,6 +20,10 @@ event_id?: number | null;
  */
 series_id?: number | null;
 /**
+ * Only those whose alt text is a name
+ */
+alt_missing?: boolean;
+/**
  * Rows per page
  * @minimum 1
  * @maximum 100

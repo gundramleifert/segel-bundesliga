@@ -38,6 +38,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `Crest.tsx` | `Crest` — a club's crest or an event's logo, `sm` / `md` / `lg`, the abbreviation standing in when there is none (Story V-3). Never a bare `<img src={…logo_url}>` |
 | `MediaPicker.tsx` | `MediaPicker` — the picture library where a picture is wanted (the editor, a post's own picture): pick, upload, fetch from a web address, drop; hands the library entry to `onPick` (Story R-2) |
 | `MediaContextSelect.tsx` | `MediaContextSelect` — an event or a series (or none) for a picture, series with their events under them |
+| `Lightbox.tsx` | `Lightbox` — pictures full screen, one at a time (Story R-3): previous/next by button, swipe or arrow keys, Escape closes; the page behind does not scroll and the focus stays inside. Controlled — the gallery holds the index (`null` is closed) |
 | `ConfirmButton.tsx` | `ConfirmButton` — an action that cannot be taken back asks once more, in place: prompt, the real button, a way out |
 | `CrestEditor.tsx` | `CrestEditor` — a club's crest, edited from the crest itself (Story V-3); the admin club list and the club's page in my space |
 | `ClaimParts.tsx` | `ClaimStatusBadge`, `ClaimSummary`, `ClaimItems`, `ClaimReceipts` — one expense claim as both the claimant and the decider see it, in my space (`/me/…`) (Stories F-2 to F-6) |

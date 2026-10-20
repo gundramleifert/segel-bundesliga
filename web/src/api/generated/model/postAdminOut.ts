@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PostKind } from './postKind';
+import type { PublicPicture } from './publicPicture';
 
 export interface PostAdminOut {
   id: number;
@@ -16,8 +17,12 @@ export interface PostAdminOut {
   league_id?: number | null;
   /** The league's slug; empty for the association's own posts. */
   league?: string | null;
+  /** The league's short name; empty for the association's. */
+  league_name?: string | null;
   teaser?: string | null;
   photo_url?: string | null;
+  /** The picture's sizes, when it is the library's. */
+  photo_srcset?: string | null;
   photo_credit?: string | null;
   example?: boolean;
   /** HTML from the editor, cleaned to its few elements on write. */
@@ -25,5 +30,15 @@ export interface PostAdminOut {
   author?: string | null;
   quote?: string | null;
   quote_by?: string | null;
+  event_id?: number | null;
+  series_id?: number | null;
+  /** The event's title or series' name. */
+  regatta?: string | null;
+  /** Its regatta's public pictures, the first 24. */
+  gallery?: PublicPicture[];
+  /** How many the regatta has in all. */
+  gallery_total?: number;
   published: boolean;
+  /** When it was last saved — to tell a device's copy. */
+  updated_at: string;
 }

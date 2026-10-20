@@ -39,8 +39,9 @@ describeStory("R-2: a picture library fed by upload links", () => {
     const contextSelect = page.getByTestId("admin-import-key-context-select");
     await expect(contextSelect.locator('option[value^="e"]').first()).toBeAttached();
     const option = contextSelect.locator('option[value^="e"]').first();
-    await contextSelect.selectOption((await option.getAttribute("value"))!);
-    const event = (await option.textContent())!.trim();
+    // Value and label read together: other specs add events, and the list re-renders.
+    const { value, event } = await option.evaluate((o: HTMLOptionElement) => ({ value: o.value, event: o.text.trim() }));
+    await contextSelect.selectOption(value);
     await page.getByTestId("admin-import-key-create-button").click();
     const link = await page.getByTestId("admin-import-key-link").inputValue();
     expect(link).toMatch(/\/upload#key=sbl_imp_/);
@@ -110,6 +111,16 @@ describeStory("R-2: a picture library fed by upload links", () => {
     await picker.getByTestId("admin-post-editor-picker-grid").getByRole("button").first().click();
     await expect(content.getByRole("img")).toHaveCount(2);
 
+    // Selected in the text, it shows the library's alt text, and correcting it there
+    // corrects the library's entry.
+    await content.getByRole("img").first().click();
+    const alt = page.getByTestId("admin-post-editor-image-alt-input");
+    await expect(alt).toHaveValue(name);
+    await alt.fill(`${name} at the start`);
+    await page.getByTestId("admin-post-editor-image-alt-save").click();
+    await expect(page.getByTestId("admin-post-editor-image-alt-state")).toHaveAttribute("data-state", "saved");
+    await expect(content.getByRole("img").first()).toHaveAttribute("alt", `${name} at the start`);
+
     await page.getByTestId("admin-post-photo-library-button").click();
     const cover = page.getByTestId("admin-post-photo-picker");
     await cover.getByTestId("admin-post-photo-picker-search").fill(name);
@@ -124,8 +135,9 @@ describeStory("R-2: a picture library fed by upload links", () => {
     const select = page.getByTestId("admin-media-upload-context");
     const option = select.locator('option[value^="e"]').first();
     await expect(option).toBeAttached();
-    await select.selectOption((await option.getAttribute("value"))!);
-    const event = (await option.textContent())!.trim();
+    // Value and label read together: other specs add events, and the list re-renders.
+    const { value, event } = await option.evaluate((o: HTMLOptionElement) => ({ value: o.value, event: o.text.trim() }));
+    await select.selectOption(value);
     await page.getByTestId("admin-media-upload-credit-input").fill("E. Editor");
     await choosePictures(page, 2, "admin-media-upload-input");
     await expect(page.getByTestId("admin-media-upload-summary")).toHaveText("2 of 2 pictures received");
@@ -147,5 +159,87 @@ describeStory("R-2: a picture library fed by upload links", () => {
   test("a link without its key says what to do", async ({ page }) => {
     await page.goto("/upload");
     await expect(page.getByTestId("upload-no-key")).toBeVisible();
+  });
+});
+
+describeStory("R-2: editorial changes many pictures at once", () => {
+  /** Uploads `count` new pictures on the Media tab and answers their tiles' ids, newest first. */
+  async function uploadOnMediaTab(page: import("@playwright/test").Page, count: number): Promise<string[]> {
+    await page.goto("/admin?tab=media");
+    await page.getByTestId("admin-media-upload-toggle").click();
+    await choosePictures(page, count, "admin-media-upload-input");
+    const plural = count === 1 ? "picture" : "pictures";
+    await expect(page.getByTestId("admin-media-upload-summary")).toHaveText(`${count} of ${count} ${plural} received`);
+    // An arrived picture is shown by the library's small copy, no longer by the file.
+    await expect(page.getByTestId("admin-media-upload-item-0-preview")).toHaveAttribute("src", /^\/api\/media\/[0-9a-f]{32}-480\.webp$/);
+    const tiles = page.getByTestId("admin-media-grid").getByRole("listitem");
+    await expect(tiles.first().getByTestId(/^admin-media-tile-\d+$/)).toBeVisible();
+    const ids: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const testId = await tiles.nth(i).getByTestId(/^admin-media-tile-\d+$/).getAttribute("data-testid");
+      ids.push(testId!.replace("admin-media-tile-", ""));
+    }
+    return ids;
+  }
+
+  test("a picture whose alt text is still its file name is marked and found", async ({ page }) => {
+    await signIn(page, EDITOR);
+    const [id] = await uploadOnMediaTab(page, 1);
+    await expect(page.getByTestId(`admin-media-tile-${id}`).getByTestId("admin-media-tile-alt-missing")).toBeVisible();
+
+    await page.getByTestId("admin-media-alt-missing-filter").check();
+    await expect(page.getByTestId(`admin-media-tile-${id}`)).toBeVisible();
+    await page.getByTestId(`admin-media-tile-${id}`).click();
+    await page.getByTestId("admin-media-alt-input").fill("A J/70 crossing the line");
+    await page.getByTestId("admin-media-save-button").click();
+    // Described now: no longer among those without alt text.
+    await expect(page.getByTestId("admin-media-grid").getByTestId(`admin-media-tile-${id}`)).toHaveCount(0);
+  });
+
+  test("two pictures get one credit together, then are deleted together", async ({ page }) => {
+    await signIn(page, EDITOR);
+    const ids = await uploadOnMediaTab(page, 2);
+    await page.getByTestId("admin-media-select-toggle").click();
+    for (const id of ids) {
+      await page.getByTestId(`admin-media-tile-${id}`).click();
+      await expect(page.getByTestId(`admin-media-tile-${id}-check`)).toBeChecked();
+    }
+    await expect(page.getByTestId("admin-media-bulk-count")).toHaveText("2 pictures selected");
+
+    await page.getByTestId("admin-media-bulk-credit-input").fill("S. Selected");
+    await page.getByTestId("admin-media-bulk-credit-apply").click();
+    await expect(page.getByTestId("admin-media-bulk-updated")).toHaveText("2 pictures changed.");
+    for (const id of ids) await expect(page.getByTestId(`admin-media-tile-${id}`)).toContainText("S. Selected");
+
+    await page.getByTestId("admin-media-bulk-delete").click();
+    await page.getByTestId("admin-media-bulk-delete-confirm").click();
+    await expect(page.getByTestId("admin-media-bulk-deleted")).toContainText("2 pictures deleted.");
+    for (const id of ids) await expect(page.getByTestId(`admin-media-tile-${id}`)).toHaveCount(0);
+  });
+});
+
+describeStory("R-3: editorial adds a league's videos", () => {
+  test("a YouTube link becomes a video of a series, and is removed again", async ({ page }, testInfo) => {
+    const title = `Final day ${testInfo.project.name} ${Date.now()}`;
+    await signIn(page, EDITOR);
+    await page.goto("/admin?tab=media");
+
+    await page.getByTestId("admin-videos-url-input").fill("https://vimeo.com/123456");
+    await page.getByTestId("admin-videos-title-input").fill(title);
+    await page.getByTestId("admin-videos-add-button").click();
+    await expect(page.getByTestId("admin-videos-add-error")).toContainText("YouTube");
+
+    await page.getByTestId("admin-videos-url-input").fill("https://youtu.be/gMxZptdnbxo?t=90");
+    const select = page.getByTestId("admin-videos-context-select");
+    const series = select.locator('option[value^="s"]').first();
+    await expect(series).toBeAttached();
+    await select.selectOption((await series.getAttribute("value"))!);
+    await page.getByTestId("admin-videos-add-button").click();
+
+    const row = page.getByTestId("admin-videos-list").getByRole("listitem").filter({ hasText: title });
+    await expect(row).toContainText("starts at 1:30");
+    await row.getByTestId(/-remove$/).click();
+    await row.getByTestId(/-remove-confirm$/).click();
+    await expect(page.getByTestId("admin-videos-list").getByRole("listitem").filter({ hasText: title })).toHaveCount(0);
   });
 });

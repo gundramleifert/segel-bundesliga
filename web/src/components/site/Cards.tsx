@@ -71,6 +71,10 @@ export function Card({
 }
 
 /** A card led by a picture: an article, a video, a photo — the chapter page's news card. */
+/** How wide a card's picture is shown: a third of the column on a desktop, half on a
+ *  tablet, the full width on a phone — so the browser fetches the library size it needs. */
+const CARD_SIZES = "(min-width: 64rem) 24rem, (min-width: 40rem) 50vw, 100vw";
+
 export function MediaCard({
   to,
   image,
@@ -82,7 +86,7 @@ export function MediaCard({
   testId,
 }: {
   to?: string;
-  image: { src: string; alt: string; credit?: string };
+  image: { src: string; alt: string; credit?: string; srcset?: string };
   kicker?: string;
   title?: string;
   text?: string;
@@ -96,6 +100,8 @@ export function MediaCard({
       <div className={`relative overflow-hidden bg-slate-900 ${aspect}`}>
         <img
           src={image.src}
+          srcSet={image.srcset}
+          sizes={image.srcset ? CARD_SIZES : undefined}
           alt={image.alt}
           title={image.credit ? `© ${image.credit}` : undefined}
           loading="lazy"

@@ -23,6 +23,10 @@ async def league_id(client, slug: str) -> int:
     return (await client.get(f"/api/leagues/{slug}")).json()["league"]["id"]
 
 
+#: A library address, as the editor stores it.
+OURS = "/api/media/0123456789abcdef0123456789abcdef.webp"
+
+
 def png() -> bytes:
     buffer = io.BytesIO()
     Image.new("RGB", (40, 30), "navy").save(buffer, format="PNG")
@@ -34,7 +38,7 @@ class TestReadPosts:
 
     async def test_a_league_shows_its_news_and_the_associations_newest_first(self, client):
         """R-1: a league's news are its own posts and the association's, newest first."""
-        news = (await client.get("/api/posts", params={"league": "2-liga"})).json()
+        news = (await client.get("/api/posts", params={"league": "2-liga"})).json()["items"]
 
         assert news, "the seed carries the pages' articles"
         assert {post["league"] for post in news} <= {"2-liga", None}
@@ -45,7 +49,7 @@ class TestReadPosts:
 
     async def test_a_list_carries_no_text_its_cards_do_not_show(self, client):
         """R-1: a list is cards and lines — the text is read on the article's own page."""
-        news = (await client.get("/api/posts", params={"league": "1-liga"})).json()
+        news = (await client.get("/api/posts", params={"league": "1-liga"})).json()["items"]
 
         assert news
         assert all("body" not in post and "quote" not in post for post in news)
@@ -65,7 +69,7 @@ class TestReadPosts:
         """R-1: the press centre lists releases, not articles."""
         press = (
             await client.get("/api/posts", params={"kind": "press", "league": "1-liga"})
-        ).json()
+        ).json()["items"]
 
         assert press
         assert all(post["kind"] == "press" for post in press)
@@ -99,7 +103,9 @@ class TestWritePosts:
         assert post["slug"] == "junioren-liga-entries-open"
 
         assert (await client.get(f"/api/posts/{post['slug']}")).status_code == 404
-        listed = (await client.get("/api/posts", params={"league": "junioren-liga"})).json()
+        listed = (await client.get("/api/posts", params={"league": "junioren-liga"})).json()[
+            "items"
+        ]
         assert post["slug"] not in [p["slug"] for p in listed]
 
         published = await client.patch(
@@ -109,9 +115,11 @@ class TestWritePosts:
 
         public = (await client.get(f"/api/posts/{post['slug']}")).json()
         assert public["league"] == "junioren-liga"
-        listed = (await client.get("/api/posts", params={"league": "junioren-liga"})).json()
+        listed = (await client.get("/api/posts", params={"league": "junioren-liga"})).json()[
+            "items"
+        ]
         assert listed[0]["slug"] == post["slug"]
-        other = (await client.get("/api/posts", params={"league": "1-liga"})).json()
+        other = (await client.get("/api/posts", params={"league": "1-liga"})).json()["items"]
         assert post["slug"] not in [p["slug"] for p in other]
 
         withdrawn = await client.patch(
@@ -136,7 +144,7 @@ class TestWritePosts:
 
         assert post["league"] is None
         for league in ("1-liga", "dsl-pokal"):
-            listed = (await client.get("/api/posts", params={"league": league})).json()
+            listed = (await client.get("/api/posts", params={"league": league})).json()["items"]
             assert post["slug"] in [p["slug"] for p in listed]
 
     async def test_the_address_is_made_once(self, client, caplog):
@@ -216,7 +224,7 @@ class TestWritePosts:
 
         served = await client.get(url)
         assert served.status_code == 200
-        assert served.headers["content-type"] == "image/jpeg"
+        assert served.headers["content-type"] == "image/webp"
 
         webp = io.BytesIO()
         Image.new("RGB", (40, 30), "navy").save(webp, format="WEBP")
@@ -227,7 +235,7 @@ class TestWritePosts:
         )
         assert from_phone.status_code == 201, from_phone.text
         stored = await client.get(from_phone.json()["url"])
-        assert stored.headers["content-type"] == "image/jpeg"
+        assert stored.headers["content-type"] == "image/webp"
 
         refused = await client.post(
             "/api/admin/media",
@@ -316,7 +324,7 @@ class TestWritePosts:
                         "<script>alert(1)</script></p>"
                         '<ul><li><a href="/1-liga/standings">Standings</a></li>'
                         '<li><a href="javascript:alert(1)">Trap</a></li></ul>'
-                        '<img src="/api/posts/photos/abc.jpg" alt="Harbour" onerror="steal()">'
+                        f'<img src="{OURS}" alt="Harbour" onerror="steal()">'
                         '<table style="min-width: 50px"><tbody><tr>'
                         '<th colspan="2" style="width: 9px"><p>Club</p></th></tr></tbody></table>'
                     ),
@@ -329,7 +337,7 @@ class TestWritePosts:
         assert "<strong>wins</strong>" in body and "<em>no</em>" in body
         assert 'href="/1-liga/standings"' in body
         assert 'rel="noopener noreferrer"' in body
-        assert '<img src="/api/posts/photos/abc.jpg" alt="Harbour">' in body
+        assert f'<img src="{OURS}" alt="Harbour">' in body
         assert '<th colspan="2"><p>Club</p></th>' in body
         for gone in ("script", "onclick", "onerror", "style", "javascript:"):
             assert gone not in body
@@ -338,3 +346,231 @@ class TestWritePosts:
             f"/api/admin/posts/{post['id']}", headers=headers, json={"body": "<p></p>"}
         )
         assert emptied.json()["body"] == ""
+
+
+def photo(size: tuple[int, int]) -> bytes:
+    """A picture no other test uploaded — the library would answer that one's entry."""
+    import secrets
+
+    buffer = io.BytesIO()
+    image = Image.new("RGB", size, tuple(secrets.randbelow(256) for _ in range(3)))
+    image.putpixel((secrets.randbelow(size[0]), secrets.randbelow(size[1])), (255, 255, 255))
+    image.save(buffer, format="JPEG")
+    return buffer.getvalue()
+
+
+class TestPicturesAndReading:
+    """As editorial I use the library's pictures and read a draft before it goes out —
+    Story R-1."""
+
+    async def test_a_picture_from_another_site_is_refused(self, client, caplog):
+        """R-1: an outside address in the text or as the picture is refused; ours are not."""
+        headers = await editor(client, caplog)
+        outside = "https://example.org/boat.jpg"
+        for fields in (
+            {"body": f'<p>Text</p><img src="{outside}" alt="">'},
+            {"photo_url": outside},
+        ):
+            refused = await client.post(
+                "/api/admin/posts", headers=headers, json={"title": "Outside", **fields}
+            )
+            assert refused.status_code == 422, fields
+            assert refused.json()["type"].endswith("/post-picture-not-in-library")
+            assert refused.json()["addresses"] == [outside]
+
+        ours = await client.post(
+            "/api/admin/posts",
+            headers=headers,
+            json={
+                "title": "Ours",
+                "photo_url": "/media/titelbild.jpg",
+                "body": '<p>Text</p><img src="/api/media/0123456789abcdef0123456789abcdef.webp">',
+            },
+        )
+        assert ours.status_code == 201, ours.text
+
+    async def test_a_seeded_example_keeps_its_picture_until_it_is_changed(self, client, caplog):
+        """R-1: an outside address the post already has may stay; a new one may not."""
+        headers = await editor(client, caplog)
+        listed = (await client.get("/api/admin/posts", headers=headers)).json()["items"]
+        example = next(p for p in listed if (p["photo_url"] or "").startswith("https://"))
+        kept = await client.patch(
+            f"/api/admin/posts/{example['id']}",
+            headers=headers,
+            json={"title": example["title"] + " ", "photo_url": example["photo_url"]},
+        )
+        assert kept.status_code == 200, kept.text
+        changed = await client.patch(
+            f"/api/admin/posts/{example['id']}",
+            headers=headers,
+            json={"photo_url": "https://example.org/other.jpg"},
+        )
+        assert changed.status_code == 422
+
+    async def test_the_reader_gets_the_librarys_alt_text_sizes_and_credit(self, client, caplog):
+        """R-1, R-2: a library picture is shown with its size, its WebP sizes and its credit
+        as a caption — taken from the library on every read."""
+        headers = await editor(client, caplog)
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("start.jpg", photo((2000, 1000)), "image/jpeg")},
+                data={"alt": "The start", "credit": "A. Photographer"},
+            )
+        ).json()
+        post = (
+            await client.post(
+                "/api/admin/posts",
+                headers=headers,
+                json={
+                    "title": "Pictures for readers",
+                    "body": f'<p>Text</p><img src="{item["url"]}" alt="as pasted">',
+                    "photo_url": item["url"],
+                    "published": True,
+                },
+            )
+        ).json()
+        assert post["body"].endswith(f'<img src="{item["url"]}" alt="as pasted">')
+
+        read = (await client.get(f"/api/posts/{post['slug']}")).json()
+        name = item["url"].removeprefix("/api/media/").removesuffix(".webp")
+        assert 'width="2000" height="1000"' in read["body"]
+        assert f"/api/media/{name}-960.webp 960w" in read["body"]
+        assert 'alt="The start"' in read["body"]
+        assert "<figcaption>A. Photographer</figcaption>" in read["body"]
+        assert f"/api/media/{name}-480.webp 480w" in read["photo_srcset"]
+
+        await client.patch(
+            f"/api/admin/media/{item['id']}", headers=headers, json={"credit": "B. Corrected"}
+        )
+        again = (await client.get(f"/api/posts/{post['slug']}")).json()
+        assert "<figcaption>B. Corrected</figcaption>" in again["body"]
+
+    async def test_a_draft_is_previewed_as_readers_will_see_it(self, client, caplog):
+        """R-1: the preview answers what the public page would, for fields not even saved —
+        for editorial alone, and under the rules of a save."""
+        headers = await editor(client, caplog)
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("p.jpg", photo((900, 600)), "image/jpeg")},
+                data={"credit": "P. Review"},
+            )
+        ).json()
+        fields = {"title": "Not yet", "body": f'<p>Hi</p><img src="{item["url"]}">'}
+        preview = await client.post("/api/admin/posts/preview", headers=headers, json=fields)
+        assert preview.status_code == 200, preview.text
+        assert "<figcaption>P. Review</figcaption>" in preview.json()["body"]
+        listed = (await client.get("/api/admin/posts", headers=headers)).json()["items"]
+        assert "Not yet" not in {p["title"] for p in listed}
+
+        repeated = await client.post(
+            "/api/admin/posts/preview",
+            headers=headers,
+            json={"title": "Hi", "body": "<p>Hi</p>"},
+        )
+        assert repeated.status_code == 422
+        guest = await client.post("/api/admin/posts/preview", json=fields)
+        assert guest.status_code == 401
+
+    async def test_a_public_list_is_paged(self, client):
+        """R-1: the news page reaches every post, a page at a time."""
+        first = (await client.get("/api/posts", params={"limit": 2})).json()
+        assert len(first["items"]) == 2 and first["total"] > 2
+        second = (await client.get("/api/posts", params={"limit": 2, "offset": 2})).json()
+        assert not {p["id"] for p in first["items"]} & {p["id"] for p in second["items"]}
+
+    async def test_the_admin_list_filters_by_league_and_state(self, client, caplog):
+        """R-1: editorial's list filters by league (or the association's) and draft."""
+        headers = await editor(client, caplog)
+        await client.post("/api/admin/posts", headers=headers, json={"title": "A draft of ours"})
+        association = (
+            await client.get(
+                "/api/admin/posts",
+                headers=headers,
+                params={"league": "association", "published": False, "limit": 100},
+            )
+        ).json()["items"]
+        assert association
+        assert all(p["league_id"] is None and not p["published"] for p in association)
+        first = (
+            await client.get("/api/admin/posts", headers=headers, params={"league": "1-liga"})
+        ).json()["items"]
+        assert first and {p["league_name"] for p in first} == {"1. Liga"}
+
+
+class TestRegattaGallery:
+    """As a reader I see a report's regatta photos at its end — Story R-1."""
+
+    async def test_a_post_about_an_event_ends_with_its_pictures(self, client, caplog, ids):
+        """R-1: naming an event puts its public pictures under the post, by themselves."""
+        headers = await editor(client, caplog)
+        event_id = ids.event("dsbl-1-2026-act-3")
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("g.jpg", photo((800, 600)), "image/jpeg")},
+                data={"event_id": str(event_id), "credit": "G. Allery"},
+            )
+        ).json()
+        post = (
+            await client.post(
+                "/api/admin/posts",
+                headers=headers,
+                json={"title": "Act 3 in pictures", "event_id": event_id, "published": True},
+            )
+        ).json()
+        read = (await client.get(f"/api/posts/{post['slug']}")).json()
+        assert read["regatta"] and read["event_id"] == event_id
+        assert item["id"] in {p["id"] for p in read["gallery"]}
+        assert read["gallery_total"] >= 1
+        shown = next(p for p in read["gallery"] if p["id"] == item["id"])
+        assert shown["credit"] == "G. Allery" and shown["srcset"]
+
+        # Taken off the event, the picture leaves the post.
+        await client.patch(
+            f"/api/admin/media/{item['id']}", headers=headers, json={"event_id": None}
+        )
+        again = (await client.get(f"/api/posts/{post['slug']}")).json()
+        assert item["id"] not in {p["id"] for p in again["gallery"]}
+
+    async def test_a_post_about_nothing_has_no_gallery_and_a_series_replaces_the_event(
+        self, client, caplog, ids
+    ):
+        """R-1: no regatta, no gallery; a post is about an event or a series, never both."""
+        headers = await editor(client, caplog)
+        post = (
+            await client.post(
+                "/api/admin/posts",
+                headers=headers,
+                json={"title": "About nothing", "published": True},
+            )
+        ).json()
+        assert (await client.get(f"/api/posts/{post['slug']}")).json()["gallery"] == []
+
+        both = await client.post(
+            "/api/admin/posts",
+            headers=headers,
+            json={
+                "title": "About both",
+                "event_id": ids.event("dsbl-1-2026-act-3"),
+                "series_id": ids.series("dsbl-1-2026"),
+            },
+        )
+        assert both.status_code == 422
+        await client.patch(
+            f"/api/admin/posts/{post['id']}",
+            headers=headers,
+            json={"event_id": ids.event("dsbl-1-2026-act-3")},
+        )
+        moved = (
+            await client.patch(
+                f"/api/admin/posts/{post['id']}",
+                headers=headers,
+                json={"series_id": ids.series("dsbl-1-2026")},
+            )
+        ).json()
+        assert (moved["event_id"], moved["series_id"]) == (None, ids.series("dsbl-1-2026"))

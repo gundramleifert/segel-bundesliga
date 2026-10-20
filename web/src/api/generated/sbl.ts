@@ -104,6 +104,8 @@ import type {
   ListAllSeriesParams,
   ListClubsParams,
   ListEventsParams,
+  ListLeagueMediaParams,
+  ListLeagueVideosParams,
   ListMediaParams,
   ListPendingApplicationsParams,
   ListPostsParams,
@@ -112,8 +114,11 @@ import type {
   ListUsersParams,
   LiveNowOut,
   LiveRaceOut,
+  MediaBulkFields,
+  MediaDeleted,
   MediaDetail,
   MediaFields,
+  MediaIds,
   ModelOut,
   MyClubOut,
   MySpaceOut,
@@ -127,6 +132,8 @@ import type {
   PageEventOut,
   PageMediaOut,
   PagePostAdminSummary,
+  PagePostSummary,
+  PagePublicPicture,
   PageSailorAdminOut,
   PageSeriesAdminOut,
   PageUserOut,
@@ -142,7 +149,6 @@ import type {
   PostAdminOut,
   PostCreate,
   PostOut,
-  PostSummary,
   PostUpdate,
   ProblemDetails,
   ProvidersOut,
@@ -186,8 +192,12 @@ import type {
   TrackerOut,
   TupleOut,
   TupleWrite,
+  Updated,
   UserCreate,
   UserOut,
+  VideoCreate,
+  VideoFields,
+  VideoOut,
   WaiverConfirmationOut,
   WaiverFormParams,
   WaiverTextCreate,
@@ -14966,13 +14976,13 @@ export const getListPostsUrl = (params?: ListPostsParams,) => {
 }
 
 /**
- * Newest first, without their text — that is ``GET /api/posts/{slug}``. Drafts never
- * appear here.
+ * Newest first, a page at a time, without their text — that is
+ * ``GET /api/posts/{slug}``. Drafts never appear here.
  * @summary Published news or press releases
  */
-export const listPosts = async (params?: ListPostsParams, options?: RequestInit): Promise<PostSummary[]> => {
+export const listPosts = async (params?: ListPostsParams, options?: RequestInit): Promise<PagePostSummary> => {
 
-  return http<PostSummary[]>(getListPostsUrl(params),
+  return http<PagePostSummary>(getListPostsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -15069,7 +15079,8 @@ export const getGetPostUrl = (slug: string,) => {
 }
 
 /**
- * A draft answers 404, like a draft event (Story VA-8).
+ * A draft answers 404, like a draft event (Story VA-8). The text's pictures come with
+ * the library's alt text, sizes and credit (`media.for_readers`).
  * @summary One published post
  */
 export const getPost = async (slug: string, options?: RequestInit): Promise<PostOut> => {
@@ -15624,6 +15635,97 @@ export const useDeletePost = <TError = ErrorType<ProblemDetails>,
       return useMutation(getDeletePostMutationOptions(options), queryClient);
     }
 
+export const getPreviewPostUrl = () => {
+
+
+
+
+  return `/api/admin/posts/preview`
+}
+
+/**
+ * What ``GET /api/posts/{slug}`` would answer for these fields — saved or not, so a
+ * draft is read before it is saved and a published post's edit before it goes live.
+ * Nothing is stored; the same rules as a save apply.
+ * @summary A post as readers will see it
+ */
+export const previewPost = async (postCreate: PostCreate, options?: RequestInit): Promise<PostOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<PostOut>(getPreviewPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(postCreate)
+  }
+);}
+
+
+
+
+
+export const getPreviewPostMutationKey = () => ['previewPost'] as const;
+
+export const getPreviewPostMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPost>>, TError,PreviewPostMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof previewPost>>, TError,PreviewPostMutationVariables, TContext> => {
+
+const mutationKey = getPreviewPostMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof previewPost>>, PreviewPostMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  previewPost(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PreviewPostMutationResult = NonNullable<Awaited<ReturnType<typeof previewPost>>>
+    export type PreviewPostMutationBody = BodyType<PostCreate>
+    export type PreviewPostMutationError = ErrorType<ProblemDetails>
+    export type PreviewPostMutationVariables = {data: BodyType<PostCreate>}
+
+    /**
+ * @summary A post as readers will see it
+ */
+export const usePreviewPost = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof previewPost>>, TError,PreviewPostMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof previewPost>>,
+        TError,
+        PreviewPostMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPreviewPostMutationOptions(options), queryClient);
+    }
+
 export const getListMediaUrl = (params?: ListMediaParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -15824,6 +15926,96 @@ export const useUploadMedia = <TError = ErrorType<ProblemDetails>,
       return useMutation(getUploadMediaMutationOptions(options), queryClient);
     }
 
+export const getUpdateManyMediaUrl = () => {
+
+
+
+
+  return `/api/admin/media`
+}
+
+/**
+ * One credit, or one event or series, for every picture named — what is not sent
+ * stays as each picture has it.
+ * @summary Change several pictures at once
+ */
+export const updateManyMedia = async (mediaBulkFields: MediaBulkFields, options?: RequestInit): Promise<Updated> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<Updated>(getUpdateManyMediaUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mediaBulkFields)
+  }
+);}
+
+
+
+
+
+export const getUpdateManyMediaMutationKey = () => ['updateManyMedia'] as const;
+
+export const getUpdateManyMediaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateManyMedia>>, TError,UpdateManyMediaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateManyMedia>>, TError,UpdateManyMediaMutationVariables, TContext> => {
+
+const mutationKey = getUpdateManyMediaMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateManyMedia>>, UpdateManyMediaMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateManyMedia(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateManyMediaMutationResult = NonNullable<Awaited<ReturnType<typeof updateManyMedia>>>
+    export type UpdateManyMediaMutationBody = BodyType<MediaBulkFields>
+    export type UpdateManyMediaMutationError = ErrorType<ProblemDetails>
+    export type UpdateManyMediaMutationVariables = {data: BodyType<MediaBulkFields>}
+
+    /**
+ * @summary Change several pictures at once
+ */
+export const useUpdateManyMedia = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateManyMedia>>, TError,UpdateManyMediaMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateManyMedia>>,
+        TError,
+        UpdateManyMediaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateManyMediaMutationOptions(options), queryClient);
+    }
+
 export const getFetchMediaUrl = () => {
 
 
@@ -15914,6 +16106,108 @@ export const useFetchMedia = <TError = ErrorType<ProblemDetails>,
       > => {
       return useMutation(getFetchMediaMutationOptions(options), queryClient);
     }
+
+export const getGetMediaByNameUrl = (name: string,) => {
+
+
+
+
+  return `/api/admin/media/named/${name}`
+}
+
+/**
+ * The entry behind an address in a post's text — the editor knows a picture by it.
+ * @summary One picture, by its file name
+ */
+export const getMediaByName = async (name: string, options?: RequestInit): Promise<MediaDetail> => {
+
+  return http<MediaDetail>(getGetMediaByNameUrl(name),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMediaByNameQueryKey = (name: string,) => {
+    return [
+    `/api/admin/media/named/${name}`
+    ] as const;
+    }
+
+
+export const getGetMediaByNameQueryOptions = <TData = Awaited<ReturnType<typeof getMediaByName>>, TError = ErrorType<ProblemDetails>>(name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaByName>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMediaByNameQueryKey(name);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMediaByName>>> = ({ signal }) => getMediaByName(name, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: name !== null && name !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMediaByName>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMediaByNameQueryResult = NonNullable<Awaited<ReturnType<typeof getMediaByName>>>
+export type GetMediaByNameQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetMediaByName<TData = Awaited<ReturnType<typeof getMediaByName>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaByName>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMediaByName>>,
+          TError,
+          Awaited<ReturnType<typeof getMediaByName>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMediaByName<TData = Awaited<ReturnType<typeof getMediaByName>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaByName>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMediaByName>>,
+          TError,
+          Awaited<ReturnType<typeof getMediaByName>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMediaByName<TData = Awaited<ReturnType<typeof getMediaByName>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaByName>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One picture, by its file name
+ */
+
+export function useGetMediaByName<TData = Awaited<ReturnType<typeof getMediaByName>>, TError = ErrorType<ProblemDetails>>(
+ name: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMediaByName>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMediaByNameQueryOptions(name,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetMediaUrl = (mediaId: number,) => {
 
@@ -16178,6 +16472,551 @@ export const useDeleteMedia = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getDeleteMediaMutationOptions(options), queryClient);
+    }
+
+export const getDownloadMediaOriginalUrl = (mediaId: number,) => {
+
+
+
+
+  return `/api/admin/media/${mediaId}/original`
+}
+
+/**
+ * The picture as large as it was uploaded, for the press — re-encoded as a JPEG
+ * without the camera's metadata, never the stored original, which carries its location.
+ * @summary A picture at its full size
+ */
+export const downloadMediaOriginal = async (mediaId: number, options?: RequestInit): Promise<Blob> => {
+
+  return http<Blob>(getDownloadMediaOriginalUrl(mediaId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadMediaOriginalQueryKey = (mediaId: number,) => {
+    return [
+    `/api/admin/media/${mediaId}/original`
+    ] as const;
+    }
+
+
+export const getDownloadMediaOriginalQueryOptions = <TData = Awaited<ReturnType<typeof downloadMediaOriginal>>, TError = ErrorType<ProblemDetails>>(mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMediaOriginal>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadMediaOriginalQueryKey(mediaId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadMediaOriginal>>> = ({ signal }) => downloadMediaOriginal(mediaId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: mediaId !== null && mediaId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadMediaOriginal>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DownloadMediaOriginalQueryResult = NonNullable<Awaited<ReturnType<typeof downloadMediaOriginal>>>
+export type DownloadMediaOriginalQueryError = ErrorType<ProblemDetails>
+
+
+export function useDownloadMediaOriginal<TData = Awaited<ReturnType<typeof downloadMediaOriginal>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMediaOriginal>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMediaOriginal>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMediaOriginal>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMediaOriginal<TData = Awaited<ReturnType<typeof downloadMediaOriginal>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMediaOriginal>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof downloadMediaOriginal>>,
+          TError,
+          Awaited<ReturnType<typeof downloadMediaOriginal>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDownloadMediaOriginal<TData = Awaited<ReturnType<typeof downloadMediaOriginal>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMediaOriginal>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A picture at its full size
+ */
+
+export function useDownloadMediaOriginal<TData = Awaited<ReturnType<typeof downloadMediaOriginal>>, TError = ErrorType<ProblemDetails>>(
+ mediaId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof downloadMediaOriginal>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getDownloadMediaOriginalQueryOptions(mediaId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteManyMediaUrl = () => {
+
+
+
+
+  return `/api/admin/media/delete`
+}
+
+/**
+ * Every one no post shows; the others are kept and answered with their posts.
+ * @summary Delete several pictures
+ */
+export const deleteManyMedia = async (mediaIds: MediaIds, options?: RequestInit): Promise<MediaDeleted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<MediaDeleted>(getDeleteManyMediaUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mediaIds)
+  }
+);}
+
+
+
+
+
+export const getDeleteManyMediaMutationKey = () => ['deleteManyMedia'] as const;
+
+export const getDeleteManyMediaMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteManyMedia>>, TError,DeleteManyMediaMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteManyMedia>>, TError,DeleteManyMediaMutationVariables, TContext> => {
+
+const mutationKey = getDeleteManyMediaMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteManyMedia>>, DeleteManyMediaMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  deleteManyMedia(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteManyMediaMutationResult = NonNullable<Awaited<ReturnType<typeof deleteManyMedia>>>
+    export type DeleteManyMediaMutationBody = BodyType<MediaIds>
+    export type DeleteManyMediaMutationError = ErrorType<ProblemDetails>
+    export type DeleteManyMediaMutationVariables = {data: BodyType<MediaIds>}
+
+    /**
+ * @summary Delete several pictures
+ */
+export const useDeleteManyMedia = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteManyMedia>>, TError,DeleteManyMediaMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteManyMedia>>,
+        TError,
+        DeleteManyMediaMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteManyMediaMutationOptions(options), queryClient);
+    }
+
+export const getListAllVideosUrl = () => {
+
+
+
+
+  return `/api/admin/videos`
+}
+
+/**
+ * @summary Every video
+ */
+export const listAllVideos = async ( options?: RequestInit): Promise<VideoOut[]> => {
+
+  return http<VideoOut[]>(getListAllVideosUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAllVideosQueryKey = () => {
+    return [
+    `/api/admin/videos`
+    ] as const;
+    }
+
+
+export const getListAllVideosQueryOptions = <TData = Awaited<ReturnType<typeof listAllVideos>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllVideos>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAllVideosQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAllVideos>>> = ({ signal }) => listAllVideos({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAllVideos>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAllVideosQueryResult = NonNullable<Awaited<ReturnType<typeof listAllVideos>>>
+export type ListAllVideosQueryError = ErrorType<ProblemDetails>
+
+
+export function useListAllVideos<TData = Awaited<ReturnType<typeof listAllVideos>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllVideos>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAllVideos>>,
+          TError,
+          Awaited<ReturnType<typeof listAllVideos>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAllVideos<TData = Awaited<ReturnType<typeof listAllVideos>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllVideos>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAllVideos>>,
+          TError,
+          Awaited<ReturnType<typeof listAllVideos>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAllVideos<TData = Awaited<ReturnType<typeof listAllVideos>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllVideos>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Every video
+ */
+
+export function useListAllVideos<TData = Awaited<ReturnType<typeof listAllVideos>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAllVideos>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAllVideosQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateVideoUrl = () => {
+
+
+
+
+  return `/api/admin/videos`
+}
+
+/**
+ * ``video-url-invalid`` for an address that is not a YouTube video.
+ * @summary Add a YouTube video
+ */
+export const createVideo = async (videoCreate: VideoCreate, options?: RequestInit): Promise<VideoOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<VideoOut>(getCreateVideoUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(videoCreate)
+  }
+);}
+
+
+
+
+
+export const getCreateVideoMutationKey = () => ['createVideo'] as const;
+
+export const getCreateVideoMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createVideo>>, TError,CreateVideoMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof createVideo>>, TError,CreateVideoMutationVariables, TContext> => {
+
+const mutationKey = getCreateVideoMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createVideo>>, CreateVideoMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createVideo(data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateVideoMutationResult = NonNullable<Awaited<ReturnType<typeof createVideo>>>
+    export type CreateVideoMutationBody = BodyType<VideoCreate>
+    export type CreateVideoMutationError = ErrorType<ProblemDetails>
+    export type CreateVideoMutationVariables = {data: BodyType<VideoCreate>}
+
+    /**
+ * @summary Add a YouTube video
+ */
+export const useCreateVideo = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createVideo>>, TError,CreateVideoMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof createVideo>>,
+        TError,
+        CreateVideoMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateVideoMutationOptions(options), queryClient);
+    }
+
+export const getUpdateVideoUrl = (videoId: number,) => {
+
+
+
+
+  return `/api/admin/videos/${videoId}`
+}
+
+/**
+ * @summary Correct a video
+ */
+export const updateVideo = async (videoId: number,
+    videoFields: VideoFields, options?: RequestInit): Promise<VideoOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<VideoOut>(getUpdateVideoUrl(videoId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(videoFields)
+  }
+);}
+
+
+
+
+
+export const getUpdateVideoMutationKey = () => ['updateVideo'] as const;
+
+export const getUpdateVideoMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVideo>>, TError,UpdateVideoMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateVideo>>, TError,UpdateVideoMutationVariables, TContext> => {
+
+const mutationKey = getUpdateVideoMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateVideo>>, UpdateVideoMutationVariables> = (props) => {
+          const {videoId,data} = props ?? {};
+
+          return  updateVideo(videoId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateVideoMutationResult = NonNullable<Awaited<ReturnType<typeof updateVideo>>>
+    export type UpdateVideoMutationBody = BodyType<VideoFields>
+    export type UpdateVideoMutationError = ErrorType<ProblemDetails>
+    export type UpdateVideoMutationVariables = {videoId: number;data: BodyType<VideoFields>}
+
+    /**
+ * @summary Correct a video
+ */
+export const useUpdateVideo = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVideo>>, TError,UpdateVideoMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateVideo>>,
+        TError,
+        UpdateVideoMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateVideoMutationOptions(options), queryClient);
+    }
+
+export const getDeleteVideoUrl = (videoId: number,) => {
+
+
+
+
+  return `/api/admin/videos/${videoId}`
+}
+
+/**
+ * @summary Remove a video
+ */
+export const deleteVideo = async (videoId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getDeleteVideoUrl(videoId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteVideoMutationKey = () => ['deleteVideo'] as const;
+
+export const getDeleteVideoMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteVideo>>, TError,DeleteVideoMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteVideo>>, TError,DeleteVideoMutationVariables, TContext> => {
+
+const mutationKey = getDeleteVideoMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteVideo>>, DeleteVideoMutationVariables> = (props) => {
+          const {videoId} = props ?? {};
+
+          return  deleteVideo(videoId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteVideoMutationResult = NonNullable<Awaited<ReturnType<typeof deleteVideo>>>
+
+    export type DeleteVideoMutationError = ErrorType<ProblemDetails>
+    export type DeleteVideoMutationVariables = {videoId: number}
+
+    /**
+ * @summary Remove a video
+ */
+export const useDeleteVideo = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteVideo>>, TError,DeleteVideoMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteVideo>>,
+        TError,
+        DeleteVideoMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeleteVideoMutationOptions(options), queryClient);
     }
 
 export const getListImportKeysUrl = () => {
@@ -16635,6 +17474,116 @@ export const useImportMedia = <TError = ErrorType<ProblemDetails>,
       return useMutation(getImportMediaMutationOptions(options), queryClient);
     }
 
+export const getListLeagueMediaUrl = (params: ListLeagueMediaParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/media?${stringifiedParams}` : `/api/media`
+}
+
+/**
+ * Its published series' pictures and their published events', newest regatta first
+ * (Story R-3).
+ * @summary A league's photos, for its media page
+ */
+export const listLeagueMedia = async (params: ListLeagueMediaParams, options?: RequestInit): Promise<PagePublicPicture> => {
+
+  return http<PagePublicPicture>(getListLeagueMediaUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLeagueMediaQueryKey = (params?: ListLeagueMediaParams,) => {
+    return [
+    `/api/media`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListLeagueMediaQueryOptions = <TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLeagueMediaQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLeagueMedia>>> = ({ signal }) => listLeagueMedia(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLeagueMediaQueryResult = NonNullable<Awaited<ReturnType<typeof listLeagueMedia>>>
+export type ListLeagueMediaQueryError = ErrorType<ProblemDetails>
+
+
+export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueMediaParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeagueMedia>>,
+          TError,
+          Awaited<ReturnType<typeof listLeagueMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeagueMedia>>,
+          TError,
+          Awaited<ReturnType<typeof listLeagueMedia>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A league's photos, for its media page
+ */
+
+export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLeagueMediaQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetMediaFileUrl = (fileName: string,) => {
 
 
@@ -16644,8 +17593,9 @@ export const getGetMediaFileUrl = (fileName: string,) => {
 }
 
 /**
- * ``<name>.jpg`` or ``<name>-thumb.jpg``. The name is random and a file never changes
- * under it, so it is cached for good.
+ * ``<name>.webp`` (the largest) or ``<name>-<edge>.webp`` for an edge of
+ * ``media.EDGES``; ``<name>.jpg`` and ``<name>-thumb.jpg`` from before WebP still answer.
+ * The name is random and a file never changes under it, so it is cached for good.
  * @summary A picture from the library
  */
 export const getMediaFile = async (fileName: string, options?: RequestInit): Promise<unknown> => {
@@ -16726,6 +17676,115 @@ export function useGetMediaFile<TData = Awaited<ReturnType<typeof getMediaFile>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMediaFileQueryOptions(fileName,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListLeagueVideosUrl = (params: ListLeagueVideosParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/videos?${stringifiedParams}` : `/api/videos`
+}
+
+/**
+ * The same rule as its photos: its published series' and their published events'.
+ * @summary A league's videos
+ */
+export const listLeagueVideos = async (params: ListLeagueVideosParams, options?: RequestInit): Promise<VideoOut[]> => {
+
+  return http<VideoOut[]>(getListLeagueVideosUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListLeagueVideosQueryKey = (params?: ListLeagueVideosParams,) => {
+    return [
+    `/api/videos`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListLeagueVideosQueryOptions = <TData = Awaited<ReturnType<typeof listLeagueVideos>>, TError = ErrorType<ProblemDetails>>(params: ListLeagueVideosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueVideos>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListLeagueVideosQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listLeagueVideos>>> = ({ signal }) => listLeagueVideos(params, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listLeagueVideos>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListLeagueVideosQueryResult = NonNullable<Awaited<ReturnType<typeof listLeagueVideos>>>
+export type ListLeagueVideosQueryError = ErrorType<ProblemDetails>
+
+
+export function useListLeagueVideos<TData = Awaited<ReturnType<typeof listLeagueVideos>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueVideosParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueVideos>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeagueVideos>>,
+          TError,
+          Awaited<ReturnType<typeof listLeagueVideos>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeagueVideos<TData = Awaited<ReturnType<typeof listLeagueVideos>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueVideosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueVideos>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listLeagueVideos>>,
+          TError,
+          Awaited<ReturnType<typeof listLeagueVideos>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListLeagueVideos<TData = Awaited<ReturnType<typeof listLeagueVideos>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueVideosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueVideos>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary A league's videos
+ */
+
+export function useListLeagueVideos<TData = Awaited<ReturnType<typeof listLeagueVideos>>, TError = ErrorType<ProblemDetails>>(
+ params: ListLeagueVideosParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueVideos>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListLeagueVideosQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

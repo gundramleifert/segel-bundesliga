@@ -405,7 +405,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   source (our `/upload` page first, later Nextcloud or Flickr bridges) end in `MediaItem`;
   a source holds an **import key** (hashed, shown once, revocable) and uses only
   `/api/import/*`. A picture may belong to an event *or* a series; a web picture is
-  copied, never hot-linked.
+  copied, never hot-linked — a post's text and cover take only the library's or the
+  site's own addresses. **The upload is kept as it came, privately, and never served**
+  (it carries the camera's location); the site serves WebP at 480/960/1600/2400 px made
+  from it, a cache rebuilt from the original when a size is missing (decided
+  2026-10-20). A post's text stores only the address; alt text, size and credit come
+  from the library when it is read (`media.for_readers`).
 - **SAP Sailing Analytics is an offline oracle, never a runtime.** Self-hosting it for six
   boats is the wrong size (8 GB, MongoDB, RabbitMQ, one maintainer); its recorded
   Mövenstein dataset and its detectors are used once, locally, to check ours

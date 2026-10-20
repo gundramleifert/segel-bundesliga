@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { Suspense, lazy, useState, type DragEvent, type FormEvent } from "react";
+import { Suspense, lazy, useEffect, useState, type DragEvent, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +11,7 @@ import {
   useDeletePost,
   useGetAdminPost,
   useListLeagues,
+  usePreviewPost,
   useUpdatePost,
 } from "../../../api/generated/sbl";
 import { PostKind, type PostAdmin, type PostCreate } from "../../../api/types";
@@ -18,22 +19,21 @@ import { useAsync, useInvalidate } from "../../../api/useApi";
 import { ErrorMessage, Loading } from "../../../components/Blocks";
 import { ConfirmButton } from "../../../components/ConfirmButton";
 import { Field, Message } from "../../../components/Form";
+import { MediaContextSelect } from "../../../components/MediaContextSelect";
 import { MediaPicker } from "../../../components/MediaPicker";
 import { Select } from "../../../components/Select";
-import { DSBL_PHOTOS, MEMBER_LEAGUES, OWN_PHOTOS, leaguePhoto } from "../../../content";
+import { MEMBER_LEAGUES, leaguePhoto } from "../../../content";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
 import { repeatsTitle } from "../../../lib/postTitle";
 import { href } from "../../../lib/site";
 import { useLeaveGuard } from "../../../lib/useLeaveGuard";
 import { filesIn, usePhotoUpload } from "../../../lib/usePhotoUpload";
+import { ArticleView } from "../../league/ArticleView";
 import { NewEntryPage } from "../../AdminNewPage";
 
 // TipTap and ProseMirror are only needed here — not by a single reader of the site.
 const RichTextEditor = lazy(() => import("../../../components/RichTextEditor"));
-
-/** The site's own pictures, offered beside an upload (Story R-1). */
-const LIBRARY = [...Object.values(DSBL_PHOTOS), ...Object.values(OWN_PHOTOS)];
 
 /** The form's state: the request's fields, with every text a string — an empty one is
  *  sent as it is and the server reads it as "none". */
@@ -42,6 +42,32 @@ type Draft = Required<Omit<PostCreate, TextFields>> & Record<TextFields, string>
 
 /** Where a change to a post shows: editorial's list and page, and the public site. */
 const POST_PATHS = ["/api/admin/posts", "/api/posts"];
+
+/** Unsaved changes, kept on this device as they are typed (Story R-1) — offered back when
+ *  the post is opened again, never sent by themselves: an automatic save would put half
+ *  an edit of a published post live. Per post; a new one has its own. */
+type Kept = { draft: Draft; at: string; basedOn: string | null };
+const keptKey = (postId: number | undefined) => `sbl.post-draft.${postId ?? "new"}`;
+
+function readKept(postId: number | undefined): Kept | null {
+  try {
+    const raw = localStorage.getItem(keptKey(postId));
+    return raw ? (JSON.parse(raw) as Kept) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeKept(postId: number | undefined, kept: Kept | null) {
+  try {
+    if (kept) localStorage.setItem(keptKey(postId), JSON.stringify(kept));
+    else localStorage.removeItem(keptKey(postId));
+  } catch {
+    // Without storage nothing is kept; leaving still asks first.
+  }
+}
+
+const same = (a: Draft, b: Draft) => JSON.stringify(a) === JSON.stringify(b);
 
 /** The form's state for this post — or for a new one, a news draft dated today. */
 function draftOf(post?: PostAdmin): Draft {
@@ -57,6 +83,8 @@ function draftOf(post?: PostAdmin): Draft {
     quote_by: post?.quote_by ?? "",
     photo_url: post?.photo_url ?? null,
     photo_credit: post?.photo_credit ?? "",
+    event_id: post?.event_id ?? null,
+    series_id: post?.series_id ?? null,
     published: post?.published ?? false,
   };
 }
@@ -96,6 +124,24 @@ function PostForm({ post }: { post?: PostAdmin }) {
   // Changed since it was loaded or last saved: leaving then asks first.
   const [dirty, setDirty] = useState(false);
   useLeaveGuard(dirty, t("posts.leaveUnsaved"));
+  // What this device kept of an earlier visit, if it differs from what is stored.
+  const [offered, setOffered] = useState<Kept | null>(() => {
+    const kept = readKept(post?.id);
+    return kept && !same(kept.draft, draftOf(post)) ? kept : null;
+  });
+  useEffect(() => {
+    if (!dirty) return;
+    const timer = window.setTimeout(
+      () => writeKept(post?.id, { draft, at: new Date().toISOString(), basedOn: post?.updated_at ?? null }),
+      400,
+    );
+    return () => window.clearTimeout(timer);
+  }, [draft, dirty, post?.id, post?.updated_at]);
+  const forget = () => {
+    writeKept(post?.id, null);
+    setOffered(null);
+  };
+  const [previewing, setPreviewing] = useState(false);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
     setSaved(false);
     setDirty(true);
@@ -115,6 +161,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
       onSuccess: (created) => {
         stored(created);
         setDirty(false);
+        writeKept(undefined, null);
         navigate(`/admin/news/${created.id}`, { replace: true });
       },
     },
@@ -126,6 +173,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
         // Published or not is what the server now holds — never what was asked for.
         setDraft((d) => ({ ...d, published: updated.published }));
         setDirty(false);
+        forget();
         setSaved(true);
       },
     },
@@ -146,6 +194,8 @@ function PostForm({ post }: { post?: PostAdmin }) {
   const publicLeague = post?.league ?? MEMBER_LEAGUES[0];
   const leagueSlug = leagues.data?.find((l) => l.id === draft.league_id)?.slug ?? MEMBER_LEAGUES[0];
 
+  if (previewing) return <Preview draft={draft} onBack={() => setPreviewing(false)} />;
+
   return (
     <form
       className="grid grid-cols-[minmax(0,1fr)] gap-4"
@@ -155,6 +205,33 @@ function PostForm({ post }: { post?: PostAdmin }) {
         save();
       }}
     >
+      {offered && (
+        <div
+          className="flex flex-wrap items-center gap-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          data-testid="admin-post-kept"
+        >
+          <span className="min-w-0 flex-1">
+            {t("posts.keptOffer", { at: new Date(offered.at) })}
+            {post && offered.basedOn !== post.updated_at && <> {t("posts.keptStale")}</>}
+          </span>
+          <Button
+            size="sm"
+            onPress={() => {
+              setDraft(offered.draft);
+              setDirty(true);
+              setSaved(false);
+              setOffered(null);
+            }}
+            data-testid="admin-post-kept-restore"
+          >
+            {t("posts.keptRestore")}
+          </Button>
+          <Button size="sm" variant="ghost" onPress={forget} data-testid="admin-post-kept-discard">
+            {t("posts.keptDiscard")}
+          </Button>
+        </div>
+      )}
+
       <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
         <Field label={t("posts.kindLabel")}>
           <Select value={draft.kind} onChange={(e) => set("kind", e.target.value as PostKind)} testId="admin-post-kind-select">
@@ -216,10 +293,28 @@ function PostForm({ post }: { post?: PostAdmin }) {
       <div className="text-sm">
         <p className="mb-1 font-medium text-slate-700">{t("posts.bodyLabel")}</p>
         <Suspense fallback={<Loading testId="admin-post-editor-loading" />}>
-          <RichTextEditor value={draft.body} onChange={(html) => set("body", html)} testId="admin-post-editor" />
+          <RichTextEditor
+            // The editor reads its value once: a restored draft is a new editor.
+            key={offered === null ? "editing" : "offered"}
+            value={draft.body}
+            onChange={(html) => set("body", html)}
+            testId="admin-post-editor"
+          />
         </Suspense>
         {titleInText && <ErrorMessage text={t("posts.titleInText")} testId="admin-post-title-in-text" />}
       </div>
+
+      <Field label={t("posts.regattaLabel")} hint={t("posts.regattaHint")}>
+        <MediaContextSelect
+          value={{ event_id: draft.event_id, series_id: draft.series_id }}
+          onChange={(context) => {
+            set("event_id", context.event_id ?? null);
+            set("series_id", context.series_id ?? null);
+          }}
+          noneLabel={t("posts.regattaNone")}
+          testId="admin-post-regatta-select"
+        />
+      </Field>
 
       {news && (
         <>
@@ -249,16 +344,31 @@ function PostForm({ post }: { post?: PostAdmin }) {
       <Message success={saved ? t("posts.saved") : null} error={failure ? errorText(failure, t("posts.saveError")) : null} testId="admin-post-save" />
 
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" isDisabled={pending || titleInText} data-testid="admin-post-save-button">
+        {/* Publishing must never look like an ordinary save: on a draft, Publish is the one
+            primary button; on a published post, Save is, and withdrawing is the quiet one. */}
+        <Button
+          type="submit"
+          variant={draft.published ? "primary" : "outline"}
+          isDisabled={pending || titleInText}
+          data-testid="admin-post-save-button"
+        >
           {draft.published ? t("posts.saveButton") : t("posts.saveDraftButton")}
         </Button>
         <Button
-          variant={draft.published ? "outline" : "primary"}
+          variant={draft.published ? "ghost" : "primary"}
           isDisabled={pending || titleInText || draft.title.trim().length < 3}
           onPress={() => save(!draft.published)}
           data-testid={draft.published ? "admin-post-unpublish-button" : "admin-post-publish-button"}
         >
           {draft.published ? t("posts.unpublishButton") : t("posts.publishButton")}
+        </Button>
+        <Button
+          variant="ghost"
+          isDisabled={titleInText || draft.title.trim().length < 3}
+          onPress={() => setPreviewing(true)}
+          data-testid="admin-post-preview-button"
+        >
+          {t("posts.previewButton")}
         </Button>
         {post?.published && (
           <Link
@@ -279,7 +389,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
   );
 }
 
-/** The post's picture: uploaded, or one of the site's own — and its credit. */
+/** The post's picture, from the library or uploaded into it — and its credit. */
 function PhotoPicker({
   url,
   credit,
@@ -293,7 +403,6 @@ function PhotoPicker({
 }) {
   const { t } = useTranslation("admin");
   const photo = usePhotoUpload((item) => onChange(item.url, item.credit ?? ""));
-  const fromLibrary = LIBRARY.find((p) => p.src === url);
   const [over, setOver] = useState(false);
   const [picking, setPicking] = useState(false);
 
@@ -336,24 +445,7 @@ function PhotoPicker({
           <Button size="sm" variant="outline" isDisabled={photo.busy} onPress={photo.pick} data-testid="admin-post-photo-upload-button">
             {photo.busy ? t("posts.photoUploading") : t("posts.photoUpload")}
           </Button>
-          <Select
-            size="inline"
-            value={fromLibrary?.src ?? ""}
-            onChange={(e) => {
-              const photo = LIBRARY.find((p) => p.src === e.target.value);
-              if (photo) onChange(photo.src, photo.credit);
-            }}
-            testId="admin-post-photo-library-select"
-            aria-label={t("posts.photoLibrary")}
-          >
-            <option value="">{t("posts.photoLibrary")}</option>
-            {LIBRARY.map((photo) => (
-              <option key={photo.src} value={photo.src}>
-                {photo.alt}
-              </option>
-            ))}
-          </Select>
-          <span className="text-xs text-slate-500">{t("posts.photoDrop")}</span>
+          <span className="text-xs text-slate-500 pointer-coarse:hidden">{t("posts.photoDrop")}</span>
           {url && (
             <Button size="sm" variant="ghost" onPress={() => onChange(null, "")} data-testid="admin-post-photo-remove-button">
               {t("posts.photoRemove")}
@@ -378,6 +470,41 @@ function PhotoPicker({
         )}
         {photo.error && <ErrorMessage text={photo.error} testId="admin-post-photo-error" />}
       </div>
+    </div>
+  );
+}
+
+/** The post as readers will see it, saved or not (Story R-1): the server answers what its
+ *  public page would — pictures with the library's sizes and credits — and the public
+ *  page's own view shows it. Nothing is stored. */
+function Preview({ draft, onBack }: { draft: Draft; onBack: () => void }) {
+  const { t } = useTranslation("admin");
+  const preview = usePreviewPost();
+  const { mutate } = preview;
+  useEffect(() => {
+    mutate({ data: { ...draft, published_on: draft.published_on || todayIso() } });
+  }, [draft, mutate]);
+  const back = (
+    <Button variant="outline" onPress={onBack} data-testid="admin-post-preview-back">
+      {t("posts.previewBack")}
+    </Button>
+  );
+
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4" data-testid="admin-post-preview">
+      <div className="flex flex-wrap items-center gap-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <span className="min-w-0 flex-1">{t("posts.previewNote")}</span>
+        {back}
+      </div>
+      {preview.isPending && <Loading testId="admin-post-preview-loading" />}
+      {preview.error && <ErrorMessage text={errorText(preview.error, t("posts.previewError"))} testId="admin-post-preview-error" />}
+      {preview.data && (
+        // The public page sets the article on its league's dark backdrop; so does this.
+        <div className="overflow-hidden rounded-lg bg-slate-900 p-3 sm:p-6" data-testid="admin-post-preview-article">
+          <ArticleView post={preview.data} header />
+        </div>
+      )}
+      <div>{back}</div>
     </div>
   );
 }

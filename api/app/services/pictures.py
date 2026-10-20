@@ -8,7 +8,9 @@ format, and that stays with each caller:
 * a **photo** is cropped to a square and stored as a JPEG (`square`, `jpeg`);
 * a **crest** keeps its transparency and its aspect ratio, as a PNG (`bounded`, `png`) —
   it is drawn over coloured surfaces, and a flattened alpha channel is a white box;
-* a **post's picture** keeps its aspect ratio, as a JPEG (`bounded`, `jpeg`).
+* a **post's picture** keeps its aspect ratio, as a JPEG (`bounded`, `jpeg`);
+* a **library picture** keeps its aspect ratio, at a few widths, as WebP (`bounded`,
+  `webp`, `app/services/media.py`) — its original is kept too, privately.
 
 Private papers — a waiver scan, a receipt — are not pictures: they are stored as
 uploaded, see `app/services/uploads.py`.
@@ -24,6 +26,8 @@ from PIL import ExifTags, Image, ImageOps
 from app.problems import Problem
 
 JPEG_QUALITY = 85
+#: WebP at this quality is about a third smaller than the JPEG above and looks the same.
+WEBP_QUALITY = 80
 
 
 def check(raw: bytes, *, code: str, what: str, max_bytes: int) -> None:
@@ -103,6 +107,14 @@ def jpeg(image: Image.Image) -> bytes:
     """A JPEG without metadata — for a photograph, where transparency means nothing."""
     out = io.BytesIO()
     image.convert("RGB").save(out, format="JPEG", quality=JPEG_QUALITY)
+    return out.getvalue()
+
+
+def webp(image: Image.Image) -> bytes:
+    """A WebP without metadata — what the library serves: every browser the site supports
+    reads it, at about two thirds of a JPEG's size."""
+    out = io.BytesIO()
+    image.convert("RGB").save(out, format="WEBP", quality=WEBP_QUALITY, method=4)
     return out.getvalue()
 
 

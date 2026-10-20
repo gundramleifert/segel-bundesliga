@@ -1,6 +1,10 @@
 # Pictures — a small media library with automatic layout
 
-Status: **plan, nothing built** (written 2026-10-19 after editorial found pictures in posts
+Status: **phase 1 built** (Story R-2), plus from phase 2 the read-time sizes and
+captions and a public media page (R-1, R-3, 2026-10-20). Departures from this plan: the
+master is the **original upload** (kept privately) rather than a 2400 px JPEG, and a
+post's text keeps `/api/media/<name>.webp` rather than `/api/media/<id>`. Galleries,
+shapes and focus crops (§3) are still open. Originally: **plan, nothing built** (written 2026-10-19 after editorial found pictures in posts
 fiddly: an upload is lost to every other post, the site's pictures are a dropdown of
 names, and there is no way to make a picture smaller). Stories come first (`CLAUDE.md`,
 "How to update the docs"): this file is what Story R-2 is written *from*. Once the story

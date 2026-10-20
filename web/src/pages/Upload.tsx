@@ -65,7 +65,7 @@ export function UploadPage() {
  *  the pictures are of. Anyone else is told what this page needs. */
 function SignedInUpload() {
   const { t } = useTranslation("upload");
-  const { hasRole } = useAccount();
+  const { account, hasRole } = useAccount();
   const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   if (!hasRole(Role.admin, Role.editor)) {
     return (
@@ -81,6 +81,7 @@ function SignedInUpload() {
         send={(file, credit) =>
           uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined })
         }
+        defaultCredit={account?.display_name ?? ""}
         testId="upload"
       >
         <Field label={t("contextLabel")} hint={t("contextHint")}>

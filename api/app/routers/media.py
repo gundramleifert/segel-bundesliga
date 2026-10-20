@@ -7,35 +7,38 @@ Three doors, each with its own guard:
 * ``/api/import`` — a **source**, with an import key in ``X-Import-Key`` and no person
   signed in: our upload page first, later a Nextcloud or Flickr bridge. Every source uses
   these two endpoints and nothing else;
-* ``/api/media/<name>.jpg`` — everyone: a picture is stored to be shown, and its random
+* ``/api/media/<name>.webp`` — everyone: a picture is stored to be shown, and its random
   name is the only way to it.
 """
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date, datetime
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, Header, Query, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.auth import require_editor
 from app.db import get_session
-from app.models import ImportKey, MediaItem, MediaSource
+from app.models import ImportKey, MediaItem, MediaSource, Video
 from app.models.auth import User
 from app.models.base import utcnow
 from app.models.editorial import context_of
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services import media
+from app.services import media, videos
 from app.services.lookup import get_or_404
 
 admin_router = APIRouter(prefix="/api/admin", tags=["media"])
 import_router = APIRouter(prefix="/api/import", tags=["import"])
 public_router = APIRouter(prefix="/api/media", tags=["media"])
+videos_router = APIRouter(prefix="/api/videos", tags=["media"])
 
 
 class MediaOut(BaseModel):
@@ -46,10 +49,12 @@ class MediaOut(BaseModel):
     id: int
     url: str = Field(description="The picture, at most 2400 px — what a post points at.")
     thumb_url: str = Field(description="A small copy for the library's tiles.")
+    srcset: str = Field(default="", description="Every WebP size, for an `img`'s `srcset`.")
     width: int
     height: int
     original_name: str
     alt: str
+    alt_confirmed: bool = Field(description="False while the alt text is the file's name.")
     credit: str | None = None
     taken_on: date | None = None
     source: MediaSource
@@ -86,6 +91,86 @@ class MediaFields(BaseModel):
     @classmethod
     def _none_if_empty(cls, value: str | None) -> str | None:
         return value or None
+
+
+class MediaBulkFields(BaseModel):
+    """One change for several pictures — a regatta's batch at once (Story R-2)."""
+
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    ids: list[int] = Field(min_length=1, max_length=500)
+    credit: str | None = Field(default=None, max_length=160)
+    event_id: int | None = Field(default=None, description="Sent: they are this event's.")
+    series_id: int | None = Field(default=None, description="Sent: they are this series'.")
+
+    @field_validator("credit")
+    @classmethod
+    def _none_if_empty(cls, value: str | None) -> str | None:
+        return value or None
+
+
+class MediaIds(BaseModel):
+    ids: list[int] = Field(min_length=1, max_length=500)
+
+
+class Updated(BaseModel):
+    updated: int
+
+
+class KeptPicture(BaseModel):
+    id: int
+    used_in: list[PostRef]
+
+
+class MediaDeleted(BaseModel):
+    deleted: list[int]
+    kept: list[KeptPicture] = Field(description="Pictures a post still shows, not deleted.")
+
+
+class PublicPicture(BaseModel):
+    """A picture on a league's media page (Story R-3)."""
+
+    id: int
+    url: str
+    thumb_url: str
+    srcset: str
+    width: int
+    height: int
+    alt: str
+    credit: str | None = None
+    taken_on: date | None = None
+    event_id: int | None = None
+    series_id: int | None = None
+    context: str | None = Field(default=None, description="The event's title or the series' name.")
+
+
+class VideoOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    youtube_id: str
+    title: str
+    start: int = Field(description="Where playing starts, in seconds.")
+    event_id: int | None = None
+    series_id: int | None = None
+    context: str | None = None
+
+
+class VideoCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    url: str = Field(min_length=8, max_length=300, description="A YouTube address.")
+    title: str = Field(min_length=2, max_length=200)
+    event_id: int | None = None
+    series_id: int | None = None
+
+
+class VideoFields(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    title: str | None = Field(default=None, min_length=2, max_length=200)
+    event_id: int | None = Field(default=None, description="Sent: the video is this event's.")
+    series_id: int | None = Field(default=None, description="Sent: the video is this series'.")
 
 
 class ImportKeyOut(BaseModel):
@@ -143,6 +228,7 @@ async def list_media(
     series_id: int | None = Query(
         default=None, description="A series' pictures — its own and its events'"
     ),
+    alt_missing: bool = Query(default=False, description="Only those whose alt text is a name"),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     _: User = Depends(require_editor),
@@ -153,6 +239,8 @@ async def list_media(
         event_id,
         series_id,
     )
+    if alt_missing:
+        stmt = stmt.where(MediaItem.alt_confirmed.is_(False))
     items, total = await paginate(
         session,
         stmt,
@@ -210,6 +298,21 @@ async def fetch_media(
     return await _imported(session, response, stored)
 
 
+@admin_router.get(
+    "/media/named/{name}", response_model=MediaDetail, summary="One picture, by its file name"
+)
+async def get_media_by_name(
+    name: str,
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_editor),
+) -> MediaDetail:
+    """The entry behind an address in a post's text — the editor knows a picture by it."""
+    item = await session.scalar(select(MediaItem).where(MediaItem.name == name))
+    if item is None:
+        raise Problem(404, "media-not-found", "No such picture.")
+    return await _detail(session, item)
+
+
 @admin_router.get("/media/{media_id}", response_model=MediaDetail, summary="One picture")
 async def get_media(
     media_id: int,
@@ -217,6 +320,31 @@ async def get_media(
     _: User = Depends(require_editor),
 ) -> MediaDetail:
     return await _detail(session, await get_or_404(session, MediaItem, media_id))
+
+
+@admin_router.get(
+    "/media/{media_id}/original",
+    summary="A picture at its full size",
+    response_class=Response,
+    responses={200: {"content": {"image/jpeg": {}}}},
+)
+async def download_media_original(
+    media_id: int,
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_editor),
+) -> Response:
+    """The picture as large as it was uploaded, for the press — re-encoded as a JPEG
+    without the camera's metadata, never the stored original, which carries its location."""
+    item = await get_or_404(session, MediaItem, media_id)
+    data = await asyncio.to_thread(media.original, item)
+    if data is None:
+        raise Problem(404, "media-not-found", "No such picture.")
+    stem = Path(item.original_name).stem or item.name
+    return Response(
+        data,
+        media_type="image/jpeg",
+        headers={"Content-Disposition": f'attachment; filename="{_ascii(stem)}.jpg"'},
+    )
 
 
 @admin_router.patch(
@@ -237,10 +365,122 @@ async def update_media(
         event_id, series_id = changes.pop("event_id", None), changes.pop("series_id", None)
         await media.check_context(session, event_id, series_id)
         item.event_id, item.series_id = event_id, series_id
+    if "alt" in changes:
+        item.alt_confirmed = bool(changes["alt"])
     for name, value in changes.items():
         setattr(item, name, value if name == "credit" else (value or ""))
     await session.commit()
     return await _detail(session, item)
+
+
+@admin_router.patch("/media", response_model=Updated, summary="Change several pictures at once")
+async def update_many_media(
+    body: MediaBulkFields,
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_editor),
+) -> Updated:
+    """One credit, or one event or series, for every picture named — what is not sent
+    stays as each picture has it."""
+    items = await _many(session, body.ids)
+    changes = body.model_dump(exclude_unset=True, exclude={"ids"})
+    if "event_id" in changes or "series_id" in changes:
+        event_id, series_id = changes.pop("event_id", None), changes.pop("series_id", None)
+        await media.check_context(session, event_id, series_id)
+        for item in items:
+            item.event_id, item.series_id = event_id, series_id
+    if "credit" in changes:
+        for item in items:
+            item.credit = changes["credit"]
+    await session.commit()
+    return Updated(updated=len(items))
+
+
+@admin_router.post("/media/delete", response_model=MediaDeleted, summary="Delete several pictures")
+async def delete_many_media(
+    body: MediaIds,
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_editor),
+) -> MediaDeleted:
+    """Every one no post shows; the others are kept and answered with their posts."""
+    done = await media.delete_many(session, await _many(session, body.ids))
+    return MediaDeleted(
+        deleted=done.deleted,
+        kept=[
+            KeptPicture(id=item_id, used_in=[PostRef.model_validate(p) for p in posts])
+            for item_id, posts in done.kept.items()
+        ],
+    )
+
+
+# ---------------------------------------------------------------- editorial: videos
+
+
+@admin_router.get("/videos", response_model=list[VideoOut], summary="Every video")
+async def list_all_videos(
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_editor),
+) -> list[VideoOut]:
+    rows = await session.execute(_videos().order_by(Video.id.desc()))
+    return [_video_out(video) for video in rows.scalars()]
+
+
+@admin_router.post(
+    "/videos",
+    response_model=VideoOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a YouTube video",
+)
+async def create_video(
+    body: VideoCreate,
+    session: AsyncSession = Depends(get_session),
+    user: User = Depends(require_editor),
+) -> VideoOut:
+    """``video-url-invalid`` for an address that is not a YouTube video."""
+    found = videos.parse(body.url)
+    await media.check_context(session, body.event_id, body.series_id)
+    video = Video(
+        youtube_id=found.id,
+        start=found.start,
+        title=body.title,
+        event_id=body.event_id,
+        series_id=body.series_id,
+        created_by_user_id=user.id,
+    )
+    session.add(video)
+    await session.commit()
+    return await _video_detail(session, video)
+
+
+@admin_router.patch("/videos/{video_id}", response_model=VideoOut, summary="Correct a video")
+async def update_video(
+    video_id: int,
+    body: VideoFields,
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_editor),
+) -> VideoOut:
+    video = await get_or_404(session, Video, video_id)
+    changes = body.model_dump(exclude_unset=True)
+    if "event_id" in changes or "series_id" in changes:
+        event_id, series_id = changes.pop("event_id", None), changes.pop("series_id", None)
+        await media.check_context(session, event_id, series_id)
+        video.event_id, video.series_id = event_id, series_id
+    if changes.get("title"):
+        video.title = changes["title"]
+    await session.commit()
+    return await _video_detail(session, video)
+
+
+@admin_router.delete(
+    "/videos/{video_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Remove a video"
+)
+async def delete_video(
+    video_id: int,
+    session: AsyncSession = Depends(get_session),
+    _: User = Depends(require_editor),
+) -> Response:
+    await session.delete(await get_or_404(session, Video, video_id))
+    await session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @admin_router.delete(
@@ -368,16 +608,47 @@ async def import_media(
 # ---------------------------------------------------------------- everyone
 
 
+@public_router.get(
+    "", response_model=Page[PublicPicture], summary="A league's photos, for its media page"
+)
+async def list_league_media(
+    league: str = Query(description="The league's slug"),
+    params: PageParams = PageInput,
+    session: AsyncSession = Depends(get_session),
+) -> Page[PublicPicture]:
+    """Its published series' pictures and their published events', newest regatta first
+    (Story R-3)."""
+    stmt = media.public_in_league(league).options(
+        selectinload(MediaItem.event), selectinload(MediaItem.series)
+    )
+    total = await session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery()))
+    rows = await session.execute(stmt.limit(params.limit).offset(params.offset))
+    return page_of([public_picture(item) for item in rows.scalars()], total or 0, params)
+
+
+@videos_router.get("", response_model=list[VideoOut], summary="A league's videos")
+async def list_league_videos(
+    league: str = Query(description="The league's slug"),
+    session: AsyncSession = Depends(get_session),
+) -> list[VideoOut]:
+    """The same rule as its photos: its published series' and their published events'."""
+    stmt = videos.public_in_league(league).options(
+        selectinload(Video.event), selectinload(Video.series)
+    )
+    return [_video_out(video) for video in (await session.execute(stmt)).scalars()]
+
+
 @public_router.get("/{file_name}", summary="A picture from the library")
 async def get_media_file(file_name: str) -> FileResponse:
-    """``<name>.jpg`` or ``<name>-thumb.jpg``. The name is random and a file never changes
-    under it, so it is cached for good."""
-    path = media.file_path(file_name)
+    """``<name>.webp`` (the largest) or ``<name>-<edge>.webp`` for an edge of
+    ``media.EDGES``; ``<name>.jpg`` and ``<name>-thumb.jpg`` from before WebP still answer.
+    The name is random and a file never changes under it, so it is cached for good."""
+    path = await asyncio.to_thread(media.file_path, file_name)
     if path is None:
         raise Problem(404, "media-not-found", "No such picture.")
     return FileResponse(
         path,
-        media_type="image/jpeg",
+        media_type="image/webp" if path.suffix == ".webp" else "image/jpeg",
         headers={"Cache-Control": "public, max-age=31536000, immutable"},
     )
 
@@ -385,13 +656,51 @@ async def get_media_file(file_name: str) -> FileResponse:
 # ---------------------------------------------------------------- helpers
 
 
+def _ascii(name: str) -> str:
+    """A file name a header can carry — anything else becomes ``_``."""
+    return "".join(c if c.isascii() and (c.isalnum() or c in "-_.") else "_" for c in name)[:100]
+
+
 def _with_context():
     return select(MediaItem).options(selectinload(MediaItem.event), selectinload(MediaItem.series))
 
 
+def public_picture(item: MediaItem) -> PublicPicture:
+    """A picture as the public site shows it — load ``event`` and ``series`` first."""
+    return PublicPicture(
+        **_out(item).model_dump(include=set(PublicPicture.model_fields) - {"context"}),
+        context=context_of(item),
+    )
+
+
 def _out(item: MediaItem) -> MediaOut:
     """Load ``event`` and ``series`` first."""
-    return MediaOut.model_validate(item).model_copy(update={"context": context_of(item)})
+    return MediaOut.model_validate(item).model_copy(
+        update={"context": context_of(item), "srcset": media.srcset(item)}
+    )
+
+
+async def _many(session: AsyncSession, ids: list[int]) -> list[MediaItem]:
+    """The pictures named, every one of them — an unknown id is a 404, never skipped."""
+    rows = list((await session.execute(select(MediaItem).where(MediaItem.id.in_(ids)))).scalars())
+    missing = set(ids) - {item.id for item in rows}
+    if missing:
+        raise Problem(404, "media-not-found", "No such picture.", ids=sorted(missing))
+    return rows
+
+
+def _videos():
+    return select(Video).options(selectinload(Video.event), selectinload(Video.series))
+
+
+def _video_out(video: Video) -> VideoOut:
+    """Load ``event`` and ``series`` first."""
+    return VideoOut.model_validate(video).model_copy(update={"context": context_of(video)})
+
+
+async def _video_detail(session: AsyncSession, video: Video) -> VideoOut:
+    await session.refresh(video, ["event", "series"])
+    return _video_out(video)
 
 
 async def _imported(session: AsyncSession, response: Response, stored: media.Stored) -> ImportedOut:

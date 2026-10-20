@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: da66c5869921
+Revision ID: c8b0e27d4bad
 Revises: 
-Create Date: 2026-10-19 21:24:57.160014
+Create Date: 2026-10-20 22:11:01.228075
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'da66c5869921'
+revision: str = 'c8b0e27d4bad'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -263,32 +263,6 @@ def upgrade() -> None:
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_personal_document_user_id'), ['user_id'], unique=False)
 
-    op.create_table('post',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('kind', sa.String(length=16), nullable=False),
-    sa.Column('slug', sa.String(length=120), nullable=False),
-    sa.Column('league_id', sa.Integer(), nullable=True),
-    sa.Column('title', sa.String(length=200), nullable=False),
-    sa.Column('published_on', sa.Date(), nullable=False),
-    sa.Column('teaser', sa.String(length=500), nullable=True),
-    sa.Column('body', sa.Text(), nullable=False),
-    sa.Column('author', sa.String(length=120), nullable=True),
-    sa.Column('quote', sa.String(length=500), nullable=True),
-    sa.Column('quote_by', sa.String(length=120), nullable=True),
-    sa.Column('photo_url', sa.String(length=500), nullable=True),
-    sa.Column('photo_credit', sa.String(length=160), nullable=True),
-    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
-    sa.Column('example', sa.Boolean(), server_default='0', nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['league_id'], ['league.id'], name=op.f('fk_post_league_id_league'), ondelete='SET NULL'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_post'))
-    )
-    with op.batch_alter_table('post', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_post_kind'), ['kind'], unique=False)
-        batch_op.create_index(batch_op.f('ix_post_league_id'), ['league_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_post_slug'), ['slug'], unique=True)
-
     op.create_table('series',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('slug', sa.String(length=80), nullable=False),
@@ -523,6 +497,39 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_import_key_key_hash'), ['key_hash'], unique=True)
         batch_op.create_index(batch_op.f('ix_import_key_series_id'), ['series_id'], unique=False)
 
+    op.create_table('post',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('kind', sa.String(length=16), nullable=False),
+    sa.Column('slug', sa.String(length=120), nullable=False),
+    sa.Column('league_id', sa.Integer(), nullable=True),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('published_on', sa.Date(), nullable=False),
+    sa.Column('teaser', sa.String(length=500), nullable=True),
+    sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('author', sa.String(length=120), nullable=True),
+    sa.Column('quote', sa.String(length=500), nullable=True),
+    sa.Column('quote_by', sa.String(length=120), nullable=True),
+    sa.Column('photo_url', sa.String(length=500), nullable=True),
+    sa.Column('photo_credit', sa.String(length=160), nullable=True),
+    sa.Column('published', sa.Boolean(), server_default='0', nullable=False),
+    sa.Column('example', sa.Boolean(), server_default='0', nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('series_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('event_id IS NULL OR series_id IS NULL', name=op.f('ck_post_post_event_or_series')),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_post_event_id_event'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['league_id'], ['league.id'], name=op.f('fk_post_league_id_league'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_post_series_id_series'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_post'))
+    )
+    with op.batch_alter_table('post', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_post_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_post_kind'), ['kind'], unique=False)
+        batch_op.create_index(batch_op.f('ix_post_league_id'), ['league_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_post_series_id'), ['series_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_post_slug'), ['slug'], unique=True)
+
     op.create_table('team',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=120), nullable=False),
@@ -549,6 +556,26 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_team_series_id'), ['series_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_team_status'), ['status'], unique=False)
         batch_op.create_index('uq_team_series_registration', ['club_id', 'series_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
+
+    op.create_table('video',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('youtube_id', sa.String(length=16), nullable=False),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('start', sa.Integer(), server_default='0', nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=True),
+    sa.Column('series_id', sa.Integer(), nullable=True),
+    sa.Column('created_by_user_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.CheckConstraint('event_id IS NULL OR series_id IS NULL', name=op.f('ck_video_video_event_or_series')),
+    sa.ForeignKeyConstraint(['created_by_user_id'], ['app_user.id'], name=op.f('fk_video_created_by_user_id_app_user'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_video_event_id_event'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_video_series_id_series'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_video'))
+    )
+    with op.batch_alter_table('video', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_video_event_id'), ['event_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_video_series_id'), ['series_id'], unique=False)
 
     op.create_table('waiver_confirmation',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -664,6 +691,7 @@ def upgrade() -> None:
     sa.Column('sha256', sa.String(length=64), nullable=False),
     sa.Column('original_name', sa.String(length=255), nullable=False),
     sa.Column('alt', sa.String(length=300), nullable=False),
+    sa.Column('alt_confirmed', sa.Boolean(), server_default='0', nullable=False),
     sa.Column('credit', sa.String(length=160), nullable=True),
     sa.Column('width', sa.Integer(), nullable=False),
     sa.Column('height', sa.Integer(), nullable=False),
@@ -933,6 +961,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_waiver_confirmation_event_id'))
 
     op.drop_table('waiver_confirmation')
+    with op.batch_alter_table('video', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_video_series_id'))
+        batch_op.drop_index(batch_op.f('ix_video_event_id'))
+
+    op.drop_table('video')
     with op.batch_alter_table('team', schema=None) as batch_op:
         batch_op.drop_index('uq_team_series_registration', sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
         batch_op.drop_index(batch_op.f('ix_team_status'))
@@ -941,6 +974,14 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_team_club_id'))
 
     op.drop_table('team')
+    with op.batch_alter_table('post', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_post_slug'))
+        batch_op.drop_index(batch_op.f('ix_post_series_id'))
+        batch_op.drop_index(batch_op.f('ix_post_league_id'))
+        batch_op.drop_index(batch_op.f('ix_post_kind'))
+        batch_op.drop_index(batch_op.f('ix_post_event_id'))
+
+    op.drop_table('post')
     with op.batch_alter_table('import_key', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_import_key_series_id'))
         batch_op.drop_index(batch_op.f('ix_import_key_key_hash'))
@@ -1000,12 +1041,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_series_league_id'))
 
     op.drop_table('series')
-    with op.batch_alter_table('post', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_post_slug'))
-        batch_op.drop_index(batch_op.f('ix_post_league_id'))
-        batch_op.drop_index(batch_op.f('ix_post_kind'))
-
-    op.drop_table('post')
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
 

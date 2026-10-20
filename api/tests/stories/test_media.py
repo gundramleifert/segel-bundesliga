@@ -136,6 +136,84 @@ class TestLibrary:
         assert not served.getexif().get_ifd(0x8825)
         assert 36867 not in served.getexif().get_ifd(0x8769)
 
+    async def test_the_original_is_kept_and_the_site_serves_webp_at_a_few_sizes(
+        self, client, caplog
+    ):
+        """R-2: the upload is kept as it came, never served; the site gets WebP at each size
+        smaller than the picture, and a size that went missing is made again."""
+        from app.config import settings
+
+        headers = await editor(client, caplog, "media-editor@example.com")
+        raw = picture(size=(3000, 1500))
+        item = (
+            await client.post(
+                "/api/admin/media", headers=headers, files={"file": ("wide.jpg", raw, "image/jpeg")}
+            )
+        ).json()
+        name = item["url"].removeprefix("/api/media/").removesuffix(".webp")
+        assert item["thumb_url"] == f"/api/media/{name}-480.webp"
+
+        uploads = Path(settings.uploads_dir)
+        assert (uploads / "media-originals" / f"{name}.jpg").read_bytes() == raw
+        assert sorted(p.name for p in (uploads / "media").glob(f"{name}*")) == [
+            f"{name}-{edge}.webp" for edge in (1600, 2400, 480, 960)
+        ]
+        for address, size in [
+            (item["url"], (2400, 1200)),
+            (f"/api/media/{name}-960.webp", (960, 480)),
+            (f"/api/media/{name}.jpg", (2400, 1200)),  # an address from before WebP
+            (f"/api/media/{name}-thumb.jpg", (480, 240)),
+        ]:
+            served = await client.get(address)
+            assert served.status_code == 200, address
+            assert Image.open(io.BytesIO(served.content)).size == size
+            assert served.content != raw
+        for address in (f"/api/media/{name}-1000.webp", f"/api/media/{name}-960.jpg"):
+            assert (await client.get(address)).status_code == 404, address
+
+        (uploads / "media" / f"{name}-960.webp").unlink()
+        again = await client.get(f"/api/media/{name}-960.webp")
+        assert again.status_code == 200
+        assert (uploads / "media" / f"{name}-960.webp").is_file()
+
+        await client.delete(f"/api/admin/media/{item['id']}", headers=headers)
+        assert not list(uploads.glob(f"media*/{name}*"))
+
+    async def test_a_small_picture_is_never_blown_up(self, client, caplog):
+        """R-2: a picture smaller than a size asked for answers its own size."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("logo.png", picture("PNG", (300, 200)), "image/png")},
+            )
+        ).json()
+        assert (item["width"], item["height"]) == (300, 200)
+        name = item["url"].removeprefix("/api/media/").removesuffix(".webp")
+        served = await client.get(f"/api/media/{name}-960.webp")
+        assert Image.open(io.BytesIO(served.content)).size == (300, 200)
+
+    async def test_editorial_downloads_the_full_size_without_the_location(self, client, caplog):
+        """R-2: for the press, the picture as large as it came — without its EXIF."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        exif = Image.Exif()
+        exif.get_ifd(0x8825)[2] = (54.0, 19.0, 0.0)  # GPSLatitude
+        raw = picture(size=(3200, 1800), exif=exif)
+        item = (
+            await client.post(
+                "/api/admin/media", headers=headers, files={"file": ("k.jpg", raw, "image/jpeg")}
+            )
+        ).json()
+        download = await client.get(f"/api/admin/media/{item['id']}/original", headers=headers)
+        assert download.status_code == 200
+        assert 'filename="k.jpg"' in download.headers["content-disposition"]
+        full = Image.open(io.BytesIO(download.content))
+        assert full.size == (3200, 1800)
+        assert not full.getexif().get_ifd(0x8825)
+        guest = await client.get(f"/api/admin/media/{item['id']}/original")
+        assert guest.status_code == 401
+
     async def test_alt_text_and_credit_are_corrected_and_the_list_finds_them(self, client, caplog):
         """R-2: the Media tab corrects alt text and credit, and searches them."""
         headers = await editor(client, caplog, "media-editor@example.com")
@@ -213,8 +291,8 @@ class TestLibrary:
         from app.services import media
 
         data = picture()
-        directory = Path(settings.uploads_dir) / "media"
-        before = set(directory.glob("*")) if directory.exists() else set()
+        uploads = Path(settings.uploads_dir)
+        before = set(uploads.glob("media*/*"))
 
         async def once():
             async with SessionLocal() as session:
@@ -226,7 +304,8 @@ class TestLibrary:
         first, second = await asyncio.gather(once(), once())
         assert first[0] == second[0]
         assert sorted([first[1], second[1]]) == [False, True]
-        assert len(set(directory.glob("*")) - before) == 2  # one picture, one preview
+        # One original and the one size a picture this small has.
+        assert len(set(uploads.glob("media*/*")) - before) == 2
 
 
 class TestImport:
@@ -443,3 +522,123 @@ class TestUploadWithoutLink:
             files={"file": ("both.jpg", picture(), "image/jpeg")},
         )
         assert both.status_code == 422 and both.json()["type"].endswith("/media-context-both")
+
+
+class TestByName:
+    """As editorial I correct a picture from the text it stands in — Story R-1."""
+
+    async def test_the_entry_behind_an_address(self, client, caplog):
+        """R-1: the editor finds a text's picture in the library by its file name."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("n.jpg", picture(), "image/jpeg")},
+            )
+        ).json()
+        name = item["url"].removeprefix("/api/media/").removesuffix(".webp")
+        found = await client.get(f"/api/admin/media/named/{name}", headers=headers)
+        assert found.json()["id"] == item["id"]
+        missing = await client.get(f"/api/admin/media/named/{'0' * 32}", headers=headers)
+        assert missing.status_code == 404
+
+
+class TestManyAtOnce:
+    """As editorial I change a regatta's pictures together — Story R-2."""
+
+    async def test_alt_text_still_the_file_name_is_marked_and_found(self, client, caplog):
+        """R-2: a name-made alt text is marked until someone writes one."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        item = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("DSC_0471.jpg", picture(), "image/jpeg")},
+            )
+        ).json()
+        assert item["alt"] == "DSC 0471" and item["alt_confirmed"] is False
+        missing = (
+            await client.get(
+                "/api/admin/media", headers=headers, params={"alt_missing": True, "limit": 100}
+            )
+        ).json()["items"]
+        assert item["id"] in {i["id"] for i in missing}
+        assert all(not i["alt_confirmed"] for i in missing)
+
+        written = await client.patch(
+            f"/api/admin/media/{item['id']}", headers=headers, json={"alt": "A J/70 at the start"}
+        )
+        assert written.json()["alt_confirmed"] is True
+        given = (
+            await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": ("x.jpg", picture(), "image/jpeg")},
+                data={"alt": "Described on upload"},
+            )
+        ).json()
+        assert given["alt_confirmed"] is True
+
+    async def test_a_batch_gets_one_credit_and_one_event(self, client, caplog, ids):
+        """R-2: one credit and one event for several pictures; the rest stays theirs."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        made_ids = []
+        for alt in ("one", "two"):
+            made = await client.post(
+                "/api/admin/media",
+                headers=headers,
+                files={"file": (f"{alt}.jpg", picture(), "image/jpeg")},
+                data={"alt": alt},
+            )
+            made_ids.append(made.json()["id"])
+        event_id = ids.event("dsbl-1-2026-act-3")
+
+        done = await client.patch(
+            "/api/admin/media",
+            headers=headers,
+            json={"ids": made_ids, "credit": "C. Batch", "event_id": event_id},
+        )
+        assert done.json() == {"updated": 2}
+        for item_id, alt in zip(made_ids, ("one", "two"), strict=True):
+            item = (await client.get(f"/api/admin/media/{item_id}", headers=headers)).json()
+            assert (item["credit"], item["event_id"], item["alt"]) == ("C. Batch", event_id, alt)
+
+        unknown = await client.patch(
+            "/api/admin/media", headers=headers, json={"ids": [*made_ids, 999_999], "credit": "x"}
+        )
+        assert unknown.status_code == 404
+
+    async def test_deleting_several_keeps_those_a_post_shows(self, client, caplog):
+        """R-2: a batch delete removes what no post uses and names what it kept."""
+        headers = await editor(client, caplog, "media-editor@example.com")
+        made = []
+        for name in ("a", "b"):
+            made.append(
+                (
+                    await client.post(
+                        "/api/admin/media",
+                        headers=headers,
+                        files={"file": (f"{name}.jpg", picture(), "image/jpeg")},
+                    )
+                ).json()
+            )
+        post = (
+            await client.post(
+                "/api/admin/posts",
+                headers=headers,
+                json={"title": "Shows one", "photo_url": made[0]["url"]},
+            )
+        ).json()
+
+        done = (
+            await client.post(
+                "/api/admin/media/delete",
+                headers=headers,
+                json={"ids": [made[0]["id"], made[1]["id"]]},
+            )
+        ).json()
+        assert done["deleted"] == [made[1]["id"]]
+        assert done["kept"] == [
+            {"id": made[0]["id"], "used_in": [{"id": post["id"], "title": "Shows one"}]}
+        ]

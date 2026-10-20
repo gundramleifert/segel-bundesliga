@@ -834,6 +834,14 @@
   "file": "docs/userstories/editorial.md",
   "anchor": "r-2--keep-the-pictures-in-a-library-fed-by-an-import-api"
  },
+ "R-3": {
+  "title": "Show the library's photos and videos on the league's media page",
+  "status": "●",
+  "role": "Editorial",
+  "phase": "Pictures",
+  "file": "docs/userstories/editorial.md",
+  "anchor": "r-3--show-the-librarys-photos-and-videos-on-the-leagues-media-page"
+ },
  "S-1": {
   "title": "Submit the liability waiver for each competition I am entered in",
   "status": "●",

@@ -24,18 +24,52 @@ Acceptance criteria:
   every league's page and on the home page.
 - **Saving never requires publishing** — the same rule as an event (Story VA-8). A post
   starts as a draft; the public site does not show it and its address answers 404. Publishing
-  locks nothing, and withdrawing it makes it a draft again.
+  locks nothing, and withdrawing it makes it a draft again. *Publish* is the page's one
+  primary button while the post is a draft and *Save draft* a quiet one, so publishing
+  never looks like an ordinary save; the form shows a post as published only once the
+  server has said so.
+- **A report shows its regatta's photos by itself** (decided 2026-10-20 — a report with a
+  cover and a gallery at its end is what most posts are, and a gallery placed by hand
+  would ask editorial to do what the library already knows): a post may name an event or
+  a series, and its page ends with that one's public pictures from the library — the
+  first two dozen, each opening full screen, and the rest on the league's media page.
+  Nothing is chosen or ordered by hand; a picture taken off the event leaves the post.
+  A post that names nothing shows no gallery.
+- **A draft can be read before it is published** (decided 2026-10-20): *Preview* shows the
+  post as a reader will see it — its page, its picture, the text's pictures with their
+  captions — marked as a preview, for the form as it stands, saved or not; nothing is
+  stored by looking.
+- **Work is not lost by leaving** (decided 2026-10-20): with changes not saved, leaving the
+  page — a link, closing the tab, reloading — asks first. Unsaved changes are also kept
+  **on this device** as they are typed; coming back to the post offers them again
+  ("Restore" or "Discard"), so a crashed browser or an expired session costs nothing. They
+  are never sent by themselves: an automatic save would put half an edit of a published
+  post live.
 - **The address is made once.** The slug comes from the title on creation and stays when
   the title is corrected, so a link someone shared keeps working. A taken slug gets a number
   rather than overwriting another post.
 - **The date is the one shown**, set by editorial; it defaults to today. Lists are newest
-  first.
+  first, and a public list is paged — the news page and the press centre reach every post
+  ever published, not only the newest fifty.
 - **A list carries no text.** News cards and the press centre's lines show the title, date,
   lead and picture; the text is read from the post's own address — for a release, once it
   is opened.
-- **A picture is uploaded or chosen from the site's pictures.** An upload is a JPEG, PNG
-  or WebP, checked by content, re-encoded, stored under a random name and served publicly;
-  its credit is a line of text beside it. Without a picture the league's own stands in.
+- **A picture comes from the library** (R-2): chosen there, uploaded, or dropped onto the
+  post's picture — never from a list of the site's own pictures (dropped 2026-10-20: a
+  second way in that was not the library). Its credit is a line of text beside it.
+  Without a picture the league's own stands in.
+- **A post never shows a picture from someone else's server** (decided 2026-10-20, the
+  rule of R-2): a picture pasted from a web page is copied into the library as it lands
+  in the text, and one that cannot be fetched is taken out again with a message. The
+  server refuses an outside address in the text or as the post's picture
+  (`post-picture-not-in-library`); an address the post already had — the seeded examples
+  link the league's own photos — may stay until it is changed.
+- **A picture in the text is the library's** (decided 2026-10-20): selected in the editor,
+  it shows its alt text, and correcting that corrects the library's entry, in every post
+  that shows it. The public page takes alt text, credit and size **from the library when
+  it is read**, never from the stored text: each picture gets its width and height (so
+  the page does not jump), the WebP sizes for the reader's screen, and its credit as a
+  caption.
 - **A picture goes into the text the way it does in WordPress** (decided 2026-10-19 — the
   toolbar's file chooser alone was found fiddly): dragged from a folder onto the text, or
   pasted with Ctrl+V, it is uploaded and lands where it was dropped or where the cursor
@@ -69,15 +103,22 @@ Acceptance criteria:
 - **The examples the site shipped with are posts too**, seeded and marked as examples; each
   still says so on its page until editorial deletes or replaces it.
 - In the administration the posts are a tab, *News*, for editorial alone: the list with
-  drafts marked, a page to create one and the same page to edit it.
+  drafts marked — filtered by kind, league and draft or published, searched by title,
+  each league by its name — a page to create one and the same page to edit it.
+- **On a phone** the toolbar stays one row that scrolls sideways, the picture panel scrolls
+  inside itself instead of pushing the text a screen down, and keyboard tips (Ctrl+V,
+  Ctrl+K) are not shown on a touch screen.
 
 Endpoints: `GET /api/posts`, `GET /api/posts/{slug}`, `GET /api/admin/posts`,
 `POST /api/admin/posts`, `GET|PATCH|DELETE /api/admin/posts/{id}`,
-`POST /api/admin/posts/photo`
+`POST /api/admin/posts/preview`
 
 Tests: `api/tests/stories/test_posts.py::TestWritePosts`,
+`api/tests/stories/test_posts.py::TestPicturesAndReading`,
 `api/tests/stories/test_posts.py::TestReadPosts`,
-`e2e/editorial.spec.ts::R-1: editorial writes news and press releases`
+`api/tests/stories/test_posts.py::TestRegattaGallery`,
+`e2e/editorial.spec.ts::R-1: editorial writes news and press releases`,
+`e2e/media-public.spec.ts::R-1: a report ends with its regatta's photos`
 
 ## Pictures
 
@@ -90,13 +131,22 @@ used in any post, and arrives from wherever the photographers already are**
 Acceptance criteria:
 - **Every upload is a library entry** — from the editor (dropped, pasted, chosen) and from
   the import API alike. An entry knows the picture, a small preview, its measurements, the
-  file's original name, alt text, credit, the camera's date and where it came from. The
-  picture is re-encoded as for R-1 (upright, at most 2400 px, no EXIF — the camera's date is
-  read before EXIF is dropped, the location never kept).
+  file's original name, alt text, credit, the camera's date and where it came from.
+- **The original is kept, the site serves WebP made from it** (decided 2026-10-20). The
+  upload is stored as it came, privately — it still carries the camera's EXIF, its
+  location included, so it is never served. The site serves the picture upright, without
+  metadata, as WebP at 480, 960, 1600 and 2400 px on the longer edge (each one the
+  picture is larger than, never blown up); the camera's date is read before. Those files
+  are a cache: a missing size is made again from the original, so a new size or a better
+  encoder needs nothing from the photographers. Pictures stored before keep their old
+  `.jpg` addresses.
+- **Editorial downloads a picture at its full size** for the press — the original's
+  pixels, re-encoded as a JPEG without its metadata.
 - **The same picture twice is one entry.** An upload whose bytes match an entry's answers
   that entry instead of storing a copy.
-- **A picture is addressed by a random name** (`/api/media/<name>.jpg`), never by its row
-  number, so an imported picture nobody used yet cannot be found by counting.
+- **A picture is addressed by a random name** (`/api/media/<name>.webp`, a size as
+  `<name>-960.webp`), never by its row number, so an imported picture nobody used yet
+  cannot be found by counting.
 - **The import API is for machines** (decided 2026-10-19): `POST /api/import/media` takes a
   picture and, optionally, its alt text, credit and the source's own id for it, with an
   **import key** in the `X-Import-Key` header — not a person's sign-in. A source's id sent
@@ -110,8 +160,10 @@ Acceptance criteria:
   key delivered and when it was last used are counted, not stored.
 - **The first source is our own upload page** (`/upload`), opened from that link on a
   phone: it says whose upload it is, takes several pictures at once — dropped or chosen —
-  asks for the credit once and remembers it, and shows each picture's progress. It uses the
-  import API like any other source would. The key travels in the link's `#fragment`, so it
+  asks for the credit once and remembers it, and shows each picture's progress — a
+  picture that has arrived is shown by the library's small copy, so a phone sending 150
+  photos does not hold them all in memory. It uses the import API like any other source
+  would. The key travels in the link's `#fragment`, so it
   never appears in a server's log or a referrer.
 - **A picture may belong to an event or to a series** (decided 2026-10-19), never
   required: a regatta's photos to its event, a season's portrait to its series. An event
@@ -133,15 +185,22 @@ Acceptance criteria:
 - **Whether a file is a picture is told by its content**, never its name or the type the
   browser declares for it — a JPEG saved as `chart.png` is a JPEG (decided 2026-10-19).
 - **Editorial uploads without a link** (decided 2026-10-19): on the *Media* tab, and on the
-  upload page itself when signed in — several pictures at once, with a credit and an event
-  or series for the whole batch, under their own account. A link is for those without
+  upload page itself when signed in — several pictures at once, with a credit (their own
+  name until they give another) and an event or series for the whole batch, under their
+  own account. A link is for those without
   one; without either, the upload page says what is needed.
 - **The *Media* tab** lists the library newest first with a search over name, alt text and
   credit; an entry's alt text and credit can be corrected there, and it says which posts use
   it. **Deleting is refused while a post uses the picture**, naming those posts.
+- **Alt text still taken from the file's name is marked** on its tile, and a filter shows
+  only those — a screen reader reading "DSC 0471" is a picture nobody described yet.
+- **Many pictures are changed at once** (decided 2026-10-20 — a regatta's 150 photos one by
+  one was the review's finding): selected on the *Media* tab, they get one credit, one
+  event or series, or are deleted together; a picture a post uses is kept and named.
 - Editorial alone — like posts (R-1). The upload page needs nothing but a valid key.
 
-Endpoints: `GET|POST /api/admin/media`, `GET|PATCH|DELETE /api/admin/media/{id}`,
+Endpoints: `GET|POST|PATCH /api/admin/media`, `GET|PATCH|DELETE /api/admin/media/{id}`,
+`GET /api/admin/media/{id}/original`, `POST /api/admin/media/delete`,
 `GET|POST /api/admin/import-keys`, `DELETE /api/admin/import-keys/{id}`,
 `POST /api/admin/media/from-url`, `GET /api/import/key`, `POST /api/import/media`,
 `GET /api/media/{name}`
@@ -150,4 +209,33 @@ Tests: `api/tests/stories/test_media.py::TestLibrary`,
 `api/tests/stories/test_media.py::TestImport`,
 `api/tests/stories/test_media.py::TestContext`,
 `api/tests/stories/test_media.py::TestFromAddress`,
-`e2e/media.spec.ts::R-2: a picture library fed by upload links`
+`api/tests/stories/test_media.py::TestManyAtOnce`,
+`api/tests/stories/test_media.py::TestByName`,
+`e2e/media.spec.ts::R-2: a picture library fed by upload links`,
+`e2e/media.spec.ts::R-2: editorial changes many pictures at once`
+
+### R-3 ● Show the library's photos and videos on the league's media page
+As a **visitor** I want **a league's media page to show the photos and videos of its
+regattas**, and as **editorial** I want **what photographers delivered to appear there
+without placing each picture in a post**, so that **the library is what the public sees**.
+
+Acceptance criteria:
+- **A league's media page shows the library's pictures of that league** — those of its
+  series and of their events — newest regatta first, grouped by event or series, each with
+  its credit. Only what is public: a picture of an unpublished event or series is not
+  shown. A picture belonging to nothing appears on no media page.
+- **Paged**, a page of pictures at a time with a *more* button — a season brings hundreds.
+- **A tap shows the picture full screen**, at the size the screen needs, with its alt
+  text and credit; swipe or the arrow keys go to the next and the previous, Escape closes.
+- **Videos are links, never files** (`docs/PLAN_MEDIA.md` §6): editorial adds a YouTube
+  address with a title and an event or series on the *Media* tab; the page embeds it.
+  An address that is not a YouTube video is refused (`video-url-invalid`).
+- **Until the library has a league's pictures or videos**, the page shows the site's
+  own selection as before, so a new league's page is never empty.
+
+Endpoints: `GET /api/media?league=`, `GET /api/videos?league=`,
+`GET|POST /api/admin/videos`, `PATCH|DELETE /api/admin/videos/{id}`
+
+Tests: `api/tests/stories/test_media_public.py`,
+`e2e/media-public.spec.ts::R-3: the league's media page shows the library`,
+`e2e/media.spec.ts::R-3: editorial adds a league's videos`

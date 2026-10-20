@@ -74,7 +74,10 @@
     "more": "All news",
     "example": "Example article — written to show the page, not real news.",
     "byline": "{author} · {date}",
-    "related": "More news"
+    "galleryTitle": "Photos: {regatta}",
+    "galleryMore": "All {count} photos on the media page",
+    "related": "More news",
+    "older": "Show older news"
   },
   "media": {
     "more": "Photos & videos",
@@ -83,7 +86,9 @@
     "videos": "Videos",
     "photos": "Photos",
     "none": "Nothing here yet.",
-    "credits": "Photos © Deutsche Segel-Bundesliga; aerial photo © Adam Burdylo."
+    "credits": "Photos © Deutsche Segel-Bundesliga; aerial photo © Adam Burdylo.",
+    "morePhotos": "More photos",
+    "open": "Show full screen: {alt}"
   },
   "press": {
     "more": "Press centre",
@@ -95,7 +100,8 @@
     "photosText": "High resolution, free for editorial use",
     "accreditation": "Accreditation",
     "accreditationText": "On the water or ashore, per matchday",
-    "contact": "Contact"
+    "contact": "Contact",
+    "older": "Show older releases"
   },
   "about": {
     "title": "About the {league}",
@@ -193,5 +199,12 @@
     "text": "Text strength",
     "reset": "Reset"
   },
-  "example": "Example content — this notice board is not connected yet. Nothing here is an official notice."
+  "example": "Example content — this notice board is not connected yet. Nothing here is an official notice.",
+  "lightbox": {
+    "label": "Photo",
+    "close": "Close",
+    "previous": "Previous photo",
+    "next": "Next photo",
+    "position": "{at} of {count}"
+  }
 }

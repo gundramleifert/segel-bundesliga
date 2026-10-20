@@ -11,10 +11,12 @@ import { Card, CardRow, Columns, MediaCard, Panel, TextCard, tone } from "../../
 import { Block, DepthPage, Expand, PageLoading } from "../../components/site/Frame";
 import { ErrorMessage, Loading } from "../../components/Blocks";
 import { YouTubePlayer } from "../../components/site/Media";
+import { Gallery } from "../../components/site/Gallery";
 import {
   DSBL_PHOTOS,
   OWN_PHOTOS,
   PRESS_CONTACT,
+  articleOf,
   leaguePhoto,
   tableMarks,
   useArticle,
@@ -27,11 +29,13 @@ import {
   useVideos,
   type ArticleSummary,
   type DocGroup,
+  type Paged,
   type TableMarks,
 } from "../../content";
 import { formatDate, locationText } from "../../lib/format";
 import { currentAct, href } from "../../lib/site";
 import { RichText } from "../../components/RichText";
+import { ArticleView } from "./ArticleView";
 import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle, type LeagueYear } from "./shared";
 
 // The depth pages behind a league's chapters (Story B-14), each a `DepthPage`.
@@ -296,11 +300,35 @@ export function NewsPage() {
 }
 
 function NewsGrid({ league }: { league: string }) {
+  const { t } = useTranslation("site");
   const news = useNews(league);
   return (
     <Async state={news} testId="site-news">
-      {(items) => <NewsCards league={league} items={items} />}
+      {(items) => (
+        <>
+          <NewsCards league={league} items={items} />
+          <MoreButton list={news} label={t("news.older")} testId="site-news-more-button" />
+        </>
+      )}
     </Async>
+  );
+}
+
+/** The next page of a paged list, while there is one (Story R-1). */
+function MoreButton<T>({ list, label, testId }: { list: Paged<T>; label: string; testId: string }) {
+  if (!list.hasMore) return null;
+  return (
+    <p className="mt-6 text-center">
+      <button
+        type="button"
+        onClick={list.more}
+        disabled={list.loadingMore}
+        className="rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20 disabled:opacity-60"
+        data-testid={testId}
+      >
+        {label}
+      </button>
+    </p>
   );
 }
 
@@ -329,7 +357,8 @@ function NewsCards({ league, items }: { league: string; items: ArticleSummary[] 
 export function ArticlePage() {
   const { t } = useTranslation("site");
   const { slug, league: leagueSlug = "" } = useParams();
-  const { data: article, loading, error, notFound } = useArticle(slug);
+  const { data: post, loading, error, notFound } = useArticle(slug);
+  const article = post ? articleOf(post) : null;
   const more = (useNews(leagueSlug).data ?? []).filter((n) => n.slug !== slug).slice(0, 3);
   return (
     <LeagueGate>
@@ -339,34 +368,16 @@ export function ArticlePage() {
           <Navigate to={href.news(league.slug)} replace />
         ) : loading ? (
           <PageLoading><Loading testId="site-article-loading" /></PageLoading>
-        ) : error || !article ? (
+        ) : error || !post || !article ? (
           <PageLoading><ErrorMessage text={error ?? ""} testId="site-article-error" /></PageLoading>
         ) : (
           <DepthPage league={league} title={article.title} kicker={`${t("pages.news")} · ${formatDate(article.date)}`} photo={article.photo}>
-            {article.example && <ExampleNote text={t("news.example")} />}
-            {/* Text to read closely: one column of a reading width, centred on its glass. */}
-            <Panel width="reading" className="mb-12 sm:p-10">
-            <article data-testid="site-article">
-              <p className="text-xl font-medium leading-relaxed text-slate-900" data-testid="site-article-lead">{article.teaser}</p>
-              {article.author && (
-                <p className="mt-3 text-sm text-slate-500" data-testid="site-article-byline">
-                  {t("news.byline", { author: article.author, date: formatDate(article.date) })}
-                </p>
-              )}
-              <RichText html={article.body} className="mt-8 text-lg leading-relaxed text-slate-700" testId="site-article-body" />
-              {article.quote && (
-                <blockquote className="my-10 border-l-4 border-brand-600 pl-6">
-                  <p className="text-2xl font-semibold leading-snug tracking-tight text-slate-900">“{article.quote.text}”</p>
-                  <footer className="mt-2 text-sm text-slate-500">— {article.quote.by}</footer>
-                </blockquote>
-              )}
-            </article>
-            <p className="mt-10">
-              <Link to={href.news(league.slug)} className="font-medium text-brand-700 hover:underline" data-testid="site-article-back">
+            <ArticleView post={post} />
+            <p className="-mt-6 mb-12 text-center">
+              <Link to={href.news(league.slug)} className={`font-medium ${tone.link}`} data-testid="site-article-back">
                 ← {t("news.more")}
               </Link>
             </p>
-            </Panel>
             {more.length > 0 && (
               <Block title={t("news.related")} more={{ to: href.news(league.slug), label: t("news.more") }} testId="site-article-related">
                 <NewsCards league={league.slug} items={more} />
@@ -397,7 +408,7 @@ export function MediaPage() {
 export function MediaContent({ league, limit }: { league: string; limit?: number }) {
   const { t } = useTranslation("site");
   const videos = useVideos(league);
-  const gallery = useGallery(league);
+  const gallery = useGallery(league, limit ? limit + 1 : undefined);
   return (
     <>
       <Block title={t("media.videos")}>
@@ -405,26 +416,21 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
           {(items) => (
             <CardRow>
               {items.slice(0, limit).map((v) => (
-                <li key={v.id}>
-                  <YouTubePlayer id={v.id} title={v.title} />
+                <li key={`${v.id}-${v.start}`}>
+                  <YouTubePlayer id={v.id} title={v.title} start={v.start} />
                 </li>
               ))}
             </CardRow>
           )}
         </Async>
       </Block>
-      <Block title={t("media.photos")}>
+      <Block title={t("media.photos")} testId="site-media-photos">
         <Async state={gallery} testId="site-gallery" empty={t("media.none")}>
           {(photos) => (
             <>
-              <CardRow>
-                {photos.slice(0, limit ? limit + 1 : undefined).map((p) => (
-                  <li key={p.src}>
-                    <MediaCard image={p} aspect="aspect-[3/2]" text={p.alt} />
-                  </li>
-                ))}
-              </CardRow>
-              <TextCard className="mt-4 text-xs">{t("media.credits")}</TextCard>
+              <Gallery photos={limit ? photos.slice(0, limit + 1) : photos} />
+              {!limit && <MoreButton list={gallery} label={t("media.morePhotos")} testId="site-media-more-button" />}
+              {!gallery.library && <TextCard className="mt-4 text-xs">{t("media.credits")}</TextCard>}
             </>
           )}
         </Async>
@@ -467,10 +473,16 @@ export function PressPage() {
 }
 
 function Releases({ league }: { league: string }) {
+  const { t } = useTranslation("site");
   const press = usePress(league);
   return (
     <Async state={press} testId="site-press">
-      {(items) => items.map((p, i) => <Release key={p.slug} release={p} first={i === 0} />)}
+      {(items) => (
+        <>
+          {items.map((p, i) => <Release key={p.slug} release={p} first={i === 0} />)}
+          <MoreButton list={press} label={t("press.older")} testId="site-press-more-button" />
+        </>
+      )}
     </Async>
   );
 }

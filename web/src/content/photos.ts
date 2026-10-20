@@ -1,5 +1,13 @@
 /** A picture with where it comes from — every photo on the site says whose it is. */
-export type Photo = { src: string; alt: string; credit: string; license: string; page: string };
+export type Photo = {
+  src: string;
+  alt: string;
+  credit: string;
+  license: string;
+  page: string;
+  /** The library's sizes (Story R-2) — the site's own pictures have one size and none. */
+  srcset?: string;
+};
 
 const DSBL_UPLOADS = "https://deutsche-segelbundesliga.de/wp-content/uploads";
 

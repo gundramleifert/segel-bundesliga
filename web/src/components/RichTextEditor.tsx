@@ -7,7 +7,9 @@ import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
-import { INPUT_CLASS } from "../lib/admin";
+import { fetchMedia, getMediaByName, updateMedia } from "../api/generated/sbl";
+import { useInvalidate } from "../api/useApi";
+import { INPUT_CLASS, errorText } from "../lib/admin";
 import { filesIn, usePhotoUpload } from "../lib/usePhotoUpload";
 import { ErrorMessage } from "./Blocks";
 import { MediaPicker } from "./MediaPicker";
@@ -53,6 +55,8 @@ export default function RichTextEditor({
   // handlers of: through a ref, filled once the editor exists.
   const handlers = useRef<Handlers | null>(null);
   const photo = usePhotoUpload((item) => handlers.current?.insertImage(item.url, item.alt));
+  const adopting = useRef(new Set<string>());
+  const [adoptError, setAdoptError] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -96,7 +100,10 @@ export default function RichTextEditor({
       },
     },
     // The empty editor is one empty paragraph; the server stores that as no text at all.
-    onUpdate: ({ editor }) => onChange(editor.isEmpty ? "" : editor.getHTML()),
+    onUpdate: ({ editor }) => {
+      onChange(editor.isEmpty ? "" : editor.getHTML());
+      handlers.current?.adoptOutside();
+    },
   });
 
   useEffect(() => {
@@ -128,6 +135,28 @@ export default function RichTextEditor({
         }
       },
       openLink: () => setLinking(true),
+      // A picture pasted from a web page arrives with its own server's address. It is
+      // copied into the library and the address swapped (Story R-1: never hot-linked);
+      // one that cannot be fetched is taken out again, with the reason. Found again by
+      // its address when the copy is back, so writing on meanwhile moves nothing.
+      adoptOutside: () => {
+        const outside = new Set<string>();
+        editor.state.doc.descendants((node) => {
+          const src = String(node.attrs.src ?? "");
+          if (node.type.name === "image" && !ownPicture(src) && !adopting.current.has(src)) outside.add(src);
+        });
+        for (const src of outside) {
+          adopting.current.add(src);
+          setAdoptError(null);
+          fetchMedia({ url: src })
+            .then((item) => replaceImages(editor, src, { src: item.url, alt: item.alt }))
+            .catch((error: unknown) => {
+              replaceImages(editor, src, null);
+              setAdoptError(errorText(error, t("posts.adoptError")));
+            })
+            .finally(() => adopting.current.delete(src));
+        }
+      },
     };
   });
 
@@ -158,14 +187,43 @@ export default function RichTextEditor({
       )}
       <EditorContent editor={editor} />
       {photo.error && <ErrorMessage text={photo.error} testId={`${testId}-image-error`} />}
-      <p className="border-t border-slate-100 px-4 py-1.5 text-xs text-slate-500" data-testid={`${testId}-hint`}>
+      {adoptError && <ErrorMessage text={adoptError} testId={`${testId}-adopt-error`} />}
+      {/* The tips are keyboard shortcuts: on a touch screen they name keys that are not there. */}
+      <p
+        className={`border-t border-slate-100 px-4 py-1.5 text-xs text-slate-500 ${photo.busy ? "" : "pointer-coarse:hidden"}`}
+        data-testid={`${testId}-hint`}
+      >
         {photo.busy ? t("posts.photoUploading") : t("posts.editorHint")}
       </p>
     </div>
   );
 }
 
+/** The site's own pictures: the library's, and the files under `/media/` — the same rule
+ *  as the server's `rich_text.own_picture`. */
+const ownPicture = (src: string) => /^\/(api\/media|media)\/[\w.-]+$/.test(src);
+
+/** The library name in a picture's address, if it is the library's. */
+const libraryName = (src: string) => /^\/api\/media\/([0-9a-f]{32})/.exec(src)?.[1] ?? null;
+
+/** Every picture with address `src` gets `attrs` — or, with `null`, is taken out. */
+function replaceImages(editor: Editor, src: string, attrs: { src: string; alt: string } | null) {
+  if (editor.isDestroyed) return;
+  const found: { pos: number; size: number }[] = [];
+  editor.state.doc.descendants((node, pos) => {
+    if (node.type.name === "image" && node.attrs.src === src) found.push({ pos, size: node.nodeSize });
+  });
+  const tr = editor.state.tr;
+  // From the end, so each position is still right when it is changed.
+  for (const { pos, size } of found.reverse()) {
+    if (attrs) tr.setNodeMarkup(pos, undefined, { ...editor.state.doc.nodeAt(pos)?.attrs, ...attrs });
+    else tr.delete(pos, pos + size);
+  }
+  if (found.length) editor.view.dispatch(tr);
+}
+
 type Handlers = {
+  adoptOutside: () => void;
   insertImage: (src: string, alt: string) => void;
   insertPhotos: (files: File[], at: number) => Promise<void>;
   openLink: () => void;
@@ -222,6 +280,7 @@ function Toolbar({
       active: Object.fromEntries([...MARKS, ...BLOCKS].map((f) => [f.name, e.isActive(f.name)])),
       link: e.isActive("link"),
       table: e.isActive("table"),
+      image: e.isActive("image") ? String(e.getAttributes("image").src ?? "") : null,
     }),
   });
 
@@ -238,7 +297,13 @@ function Toolbar({
 
   return (
     <div className="border-b border-slate-200 bg-slate-50">
-      <div className="flex flex-wrap items-center gap-1 px-2 py-1.5" role="toolbar" aria-label={t("posts.toolbarLabel")}>
+      {/* One row on a phone, scrolled sideways inside itself: wrapped, it took three lines
+          of a small screen and left "redo" alone on the last. */}
+      <div
+        className="flex flex-nowrap items-center gap-1 overflow-x-auto px-2 py-1.5 *:shrink-0 sm:flex-wrap"
+        role="toolbar"
+        aria-label={t("posts.toolbarLabel")}
+      >
         <Select
           size="inline"
           value={state.style}
@@ -282,6 +347,82 @@ function Toolbar({
         state.link && <LinkInfo editor={editor} onChange={() => setLinking(true)} testId={testId} />
       )}
       {state.table && <TableBar editor={editor} testId={testId} />}
+      {state.image !== null && <ImageBar editor={editor} src={state.image} key={state.image} testId={testId} />}
+    </div>
+  );
+}
+
+/** With a picture selected: its alt text — the library's, when it is a library picture, so
+ *  correcting it here corrects it in every post that shows it (Story R-1) — and its credit,
+ *  which the public page shows as the caption. */
+function ImageBar({ editor, src, testId }: { editor: Editor; src: string; testId: string }) {
+  const { t } = useTranslation("admin");
+  const invalidate = useInvalidate();
+  const name = libraryName(src);
+  const [entry, setEntry] = useState<{ id: number; credit: string | null } | null>(null);
+  const [alt, setAlt] = useState(String(editor.getAttributes("image").alt ?? ""));
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "failed">("idle");
+
+  useEffect(() => {
+    if (!name) return;
+    let live = true;
+    getMediaByName(name)
+      .then((item) => {
+        if (!live) return;
+        setEntry({ id: item.id, credit: item.credit ?? null });
+        setAlt(item.alt);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [name]);
+
+  const save = async () => {
+    setState("saving");
+    try {
+      if (entry) {
+        await updateMedia(entry.id, { alt });
+        invalidate("/api/admin/media");
+      }
+      editor.chain().updateAttributes("image", { alt }).run();
+      setState("saved");
+    } catch {
+      setState("failed");
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-3 py-2 text-sm" data-testid={`${testId}-image-bar`}>
+      <label className="flex min-w-0 flex-1 items-center gap-2">
+        <span className="shrink-0 text-slate-600">{t("posts.imageAlt")}</span>
+        <input
+          className={`${INPUT_CLASS} min-w-0 flex-1 py-1`}
+          value={alt}
+          onChange={(e) => {
+            setAlt(e.target.value);
+            setState("idle");
+          }}
+          onKeyDown={(e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void save();
+            }
+          }}
+          data-testid={`${testId}-image-alt-input`}
+        />
+      </label>
+      <Button size="sm" variant="outline" isDisabled={state === "saving"} onPress={() => void save()} data-testid={`${testId}-image-alt-save`}>
+        {entry ? t("posts.imageAltSaveLibrary") : t("posts.imageAltSave")}
+      </Button>
+      <span className="text-xs text-slate-500" data-testid={`${testId}-image-alt-state`} data-state={state}>
+        {state === "saved" ? t("posts.imageAltSaved") : state === "failed" ? t("posts.imageAltFailed") : ""}
+      </span>
+      {entry && (
+        <span className="basis-full text-xs text-slate-500" data-testid={`${testId}-image-credit`}>
+          {entry.credit ? t("posts.imageCaption", { credit: entry.credit }) : t("posts.imageNoCredit")}
+        </span>
+      )}
     </div>
   );
 }

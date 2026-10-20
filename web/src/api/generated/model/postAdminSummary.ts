@@ -16,9 +16,14 @@ export interface PostAdminSummary {
   league_id?: number | null;
   /** The league's slug; empty for the association's own posts. */
   league?: string | null;
+  /** The league's short name; empty for the association's. */
+  league_name?: string | null;
   teaser?: string | null;
   photo_url?: string | null;
+  /** The picture's sizes, when it is the library's. */
+  photo_srcset?: string | null;
   photo_credit?: string | null;
   example?: boolean;
   published: boolean;
+  updated_at: string;
 }

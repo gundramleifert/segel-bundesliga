@@ -11,11 +11,23 @@
 // in. The texts that describe the leagues and the association are given in both
 // languages, because they stand where interface copy would.
 
+import { keepPreviousData, useQueries, type QueryKey, type UseQueryOptions } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useGetPost, useListPosts } from "../api/generated/sbl";
+import {
+  getListLeagueMediaQueryOptions,
+  getListPostsQueryOptions,
+  useGetPost,
+  useListLeagueVideos,
+} from "../api/generated/sbl";
+import type { PagePostSummary } from "../api/generated/model/pagePostSummary";
+import type { PagePublicPicture } from "../api/generated/model/pagePublicPicture";
+import type { PublicPicture } from "../api/generated/model/publicPicture";
+import type { VideoOut } from "../api/generated/model/videoOut";
+import type { ApiError } from "../api/http";
 import { PostKind, type Post, type PostSummary } from "../api/types";
-import { useAsync, type AsyncState } from "../api/useApi";
+import { errorText, useAsync, type AsyncState } from "../api/useApi";
 import { DSBL_PHOTOS, OWN_PHOTOS, type Photo } from "./photos";
 
 export type { Photo } from "./photos";
@@ -172,6 +184,7 @@ function postPhoto(post: PostSummary): Photo {
   if (!post.photo_url) return leaguePhoto(post.league ?? MEMBER_LEAGUES[0]);
   return {
     src: post.photo_url,
+    srcset: post.photo_srcset ?? undefined,
     alt: post.title,
     credit: post.photo_credit ?? "",
     license: "",
@@ -191,7 +204,8 @@ function toSummary(post: PostSummary): ArticleSummary {
   };
 }
 
-function toArticle(post: Post): Article {
+/** A post as its own page shows it — also what editorial's preview renders. */
+export function articleOf(post: Post): Article {
   return {
     ...toSummary(post),
     body: post.body,
@@ -200,25 +214,79 @@ function toArticle(post: Post): Article {
   };
 }
 
-// `select`, not a map after the fact: the query memoizes it, so a page gets the same
-// array back until the posts change.
-const toSummaries = (posts: PostSummary[]) => posts.map(toSummary);
+/** A list read a page at a time (Story R-1: the news page reaches every post, not only
+ *  the newest fifty). `more()` asks for the next page; the pages already read stay. */
+export type Paged<T> = AsyncState<T[]> & {
+  total: number;
+  hasMore: boolean;
+  loadingMore: boolean;
+  more: () => void;
+};
 
-/** A league's news and the association's, newest first; without a league, everything. */
-export function useNews(league?: string) {
-  return useAsync(useListPosts({ kind: PostKind.news, league }, { query: { select: toSummaries } }));
+type PageOf = { items: unknown[]; total: number };
+
+/** One query per page read so far, their items joined. ``key`` names the list: when it
+ *  changes — another league — reading starts again from the first page. */
+function usePages<P extends PageOf, R>(
+  key: string,
+  query: (offset: number) => UseQueryOptions<P, ApiError, P, QueryKey>,
+  size: number,
+  map: (item: P["items"][number]) => R,
+): Paged<R> {
+  const { t } = useTranslation();
+  const [read, setRead] = useState({ key, pages: 1 });
+  const pages = read.key === key ? read.pages : 1;
+  const results = useQueries({
+    queries: Array.from({ length: pages }, (_, page) => ({ ...query(page * size), placeholderData: keepPreviousData })),
+  });
+  const first = results[0];
+  // Keyed on when each page last changed, so a page gets the same array back until one
+  // does — the number of pages varies, and a dependency list may not.
+  const stamp = results.map((r) => r.dataUpdatedAt).join();
+  const items = useMemo(() => results.flatMap((r) => r.data?.items ?? []).map(map), [stamp, map]);
+  const total = first?.data?.total ?? 0;
+  return {
+    data: first?.data ? items : null,
+    error: first?.isError ? errorText(first.error, t("errors.loadFailed")) : null,
+    loading: !!first?.isPending,
+    total,
+    hasMore: items.length < total,
+    loadingMore: results.slice(1).some((r) => r.isPending),
+    more: () => setRead({ key, pages: pages + 1 }),
+  };
+}
+
+/** How many posts a list reads at a time. */
+export const NEWS_PAGE = 12;
+
+/** A league's news and the association's, newest first, a page at a time; without a
+ *  league, everything. A card row reads `data` and needs only the first page. */
+export function useNews(league?: string, size = NEWS_PAGE) {
+  return usePages<PagePostSummary, ArticleSummary>(
+    `news:${league ?? ""}:${size}`,
+    (offset) => getListPostsQueryOptions({ kind: PostKind.news, league, limit: size, offset }),
+    size,
+    toSummary,
+  );
 }
 
 /** A league's press releases and the association's, newest first — the press centre
  *  lists their dates and titles, and reads a release's text with `useArticle`. */
-export function usePress(league: string) {
-  return useAsync(useListPosts({ kind: PostKind.press, league }, { query: { select: toSummaries } }));
+export function usePress(league: string, size = 20) {
+  return usePages<PagePostSummary, ArticleSummary>(
+    `press:${league}:${size}`,
+    (offset) => getListPostsQueryOptions({ kind: PostKind.press, league, limit: size, offset }),
+    size,
+    toSummary,
+  );
 }
 
-/** One published article. `notFound` tells an unknown or withdrawn one (a 404) from a
- *  failure, so the page can lead back to the news for the one and say so for the other. */
+/** One published article, as the server answers it — `ArticleView` renders it, and
+ *  `articleOf` turns it into the page's shape. `notFound` tells an unknown or withdrawn
+ *  one (a 404) from a failure, so the page can lead back to the news for the one and say
+ *  so for the other. */
 export function useArticle(slug: string | undefined) {
-  const query = useGetPost(slug ?? "", { query: { enabled: !!slug, select: toArticle } });
+  const query = useGetPost(slug ?? "", { query: { enabled: !!slug } });
   return { ...useAsync(query), notFound: query.error?.status === 404 };
 }
 
@@ -236,12 +304,49 @@ export const VIDEOS: Video[] = [
   { id: "IcKib7M-uB0", title: "3. Spieltag — Travemünde 2022, final day", start: 40 },
 ];
 
-export function useVideos(_league: string) {
-  return ready(VIDEOS);
+const toVideos = (videos: VideoOut[]): Video[] => videos.map((v) => ({ id: v.youtube_id, title: v.title, start: v.start }));
+
+/** A league's videos — those editorial added for its regattas (Story R-3), or the site's
+ *  own selection while it has none, so a page is never empty. */
+export function useVideos(league: string): AsyncState<Video[]> {
+  const state = useAsync(useListLeagueVideos({ league }, { query: { select: toVideos } }));
+  return state.data && state.data.length === 0 ? ready(VIDEOS) : state;
 }
 
-export function useGallery(_league: string) {
-  return ready(Object.values(DSBL_PHOTOS));
+/** A picture on a league's media page: the library's, with what it is of; or one of the
+ *  site's own (`context` empty). */
+export type GalleryPhoto = Photo & { id: string; context: string | null; width?: number; height?: number };
+
+export const fromLibrary = (p: PublicPicture): GalleryPhoto => ({
+  id: String(p.id),
+  src: p.url,
+  srcset: p.srcset,
+  alt: p.alt,
+  credit: p.credit ?? "",
+  license: "",
+  page: "",
+  context: p.context ?? null,
+  width: p.width,
+  height: p.height,
+});
+
+const SITE_GALLERY: GalleryPhoto[] = Object.values(DSBL_PHOTOS).map((p) => ({ ...p, id: p.src, context: null }));
+
+/** How many pictures the media page reads at a time. */
+export const GALLERY_PAGE = 24;
+
+/** A league's photos — the library's pictures of its regattas (Story R-3), newest regatta
+ *  first, a page at a time; the site's own selection while it has none. `library` says
+ *  which, so the page credits the site's pictures as before. */
+export function useGallery(league: string, size = GALLERY_PAGE): Paged<GalleryPhoto> & { library: boolean } {
+  const pages = usePages<PagePublicPicture, GalleryPhoto>(
+    `gallery:${league}:${size}`,
+    (offset) => getListLeagueMediaQueryOptions({ league, limit: size, offset }),
+    size,
+    fromLibrary,
+  );
+  if (pages.data && pages.total === 0) return { ...pages, ...ready(SITE_GALLERY), library: false };
+  return { ...pages, library: true };
 }
 
 // ---------------------------------------------------------------- documents and notices

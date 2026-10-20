@@ -71,3 +71,24 @@ def repeats_title(body: str, title: str) -> bool:
     The same words further down are text."""
     first = _FIRST_BLOCK.match(body)
     return first is not None and _words(_text_of(first.group(2))) == _words(title)
+
+
+#: Where a post's pictures may come from (Story R-1): the library, and the site's own
+#: files under ``/media/``. Never someone else's server — a picture there can vanish or
+#: change, and the library is where credit and alt text live.
+_OWN_PICTURE = re.compile(r"/(?:api/media|media)/[\w.\-]+")
+_IMG_SRC = re.compile(r"<img\b[^>]*?\bsrc=\"([^\"]*)\"", re.I)
+
+
+def own_picture(url: str) -> bool:
+    """Whether ``url`` is one of the site's own pictures."""
+    return _OWN_PICTURE.fullmatch(url) is not None
+
+
+def outside_pictures(markup: str) -> list[str]:
+    """The addresses of the text's pictures that are not the site's own."""
+    return [
+        html.unescape(src)
+        for src in _IMG_SRC.findall(markup)
+        if not own_picture(html.unescape(src))
+    ]

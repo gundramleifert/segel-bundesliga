@@ -26,6 +26,10 @@ export interface PostCreate {
   quote_by?: string | null;
   photo_url?: string | null;
   photo_credit?: string | null;
+  /** The event it is about. */
+  event_id?: number | null;
+  /** The series it is about. */
+  series_id?: number | null;
   /** Drafts are invisible on the public site. */
   published?: boolean;
 }

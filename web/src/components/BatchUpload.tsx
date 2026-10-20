@@ -17,7 +17,13 @@ function rememberedCredit(): string | null {
 }
 
 type Status = "waiting" | "sending" | "received" | "known" | "failed";
-type Item = { id: number; file: File; preview: string; status: Status; error?: string };
+/** One picture in the batch. `file` is let go once it is sent, and `preview` is a local
+ *  object URL only while it is being sent — then the library's small copy. A phone that
+ *  sends 150 photos must not hold 150 decoded photos in memory (Story R-2). */
+type Item = { id: number; name: string; file: File | null; preview: string | null; status: Status; error?: string };
+
+/** What sending one picture answers — the library's entry, with its small copy. */
+export type Sent = { created: boolean; thumb_url?: string };
 
 /** Several pictures at once, sent one after another, each with its state — Story R-2.
  *  The same for a photographer with an upload link and for editorial signed in: only
@@ -31,7 +37,8 @@ export function BatchUpload({
   children,
 }: {
   /** One picture, with the credit given — the import API with a key, or editorial's upload. */
-  send: (file: File, credit: string | undefined) => Promise<{ created: boolean }>;
+  send: (file: File, credit: string | undefined) => Promise<Sent>;
+  /** The credit when this device remembers none — a key's credit, or editorial's own name. */
   defaultCredit?: string;
   /** After each picture that arrived — to refresh a list that shows them. */
   onArrived?: () => void;
@@ -41,13 +48,28 @@ export function BatchUpload({
 }) {
   const { t } = useTranslation("upload");
   const input = useRef<HTMLInputElement>(null);
-  const [credit, setCredit] = useState(() => rememberedCredit() ?? defaultCredit);
+  const remembered = useRef(rememberedCredit());
+  const [credit, setCredit] = useState(() => remembered.current || defaultCredit);
+  // The signed-in name arrives after the first render: fill it in then, unless the
+  // device remembered one or the field was typed into meanwhile.
+  useEffect(() => {
+    if (!remembered.current && defaultCredit) setCredit((typed) => typed || defaultCredit);
+  }, [defaultCredit]);
   const [items, setItems] = useState<Item[]>([]);
   const [over, setOver] = useState(false);
   const next = useRef(0);
 
   const set = (id: number, change: Partial<Item>) =>
     setItems((all) => all.map((item) => (item.id === id ? { ...item, ...change } : item)));
+
+  // The one local preview there is at a time, released when its picture is done — and
+  // on leaving the page mid-batch.
+  const local = useRef<string | null>(null);
+  const release = () => {
+    if (local.current) URL.revokeObjectURL(local.current);
+    local.current = null;
+  };
+  useEffect(() => release, []);
 
   // One at a time, in the order chosen: a phone on a pontoon has one slow connection, and
   // six parallel uploads would all crawl instead of one finishing. `queue` holds what is
@@ -69,7 +91,9 @@ export function BatchUpload({
     if (running.current) return;
     running.current = true;
     for (let item = queue.current.shift(); item; item = queue.current.shift()) {
-      set(item.id, { status: "sending" });
+      const file = item.file!;
+      local.current = URL.createObjectURL(file);
+      set(item.id, { status: "sending", preview: local.current });
       const name = creditNow.current.trim();
       try {
         localStorage.setItem(CREDIT_KEY, name);
@@ -77,11 +101,13 @@ export function BatchUpload({
         // Remembering the name is a convenience; without storage it is asked again.
       }
       try {
-        const done = await sendNow.current(item.file, name || undefined);
-        set(item.id, { status: done.created ? "received" : "known" });
+        const done = await sendNow.current(file, name || undefined);
+        release();
+        set(item.id, { status: done.created ? "received" : "known", file: null, preview: done.thumb_url ?? null });
         arrivedNow.current?.();
       } catch (error) {
-        set(item.id, { status: "failed", error: errorText(error) });
+        release();
+        set(item.id, { status: "failed", file: null, preview: null, error: errorText(error) });
       }
     }
     running.current = false;
@@ -89,7 +115,7 @@ export function BatchUpload({
 
   const add = (files: File[]) => {
     if (files.length === 0) return;
-    const added = files.map((file) => ({ id: next.current++, file, preview: URL.createObjectURL(file), status: "waiting" as const }));
+    const added = files.map((file) => ({ id: next.current++, name: file.name, file, preview: null, status: "waiting" as const }));
     setItems((all) => [...all, ...added]);
     queue.current.push(...added);
     void pump();
@@ -147,8 +173,12 @@ export function BatchUpload({
           <ul className="grid grid-cols-[minmax(0,1fr)] gap-2" data-testid={`${testId}-list`}>
             {items.map((item) => (
               <li key={item.id} className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-2" data-testid={`${testId}-item-${item.id}`}>
-                <img src={item.preview} alt="" className="size-12 shrink-0 rounded object-cover" />
-                <span className="min-w-0 flex-1 truncate text-sm">{item.file.name}</span>
+                {item.preview ? (
+                  <img src={item.preview} alt="" className="size-12 shrink-0 rounded object-cover" data-testid={`${testId}-item-${item.id}-preview`} />
+                ) : (
+                  <span className="size-12 shrink-0 rounded bg-slate-200" aria-hidden />
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm">{item.name}</span>
                 <span
                   className={`shrink-0 text-sm ${item.status === "failed" ? "text-red-700" : item.status === "sending" || item.status === "waiting" ? "text-slate-500" : "text-emerald-700"}`}
                   data-testid={`${testId}-item-${item.id}-status`}

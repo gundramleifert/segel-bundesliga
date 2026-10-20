@@ -74,7 +74,10 @@
     "more": "Alle News",
     "example": "Beispielartikel — geschrieben, um die Seite zu zeigen, keine echte Meldung.",
     "byline": "{author} · {date}",
-    "related": "Weitere News"
+    "galleryTitle": "Fotos: {regatta}",
+    "galleryMore": "Alle {count} Fotos auf der Medienseite",
+    "related": "Weitere News",
+    "older": "Ältere Nachrichten"
   },
   "media": {
     "more": "Fotos & Videos",
@@ -83,7 +86,9 @@
     "videos": "Videos",
     "photos": "Fotos",
     "none": "Noch nichts da.",
-    "credits": "Fotos © Deutsche Segel-Bundesliga; Luftbild © Adam Burdylo."
+    "credits": "Fotos © Deutsche Segel-Bundesliga; Luftbild © Adam Burdylo.",
+    "morePhotos": "Weitere Fotos",
+    "open": "Im Vollbild zeigen: {alt}"
   },
   "press": {
     "more": "Pressebereich",
@@ -95,7 +100,8 @@
     "photosText": "Hohe Auflösung, frei für redaktionelle Nutzung",
     "accreditation": "Akkreditierung",
     "accreditationText": "Auf dem Wasser oder an Land, pro Spieltag",
-    "contact": "Kontakt"
+    "contact": "Kontakt",
+    "older": "Ältere Mitteilungen"
   },
   "about": {
     "title": "Über die {league}",
@@ -193,5 +199,12 @@
     "text": "Textstärke",
     "reset": "Zurücksetzen"
   },
-  "example": "Beispielinhalt — dieses Schwarze Brett ist noch nicht angebunden. Nichts hier ist ein offizieller Aushang."
+  "example": "Beispielinhalt — dieses Schwarze Brett ist noch nicht angebunden. Nichts hier ist ein offizieller Aushang.",
+  "lightbox": {
+    "label": "Foto",
+    "close": "Schließen",
+    "previous": "Vorheriges Foto",
+    "next": "Nächstes Foto",
+    "position": "{at} von {count}"
+  }
 }

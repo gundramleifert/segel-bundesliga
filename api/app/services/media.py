@@ -6,6 +6,13 @@ later a Nextcloud or Flickr bridge). This module is the one way in, so the rules
 all of them: re-encoded like every picture (`app/services/pictures.py`), the same bytes
 twice are one entry, a source's own id twice is one entry, and a picture a post uses
 cannot be deleted.
+
+**Files.** The upload itself is kept as it came, in `uploads/media-originals/` — never
+served, because it still carries the camera's EXIF, its location included. What the site
+serves is made from it: WebP at each of :data:`EDGES` the picture is larger than, plus
+its own size up to the largest, as `uploads/media/<name>-<edge>.webp`. Those are a cache:
+a missing one is made again from the original on its first request, so a new size or a
+better encoder is a change here, never a request to the photographers.
 """
 
 from __future__ import annotations
@@ -19,6 +26,7 @@ import socket
 import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from html import escape
 from pathlib import Path
 from typing import NamedTuple
 from urllib.parse import urljoin, urlsplit
@@ -34,10 +42,11 @@ from app.models.base import utcnow
 from app.problems import Problem
 from app.services import pictures, uploads
 
-#: The longest edge kept: enough for a full-width header on a large screen.
-MASTER_EDGE = 2400
-#: The library's tiles and a gallery's smallest step.
-THUMB_EDGE = 480
+#: The longer edges served — a phone's column, a desktop's, a wide header, a large
+#: screen's full width. The first is also the library's tile.
+EDGES = (480, 960, 1600, 2400)
+MASTER_EDGE = EDGES[-1]
+THUMB_EDGE = EDGES[0]
 #: A phone's photo, as it leaves the camera; it is re-encoded far smaller anyway.
 MAX_BYTES = 25 * 1024 * 1024
 #: The prefix of every import key — so a key pasted into the wrong place is recognisable.
@@ -71,8 +80,7 @@ class Arrival:
 
 
 class _Encoded(NamedTuple):
-    master: bytes
-    thumb: bytes
+    variants: dict[int, bytes]
     width: int
     height: int
     taken_on: date | None
@@ -84,24 +92,106 @@ def _directory() -> Path:
     return directory
 
 
-def file_path(file_name: str) -> Path | None:
-    """The stored file for `/api/media/<file_name>` — ``<name>.jpg`` or ``<name>-thumb.jpg``
-    — or ``None`` for anything else, so the serving endpoint never builds a path from a
-    request's own text."""
-    if not re.fullmatch(r"[0-9a-f]{32}(-thumb)?\.jpg", file_name):
+def _originals() -> Path:
+    """Where uploads are kept as they came — outside the served directory on purpose."""
+    directory = Path(settings.uploads_dir) / "media-originals"
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+def edges_of(width: int, height: int) -> list[int]:
+    """The variants a picture of this size has: each of :data:`EDGES` it is larger than,
+    and its own longer edge — so a small picture is never blown up, and the largest
+    variant is the picture as the site shows it."""
+    longest = max(width, height)
+    return [edge for edge in EDGES if edge < longest] + [min(longest, MASTER_EDGE)]
+
+
+def variant_size(width: int, height: int, edge: int) -> tuple[int, int]:
+    """A variant's width and height — for `srcset`, without opening the file."""
+    scale = edge / max(width, height)
+    return max(1, round(width * scale)), max(1, round(height * scale))
+
+
+def _variant_name(name: str, edge: int) -> str:
+    return f"{name}-{edge}.webp"
+
+
+_FILE = re.compile(r"(?P<name>[0-9a-f]{32})(?:-(?P<edge>\d{3,4}|thumb))?\.(?P<ext>webp|jpg)")
+
+
+class _Wanted(NamedTuple):
+    name: str
+    edge: int | None  # None: the largest there is
+
+
+def _parse(file_name: str) -> _Wanted | None:
+    """What `/api/media/<file_name>` asks for, or ``None`` for anything else — so a path is
+    never built from a request's own text. ``<name>.jpg`` and ``<name>-thumb.jpg`` are the
+    addresses of pictures stored before WebP, and still answer."""
+    found = _FILE.fullmatch(file_name)
+    if found is None:
         return None
-    found = _directory() / file_name
-    return found if found.is_file() else None
+    edge = found["edge"]
+    if edge is None:
+        return _Wanted(found["name"], None)
+    if edge == "thumb":
+        return _Wanted(found["name"], THUMB_EDGE)
+    return _Wanted(found["name"], int(edge)) if found["ext"] == "webp" else None
+
+
+def _source(name: str) -> Path | None:
+    """What a variant is made from: the original, or — for a picture stored before
+    originals were kept — the 2400 px JPEG it was stored as."""
+    for path in sorted(_originals().glob(f"{name}.*")):
+        return path
+    legacy = _directory() / f"{name}.jpg"
+    return legacy if legacy.is_file() else None
+
+
+def file_path(file_name: str) -> Path | None:
+    """The file to answer `/api/media/<file_name>` with, made from the original if it is
+    not there yet — ``None`` when no such picture exists."""
+    wanted = _parse(file_name)
+    if wanted is None:
+        return None
+    directory = _directory()
+    if wanted.edge is not None and wanted.edge not in EDGES:
+        return None
+    if wanted.edge is not None:
+        path = directory / _variant_name(wanted.name, wanted.edge)
+        if path.is_file():
+            return path
+    source = _source(wanted.name)
+    if source is None:
+        return None
+    image = pictures.upright(source.read_bytes(), code="media", edge=MASTER_EDGE)
+    edges = edges_of(*image.size)
+    # Larger than the picture is: the largest there is, never a blown-up copy.
+    edge = edges[-1] if wanted.edge is None else min(wanted.edge, edges[-1])
+    path = directory / _variant_name(wanted.name, edge)
+    if not path.is_file():
+        path.write_bytes(pictures.webp(pictures.bounded(image, edge)))
+    return path
 
 
 def _encode(raw: bytes) -> _Encoded:
     image = pictures.upright(raw, code="media", edge=MASTER_EDGE)
-    master = pictures.bounded(image, MASTER_EDGE)
-    width, height = master.size
-    thumb = pictures.bounded(master.copy(), THUMB_EDGE)
-    return _Encoded(
-        pictures.jpeg(master), pictures.jpeg(thumb), width, height, pictures.taken_on(raw)
-    )
+    edges = edges_of(*image.size)
+    largest = pictures.bounded(image, edges[-1])
+    variants = {edge: pictures.webp(pictures.bounded(largest.copy(), edge)) for edge in edges}
+    width, height = largest.size
+    return _Encoded(variants, width, height, pictures.taken_on(raw))
+
+
+def original(item: MediaItem) -> bytes | None:
+    """The picture at its full size, re-encoded without its metadata — what editorial
+    hands to the press. Never the stored original itself: that carries the location."""
+    source = _source(item.name)
+    if source is None:
+        return None
+    image = pictures.upright(source.read_bytes(), code="media")
+    return pictures.jpeg(image)
 
 
 def _alt_from(original_name: str) -> str:
@@ -121,7 +211,7 @@ async def store(
     credit: str | None = None,
 ) -> Stored:
     """Puts a picture into the library — or answers the entry it already is."""
-    await uploads.validated(
+    media_type = await uploads.validated(
         raw,
         code="media",
         what="The picture",
@@ -145,15 +235,18 @@ async def store(
     encoded = await asyncio.to_thread(_encode, raw)
     name = uuid.uuid4().hex
     directory = _directory()
-    files = (directory / f"{name}.jpg", directory / f"{name}-thumb.jpg")
-    files[0].write_bytes(encoded.master)
-    files[1].write_bytes(encoded.thumb)
+    files = [_originals() / f"{name}.{uploads.IMAGE_TYPES[media_type]}"]
+    files[0].write_bytes(raw)
+    for edge, data in encoded.variants.items():
+        files.append(directory / _variant_name(name, edge))
+        files[-1].write_bytes(data)
     item = MediaItem(
         name=name,
         source=MediaSource.IMPORT if key is not None else MediaSource.UPLOAD,
         sha256=digest,
         original_name=original_name[:255],
         alt=(alt or _alt_from(original_name)).strip()[:300],
+        alt_confirmed=bool(alt and alt.strip()),
         credit=(credit or (key.credit if key else None) or None),
         width=encoded.width,
         height=encoded.height,
@@ -187,7 +280,7 @@ async def used_in(session: AsyncSession, item: MediaItem) -> list[Post]:
     the posts on every look, never stored: a deleted post frees its pictures by itself."""
     stmt = select(Post).where(
         or_(
-            Post.photo_url.in_([item.url, item.thumb_url]),
+            Post.photo_url.contains(f"/api/media/{item.name}"),
             Post.body.contains(f"/api/media/{item.name}"),
         )
     )
@@ -205,10 +298,134 @@ async def delete(session: AsyncSession, item: MediaItem) -> None:
             "A post still shows this picture.",
             posts=[{"id": post.id, "title": post.title} for post in posts],
         )
-    for file_name in (f"{item.name}.jpg", f"{item.name}-thumb.jpg"):
-        (_directory() / file_name).unlink(missing_ok=True)
+    for path in [*_directory().glob(f"{item.name}*"), *_originals().glob(f"{item.name}.*")]:
+        path.unlink(missing_ok=True)
     await session.delete(item)
     await session.commit()
+
+
+# ---------------------------------------------------------------- many at once
+
+
+class Deleted(NamedTuple):
+    """What deleting several pictures did: the ones gone, and the ones posts still use."""
+
+    deleted: list[int]
+    kept: dict[int, list[Post]]
+
+
+async def delete_many(session: AsyncSession, items: list[MediaItem]) -> Deleted:
+    """Each picture no post uses — the rest are kept and named with their posts, the same
+    guard as deleting one."""
+    deleted, kept = [], {}
+    for item in items:
+        posts = await used_in(session, item)
+        if posts:
+            kept[item.id] = posts
+            continue
+        await delete(session, item)
+        deleted.append(item.id)
+    return Deleted(deleted, kept)
+
+
+# ---------------------------------------------------------------- the public media page
+
+
+def public_in_league(league_slug: str) -> Select:
+    """The pictures a league's media page shows (Story R-3): of its published series, and
+    of their published events — newest regatta first. A picture of nothing, or of a draft,
+    is on no page."""
+    from app.models import League
+
+    leagues = select(League.id).where(League.slug == league_slug)
+    public_series = select(Series.id).where(
+        Series.league_id.in_(leagues), Series.published.is_(True)
+    )
+    public_events = select(Event.id).where(
+        Event.series_id.in_(public_series), Event.published.is_(True)
+    )
+    return (
+        select(MediaItem)
+        .outerjoin(Event, MediaItem.event_id == Event.id)
+        .where(or_(MediaItem.event_id.in_(public_events), MediaItem.series_id.in_(public_series)))
+        .order_by(
+            Event.starts_on.desc().nulls_last(),
+            MediaItem.taken_on.desc().nulls_last(),
+            MediaItem.id.desc(),
+        )
+    )
+
+
+def public_of(event_id: int | None, series_id: int | None) -> Select:
+    """The public pictures of one event, or of one series — its own and its events' — for
+    a post's gallery (Story R-1): only what is published, newest first by the camera."""
+    if event_id is not None:
+        events = select(Event.id).where(Event.id == event_id, Event.published.is_(True))
+        where = MediaItem.event_id.in_(events)
+    elif series_id is not None:
+        public_series = select(Series.id).where(Series.id == series_id, Series.published.is_(True))
+        events = select(Event.id).where(
+            Event.series_id.in_(public_series), Event.published.is_(True)
+        )
+        where = or_(MediaItem.series_id.in_(public_series), MediaItem.event_id.in_(events))
+    else:
+        return select(MediaItem).where(False)  # noqa: FBT003 — nothing named, no gallery
+    return (
+        select(MediaItem)
+        .where(where)
+        .order_by(MediaItem.taken_on.desc().nulls_last(), MediaItem.id.desc())
+    )
+
+
+# ---------------------------------------------------------------- shown to readers
+
+#: A library picture's address: its name, whatever size or format the address asks for.
+_NAME_IN_URL = re.compile(r"/api/media/([0-9a-f]{32})")
+_IMG = re.compile(r"<img\b[^>]*>", re.I)
+#: The article's text column: the full width on a phone, about 42 rem from a tablet on.
+TEXT_SIZES = "(min-width: 48rem) 42rem, 100vw"
+
+
+def name_in(url: str | None) -> str | None:
+    """The library picture an address points at, if it does."""
+    found = _NAME_IN_URL.search(url or "")
+    return found[1] if found else None
+
+
+async def by_name(session: AsyncSession, names: set[str]) -> dict[str, MediaItem]:
+    if not names:
+        return {}
+    rows = await session.execute(select(MediaItem).where(MediaItem.name.in_(names)))
+    return {item.name: item for item in rows.scalars()}
+
+
+def srcset(item: MediaItem) -> str:
+    """Every size of the picture, for the browser to pick the one the screen needs."""
+    return ", ".join(
+        f"/api/media/{item.name}-{edge}.webp {variant_size(item.width, item.height, edge)[0]}w"
+        for edge in edges_of(item.width, item.height)
+    )
+
+
+async def for_readers(session: AsyncSession, markup: str) -> str:
+    """A post's text as the public page shows it (Story R-1): each library picture with
+    the library's alt text, its size — so the page does not jump while it loads — its
+    WebP sizes, and its credit as a caption. Taken from the library on every read, so a
+    corrected credit is corrected in every post; the stored text keeps only the address."""
+    items = await by_name(session, {n for n in map(name_in, _IMG.findall(markup)) if n})
+
+    def shown(tag: re.Match[str]) -> str:
+        item = items.get(name_in(tag[0]) or "")
+        if item is None:
+            return tag[0]
+        caption = f"<figcaption>{escape(item.credit)}</figcaption>" if item.credit else ""
+        return (
+            f'<figure class="media-figure"><img src="{item.url}" srcset="{srcset(item)}" '
+            f'sizes="{TEXT_SIZES}" width="{item.width}" height="{item.height}" '
+            f'alt="{escape(item.alt)}" loading="lazy" decoding="async">{caption}</figure>'
+        )
+
+    return _IMG.sub(shown, markup)
 
 
 # ---------------------------------------------------------------- event or series

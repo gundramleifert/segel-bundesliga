@@ -168,6 +168,74 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(page).toHaveURL(/\/admin\?tab=news/);
   });
 
+  test("a draft is previewed as readers will see it, without saving", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin/news/new");
+    await page.getByTestId("admin-post-title-input").fill("A preview of Sunday");
+    await page.getByTestId("admin-post-editor-content").click();
+    await page.keyboard.type("Six wins and no fouls.");
+    // On a draft, Publish is the primary action and Save draft the quiet one.
+    await expect(page.getByTestId("admin-post-publish-button")).toBeVisible();
+
+    await page.getByTestId("admin-post-preview-button").click();
+    const article = page.getByTestId("admin-post-preview-article");
+    await expect(article).toContainText("A preview of Sunday");
+    await expect(article).toContainText("Six wins and no fouls.");
+    await page.getByTestId("admin-post-preview-back").first().click();
+    await expect(page.getByTestId("admin-post-title-input")).toHaveValue("A preview of Sunday");
+    await expect(page.getByTestId("admin-post-editor-content")).toContainText("Six wins and no fouls.");
+  });
+
+  test("unsaved changes are kept on the device and offered back", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin/news/new");
+    await page.getByTestId("admin-post-title-input").fill("Kept on this phone");
+    await page.waitForTimeout(700); // kept after a short pause in typing
+    page.on("dialog", (dialog) => void dialog.accept());
+    await page.reload();
+
+    await expect(page.getByTestId("admin-post-kept")).toBeVisible();
+    await expect(page.getByTestId("admin-post-title-input")).toHaveValue("");
+    await page.getByTestId("admin-post-kept-restore").click();
+    await expect(page.getByTestId("admin-post-title-input")).toHaveValue("Kept on this phone");
+
+    // Discarded, it is gone for good.
+    await page.getByTestId("admin-post-title-input").fill("Kept, then discarded");
+    await page.waitForTimeout(700);
+    await page.reload();
+    await page.getByTestId("admin-post-kept-discard").click();
+    await expect(page.getByTestId("admin-post-kept")).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByTestId("admin-post-kept")).toHaveCount(0);
+  });
+
+  test("a picture pasted from another site is never linked", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin/news/new");
+    const content = page.getByTestId("admin-post-editor-content");
+    await content.click();
+    // An address that cannot be fetched: the picture is taken out again, with the reason.
+    await content.evaluate((element) => {
+      const data = new DataTransfer();
+      data.setData("text/html", '<p>From the web</p><img src="https://pictures.invalid/boat.jpg" alt="">');
+      element.dispatchEvent(new ClipboardEvent("paste", { clipboardData: data, bubbles: true, cancelable: true }));
+    });
+    await expect(content).toContainText("From the web");
+    await expect(page.getByTestId("admin-post-editor-adopt-error")).toBeVisible();
+    await expect(content.getByRole("img")).toHaveCount(0);
+  });
+
+  test("the list filters by league and state", async ({ page }) => {
+    await signIn(page, EDITOR);
+    await page.goto("/admin?tab=news");
+    await page.getByTestId("admin-posts-state-filter").selectOption("published");
+    await page.getByTestId("admin-posts-league-filter").selectOption("2-liga");
+    const list = page.getByTestId("admin-posts-section");
+    await expect(list.getByRole("link", { name: /Promotion race/ })).toHaveCount(1);
+    await expect(list.getByRole("link", { name: /NRV takes the lead/ })).toHaveCount(0);
+    await expect(page).toHaveURL(/state=published/);
+  });
+
   test("a club's team manager has no News tab", async ({ page }) => {
     await signIn(page, MANAGER);
     await page.goto("/admin");

@@ -5,20 +5,24 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import {
+  getDownloadMediaOriginalUrl,
   getGetMediaQueryKey,
   getListImportKeysQueryKey,
   useCreateImportKey,
+  useDeleteManyMedia,
   useDeleteMedia,
   useGetMedia,
   useListImportKeys,
   useListMedia,
   useRevokeImportKey,
+  useUpdateManyMedia,
   useUpdateMedia,
   uploadMedia,
 } from "../../../api/generated/sbl";
+import type { MediaDeleted } from "../../../api/generated/model/mediaDeleted";
 import { ApiError } from "../../../api/http";
 import type { ImportKey, ImportKeyCreated, Media, MediaDetail } from "../../../api/types";
-import { errorText, useAsync, useInvalidate } from "../../../api/useApi";
+import { errorText, useAccount, useAsync, useInvalidate } from "../../../api/useApi";
 import { Async } from "../../../components/Async";
 import { BatchUpload } from "../../../components/BatchUpload";
 import { Badge, Empty, ErrorMessage } from "../../../components/Blocks";
@@ -29,7 +33,9 @@ import { NO_CONTEXT, type MediaContext } from "../../../lib/mediaContext";
 import { Pager } from "../../../components/Pager";
 import { INPUT_CLASS } from "../../../lib/admin";
 import { formatDate } from "../../../lib/format";
+import { downloadFile } from "../../../lib/files";
 import { useListParams } from "../../../lib/listParams";
+import { Videos } from "./Videos";
 
 const PAGE = 24;
 
@@ -40,6 +46,7 @@ export function MediaAdmin() {
     <>
       <Upload />
       <Library />
+      <Videos />
       <ImportKeys />
     </>
   );
@@ -50,6 +57,7 @@ export function MediaAdmin() {
 function Upload() {
   const { t } = useTranslation("admin");
   const invalidate = useInvalidate();
+  const { account } = useAccount();
   const [open, setOpen] = useState(false);
   const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   return (
@@ -68,9 +76,10 @@ function Upload() {
             uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined })
           }
           onArrived={() => invalidate("/api/admin/media")}
+          defaultCredit={account?.display_name ?? ""}
           testId="admin-media-upload"
         >
-          <Field label={t("media.contextLabel")} hint={t("importKeys.optional")}>
+          <Field label={t("media.contextLabel")} hint={t("media.uploadContextHint")}>
             <MediaContextSelect value={context} onChange={setContext} noneLabel={t("media.contextNone")} testId="admin-media-upload-context" />
           </Field>
         </BatchUpload>
@@ -84,9 +93,26 @@ function Library() {
   const list = useListParams(PAGE);
   const [selected, setSelected] = useState<number | null>(null);
   const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
+  const [altMissing, setAltMissing] = useState(false);
+  // Select mode: a tap marks a picture instead of opening it, for one change to many.
+  const [selecting, setSelecting] = useState(false);
+  const [chosen, setChosen] = useState<Set<number>>(new Set());
+  const toggle = (id: number) =>
+    setChosen((now) => {
+      const next = new Set(now);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   const media = useAsync(
     useListMedia(
-      { ...list.request, q: list.q || undefined, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined },
+      {
+        ...list.request,
+        q: list.q || undefined,
+        event_id: context.event_id ?? undefined,
+        series_id: context.series_id ?? undefined,
+        alt_missing: altMissing || undefined,
+      },
       { query: { placeholderData: keepPreviousData } },
     ),
   );
@@ -111,6 +137,31 @@ function Library() {
           testId="admin-media-context-filter"
         />
       </Field>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={altMissing}
+            onChange={(e) => (setAltMissing(e.target.checked), list.setPage(1))}
+            data-testid="admin-media-alt-missing-filter"
+          />
+          {t("media.altMissingFilter")}
+        </label>
+        <span className="flex-1" />
+        <Button
+          size="sm"
+          variant={selecting ? "primary" : "outline"}
+          onPress={() => {
+            setSelecting((on) => !on);
+            setChosen(new Set());
+            setSelected(null);
+          }}
+          data-testid="admin-media-select-toggle"
+        >
+          {selecting ? t("media.selectDone") : t("media.selectButton")}
+        </Button>
+      </div>
+      {selecting && <BulkBar chosen={chosen} pageIds={media.data?.items.map((item) => item.id) ?? []} onChoose={setChosen} />}
       {selected !== null && <Entry id={selected} onClose={() => setSelected(null)} key={selected} />}
       <Async state={media} testId="admin-media" empty={<Empty testId="admin-media-empty">{t("media.empty")}</Empty>} isEmpty={(page) => page.items.length === 0}>
         {(page) => (
@@ -120,7 +171,11 @@ function Library() {
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3" data-testid="admin-media-grid">
               {page.items.map((item) => (
                 <li key={item.id}>
-                  <Tile item={item} active={item.id === selected} onPress={() => setSelected(item.id)} />
+                  {selecting ? (
+                    <Tile item={item} active={chosen.has(item.id)} onPress={() => toggle(item.id)} checked={chosen.has(item.id)} />
+                  ) : (
+                    <Tile item={item} active={item.id === selected} onPress={() => setSelected(item.id)} />
+                  )}
                 </li>
               ))}
             </ul>
@@ -132,15 +187,35 @@ function Library() {
   );
 }
 
-function Tile({ item, active, onPress }: { item: Media; active: boolean; onPress: () => void }) {
+/** A picture in the grid. With `checked` given, it is a choice in select mode: the box
+ *  says so, and a tap toggles it. */
+function Tile({ item, active, onPress, checked }: { item: Media; active: boolean; onPress: () => void; checked?: boolean }) {
+  const { t } = useTranslation("admin");
   return (
     <button
       type="button"
       onClick={onPress}
-      className={`grid w-full gap-1 rounded-md p-1 text-left text-xs hover:bg-slate-100 ${active ? "ring-2 ring-brand-500" : ""}`}
+      aria-pressed={checked}
+      className={`relative grid w-full gap-1 rounded-md p-1 text-left text-xs hover:bg-slate-100 ${active ? "ring-2 ring-brand-500" : ""}`}
       data-testid={`admin-media-tile-${item.id}`}
     >
+      {checked !== undefined && (
+        <input
+          type="checkbox"
+          checked={checked}
+          readOnly
+          tabIndex={-1}
+          aria-hidden
+          className="pointer-events-none absolute top-2 left-2 size-5"
+          data-testid={`admin-media-tile-${item.id}-check`}
+        />
+      )}
       <img src={item.thumb_url} alt={item.alt} loading="lazy" className="aspect-square w-full rounded object-cover" />
+      {!item.alt_confirmed && (
+        <span className="justify-self-start rounded bg-amber-100 px-1.5 py-0.5 text-[0.7rem] font-medium text-amber-900" data-testid="admin-media-tile-alt-missing">
+          {t("media.altMissing")}
+        </span>
+      )}
       <span className="truncate text-slate-700">{item.alt || item.original_name}</span>
       {item.credit && <span className="truncate text-slate-500">© {item.credit}</span>}
       {item.context && <span className="truncate text-brand-700">{item.context}</span>}
@@ -165,6 +240,8 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
   const [credit, setCredit] = useState(item.credit ?? "");
   const [context, setContext] = useState<MediaContext>({ event_id: item.event_id ?? null, series_id: item.series_id ?? null });
   const [saved, setSaved] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const refresh = () => invalidate("/api/admin/media", getGetMediaQueryKey(item.id));
   const update = useUpdateMedia({ mutation: { onSuccess: () => (refresh(), setSaved(true)) } });
   const remove = useDeleteMedia({ mutation: { onSuccess: () => (invalidate("/api/admin/media"), onClose()) } });
@@ -226,6 +303,21 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
           <Button size="sm" variant="ghost" onPress={onClose} data-testid="admin-media-close-button">
             {t("media.closeButton")}
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            isDisabled={downloading}
+            onPress={() => {
+              setDownloading(true);
+              setDownloadError(null);
+              downloadFile(getDownloadMediaOriginalUrl(item.id), fullSizeName(item.original_name))
+                .catch((error: unknown) => setDownloadError(errorText(error)))
+                .finally(() => setDownloading(false));
+            }}
+            data-testid="admin-media-download-button"
+          >
+            {t("media.download")}
+          </Button>
           <span className="flex-1" />
           <ConfirmButton
             size="sm"
@@ -237,10 +329,132 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
             testId="admin-media-delete"
           />
         </div>
+        {downloadError && <ErrorMessage text={downloadError} testId="admin-media-download-error" />}
         {remove.error && !inUse && <ErrorMessage text={errorText(remove.error)} testId="admin-media-delete-error" />}
         {inUse && <ErrorMessage text={t("media.inUse")} testId="admin-media-delete-error" />}
       </div>
     </form>
+  );
+}
+
+/** The full size is a JPEG whatever was uploaded — named after the upload. */
+const fullSizeName = (original: string) => `${original.replace(/\.[^.]+$/, "") || "picture"}.jpg`;
+
+/** Select mode's bar (Story R-2): one credit, one event or series, or deleting — for
+ *  every picture chosen. A picture a post shows is kept and named with its posts. */
+function BulkBar({ chosen, pageIds, onChoose }: { chosen: Set<number>; pageIds: number[]; onChoose: (ids: Set<number>) => void }) {
+  const { t } = useTranslation("admin");
+  const invalidate = useInvalidate();
+  const [credit, setCredit] = useState("");
+  const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
+  const [updated, setUpdated] = useState<number | null>(null);
+  const [deleted, setDeleted] = useState<MediaDeleted | null>(null);
+  const update = useUpdateManyMedia({
+    mutation: {
+      onSuccess: (done) => {
+        invalidate("/api/admin/media");
+        setUpdated(done.updated);
+        setDeleted(null);
+      },
+    },
+  });
+  const remove = useDeleteManyMedia({
+    mutation: {
+      onSuccess: (done) => {
+        invalidate("/api/admin/media");
+        setDeleted(done);
+        setUpdated(null);
+        // What is left chosen is what could not go: the pictures posts still show.
+        onChoose(new Set(done.kept.map((kept) => kept.id)));
+      },
+    },
+  });
+  const ids = [...chosen];
+  const none = ids.length === 0;
+  const busy = update.isPending || remove.isPending;
+  const failure = update.error ?? remove.error;
+  // Each post once, though it may show several of the pictures kept.
+  const keptPosts = deleted ? [...new Map(deleted.kept.flatMap((kept) => kept.used_in).map((post) => [post.id, post])).values()] : [];
+
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-md border border-brand-200 bg-brand-50 p-3 text-sm" data-testid="admin-media-bulk">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="font-medium" data-testid="admin-media-bulk-count">
+          {t("media.selected", { count: ids.length })}
+        </span>
+        <Button size="sm" variant="ghost" onPress={() => onChoose(new Set([...chosen, ...pageIds]))} data-testid="admin-media-bulk-page">
+          {t("media.selectPage")}
+        </Button>
+        <Button size="sm" variant="ghost" isDisabled={none} onPress={() => onChoose(new Set())} data-testid="admin-media-bulk-clear">
+          {t("media.selectNone")}
+        </Button>
+      </div>
+      <form
+        className="grid grid-cols-[minmax(0,1fr)] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          update.mutate({ data: { ids, credit } });
+        }}
+      >
+        <Field label={t("media.bulkCreditLabel")}>
+          <input className={INPUT_CLASS} value={credit} onChange={(e) => setCredit(e.target.value)} data-testid="admin-media-bulk-credit-input" />
+        </Field>
+        <Button type="submit" size="sm" isDisabled={none || busy} data-testid="admin-media-bulk-credit-apply">
+          {t("media.bulkApply")}
+        </Button>
+      </form>
+      <form
+        className="grid grid-cols-[minmax(0,1fr)] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
+        onSubmit={(e: FormEvent) => {
+          e.preventDefault();
+          update.mutate({ data: { ids, ...context } });
+        }}
+      >
+        <Field label={t("media.bulkContextLabel")}>
+          <MediaContextSelect value={context} onChange={setContext} noneLabel={t("media.contextNone")} testId="admin-media-bulk-context-select" />
+        </Field>
+        <Button type="submit" size="sm" isDisabled={none || busy} data-testid="admin-media-bulk-context-apply">
+          {t("media.bulkApply")}
+        </Button>
+      </form>
+      {!none && (
+        <div>
+          <ConfirmButton
+            size="sm"
+            label={t("media.bulkDelete")}
+            confirmLabel={t("media.deleteConfirm")}
+            cancelLabel={t("media.deleteCancel")}
+            busy={remove.isPending}
+            onConfirm={() => remove.mutate({ data: { ids } })}
+            testId="admin-media-bulk-delete"
+          />
+        </div>
+      )}
+      {updated !== null && (
+        <p className="text-emerald-800" data-testid="admin-media-bulk-updated">
+          {t("media.bulkUpdated", { count: updated })}
+        </p>
+      )}
+      {deleted && (
+        <div data-testid="admin-media-bulk-deleted">
+          <p className="text-emerald-800">{t("media.bulkDeleted", { count: deleted.deleted.length })}</p>
+          {keptPosts.length > 0 && (
+            <p className="text-amber-900" data-testid="admin-media-bulk-kept">
+              {t("media.bulkKept", { count: deleted.kept.length })}{" "}
+              {keptPosts.map((post, i) => (
+                <span key={post.id}>
+                  {i > 0 && ", "}
+                  <Link to={`/admin/news/${post.id}`} className="underline">
+                    {post.title}
+                  </Link>
+                </span>
+              ))}
+            </p>
+          )}
+        </div>
+      )}
+      {failure && <ErrorMessage text={errorText(failure)} testId="admin-media-bulk-error" />}
+    </div>
   );
 }
 

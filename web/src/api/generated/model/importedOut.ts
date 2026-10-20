@@ -13,10 +13,14 @@ export interface ImportedOut {
   url: string;
   /** A small copy for the library's tiles. */
   thumb_url: string;
+  /** Every WebP size, for an `img`'s `srcset`. */
+  srcset?: string;
   width: number;
   height: number;
   original_name: string;
   alt: string;
+  /** False while the alt text is the file's name. */
+  alt_confirmed: boolean;
   credit?: string | null;
   taken_on?: string | null;
   source: MediaSource;

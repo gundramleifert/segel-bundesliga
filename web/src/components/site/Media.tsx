@@ -9,6 +9,8 @@ export function Img({ photo, className = "" }: { photo: Photo; className?: strin
   return (
     <img
       src={photo.src}
+      srcSet={photo.srcset}
+      sizes={photo.srcset ? "100vw" : undefined}
       alt={photo.alt}
       title={`© ${photo.credit}`}
       loading="lazy"
@@ -106,12 +108,12 @@ function YouTubeBackground({ photo, className }: { photo: Photo; className: stri
 }
 
 /** A YouTube player with controls, for the media pages — a card like every other. */
-export function YouTubePlayer({ id, title }: { id: string; title: string }) {
+export function YouTubePlayer({ id, title, start = 0 }: { id: string; title: string; start?: number }) {
   return (
     <figure className={`${tone.card} h-full overflow-hidden`}>
       <iframe
         title={title}
-        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0`}
+        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0${start ? `&start=${start}` : ""}`}
         allow="encrypted-media; picture-in-picture; fullscreen"
         loading="lazy"
         className="block aspect-video w-full border-0 bg-slate-900"

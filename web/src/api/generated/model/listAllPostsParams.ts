@@ -14,6 +14,14 @@ kind?: PostKind | null;
  */
 q?: string | null;
 /**
+ * A league's slug, or ``association`` for the association's own posts.
+ */
+league?: string | null;
+/**
+ * Only published, or only drafts
+ */
+published?: boolean | null;
+/**
  * Rows per page
  * @minimum 1
  * @maximum 100

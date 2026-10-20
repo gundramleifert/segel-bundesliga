@@ -30,5 +30,9 @@ export interface PostUpdate {
   quote_by?: string | null;
   photo_url?: string | null;
   photo_credit?: string | null;
+  /** Sent: it is about this event. */
+  event_id?: number | null;
+  /** Sent: it is about this series. */
+  series_id?: number | null;
   published?: boolean;
 }

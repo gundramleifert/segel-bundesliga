@@ -14,8 +14,18 @@ kind?: PostKind;
  */
 league?: string | null;
 /**
+ * Rows per page
  * @minimum 1
- * @maximum 200
+ * @maximum 100
  */
 limit?: number;
+/**
+ * Rows to skip
+ * @minimum 0
+ */
+offset?: number;
+/**
+ * Column to sort by; prefix with '-' for descending
+ */
+sort?: string | null;
 };
