@@ -110,12 +110,12 @@ function EventStandingsTable({
     <>
       {canProject && (
       <div className="mb-3 flex items-center justify-end gap-2">
-        <span className="text-sm text-slate-600">{t("pointsModeLabel")}</span>
+        <span className="text-sm text-muted">{t("pointsModeLabel")}</span>
         <div
           role="group"
           aria-label={t("pointsModeLabel")}
           data-testid="matchday-standings-mode"
-          className="flex shrink-0 overflow-hidden rounded-md border border-slate-300 text-xs"
+          className="flex shrink-0 overflow-hidden rounded-md border border-border text-xs"
         >
           {(["exact", "extrapolate"] as const).map((value) => (
             <Tip
@@ -129,8 +129,8 @@ function EventStandingsTable({
                 data-testid={`matchday-standings-mode-${value}`}
                 className={`px-2 py-1.5 transition-colors ${
                   mode === value
-                    ? "bg-brand-600 font-medium text-white"
-                    : "bg-white text-slate-600 hover:bg-slate-100"
+                    ? "bg-accent font-medium text-accent-foreground"
+                    : "bg-surface text-muted hover:bg-surface-tertiary"
                 }`}
               >
                 {t(value === "exact" ? "pointsModeExact" : "pointsModeExtrapolate")}
@@ -149,17 +149,17 @@ function EventStandingsTable({
       >
         <caption className="sr-only">{t("standingsCaption")}</caption>
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50 text-left">
-            <th scope="col" className="w-14 font-medium text-slate-600">
+          <tr className="border-b border-separator bg-surface-secondary text-left">
+            <th scope="col" className="w-14 font-medium text-muted">
               {t("placeHeader")}
             </th>
-            <th scope="col" className="font-medium text-slate-600">
+            <th scope="col" className="font-medium text-muted">
               {t("teamHeader")}
             </th>
             <Tip text={mode === "extrapolate" ? t("projectedTooltip") : undefined}>
               <th
                 scope="col"
-                className="w-32 text-right font-medium text-slate-600"
+                className="w-32 text-right font-medium text-muted"
               >
                 {/* Always "Points", in both modes: the column is about points either way, and
                     the toggle above already says how they are arrived at. A header that renamed
@@ -168,14 +168,14 @@ function EventStandingsTable({
                 {t("pointsHeader")}
               </th>
             </Tip>
-            <th scope="col" className="w-16 text-right font-medium text-slate-600">
+            <th scope="col" className="w-16 text-right font-medium text-muted">
               {t("racesHeader")}
             </th>
             {flights.map((flight) => (
               <Tip key={flight} text={t("flightColumnHeader", { number: flight })}>
                 <th
                   scope="col"
-                  className="w-12 text-right font-medium text-slate-600"
+                  className="w-12 text-right font-medium text-muted"
                 >
                   {flight}
                 </th>
@@ -194,7 +194,7 @@ function EventStandingsTable({
               <tr
                 key={row.team.id}
                 data-testid={`matchday-standings-row-${row.team.id}`}
-                className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                className="border-b border-separator last:border-0 hover:bg-surface-secondary"
               >
                 <td className="font-semibold tabular-nums">{row.rank}</td>
                 <td>
@@ -216,7 +216,7 @@ function EventStandingsTable({
                   <Tip text={t("projectedTooltip")}>
                     <td
                       data-testid={`matchday-standings-projected-${row.team.id}`}
-                      className="text-right font-semibold italic tabular-nums text-slate-700"
+                      className="text-right font-semibold italic tabular-nums text-foreground"
                     >
                       {formatPoints(extrapolated)}
                     </td>
@@ -228,7 +228,7 @@ function EventStandingsTable({
                   >
                     {formatPoints(row.net)}
                     {row.net !== row.total && (
-                      <span className="ml-1 text-xs font-normal text-slate-400">
+                      <span className="ml-1 text-xs font-normal text-faint">
                         ({formatPoints(row.total)} {t("gross")})
                       </span>
                     )}
@@ -237,7 +237,7 @@ function EventStandingsTable({
                       <Tip text={row.penalty_note || t("penaltyTooltip")}>
                         <span
                           data-testid={`matchday-standings-penalty-${row.team.id}`}
-                          className="ml-1 text-xs font-normal text-red-700"
+                          className="ml-1 text-xs font-normal text-danger"
                         >
                           {t("penaltyIncluded", { points: formatPoints(row.penalty_points ?? 0) })}
                         </span>
@@ -245,14 +245,14 @@ function EventStandingsTable({
                     )}
                   </td>
                 )}
-                <td className="text-right tabular-nums text-slate-500">
+                <td className="text-right tabular-nums text-muted">
                   {row.races_scored}
                 </td>
                 {flights.map((flight) => {
                   const value = pointsInFlight(row, flight);
                   if (value != null) {
                     return (
-                      <td key={flight} className="text-right tabular-nums text-slate-500">
+                      <td key={flight} className="text-right tabular-nums text-muted">
                         {formatPoints(value)}
                       </td>
                     );
@@ -263,7 +263,7 @@ function EventStandingsTable({
                   // has reached yet is never estimated, even mid-matchday.
                   if (mode === "exact" || !estimated.includes(flight)) {
                     return (
-                      <td key={flight} className="text-right tabular-nums text-slate-400">
+                      <td key={flight} className="text-right tabular-nums text-faint">
                         –
                       </td>
                     );
@@ -272,7 +272,7 @@ function EventStandingsTable({
                     <Tip key={flight} text={t("projectedFlightTooltip")}>
                       <td
                         data-testid={`matchday-standings-flight-projected-${row.team.id}-${flight}`}
-                        className="text-right italic tabular-nums text-slate-400"
+                        className="text-right italic tabular-nums text-faint"
                       >
                         {formatPoints(average)}
                       </td>

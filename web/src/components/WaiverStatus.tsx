@@ -11,7 +11,7 @@ export function WaiverName({ first, last, minor }: { first: string; last: string
   return (
     <>
       {first} {last}
-      {minor && <span className="ml-2 text-xs text-slate-500">{t("manage.waiverMinor")}</span>}
+      {minor && <span className="ml-2 text-xs text-muted">{t("manage.waiverMinor")}</span>}
     </>
   );
 }
@@ -19,7 +19,7 @@ export function WaiverName({ first, last, minor }: { first: string; last: string
 export function WaiverStatus({ status }: { status: Status }) {
   const { t } = useTranslation("admin");
   return (
-    <span className={status === Status.cleared ? "text-emerald-700" : "font-medium text-amber-700"}>
+    <span className={status === Status.cleared ? "text-success-soft-foreground" : "font-medium text-warning-soft-foreground"}>
       {t(`manage.waiverStatus.${status}`)}
     </span>
   );

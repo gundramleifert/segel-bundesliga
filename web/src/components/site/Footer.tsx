@@ -19,11 +19,11 @@ export function GlassFooter() {
   const leagues = useLeagues();
   const association = useAssociation().data;
   const acts = useCurrentActs(leagues);
-  const link = "text-white/80 hover:text-white hover:underline";
+  const link = "text-muted hover:text-foreground hover:underline";
   return (
     // Darkened but not blurred: a blur here would make the footer a backdrop root, and its
     // cards' own glass could then blur nothing but this shade (docs/gotchas).
-    <footer className="relative bg-slate-950/70 text-sm text-white" data-testid="site-footer">
+    <footer className="relative bg-background/70 text-sm text-foreground" data-testid="site-footer">
       <div data-column className="mx-auto max-w-6xl space-y-4 px-4 py-10">
         <CardRow columns={4} testId="site-footer-leagues">
           {leagues.map((league, i) => {
@@ -49,7 +49,7 @@ export function GlassFooter() {
           })}
         </CardRow>
         <TextCard>
-          <Link to={href.about()} className="text-base font-semibold text-white hover:underline">
+          <Link to={href.about()} className="text-base font-semibold text-foreground hover:underline">
             Deutsche Segel-Liga e.V.
           </Link>
           {association && <p className="mt-2 leading-relaxed">{localized(association.service)}</p>}
@@ -60,7 +60,7 @@ export function GlassFooter() {
         </TextCard>
         {/* The foot of every page, so the clearance for the fixed dev switches belongs here:
             without it they sit on the legal links § 5 DDG wants reachable. */}
-        <div className={`flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-white/15 pt-4 text-xs text-white/70 ${DEV_TOOLS ? "pb-20" : ""}`}>
+        <div className={`flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-separator pt-4 text-xs text-muted ${DEV_TOOLS ? "pb-20" : ""}`}>
           <p className="flex flex-wrap gap-x-4 gap-y-1">
             <Link to="/legal-notice" className={link} data-testid="site-footer-legal-notice">{tc("userMenu.legalNotice")}</Link>
             <Link to="/privacy" className={link}>{tc("userMenu.privacy")}</Link>
@@ -78,7 +78,7 @@ function NextAct({ act }: { act: Act }) {
   const title = useActTitle()(act);
   if (act.state === "done" || act.state === "cancelled") return null;
   return (
-    <p className="mt-1 text-xs text-white/70">
+    <p className="mt-1 text-xs text-muted">
       {t(act.state === "live" ? "footer.now" : "footer.next", { act: title, dates: eventDates(act.first) })}
     </p>
   );

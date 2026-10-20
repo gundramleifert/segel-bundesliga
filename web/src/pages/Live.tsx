@@ -67,18 +67,18 @@ export function Live() {
     return (
       <>
         <PageHeader title={`${detail.data.event.title} · ${t("title")}`} testId="live-header" />
-        <div className="rounded-xl border border-slate-200 p-4" data-testid="live-external">
-          <p className="text-sm text-slate-700">{t("external.text")}</p>
+        <div className="rounded-xl border border-separator p-4" data-testid="live-external">
+          <p className="text-sm text-foreground">{t("external.text")}</p>
           <a
             href={detail.data.event.live_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 inline-block rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+            className="mt-3 inline-block rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
             data-testid="live-external-link"
           >
             {t("external.open")}
           </a>
-          <p className="mt-2 break-all text-xs text-slate-500">{detail.data.event.live_url}</p>
+          <p className="mt-2 break-all text-xs text-muted">{detail.data.event.live_url}</p>
         </div>
       </>
     );
@@ -102,7 +102,7 @@ export function Live() {
               />
               {t("controls.follow")}
             </label>
-            <span className="text-xs text-slate-500">{t("attribution")}</span>
+            <span className="text-xs text-muted">{t("attribution")}</span>
           </div>
         </div>
         <div className="min-w-0">
@@ -125,8 +125,8 @@ function StartSequenceLine({ stored }: { stored: StartSequence | null | undefine
   const sequence = fromServer(stored);
   const now = useAlignedNow(sequence ? (sequence.apUpAt ?? sequence.warningAt) : null);
   const box =
-    "mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-amber-300 " +
-    "bg-amber-50 px-3 py-2 text-sm text-amber-950";
+    "mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-warning/50 " +
+    "bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground";
   if (stored?.first_substitute) {
     return (
       <div className={box} data-testid="live-first-substitute">
@@ -142,7 +142,7 @@ function StartSequenceLine({ stored }: { stored: StartSequence | null | undefine
       data-testid={testId}
       data-up={String(up)}
       className={`rounded-md border px-2 py-0.5 font-semibold ${
-        up ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 text-slate-400"
+        up ? "border-accent bg-accent text-accent-foreground" : "border-border text-faint"
       }`}
     >
       {label} {up ? "▲" : "▼"}
@@ -168,24 +168,24 @@ function RaceLine({ snapshot, state }: { snapshot: LiveRace | null; state: "live
   const race = snapshot?.race ?? null;
   return (
     <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm" data-testid="live-race-line">
-      <span className="font-semibold text-slate-900" data-testid="live-race-heading">
+      <span className="font-semibold text-foreground" data-testid="live-race-heading">
         {race
           ? t(race.status === RaceStatus.running ? "race.running" : "race.finished", { sequence: race.sequence })
           : t("race.none")}
       </span>
       {race?.status === RaceStatus.running && race.started_at && (
-        <span className="tabular-nums text-slate-600" data-testid="live-elapsed">
+        <span className="tabular-nums text-muted" data-testid="live-elapsed">
           {t("race.elapsed", { time: clock(now - Date.parse(race.started_at)) })}
         </span>
       )}
-      {race?.signal && <span className="text-amber-800">{t("race.signal", { signal: race.signal })}</span>}
+      {race?.signal && <span className="text-warning-soft-foreground">{t("race.signal", { signal: race.signal })}</span>}
       {snapshot?.wind_from_deg != null && (
-        <span className="text-slate-600" data-testid="live-wind">
+        <span className="text-muted" data-testid="live-wind">
           {t("race.wind", { deg: Math.round(snapshot.wind_from_deg) })}
         </span>
       )}
       {snapshot?.next_race && (
-        <span className="text-slate-500" data-testid="live-next-race">
+        <span className="text-muted" data-testid="live-next-race">
           {t("race.next", { sequence: snapshot.next_race.sequence })}
         </span>
       )}
@@ -439,6 +439,9 @@ function symbolWithLabel(symbol: HTMLElement, label: string, labelClass: string)
   return el;
 }
 
+// What is drawn on the map keeps fixed colours: it lies on the map's own picture, in
+// either theme, and a mark's colour is what the race committee sees on the water.
+
 function boatElement(hex: string, label: string): HTMLDivElement {
   const arrow = document.createElement("div");
   arrow.className = "live-arrow h-0 w-0 border-x-[8px] border-b-[22px] border-x-transparent drop-shadow";
@@ -451,11 +454,11 @@ function boatElement(hex: string, label: string): HTMLDivElement {
 function markElement(role: MarkRole, label: string): HTMLDivElement {
   const dot = document.createElement("div");
   dot.className = `rounded-full border-2 border-white shadow ${
-    role === MarkRole.committee_boat ? "bg-slate-900" : role === MarkRole.finish_pin ? "bg-blue-600" : "bg-orange-500"
+    role === MarkRole.committee_boat ? "bg-slate-900" : role === MarkRole.finish_pin ? "bg-brand-600" : "bg-amber-500"
   }`;
   dot.style.width = "14px";
   dot.style.height = "14px";
-  return symbolWithLabel(dot, label, "font-medium text-slate-700");
+  return symbolWithLabel(dot, label, "font-medium text-slate-900");
 }
 
 function CourseMap({
@@ -708,11 +711,11 @@ function CourseMap({
       <div
         ref={container}
         data-testid="live-map"
-        className="h-[60vh] min-h-[320px] w-full overflow-hidden rounded-xl border border-slate-200 lg:h-[72vh]"
+        className="h-[60vh] min-h-[320px] w-full overflow-hidden rounded-xl border border-separator lg:h-[72vh]"
       />
       {notice && (
         <p
-          className="pointer-events-none absolute top-3 left-3 right-14 z-10 rounded-md bg-white/90 px-3 py-2 text-sm text-slate-700 shadow"
+          className="pointer-events-none absolute top-3 left-3 right-14 z-10 rounded-md bg-white/90 px-3 py-2 text-sm text-slate-900 shadow"
           data-testid={notice === "noCourse" ? "live-no-course" : "live-no-boats"}
         >
           {t(notice)}
@@ -742,12 +745,12 @@ function Panel({ snapshot }: { snapshot: LiveRace | null }) {
     <div data-testid="live-panel">
       <table className="data-table w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50 text-left">
-            <th scope="col" className="w-8 font-medium text-slate-600">{t("panel.rank")}</th>
-            <th scope="col" className="font-medium text-slate-600">{t("panel.boat")}</th>
-            <th scope="col" className="font-medium text-slate-600">{t("panel.leg")}</th>
-            <th scope="col" className="text-right font-medium text-slate-600">{t("panel.speed")}</th>
-            <th scope="col" className="text-right font-medium text-slate-600">{t("panel.toGo")}</th>
+          <tr className="border-b border-separator bg-surface-secondary text-left">
+            <th scope="col" className="w-8 font-medium text-muted">{t("panel.rank")}</th>
+            <th scope="col" className="font-medium text-muted">{t("panel.boat")}</th>
+            <th scope="col" className="font-medium text-muted">{t("panel.leg")}</th>
+            <th scope="col" className="text-right font-medium text-muted">{t("panel.speed")}</th>
+            <th scope="col" className="text-right font-medium text-muted">{t("panel.toGo")}</th>
           </tr>
         </thead>
         <tbody>
@@ -755,18 +758,18 @@ function Panel({ snapshot }: { snapshot: LiveRace | null }) {
             const color = boatColor(boat.color);
             const kind = legKind(boat.leg_name);
             return (
-              <tr key={boat.boat_number} data-testid={`live-boat-row-${boat.boat_number}`} className="border-b border-slate-100 last:border-0">
+              <tr key={boat.boat_number} data-testid={`live-boat-row-${boat.boat_number}`} className="border-b border-separator last:border-0">
                 <td className="font-semibold tabular-nums" data-testid={`live-boat-rank-${boat.boat_number}`}>
                   {boat.rank ?? "–"}
                 </td>
                 <td>
                   <span className="flex items-center gap-1.5">
-                    <span aria-hidden className="size-2.5 shrink-0 rounded-full ring-1 ring-slate-300" style={{ backgroundColor: color.hex }} />
+                    <span aria-hidden className="size-2.5 shrink-0 rounded-full ring-1 ring-border" style={{ backgroundColor: color.hex }} />
                     <span className="truncate">{boat.team?.club.short_name ?? color.name}</span>
                   </span>
                 </td>
                 <td
-                  className="tabular-nums text-slate-600"
+                  className="tabular-nums text-muted"
                   title={kind ? t(`leg.${kind}`) : undefined}
                   data-testid={`live-boat-leg-${boat.boat_number}`}
                 >
@@ -779,7 +782,7 @@ function Panel({ snapshot }: { snapshot: LiveRace | null }) {
                 <td className="text-right tabular-nums" data-testid={`live-boat-speed-${boat.boat_number}`}>
                   {boat.sog_kn.toFixed(1)}
                 </td>
-                <td className="text-right tabular-nums text-slate-600" data-testid={`live-boat-gap-${boat.boat_number}`}>
+                <td className="text-right tabular-nums text-muted" data-testid={`live-boat-gap-${boat.boat_number}`}>
                   {boat.finished_at || boat.to_go_m == null || boat.to_leader_m == null
                     ? "–"
                     : boat.to_leader_m === 0
@@ -792,7 +795,7 @@ function Panel({ snapshot }: { snapshot: LiveRace | null }) {
         </tbody>
       </table>
       {snapshot.detected_finish_order.length > 0 && (
-        <p className="mt-2 text-sm text-slate-700" data-testid="live-detected-order">
+        <p className="mt-2 text-sm text-foreground" data-testid="live-detected-order">
           {t("panel.detectedOrder", { order: snapshot.detected_finish_order.join(" · ") })}
         </p>
       )}
@@ -822,17 +825,17 @@ function CommitteeControls({
   const simulate = useStartEmulation({ mutation: { onSuccess: refresh } });
 
   return (
-    <div className="mt-4 space-y-3 rounded-xl border border-slate-200 p-3 text-sm" data-testid="live-committee">
+    <div className="mt-4 space-y-3 rounded-xl border border-separator p-3 text-sm" data-testid="live-committee">
       <div className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-col text-xs text-slate-600">
+        <label className="flex flex-col text-xs text-muted">
           {t("controls.wind")}
-          <input type="number" min={0} max={359} value={wind} onChange={(e) => setWind(Number(e.target.value))} className="w-20 rounded-md border border-slate-300 px-2 py-1 text-sm" data-testid="live-wind" />
+          <input type="number" min={0} max={359} value={wind} onChange={(e) => setWind(Number(e.target.value))} className="w-20 rounded-md border border-border px-2 py-1 text-sm" data-testid="live-wind" />
         </label>
-        <label className="flex flex-col text-xs text-slate-600">
+        <label className="flex flex-col text-xs text-muted">
           {t("controls.legLength")}
-          <input type="number" min={50} max={5000} step={50} value={leg} onChange={(e) => setLeg(Number(e.target.value))} className="w-24 rounded-md border border-slate-300 px-2 py-1 text-sm" data-testid="live-leg" />
+          <input type="number" min={50} max={5000} step={50} value={leg} onChange={(e) => setLeg(Number(e.target.value))} className="w-24 rounded-md border border-border px-2 py-1 text-sm" data-testid="live-leg" />
         </label>
-        <label className="flex flex-col text-xs text-slate-600">
+        <label className="flex flex-col text-xs text-muted">
           {t("controls.finishLine")}
           <Select
             value={finishSide}
@@ -846,7 +849,7 @@ function CommitteeControls({
         </label>
         <button
           type="button"
-          className="rounded-md bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          className="rounded-md bg-accent px-3 py-1.5 font-medium text-accent-foreground hover:bg-accent-hover disabled:opacity-50"
           disabled={lay.isPending}
           onClick={() => {
             const at = mapRef.current?.getCenter();
@@ -860,12 +863,12 @@ function CommitteeControls({
           {t("controls.layCourse")}
         </button>
       </div>
-      <p className="text-xs text-slate-500">{t("controls.layCourseHint")}</p>
-      {lay.isSuccess && <p className="text-emerald-700" data-testid="live-course-laid">{t("controls.laid")}</p>}
+      <p className="text-xs text-muted">{t("controls.layCourseHint")}</p>
+      {lay.isSuccess && <p className="text-success-soft-foreground" data-testid="live-course-laid">{t("controls.laid")}</p>}
       {lay.isError && <ErrorMessage text={errorText(lay.error)} testId="live-lay-error" />}
 
       {DEV_TOOLS && (
-        <div className="space-y-2 border-t border-slate-200 pt-3">
+        <div className="space-y-2 border-t border-separator pt-3">
           <div className="flex flex-wrap items-center gap-2">
             <Select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} size="inline" testId="live-speed">
               {[1, 5, 10, 20].map((factor) => (
@@ -874,16 +877,16 @@ function CommitteeControls({
             </Select>
             <button
               type="button"
-              className="rounded-md border-2 border-brand-600 px-3 py-1.5 font-medium text-brand-700 hover:bg-brand-50 disabled:opacity-50"
+              className="rounded-md border-2 border-accent px-3 py-1.5 font-medium text-link hover:bg-accent-soft disabled:opacity-50"
               disabled={simulate.isPending}
               onClick={() => simulate.mutate({ data: { event_id: eventId, speed, races: 1 } })}
               data-testid="live-simulate"
             >
               {simulate.isPending ? t("controls.simulating") : t("controls.simulate")}
             </button>
-            {!hasCourse && <span className="text-xs text-slate-500">{t("noCourse")}</span>}
+            {!hasCourse && <span className="text-xs text-muted">{t("noCourse")}</span>}
           </div>
-          <p className="text-xs text-slate-500">{t("controls.simulateHint")}</p>
+          <p className="text-xs text-muted">{t("controls.simulateHint")}</p>
           {simulate.isError && <ErrorMessage text={errorText(simulate.error)} testId="live-simulate-error" />}
         </div>
       )}

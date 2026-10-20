@@ -12,9 +12,9 @@ export type RankMarks = { promotion?: number; relegation?: number; requalify?: [
 type Mark = "promotion" | "relegation" | "requalify";
 
 const MARK_STYLE: Record<Mark, string> = {
-  promotion: "border-l-emerald-500",
-  relegation: "border-l-red-500",
-  requalify: "border-l-amber-500",
+  promotion: "border-l-success",
+  relegation: "border-l-danger",
+  requalify: "border-l-warning",
 };
 
 function markOf(rank: number, count: number, marks: RankMarks): Mark | null {
@@ -59,27 +59,27 @@ export function StandingsTable({
         >
           <caption className="sr-only">{t("caption", { seriesName: data.series.name })}</caption>
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th scope="col" className="w-14 font-medium text-slate-600">
+            <tr className="border-b border-separator bg-surface-secondary text-left">
+              <th scope="col" className="w-14 font-medium text-muted">
                 {t("table.rank")}
               </th>
               {/* Abbreviations only (the full name is the tooltip), so ten characters —
                   "BYC (BE)" — is the widest this ever has to be. */}
-              <th scope="col" className="max-w-28 font-medium text-slate-600">
+              <th scope="col" className="max-w-28 font-medium text-muted">
                 {t("table.club")}
               </th>
-              <th scope="col" className="w-24 text-right font-medium text-slate-600">
+              <th scope="col" className="w-24 text-right font-medium text-muted">
                 {t("table.points")}
               </th>
               {data.events.map((event) => (
-                <th key={event.id} scope="col" className="w-20 whitespace-nowrap text-center font-medium text-slate-600">
+                <th key={event.id} scope="col" className="w-20 whitespace-nowrap text-center font-medium text-muted">
                   {/* The heading is the way into the matchday; the tooltip carries the
                       event's full name — the column fits only "Act 2". */}
                   <Tip text={event.title}>
                     <Link
                       to={actHref(event)}
                       data-testid={`${testId}-event-link-${event.id}`}
-                      className="underline-offset-2 hover:text-slate-900 hover:underline"
+                      className="underline-offset-2 hover:text-foreground hover:underline"
                     >
                       {t("table.act", { matchday: event.matchday })}
                     </Link>
@@ -96,9 +96,9 @@ export function StandingsTable({
                   key={row.team.id}
                   data-testid={`${testId}-row-${row.team.id}`}
                   data-mark={mark ?? undefined}
-                  className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                  className="border-b border-separator last:border-0 hover:bg-surface-secondary"
                 >
-                  <td className={`border-l-4 font-semibold tabular-nums text-slate-900 ${mark ? MARK_STYLE[mark] : "border-l-transparent"}`}>
+                  <td className={`border-l-4 font-semibold tabular-nums text-foreground ${mark ? MARK_STYLE[mark] : "border-l-transparent"}`}>
                     {row.rank}
                   </td>
                   <td>
@@ -106,7 +106,7 @@ export function StandingsTable({
                       <Link
                         to={`/clubs/${row.team.club.id}`}
                         data-testid={`${testId}-club-link-${row.team.id}`}
-                        className="font-medium text-slate-900 underline-offset-2 hover:underline"
+                        className="font-medium text-foreground underline-offset-2 hover:underline"
                       >
                         {row.team.club.short_name}
                       </Link>
@@ -116,11 +116,11 @@ export function StandingsTable({
                   {data.events.map((event) => {
                     const missed = row.missed_matchdays?.includes(event.matchday ?? 0);
                     return (
-                      <td key={event.id} className="text-center tabular-nums text-slate-500">
+                      <td key={event.id} className="text-center tabular-nums text-muted">
                         {/* The rule lives on the cell that raises the question: a team that
                             missed this act has "field size + 1". */}
                         <Tip text={missed ? t("table.notSailed") : null}>
-                          <span className={missed ? "italic text-slate-400" : ""}>
+                          <span className={missed ? "italic text-faint" : ""}>
                             {row.ranks_by_matchday[String(event.matchday)] ?? "–"}
                           </span>
                         </Tip>
@@ -134,7 +134,7 @@ export function StandingsTable({
         </table>
       </TableFrame>
       {used.size > 0 && (
-        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600" data-testid={`${testId}-legend`}>
+        <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted" data-testid={`${testId}-legend`}>
           {(["promotion", "relegation", "requalify"] as const)
             .filter((m) => used.has(m))
             .map((m) => (

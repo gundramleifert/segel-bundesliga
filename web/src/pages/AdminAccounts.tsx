@@ -92,7 +92,7 @@ function AccountTable({
           // Sortable exactly where the server can sort (`USER_SORT` in `app/routers/auth.py`).
           enableSorting: true,
           cell: ({ row }) => (
-            <span className="font-medium text-slate-900">{row.original.display_name}</span>
+            <span className="font-medium text-foreground">{row.original.display_name}</span>
           ),
         }),
         accountColumn.accessor("email", {
@@ -129,7 +129,7 @@ function EmailCell({ account, onChanged }: { account: Account; onChanged: () => 
   const hasPassword = account.identities.some((i) => i.provider === "password");
   return (
     <div className="flex flex-col items-start gap-1">
-      <span className="text-slate-500">{account.email}</span>
+      <span className="text-muted">{account.email}</span>
       {hasPassword && (
         <button
           type="button"
@@ -137,13 +137,13 @@ function EmailCell({ account, onChanged }: { account: Account; onChanged: () => 
           disabled={clear.isPending}
           onClick={() => clear.mutate({ userId: account.id })}
           data-testid={`admin-accounts-clear-password-${account.id}`}
-          className="text-xs text-slate-600 underline underline-offset-2 hover:text-slate-900"
+          className="text-xs text-muted underline underline-offset-2 hover:text-foreground"
         >
           {t("accounts.clearPassword")}
         </button>
       )}
       {clear.error && (
-        <span className="text-xs text-red-700" data-testid={`admin-accounts-clear-password-error-${account.id}`}>
+        <span className="text-xs text-danger" data-testid={`admin-accounts-clear-password-error-${account.id}`}>
           {errorText(clear.error)}
         </span>
       )}
@@ -163,7 +163,7 @@ function TuplesCell({ account, onChanged }: { account: Account; onChanged: () =>
   return (
     <div className="flex flex-col gap-1.5" data-testid={`admin-accounts-tuples-${account.id}`}>
       {account.tuples.length === 0 && !adding && (
-        <span className="text-slate-400">{t("accounts.tupleNone")}</span>
+        <span className="text-faint">{t("accounts.tupleNone")}</span>
       )}
       {account.tuples.map((row) => (
         <div key={row.id} className="flex items-center gap-2">
@@ -171,11 +171,11 @@ function TuplesCell({ account, onChanged }: { account: Account; onChanged: () =>
             <span className="font-medium">
               {t(`accounts.relationLabels.${row.relation}`, { defaultValue: row.relation })}
             </span>
-            <span className="text-slate-500"> · {row.object_name ?? t("accounts.tupleSite")}</span>
+            <span className="text-muted"> · {row.object_name ?? t("accounts.tupleSite")}</span>
           </span>
           <button
             type="button"
-            className="text-slate-400 hover:text-red-700"
+            className="text-faint hover:text-danger"
             aria-label={t("accounts.revoke")}
             title={t("accounts.revoke")}
             disabled={remove.isPending}
@@ -187,7 +187,7 @@ function TuplesCell({ account, onChanged }: { account: Account; onChanged: () =>
         </div>
       ))}
       {remove.error && (
-        <p data-testid={`admin-accounts-error-${account.id}`} className="text-red-700">
+        <p data-testid={`admin-accounts-error-${account.id}`} className="text-danger">
           {errorText(remove.error)}
         </p>
       )}
@@ -196,7 +196,7 @@ function TuplesCell({ account, onChanged }: { account: Account; onChanged: () =>
       ) : (
         <button
           type="button"
-          className="self-start text-sky-700 hover:underline"
+          className="self-start text-accent-soft-foreground hover:underline"
           onClick={() => setAdding(true)}
           data-testid={`admin-accounts-tuple-add-${account.id}`}
         >
@@ -244,10 +244,10 @@ function TupleForm({ account, onDone }: { account: Account; onDone: () => void }
 
   return (
     <div
-      className="flex flex-wrap items-end gap-2 rounded border border-slate-200 p-2"
+      className="flex flex-wrap items-end gap-2 rounded border border-separator p-2"
       data-testid={`admin-accounts-tuple-form-${account.id}`}
     >
-      <label className="flex flex-col text-xs text-slate-500">
+      <label className="flex flex-col text-xs text-muted">
         {t("accounts.tupleTypeLabel")}
         <Select
           value={objectType}
@@ -261,7 +261,7 @@ function TupleForm({ account, onDone }: { account: Account; onDone: () => void }
           ))}
         </Select>
       </label>
-      <label className="flex flex-col text-xs text-slate-500">
+      <label className="flex flex-col text-xs text-muted">
         {t("accounts.tupleRelationLabel")}
         <Select
           value={chosen ?? ""}
@@ -274,7 +274,7 @@ function TupleForm({ account, onDone }: { account: Account; onDone: () => void }
         </Select>
       </label>
       {needsObject && (
-        <label className="flex flex-col text-xs text-slate-500">
+        <label className="flex flex-col text-xs text-muted">
           {t("accounts.tupleObjectLabel")}
           <Select
             value={objectId}
@@ -300,7 +300,7 @@ function TupleForm({ account, onDone }: { account: Account; onDone: () => void }
         {t("accounts.tupleCancel")}
       </Button>
       {write.error && (
-        <p className="w-full text-red-700" data-testid={`admin-accounts-tuple-error-${account.id}`}>
+        <p className="w-full text-danger" data-testid={`admin-accounts-tuple-error-${account.id}`}>
           {errorText(write.error)}
         </p>
       )}

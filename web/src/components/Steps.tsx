@@ -27,17 +27,17 @@ export function Steps({
         const state = number < current ? "done" : number === current ? "current" : "upcoming";
         const marker =
           state === "done"
-            ? "bg-emerald-600 text-white"
+            ? "bg-success text-success-foreground"
             : state === "current"
-              ? "bg-brand-600 text-white"
-              : "border border-slate-300 text-slate-500";
+              ? "bg-accent text-accent-foreground"
+              : "border border-border text-muted";
         return (
           <li
             key={label}
             data-testid={`${testId}-${number}`}
             data-state={state}
             aria-current={state === "current" ? "step" : undefined}
-            className={`flex items-center gap-2 ${state === "upcoming" ? "text-slate-500" : "text-slate-900"}`}
+            className={`flex items-center gap-2 ${state === "upcoming" ? "text-muted" : "text-foreground"}`}
           >
             <span
               aria-hidden="true"

@@ -149,14 +149,14 @@ function PairingStep({
 
   return (
     <Stack gap={3}>
-      <h3 className="text-sm font-semibold text-slate-700">{t("manage.pairingTitle")}</h3>
-      <p className="text-sm text-slate-600">{t("manage.pairingMissingHint")}</p>
+      <h3 className="text-sm font-semibold text-foreground">{t("manage.pairingTitle")}</h3>
+      <p className="text-sm text-muted">{t("manage.pairingMissingHint")}</p>
       <Async state={readiness} testId="admin-events-draw-readiness" loadingText={t("manage.readinessLoadingText")}>
         {(data) =>
           !data.ready && (
             <div
               data-testid="admin-events-draw-blocked"
-              className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800"
+              className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground"
             >
               <p>{t("events.drawBlockedHint")}</p>
               <ReadinessReasons
@@ -238,7 +238,7 @@ function ReadyStep({
             <>
               <h3
                 data-testid="admin-events-ready-title"
-                className={`text-base font-semibold ${complete ? "text-emerald-700" : "text-slate-800"}`}
+                className={`text-base font-semibold ${complete ? "text-success-soft-foreground" : "text-foreground"}`}
               >
                 {complete ? t("events.readyTitle") : t("events.notReadyTitle")}
               </h3>
@@ -248,13 +248,13 @@ function ReadyStep({
                     reasons={data.reasons ?? []}
                     testId="admin-events-ready-reasons"
                     reasonTestId="admin-events-ready-reason"
-                    className="text-sm text-amber-800"
+                    className="text-sm text-warning-soft-foreground"
                   >
                     {!hasPairing && (
                       <li data-testid="admin-events-ready-missing-pairing">· {t("events.missingPairing")}</li>
                     )}
                   </ReadinessReasons>
-                  <p className="mt-2 text-sm text-slate-600">{t("events.finishLaterHint")}</p>
+                  <p className="mt-2 text-sm text-muted">{t("events.finishLaterHint")}</p>
                 </>
               )}
             </>
@@ -290,13 +290,13 @@ function ReadyStep({
             href={getDownloadPairingPdfUrl(event.id)}
             download
             data-testid="admin-events-pairing-pdf-link"
-            className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+            className="text-sm font-medium text-link underline-offset-2 hover:underline"
           >
             {t("events.pairingPdfLink")}
           </a>
         )}
       </div>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         {!published && hasPairing ? t("events.publishToShareHint") : t("manage.publishHint")}
       </p>
       <Message

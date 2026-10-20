@@ -55,7 +55,7 @@ export function Account() {
           </Card.Header>
           <Card.Content>
             {error && (
-              <p data-testid="account-session-error" className="mb-3 text-red-700">
+              <p data-testid="account-session-error" className="mb-3 text-danger">
                 {error}
               </p>
             )}
@@ -176,7 +176,7 @@ function SignIn() {
       type="button"
       onClick={() => switchMode(key)}
       data-testid={`account-signin-tab-${key}`}
-      className={mode === key ? "font-semibold text-brand-700" : "text-slate-500 hover:text-slate-700"}
+      className={mode === key ? "font-semibold text-link" : "text-muted hover:text-foreground"}
     >
       {label}
     </button>
@@ -186,7 +186,7 @@ function SignIn() {
     return (
       <form onSubmit={submitEmail} data-testid="account-signin-form" className="space-y-3">
         {(registrationOffered || passwordOffered) && (
-          <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-slate-200 pb-2 text-sm">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-separator pb-2 text-sm">
             {passwordOffered && tab("password", t("signIn.tabPassword"))}
             {tab("signin", passwordOffered ? t("signIn.tabCode") : t("signIn.tabSignIn"))}
             {registrationOffered && tab("register", t("signIn.tabRegister"))}
@@ -197,7 +197,7 @@ function SignIn() {
           <div>
             <label
               htmlFor="signin-name"
-              className="mb-1 block text-sm font-medium text-slate-700"
+              className="mb-1 block text-sm font-medium text-foreground"
             >
               {t("signIn.nameLabel")}
             </label>
@@ -217,7 +217,7 @@ function SignIn() {
         )}
 
         <div>
-          <label htmlFor="signin-email" className="mb-1 block text-sm font-medium text-slate-700">
+          <label htmlFor="signin-email" className="mb-1 block text-sm font-medium text-foreground">
             {t("signIn.emailLabel")}
           </label>
           <input
@@ -234,7 +234,7 @@ function SignIn() {
         </div>
         {mode === "password" && (
           <div>
-            <label htmlFor="signin-password" className="mb-1 block text-sm font-medium text-slate-700">
+            <label htmlFor="signin-password" className="mb-1 block text-sm font-medium text-foreground">
               {t("signIn.passwordLabel")}
             </label>
             <input
@@ -249,7 +249,7 @@ function SignIn() {
             />
           </div>
         )}
-        {mode === "register" && <p className="text-sm text-slate-500">{t("signIn.registerHint")}</p>}
+        {mode === "register" && <p className="text-sm text-muted">{t("signIn.registerHint")}</p>}
         {error && <ErrorMessage text={error} testId="account-signin-error" />}
         {mode === "password" ? (
           <div className="flex flex-wrap items-center gap-3">
@@ -264,7 +264,7 @@ function SignIn() {
               type="button"
               onClick={() => switchMode("signin")}
               data-testid="account-signin-forgot-button"
-              className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900"
+              className="text-sm text-muted underline underline-offset-2 hover:text-foreground"
             >
               {t("signIn.forgotPassword")}
             </button>
@@ -289,15 +289,15 @@ function SignIn() {
   return (
     <form onSubmit={submitCode} data-testid="account-signin-code-form" className="space-y-3">
       <div>
-        <p className="font-medium text-slate-900">{t("signIn.codeSentTitle")}</p>
-        <p className="text-sm text-slate-600">
+        <p className="font-medium text-foreground">{t("signIn.codeSentTitle")}</p>
+        <p className="text-sm text-muted">
           {t(mode === "register" ? "signIn.codeSentHintRegister" : "signIn.codeSentHint", {
             email: email.trim().toLowerCase(),
           })}
         </p>
       </div>
       <div>
-        <label htmlFor="signin-code" className="mb-1 block text-sm font-medium text-slate-700">
+        <label htmlFor="signin-code" className="mb-1 block text-sm font-medium text-foreground">
           {t("signIn.codeLabel")}
         </label>
         <input
@@ -315,7 +315,7 @@ function SignIn() {
       </div>
       {error && <ErrorMessage text={error} testId="account-signin-verify-error" />}
       {notice && (
-        <p data-testid="account-signin-resent-message" className="text-sm text-emerald-700">
+        <p data-testid="account-signin-resent-message" className="text-sm text-success-soft-foreground">
           {notice}
         </p>
       )}
@@ -328,7 +328,7 @@ function SignIn() {
           onClick={resendCode}
           disabled={busy}
           data-testid="account-signin-resend-button"
-          className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900"
+          className="text-sm text-muted underline underline-offset-2 hover:text-foreground"
         >
           {t("signIn.resendCode")}
         </button>
@@ -342,7 +342,7 @@ function SignIn() {
           }}
           disabled={busy}
           data-testid="account-signin-change-email-button"
-          className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900"
+          className="text-sm text-muted underline underline-offset-2 hover:text-foreground"
         >
           {t("signIn.changeEmail")}
         </button>

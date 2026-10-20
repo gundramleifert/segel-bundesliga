@@ -85,7 +85,7 @@ export function ResultsEntry({
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-slate-600" data-testid="matchday-results-focus-hint">
+        <p className="text-sm text-muted" data-testid="matchday-results-focus-hint">
           {showAll ? t("resultsAllHint") : t("resultsFocusHint")}
         </p>
         <div className="flex flex-wrap items-center gap-3">
@@ -94,7 +94,7 @@ export function ResultsEntry({
           <Link
             to={`/events/${eventId}/race-control`}
             data-testid="matchday-results-race-control-link"
-            className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+            className="text-sm font-medium text-link underline-offset-2 hover:underline"
           >
             {t("openRaceControl")}
           </Link>
@@ -102,7 +102,7 @@ export function ResultsEntry({
             type="button"
             onClick={() => setShowAll((prev) => !prev)}
             data-testid="matchday-results-show-all-toggle"
-            className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+            className="text-sm font-medium text-link underline-offset-2 hover:underline"
           >
             {showAll ? t("resultsShowFocused") : t("resultsShowAll")}
           </button>
@@ -112,11 +112,11 @@ export function ResultsEntry({
         <table data-testid="matchday-results-table" className="data-table w-full min-w-[64rem] border-collapse text-sm">
           <caption className="sr-only">{t("resultsCaption")}</caption>
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left">
-              <th scope="col" className="w-16 font-medium text-slate-600">
+            <tr className="border-b border-separator bg-surface-secondary text-left">
+              <th scope="col" className="w-16 font-medium text-muted">
                 {t("numberHeader")}
               </th>
-              <th scope="col" className="w-20 font-medium text-slate-600">
+              <th scope="col" className="w-20 font-medium text-muted">
                 {t("flightHeader")}
               </th>
               {data.boats.map((boat) => {
@@ -126,15 +126,15 @@ export function ResultsEntry({
                     <span className="flex items-center gap-1.5">
                       <span
                         aria-hidden
-                        className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
+                        className="size-3 shrink-0 rounded-full ring-1 ring-border"
                         style={{ backgroundColor: color.hex }}
                       />
-                      <span className="text-slate-600">{color.name}</span>
+                      <span className="text-muted">{color.name}</span>
                     </span>
                   </th>
                 );
               })}
-              <th scope="col" className="w-28 font-medium text-slate-600" />
+              <th scope="col" className="w-28 font-medium text-muted" />
             </tr>
           </thead>
           <tbody>
@@ -168,10 +168,10 @@ function PenaltyEntry({ eventId, standings }: { eventId: number; standings: Stan
   );
   return (
     <details className="mt-4" data-testid="matchday-penalties">
-      <summary className="cursor-pointer text-sm font-medium text-slate-700">
+      <summary className="cursor-pointer text-sm font-medium text-foreground">
         {t("penaltiesTitle")}
       </summary>
-      <p className="mt-2 text-sm text-slate-600">{t("penaltiesHint")}</p>
+      <p className="mt-2 text-sm text-muted">{t("penaltiesHint")}</p>
       <ul className="mt-2 flex flex-col gap-2">
         {rows.map((row) => (
           <PenaltyRow key={`${row.team.id}-${row.penalty_points}-${row.penalty_note}`} eventId={eventId} row={row} />
@@ -220,7 +220,7 @@ function PenaltyRow({ eventId, row }: { eventId: number; row: StandingRow }) {
         type="button"
         disabled={invalid || save.isPending}
         data-testid={`matchday-penalty-save-${row.team.id}`}
-        className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline disabled:text-slate-400"
+        className="text-sm font-medium text-link underline-offset-2 hover:underline disabled:text-faint"
         onClick={() =>
           save.mutate({
             eventId,
@@ -231,8 +231,8 @@ function PenaltyRow({ eventId, row }: { eventId: number; row: StandingRow }) {
       >
         {t("penaltySave")}
       </button>
-      {invalid && <span className="text-red-700">{t("penaltyInvalid")}</span>}
-      {save.error && <span className="text-red-700">{errorText(save.error)}</span>}
+      {invalid && <span className="text-danger">{t("penaltyInvalid")}</span>}
+      {save.error && <span className="text-danger">{errorText(save.error)}</span>}
     </li>
   );
 }
@@ -297,8 +297,8 @@ function RaceResultRow({
   return (
     <tr
       data-testid={`matchday-results-row-${race.id}`}
-      className={`border-b border-slate-100 align-top last:border-0 ${
-        raceRole === "current" ? "bg-brand-50" : ""
+      className={`border-b border-separator align-top last:border-0 ${
+        raceRole === "current" ? "bg-accent-soft" : ""
       }`}
     >
       <td className="px-3 py-2.5 font-semibold tabular-nums">
@@ -307,20 +307,20 @@ function RaceResultRow({
           <span
             data-testid={`matchday-results-role-${race.id}`}
             className={`ml-1.5 block text-[10px] font-normal uppercase tracking-wide ${
-              raceRole === "current" ? "text-brand-700" : "text-slate-400"
+              raceRole === "current" ? "text-link" : "text-faint"
             }`}
           >
             {t(`raceRole.${raceRole}`)}
           </span>
         )}
       </td>
-      <td className="px-3 py-2.5 tabular-nums text-slate-500">{race.flight}</td>
+      <td className="px-3 py-2.5 tabular-nums text-muted">{race.flight}</td>
       {boats.map((boat) => {
         const existing = byBoat.get(boat.number);
         const row = rows[boat.number];
         if (!existing || !row) {
           return (
-            <td key={boat.number} className="px-3 py-2.5 text-slate-400">
+            <td key={boat.number} className="px-3 py-2.5 text-faint">
               –
             </td>
           );
@@ -339,16 +339,16 @@ function RaceResultRow({
             : row.code;
         return (
           <td key={boat.number} className="min-w-[9.5rem] px-3 py-2.5">
-            <div className="mb-1 flex items-center gap-1.5 truncate text-xs font-medium text-slate-600">
+            <div className="mb-1 flex items-center gap-1.5 truncate text-xs font-medium text-muted">
               <span
                 aria-hidden
-                className="size-2.5 shrink-0 rounded-full ring-1 ring-slate-300"
+                className="size-2.5 shrink-0 rounded-full ring-1 ring-border"
                 style={{ backgroundColor: color.hex }}
               />
               <span className="truncate">{existing.team.club.short_name}</span>
             </div>
             {existing.is_discarded && (
-              <div className="mb-1 text-[11px] text-slate-400">{t("discardedNote")}</div>
+              <div className="mb-1 text-[11px] text-faint">{t("discardedNote")}</div>
             )}
             <div className="flex items-center gap-1.5">
               <Tip text={codeTitle(row.code)}>
@@ -413,7 +413,7 @@ function RaceResultRow({
                 type="number"
                 min={1}
                 className={`${INPUT_CLASS} mt-1 ${
-                  duplicateBoats.has(boat.number) ? "border-red-500 ring-2 ring-red-200" : ""
+                  duplicateBoats.has(boat.number) ? "border-danger ring-2 ring-danger/40" : ""
                 }`}
                 value={row.finish_position ?? ""}
                 placeholder={t("positionPlaceholder")}
@@ -446,8 +446,8 @@ function RaceResultRow({
                       data-testid={`matchday-results-redress-mode-${mode}-${race.id}-${boat.number}`}
                       className={`flex-1 rounded-md border px-1.5 py-1 text-[11px] font-medium transition ${
                         row.redress_mode === mode
-                          ? "border-brand-600 bg-brand-50 text-brand-700"
-                          : "border-slate-300 text-slate-500 hover:bg-slate-50"
+                          ? "border-accent bg-accent-soft text-link"
+                          : "border-border text-muted hover:bg-surface-secondary"
                       }`}
                     >
                       {t(`redress${mode === "auto" ? "Auto" : "Fixed"}Label`)}
@@ -456,7 +456,7 @@ function RaceResultRow({
                 </div>
                 {row.redress_mode === "auto" ? (
                   <p
-                    className="text-[11px] italic text-slate-500"
+                    className="text-[11px] italic text-muted"
                     data-testid={`matchday-results-redress-auto-value-${race.id}-${boat.number}`}
                   >
                     {suggestion != null
@@ -488,13 +488,13 @@ function RaceResultRow({
           <p
             role="alert"
             data-testid={`matchday-results-duplicate-warning-${race.id}`}
-            className="mb-1 text-xs text-red-700"
+            className="mb-1 text-xs text-danger"
           >
             {t("duplicatePositionWarning")}
           </p>
         )}
         {!hasDuplicates && save.isPending && (
-          <p className="text-xs text-slate-400" data-testid={`matchday-results-save-message-${race.id}`}>
+          <p className="text-xs text-faint" data-testid={`matchday-results-save-message-${race.id}`}>
             {t("savingButton")}
           </p>
         )}

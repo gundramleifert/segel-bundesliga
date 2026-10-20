@@ -354,6 +354,25 @@ Two rules, both from `CLAUDE.md`:
 - **Put the new piece in `components/` and add a row above.** A shared component nobody
   knows about is a component that gets written again.
 
+## Colours — names, never shades (2026-10-21)
+
+A page names a colour by what it is for — `text-foreground`, `text-muted`, `text-faint`,
+`bg-surface` (`-secondary`, `-tertiary`), `bg-default`, `border-border`,
+`border-separator`, `bg-accent` / `text-accent-foreground`, `text-link`, `ring-focus`,
+`bg-warning-soft` / `text-warning-soft-foreground` (and `success`, `danger`) — never by a
+shade like `text-slate-500` or `bg-amber-50`. The names are HeroUI's own plus `faint`, so
+HeroUI's components and our markup follow the same variables, and **a theme is only those
+variables** (`index.css`, "colours"): light under `:root`, dark under
+`[data-theme="dark"]`. Floating panels (menus, popovers) take `bg-overlay`: a surface is
+see-through on the dark theme. A selected pill is `bg-foreground text-background`.
+
+The document is dark (`index.html`); `Layout` sets the internal screens' theme (`THEME`,
+dark by default) — a light/dark switch is that one value, nothing in a page changes. What
+lies on a picture keeps its fixed colours — the chapter pages' text over their photo, a
+photo's placeholder, the lightbox, the map's marks, the boats' own colours.
+`pnpm check:colours` (in `check.sh`) fails on a shade anywhere else, and lists the files
+allowed one with the reason.
+
 ## The site frame (issue #14, Stories B-13–B-16)
 
 The public site's pages draw their own frame from `web/src/components/site/`; everything
@@ -361,14 +380,10 @@ else — my space, administration, help, a club, a sailor, the legal pages — s
 `Layout`, which looks like a page deeper without its picture (2026-10-21): the same dark
 ground, the top row and the sub-menu row sticking together (the breadcrumb on the left,
 its last crumb the page's `h1`; a page's `TabbedView inHeader` beside it as pills), the
-same `GlassFooter`. Its pages stay written in light colours: `.on-glass` on its `main`
-**redefines Tailwind's palette** (`--color-slate-*`, the status hues) and HeroUI's
-`dark` theme does the same for HeroUI's components. The theme is one value, `THEME` in
-`Layout.tsx` — where a light/dark switch will hook in; light is the scope left off.
+same `GlassFooter`, in the theme `THEME` sets (above).
 
-- **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu. On
-  a dark ground (`overlay`) — an official page's picture or `Layout`'s; solid white
-  without it, for a light theme.
+- **`TopBar`** — the one row: logo, the leagues (`GET /api/leagues`), the account menu, in
+  the theme's colours; the page puts the shade under it and makes it stick.
   **`Bars`** is it with the sub-menu (`LeagueSubBar`, or a matchday's `SubBar`) in the
   rows' shade; **`BARS`** their height, for scrolling and `sticky`.
 - **`ChapterScroller`** — a league's (or the association's) page: chapters at their own
@@ -382,16 +397,15 @@ same `GlassFooter`. Its pages stay written in light colours: `.on-glass` on its 
 - **`Cards.tsx`** — the official pages' building blocks, taken from the chapter page
   (2026-10-18): **`Card`** (a box, a link with `to`), **`MediaCard`** (picture first, then
   kicker, title, text — news, videos, photos, people), **`Panel`** (room for what is
-  read closely: a full table, an article, the matchday's tables — over a picture a card
-  whose `.on-glass` scope in `index.css` redefines the palette, so the tables written in
-  light colours for the internal screens read on the glass), **`CardRow`** and **`Columns`** (the grid),
+  read closely: a full table, an article, the matchday's tables), **`CardRow`** and
+  **`Columns`** (the grid),
   **`PillSwitch`** (one of a few, as pills — a matchday's division, the language). All
-  are frosted glass with white type, because every official page lies on its picture;
+  are frosted glass in the dark theme's colours, because every official page lies on its picture;
   **`tone`** gives the type, line and pill classes for anything else on the glass, and
   `GLASS`, `BAR_SHADE`, `SHADE_ACROSS`, `SHADE_DOWN` and `PAGE_TITLE` the look's other
   pieces — written here once.
-  The glass's tint is `--site-glass` — dark over a picture, light (`.glass-light`) on
-  `Layout`'s plain ground, where dark glass would be the ground's own colour. How dark and blurred the glass is, how far the picture is darkened and how strong the
+  The glass is `--glass` — a dark tint over a picture, the theme's surface on `Layout`'s
+  plain ground (`.glass-plain`), where dark glass would be the ground's own colour. How dark and blurred the glass is, how far the picture is darkened and how strong the
   secondary text is are CSS variables (`--site-card-alpha`, `--site-card-blur`,
   `--site-shade`, `--site-text` in `index.css`), tuned live with the DEV switch's sliders.
   **`TextCard`** puts a text of its own (an introduction, a note) on a card: over a
@@ -429,14 +443,13 @@ each division on a league's standings page, where `marks` (the league's promotio
 relegation and requalification ranks) colour the row's edge and add a legend. `actHref`
 says where an act's heading leads; `testId` prefixes every testid.
 
-## `Select` — one dropdown, both surfaces
+## `Select` — one dropdown, both themes
 
 A native `<select>` paints its own field and option list but takes its **text colour from
-the page**. On paper that is fine; on the official pages' glass (`.on-glass`) the text is
-white while the browser still draws white — the pairing list's "all clubs" picker was white
-on white. `Select` names `bg-white text-slate-900` itself, which `.on-glass` maps to glass,
-and `index.css` gives a select on glass `color-scheme: dark` and dark options, so the open
-list is dark too. Every dropdown is this component; `.oxlintrc.json` forbids `<select>`
+the page**. On the dark theme the text is white while the browser still draws white — the
+pairing list's "all clubs" picker was white on white. `Select` names
+`bg-surface text-foreground` itself, and the open list follows the theme's `color-scheme`
+and the option colours `index.css` sets for the dark theme. Every dropdown is this component; `.oxlintrc.json` forbids `<select>`
 anywhere else.
 
 - **`size` says where it stands:** `field` (a labelled form control, full width, in

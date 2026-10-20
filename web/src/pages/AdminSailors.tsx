@@ -101,14 +101,14 @@ function SailorList({ page, params }: { page: SailorPage; params: ListParams }) 
           header: t("sailors.emailHeader"),
           enableSorting: true,
           cell: ({ row }) => (
-            <span className="text-slate-500">{row.original.email ?? "—"}</span>
+            <span className="text-muted">{row.original.email ?? "—"}</span>
           ),
         }),
         sailorColumn.accessor("squads", {
           header: t("sailors.squadsHeader"),
           enableSorting: false,
           cell: ({ row }) => (
-            <span className="text-slate-400">
+            <span className="text-faint">
               {/* An ICU plural (`{count, plural, one {…} other {…}}`), so the count reaches
                   the singular too — a hand-rolled pair showed "{{count}} registration" once. */}
               {t("sailors.registrationsLabel", { count: row.original.squads ?? 0 })}

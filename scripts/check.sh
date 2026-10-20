@@ -43,6 +43,8 @@ step "ruff"            bash -c 'cd api && uv run ruff check .'
 [[ "${1:-}" == "--fast" ]] || step "pytest" bash -c 'cd api && uv run pytest -q -n auto'
 step "web typecheck"   bash -c 'cd web && pnpm typecheck'
 step "web i18n"        bash -c 'cd web && pnpm check:i18n'
+# A shade class (`text-slate-500`) has one value; a page naming one breaks in the other theme.
+step "web colours"     bash -c 'cd web && pnpm check:colours'
 step "web lint"        bash -c 'cd web && pnpm lint'
 step "web build"       bash -c 'cd web && pnpm build'
 step "spec typecheck"  pnpm typecheck

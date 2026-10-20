@@ -74,7 +74,7 @@ function TeamCrewCard({ entry }: { entry: TeamCrew }) {
       </Card.Header>
       <Card.Content>
         {crew?.length ? (
-          <ul className="divide-y divide-slate-100 text-sm">
+          <ul className="divide-y divide-separator text-sm">
             {crew.map((member) => (
               <li
                 key={member.id}
@@ -86,7 +86,7 @@ function TeamCrewCard({ entry }: { entry: TeamCrew }) {
                   testId={`matchday-crew-sailor-link-${team.id}-${member.id}`}
                   className="truncate font-medium"
                 />
-                <span className="shrink-0 text-slate-500">{roleText(member.role)}</span>
+                <span className="shrink-0 text-muted">{roleText(member.role)}</span>
               </li>
             ))}
           </ul>
@@ -95,7 +95,7 @@ function TeamCrewCard({ entry }: { entry: TeamCrew }) {
              a page that failed to load. */
           <p
             data-testid={`matchday-crew-unnamed-${team.id}`}
-            className="text-sm text-slate-400"
+            className="text-sm text-faint"
           >
             {t("crewNotNamed")}
           </p>

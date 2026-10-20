@@ -80,10 +80,10 @@ export function Field({
 
   return (
     <div data-testid={testId ?? `field-${slugify(label)}`} className="text-sm">
-      <label htmlFor={id} className="font-medium text-slate-700">
+      <label htmlFor={id} className="font-medium text-foreground">
         {label}
       </label>
-      {hint && <span className="ml-2 text-slate-500">{hint}</span>}
+      {hint && <span className="ml-2 text-muted">{hint}</span>}
       <div className="mt-1">{control}</div>
     </div>
   );
@@ -104,7 +104,7 @@ export function Message({
       <p
         role="status"
         data-testid={testId ? `${testId}-success` : "success-message"}
-        className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800"
+        className="rounded-lg border border-success/50 bg-success-soft px-4 py-2 text-sm text-success-soft-foreground"
       >
         {success}
       </p>

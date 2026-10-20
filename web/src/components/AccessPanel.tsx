@@ -57,7 +57,7 @@ export function AccessPanel({
 
   return (
     <Section title={t("access.title")} testId={testId}>
-      <p className="mb-2 text-sm text-slate-600">{t("access.hint")}</p>
+      <p className="mb-2 text-sm text-muted">{t("access.hint")}</p>
       <Async state={tuples} testId={testId} empty={t("access.empty")}>
         {(rows) => (
           <ul className="flex flex-col gap-1.5" data-testid={`${testId}-list`}>
@@ -65,12 +65,12 @@ export function AccessPanel({
               <li key={row.id} className="flex flex-wrap items-center gap-2" data-testid={`${testId}-tuple-${row.id}`}>
                 <span className="font-medium">{t(`accounts.relationLabels.${row.relation}`, { defaultValue: row.relation })}</span>
                 <span>
-                  {row.user_name} <span className="text-slate-500">({row.user})</span>
+                  {row.user_name} <span className="text-muted">({row.user})</span>
                 </span>
                 <PersonDocuments userId={row.user_id} name={row.user_name} testId={`${testId}-documents-${row.id}`} />
                 <button
                   type="button"
-                  className="text-slate-400 hover:text-red-700"
+                  className="text-faint hover:text-danger"
                   aria-label={t("access.revoke")}
                   title={t("access.revoke")}
                   disabled={remove.isPending}
@@ -87,7 +87,7 @@ export function AccessPanel({
       {remove.error && <ErrorMessage text={errorText(remove.error)} testId={`${testId}-revoke-error`} />}
 
       <div className="mt-3 flex flex-wrap items-end gap-2" data-testid={`${testId}-form`}>
-        <label className="flex min-w-0 flex-1 flex-col text-xs text-slate-500">
+        <label className="flex min-w-0 flex-1 flex-col text-xs text-muted">
           {t("access.emailLabel")}
           <input
             className={INPUT_CLASS}
@@ -97,7 +97,7 @@ export function AccessPanel({
             data-testid={`${testId}-email`}
           />
         </label>
-        <label className="flex flex-col text-xs text-slate-500">
+        <label className="flex flex-col text-xs text-muted">
           {t("access.relationLabel")}
           <Select
             value={chosen ?? ""}

@@ -107,7 +107,7 @@ export function TabbedView<K extends string>({
       aria-label={label}
       data-testid={`${testIdPrefix}-tabs`}
       onKeyDown={onKeyDown}
-      className={inHeader ? "flex items-center gap-1" : "inline-flex rounded-lg border border-slate-200 bg-white p-1"}
+      className={inHeader ? "flex items-center gap-1" : "inline-flex rounded-lg border border-separator bg-surface p-1"}
     >
       {tabs.map((tab) => {
         const isSelected = tab.key === selected;
@@ -126,10 +126,10 @@ export function TabbedView<K extends string>({
               inHeader
                 ? // Pills, like the sub-menu of a league's pages (`SubBar`).
                   `whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                    isSelected ? "bg-white text-slate-950" : "text-white/75 hover:bg-white/10 hover:text-white"
+                    isSelected ? "bg-foreground text-background" : "text-muted hover:bg-default hover:text-foreground"
                   }`
                 : `whitespace-nowrap rounded-md px-4 py-1.5 text-sm transition-colors ${
-                    isSelected ? "bg-brand-600 font-medium text-white" : "text-slate-600 hover:bg-slate-100"
+                    isSelected ? "bg-accent font-medium text-accent-foreground" : "text-muted hover:bg-surface-tertiary"
                   }`
             }
           >
@@ -149,7 +149,7 @@ export function TabbedView<K extends string>({
           where it belongs. In the header, the header row is that box (`Layout`). */}
       {inHeader ? (
         <InHeader>
-          <div className="shrink-0 border-l border-white/20 pl-2">{tablist}</div>
+          <div className="shrink-0 border-l border-separator pl-2">{tablist}</div>
         </InHeader>
       ) : (
         <div className="mb-4 overflow-x-auto">{tablist}</div>

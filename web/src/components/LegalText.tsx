@@ -37,7 +37,7 @@ function withPendingMarkers(text: string): ReactNode[] {
       <mark
         key={index}
         data-testid="legal-pending-value"
-        className="rounded bg-amber-100 px-1 font-mono text-[0.85em] font-semibold text-amber-900 ring-1 ring-amber-300"
+        className="rounded bg-warning-soft px-1 font-mono text-[0.85em] font-semibold text-warning-soft-foreground ring-1 ring-warning/50"
       >
         {part}
       </mark>
@@ -58,7 +58,7 @@ export function LegalDraftNotice({ testId }: { testId: string }) {
     <div
       role="alert"
       data-testid={testId}
-      className="mb-8 rounded-lg border-2 border-amber-400 bg-amber-50 px-4 py-4 text-amber-900"
+      className="mb-8 rounded-lg border-2 border-warning/50 bg-warning-soft px-4 py-4 text-warning-soft-foreground"
     >
       <p className="flex items-center gap-2 text-base font-bold">
         <span aria-hidden>⚠</span>
@@ -72,7 +72,7 @@ export function LegalDraftNotice({ testId }: { testId: string }) {
 
 export function LegalLastUpdated({ text, testId }: { text: string; testId: string }) {
   return (
-    <p data-testid={testId} className="mb-8 text-sm text-slate-500">
+    <p data-testid={testId} className="mb-8 text-sm text-muted">
       {text}
     </p>
   );
@@ -91,14 +91,14 @@ export function LegalSections({
     <div className="grid max-w-3xl gap-8">
       {sections.map((section, index) => (
         <section key={section.heading} data-testid={`${testIdPrefix}-section-${index + 1}`}>
-          <h2 className="mb-2 text-lg font-semibold text-slate-900">{section.heading}</h2>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">{section.heading}</h2>
           {section.paragraphs.map((paragraph) => (
-            <p key={paragraph} className="mb-2 whitespace-pre-line text-slate-700">
+            <p key={paragraph} className="mb-2 whitespace-pre-line text-foreground">
               {withPendingMarkers(paragraph)}
             </p>
           ))}
           {section.items && (
-            <ul className="mt-2 list-disc space-y-1 pl-5 text-slate-700">
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-foreground">
               {section.items.map((item) => (
                 <li key={item}>{withPendingMarkers(item)}</li>
               ))}
@@ -107,7 +107,7 @@ export function LegalSections({
           {section.open && (
             <p
               data-testid={`${testIdPrefix}-open-question-${index + 1}`}
-              className="mt-3 border-l-4 border-amber-400 bg-amber-50/60 py-2 pl-3 text-sm text-amber-900"
+              className="mt-3 border-l-4 border-warning/50 bg-warning-soft/60 py-2 pl-3 text-sm text-warning-soft-foreground"
             >
               <span className="font-semibold">{t("openQuestionLabel")}</span>{" "}
               {withPendingMarkers(section.open)}

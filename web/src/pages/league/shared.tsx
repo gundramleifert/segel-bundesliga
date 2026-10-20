@@ -37,7 +37,7 @@ export const actDates = (act: Act) => eventDates(act.first);
 /** Where an act stands, as a small badge on the glass. */
 export function StateBadge({ state }: { state: ActState }) {
   const { t } = useTranslation("site");
-  const tone = state === "live" ? "bg-red-600 text-white" : state === "next" ? "bg-white text-slate-950" : "bg-white/10 text-white/80";
+  const tone = state === "live" ? "bg-danger text-danger-foreground" : state === "next" ? "bg-foreground text-background" : "bg-default text-muted";
   return (
     <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${tone}`} data-testid={`act-state-${state}`}>
       {t(`state.${state}`)}
@@ -54,7 +54,7 @@ export const divisionName = (event: EventSummary) =>
 export function ExampleNote({ text }: { text?: string }) {
   const { t } = useTranslation("site");
   return (
-    <p role="note" data-testid="site-example-note" className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+    <p role="note" data-testid="site-example-note" className="mb-6 rounded-lg border border-warning/50 bg-warning-soft px-4 py-3 text-sm text-warning-soft-foreground">
       {text ?? t("example")}
     </p>
   );

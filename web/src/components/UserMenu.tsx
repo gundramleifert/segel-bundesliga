@@ -31,12 +31,9 @@ export function UserMenu({
   account,
   loading,
   admin = false,
-  overlay = false,
 }: {
   account: Account | null;
   loading: boolean;
-  /** The row is on a picture, in white (`TopBar`). */
-  overlay?: boolean;
   /** Whether the administration is offered — only to the roles that can use it, because a
    *  link that ends in a 403 is worse than no link (Story A-12). */
   admin?: boolean;
@@ -56,9 +53,9 @@ export function UserMenu({
   // Not known yet: a quiet placeholder of the button's size, so the row does not jump
   // from the guest's controls to the avatar when a stored session turns out valid.
   if (!account && loading) {
-    return <div aria-hidden className="size-8 shrink-0 animate-pulse rounded-full bg-slate-100" />;
+    return <div aria-hidden className="size-8 shrink-0 animate-pulse rounded-full bg-surface-tertiary" />;
   }
-  if (!account) return <GuestControls overlay={overlay} />;
+  if (!account) return <GuestControls />;
 
   // My space and my own page in it (Stories Z-8, S-7).
   const links = [
@@ -75,13 +72,13 @@ export function UserMenu({
         {...menu.triggerProps}
         aria-label={needs ? `${t("userMenu.label")} — ${t("userMenu.needs", { count: needs })}` : t("userMenu.label")}
         data-testid="layout-profile-button"
-        className="relative grid size-8 shrink-0 place-items-center rounded-full bg-brand-600 text-xs font-bold uppercase text-white transition-colors hover:bg-brand-700"
+        className="relative grid size-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold uppercase text-accent-foreground transition-colors hover:bg-accent-hover"
       >
         {needs > 0 && (
           <span
             aria-hidden
             data-testid="layout-profile-badge"
-            className="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white"
+            className="absolute -right-1.5 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-warning px-1 text-[10px] font-bold leading-none text-warning-foreground ring-2 ring-background"
           >
             {needs > 9 ? "9+" : needs}
           </span>
@@ -95,9 +92,9 @@ export function UserMenu({
           data-testid="layout-user-menu"
           // Anchored to the button and pinned to its right edge, so it opens inward from
           // whichever corner the button is in and never off the side of the screen.
-          className="absolute right-0 z-50 mt-2 w-56 rounded-xl bg-white p-2 shadow-xl ring-1 ring-slate-900/5"
+          className="absolute right-0 z-50 mt-2 w-56 rounded-xl bg-overlay p-2 shadow-xl ring-1 ring-foreground/5"
         >
-          <p className="truncate px-3 pb-2 pt-1 text-sm font-medium text-slate-900">
+          <p className="truncate px-3 pb-2 pt-1 text-sm font-medium text-foreground">
             {account.display_name}
           </p>
 
@@ -107,7 +104,7 @@ export function UserMenu({
                 <Link
                   to={link.to}
                   data-testid={`layout-user-menu-${link.key}`}
-                  className="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                  className="flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-surface-tertiary"
                 >
                   {link.key === "help" && pageHelp ? (
                     <span data-testid="help-for-this-page">{t("forThisPage", { ns: "help" })}</span>
@@ -116,7 +113,7 @@ export function UserMenu({
                   )}
                   {link.key === "mySpace" && needs > 0 && (
                     <span
-                      className="rounded-full bg-amber-100 px-2 text-xs font-medium text-amber-800"
+                      className="rounded-full bg-warning-soft px-2 text-xs font-medium text-warning-soft-foreground"
                       data-testid="layout-user-menu-mySpace-needs"
                     >
                       {needs}
@@ -136,15 +133,15 @@ export function UserMenu({
 }
 
 /** A guest's two things, in the row itself: the language and the way in. */
-function GuestControls({ overlay }: { overlay: boolean }) {
+function GuestControls() {
   const { t } = useTranslation();
   return (
     <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-      <LanguageMenu overlay={overlay} />
+      <LanguageMenu />
       <Link
         to="/account"
         data-testid="layout-sign-in"
-        className="whitespace-nowrap rounded-full bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-700"
+        className="whitespace-nowrap rounded-full bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
       >
         {t("userMenu.signIn")}
       </Link>
@@ -158,7 +155,7 @@ function GuestControls({ overlay }: { overlay: boolean }) {
  *  current one checked. Not a native `<select>`: the list a browser opens for one cannot
  *  be styled, and on the site it looked like a form, not like the row it hangs from. Not
  *  an EN|DE pair either: a third language fits a list and would not fit the pair. */
-function LanguageMenu({ overlay }: { overlay: boolean }) {
+function LanguageMenu() {
   const { t, i18n } = useTranslation();
   const menu = useDisclosure("language-menu");
   const current = (i18n.resolvedLanguage ?? i18n.language) as SupportedLanguage;
@@ -170,9 +167,9 @@ function LanguageMenu({ overlay }: { overlay: boolean }) {
         aria-haspopup="menu"
         aria-label={`${t("language.label")}: ${t(`language.${current}`)}`}
         data-testid="layout-language"
-        className={`flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[13px] font-medium transition sm:px-3 sm:text-sm ${
-          overlay ? "hover:bg-white/10 hover:text-white" : "hover:bg-slate-100 hover:text-slate-950"
-        } ${menu.open ? (overlay ? "bg-white/10 text-white" : "bg-slate-100 text-slate-950") : ""}`}
+        className={`flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[13px] font-medium transition hover:bg-default hover:text-foreground sm:px-3 sm:text-sm ${
+          menu.open ? "bg-default text-foreground" : ""
+        }`}
       >
         <svg aria-hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="size-4">
           <circle cx="12" cy="12" r="9" />
@@ -193,7 +190,7 @@ function LanguageMenu({ overlay }: { overlay: boolean }) {
         </svg>
       </button>
       {menu.open && (
-        <div {...menu.panelProps} className="absolute right-0 z-50 mt-2 w-44 rounded-xl bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5">
+        <div {...menu.panelProps} className="absolute right-0 z-50 mt-2 w-44 rounded-xl bg-overlay p-1.5 shadow-xl ring-1 ring-foreground/5">
         <ul role="menu" data-testid="language-switcher">
           {SUPPORTED_LANGUAGES.map((lang) => (
             <li key={lang} role="none">
@@ -206,12 +203,12 @@ function LanguageMenu({ overlay }: { overlay: boolean }) {
                   menu.close();
                 }}
                 data-testid={`language-switcher-${lang}`}
-                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-slate-100 ${
-                  current === lang ? "bg-brand-50 font-semibold text-brand-700" : "text-slate-700"
+                className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm transition hover:bg-surface-tertiary ${
+                  current === lang ? "bg-accent-soft font-semibold text-link" : "text-foreground"
                 }`}
               >
                 <span>{t(`language.${lang}`)}</span>
-                <span className="text-xs uppercase text-slate-400">{lang}</span>
+                <span className="text-xs uppercase text-faint">{lang}</span>
               </button>
             </li>
           ))}
@@ -269,12 +266,12 @@ function LanguageChoice() {
         aria-haspopup="menu"
         onClick={toggle}
         data-testid="layout-user-menu-language"
-        className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100"
+        className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-surface-tertiary"
       >
         <span>{t("language.label")}</span>
         {/* The chosen language stays on this row, so the menu says what it is without
             being opened. */}
-        <span className="flex items-center gap-1 text-slate-500">
+        <span className="flex items-center gap-1 text-muted">
           {t(`language.${current}`)}
           <svg
             aria-hidden
@@ -296,7 +293,7 @@ function LanguageChoice() {
           id="user-menu-language"
           data-testid="language-switcher"
           role="menu"
-          className={`absolute top-0 z-10 w-40 rounded-xl bg-white p-2 shadow-xl ring-1 ring-slate-900/5 ${
+          className={`absolute top-0 z-10 w-40 rounded-xl bg-overlay p-2 shadow-xl ring-1 ring-foreground/5 ${
             side === "right" ? "left-full ml-1" : "right-full mr-1"
           }`}
         >
@@ -311,11 +308,11 @@ function LanguageChoice() {
                 aria-checked={current === lang}
                 onClick={() => void i18n.changeLanguage(lang)}
                 data-testid={`language-switcher-${lang}`}
-                className={`flex w-full items-center gap-2 rounded-md py-1.5 pl-7 pr-3 text-sm hover:bg-slate-100 ${
-                  current === lang ? "font-medium text-slate-900" : "text-slate-600"
+                className={`flex w-full items-center gap-2 rounded-md py-1.5 pl-7 pr-3 text-sm hover:bg-surface-tertiary ${
+                  current === lang ? "font-medium text-foreground" : "text-muted"
                 }`}
               >
-                <span aria-hidden className="w-3 text-brand-600">
+                <span aria-hidden className="w-3 text-link">
                   {current === lang ? "✓" : ""}
                 </span>
                 {t(`language.${lang}`)}

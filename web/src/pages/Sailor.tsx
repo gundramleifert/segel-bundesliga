@@ -27,7 +27,7 @@ export function Sailor() {
       {/* Story S-4: only a connected viewer reaches a hidden page — say so, so they do
           not take it for what a guest sees. */}
       {data.profile_public === false && (
-        <p data-testid="sailor-not-public" className="mb-6 text-sm text-slate-500">
+        <p data-testid="sailor-not-public" className="mb-6 text-sm text-muted">
           {t("notPublic")}
         </p>
       )}
@@ -65,17 +65,17 @@ export function Sailor() {
       <section data-testid="sailor-lineups-section">
         <h2 className="mb-3 text-lg font-semibold">{t("lineups")}</h2>
         {data.events?.length ? (
-          <ul className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <ul className="overflow-hidden rounded-xl border border-separator bg-surface">
             {data.events.map((entry) => (
-              <li key={entry.event.id} className="border-b border-slate-100 last:border-0">
+              <li key={entry.event.id} className="border-b border-separator last:border-0">
                 <Link
                   to={`/events/${entry.event.id}`}
                   data-testid={`sailor-lineup-row-${entry.event.id}`}
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-slate-50"
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-surface-secondary"
                 >
                   <span className="font-medium">{entry.event.title}</span>
                   <StatusBadge status={entry.event.status} />
-                  <span className="w-full text-sm text-slate-500">
+                  <span className="w-full text-sm text-muted">
                     {locationText(entry.event)} ·{" "}
                     {eventDates(entry.event)} ·{" "}
                     {roleText(entry.role)}

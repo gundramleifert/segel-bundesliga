@@ -127,20 +127,20 @@ export function UploadList({ items, received, testId }: { items: UploadItem[]; r
   if (items.length === 0) return null;
   return (
     <>
-      <p className="text-sm text-slate-700" data-testid={`${testId}-summary`}>
+      <p className="text-sm text-foreground" data-testid={`${testId}-summary`}>
         {t("summary", { received, count: items.length })}
       </p>
       <ul className="grid grid-cols-[minmax(0,1fr)] gap-2" data-testid={`${testId}-list`}>
         {items.map((item) => (
-          <li key={item.id} className="flex items-center gap-3 rounded-md border border-slate-200 bg-white p-2" data-testid={`${testId}-item-${item.id}`}>
+          <li key={item.id} className="flex items-center gap-3 rounded-md border border-separator bg-surface p-2" data-testid={`${testId}-item-${item.id}`}>
             {item.preview ? (
               <img src={item.preview} alt="" className="size-12 shrink-0 rounded object-cover" data-testid={`${testId}-item-${item.id}-preview`} />
             ) : (
-              <span className="size-12 shrink-0 rounded bg-slate-200" aria-hidden />
+              <span className="size-12 shrink-0 rounded bg-default" aria-hidden />
             )}
             <span className="min-w-0 flex-1 truncate text-sm">{item.name}</span>
             <span
-              className={`shrink-0 text-sm ${item.status === "failed" ? "text-red-700" : item.status === "sending" || item.status === "waiting" ? "text-slate-500" : "text-emerald-700"}`}
+              className={`shrink-0 text-sm ${item.status === "failed" ? "text-danger" : item.status === "sending" || item.status === "waiting" ? "text-muted" : "text-success-soft-foreground"}`}
               data-testid={`${testId}-item-${item.id}-status`}
               data-status={item.status}
             >
@@ -209,12 +209,12 @@ export function BatchUpload({
         }}
         onDragLeave={() => setOver(false)}
         onDrop={drop}
-        className={`grid min-h-40 place-items-center rounded-lg border-2 border-dashed p-6 text-center ${over ? "border-brand-500 bg-brand-50" : "border-slate-300 bg-white"}`}
+        className={`grid min-h-40 place-items-center rounded-lg border-2 border-dashed p-6 text-center ${over ? "border-accent bg-accent-soft" : "border-border bg-surface"}`}
         data-testid={`${testId}-dropzone`}
       >
         <span>
-          <span className="block text-lg font-medium text-slate-800">{t("choose")}</span>
-          <span className="block text-sm text-slate-500">{t("chooseHint")}</span>
+          <span className="block text-lg font-medium text-foreground">{t("choose")}</span>
+          <span className="block text-sm text-muted">{t("chooseHint")}</span>
         </span>
       </button>
       <input

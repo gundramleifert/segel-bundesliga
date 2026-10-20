@@ -98,7 +98,7 @@ function DivisionTable({ series, marks, league, year }: { series: Series; marks:
     <Async state={table} testId={`site-table-${series.slug}`}>
       {(data) =>
         data.rows.every((r) => (r.events_sailed ?? 0) === 0) ? (
-          <p className="text-slate-500">{t("standings.notYet")}</p>
+          <p className="text-muted">{t("standings.notYet")}</p>
         ) : (
           // A table wider than a phone scrolls here, not the page (Story A-10).
           <div className="panel-scroll">
@@ -236,7 +236,7 @@ export function DocList({ docs }: { docs: string[] }) {
     <ul className="space-y-1.5">
       {docs.map((doc) => (
         <li key={doc} className="flex items-center gap-3">
-          <span className={`grid size-8 shrink-0 place-items-center rounded-md text-[10px] font-bold bg-white/15 text-white/80`}>PDF</span>
+          <span className={`grid size-8 shrink-0 place-items-center rounded-md text-[10px] font-bold bg-default text-muted`}>PDF</span>
           {/* No download mark until there is a file to download. */}
           <span className={`flex-1 ${tone.text}`}>{doc}</span>
         </li>
@@ -275,7 +275,7 @@ function DivisionClubs({ series }: { series: LeagueSeason["series"][number] }) {
       {clubs.map((club) => (
         <li key={club.id}>
           <Card to={href.club(club.id)} className="flex h-full flex-col items-center gap-2 p-4 text-center">
-            <span className={`grid size-12 place-items-center rounded-full text-sm font-bold bg-white/15 text-white`}>{club.short_name}</span>
+            <span className={`grid size-12 place-items-center rounded-full text-sm font-bold bg-default text-foreground`}>{club.short_name}</span>
             <span className={`line-clamp-2 text-xs ${tone.muted}`}>{club.name}</span>
           </Card>
         </li>
@@ -323,7 +323,7 @@ function MoreButton<T>({ list, label, testId }: { list: Paged<T>; label: string;
         type="button"
         onClick={list.more}
         disabled={list.loadingMore}
-        className="rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20 disabled:opacity-60"
+        className="rounded-full bg-default px-5 py-2 text-sm font-medium text-foreground backdrop-blur hover:bg-default-hover disabled:opacity-60"
         data-testid={testId}
       >
         {label}

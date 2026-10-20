@@ -24,7 +24,7 @@ export function SiteShell() {
       <a
         href="#content"
         data-testid="layout-skip-link"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:ring-2 focus:ring-brand-500"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-md focus:bg-surface focus:px-4 focus:py-2 focus:ring-2 focus:ring-focus"
       >
         {t("skipToContent")}
       </a>
@@ -55,19 +55,17 @@ function useScrollToTop() {
 /** The frame of the pages outside the leagues — my space, administration, help, a club, a
  *  sailor, the legal pages (Stories B-13, A-12).
  *
- * Drawn like a page behind a league's chapter (`DepthPage`), without its picture: the same
- * dark ground, the top row and a sub-menu row under it, sticking together — where you are
- * on the left (the breadcrumb, whose last crumb is the page's `h1`), the page's own tabs
- * beside it as pills (`InHeader`) — and the same footer. The pages are written in light
- * colours, as they always were; `.on-glass` (index.css) turns them into the dark ground's,
- * and HeroUI's `dark` theme does the same for its own components.
+ * Drawn like a page behind a league's chapter (`DepthPage`), without its picture: the top
+ * row and a sub-menu row under it, sticking together — where you are on the left (the
+ * breadcrumb, whose last crumb is the page's `h1`), the page's own tabs beside it as pills
+ * (`InHeader`) — and the same footer.
  *
- * **The theme is set here and only here** (`THEME`). A light mode is meant to come — a
- * switch in the account menu — and then it is this value: light drops `dark` and
- * `.on-glass`, which leaves the pages in the colours they are written in, and the rows
- * take the top row's solid variant.
+ * **The theme is set here and only here** (`THEME`): the pages name their colours
+ * (`text-muted`, `bg-surface` — index.css), and `data-theme` gives the names their values,
+ * for this frame and everything in it, HeroUI's components included. The official pages
+ * stay dark, on their pictures. A light/dark switch is this value.
  */
-const THEME = "dark";
+const THEME: "light" | "dark" = "dark";
 
 export function Layout() {
   // State, not a ref: the page's portal has to render again once the slot exists.
@@ -76,14 +74,16 @@ export function Layout() {
     <div
       data-theme={THEME}
       data-testid="layout"
-      className={`${THEME} glass-light flex min-h-dvh flex-col bg-slate-950 text-white`}
+      // `glass-plain`: the cards that are glass over a picture take the theme's surface on
+      // this plain ground.
+      className={`${THEME === "dark" ? "dark" : ""} glass-plain flex min-h-dvh flex-col bg-background text-foreground`}
     >
       <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
-        <TopBar overlay />
+        <TopBar />
         {/* With a sub-menu the whole row scrolls sideways on a phone, name and tabs
             together, as the league's row does — squeezed, the name wrapped into a column.
             Without one, the name truncates instead (`Breadcrumb`). */}
-        <div data-testid="layout-header" className="border-b border-white/15 text-sm">
+        <div data-testid="layout-header" className="border-b border-separator text-sm">
           <div className="scrollbar-none mx-auto flex h-12 w-full max-w-6xl min-w-0 items-center gap-3 px-4 has-[[role=tablist]]:overflow-x-auto has-[[role=tablist]]:[&>nav]:shrink-0 has-[[role=tablist]]:[&>nav]:whitespace-nowrap">
             <Breadcrumb />
             <div ref={setSlot} data-testid="layout-header-slot" className="contents" />
@@ -95,7 +95,7 @@ export function Layout() {
         data-testid="layout-main"
         // `panel-scroll`: a table wider than the panel scrolls the panel, not the document
         // (Story A-10).
-        className="on-glass panel-scroll w-full min-w-0 flex-1 px-4 pb-16 pt-8 sm:pt-12"
+        className="panel-scroll w-full min-w-0 flex-1 px-4 pb-16 pt-8 sm:pt-12"
       >
         <div className="mx-auto w-full max-w-6xl">
           <HeaderSlotContext.Provider value={slot}>

@@ -44,7 +44,7 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
       </div>
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: SHADE_ACROSS }} />
       <div className={`absolute inset-x-0 top-0 z-40 ${BAR_SHADE}`}>
-        <TopBar league={league} overlay />
+        <TopBar league={league} />
       </div>
       <div className={`absolute inset-x-0 bottom-0 ${TOP_ROW.top}`}>
         <div

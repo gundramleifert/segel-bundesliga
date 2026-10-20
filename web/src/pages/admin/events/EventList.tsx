@@ -75,7 +75,7 @@ export function EventsAdmin() {
         {(page) => (
           <ul
             data-testid="admin-manage-events-list"
-            className="divide-y divide-slate-100 rounded-lg border border-slate-200"
+            className="divide-y divide-separator rounded-lg border border-separator"
           >
             {page.items.map((event) => (
               <EventRow key={event.id} event={event} />
@@ -112,7 +112,7 @@ function EventRow({ event }: { event: EventSummary }) {
             <StatusBadge status={event.status} testId={`admin-manage-event-status-${event.id}`} />
             <PublicationBadge published={event.published ?? false} testId={`admin-manage-event-publication-${event.id}`} />
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             {[
               event.series ? event.series.name : t("manage.standaloneLabel"),
               eventDates(event),

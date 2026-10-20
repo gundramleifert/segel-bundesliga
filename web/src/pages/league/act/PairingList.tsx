@@ -68,7 +68,7 @@ export function PairingList({ eventId }: { eventId: number }) {
           href={getDownloadPairingPdfUrl(eventId, club ? { team: Number(club) } : undefined)}
           download
           data-testid="matchday-pairing-pdf-link"
-          className="text-sm font-medium text-brand-700 underline-offset-2 hover:underline"
+          className="text-sm font-medium text-link underline-offset-2 hover:underline"
         >
           {t("pairingPdf")}
         </a>
@@ -83,11 +83,11 @@ export function PairingList({ eventId }: { eventId: number }) {
         <table data-testid="matchday-pairing-table" className="data-table w-full min-w-[44rem] border-collapse text-center text-sm">
           <caption className="sr-only">{t("pairingCaption")}</caption>
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
-              <th scope="col" className="w-24 font-medium text-slate-600">
+            <tr className="border-b border-separator bg-surface-secondary">
+              <th scope="col" className="w-24 font-medium text-muted">
                 {t("numberHeader")}
               </th>
-              <th scope="col" className="w-20 font-medium text-slate-600">
+              <th scope="col" className="w-20 font-medium text-muted">
                 {t("flightHeader")}
               </th>
               {data.boats.map((boat) => {
@@ -97,10 +97,10 @@ export function PairingList({ eventId }: { eventId: number }) {
                     <span className="flex items-center justify-center gap-1.5">
                       <span
                         aria-hidden
-                        className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
+                        className="size-3 shrink-0 rounded-full ring-1 ring-border"
                         style={{ backgroundColor: color.hex }}
                       />
-                      <span className="text-slate-600">{color.name}</span>
+                      <span className="text-muted">{color.name}</span>
                     </span>
                   </th>
                 );
@@ -122,15 +122,15 @@ export function PairingList({ eventId }: { eventId: number }) {
                 data-testid={`matchday-pairing-row-${race.sequence}`}
                 className={`last:border-0 ${
                   startsFlight && index > 0
-                    ? "border-t-2 border-t-slate-300"
-                    : "border-t border-t-slate-100"
-                } ${banded ? "bg-slate-50/70 hover:bg-slate-100" : "hover:bg-slate-50"}`}
+                    ? "border-t-2 border-t-border"
+                    : "border-t border-t-separator"
+                } ${banded ? "bg-surface-secondary/70 hover:bg-surface-tertiary" : "hover:bg-surface-secondary"}`}
               >
                 <td className="font-semibold tabular-nums">{race.sequence}</td>
                 {/* Named once per block rather than on all three of its rows: repeating
                     the same number down a group is what made the grouping invisible in
                     the first place. */}
-                <td className="font-semibold tabular-nums text-slate-600">
+                <td className="font-semibold tabular-nums text-muted">
                   {startsFlight ? race.flight : ""}
                 </td>
                 {data.boats.map((boat) => {
@@ -142,7 +142,7 @@ export function PairingList({ eventId }: { eventId: number }) {
                   // to answer.
                   if (!team) {
                     return (
-                      <td key={boat.number} className="text-slate-400">
+                      <td key={boat.number} className="text-faint">
                         –
                       </td>
                     );

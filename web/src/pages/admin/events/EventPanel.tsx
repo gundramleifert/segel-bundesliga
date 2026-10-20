@@ -122,10 +122,10 @@ export function EventPanel({ event }: { event: EventSummary }) {
   const closed = event.status === EventStatus.final || event.status === EventStatus.cancelled;
 
   return (
-    <Stack gap={5} className="mt-4  border-t border-slate-100 pt-4" testId={`admin-manage-event-panel-${event.id}`}>
+    <Stack gap={5} className="mt-4  border-t border-separator pt-4" testId={`admin-manage-event-panel-${event.id}`}>
       {/* 1. What's missing --------------------------------------------------- */}
       <div>
-        <h3 className="text-sm font-semibold text-slate-700">{t("manage.readinessTitle")}</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("manage.readinessTitle")}</h3>
         <Async
           state={readiness}
           testId={`admin-readiness-${event.id}`}
@@ -133,7 +133,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
         >
           {(data) =>
             data.ready ? (
-              <p data-testid={`admin-readiness-ready-${event.id}`} className="mt-1 text-sm text-emerald-700">
+              <p data-testid={`admin-readiness-ready-${event.id}`} className="mt-1 text-sm text-success-soft-foreground">
                 {t("manage.readyMessage")}
               </p>
             ) : (
@@ -141,7 +141,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
                 reasons={data.reasons ?? []}
                 testId={`admin-readiness-reasons-${event.id}`}
                 reasonTestId="admin-readiness-reason"
-                className="text-sm text-amber-800"
+                className="text-sm text-warning-soft-foreground"
               />
             )
           }
@@ -149,7 +149,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
         {frozen && (
           <p
             data-testid={`admin-readiness-frozen-${event.id}`}
-            className="mt-2 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-600"
+            className="mt-2 rounded-md bg-surface-secondary px-3 py-2 text-sm text-muted"
           >
             {t("manage.frozenMessage", {
               races: readiness.data?.races_started ?? 0,
@@ -216,8 +216,8 @@ export function EventPanel({ event }: { event: EventSummary }) {
 
       {/* 4. The draw -------------------------------------------------------- */}
       <Stack gap={3}>
-        <h3 className="text-sm font-semibold text-slate-700">{t("manage.pairingTitle")}</h3>
-        <p className="text-sm text-slate-600">
+        <h3 className="text-sm font-semibold text-foreground">{t("manage.pairingTitle")}</h3>
+        <p className="text-sm text-muted">
           {hasPairing ? t("manage.pairingExistsHint") : t("manage.pairingMissingHint")}
         </p>
         <DrawControl
@@ -232,7 +232,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
             message: `admin-manage-event-draw-message-${event.id}`,
           }}
           hint={
-            !ready && !frozen && <p className="text-sm text-slate-500">{t("manage.drawNeedsReadyHint")}</p>
+            !ready && !frozen && <p className="text-sm text-muted">{t("manage.drawNeedsReadyHint")}</p>
           }
           successText={t("manage.drawSuccessMessage")}
           onDrawn={refresh}
@@ -251,8 +251,8 @@ export function EventPanel({ event }: { event: EventSummary }) {
 
       {/* 5. How it prints ---------------------------------------------------- */}
       <Stack gap={3}>
-        <h3 className="text-sm font-semibold text-slate-700">{t("manage.printTitle")}</h3>
-        <p className="text-sm text-slate-600">{t("manage.printHint")}</p>
+        <h3 className="text-sm font-semibold text-foreground">{t("manage.printTitle")}</h3>
+        <p className="text-sm text-muted">{t("manage.printHint")}</p>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
           <Field label={t("manage.printFontLabel")} hint={t("manage.printFontHint")}>
             <input
@@ -313,8 +313,8 @@ export function EventPanel({ event }: { event: EventSummary }) {
 
       {/* 5b. Where the live view is ------------------------------------------ */}
       <Stack gap={3}>
-        <h3 className="text-sm font-semibold text-slate-700">{t("manage.liveTitle")}</h3>
-        <p className="text-sm text-slate-600">{t("manage.liveHint")}</p>
+        <h3 className="text-sm font-semibold text-foreground">{t("manage.liveTitle")}</h3>
+        <p className="text-sm text-muted">{t("manage.liveHint")}</p>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
           <Field label={t("manage.liveUrlLabel")} hint={t("manage.liveUrlHint")}>
             <input
@@ -347,8 +347,8 @@ export function EventPanel({ event }: { event: EventSummary }) {
       {/* 5b'. Squad size, stand-alone events only (Story V-1) ------------------- */}
       {!event.series && (
         <Stack gap={3}>
-          <h3 className="text-sm font-semibold text-slate-700">{t("manage.squadLimitsTitle")}</h3>
-          <p className="text-sm text-slate-600">{t("manage.squadLimitsHint")}</p>
+          <h3 className="text-sm font-semibold text-foreground">{t("manage.squadLimitsTitle")}</h3>
+          <p className="text-sm text-muted">{t("manage.squadLimitsHint")}</p>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[auto_auto_auto] sm:items-end">
             <Field label={t("manage.squadMinLabel")}>
               <input
@@ -400,8 +400,8 @@ export function EventPanel({ event }: { event: EventSummary }) {
 
       {/* 6. Publication and start ------------------------------------------- */}
       <Stack gap={3}>
-        <h3 className="text-sm font-semibold text-slate-700">{t("manage.lifecycleTitle")}</h3>
-        <p className="text-sm text-slate-600">{t("manage.publishHint")}</p>
+        <h3 className="text-sm font-semibold text-foreground">{t("manage.lifecycleTitle")}</h3>
+        <p className="text-sm text-muted">{t("manage.publishHint")}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button
             size="sm"
@@ -437,7 +437,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
           </Link>
         </div>
         {event.status !== EventStatus.live && (!ready || !hasPairing) && (
-          <p className="text-sm text-slate-500">{t("manage.startNeedsHint")}</p>
+          <p className="text-sm text-muted">{t("manage.startNeedsHint")}</p>
         )}
         <Message
           testId={`admin-manage-event-lifecycle-message-${event.id}`}
@@ -466,8 +466,8 @@ export function EventPanel({ event }: { event: EventSummary }) {
           deletes anything — not the pairing list, not a single result — so a dialog would
           buy nothing and cost a tap on a rocking boat. */}
       <Stack gap={3} testId={`admin-manage-event-closing-${event.id}`}>
-        <h3 className="text-sm font-semibold text-slate-700">{t("manage.closingTitle")}</h3>
-        <p className="text-sm text-slate-600">
+        <h3 className="text-sm font-semibold text-foreground">{t("manage.closingTitle")}</h3>
+        <p className="text-sm text-muted">
           {closed
             ? t(
                 event.status === EventStatus.final
@@ -519,7 +519,7 @@ export function EventPanel({ event }: { event: EventSummary }) {
           )}
         </div>
         {!closed && event.status !== EventStatus.live && (
-          <p className="text-sm text-slate-500">{t("manage.finishNeedsLiveHint")}</p>
+          <p className="text-sm text-muted">{t("manage.finishNeedsLiveHint")}</p>
         )}
         <Message
           testId={`admin-manage-event-closing-message-${event.id}`}

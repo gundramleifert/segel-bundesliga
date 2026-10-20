@@ -4,21 +4,19 @@ import { Link } from "react-router-dom";
 // The building blocks of the official pages: one card, one card with a picture, one panel
 // for what is read closely — so a page deeper looks like the chapter it came from, and a
 // new look is written here once, not on every page (2026-10-18). Every official page lies
-// on its picture, so they are frosted glass with white type. The tables shared with the
-// internal screens are written in light colours; inside a `Panel`, `.on-glass` (index.css)
-// turns those into the glass's.
+// on its picture, so they are frosted glass, in the dark theme's named colours (index.css)
+// — which is also all the tables shared with the internal screens need to read on them.
 
-/** The look over the pictures: variables in index.css, tuned live by the DEV switch. Its
- *  tint is a variable too: dark over a picture, light over the internal screens' plain
- *  dark ground (`Layout`), where dark glass would be the ground's own colour. */
-const HOVER_GLASS = "hover:bg-[rgb(var(--site-glass)/calc(var(--site-card-alpha)+var(--site-card-hover)))]";
+/** The look over the pictures: `--glass` in index.css, tuned live by the DEV switch — and
+ *  on the internal screens' plain ground simply the theme's surface (`.glass-plain`). */
+const HOVER_GLASS = "hover:bg-[var(--glass-hover)]";
 
 /** The glass itself. */
-export const GLASS = "bg-[rgb(var(--site-glass)/var(--site-card-alpha))] backdrop-blur-[var(--site-card-blur)]";
+export const GLASS = "bg-[var(--glass)] backdrop-blur-[var(--site-card-blur)]";
 
 /** The rows' background on every official page: the picture shows through, darkened and
  *  blurred, so white type reads on any photo and on content passing under. */
-export const BAR_SHADE = "bg-slate-950/70 backdrop-blur-md";
+export const BAR_SHADE = "bg-background/70 backdrop-blur-md";
 
 /** The picture's shade behind a chapter page — darker on the left, where the text is. */
 export const SHADE_ACROSS =
@@ -33,14 +31,14 @@ export const PAGE_TITLE = "text-4xl font-semibold leading-[1.05] tracking-tight 
 
 /** The type and lines for anything on the glass that is not one of the cards below. */
 export const tone = {
-  text: "text-white",
-  muted: "text-[rgb(255_255_255/var(--site-text))]",
-  faint: "text-[rgb(255_255_255/calc(var(--site-text)-0.2))]",
-  line: "border-white/15",
-  link: "font-medium text-white underline-offset-4 hover:underline",
+  text: "text-foreground",
+  muted: "text-muted",
+  faint: "text-faint",
+  line: "border-separator",
+  link: "font-medium text-foreground underline-offset-4 hover:underline",
   /** A small rounded link — a year, a tab of an act; glass, as no small text lies bare. */
-  chip: `rounded-full px-3.5 py-1.5 text-white ${GLASS} transition ${HOVER_GLASS}`,
-  chipOn: "rounded-full bg-white px-3.5 py-1.5 text-slate-950",
+  chip: `rounded-full px-3.5 py-1.5 text-foreground ${GLASS} transition ${HOVER_GLASS}`,
+  chipOn: "rounded-full bg-foreground px-3.5 py-1.5 text-background",
   /** The card itself, without padding. */
   card: `rounded-2xl ${GLASS}`,
   cardHover: `transition ${HOVER_GLASS}`,
@@ -127,8 +125,7 @@ export function MediaCard({
 }
 
 /** Room for what is read closely — a full table, an article, a matchday's tables: a card
- *  like the others, whose `.on-glass` scope (index.css) turns the light colours of the
- *  tables shared with the internal screens into the glass's. */
+ *  like the others. */
 /** How wide a panel is. `column`, the rule: the page's column (Story B-13). The one
  *  exception, for what has a width of its own — where a full-width panel left empty glass
  *  beside it — and marked `data-fit` so the grid's check knows:
@@ -155,7 +152,7 @@ export function Panel({
 }) {
   return (
     <div
-      className={`p-4 sm:p-6 ${tone.card} on-glass ${PANEL_WIDTH[width]} ${className}`}
+      className={`p-4 sm:p-6 ${tone.card} ${PANEL_WIDTH[width]} ${className}`}
       data-testid={testId}
       data-fit={width === "column" ? undefined : width}
     >
@@ -237,7 +234,7 @@ export function PillSwitch<T extends string>({
   testId?: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className={`inline-flex rounded-full bg-white/10 p-1 ${className}`} data-testid={testId}>
+    <div role="radiogroup" aria-label={label} className={`inline-flex rounded-full bg-default p-1 ${className}`} data-testid={testId}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -246,7 +243,7 @@ export function PillSwitch<T extends string>({
           aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           data-testid={o.testId}
-          className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${o.value === value ? "bg-white text-slate-950" : "text-white/75 hover:text-white"}`}
+          className={`rounded-full px-3.5 py-1.5 text-sm font-medium ${o.value === value ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`}
         >
           {o.label}
         </button>

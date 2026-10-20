@@ -127,5 +127,5 @@ export function Standings() {
  *  A-12), so these are deliberately quieter than an `h1` would be — but they are real
  *  headings, and a page of two unlabelled blocks has no outline at all. */
 function SectionHeading({ children }: { children: ReactNode }) {
-  return <h2 className="mb-3 text-base font-semibold text-slate-900">{children}</h2>;
+  return <h2 className="mb-3 text-base font-semibold text-foreground">{children}</h2>;
 }

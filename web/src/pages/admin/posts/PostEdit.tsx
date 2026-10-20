@@ -207,7 +207,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
     >
       {offered && (
         <div
-          className="flex flex-wrap items-center gap-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+          className="flex flex-wrap items-center gap-3 rounded-md border border-warning/50 bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground"
           data-testid="admin-post-kept"
         >
           <span className="min-w-0 flex-1">
@@ -291,7 +291,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
       )}
 
       <div className="text-sm">
-        <p className="mb-1 font-medium text-slate-700">{t("posts.bodyLabel")}</p>
+        <p className="mb-1 font-medium text-foreground">{t("posts.bodyLabel")}</p>
         <Suspense fallback={<Loading testId="admin-post-editor-loading" />}>
           <RichTextEditor
             // The editor reads its value once: a restored draft is a new editor.
@@ -373,14 +373,14 @@ function PostForm({ post }: { post?: PostAdmin }) {
         {post?.published && (
           <Link
             to={post.kind === PostKind.news ? href.article(publicLeague, post.slug) : href.press(publicLeague)}
-            className="text-sm font-medium text-brand-700 hover:underline"
+            className="text-sm font-medium text-link hover:underline"
             data-testid="admin-post-view-link"
           >
             {t("posts.viewLink")}
           </Link>
         )}
         <span className="flex-1" />
-        <Link to="/admin?tab=news" className="text-sm text-slate-600 hover:underline" data-testid="admin-post-back-link">
+        <Link to="/admin?tab=news" className="text-sm text-muted hover:underline" data-testid="admin-post-back-link">
           {t("page.backButton")}
         </Link>
         {post && <DeleteButton postId={post.id} />}
@@ -423,7 +423,7 @@ function PhotoPicker({
         }}
         onDragLeave={() => setOver(false)}
         onDrop={drop}
-        className={`rounded-md ${over ? "ring-2 ring-brand-500 ring-offset-2" : ""}`}
+        className={`rounded-md ${over ? "ring-2 ring-focus ring-offset-2" : ""}`}
         data-testid="admin-post-photo-dropzone"
       >
         <img
@@ -434,9 +434,9 @@ function PhotoPicker({
         />
       </div>
       <div className="grid content-start gap-3">
-        <p className="font-medium text-slate-700">
+        <p className="font-medium text-foreground">
           {t("posts.photoLabel")}
-          {!url && <span className="ml-2 font-normal text-slate-500">{t("posts.photoNone")}</span>}
+          {!url && <span className="ml-2 font-normal text-muted">{t("posts.photoNone")}</span>}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" onPress={() => setPicking((open) => !open)} data-testid="admin-post-photo-library-button">
@@ -445,7 +445,7 @@ function PhotoPicker({
           <Button size="sm" variant="outline" isDisabled={photo.busy} onPress={photo.pick} data-testid="admin-post-photo-upload-button">
             {photo.busy ? t("posts.photoUploading") : t("posts.photoUpload")}
           </Button>
-          <span className="text-xs text-slate-500 pointer-coarse:hidden">{t("posts.photoDrop")}</span>
+          <span className="text-xs text-muted pointer-coarse:hidden">{t("posts.photoDrop")}</span>
           {url && (
             <Button size="sm" variant="ghost" onPress={() => onChange(null, "")} data-testid="admin-post-photo-remove-button">
               {t("posts.photoRemove")}
@@ -492,15 +492,16 @@ function Preview({ draft, onBack }: { draft: Draft; onBack: () => void }) {
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4" data-testid="admin-post-preview">
-      <div className="flex flex-wrap items-center gap-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+      <div className="flex flex-wrap items-center gap-3 rounded-md bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground">
         <span className="min-w-0 flex-1">{t("posts.previewNote")}</span>
         {back}
       </div>
       {preview.isPending && <Loading testId="admin-post-preview-loading" />}
       {preview.error && <ErrorMessage text={errorText(preview.error, t("posts.previewError"))} testId="admin-post-preview-error" />}
       {preview.data && (
-        // The public page sets the article on its league's dark backdrop; so does this.
-        <div className="overflow-hidden rounded-lg bg-slate-900 p-3 sm:p-6" data-testid="admin-post-preview-article">
+        // The public page sets the article on its league's dark backdrop, in the dark
+        // theme whatever the editor's own; so does this.
+        <div data-theme="dark" className="dark overflow-hidden rounded-lg bg-background p-3 text-foreground sm:p-6" data-testid="admin-post-preview-article">
           <ArticleView post={preview.data} header />
         </div>
       )}

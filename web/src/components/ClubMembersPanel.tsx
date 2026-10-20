@@ -63,7 +63,7 @@ export function ClubMembersPanel({
               {members.length ? (
                 <ul
                   data-testid="my-club-members-list"
-                  className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm"
+                  className="mt-2 divide-y divide-separator rounded-lg border border-separator bg-surface px-3 text-sm"
                 >
                   {members.map((member) => (
                     <li
@@ -84,7 +84,7 @@ export function ClubMembersPanel({
                           </Badge>
                         ))}
                       {member.user_id === account?.id ? (
-                        <span className="text-xs text-slate-500">{t("members.you")}</span>
+                        <span className="text-xs text-muted">{t("members.you")}</span>
                       ) : (
                         <PersonDocuments
                           userId={member.user_id}
@@ -128,7 +128,7 @@ export function ClubMembersPanel({
             onChanged={() => invalidate("/api/clubs", "/api/admin/clubs")}
             testIdPrefix="my-club-crest"
           >
-            <p className="min-w-0 flex-1 text-sm text-slate-600">{t("members.crestHint")}</p>
+            <p className="min-w-0 flex-1 text-sm text-muted">{t("members.crestHint")}</p>
           </CrestEditor>
         </section>
       )}
@@ -139,7 +139,7 @@ export function ClubMembersPanel({
 
       {entry.may_admin && (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
-          <p className="text-sm text-slate-600">{t("members.addHint")}</p>
+          <p className="text-sm text-muted">{t("members.addHint")}</p>
           <AccessPanel object={`club:${clubId}`} testId={`my-club-access-${clubId}`} onChange={refresh} />
         </div>
       )}

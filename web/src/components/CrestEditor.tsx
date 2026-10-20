@@ -75,7 +75,7 @@ export function CrestEditor({
           disabled={upload.isPending}
           aria-label={`${label}: ${club.name}`}
           data-testid={`${testIdPrefix}-edit-${club.id}`}
-          className="crest-backdrop group relative grid size-10 shrink-0 cursor-pointer place-items-center overflow-hidden rounded border border-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+          className="crest-backdrop group relative grid size-10 shrink-0 cursor-pointer place-items-center overflow-hidden rounded border border-separator outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           {club.logo_url ? (
             <img
@@ -85,7 +85,7 @@ export function CrestEditor({
               data-testid={`${testIdPrefix}-${club.id}`}
             />
           ) : (
-            <span aria-hidden className="text-xs text-slate-400">
+            <span aria-hidden className="text-xs text-faint">
               —
             </span>
           )}

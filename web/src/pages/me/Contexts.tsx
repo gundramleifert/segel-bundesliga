@@ -103,7 +103,7 @@ function ContextFrame({
           <Stack gap={5} testId={testId}>
             <PageHeader title={context.name} />
             <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
                 {(context.kind === "event" || context.starts_on) && <span>{eventDates(context)}</span>}
                 {context.status && <StatusBadge status={context.status} testId={`${testId}-status`} />}
                 {link && (
@@ -119,7 +119,7 @@ function ContextFrame({
               <section
                 key={s.key}
                 aria-label={s.label}
-                className="rounded-xl border-2 border-amber-300 bg-amber-50 p-1"
+                className="rounded-xl border-2 border-warning/50 bg-warning-soft p-1"
                 data-testid={`me-context-${s.key}-notice`}
               >
                 {s.render()}
@@ -135,7 +135,7 @@ function ContextFrame({
                 tabs={shown.map((s): TabDef<string> => ({ key: s.key, label: labelled(s, context.needs), render: s.render }))}
               />
             ) : (
-              <p className="text-sm text-slate-500" data-testid={`${testId}-nothing`}>
+              <p className="text-sm text-muted" data-testid={`${testId}-nothing`}>
                 {t("context.nothingHere")}
               </p>
             )}
@@ -164,8 +164,8 @@ function waiverNotice(t: (key: string) => string, scope: "series" | "event", id:
 function Door({ text, to, label, testId }: { text: string; to: string; label: string; testId: string }) {
   return (
     <div className="flex flex-col gap-2" data-testid={testId}>
-      <p className="text-sm text-slate-600">{text}</p>
-      <Link to={to} className="w-fit font-medium text-brand-700 underline-offset-2 hover:underline" data-testid={`${testId}-link`}>
+      <p className="text-sm text-muted">{text}</p>
+      <Link to={to} className="w-fit font-medium text-link underline-offset-2 hover:underline" data-testid={`${testId}-link`}>
         {label} →
       </Link>
     </div>
@@ -355,7 +355,7 @@ function SeriesEvents({ seriesId }: { seriesId: number }) {
                 >
                   {event.title}
                 </Link>
-                <span className="text-slate-500">{eventDates(event)}</span>
+                <span className="text-muted">{eventDates(event)}</span>
               </li>
             ))}
           </ul>

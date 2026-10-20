@@ -51,7 +51,7 @@ export function AccountInfo({ account }: { account: AccountData }) {
       </Card.Header>
       <Card.Content>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-          <dt className="text-slate-500">{t("labels.status")}</dt>
+          <dt className="text-muted">{t("labels.status")}</dt>
           <dd>{account.is_active ? t("labels.active") : t("labels.disabled")}</dd>
         </dl>
       </Card.Content>
@@ -112,20 +112,20 @@ export function SignInMethods({ account, onChanged }: { account: AccountData; on
                 <li
                   key={name}
                   data-testid={`account-signin-method-${name}`}
-                  className="rounded-full bg-slate-100 px-2.5 py-0.5 text-slate-700"
+                  className="rounded-full bg-surface-tertiary px-2.5 py-0.5 text-foreground"
                 >
                   {t(`password.providers.${name}`, { defaultValue: name })}
                 </li>
               ))
             ) : (
-              <li className="text-slate-500">—</li>
+              <li className="text-muted">—</li>
             )}
           </ul>
 
           <form onSubmit={save} data-testid="account-password-form" className="space-y-3">
             {hasPassword && (
               <div>
-                <label htmlFor="password-current" className="mb-1 block text-sm font-medium text-slate-700">
+                <label htmlFor="password-current" className="mb-1 block text-sm font-medium text-foreground">
                   {t("password.currentLabel")}
                 </label>
                 <input
@@ -141,7 +141,7 @@ export function SignInMethods({ account, onChanged }: { account: AccountData; on
               </div>
             )}
             <div>
-              <label htmlFor="password-new" className="mb-1 block text-sm font-medium text-slate-700">
+              <label htmlFor="password-new" className="mb-1 block text-sm font-medium text-foreground">
                 {hasPassword ? t("password.newLabel") : t("password.firstLabel")}
               </label>
               <input
@@ -156,11 +156,11 @@ export function SignInMethods({ account, onChanged }: { account: AccountData; on
                 className={INPUT_CLASS}
                 data-testid="account-password-new-input"
               />
-              <p className="mt-1 text-sm text-slate-500">{t("password.rule")}</p>
+              <p className="mt-1 text-sm text-muted">{t("password.rule")}</p>
             </div>
             {error && <ErrorMessage text={error} testId="account-password-error" />}
             {notice && (
-              <p data-testid="account-password-message" className="text-sm text-emerald-700">
+              <p data-testid="account-password-message" className="text-sm text-success-soft-foreground">
                 {notice}
               </p>
             )}
@@ -338,7 +338,7 @@ export function SailorProfile() {
         ) : loadError ? (
           <ErrorMessage text={loadError} testId="account-profile-load-error" />
         ) : noRecord ? (
-          <p className="text-sm text-slate-600">{t("profile.noSailorRecord")}</p>
+          <p className="text-sm text-muted">{t("profile.noSailorRecord")}</p>
         ) : sailor ? (
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-4">
@@ -347,13 +347,13 @@ export function SailorProfile() {
                   src={photoUrl}
                   alt={t("profile.photoAlt")}
                   data-testid="account-profile-photo"
-                  className="h-20 w-20 rounded-full object-cover ring-1 ring-slate-200"
+                  className="h-20 w-20 rounded-full object-cover ring-1 ring-border"
                 />
               ) : (
                 <div
                   aria-hidden
                   data-testid="account-profile-photo-placeholder"
-                  className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-lg font-semibold text-slate-400 ring-1 ring-slate-200"
+                  className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-tertiary text-lg font-semibold text-faint ring-1 ring-border"
                 >
                   {`${sailor.first_name.charAt(0)}${sailor.last_name.charAt(0)}`.toUpperCase()}
                 </div>
@@ -363,7 +363,7 @@ export function SailorProfile() {
                   data-testid="account-profile-photo-upload-label"
                   className={
                     "inline-flex cursor-pointer items-center justify-center rounded-md " +
-                    "border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50 " +
+                    "border border-border px-3 py-2 text-sm font-medium hover:bg-surface-secondary " +
                     (photoBusy ? "pointer-events-none opacity-60" : "")
                   }
                 >
@@ -404,8 +404,8 @@ export function SailorProfile() {
                 data-testid="account-profile-public-toggle"
               />
               <span>
-                <span className="font-medium text-slate-700">{t("profile.publicLabel")}</span>
-                <span className="block text-slate-500" data-testid="account-profile-public-hint">
+                <span className="font-medium text-foreground">{t("profile.publicLabel")}</span>
+                <span className="block text-muted" data-testid="account-profile-public-hint">
                   {profilePublic ? t("profile.publicOn") : t("profile.publicOff")}
                 </span>
               </span>
@@ -416,7 +416,7 @@ export function SailorProfile() {
                 <div>
                   <label
                     htmlFor="profile-first-name"
-                    className="mb-1 block text-sm font-medium text-slate-700"
+                    className="mb-1 block text-sm font-medium text-foreground"
                   >
                     {t("profile.firstNameLabel")}
                   </label>
@@ -433,7 +433,7 @@ export function SailorProfile() {
                 <div>
                   <label
                     htmlFor="profile-last-name"
-                    className="mb-1 block text-sm font-medium text-slate-700"
+                    className="mb-1 block text-sm font-medium text-foreground"
                   >
                     {t("profile.lastNameLabel")}
                   </label>
@@ -451,7 +451,7 @@ export function SailorProfile() {
               <div>
                 <label
                   htmlFor="profile-birth-date"
-                  className="mb-1 block text-sm font-medium text-slate-700"
+                  className="mb-1 block text-sm font-medium text-foreground"
                 >
                   {t("profile.birthDateLabel")}
                 </label>
@@ -497,7 +497,7 @@ export function DeleteAccount() {
   }
 
   return (
-    <Card className="border-red-200" data-testid="account-delete-card">
+    <Card className="border-danger/40" data-testid="account-delete-card">
       <Card.Header>
         <Card.Title>{t("deleteAccount.title")}</Card.Title>
         <Card.Description>{t("deleteAccount.description")}</Card.Description>

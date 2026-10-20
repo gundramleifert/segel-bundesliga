@@ -58,7 +58,7 @@ export function ClaimSummary({ claim }: { claim: Claim }) {
     claim.status === ClaimStatus.approved ? t("claims.approved", { amount: formatMoney(claim.approved_cents) }) : null,
     claim.paid_cents > 0 ? t("claims.paid", { amount: formatMoney(claim.paid_cents) }) : null,
   ];
-  return <p className="text-xs text-slate-500">{parts.filter(Boolean).join(" · ")}</p>;
+  return <p className="text-xs text-muted">{parts.filter(Boolean).join(" · ")}</p>;
 }
 
 /** The claim's items. `end` renders the control at the end of a line, if any. */
@@ -75,7 +75,7 @@ export function ClaimItems({
   return (
     <ul
       data-testid={`${testId}-items`}
-      className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm"
+      className="divide-y divide-separator rounded-lg border border-separator bg-surface px-3 text-sm"
     >
       {claim.items.map((item) => (
         <li
@@ -87,7 +87,7 @@ export function ClaimItems({
             <span className="font-medium">{t(`itemKinds.${item.kind}`)}</span>
             {" · "}
             {item.description}
-            <span className="block text-xs text-slate-500">
+            <span className="block text-xs text-muted">
               {formatDate(item.incurred_on)}
               {item.distance_km != null && item.rate_cents != null &&
                 ` · ${t("itemCar", { km: item.distance_km, rate: formatMoney(item.rate_cents) })}`}
@@ -96,7 +96,7 @@ export function ClaimItems({
           <span className="tabular-nums" data-testid={`${testId}-item-amount-${item.id}`}>
             {item.approved_cents != null ? (
               <>
-                <s className="mr-1 text-slate-400">{formatMoney(item.amount_cents)}</s>
+                <s className="mr-1 text-faint">{formatMoney(item.amount_cents)}</s>
                 {formatMoney(item.approved_cents)}
               </>
             ) : (
@@ -127,7 +127,7 @@ export function ClaimReceipts({
 
   if (!claim.documents.length) {
     return (
-      <p className="text-sm text-slate-500" data-testid={`${testId}-receipts-empty`}>
+      <p className="text-sm text-muted" data-testid={`${testId}-receipts-empty`}>
         {t("claims.receiptsEmpty")}
       </p>
     );
@@ -141,7 +141,7 @@ export function ClaimReceipts({
             <li key={doc.id} className="flex flex-wrap items-center gap-2" data-testid={`${testId}-receipt-${doc.id}`}>
               <button
                 type="button"
-                className="min-w-0 truncate text-brand-700 underline"
+                className="min-w-0 truncate text-link underline"
                 onClick={() =>
                   openFile(getGetClaimDocumentUrl(claim.id, doc.id)).catch((err) => setError(errorText(err)))
                 }
@@ -149,13 +149,13 @@ export function ClaimReceipts({
               >
                 {doc.original_name}
               </button>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-muted">
                 {item ? item.description : t("claims.receiptWholeClaim")}
               </span>
               {onRemove && (
                 <button
                   type="button"
-                  className="text-xs text-slate-500 hover:text-red-700"
+                  className="text-xs text-muted hover:text-danger"
                   onClick={() => onRemove(doc.id)}
                   data-testid={`${testId}-receipt-remove-${doc.id}`}
                 >
@@ -166,7 +166,7 @@ export function ClaimReceipts({
           );
         })}
       </ul>
-      {error && <p className="text-sm text-red-700">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
     </div>
   );
 }

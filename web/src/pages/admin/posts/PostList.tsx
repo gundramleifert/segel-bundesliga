@@ -116,7 +116,7 @@ function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
           header: t("posts.dateHeader"),
           // Sortable where the server sorts (`POST_SORT`, app/routers/posts.py).
           enableSorting: true,
-          cell: ({ row }) => <span className="whitespace-nowrap text-slate-500">{formatDate(row.original.published_on)}</span>,
+          cell: ({ row }) => <span className="whitespace-nowrap text-muted">{formatDate(row.original.published_on)}</span>,
         }),
         column.accessor("title", {
           header: t("posts.titleHeader"),
@@ -139,7 +139,7 @@ function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
         column.accessor("league", {
           header: t("posts.leagueHeader"),
           enableSorting: false,
-          cell: ({ row }) => <span className="text-slate-500">{row.original.league_name ?? t("posts.association")}</span>,
+          cell: ({ row }) => <span className="text-muted">{row.original.league_name ?? t("posts.association")}</span>,
         }),
         column.accessor("published", {
           header: t("posts.stateHeader"),

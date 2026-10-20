@@ -43,17 +43,17 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
       {/* Text to read closely: one column of a reading width, centred on its glass. */}
       <Panel width="reading" className="mb-12 sm:p-10">
         <article data-testid="site-article">
-          <p className="text-xl font-medium leading-relaxed text-slate-900" data-testid="site-article-lead">{article.teaser}</p>
+          <p className="text-xl font-medium leading-relaxed text-foreground" data-testid="site-article-lead">{article.teaser}</p>
           {article.author && (
-            <p className="mt-3 text-sm text-slate-500" data-testid="site-article-byline">
+            <p className="mt-3 text-sm text-muted" data-testid="site-article-byline">
               {t("news.byline", { author: article.author, date: formatDate(article.date) })}
             </p>
           )}
-          <RichText html={article.body} className="mt-8 text-lg leading-relaxed text-slate-700" testId="site-article-body" />
+          <RichText html={article.body} className="mt-8 text-lg leading-relaxed text-foreground" testId="site-article-body" />
           {article.quote && (
-            <blockquote className="my-10 border-l-4 border-brand-600 pl-6">
-              <p className="text-2xl font-semibold leading-snug tracking-tight text-slate-900">“{article.quote.text}”</p>
-              <footer className="mt-2 text-sm text-slate-500">— {article.quote.by}</footer>
+            <blockquote className="my-10 border-l-4 border-accent pl-6">
+              <p className="text-2xl font-semibold leading-snug tracking-tight text-foreground">“{article.quote.text}”</p>
+              <footer className="mt-2 text-sm text-muted">— {article.quote.by}</footer>
             </blockquote>
           )}
         </article>

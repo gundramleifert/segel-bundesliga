@@ -63,12 +63,12 @@ export function DocumentsTab() {
   return (
     <Stack gap={6}>
       <Section title={t("documents.title")} testId="my-space-documents">
-        <p className="text-sm text-slate-600">{t("documents.hint")}</p>
+        <p className="text-sm text-muted">{t("documents.hint")}</p>
         <Async state={documents} testId="my-space-documents" empty={t("documents.empty")}>
           {(rows) => (
             <ul
               data-testid="my-space-documents-list"
-              className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white px-3 text-sm"
+              className="divide-y divide-separator rounded-lg border border-separator bg-surface px-3 text-sm"
             >
               {rows.map((doc) => (
                 <DocumentRow key={doc.id} doc={doc} />
@@ -93,7 +93,7 @@ function DocumentRow({ doc }: { doc: PersonalDocument }) {
       <span className="min-w-0 flex-1">
         <span className="font-medium">{t(`kinds.${doc.kind}`)}</span>
         {doc.title && <> · {doc.title}</>}
-        <span className="block text-xs text-slate-500">
+        <span className="block text-xs text-muted">
           {doc.original_name}
           {doc.valid_until && ` · ${t("documents.validUntil", { date: formatDate(doc.valid_until) })}`}
         </span>
@@ -117,7 +117,7 @@ function DocumentRow({ doc }: { doc: PersonalDocument }) {
         testId={`my-space-document-delete-${doc.id}`}
       />
       {(error || remove.error) && (
-        <p className="w-full text-sm text-red-700">{error ?? errorText(remove.error)}</p>
+        <p className="w-full text-sm text-danger">{error ?? errorText(remove.error)}</p>
       )}
     </li>
   );
@@ -219,7 +219,7 @@ export function BankTab() {
 
   return (
     <Section title={t("bank.title")} testId="my-space-bank">
-      <p className="text-sm text-slate-600">{t("bank.hint")}</p>
+      <p className="text-sm text-muted">{t("bank.hint")}</p>
       {/* `null` is a real answer here — no account saved yet — so the form is drawn for it
           too; only loading and error are Async's to handle. */}
       {account.loading || account.error ? (
@@ -357,7 +357,7 @@ export function ClaimsTab({ target }: { target?: ClaimTargetRef }) {
               ))}
             </ul>
             ) : (
-              <p className="text-sm text-slate-500" data-testid="my-space-claims-none">
+              <p className="text-sm text-muted" data-testid="my-space-claims-none">
                 {t("claims.empty")}
               </p>
             );
@@ -390,7 +390,7 @@ function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => voi
 
   return (
     <Section title={t("claims.newTitle")} testId="my-space-claim-new">
-      <p className="text-sm text-slate-600">{t("claims.newHint")}</p>
+      <p className="text-sm text-muted">{t("claims.newHint")}</p>
       <Async state={targets} testId="my-space-claim-targets" empty={t("claims.noTargets")}>
         {(all) => {
           // On an event's or a club's page the claim goes there — if it may (the server
@@ -398,7 +398,7 @@ function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => voi
           const rows = fixed ? all.filter((row) => targetKey(row) === targetKey(fixed)) : all;
           if (!rows.length) {
             return (
-              <p className="text-sm text-slate-500" data-testid="my-space-claim-targets-empty">
+              <p className="text-sm text-muted" data-testid="my-space-claim-targets-empty">
                 {t("claims.noTargets")}
               </p>
             );
@@ -476,7 +476,7 @@ function ClaimCard({ claim, open, onToggle }: { claim: Claim; open: boolean; onT
   return (
     <li
       data-testid={`my-space-claim-${claim.id}`}
-      className="rounded-lg border border-slate-200 bg-white p-4"
+      className="rounded-lg border border-separator bg-surface p-4"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -489,7 +489,7 @@ function ClaimCard({ claim, open, onToggle }: { claim: Claim; open: boolean; onT
         </Button>
       </div>
       {claim.decision_note && (claim.status === ClaimStatus.returned || claim.status === ClaimStatus.rejected) && (
-        <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900" data-testid={`my-space-claim-note-${claim.id}`}>
+        <p className="mt-2 rounded-md bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground" data-testid={`my-space-claim-note-${claim.id}`}>
           {t("claims.decisionNote", { note: claim.decision_note })}
         </p>
       )}
@@ -516,7 +516,7 @@ function ClaimDetail({ claim }: { claim: Claim }) {
 
   return (
     <div className="mt-4 flex flex-col gap-4" data-testid={`${id}-detail`}>
-      {claim.payer_club_name && <p className="text-sm text-slate-600">{t("claims.payer", { club: claim.payer_club_name })}</p>}
+      {claim.payer_club_name && <p className="text-sm text-muted">{t("claims.payer", { club: claim.payer_club_name })}</p>}
 
       <div className="flex flex-col gap-2">
         <h4 className="text-sm font-semibold">{t("claims.itemsTitle")}</h4>
@@ -529,7 +529,7 @@ function ClaimDetail({ claim }: { claim: Claim }) {
                 ? (item) => (
                     <button
                       type="button"
-                      className="text-xs text-slate-500 hover:text-red-700"
+                      className="text-xs text-muted hover:text-danger"
                       disabled={removeItem.isPending}
                       onClick={() => removeItem.mutate({ claimId: claim.id, itemId: item.id })}
                       data-testid={`${id}-item-remove-${item.id}`}
@@ -631,7 +631,7 @@ function AddItem({ claim }: { claim: Claim }) {
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg bg-slate-50 p-3" data-testid={id}>
+    <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg bg-surface-secondary p-3" data-testid={id}>
       <p className="text-sm font-medium">{t("claims.addItemTitle")}</p>
       <div className="flex flex-wrap gap-3">
         <div className="min-w-40 flex-1">
@@ -729,7 +729,7 @@ function UploadReceipt({ claim }: { claim: Claim }) {
   });
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3" data-testid={id}>
+    <div className="flex flex-col gap-2 rounded-lg bg-surface-secondary p-3" data-testid={id}>
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-40 flex-1">
           <Field label={t("claims.receiptFor")} testId={`${id}-item-field`}>

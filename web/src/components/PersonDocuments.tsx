@@ -48,16 +48,16 @@ export function PersonDocuments({
       </Button>
       {open && (
         <div
-          className="w-full rounded-md bg-slate-50 px-3 py-2 text-sm"
+          className="w-full rounded-md bg-surface-secondary px-3 py-2 text-sm"
           data-testid={`${testId}-panel`}
           aria-label={t("personDocuments.title", { name })}
         >
-          {documents.isPending && <p className="text-slate-500">…</p>}
+          {documents.isPending && <p className="text-muted">…</p>}
           {documents.isError && (
             <ErrorMessage text={errorText(documents.error)} testId={`${testId}-error`} />
           )}
           {documents.data && documents.data.length === 0 && (
-            <p className="text-slate-500" data-testid={`${testId}-empty`}>
+            <p className="text-muted" data-testid={`${testId}-empty`}>
               {t("personDocuments.empty")}
             </p>
           )}
@@ -67,7 +67,7 @@ export function PersonDocuments({
                 <li key={doc.id} className="flex flex-wrap items-center gap-2" data-testid={`${testId}-${doc.id}`}>
                   <button
                     type="button"
-                    className="text-brand-700 underline"
+                    className="text-link underline"
                     onClick={() =>
                       openFile(getGetDocumentFileUrl(doc.id)).catch((err) => setFileError(errorText(err)))
                     }
@@ -77,7 +77,7 @@ export function PersonDocuments({
                     {doc.title ? ` · ${doc.title}` : ""}
                   </button>
                   {doc.valid_until && (
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-muted">
                       {t("documents.validUntil", { date: formatDate(doc.valid_until) })}
                     </span>
                   )}

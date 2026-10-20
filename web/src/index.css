@@ -18,13 +18,71 @@
   --color-brand-800: #1d3a64;
   --color-brand-900: #182f52;
 
-  /* The page backdrop. Deliberately **not** called `surface`: HeroUI's own theme defines
-     `--color-surface` (white) and its Card is literally `@apply bg-surface`, so naming our
-     backdrop that way overrode the card's background with the page's — every card ended up
-     the same color as the page it sits on, borders and shadow the only thing left of it.
-     `page` is ours, `surface` stays HeroUI's. */
-  --color-page: #ebedf2;
-  --color-ink: #121212;
+}
+
+/* ---------------------------------------------------------------- colours
+ *
+ * **Every colour on a page is a name, never a shade** (2026-10-21): `text-muted`, not
+ * `text-slate-500`; `bg-warning-soft`, not `bg-amber-50`. The names are HeroUI's own —
+ * `background`, `foreground`, `muted`, `surface(-secondary, -tertiary)`, `default`,
+ * `border`, `separator`, `accent`, `link`, `focus`, `success`/`warning`/`danger` and their
+ * `-soft` and `-foreground` — plus one of ours, `faint`. HeroUI registers them as
+ * Tailwind colours that read a variable (`--color-muted: var(--muted)`), so its
+ * components and our markup follow the same values, and **a theme is only these
+ * variables**: the light ones below, the dark ones under `[data-theme="dark"]`.
+ *
+ * Which theme a part of the page is in is the frame's business: the document is dark
+ * (`index.html` — the official pages lie on their pictures), and `Layout` sets the
+ * internal screens' own (`THEME`). Never name a shade in a page: one shade has no second
+ * value, and that is how a page stops working in the other theme.
+ *
+ * Our names must not be HeroUI's: it owns `--color-surface`, and a token of ours by that
+ * name once made every card the colour of the page under it (docs/gotchas). */
+@theme inline {
+  --color-faint: var(--faint);
+}
+
+/* Light — the brand from deutsche-segelliga.de (#3166B1, the quiet backdrop #EBEDF2), on
+   HeroUI's names. Unlayered, so it wins over HeroUI's own defaults. */
+:root,
+[data-theme="light"] {
+  --background: #ebedf2;
+  --foreground: #0f172a;
+  --muted: #475569;
+  --faint: #94a3b8;
+  --surface: white;
+  --surface-secondary: #f8fafc;
+  --surface-tertiary: #f1f5f9;
+  --default: #e2e8f0;
+  --border: #cbd5e1;
+  --separator: #e2e8f0;
+  --accent: #3166b1;
+  --accent-foreground: white;
+  --link: #23477c;
+  --focus: #3166b1;
+}
+
+/* Dark — the official pages' look: white type, and surfaces of white at a low opacity, so
+   a card is glass over whatever lies beneath, a picture or the plain dark ground. The
+   secondary text's strength is tuned live by the DEV switch (`--site-text`). */
+[data-theme="dark"] {
+  --background: #020617;
+  --foreground: white;
+  --muted: rgb(255 255 255 / var(--site-text));
+  --faint: rgb(255 255 255 / calc(var(--site-text) - 0.2));
+  --surface: rgb(255 255 255 / 0.06);
+  --surface-secondary: rgb(255 255 255 / 0.08);
+  --surface-tertiary: rgb(255 255 255 / 0.1);
+  --overlay: #0f172a;
+  --default: rgb(255 255 255 / 0.12);
+  --border: rgb(255 255 255 / 0.25);
+  --separator: rgb(255 255 255 / 0.12);
+  --field-background: rgb(255 255 255 / 0.06);
+  --accent: #3166b1;
+  --accent-foreground: white;
+  --link: #b4cbe9;
+  --focus: #85a9da;
+  --surface-shadow: none;
 }
 
 /* How the official pages' glass looks over their pictures (`components/site/Cards.tsx`).
@@ -39,13 +97,16 @@
   --site-text: 0.85; /* the opacity of secondary text on a card */
 }
 
-/* The internal screens (`Layout`) lie on a plain dark ground, not on a picture: there the
-   glass is a light tint, as HeroUI's cards on it are (`.on-glass`) — dark glass would be
-   the ground's own colour. */
-.glass-light {
-  --site-glass: 255 255 255;
-  --site-card-alpha: 0.06;
-  --site-card-hover: 0.04;
+/* A card's glass: the dark tint above over a picture; on a plain ground — the internal
+   screens (`Layout`), in either theme — simply the theme's surface, as HeroUI's cards
+   are: dark glass on the dark ground would be the ground's own colour. */
+:root {
+  --glass: rgb(var(--site-glass) / var(--site-card-alpha));
+  --glass-hover: rgb(var(--site-glass) / calc(var(--site-card-alpha) + var(--site-card-hover)));
+}
+.glass-plain {
+  --glass: var(--surface);
+  --glass-hover: var(--surface-secondary);
 }
 
 /* The rows on top are sticky (`Bars`, `Layout`): the top row and the sub-menu, 105px of
@@ -110,9 +171,9 @@ html {
      `box-shadow` rather than `border`, because `border-collapse: collapse` hands a
      table's border over to its cells. */
   .data-table {
-    background-color: white;
+    background-color: var(--surface);
     border-radius: 0.75rem;
-    box-shadow: 0 0 0 1px var(--color-slate-200, #e2e8f0);
+    box-shadow: 0 0 0 1px var(--separator);
   }
 
   /* The header band is tinted, so it has to follow the table's corners or it squares
@@ -142,11 +203,11 @@ html {
      official pages' glass (`.on-glass` below sets them) — a colour written into a rule
      here is one the glass cannot reach, which is how headings once went dark on dark. */
   .rich-text {
-    --rich-heading: var(--color-slate-900);
-    --rich-link: var(--color-brand-700);
-    --rich-accent: var(--color-brand-600);
-    --rich-line: var(--color-slate-200);
-    --rich-head-cell: var(--color-slate-50);
+    --rich-heading: var(--foreground);
+    --rich-link: var(--link);
+    --rich-accent: var(--accent);
+    --rich-line: var(--separator);
+    --rich-head-cell: var(--surface-secondary);
   }
   .rich-text :where(p, ul, ol, blockquote, table, img, hr) {
     margin-block: 0 1.25em;
@@ -214,7 +275,7 @@ html {
     text-align: center;
     font-size: 0.8125rem;
     line-height: 1.4;
-    color: var(--color-slate-500);
+    color: var(--muted);
   }
   /* While writing, a picture stands for itself: small enough to keep the text around it
      in view, outlined when it is the selection — so it is clear what Delete removes. */
@@ -224,7 +285,7 @@ html {
     cursor: pointer;
   }
   .ProseMirror.rich-text :where(img.ProseMirror-selectednode) {
-    outline: 3px solid var(--color-brand-500);
+    outline: 3px solid var(--focus);
     outline-offset: 2px;
   }
   .rich-text :where(hr) {
@@ -279,115 +340,21 @@ html {
   background-color: #fff;
 }
 
-/* `.on-glass` — content written for white paper, shown on a dark ground: the official
-   pages' glass (`Panel` in components/site/Cards.tsx) and every internal screen
-   (`Layout`). Rather than a dark copy of each page, the scope **redefines the palette**:
-   Tailwind's utilities read their colour from `--color-*`, so `text-slate-600` and
-   `bg-amber-50` follow whatever the variable says here. Unlayered, so it wins; limited to
-   this scope, so nothing else changes. A light theme is this scope left off.
-
-   The pale shades become white at a low opacity (surfaces, lines), the dark ones white at
-   a high one (text). Two kinds of shade cannot be swapped, because they serve as text
-   *and* as a ground under white type: slate 900/950 and the brand's 600–800. Those keep
-   their value and are handled per class below. */
-.on-glass {
-  --color-slate-50: rgb(255 255 255 / 0.05);
-  --color-slate-100: rgb(255 255 255 / 0.08);
-  --color-slate-200: rgb(255 255 255 / 0.12);
-  --color-slate-300: rgb(255 255 255 / 0.25);
-  --color-slate-400: rgb(255 255 255 / 0.55);
-  --color-slate-500: rgb(255 255 255 / 0.7);
-  --color-slate-600: rgb(255 255 255 / var(--site-text));
-  --color-slate-700: rgb(255 255 255 / 0.92);
-  --color-slate-800: white;
-  --color-brand-50: rgb(255 255 255 / 0.07);
-  --color-brand-100: color-mix(in oklab, #5786c7 25%, transparent);
-  --color-brand-200: color-mix(in oklab, #85a9da 45%, transparent);
-
-  /* The status colours: a pale tint with dark type turns into a dim tint with light type. */
-  --color-amber-50: color-mix(in oklab, #fbbf24 12%, transparent);
-  --color-amber-100: color-mix(in oklab, #fbbf24 20%, transparent);
-  --color-amber-200: color-mix(in oklab, #fbbf24 30%, transparent);
-  --color-amber-300: color-mix(in oklab, #fbbf24 45%, transparent);
-  --color-amber-400: color-mix(in oklab, #fbbf24 60%, transparent);
-  --color-amber-700: #fde68a;
-  --color-amber-800: #fde68a;
-  --color-amber-900: #fde68a;
-  --color-amber-950: #fef3c7;
-  --color-orange-100: color-mix(in oklab, #fb923c 15%, transparent);
-  --color-orange-300: color-mix(in oklab, #fb923c 45%, transparent);
-  --color-orange-800: #fed7aa;
-  --color-red-50: color-mix(in oklab, #f87171 12%, transparent);
-  --color-red-100: color-mix(in oklab, #f87171 20%, transparent);
-  --color-red-200: color-mix(in oklab, #f87171 35%, transparent);
-  --color-red-300: color-mix(in oklab, #f87171 50%, transparent);
-  --color-red-700: #fca5a5;
-  --color-red-800: #fca5a5;
-  --color-red-900: #fecaca;
-  --color-emerald-50: color-mix(in oklab, #34d399 12%, transparent);
-  --color-emerald-100: color-mix(in oklab, #34d399 18%, transparent);
-  --color-emerald-200: color-mix(in oklab, #34d399 35%, transparent);
-  --color-emerald-300: color-mix(in oklab, #34d399 50%, transparent);
-  --color-emerald-700: #6ee7b7;
-  --color-emerald-800: #6ee7b7;
-  --color-sky-50: color-mix(in oklab, #38bdf8 12%, transparent);
-  --color-sky-200: color-mix(in oklab, #38bdf8 35%, transparent);
-  --color-sky-700: #bae6fd;
-  --color-sky-800: #bae6fd;
-  --color-sky-900: #e0f2fe;
-
-  /* HeroUI's components read their own theme variables (`--surface`, not the
-     `--color-surface` its utilities are named after — they are inlined). */
-  --surface: rgb(255 255 255 / 0.06);
-  --surface-secondary: rgb(255 255 255 / 0.08);
-  --surface-tertiary: rgb(255 255 255 / 0.1);
-  --foreground: white;
-  --muted: rgb(255 255 255 / var(--site-text));
-  --shadow-surface: none;
-  color: white;
+/* A form field reads as one by its fill: white on light, a faint one on dark. In the base
+   layer, so a field that names its own background still wins. */
+@layer base {
+  :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]), textarea, select) {
+    background-color: var(--field-background);
+  }
+  ::placeholder {
+    color: var(--faint);
+  }
 }
 
-/* The shades kept above, as text; and paper itself. */
-.on-glass :is(.text-slate-900, .text-slate-950, .text-ink, .hover\:text-slate-900:hover, .hover\:text-slate-950:hover) {
-  color: white;
-}
-.on-glass :is(.text-brand-600, .text-brand-700, .text-brand-800) {
-  color: #b4cbe9;
-}
-.on-glass :is(.hover\:text-brand-700, .hover\:text-brand-800):hover {
-  color: #d8e4f4;
-}
-.on-glass .bg-white {
-  background-color: rgb(255 255 255 / 0.07);
-}
-
-/* Text from the editor: white headings, light links and lines. */
-.on-glass .rich-text {
-  --rich-heading: white;
-  --rich-link: #b4cbe9;
-  --rich-accent: #85a9da;
-}
-
-/* A field reads as a field on paper by its outline against white; on the dark ground a
-   hairline alone is lost, so it gets a faint fill. Its open list is drawn by the browser,
-   not by these classes, so it needs the dark scheme too, or it is white on white
-   (`components/Select.tsx`). */
-.on-glass :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]), textarea, select) {
-  background-color: rgb(255 255 255 / 0.06);
-}
-.on-glass ::placeholder {
-  color: rgb(255 255 255 / 0.45);
-}
-.on-glass select,
-select.on-dark {
-  color-scheme: dark;
-}
-.on-glass option,
-select.on-dark option {
-  background-color: #0f172a;
-  color: white;
-}
-.on-glass .data-table {
-  background-color: transparent;
-  box-shadow: none;
+/* A dropdown's open list is drawn by the browser, not by our classes: it follows the
+   `color-scheme` HeroUI's dark theme sets, and the option rows need the theme's colours
+   too, or a dark field opens a white list (`components/Select.tsx`). */
+[data-theme="dark"] option {
+  background-color: var(--overlay);
+  color: var(--foreground);
 }

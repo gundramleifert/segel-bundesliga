@@ -74,7 +74,7 @@ export default function RichTextEditor({
     content: value,
     editorProps: {
       attributes: {
-        class: "rich-text min-h-72 px-4 py-3 text-base leading-relaxed text-slate-700 outline-none",
+        class: "rich-text min-h-72 px-4 py-3 text-base leading-relaxed text-foreground outline-none",
         "data-testid": `${testId}-content`,
         "aria-label": t("posts.bodyLabel"),
       },
@@ -163,7 +163,7 @@ export default function RichTextEditor({
   if (!editor) return null;
   return (
     <div
-      className="overflow-hidden rounded-md border border-slate-300 bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-200"
+      className="overflow-hidden rounded-md border border-border bg-surface focus-within:border-focus focus-within:ring-2 focus-within:ring-focus/30"
       data-testid={testId}
     >
       <Toolbar
@@ -190,7 +190,7 @@ export default function RichTextEditor({
       {adoptError && <ErrorMessage text={adoptError} testId={`${testId}-adopt-error`} />}
       {/* The tips are keyboard shortcuts: on a touch screen they name keys that are not there. */}
       <p
-        className={`border-t border-slate-100 px-4 py-1.5 text-xs text-slate-500 ${photo.busy ? "" : "pointer-coarse:hidden"}`}
+        className={`border-t border-separator px-4 py-1.5 text-xs text-muted ${photo.busy ? "" : "pointer-coarse:hidden"}`}
         data-testid={`${testId}-hint`}
       >
         {photo.busy ? t("posts.photoUploading") : t("posts.editorHint")}
@@ -296,7 +296,7 @@ function Toolbar({
     ));
 
   return (
-    <div className="border-b border-slate-200 bg-slate-50">
+    <div className="border-b border-separator bg-surface-secondary">
       {/* One row on a phone, scrolled sideways inside itself: wrapped, it took three lines
           of a small screen and left "redo" alone on the last. */}
       <div
@@ -393,9 +393,9 @@ function ImageBar({ editor, src, testId }: { editor: Editor; src: string; testId
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-3 py-2 text-sm" data-testid={`${testId}-image-bar`}>
+    <div className="flex flex-wrap items-center gap-2 border-t border-separator px-3 py-2 text-sm" data-testid={`${testId}-image-bar`}>
       <label className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="shrink-0 text-slate-600">{t("posts.imageAlt")}</span>
+        <span className="shrink-0 text-muted">{t("posts.imageAlt")}</span>
         <input
           className={`${INPUT_CLASS} min-w-0 flex-1 py-1`}
           value={alt}
@@ -415,11 +415,11 @@ function ImageBar({ editor, src, testId }: { editor: Editor; src: string; testId
       <Button size="sm" variant="outline" isDisabled={state === "saving"} onPress={() => void save()} data-testid={`${testId}-image-alt-save`}>
         {entry ? t("posts.imageAltSaveLibrary") : t("posts.imageAltSave")}
       </Button>
-      <span className="text-xs text-slate-500" data-testid={`${testId}-image-alt-state`} data-state={state}>
+      <span className="text-xs text-muted" data-testid={`${testId}-image-alt-state`} data-state={state}>
         {state === "saved" ? t("posts.imageAltSaved") : state === "failed" ? t("posts.imageAltFailed") : ""}
       </span>
       {entry && (
-        <span className="basis-full text-xs text-slate-500" data-testid={`${testId}-image-credit`}>
+        <span className="basis-full text-xs text-muted" data-testid={`${testId}-image-credit`}>
           {entry.credit ? t("posts.imageCaption", { credit: entry.credit }) : t("posts.imageNoCredit")}
         </span>
       )}
@@ -464,7 +464,7 @@ function Tool({
 }
 
 function Divider() {
-  return <span aria-hidden className="mx-1 h-5 w-px bg-slate-300" />;
+  return <span aria-hidden className="mx-1 h-5 w-px bg-default" />;
 }
 
 /** What was typed as a link's address, as the address: `example.com` gets its `https://`,
@@ -510,7 +510,7 @@ function LinkBar({ editor, onClose, testId }: { editor: Editor; onClose: () => v
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-2 py-1.5">
+    <div className="flex flex-wrap items-center gap-2 border-t border-separator px-2 py-1.5">
       <input
         className={`${INPUT_CLASS} max-w-md flex-1`}
         value={href}
@@ -548,9 +548,9 @@ function LinkInfo({ editor, onChange, testId }: { editor: Editor; onChange: () =
   const { t } = useTranslation("admin");
   const href: string = editor.getAttributes("link").href ?? "";
   return (
-    <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-3 py-1.5 text-sm" data-testid={`${testId}-link-info`}>
-      <span className="text-slate-500">{t("posts.linkLeadsTo")}</span>
-      <a href={href} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-brand-700 underline" data-testid={`${testId}-link-info-href`}>
+    <div className="flex flex-wrap items-center gap-2 border-t border-separator px-3 py-1.5 text-sm" data-testid={`${testId}-link-info`}>
+      <span className="text-muted">{t("posts.linkLeadsTo")}</span>
+      <a href={href} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-link underline" data-testid={`${testId}-link-info-href`}>
         {href}
       </a>
       <span className="flex-1" />
@@ -581,7 +581,7 @@ function TableBar({ editor, testId }: { editor: Editor; testId: string }) {
     ["delete", t("posts.tableDelete"), () => editor.chain().focus().deleteTable().run()],
   ];
   return (
-    <div className="flex flex-wrap items-center gap-1 border-t border-slate-200 px-2 py-1.5" data-testid={`${testId}-table-bar`}>
+    <div className="flex flex-wrap items-center gap-1 border-t border-separator px-2 py-1.5" data-testid={`${testId}-table-bar`}>
       {actions.map(([key, label, run]) => (
         <Button key={key} size="sm" variant="ghost" preventFocusOnPress onPress={() => run()} data-testid={`${testId}-table-${key}`}>
           {label}

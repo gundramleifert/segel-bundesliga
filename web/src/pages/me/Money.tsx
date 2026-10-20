@@ -65,7 +65,7 @@ export function ClubMoneyTab({ clubId, clubName }: { clubId: number; clubName: s
               runs={(runs.data ?? []).filter((run) => run.payer_club_id === clubId)}
             />
             {!toDecide.length && (
-              <p className="text-sm text-slate-500" data-testid="reimbursements-empty">
+              <p className="text-sm text-muted" data-testid="reimbursements-empty">
                 {t("pending.empty")}
               </p>
             )}
@@ -92,7 +92,7 @@ export function EventClaimsTab({ eventId }: { eventId: number }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-500" data-testid="reimbursements-empty">
+          <p className="text-sm text-muted" data-testid="reimbursements-empty">
             {t("pending.empty")}
           </p>
         );
@@ -187,7 +187,7 @@ function ClubAccountForm({
 
   return (
     <Section title={t("bankRun.accountTitle")} testId={id}>
-      <p className="text-sm text-slate-600">{t("bankRun.accountHint")}</p>
+      <p className="text-sm text-muted">{t("bankRun.accountHint")}</p>
       <div className="flex flex-col gap-3">
         <Field label={t("bank.holderLabel")} testId={`${id}-holder-field`}>
           <input
@@ -285,10 +285,10 @@ function SepaRun({ clubId, claims, hasAccount }: { clubId: number; claims: Claim
 
   return (
     <Section title={t("bankRun.sepaTitle")} testId={id}>
-      <p className="text-sm text-slate-600">{t("bankRun.sepaHint")}</p>
+      <p className="text-sm text-muted">{t("bankRun.sepaHint")}</p>
       <div className="flex flex-col gap-3">
         {!hasAccount && (
-          <p className="text-sm text-amber-700" data-testid={`${id}-no-account`}>
+          <p className="text-sm text-warning-soft-foreground" data-testid={`${id}-no-account`}>
             {t("bankRun.noAccount")}{" "}
             <button type="button" className="underline" onClick={() => focusAccount(clubId)}>
               {t("bankRun.toAccount")}
@@ -375,9 +375,9 @@ function OpenRun({ run }: { run: RunOut }) {
       title={t("bankRun.runTitle", { date: formatDate(run.execution_date), amount: formatMoney(run.total_cents) })}
       testId={id}
     >
-      <p className="text-sm text-slate-600">{t("bankRun.runHint")}</p>
+      <p className="text-sm text-muted">{t("bankRun.runHint")}</p>
       <div className="flex flex-col gap-3">
-        <p className="break-all text-xs text-slate-500" data-testid={`${id}-message-id`}>
+        <p className="break-all text-xs text-muted" data-testid={`${id}-message-id`}>
           {t("bankRun.messageId", { id: run.message_id })}
         </p>
         <ul className="flex flex-col gap-2" data-testid={`${id}-payments`}>
@@ -426,13 +426,13 @@ function RunPayment({ payment, runId }: { payment: RunPaymentOut; runId: number 
   const [reason, setReason] = useState("");
 
   return (
-    <li className="flex flex-col gap-2 rounded-lg bg-slate-50 p-3 text-sm" data-testid={id} data-status={payment.status}>
+    <li className="flex flex-col gap-2 rounded-lg bg-surface-secondary p-3 text-sm" data-testid={id} data-status={payment.status}>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <span className="font-medium">{payment.payee_name}</span>
-        <span className="break-all text-slate-500">{payment.iban}</span>
+        <span className="break-all text-muted">{payment.iban}</span>
         <span className="ml-auto tabular-nums">{formatMoney(payment.amount_cents)}</span>
       </div>
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-muted">
         {t(`bankRun.paymentStatus.${payment.status}`)}
         {payment.failure_reason ? ` — ${payment.failure_reason}` : ""}
       </p>
@@ -495,7 +495,7 @@ function Books({ clubId }: { clubId: number }) {
 
   return (
     <Section title={t("bankRun.booksTitle")} testId={id}>
-      <p className="text-sm text-slate-600">{t("bankRun.booksHint")}</p>
+      <p className="text-sm text-muted">{t("bankRun.booksHint")}</p>
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-32">
           <Field label={t("bankRun.year")} testId={`${id}-year-field`}>
@@ -534,7 +534,7 @@ function PendingClaim({ claim }: { claim: Claim }) {
         <div className="flex flex-col gap-1">
           <ClaimSummary claim={claim} />
           {claim.submitted_at && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted">
               {t("pending.submittedOn", { date: formatDate(claim.submitted_at) })}
             </p>
           )}
@@ -598,7 +598,7 @@ function Decide({ claim }: { claim: Claim }) {
         claim={claim}
         testId={id}
         end={(item) => (
-          <label className="flex items-center gap-1 text-xs text-slate-500">
+          <label className="flex items-center gap-1 text-xs text-muted">
             <span className="sr-only sm:not-sr-only">{t("pending.approveAs")}</span>
             <input
               inputMode="decimal"
@@ -657,8 +657,8 @@ function Pay({ claim }: { claim: Claim }) {
   const [reference, setReference] = useState(claim.title.slice(0, 140));
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg bg-slate-50 p-3" data-testid={`${id}-pay`}>
-      <p className="text-xs text-slate-500">{t("pending.payByHandHint")}</p>
+    <div className="flex flex-col gap-3 rounded-lg bg-surface-secondary p-3" data-testid={`${id}-pay`}>
+      <p className="text-xs text-muted">{t("pending.payByHandHint")}</p>
       <p className="text-sm font-medium tabular-nums">{formatMoney(claim.approved_cents - claim.paid_cents)}</p>
       <GiroCode claimId={claim.id} />
       <div className="flex flex-wrap gap-3">
@@ -746,11 +746,11 @@ function GiroCode({ claimId }: { claimId: number }) {
         <img
           src={url}
           alt={t("pending.girocodeAlt")}
-          className="size-48 rounded-md bg-white p-1"
+          className="size-48 rounded-md bg-surface p-1"
           data-testid={`${id}-image`}
         />
       )}
-      <p className="text-xs text-slate-500">{t("pending.girocodeHint")}</p>
+      <p className="text-xs text-muted">{t("pending.girocodeHint")}</p>
       <Message error={error ? errorText(error) : null} testId={`${id}-message`} />
     </div>
   );

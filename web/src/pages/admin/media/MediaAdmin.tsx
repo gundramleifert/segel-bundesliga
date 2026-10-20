@@ -134,16 +134,16 @@ function Library() {
         }}
         onDragLeave={() => setOver(false)}
         onDrop={drop}
-        className={`grid grid-cols-[minmax(0,1fr)] gap-4 rounded-md ${over ? "ring-2 ring-brand-500 ring-offset-4" : ""}`}
+        className={`grid grid-cols-[minmax(0,1fr)] gap-4 rounded-md ${over ? "ring-2 ring-focus ring-offset-4" : ""}`}
         data-testid="admin-media-dropzone"
       >
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         {t("media.intro")} <span className="pointer-coarse:hidden">{t("media.dropHint")}</span>
       </p>
       {batch.items.length > 0 && (
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-md border border-slate-200 bg-slate-50 p-3" data-testid="admin-media-upload">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-md border border-separator bg-surface-secondary p-3" data-testid="admin-media-upload">
           <UploadList items={batch.items} received={batch.received} testId="admin-media-upload" />
-          <p className="text-xs text-slate-500" data-testid="admin-media-upload-where">
+          <p className="text-xs text-muted" data-testid="admin-media-upload-where">
             {t("media.uploadWhere", {
               credit: rememberedCredit() || account?.display_name || "—",
               context: context.event_id || context.series_id ? t("media.uploadToFilter") : t("media.contextNone"),
@@ -190,7 +190,7 @@ function Library() {
         />
       </Field>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
+        <label className="flex items-center gap-2 text-sm text-foreground">
           <input
             type="checkbox"
             checked={altMissing}
@@ -249,7 +249,7 @@ function Tile({ item, active, onPress, checked }: { item: Media; active: boolean
       type="button"
       onClick={onPress}
       aria-pressed={checked}
-      className={`relative grid w-full gap-1 rounded-md p-1 text-left text-xs hover:bg-slate-100 ${active ? "ring-2 ring-brand-500" : ""}`}
+      className={`relative grid w-full gap-1 rounded-md p-1 text-left text-xs hover:bg-surface-tertiary ${active ? "ring-2 ring-focus" : ""}`}
       data-testid={`admin-media-tile-${item.id}`}
     >
       {checked !== undefined && (
@@ -265,13 +265,13 @@ function Tile({ item, active, onPress, checked }: { item: Media; active: boolean
       )}
       <img src={item.thumb_url} alt={item.alt} loading="lazy" className="aspect-square w-full rounded object-cover" />
       {!item.alt_confirmed && (
-        <span className="justify-self-start rounded bg-amber-100 px-1.5 py-0.5 text-[0.7rem] font-medium text-amber-900" data-testid="admin-media-tile-alt-missing">
+        <span className="justify-self-start rounded bg-warning-soft px-1.5 py-0.5 text-[0.7rem] font-medium text-warning-soft-foreground" data-testid="admin-media-tile-alt-missing">
           {t("media.altMissing")}
         </span>
       )}
-      <span className="truncate text-slate-700">{item.alt || item.original_name}</span>
-      {item.credit && <span className="truncate text-slate-500">© {item.credit}</span>}
-      {item.context && <span className="truncate text-brand-700">{item.context}</span>}
+      <span className="truncate text-foreground">{item.alt || item.original_name}</span>
+      {item.credit && <span className="truncate text-muted">© {item.credit}</span>}
+      {item.context && <span className="truncate text-link">{item.context}</span>}
     </button>
   );
 }
@@ -302,7 +302,7 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
 
   return (
     <form
-      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-md border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[14rem_minmax(0,1fr)]"
+      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-md border border-separator bg-surface-secondary p-4 sm:grid-cols-[14rem_minmax(0,1fr)]"
       data-testid="admin-media-entry-form"
       onSubmit={(e: FormEvent) => {
         e.preventDefault();
@@ -313,7 +313,7 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
         <img src={item.thumb_url} alt={item.alt} className="w-full rounded object-contain" />
       </a>
       <div className="grid content-start gap-3">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-muted">
           {item.original_name} · {item.width} × {item.height}
           {item.taken_on && ` · ${t("media.takenOn", { date: formatDate(item.taken_on) })}`}
         </p>
@@ -333,14 +333,14 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
         </Field>
         <div className="text-sm" data-testid="admin-media-used-in">
           {item.used_in.length === 0 ? (
-            <span className="text-slate-500">{t("media.unused")}</span>
+            <span className="text-muted">{t("media.unused")}</span>
           ) : (
             <>
               {t("media.usedIn")}{" "}
               {item.used_in.map((post, i) => (
                 <span key={post.id}>
                   {i > 0 && ", "}
-                  <Link to={`/admin/news/${post.id}`} className="text-brand-700 underline">
+                  <Link to={`/admin/news/${post.id}`} className="text-link underline">
                     {post.title}
                   </Link>
                 </span>
@@ -430,7 +430,7 @@ function BulkBar({ chosen, pageIds, onChoose }: { chosen: Set<number>; pageIds: 
   const keptPosts = deleted ? [...new Map(deleted.kept.flatMap((kept) => kept.used_in).map((post) => [post.id, post])).values()] : [];
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-md border border-brand-200 bg-brand-50 p-3 text-sm" data-testid="admin-media-bulk">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-md border border-accent/30 bg-accent-soft p-3 text-sm" data-testid="admin-media-bulk">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="font-medium" data-testid="admin-media-bulk-count">
           {t("media.selected", { count: ids.length })}
@@ -484,15 +484,15 @@ function BulkBar({ chosen, pageIds, onChoose }: { chosen: Set<number>; pageIds: 
         </div>
       )}
       {updated !== null && (
-        <p className="text-emerald-800" data-testid="admin-media-bulk-updated">
+        <p className="text-success-soft-foreground" data-testid="admin-media-bulk-updated">
           {t("media.bulkUpdated", { count: updated })}
         </p>
       )}
       {deleted && (
         <div data-testid="admin-media-bulk-deleted">
-          <p className="text-emerald-800">{t("media.bulkDeleted", { count: deleted.deleted.length })}</p>
+          <p className="text-success-soft-foreground">{t("media.bulkDeleted", { count: deleted.deleted.length })}</p>
           {keptPosts.length > 0 && (
-            <p className="text-amber-900" data-testid="admin-media-bulk-kept">
+            <p className="text-warning-soft-foreground" data-testid="admin-media-bulk-kept">
               {t("media.bulkKept", { count: deleted.kept.length })}{" "}
               {keptPosts.map((post, i) => (
                 <span key={post.id}>
@@ -524,12 +524,12 @@ function ImportKeys() {
 
   return (
     <Section title={t("importKeys.title")} testId="admin-import-keys-section">
-      <p className="text-sm text-slate-600">{t("importKeys.intro")}</p>
+      <p className="text-sm text-muted">{t("importKeys.intro")}</p>
       <NewKey onMade={setMade} />
       {made && <ShownOnce made={made} onDone={() => setMade(null)} />}
       <Async state={keys} testId="admin-import-keys" empty={<Empty testId="admin-import-keys-empty">{t("importKeys.empty")}</Empty>}>
         {(rows) => (
-          <ul className="divide-y divide-slate-200" data-testid="admin-import-keys-list">
+          <ul className="divide-y divide-separator" data-testid="admin-import-keys-list">
             {rows.map((row) => (
               <KeyRow key={row.id} row={row} />
             ))}
@@ -594,8 +594,8 @@ function ShownOnce({ made, onDone }: { made: ImportKeyCreated; onDone: () => voi
   const [copied, setCopied] = useState(false);
   const link = uploadLink(made.key);
   return (
-    <div className="grid gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm" data-testid="admin-import-key-made">
-      <p className="font-medium text-amber-900">{t("importKeys.shownOnce", { label: made.label })}</p>
+    <div className="grid gap-2 rounded-md border border-warning/50 bg-warning-soft p-3 text-sm" data-testid="admin-import-key-made">
+      <p className="font-medium text-warning-soft-foreground">{t("importKeys.shownOnce", { label: made.label })}</p>
       <div className="flex flex-wrap items-center gap-2">
         <input readOnly value={link} onFocus={(e) => e.target.select()} className={`${INPUT_CLASS} min-w-0 flex-1 font-mono text-xs`} data-testid="admin-import-key-link" />
         <Button
@@ -621,8 +621,8 @@ function KeyRow({ row }: { row: ImportKey }) {
   return (
     <li className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm" data-testid={`admin-import-key-${row.id}`}>
       <span className="min-w-0 flex-1">
-        <span className="font-medium">{row.label}</span> <span className="font-mono text-xs text-slate-500">{row.prefix}…</span>
-        <span className="block text-xs text-slate-500">
+        <span className="font-medium">{row.label}</span> <span className="font-mono text-xs text-muted">{row.prefix}…</span>
+        <span className="block text-xs text-muted">
           {t("importKeys.pictures", { count: row.pictures })}
           {row.last_used_at && ` · ${t("importKeys.lastUsed", { date: formatDate(row.last_used_at) })}`}
           {row.expires_at && row.active && ` · ${t("importKeys.validUntil", { date: formatDate(row.expires_at) })}`}

@@ -86,14 +86,14 @@ export function RoleSwitcher() {
       {open && (
         <div
           data-testid="dev-role-switcher-panel"
-          className="mb-2 max-h-[70vh] w-[22rem] overflow-hidden rounded-xl border border-amber-300 bg-white shadow-xl"
+          className="mb-2 max-h-[70vh] w-[22rem] overflow-hidden rounded-xl border border-warning/50 bg-overlay shadow-xl"
         >
-          <div className="border-b border-amber-200 bg-amber-50 px-3 py-2">
-            <p className="font-medium text-amber-900">{t("title")}</p>
-            <p className="text-xs text-amber-800">{t("subtitle")}</p>
+          <div className="border-b border-warning/50 bg-warning-soft px-3 py-2">
+            <p className="font-medium text-warning-soft-foreground">{t("title")}</p>
+            <p className="text-xs text-warning-soft-foreground">{t("subtitle")}</p>
           </div>
 
-          <div className="border-b border-slate-200 p-2">
+          <div className="border-b border-separator p-2">
             <input
               type="search"
               value={search}
@@ -101,7 +101,7 @@ export function RoleSwitcher() {
               placeholder={t("searchPlaceholder")}
               aria-label={t("searchLabel")}
               data-testid="dev-role-switcher-search-input"
-              className="w-full rounded-md border border-slate-300 px-2.5 py-1.5 outline-none focus:border-sky-600 focus:ring-1 focus:ring-sky-600"
+              className="w-full rounded-md border border-border px-2.5 py-1.5 outline-none focus:border-focus focus:ring-1 focus:ring-focus"
             />
           </div>
 
@@ -117,7 +117,7 @@ export function RoleSwitcher() {
                     aria-expanded={group === "sailor" ? !folded : undefined}
                     disabled={group !== "sailor"}
                     data-testid={`dev-role-switcher-group-${group}-heading`}
-                    className="sticky top-0 flex w-full items-center justify-between bg-slate-100 px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-slate-600 enabled:hover:bg-slate-200"
+                    className="sticky top-0 flex w-full items-center justify-between bg-surface-tertiary px-3 py-1 text-left text-xs font-semibold uppercase tracking-wide text-muted enabled:hover:bg-default-hover"
                   >
                     <span>{t(`groups.${group as Group}`)}</span>
                     <span className="font-normal normal-case">
@@ -132,16 +132,16 @@ export function RoleSwitcher() {
                           <button
                             onClick={() => signIn(account.email)}
                             data-testid={`dev-role-switcher-account-${account.id}`}
-                            className={`block w-full px-3 py-1.5 text-left hover:bg-slate-50 ${
-                              me?.email === account.email ? "bg-sky-50" : ""
+                            className={`block w-full px-3 py-1.5 text-left hover:bg-surface-secondary ${
+                              me?.email === account.email ? "bg-accent-soft" : ""
                             }`}
                           >
                             <span className="font-medium">{account.display_name}</span>
-                            {account.club && <span className="ml-1.5 text-slate-500">[{account.club}]</span>}
-                            <span className="block text-xs text-slate-500">
+                            {account.club && <span className="ml-1.5 text-muted">[{account.club}]</span>}
+                            <span className="block text-xs text-muted">
                               {account.email}
                               {account.roles.length > 0 && (
-                                <span className="text-sky-800"> · {account.roles.join(", ")}</span>
+                                <span className="text-accent-soft-foreground"> · {account.roles.join(", ")}</span>
                               )}
                             </span>
                           </button>
@@ -153,18 +153,18 @@ export function RoleSwitcher() {
               );
             })}
             {!grouped.length && (
-              <p data-testid="dev-role-switcher-empty" className="px-3 py-6 text-center text-slate-500">
+              <p data-testid="dev-role-switcher-empty" className="px-3 py-6 text-center text-muted">
                 {t("notFound")}
               </p>
             )}
           </div>
 
           {me && (
-            <div className="border-t border-slate-200 p-2">
+            <div className="border-t border-separator p-2">
               <button
                 onClick={() => setToken(null)}
                 data-testid="dev-role-switcher-signout-button"
-                className="w-full rounded-md border border-slate-300 px-3 py-1.5 hover:bg-slate-50"
+                className="w-full rounded-md border border-border px-3 py-1.5 hover:bg-surface-secondary"
               >
                 {t("signOut")}
               </button>
@@ -177,7 +177,7 @@ export function RoleSwitcher() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         data-testid="dev-role-switcher-toggle"
-        className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-100 px-4 py-2 font-medium text-amber-900 shadow-lg hover:bg-amber-200"
+        className="flex items-center gap-2 rounded-full border border-warning/50 bg-warning-soft px-4 py-2 font-medium text-warning-soft-foreground shadow-lg hover:bg-warning-soft-hover"
       >
         <span aria-hidden>🔧</span>
         {me ? `${me.display_name} · ${me.roles.join(", ") || t("noRole")}` : t("notSignedIn")}

@@ -41,7 +41,7 @@ export function ConfirmButton({
   return (
     <>
       {prompt && (
-        <span className="text-sm font-medium text-slate-700" data-testid={`${testId}-prompt`}>
+        <span className="text-sm font-medium text-foreground" data-testid={`${testId}-prompt`}>
           {prompt}
         </span>
       )}

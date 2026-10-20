@@ -179,7 +179,7 @@ function NoticeBoard({ events }: { events: EventSummary[] }) {
                     <span className={`w-20 shrink-0 text-sm ${tone.faint}`}>{n.time}</span>
                     <span
                       className={`shrink-0 rounded-full px-2 text-xs font-semibold ${
-                        n.from === "jury" ? "bg-amber-50 text-amber-800" : n.from === "organizer" ? "bg-slate-100 text-slate-600" : "bg-brand-50 text-brand-700"
+                        n.from === "jury" ? "bg-warning-soft text-warning-soft-foreground" : n.from === "organizer" ? "bg-surface-tertiary text-muted" : "bg-accent-soft text-link"
                       }`}
                     >
                       {t(`noticeBoard.from.${n.from}`)}
@@ -214,7 +214,7 @@ function Results({ event }: { event: EventSummary }) {
     <Async state={detail} testId="matchday" loadingText={t("loading")}>
       {(data) => (
         <>
-          <p className="mb-4 flex flex-wrap items-center gap-3 text-sm text-slate-500">
+          <p className="mb-4 flex flex-wrap items-center gap-3 text-sm text-muted">
             <span data-testid="matchday-races-count">{t("racesCount", { scored: data.races_scored, total: data.races_total })}</span>
             {/* The status from the event's own query, which the stream refreshes — the
                 act's list from the league's year is a snapshot of when the page opened. */}
@@ -255,7 +255,7 @@ function useEventLive(event: EventSummary) {
 function LiveTab({ event }: { event: EventSummary }) {
   const { t } = useTranslation("site");
   const title = event.status === EventStatus.live ? t("live.now") : event.status === EventStatus.final ? t("live.replay") : t("live.from", { dates: eventDates(event) });
-  const button = "mt-5 inline-block rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-950";
+  const button = "mt-5 inline-block rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background";
   return (
     <Card className="p-8 text-center" testId="site-live">
       <p className={`text-lg font-semibold ${tone.text}`}>{title}</p>

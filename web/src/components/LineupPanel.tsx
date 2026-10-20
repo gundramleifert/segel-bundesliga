@@ -85,16 +85,16 @@ export function LineupPanel({
   return (
     <div
       data-testid={testIdPrefix}
-      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4"
+      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-separator bg-surface-secondary p-4"
     >
       <div>
         <h4 className="font-medium">{t("lineup.title")}</h4>
-        <p data-testid={`${testIdPrefix}-size-hint`} className="text-sm text-slate-500">
+        <p data-testid={`${testIdPrefix}-size-hint`} className="text-sm text-muted">
           {t("lineup.sizeHint", { count: draft.length, usual: crewSize })}
           {!readOnly && !draft.some((d) => d.role === CrewRole.helm) && draft.length > 0 && (
             <>
               {" · "}
-              <span className="text-amber-700" data-testid={`${testIdPrefix}-no-helm`}>
+              <span className="text-warning-soft-foreground" data-testid={`${testIdPrefix}-no-helm`}>
                 {t("lineup.noHelm")}
               </span>
             </>
@@ -104,7 +104,7 @@ export function LineupPanel({
 
       {readOnly ? (
         selected.length ? (
-          <ul data-testid={`${testIdPrefix}-list`} className="divide-y divide-slate-100 text-sm">
+          <ul data-testid={`${testIdPrefix}-list`} className="divide-y divide-separator text-sm">
             {selected.map((member) => (
               <li
                 key={member.id}
@@ -114,7 +114,7 @@ export function LineupPanel({
                 <span className="min-w-0 flex-1">
                   {member.first_name} {member.last_name}
                 </span>
-                <span className="text-xs text-slate-500">{roleText(roleOf(member.id))}</span>
+                <span className="text-xs text-muted">{roleText(roleOf(member.id))}</span>
               </li>
             ))}
           </ul>
@@ -128,7 +128,7 @@ export function LineupPanel({
       ) : (
         <>
           {!(squad.data?.members ?? []).length && (
-            <p className="text-sm text-slate-500" data-testid={`${testIdPrefix}-squad-empty`}>
+            <p className="text-sm text-muted" data-testid={`${testIdPrefix}-squad-empty`}>
               {t("lineup.squadEmpty")}
             </p>
           )}
@@ -161,7 +161,7 @@ export function LineupPanel({
               {setCrew.isPending ? t("lineup.saving") : t("lineup.save")}
             </Button>
             {dirty && (
-              <span className="text-xs text-slate-500" data-testid={`${testIdPrefix}-unsaved`}>
+              <span className="text-xs text-muted" data-testid={`${testIdPrefix}-unsaved`}>
                 {t("lineup.unsaved")}
               </span>
             )}

@@ -232,7 +232,7 @@ export function GeneralDataStep({
           )}
         </div>
 
-        <p className="text-sm text-slate-500" data-testid="admin-events-format-text">
+        <p className="text-sm text-muted" data-testid="admin-events-format-text">
           {t("events.formatText", {
             teams,
             boats,
@@ -242,7 +242,7 @@ export function GeneralDataStep({
           })}
         </p>
 
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted">
           {t("events.catalogContactHint")}{" "}
           <a
             href="https://github.com/gundramleifert"
@@ -255,10 +255,10 @@ export function GeneralDataStep({
         </p>
 
         <Field label={t("events.boatSetupLabel")}>
-          <div className="overflow-x-auto rounded-md border border-slate-200">
+          <div className="overflow-x-auto rounded-md border border-separator">
             <table data-testid="admin-events-boat-table" className="data-table w-full min-w-[44rem] text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-medium uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-separator bg-surface-secondary text-left text-xs font-medium uppercase tracking-wide text-muted">
                   <th scope="col" className="font-medium">
                     {t("events.boatNumberLabel")}
                   </th>
@@ -270,10 +270,10 @@ export function GeneralDataStep({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-separator">
                 {boatRows.map((row, index) => (
                   <tr key={index}>
-                    <td className="text-slate-500">{index + 1}</td>
+                    <td className="text-muted">{index + 1}</td>
                     <td>
                       {/* `INPUT_CLASS` is `w-full` by default — every control here overrides that
                        *  to a fixed or growing-but-bounded width instead, so all three
@@ -315,7 +315,7 @@ export function GeneralDataStep({
                         </Select>
                         <input
                           type="color"
-                          className="h-9 w-9 shrink-0 cursor-pointer rounded border border-slate-300 p-0.5"
+                          className="h-9 w-9 shrink-0 cursor-pointer rounded border border-border p-0.5"
                           value={hexForPicker(row.customColor)}
                           onChange={(e) =>
                             updateBoat(index, { color: CUSTOM_COLOR, customColor: e.target.value })

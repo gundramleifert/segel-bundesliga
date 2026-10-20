@@ -29,11 +29,11 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
     <section data-testid={`my-club-guardians-${clubId}`} className="grid grid-cols-[minmax(0,1fr)] gap-3">
       <div>
         <h3 className="font-medium">{t("guardians.title")}</h3>
-        <p className="text-sm text-slate-600">{t("guardians.hint")}</p>
+        <p className="text-sm text-muted">{t("guardians.hint")}</p>
       </div>
       <Async state={rows} testId="my-club-guardians" empty={t("guardians.empty")}>
         {(data) => (
-          <ul className="divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+          <ul className="divide-y divide-separator rounded-lg border border-separator bg-surface">
             {minorsFirst(data).map((row) => (
               <li
                 key={row.sailor.id}
@@ -66,7 +66,7 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
                       <li
                         key={g.id}
                         data-testid={`my-club-guardian-${row.sailor.id}-${g.id}`}
-                        className="flex items-center gap-1 rounded-full bg-slate-100 py-0.5 pl-3 pr-1 text-sm"
+                        className="flex items-center gap-1 rounded-full bg-surface-tertiary py-0.5 pl-3 pr-1 text-sm"
                       >
                         <span>{g.display_name || g.email}</span>
                         <button
@@ -74,7 +74,7 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
                           aria-label={t("guardians.remove", { name: g.display_name || g.email })}
                           disabled={unlink.isPending}
                           onClick={() => unlink.mutate({ sailorId: row.sailor.id, tupleId: g.id })}
-                          className="rounded-full px-1.5 text-slate-500 hover:bg-slate-200 hover:text-slate-800"
+                          className="rounded-full px-1.5 text-muted hover:bg-default-hover hover:text-foreground"
                           data-testid={`my-club-guardian-remove-${row.sailor.id}-${g.id}`}
                         >
                           ×

@@ -121,7 +121,7 @@ export function SquadPanel({
   return (
     <div
       data-testid="admin-squad-management"
-      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4"
+      className="grid grid-cols-[minmax(0,1fr)] gap-4 rounded-lg border border-separator bg-surface-secondary p-4"
     >
       <div>
         <h3 className="font-medium">
@@ -129,12 +129,12 @@ export function SquadPanel({
         </h3>
         {/* Guidance, not validation — and said out loud, so that being at nine does not
             look like an oversight and being at eleven does not look like a bug. */}
-        <p data-testid="admin-squad-size-hint" className="text-sm text-slate-500">
+        <p data-testid="admin-squad-size-hint" className="text-sm text-muted">
           {t("squad.sizeHint", { count: draft.length, min: squadMin, max: squadMax })}
           {draft.length < squadMin && (
             <>
               {" · "}
-              <span data-testid="admin-squad-min-hint" className="text-amber-700">
+              <span data-testid="admin-squad-min-hint" className="text-warning-soft-foreground">
                 {t("squad.belowMinHint", { min: squadMin })}
               </span>
             </>
@@ -148,7 +148,7 @@ export function SquadPanel({
           {helmCount !== USUAL_HELM_COUNT && (
             <>
               {" · "}
-              <span data-testid="admin-squad-helm-hint" className="text-amber-700">
+              <span data-testid="admin-squad-helm-hint" className="text-warning-soft-foreground">
                 {helmCount === 0 ? t("squad.noHelmHint") : t("squad.manyHelmsHint", { count: helmCount })}
               </span>
             </>
@@ -158,7 +158,7 @@ export function SquadPanel({
 
       {readOnly ? (
         selected.length ? (
-          <ul data-testid="admin-squad-members-list" className="divide-y divide-slate-100 text-sm">
+          <ul data-testid="admin-squad-members-list" className="divide-y divide-separator text-sm">
             {selected.map((member) => (
               <li
                 key={member.id}
@@ -168,7 +168,7 @@ export function SquadPanel({
                 <span className="min-w-0 flex-1 truncate">
                   {member.first_name} {member.last_name}
                 </span>
-                <span data-testid={`admin-squad-member-role-${member.id}`} className="text-xs text-slate-500">
+                <span data-testid={`admin-squad-member-role-${member.id}`} className="text-xs text-muted">
                   {roleText(roleOf(member.id))}
                 </span>
               </li>
@@ -215,7 +215,7 @@ export function SquadPanel({
               {setSquad.isPending ? t("squad.saving") : t("squad.save")}
             </Button>
             {dirty && (
-              <span className="text-xs text-slate-500" data-testid="admin-squad-unsaved">
+              <span className="text-xs text-muted" data-testid="admin-squad-unsaved">
                 {t("squad.unsaved")}
               </span>
             )}

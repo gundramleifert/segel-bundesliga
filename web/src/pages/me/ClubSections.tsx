@@ -41,7 +41,7 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
 
   return (
     <section data-testid={`my-club-events-${entry.club.id}`} className="grid grid-cols-[minmax(0,1fr)] gap-3">
-      <p className="text-sm text-slate-600">{t("mine.eventsHint")}</p>
+      <p className="text-sm text-muted">{t("mine.eventsHint")}</p>
       {events.length ? (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-3" data-testid="my-club-events-list">
           {events.map((event) => {
@@ -50,23 +50,23 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
               <li
                 key={event.event_id}
                 data-testid={`my-club-event-${event.event_id}`}
-                className="rounded-lg border border-slate-200 bg-white p-4"
+                className="rounded-lg border border-separator bg-surface p-4"
               >
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
                       {event.title}
                       {event.series && (
-                        <span className="ml-2 text-sm font-normal text-slate-500">{event.series.name}</span>
+                        <span className="ml-2 text-sm font-normal text-muted">{event.series.name}</span>
                       )}
                     </p>
-                    <p className="text-sm text-slate-600">{eventDates(event)}</p>
+                    <p className="text-sm text-muted">{eventDates(event)}</p>
                   </div>
                   <StatusBadge status={event.status} testId={`my-club-event-status-${event.event_id}`} />
                   {!event.published && (
                     <span
                       data-testid={`my-club-event-draft-${event.event_id}`}
-                      className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600 ring-1 ring-inset ring-slate-200"
+                      className="rounded-full bg-surface-tertiary px-2.5 py-0.5 text-xs text-muted ring-1 ring-inset ring-border"
                     >
                       {t("mine.draftBadge")}
                     </span>
@@ -148,7 +148,7 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
 
   return (
     <section data-testid={`my-club-teams-${entry.club.id}`} className="grid grid-cols-[minmax(0,1fr)] gap-3">
-      <p className="text-sm text-slate-600">{t("mine.seriesHint")}</p>
+      <p className="text-sm text-muted">{t("mine.seriesHint")}</p>
       <ul className="grid grid-cols-[minmax(0,1fr)] gap-3" data-testid="my-club-teams-list">
         {teams.map((team) => {
           const isOpen = open === String(team.team_id);
@@ -156,7 +156,7 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
             <li
               key={team.team_id}
               data-testid={`my-club-team-${team.team_id}`}
-              className="rounded-lg border border-slate-200 bg-white p-4"
+              className="rounded-lg border border-separator bg-surface p-4"
             >
               <div className="flex flex-wrap items-center gap-3">
                 <div className="min-w-0 flex-1">
@@ -165,7 +165,7 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
                       {team.series.name}
                     </Link>
                   </p>
-                  <p className="text-sm text-slate-600" data-testid={`my-club-team-size-${team.team_id}`}>
+                  <p className="text-sm text-muted" data-testid={`my-club-team-size-${team.team_id}`}>
                     {t("mine.squadSize", {
                       count: team.squad_size,
                       min: team.squad_min,
@@ -220,7 +220,7 @@ export function ClubWaivers({ clubId }: { clubId: number }) {
             <li
               key={`${block.scope}-${block.scope_id}`}
               data-testid={`my-club-waivers-${block.scope}-${block.scope_id}`}
-              className="rounded-lg border border-slate-200 bg-white p-4"
+              className="rounded-lg border border-separator bg-surface p-4"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <Link
@@ -230,14 +230,14 @@ export function ClubWaivers({ clubId }: { clubId: number }) {
                   {block.name}
                 </Link>
                 <span
-                  className={`text-sm ${block.outstanding ? "font-medium text-amber-700" : "text-emerald-700"}`}
+                  className={`text-sm ${block.outstanding ? "font-medium text-warning-soft-foreground" : "text-success-soft-foreground"}`}
                   data-testid={`my-club-waivers-${block.scope}-${block.scope_id}-summary`}
                 >
                   {t("clubWaivers.summary", { cleared: block.cleared, total: block.sailors.length })}
                 </span>
               </div>
               {block.sailors.length ? (
-                <ul className="mt-3 flex flex-col divide-y divide-slate-100 text-sm">
+                <ul className="mt-3 flex flex-col divide-y divide-separator text-sm">
                   {block.sailors.map((row) => (
                     <li
                       key={row.sailor_id}
@@ -253,7 +253,7 @@ export function ClubWaivers({ clubId }: { clubId: number }) {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-2 text-sm text-slate-500">{t("clubWaivers.nobody")}</p>
+                <p className="mt-2 text-sm text-muted">{t("clubWaivers.nobody")}</p>
               )}
             </li>
           ))}

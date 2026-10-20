@@ -76,8 +76,8 @@ export function FileDropzone({
           "flex w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed " +
           "px-4 py-5 text-center text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 " +
           (over
-            ? "border-brand-500 bg-brand-50 text-brand-800"
-            : "border-slate-300 text-slate-600 hover:border-slate-400 hover:bg-slate-50")
+            ? "border-accent bg-accent-soft text-accent-soft-foreground"
+            : "border-border text-muted hover:border-muted hover:bg-surface-secondary")
         }
       >
         <svg
@@ -93,13 +93,13 @@ export function FileDropzone({
           <path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3" />
         </svg>
         {selected ? (
-          <span className="font-medium text-slate-900" data-testid={`${testId}-selected`}>
+          <span className="font-medium text-foreground" data-testid={`${testId}-selected`}>
             {selected.name}
           </span>
         ) : (
           <span className="font-medium">{t("dropzone.prompt")}</span>
         )}
-        {hint && <span className="text-xs text-slate-500">{hint}</span>}
+        {hint && <span className="text-xs text-muted">{hint}</span>}
       </button>
       <input
         ref={input}
@@ -115,7 +115,7 @@ export function FileDropzone({
         data-testid={testId}
       />
       {refused && (
-        <p className="mt-1 text-sm text-red-700" data-testid={`${testId}-refused`}>
+        <p className="mt-1 text-sm text-danger" data-testid={`${testId}-refused`}>
           {t("dropzone.refused", { name: refused })}
         </p>
       )}

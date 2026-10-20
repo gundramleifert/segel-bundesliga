@@ -9,8 +9,8 @@ export function PublicationBadge({ published, testId }: { published: boolean; te
       data-testid={testId}
       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
         published
-          ? "bg-brand-50 text-brand-800 ring-brand-200"
-          : "bg-amber-50 text-amber-800 ring-amber-200"
+          ? "bg-accent-soft text-accent-soft-foreground ring-accent/30"
+          : "bg-warning-soft text-warning-soft-foreground ring-warning/50"
       }`}
     >
       {published ? t("manage.publishedBadge") : t("manage.draftBadge")}

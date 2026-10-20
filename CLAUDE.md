@@ -663,6 +663,10 @@ What already exists, and what each one replaced:
   zooms the page out on a phone), `LinkCard`, `TabbedView`, and the form primitives. Read
   that file before writing a page; each entry replaced three or more hand-written copies
   that had already drifted apart. A component never imports from `pages/`.
+- **`web/scripts/check-colours.mjs`** — a page names its colours (`text-muted`,
+  `bg-warning-soft`), never shades (`text-slate-500`): the theme is the variables behind
+  the names, so a shade is a page that breaks in the other theme. `docs/components.md`
+  § Colours.
 - **`scripts/check-docs.py`** — makes the documentation prove itself: every `Tests:`
   reference must resolve to something that exists, every story ID a test claims must be a
   real story, every gotcha must carry its Evidence, and the index must be current. It is

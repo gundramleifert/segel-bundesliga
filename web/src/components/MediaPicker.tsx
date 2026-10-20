@@ -58,7 +58,7 @@ export function MediaPicker({ onPick, onClose, testId }: { onPick: (item: Media)
     <div
       // At most most of a screen high, scrolling inside itself: open in the editor on a
       // phone, an unbounded grid pushed the text being written a screen down.
-      className={`grid max-h-[70vh] grid-cols-[minmax(0,1fr)] gap-3 overflow-y-auto overscroll-contain border-t border-slate-200 bg-white p-3 ${over ? "ring-2 ring-inset ring-brand-500" : ""}`}
+      className={`grid max-h-[70vh] grid-cols-[minmax(0,1fr)] gap-3 overflow-y-auto overscroll-contain border-t border-separator bg-surface p-3 ${over ? "ring-2 ring-inset ring-focus" : ""}`}
       onDragOver={(e) => {
         e.preventDefault();
         setOver(true);
@@ -128,14 +128,14 @@ export function MediaPicker({ onPick, onClose, testId }: { onPick: (item: Media)
                   <button
                     type="button"
                     onClick={() => onPick(item)}
-                    className="grid w-full gap-1 rounded p-1 text-left text-xs hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-brand-500"
+                    className="grid w-full gap-1 rounded p-1 text-left text-xs hover:bg-surface-tertiary focus-visible:ring-2 focus-visible:ring-focus"
                     title={item.alt}
                     data-testid={`${testId}-tile-${item.id}`}
                   >
                     <img src={item.thumb_url} alt={item.alt} loading="lazy" className="aspect-square w-full rounded object-cover" />
-                    <span className="truncate text-slate-600">{item.alt || item.original_name}</span>
+                    <span className="truncate text-muted">{item.alt || item.original_name}</span>
                     {(item.credit || item.context) && (
-                      <span className="truncate text-[11px] text-slate-500">{[item.credit, item.context].filter(Boolean).join(" · ")}</span>
+                      <span className="truncate text-[11px] text-muted">{[item.credit, item.context].filter(Boolean).join(" · ")}</span>
                     )}
                   </button>
                 </li>
@@ -145,7 +145,7 @@ export function MediaPicker({ onPick, onClose, testId }: { onPick: (item: Media)
           </>
         )}
       </Async>
-      <p className="text-xs text-slate-500">{t("picker.hint")}</p>
+      <p className="text-xs text-muted">{t("picker.hint")}</p>
     </div>
   );
 }

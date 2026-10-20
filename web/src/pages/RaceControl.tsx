@@ -122,7 +122,7 @@ export function RaceControl() {
     return (
       <>
         <PageHeader title={t("title")} testId="race-control-header" />
-        <p className="text-slate-600" data-testid="race-control-no-races">
+        <p className="text-muted" data-testid="race-control-no-races">
           {t("noRaces")}
         </p>
       </>
@@ -147,10 +147,10 @@ export function RaceControl() {
       <Stack gap={4}>
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900" data-testid="race-control-heading">
+            <h2 className="text-2xl font-bold text-foreground" data-testid="race-control-heading">
               {t("raceHeading", { sequence: race.sequence })}
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted">
               {t("flightOf", { flight: race.flight, total: event.flight_count })}
             </p>
           </div>
@@ -186,13 +186,13 @@ export function RaceControl() {
 
         {/* WL-1: progress through the day is visible at any time. */}
         <div data-testid="race-control-progress" className="space-y-1">
-          <div className="flex items-center justify-between text-sm text-slate-600">
+          <div className="flex items-center justify-between text-sm text-muted">
             <span>{t("progress", { done, total: list.length })}</span>
             <LiveBadge state={"live"} testId="race-control-live" />
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-default">
             <div
-              className="h-full bg-brand-600 transition-all"
+              className="h-full bg-accent transition-all"
               style={{ width: `${(done / list.length) * 100}%` }}
             />
           </div>
@@ -202,13 +202,13 @@ export function RaceControl() {
           <p
             role="status"
             data-testid="race-control-banner"
-            className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800"
+            className="rounded-lg border border-success/50 bg-success-soft px-4 py-2 text-sm text-success-soft-foreground"
           >
             {t("finishedBanner", { sequence: banner })}
           </p>
         )}
         {allDone && offset === 0 && (
-          <p className="text-slate-600" data-testid="race-control-all-done">
+          <p className="text-muted" data-testid="race-control-all-done">
             {t("allDone")}
           </p>
         )}
@@ -252,7 +252,7 @@ function NavButton({
       disabled={disabled}
       onClick={onClick}
       data-testid={testId}
-      className="flex size-12 items-center justify-center rounded-lg border border-slate-300 text-2xl disabled:opacity-30"
+      className="flex size-12 items-center justify-center rounded-lg border border-border text-2xl disabled:opacity-30"
     >
       {children}
     </button>
@@ -270,7 +270,7 @@ function EventGate({ event, eventId }: { event: EventSummary; eventId: number })
   if (event.status === EventStatus.planned) {
     return (
       <Stack gap={3}>
-        <p className="text-slate-700" data-testid="race-control-event-planned">
+        <p className="text-foreground" data-testid="race-control-event-planned">
           {t("event.planned")}
         </p>
         <button
@@ -282,14 +282,14 @@ function EventGate({ event, eventId }: { event: EventSummary; eventId: number })
         >
           {t("event.startMatchday")}
         </button>
-        <p className="text-sm text-slate-500">{t("event.startHint")}</p>
+        <p className="text-sm text-muted">{t("event.startHint")}</p>
         {start.isError && <ErrorMessage text={errorText(start.error)} testId="race-control-event-error" />}
       </Stack>
     );
   }
   return (
     <Stack gap={3}>
-      <p className="text-slate-700" data-testid={`race-control-event-${event.status}`}>
+      <p className="text-foreground" data-testid={`race-control-event-${event.status}`}>
         {event.status === EventStatus.final ? t("event.final") : t("event.cancelled")}
       </p>
       <Link to="/admin?tab=events" className="underline underline-offset-2">
@@ -300,10 +300,10 @@ function EventGate({ event, eventId }: { event: EventSummary; eventId: number })
 }
 
 const BIG = "min-h-16 rounded-xl px-4 text-lg font-semibold shadow-sm transition active:scale-95 disabled:opacity-40 disabled:active:scale-100";
-const BIG_PRIMARY = `${BIG} bg-brand-600 text-white hover:bg-brand-700`;
-const BIG_SECONDARY = `${BIG} border-2 border-slate-300 bg-white text-slate-800 hover:bg-slate-50`;
-const BIG_WARN = `${BIG} border-2 border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100`;
-const BIG_DANGER = `${BIG} border-2 border-red-300 bg-red-50 text-red-900 hover:bg-red-100`;
+const BIG_PRIMARY = `${BIG} bg-accent text-accent-foreground hover:bg-accent-hover`;
+const BIG_SECONDARY = `${BIG} border-2 border-border bg-surface text-foreground hover:bg-surface-secondary`;
+const BIG_WARN = `${BIG} border-2 border-warning/50 bg-warning-soft text-warning-soft-foreground hover:bg-warning-soft-hover`;
+const BIG_DANGER = `${BIG} border-2 border-danger/40 bg-danger-soft text-danger hover:bg-danger-soft-hover`;
 
 /** Codes the committee gives on the water. RDG, ZFP and SCP need a number the jury decides
  *  and belong in the results tab. */
@@ -375,7 +375,7 @@ function SequencePanel({
       data-testid={`race-control-flag-up-${key}`}
       data-up={String(up)}
       className={`rounded-lg border-2 px-3 py-1.5 text-sm font-semibold ${
-        up ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 text-slate-400"
+        up ? "border-accent bg-accent text-accent-foreground" : "border-border text-faint"
       }`}
     >
       {label} {up ? "▲" : "▼"}
@@ -383,14 +383,14 @@ function SequencePanel({
   );
   const next = phase.next;
   return (
-    <div className="rounded-xl border border-slate-200 p-4 text-center" data-testid="race-control-sequence">
+    <div className="rounded-xl border border-separator p-4 text-center" data-testid="race-control-sequence">
       {/* What to do next is the biggest thing on the screen, then how long until it. */}
       {next && phase.nextAt !== null && (
         <div data-testid="race-control-next-signal" data-action={next.action}>
-          <p className="text-xl font-bold text-slate-900">
+          <p className="text-xl font-bold text-foreground">
             {t(`sequence.actions.${next.action}`, { flag: t(`flags.${preparatory}`) })}
           </p>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             {t(`sequence.tones.${next.tone}`, { count: next.sounds })}
           </p>
           <p className="my-2 text-6xl font-bold tabular-nums" data-testid="race-control-countdown">
@@ -401,11 +401,11 @@ function SequencePanel({
       <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
         {flag("club", t("sequence.clubFlag"), phase.club)}
         {flag("preparatory", t(`flags.${preparatory}`), phase.preparatory)}
-        <span className="text-slate-600 tabular-nums" data-testid="race-control-start-time">
+        <span className="text-muted tabular-nums" data-testid="race-control-start-time">
           {t("sequence.startAt", { time: hhmmss(phase.startAt) })}
         </span>
       </div>
-      <p className="mt-1 text-sm text-slate-500">{t("sequence.hint")}</p>
+      <p className="mt-1 text-sm text-muted">{t("sequence.hint")}</p>
       <button
         type="button"
         className={`${BIG_SECONDARY} mt-3`}
@@ -574,14 +574,14 @@ function RaceCard({
       <span
         data-testid="race-control-status"
         data-status={race.status}
-        className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-200"
+        className="rounded-full bg-surface-tertiary px-2.5 py-0.5 text-xs font-medium text-foreground ring-1 ring-inset ring-border"
       >
         {t(`status.${race.status}`)}
       </span>
       {race.signal && (
         <span
           data-testid="race-control-signal"
-          className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-inset ring-amber-300"
+          className="rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-medium text-warning-soft-foreground ring-1 ring-inset ring-warning/50"
         >
           {t(`signal.${race.signal}`)}
         </span>
@@ -589,13 +589,13 @@ function RaceCard({
       {firstSubstituteUp && (
         <span
           data-testid="race-control-first-substitute"
-          className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-inset ring-amber-300"
+          className="rounded-full bg-warning-soft px-2.5 py-0.5 text-xs font-medium text-warning-soft-foreground ring-1 ring-inset ring-warning/50"
         >
           {t("signal.firstSubstitute")}
         </span>
       )}
       {race.status === RaceStatus.running && race.started_at && (
-        <span className="text-sm tabular-nums text-slate-600" data-testid="race-control-elapsed">
+        <span className="text-sm tabular-nums text-muted" data-testid="race-control-elapsed">
           {t("elapsed", { time: clock(now - Date.parse(race.started_at)) })}
         </span>
       )}
@@ -630,7 +630,7 @@ function RaceCard({
           </>
         ) : (
           <fieldset className="flex flex-wrap items-center gap-2">
-            <legend className="mb-1 text-sm text-slate-600">{t("sequence.preparatory")}</legend>
+            <legend className="mb-1 text-sm text-muted">{t("sequence.preparatory")}</legend>
             {PREPARATORY_FLAGS.map((flag) => (
               <button
                 key={flag}
@@ -640,8 +640,8 @@ function RaceCard({
                 data-testid={`race-control-flag-${flag}`}
                 className={`min-h-12 min-w-12 rounded-lg border-2 px-3 font-semibold ${
                   preparatory === flag
-                    ? "border-brand-600 bg-brand-50 text-brand-800"
-                    : "border-slate-300 text-slate-700"
+                    ? "border-accent bg-accent-soft text-accent-soft-foreground"
+                    : "border-border text-foreground"
                 }`}
               >
                 {t(`flags.${flag}`)}
@@ -730,8 +730,8 @@ function RaceCard({
             data-testid="race-control-sound"
             className={`flex size-12 items-center justify-center rounded-lg border-2 ${
               muted
-                ? "border-red-300 bg-red-50 text-red-700"
-                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                ? "border-danger/40 bg-danger-soft text-danger"
+                : "border-border bg-surface text-foreground hover:bg-surface-secondary"
             }`}
           >
             <SpeakerIcon muted={muted} className="size-6" />
@@ -749,7 +749,7 @@ function RaceCard({
               horn("short", 5);
             }}
             data-testid="race-control-sound-test"
-            className="text-sm text-slate-600 underline underline-offset-2 hover:text-slate-900 disabled:opacity-40"
+            className="text-sm text-muted underline underline-offset-2 hover:text-foreground disabled:opacity-40"
           >
             {t("buttons.soundTest")}
           </button>
@@ -766,7 +766,7 @@ function RaceCard({
       <Stack gap={4}>
         {statusLine}
         {overEarly && (
-          <p className="text-sm text-amber-900" data-testid="race-control-x-hint">
+          <p className="text-sm text-warning-soft-foreground" data-testid="race-control-x-hint">
             {t("xHint", { code: overEarly })}
           </p>
         )}
@@ -778,9 +778,9 @@ function RaceCard({
           disabled={busy}
           testIdPrefix="race-control"
         />
-        <p className="text-xs text-slate-500">{t("localHint")}</p>
+        <p className="text-xs text-muted">{t("localHint")}</p>
         {order.duplicateBoats.size > 0 && (
-          <p role="alert" className="text-sm text-red-700">
+          <p role="alert" className="text-sm text-danger">
             {t("duplicateWarning")}
           </p>
         )}
@@ -795,7 +795,7 @@ function RaceCard({
               <label key={boat.number} className="flex items-center gap-2 text-sm">
                 <span
                   aria-hidden
-                  className="size-3 shrink-0 rounded-full ring-1 ring-slate-300"
+                  className="size-3 shrink-0 rounded-full ring-1 ring-border"
                   style={{ backgroundColor: color.hex }}
                 />
                 <Select
@@ -927,7 +927,7 @@ function RaceCard({
       {statusLine}
       <FinishOrderPad race={race} boats={boats} order={order} disabled testIdPrefix="race-control" />
       {race.status === RaceStatus.finished && !complete && (
-        <p className="text-sm text-slate-500">{t("duplicateWarning")}</p>
+        <p className="text-sm text-muted">{t("duplicateWarning")}</p>
       )}
       <Link
         to={`/events/${eventId}?view=results`}

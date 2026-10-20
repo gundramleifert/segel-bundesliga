@@ -43,10 +43,10 @@ export function UploadPage() {
         <Async state={info} testId="upload-key">
           {(about) => (
             <>
-              <p className="mb-6 text-slate-700" data-testid="upload-for">
+              <p className="mb-6 text-foreground" data-testid="upload-for">
                 {t("for", { label: about.label })}
                 {about.context && <span className="font-medium"> · {about.context}</span>}
-                {about.expires_at && <span className="text-slate-500"> · {t("validUntil", { date: formatDate(about.expires_at) })}</span>}
+                {about.expires_at && <span className="text-muted"> · {t("validUntil", { date: formatDate(about.expires_at) })}</span>}
               </p>
               <BatchUpload
                 send={(file, credit) => importMedia({ file, credit }, { headers: { "X-Import-Key": key } })}
@@ -69,14 +69,14 @@ function SignedInUpload() {
   const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   if (!hasRole(Role.admin, Role.editor)) {
     return (
-      <p className="text-slate-700" data-testid="upload-no-key">
+      <p className="text-foreground" data-testid="upload-no-key">
         {t("noKey")}
       </p>
     );
   }
   return (
     <>
-      <p className="mb-6 text-slate-700" data-testid="upload-signed-in">{t("signedIn")}</p>
+      <p className="mb-6 text-foreground" data-testid="upload-signed-in">{t("signedIn")}</p>
       <BatchUpload
         send={(file, credit) =>
           uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined })

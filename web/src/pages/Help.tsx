@@ -108,12 +108,12 @@ function SignedInOnly({ children }: { children: ReactNode }) {
   return (
     <Stack gap={4} testId="help-sign-in">
       <PageHeader title={t("title")} />
-      <p className="max-w-2xl text-slate-600">{t("signIn.text")}</p>
+      <p className="max-w-2xl text-muted">{t("signIn.text")}</p>
       <p>
         <Link
           to="/account"
           data-testid="help-sign-in-link"
-          className="inline-block rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+          className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
         >
           {t("signIn.link")}
         </Link>
@@ -153,17 +153,17 @@ function Landing() {
   return (
     <Stack gap={8} testId="help-landing">
       <PageHeader title={t("title")} />
-      <p className="max-w-3xl text-slate-600">{t("intro")}</p>
+      <p className="max-w-3xl text-muted">{t("intro")}</p>
 
       <label className="flex max-w-xl flex-col gap-1">
-        <span className="text-sm font-medium text-slate-700">{t("search.label")}</span>
+        <span className="text-sm font-medium text-foreground">{t("search.label")}</span>
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={t("search.placeholder")}
           data-testid="help-search"
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+          className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm"
         />
       </label>
 
@@ -174,7 +174,7 @@ function Landing() {
           <section className="flex flex-col gap-3" data-testid="help-audiences">
             <div>
               <h2 className="text-lg font-semibold">{t("audiencesTitle")}</h2>
-              {mine.size > 0 && <p className="text-sm text-slate-500">{t("audiencesSignedIn")}</p>}
+              {mine.size > 0 && <p className="text-sm text-muted">{t("audiencesSignedIn")}</p>}
             </div>
             <CardGrid columns={3}>
               {audiences.map((audience) => (
@@ -192,7 +192,7 @@ function Landing() {
           </section>
 
           {empty && (
-            <p className="text-slate-500" data-testid="help-empty">
+            <p className="text-muted" data-testid="help-empty">
               {t("empty")}
             </p>
           )}
@@ -201,7 +201,7 @@ function Landing() {
             <section className="flex flex-col gap-3" data-testid="help-journeys">
               <div>
                 <h2 className="text-lg font-semibold">{t("journeysTitle")}</h2>
-                <p className="text-sm text-slate-500">{t("journeysIntro")}</p>
+                <p className="text-sm text-muted">{t("journeysIntro")}</p>
               </div>
               <CardGrid>
                 {journeys.map((page) => (
@@ -246,7 +246,7 @@ function MineChip({ testId }: { testId: string }) {
   return (
     <span
       data-testid={testId}
-      className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-800 ring-1 ring-inset ring-brand-200"
+      className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-soft-foreground ring-1 ring-inset ring-accent/30"
     >
       {t("mine")}
     </span>
@@ -261,7 +261,7 @@ function SearchResults({ query }: { query: string }) {
 
   return (
     <section className="flex flex-col gap-3" data-testid="help-search-results" aria-live="polite">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-muted">
         {hits.length ? t("search.results", { count: hits.length }) : t("search.none", { query: query.trim() })}
       </p>
       <ul className="flex flex-col gap-3">
@@ -269,12 +269,12 @@ function SearchResults({ query }: { query: string }) {
           <li
             key={page.id}
             data-testid={`help-result-${page.id}`}
-            className="min-w-0 rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200"
+            className="min-w-0 rounded-xl bg-surface px-4 py-3 shadow-sm ring-1 ring-border"
           >
-            <Link to={helpPath(page.id)} className="font-medium text-brand-700 hover:underline">
+            <Link to={helpPath(page.id)} className="font-medium text-link hover:underline">
               {page.title}
             </Link>
-            <span className="ml-2 text-xs text-slate-500">{t(`types.${page.type}`)}</span>
+            <span className="ml-2 text-xs text-muted">{t(`types.${page.type}`)}</span>
             {headings.length > 0 && (
               <ul className="mt-1 flex flex-col gap-0.5 text-sm">
                 {headings.map((heading) => (
@@ -282,7 +282,7 @@ function SearchResults({ query }: { query: string }) {
                     <Link
                       to={helpPath(page.id, heading.anchor!)}
                       data-testid={`help-result-${page.id}-${heading.anchor}`}
-                      className="text-slate-600 hover:underline"
+                      className="text-muted hover:underline"
                     >
                       {heading.text}
                     </Link>
@@ -321,9 +321,9 @@ function PageView() {
     return (
       <Stack gap={4} testId="help-not-found">
         <PageHeader title={t("notFound.title")} />
-        <p className="text-slate-600">{t("notFound.text", { id })}</p>
+        <p className="text-muted">{t("notFound.text", { id })}</p>
         <p>
-          <Link to={helpPath()} className="text-brand-700 underline underline-offset-2">
+          <Link to={helpPath()} className="text-link underline underline-offset-2">
             {t("notFound.link")}
           </Link>
         </p>
@@ -339,13 +339,13 @@ function PageView() {
     <Stack gap={6}>
       <PageHeader title={page.title} />
       <p>
-        <Link to={helpPath()} data-testid="help-back" className="text-sm text-brand-700 hover:underline">
+        <Link to={helpPath()} data-testid="help-back" className="text-sm text-link hover:underline">
           ← {t("back")}
         </Link>
       </p>
 
       {untranslated && (
-        <p className="text-sm text-slate-500" data-testid="help-untranslated">
+        <p className="text-sm text-muted" data-testid="help-untranslated">
           {t("untranslated")}
         </p>
       )}
@@ -354,16 +354,16 @@ function PageView() {
         <nav
           aria-label={t("toc")}
           data-testid="help-toc"
-          className="rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200"
+          className="rounded-xl bg-surface px-4 py-3 shadow-sm ring-1 ring-border"
         >
-          <p className="mb-1 text-sm font-medium text-slate-700">{t("toc")}</p>
+          <p className="mb-1 text-sm font-medium text-foreground">{t("toc")}</p>
           <ul className="flex flex-col gap-0.5 text-sm">
             {sections.map((section) => (
               <li key={section.anchor}>
                 <Link
                   to={helpPath(page.id, section.anchor!)}
                   data-testid={`help-toc-${section.anchor}`}
-                  className="text-brand-700 hover:underline"
+                  className="text-link hover:underline"
                 >
                   {section.text}
                 </Link>
@@ -377,7 +377,7 @@ function PageView() {
         data-testid={`help-article-${page.id}`}
         data-locale={page.locale}
         lang={page.locale}
-        className="flex min-w-0 flex-col gap-3 text-slate-800"
+        className="flex min-w-0 flex-col gap-3 text-foreground"
       >
         <HelpMarkdown body={page.body} />
       </article>
@@ -449,7 +449,7 @@ function calloutKind(node: HastNode | undefined): "note" | "careful" | null {
   return null;
 }
 
-const LINK_CLASS = "text-brand-700 underline underline-offset-2 hover:text-brand-800";
+const LINK_CLASS = "text-link underline underline-offset-2 hover:text-foreground";
 const PLACE = "place:";
 
 /** Links: `place:<id>` is a place of the site, resolved for the reader (`PlaceLink`),
@@ -544,7 +544,7 @@ function ShotImage({ id, caption, locale, narrow }: { id: string; caption: strin
   return (
     <span role="figure" aria-label={caption} data-testid={`help-shot-${id}`} data-state={pending ? "pending" : "shown"} className="my-2 block">
       {pending ? (
-        <span className="grid min-h-32 place-items-center rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+        <span className="grid min-h-32 place-items-center rounded-lg border-2 border-dashed border-border bg-surface-secondary px-4 py-8 text-center text-sm text-muted">
           {t("shotPending")}
         </span>
       ) : (
@@ -552,27 +552,27 @@ function ShotImage({ id, caption, locale, narrow }: { id: string; caption: strin
           src={`${import.meta.env.BASE_URL}handbook/screenshots/${candidates[attempt]}.png`}
           alt={caption}
           onError={() => setAttempt((n) => n + 1)}
-          className="block h-auto max-w-full rounded-lg shadow-md ring-2 ring-slate-400"
+          className="block h-auto max-w-full rounded-lg shadow-md ring-2 ring-border"
         />
       )}
-      {caption && <span className="mt-1 block text-sm text-slate-500">{caption}</span>}
+      {caption && <span className="mt-1 block text-sm text-muted">{caption}</span>}
     </span>
   );
 }
 
 const COMPONENTS: Components = {
   // The page's h1 is the breadcrumb (PageHeader); a stray `#` must not add a second.
-  h1: heading("h2", "mt-4 text-xl font-semibold text-slate-900"),
-  h2: heading("h2", "mt-2 text-xl font-semibold text-slate-900"),
-  h3: heading("h3", "mt-4 text-lg font-semibold text-slate-900"),
-  h4: heading("h4", "mt-3 font-semibold text-slate-900"),
+  h1: heading("h2", "mt-4 text-xl font-semibold text-foreground"),
+  h2: heading("h2", "mt-2 text-xl font-semibold text-foreground"),
+  h3: heading("h3", "mt-4 text-lg font-semibold text-foreground"),
+  h4: heading("h4", "mt-3 font-semibold text-foreground"),
   p: ({ children }) => <p className="leading-relaxed">{children}</p>,
   ul: ({ children }) => <ul className="list-disc space-y-1 pl-6">{children}</ul>,
   ol: ({ children }) => <ol className="list-decimal space-y-1 pl-6">{children}</ol>,
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
   a: ({ href, children }) => <HelpAnchor href={href}>{children}</HelpAnchor>,
-  code: ({ children }) => <code className="rounded bg-slate-100 px-1 py-0.5 text-[0.9em]">{children}</code>,
-  hr: () => <hr className="my-2 border-slate-200" />,
+  code: ({ children }) => <code className="rounded bg-surface-tertiary px-1 py-0.5 text-[0.9em]">{children}</code>,
+  hr: () => <hr className="my-2 border-separator" />,
   img: ({ src, alt }) => {
     const source = typeof src === "string" ? src : "";
     return source.startsWith(SHOT) ? (
@@ -585,12 +585,12 @@ const COMPONENTS: Components = {
     const { t } = useTranslation("help");
     const kind = calloutKind(node);
     if (!kind) {
-      return <blockquote className="border-l-4 border-slate-200 pl-4 text-slate-600">{children}</blockquote>;
+      return <blockquote className="border-l-4 border-separator pl-4 text-muted">{children}</blockquote>;
     }
     const style =
       kind === "careful"
-        ? "border-amber-300 bg-amber-50 text-amber-900"
-        : "border-sky-200 bg-sky-50 text-sky-900";
+        ? "border-warning/50 bg-warning-soft text-warning-soft-foreground"
+        : "border-accent/30 bg-accent-soft text-accent-soft-foreground";
     return (
       <aside
         role="note"
@@ -611,15 +611,15 @@ const COMPONENTS: Components = {
       </div>
     </TableFrame>
   ),
-  thead: ({ children }) => <thead className="border-b border-slate-200 bg-slate-50 text-left">{children}</thead>,
-  tbody: ({ children }) => <tbody className="divide-y divide-slate-100">{children}</tbody>,
+  thead: ({ children }) => <thead className="border-b border-separator bg-surface-secondary text-left">{children}</thead>,
+  tbody: ({ children }) => <tbody className="divide-y divide-separator">{children}</tbody>,
   th: ({ children, style }) => (
-    <th scope="col" style={style} className="align-bottom font-medium text-slate-700">
+    <th scope="col" style={style} className="align-bottom font-medium text-foreground">
       {children}
     </th>
   ),
   td: ({ children, style }) => (
-    <td style={style} className="align-top text-slate-700">
+    <td style={style} className="align-top text-foreground">
       {children}
     </td>
   ),

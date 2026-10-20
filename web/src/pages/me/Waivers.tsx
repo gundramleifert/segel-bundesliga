@@ -91,7 +91,7 @@ export function Waivers({ only }: { only?: { scope: "series" | "event"; id: numb
         ) : loadError ? (
           <ErrorMessage text={loadError} testId="account-waivers-error" />
         ) : data && shown(data).length === 0 ? (
-          <p className="text-sm text-slate-600" data-testid="account-waivers-empty">
+          <p className="text-sm text-muted" data-testid="account-waivers-empty">
             {t("waiver.none")}
           </p>
         ) : data ? (
@@ -162,7 +162,7 @@ export function Wards() {
             <section key={ward.sailor_id} data-testid={`account-ward-${ward.sailor_id}`}>
               <h3 className="mb-2 font-medium">{name}</h3>
               {ward.competitions.length === 0 ? (
-                <p className="text-sm text-slate-600">{t("waiver.guardian.none", { name })}</p>
+                <p className="text-sm text-muted">{t("waiver.guardian.none", { name })}</p>
               ) : (
                 <ul className="grid grid-cols-[minmax(0,1fr)] gap-4">
                   {ward.competitions.map((row) => (
@@ -192,12 +192,12 @@ export function Wards() {
 }
 
 const STATUS_STYLE: Record<WaiverStatus, string> = {
-  [WaiverStatus.cleared]: "bg-emerald-100 text-emerald-800 ring-emerald-300",
-  [WaiverStatus.missing]: "bg-amber-100 text-amber-800 ring-amber-300",
-  [WaiverStatus.version_outdated]: "bg-amber-100 text-amber-800 ring-amber-300",
-  [WaiverStatus.guardian_signature_missing]: "bg-amber-100 text-amber-800 ring-amber-300",
-  [WaiverStatus.birth_date_unknown]: "bg-slate-100 text-slate-700 ring-slate-300",
-  [WaiverStatus.not_required]: "bg-slate-100 text-slate-600 ring-slate-200",
+  [WaiverStatus.cleared]: "bg-success-soft text-success-soft-foreground ring-success/50",
+  [WaiverStatus.missing]: "bg-warning-soft text-warning-soft-foreground ring-warning/50",
+  [WaiverStatus.version_outdated]: "bg-warning-soft text-warning-soft-foreground ring-warning/50",
+  [WaiverStatus.guardian_signature_missing]: "bg-warning-soft text-warning-soft-foreground ring-warning/50",
+  [WaiverStatus.birth_date_unknown]: "bg-surface-tertiary text-foreground ring-border",
+  [WaiverStatus.not_required]: "bg-surface-tertiary text-muted ring-border",
 };
 
 const OPEN: ReadonlySet<WaiverStatus> = new Set([
@@ -300,7 +300,7 @@ function CompetitionRow({
 
   return (
     <div
-      className="rounded-lg border border-slate-200 bg-white p-4"
+      className="rounded-lg border border-separator bg-surface p-4"
       data-testid={`${prefix}-${id}`}
       data-status={row.status}
     >
@@ -309,7 +309,7 @@ function CompetitionRow({
           <p className="font-medium" data-testid={`${prefix}-name-${id}`}>
             {row.name}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted">
             {t("waiver.forCompetition", { date: formatDate(row.reference_date) })}
             {row.confirmed_at && row.confirmed_version != null && (
               <>
@@ -340,7 +340,7 @@ function CompetitionRow({
       </div>
 
       {noBirthDate && row.status !== WaiverStatus.cleared && (
-        <p className="mt-3 text-sm text-slate-700" data-testid={`${prefix}-need-birth-date-${id}`}>
+        <p className="mt-3 text-sm text-foreground" data-testid={`${prefix}-need-birth-date-${id}`}>
           {t("waiver.needBirthDate")}
         </p>
       )}
@@ -349,11 +349,11 @@ function CompetitionRow({
         <div className="mt-3 space-y-3">
           {reading && text ? (
             <div
-              className="rounded-md bg-slate-50 p-3 text-sm"
+              className="rounded-md bg-surface-secondary p-3 text-sm"
               data-testid={`${prefix}-text-${id}`}
             >
               <p className="font-semibold">{lang === "de" ? text.title_de : text.title_en}</p>
-              <p className="mt-2 whitespace-pre-line text-slate-700">
+              <p className="mt-2 whitespace-pre-line text-foreground">
                 {lang === "de" ? text.body_de : text.body_en}
               </p>
               <label className="mt-3 flex items-start gap-2">
@@ -395,7 +395,7 @@ function CompetitionRow({
 
       {open && row.minor === true && guardianOf === undefined && (
         <div className="mt-3 space-y-3">
-          <p className="text-sm text-slate-700">{t("waiver.minor.explain")}</p>
+          <p className="text-sm text-foreground">{t("waiver.minor.explain")}</p>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
             <Button
               size="sm"
@@ -410,7 +410,7 @@ function CompetitionRow({
             <div>
               <label
                 htmlFor={`guardian-${id}`}
-                className="mb-1 block text-sm font-medium text-slate-700"
+                className="mb-1 block text-sm font-medium text-foreground"
               >
                 {t("waiver.minor.guardianName")}
               </label>

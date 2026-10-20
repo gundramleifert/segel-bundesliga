@@ -11,7 +11,7 @@ export function RelationChips({ relations, testId }: { relations: string[]; test
         <li
           key={relation}
           data-testid={`${testId}-${relation}`}
-          className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-700 ring-1 ring-inset ring-slate-200"
+          className="rounded-full bg-surface-tertiary px-2.5 py-0.5 text-xs text-foreground ring-1 ring-inset ring-border"
         >
           {t(`relations.${relation}`, { defaultValue: relation })}
         </li>
@@ -25,10 +25,10 @@ export function NeedsLine({ needs, testId }: { needs: Need[]; testId: string }) 
   const { t } = useTranslation("space");
   if (!needs.length) return null;
   return (
-    <ul className="flex flex-col gap-1 text-sm text-amber-800" data-testid={testId}>
+    <ul className="flex flex-col gap-1 text-sm text-warning-soft-foreground" data-testid={testId}>
       {needs.map((need) => (
         <li key={need.code} data-testid={`${testId}-${need.code}`} className="flex items-baseline gap-1.5">
-          <span aria-hidden className="text-amber-500">
+          <span aria-hidden className="text-warning">
             ●
           </span>
           {t(`needs.${need.code}`, { count: need.count })}

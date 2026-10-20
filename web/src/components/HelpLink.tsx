@@ -27,7 +27,7 @@ export function HelpLink({ anchor, label }: { anchor: string; label?: string }) 
         to={to}
         aria-label={text}
         data-testid={`help-link-${anchor}`}
-        className="inline-grid size-5 shrink-0 place-items-center rounded-full bg-slate-100 align-middle text-xs font-semibold text-slate-500 hover:bg-brand-50 hover:text-brand-700"
+        className="inline-grid size-5 shrink-0 place-items-center rounded-full bg-surface-tertiary align-middle text-xs font-semibold text-muted hover:bg-accent-soft hover:text-foreground"
       >
         ?
       </Link>

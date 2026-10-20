@@ -15,7 +15,7 @@ export function Loading({ text, testId }: { text?: string; testId?: string }) {
   return (
     <div
       data-testid={testId ?? "loading-indicator"}
-      className="flex items-center justify-center gap-3 py-16 text-slate-500"
+      className="flex items-center justify-center gap-3 py-16 text-muted"
     >
       <Spinner size="sm" />
       <span>{text ?? t("loading")}</span>
@@ -29,7 +29,7 @@ export function ErrorMessage({ text, testId }: { text: string; testId?: string }
     <div
       role="alert"
       data-testid={testId ?? "error-message"}
-      className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800"
+      className="rounded-lg border border-danger/40 bg-danger-soft px-4 py-3 text-danger"
     >
       {text}
     </div>
@@ -38,7 +38,7 @@ export function ErrorMessage({ text, testId }: { text: string; testId?: string }
 
 export function Empty({ children, testId }: { children: ReactNode; testId?: string }) {
   return (
-    <p data-testid={testId ?? "empty-state"} className="py-12 text-center text-slate-500">
+    <p data-testid={testId ?? "empty-state"} className="py-12 text-center text-muted">
       {children}
     </p>
   );
@@ -49,13 +49,13 @@ export function Empty({ children, testId }: { children: ReactNode; testId?: stri
 export type BadgeTone = "neutral" | "muted" | "success" | "warning" | "caution" | "danger" | "brand";
 
 const TONE_STYLE: Record<BadgeTone, string> = {
-  neutral: "bg-slate-100 text-slate-700 ring-slate-200",
-  muted: "bg-slate-100 text-slate-500 ring-slate-200",
-  success: "bg-emerald-100 text-emerald-800 ring-emerald-300",
-  warning: "bg-amber-100 text-amber-800 ring-amber-300",
-  caution: "bg-orange-100 text-orange-800 ring-orange-300",
-  danger: "bg-red-100 text-red-800 ring-red-200",
-  brand: "bg-brand-100 text-brand-800 ring-brand-200",
+  neutral: "bg-surface-tertiary text-foreground ring-border",
+  muted: "bg-surface-tertiary text-muted ring-border",
+  success: "bg-success-soft text-success-soft-foreground ring-success/50",
+  warning: "bg-warning-soft text-warning-soft-foreground ring-warning/50",
+  caution: "bg-warning-soft text-warning-soft-foreground ring-warning/50",
+  danger: "bg-danger-soft text-danger ring-danger/40",
+  brand: "bg-accent-soft text-accent-soft-foreground ring-accent/30",
 };
 
 /** A small rounded label — a status, a role, a warning — in one of a few tones.
@@ -82,7 +82,7 @@ export function Badge({
       data-testid={testId}
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${TONE_STYLE[tone]}`}
     >
-      {pulse && <span className="size-1.5 animate-pulse rounded-full bg-emerald-600" aria-hidden />}
+      {pulse && <span className="size-1.5 animate-pulse rounded-full bg-success" aria-hidden />}
       {children}
     </span>
   );
@@ -152,7 +152,7 @@ export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: 
       lead={<Crest src={event.logo_url} size="sm" />}
       aside={<StatusBadge status={event.status} />}
     >
-      <p className="text-sm text-slate-600">{eventDates(event)}</p>
+      <p className="text-sm text-muted">{eventDates(event)}</p>
     </LinkCard>
   );
 }

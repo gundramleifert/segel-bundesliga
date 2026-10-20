@@ -21,16 +21,12 @@ export function useLeagues(): League[] {
 }
 
 /** The one navigation row: logo and *Association* (the association's home), the leagues,
- *  the account. On the picture on every official page, solid on the internal screens — and
- *  the same entries everywhere, the current one marked (Story B-13). */
+ *  the account — the same entries everywhere, the current one marked (Story B-13). In the
+ *  theme's colours, on whatever the page puts under it: the page shades the rows
+ *  together and makes them stick (`Bars`, `Layout`). */
 export function TopBar({
-  overlay = false,
   league,
 }: {
-  /** On a dark ground — an official page's picture, the internal screens' (`Layout`) — in
-   *  white; the page shades the rows together. Without it the row is solid white and
-   *  sticky, for a light theme to come. */
-  overlay?: boolean;
   /** The league the page belongs to, marked in the row. */
   league?: League | null;
 }) {
@@ -47,11 +43,7 @@ export function TopBar({
   ];
   return (
     <header
-      className={`z-40 text-sm ${
-        overlay
-          ? "relative border-b border-white/15 text-white/80"
-          : "sticky top-0 border-b border-slate-200 bg-white/95 text-slate-600 backdrop-blur"
-      }`}
+      className="relative z-40 border-b border-separator text-sm text-muted"
       data-testid="site-top-bar"
     >
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-3 sm:gap-3 sm:px-4">
@@ -68,21 +60,19 @@ export function TopBar({
             them as a list. Keyed on the path, so it closes when a link is followed. */}
         <details key={pathname} className="relative min-w-0 flex-1 md:hidden" data-testid="site-menu">
           <summary
-            className={`flex w-max max-w-full cursor-pointer list-none items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold [&::-webkit-details-marker]:hidden ${
-              overlay ? "bg-white text-slate-950" : "bg-slate-900 text-white"
-            }`}
+            className="flex w-max max-w-full cursor-pointer list-none items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[13px] font-semibold text-background [&::-webkit-details-marker]:hidden"
           >
             <span aria-hidden>☰</span>
             <span className="truncate">{entries.find((e) => e.on)?.label ?? t("nav.menu")}</span>
           </summary>
-          <ul className="absolute left-0 z-50 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 text-slate-600 shadow-xl" aria-label={t("nav.leagues")}>
+          <ul className="absolute left-0 z-50 mt-2 w-56 rounded-xl border border-separator bg-overlay p-1.5 text-muted shadow-xl" aria-label={t("nav.leagues")}>
             {entries.map((e) => (
               <li key={e.key}>
                 <Link
                   to={e.to}
                   aria-current={e.on ? "page" : undefined}
                   data-testid={`site-menu-${e.key}`}
-                  className={`block rounded-lg px-3 py-2 ${e.on ? "font-semibold text-slate-950" : "hover:bg-slate-100"}`}
+                  className={`block rounded-lg px-3 py-2 ${e.on ? "font-semibold text-foreground" : "hover:bg-default"}`}
                 >
                   {e.label}
                 </Link>
@@ -99,13 +89,7 @@ export function TopBar({
                   aria-current={e.on ? "page" : undefined}
                   data-testid={`site-${e.key}`}
                   className={`block whitespace-nowrap rounded-full px-2.5 py-1.5 text-[13px] font-medium transition sm:px-3 sm:text-sm ${
-                    e.on
-                      ? overlay
-                        ? "bg-white text-slate-950"
-                        : "bg-slate-900 text-white"
-                      : overlay
-                        ? "hover:text-white"
-                        : "hover:text-slate-950"
+                    e.on ? "bg-foreground text-background" : "hover:text-foreground"
                   }`}
                 >
                   {e.label}
@@ -117,7 +101,6 @@ export function TopBar({
         <UserMenu
           account={account}
           loading={loading}
-          overlay={overlay}
           admin={mayOpenAdmin(account)}
         />
       </div>
@@ -172,29 +155,29 @@ export function SubBar({
   return (
     // The row scrolls sideways inside itself on a phone, crumbs and pills together — a
     // row wider than the screen would zoom the page out (Story A-10).
-    <nav ref={bar} aria-label={label} data-testid={testId} className="scrollbar-none h-12 overflow-x-auto border-b border-white/15 text-sm">
+    <nav ref={bar} aria-label={label} data-testid={testId} className="scrollbar-none h-12 overflow-x-auto border-b border-separator text-sm">
       <div className="mx-auto flex h-full max-w-6xl items-stretch px-4">
-        <ol className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 text-white/70" data-testid="site-sub-crumbs">
+        <ol className="flex shrink-0 items-center gap-1.5 whitespace-nowrap pr-3 text-muted" data-testid="site-sub-crumbs">
           {crumbs.map((c, i) => (
             <li key={`${c.label}-${i}`} className="flex items-center gap-1.5">
-              {i > 0 && <span aria-hidden className="text-white/40">›</span>}
+              {i > 0 && <span aria-hidden className="text-faint">›</span>}
               {c.to ? (
                 <Link
                   to={c.to}
                   aria-current={c.current ? "page" : undefined}
                   data-testid={c.current ? "site-sub-crumb-current" : undefined}
-                  className={`hover:text-white hover:underline ${c.current ? "font-semibold text-white" : ""}`}
+                  className={`hover:text-foreground hover:underline ${c.current ? "font-semibold text-foreground" : ""}`}
                 >
                   {c.label}
                 </Link>
               ) : (
-                <span className="font-medium text-white">{c.label}</span>
+                <span className="font-medium text-foreground">{c.label}</span>
               )}
             </li>
           ))}
         </ol>
         {/* Pills, like the top row's leagues. */}
-        <ul className="my-2 flex shrink-0 items-center gap-1 border-l border-white/20 pl-2">
+        <ul className="my-2 flex shrink-0 items-center gap-1 border-l border-separator pl-2">
           {items.map((item) => (
             <li key={item.key} className="shrink-0">
               <Link
@@ -204,7 +187,7 @@ export function SubBar({
                 aria-current={item.current ? "page" : undefined}
                 data-testid={item.testId}
                 className={`block whitespace-nowrap rounded-full px-3 py-1.5 font-medium transition-colors ${
-                  item.current ? "bg-white text-slate-950" : "text-white/75 hover:bg-white/10 hover:text-white"
+                  item.current ? "bg-foreground text-background" : "text-muted hover:bg-default hover:text-foreground"
                 }`}
               >
                 {item.label}
@@ -244,7 +227,7 @@ export function LeagueSubBar({ league }: { league: League | null }) {
 export function Bars({ league, subnav }: { league: League | null; subnav?: ReactNode }) {
   return (
     <div className={`sticky top-0 z-40 ${BAR_SHADE}`}>
-      <TopBar league={league} overlay />
+      <TopBar league={league} />
       {subnav ?? <LeagueSubBar league={league} />}
     </div>
   );
@@ -255,8 +238,8 @@ export function Bars({ league, subnav }: { league: League | null; subnav?: React
  *  change of league, where the next league's year is fetched before its page is drawn. */
 export function PageLoading({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-dvh bg-slate-950 text-white">
-      <Bars league={null} subnav={<div className="h-12 border-b border-white/15" />} />
+    <div className="min-h-dvh bg-background text-foreground">
+      <Bars league={null} subnav={<div className="h-12 border-b border-separator" />} />
       <main id="content" className="mx-auto max-w-6xl px-4 py-16">
         {children}
       </main>
@@ -314,7 +297,7 @@ type DepthProps = {
  *  needs close reading sits on a `Panel`. The title is the page's one `h1`. */
 export function DepthPage({ league, title, kicker, photo, children, subnav }: DepthProps) {
   return (
-    <div className="min-h-dvh bg-slate-950 text-white" data-testid="site-depth-page">
+    <div className="min-h-dvh bg-background text-foreground" data-testid="site-depth-page">
       <div aria-hidden className="fixed inset-0" data-testid="site-depth-picture">
         <Picture photo={photo ?? SLIDES[0]} />
         <div className="absolute inset-0" style={{ background: SHADE_DOWN }} />
@@ -323,7 +306,7 @@ export function DepthPage({ league, title, kicker, photo, children, subnav }: De
           the sub-menu under it, the league's pages or the matchday's tabs. */}
       <Bars league={league} subnav={subnav} />
       <header className="relative mx-auto max-w-6xl px-4 pb-10 pt-20 sm:pt-32">
-        {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-white/75" data-testid="site-kicker">{kicker}</p>}
+        {kicker && <p className="text-xs font-semibold uppercase tracking-widest text-muted" data-testid="site-kicker">{kicker}</p>}
         <h1 className={`mt-2 ${PAGE_TITLE}`}>{title}</h1>
       </header>
       <main id="content" data-column className="relative mx-auto max-w-6xl px-4 pb-16">

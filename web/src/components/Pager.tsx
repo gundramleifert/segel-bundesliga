@@ -51,7 +51,7 @@ export function Pager({
       data-testid={`${testId}-pager`}
       className="mt-4 flex flex-wrap items-center justify-between gap-3"
     >
-      <p className="text-sm text-slate-600" data-testid={`${testId}-pager-range`}>
+      <p className="text-sm text-muted" data-testid={`${testId}-pager-range`}>
         {t("pager.range", { first, last, total })}
       </p>
       <div className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export function Pager({
         >
           {t("pager.previous")}
         </Button>
-        <span className="text-sm text-slate-600" data-testid={`${testId}-pager-page`}>
+        <span className="text-sm text-muted" data-testid={`${testId}-pager-page`}>
           {t("pager.page", { page: current, pages })}
         </span>
         <Button

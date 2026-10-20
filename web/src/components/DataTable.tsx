@@ -88,7 +88,7 @@ export function DataTable<TData extends RowData>({
         >
           <thead>
             {table.getHeaderGroups().map((group) => (
-              <tr key={group.id} className="border-b border-slate-200 bg-slate-50">
+              <tr key={group.id} className="border-b border-separator bg-surface-secondary">
                 {group.headers.map((header) => {
                   const column = header.column;
                   const sorted = column.getIsSorted();
@@ -101,7 +101,7 @@ export function DataTable<TData extends RowData>({
                       aria-sort={
                         sorted ? (sorted === "desc" ? "descending" : "ascending") : undefined
                       }
-                      className="font-medium text-slate-600"
+                      className="font-medium text-muted"
                     >
                       {header.isPlaceholder ? null : column.getCanSort() ? (
                         <button
@@ -113,7 +113,7 @@ export function DataTable<TData extends RowData>({
                           <table.FlexRender header={header} />
                           {/* A glyph, not an icon font: it has to survive a print and a
                               copy-paste of the table. */}
-                          <span aria-hidden="true" className="text-xs text-slate-400">
+                          <span aria-hidden="true" className="text-xs text-faint">
                             {sorted === "asc" ? "▲" : sorted === "desc" ? "▼" : "↕"}
                           </span>
                           <span className="sr-only">
@@ -140,7 +140,7 @@ export function DataTable<TData extends RowData>({
                 data-testid={`${testId}-row-${
                   rowTestId ? rowTestId(row.original, index) : index
                 }`}
-                className="border-b border-slate-100 last:border-0"
+                className="border-b border-separator last:border-0"
               >
                 {row.getAllCells().map((cell) => (
                   <td key={cell.id}>

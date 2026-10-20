@@ -86,10 +86,10 @@ export function EventClubsEditor({
 
   return (
     <Stack gap={3}>
-      <h3 className="text-sm font-semibold text-slate-700" data-testid={headingTestId}>
+      <h3 className="text-sm font-semibold text-foreground" data-testid={headingTestId}>
         {t("manage.clubsTitle", { count: selection.size, configured: event.team_count })}
       </h3>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         {event.series
           ? t("manage.clubsFromSeriesHint", { series: event.series.name })
           : t("manage.clubsStandaloneHint")}
@@ -111,7 +111,7 @@ export function EventClubsEditor({
         )}
       </Async>
       {showCountHint && selection.size !== event.team_count && (
-        <p className="text-sm text-amber-800" data-testid={`${testId}-mismatch`}>
+        <p className="text-sm text-warning-soft-foreground" data-testid={`${testId}-mismatch`}>
           {t("events.clubsCountHint", { expected: event.team_count, actual: selection.size })}
         </p>
       )}
@@ -124,7 +124,7 @@ export function EventClubsEditor({
         >
           {save.isPending ? t("manage.savingButton") : saveLabel(selection.size)}
         </Button>
-        {frozen && <span className="text-sm text-slate-500">{t("manage.frozenClubsHint")}</span>}
+        {frozen && <span className="text-sm text-muted">{t("manage.frozenClubsHint")}</span>}
         {children}
       </div>
       <Message

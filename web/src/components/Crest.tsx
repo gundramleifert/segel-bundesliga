@@ -14,8 +14,8 @@
  */
 const SIZES = {
   sm: { box: "size-8", frame: "", fallback: "rounded text-[0.6rem]" },
-  md: { box: "size-10", frame: "rounded-lg bg-white p-1 ring-1 ring-slate-200", fallback: "rounded-lg text-xs" },
-  lg: { box: "size-20", frame: "rounded-xl bg-white p-2 ring-1 ring-slate-200", fallback: "rounded-xl text-lg" },
+  md: { box: "size-10", frame: "rounded-lg bg-surface p-1 ring-1 ring-border", fallback: "rounded-lg text-xs" },
+  lg: { box: "size-20", frame: "rounded-xl bg-surface p-2 ring-1 ring-border", fallback: "rounded-xl text-lg" },
 } as const;
 
 export function Crest({
@@ -38,7 +38,7 @@ export function Crest({
   return (
     <span
       aria-hidden
-      className={`${box} ${fallback} grid shrink-0 place-items-center bg-brand-600 font-bold text-white`}
+      className={`${box} ${fallback} grid shrink-0 place-items-center bg-accent font-bold text-accent-foreground`}
       data-testid={testId}
     >
       {short.slice(0, 4)}

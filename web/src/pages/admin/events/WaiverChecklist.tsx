@@ -19,8 +19,8 @@ export function WaiverChecklist({ eventId }: { eventId: number }) {
 
   return (
     <Stack gap={3} testId={`admin-manage-event-waivers-section-${eventId}`}>
-      <h3 className="text-sm font-semibold text-slate-700">{t("manage.waiversTitle")}</h3>
-      <p className="text-sm text-slate-600">{t("manage.waiversHint")}</p>
+      <h3 className="text-sm font-semibold text-foreground">{t("manage.waiversTitle")}</h3>
+      <p className="text-sm text-muted">{t("manage.waiversHint")}</p>
       <Async
         state={list}
         testId={`admin-manage-event-waivers-list-${eventId}`}
@@ -42,7 +42,7 @@ export function WaiverChecklist({ eventId }: { eventId: number }) {
             <TableFrame testId={`admin-manage-event-waivers-${eventId}`}>
               <table className="data-table w-full border-collapse text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+                  <tr className="text-left text-xs uppercase tracking-wide text-muted">
                     <th className="px-3 py-2">{t("manage.waiverColSailor")}</th>
                     <th className="px-3 py-2">{t("manage.waiverColClub")}</th>
                     <th className="px-3 py-2">{t("manage.waiverColStatus")}</th>
@@ -52,14 +52,14 @@ export function WaiverChecklist({ eventId }: { eventId: number }) {
                   {data.sailors.map((row) => (
                     <tr
                       key={row.sailor_id}
-                      className="border-t border-slate-100"
+                      className="border-t border-separator"
                       data-testid={`admin-manage-event-waiver-row-${eventId}-${row.sailor_id}`}
                       data-status={row.status}
                     >
                       <td className="px-3 py-2">
                         <WaiverName first={row.first_name} last={row.last_name} minor={row.minor} />
                       </td>
-                      <td className="px-3 py-2 text-slate-600">{row.club ?? "—"}</td>
+                      <td className="px-3 py-2 text-muted">{row.club ?? "—"}</td>
                       <td className="px-3 py-2">
                         <WaiverStatus status={row.status} />
                         {row.scan_available && row.confirmation_id != null && (

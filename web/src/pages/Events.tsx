@@ -42,7 +42,7 @@ export function Events() {
             placeholder={t("searchPlaceholder")}
             aria-label={t("searchPlaceholder")}
             data-testid="events-search-input"
-            className="mb-4 w-full max-w-sm rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200"
+            className="mb-4 w-full max-w-sm rounded border border-border px-3 py-1.5 text-sm outline-none focus:border-focus focus:ring-1 focus:ring-focus/30"
           />
 
           {!page.items.length && (

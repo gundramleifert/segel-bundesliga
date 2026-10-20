@@ -32,7 +32,7 @@ export function Club() {
           <h1 data-testid="club-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">
             {data.name}
           </h1>
-          <p className="mt-1 text-slate-600">
+          <p className="mt-1 text-muted">
             {[data.short_name, data.city].filter(Boolean).join(" · ")}
           </p>
           {data.website && (
@@ -41,7 +41,7 @@ export function Club() {
               target="_blank"
               rel="noreferrer noopener"
               data-testid="club-website-link"
-              className="mt-1 inline-block text-sm text-brand-700 underline-offset-2 hover:underline"
+              className="mt-1 inline-block text-sm text-link underline-offset-2 hover:underline"
             >
               {t("website")}
             </a>
@@ -50,7 +50,7 @@ export function Club() {
       </header>
 
       {data.description && (
-        <p data-testid="club-description" className="mb-8 max-w-2xl text-slate-700">
+        <p data-testid="club-description" className="mb-8 max-w-2xl text-foreground">
           {data.description}
         </p>
       )}
@@ -70,13 +70,13 @@ export function Club() {
               <Card.Content>
                 <div className="grid gap-6 lg:grid-cols-2">
                   <section>
-                    <h3 className="mb-2 text-sm font-medium text-slate-500">
+                    <h3 className="mb-2 text-sm font-medium text-muted">
                       {t("squad")}
                     </h3>
                     <Squad members={team.members ?? []} />
                   </section>
                   <section>
-                    <h3 className="mb-2 text-sm font-medium text-slate-500">{t("events")}</h3>
+                    <h3 className="mb-2 text-sm font-medium text-muted">{t("events")}</h3>
                     <Matchdays entries={team.events ?? []} />
                   </section>
                 </div>
@@ -91,7 +91,7 @@ export function Club() {
       {data.events?.length ? (
         <section data-testid="club-own-events-section" className="mt-8">
           <h2 className="mb-2 text-lg font-semibold">{t("ownEvents")}</h2>
-          <p className="mb-3 text-sm text-slate-600">
+          <p className="mb-3 text-sm text-muted">
             {t("ownEvents_desc")}
           </p>
           <Card>
@@ -122,7 +122,7 @@ function Members({ clubId }: { clubId: number }) {
       <h2 className="mb-2 text-lg font-semibold">{t("members.title")}</h2>
       <Card>
         <Card.Content>
-          <ul className="divide-y divide-slate-100 text-sm">
+          <ul className="divide-y divide-separator text-sm">
             {data.map((member: ClubMemberSummary) => (
               <li
                 key={member.user_id}
@@ -131,7 +131,7 @@ function Members({ clubId }: { clubId: number }) {
               >
                 <span>{member.display_name}</span>
                 {isOrganizer(member) && (
-                  <span className="shrink-0 text-slate-500">{t("organizer")}</span>
+                  <span className="shrink-0 text-muted">{t("organizer")}</span>
                 )}
               </li>
             ))}
@@ -154,14 +154,14 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
 
   if (!entries.length) {
     return (
-      <p data-testid="club-events-empty" className="text-sm text-slate-500">
+      <p data-testid="club-events-empty" className="text-sm text-muted">
         {t("events_empty")}
       </p>
     );
   }
 
   return (
-    <ul className="divide-y divide-slate-100 text-sm">
+    <ul className="divide-y divide-separator text-sm">
       {entries.map(({ event, crew }) => (
         <li key={event.id} data-testid={`club-event-row-${event.id}`} className="py-2">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -174,10 +174,10 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
             </Link>
             <StatusBadge status={event.status} />
           </div>
-          <p className="text-slate-500">
+          <p className="text-muted">
             {locationText(event)} · {eventDates(event)}
           </p>
-          <p className="mt-0.5 text-slate-600">
+          <p className="mt-0.5 text-muted">
             {crew?.length ? (
               crew.map((member, index) => (
                 <span key={member.id}>
@@ -189,7 +189,7 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
                 </span>
               ))
             ) : (
-              <span className="text-slate-400">{t("crew_empty")}</span>
+              <span className="text-faint">{t("crew_empty")}</span>
             )}
           </p>
         </li>
@@ -203,13 +203,13 @@ function Squad({ members }: { members: Member[] }) {
 
   if (!members.length)
     return (
-      <p data-testid="club-squad-empty" className="text-sm text-slate-500">
+      <p data-testid="club-squad-empty" className="text-sm text-muted">
         {t("squad_empty")}
       </p>
     );
 
   return (
-    <ul className="divide-y divide-slate-100 text-sm">
+    <ul className="divide-y divide-separator text-sm">
       {members.map((member) => (
         <li
           key={member.id}
@@ -221,7 +221,7 @@ function Squad({ members }: { members: Member[] }) {
             testId={`club-squad-link-${member.id}`}
             className="font-medium"
           />
-          <span className="shrink-0 text-slate-500">{roleText(member.role)}</span>
+          <span className="shrink-0 text-muted">{roleText(member.role)}</span>
         </li>
       ))}
     </ul>

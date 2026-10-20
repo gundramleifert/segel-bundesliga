@@ -146,7 +146,7 @@ function Clubs() {
       {loading && <Loading text={t("clubs.loadingText")} testId="admin-clubs-loading" />}
       {error && <ErrorMessage text={error} testId="admin-clubs-error" />}
       {data && (
-        <p data-testid="admin-clubs-stats" className="text-sm text-slate-600">
+        <p data-testid="admin-clubs-stats" className="text-sm text-muted">
           {t("clubs.statsText", { count: data.length, visible: data.filter((v) => v.visible).length })}
         </p>
       )}
@@ -154,7 +154,7 @@ function Clubs() {
         (data.length ? (
           <ul
             data-testid="admin-clubs-list"
-            className="divide-y divide-slate-100 rounded-lg border border-slate-200"
+            className="divide-y divide-separator rounded-lg border border-separator"
           >
             {data.map((club) => (
               <ClubRow key={club.id} club={club} onChanged={() => invalidate(getListAllClubsQueryKey(), "/api/clubs")} />
@@ -180,7 +180,7 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
           >
             {club.name}
           </Link>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted">
             {[club.short_name, club.city].filter(Boolean).join(" · ")}
           </p>
         </div>
@@ -222,7 +222,7 @@ function SeriesList() {
       {seriesList.error && <ErrorMessage text={seriesList.error} testId="admin-series-error" />}
       {seriesList.data &&
         (seriesList.data.length ? (
-          <ul data-testid="admin-series-list" className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+          <ul data-testid="admin-series-list" className="divide-y divide-separator rounded-lg border border-separator">
             {seriesList.data.map((series) => (
               <SeriesRow
                 key={series.id}
@@ -298,14 +298,14 @@ function SeriesRow({
               data-testid={`admin-series-publication-${series.id}`}
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
                 series.published
-                  ? "bg-brand-50 text-brand-800 ring-brand-200"
-                  : "bg-amber-50 text-amber-800 ring-amber-200"
+                  ? "bg-accent-soft text-accent-soft-foreground ring-accent/30"
+                  : "bg-warning-soft text-warning-soft-foreground ring-warning/50"
               }`}
             >
               {series.published ? t("series.publishedBadge") : t("series.draftBadge")}
             </span>
           </div>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             {t("series.itemText", { count: series.clubs?.length ?? 0, events: series.event_count })}
           </p>
         </div>
@@ -355,7 +355,7 @@ function SeriesRow({
               >
                 {save.isPending ? t("series.savingButton") : t("series.saveButton", { count: selectedClubs.size })}
               </Button>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-muted">
                 {t("series.saveHint")}
               </span>
             </div>
@@ -436,7 +436,7 @@ function SeriesRow({
             {saveDescription.isSuccess && (
               <span
                 data-testid={`admin-series-description-saved-${series.id}`}
-                className="text-sm text-emerald-700"
+                className="text-sm text-success-soft-foreground"
               >
                 {t("series.descriptionSavedMessage")}
               </span>

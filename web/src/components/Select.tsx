@@ -3,14 +3,12 @@ import type { SelectHTMLAttributes } from "react";
 /** The one dropdown: a native `<select>` with its colours and size decided here.
  *
  *  **Colours are always set, never inherited.** A native select paints its own field and
- *  its own option list, but takes its *text* colour from the page. On paper that is dark
- *  text on a white field; on the official pages' glass (`.on-glass`, `site/Cards.tsx`
- *  `Panel`) the text turns white while the browser still draws a white field and a white
- *  list — white on white (the pairing list's "all clubs" picker, 2026-10-18). So the field
- *  names `bg-white text-slate-900` itself: on paper that is what it says, and `.on-glass`
- *  maps exactly those classes to glass, and gives the open list a dark scheme of its own
- *  (`index.css`, `.on-glass select`). One rule for every dropdown on both surfaces,
- *  instead of a fix per page.
+ *  its own option list, but takes its *text* colour from the page — so on the dark theme
+ *  the text turned white while the browser still drew a white field and a white list,
+ *  white on white (the pairing list's "all clubs" picker, 2026-10-18). The field names
+ *  `bg-surface text-foreground` itself, and the open list follows the theme's
+ *  `color-scheme` and option colours (`index.css`). One rule for every dropdown in both
+ *  themes, instead of a fix per page.
  *
  *  **Size says where it stands**, not how big it looks:
  *  - `field` — a labelled form control, the column's full width (`Field`);
@@ -23,14 +21,14 @@ import type { SelectHTMLAttributes } from "react";
  *  (docs/gotchas, "Appending a Tailwind class…"), so those are props here. */
 export type SelectSize = "field" | "inline" | "row" | "touch";
 
-/** `paper` — a field: a white box with a border, on paper and (mapped) on glass.
+/** `paper` — a field: a box with a border.
  *  `bar` — an entry of the top row: no box, the row's own text, its pill shape and hover,
- *  a chevron of its own; on a picture (`dark`) its open list is dark. */
+ *  a chevron of its own. */
 export type SelectTone = "paper" | "bar";
 
 const BASE =
-  "rounded-md border bg-white text-slate-900 outline-none " +
-  "focus:border-brand-500 focus:ring-2 focus:ring-brand-200 disabled:opacity-60";
+  "rounded-md border bg-surface text-foreground outline-none " +
+  "focus:border-focus focus:ring-2 focus:ring-focus/30 disabled:opacity-60";
 
 const SIZES: Record<SelectSize, string> = {
   field: "w-full px-3 py-2 text-sm",
@@ -42,7 +40,6 @@ const SIZES: Record<SelectSize, string> = {
 export function Select({
   size = "field",
   tone = "paper",
-  dark = false,
   invalid = false,
   testId,
   className = "",
@@ -50,9 +47,6 @@ export function Select({
 }: {
   size?: SelectSize;
   tone?: SelectTone;
-  /** On a dark surface outside `.on-glass` — the top row over a picture: the open list
-   *  gets the dark scheme, or its white text would sit on the browser's white. */
-  dark?: boolean;
   /** Marks the field wrong — the red border, and `aria-invalid` for a screen reader. */
   invalid?: boolean;
   testId?: string;
@@ -64,9 +58,7 @@ export function Select({
         <select
           {...rest}
           data-testid={testId}
-          className={`cursor-pointer appearance-none rounded-full bg-transparent py-1.5 pl-2.5 pr-6 text-[13px] font-medium text-inherit outline-none transition focus-visible:ring-2 focus-visible:ring-current sm:pl-3 sm:pr-7 sm:text-sm ${
-            dark ? "on-dark hover:text-white" : "hover:text-slate-950"
-          }`}
+          className={`cursor-pointer appearance-none rounded-full bg-transparent py-1.5 pl-2.5 pr-6 text-[13px] font-medium text-inherit outline-none transition focus-visible:ring-2 focus-visible:ring-current sm:pl-3 sm:pr-7 sm:text-sm hover:text-foreground`}
         />
         <svg
           aria-hidden
@@ -83,7 +75,7 @@ export function Select({
       </span>
     );
   }
-  const border = invalid ? "border-red-500 ring-2 ring-red-200" : "border-slate-300";
+  const border = invalid ? "border-danger ring-2 ring-danger/40" : "border-border";
   return (
     <select
       {...rest}
