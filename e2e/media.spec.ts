@@ -217,29 +217,3 @@ describeStory("R-2: editorial changes many pictures at once", () => {
     for (const id of ids) await expect(page.getByTestId(`admin-media-tile-${id}`)).toHaveCount(0);
   });
 });
-
-describeStory("R-3: editorial adds a league's videos", () => {
-  test("a YouTube link becomes a video of a series, and is removed again", async ({ page }, testInfo) => {
-    const title = `Final day ${testInfo.project.name} ${Date.now()}`;
-    await signIn(page, EDITOR);
-    await page.goto("/admin?tab=media");
-
-    await page.getByTestId("admin-videos-url-input").fill("https://vimeo.com/123456");
-    await page.getByTestId("admin-videos-title-input").fill(title);
-    await page.getByTestId("admin-videos-add-button").click();
-    await expect(page.getByTestId("admin-videos-add-error")).toContainText("YouTube");
-
-    await page.getByTestId("admin-videos-url-input").fill("https://youtu.be/gMxZptdnbxo?t=90");
-    const select = page.getByTestId("admin-videos-context-select");
-    const series = select.locator('option[value^="s"]').first();
-    await expect(series).toBeAttached();
-    await select.selectOption((await series.getAttribute("value"))!);
-    await page.getByTestId("admin-videos-add-button").click();
-
-    const row = page.getByTestId("admin-videos-list").getByRole("listitem").filter({ hasText: title });
-    await expect(row).toContainText("starts at 1:30");
-    await row.getByTestId(/-remove$/).click();
-    await row.getByTestId(/-remove-confirm$/).click();
-    await expect(page.getByTestId("admin-videos-list").getByRole("listitem").filter({ hasText: title })).toHaveCount(0);
-  });
-});

@@ -19,12 +19,10 @@ import {
   getListLeagueMediaQueryOptions,
   getListPostsQueryOptions,
   useGetPost,
-  useListLeagueVideos,
 } from "../api/generated/sbl";
 import type { PagePostSummary } from "../api/generated/model/pagePostSummary";
 import type { PagePublicPicture } from "../api/generated/model/pagePublicPicture";
 import type { PublicPicture } from "../api/generated/model/publicPicture";
-import type { VideoOut } from "../api/generated/model/videoOut";
 import type { ApiError } from "../api/http";
 import { PostKind, type Post, type PostSummary } from "../api/types";
 import { errorText, useAsync, type AsyncState } from "../api/useApi";
@@ -304,13 +302,8 @@ export const VIDEOS: Video[] = [
   { id: "IcKib7M-uB0", title: "3. Spieltag — Travemünde 2022, final day", start: 40 },
 ];
 
-const toVideos = (videos: VideoOut[]): Video[] => videos.map((v) => ({ id: v.youtube_id, title: v.title, start: v.start }));
-
-/** A league's videos — those editorial added for its regattas (Story R-3), or the site's
- *  own selection while it has none, so a page is never empty. */
-export function useVideos(league: string): AsyncState<Video[]> {
-  const state = useAsync(useListLeagueVideos({ league }, { query: { select: toVideos } }));
-  return state.data && state.data.length === 0 ? ready(VIDEOS) : state;
+export function useVideos(_league: string) {
+  return ready(VIDEOS);
 }
 
 /** A picture on a league's media page: the library's, with what it is of; or one of the

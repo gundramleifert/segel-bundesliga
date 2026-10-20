@@ -206,6 +206,5 @@
   "media-url-invalid": "Diese Adresse lässt sich nicht holen — nur öffentliche Webadressen (http oder https).",
   "media-url-unreachable": "Das Bild ließ sich von dieser Adresse nicht holen.",
   "post-title-in-text": "Der Text beginnt noch einmal mit dem Titel — der Titel steht schon darüber.",
-  "post-picture-not-in-library": "Ein Bild in diesem Beitrag ist von einer anderen Website verlinkt. Bitte zuerst in die Mediathek holen — erneut einfügen oder im Bildbereich über seine Webadresse hinzufügen.",
-  "video-url-invalid": "Das ist keine Adresse eines YouTube-Videos — bitte den Link des Videos selbst einfügen."
+  "post-picture-not-in-library": "Ein Bild in diesem Beitrag ist von einer anderen Website verlinkt. Bitte zuerst in die Mediathek holen — erneut einfügen oder im Bildbereich über seine Webadresse hinzufügen."
 }

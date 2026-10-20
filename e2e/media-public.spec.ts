@@ -3,7 +3,7 @@ import { bearer } from "./session";
 
 /** Story R-3: a league's media page shows the library — and Story R-1's paged news.
  *
- * `api/tests/stories/test_media_public.py` proves which pictures and videos a league
+ * `api/tests/stories/test_media_public.py` proves which pictures a league
  * shows. What only a browser can prove is the page: a picture delivered for an act is on
  * its league's media page under the act's name, and a tap shows it full screen, with the
  * keyboard to go on and to close.

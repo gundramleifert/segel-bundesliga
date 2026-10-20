@@ -35,7 +35,6 @@ import { INPUT_CLASS } from "../../../lib/admin";
 import { formatDate } from "../../../lib/format";
 import { downloadFile } from "../../../lib/files";
 import { useListParams } from "../../../lib/listParams";
-import { Videos } from "./Videos";
 
 const PAGE = 24;
 
@@ -44,47 +43,35 @@ const PAGE = 24;
 export function MediaAdmin() {
   return (
     <>
-      <Upload />
       <Library />
-      <Videos />
       <ImportKeys />
     </>
   );
 }
 
 /** Editorial's own upload — a batch, with a credit and an event or series for all of it;
- *  no link needed (Story R-2). Folded until asked for, so the library stays on top. */
+ *  no link needed (Story R-2). Opened from the library's own "+" and shown above its
+ *  pictures, so what arrives appears right below. */
 function Upload() {
   const { t } = useTranslation("admin");
   const invalidate = useInvalidate();
   const { account } = useAccount();
-  const [open, setOpen] = useState(false);
   const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   return (
-    <Section
-      title={t("media.uploadTitle")}
-      testId="admin-media-upload-section"
-      action={
-        <Button size="sm" variant={open ? "ghost" : "primary"} onPress={() => setOpen((o) => !o)} data-testid="admin-media-upload-toggle">
-          {open ? t("media.uploadClose") : t("media.uploadButton")}
-        </Button>
-      }
-    >
-      {open && (
-        <BatchUpload
-          send={(file, credit) =>
-            uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined })
-          }
-          onArrived={() => invalidate("/api/admin/media")}
-          defaultCredit={account?.display_name ?? ""}
-          testId="admin-media-upload"
-        >
-          <Field label={t("media.contextLabel")} hint={t("media.uploadContextHint")}>
-            <MediaContextSelect value={context} onChange={setContext} noneLabel={t("media.contextNone")} testId="admin-media-upload-context" />
-          </Field>
-        </BatchUpload>
-      )}
-    </Section>
+    <div className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:p-4" data-testid="admin-media-upload-section">
+      <BatchUpload
+        send={(file, credit) =>
+          uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined })
+        }
+        onArrived={() => invalidate("/api/admin/media")}
+        defaultCredit={account?.display_name ?? ""}
+        testId="admin-media-upload"
+      >
+        <Field label={t("media.contextLabel")} hint={t("media.uploadContextHint")}>
+          <MediaContextSelect value={context} onChange={setContext} noneLabel={t("media.contextNone")} testId="admin-media-upload-context" />
+        </Field>
+      </BatchUpload>
+    </div>
   );
 }
 
@@ -94,6 +81,7 @@ function Library() {
   const [selected, setSelected] = useState<number | null>(null);
   const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   const [altMissing, setAltMissing] = useState(false);
+  const [uploading, setUploading] = useState(false);
   // Select mode: a tap marks a picture instead of opening it, for one change to many.
   const [selecting, setSelecting] = useState(false);
   const [chosen, setChosen] = useState<Set<number>>(new Set());
@@ -118,7 +106,26 @@ function Library() {
   );
 
   return (
-    <Section title={t("media.title")} testId="admin-media-section">
+    <Section
+      title={t("media.title")}
+      testId="admin-media-section"
+      action={
+        // Like every list's "+ New": the library's way in, beside its title.
+        <Button size="sm" variant={uploading ? "ghost" : "primary"} onPress={() => setUploading((o) => !o)} data-testid="admin-media-upload-toggle">
+          {uploading ? (
+            t("media.uploadClose")
+          ) : (
+            <>
+              <span aria-hidden="true" className="mr-1 text-base leading-none">
+                ＋
+              </span>
+              {t("media.uploadButton")}
+            </>
+          )}
+        </Button>
+      }
+    >
+      {uploading && <Upload />}
       <p className="text-sm text-slate-600">{t("media.intro")}</p>
       <Field label={t("media.searchLabel")}>
         <input

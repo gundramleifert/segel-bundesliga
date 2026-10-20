@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: c8b0e27d4bad
+Revision ID: 2d79274ed8ad
 Revises: 
-Create Date: 2026-10-20 22:11:01.228075
+Create Date: 2026-10-20 23:25:49.112752
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'c8b0e27d4bad'
+revision: str = '2d79274ed8ad'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -557,26 +557,6 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_team_status'), ['status'], unique=False)
         batch_op.create_index('uq_team_series_registration', ['club_id', 'series_id'], unique=True, sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
 
-    op.create_table('video',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('youtube_id', sa.String(length=16), nullable=False),
-    sa.Column('title', sa.String(length=200), nullable=False),
-    sa.Column('start', sa.Integer(), server_default='0', nullable=False),
-    sa.Column('event_id', sa.Integer(), nullable=True),
-    sa.Column('series_id', sa.Integer(), nullable=True),
-    sa.Column('created_by_user_id', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.CheckConstraint('event_id IS NULL OR series_id IS NULL', name=op.f('ck_video_video_event_or_series')),
-    sa.ForeignKeyConstraint(['created_by_user_id'], ['app_user.id'], name=op.f('fk_video_created_by_user_id_app_user'), ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_video_event_id_event'), ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_video_series_id_series'), ondelete='SET NULL'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_video'))
-    )
-    with op.batch_alter_table('video', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_video_event_id'), ['event_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_video_series_id'), ['series_id'], unique=False)
-
     op.create_table('waiver_confirmation',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('sailor_id', sa.Integer(), nullable=False),
@@ -961,11 +941,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_waiver_confirmation_event_id'))
 
     op.drop_table('waiver_confirmation')
-    with op.batch_alter_table('video', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_video_series_id'))
-        batch_op.drop_index(batch_op.f('ix_video_event_id'))
-
-    op.drop_table('video')
     with op.batch_alter_table('team', schema=None) as batch_op:
         batch_op.drop_index('uq_team_series_registration', sqlite_where=sa.text('event_id IS NULL'), postgresql_where=sa.text('event_id IS NULL'))
         batch_op.drop_index(batch_op.f('ix_team_status'))

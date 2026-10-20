@@ -416,8 +416,8 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
           {(items) => (
             <CardRow>
               {items.slice(0, limit).map((v) => (
-                <li key={`${v.id}-${v.start}`}>
-                  <YouTubePlayer id={v.id} title={v.title} start={v.start} />
+                <li key={v.id}>
+                  <YouTubePlayer id={v.id} title={v.title} />
                 </li>
               ))}
             </CardRow>

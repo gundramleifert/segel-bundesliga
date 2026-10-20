@@ -477,7 +477,6 @@
     "contextNone": "Keine",
     "contextWholeSeries": "{name} — die ganze Serie",
     "contextLoneEvents": "Veranstaltungen ohne Serie",
-    "uploadTitle": "Bilder hochladen",
     "uploadButton": "Hochladen",
     "uploadClose": "Schließen",
     "uploadContextHint": "Wovon die Bilder sind — für alle Bilder, die jetzt gesendet werden. Optional.",
@@ -495,24 +494,7 @@
     "bulkDelete": "Auswahl löschen",
     "bulkDeleted": "{count, plural, =0 {Nichts gelöscht.} one {# Bild gelöscht.} other {# Bilder gelöscht.}}",
     "bulkKept": "{count, plural, one {# Bild behalten} other {# Bilder behalten}}, weil Beiträge sie zeigen:",
-    "download": "In voller Größe herunterladen",
-    "videos": {
-      "title": "Videos",
-      "intro": "YouTube-Videos für die Medienseite einer Liga — von einer Veranstaltung oder Serie, sichtbar, sobald diese öffentlich ist. Die Adresse des Videos einfügen.",
-      "urlLabel": "YouTube-Adresse",
-      "titleLabel": "Titel",
-      "contextLabel": "Video von",
-      "add": "Video hinzufügen",
-      "empty": "Noch keine Videos.",
-      "edit": "Bearbeiten",
-      "save": "Speichern",
-      "cancel": "Abbrechen",
-      "remove": "Entfernen",
-      "removeConfirm": "Endgültig entfernen",
-      "removeCancel": "Behalten",
-      "noContext": "Noch auf keiner Seite — Veranstaltung oder Serie wählen",
-      "startsAt": "beginnt bei {time}"
-    }
+    "download": "In voller Größe herunterladen"
   },
   "importKeys": {
     "title": "Upload-Links",

@@ -477,7 +477,6 @@
     "contextNone": "None",
     "contextWholeSeries": "{name} — the whole series",
     "contextLoneEvents": "Events in no series",
-    "uploadTitle": "Upload pictures",
     "uploadButton": "Upload",
     "uploadClose": "Close",
     "uploadContextHint": "What the pictures are of — for every picture sent now. Optional.",
@@ -495,24 +494,7 @@
     "bulkDelete": "Delete selected",
     "bulkDeleted": "{count, plural, =0 {Nothing deleted.} one {# picture deleted.} other {# pictures deleted.}}",
     "bulkKept": "{count, plural, one {# picture kept} other {# pictures kept}} because posts show them:",
-    "download": "Download full size",
-    "videos": {
-      "title": "Videos",
-      "intro": "YouTube videos for a league's media page — of an event or a series, shown once it is public. Paste the video's address.",
-      "urlLabel": "YouTube address",
-      "titleLabel": "Title",
-      "contextLabel": "Video of",
-      "add": "Add video",
-      "empty": "No videos yet.",
-      "edit": "Edit",
-      "save": "Save",
-      "cancel": "Cancel",
-      "remove": "Remove",
-      "removeConfirm": "Remove for good",
-      "removeCancel": "Keep",
-      "noContext": "On no page yet — choose an event or a series",
-      "startsAt": "starts at {time}"
-    }
+    "download": "Download full size"
   },
   "importKeys": {
     "title": "Upload links",

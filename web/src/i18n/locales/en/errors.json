@@ -206,6 +206,5 @@
   "media-url-invalid": "That address cannot be fetched — only public web addresses (http or https).",
   "media-url-unreachable": "The picture could not be fetched from that address.",
   "post-title-in-text": "The text starts with the title again — the title is shown above it.",
-  "post-picture-not-in-library": "A picture in this post is linked from another site. Put it into the library first — paste it again, or add it from its web address in the picture panel.",
-  "video-url-invalid": "That is not the address of a YouTube video — paste the link of the video itself."
+  "post-picture-not-in-library": "A picture in this post is linked from another site. Put it into the library first — paste it again, or add it from its web address in the picture panel."
 }

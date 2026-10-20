@@ -26,19 +26,18 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import require_editor
 from app.db import get_session
-from app.models import ImportKey, MediaItem, MediaSource, Video
+from app.models import ImportKey, MediaItem, MediaSource
 from app.models.auth import User
 from app.models.base import utcnow
 from app.models.editorial import context_of
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services import media, videos
+from app.services import media
 from app.services.lookup import get_or_404
 
 admin_router = APIRouter(prefix="/api/admin", tags=["media"])
 import_router = APIRouter(prefix="/api/import", tags=["import"])
 public_router = APIRouter(prefix="/api/media", tags=["media"])
-videos_router = APIRouter(prefix="/api/videos", tags=["media"])
 
 
 class MediaOut(BaseModel):
@@ -142,35 +141,6 @@ class PublicPicture(BaseModel):
     event_id: int | None = None
     series_id: int | None = None
     context: str | None = Field(default=None, description="The event's title or the series' name.")
-
-
-class VideoOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    youtube_id: str
-    title: str
-    start: int = Field(description="Where playing starts, in seconds.")
-    event_id: int | None = None
-    series_id: int | None = None
-    context: str | None = None
-
-
-class VideoCreate(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-    url: str = Field(min_length=8, max_length=300, description="A YouTube address.")
-    title: str = Field(min_length=2, max_length=200)
-    event_id: int | None = None
-    series_id: int | None = None
-
-
-class VideoFields(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    event_id: int | None = Field(default=None, description="Sent: the video is this event's.")
-    series_id: int | None = Field(default=None, description="Sent: the video is this series'.")
 
 
 class ImportKeyOut(BaseModel):
@@ -412,77 +382,6 @@ async def delete_many_media(
     )
 
 
-# ---------------------------------------------------------------- editorial: videos
-
-
-@admin_router.get("/videos", response_model=list[VideoOut], summary="Every video")
-async def list_all_videos(
-    session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
-) -> list[VideoOut]:
-    rows = await session.execute(_videos().order_by(Video.id.desc()))
-    return [_video_out(video) for video in rows.scalars()]
-
-
-@admin_router.post(
-    "/videos",
-    response_model=VideoOut,
-    status_code=status.HTTP_201_CREATED,
-    summary="Add a YouTube video",
-)
-async def create_video(
-    body: VideoCreate,
-    session: AsyncSession = Depends(get_session),
-    user: User = Depends(require_editor),
-) -> VideoOut:
-    """``video-url-invalid`` for an address that is not a YouTube video."""
-    found = videos.parse(body.url)
-    await media.check_context(session, body.event_id, body.series_id)
-    video = Video(
-        youtube_id=found.id,
-        start=found.start,
-        title=body.title,
-        event_id=body.event_id,
-        series_id=body.series_id,
-        created_by_user_id=user.id,
-    )
-    session.add(video)
-    await session.commit()
-    return await _video_detail(session, video)
-
-
-@admin_router.patch("/videos/{video_id}", response_model=VideoOut, summary="Correct a video")
-async def update_video(
-    video_id: int,
-    body: VideoFields,
-    session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
-) -> VideoOut:
-    video = await get_or_404(session, Video, video_id)
-    changes = body.model_dump(exclude_unset=True)
-    if "event_id" in changes or "series_id" in changes:
-        event_id, series_id = changes.pop("event_id", None), changes.pop("series_id", None)
-        await media.check_context(session, event_id, series_id)
-        video.event_id, video.series_id = event_id, series_id
-    if changes.get("title"):
-        video.title = changes["title"]
-    await session.commit()
-    return await _video_detail(session, video)
-
-
-@admin_router.delete(
-    "/videos/{video_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Remove a video"
-)
-async def delete_video(
-    video_id: int,
-    session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
-) -> Response:
-    await session.delete(await get_or_404(session, Video, video_id))
-    await session.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
 @admin_router.delete(
     "/media/{media_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete a picture"
 )
@@ -626,18 +525,6 @@ async def list_league_media(
     return page_of([public_picture(item) for item in rows.scalars()], total or 0, params)
 
 
-@videos_router.get("", response_model=list[VideoOut], summary="A league's videos")
-async def list_league_videos(
-    league: str = Query(description="The league's slug"),
-    session: AsyncSession = Depends(get_session),
-) -> list[VideoOut]:
-    """The same rule as its photos: its published series' and their published events'."""
-    stmt = videos.public_in_league(league).options(
-        selectinload(Video.event), selectinload(Video.series)
-    )
-    return [_video_out(video) for video in (await session.execute(stmt)).scalars()]
-
-
 @public_router.get("/{file_name}", summary="A picture from the library")
 async def get_media_file(file_name: str) -> FileResponse:
     """``<name>.webp`` (the largest) or ``<name>-<edge>.webp`` for an edge of
@@ -687,20 +574,6 @@ async def _many(session: AsyncSession, ids: list[int]) -> list[MediaItem]:
     if missing:
         raise Problem(404, "media-not-found", "No such picture.", ids=sorted(missing))
     return rows
-
-
-def _videos():
-    return select(Video).options(selectinload(Video.event), selectinload(Video.series))
-
-
-def _video_out(video: Video) -> VideoOut:
-    """Load ``event`` and ``series`` first."""
-    return VideoOut.model_validate(video).model_copy(update={"context": context_of(video)})
-
-
-async def _video_detail(session: AsyncSession, video: Video) -> VideoOut:
-    await session.refresh(video, ["event", "series"])
-    return _video_out(video)
 
 
 async def _imported(session: AsyncSession, response: Response, stored: media.Stored) -> ImportedOut:

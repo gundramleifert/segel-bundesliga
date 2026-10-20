@@ -153,7 +153,6 @@ app.include_router(posts.admin_router)
 app.include_router(media.admin_router)
 app.include_router(media.import_router)
 app.include_router(media.public_router)
-app.include_router(media.videos_router)
 
 if settings.dev_login:
     # Development only: login without verification to try out roles.

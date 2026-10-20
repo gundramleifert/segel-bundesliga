@@ -214,9 +214,8 @@ Tests: `api/tests/stories/test_media.py::TestLibrary`,
 `e2e/media.spec.ts::R-2: a picture library fed by upload links`,
 `e2e/media.spec.ts::R-2: editorial changes many pictures at once`
 
-### R-3 ● Show the library's photos and videos on the league's media page
-As a **visitor** I want **a league's media page to show the photos and videos of its
-regattas**, and as **editorial** I want **what photographers delivered to appear there
+### R-3 ● Show the library's photos on the league's media page
+As a **visitor** I want **a league's media page to show the photos of its regattas**, and as **editorial** I want **what photographers delivered to appear there
 without placing each picture in a post**, so that **the library is what the public sees**.
 
 Acceptance criteria:
@@ -227,15 +226,12 @@ Acceptance criteria:
 - **Paged**, a page of pictures at a time with a *more* button — a season brings hundreds.
 - **A tap shows the picture full screen**, at the size the screen needs, with its alt
   text and credit; swipe or the arrow keys go to the next and the previous, Escape closes.
-- **Videos are links, never files** (`docs/PLAN_MEDIA.md` §6): editorial adds a YouTube
-  address with a title and an event or series on the *Media* tab; the page embeds it.
-  An address that is not a YouTube video is refused (`video-url-invalid`).
-- **Until the library has a league's pictures or videos**, the page shows the site's
-  own selection as before, so a new league's page is never empty.
+- **Until the library has a league's pictures**, the page shows the site's own selection
+  as before, so a new league's page is never empty. The videos stay the site's own
+  selection (a video library was built and taken out again on 2026-10-20 — not wanted
+  for now).
 
-Endpoints: `GET /api/media?league=`, `GET /api/videos?league=`,
-`GET|POST /api/admin/videos`, `PATCH|DELETE /api/admin/videos/{id}`
+Endpoints: `GET /api/media?league=`
 
 Tests: `api/tests/stories/test_media_public.py`,
-`e2e/media-public.spec.ts::R-3: the league's media page shows the library`,
-`e2e/media.spec.ts::R-3: editorial adds a league's videos`
+`e2e/media-public.spec.ts::R-3: the league's media page shows the library`

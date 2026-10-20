@@ -195,36 +195,7 @@ class MediaItem(Base, TimestampMixin):
         return f"/api/media/{self.name}-480.webp"
 
 
-class Video(Base, TimestampMixin):
-    """A video on a league's media page — a YouTube link, never a file (Story R-3,
-    `docs/PLAN_MEDIA.md` §6). Belongs to an event or a series like a picture, and is shown
-    where they are public."""
-
-    __tablename__ = "video"
-    __table_args__ = (
-        CheckConstraint("event_id IS NULL OR series_id IS NULL", name="video_event_or_series"),
-    )
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    youtube_id: Mapped[str] = mapped_column(String(16))
-    title: Mapped[str] = mapped_column(String(200))
-    # Where playing starts, in seconds — a recording's first minutes are often the wait.
-    start: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
-    event_id: Mapped[int | None] = mapped_column(
-        ForeignKey("event.id", ondelete="SET NULL"), index=True, default=None
-    )
-    series_id: Mapped[int | None] = mapped_column(
-        ForeignKey("series.id", ondelete="SET NULL"), index=True, default=None
-    )
-    created_by_user_id: Mapped[int | None] = mapped_column(
-        ForeignKey("app_user.id", ondelete="SET NULL"), default=None
-    )
-
-    event: Mapped[Event | None] = relationship()
-    series: Mapped[Series | None] = relationship()
-
-
-def context_of(row: ImportKey | MediaItem | Video | Post) -> str | None:
+def context_of(row: ImportKey | MediaItem | Post) -> str | None:
     """What a key's or a picture's pictures are of, as a name — load ``event`` and
     ``series`` first."""
     if row.event is not None:
