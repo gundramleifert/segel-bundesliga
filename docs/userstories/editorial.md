@@ -185,9 +185,13 @@ Acceptance criteria:
 - **Whether a file is a picture is told by its content**, never its name or the type the
   browser declares for it — a JPEG saved as `chart.png` is a JPEG (decided 2026-10-19).
 - **Editorial uploads without a link** (decided 2026-10-19): on the *Media* tab, and on the
-  upload page itself when signed in — several pictures at once, with a credit (their own
-  name until they give another) and an event or series for the whole batch, under their
-  own account. A link is for those without
+  upload page itself when signed in — several pictures at once, under their own account.
+  On the *Media* tab it is **one step** (decided 2026-10-20 — a "+" that opened a form
+  with a "choose pictures" of its own was one too many): the "+" opens the file chooser,
+  or pictures are dropped onto the library. They arrive credited to the name this device
+  last used, else the editor's own, and belong to the event or series the library's
+  filter shows; when the batch is in, *Edit these* selects exactly those pictures for
+  one credit, event or series. A link is for those without
   one; without either, the upload page says what is needed.
 - **The *Media* tab** lists the library newest first with a search over name, alt text and
   credit; an entry's alt text and credit can be corrected there, and it says which posts use

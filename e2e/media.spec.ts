@@ -128,24 +128,30 @@ describeStory("R-2: a picture library fed by upload links", () => {
     await expect(page.getByTestId("admin-post-photo-preview")).toHaveAttribute("src", src!);
   });
 
-  test("editorial uploads a batch on the Media tab, without a link, for an event", async ({ page }) => {
+  test("editorial uploads on the Media tab in one step, into the event the library shows", async ({ page }) => {
     await signIn(page, EDITOR);
     await page.goto("/admin?tab=media");
-    await page.getByTestId("admin-media-upload-toggle").click();
-    const select = page.getByTestId("admin-media-upload-context");
-    const option = select.locator('option[value^="e"]').first();
+    // The library filtered to an event: what is uploaded now is that event's.
+    const filter = page.getByTestId("admin-media-context-filter");
+    const option = filter.locator('option[value^="e"]').first();
     await expect(option).toBeAttached();
     // Value and label read together: other specs add events, and the list re-renders.
     const { value, event } = await option.evaluate((o: HTMLOptionElement) => ({ value: o.value, event: o.text.trim() }));
-    await select.selectOption(value);
-    await page.getByTestId("admin-media-upload-credit-input").fill("E. Editor");
+    await filter.selectOption(value);
+
+    // No form to open first: the "+" is the file chooser itself.
+    await expect(page.getByTestId("admin-media-upload-button")).toBeVisible();
     await choosePictures(page, 2, "admin-media-upload-input");
     await expect(page.getByTestId("admin-media-upload-summary")).toHaveText("2 of 2 pictures received");
-
-    // In the library at once — the list is refreshed as each one arrives.
     const first = page.getByTestId("admin-media-grid").getByRole("listitem").first();
-    await expect(first).toContainText("E. Editor");
     await expect(first).toContainText(event);
+
+    // What else the batch needs, it gets together: these two, selected, one credit.
+    await page.getByTestId("admin-media-upload-edit").click();
+    await expect(page.getByTestId("admin-media-bulk-count")).toContainText("2");
+    await page.getByTestId("admin-media-bulk-credit-input").fill("E. Editor");
+    await page.getByTestId("admin-media-bulk-credit-apply").click();
+    await expect(first).toContainText("E. Editor");
   });
 
   test("signed in as editorial, the upload page needs no link", async ({ page }) => {
@@ -166,7 +172,6 @@ describeStory("R-2: editorial changes many pictures at once", () => {
   /** Uploads `count` new pictures on the Media tab and answers their tiles' ids, newest first. */
   async function uploadOnMediaTab(page: import("@playwright/test").Page, count: number): Promise<string[]> {
     await page.goto("/admin?tab=media");
-    await page.getByTestId("admin-media-upload-toggle").click();
     await choosePictures(page, count, "admin-media-upload-input");
     const plural = count === 1 ? "picture" : "pictures";
     await expect(page.getByTestId("admin-media-upload-summary")).toHaveText(`${count} of ${count} ${plural} received`);

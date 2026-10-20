@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { keepPreviousData } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type DragEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -24,7 +24,7 @@ import { ApiError } from "../../../api/http";
 import type { ImportKey, ImportKeyCreated, Media, MediaDetail } from "../../../api/types";
 import { errorText, useAccount, useAsync, useInvalidate } from "../../../api/useApi";
 import { Async } from "../../../components/Async";
-import { BatchUpload } from "../../../components/BatchUpload";
+import { UploadList, rememberedCredit, useBatchUpload } from "../../../components/BatchUpload";
 import { Badge, Empty, ErrorMessage } from "../../../components/Blocks";
 import { ConfirmButton } from "../../../components/ConfirmButton";
 import { Field, Message, Section } from "../../../components/Form";
@@ -34,6 +34,7 @@ import { Pager } from "../../../components/Pager";
 import { INPUT_CLASS } from "../../../lib/admin";
 import { formatDate } from "../../../lib/format";
 import { downloadFile } from "../../../lib/files";
+import { PHOTO_ACCEPT, filesIn } from "../../../lib/usePhotoUpload";
 import { useListParams } from "../../../lib/listParams";
 
 const PAGE = 24;
@@ -49,39 +50,34 @@ export function MediaAdmin() {
   );
 }
 
-/** Editorial's own upload — a batch, with a credit and an event or series for all of it;
- *  no link needed (Story R-2). Opened from the library's own "+" and shown above its
- *  pictures, so what arrives appears right below. */
-function Upload() {
-  const { t } = useTranslation("admin");
-  const invalidate = useInvalidate();
-  const { account } = useAccount();
-  const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
-  return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:p-4" data-testid="admin-media-upload-section">
-      <BatchUpload
-        send={(file, credit) =>
-          uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined })
-        }
-        onArrived={() => invalidate("/api/admin/media")}
-        defaultCredit={account?.display_name ?? ""}
-        testId="admin-media-upload"
-      >
-        <Field label={t("media.contextLabel")} hint={t("media.uploadContextHint")}>
-          <MediaContextSelect value={context} onChange={setContext} noneLabel={t("media.contextNone")} testId="admin-media-upload-context" />
-        </Field>
-      </BatchUpload>
-    </div>
-  );
-}
-
 function Library() {
   const { t } = useTranslation("admin");
   const list = useListParams(PAGE);
   const [selected, setSelected] = useState<number | null>(null);
   const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
   const [altMissing, setAltMissing] = useState(false);
-  const [uploading, setUploading] = useState(false);
+
+  // Uploading is one step (decided 2026-10-20 — a "+" that opened a form with its own
+  // "choose pictures" was one too many): the "+" opens the file chooser, or pictures are
+  // dropped onto the library. They arrive with the name this device remembers, else the
+  // editor's own, and belong to the event or series the filter shows — the library one
+  // is looking at. What else they need, they get together afterwards ("Edit these").
+  const invalidate = useInvalidate();
+  const { account } = useAccount();
+  const picker = useRef<HTMLInputElement>(null);
+  const [over, setOver] = useState(false);
+  const batch = useBatchUpload({
+    send: (file, credit) =>
+      uploadMedia({ file, credit, event_id: context.event_id ?? undefined, series_id: context.series_id ?? undefined }),
+    credit: rememberedCredit() || account?.display_name || "",
+    onArrived: () => invalidate("/api/admin/media"),
+  });
+  const arrived = batch.items.flatMap((item) => (item.entry !== undefined ? [item.entry] : []));
+  const drop = (event: DragEvent) => {
+    event.preventDefault();
+    setOver(false);
+    batch.add(filesIn(event.dataTransfer.files));
+  };
   // Select mode: a tap marks a picture instead of opening it, for one change to many.
   const [selecting, setSelecting] = useState(false);
   const [chosen, setChosen] = useState<Set<number>>(new Set());
@@ -111,22 +107,71 @@ function Library() {
       testId="admin-media-section"
       action={
         // Like every list's "+ New": the library's way in, beside its title.
-        <Button size="sm" variant={uploading ? "ghost" : "primary"} onPress={() => setUploading((o) => !o)} data-testid="admin-media-upload-toggle">
-          {uploading ? (
-            t("media.uploadClose")
-          ) : (
-            <>
-              <span aria-hidden="true" className="mr-1 text-base leading-none">
-                ＋
-              </span>
-              {t("media.uploadButton")}
-            </>
-          )}
+        <Button size="sm" onPress={() => picker.current?.click()} data-testid="admin-media-upload-button">
+          <span aria-hidden="true" className="mr-1 text-base leading-none">
+            ＋
+          </span>
+          {t("media.uploadButton")}
         </Button>
       }
     >
-      {uploading && <Upload />}
-      <p className="text-sm text-slate-600">{t("media.intro")}</p>
+      <input
+        ref={picker}
+        type="file"
+        multiple
+        accept={PHOTO_ACCEPT}
+        className="hidden"
+        onChange={(e) => {
+          batch.add(filesIn(e.target.files));
+          e.target.value = "";
+        }}
+        data-testid="admin-media-upload-input"
+      />
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={drop}
+        className={`grid grid-cols-[minmax(0,1fr)] gap-4 rounded-md ${over ? "ring-2 ring-brand-500 ring-offset-4" : ""}`}
+        data-testid="admin-media-dropzone"
+      >
+      <p className="text-sm text-slate-600">
+        {t("media.intro")} <span className="pointer-coarse:hidden">{t("media.dropHint")}</span>
+      </p>
+      {batch.items.length > 0 && (
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 rounded-md border border-slate-200 bg-slate-50 p-3" data-testid="admin-media-upload">
+          <UploadList items={batch.items} received={batch.received} testId="admin-media-upload" />
+          <p className="text-xs text-slate-500" data-testid="admin-media-upload-where">
+            {t("media.uploadWhere", {
+              credit: rememberedCredit() || account?.display_name || "—",
+              context: context.event_id || context.series_id ? t("media.uploadToFilter") : t("media.contextNone"),
+            })}
+          </p>
+          {!batch.busy && (
+            <div className="flex flex-wrap gap-2">
+              {arrived.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onPress={() => {
+                    setSelecting(true);
+                    setSelected(null);
+                    setChosen(new Set(arrived));
+                  }}
+                  data-testid="admin-media-upload-edit"
+                >
+                  {t("media.uploadEditThese", { count: arrived.length })}
+                </Button>
+              )}
+              <Button size="sm" variant="ghost" onPress={batch.clear} data-testid="admin-media-upload-done">
+                {t("media.uploadDone")}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       <Field label={t("media.searchLabel")}>
         <input
           className={INPUT_CLASS}
@@ -190,6 +235,7 @@ function Library() {
           </>
         )}
       </Async>
+      </div>
     </Section>
   );
 }
