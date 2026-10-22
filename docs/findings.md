@@ -277,6 +277,16 @@ The Deutsche Segel-Liga's own matchdays run on SAP Sailing, **not** manage2sail
 **2024 and 2025 are not on this host** — a newer season likely sits on a different SAP
 instance or is not published here; ask the league office for the current host.
 
+**Checked 2026-10-22:** still nothing after 2023 on `www` (`app.imports sap --list`), and
+the old per-year hosts (`bundesliga2023.sapsailing.com`, `bundesliga2026…`) — like any
+unknown subdomain — redirect to `www`. The league's own results page
+(deutsche-segelbundesliga.de/ergebnisse) links **`hnv.sapsailing.com`** and TracTrac.
+`hnv` holds the **Junioren-Liga** 2017–2026 ("Deutsche Junioren Segel-Liga 2026 - Act 1"
+… "Act 4 (Finale)", "Deutscher Junioren- & Segel-Liga Pokal 2026"), but no 1./2. Liga —
+and `app/imports/sap.py` recognises only `1./2. Segel-Bundesliga YYYY - City (n)`, so
+those names would need their own parser. Where the 1./2. Liga 2024–2026 are hosted is
+still open.
+
 What one DSBL regatta gives, over the **public v1/v2 API with no secret** (example
 `1. Segel-Bundesliga 2021 - Warnemünde`, tested):
 
