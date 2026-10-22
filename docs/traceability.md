@@ -41,10 +41,10 @@ here — this page says what *exists*, the report what *passed*.
 | J-1.7 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
 | J-1.8 | main | B-3 | ● | W1 | — | `journey-lifecycle`<br>`run-event` |
 | J-1.9 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
-| J-1.10 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`results-entry` |
+| J-1.10 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`journey-press`<br>`results-entry` |
 | J-1.11 | main | B-1 | ● | W1 | — | `journey-lifecycle`<br>`journey-series` |
 | J-1.12 | main | VA-8 | ● | W1 | — | `admin-series`<br>`faq`<br>`journey-lifecycle`<br>`journey-series`<br>`run-event`<br>`terms` |
-| J-1.13 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`results-entry` |
+| J-1.13 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`journey-press`<br>`results-entry` |
 | J-1.14 | main | VA-10 | ● | W1 | — | `close-event`<br>`journey-lifecycle`<br>`terms` |
 
 ### J-2 ◐ A new club gets going and runs itself
@@ -133,20 +133,20 @@ here — this page says what *exists*, the report what *passed*.
 
 ### J-6 ◐ From a sailed race to the report and the press release
 
-[press.md](journeys/press.md) · help: — · report: Allure → story *J-6 · From a sailed race to the report and the press release*, one step per row below
+[press.md](journeys/press.md) · help: `journey-press` · report: Allure → story *J-6 · From a sailed race to the report and the press release*, one step per row below
 
 - **W1** `test_journey_press.py::TestFromARaceToThePress::test_the_photographer_sends_the_pictures`
 
 | Step | Path | Story | | Walked by | Also covered by | Help |
 |---|---|---|---|---|---|---|
-| J-6.1 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`results-entry` |
-| J-6.2 | main | R-2 | ● | W1 | — | — |
-| J-6.3 | main | R-2 | ● | W1 | — | — |
-| J-6.11 | editorial's own pictures | R-2 | ● | — | `test_media.py::test_editorial_uploads_with_credit_and_event` | — |
-| J-6.4 | main | R-1 | ● | W1 | — | — |
-| J-6.5 | main | R-1 | ● | W1 | — | — |
-| J-6.6 | main | R-1 | ● | W1 | — | — |
-| J-6.7 | main | R-1 | ● | W1 | — | — |
-| J-6.8 | main | R-1 | ● | W1 | — | — |
-| J-6.9 | main | R-1 | ● | W1 | — | — |
-| J-6.10 | main | R-3 | ● | W1 | — | — |
+| J-6.1 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`journey-press`<br>`results-entry` |
+| J-6.2 | main | R-2 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.3 | main | R-2 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.11 | editorial's own pictures | R-2 | ● | — | `test_media.py::test_editorial_uploads_with_credit_and_event` | `journey-press`<br>`news-and-press` |
+| J-6.4 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.5 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.6 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.7 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.8 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.9 | main | R-1 | ● | W1 | — | `journey-press`<br>`news-and-press` |
+| J-6.10 | main | R-3 | ● | W1 | — | `journey-press`<br>`news-and-press` |

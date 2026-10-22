@@ -20,7 +20,7 @@ Sie wirkt ab dem nächsten Klick.
 | Rolle | Gilt für | Kurz |
 |---|---|---|
 | *Verwaltung* (Geschäftsstelle) | die Seite | Alles überall, Personen eingeschlossen. Serien, Konten, Pairing-Listen, Wortlaut des Haftungsausschlusses. |
-| *Redaktion* | die Seite | Vereine und ihre Meldung zu Serien. Organisation jeder Veranstaltung. Keine Ergebnisse, kein Geld. |
+| *Redaktion* | die Seite | Vereine und ihre Meldung zu Serien. Organisation jeder Veranstaltung. News, Pressemitteilungen und die Bilder. Keine Ergebnisse, kein Geld. |
 | *Wettfahrtleitung* (Geschäftsstelle) | die Seite | Wettfahrtleitung und Organisation jeder Veranstaltung. |
 | *Verwaltung* (*Vereinsverwaltung*) | einen Verein | Wer zum Verein gehört und wer ihn organisiert; der Stander. Alles, was die Organisation tut. Verwaltung jeder Veranstaltung, die der Verein ausrichtet. |
 | *Organisation* (*Teammanager*) | einen Verein | Wer segelt: Meldungen, Kader, Crews, Segler, Erziehungsberechtigte, Haftungsausschlüsse. Das Geld des Vereins, mit dem Kassenwart. Organisation jeder Veranstaltung, die der Verein ausrichtet. |
@@ -51,6 +51,7 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Vereine anlegen, bearbeiten, zu einer Serie melden | ✓ | ✓⁹ | — | — | — | — | — | — | — | — | — |
 | Stander eines Vereins ändern | ✓ | ✓ | — | — | — | — | — | eigene | — | — | — |
+| News und Pressemitteilungen schreiben, die Bilder pflegen | ✓ | ✓ | — | — | — | — | — | — | — | — | — |
 | Mitglieder, Organisation, Kassenwart eintragen | ✓ | — | — | — | — | — | — | eigene | — | — | — |
 | Mitgliederliste eines Vereins sehen | ✓ | ✓ | — | — | — | — | — | eigene | eigene | — | eigene |
 | Konten anlegen und deaktivieren | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
@@ -110,6 +111,8 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
   erreicht diesen Bereich nicht und wendet sich an eine dieser Stellen.
 - **Erziehungsberechtigte:** Der Verein des Kindes verknüpft das Konto des Elternteils
   unter *Erziehungsberechtigte*.
+- **Fotograf:** keine Rolle und kein Konto — die Redaktion schickt einen
+  [Upload-Link](#news-and-press-pictures).
 - **Segler:** Ein Verein nimmt Sie in seinen Kader auf. Ihr Konto findet Ihren Datensatz
   über die E-Mail-Adresse.
 - **Eine Rolle beenden:** Ein Mitglied tritt mit *Verein verlassen* aus. Andere Rollen

@@ -41,5 +41,6 @@ Wer was darf: [Rollen](#roles-list). Nicht weiter: [Fragen](#faq-race-committee)
 
 - [Von der leeren Serie zum gewerteten Spieltag](#journey-lifecycle) — was
   Geschäftsstelle und Veranstaltungsleitung vor Ihrem Tag tun und was die öffentliche Website danach zeigt.
+- [Von der Wettfahrt zur Presse](#journey-press) — wie Ihre Ergebnisse in den Bericht kommen.
 
 [Mein Bereich öffnen](place:space)

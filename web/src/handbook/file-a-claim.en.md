@@ -30,6 +30,9 @@ series — or for a club you are a *Member* of. The event's host club, or your c
 *For* lists only what you may claim on; a role held for the whole site entitles nobody to
 travel costs. A series role? File from your profile's [*Claims* tab](place:profile.claims).
 
+An event you work at but cannot claim on yet is named above the form, with why: it has no
+host club yet (ask its organizer to set one), or its host club does not pay for that work.
+
 ### Add the items {#file-a-claim-items}
 
 1. Open the claim with *Details*, then under *Add an item* choose the *Kind* ①: *Car*,

@@ -3,7 +3,7 @@ id: account
 type: guide
 order: 40
 audience: [sailor]
-stories: [Z-4, Z-1, Z-9, Z-7]
+stories: [Z-4, Z-1, Z-9, Z-7, B-19]
 journey: null
 route: /account
 tags: [sign in, login, anmelden, registrieren, passwort, konto, code]
@@ -64,5 +64,12 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 | das Konto, seine Anmeldewege und das Passwort | Ihr Segler-Datensatz: Ihr Name in Kadern, Crews und Ergebnissen, Ihre Bestätigungen des Haftungsausschlusses |
 | jede Rolle, auch Vereinsmitgliedschaften | bereits eingereichte Abrechnungen, beim Verein, der sie bezahlt |
 | Ihre Dokumente, Ihre Bankverbindung und nicht eingereichte Abrechnungen | Bestätigungen, die Sie für andere erfasst haben |
+
+### Sprache und hell oder dunkel {#account-look}
+
+Die Sprache steht vor der Anmeldung in der oberen Zeile, danach unter *Konto und
+Einstellungen* → *Sprache*. In der oberen Zeile, neben der Sprache oder Ihrem Konto, schaltet die
+Sonne oder der Mond die ganze Seite hell oder dunkel — *Hell darstellen*, *Dunkel darstellen*. Alle beginnen mit
+dunkel; Ihre Wahl bleibt auf diesem Gerät.
 
 [Anmelden](/account) · Abgelehnt? Siehe [die FAQ](#faq-sailor).

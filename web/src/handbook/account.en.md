@@ -3,7 +3,7 @@ id: account
 type: guide
 order: 40
 audience: [sailor]
-stories: [Z-4, Z-1, Z-9, Z-7]
+stories: [Z-4, Z-1, Z-9, Z-7, B-19]
 journey: null
 route: /account
 tags: [sign in, login, anmelden, registrieren, passwort, konto, code]
@@ -63,5 +63,12 @@ confirmed — signing in with a code once does that.
 | the account, its sign-in methods and password | your sailor record: your name in squads, crews and results, your waiver confirmations |
 | every role, club memberships included | claims already submitted, with the club that pays them |
 | your documents, bank account and unsubmitted claims | waiver confirmations you recorded for others |
+
+### Language and light or dark {#account-look}
+
+The language is in the top row before you sign in, and afterwards under *Account and
+settings* → *Language*. In the top row, beside the language or your account button, the sun or
+moon switches the whole site to light or dark — *Switch to light*, *Switch to dark*. Dark is where everyone starts; your
+choice is kept on this device.
 
 [Sign in](/account) · Refused? See [the FAQ](#faq-sailor).

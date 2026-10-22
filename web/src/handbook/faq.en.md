@@ -91,7 +91,9 @@ Yes, results are never fixed: [correct](#results-entry-correct).
 
 #### Why can't I claim costs for this event?
 You need a role held by name on the event or its series; for a club claim, membership.
-League office roles do not count: [where to claim](#file-a-claim-where).
+League office roles do not count. If you hold such a role on the event and it is still
+missing, the form says why: it has no host club yet, or its host club does not pay for that work —
+[where to claim](#file-a-claim-where).
 
 #### My claim cannot be submitted.
 Save your [*Bank account*](place:profile.bank), add an item, and attach the receipts it needs:

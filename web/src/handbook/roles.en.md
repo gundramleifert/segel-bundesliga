@@ -20,7 +20,7 @@ the next click.
 | Role | Held on | In short |
 |---|---|---|
 | *Admin* (league office) | the site | Everything everywhere, people included. Series, accounts, pairing lists, waiver wording. |
-| *Editor* | the site | Clubs and their entry into series. Organizer of every event. No results, no money. |
+| *Editor* | the site | Clubs and their entry into series. Organizer of every event. News, press releases and the pictures. No results, no money. |
 | *Race officer* (league) | the site | Race officer and organizer of every event. |
 | *Admin* (*Club admin*) | a club | Who is in the club and who organizes it; the crest. Everything an organizer does. Admin of every event the club hosts. |
 | *Organizer* (*Team manager*) | a club | Who sails: applications, squads, crews, sailors, guardians, waivers. The club's money, with the treasurer. Organizer of every event the club hosts. |
@@ -50,6 +50,7 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Create clubs, edit them, enter them in a series | ✓ | ✓⁹ | — | — | — | — | — | — | — | — | — |
 | Change a club's crest | ✓ | ✓ | — | — | — | — | — | own | — | — | — |
+| Write news and press releases, keep the pictures | ✓ | ✓ | — | — | — | — | — | — | — | — | — |
 | Add members, organizers, treasurer | ✓ | — | — | — | — | — | — | own | — | — | — |
 | See a club's member list | ✓ | ✓ | — | — | — | — | — | own | own | — | own |
 | Create and deactivate accounts | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
@@ -104,6 +105,8 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
   event's own admin, the series' admin or the league office — never the event's organizer;
   the host club's admin has no access to that panel and asks one of them.
 - **Guardian:** the child's club links the parent's account under *Guardians*.
+- **Photographer:** no role and no account — the editor sends an
+  [upload link](#news-and-press-pictures).
 - **Sailor:** a club puts you in its squad. Your account finds your record by the email
   address.
 - **Ending a role:** a member leaves with *Leave the club*. Other roles are removed by

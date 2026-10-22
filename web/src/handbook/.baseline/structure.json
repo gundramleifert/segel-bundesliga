@@ -7,6 +7,7 @@
   ],
   "anchors": [
    "account-delete",
+   "account-look",
    "account-password",
    "account-register",
    "account-sign-in"
@@ -265,6 +266,21 @@
    "en"
   ]
  },
+ "journey-press": {
+  "type": "journey",
+  "order": 60,
+  "audience": [
+   "administration",
+   "race-committee"
+  ],
+  "anchors": [
+   "journey-press-variations"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
  "journey-series": {
   "type": "journey",
   "order": 40,
@@ -292,6 +308,21 @@
    "my-space-leave",
    "my-space-overview",
    "my-space-pages"
+  ],
+  "locales": [
+   "de",
+   "en"
+  ]
+ },
+ "news-and-press": {
+  "type": "guide",
+  "order": 230,
+  "audience": [
+   "administration"
+  ],
+  "anchors": [
+   "news-and-press-pictures",
+   "news-and-press-write"
   ],
   "locales": [
    "de",
@@ -431,6 +462,7 @@
   "anchors": [
    "start-administration-journeys",
    "start-administration-people",
+   "start-administration-press",
    "start-administration-season"
   ],
   "locales": [

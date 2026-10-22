@@ -33,6 +33,10 @@ dem Sie *Mitglied* sind. Es zahlt der Ausrichter der Veranstaltung bzw. Ihr Vere
 berechtigt nicht zur Reisekostenerstattung. Eine Aufgabe für eine Serie? Über den [Reiter
 *Abrechnungen* in Ihrem Profil](place:profile.claims) abrechnen.
 
+Eine Veranstaltung, bei der Sie mitarbeiten, aber noch nicht abrechnen können, steht über
+dem Formular, mit dem Grund: Dort ist noch kein Ausrichter eingetragen (bitten Sie die
+Organisation darum), oder der Ausrichter erstattet für diese Aufgabe nichts.
+
 ### Positionen erfassen {#file-a-claim-items}
 
 1. Die Abrechnung mit *Details* öffnen, dann unter *Position hinzufügen* die *Art* ①

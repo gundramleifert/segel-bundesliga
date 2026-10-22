@@ -75,6 +75,8 @@ export const PLACES = {
   "admin.series": { path: "/admin", tab: "series" },
   "admin.events": { path: "/admin", tab: "events" },
   "admin.sailors": { path: "/admin", tab: "sailors" },
+  "admin.news": { path: "/admin", tab: "news" },
+  "admin.media": { path: "/admin", tab: "media" },
   "admin.accounts": { path: "/admin", tab: "accounts" },
   "admin.new-club": { path: "/admin/clubs/new" },
   "admin.new-series": { path: "/admin/series/new" },

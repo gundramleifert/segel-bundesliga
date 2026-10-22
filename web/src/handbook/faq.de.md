@@ -99,7 +99,9 @@ Ja, Ergebnisse stehen nie fest: [korrigieren](#results-entry-correct).
 #### Warum kann ich für diese Veranstaltung keine Kosten abrechnen?
 Sie brauchen eine Rolle, die namentlich bei der Veranstaltung oder ihrer Serie vergeben
 ist; für eine Abrechnung beim Verein die Mitgliedschaft. Rollen der Geschäftsstelle
-zählen nicht: [wo abrechnen](#file-a-claim-where).
+zählen nicht. Haben Sie bei der Veranstaltung eine solche Rolle und fehlt sie trotzdem,
+sagt das Formular den Grund: Dort ist noch kein Ausrichter eingetragen, oder der Ausrichter erstattet für diese
+Aufgabe nichts — [wo abrechnen](#file-a-claim-where).
 
 #### Meine Abrechnung lässt sich nicht einreichen.
 Speichern Sie Ihre [*Bankverbindung*](place:profile.bank), fügen Sie eine Position hinzu und laden Sie die

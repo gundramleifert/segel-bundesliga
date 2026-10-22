@@ -14,7 +14,7 @@ title: Hilfe für die Geschäftsstelle
 
 Sie legen die Vereine an, die Serien eines Jahrgangs und wer in ihnen segelt, und wer was
 darf. Alles liegt unter *Verwaltung*, in Reitern: [*Vereine*](place:admin.clubs),
-[*Serien*](place:admin.series), [*Veranstaltungen*](place:admin.events), [*Segler*](place:admin.sailors), [*Konten*](place:admin.accounts). Die Geschäftsstelle hat eine von zwei
+[*Serien*](place:admin.series), [*Veranstaltungen*](place:admin.events), [*Segler*](place:admin.sailors), [*News*](place:admin.news), [*Medien*](place:admin.media), [*Konten*](place:admin.accounts). Die Geschäftsstelle hat eine von zwei
 [Rollen](#roles-list) auf der ganzen Seite:
 
 | | Verwaltung | Redaktion |
@@ -23,6 +23,7 @@ darf. Alles liegt unter *Verwaltung*, in Reitern: [*Vereine*](place:admin.clubs)
 | Eine Serie anlegen, füllen und veröffentlichen | ✓ | — |
 | Veranstaltungen anlegen und durchführen, Segler pflegen | ✓ | ✓ (eine Veranstaltung anlegen braucht die Verwaltung: *Teams und Boote* lädt nur für sie) |
 | Die Pairing-Liste einer Veranstaltung auslosen | ✓ | — |
+| News, Pressemitteilungen, Bilder | ✓ | ✓ |
 | *Konten*: wer was darf | ✓ | — (den Reiter gibt es nicht) |
 
 ### Vor der Saison {#start-administration-season}
@@ -32,6 +33,13 @@ darf. Alles liegt unter *Verwaltung*, in Reitern: [*Vereine*](place:admin.clubs)
 - [Weitere Vereine eintragen](#admin-clubs-series), wenn das Feld wächst.
 - [Die Serie veröffentlichen](#admin-series-publish), sobald sie zu sehen sein darf.
 - [Die Pairing-Liste auslosen](#run-event-draw), für jede Veranstaltung.
+
+### News und Presse {#start-administration-press}
+
+- [Bilder von einem Fotografen](#news-and-press-pictures) — ein Upload-Link, kein Konto.
+- [Schreiben und veröffentlichen](#news-and-press-write): einen Bericht oder eine
+  Pressemitteilung.
+- [Von der Wettfahrt zur Presse](#journey-press) — der ganze Abend, Schritt für Schritt.
 
 ### Personen und Zugriff {#start-administration-people}
 
