@@ -3,7 +3,7 @@ id: profile
 type: guide
 order: 70
 audience: [sailor]
-stories: [S-2, S-5, S-6]
+stories: [S-2, S-4, S-5, S-6]
 journey: null
 route: /me/profile
 tags: [profile, profil, photo, foto, licence, schein, iban, bankverbindung, documents]
@@ -28,6 +28,11 @@ address (your club can pass the request on).
 - Your photo is open to everyone only if you are 18 or older and your birthdate is on
   file. Otherwise only you, the league office's admin and editors, and the organizer of a
   club whose squad holds you can open it.
+
+- *Public profile page*: off hides your page — photo, clubs, matchdays — from everyone
+  but you, your club's leadership and the league office. Your name still appears in
+  squads, lineups and results, as plain text without your photo. Only you can switch it.
+  Until you do, it is on from 18 and off before.
 
 Your birthdate also decides how you sign the [waiver](#waiver-birth-date).
 

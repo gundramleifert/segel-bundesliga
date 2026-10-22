@@ -3,7 +3,7 @@ id: account
 type: guide
 order: 40
 audience: [sailor]
-stories: [Z-4, Z-1, Z-9, Z-7, B-19]
+stories: [Z-4, Z-1, Z-9, Z-7, B-19, A-12]
 journey: null
 route: /account
 tags: [sign in, login, anmelden, registrieren, passwort, konto, code]
@@ -67,8 +67,9 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 
 ### Sprache und hell oder dunkel {#account-look}
 
-Die Sprache steht vor der Anmeldung in der oberen Zeile, danach unter *Konto und
-Einstellungen* → *Sprache*. In der oberen Zeile, neben der Sprache oder Ihrem Konto, schaltet die
+Vor der Anmeldung stehen in der oberen Zeile die Sprache und *Anmelden*. Danach öffnet
+Ihr Konto *Konto und Einstellungen*: *Mein Bereich*, *Mein Profil*, *Verwaltung*, wenn Ihre
+Rolle sie nutzt, *Hilfe* und *Sprache*. In der oberen Zeile, neben der Sprache oder Ihrem Konto, schaltet die
 Sonne oder der Mond die ganze Seite hell oder dunkel — *Hell darstellen*, *Dunkel darstellen*. Alle beginnen mit
 dunkel; Ihre Wahl bleibt auf diesem Gerät.
 

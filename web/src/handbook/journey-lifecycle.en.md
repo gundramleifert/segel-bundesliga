@@ -3,7 +3,7 @@ id: journey-lifecycle
 type: journey
 order: 10
 audience: [administration, event-organizer, race-committee]
-stories: [A-1, A-6, VA-8, VA-6, VA-7, B-3, WL-2, B-1, VA-10]
+stories: [A-1, A-6, VA-8, VA-6, VA-7, B-3, WL-2, B-1, VA-10, VA-9]
 journey: J-1
 route: null
 tags: [lifecycle, season, matchday, spieltag, serie, veranstaltung, auslosung, wertung]

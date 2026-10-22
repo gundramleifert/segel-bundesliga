@@ -3,7 +3,7 @@ id: create-event
 type: guide
 order: 110
 audience: [event-organizer]
-stories: [VA-6, A-2]
+stories: [VA-6, A-2, A-10]
 journey: null
 route: /admin/events/new
 tags: [new event, matchday, act, boats, colors, wizard, veranstaltung anlegen, spieltag, boote, zuschnitt]
@@ -12,7 +12,8 @@ title: "Create an event"
 ## Create an event
 
 May create one: the league office, the series' manager, and the host club's manager
-(own club as host only).
+(own club as host only). Every *Administration* screen works on a phone: a table wider than
+the screen scrolls sideways, the page itself does not.
 
 > **Note:** *Teams and boats* currently loads only for the league office's
 > administrators; without it the event cannot be saved. If it shows an error, ask the

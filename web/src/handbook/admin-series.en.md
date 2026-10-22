@@ -3,7 +3,7 @@ id: admin-series
 type: guide
 order: 210
 audience: [administration]
-stories: [A-6, VA-8]
+stories: [A-6, VA-8, A-14]
 journey: null
 route: /admin/series/new
 tags: [series, serie, year, jahrgang, publish, veröffentlichen, draft, entwurf, squad size, kadergröße]
@@ -42,6 +42,15 @@ name, year or dates afterwards — the site would allow it, but no screen offers
 - *Publish* ③ — the badge turns *Public*. It locks nothing; each event is still published on
   its own ([publish an event](#run-event-publish)).
 - *Unpublish* — back to *Draft*; standings and events stay.
+
+### Past seasons and Manage2Sail {#admin-series-import}
+
+No screen does this: whoever runs the server imports past seasons from SAP Sailing, and an
+event's entry list and notice-board documents from Manage2Sail. A club is recognised by its
+*Short name*; an unknown one is created. Sailors are not imported. Imported series and
+events arrive as drafts unless the import publishes them — [publish](#admin-series-publish)
+them yourself. Points are computed here, and a result the race committee recorded is never
+overwritten.
 
 ### Give a series its manager {#admin-series-manager}
 

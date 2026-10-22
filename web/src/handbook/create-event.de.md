@@ -3,7 +3,7 @@ id: create-event
 type: guide
 order: 110
 audience: [event-organizer]
-stories: [VA-6, A-2]
+stories: [VA-6, A-2, A-10]
 journey: null
 route: /admin/events/new
 tags: [new event, matchday, act, boats, colors, wizard, veranstaltung anlegen, spieltag, boote, zuschnitt]
@@ -12,7 +12,9 @@ title: "Eine Veranstaltung anlegen"
 ## Eine Veranstaltung anlegen
 
 Anlegen dürfen: die Geschäftsstelle, die Organisation der Serie und die Organisation des
-Ausrichters (nur mit dem eigenen Verein als Ausrichter).
+Ausrichters (nur mit dem eigenen Verein als Ausrichter). Jede Seite der *Verwaltung*
+funktioniert auf dem Handy: Eine Tabelle, breiter als der Bildschirm, lässt sich seitlich
+schieben, die Seite selbst nicht.
 
 > **Hinweis:** *Teams und Boote* lädt derzeit nur für die Verwaltung der Geschäftsstelle;
 > ohne die Liste lässt sich die Veranstaltung nicht speichern. Zeigt das Feld einen

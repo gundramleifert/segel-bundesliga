@@ -3,7 +3,7 @@ id: admin-series
 type: guide
 order: 210
 audience: [administration]
-stories: [A-6, VA-8]
+stories: [A-6, VA-8, A-14]
 journey: null
 route: /admin/series/new
 tags: [series, serie, year, jahrgang, publish, veröffentlichen, draft, entwurf, squad size, kadergröße]
@@ -47,6 +47,16 @@ Bedienung dafür gibt es noch nicht.
   Veranstaltung wird weiter einzeln veröffentlicht
   ([eine Veranstaltung veröffentlichen](#run-event-publish)).
 - *Zurückziehen* — zurück zum *Entwurf*; Tabellen und Veranstaltungen bleiben.
+
+### Vergangene Saisons und Manage2Sail {#admin-series-import}
+
+Dafür gibt es keine Seite: Wer den Server betreibt, importiert vergangene Saisons aus SAP
+Sailing und die Meldeliste und die Dokumente der Bekanntmachungstafel einer Veranstaltung
+aus Manage2Sail. Ein Verein wird an seinem *Kürzel* erkannt; ein unbekannter wird angelegt.
+Segler werden nicht importiert. Importierte Serien und Veranstaltungen kommen als Entwurf
+an, wenn der Import sie nicht veröffentlicht — [veröffentlichen](#admin-series-publish) Sie
+sie selbst. Die Punkte werden hier berechnet, und ein Ergebnis, das die Wettfahrtleitung
+erfasst hat, wird nie überschrieben.
 
 ### Einer Serie ihre Organisation geben {#admin-series-manager}
 

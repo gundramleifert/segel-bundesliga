@@ -58,6 +58,7 @@
   ],
   "anchors": [
    "admin-series-create",
+   "admin-series-import",
    "admin-series-manager",
    "admin-series-publish"
   ],

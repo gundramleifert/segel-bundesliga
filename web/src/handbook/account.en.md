@@ -3,7 +3,7 @@ id: account
 type: guide
 order: 40
 audience: [sailor]
-stories: [Z-4, Z-1, Z-9, Z-7, B-19]
+stories: [Z-4, Z-1, Z-9, Z-7, B-19, A-12]
 journey: null
 route: /account
 tags: [sign in, login, anmelden, registrieren, passwort, konto, code]
@@ -66,8 +66,9 @@ confirmed — signing in with a code once does that.
 
 ### Language and light or dark {#account-look}
 
-The language is in the top row before you sign in, and afterwards under *Account and
-settings* → *Language*. In the top row, beside the language or your account button, the sun or
+Before you sign in, the top row holds the language and *Sign in*. Afterwards your account
+button opens *Account and settings*: *My space*, *My profile*, *Administration* if your
+role uses it, *Help* and *Language*. In the top row, beside the language or your account button, the sun or
 moon switches the whole site to light or dark — *Switch to light*, *Switch to dark*. Dark is where everyone starts; your
 choice is kept on this device.
 
