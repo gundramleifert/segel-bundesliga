@@ -22,7 +22,7 @@ import { bearer, bornIn, devUsers, managedClub, seededSailors, signIn } from "./
 const ADMIN = "admin@sbl.example.com";
 // The test club, the one with accounts (`app/seed_users.py`); each browser project takes
 // its own person.
-const CLUB_DOMAIN = "nrv.example.com";
+const CLUB_DOMAIN = "asvw.example.com";
 const PNG =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
@@ -77,7 +77,7 @@ describeStory("S-5: as a sailor I drop my licences onto my space", () => {
 /** The seeded club admin and the club they hold `admin` on. */
 async function aClubAdmin(request: import("@playwright/test").APIRequestContext) {
   const admin = (await devUsers(request)).find(
-    (u) => u.roles.includes("club_admin") && u.email.endsWith("@nrv.example.com"),
+    (u) => u.roles.includes("club_admin") && u.email.endsWith("@asvw.example.com"),
   )!;
   const clubs = (await (
     await request.get("/api/clubs/mine", { headers: await bearer(request, admin.email) })
@@ -183,7 +183,7 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
     await expect(page.getByTestId(`my-club-crest-${clubId}`)).toHaveCount(0);
 
     const member = (await devUsers(request)).find(
-      (u) => u.email.endsWith("@nrv.example.com") && !u.roles.includes("club_admin"),
+      (u) => u.email.endsWith("@asvw.example.com") && !u.roles.includes("club_admin"),
     )!;
     await signIn(page, member.email);
     await page.goto(`/me/club/${clubId}?tab=members`);
@@ -195,7 +195,7 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
 describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list", () => {
   // The test club. Its adults 0 and 1 sign in `waiver.spec.ts`; these take 2 and 3, one
   // per browser project, still unsigned.
-  const DOMAIN = "nrv.example.com";
+  const DOMAIN = "asvw.example.com";
 
   test("the sailor sees the badge, accepts in the notice, and the notice is gone", async ({ page, request }, testInfo) => {
     const adults = (await seededSailors(request, DOMAIN)).filter((s) => bornIn(s) > 0 && bornIn(s) <= 2004);
@@ -238,5 +238,17 @@ describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a b
     await expect(blocks.first()).toBeVisible();
     await expect(blocks.first().locator('[data-testid$="-summary"]')).toContainText(/\d+ of \d+ cleared/);
     await expect(blocks.first().locator("[data-status]").first()).toBeVisible();
+  });
+});
+
+describeStory("F-2: the people who work an event claim their costs on it", () => {
+  test("the jury of the test event starts a claim on it — its host club pays", async ({ page }) => {
+    // The test event is hosted by the test club (`app.seed`), so the jury has somewhere
+    // to claim: the complaint that started this was a jury with nothing to choose.
+    await signIn(page, "jury@sbl.example.com");
+    await page.goto("/me/profile?tab=claims");
+    const target = page.getByTestId("my-space-claim-target");
+    await expect(target.locator("option", { hasText: "Act 3" })).toHaveCount(1);
+    await expect(page.getByTestId("my-space-claim-unavailable")).toHaveCount(0);
   });
 });

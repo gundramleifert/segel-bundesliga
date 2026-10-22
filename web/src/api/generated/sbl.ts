@@ -45,7 +45,7 @@ import type {
   CatalogEntryOut,
   ClaimCreate,
   ClaimOut,
-  ClaimTarget,
+  ClaimTargets,
   ClaimUpdate,
   ClubAdminOut,
   ClubBankAccountOut,
@@ -11812,12 +11812,13 @@ export const getListMyClaimTargetsUrl = () => {
 }
 
 /**
- * The events I worked at and the clubs I belong to (Story F-2).
+ * The events I worked at and the clubs I belong to — and the events I work at but
+ * cannot claim on yet, with the reason (Story F-2).
  * @summary What I may claim on
  */
-export const listMyClaimTargets = async ( options?: RequestInit): Promise<ClaimTarget[]> => {
+export const listMyClaimTargets = async ( options?: RequestInit): Promise<ClaimTargets> => {
 
-  return http<ClaimTarget[]>(getListMyClaimTargetsUrl(),
+  return http<ClaimTargets>(getListMyClaimTargetsUrl(),
   {
     ...options,
     method: 'GET'

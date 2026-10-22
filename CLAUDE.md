@@ -135,19 +135,36 @@ A member leaves by deleting their own tuple — the one write a person may make 
 separate setting, not tied to `debug` — in a reachable environment this would be a security hole,
 and the server warns on startup while it is on.
 
-`app.seed_users` creates a **small cast on one club, one series, one event** — 42 accounts
-(decided 2026-10-17; it was 370). The data stays whole (18 clubs, 360 sailors, the series
-and their events); the people who sign in are concentrated:
+`app.seed_users` creates a **small cast on one club, one series, one event** — 43 accounts
+(decided 2026-10-17; it was 370). The data stays whole — the **real 2026 line-ups** of
+the 1. and 2. Liga (36 clubs, decided 2026-10-22; sailors stay made up), 540 sailors, the
+series and their events, each league's three acts on the same weekends; the people who
+sign in are concentrated:
 
-- **club** NRV: `board@nrv.example.com` (its `admin`), `teams@` (its `manager`, the team
-  manager), `treasurer@`, and every NRV sailor — all `member` of it. A sailor needs an
+- **club** ASVW, a 2. Liga club (decided 2026-10-21; it was NRV): `board@asvw.example.com` (its `admin`,
+  Gundram Leifert), `teams@` (its `manager`, the team manager, Gunnar Voigt),
+  `treasurer@`, and every ASVW sailor — all `member` of it. A sailor needs an
   account to sign a waiver; a sailor of any other club has none, and the specs pick their
-  adults and juniors from NRV's squad;
-- **series** 1. Segel-Bundesliga 2026: `serie@` (its `manager`);
-- **event** its act 3, still planned: `orga@` (manager), `regatta@` (race officer),
-  `jury@`, `helfer@` (helper);
-- the **league office** `admin@`, `redaktion@` (editor), `wl@` (race officer), and
+  adults and juniors from ASVW's squad;
+- **series** 2. Segel-Bundesliga 2026, ASVW's: `serie@` (its `manager`, and of the 1.
+  Liga's 2027 draft);
+  `junioren@` (Jocki Hellmich, `manager` of the Junioren-Segelliga 2026 and its 2027
+  draft);
+- **event** its act 3, still planned, **hosted by ASVW** — so its claims are ASVW's to pay
+  and ASVW's officials are the event's too: `orga@` (manager, Peter Weichel), `regatta@`
+  (race officer, Malte Rackow), `jury@` (Heiko Thölmann), `helfer@` (helper, Johannes
+  Machur). Every seeded act has a host club (DTYC, KYC, ASVW);
+- the **league office** `admin@`, `redaktion@` (editor — the journalist, Sven Jürgensen,
+  manager of every event by the model), `wl@` (race officer, Christoph Zanter), and
   `gast@sbl.example.com` with no relation.
+
+**Next year, to practise on** (`app.seed`, decided 2026-10-22): the 1. Segel-Bundesliga
+2027 and the Junioren-Segelliga 2027 are **drafts**, so the public site stays on 2026.
+The 1. Liga's has its six announced acts — Friedrichshafen (act 1, 16–18 April) and
+Hamburg (act 6, 14–16 October) with dates, Überlingen, Berlin, Strande and Warnemünde
+without (none announced) — and no clubs yet: entering them, the squads and a draw is
+what there is to practise. **ASVW hosts Warnemünde 2027**, so its officials are that
+event's organizers. Only what was announced is seeded; nothing invented.
 
 The role switcher groups them the same way (league office · series · event · club ·
 sailors · guest, the `group` of `/api/dev/users`), the sailors folded until searched.

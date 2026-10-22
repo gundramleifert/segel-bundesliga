@@ -113,6 +113,8 @@ export type { BankAccountOut as BankAccount } from "./generated/model/bankAccoun
 export type { ClaimOut as Claim } from "./generated/model/claimOut";
 export type { ItemOut as ClaimItem } from "./generated/model/itemOut";
 export type { ClaimTarget } from "./generated/model/claimTarget";
+export type { UnavailableEvent } from "./generated/model/unavailableEvent";
+export { UnclaimableReason } from "./generated/model/unclaimableReason";
 export { ExpenseKind } from "./generated/model/expenseKind";
 
 /** The closed sets the backend types as enums. Each is a type *and* a constant object

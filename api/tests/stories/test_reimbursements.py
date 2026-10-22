@@ -72,6 +72,11 @@ async def world() -> World:
         return World(club.id, other.id, series.id, event.id, orphan.id)
 
 
+async def _title_tag(event_id: int) -> str:
+    async with SessionLocal() as session:
+        return (await session.get(Event, event_id)).title.removeprefix("Orphan ")
+
+
 async def login(client, caplog, email: str, *grants: Grant) -> dict[str, str]:
     await person(email, *grants)
     return await _headers(client, caplog, email)
@@ -169,7 +174,7 @@ class TestFilingAClaim:
             Grant(relation=Relation.HELPER, event_id=w.event),
         )
 
-        targets = (await client.get("/api/me/claim-targets", headers=me)).json()
+        targets = (await client.get("/api/me/claim-targets", headers=me)).json()["targets"]
         assert {"kind": "event", "id": w.event} in [
             {"kind": t["kind"], "id": t["id"]} for t in targets
         ]
@@ -180,6 +185,61 @@ class TestFilingAClaim:
         assert claim["claimed_cents"] == 1250
         # The account's bank details are copied onto the claim at submission.
         assert claim["iban"] == IBAN and claim["payee_name"] == "Hel Per"
+
+    async def test_the_jury_of_an_event_without_a_host_is_told_why(self, client, caplog):
+        """Story F-2: working at an event that has no host club yet is no target — and the
+        page is told what the person is there and why, so it need not say "no role"."""
+        w = await world()
+        me = await login(
+            client,
+            caplog,
+            f"j-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.JURY, event_id=w.orphan_event),
+        )
+        body = (await client.get("/api/me/claim-targets", headers=me)).json()
+        assert body["targets"] == []
+        assert body["unavailable"] == [
+            {
+                "id": w.orphan_event,
+                "name": f"Orphan {(await _title_tag(w.orphan_event))}",
+                "starts_on": None,
+                "relations": ["jury"],
+                "reason": "no_host_club",
+            }
+        ]
+
+    async def test_work_the_host_does_not_pay_for_is_told_too(self, client, caplog):
+        """Story F-2: the host club's rules leave helpers out — the helper is told that,
+        not that they hold nothing."""
+        w = await world()
+        async with SessionLocal() as session:
+            club = await session.get(Club, w.club)
+            club.expense_policy = {"eligible": ["race_officer", "jury", "manager"]}
+            await session.commit()
+        me = await login(
+            client,
+            caplog,
+            f"h-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.HELPER, event_id=w.event),
+        )
+        body = (await client.get("/api/me/claim-targets", headers=me)).json()
+        assert body["targets"] == []
+        assert [(u["id"], u["relations"], u["reason"]) for u in body["unavailable"]] == [
+            (w.event, ["helper"], "not_covered")
+        ]
+
+    async def test_someone_who_works_nowhere_has_nothing_unavailable(self, client, caplog):
+        """Story F-2: a club's member has the club to claim on, and no event to explain."""
+        w = await world()
+        me = await login(
+            client,
+            caplog,
+            f"m-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.MEMBER, club_id=w.club),
+        )
+        body = (await client.get("/api/me/claim-targets", headers=me)).json()
+        assert [(t["kind"], t["id"]) for t in body["targets"]] == [("club", w.club)]
+        assert body["unavailable"] == []
 
     async def test_nobody_else_may_file(self, client, caplog):
         w = await world()

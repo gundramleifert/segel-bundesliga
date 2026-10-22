@@ -52,7 +52,7 @@
   "claims": {
     "newTitle": "Neue Abrechnung",
     "newHint": "Für eine Veranstaltung, bei der Sie mitgearbeitet haben, oder für Ihren Verein. Der Ausrichter der Veranstaltung bzw. Ihr Verein erstattet sie.",
-    "noTargets": "Noch gibt es nichts, wofür Sie abrechnen können: Dafür braucht es eine Aufgabe bei einer Veranstaltung (Helfer, Jury, Wettfahrtleitung, Organisation) oder eine Vereinsmitgliedschaft.",
+    "noTargets": "Noch gibt es nichts, wofür Sie abrechnen können: Abgerechnet wird, was Sie bei einer Veranstaltung tun — als Helfer, in der Jury, in der Wettfahrtleitung oder in der Organisation — und für Ihren Verein, sobald Sie Mitglied sind.",
     "targetLabel": "Für",
     "targetEvents": "Veranstaltungen",
     "targetClubs": "Vereine",
@@ -86,7 +86,12 @@
     "submit": "Einreichen",
     "submitted": "Die Abrechnung ist eingereicht.",
     "withdraw": "Zurückziehen",
-    "deleteDraft": "Entwurf löschen"
+    "deleteDraft": "Entwurf löschen",
+    "unavailable": {
+      "at": "{relation, select, jury {Sie sind in der Jury bei {event},} race_officer {Sie sind in der Wettfahrtleitung bei {event},} manager {Sie organisieren {event},} helper {Sie helfen bei {event},} other {Sie arbeiten bei {event} mit,}}",
+      "noHostClub": "aber dort ist noch kein Ausrichter eingetragen — der Ausrichter zahlt die Abrechnungen. Bitten Sie die Organisation, einen einzutragen.",
+      "notCovered": "aber der Ausrichter erstattet für diese Aufgabe nichts."
+    }
   },
   "itemKinds": {
     "travel_car": "Auto",

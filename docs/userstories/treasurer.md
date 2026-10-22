@@ -68,6 +68,13 @@ Acceptance criteria:
   (`user:member:club`); the manager or treasurer decides whether it was justified.
 - Anyone else is refused (`claim-not-eligible`). The account page offers the events and
   clubs one may claim on (`GET /api/me/claim-targets`), and nothing else.
+- **Why not, said in words** (2026-10-21): someone who works at an event but cannot claim
+  on it is told so, naming what they are and where — *"You are on the jury at Act 3
+  Friedrichshafen, but it has no host club yet — the host club pays the claims. Ask its
+  organizer to set one."*, or, when the host club's rules do not pay that work, *"…but
+  its host club does not pay for that"*. Never "you need a role": a jury member who reads
+  that while holding one stops trusting the page. The server says which events and why
+  (`unavailable` beside `targets`), the page words it.
 - Items: car (km × the paying club's rate, frozen at submission), public transport,
   accommodation, per-diem, meals, other. Amounts in whole cents.
 - `draft` → `submitted`. Submitting needs at least one item and a saved bank account
@@ -77,7 +84,8 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_expenses.py::TestClaimTotals`,
 `api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight`,
-`api/tests/stories/test_reimbursements.py::TestFilingAClaim`
+`api/tests/stories/test_reimbursements.py::TestFilingAClaim`,
+`e2e/my-space.spec.ts::F-2: the people who work an event claim their costs on it`
 
 ### F-3 ● The manager or the treasurer approves, returns or rejects a claim
 As the **manager or treasurer of the event or club a claim is filed against** I want to

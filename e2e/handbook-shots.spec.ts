@@ -27,11 +27,11 @@ const LOCALES = ["en", "de"] as const;
 const ADMIN = "admin@sbl.example.com";
 const ORGANIZER = "orga@sbl.example.com";
 const SITE_RACE_OFFICER = "wl@sbl.example.com";
-const CLUB_ADMIN = "board@nrv.example.com";
-const TEAM_MANAGER = "teams@nrv.example.com";
-const TREASURER = "treasurer@nrv.example.com";
+const CLUB_ADMIN = "board@asvw.example.com";
+const TEAM_MANAGER = "teams@asvw.example.com";
+const TREASURER = "treasurer@asvw.example.com";
 const TEST_SERIES = "dsbl-1-2026";
-const TEST_EVENT = "dsbl-1-2026-act-3"; // the seed's planned act (app/seed_users.py)
+const TEST_EVENT = "dsbl-2-2026-act-3"; // the seed's planned act, the test club's (app/seed_users.py)
 
 type Ids = {
   clubId: number;
@@ -375,11 +375,11 @@ async function lookUp(request: APIRequestContext): Promise<Ids> {
   expect(planned, `the seed has ${TEST_EVENT}`).toBeTruthy();
   expect(live, `the seed has a live act of ${TEST_SERIES}`).toBeTruthy();
   // An adult of the club with an account, the same one on every run.
-  const adults = (await seededSailors(request, "nrv.example.com"))
+  const adults = (await seededSailors(request, "asvw.example.com"))
     .filter((s) => bornIn(s) && bornIn(s) <= new Date().getFullYear() - 18)
     .map((s) => s.email!)
     .sort();
-  expect(adults.length, "the seed gives NRV adult sailors").toBeGreaterThan(0);
+  expect(adults.length, "the seed gives ASVW adult sailors").toBeGreaterThan(0);
   return { clubId, eventId: planned!.id, liveEventId: live!.id, sailor: adults[0] };
 }
 
@@ -441,7 +441,7 @@ async function aClaimToPay(request: APIRequestContext, ids: Ids): Promise<void> 
   await ok(
     await request.put(`/api/clubs/${ids.clubId}/bank-account`, {
       headers: treasurer,
-      data: { holder: "Norddeutscher Regatta Verein", iban: "DE02 1203 0000 0000 2020 51", bic: null },
+      data: { holder: "Akademischer Segelverein Warnemünde", iban: "DE02 1203 0000 0000 2020 51", bic: null },
     }),
   );
   const pending = await pendingOfTreasurer(request);

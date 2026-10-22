@@ -29,6 +29,8 @@ import {
   type Claim,
   type ClaimTarget,
   type PersonalDocument,
+  type UnavailableEvent,
+  UnclaimableReason,
 } from "../../api/types";
 import { useAsync, useInvalidate } from "../../api/useApi";
 import { Async } from "../../components/Async";
@@ -372,6 +374,27 @@ function targetKey(target: Pick<ClaimTarget, "kind" | "id">): string {
   return `${target.kind}:${target.id}`;
 }
 
+/** The events I work at but cannot claim on yet — what I am there and why, in words
+ *  (Story F-2). One line each: "You are on the jury at Act 3 Friedrichshafen, but it has no
+ *  host club yet …". The first relation names the work; most people hold one. */
+function UnavailableNotes({ events }: { events: UnavailableEvent[] }) {
+  const { t } = useTranslation("space");
+  return (
+    <ul className="flex flex-col gap-2" data-testid="my-space-claim-unavailable">
+      {events.map((event) => (
+        <li
+          key={event.id}
+          className="rounded-md bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground"
+          data-testid={`my-space-claim-unavailable-${event.id}`}
+        >
+          {t("claims.unavailable.at", { relation: event.relations[0] ?? "other", event: event.name })}{" "}
+          {t(event.reason === UnclaimableReason.no_host_club ? "claims.unavailable.noHostClub" : "claims.unavailable.notCovered")}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => void; target?: ClaimTargetRef }) {
   const { t } = useTranslation("space");
   const invalidate = useInvalidate();
@@ -391,16 +414,22 @@ function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => voi
   return (
     <Section title={t("claims.newTitle")} testId="my-space-claim-new">
       <p className="text-sm text-muted">{t("claims.newHint")}</p>
-      <Async state={targets} testId="my-space-claim-targets" empty={t("claims.noTargets")}>
-        {(all) => {
+      <Async state={targets} testId="my-space-claim-targets">
+        {({ targets: all, unavailable }) => {
           // On an event's or a club's page the claim goes there — if it may (the server
           // lists only what I may claim on), else there is nothing to file here.
           const rows = fixed ? all.filter((row) => targetKey(row) === targetKey(fixed)) : all;
+          // Where I work but cannot claim, and why — said, never "you hold nothing"
+          // (Story F-2). On an event's page, only that event.
+          const why = fixed ? unavailable.filter((u) => targetKey({ kind: "event", id: u.id }) === targetKey(fixed)) : unavailable;
+          const notes = why.length > 0 && <UnavailableNotes events={why} />;
           if (!rows.length) {
             return (
-              <p className="text-sm text-muted" data-testid="my-space-claim-targets-empty">
-                {t("claims.noTargets")}
-              </p>
+              notes || (
+                <p className="text-sm text-muted" data-testid="my-space-claim-targets-empty">
+                  {t("claims.noTargets")}
+                </p>
+              )
             );
           }
           const target = rows.find((row) => targetKey(row) === chosen) ?? rows[0];
@@ -417,6 +446,8 @@ function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => voi
             });
           };
           return (
+            <>
+            {notes}
             <form onSubmit={submit} className="flex flex-col gap-3">
               {!fixed && (
               <Field label={t("claims.targetLabel")} testId="my-space-claim-target-field">
@@ -464,6 +495,7 @@ function NewClaim({ onCreated, target: fixed }: { onCreated: (id: number) => voi
               </div>
               <Message error={create.error ? errorText(create.error) : null} testId="my-space-claim-new-message" />
             </form>
+            </>
           );
         }}
       </Async>

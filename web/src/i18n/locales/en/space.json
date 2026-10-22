@@ -52,7 +52,7 @@
   "claims": {
     "newTitle": "New claim",
     "newHint": "For an event you worked at, or for a club you belong to. The event's host club, or your club, pays it back.",
-    "noTargets": "There is nothing you can claim on yet: you need a role at an event (helper, jury, race officer, organizer) or a club membership.",
+    "noTargets": "There is nothing you can claim on yet: claims are for the work you do at an event — as a helper, on the jury, on the race committee or as its organizer — and for your club, once you are a member.",
     "targetLabel": "For",
     "targetEvents": "Events",
     "targetClubs": "Clubs",
@@ -86,7 +86,12 @@
     "submit": "Submit",
     "submitted": "The claim is submitted.",
     "withdraw": "Withdraw",
-    "deleteDraft": "Delete draft"
+    "deleteDraft": "Delete draft",
+    "unavailable": {
+      "at": "{relation, select, jury {You are on the jury at {event},} race_officer {You are on the race committee at {event},} manager {You organize {event},} helper {You are a helper at {event},} other {You work at {event},}}",
+      "noHostClub": "but it has no host club yet — the host club pays the claims. Ask its organizer to set one.",
+      "notCovered": "but its host club does not pay for this work."
+    }
   },
   "itemKinds": {
     "travel_car": "Car",

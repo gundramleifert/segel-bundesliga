@@ -12,7 +12,7 @@ import { bearer, signIn } from "./session";
 const ADMIN = "admin@sbl.example.com";
 // The test club, the one with accounts (`app/seed_users.py`); each browser project takes
 // its own person, because the two projects can share one stack.
-const CLUB_DOMAIN = "nrv.example.com";
+const CLUB_DOMAIN = "asvw.example.com";
 const PASSWORD = "lee-side of the pontoon";
 
 describeStory("Z-9: as a sailor I sign in with a password I set myself", () => {

@@ -66,7 +66,7 @@ class TestMyClubs:
         registration: `Team` carries both, only the one with no `event_id` has a squad
         (Story V-1), and offering the other would produce a panel every save refuses.
         """
-        club = await _club("nrv")
+        club = await _club("asvw")
         headers = await _as(
             client, caplog, "mine-organizer@example.com", Role.TEAM_MANAGER, club_id=club.id
         )
@@ -74,7 +74,7 @@ class TestMyClubs:
         response = await client.get(MINE, headers=headers)
         assert response.status_code == 200, response.text
         entries = response.json()
-        assert [entry["club"]["slug"] for entry in entries] == ["nrv"]
+        assert [entry["club"]["slug"] for entry in entries] == ["asvw"]
         entry = entries[0]
         assert entry["may_manage"] is True
         assert entry["is_member"] is False
@@ -129,13 +129,13 @@ class TestMatchdays:
     V-2) reaches an event entry without an admin-only list — the same defect the squad had."""
 
     async def test_the_clubs_matchdays_come_with_their_entries(self, client, caplog):
-        club = await _club("kyc")
+        club = await _club("kyc-sh")
         headers = await _as(
             client, caplog, "mine-matchdays@example.com", Role.TEAM_MANAGER, club_id=club.id
         )
         response = await client.get(MINE, headers=headers)
         assert response.status_code == 200, response.text
-        mine = next(e for e in response.json() if e["club"]["slug"] == "kyc")
+        mine = next(e for e in response.json() if e["club"]["slug"] == "kyc-sh")
 
         registration = next(t for t in mine["teams"] if t["series"]["slug"] == "dsbl-1-2026")
         acts = [e for e in mine["events"] if e["series"] and e["series"]["slug"] == "dsbl-1-2026"]

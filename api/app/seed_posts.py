@@ -36,8 +36,8 @@ POSTS: list[dict] = [
     },
     {
         "kind": "news",
-        "slug": "nrv-takes-the-lead",
-        "title": "NRV takes the lead after a perfect Sunday",
+        "slug": "asvw-takes-the-lead",
+        "title": "ASVW takes the lead after a perfect Sunday",
         "published_on": "2026-09-21",
         "league": "1-liga",
         "teaser": "Six wins in eight races — and the table has a new name at the top.",
@@ -238,7 +238,7 @@ POSTS: list[dict] = [
     },
     {
         "kind": "press",
-        "title": "Act 5: NRV takes over the lead",
+        "title": "Act 5: ASVW takes over the lead",
         "published_on": "2026-09-21",
         "league": "1-liga",
         "body": "Placeholder text of the release: the facts in the first paragraph, a quote, the "

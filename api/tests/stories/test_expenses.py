@@ -167,7 +167,7 @@ class TestTheDatabaseKeepsTheBooksStraight:
     async def test_a_claim_is_allocated_to_a_payment_once(self, ids):
         claim_id = await _stored_claim(ids, _item(10000))
         async with SessionLocal() as session:
-            payment = Payment(payer_club_id=ids.club("nrv"), payee_name="Wanda")
+            payment = Payment(payer_club_id=ids.club("asvw"), payee_name="Wanda")
             session.add(payment)
             await session.commit()
             payment_id = payment.id

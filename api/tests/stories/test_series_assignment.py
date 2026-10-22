@@ -144,7 +144,9 @@ class TestYearTransition:
     """A-3: "DSBL 2026" is not "DSBL 2027" — a new assignment is needed."""
 
     async def test_2026_assignment_does_not_apply_to_2027(self, client, caplog, ids):
-        next_series = await create_series("dsbl-1-2027", "1. Segel-Bundesliga 2027", 2027)
+        # Its own series: the seed's "dsbl-1-2027" is a draft, which the public lists
+        # leave out — this test is about the year, not about drafts.
+        next_series = await create_series("a3-league-2027", "A-3 League 2027", 2027)
         headers = await as_role(client, caplog, "sw1@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Jahreswechsel Segelclub", "JWC")
 

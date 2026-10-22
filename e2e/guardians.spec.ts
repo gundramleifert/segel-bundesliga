@@ -16,7 +16,7 @@ import { bearer, signIn } from "./session";
  */
 
 const ADMIN = "admin@sbl.example.com";
-const CLUB_DOMAIN = "nrv.example.com"; // fields a first-league team and a juniors team
+const CLUB_DOMAIN = "asvw.example.com"; // fields a first-league team and a juniors team
 
 type SailorRow = { id: number; email: string | null; birth_date: string | null; first_name: string };
 type DevUser = { email: string; roles: string[] };

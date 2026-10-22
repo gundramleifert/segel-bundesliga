@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
+from enum import StrEnum
 from typing import Any, Literal, NamedTuple
 
 from sqlalchemy import ColumnElement, select
@@ -191,21 +192,60 @@ class ClaimTarget(NamedTuple):
     target: Event | Club
 
 
-async def targets(session: AsyncSession, user: User) -> list[ClaimTarget]:
-    """Every event and club this person may file a claim on (Story F-2), events first."""
+class UnclaimableReason(StrEnum):
+    """Why someone who works at an event cannot claim on it (Story F-2)."""
+
+    NO_HOST_CLUB = "no_host_club"  # nobody to pay yet
+    NOT_COVERED = "not_covered"  # the host club's rules do not pay this work
+
+
+class Unclaimable(NamedTuple):
+    """An event someone works at but cannot claim on — what they are there, and why."""
+
+    event: Event
+    relations: list[Relation]
+    reason: UnclaimableReason
+
+
+class ClaimOptions(NamedTuple):
+    targets: list[ClaimTarget]
+    unavailable: list[Unclaimable]
+
+
+#: The work at an event a claim can be for — the site default's ``eligible``, the widest
+#: any policy is read against.
+_WORK = tuple(Relation(name) for name in DEFAULT_POLICY["eligible"])
+
+
+def _work_at(user: User, event: Event) -> list[Relation]:
+    """The work this person holds **directly** on the event, or on its series."""
+    return [
+        relation
+        for relation in _WORK
+        if authz.read(user, relation, ObjectRef(ObjectType.EVENT, event.id))
+        or (
+            relation in _SERIES_RELATIONS
+            and event.series_id is not None
+            and authz.read(user, relation, ObjectRef(ObjectType.SERIES, event.series_id))
+        )
+    ]
+
+
+async def claim_options(session: AsyncSession, user: User) -> ClaimOptions:
+    """Every event and club this person may file a claim on (Story F-2), events first —
+    and the events they work at but cannot, each with the reason, so the page can say
+    so instead of claiming they hold nothing."""
     # Any relation held there; which ones entitle to a claim is the host's policy, below.
     direct = authz.list_objects(user, tuple(SCHEMA[ObjectType.EVENT]), ObjectType.EVENT)
     series = authz.list_objects(user, tuple(SCHEMA[ObjectType.SERIES]), ObjectType.SERIES)
     events: list[Event] = []
+    unavailable: list[Unclaimable] = []
     if direct or series:
         found = (
             (
                 await session.execute(
                     select(Event)
-                    .where(
-                        Event.host_club_id.is_not(None),
-                        Event.id.in_(direct) | Event.series_id.in_(series),
-                    )
+                    .where(Event.id.in_(direct) | Event.series_id.in_(series))
                     .order_by(Event.starts_on.desc().nulls_last(), Event.id)
                 )
             )
@@ -213,14 +253,25 @@ async def targets(session: AsyncSession, user: User) -> list[ClaimTarget]:
             .all()
         )
         hosts = await _clubs(session, {e.host_club_id for e in found if e.host_club_id})
-        events = [
-            e for e in found if may_file_on_event(user, e, policy_for(hosts.get(e.host_club_id)))
-        ]
+        for event in found:
+            if event.host_club_id is not None and may_file_on_event(
+                user, event, policy_for(hosts.get(event.host_club_id))
+            ):
+                events.append(event)
+            elif work := _work_at(user, event):
+                reason = (
+                    UnclaimableReason.NO_HOST_CLUB
+                    if event.host_club_id is None
+                    else UnclaimableReason.NOT_COVERED
+                )
+                unavailable.append(Unclaimable(event, work, reason))
     members = sorted(authz.list_objects(user, Relation.MEMBER, ObjectType.CLUB))
     member_clubs = await _clubs(session, set(members))
-    return [ClaimTarget("event", e) for e in events] + [
-        ClaimTarget("club", member_clubs[c]) for c in members if c in member_clubs
-    ]
+    return ClaimOptions(
+        [ClaimTarget("event", e) for e in events]
+        + [ClaimTarget("club", member_clubs[c]) for c in members if c in member_clubs],
+        unavailable,
+    )
 
 
 async def _clubs(session: AsyncSession, ids: set[int]) -> dict[int, Club]:

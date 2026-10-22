@@ -407,7 +407,7 @@ class TestTuples:
         assert response.status_code == 422, response.text
         assert _problem_code(response) == "tuple-relation-invalid"
 
-        response = await write("jury", f"club:{ids.club('nrv')}")
+        response = await write("jury", f"club:{ids.club('asvw')}")
         assert response.status_code == 422, response.text
         assert _problem_code(response) == "tuple-relation-invalid"
 
@@ -490,7 +490,7 @@ class TestTuples:
         assert response.status_code == 200, response.text
 
         # The seed leaves the host open, as most events start out; name one for this test.
-        host = ids.club("nrv")
+        host = ids.club("asvw")
         patched = await client.patch(
             f"/api/admin/events/{act_2}", headers=headers, json={"host_club_id": host}
         )
@@ -510,9 +510,9 @@ class TestTuples:
         deleting one is one row. The old set-roles endpoint rebuilt them all. Every write
         and delete is audited."""
         headers = await _admin_headers(client, caplog)
-        nrv, byc = ids.club("nrv"), ids.club("byc")
+        asvw, byc = ids.club("asvw"), ids.club("byc")
         act_1, act_3 = ids.event("dsbl-1-2026-act-1"), ids.event("dsbl-1-2026-act-3")
-        user_id = await make_user("vier@example.org", Role.TEAM_MANAGER, club_id=nrv)
+        user_id = await make_user("vier@example.org", Role.TEAM_MANAGER, club_id=asvw)
         await _write(client, headers, "vier@example.org", "manager", f"club:{byc}")
         await _write(client, headers, "vier@example.org", "race_officer", f"event:{act_1}")
         gone = await _write(client, headers, "vier@example.org", "race_officer", f"event:{act_3}")
@@ -524,7 +524,7 @@ class TestTuples:
         assert sorted((t["relation"], t["object"]) for t in user["tuples"]) == sorted(
             [
                 ("manager", f"club:{byc}"),
-                ("manager", f"club:{nrv}"),
+                ("manager", f"club:{asvw}"),
                 ("race_officer", f"event:{act_1}"),
             ]
         )
@@ -580,7 +580,7 @@ class TestOrganizers:
         """No second tuple needed: `admin from host_club` makes a club's admin the admin
         of the events the club hosts — setup and people alike — but nothing elsewhere."""
         headers = await _admin_headers(client, caplog)
-        host = ids.club("nrv")
+        host = ids.club("asvw")
         created = await client.post(
             "/api/admin/events",
             headers=headers,
@@ -588,9 +588,9 @@ class TestOrganizers:
         )
         assert created.status_code == 201, created.text
         event_id = created.json()["id"]
-        await make_user("nrv-orga@example.org", Role.CLUB_ADMIN, club_id=host)
-        await make_user("nrv-wl@example.org")
-        orga = await _headers(client, caplog, "nrv-orga@example.org")
+        await make_user("asvw-orga@example.org", Role.CLUB_ADMIN, club_id=host)
+        await make_user("asvw-wl@example.org")
+        orga = await _headers(client, caplog, "asvw-orga@example.org")
 
         patched = await client.patch(
             f"/api/admin/events/{event_id}",
@@ -600,14 +600,14 @@ class TestOrganizers:
         assert patched.status_code == 200, patched.text
 
         written = await _write(
-            client, orga, "nrv-wl@example.org", "race_officer", f"event:{event_id}"
+            client, orga, "asvw-wl@example.org", "race_officer", f"event:{event_id}"
         )
         listed = await client.get(f"/api/auth/tuples?object=event:{event_id}", headers=orga)
         assert listed.status_code == 200, listed.text
         assert [(t["user"], t["relation"]) for t in listed.json()] == [
-            ("nrv-wl@example.org", "race_officer")
+            ("asvw-wl@example.org", "race_officer")
         ]
-        officer = await _headers(client, caplog, "nrv-wl@example.org")
+        officer = await _headers(client, caplog, "asvw-wl@example.org")
         assert (
             await client.get(f"/api/admin/events/{event_id}/races", headers=officer)
         ).status_code == 200
@@ -617,7 +617,7 @@ class TestOrganizers:
             "/api/auth/tuples",
             headers=orga,
             json={
-                "user": "nrv-wl@example.org",
+                "user": "asvw-wl@example.org",
                 "relation": "race_officer",
                 "object": f"event:{foreign}",
             },

@@ -26,7 +26,7 @@ const AUDIENCES = [
   "treasurer",
   "administration",
 ];
-const TEAM_MANAGER = "teams@nrv.example.com";
+const TEAM_MANAGER = "teams@asvw.example.com";
 // An account with no relation at all: the handbook is for every signed-in account.
 const ANYONE = "gast@sbl.example.com";
 
@@ -112,7 +112,7 @@ describeStory("B-18: as anyone signed in I find the help for what I do", () => {
       data: { email: parent, display_name: "Pat Parent" },
     });
     expect(created.ok(), await created.text()).toBeTruthy();
-    const sailors = await request.get("/api/admin/sailors?q=nrv.example.com&limit=1", { headers: admin });
+    const sailors = await request.get("/api/admin/sailors?q=asvw.example.com&limit=1", { headers: admin });
     const child = ((await sailors.json()) as { items: { id: number }[] }).items[0]!;
     const linked = await request.post(`/api/sailors/${child.id}/guardians`, {
       headers: admin,
@@ -232,12 +232,12 @@ describeStory("B-18: as anyone signed in I find the help for what I do", () => {
 /** The places a page names (`place:<id>`, `web/src/handbook/places.ts`): a link to the
  *  screen and tab for whoever can use it there, plain words for whoever cannot. */
 describeStory("B-18: a click path in the help opens that place, for the reader who can use it", () => {
-  const BOARD = "board@nrv.example.com";
-  const TREASURER = "treasurer@nrv.example.com";
+  const BOARD = "board@asvw.example.com";
+  const TREASURER = "treasurer@asvw.example.com";
 
-  /** One NRV sailor with an account and no organizing relation — a plain member. */
+  /** One ASVW sailor with an account and no organizing relation — a plain member. */
   async function plainSailor(request: Parameters<typeof seededSailors>[0]): Promise<string> {
-    const sailors = await seededSailors(request, "nrv.example.com");
+    const sailors = await seededSailors(request, "asvw.example.com");
     return sailors.find((s) => s.email && bornIn(s) < new Date().getFullYear() - 19)!.email!;
   }
 

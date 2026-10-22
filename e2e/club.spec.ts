@@ -17,14 +17,16 @@ import { bearer, devUsers, managedClub, signIn, type DevUser } from "./session";
 test.describe.configure({ mode: "serial" });
 
 const ADMIN = "admin@sbl.example.com";
-const PLANNED_ACT = 3; // dsbl-1-2026-act-3, planned — the one still to be lined up
+// The test club sails the 2. Liga (app.seed), whose acts follow the 1. Liga's three.
+const CLUB_ACTS = [4, 5, 6]; // dsbl-2-2026-act-1 … act-3
+const PLANNED_ACT = 6; // dsbl-2-2026-act-3, planned — the one still to be lined up
 
 async function aTeamManager(request: APIRequestContext): Promise<DevUser> {
-  // NRV is the test club (`app/seed_users.py`), with a team in every seeded series.
+  // ASVW is the test club (`app/seed_users.py`), with a team in every seeded series.
   const manager = (await devUsers(request)).find(
-    (a) => a.roles.includes("team_manager") && a.email.endsWith("@nrv.example.com"),
+    (a) => a.roles.includes("team_manager") && a.email.endsWith("@asvw.example.com"),
   );
-  expect(manager, "the seed gives NRV a team manager").toBeTruthy();
+  expect(manager, "the seed gives ASVW a team manager").toBeTruthy();
   return manager!;
 }
 
@@ -46,9 +48,9 @@ describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday fr
     await openMyClub(page, await managedClub(request, manager.email));
     await expect(page.getByTestId("my-club-events-list")).toBeVisible();
 
-    // Every seeded act of the first league is there — "these three", not "exactly three":
-    // the lifecycle spec adds events to this series on the same stack (see docs/gotchas).
-    for (const act of [1, 2, 3]) {
+    // Every seeded act of the club's league is there — "these three", not "exactly
+    // three": the lifecycle spec adds events on the same stack (see docs/gotchas).
+    for (const act of CLUB_ACTS) {
       await expect(page.getByTestId(`my-club-event-${act}`)).toBeVisible();
     }
 
@@ -103,7 +105,7 @@ describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday fr
     const clubs = (await (await request.get("/api/admin/clubs?limit=50", { headers: admin })).json()) as {
       items: { id: number; slug: string; name: string }[];
     };
-    const second = clubs.items.find((c) => c.slug === "kyc")!;
+    const second = clubs.items.find((c) => c.slug === "kyc-sh")!;
     const added = await request.post("/api/auth/tuples", {
       headers: admin,
       data: { user: manager.email, relation: "member", object: `club:${second.id}` },
@@ -141,7 +143,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     page,
     request,
   }) => {
-    // The seed's one official per club is its admin; NRV's is the manager used above.
+    // The seed's one official per club is its admin; ASVW's is the manager used above.
     const clubAdmin = await aTeamManager(request);
     expect(clubAdmin.roles, "the seeded official is the club's admin").toContain("club_admin");
     const guest = "gast@sbl.example.com"; // seeded, no club, no role

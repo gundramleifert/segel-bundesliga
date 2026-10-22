@@ -10,8 +10,8 @@ from app.db import SessionLocal
 from app.models import Club
 
 # Deliberately a fixed club from the seed instead of "the first": other stories add clubs
-# that would sort alphabetically before it. NRV is registered in three leagues.
-CLUB = "nrv"
+# that would sort alphabetically before it. ASVW is registered in three leagues.
+CLUB = "asvw"
 
 
 async def first_club() -> int:
@@ -33,7 +33,7 @@ class TestClubPage:
             assert "2026" in team["series"]["name"]
 
     async def test_club_in_multiple_series_shows_all(self, client):
-        """NRV is also registered in Juniors and SCL."""
+        """ASVW is also registered in Juniors and SCL."""
         club = (await client.get(f"/api/clubs/{await first_club()}")).json()
         series = {m["series"]["slug"] for m in club["teams"]}
         assert len(series) >= 2, f"Only one series found: {series}"

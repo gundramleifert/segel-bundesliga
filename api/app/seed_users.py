@@ -6,13 +6,15 @@ All 18 clubs, their sailors, the series and their events stay as data (`app.seed
 league, its pairing lists and its standings need them. The people who sign in are
 concentrated on **one of each**:
 
-* the **club** NRV: its board (the club's ``admin`` — who is in the club), its team
+* the **club** ASVW: its board (the club's ``admin`` — who is in the club), its team
   manager (``manager`` — who sails), its treasurer, and every sailor of its squads — all
   of them ``member`` of it. A sailor needs an account to sign their waiver (Story S-1),
   and the specs pick their adults and juniors from this squad;
-* the **series** 1. Segel-Bundesliga 2026: its manager;
+* the **series** 2. Segel-Bundesliga 2026 (the test club's division): its manager; and
+  the juniors' manager, for 2026 and the 2027 draft;
 * the **event** act 3 of that series, still planned: its organizer, race officer, jury
-  and helper.
+  and helper. The club **hosts** it (`app.seed`), so the club's admin, manager and
+  treasurer are the event's too, and its claims are the club's to pay (Story F-2).
 
 Beyond these: the league office (``admin``, ``editor``, ``race_officer`` on the site) and
 a guest with no relation.
@@ -37,33 +39,46 @@ from app.problems import Problem
 from app.services import grants
 
 #: The one club, series and event the cast is about.
-TEST_CLUB = "nrv"
-TEST_SERIES = "dsbl-1-2026"
-TEST_EVENT = "dsbl-1-2026-act-3"
+TEST_CLUB = "asvw"
+TEST_SERIES = "dsbl-2-2026"
+#: …and next year's, a draft to practise preparing a season on.
+TEST_SERIES_ALL = [TEST_SERIES, "dsbl-1-2027"]
+TEST_EVENT = "dsbl-2-2026-act-3"
 
 #: The league office and a guest: (email, name, site relations).
 SITE_ACCOUNTS: list[tuple[str, str, list[Relation]]] = [
     ("admin@sbl.example.com", "Alina Admin", [Relation.ADMIN]),
-    ("redaktion@sbl.example.com", "Rudi Editor", [Relation.EDITOR]),
-    ("wl@sbl.example.com", "Wanda Racecommittee", [Relation.RACE_OFFICER]),
+    ("redaktion@sbl.example.com", "Sven Jürgensen", [Relation.EDITOR]),
+    ("wl@sbl.example.com", "Christoph Zanter", [Relation.RACE_OFFICER]),
     ("gast@sbl.example.com", "Gero Guest", []),
 ]
 #: The test series' manager (Story Z-2).
 SERIES_ACCOUNTS: list[tuple[str, str, Relation]] = [
     ("serie@sbl.example.com", "Sven Series", Relation.MANAGER),
 ]
+#: Who runs the juniors, this year and the next one being prepared: (email, name,
+#: relation, the series' slugs).
+JUNIOR_ACCOUNTS: list[tuple[str, str, Relation, list[str]]] = [
+    (
+        "junioren@sbl.example.com",
+        "Jocki Hellmich",
+        Relation.MANAGER,
+        ["junioren-2026", "junioren-2027"],
+    ),
+]
 #: One tuple each on the test event (Story Z-2).
 EVENT_ACCOUNTS: list[tuple[str, str, Relation]] = [
-    ("regatta@sbl.example.com", "Regina Regatta", Relation.RACE_OFFICER),
-    ("orga@sbl.example.com", "Otto Organizer", Relation.MANAGER),
-    ("jury@sbl.example.com", "Jutta Jury", Relation.JURY),
-    ("helfer@sbl.example.com", "Hanna Helper", Relation.HELPER),
+    ("regatta@sbl.example.com", "Malte Rackow", Relation.RACE_OFFICER),
+    ("orga@sbl.example.com", "Peter Weichel", Relation.MANAGER),
+    ("jury@sbl.example.com", "Heiko Thölmann", Relation.JURY),
+    ("helfer@sbl.example.com", "Johannes Machur", Relation.HELPER),
 ]
-#: The test club's officials: (address before the @, what they are, relation).
-CLUB_OFFICIALS: list[tuple[str, str, Relation]] = [
-    ("board", "Club admin", Relation.ADMIN),
-    ("teams", "Team manager", Relation.MANAGER),
-    ("treasurer", "Treasurer", Relation.TREASURER),
+#: The test club's officials: (address before the @, what they are, their name — else
+#: what they are and the club's code — relation).
+CLUB_OFFICIALS: list[tuple[str, str, str | None, Relation]] = [
+    ("board", "Club admin", "Gundram Leifert", Relation.ADMIN),
+    ("teams", "Team manager", "Gunnar Voigt", Relation.MANAGER),
+    ("treasurer", "Treasurer", None, Relation.TREASURER),
 ]
 
 
@@ -103,13 +118,20 @@ async def seed_users() -> None:
             for relation in relations:
                 await _tuple(session, user, relation, authz.SITE)
 
-        series = (
-            await session.execute(select(Series).where(Series.slug == TEST_SERIES))
-        ).scalar_one_or_none()
-        if series is not None:
+        # The test series and next year's, being prepared (`app.seed`).
+        for each in (
+            await session.execute(select(Series).where(Series.slug.in_(TEST_SERIES_ALL)))
+        ).scalars():
             for email, name, relation in SERIES_ACCOUNTS:
                 user = await _account(session, email, name)
-                await _tuple(session, user, relation, ObjectRef(ObjectType.SERIES, series.id))
+                await _tuple(session, user, relation, ObjectRef(ObjectType.SERIES, each.id))
+
+        for email, name, relation, slugs in JUNIOR_ACCOUNTS:
+            user = await _account(session, email, name)
+            for juniors in (
+                await session.execute(select(Series).where(Series.slug.in_(slugs)))
+            ).scalars():
+                await _tuple(session, user, relation, ObjectRef(ObjectType.SERIES, juniors.id))
 
         event = (
             await session.execute(select(Event).where(Event.slug == TEST_EVENT))
@@ -120,9 +142,9 @@ async def seed_users() -> None:
                 await _tuple(session, user, relation, ObjectRef(ObjectType.EVENT, event.id))
 
         here = ObjectRef(ObjectType.CLUB, club.id)
-        for local, what, relation in CLUB_OFFICIALS:
+        for local, what, name, relation in CLUB_OFFICIALS:
             user = await _account(
-                session, f"{local}@{club.slug}.example.com", f"{what} {club.short_name}"
+                session, f"{local}@{club.slug}.example.com", name or f"{what} {club.short_name}"
             )
             await _tuple(session, user, relation, here)
             # Officials belong to their club, like everyone in it.
@@ -159,12 +181,14 @@ def _report(club: Club, sailors: int, admin: User) -> None:
     print(f"On the series {TEST_SERIES}:")
     for email, name, relation in SERIES_ACCOUNTS:
         print(f"  {email:30s} {relation:22s} {name}")
+    for email, name, relation, slugs in JUNIOR_ACCOUNTS:
+        print(f"  {email:30s} {relation:22s} {name} — {', '.join(slugs)}")
     print(f"On the event {TEST_EVENT}:")
     for email, name, relation in EVENT_ACCOUNTS:
         print(f"  {email:30s} {relation:22s} {name}")
     print(f"{club.name}:")
-    for local, what, relation in CLUB_OFFICIALS:
-        print(f"  {local + '@' + club.slug + '.example.com':30s} {relation:22s} {what}")
+    for local, what, name, relation in CLUB_OFFICIALS:
+        print(f"  {local + '@' + club.slug + '.example.com':30s} {relation:22s} {name or what}")
     print(f"…and {sailors} sailors of the club, each a member.")
     # A convenience line, and nothing the seed depends on — so a missing signing secret
     # must not take the whole seeding down with it. It used to: `create_access_token`

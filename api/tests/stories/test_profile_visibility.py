@@ -36,7 +36,7 @@ class SquadSailor(NamedTuple):
 
 @asynccontextmanager
 async def _squad_sailor(email: str) -> AsyncIterator[SquadSailor]:
-    """NRV's first squad member of a published 2026 series, re-addressed to ``email`` so
+    """ASVW's first squad member of a published 2026 series, re-addressed to ``email`` so
     the test signs in as them, and given back unchanged afterwards — other stories in the
     same worker count on the seed."""
     async with SessionLocal() as session:
@@ -48,7 +48,7 @@ async def _squad_sailor(email: str) -> AsyncIterator[SquadSailor]:
                 .join(Club, Team.club_id == Club.id)
                 .join(Series, Team.series_id == Series.id)
                 .where(
-                    Club.slug == "nrv",
+                    Club.slug == "asvw",
                     Team.event_id.is_(None),
                     Series.year == 2026,
                     Series.published.is_(True),

@@ -17,7 +17,7 @@ import { bearer, bornIn, seededSailors, signIn, type SeededSailor } from "./sess
 test.describe.configure({ mode: "serial" });
 
 const ADMIN = "admin@sbl.example.com";
-const CLUB_DOMAIN = "nrv.example.com"; // fields a first-league team and a juniors team
+const CLUB_DOMAIN = "asvw.example.com"; // fields a first-league team and a juniors team
 const PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
   "base64",

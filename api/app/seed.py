@@ -55,25 +55,50 @@ FLIGHTS = 16
 SQUAD_SIZE = 10
 CREW = 4
 
-CLUBS: list[tuple[str, str, str]] = [
-    ("Norddeutscher Regatta Verein", "NRV", "Hamburg"),
-    ("Deutscher Touring Yacht-Club", "DTYC", "Tutzing"),
-    ("Bayerischer Yacht-Club", "BYC", "Starnberg"),
-    ("Württembergischer Yacht-Club", "WYC", "Friedrichshafen"),
-    ("Verein Seglerhaus am Wannsee", "VSaW", "Berlin"),
-    ("Flensburger Segel-Club", "FSC", "Flensburg"),
-    ("Kieler Yacht-Club", "KYC", "Kiel"),
-    ("Lindauer Segler-Club", "LSC", "Lindau"),
-    ("Chiemsee Yacht Club", "CYC", "Prien"),
-    ("Segel-Club Rhe", "SCRhe", "Hamburg"),
-    ("Berliner Yacht-Club", "BYCB", "Berlin"),
-    ("Hamburger Segel-Club", "HSC", "Hamburg"),
-    ("Segler-Vereinigung Kiel", "SVK", "Kiel"),
-    ("Münchner Yacht-Club", "MYC", "München"),
-    ("Bodensee-Yachtclub Überlingen", "BYCÜ", "Überlingen"),
-    ("Joersfelder Segel-Club", "JSC", "Joersfeld"),
-    ("Duisburger Yacht-Club", "DYC", "Duisburg"),
-    ("Potsdamer Yacht Club", "PYC", "Potsdam"),
+# The 2026 line-ups of both divisions, as deutsche-segelbundesliga.de lists them ("Vereine
+# für die Saison 2026"): (name, code, home, division). A code is the seed's key for a club
+# (its slug), so it is unique here even where the real one is not: the two KYCs carry
+# their state, as the league writes them (`KYC (SH)` Kiel, `KYC (BA)` Konstanz), and the
+# Berliner YC is `BYCB` beside the Bayerischer `BYC`.
+CLUBS: list[tuple[str, str, str, int]] = [
+    # The test club (`seed_users`) — first, so its teams come first: it sails the 2. Liga,
+    # the juniors and the SCL, and it hosts the test event.
+    ("Akademischer Segelverein Warnemünde", "ASVW", "Warnemünde", 2),
+    ("Bayerischer Yacht-Club", "BYC", "Starnberg", 1),
+    ("Berliner Yacht-Club", "BYCB", "Berlin", 1),
+    ("Blankeneser Segel-Club", "BSC", "Hamburg", 1),
+    ("Bocholter Yachtclub", "BoYC", "Bocholt", 1),
+    ("Bodensee-Yacht-Club Überlingen", "BYCÜ", "Überlingen", 1),
+    ("Düsseldorfer Yachtclub", "DYC", "Düsseldorf", 1),
+    ("Entdecker- und Seefahrerfördervereinigung", "EnSFr", "Hamburg", 1),
+    ("Joersfelder Segel-Club", "JSC", "Berlin", 1),
+    ("Kieler Yacht-Club", "KYC (SH)", "Kiel", 1),
+    ("Klub am Rupenhorn", "KaR", "Berlin", 1),
+    ("Mühlenberger Segel-Club", "MSC", "Hamburg", 1),
+    ("Münchner Yacht-Club", "MYC", "München", 1),
+    ("Norddeutscher Regatta Verein", "NRV", "Hamburg", 1),
+    ("Potsdamer Yacht Club", "PYC", "Potsdam", 1),
+    ("Segel- und Motorboot Club Überlingen", "SMCÜ", "Überlingen", 1),
+    ("Seglervereinigung Itzehoe", "SVI", "Itzehoe", 1),
+    ("Segler-Vereinigung Wuppertal", "SVW", "Wuppertal", 1),
+    ("Württembergischer Yacht-Club", "WYC", "Friedrichshafen", 1),
+    ("Bucerius Sailing", "BUC", "Hamburg", 2),
+    ("Deutscher Touring Yacht-Club", "DTYC", "Tutzing", 2),
+    ("Essener Turn- und Fechtklub", "ETUF", "Essen", 2),
+    ("Flensburger Segel-Club", "FSC", "Flensburg", 2),
+    ("Frankfurter Yachtclub", "FYC", "Frankfurt", 2),
+    ("Hamburger Segel-Club", "HSC", "Hamburg", 2),
+    ("Konstanzer Yacht-Club", "KYC (BA)", "Konstanz", 2),
+    ("Lübecker Segler-Verein von 1885", "LSV", "Lübeck", 2),
+    ("Lübecker Yacht-Club", "LYC", "Lübeck", 2),
+    ("Münchener Ruder- und Segelverein „Bayern“ von 1910", "MRSV", "München", 2),
+    ("Regatta-Segler Neuruppin", "RSN", "Neuruppin", 2),
+    ("Segel-Club Hansa Münster", "SCHM", "Münster", 2),
+    ("Segelclub Rheingau", "SCRh", "Rheingau", 2),
+    ("Segel-Club Ville", "SCV", "Erftstadt", 2),
+    ("Seglervereinigung 1903", "SV03", "Berlin", 2),
+    ("Verein Seglerhaus am Wannsee", "VSaW", "Berlin", 2),
+    ("Wir sind Wir e.V.", "WsW", "Sachsen", 2),
 ]
 
 # Name, city, water, and where on the water the boats sail — real coordinates, so the
@@ -83,6 +108,25 @@ VENUES: list[tuple[str, str, str, float, float]] = [
     ("Kiel", "Kiel", "Kieler Förde", 54.424, 10.190),
     ("Friedrichshafen", "Friedrichshafen", "Bodensee", 47.648, 9.487),
     ("Berlin-Wannsee", "Berlin", "Wannsee", 52.437, 13.170),
+    # The 2027 stops (yacht.de, 18 Oct 2026) the 2026 acts do not already sail at.
+    ("Warnemünde", "Warnemünde", "Ostsee", 54.190, 12.060),
+    ("Überlingen", "Überlingen", "Bodensee", 47.760, 9.170),
+    ("Kiel-Strande", "Strande", "Kieler Förde", 54.440, 10.180),
+    ("Hamburg-Alster", "Hamburg", "Außenalster", 53.565, 10.003),
+]
+
+# The 1. Liga's 2027 as announced (yacht.de, 18 Oct 2026): it opens at Friedrichshafen and
+# ends in Hamburg; Überlingen, Berlin, Kiel/Strande and Warnemünde lie between, with no
+# dates or order yet — so those carry neither, the normal early state of an event. Hosts
+# are not announced; Warnemünde's is the test club, so its people have a season to
+# prepare (`seed_users`). (venue, act, first day, host's code)
+ACTS_2027: list[tuple[str, int | None, date | None, str | None]] = [
+    ("Friedrichshafen", 1, date(2027, 4, 16), None),
+    ("Überlingen", None, None, None),
+    ("Berlin-Wannsee", None, None, None),
+    ("Kiel-Strande", None, None, None),
+    ("Warnemünde", None, None, "ASVW"),
+    ("Hamburg-Alster", 6, date(2027, 10, 14), None),
 ]
 
 
@@ -203,6 +247,20 @@ async def seed() -> None:
         )
         series_list = [first_league, second_league, juniors, champions]
         session.add_all(series_list)
+        # Next year's juniors, being prepared: a draft with no events and no teams yet, so
+        # the public site stays on this year (the current year is the newest one not in the
+        # future). Its manager is the juniors' (`seed_users`).
+        session.add(
+            Series(
+                slug=f"junioren-{YEAR + 1}",
+                name=f"Junioren-Segelliga {YEAR + 1}",
+                short_name=f"Junioren {YEAR + 1}",
+                year=YEAR + 1,
+                league_id=junior_league.id,
+                published=False,
+                scoring=scoring,
+            )
+        )
 
         # The liability waiver in force. One version is enough for the seed; a wording
         # change would be version 2 (Story S-2).
@@ -254,15 +312,16 @@ async def seed() -> None:
                     f"{name} segelt seit Jahren in der Segel-Bundesliga. Heimatrevier ist {city}."
                 ),
             )
-            for name, short, city in CLUBS
+            for name, short, city, _division in CLUBS
         ]
         session.add_all(clubs)
         await session.flush()
 
         # The teams of all leagues. A club can compete in several; each
         # team has its own roster — juniors are different people than the first.
+        division = {1: first_league, 2: second_league}
         assignments: list[tuple[Series, Club]] = [
-            *((first_league, club) for club in clubs),
+            *((division[level], club) for club, (_, _, _, level) in zip(clubs, CLUBS, strict=True)),
             *(
                 (series, club)
                 for series, count in ((juniors, 12), (champions, 6))
@@ -281,9 +340,12 @@ async def seed() -> None:
         session.add_all(team for _, _, team in teams)
         await session.flush()
 
-        # The acts are sailed for the first series. These are the registrations for
+        # The acts are sailed in both divisions. These are each one's registrations for
         # the series; the participation in each act is created below per event.
-        registrations = [team for series, _, team in teams if series is first_league]
+        registrations = {
+            series.id: [team for each, _, team in teams if each is series]
+            for series in (first_league, second_league)
+        }
 
         squads: dict[int, list[Sailor]] = {}
         counter = 0
@@ -326,17 +388,24 @@ async def seed() -> None:
                     )
                 )
 
-        # Three matchdays: one finished, one live, one planned.
-        for matchday, (venue, status, day) in enumerate(
-            [
-                (venues[0], EventStatus.FINAL, date(2026, 5, 8)),
-                (venues[1], EventStatus.LIVE, date(2026, 6, 12)),
-                (venues[2], EventStatus.PLANNED, date(2026, 7, 17)),
-            ],
-            start=1,
+        # Three matchdays: one finished, one live, one planned — each with a host club, who
+        # pays its claims (Story F-2). The planned one is the test club's: its 2. Liga act
+        # is the test event. Both divisions sail each weekend at the same venue, the 1.
+        # Liga's acts first, so they keep the lowest ids.
+        by_short = {club.short_name: club for club in clubs}
+        weekends = [
+            (venues[0], "DTYC", EventStatus.FINAL, date(2026, 5, 8)),
+            (venues[1], "KYC (SH)", EventStatus.LIVE, date(2026, 6, 12)),
+            (venues[2], "ASVW", EventStatus.PLANNED, date(2026, 7, 17)),
+        ]
+        for league_series, level, (matchday, (venue, host, status, day)) in (
+            (league_series, level, act)
+            for league_series, level in ((first_league, 1), (second_league, 2))
+            for act in enumerate(weekends, start=1)
         ):
+            roster = registrations[league_series.id]
             event = Event(
-                slug=f"dsbl-1-2026-act-{matchday}",
+                slug=f"dsbl-{level}-2026-act-{matchday}",
                 title=f"Act {matchday} {venue.city}",
                 matchday=matchday,
                 starts_on=day,
@@ -344,11 +413,12 @@ async def seed() -> None:
                 status=status,
                 # Real matchdays of a running series: visible to visitors.
                 published=True,
-                team_count=len(registrations),
+                team_count=len(roster),
                 boat_count=BOATS,
                 flight_count=FLIGHTS,
-                series_id=first_league.id,
+                series_id=league_series.id,
                 venue_id=venue.id,
+                host_club_id=by_short[host].id,
             )
             session.add(event)
             await session.flush()
@@ -359,10 +429,10 @@ async def seed() -> None:
                 Team(
                     name=registration.name,
                     club_id=registration.club_id,
-                    series_id=first_league.id,
+                    series_id=league_series.id,
                     event_id=event.id,
                 )
-                for registration in registrations
+                for registration in roster
             ]
             session.add_all(entries)
             await session.flush()
@@ -370,7 +440,7 @@ async def seed() -> None:
             await _seed_matchday(session, event, entries, rng, status)
 
             # Lineup for the matchday: the first four from the roster sail.
-            for registration, entry in zip(registrations, entries, strict=True):
+            for registration, entry in zip(roster, entries, strict=True):
                 for position, sailor in enumerate(squads[registration.id][:CREW]):
                     session.add(
                         EventCrew(
@@ -380,6 +450,42 @@ async def seed() -> None:
                             role=CrewRole.HELM if position == 0 else CrewRole.CREW,
                         )
                     )
+
+        # Next year's 1. Liga, being prepared: a draft series with its announced acts, no
+        # clubs yet — registering them is what there is to practise. Drafts, so the public
+        # site stays on this year.
+        next_year = Series(
+            slug=f"dsbl-1-{YEAR + 1}",
+            name=f"1. Segel-Bundesliga {YEAR + 1}",
+            short_name=f"1. Liga {YEAR + 1}",
+            year=YEAR + 1,
+            level=1,
+            league_id=first_division.id,
+            published=False,
+            scoring=scoring,
+        )
+        session.add(next_year)
+        await session.flush()
+        venue_by_slug = {venue.slug: venue for venue in venues}
+        for place, act, day, host in ACTS_2027:
+            venue = venue_by_slug[slugify(place)]
+            session.add(
+                Event(
+                    slug=f"dsbl-1-{YEAR + 1}-{venue.slug}",
+                    title=f"Act {act} {venue.city}" if act else f"{venue.city} {YEAR + 1}",
+                    matchday=act,
+                    starts_on=day,
+                    ends_on=day + timedelta(days=2) if day else None,
+                    status=EventStatus.PLANNED,
+                    published=False,
+                    team_count=sum(1 for *_, level in CLUBS if level == 1),
+                    boat_count=BOATS,
+                    flight_count=FLIGHTS,
+                    series_id=next_year.id,
+                    venue_id=venue.id,
+                    host_club_id=by_short[host].id if host else None,
+                )
+            )
 
         await session.commit()
 
@@ -393,7 +499,8 @@ async def seed() -> None:
         await session.commit()
 
     print(
-        f"Seed complete: {len(CLUBS)} clubs with {SQUAD_SIZE} members each, 4 series, 3 acts, "
+        f"Seed complete: {len(CLUBS)} clubs with {SQUAD_SIZE} members each, 4 series and "
+        f"two drafts for {YEAR + 1}, 3 acts in each division and {len(ACTS_2027)} draft acts, "
         f"{FLIGHTS * 3} races per act"
     )
 

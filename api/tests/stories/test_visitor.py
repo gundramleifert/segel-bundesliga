@@ -278,7 +278,7 @@ class TestClubs:
     """As a visitor, I want to find the participating clubs."""
 
     async def test_all_participating_clubs_are_listed(self, client):
-        """All 18 league clubs must appear.
+        """All 36 clubs of both divisions must appear.
 
         Deliberately no check for exactly 18: other stories add clubs, and the point here
         is that none of the league clubs are missing — not that there are no others.
@@ -286,7 +286,7 @@ class TestClubs:
         from app.seed import CLUBS
 
         listed = {c["short_name"] for c in await all_items(client, "/api/clubs")}
-        missing = {shortname for _, shortname, _ in CLUBS} - listed
+        missing = {shortname for _, shortname, *_ in CLUBS} - listed
         assert not missing, f"These clubs are missing: {sorted(missing)}"
 
     async def test_events_are_sorted_chronologically(self, client):

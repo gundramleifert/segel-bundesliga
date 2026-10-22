@@ -24,10 +24,11 @@ from app.models import (
     PaymentMethod,
     PaymentState,
 )
-from app.models.auth import User
+from app.models.auth import Relation, User
 from app.problems import Problem
 from app.services import expenses, payments, uploads
 from app.services.audit import EntityType, audit
+from app.services.expenses import UnclaimableReason
 from app.services.personal import RECEIPTS
 
 router = APIRouter(tags=["expenses"])
@@ -41,6 +42,21 @@ class ClaimTarget(BaseModel):
     id: int
     name: str
     starts_on: date | None = None
+
+
+class UnavailableEvent(BaseModel):
+    """An event I work at but cannot claim on, and why (Story F-2)."""
+
+    id: int
+    name: str
+    starts_on: date | None = None
+    relations: list[Relation]
+    reason: UnclaimableReason
+
+
+class ClaimTargets(BaseModel):
+    targets: list[ClaimTarget]
+    unavailable: list[UnavailableEvent]
 
 
 class ClaimCreate(BaseModel):
@@ -209,23 +225,35 @@ async def _saved(session: AsyncSession, claim_id: int, acting: User) -> ClaimOut
 # ------------------------------------------------------------------ the claimant
 
 
-@router.get(
-    "/api/me/claim-targets", response_model=list[ClaimTarget], summary="What I may claim on"
-)
+@router.get("/api/me/claim-targets", response_model=ClaimTargets, summary="What I may claim on")
 async def list_my_claim_targets(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
-) -> list[ClaimTarget]:
-    """The events I worked at and the clubs I belong to (Story F-2)."""
-    out: list[ClaimTarget] = []
-    for _, obj in await expenses.targets(session, acting):
+) -> ClaimTargets:
+    """The events I worked at and the clubs I belong to — and the events I work at but
+    cannot claim on yet, with the reason (Story F-2)."""
+    options = await expenses.claim_options(session, acting)
+    targets: list[ClaimTarget] = []
+    for _, obj in options.targets:
         if isinstance(obj, Event):
-            out.append(
+            targets.append(
                 ClaimTarget(kind="event", id=obj.id, name=obj.title, starts_on=obj.starts_on)
             )
         else:
-            out.append(ClaimTarget(kind="club", id=obj.id, name=obj.name))
-    return out
+            targets.append(ClaimTarget(kind="club", id=obj.id, name=obj.name))
+    return ClaimTargets(
+        targets=targets,
+        unavailable=[
+            UnavailableEvent(
+                id=u.event.id,
+                name=u.event.title,
+                starts_on=u.event.starts_on,
+                relations=u.relations,
+                reason=u.reason,
+            )
+            for u in options.unavailable
+        ],
+    )
 
 
 @router.get("/api/me/claims", response_model=list[ClaimOut], summary="My claims")

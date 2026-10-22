@@ -57,7 +57,7 @@ class TestReadPosts:
 
     async def test_an_article_has_its_own_address(self, client):
         """R-1: one article by its slug, with the text as paragraphs and its picture."""
-        article = (await client.get("/api/posts/nrv-takes-the-lead")).json()
+        article = (await client.get("/api/posts/asvw-takes-the-lead")).json()
 
         assert article["league"] == "1-liga"
         assert article["quote_by"] == "the winning helm"

@@ -65,7 +65,7 @@ export async function managedClub(request: APIRequestContext, email: string): Pr
 
 export type SeededSailor = { id: number; email: string | null; birth_date: string | null };
 
-/** The seeded sailors of one club, by its address domain (`nrv.example.com`): adults sail
+/** The seeded sailors of one club, by its address domain (`asvw.example.com`): adults sail
  * the first league, teenagers the juniors. */
 export async function seededSailors(request: APIRequestContext, domain: string): Promise<SeededSailor[]> {
   const headers = await bearer(request, "admin@sbl.example.com");

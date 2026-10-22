@@ -684,7 +684,7 @@ class TestScans:
         assert denied.status_code == 403
         assert denied.json()["type"] == "/errors/waiver-scan-forbidden"
 
-        await make_user("wv-otherclub@example.com", Role.TEAM_MANAGER, club_id=ids.club("nrv"))
+        await make_user("wv-otherclub@example.com", Role.TEAM_MANAGER, club_id=ids.club("asvw"))
         other_club = auth_headers(await login_as(client, "wv-otherclub@example.com", caplog))
         assert (await client.get(url, headers=other_club)).status_code == 403
 

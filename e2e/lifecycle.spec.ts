@@ -586,7 +586,7 @@ describeStory("Z-2: access is a relation tuple, written and deleted one at a tim
 describeStory("V-12: a team manager manages their own squad", () => {
   /** A seeded account holding `team_manager`, found rather than hardcoded.
    *
-   *  The seed builds its names from a generated list, so `roden.nanisberg1@nrv.example.com`
+   *  The seed builds its names from a generated list, so `roden.nanisberg1@asvw.example.com`
    *  is stable only until someone touches `app/seed_users.py`. `/api/dev/users` is the same
    *  list the role switcher reads, and asking it keeps this spec pinned to the *role*
    *  rather than to one person's name. */

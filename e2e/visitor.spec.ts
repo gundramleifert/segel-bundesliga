@@ -27,7 +27,7 @@ const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
  *  answer the same question — does it fit the viewport it is being read on. */
 const PUBLIC_PAGES: [path: string, ready: string][] = [
   ["/", "site-home-now"],
-  ["/1-liga/news/nrv-takes-the-lead", "site-article"],
+  ["/1-liga/news/asvw-takes-the-lead", "site-article"],
   ["/1-liga", "site-chapter-standings"],
   ["/2-liga", "site-chapter-standings"],
   [STANDINGS, "site-standings-dsbl-1-2026"],
@@ -167,9 +167,14 @@ describeStory("B-3: as a sailor I see when I am on which boat", () => {
 });
 
 describeStory("B-4: as a visitor I find clubs and dates", () => {
-  test("all 18 clubs are listed", async ({ page }) => {
+  test("all 36 clubs of both divisions are listed, a page at a time", async ({ page }) => {
     await page.goto("/clubs");
-    await expect(page.getByTestId("clubs-list").getByRole("listitem")).toHaveCount(18);
+    // 36 clubs sail the 1. and 2. Liga in 2026 (app.seed) — more than one page holds.
+    const cards = page.getByTestId("clubs-list").getByRole("listitem");
+    // count() does not wait (docs/gotchas): the first card first.
+    await expect(cards.first()).toBeVisible();
+    expect(await cards.count()).toBeLessThan(36);
+    await expect(page.getByTestId("clubs-pager-range")).toContainText("36");
   });
 
   test("from the calendar I get into a matchday", async ({ page }) => {
@@ -361,7 +366,7 @@ describeStory("B-13: one row of navigation names the leagues", () => {
     // cards can no longer end where the next one's go on.
     const pages = [
       "/", "/1-liga", "/2-liga", STANDINGS, "/1-liga/season", "/1-liga/notice-board", "/1-liga/clubs",
-      "/1-liga/news", "/1-liga/news/nrv-takes-the-lead", "/1-liga/media", "/1-liga/press", "/1-liga/about",
+      "/1-liga/news", "/1-liga/news/asvw-takes-the-lead", "/1-liga/media", "/1-liga/press", "/1-liga/about",
       "/about", FINISHED_ACT, `${FINISHED_ACT}/notice-board`, `${FINISHED_ACT}/crews`,
     ];
     for (const path of pages) {
@@ -474,15 +479,17 @@ describeStory("B-14: a league's page in chapters", () => {
   });
 
   test("Results is there only while a matchday is live; About names the clubs", async ({ page }) => {
-    // The 2. Liga is a league of its own; nothing of it is being sailed in the seed.
-    await page.goto("/2-liga");
+    // The juniors have teams but no matchday in the seed: nothing is live there.
+    await page.goto("/junioren-liga");
     await expect(page.getByTestId("site-chapter-standings")).toBeVisible();
     await expect(page.getByTestId("site-chapter-results")).toHaveCount(0);
     // With nothing live, Standings opens the page.
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Standings");
-    // Its own division's block — empty, because the seed enters no team in the 2. Liga.
+    // The 2. Liga is a league of its own, sailing the same weekends: its act 2 is live.
+    await page.goto("/2-liga");
+    await expect(page.getByTestId("site-chapter-results")).toHaveCount(1);
     await expect(page.getByTestId("site-top-five-dsbl-2-2026")).toHaveCount(1);
-    await expect(page.getByTestId("site-top-five-dsbl-2-2026").locator("[data-empty]")).toHaveCount(1);
+    await expect(page.getByTestId("site-top-five-dsbl-2-2026").locator("[data-empty]")).toHaveCount(0);
     await page.goto("/1-liga");
     await expect(page.getByTestId("site-about-clubs").getByRole("listitem").first()).toBeVisible();
   });
@@ -572,8 +579,8 @@ describeStory("B-14: a league's page in chapters", () => {
 
   test("a news article has its own page: lead, byline, text, and more news", async ({ page }) => {
     await page.goto("/1-liga/news");
-    await page.getByTestId("site-news-nrv-takes-the-lead").click();
-    await expect(page).toHaveURL(/\/1-liga\/news\/nrv-takes-the-lead$/);
+    await page.getByTestId("site-news-asvw-takes-the-lead").click();
+    await expect(page).toHaveURL(/\/1-liga\/news\/asvw-takes-the-lead$/);
     await expect(page.getByTestId("site-article-lead")).toBeVisible();
     await expect(page.getByTestId("site-article-byline")).toBeVisible();
     // Invented news about real clubs says it is an example.
@@ -744,7 +751,7 @@ describeStory("B-19: switch between dark and light", () => {
   });
 
   test("the button sits beside the account button once signed in", async ({ page }) => {
-    await signIn(page, "board@nrv.example.com");
+    await signIn(page, "board@asvw.example.com");
     await page.goto("/me");
     await expect(page.getByTestId("layout-profile-button")).toBeVisible();
     await page.getByTestId("layout-theme").click();

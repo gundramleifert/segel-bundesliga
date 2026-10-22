@@ -10,7 +10,7 @@ import { signIn } from "./session";
  */
 
 const EDITOR = "redaktion@sbl.example.com";
-const MANAGER = "teams@nrv.example.com";
+const MANAGER = "teams@asvw.example.com";
 
 describeStory("R-1: editorial writes news and press releases", () => {
   test("write an article with the editor, publish it, read it on the league's page", async ({ page }, testInfo) => {
@@ -232,7 +232,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await page.getByTestId("admin-posts-league-filter").selectOption("2-liga");
     const list = page.getByTestId("admin-posts-section");
     await expect(list.getByRole("link", { name: /Promotion race/ })).toHaveCount(1);
-    await expect(list.getByRole("link", { name: /NRV takes the lead/ })).toHaveCount(0);
+    await expect(list.getByRole("link", { name: /ASVW takes the lead/ })).toHaveCount(0);
     await expect(page).toHaveURL(/state=published/);
   });
 
