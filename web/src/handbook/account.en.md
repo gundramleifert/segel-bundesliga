@@ -68,7 +68,10 @@ confirmed — signing in with a code once does that.
 
 Before you sign in, the top row holds the language and *Sign in*. Afterwards your account
 button opens *Account and settings*: *My space*, *My profile*, *Administration* if your
-role uses it, *Help* and *Language*. In the top row, beside the language or your account button, the sun or
+role uses it, *Help* (*Help for this page* where the page has its own) and *Language*.
+
+![The account menu of an organizer](shot:help-account-menu)
+ In the top row, beside the language or your account button, the sun or
 moon switches the whole site to light or dark — *Switch to light*, *Switch to dark*. Dark is where everyone starts; your
 choice is kept on this device.
 

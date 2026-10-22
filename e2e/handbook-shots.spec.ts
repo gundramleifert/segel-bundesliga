@@ -27,6 +27,7 @@ const LOCALES = ["en", "de"] as const;
 const ADMIN = "admin@sbl.example.com";
 const ORGANIZER = "orga@sbl.example.com";
 const SITE_RACE_OFFICER = "wl@sbl.example.com";
+const EDITOR = "redaktion@sbl.example.com";
 const CLUB_ADMIN = "board@asvw.example.com";
 const TEAM_MANAGER = "teams@asvw.example.com";
 const TREASURER = "treasurer@asvw.example.com";
@@ -71,6 +72,8 @@ type Shot = {
 };
 
 const tid = (id: string) => `[data-testid="${id}"]`;
+/** A `Field` — its label above the control — so the badge does not cover the label. */
+const field = (control: string) => `[data-testid^="field-"]:has(${tid(control)})`;
 
 const SHOTS: Shot[] = [
   {
@@ -353,6 +356,54 @@ const SHOTS: Shot[] = [
         { target: `${first} [data-testid^="admin-series-publish-button-"]` },
       ];
     },
+    phone: false,
+  },
+  {
+    // The sailor card down to the switch.
+    id: "help-profile-public",
+    as: (d) => d.sailor,
+    path: () => "/me/profile?tab=account",
+    waitFor: () => tid("account-profile-public-toggle"),
+    clip: () => ({ from: tid("account-profile-card"), to: `label:has(${tid("account-profile-public-toggle")})`, pad: 16 }),
+    marks: () => [{ target: `label:has(${tid("account-profile-public-toggle")})` }],
+    phone: false,
+  },
+  {
+    // The organizer's menu: it has *Administration*, a sailor's would not.
+    id: "help-account-menu",
+    as: () => ORGANIZER,
+    path: () => "/me",
+    open: async (page) => {
+      await page.getByTestId("layout-profile-button").click();
+    },
+    waitFor: () => tid("layout-user-menu"),
+    clip: () => ({ from: tid("layout-profile-button"), to: tid("layout-user-menu"), pad: 16 }),
+    phone: false,
+  },
+  {
+    id: "help-news-upload-link",
+    as: () => EDITOR,
+    path: () => "/admin?tab=media",
+    waitFor: () => tid("admin-import-key-form"),
+    clip: () => ({ from: tid("admin-import-key-form"), pad: 16 }),
+    marks: () => [
+      { target: field("admin-import-key-label-input") },
+      { target: field("admin-import-key-context-select") },
+      { target: tid("admin-import-key-create-button") },
+    ],
+    phone: false,
+  },
+  {
+    id: "help-news-post",
+    as: () => EDITOR,
+    path: () => "/admin/news/new",
+    waitFor: () => tid("admin-post-form"),
+    clip: () => ({ from: tid("admin-post-form"), to: tid("admin-post-preview-button"), pad: 16 }),
+    marks: () => [
+      { target: field("admin-post-kind-select") },
+      { target: field("admin-post-regatta-select") },
+      { target: tid("admin-post-publish-button") },
+    ],
     phone: false,
   },
 ];

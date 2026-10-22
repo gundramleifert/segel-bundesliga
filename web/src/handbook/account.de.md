@@ -69,7 +69,10 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 
 Vor der Anmeldung stehen in der oberen Zeile die Sprache und *Anmelden*. Danach öffnet
 Ihr Konto *Konto und Einstellungen*: *Mein Bereich*, *Mein Profil*, *Verwaltung*, wenn Ihre
-Rolle sie nutzt, *Hilfe* und *Sprache*. In der oberen Zeile, neben der Sprache oder Ihrem Konto, schaltet die
+Rolle sie nutzt, *Hilfe* (*Hilfe zu dieser Seite*, wo die Seite eine eigene hat) und *Sprache*.
+
+![Das Kontomenü einer Organisatorin oder eines Organisators](shot:help-account-menu)
+ In der oberen Zeile, neben der Sprache oder Ihrem Konto, schaltet die
 Sonne oder der Mond die ganze Seite hell oder dunkel — *Hell darstellen*, *Dunkel darstellen*. Alle beginnen mit
 dunkel; Ihre Wahl bleibt auf diesem Gerät.
 

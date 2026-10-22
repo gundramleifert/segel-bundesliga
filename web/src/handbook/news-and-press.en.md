@@ -17,9 +17,12 @@ For the site's *Editor* and *Admin*: the tabs [*News*](place:admin.news) and
 
 ### Pictures from a photographer {#news-and-press-pictures}
 
-1. On [*Media*](place:admin.media), under *Upload links*: enter *For* (e.g. "Photos
-   Kiel, act 3"), choose the event in *Pictures of*, add a *Credit* if you like and the
-   *Days valid*, then *Make link*.
+1. On [*Media*](place:admin.media), under *Upload links*: enter *For* ① (e.g. "Photos
+   Kiel, act 3"), choose the event in *Pictures of* ②, add a *Credit* if you like and the
+   *Days valid*, then *Make link* ③.
+
+   ![Upload links: *For* ①, *Pictures of* ②, *Make link* ③](shot:help-news-upload-link)
+
 2. Copy the link — it is shown only this once — and send it. The photographer needs no
    account: they open it on a phone and send their pictures. Each lands in the library,
    filed under the event, with the credit.
@@ -31,16 +34,18 @@ batch.
 
 ### Write and publish {#news-and-press-write}
 
-1. On [*News*](place:admin.news), *New post*. Choose the *Kind* — *News* or *Press
+1. On [*News*](place:admin.news), *New post*. Choose the *Kind* ① — *News* or *Press
    release* — and the *League*; the association's posts appear in every league.
 2. Enter *Title*, *Lead* and *Text*. For the *Picture*: *From the library*, *Upload a
    picture*, or drop one onto it, and its *Credit*.
-3. Under *Regatta*, choose the event: its public photos are shown at the end of the post.
+3. Under *Regatta* ②, choose the event: its public photos are shown at the end of the post.
 4. *Preview* shows the post as readers will see it. Nothing is saved by looking.
-5. *Save draft* keeps it off the site. *Publish* puts it on the league's news page, or a
+5. *Save draft* keeps it off the site. *Publish* ③ puts it on the league's news page, or a
    press release in its press centre. *Withdraw* makes it a draft again.
 
 Leaving with unsaved changes asks first, and this device keeps what you typed and offers
 it back when you return.
+
+![A new post: *Kind* ①, *Regatta* ②, *Publish* ③](shot:help-news-post)
 
 The event's photos also appear on the league's media page, once the event is published.

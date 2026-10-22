@@ -30,10 +30,12 @@ Verein kann die Bitte weitergeben).
   hinterlegt ist. Sonst öffnen es nur Sie, Admin und Redaktion der Geschäftsstelle und
   die Organisation eines Vereins, in dessen Kader Sie stehen.
 
-- *Öffentliche Profilseite*: Aus verbirgt Ihre Seite — Foto, Vereine, Spieltage — vor
+- *Öffentliche Profilseite* ①: Aus verbirgt Ihre Seite — Foto, Vereine, Spieltage — vor
   allen außer Ihnen, der Leitung Ihres Vereins und der Geschäftsstelle. Ihr Name steht
   weiter in Kader, Aufstellung und Ergebnissen, als reiner Text ohne Foto. Nur Sie können
   das umschalten. Solange Sie es nicht tun, ist sie ab 18 an und davor aus.
+
+![Mein Segler-Profil: der Schalter *Öffentliche Profilseite* ①](shot:help-profile-public)
 
 Ihr Geburtsdatum entscheidet auch, wie Sie den
 [Haftungsausschluss](#waiver-birth-date) bestätigen.

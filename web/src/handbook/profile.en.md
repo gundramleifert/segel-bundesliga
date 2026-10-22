@@ -29,10 +29,12 @@ address (your club can pass the request on).
   file. Otherwise only you, the league office's admin and editors, and the organizer of a
   club whose squad holds you can open it.
 
-- *Public profile page*: off hides your page — photo, clubs, matchdays — from everyone
+- *Public profile page* ①: off hides your page — photo, clubs, matchdays — from everyone
   but you, your club's leadership and the league office. Your name still appears in
   squads, lineups and results, as plain text without your photo. Only you can switch it.
   Until you do, it is on from 18 and off before.
+
+![My sailor profile: the switch *Public profile page* ①](shot:help-profile-public)
 
 Your birthdate also decides how you sign the [waiver](#waiver-birth-date).
 
