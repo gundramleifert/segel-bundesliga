@@ -502,7 +502,9 @@ class TestUploadWithoutLink:
     """As editorial I upload a batch myself, without a link — Story R-2."""
 
     async def test_editorial_uploads_with_credit_and_event(self, client, caplog, ids):
-        """R-2: editorial's own upload takes a credit and an event for the batch."""
+        """R-2: editorial's own upload takes a credit and an event for the batch.
+
+        Journey step J-6.11 — editorial's own pictures of an act, instead of a link."""
         headers = await editor(client, caplog, "media-editor@example.com")
         event_id = ids.event("dsbl-1-2026-act-3")
         uploaded = await client.post(

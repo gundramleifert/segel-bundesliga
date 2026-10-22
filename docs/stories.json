@@ -794,6 +794,91 @@
   "who": "sailor",
   "what": "the form PDF with the wording, name, date of birth and competition; an online click is refused (`guardian-confirmation-needed`)"
  },
+ "J-6": {
+  "title": "From a sailed race to the report and the press release",
+  "status": "◐",
+  "role": "Journeys",
+  "phase": "Journeys",
+  "file": "docs/journeys/press.md",
+  "anchor": ""
+ },
+ "J-6.1": {
+  "journey": "J-6",
+  "story": "WL-2",
+  "path": "main",
+  "who": "race officer",
+  "what": "the race is scored: the act's public page counts one more race (`races_scored`)"
+ },
+ "J-6.10": {
+  "journey": "J-6",
+  "story": "R-3",
+  "path": "main",
+  "who": "visitor",
+  "what": "the league's media page shows the act's photos with their credit"
+ },
+ "J-6.11": {
+  "journey": "J-6",
+  "story": "R-2",
+  "path": "editorial's own pictures",
+  "who": "editor",
+  "what": "the pictures are in the library, the act's, under editorial's credit"
+ },
+ "J-6.2": {
+  "journey": "J-6",
+  "story": "R-2",
+  "path": "main",
+  "who": "editor",
+  "what": "an upload link for the act exists; the key is shown once and says what its pictures are for"
+ },
+ "J-6.3": {
+  "journey": "J-6",
+  "story": "R-2",
+  "path": "main",
+  "who": "photographer",
+  "what": "the pictures are in the library, the act's, under the link's credit"
+ },
+ "J-6.4": {
+  "journey": "J-6",
+  "story": "R-1",
+  "path": "main",
+  "who": "editor",
+  "what": "the report is a draft about the act, its picture from the library — 404 publicly"
+ },
+ "J-6.5": {
+  "journey": "J-6",
+  "story": "R-1",
+  "path": "main",
+  "who": "editor",
+  "what": "the preview shows the report with the act's photos at its end; nothing is stored"
+ },
+ "J-6.6": {
+  "journey": "J-6",
+  "story": "R-1",
+  "path": "main",
+  "who": "editor",
+  "what": "the report is published"
+ },
+ "J-6.7": {
+  "journey": "J-6",
+  "story": "R-1",
+  "path": "main",
+  "who": "editor",
+  "what": "the press release is published for the league"
+ },
+ "J-6.8": {
+  "journey": "J-6",
+  "story": "R-1",
+  "path": "main",
+  "who": "visitor",
+  "what": "the league's news lists the report; its page ends with the act's photos"
+ },
+ "J-6.9": {
+  "journey": "J-6",
+  "story": "R-1",
+  "path": "main",
+  "who": "visitor",
+  "what": "the league's press centre lists the release, and its text opens"
+ },
  "L-1": {
   "title": "See the boats move",
   "status": "◐",

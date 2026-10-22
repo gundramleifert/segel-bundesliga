@@ -11,7 +11,7 @@ browser groups (`describeStory` / `describeJourney` in `e2e/`); the help pages
 journey names, a journey's walk with one Allure step per journey step. Results are not
 here — this page says what *exists*, the report what *passed*.
 
-**94 stories** — ● 69 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 75 · with browser tests: 43 · walked by a journey: 31 · **with no test at all: 10**.
+**94 stories** — ● 69 implemented and tested · ◐ 14 partial · ○ 11 open. With backend tests: 75 · with browser tests: 43 · walked by a journey: 34 · **with no test at all: 10**.
 
 ## Journeys
 
@@ -20,6 +20,7 @@ here — this page says what *exists*, the report what *passed*.
 - [J-3 ◐ A sailor joins their club](#j-3--a-sailor-joins-their-club)
 - [J-4 ◐ An organizer sets up a series](#j-4--an-organizer-sets-up-a-series)
 - [J-5 ◐ A club's crew is cleared for a matchday](#j-5--a-clubs-crew-is-cleared-for-a-matchday)
+- [J-6 ◐ From a sailed race to the report and the press release](#j-6--from-a-sailed-race-to-the-report-and-the-press-release)
 
 ### J-1 ◐ From an empty series to a scored matchday
 
@@ -129,3 +130,23 @@ here — this page says what *exists*, the report what *passed*.
 | J-5.12 | sailor uploads | S-1 | ● | W2 | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
 | J-5.13 | club uploads | S-1 | ● | W2 | — | `club-waivers`<br>`faq`<br>`journey-crew-cleared`<br>`waiver` |
 | J-5.14 | main | VA-5 | ● | W1, W2, W3, W4 | — | `club-waivers`<br>`event-checkin`<br>`journey-crew-cleared` |
+
+### J-6 ◐ From a sailed race to the report and the press release
+
+[press.md](journeys/press.md) · help: — · report: Allure → story *J-6 · From a sailed race to the report and the press release*, one step per row below
+
+- **W1** `test_journey_press.py::TestFromARaceToThePress::test_the_photographer_sends_the_pictures`
+
+| Step | Path | Story | | Walked by | Also covered by | Help |
+|---|---|---|---|---|---|---|
+| J-6.1 | main | WL-2 | ◐ | W1 | — | `journey-lifecycle`<br>`results-entry` |
+| J-6.2 | main | R-2 | ● | W1 | — | — |
+| J-6.3 | main | R-2 | ● | W1 | — | — |
+| J-6.11 | editorial's own pictures | R-2 | ● | — | `test_media.py::test_editorial_uploads_with_credit_and_event` | — |
+| J-6.4 | main | R-1 | ● | W1 | — | — |
+| J-6.5 | main | R-1 | ● | W1 | — | — |
+| J-6.6 | main | R-1 | ● | W1 | — | — |
+| J-6.7 | main | R-1 | ● | W1 | — | — |
+| J-6.8 | main | R-1 | ● | W1 | — | — |
+| J-6.9 | main | R-1 | ● | W1 | — | — |
+| J-6.10 | main | R-3 | ● | W1 | — | — |

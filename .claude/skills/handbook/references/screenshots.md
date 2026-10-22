@@ -88,8 +88,9 @@ the clip, or a glow beside its control (layout moved) are the failures to catch.
 
 ## The data must say something
 
-An empty table teaches nothing. Use, in this order: the seed (`app.seed_test_setup` — three
-series, 360 sailors, a planned matchday); steps inside the spec through the API, the way
+An empty table teaches nothing. Use, in this order: the seed (`app.seed_test_setup` — the real
+2026 clubs of both divisions, four series, 540 sailors, a planned matchday per league; the
+test club ASVW and its 2. Liga act 3); steps inside the spec through the API, the way
 `lifecycle.spec.ts` builds an event; nothing else. Dates relative to "now" change every
 capture — clip them out or pick seeded fixed dates.
 

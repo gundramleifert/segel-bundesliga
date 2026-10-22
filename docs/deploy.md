@@ -187,6 +187,27 @@ needed to try out roles), but it means anyone who finds the URL is an admin. For
 private test URL that's usually an acceptable trade; once SMTP (and, later, an OIDC
 provider) is confirmed working, it can be turned off by editing `render.env`.
 
+**Who to be, and what to try.** The role switcher (bottom right) lists the seeded cast
+(`app.seed_users`, CLAUDE.md § Testing different roles). The data is the real 2026
+line-up of both divisions; the people who sign in sit on one club, one series, one event:
+
+| Try | Sign in as | Where |
+|---|---|---|
+| A club's members, squads, crews, waivers, crest | Gundram Leifert (ASVW admin), Gunnar Voigt (ASVW team manager) | My space → ASVW |
+| Name a crew for a matchday | Gunnar Voigt | ASVW → *Matchdays* → the 2. Liga's act 3 (planned) |
+| Prepare a season | Sven Series, then Gunnar Voigt | the 1. Liga 2027 draft: enter clubs, then ASVW's squad |
+| Run an event: organize, race control, jury, helper | Peter Weichel, Malte Rackow, Heiko Thölmann, Johannes Machur | My space → the 2. Liga's act 3 (hosted by ASVW) |
+| File a claim and pay it | the act 3 crew above; ASVW's treasurer pays | *Claims*; ASVW → *Money* |
+| Write news and press releases, pictures | Sven Jürgensen (editor) | Admin → *News*, *Media* |
+| The juniors' season | Jocki Hellmich | the Junioren-Segelliga 2026 and its 2027 draft |
+| Anything, everywhere | Alina Admin | Admin |
+
+**What does not last:** a free instance **sleeps after 15 idle minutes**, and waking or
+redeploying starts again from the seed — accounts registered, posts written, pictures and
+scans uploaded are gone. Test a flow in one sitting; anything that has to survive a pause
+(onboarding over several days, an article checked the next morning) needs a persistent
+database and disk, which this test instance deliberately does not have.
+
 **The simulated race works on the test instance too.** "Simulate a race" on an event's live
 page calls `POST /api/dev/emulate`, which exists only with `SBL_DEV_LOGIN=true`, and the
 button shows only with `VITE_DEV_TOOLS=true` — both already set for the test instance. The

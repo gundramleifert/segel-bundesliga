@@ -26,6 +26,7 @@ stakeholders can read and a step table the tests are held to. The chain it start
 | J-3 A sailor joins their club | [member.md](../journeys/member.md) | person, club admin, club member, team manager |
 | J-4 An organizer sets up a series | [series.md](../journeys/series.md) | league office, series manager, team manager, visitor |
 | J-5 A club's crew is cleared for a matchday | [crew-cleared.md](../journeys/crew-cleared.md) | team manager, sailor, guardian, event organizer, visitor |
+| J-6 From a sailed race to the report and the press release | [press.md](../journeys/press.md) | race officer, editor, photographer, visitor |
 
 ## Actors
 
@@ -52,6 +53,8 @@ sails), and a journey shows them as the actor of each step.
 | race officer | R | runs the races and enters results | `race_officer` on the event, series or site | [race-committee.md](race-committee.md) | race-committee |
 | jury | JY | decides protests | `jury` on the series or event | [race-committee.md](race-committee.md) | race-committee |
 | league office | A | runs the site: clubs, series, accounts | `admin` or `editor` on the site | [administration.md](administration.md) | administration |
+| editor | ED | writes the site's news and press releases and keeps its pictures | `editor` on the site (its `admin` too) | [editorial.md](editorial.md) | administration |
+| photographer | PH | delivers pictures through an upload link, without an account | — (an import key, Story R-2) | [editorial.md](editorial.md) | — |
 | site | P | the system itself — answers, refuses, shows | — | — | — |
 
 In the diagram an actor is `actor <Alias> as <Actor>` (`site` is `participant P as Site`),
