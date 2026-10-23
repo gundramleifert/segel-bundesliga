@@ -34,6 +34,130 @@ POSTS: list[dict] = [
         "photo_credit": "Deutsche Segel-Liga e.V.",
         "example": False,
     },
+    # rewritten from https://deutsche-segelbundesliga.de/die-entscheidung-auf-dem-wannsee-ist-gefallen/
+    {
+        "kind": "news",
+        "title": "Wannsee: NRV und ASVW gewinnen den fünften Spieltag",
+        "published_on": "2026-09-20",
+        "league": None,
+        "teaser": "Beim Potsdamer Yacht Club sind in beiden Ligen alle 16 Flights gesegelt worden. "
+        "Den Spieltag gewinnen der Norddeutsche Regatta Verein in der 1. und der Akademische "
+        "Segelverein Warnemünde in der 2. Liga.",
+        "body": "Das Wochenende auf dem Wannsee hat den Crews keine Pause gegönnt: An den ersten "
+        "beiden Tagen wehte nur wenig Wind, der dazu ständig die Richtung wechselte, am Sonntag "
+        "kamen kräftige "
+        "Böen. Trotzdem ist das komplette Programm geschafft worden – 16 Flights in jeder der "
+        "beiden Ligen.\n"
+        "\n"
+        "In der 1. Liga war es lange ein Zweikampf. Der Berliner Yacht-Club, auf seinem "
+        "Heimrevier, hielt sich bis weit ins Wochenende hinein ganz vorn, doch der Norddeutsche "
+        "Regatta Verein kam heran und behielt am Ende die Oberhand. Für die Berliner bleibt Rang "
+        "zwei, Dritter wird der Joersfelder Segel-Club, der das ganze Wochenende über "
+        "gleichmäßig punktete.\n"
+        "\n"
+        "Die 2. Liga hatte früh einen klaren Favoriten: Der Akademische Segelverein Warnemünde "
+        "ging bald in Führung und gab sie bis zum letzten Rennen nicht mehr her. Spannend wurde "
+        "es um die Plätze dahinter. Der Flensburger Segel-Club und der Segel-Club Ville kamen mit "
+        "dem auffrischenden Wind am Sonntag am besten zurecht und segelten sich in der "
+        "Schlussphase noch auf die Ränge zwei und drei.\n"
+        "\n"
+        "1. Liga: 1. Norddeutscher Regatta Verein, 2. Berliner Yacht-Club, 3. Joersfelder "
+        "Segel-Club.\n"
+        "\n"
+        "2. Liga: 1. Akademischer Segelverein Warnemünde, 2. Flensburger Segel-Club, 3. "
+        "Segel-Club Ville.\n"
+        "\n"
+        "Glückwunsch an alle Crews zu diesem Wochenende!",
+        "author": "Redaktion",
+        "photo_url": None,
+        "photo_credit": None,
+        "example": False,
+    },
+    # rewritten from https://deutsche-segelbundesliga.de/heimsieg-auf-der-aussenalster/
+    {
+        "kind": "news",
+        "title": "Hamburg: Der NRV gewinnt zu Hause und führt die Tabelle an",
+        "published_on": "2026-08-03",
+        "league": "1-liga",
+        "teaser": "Auf der Außenalster holt der Norddeutsche Regatta Verein den Sieg am 4. "
+        "Spieltag – vor eigenem Publikum. Damit steht er nun allein an der Spitze der "
+        "Gesamtwertung.",
+        "body": "Der Gastgeber hat seinen eigenen Spieltag gewonnen: Beim vierten Wochenende "
+        "der 1. Liga lag am Ende der Norddeutsche Regatta Verein vorn. Zweiter wurde der "
+        "Bayerische Yacht-Club, knapp dahinter belegte der Mühlenberger Segel-Club Rang drei.\n"
+        "\n"
+        "Der Wind auf der Außenalster blieb das ganze Wochenende unberechenbar. Wer vorn landen "
+        "wollte, musste vor allem ohne große Ausrutscher durch die Rennen kommen.\n"
+        "\n"
+        "In der Gesamtwertung hat sich der NRV mit diesem Ergebnis deutlich an die Spitze "
+        "gesetzt. Auf den Plätzen folgen der Joersfelder Segel-Club und der Mühlenberger "
+        "Segel-Club – entschieden ist der Kampf um den Titel also noch nicht.\n"
+        "\n"
+        "Wir gratulieren allen Crews und danken den Helferinnen und Helfern, den Offiziellen und "
+        "dem Norddeutschen Regatta Verein als Ausrichter für ein gelungenes Wochenende in "
+        "Hamburg.",
+        "author": "Redaktion",
+        "photo_url": None,
+        "photo_credit": None,
+        "example": False,
+    },
+    # rewritten from https://deutsche-segelbundesliga.de/naechster-halt-hamburg/
+    {
+        "kind": "news",
+        "title": "Vorschau: Gleichstand an der Spitze vor dem Spieltag in Hamburg",
+        "published_on": "2026-07-30",
+        "league": "1-liga",
+        "teaser": "Vom 30. Juli bis 2. August segelt die 1. Liga auf der Außenalster, "
+        "Gastgeber ist der Norddeutsche Regatta Verein. Ausgerechnet er führt die Tabelle an "
+        "– punktgleich mit dem Joersfelder Segel-Club.",
+        "body": "Der vierte Spieltag der Saison 2026 führt die 1. Liga nach Hamburg. Der "
+        "Norddeutsche Regatta Verein lädt vom 30. Juli bis 2. August auf die Außenalster ein.\n"
+        "\n"
+        "Spannender könnte die Ausgangslage kaum sein: Der Gastgeber und der Joersfelder "
+        "Segel-Club haben vor dem Wochenende exakt gleich viele Punkte. Was an diesen Tagen "
+        "passiert, kann die Tabelle kräftig durcheinanderwirbeln.\n"
+        "\n"
+        "Die Prognose verspricht allerdings wenig Wind. Bei solchen Bedingungen kommt es auf "
+        "jeden Meter an, auf die richtige Taktik und eine kluge Strategie – und am Saisonende "
+        "kann jeder einzelne Punkt entscheiden.\n"
+        "\n"
+        "Wir wünschen allen Crews viel Erfolg und hoffen auf möglichst viele Rennen.",
+        "author": "Redaktion",
+        "photo_url": None,
+        "photo_credit": None,
+        "example": False,
+    },
+    # rewritten from https://deutsche-segelbundesliga.de/3-spieltag-kieler-foerde/
+    {
+        "kind": "news",
+        "title": "Kiel: Mühlenberger SC und SC Ville gewinnen den dritten Spieltag",
+        "published_on": "2026-07-12",
+        "league": None,
+        "teaser": "Sonne, Wärme und Bilderbuchwind zum Abschluss auf der Kieler Förde: Nach 16 "
+        "Läufen gewinnt der Mühlenberger Segel-Club die 1. Liga, der Segel-Club Ville die 2. "
+        "Liga.",
+        "body": "Am Hotel Kieler Yacht Club blieb es bis zum letzten Rennen offen. Der Schlusstag "
+        "brachte Sonnenschein, warme Temperaturen und angenehmen Wind – ein schöner Ausklang für "
+        "einen gelungenen dritten Spieltag.\n"
+        "\n"
+        "In der 1. Liga führte der Mühlenberger Segel-Club vom ersten Tag an und gab die Spitze "
+        "nicht mehr ab: 33 Punkte nach 16 Läufen. Der Norddeutsche Regatta Verein folgt mit 38 "
+        "Punkten, der Münchner Yacht-Club mit 45.\n"
+        "\n"
+        "In der 2. Liga legte der Segel-Club Ville am Schlusstag noch einmal zu und gewann den "
+        "Spieltag mit 35 Punkten. Zweiter wurde der Flensburger Segel-Club (38), Dritter der "
+        "Konstanzer Yacht-Club (42).\n"
+        "\n"
+        "Zur Halbzeit der 1. Liga – drei von sechs Spieltagen sind gesegelt – teilen sich der "
+        "Norddeutsche Regatta Verein und der Joersfelder Segel-Club mit je 9 Punkten die "
+        "Tabellenspitze, dahinter liegt der Münchner Yacht-Club (17). In der 2. Liga stehen nach "
+        "drei von fünf Spieltagen der Verein Seglerhaus am Wannsee (13), der Konstanzer "
+        "Yacht-Club (14) und der Lübecker Yacht-Club (16) vorn.",
+        "author": "Redaktion",
+        "photo_url": None,
+        "photo_credit": None,
+        "example": False,
+    },
     {
         "kind": "news",
         "slug": "asvw-takes-the-lead",
