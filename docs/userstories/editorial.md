@@ -210,6 +210,7 @@ Endpoints: `GET|POST|PATCH /api/admin/media`, `GET|PATCH|DELETE /api/admin/media
 `GET /api/media/{name}`
 
 Tests: `api/tests/stories/test_media.py::TestLibrary`,
+`api/tests/stories/test_posts.py::TestSeededPictures`,
 `api/tests/stories/test_media.py::TestImport`,
 `api/tests/stories/test_media.py::TestContext`,
 `api/tests/stories/test_media.py::TestFromAddress`,

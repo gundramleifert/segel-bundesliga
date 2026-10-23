@@ -1,0 +1,592 @@
+[
+ {
+  "name": "Deutsche Junioren Segel-Liga 2020 - Act 1",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "6da334df-859c-44fd-b509-d557cbd82f0f"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2021 - Act 2",
+  "startDate": 1630126800000,
+  "endDate": 1630267200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "ec147cd9-4b26-448a-8c33-e5a14ffb7c23"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2021 - Act 1",
+  "startDate": 1627016400000,
+  "endDate": 1627243200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "f77cfb1a-ecaa-4bc0-af91-3a724173ec58"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga Act1, 2018",
+  "startDate": 1525503600000,
+  "endDate": 1525622400000,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "17862a3b-5175-40e8-889e-4b4d65528ef0"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": false,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2022 - Act 3 Finale",
+  "startDate": 1666332000000,
+  "endDate": 1666555200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "e74eb087-ca09-4b9b-a380-01febd85c202"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2024 - Act 4 Finale",
+  "startDate": 1728626400000,
+  "endDate": 1728849600000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "2068cbb0-c4a2-4030-9b12-0c0046fce22f"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2024 - Nord Act 1",
+  "startDate": 1720249200000,
+  "endDate": 1720382400000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "5e2eba89-4a15-432d-bb65-0cd681631141"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga, FINALE 2017 - Berlin",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "27172421-d2d6-43a8-ae58-47d336529132"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": false,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2018, Act4",
+  "startDate": 1539414000000,
+  "endDate": 1539532800000,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "128bb84c-185c-42fa-8188-2c05f0fa9e20"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2024 - Mitte Act 2",
+  "startDate": 1723788000000,
+  "endDate": 1724011200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "e436664d-8d03-4894-8d9a-478373682d8f"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2018, Act2",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "5dd3dee5-4c00-4a25-a1cf-7c7d35d41f5d"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2022 - Act 1",
+  "startDate": 1654239600000,
+  "endDate": 1654459200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "d8bdcc39-3ba6-4c31-9793-b6a7d9733d34"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2018, Act3",
+  "startDate": 1537516800000,
+  "endDate": 1537718400000,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "e7425895-bfd7-4f98-a9ad-dff6d4f15d86"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2021 - Finale Act 4",
+  "startDate": 1635485400000,
+  "endDate": 1635715800000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "347b686a-fb3c-4716-8015-c8c2602b9d2d"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2018, Act1",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "17862a3b-5175-40e8-889e-4b4d65528ef0"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": false,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2025 - Pokal",
+  "startDate": 1761285600000,
+  "endDate": 1761512400000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "cf17b7f6-8e2e-4e53-a609-e89568f9f1d3"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2022 - Act 2",
+  "startDate": 1663916400000,
+  "endDate": 1664136000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "f2b1c764-098c-4315-8b2f-9642b1c163bb"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2023 - Act 2 Nord",
+  "startDate": 1688713200000,
+  "endDate": 1688937000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "d431af84-b0e9-4de5-9e89-fc334762f205"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2020 - Act 2 Finale",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "1e91c1a5-0a75-4240-a9d1-e441448c98b2"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2024 - Süd Act 3",
+  "startDate": 1725602400000,
+  "endDate": 1725825600000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "c249d4f0-5068-4dfc-827f-42029bfd2407"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutscher Junioren- & Segel-Liga Pokal 2026",
+  "startDate": 1792821600000,
+  "endDate": 1792962000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "6fd95275-00ba-4ae2-ad17-c9cd433f1276"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": true,
+  "controlTrackingFromStartAndFinishTimes": false,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 1",
+  "startDate": 1778220000000,
+  "endDate": 1778443200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "59933b81-02b7-4e3b-9b73-5827d5ca1e91"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2017, WEST, ACT1",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "4501d2c2-7402-4a7a-bb4a-2be36a5968c8"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": false,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga - Act1",
+  "startDate": 1654272000000,
+  "endDate": 1654444800000,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2025 - Act 2",
+  "startDate": 1755842400000,
+  "endDate": 1756065600000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "0b8daaf7-aea3-4088-85eb-17edbff2f36a"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)",
+  "startDate": 1790920800000,
+  "endDate": 1791144000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "c21d9974-5081-4117-817e-f4e28c62fdae"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2023 - Act 1 Mitte",
+  "startDate": 1681452000000,
+  "endDate": 1681675200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "04b6ebfc-771d-4906-ace2-e62a8493e8ca"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2025 - Act 1",
+  "startDate": 1746165600000,
+  "endDate": 1746388800000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "9fcc7be1-9475-4040-aefe-ec7218bb068a"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2017, WEST, ACT 2",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "33932732-c682-4e64-90b8-23325b9a0ed6"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": false,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2017, NORD, ACT 2",
+  "startDate": null,
+  "endDate": null,
+  "scoringSystem": "LOW_POINT",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "73119ef3-f2dc-4e37-9eb1-713965cc6e3f"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2025 - Act 3",
+  "startDate": 1757656800000,
+  "endDate": 1757880000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "29da6e89-d574-40ba-a559-093109ea8bbb"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2023 - Act 3 Süd",
+  "startDate": 1694152800000,
+  "endDate": 1694368800000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "9eecb7c4-c481-4f2d-933a-afb96bc1b514"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 3",
+  "startDate": 1789106400000,
+  "endDate": 1789329600000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "5650e3b3-9872-47cd-b072-564aeec57ea8"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 2",
+  "startDate": 1787292000000,
+  "endDate": 1787515200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "ee91897d-b4d2-4db7-8b0a-6e5ee48ab6c3"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga - Act 3",
+  "startDate": 1633759200000,
+  "endDate": 1633896000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "21879d94-9eb6-493c-9d9e-d8148336a501"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2025 - Act 4 (Finale)",
+  "startDate": 1760680800000,
+  "endDate": 1760904000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "5da6af0a-a34f-4510-8301-1925a5a81b74"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2023 - Act 4 Finale",
+  "startDate": 1697176800000,
+  "endDate": 1697400000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "e864e168-8675-430c-a8ed-ec60c815527f"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ }
+]

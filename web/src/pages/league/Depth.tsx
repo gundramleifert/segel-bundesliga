@@ -13,11 +13,8 @@ import { ErrorMessage, Loading } from "../../components/Blocks";
 import { YouTubePlayer } from "../../components/site/Media";
 import { Gallery } from "../../components/site/Gallery";
 import {
-  DSBL_PHOTOS,
-  OWN_PHOTOS,
   PRESS_CONTACT,
   articleOf,
-  leaguePhoto,
   tableMarks,
   useArticle,
   useGallery,
@@ -52,7 +49,7 @@ export function StandingsPage() {
       {(data) => {
         const { league, season, year } = data;
         return (
-          <DepthPage league={league} title={t("pages.standings")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.podium}>
+          <DepthPage league={league} title={t("pages.standings")} kicker={kickerOf(data)}>
             {season.series.length ? (
               // One division under the other: with a column per act, two tables side by
               // side left each too narrow to read.
@@ -128,7 +125,7 @@ export function SeasonPage() {
       {(data) => {
         const { league, acts, year } = data;
         return (
-          <DepthPage league={league} title={t("pages.season")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.aerial}>
+          <DepthPage league={league} title={t("pages.season")} kicker={kickerOf(data)}>
             <Block title={t("season.matchdays")}>
               {!acts.length && <TextCard>{t("season.empty")}</TextCard>}
               {acts.length > 0 && <Card className="px-4">
@@ -194,7 +191,7 @@ export function NoticeBoardPage() {
         const { league, acts, year } = data;
         const act = currentAct(acts);
         return (
-          <DepthPage league={league} title={t("noticeBoard.season")} kicker={kickerOf(data)} photo={OWN_PHOTOS.title}>
+          <DepthPage league={league} title={t("noticeBoard.season")} kicker={kickerOf(data)}>
             <TextCard className="mb-8">
               {t("noticeBoard.intro")}{" "}
               {act && year && (
@@ -253,7 +250,7 @@ export function ClubsPage() {
   return (
     <LeagueGate>
       {(data) => (
-        <DepthPage league={data.league} title={t("pages.clubs")} kicker={kickerOf(data)} photo={DSBL_PHOTOS.race}>
+        <DepthPage league={data.league} title={t("pages.clubs")} kicker={kickerOf(data)}>
           {!data.season.series.length && <TextCard>{t("clubs.none")}</TextCard>}
           {data.season.series.map((s) => (
             <Block key={s.id} title={s.name}>
@@ -291,7 +288,7 @@ export function NewsPage() {
   return (
     <LeagueGate>
       {({ league }) => (
-        <DepthPage league={league} title={t("pages.news")} kicker={league.short_name} photo={DSBL_PHOTOS.swimmer}>
+        <DepthPage league={league} title={t("pages.news")} kicker={league.short_name}>
           <NewsGrid league={league.slug} />
         </DepthPage>
       )}
@@ -397,7 +394,7 @@ export function MediaPage() {
   return (
     <LeagueGate>
       {({ league }) => (
-        <DepthPage league={league} title={t("media.page")} kicker={league.short_name} photo={DSBL_PHOTOS.camera}>
+        <DepthPage league={league} title={t("media.page")} kicker={league.short_name}>
           <MediaContent league={league.slug} />
         </DepthPage>
       )}
@@ -430,7 +427,6 @@ export function MediaContent({ league, limit }: { league: string; limit?: number
             <>
               <Gallery photos={limit ? photos.slice(0, limit + 1) : photos} />
               {!limit && <MoreButton list={gallery} label={t("media.morePhotos")} testId="site-media-more-button" />}
-              {!gallery.library && <TextCard className="mt-4 text-xs">{t("media.credits")}</TextCard>}
             </>
           )}
         </Async>
@@ -446,7 +442,7 @@ export function PressPage() {
   return (
     <LeagueGate>
       {({ league }) => (
-        <DepthPage league={league} title={t("press.page")} kicker={league.short_name} photo={DSBL_PHOTOS.studio}>
+        <DepthPage league={league} title={t("press.page")} kicker={league.short_name}>
           <Columns split="twoToOne">
             <Block title={t("press.releases")}>
               <Card className="px-4">
@@ -528,7 +524,7 @@ export function LeagueAboutPage() {
   return (
     <LeagueGate>
       {({ league }) => (
-        <DepthPage league={league} title={t("about.title", { league: league.short_name })} kicker={league.name} photo={about?.photo ?? leaguePhoto(slug)}>
+        <DepthPage league={league} title={t("about.title", { league: league.short_name })} kicker={league.name}>
           {about ? (
             <>
               <TextCard className="mb-10 text-lg leading-relaxed">{localized(about.intro)}</TextCard>

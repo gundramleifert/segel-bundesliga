@@ -7,7 +7,7 @@ import type { Photo } from "../../content";
 import { BAR_SHADE, PAGE_TITLE, SHADE_ACROSS } from "./Cards";
 import { GlassFooter } from "./Footer";
 import { TOP_ROW, TopBar } from "./Frame";
-import { Picture } from "./Media";
+import { Backdrop } from "./Media";
 import { useActiveChapter } from "./settings";
 
 export type ChapterSpec = {
@@ -26,7 +26,7 @@ export type ChapterSpec = {
  *  into place left half a screen of picture between two (removed 2026-10-18). The
  *  overview has no sub-menu: the chapters are its contents, and each leads to its page,
  *  where the sub-menu is. */
-export function ChapterScroller({ chapters, photo, league }: { chapters: ChapterSpec[]; photo: Photo; league?: League | null }) {
+export function ChapterScroller({ chapters, photo, league }: { chapters: ChapterSpec[]; photo?: Photo; league?: League | null }) {
   const current = useActiveChapter(chapters[0].id, chapters.map((c) => c.id).join());
   // The document behind has nothing to scroll, so Space, Page Down and the arrows have to
   // reach this box: it takes the focus when the page opens (without moving).
@@ -40,7 +40,7 @@ export function ChapterScroller({ chapters, photo, league }: { chapters: Chapter
   return (
     <div className="fixed inset-0 bg-background">
       <div aria-hidden className="absolute inset-0" data-testid="site-chapters-picture">
-        <Picture photo={photo} />
+        <Backdrop league={league?.slug} photo={photo} seed={league?.slug ?? "home"} />
       </div>
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: SHADE_ACROSS }} />
       <div className={`absolute inset-x-0 top-0 z-40 ${BAR_SHADE}`}>

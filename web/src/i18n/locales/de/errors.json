@@ -206,5 +206,8 @@
   "media-url-invalid": "Diese Adresse lässt sich nicht holen — nur öffentliche Webadressen (http oder https).",
   "media-url-unreachable": "Das Bild ließ sich von dieser Adresse nicht holen.",
   "post-title-in-text": "Der Text beginnt noch einmal mit dem Titel — der Titel steht schon darüber.",
-  "post-picture-not-in-library": "Ein Bild in diesem Beitrag ist von einer anderen Website verlinkt. Bitte zuerst in die Mediathek holen — erneut einfügen oder im Bildbereich über seine Webadresse hinzufügen."
+  "post-picture-not-in-library": "Ein Bild in diesem Beitrag ist von einer anderen Website verlinkt. Bitte zuerst in die Mediathek holen — erneut einfügen oder im Bildbereich über seine Webadresse hinzufügen.",
+  "too-many-teams-per-club": "{club} darf in dieser Veranstaltung {teams_per_club, plural, one {# Team} other {# Teams}} melden.",
+  "teams-per-club-exceeds-teams": "Ein Verein kann nicht mehr Teams melden, als die Veranstaltung hat ({team_count}).",
+  "teams-per-club-below-entered": "Ein Verein hat {entered} Teams gemeldet — nehmen Sie die überzähligen zuerst heraus, dann senken Sie die Zahl."
 }

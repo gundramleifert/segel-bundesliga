@@ -136,3 +136,10 @@ export function todayIso(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
+
+/** A team as every page names it: its club's short name and, from the club's second team
+ *  in an event on, its number — `KYC (SH)`, `KYC (SH) 2` (Story VA-13). */
+export function teamLabel(team: { club: { short_name: string }; number?: number }): string {
+  const number = team.number ?? 1;
+  return number > 1 ? `${team.club.short_name} ${number}` : team.club.short_name;
+}

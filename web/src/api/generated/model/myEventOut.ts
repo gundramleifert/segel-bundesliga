@@ -28,4 +28,6 @@ export interface MyEventOut {
   series?: MySeriesOut | null;
   team_id: number;
   squad_team_id: number;
+  number?: number;
+  team_name?: string;
 }

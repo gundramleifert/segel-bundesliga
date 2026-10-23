@@ -58,6 +58,23 @@ Acceptance criteria:
   (sail number and the colour SAP has), 16 flights of races and every team's result.
   The matchday is the `(n)` in the name, or the order of the dates where the year's
   names carry none. Points are then **derived** here (`recompute_event`), never copied.
+- **The Junioren-Liga** is on another SAP host, `hnv.sapsailing.com` (`--base-url`,
+  decided 2026-10-23 — `docs/findings.md` §3a): every regatta named
+  `Deutsche Junioren Segel-Liga YYYY - Act n …` becomes act *n* of the series
+  `Junioren-Segelliga YYYY` of the league `junioren-liga` — the seed's series of that
+  year when there is one. A suffix like `(Finale)`, `Nord` or `Mitte` goes into the
+  title. The names carry no city, so the act has no venue until someone sets it. The
+  cup (`… Pokal …`) is no act and is not imported.
+  - **A club can sail two teams in one act** (`KiYC 1`, `KiYC 2`): the number after the
+    code is the team, the code before it the club. The second is a team of its own —
+    `KYC (SH) 2`, in the act and in the series, scored on its own as SAP scores it.
+  - **The Junioren host spells some codes differently**, and an explicit alias table maps
+    those to ours (`BaYC` → `BYC`, `KiYC` → `KYC (SH)`, … in `app/imports/sap.py`) — a
+    reviewed line per club, still never a name comparison.
+  - A placeholder competitor (`No Show`) is no club: it is reported, not entered.
+  - Without tracked starts an act takes the dates the regatta list gives (`startDate`,
+    `endDate`) — the juniors' acts track none — and counts as over once its last day, or
+    else SAP's last scoring update, lies a day back.
 - **Manage2Sail** (`m2s --event <uuid>`): the event (title, dates), the clubs and teams
   of its entry list, and the **documents** on its notice board — title, kind (notice of
   race, sailing instructions, notice, other), date and the public download link. The
@@ -80,7 +97,9 @@ Acceptance criteria:
   of the build argument `SAP_IMPORT_YEARS` — **`2025-2026` by default**, empty to skip —
   published, from `SAP_BASE_URL` (default `www.sapsailing.com`). A failed or empty import
   never fails the build. The public SAP server has no season after 2023, so the default
-  imports nothing until the newer seasons' SAP instance is known and set.
+  imports nothing until the newer seasons' SAP instance is known and set. **The
+  Junioren-Liga** follows (decided 2026-10-23): `JUNIOR_IMPORT_YEARS` (default `2026`)
+  from `JUNIOR_SAP_BASE_URL` (default `hnv.sapsailing.com`), the same way.
 - Each run is an `ImportRun` row and prints what it created, updated, left unchanged,
   and what conflicted or failed.
 - Sailors are **not** imported: SAP carries none for the league (its "sailor" is the club),
@@ -92,6 +111,7 @@ placeholder content, `web/src/content/`, issue #14's question 5); SAP's attribut
 under imported results (`docs/findings.md` §3).
 
 Tests: `api/tests/stories/test_imports.py::TestSapImport`,
+`api/tests/stories/test_imports.py::TestJuniorenImport`,
 `api/tests/stories/test_imports.py::TestManage2SailImport`,
 `api/tests/unit/test_import_parsing.py`
 

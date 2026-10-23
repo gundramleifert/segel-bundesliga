@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { EventSummary, SeriesTable } from "../api/types";
-import { formatPoints } from "../lib/format";
+import { formatPoints, teamLabel } from "../lib/format";
 import { TableFrame } from "./Blocks";
 import { Tip } from "./Tip";
 
@@ -108,7 +108,7 @@ export function StandingsTable({
                         data-testid={`${testId}-club-link-${row.team.id}`}
                         className="font-medium text-foreground underline-offset-2 hover:underline"
                       >
-                        {row.team.club.short_name}
+                        {teamLabel(row.team)}
                       </Link>
                     </Tip>
                   </td>

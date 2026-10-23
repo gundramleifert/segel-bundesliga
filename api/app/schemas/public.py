@@ -133,6 +133,9 @@ class TeamOut(BaseModel):
     id: int
     name: str
     club: ClubOut
+    # The club's first, second, … team in the event (Story VA-13); a page names it by the
+    # club's short name and, from 2 on, this number.
+    number: int = 1
 
 
 class MemberOut(BaseModel):
@@ -248,6 +251,8 @@ class EventOut(BaseModel):
     team_count: int
     boat_count: int
     flight_count: int
+    # How many teams one club may enter (Story VA-13).
+    teams_per_club: int = 1
     # ceil(team_count / boat_count): the races of one flight, so every team sails once.
     races_per_flight: int = 0
     crew_size: int
@@ -502,6 +507,10 @@ class MyEventOut(BaseModel):
     series: MySeriesOut | None = None
     team_id: int
     squad_team_id: int
+    # The club's first, second, … team in this event, and its name (Story VA-13): a club
+    # with two teams there has two rows, each lined up on its own.
+    number: int = 1
+    team_name: str = ""
 
 
 class MyClubOut(BaseModel):

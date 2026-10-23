@@ -162,6 +162,9 @@ class Event(Base, TimestampMixin):
     team_count: Mapped[int] = mapped_column(default=18)
     boat_count: Mapped[int] = mapped_column(default=6)
     flight_count: Mapped[int] = mapped_column(default=16)
+    # How many teams one club may enter (Story VA-13): one is the normal case; a
+    # Junioren-Liga act has clubs sailing `KiYC 1` and `KiYC 2`.
+    teams_per_club: Mapped[int] = mapped_column(default=1, server_default="1")
     # How many people a club fields for this matchday. They must come from the team's
     # squad (Story V-2). A guideline, not a hard limit.
     crew_size: Mapped[int] = mapped_column(default=4)

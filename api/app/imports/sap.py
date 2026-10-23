@@ -1,4 +1,7 @@
-"""The league's past matchdays from SAP Sailing Analytics (Story A-14).
+"""The leagues' past matchdays from SAP Sailing Analytics (Story A-14).
+
+The 1. and 2. Liga are on ``www.sapsailing.com`` (up to 2023), the Junioren-Liga on its
+own host, ``hnv.sapsailing.com`` (``--base-url``) — the same API, other names.
 
 Reads the **public** API of ``www.sapsailing.com`` — no secret, verified 2026-10-12
 (``docs/findings.md`` §3a): the regatta list, and per regatta the v2 leaderboard, which
@@ -54,6 +57,7 @@ from app.models import (
 )
 from app.models.racing import RaceStatus, ResultCode
 from app.schemas.admin import ScoringIn
+from app.services.participation import event_entry, team_name
 from app.services.standings import recompute_event
 from app.text import slugify
 
@@ -65,6 +69,9 @@ SERIES_PREFIX = "dsbl"
 # The matchdays are sailed on German water; a start at 23:30 UTC is the next day here.
 LOCAL_TIME = ZoneInfo("Europe/Berlin")
 
+# The juniors' league, whose acts sit on their own SAP host (`hnv.sapsailing.com`).
+JUNIOR_LEAGUE = "junioren-liga"
+
 # `1. Segel-Bundesliga 2023 - Berlin (1)`, `2. Segel-Bundesliga 2020 - Hamburg (Finale)`,
 # `1. Segel-Bundesliga2018 - Travemünde (3)`. Not `… 2015-2016 - Relegation`: a
 # relegation regatta is no matchday of either division.
@@ -72,6 +79,29 @@ _NAME = re.compile(
     r"^(?P<level>[12])\.\s*Segel-Bundesliga\s*(?P<year>\d{4})(?!\s*-\s*\d)\s*-\s*(?P<rest>.+?)\s*$"
 )
 _SUFFIX = re.compile(r"\s*\((?P<label>[^)]*)\)\s*$")
+# `Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)`, `… 2024 - Nord Act 1`,
+# `… 2017, NORD, ACT 2`. Not the cup (`Deutscher Junioren- & Segel-Liga Pokal 2026`), and
+# not an act without a year: neither belongs to a series.
+_JUNIOR_NAME = re.compile(
+    r"^Deutsche Junioren Segel-Liga,?\s*(?P<year>\d{4})\s*[-,]\s*(?P<rest>.+?)\s*$"
+)
+_ACT = re.compile(r"\bAct\s*(?P<number>\d+)\b", re.IGNORECASE)
+# `KiYC 2`: the club's code, then the team's number when a club sails more than one.
+_TEAM_NUMBER = re.compile(r"^(?P<code>.*?\S)\s+(?P<team>\d+)$")
+
+# The juniors' host spells some clubs' codes differently from ours (and from the
+# league's host). One reviewed line per club — never a comparison of names (Domain
+# decisions: external systems are matched via `ExternalId`).
+_JUNIOR_CODES = {
+    "bayc": "BYC",  # Bayerischer Yacht-Club
+    "beyc": "BYCB",  # Berliner Yacht-Club
+    "bohyc": "BoYC",  # Bocholter Yacht-Club
+    "kiyc": "KYC (SH)",  # Kieler Yacht-Club
+    "koyc": "KYC (BA)",  # Konstanzer Yacht Club
+    "shm": "SCHM",  # Segel-Club Hansa Münster
+}
+# A filler the juniors' host enters to make a pairing list come out even.
+_PLACEHOLDERS = {"no show"}
 
 # SAP's `maxPointsReason` → our code. Anything not here is reported, and stored as RDG
 # with SAP's points so the table still adds up — that is what a redress is.
@@ -96,20 +126,52 @@ _CODES = {
 
 @dataclass(frozen=True)
 class RegattaName:
-    """What a DSBL regatta's name on SAP says about it."""
+    """What a league regatta's name on SAP says about it."""
 
     name: str
-    level: int
+    # The 1. or 2. Liga's division; none for the juniors.
+    level: int | None
     year: int
-    city: str
-    # The `(n)` at the end, when it is a number.
+    # The juniors' names carry none.
+    city: str | None
+    # The `(n)` at the end, or the juniors' `Act n`.
     number: int | None
-    # The `(…)` at the end when it is not — `Finale`.
+    # The `(…)` at the end when it is not a number — `Finale`; the juniors' `Nord`.
     label: str | None
+    league: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.league:
+            object.__setattr__(self, "league", f"{self.level}-liga")
+
+    @property
+    def junior(self) -> bool:
+        return self.league == JUNIOR_LEAGUE
 
     @property
     def series_name(self) -> str:
+        if self.junior:
+            return f"Junioren-Segelliga {self.year}"
         return f"{self.level}. Segel-Bundesliga {self.year}"
+
+    @property
+    def series_slug(self) -> str:
+        # The seed's slugs (`dsbl-1-2026`, `junioren-2026`): stable, and how the seed's
+        # series of the year is found.
+        if self.junior:
+            return f"junioren-{self.year}"
+        return f"{SERIES_PREFIX}-{self.level}-{self.year}"
+
+    @property
+    def series_short_name(self) -> str:
+        return f"Junioren {self.year}" if self.junior else f"{self.level}. Liga {self.year}"
+
+
+class CompetitorCode(NamedTuple):
+    """A competitor's short name on SAP, read as our club code and the club's team."""
+
+    code: str
+    team: int
 
 
 def parse_years(spec: str) -> set[int]:
@@ -129,7 +191,7 @@ def parse_years(spec: str) -> set[int]:
 def parse_regatta_name(name: str) -> RegattaName | None:
     match = _NAME.match(name)
     if match is None:
-        return None
+        return _parse_junior_name(name)
     rest = match["rest"]
     number = label = None
     suffix = _SUFFIX.search(rest)
@@ -151,6 +213,34 @@ def parse_regatta_name(name: str) -> RegattaName | None:
         number=number,
         label=label,
     )
+
+
+def _parse_junior_name(name: str) -> RegattaName | None:
+    match = _JUNIOR_NAME.match(name)
+    act = _ACT.search(match["rest"]) if match else None
+    if match is None or act is None:
+        return None
+    rest = match["rest"][: act.start()] + match["rest"][act.end() :]
+    label = rest.strip(" -,()") or None
+    if label and label.isupper():
+        label = label.capitalize()
+    return RegattaName(
+        name=name,
+        level=None,
+        year=int(match["year"]),
+        city=None,
+        number=int(act["number"]),
+        label=label,
+        league=JUNIOR_LEAGUE,
+    )
+
+
+def junior_competitor(short_name: str) -> CompetitorCode:
+    """`KiYC 2` → our `KYC (SH)`, team 2; `NRV` → `NRV`, team 1."""
+    short = short_name.strip()
+    match = _TEAM_NUMBER.match(short)
+    code, team = (match["code"], int(match["team"])) if match else (short, 1)
+    return CompetitorCode(_JUNIOR_CODES.get(code.casefold(), code), team)
 
 
 class SapClient:
@@ -197,10 +287,9 @@ async def import_sap(
     report = Report()
     years, names = set(years), set(names)
 
+    listed = await client.regattas()
     regattas = [
-        parsed
-        for regatta in await client.regattas()
-        if (parsed := parse_regatta_name(regatta["name"])) is not None
+        parsed for regatta in listed if (parsed := parse_regatta_name(regatta["name"])) is not None
     ]
     unknown = names - {r.name for r in regattas}
     for name in sorted(unknown):
@@ -234,6 +323,7 @@ async def import_sap(
             leaderboard=leaderboard,
             crests=crests,
             matchday=matchdays.get(regatta.name),
+            listed_days=_listed_days(next((r for r in listed if r["name"] == regatta.name), {})),
             publish=publish,
         )
         report.merge(await run_import(sessions, SOURCE, regatta.name, work))
@@ -248,12 +338,12 @@ async def _number_matchdays(
 ) -> dict[str, int]:
     """Matchday per regatta name: the `(n)` in the names where every regatta of that
     series has a distinct one, else the order of their first start."""
-    by_series: dict[tuple[int, int], list[RegattaName]] = defaultdict(list)
+    by_series: dict[tuple[str, int], list[RegattaName]] = defaultdict(list)
     for regatta in regattas:
-        by_series[(regatta.level, regatta.year)].append(regatta)
+        by_series[(regatta.league, regatta.year)].append(regatta)
 
     numbers: dict[str, int] = {}
-    for key in {(r.level, r.year) for r in selected}:
+    for key in {(r.league, r.year) for r in selected}:
         siblings = by_series[key]
         named = [r.number for r in siblings]
         if None not in named and len(set(named)) == len(named):
@@ -286,6 +376,23 @@ def _local_day(moment: datetime) -> date:
     return moment.astimezone(LOCAL_TIME).date()
 
 
+class Days(NamedTuple):
+    """An act's first and last day, local."""
+
+    first: date
+    last: date
+
+
+def _listed_days(regatta: dict[str, Any]) -> Days | None:
+    """The days the regatta list gives — for an act without tracked starts (the juniors'
+    acts track none, Story A-14), the dates it was planned for."""
+    start, end = regatta.get("startDate"), regatta.get("endDate")
+    if not start:
+        return None
+    first = _local_day(datetime.fromtimestamp(start / 1000, UTC))
+    return Days(first, _local_day(datetime.fromtimestamp((end or start) / 1000, UTC)))
+
+
 # ---------------------------------------------------------------------- one regatta
 
 
@@ -297,6 +404,7 @@ async def _import_regatta(
     crests: dict[str, str],
     matchday: int | None,
     publish: bool,
+    listed_days: Days | None = None,
 ) -> None:
     competitors = leaderboard.get("competitors", [])
     columns: list[str] = leaderboard.get("columnNames", [])
@@ -321,6 +429,11 @@ async def _import_regatta(
         if cell.get("boat") and cell["boat"].get("id")
     }
     starts = _start_times(leaderboard)
+    placeholders = [
+        c for c in competitors if (c.get("shortName") or "").strip().casefold() in _PLACEHOLDERS
+    ]
+    for competitor in placeholders:
+        report.unassigned.append(f"{regatta.name}: {competitor['shortName']} is no club")
 
     series = await _series(session, report, regatta, publish)
     event = await _event(
@@ -330,10 +443,12 @@ async def _import_regatta(
         series,
         matchday,
         publish,
-        team_count=len(competitors),
+        team_count=len(competitors) - len(placeholders),
         boat_count=len(boats_seen),
         flight_count=len(columns),
-        days=(min(map(_local_day, starts)), max(map(_local_day, starts))) if starts else None,
+        days=Days(min(map(_local_day, starts)), max(map(_local_day, starts)))
+        if starts
+        else listed_days,
     )
     if fleet_names and len(fleet_names) != event.races_per_flight:
         report.warnings.append(
@@ -344,24 +459,30 @@ async def _import_regatta(
     # Clubs and their entry — in the series and in this act.
     teams: dict[str, Team] = {}
     for competitor in competitors:
-        code = (competitor.get("shortName") or competitor.get("name") or "").strip()
-        if not code:
+        if competitor in placeholders:
+            continue
+        short = (competitor.get("shortName") or competitor.get("name") or "").strip()
+        if not short:
             report.unassigned.append(f"{regatta.name}: a competitor without a club code")
             continue
+        code, number = junior_competitor(short) if regatta.junior else CompetitorCode(short, 1)
+        name = (competitor.get("name") or code).strip()
+        if number > 1 or (regatta.junior and _TEAM_NUMBER.match(name)):
+            name = _TEAM_NUMBER.sub(r"\g<code>", name)
         club = await resolve_club(
             session,
             report,
             source=SOURCE,
             key=code.upper(),
             code=code,
-            name=competitor.get("name") or code,
+            name=name,
         )
         # The crest only where the club has none: one set here is the club's own choice.
         crest = crests.get(competitor["id"])
         if crest and not club.logo_url:
             club.logo_url = crest[:300]
             report.tally("updated", "clubs (crest)")
-        teams[competitor["id"]] = await _entry(session, report, club, series, event)
+        teams[competitor["id"]] = await _entry(session, report, club, series, event, number)
 
     boats = await _boats(session, report, event, boats_seen)
     races = await _races(session, report, event, columns, fleet_names, fleets_by_column)
@@ -383,7 +504,13 @@ async def _import_regatta(
         _penalty(report, regatta, team, competitor.get("carriedPoints"))
 
     await session.flush()
-    await _settle_states(session, event, races)
+    last_scored = leaderboard.get("lastScoringUpdate")
+    await _settle_states(
+        session,
+        event,
+        races,
+        _local_day(datetime.fromtimestamp(last_scored / 1000, UTC)) if last_scored else None,
+    )
     await recompute_event(session, event.id)
     await _compare_net_points(session, report, regatta, event, competitors, teams)
 
@@ -397,7 +524,7 @@ async def _series(
     session: AsyncSession, report: Report, regatta: RegattaName, publish: bool
 ) -> Series:
     series = await linked(session, Series, SOURCE, regatta.series_name)
-    slug = f"{SERIES_PREFIX}-{regatta.level}-{regatta.year}"
+    slug = regatta.series_slug
     if series is None:
         # The seed's and the admin's own series of that year, if there is one.
         series = (
@@ -410,10 +537,10 @@ async def _series(
         series = Series(
             slug=await unique_slug(session, Series, slug),
             name=regatta.series_name,
-            short_name=f"{regatta.level}. Liga {regatta.year}",
+            short_name=regatta.series_short_name,
             year=regatta.year,
             level=regatta.level,
-            league_id=(await _league(session, report, regatta.level)).id,
+            league_id=(await _league(session, report, regatta)).id,
             scoring=ScoringIn().model_dump(),
             published=publish,
         )
@@ -427,16 +554,23 @@ async def _series(
     return series
 
 
-async def _league(session: AsyncSession, report: Report, level: int) -> League:
-    """The division's league — the 1. and 2. Liga are two leagues (Story B-14)."""
-    slug = f"{level}-liga"
+async def _league(session: AsyncSession, report: Report, regatta: RegattaName) -> League:
+    """The regatta's league — the 1. and 2. Liga are two leagues (Story B-14), the
+    juniors a third."""
+    slug = regatta.league
     league = (await session.execute(select(League).where(League.slug == slug))).scalar_one_or_none()
     if league is None:
-        league = League(
-            slug=slug,
-            short_name=f"{level}. Liga",
-            name=f"{level}. Segel-Bundesliga",
-            position=level,
+        league = (
+            League(
+                slug=slug, short_name="Junioren", name="Deutsche Junioren Segel-Liga", position=3
+            )
+            if regatta.junior
+            else League(
+                slug=slug,
+                short_name=f"{regatta.level}. Liga",
+                name=f"{regatta.level}. Segel-Bundesliga",
+                position=regatta.level,
+            )
         )
         session.add(league)
         await session.flush()
@@ -455,7 +589,7 @@ async def _event(
     team_count: int,
     boat_count: int,
     flight_count: int,
-    days: tuple[date, date] | None,
+    days: Days | None,
 ) -> Event:
     event = await linked(session, Event, SOURCE, regatta.name)
     if event is not None:
@@ -482,19 +616,20 @@ async def _event(
             )
             matchday = None
 
-    title = f"Act {matchday} {regatta.city}" if matchday else regatta.city
+    place = regatta.city or regatta.name
+    title = " ".join(filter(None, (f"Act {matchday}", regatta.city))) if matchday else place
     if regatta.label:
         title = f"{title} ({regatta.label})"
     event = Event(
         slug=await unique_slug(
             session,
             Event,
-            f"{series.slug}-act-{matchday}" if matchday else f"{series.slug}-{regatta.city}",
+            f"{series.slug}-act-{matchday}" if matchday else f"{series.slug}-{slugify(place)}",
         ),
         title=title,
         matchday=matchday,
         series_id=series.id,
-        venue_id=(await _venue(session, report, regatta.city)).id,
+        venue_id=(await _venue(session, report, regatta.city)).id if regatta.city else None,
         team_count=team_count or 18,
         boat_count=boat_count or 6,
         flight_count=flight_count or 16,
@@ -539,10 +674,12 @@ async def _venue(session: AsyncSession, report: Report, city: str) -> Venue:
 
 
 async def _entry(
-    session: AsyncSession, report: Report, club: Club, series: Series, event: Event
+    session: AsyncSession, report: Report, club: Club, series: Series, event: Event, number: int
 ) -> Team:
-    """The club's registration for the series and its entry in this act — both rows the
-    model asks for (Domain decisions: `Team` is the enrollment)."""
+    """The club's registration for the series and its team ``number`` in this act — both
+    rows the model asks for (Domain decisions: `Team` is the enrollment). A club's second
+    team (`KYC (SH) 2`) is an entry of its own, lined up from the club's one squad (Story
+    VA-13), so the club stays registered once."""
     registration = (
         await session.execute(
             select(Team).where(
@@ -553,13 +690,18 @@ async def _entry(
     if registration is None:
         session.add(Team(name=club.short_name, club_id=club.id, series_id=series.id))
         report.tally("created", "series registrations")
-    entry = (
-        await session.execute(
-            select(Team).where(Team.club_id == club.id, Team.event_id == event.id)
-        )
-    ).scalar_one_or_none()
+    entry = await event_entry(session, event.id, club.id, number)
     if entry is None:
-        entry = Team(name=club.short_name, club_id=club.id, series_id=series.id, event_id=event.id)
+        if number > event.teams_per_club:
+            event.teams_per_club = number
+            report.tally("updated", "events (teams per club)")
+        entry = Team(
+            name=team_name(club, number),
+            number=number,
+            club_id=club.id,
+            series_id=series.id,
+            event_id=event.id,
+        )
         session.add(entry)
         report.tally("created", "event entries")
     else:
@@ -799,11 +941,15 @@ def result_of(cell: dict[str, Any]) -> tuple[str, int | None, float | None, str 
 
 
 async def _settle_states(
-    session: AsyncSession, event: Event, races: dict[tuple[str, str], Race]
+    session: AsyncSession,
+    event: Event,
+    races: dict[tuple[str, str], Race],
+    last_scored: date | None,
 ) -> None:
     """Races with results are finished; an event whose last start lies a day back is
-    final. Only ever forward from `planned`/`scheduled` — a state the race committee set
-    here is theirs."""
+    final — or, with no dates (the juniors' acts track no starts), whose last scoring at
+    SAP does. Only ever forward from `planned`/`scheduled` — a state the race committee
+    set here is theirs."""
     scored = set(
         (
             await session.execute(
@@ -818,7 +964,9 @@ async def _settle_states(
             race.status = RaceStatus.FINISHED
             race.finished_at = race.started_at
     if scored and event.status == EventStatus.PLANNED:
-        over = event.ends_on is not None and event.ends_on < datetime.now(LOCAL_TIME).date()
+        today = datetime.now(LOCAL_TIME).date()
+        last_day = event.ends_on or last_scored
+        over = last_day is not None and last_day < today
         event.status = EventStatus.FINAL if over else EventStatus.LIVE
 
 

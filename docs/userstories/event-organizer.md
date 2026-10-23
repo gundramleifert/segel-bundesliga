@@ -167,6 +167,45 @@ Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
 
 ## Participants and their waivers
 
+### VA-13 ● A club enters more than one team
+As an **event organizer** I want to **let a club enter several teams in one event**, so
+that **an event like a Junioren-Liga act, where a club sails `KiYC 1` and `KiYC 2`, is
+entered as it is sailed**.
+
+Decided 2026-10-23: one team per club stays the normal case; more is an option **of the
+event**, never of a league or in code.
+
+Acceptance criteria:
+- **Teams per club** (`Event.teams_per_club`, default 1) is part of the event's
+  configuration and is frozen with it when the first race starts (VA-8). Any number from
+  1 up to the event's number of teams. It is **the organizer's parameter**, changeable
+  until then by whoever organizes the event, set where it is used: in the clubs block of
+  the wizard's second step and of the manage panel, above the clubs. Lowered below the
+  teams a club has entered, it is refused (`teams-per-club-below-entered`) — the extra
+  team is taken away first, which the clubs block does in one save.
+- **The clubs step lets a club be entered that many times.** Each entry is a team of its
+  own: its own row in the pairing list, its own results, its own lineup, its own place in
+  the standings. `PUT …/clubs` takes a club's id once per team; more than the event allows
+  is refused (`too-many-teams-per-club`). Taking a team away takes the highest number
+  first.
+- **A team is named by its club and, from the second on, its number** — `KYC (SH)`,
+  `KYC (SH) 2`, `KYC (SH) 3` (`Team.number`) — on every page that names a team: pairing
+  list, results, standings, lineup, the club's own screens.
+- **Every team of a club is lined up from the club's one squad** (decided 2026-10-23): in
+  an act of a series the club stays registered once, and its second and third team draw
+  their crews from the same squad as its first. A sailor still sails for one team per act.
+- **In the series table each team scores on its own** — `KYC (SH) 2` is its own row,
+  built from the acts that team sailed; an act it missed counts participants + 1, as for
+  everyone.
+- A club's own **application** to enter an event asks for one team — further teams are
+  the organizer's to add.
+- The SAP import sets the option from what it finds (A-14).
+- A club's own screen lists each of its teams in an event as a row of its own, lined up
+  on its own.
+
+Tests: `api/tests/stories/test_teams_per_club.py::TestTeamsPerClub`,
+`api/tests/stories/test_imports.py::TestJuniorenImport::test_a_club_s_second_team_is_a_team_of_its_own`
+
 ### VA-1 ○ Import registrations and sailors from manage2sail
 As an **event organizer** I want to **import registrations — clubs, teams and their
 sailors — from manage2sail**, so that I **don't have to type them in**.

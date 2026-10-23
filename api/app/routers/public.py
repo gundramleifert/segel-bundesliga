@@ -537,17 +537,25 @@ async def my_clubs(
     # up before it is published, and a `team_manager` sees only their own clubs here.
     entries = (
         await session.execute(
-            select(Team.id, Team.club_id, Event, Series)
+            select(Team.id, Team.club_id, Team.number, Team.name, Event, Series)
             .join(Event, Team.event_id == Event.id)
             .outerjoin(Series, Event.series_id == Series.id)
             .where(Team.club_id.in_(club_ids), Team.status == TeamStatus.ACCEPTED)
-            .order_by(Event.starts_on.is_(None), Event.starts_on, Event.title)
+            .order_by(Event.starts_on.is_(None), Event.starts_on, Event.title, Team.number)
         )
     ).all()
+    # An event in no series has its squad on the club's first team there (Story VA-13).
+    first_entry = {
+        (club_id, event.id): team_id
+        for team_id, club_id, number, _, event, _ in entries
+        if number == 1
+    }
     events_by_club: dict[int, list[MyEventOut]] = {}
-    for team_id, club_id, event, series in entries:
+    for team_id, club_id, number, name, event, series in entries:
         squad_team_id = (
-            registration_by_series.get((club_id, series.id)) if series is not None else None
+            registration_by_series.get((club_id, series.id))
+            if series is not None
+            else first_entry.get((club_id, event.id))
         )
         if series is not None and squad_team_id is None:
             # Entered in a series event without being registered for the series — the
@@ -571,6 +579,8 @@ async def my_clubs(
                 ),
                 team_id=team_id,
                 squad_team_id=squad_team_id if squad_team_id is not None else team_id,
+                number=number,
+                team_name=name,
             )
         )
 
@@ -1147,7 +1157,9 @@ async def _as_teamout(session: AsyncSession, *conditions) -> dict[int, TeamOut]:
 
 def _team_outs(teams: Iterable[Team]) -> dict[int, TeamOut]:
     return {
-        team.id: TeamOut(id=team.id, name=team.name, club=ClubOut.model_validate(team.club))
+        team.id: TeamOut(
+            id=team.id, name=team.name, club=ClubOut.model_validate(team.club), number=team.number
+        )
         for team in teams
     }
 
@@ -1290,6 +1302,7 @@ def _event_out(event: Event) -> EventOut:
         team_count=event.team_count,
         boat_count=event.boat_count,
         flight_count=event.flight_count,
+        teams_per_club=event.teams_per_club,
         races_per_flight=event.races_per_flight if event.boat_count >= 1 else 0,
         crew_size=event.crew_size,
         print_settings=event.print_settings,

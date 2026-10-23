@@ -226,16 +226,31 @@ async def compute_series(
     rows_by_team = {team_id: SeriesRow(team_id=team_id, points=0.0) for team_id, _ in registrations}
     team_id_by_club = {club_id: team_id for team_id, club_id in registrations}
 
-    # Entry -> club, to map the daily standings onto the series registration.
-    club_id_by_entry = dict(
-        (
-            await session.execute(
-                select(Team.id, Team.club_id).where(
-                    Team.series_id == series_id, Team.event_id.is_not(None)
-                )
-            )
-        ).all()
-    )
+    # Entry -> its series row: a club's first team maps onto the club's series
+    # registration; its second, third … team (Story VA-13) is a row of its own — the same
+    # row in every act, keyed by that team's first entry — and, like everyone, gets field
+    # size + 1 for the acts it missed.
+    entries = (
+        await session.execute(
+            select(Team.id, Team.club_id, Team.number)
+            .where(Team.series_id == series_id, Team.event_id.is_not(None))
+            .order_by(Team.id)
+        )
+    ).all()
+    further_teams: dict[tuple[int, int], int] = {}
+    for team_id, club_id, number in entries:
+        if number > 1:
+            further_teams.setdefault((club_id, number), team_id)
+    row_by_entry = {
+        team_id: (
+            further_teams[(club_id, number)]
+            if number > 1
+            else team_id_by_club.get(club_id, team_id)
+        )
+        for team_id, club_id, number in entries
+    }
+    for team_id in further_teams.values():
+        rows_by_team[team_id] = SeriesRow(team_id=team_id, points=0.0)
 
     known = event_scores or {}
     for event in scored_events:
@@ -244,11 +259,9 @@ async def compute_series(
         if scores is None:
             scores = await compute_event(session, event.id)
         for score in scores:
-            club_id = club_id_by_entry.get(score.team_id)
             # Without a series registration, the entry stands on its own — it then shows
             # up below as its own row instead of silently disappearing.
-            row_id = team_id_by_club.get(club_id, score.team_id) if club_id else score.team_id
-            ranks_by_row[row_id] = score.rank
+            ranks_by_row[row_by_entry.get(score.team_id, score.team_id)] = score.rank
         if not ranks_by_row:
             continue
         # Whoever is missing gets field size + 1.

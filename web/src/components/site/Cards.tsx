@@ -86,7 +86,9 @@ export function MediaCard({
   testId,
 }: {
   to?: string;
-  image: { src: string; alt: string; credit?: string; srcset?: string };
+  /** None: the card is its text alone — a post without a picture borrows none (decided
+   *  2026-10-23). */
+  image?: { src: string; alt: string; credit?: string; srcset?: string };
   kicker?: string;
   title?: string;
   text?: string;
@@ -97,8 +99,13 @@ export function MediaCard({
 }) {
   return (
     <Card to={to} className="group h-full overflow-hidden" testId={testId}>
+      {image && (
       <div className={`relative overflow-hidden bg-default ${aspect}`}>
         <img
+          onError={(event) => {
+            // Deleted from the library while the list still names it: no broken-image sign.
+            event.currentTarget.style.visibility = "hidden";
+          }}
           src={image.src}
           srcSet={image.srcset}
           sizes={image.srcset ? CARD_SIZES : undefined}
@@ -113,6 +120,7 @@ export function MediaCard({
           </span>
         )}
       </div>
+      )}
       {(kicker || title || text) && (
         <div className="p-4">
           {kicker && <p className={`text-xs uppercase tracking-widest ${tone.faint}`}>{kicker}</p>}

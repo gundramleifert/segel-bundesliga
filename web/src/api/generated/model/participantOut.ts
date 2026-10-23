@@ -15,4 +15,6 @@ export interface ParticipantOut {
   team_id: number;
   status: TeamStatus;
   club: ClubOut;
+  number?: number;
+  name?: string;
 }

@@ -206,5 +206,8 @@
   "media-url-invalid": "That address cannot be fetched — only public web addresses (http or https).",
   "media-url-unreachable": "The picture could not be fetched from that address.",
   "post-title-in-text": "The text starts with the title again — the title is shown above it.",
-  "post-picture-not-in-library": "A picture in this post is linked from another site. Put it into the library first — paste it again, or add it from its web address in the picture panel."
+  "post-picture-not-in-library": "A picture in this post is linked from another site. Put it into the library first — paste it again, or add it from its web address in the picture panel.",
+  "too-many-teams-per-club": "{club} may enter {teams_per_club, plural, one {# team} other {# teams}} in this event.",
+  "teams-per-club-exceeds-teams": "A club cannot enter more teams than the event has ({team_count}).",
+  "teams-per-club-below-entered": "A club has {entered} teams entered — take the extra ones away first, then lower the number."
 }

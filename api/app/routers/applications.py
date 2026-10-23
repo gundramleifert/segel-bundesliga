@@ -308,7 +308,8 @@ async def _apply_for_event(session: AsyncSession, club: Club, event_id: int) -> 
 
     existing = (
         await session.execute(
-            select(Team).where(Team.club_id == club.id, Team.event_id == event.id)
+            # A club applies for its first team; further ones are the organizer's to add.
+            select(Team).where(Team.club_id == club.id, Team.event_id == event.id, Team.number == 1)
         )
     ).scalar_one_or_none()
     if existing is not None:

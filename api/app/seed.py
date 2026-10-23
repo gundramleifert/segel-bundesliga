@@ -26,7 +26,9 @@ from app.models import (
     EventCrew,
     EventStanding,
     EventStatus,
+    ExternalId,
     Flight,
+    ImportRun,
     League,
     Post,
     Race,
@@ -43,6 +45,7 @@ from app.models import (
 )
 from app.models.racing import BOAT_COLORS
 from app.pairing import build_pairing
+from app.seed_junioren import seed_junioren
 from app.seed_posts import seed_posts
 from app.services.standings import recompute_series
 from app.text import slugify
@@ -55,11 +58,10 @@ FLIGHTS = 16
 SQUAD_SIZE = 10
 CREW = 4
 
-# The 2026 line-ups of both divisions, as deutsche-segelbundesliga.de lists them ("Vereine
-# für die Saison 2026"): (name, code, home, division). A code is the seed's key for a club
-# (its slug), so it is unique here even where the real one is not: the two KYCs carry
-# their state, as the league writes them (`KYC (SH)` Kiel, `KYC (BA)` Konstanz), and the
-# Berliner YC is `BYCB` beside the Bayerischer `BYC`.
+# The real 2026 line-ups of both divisions: (name, code, home, division). A code is the
+# seed's key for a club (its slug), so it is unique here even where the real one is not:
+# the two KYCs carry their state, as the league writes them (`KYC (SH)` Kiel, `KYC (BA)`
+# Konstanz), and the Berliner YC is `BYCB` beside the Bayerischer `BYC`.
 CLUBS: list[tuple[str, str, str, int]] = [
     # The test club (`seed_users`) — first, so its teams come first: it sails the 2. Liga,
     # the juniors and the SCL, and it hosts the test event.
@@ -322,11 +324,8 @@ async def seed() -> None:
         division = {1: first_league, 2: second_league}
         assignments: list[tuple[Series, Club]] = [
             *((division[level], club) for club, (_, _, _, level) in zip(clubs, CLUBS, strict=True)),
-            *(
-                (series, club)
-                for series, count in ((juniors, 12), (champions, 6))
-                for club in clubs[:count]
-            ),
+            # Not the juniors: their real 2026 field comes with their results, below.
+            *((champions, club) for club in clubs[:6]),
         ]
 
         teams = [
@@ -489,6 +488,13 @@ async def seed() -> None:
 
         await session.commit()
 
+        # The Junioren-Liga as it really sailed 2026 — its clubs, second teams and results,
+        # from SAP's recorded answer (`app.seed_junioren`) — and a made-up squad for each of
+        # its real teams, teenagers, so a minor's waiver stays testable against the seed.
+        await seed_junioren(SessionLocal)
+        await _junior_squads(session, juniors)
+        await session.commit()
+
         # Points and standings are derived — build them once after creation.
         for series in series_list:
             await recompute_series(session, series.id)
@@ -578,10 +584,54 @@ async def _seed_matchday(session, event, teams, rng, status) -> None:
             session.add(entry)
 
 
+async def _junior_squads(session, juniors: Series) -> None:
+    """A squad for each club registered for the juniors' series — after the import, which
+    is what registers them. Its own random sequence, so the other leagues' sailors are the
+    same as before the juniors were real."""
+    rng = random.Random(20261023)
+    registrations = (
+        await session.execute(
+            select(Team, Club)
+            .join(Club, Team.club_id == Club.id)
+            .where(Team.series_id == juniors.id, Team.event_id.is_(None))
+            .order_by(Club.short_name)
+        )
+    ).all()
+    for counter, (team, club) in enumerate(registrations):
+        for position in range(SQUAD_SIZE):
+            first_name, last_name = rng.choice(FIRST_NAMES), rng.choice(LAST_NAMES)
+            sailor = Sailor(
+                first_name=first_name,
+                last_name=last_name,
+                email=f"{slugify(first_name)}.{slugify(last_name)}.j{counter}x{position}"
+                f"@{club.slug}.example.com",
+                # Teenagers: several are minors on a 2026 matchday (Story S-2).
+                birth_date=date(rng.randint(2009, 2011), rng.randint(1, 12), rng.randint(1, 28)),
+            )
+            session.add(sailor)
+            await session.flush()
+            session.add(
+                TeamMembership(
+                    team_id=team.id,
+                    sailor_id=sailor.id,
+                    role=(
+                        CrewRole.HELM
+                        if position == 0
+                        else CrewRole.CREW
+                        if position < CREW
+                        else CrewRole.SUBSTITUTE
+                    ),
+                )
+            )
+
+
 async def _wipe(session) -> None:
     # Order by foreign keys: Team points to Event and Series, so it must
-    # be deleted before both.
+    # be deleted before both. The import's links and runs go too: they name rows the wipe
+    # removes (the juniors are imported, `app.seed_junioren`).
     for model in (
+        ExternalId,
+        ImportRun,
         Post,
         RaceEntry,
         Race,

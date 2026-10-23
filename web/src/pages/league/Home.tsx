@@ -7,7 +7,7 @@ import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapter
 import { Card, CardRow, Columns, MediaCard, TextCard, tone } from "../../components/site/Cards";
 import { Block, DepthPage, useLeagues } from "../../components/site/Frame";
 import { Img } from "../../components/site/Media";
-import { BOARD, MEMBER_LEAGUES, OWN_PHOTOS, leagueAbout, useAssociation, useLocalized, useNews, type ArticleSummary } from "../../content";
+import { BOARD, MEMBER_LEAGUES, leagueAbout, useAssociation, useLocalized, useNews, type ArticleSummary } from "../../content";
 import { actsOf, currentAct, href } from "../../lib/site";
 import { NewsTiles } from "./LeagueHome";
 import { StateBadge, actDates, useActTitle } from "./shared";
@@ -130,7 +130,7 @@ export function AssociationHome() {
       ),
     },
   ];
-  return <ChapterScroller chapters={chapters} photo={OWN_PHOTOS.title} />;
+  return <ChapterScroller chapters={chapters} />;
 }
 
 /** `/about` — the association: history, board, member clubs. */
@@ -144,7 +144,7 @@ export function AssociationAboutPage() {
     ...new Map(members.flatMap((m) => m.data?.clubs ?? []).map((c) => [c.id, c])).values(),
   ];
   return (
-    <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")} photo={OWN_PHOTOS.title}>
+    <DepthPage league={null} title="Deutsche Segel-Liga e.V." kicker={t("home.aboutKicker")}>
       {association && (
         <>
           <TextCard className="mb-10">

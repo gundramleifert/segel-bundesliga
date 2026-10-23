@@ -23,7 +23,6 @@ import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
 import { ClubPage, EventPage as MyEventPage, ProfilePage, SeriesPage as MySeriesPage } from "./pages/me/Contexts";
 import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
-import { Prototype } from "./prototype/Prototype";
 import { ActPage, EventPage, LiveRedirect, ResultsRedirect } from "./pages/league/Act";
 import {
   ArticlePage,
@@ -66,8 +65,6 @@ export default function App() {
     <Routes>
       {/* Issue #13: five homepage options to compare, each with its own header — so
           outside the site's Layout. Throwaway until one is chosen. */}
-      {/* Issue #14: option E as a clickable prototype — the chosen structure, mock data. */}
-      <Route path="prototype/*" element={<Prototype />} />
       <Route element={<SiteShell />}>
       {/* The site's structure (issue #14, docs/site-structure.md, Stories B-13–B-16): the
           association's home, each league's chapter page and the depth pages behind it.

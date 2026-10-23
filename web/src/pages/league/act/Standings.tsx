@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Tip } from "../../../components/Tip";
 import { EventStatus, type EventSummary, type StandingRow } from "../../../api/types";
 import { Empty, TableFrame } from "../../../components/Blocks";
-import { formatPoints } from "../../../lib/format";
+import { formatPoints, teamLabel } from "../../../lib/format";
 
 /** A team's points in one flight, or `null` when it has no result in that flight yet. The
  *  sums are the server's (`points_by_flight`, Story B-2), keyed by flight number — computed
@@ -208,7 +208,7 @@ function EventStandingsTable({
                       data-testid={`matchday-standings-club-link-${row.team.id}`}
                       className="font-medium underline-offset-2 hover:underline"
                     >
-                      {row.team.club.short_name}
+                      {teamLabel(row.team)}
                     </Link>
                   </Tip>
                 </td>

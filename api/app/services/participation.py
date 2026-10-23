@@ -7,6 +7,8 @@ rules live here in one place because four routers need them:
 * A participation that has already been raced under can no longer be withdrawn.
 * When a series event is created, the **same clubs** enter by default as in the series;
   the admin can deviate afterwards.
+* A club enters one team, or as many as the event's ``teams_per_club`` allows (Story
+  VA-13) — numbered, and all lined up from the club's one squad.
 """
 
 from __future__ import annotations
@@ -66,23 +68,39 @@ async def series_registration(session: AsyncSession, series_id: int, club_id: in
     ).scalar_one_or_none()
 
 
-async def event_entry(session: AsyncSession, event_id: int, club_id: int) -> Team | None:
+async def event_entry(
+    session: AsyncSession, event_id: int, club_id: int, number: int = 1
+) -> Team | None:
+    """The club's team ``number`` in this event — its first unless it enters several."""
     return (
         await session.execute(
-            select(Team).where(Team.event_id == event_id, Team.club_id == club_id)
+            select(Team).where(
+                Team.event_id == event_id, Team.club_id == club_id, Team.number == number
+            )
         )
     ).scalar_one_or_none()
+
+
+def team_name(club: Club, number: int = 1) -> str:
+    """`KYC (SH)`, and from the second team on `KYC (SH) 2` (Story VA-13)."""
+    return club.short_name if number == 1 else f"{club.short_name} {number}"
 
 
 async def squad_team(session: AsyncSession, team: Team) -> Team:
     """The team the squad hangs off.
 
     For an act, that's the same club's series registration: you register for the series,
-    and field a lineup for the individual matchday. If the event stands on its own, the
-    squad hangs off it directly.
+    and field a lineup for the individual matchday — every team the club enters there,
+    from the one squad (Story VA-13). If the event stands on its own, the squad hangs off
+    the club's first team there.
     """
-    if team.is_series_registration or team.series_id is None:
+    if team.is_series_registration:
         return team
+    if team.series_id is None:
+        if team.number == 1 or team.event_id is None:
+            return team
+        first = await event_entry(session, team.event_id, team.club_id)
+        return first or team
     registration = await series_registration(session, team.series_id, team.club_id)
     if registration is None:
         raise ParticipationError(
@@ -122,13 +140,21 @@ async def new_event_entry(
     club: Club,
     *,
     status: str = TeamStatus.ACCEPTED,
+    number: int = 1,
 ) -> Team:
-    """Creates a club's entry in an event.
+    """Creates a club's entry in an event — its team ``number``.
 
     The rule at stake: if the event belongs to a series, the club must be **registered
     and accepted** for it there. Otherwise it would show up in the daily standings but in
-    no series table.
+    no series table. And it enters no more teams than the event allows (Story VA-13).
     """
+    if number > event.teams_per_club:
+        raise ParticipationError(
+            "too-many-teams-per-club",
+            f"{club.short_name} may enter {event.teams_per_club} team(s) in this event.",
+            club=club.short_name,
+            teams_per_club=event.teams_per_club,
+        )
     if event.series_id is not None:
         registration = await series_registration(session, event.series_id, club.id)
         if registration is None or registration.status != TeamStatus.ACCEPTED:
@@ -140,7 +166,8 @@ async def new_event_entry(
             )
 
     team = Team(
-        name=club.short_name,
+        name=team_name(club, number),
+        number=number,
         club_id=club.id,
         series_id=event.series_id,
         event_id=event.id,

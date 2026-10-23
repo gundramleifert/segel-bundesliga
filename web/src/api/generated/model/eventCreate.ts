@@ -45,6 +45,12 @@ export interface EventCreate {
      * @maximum 40
      */
   flight_count?: number;
+  /**
+     * How many teams one club may enter (Story VA-13); 1 is the normal case.
+     * @minimum 1
+     * @maximum 64
+     */
+  teams_per_club?: number;
   /** Boats with color and name. If not specified, boat_count boats are created in league colors; if specified, their count determines boat_count. */
   boats?: BoatSpec[];
   /** Whether the event is visible on the public site right away. A draft stays invisible until published; publishing locks nothing. */

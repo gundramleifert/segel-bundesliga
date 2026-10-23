@@ -1,13 +1,18 @@
 import { useEffect, useState } from "react";
 
-import { SLIDES, VIDEOS, type Photo } from "../../content";
+import { VIDEOS, useBackdrops, type Photo } from "../../content";
 import { tone } from "./Cards";
 import { useMediaMode } from "./settings";
 
-/** A photo that fills its box, crediting its source in the tooltip. */
+/** A photo that fills its box, crediting its source in the tooltip. One that fails to load
+ *  — deleted from the library while a page still lists it — hides instead of showing a
+ *  broken-image sign. */
 export function Img({ photo, className = "" }: { photo: Photo; className?: string }) {
   return (
     <img
+      onError={(event) => {
+        event.currentTarget.style.visibility = "hidden";
+      }}
       src={photo.src}
       srcSet={photo.srcset}
       sizes={photo.srcset ? "100vw" : undefined}
@@ -20,24 +25,46 @@ export function Img({ photo, className = "" }: { photo: Photo; className?: strin
 }
 
 /** A stable small number per picture, so slideshows on one page do not change in step. */
-const pick = (key: string, count: number) => [...key].reduce((sum, c) => sum + c.charCodeAt(0), 0) % count;
+const pick = (key: string, count: number) =>
+  count > 0 ? [...key].reduce((sum, c) => sum + c.charCodeAt(0), 0) % count : 0;
 
-/** The page's one big picture: the photo, a slideshow (fading or sliding), or a muted
- *  YouTube loop — as the DEV switch says (Story B-13). */
-export function Picture({ photo }: { photo: Photo }) {
+/** A page's picture from the media library (Story R-3): the one given, else one of the
+ *  league's — or of every league's — chosen by `seed`, so a page keeps its picture across
+ *  visits. With none in the library, nothing: the page's plain background, never a broken
+ *  page (decided 2026-10-23 — pictures may be deleted at any time). */
+export function Backdrop({ league, photo, seed = "" }: { league?: string | null; photo?: Photo; seed?: string }) {
+  const pictures = useBackdrops(league);
+  const chosen = photo ?? pictures[pick(seed, pictures.length)];
+  if (!chosen) return null;
+  return <Picture photo={chosen} slides={pictures} />;
+}
+
+/** The page's one big picture: the photo, a slideshow (fading or sliding) through
+ *  `slides`, or a muted YouTube loop — as the DEV switch says (Story B-13). */
+export function Picture({ photo, slides = [] }: { photo: Photo; slides?: Photo[] }) {
   const mode = useMediaMode();
   const box = "absolute inset-0 overflow-hidden";
   // No slide marks: on a chapter they read as a second set of dots beside the chapter dots.
-  if (mode === "fade") return <Slideshow key="fade" photo={photo} className={box} kind="fade" />;
-  if (mode === "slide") return <Slideshow key="push" photo={photo} className={box} kind="push" />;
+  if (mode === "fade") return <Slideshow key="fade" photo={photo} others={slides} className={box} kind="fade" />;
+  if (mode === "slide") return <Slideshow key="push" photo={photo} others={slides} className={box} kind="push" />;
   if (mode === "video") return <YouTubeBackground photo={photo} className={box} />;
   return <Img photo={photo} className={box} />;
 }
 
 /** Pictures that take turns in one box: cross-fading with a slow zoom, or pushed in from
  *  the right. Starts from the box's own photo. */
-function Slideshow({ photo, className, kind }: { photo: Photo; className: string; kind: "fade" | "push" }) {
-  const slides = [photo, ...SLIDES.filter((p) => p.src !== photo.src)].slice(0, 4);
+function Slideshow({
+  photo,
+  others,
+  className,
+  kind,
+}: {
+  photo: Photo;
+  others: Photo[];
+  className: string;
+  kind: "fade" | "push";
+}) {
+  const slides = [photo, ...others.filter((p) => p.src !== photo.src)].slice(0, 4);
   const [index, setIndex] = useState(0);
   useEffect(() => {
     let timer: number | undefined;

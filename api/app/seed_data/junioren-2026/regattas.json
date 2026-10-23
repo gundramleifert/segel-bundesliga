@@ -1,0 +1,66 @@
+[
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 1",
+  "startDate": 1778220000000,
+  "endDate": 1778443200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "59933b81-02b7-4e3b-9b73-5827d5ca1e91"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)",
+  "startDate": 1790920800000,
+  "endDate": 1791144000000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "c21d9974-5081-4117-817e-f4e28c62fdae"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 3",
+  "startDate": 1789106400000,
+  "endDate": 1789329600000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "5650e3b3-9872-47cd-b072-564aeec57ea8"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ },
+ {
+  "name": "Deutsche Junioren Segel-Liga 2026 - Act 2",
+  "startDate": 1787292000000,
+  "endDate": 1787515200000,
+  "scoringSystem": "LOW_POINT_WITH_AUTOMATIC_RDG",
+  "rankingMetric": "ONE_DESIGN",
+  "boatclass": "J/70",
+  "courseAreaIds": [
+   "ee91897d-b4d2-4db7-8b0a-6e5ee48ab6c3"
+  ],
+  "canBoatsOfCompetitorsChangePerRace": true,
+  "competitorRegistrationType": "CLOSED",
+  "useStartTimeInference": false,
+  "controlTrackingFromStartAndFinishTimes": true,
+  "autoRestartTrackingUponCompetitorSetChange": false
+ }
+]

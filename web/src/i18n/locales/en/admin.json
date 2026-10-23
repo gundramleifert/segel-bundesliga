@@ -254,7 +254,7 @@
     "savingButton": "Saving ...",
     "saveDatesButton": "Save date",
     "datesSavedMessage": "Date saved.",
-    "clubsTitle": "Clubs entered: {count} of {configured}",
+    "clubsTitle": "Teams entered: {count} of {configured}",
     "clubsFromSeriesHint": "Only clubs registered for {series} can enter one of its events — that is what the series registration is.",
     "clubsStandaloneHint": "This event belongs to no series, so any club can enter.",
     "clubsLoadingText": "Loading entries ...",
@@ -335,7 +335,10 @@
     "squadMinLabel": "Minimum",
     "squadMaxLabel": "Maximum",
     "saveSquadLimitsButton": "Save squad size",
-    "squadLimitsSavedMessage": "Squad size saved."
+    "squadLimitsSavedMessage": "Squad size saved.",
+    "teamsPerClubLabel": "Teams per club",
+    "teamsPerClubHint": "1 is the normal case; more lets a club enter several teams, all lined up from its one squad.",
+    "teamsOfClubLabel": "Teams of {club}"
   },
   "access": {
     "title": "People",
@@ -377,7 +380,7 @@
     "quoteByLabel": "Said by",
     "authorLabel": "Byline",
     "photoLabel": "Picture",
-    "photoNone": "none yet — the league's picture stands in",
+    "photoNone": "none yet — the post goes without one",
     "photoUpload": "Upload a picture",
     "photoUploading": "Uploading…",
     "photoLibrary": "Choose one of the site's pictures",

@@ -364,7 +364,9 @@ async def _teams_on_boats(session: AsyncSession, race_id: int) -> dict[int, Team
         )
     ).all()
     return {
-        number: TeamOut(id=team.id, name=team.name, club=ClubOut.model_validate(team.club))
+        number: TeamOut(
+            id=team.id, name=team.name, club=ClubOut.model_validate(team.club), number=team.number
+        )
         for number, team in rows
     }
 

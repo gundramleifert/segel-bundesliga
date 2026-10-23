@@ -6,7 +6,6 @@ import type { Series } from "../../api/types";
 import { Card, CardRow, Columns, MediaCard, TextCard, tone } from "../../components/site/Cards";
 import { ChapterScroller, type ChapterSpec } from "../../components/site/Chapters";
 import {
-  leaguePhoto,
   useLeagueAbout,
   useLocalized,
   useNews,
@@ -14,7 +13,7 @@ import {
   type ArticleSummary,
   type Video,
 } from "../../content";
-import { formatDate, locationText } from "../../lib/format";
+import { formatDate, locationText, teamLabel } from "../../lib/format";
 import { href, type Act } from "../../lib/site";
 import { LeagueGate, StateBadge, actDates, useActName, useActTitle, type LeagueYear } from "./shared";
 
@@ -173,7 +172,7 @@ function Chapters({ league, season, acts, year }: LeagueYear) {
         ]
       : []),
   ];
-  return <ChapterScroller chapters={chapters} photo={leaguePhoto(l)} league={league} />;
+  return <ChapterScroller chapters={chapters} league={league} />;
 }
 
 /** The year's matchdays, each with its state — the season at a glance, beside the table
@@ -297,7 +296,7 @@ function TopFive({ series, label }: { series: Series; label?: string }) {
       {rows.map((row) => (
         <li key={row.team.id} className="flex items-center gap-3 py-2">
           <span className="w-6 text-faint">{row.rank}</span>
-          <span className="flex-1 font-semibold">{row.team.club.short_name}</span>
+          <span className="flex-1 font-semibold">{teamLabel(row.team)}</span>
           <span className="tabular-nums">{row.points}</span>
         </li>
       ))}

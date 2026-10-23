@@ -15,6 +15,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import League, Post
+from app.seed_press import PRESS_RELEASES
+from app.services.rich_text import clean_html
 from app.text import slugify
 
 POSTS: list[dict] = [
@@ -30,11 +32,10 @@ POSTS: list[dict] = [
         "36 Vereinen getroffen – und gemeinsam die Weichen für die Zukunft der "
         "Segel-Bundesliga gestellt.",
         "author": "Gundram Leifert",
-        "photo_url": "/media/titelbild.jpg",
-        "photo_credit": "Deutsche Segel-Liga e.V.",
+        "photo_url": None,
+        "photo_credit": None,
         "example": False,
     },
-    # rewritten from https://deutsche-segelbundesliga.de/die-entscheidung-auf-dem-wannsee-ist-gefallen/
     {
         "kind": "news",
         "title": "Wannsee: NRV und ASVW gewinnen den fünften Spieltag",
@@ -73,7 +74,6 @@ POSTS: list[dict] = [
         "photo_credit": None,
         "example": False,
     },
-    # rewritten from https://deutsche-segelbundesliga.de/heimsieg-auf-der-aussenalster/
     {
         "kind": "news",
         "title": "Hamburg: Der NRV gewinnt zu Hause und führt die Tabelle an",
@@ -101,7 +101,6 @@ POSTS: list[dict] = [
         "photo_credit": None,
         "example": False,
     },
-    # rewritten from https://deutsche-segelbundesliga.de/naechster-halt-hamburg/
     {
         "kind": "news",
         "title": "Vorschau: Gleichstand an der Spitze vor dem Spieltag in Hamburg",
@@ -127,7 +126,6 @@ POSTS: list[dict] = [
         "photo_credit": None,
         "example": False,
     },
-    # rewritten from https://deutsche-segelbundesliga.de/3-spieltag-kieler-foerde/
     {
         "kind": "news",
         "title": "Kiel: Mühlenberger SC und SC Ville gewinnen den dritten Spieltag",
@@ -177,8 +175,8 @@ POSTS: list[dict] = [
         "separated by three points between places five and eight, and the fight against "
         "relegation will be decided on the final weekend.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2026/08/DSC07807-1536x1024.jpg",
-        "photo_credit": "Deutsche Segel-Bundesliga",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
         "quote": "We kept it simple: good starts, the right side, no fouls. Everything else "
         "followed.",
@@ -202,8 +200,8 @@ POSTS: list[dict] = [
         "At the other end of the table, places 13 to 18 will have to requalify at the "
         "DSL-Pokal in autumn.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2026/07/DSC06520-1536x1024.jpg",
-        "photo_credit": "Deutsche Segel-Bundesliga",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -223,8 +221,8 @@ POSTS: list[dict] = [
         "The best teams of the season qualify for the DSL-Pokal, where they meet crews of "
         "the 1. and 2. Liga.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2025/03/SBL211971411-0964-1536x1024.jpg",
-        "photo_credit": "Deutsche Segel-Bundesliga",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
         "quote": "We trained for exactly this: one race, everything on it.",
         "quote_by": "the champions' helm",
@@ -245,8 +243,8 @@ POSTS: list[dict] = [
         "\n"
         "The notice of race and the entry fee will be published on the notice board.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2025/03/BundelLiga_Berlin_Day1_HR@Adam.Burdylo-115.jpg",
-        "photo_credit": "Adam Burdylo",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -265,8 +263,8 @@ POSTS: list[dict] = [
         "The tracking is the association's own and comes with every event organised on this "
         "site, the clubs' own regattas included.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2025/03/SBL182911202-2694.jpg",
-        "photo_credit": "Deutsche Segel-Bundesliga",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -285,8 +283,8 @@ POSTS: list[dict] = [
         "Every matchday is shared with the 2. Liga, which sails the same weekends at the "
         "same venues.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2025/03/BundelLiga_Berlin_Day1_HR@Adam.Burdylo-115.jpg",
-        "photo_credit": "Adam Burdylo",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -303,8 +301,8 @@ POSTS: list[dict] = [
         "A matchday is scored by the sum of all races, so a single bad flight can cost three "
         "places. Consistency, not brilliance, is what keeps a club in the league.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2026/07/DSC06520-1536x1024.jpg",
-        "photo_credit": "Deutsche Segel-Bundesliga",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -320,8 +318,8 @@ POSTS: list[dict] = [
         "Journalists find photos, the press kit and the accreditation form in each league's "
         "press centre.",
         "author": "Press office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2025/03/SBL182931401-6308-2.jpg",
-        "photo_credit": "Deutsche Segel-Bundesliga",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -337,8 +335,8 @@ POSTS: list[dict] = [
         "The boats are provided by the Heinz Nixdorf Verein, so a club needs a crew, a coach "
         "and the will to travel — nothing more.",
         "author": "League office",
-        "photo_url": "https://deutsche-segelbundesliga.de/wp-content/uploads/2026/08/DSC07807-1536x1024.jpg",
-        "photo_credit": "Deutsche Segel-Bundesliga",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -356,8 +354,8 @@ POSTS: list[dict] = [
         "An event need not belong to a league. A club's leadership creates it, names its "
         "boats and invites its helpers — and the event has its own page on this site.",
         "author": "Deutsche Segel-Liga e.V.",
-        "photo_url": "/media/titelbild.jpg",
-        "photo_credit": "Deutsche Segel-Liga e.V.",
+        "photo_url": None,
+        "photo_credit": None,
         "example": True,
     },
     {
@@ -398,16 +396,21 @@ def _paragraphs(text: str) -> str:
 async def seed_posts(session: AsyncSession) -> None:
     """Adds the posts, published — every one of them is on a page today."""
     leagues = dict((await session.execute(select(League.slug, League.id))).tuples().all())
-    for row in POSTS:
+    for row in [*POSTS, *PRESS_RELEASES]:
         fields = dict(row)
         league = fields.pop("league")
+        # A release taken over as written is the editor's HTML — cleaned like any write,
+        # so nothing reaches the table around the cleaner (Story R-1).
+        html_body = fields.pop("body_html", None)
         session.add(
             Post(
                 **fields
                 | {
                     "slug": fields.get("slug") or slugify(fields["title"]),
                     "published_on": date.fromisoformat(fields["published_on"]),
-                    "body": _paragraphs(fields["body"]),
+                    "body": clean_html(html_body)
+                    if html_body is not None
+                    else _paragraphs(fields["body"]),
                     "league_id": leagues.get(league),
                     "published": True,
                 },

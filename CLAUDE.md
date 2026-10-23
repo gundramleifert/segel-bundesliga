@@ -137,9 +137,12 @@ and the server warns on startup while it is on.
 
 `app.seed_users` creates a **small cast on one club, one series, one event** — 43 accounts
 (decided 2026-10-17; it was 370). The data stays whole — the **real 2026 line-ups** of
-the 1. and 2. Liga (36 clubs, decided 2026-10-22; sailors stay made up), 540 sailors, the
-series and their events, each league's three acts on the same weekends; the people who
-sign in are concentrated:
+the 1. and 2. Liga (36 clubs, decided 2026-10-22; sailors stay made up), the series and
+their events, each league's three acts on the same weekends — and **the Junioren-Liga's
+real 2026 season** (decided 2026-10-23): its four acts, clubs, second teams and results,
+imported by the SAP import from SAP's recorded answer (`app/seed_junioren.py`,
+`app/seed_data/junioren-2026/`), with made-up teenage squads for its real teams; staging
+refreshes it from SAP on every build. The people who sign in are concentrated:
 
 - **club** ASVW, a 2. Liga club (decided 2026-10-21; it was NRV): `board@asvw.example.com` (its `admin`,
   Gundram Leifert), `teams@` (its `manager`, the team manager, Gunnar Voigt),
@@ -192,6 +195,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   depend on this). Who participates in an Event must also be registered for that Series; the
   row carries both IDs then. Both cannot be null. This also means: a club can participate in
   multiple Series, and enrollment in "DSBL 2026" does not apply in 2027.
+- **A club enters one team per event — or as many as the event's `teams_per_club`
+  allows** (Story VA-13, decided 2026-10-23; the Junioren-Liga has `KiYC 1` and `KiYC 2`).
+  `Team.number` tells a club's teams in one event apart and names them (`KYC (SH) 2`); the
+  club stays registered **once** for the series, and every team it enters is lined up
+  from that one squad — a sailor may sail for team 1 at one act and team 2 at the next,
+  never for two teams in one act. In the series table each team is its own row.
 - **The pairing list belongs to the Event, as do the teams in it.** Draw and scoring work on
   this Event's participants, not all Series registrations. When creating an Event, Series
   registrations are pre-selected by default.

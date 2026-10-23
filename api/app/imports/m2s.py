@@ -43,6 +43,7 @@ from app.models import (
     Source,
     Team,
 )
+from app.services.participation import team_name
 
 SOURCE = Source.MANAGE2SAIL
 BASE_URL = "https://www.manage2sail.com"
@@ -292,25 +293,36 @@ async def _entries(
 async def _team(
     session: AsyncSession, report: Report, club: Club, event: Event, entry: dict[str, Any]
 ) -> None:
+    """One M2S entry as one team of its club here — the club's next team when it enters
+    several, as far as the event allows (Story VA-13)."""
     team = await linked(session, Team, SOURCE, entry["EntryId"])
     if team is not None:
         report.tally("unchanged", "event entries")
         return
-    team = (
-        await session.execute(
-            select(Team).where(Team.club_id == club.id, Team.event_id == event.id)
-        )
-    ).scalar_one_or_none()
-    if team is not None:
-        if await link_key(session, Team, SOURCE, team.id) is not None:
-            # A club enters an event once here; M2S allows a second boat of the same club.
-            report.unassigned.append(
-                f"{entry.get('TeamName')}: a second entry of {club.short_name} — "
-                "a club enters an event once here"
+    teams = list(
+        (
+            await session.execute(
+                select(Team)
+                .where(Team.club_id == club.id, Team.event_id == event.id)
+                .order_by(Team.number)
             )
-            return
+        ).scalars()
+    )
+    team = None
+    for candidate in teams:
+        if await link_key(session, Team, SOURCE, candidate.id) is None:
+            team = candidate
+            break
+    if team is not None:
         report.tally("updated", "event entries (linked)")
     else:
+        number = len(teams) + 1
+        if number > event.teams_per_club:
+            report.unassigned.append(
+                f"{entry.get('TeamName')}: team {number} of {club.short_name} — the event "
+                f"lets a club enter {event.teams_per_club}"
+            )
+            return
         if event.series_id is not None:
             registration = (
                 await session.execute(
@@ -325,7 +337,8 @@ async def _team(
                 session.add(Team(name=club.short_name, club_id=club.id, series_id=event.series_id))
                 report.tally("created", "series registrations")
         team = Team(
-            name=club.short_name,
+            name=team_name(club, number),
+            number=number,
             club_id=club.id,
             series_id=event.series_id,
             event_id=event.id,

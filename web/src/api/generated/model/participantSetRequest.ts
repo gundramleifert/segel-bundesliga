@@ -7,6 +7,6 @@
  */
 
 export interface ParticipantSetRequest {
-  /** Clubs that enter this event. An empty list removes all. */
+  /** Clubs that enter this event, a club's id once per team it enters (Story VA-13) — twice for its first and second team. An empty list removes all. */
   clubs: number[];
 }

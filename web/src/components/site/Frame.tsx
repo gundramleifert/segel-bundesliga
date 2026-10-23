@@ -5,13 +5,13 @@ import { Link, useLocation, type To } from "react-router-dom";
 import { useListLeagues } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
 import { mayOpenAdmin, useAccount } from "../../api/useApi";
-import { SLIDES, type Photo } from "../../content";
+import type { Photo } from "../../content";
 import { href } from "../../lib/site";
 import { ThemeSwitch } from "../ThemeSwitch";
 import { UserMenu } from "../UserMenu";
 import { BAR_SHADE, PAGE_TITLE, SHADE_DOWN, tone } from "./Cards";
 import { GlassFooter } from "./Footer";
-import { Picture } from "./Media";
+import { Backdrop } from "./Media";
 
 // The frame of the site (`docs/site-structure.md`, Stories B-13, B-14). Clean on purpose:
 // white and slate, one accent (the brand blue), generous space, type doing the work.
@@ -301,7 +301,7 @@ export function DepthPage({ league, title, kicker, photo, children, subnav }: De
   return (
     <div className="min-h-dvh bg-background text-foreground" data-testid="site-depth-page">
       <div aria-hidden className="fixed inset-0" data-testid="site-depth-picture">
-        <Picture photo={photo ?? SLIDES[0]} />
+        <Backdrop league={league?.slug} photo={photo} seed={title} />
         <div className="absolute inset-0" style={{ background: SHADE_DOWN }} />
       </div>
       {/* The top row names the association and every league on every page (Story B-13);

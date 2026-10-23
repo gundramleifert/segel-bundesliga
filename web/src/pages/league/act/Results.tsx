@@ -25,7 +25,7 @@ import {
   Empty,
   TableFrame,
 } from "../../../components/Blocks";
-import { boatColor, formatPoints } from "../../../lib/format";
+import { boatColor, formatPoints, teamLabel } from "../../../lib/format";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { Select } from "../../../components/Select";
 
@@ -164,7 +164,7 @@ function PenaltyEntry({ eventId, standings }: { eventId: number; standings: Stan
   const { t } = useTranslation("matchday");
   if (!standings.length) return null;
   const rows = [...standings].sort((a, b) =>
-    a.team.club.short_name.localeCompare(b.team.club.short_name),
+    teamLabel(a.team).localeCompare(teamLabel(b.team)),
   );
   return (
     <details className="mt-4" data-testid="matchday-penalties">
@@ -196,11 +196,11 @@ function PenaltyRow({ eventId, row }: { eventId: number; row: StandingRow }) {
       data-testid={`matchday-penalty-row-${row.team.id}`}
       className="flex flex-wrap items-center gap-2 text-sm"
     >
-      <span className="w-20 font-medium">{row.team.club.short_name}</span>
+      <span className="w-20 font-medium">{teamLabel(row.team)}</span>
       <input
         type="text"
         inputMode="decimal"
-        aria-label={t("penaltyPointsLabel", { club: row.team.club.short_name })}
+        aria-label={t("penaltyPointsLabel", { club: teamLabel(row.team) })}
         data-testid={`matchday-penalty-points-${row.team.id}`}
         className={`${INPUT_CLASS} w-20`}
         value={points}
@@ -208,7 +208,7 @@ function PenaltyRow({ eventId, row }: { eventId: number; row: StandingRow }) {
       />
       <input
         type="text"
-        aria-label={t("penaltyNoteLabel", { club: row.team.club.short_name })}
+        aria-label={t("penaltyNoteLabel", { club: teamLabel(row.team) })}
         placeholder={t("penaltyNotePlaceholder")}
         data-testid={`matchday-penalty-note-${row.team.id}`}
         className={`${INPUT_CLASS} min-w-0 flex-1`}
@@ -345,7 +345,7 @@ function RaceResultRow({
                 className="size-2.5 shrink-0 rounded-full ring-1 ring-border"
                 style={{ backgroundColor: color.hex }}
               />
-              <span className="truncate">{existing.team.club.short_name}</span>
+              <span className="truncate">{teamLabel(existing.team)}</span>
             </div>
             {existing.is_discarded && (
               <div className="mb-1 text-[11px] text-faint">{t("discardedNote")}</div>
@@ -402,7 +402,7 @@ function RaceResultRow({
               </Tip>
               <FinishChip
                 boat={boat}
-                teamName={existing.team.club.short_name}
+                teamName={teamLabel(existing.team)}
                 row={row}
                 onTap={() => order.tap(boat.number)}
                 testId={`matchday-results-tap-${race.id}-${boat.number}`}

@@ -99,3 +99,6 @@ api/.claude/
 
 # The handbook skill's working plan (.claude/skills/handbook)
 .handbook-plan.md
+
+# Pictures the seed downloads (app/seed_media.py) — not ours to publish in this repository
+api/.seed-cache/

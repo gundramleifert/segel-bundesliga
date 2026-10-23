@@ -10,7 +10,7 @@ import {
   Empty,
   TableFrame,
 } from "../../../components/Blocks";
-import { boatColor } from "../../../lib/format";
+import { boatColor, teamLabel } from "../../../lib/format";
 import { Select } from "../../../components/Select";
 
 export function PairingList({ eventId }: { eventId: number }) {
@@ -155,7 +155,7 @@ export function PairingList({ eventId }: { eventId: number }) {
                           data-testid={`matchday-pairing-club-link-${race.sequence}-${boat.number}`}
                           className="font-medium underline-offset-2 hover:underline"
                         >
-                          {team.club.short_name}
+                          {teamLabel(team)}
                         </Link>
                       </Tip>
                     </td>

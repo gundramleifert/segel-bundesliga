@@ -86,7 +86,6 @@
     "videos": "Videos",
     "photos": "Photos",
     "none": "Nothing here yet.",
-    "credits": "Photos © Deutsche Segel-Bundesliga; aerial photo © Adam Burdylo.",
     "morePhotos": "More photos",
     "open": "Show full screen: {alt}"
   },
@@ -182,7 +181,7 @@
   "footer": {
     "calendar": "Calendar",
     "allClubs": "All clubs",
-    "credits": "Photos and videos © Deutsche Segel-Bundesliga, linked from deutsche-segelbundesliga.de.",
+    "credits": "Photos © their photographers, as each picture credits them.",
     "now": "Now: {act} · {dates}",
     "next": "Next: {act} · {dates}"
   },

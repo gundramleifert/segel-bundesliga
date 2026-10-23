@@ -6,8 +6,8 @@ concept; the issues hold the discussion and the alternatives. **Built into the r
 on 2026-10-12** (Stories B-13–B-16, `web/src/pages/league/`, `web/src/components/site/`):
 the leagues are data (`League`, `GET /api/leagues`, `GET /api/leagues/{slug}`), news,
 press, media and documents static content behind hooks (`web/src/content/`). The
-clickable prototype under **`/prototype`** stays until the open variants are decided, then
-goes; the wireframes of #13 were removed on 2026-10-12.
+clickable prototype under `/prototype` was removed on 2026-10-23, the design decided; the
+wireframes of #13 were removed on 2026-10-12.
 
 ## What the site is
 
@@ -168,9 +168,19 @@ snapping into place and the depth frames A band, B sheet, C split were removed.
 ## Content sources
 
 - **deutsche-segelliga.de** is the user's own site. Its texts (competitions, about, board,
-  member clubs, news) and pictures may be taken over and copied here.
-- **deutsche-segelbundesliga.de** belongs to the league's GmbH. Its photos are **linked,
-  never copied**, because this repository is public. Its YouTube videos are embedded.
+  member clubs, news) may be taken over; of its pictures, only the **board's portraits**
+  are kept (`web/public/media/`).
+- **Every other picture comes from the media library** (decided 2026-10-23, Story R-2):
+  the pages' backgrounds and slideshows are the league's library pictures
+  (`useBackdrops`), and with none the page has a plain background — pictures may be
+  deleted at any time without breaking a page. No picture is linked from another site.
+- **The league office's press pictures** (SmugMug, credited "© DSBL GmbH", with Sven
+  Jürgensen's agreement) are copied **into the library, never into this repository**,
+  which is public: `app/seed_media.py` lists them, the seed downloads them into
+  `api/.seed-cache/` (git-ignored).
+- **The league's other website is not pointed to** (decided 2026-10-23): no link, no
+  credit line, no "rewritten from". Its news were rewritten in our own words; its YouTube
+  videos are embedded.
 
 ## Open before the real build
 

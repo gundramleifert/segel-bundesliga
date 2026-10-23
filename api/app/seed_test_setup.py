@@ -3,12 +3,14 @@
     uv run python -m app.seed_test_setup            # Create and populate schema
     uv run python -m app.seed_test_setup --reset    # discard everything first
 
-Combines what would otherwise be three steps: run migrations, create seed data
-(`app.seed`), create accounts (`app.seed_users`). Designed for an empty database — after
+Combines what would otherwise be four steps: run migrations, create seed data
+(`app.seed`), create accounts (`app.seed_users`), put the press pictures into the media
+library (`app.seed_media`). Designed for an empty database — after
 a `git clone`, a database switch, or when you just want to start fresh.
 
 The run is repeatable: `app.seed` clears existing seed data and recreates it,
-`app.seed_users` updates existing accounts. With `--reset`, additionally drops all
+`app.seed_users` updates existing accounts, `app.seed_media` finds the pictures it stored
+before. With `--reset`, additionally drops all
 tables and migration state — the hard reset when the schema is confused.
 """
 
@@ -26,6 +28,7 @@ from app.config import settings
 from app.db import engine
 from app.models import Base
 from app.seed import seed
+from app.seed_media import seed_media
 from app.seed_users import seed_users
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -65,6 +68,8 @@ async def seed_test_setup(*, reset: bool = False) -> None:
     await seed()
     print()
     await seed_users()
+    print()
+    await seed_media()
 
     print(
         "\nDone. Start with:\n"

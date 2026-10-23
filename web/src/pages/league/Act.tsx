@@ -10,7 +10,7 @@ import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
 import { Card, Columns, Panel, PillSwitch, TextCard, tone } from "../../components/site/Cards";
 import { BARS, Block, DepthPage, Expand, PageLoading, SubBar } from "../../components/site/Frame";
-import { DSBL_PHOTOS, leaguePhoto, useActNotices } from "../../content";
+import { useActNotices } from "../../content";
 import { eventDates, locationText } from "../../lib/format";
 import { actSlug, currentAct, hasResults, href, lastSailed, stateOf, type Act } from "../../lib/site";
 import { Crew } from "./act/Crew";
@@ -116,7 +116,6 @@ function MatchdayView({
       league={league}
       title={actTitle(act)}
       kicker={kicker}
-      photo={hasResults(act) ? DSBL_PHOTOS.podium : league ? leaguePhoto(league.slug) : DSBL_PHOTOS.race}
       subnav={subnav}
     >
       {/* Where a tab click scrolls to: the tab's top, just under the rows. */}

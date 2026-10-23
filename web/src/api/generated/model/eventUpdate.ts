@@ -24,6 +24,7 @@ export interface EventUpdate {
   team_count?: number | null;
   boat_count?: number | null;
   flight_count?: number | null;
+  teams_per_club?: number | null;
   squad_min?: number | null;
   squad_max?: number | null;
   print_settings?: PrintSettingsIn | null;

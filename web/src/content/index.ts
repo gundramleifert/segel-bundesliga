@@ -19,6 +19,7 @@ import {
   getListLeagueMediaQueryOptions,
   getListPostsQueryOptions,
   useGetPost,
+  useListLeagueMedia,
 } from "../api/generated/sbl";
 import type { PagePostSummary } from "../api/generated/model/pagePostSummary";
 import type { PagePublicPicture } from "../api/generated/model/pagePublicPicture";
@@ -26,10 +27,10 @@ import type { PublicPicture } from "../api/generated/model/publicPicture";
 import type { ApiError } from "../api/http";
 import { PostKind, type Post, type PostSummary } from "../api/types";
 import { errorText, useAsync, type AsyncState } from "../api/useApi";
-import { DSBL_PHOTOS, OWN_PHOTOS, type Photo } from "./photos";
+import { OWN_PHOTOS, type Photo } from "./photos";
 
 export type { Photo } from "./photos";
-export { DSBL_PHOTOS, OWN_PHOTOS, SLIDES } from "./photos";
+export { OWN_PHOTOS } from "./photos";
 
 /** A text in both of the site's languages. */
 export type Localized = { en: string; de: string };
@@ -74,13 +75,12 @@ export function useAssociation() {
 
 // ---------------------------------------------------------------- the leagues
 
-export type LeagueAbout = { intro: Localized; facts: Localized[]; photo: Photo };
+export type LeagueAbout = { intro: Localized; facts: Localized[] };
 
 /** What a league is and what is at stake — condensed from deutsche-segelliga.de/wettbewerbe.
  *  Keyed by the league's slug; a league without an entry simply has no about text yet. */
 const LEAGUE_ABOUT: Record<string, LeagueAbout> = {
   "1-liga": {
-    photo: DSBL_PHOTOS.race,
     intro: {
       en: "The top of German club sailing since 2013: the best sailors of 18 clubs — Olympians, seasoned professionals and rising talents — race side by side for their club, on J/70s the league provides and rotates after every race.",
       de: "Die Spitze des deutschen Vereinssegelns seit 2013: Die besten Seglerinnen und Segler aus 18 Vereinen — Olympioniken, erfahrene Profis und junge Talente — segeln Seite an Seite für ihren Club, auf J/70, die die Liga stellt und nach jeder Wettfahrt tauscht.",
@@ -91,7 +91,6 @@ const LEAGUE_ABOUT: Record<string, LeagueAbout> = {
     ],
   },
   "2-liga": {
-    photo: DSBL_PHOTOS.aerial,
     intro: {
       en: "The second division of German club sailing: 18 clubs race the league's format — J/70, fleet race — at the same venues and weekends as the 1. Liga, for four places in it.",
       de: "Die zweite Liga des deutschen Vereinssegelns: 18 Vereine segeln im Format der Liga — J/70, Fleet Race — an denselben Orten und Wochenenden wie die 1. Liga, um vier Plätze in ihr.",
@@ -103,7 +102,6 @@ const LEAGUE_ABOUT: Record<string, LeagueAbout> = {
     ],
   },
   "junioren-liga": {
-    photo: DSBL_PHOTOS.swimmer,
     intro: {
       en: "The talent school of German club sailing since 2016: sailors aged AK16 to AK21 race the league's format — J/70, fleet race — with a real path upwards. Under the patronage of the Deutsche Segel-Liga e.V.; the Heinz Nixdorf Verein provides the boats.",
       de: "Die Talentschmiede des deutschen Vereinssegelns seit 2016: Seglerinnen und Segler der AK16 bis AK21 segeln im Format der Liga — J/70, Fleet Race — mit einem echten Weg nach oben. Unter der Schirmherrschaft der Deutschen Segel-Liga e.V.; die Boote stellt der Heinz Nixdorf Verein.",
@@ -115,7 +113,6 @@ const LEAGUE_ABOUT: Record<string, LeagueAbout> = {
     ],
   },
   "dsl-pokal": {
-    photo: DSBL_PHOTOS.aerial,
     intro: {
       en: "Where amateur meets professional, since 2017: one compact weekend in autumn, after the league season, in which clubs from every level race each other — and the way into the 2. Liga.",
       de: "Wo Amateure auf Profis treffen, seit 2017: ein kompaktes Wochenende im Herbst, nach der Ligasaison, an dem Vereine aller Ebenen gegeneinander segeln — und der Weg in die 2. Liga.",
@@ -132,11 +129,8 @@ export function useLeagueAbout(league: string) {
   return ready(LEAGUE_ABOUT[league] ?? null);
 }
 
-/** The picture a league's pages fall back to. */
 /** The same, outside a component — for a list of leagues. */
 export const leagueAbout = (league: string) => LEAGUE_ABOUT[league] ?? null;
-
-export const leaguePhoto = (league: string) => LEAGUE_ABOUT[league]?.photo ?? DSBL_PHOTOS.race;
 
 /** Where a table marks promotion, relegation and requalification — the league's rules,
  *  per division (`Series.level`). Content for now; it belongs to the series' rules
@@ -164,7 +158,8 @@ export type ArticleSummary = {
   /** The league's slug, or null for the association's own news (shown in every league). */
   league: string | null;
   teaser: string;
-  photo: Photo;
+  /** None when the post has none (decided 2026-10-23: no picture stands in). */
+  photo?: Photo;
   /** Written to fill the page, not real news — the article says so (Story B-14). */
   example?: boolean;
 };
@@ -177,9 +172,10 @@ export type Article = ArticleSummary & {
   quote?: { text: string; by: string };
 };
 
-/** A post's own picture, or its league's when it has none. */
-function postPhoto(post: PostSummary): Photo {
-  if (!post.photo_url) return leaguePhoto(post.league ?? MEMBER_LEAGUES[0]);
+/** A post's own picture — none when it has none: the card and the article then go without
+ *  one rather than borrowing a picture the post is not about. */
+function postPhoto(post: PostSummary): Photo | undefined {
+  if (!post.photo_url) return undefined;
   return {
     src: post.photo_url,
     srcset: post.photo_srcset ?? undefined,
@@ -294,7 +290,7 @@ export const PRESS_CONTACT = "presse@segelliga.example.com";
 
 export type Video = { id: string; title: string; start: number };
 
-// Embedded on deutsche-segelbundesliga.de; played muted as a background loop in the
+// The league's YouTube videos; played muted as a background loop in the
 // "video" setting, and with sound and controls on the media pages.
 export const VIDEOS: Video[] = [
   { id: "gMxZptdnbxo", title: "1. Spieltag — Hamburg 2022", start: 30 },
@@ -323,14 +319,24 @@ export const fromLibrary = (p: PublicPicture): GalleryPhoto => ({
   height: p.height,
 });
 
-const SITE_GALLERY: GalleryPhoto[] = Object.values(DSBL_PHOTOS).map((p) => ({ ...p, id: p.src, context: null }));
+/** How many pictures a page's backdrop takes turns with. */
+const BACKDROPS = 12;
+
+/** The pictures behind a page — the library's of this league's regattas, or of every
+ *  league's on the association's pages (Story R-3). Empty while there are none, while
+ *  they load, and when the request fails: a page without pictures has a plain background,
+ *  never an error, so pictures may be deleted from the library at any time. */
+export function useBackdrops(league?: string | null): Photo[] {
+  const query = useListLeagueMedia({ ...(league ? { league } : {}), limit: BACKDROPS });
+  return useMemo(() => (query.data?.items ?? []).map(fromLibrary), [query.data]);
+}
 
 /** How many pictures the media page reads at a time. */
 export const GALLERY_PAGE = 24;
 
 /** A league's photos — the library's pictures of its regattas (Story R-3), newest regatta
- *  first, a page at a time; the site's own selection while it has none. `library` says
- *  which, so the page credits the site's pictures as before. */
+ *  first, a page at a time. None is the normal state of a new league, and the page says so;
+ *  `library` stays for the page's credit line. */
 export function useGallery(league: string, size = GALLERY_PAGE): Paged<GalleryPhoto> & { library: boolean } {
   const pages = usePages<PagePublicPicture, GalleryPhoto>(
     `gallery:${league}:${size}`,
@@ -338,7 +344,6 @@ export function useGallery(league: string, size = GALLERY_PAGE): Paged<GalleryPh
     size,
     fromLibrary,
   );
-  if (pages.data && pages.total === 0) return { ...pages, ...ready(SITE_GALLERY), library: false };
   return { ...pages, library: true };
 }
 

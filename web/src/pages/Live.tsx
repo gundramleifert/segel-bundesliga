@@ -19,7 +19,7 @@ import { useLive } from "../api/useLive";
 import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Blocks";
 import { DEV_TOOLS } from "../dev/devTools";
 import { errorText } from "../lib/admin";
-import { boatColor } from "../lib/format";
+import { boatColor, teamLabel } from "../lib/format";
 import { fromServer, phaseAt } from "../lib/startSequence";
 import { clock, countdown, useAlignedNow, useNow } from "../lib/useNow";
 import { Select } from "../components/Select";
@@ -619,7 +619,7 @@ function CourseMap({
     for (const boat of snapshot.boats) {
       seenBoats.add(boat.boat_number);
       const hex = boatColor(boat.color).hex;
-      const label = boat.team?.club.short_name ?? String(boat.boat_number);
+      const label = (boat.team ? teamLabel(boat.team) : String(boat.boat_number));
       let entry = boatMarkers.current.get(boat.boat_number);
       if (!entry) {
         const el = boatElement(hex, label);
@@ -765,7 +765,7 @@ function Panel({ snapshot }: { snapshot: LiveRace | null }) {
                 <td>
                   <span className="flex items-center gap-1.5">
                     <span aria-hidden className="size-2.5 shrink-0 rounded-full ring-1 ring-border" style={{ backgroundColor: color.hex }} />
-                    <span className="truncate">{boat.team?.club.short_name ?? color.name}</span>
+                    <span className="truncate">{boat.team ? teamLabel(boat.team) : color.name}</span>
                   </span>
                 </td>
                 <td

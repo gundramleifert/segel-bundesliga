@@ -11,4 +11,5 @@ export interface TeamOut {
   id: number;
   name: string;
   club: ClubOut;
+  number?: number;
 }

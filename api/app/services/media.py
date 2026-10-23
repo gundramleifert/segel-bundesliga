@@ -331,16 +331,16 @@ async def delete_many(session: AsyncSession, items: list[MediaItem]) -> Deleted:
 # ---------------------------------------------------------------- the public media page
 
 
-def public_in_league(league_slug: str) -> Select:
+def public_in_league(league_slug: str | None) -> Select:
     """The pictures a league's media page shows (Story R-3): of its published series, and
     of their published events — newest regatta first. A picture of nothing, or of a draft,
-    is on no page."""
+    is on no page. Without a league, every published series' — the home page's pictures."""
     from app.models import League
 
-    leagues = select(League.id).where(League.slug == league_slug)
-    public_series = select(Series.id).where(
-        Series.league_id.in_(leagues), Series.published.is_(True)
-    )
+    public_series = select(Series.id).where(Series.published.is_(True))
+    if league_slug is not None:
+        leagues = select(League.id).where(League.slug == league_slug)
+        public_series = public_series.where(Series.league_id.in_(leagues))
     public_events = select(Event.id).where(
         Event.series_id.in_(public_series), Event.published.is_(True)
     )

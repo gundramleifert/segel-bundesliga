@@ -12,11 +12,12 @@ rejecting. What validity gates is the *draw* and the *start*; what freezes the s
 
 from __future__ import annotations
 
+from collections import Counter
 from datetime import date
 
 from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel, Field, model_validator
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -136,6 +137,12 @@ class EventCreate(BaseModel):
     team_count: int = Field(default=18, ge=2, le=64)
     boat_count: int = Field(default=6, ge=2, le=20)
     flight_count: int = Field(default=16, ge=1, le=40)
+    teams_per_club: int = Field(
+        default=1,
+        ge=1,
+        le=64,
+        description="How many teams one club may enter (Story VA-13); 1 is the normal case.",
+    )
     boats: list[BoatSpec] = Field(
         default_factory=list,
         description=(
@@ -163,6 +170,8 @@ class EventCreate(BaseModel):
             self.ends_on = self.starts_on
         elif self.starts_on is not None and self.ends_on < self.starts_on:
             raise ValueError("End date cannot be before start date.")
+        if self.teams_per_club > self.team_count:
+            raise ValueError("A club cannot enter more teams than the event has.")
         if self.boats:
             self.boat_count = len(self.boats)
             numbers = [b.number for b in self.boats if b.number is not None]
@@ -190,6 +199,7 @@ class EventUpdate(BaseModel):
     team_count: int | None = Field(default=None, ge=2, le=64)
     boat_count: int | None = Field(default=None, ge=2, le=20)
     flight_count: int | None = Field(default=None, ge=1, le=40)
+    teams_per_club: int | None = Field(default=None, ge=1, le=64)
     squad_min: int | None = Field(default=None, ge=1, le=50)
     squad_max: int | None = Field(default=None, ge=1, le=50)
     print_settings: PrintSettingsIn | None = None
@@ -201,7 +211,7 @@ class EventUpdate(BaseModel):
 # already in a standings table. Everything else (title, dates, venue, host, logo,
 # publication) stays editable: a typo or a moved venue must remain fixable while racing.
 _CONFIGURATION_FIELDS = frozenset(
-    {"team_count", "boat_count", "flight_count", "series", "matchday"}
+    {"team_count", "boat_count", "flight_count", "teams_per_club", "series", "matchday"}
 )
 
 
@@ -310,6 +320,7 @@ async def create_event(
         team_count=request.team_count,
         boat_count=request.boat_count,
         flight_count=request.flight_count,
+        teams_per_club=request.teams_per_club,
         squad_min=request.squad_min,
         squad_max=request.squad_max,
         print_settings=(request.print_settings.model_dump() if request.print_settings else None),
@@ -361,6 +372,28 @@ async def update_event(
         await _check_venue(session, changes["venue_id"])
     for field, value in changes.items():
         setattr(event, field, value)
+    if event.teams_per_club > event.team_count:
+        raise Problem(
+            422,
+            "teams-per-club-exceeds-teams",
+            "A club cannot enter more teams than the event has.",
+            teams_per_club=event.teams_per_club,
+            team_count=event.team_count,
+        )
+    if "teams_per_club" in changes:
+        # The organizer's parameter (Story VA-13), changeable — but a club's team beyond it
+        # is taken away first, in the clubs block, never silently left over.
+        entered = (
+            await session.execute(select(func.max(Team.number)).where(Team.event_id == event.id))
+        ).scalar_one_or_none() or 1
+        if event.teams_per_club < entered:
+            raise Problem(
+                422,
+                "teams-per-club-below-entered",
+                "A club has more teams entered than that; take them away first.",
+                teams_per_club=event.teams_per_club,
+                entered=entered,
+            )
 
     if (
         event.starts_on is not None
@@ -629,7 +662,10 @@ async def _with_relationships(session: AsyncSession, event_id: int) -> Event:
 
 class ParticipantSetRequest(BaseModel):
     clubs: list[int] = Field(
-        description=("Clubs that enter this event. An empty list removes all.")
+        description=(
+            "Clubs that enter this event, a club's id once per team it enters (Story VA-13) "
+            "— twice for its first and second team. An empty list removes all."
+        )
     )
 
 
@@ -639,6 +675,9 @@ class ParticipantOut(BaseModel):
     team_id: int
     status: TeamStatus
     club: ClubOut
+    # The club's first, second, … team, and its name — `KYC (SH) 2` (Story VA-13).
+    number: int = 1
+    name: str = ""
 
 
 @router.get(
@@ -690,20 +729,20 @@ async def set_participants(
     The pairing list is attached to the event — so are the teams within it. Whoever
     stands here will be drawn and ranked.
 
-    Two rules apply: if the event belongs to a series, the club must be **registered** for
-    it. And once racing has started the field is frozen altogether (Story VA-8) — the
-    pairing list being sailed was drawn for exactly these clubs.
+    Three rules apply: if the event belongs to a series, the club must be **registered**
+    for it. A club enters as many teams as its id is listed, no more than the event's
+    ``teams_per_club`` (Story VA-13); a team taken away is the highest-numbered. And once
+    racing has started the field is frozen altogether (Story VA-8) — the pairing list being
+    sailed was drawn for exactly these clubs.
     """
     event = await _event(session, event_id)
     await require_editable_configuration(session, event.id)
-    desired = {club.id: club for club in await _clubs(session, request.clubs)}
+    clubs = {club.id: club for club in await _clubs(session, request.clubs)}
+    wanted = Counter(request.clubs)
 
-    existing = {
-        team.club_id: team for team in await event_entries(session, event.id, accepted_only=False)
-    }
-
-    for club_id, team in existing.items():
-        if club_id in desired:
+    existing = await event_entries(session, event.id, accepted_only=False)
+    for team in existing:
+        if team.number <= wanted[team.club_id]:
             # An approval from above lifts a pending request.
             team.status = TeamStatus.ACCEPTED
             continue
@@ -712,14 +751,15 @@ async def set_participants(
                 409,
                 "participation-has-results",
                 "This club cannot be removed: race results already exist.",
-                club_id=club_id,
+                club_id=team.club_id,
             )
         await session.delete(team)
 
-    for club_id, club in desired.items():
-        if club_id in existing:
-            continue
-        await new_event_entry(session, event, club)
+    entered = {(team.club_id, team.number) for team in existing}
+    for club_id, count in wanted.items():
+        for number in range(1, count + 1):
+            if (club_id, number) not in entered:
+                await new_event_entry(session, event, clubs[club_id], number=number)
 
     await session.commit()
     return await _participants_out(session, event.id)
@@ -731,11 +771,17 @@ async def _participants_out(session: AsyncSession, event_id: int) -> list[Partic
             select(Team, Club)
             .join(Club, Team.club_id == Club.id)
             .where(Team.event_id == event_id)
-            .order_by(Club.name)
+            .order_by(Club.name, Team.number)
         )
     ).all()
     return [
-        ParticipantOut(team_id=team.id, status=team.status, club=ClubOut.model_validate(club))
+        ParticipantOut(
+            team_id=team.id,
+            status=team.status,
+            club=ClubOut.model_validate(club),
+            number=team.number,
+            name=team.name,
+        )
         for team, club in rows
     ]
 

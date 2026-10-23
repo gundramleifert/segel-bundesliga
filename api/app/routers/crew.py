@@ -103,11 +103,14 @@ async def _participation(session: AsyncSession, event: Event, team_id: int) -> T
     """The club's entry to **this** event.
 
     Lineup is always at the entry, not at the series registration — the lineup applies to
-    one matchday. Either can be specified: the club is what matters.
+    one matchday. Either can be specified: an entry of this event is that team (a club's
+    second team is its own, Story VA-13), a series registration means the club's first.
     """
     team = await get_or_404(session, Team, team_id)
 
-    found = await event_entry(session, event.id, team.club_id)
+    found = (
+        team if team.event_id == event.id else await event_entry(session, event.id, team.club_id)
+    )
     if found is None or found.status != TeamStatus.ACCEPTED:
         raise Problem(422, "club-not-in-event", "This club does not participate in this event.")
     return found

@@ -3,7 +3,7 @@ id: run-event
 type: guide
 order: 120
 audience: [event-organizer]
-stories: [VA-8, VA-7, B-3, VA-12]
+stories: [VA-8, VA-7, B-3, VA-12, VA-13]
 journey: null
 route: /admin
 tags: [readiness, draw, seed, publish, start, frozen, print, pdf, people, auslosung, pairing-liste, veröffentlichen, helfer]
@@ -21,9 +21,12 @@ incomplete event.
 
 | It says | What to do |
 |---|---|
-| the clubs entered do not match the setup | tick or untick clubs under *Clubs entered: … of …*, then *Enter … clubs* ② |
+| the clubs entered do not match the setup | tick or untick clubs under *Teams entered: … of …*, then *Enter … clubs* ② |
 | no date yet | set *Starts on*, press *Save date* ① |
 | no pre-computed list for this size, or the boats do not match | the panel cannot change the size or the boats — ask the league office |
+
+A club sailing several teams: raise *Teams per club* above the clubs, then set *Teams of …*
+for that club. Its teams are named `ASVW`, `ASVW 2`, … and all lined up from its one squad.
 
 ![The panel: what is still missing, *Save date* ①, the clubs and *Enter … clubs* ②, the draw ③](shot:help-event-readiness)
 

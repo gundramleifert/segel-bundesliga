@@ -167,14 +167,17 @@ describeStory("B-3: as a sailor I see when I am on which boat", () => {
 });
 
 describeStory("B-4: as a visitor I find clubs and dates", () => {
-  test("all 36 clubs of both divisions are listed, a page at a time", async ({ page }) => {
+  test("all 36 clubs of both divisions are listed, a page at a time", async ({ page, request }) => {
+    // 36 clubs sail the 1. and 2. Liga in 2026 (app.seed), and the Junioren-Liga's real
+    // field adds the clubs that sail only there — more than one page holds.
+    const { total } = (await (await request.get("/api/clubs", { params: { limit: 1 } })).json()) as { total: number };
+    expect(total).toBeGreaterThanOrEqual(36);
     await page.goto("/clubs");
-    // 36 clubs sail the 1. and 2. Liga in 2026 (app.seed) — more than one page holds.
     const cards = page.getByTestId("clubs-list").getByRole("listitem");
     // count() does not wait (docs/gotchas): the first card first.
     await expect(cards.first()).toBeVisible();
-    expect(await cards.count()).toBeLessThan(36);
-    await expect(page.getByTestId("clubs-pager-range")).toContainText("36");
+    expect(await cards.count()).toBeLessThan(total);
+    await expect(page.getByTestId("clubs-pager-range")).toContainText(String(total));
   });
 
   test("from the calendar I get into a matchday", async ({ page }) => {

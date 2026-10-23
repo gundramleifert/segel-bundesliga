@@ -8,9 +8,9 @@
 
 export type ListLeagueMediaParams = {
 /**
- * The league's slug
+ * The league's slug; without it, every league's pictures
  */
-league: string;
+league?: string | null;
 /**
  * Rows per page
  * @minimum 1

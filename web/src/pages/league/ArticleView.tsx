@@ -28,7 +28,7 @@ export function ArticleView({ post, header = false }: { post: Post; header?: boo
       {header && (
         <header className="relative mb-6 overflow-hidden rounded-2xl bg-background text-foreground" data-testid="site-article-header">
           <div aria-hidden className="absolute inset-0">
-            <Img photo={article.photo} />
+            {article.photo && <Img photo={article.photo} />}
             <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-background/10" />
           </div>
           <div className="relative px-4 pb-8 pt-32 sm:px-8">

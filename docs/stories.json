@@ -1135,6 +1135,14 @@
   "file": "docs/userstories/event-organizer.md",
   "anchor": "va-12--name-the-events-helpers"
  },
+ "VA-13": {
+  "title": "A club enters more than one team",
+  "status": "●",
+  "role": "Event Organizer",
+  "phase": "Participants and their waivers",
+  "file": "docs/userstories/event-organizer.md",
+  "anchor": "va-13--a-club-enters-more-than-one-team"
+ },
  "VA-2": {
   "title": "Self check-in with liability waiver",
   "status": "○",

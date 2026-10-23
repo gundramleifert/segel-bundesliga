@@ -511,7 +511,9 @@ async def import_media(
     "", response_model=Page[PublicPicture], summary="A league's photos, for its media page"
 )
 async def list_league_media(
-    league: str = Query(description="The league's slug"),
+    league: str | None = Query(
+        default=None, description="The league's slug; without it, every league's pictures"
+    ),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[PublicPicture]:

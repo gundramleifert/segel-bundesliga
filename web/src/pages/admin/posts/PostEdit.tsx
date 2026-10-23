@@ -22,7 +22,7 @@ import { Field, Message } from "../../../components/Form";
 import { MediaContextSelect } from "../../../components/MediaContextSelect";
 import { MediaPicker } from "../../../components/MediaPicker";
 import { Select } from "../../../components/Select";
-import { MEMBER_LEAGUES, leaguePhoto } from "../../../content";
+import { MEMBER_LEAGUES } from "../../../content";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
 import { todayIso } from "../../../lib/format";
 import { repeatsTitle } from "../../../lib/postTitle";
@@ -192,7 +192,6 @@ function PostForm({ post }: { post?: PostAdmin }) {
   const news = draft.kind === PostKind.news;
   // An association's post is shown under the first member league (`content`, `Home.tsx`).
   const publicLeague = post?.league ?? MEMBER_LEAGUES[0];
-  const leagueSlug = leagues.data?.find((l) => l.id === draft.league_id)?.slug ?? MEMBER_LEAGUES[0];
 
   if (previewing) return <Preview draft={draft} onBack={() => setPreviewing(false)} />;
 
@@ -321,7 +320,6 @@ function PostForm({ post }: { post?: PostAdmin }) {
           <PhotoPicker
             url={draft.photo_url}
             credit={draft.photo_credit}
-            fallback={leaguePhoto(leagueSlug).src}
             onChange={(url, credit) => {
               set("photo_url", url);
               set("photo_credit", credit);
@@ -393,12 +391,10 @@ function PostForm({ post }: { post?: PostAdmin }) {
 function PhotoPicker({
   url,
   credit,
-  fallback,
   onChange,
 }: {
   url: string | null;
   credit: string;
-  fallback: string;
   onChange: (url: string | null, credit: string) => void;
 }) {
   const { t } = useTranslation("admin");
@@ -426,12 +422,21 @@ function PhotoPicker({
         className={`rounded-md ${over ? "ring-2 ring-focus ring-offset-2" : ""}`}
         data-testid="admin-post-photo-dropzone"
       >
-        <img
-          src={url ?? fallback}
-          alt=""
-          className={`aspect-[3/2] w-full rounded-md object-cover ${url ? "" : "opacity-50"} ${photo.busy ? "animate-pulse" : ""}`}
-          data-testid="admin-post-photo-preview"
-        />
+        {/* Without a picture the post has none — no other picture stands in (decided
+            2026-10-23), so the box stays empty: a place to drop one. */}
+        {url ? (
+          <img
+            src={url}
+            alt=""
+            className={`aspect-[3/2] w-full rounded-md object-cover ${photo.busy ? "animate-pulse" : ""}`}
+            data-testid="admin-post-photo-preview"
+          />
+        ) : (
+          <div
+            className={`aspect-[3/2] w-full rounded-md border border-dashed border-border bg-surface-secondary ${photo.busy ? "animate-pulse" : ""}`}
+            data-testid="admin-post-photo-preview"
+          />
+        )}
       </div>
       <div className="grid content-start gap-3">
         <p className="font-medium text-foreground">

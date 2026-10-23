@@ -64,9 +64,10 @@ ENV PATH="/app/.venv/bin:$PATH"
 # priority over this file if a host ever sets the same var as an actual env var.
 RUN cp render.env .env
 
-# Seed the database at build time. The secret here is only used by the seed script to
-# mint the sample tokens it prints; it is NOT the runtime signing secret (set that as a
-# real environment variable — SBL_JWT_SECRET — on the host).
+# Seed the database at build time — the press pictures included, downloaded from SmugMug
+# here (app/seed_media.py; one that cannot be fetched is left out). The secret here is only
+# used by the seed script to mint the sample tokens it prints; it is NOT the runtime
+# signing secret (set that as a real environment variable — SBL_JWT_SECRET — on the host).
 ARG SEED_JWT_SECRET=build-time-seed-only
 RUN SBL_JWT_SECRET="$SEED_JWT_SECRET" \
     SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db" \
@@ -85,6 +86,20 @@ RUN if [ -n "$SAP_IMPORT_YEARS" ]; then \
       SBL_SAP_BASE_URL="$SAP_BASE_URL" \
       python -m app.imports sap --years "$SAP_IMPORT_YEARS" --publish \
       || echo "SAP import failed — the image keeps the seed alone"; \
+    fi
+
+# The Junioren-Liga's acts sit on their own SAP host (Story A-14, docs/findings.md §3a):
+# the seasons of JUNIOR_IMPORT_YEARS from JUNIOR_SAP_BASE_URL, into the seed's
+# Junioren-Segelliga of that year, published. Empty skips it; a failure never fails the
+# build.
+ARG JUNIOR_IMPORT_YEARS=2026
+ARG JUNIOR_SAP_BASE_URL=https://hnv.sapsailing.com/sailingserver/api
+RUN if [ -n "$JUNIOR_IMPORT_YEARS" ]; then \
+      SBL_JWT_SECRET="$SEED_JWT_SECRET" \
+      SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db" \
+      python -m app.imports sap --base-url "$JUNIOR_SAP_BASE_URL" \
+        --years "$JUNIOR_IMPORT_YEARS" --publish \
+      || echo "Junioren import failed — the image keeps the seed alone"; \
     fi
 
 ENV SBL_DATABASE_URL="sqlite+aiosqlite:////app/sbl.db"

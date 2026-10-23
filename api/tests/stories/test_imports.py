@@ -42,6 +42,7 @@ from app.models import (
     Source,
     Team,
 )
+from app.services.standings import compute_series
 
 FIXTURES = Path(__file__).parent.parent / "fixtures"
 BERLIN = "1. Segel-Bundesliga 2023 - Berlin (1)"
@@ -320,6 +321,125 @@ class TestSapImport:
         assert len(report.errors) == 1
 
 
+JUNIOR_ACT = "Deutsche Junioren Segel-Liga 2026 - Act 2"
+HNV = "https://hnv.sapsailing.com/sailingserver/api"
+
+
+def _hnv_transport() -> httpx.MockTransport:
+    """The juniors' host, recorded 2026-10-23: its regatta list and act 2 of 2026."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.host == "hnv.sapsailing.com"
+        path = unquote(request.url.path)
+        if path == "/sailingserver/api/v1/regattas":
+            return httpx.Response(200, content=(FIXTURES / "sap/hnv-regattas.json").read_bytes())
+        if path == f"/sailingserver/api/v1/regattas/{JUNIOR_ACT}/competitors":
+            return httpx.Response(200, json=[])
+        if path == f"/sailingserver/api/v2/leaderboards/{JUNIOR_ACT}":
+            return httpx.Response(
+                200, content=(FIXTURES / "sap/hnv-leaderboard-act2.json").read_bytes()
+            )
+        return httpx.Response(404, json={"message": "not recorded"})
+
+    return httpx.MockTransport(handler)
+
+
+async def _import_junior_act(db, **kwargs):
+    async with httpx.AsyncClient(transport=_hnv_transport()) as http:
+        return await import_sap(
+            db, SapClient(http, HNV), names=[JUNIOR_ACT], log=lambda _: None, **kwargs
+        )
+
+
+async def _junior_clubs(db) -> None:
+    """The clubs whose codes the juniors' host spells differently (`KiYC`, `BeYC`)."""
+    from app.text import slugify
+
+    async with db() as session:
+        session.add_all(
+            Club(slug=slugify(short), name=name, short_name=short)
+            for name, short in (("Kieler Yacht-Club (Kiel)", "KYC (SH)"), ("Berliner YC", "BYCB"))
+        )
+        await session.commit()
+
+
+class TestJuniorenImport:
+    """Story A-14: the Junioren-Liga's acts from their own SAP host."""
+
+    async def test_an_act_arrives_in_the_junioren_series_of_its_year(self, db):
+        """Story A-14: act 2 of the Junioren-Segelliga 2026, 27 teams on 9 boats, scored here."""
+        await _junior_clubs(db)
+        report = await _import_junior_act(db)
+        assert report.errors == [], report.render()
+        # SAP's net points agree with the ones derived here.
+        assert report.warnings == [], report.render()
+
+        async with db() as session:
+            event = (
+                await session.execute(select(Event).where(Event.sap_leaderboard == JUNIOR_ACT))
+            ).scalar_one()
+            series = await session.get(Series, event.series_id)
+            league = await session.get(League, series.league_id)
+            assert (series.name, series.year, league.slug) == (
+                "Junioren-Segelliga 2026",
+                2026,
+                "junioren-liga",
+            )
+            assert (event.matchday, event.title, event.venue_id) == (2, "Act 2", None)
+            assert (event.team_count, event.boat_count, event.flight_count) == (27, 9, 14)
+            assert event.races_per_flight == 3
+            # No tracked starts: the dates the regatta list gives, and over long ago.
+            assert (str(event.starts_on), str(event.ends_on)) == ("2026-08-21", "2026-08-23")
+            assert event.status == EventStatus.FINAL
+
+    async def test_a_club_s_second_team_is_a_team_of_its_own(self, db):
+        """Stories A-14, VA-13: `KiYC 1` and `KiYC 2` are two teams of our `KYC (SH)`, no
+        new club."""
+        await _junior_clubs(db)
+        await _import_junior_act(db)
+        async with db() as session:
+            kiel = (
+                await session.execute(select(Club).where(Club.short_name == "KYC (SH)"))
+            ).scalar_one()
+            entries = (
+                await session.execute(
+                    select(Team.name)
+                    .join(Event, Event.id == Team.event_id)
+                    .where(Team.club_id == kiel.id, Event.sap_leaderboard == JUNIOR_ACT)
+                )
+            ).scalars()
+            assert sorted(entries) == ["KYC (SH)", "KYC (SH) 2"]
+            registrations = (
+                await session.execute(
+                    select(Team.name).where(Team.club_id == kiel.id, Team.event_id.is_(None))
+                )
+            ).scalars()
+            # One squad for both (Story VA-13): the club is registered once.
+            assert list(registrations) == ["KYC (SH)"]
+            event = (
+                await session.execute(select(Event).where(Event.sap_leaderboard == JUNIOR_ACT))
+            ).scalar_one()
+            assert event.teams_per_club == 2
+            # In the series table the second team is a row of its own.
+            rows = await compute_series(session, event.series_id)
+            named = {(await session.get(Team, row.team_id)).name for row in rows}
+            assert {"KYC (SH)", "KYC (SH) 2"} <= named
+            # BeYC is our BYCB: linked, not created again.
+            berlin = (
+                await session.execute(
+                    select(func.count()).select_from(Club).where(Club.name.like("Berliner%"))
+                )
+            ).scalar_one()
+            assert berlin == 1
+
+    async def test_a_second_run_changes_nothing(self, db):
+        """Story A-14: repeatable on the juniors' host too, second teams included."""
+        await _junior_clubs(db)
+        await _import_junior_act(db)
+        report = await _import_junior_act(db)
+        assert not report.created and not report.updated, report.render()
+
+
 class TestManage2SailImport:
     """Story A-14: an event's entries and its notice-board documents from Manage2Sail."""
 
@@ -378,12 +498,13 @@ class TestManage2SailImport:
                 )
             ).scalar_one() == 1
 
-        # Tied by hand, the Kieler entry arrives — once, since a club enters an event once.
+        # Tied by hand, the Kieler entry arrives — once, since this event lets a club enter
+        # one team (Story VA-13).
         report = await _import_m2s(db, links={"KYC|Kieler Yacht-Club e. V.": "kyc"})
         assert "KYC|Kieler Yacht-Club e. V." not in "\n".join(
             line for line in report.unassigned if "several clubs" in line
         )
-        assert any("second entry of KYC" in line for line in report.unassigned)
+        assert any("team 2 of KYC" in line for line in report.unassigned)
 
     async def test_a_second_run_changes_nothing(self, db):
         """Story A-14: repeatable for Manage2Sail too."""

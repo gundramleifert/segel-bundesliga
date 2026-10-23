@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 2d79274ed8ad
+Revision ID: 65a782b7ae6f
 Revises: 
-Create Date: 2026-10-20 23:25:49.112752
+Create Date: 2026-10-23 22:11:34.525179
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '2d79274ed8ad'
+revision: str = '65a782b7ae6f'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -296,6 +296,7 @@ def upgrade() -> None:
     sa.Column('team_count', sa.Integer(), nullable=False),
     sa.Column('boat_count', sa.Integer(), nullable=False),
     sa.Column('flight_count', sa.Integer(), nullable=False),
+    sa.Column('teams_per_club', sa.Integer(), server_default='1', nullable=False),
     sa.Column('crew_size', sa.Integer(), nullable=False),
     sa.Column('squad_min', sa.Integer(), server_default='4', nullable=False),
     sa.Column('squad_max', sa.Integer(), server_default='10', nullable=False),
@@ -534,6 +535,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=120), nullable=False),
     sa.Column('club_id', sa.Integer(), nullable=False),
+    sa.Column('number', sa.Integer(), server_default='1', nullable=False),
     sa.Column('series_id', sa.Integer(), nullable=True),
     sa.Column('event_id', sa.Integer(), nullable=True),
     sa.Column('status', sa.String(length=16), nullable=False),
@@ -548,7 +550,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_team_event_id_event')),
     sa.ForeignKeyConstraint(['series_id'], ['series.id'], name=op.f('fk_team_series_id_series')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_team')),
-    sa.UniqueConstraint('club_id', 'event_id', name=op.f('uq_team_club_id'))
+    sa.UniqueConstraint('club_id', 'event_id', 'number', name=op.f('uq_team_club_id'))
     )
     with op.batch_alter_table('team', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_team_club_id'), ['club_id'], unique=False)

@@ -133,9 +133,10 @@ class Team(Base, TimestampMixin):
 
     __tablename__ = "team"
     __table_args__ = (
-        # A club enters an event at most once. Rows without an event don't interfere here:
-        # NULL is never considered equal to itself in SQL.
-        UniqueConstraint("club_id", "event_id"),
+        # A club's team enters an event at most once — its first, second, … team are
+        # different rows (Story VA-13). Rows without an event don't interfere here: NULL is
+        # never considered equal to itself in SQL.
+        UniqueConstraint("club_id", "event_id", "number"),
         # The same statement for the series registration — as a partial index, because an
         # ordinary unique constraint on (club_id, series_id) would also count the act rows.
         Index(
@@ -155,6 +156,10 @@ class Team(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
     club_id: Mapped[int] = mapped_column(ForeignKey("club.id"), index=True)
+    # The club's first, second, … team in an event (Story VA-13) — 1 unless the event lets
+    # a club enter more than one. A series registration is always 1: the club has one
+    # squad, and every team it enters is lined up from it.
+    number: Mapped[int] = mapped_column(default=1, server_default="1")
     # Empty only for a standalone event that belongs to no series.
     series_id: Mapped[int | None] = mapped_column(ForeignKey("series.id"), index=True, default=None)
     # Empty for a series registration; set for an entry in an event.

@@ -3,7 +3,7 @@ id: run-event
 type: guide
 order: 120
 audience: [event-organizer]
-stories: [VA-8, VA-7, B-3, VA-12]
+stories: [VA-8, VA-7, B-3, VA-12, VA-13]
 journey: null
 route: /admin
 tags: [readiness, draw, seed, publish, start, frozen, print, pdf, people, auslosung, pairing-liste, veröffentlichen, helfer]
@@ -21,9 +21,13 @@ auch bei einer unvollständigen Veranstaltung.
 
 | Es steht dort | Was zu tun ist |
 |---|---|
-| die gemeldeten Vereine passen nicht zum Zuschnitt | unter *Gemeldete Vereine: … von …* Vereine an- oder abwählen, dann *… Vereine melden* ② |
+| die gemeldeten Vereine passen nicht zum Zuschnitt | unter *Gemeldete Teams: … von …* Vereine an- oder abwählen, dann *… Vereine melden* ② |
 | noch kein Datum | *Beginn* setzen, *Datum speichern* ① |
 | keine vorberechnete Liste für diesen Zuschnitt, oder die Boote passen nicht | das Panel kann Zuschnitt und Boote nicht ändern — wenden Sie sich an die Geschäftsstelle |
+
+Ein Verein mit mehreren Teams: *Teams pro Verein* über den Vereinen erhöhen, dann für den
+Verein *Teams von …* wählen. Seine Teams heißen `ASVW`, `ASVW 2`, … und werden alle aus
+seinem einen Kader aufgestellt.
 
 ![Das Panel: was noch fehlt, *Datum speichern* ①, die Vereine und *… Vereine melden* ②, die Auslosung ③](shot:help-event-readiness)
 

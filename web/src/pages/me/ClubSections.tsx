@@ -31,11 +31,15 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
   const events = entry.events ?? [];
   const open = params.get("event");
 
+  // One row per team: a club with a second team in an event (Story VA-13) lines each up
+  // on its own, so the row is the event and, from the second team on, its number.
+  const rowOf = (event: MyEvent) =>
+    (event.number ?? 1) > 1 ? `${event.event_id}-${event.number}` : String(event.event_id);
   const toggle = (event: MyEvent) =>
     setParams((previous) => {
       const next = new URLSearchParams(previous);
-      if (open === String(event.event_id)) next.delete("event");
-      else next.set("event", String(event.event_id));
+      if (open === rowOf(event)) next.delete("event");
+      else next.set("event", rowOf(event));
       return next;
     });
 
@@ -45,27 +49,31 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
       {events.length ? (
         <ul className="grid grid-cols-[minmax(0,1fr)] gap-3" data-testid="my-club-events-list">
           {events.map((event) => {
-            const isOpen = open === String(event.event_id);
+            const row = rowOf(event);
+            const isOpen = open === row;
             return (
               <li
-                key={event.event_id}
-                data-testid={`my-club-event-${event.event_id}`}
+                key={event.team_id}
+                data-testid={`my-club-event-${row}`}
                 className="rounded-lg border border-separator bg-surface p-4"
               >
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">
                       {event.title}
+                      {(event.number ?? 1) > 1 && (
+                        <span className="ml-2 text-sm font-semibold">{event.team_name}</span>
+                      )}
                       {event.series && (
                         <span className="ml-2 text-sm font-normal text-muted">{event.series.name}</span>
                       )}
                     </p>
                     <p className="text-sm text-muted">{eventDates(event)}</p>
                   </div>
-                  <StatusBadge status={event.status} testId={`my-club-event-status-${event.event_id}`} />
+                  <StatusBadge status={event.status} testId={`my-club-event-status-${row}`} />
                   {!event.published && (
                     <span
-                      data-testid={`my-club-event-draft-${event.event_id}`}
+                      data-testid={`my-club-event-draft-${row}`}
                       className="rounded-full bg-surface-tertiary px-2.5 py-0.5 text-xs text-muted ring-1 ring-inset ring-border"
                     >
                       {t("mine.draftBadge")}
@@ -75,17 +83,17 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
                     size="sm"
                     variant={isOpen ? "outline" : "primary"}
                     onPress={() => toggle(event)}
-                    data-testid={`my-club-event-toggle-${event.event_id}`}
+                    data-testid={`my-club-event-toggle-${row}`}
                   >
                     {isOpen ? t("mine.closeLineup") : t("mine.openLineup")}
                   </Button>
                 </div>
                 {isOpen && (
                   <div className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-4">
-                    {/* An event in no series has its squad on the entry itself (V-1). */}
+                    {/* An event in no series has its squad on the club's first team there (V-1, VA-13). */}
                     {!event.series && (
                       <SquadPanel
-                        teamId={event.team_id}
+                        teamId={event.squad_team_id}
                         title={t("mine.standaloneSquad")}
                         readOnly={!entry.may_manage}
                       />
@@ -96,13 +104,13 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
                       squadTeamId={event.squad_team_id}
                       crewSize={event.crew_size}
                       readOnly={!entry.may_manage}
-                      testIdPrefix={`my-club-lineup-${event.event_id}`}
+                      testIdPrefix={`my-club-lineup-${row}`}
                     />
                     {event.published && (
                       <Link
                         to={`/events/${event.event_id}`}
                         className="text-sm underline underline-offset-2"
-                        data-testid={`my-club-event-link-${event.event_id}`}
+                        data-testid={`my-club-event-link-${row}`}
                       >
                         {t("mine.openEvent")}
                       </Link>

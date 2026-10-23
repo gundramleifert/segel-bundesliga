@@ -4,7 +4,7 @@ a Manage2Sail document from its file name."""
 import pytest
 
 from app.imports.m2s import document_kind
-from app.imports.sap import parse_regatta_name, result_of
+from app.imports.sap import junior_competitor, parse_regatta_name, result_of
 from app.models import EventDocumentKind
 
 
@@ -34,11 +34,53 @@ def test_a_dsbl_regatta_name_says_division_year_city_and_matchday(name, expected
         "1. Segel-Bundesliga - Kiel (3)",  # no year
         "Relegation zur Segel-Bundesliga 2017 - Hamburg (7)",
         "Deutsche Junioren Segel-Liga 2016 - Sorpesee (1)",
+        # The juniors' cup is no act; an act without a year belongs to no series.
+        "Deutscher Junioren- & Segel-Liga Pokal 2026",
+        "Deutsche Junioren Segel-Liga - Act 3",
+        "DJSL Coaching Trainingsregatten",
     ],
 )
 def test_anything_else_is_no_dsbl_matchday(name):
-    """Story A-14: only the two divisions' matchdays are imported from SAP."""
+    """Story A-14: only the leagues' matchdays are imported from SAP."""
     assert parse_regatta_name(name) is None
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("Deutsche Junioren Segel-Liga 2026 - Act 1", (2026, 1, None)),
+        ("Deutsche Junioren Segel-Liga 2026 - Act 4 (Finale)", (2026, 4, "Finale")),
+        ("Deutsche Junioren Segel-Liga 2024 - Nord Act 1", (2024, 1, "Nord")),
+        ("Deutsche Junioren Segel-Liga 2024 - Act 4 Finale", (2024, 4, "Finale")),
+        ("Deutsche Junioren Segel-Liga 2023 - Act 1 Mitte", (2023, 1, "Mitte")),
+        ("Deutsche Junioren Segel-Liga 2021 - Finale Act 4", (2021, 4, "Finale")),
+        ("Deutsche Junioren Segel-Liga 2018, Act1", (2018, 1, None)),
+        ("Deutsche Junioren Segel-Liga 2017, NORD, ACT 2", (2017, 2, "Nord")),
+    ],
+)
+def test_a_junioren_act_s_name_says_year_act_and_label(name, expected):
+    """Story A-14: the juniors' acts on their own SAP host — no city, the act's number."""
+    parsed = parse_regatta_name(name)
+    assert parsed is not None
+    assert parsed.league == "junioren-liga" and parsed.city is None
+    assert (parsed.year, parsed.number, parsed.label) == expected
+    assert parsed.series_name == f"Junioren-Segelliga {parsed.year}"
+
+
+@pytest.mark.parametrize(
+    ("short_name", "expected"),
+    [
+        ("NRV", ("NRV", 1)),
+        ("KiYC 1", ("KYC (SH)", 1)),
+        ("KiYC 2 ", ("KYC (SH)", 2)),
+        ("BaYC", ("BYC", 1)),
+        ("SHM", ("SCHM", 1)),
+        ("VSaW", ("VSaW", 1)),
+    ],
+)
+def test_a_junioren_competitor_is_a_club_code_and_a_team_number(short_name, expected):
+    """Story A-14: the number after the code is the team; the host's codes map to ours."""
+    assert junior_competitor(short_name) == expected
 
 
 @pytest.mark.parametrize(

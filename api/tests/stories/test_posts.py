@@ -56,13 +56,14 @@ class TestReadPosts:
         assert all(post["slug"] and post["title"] for post in news)
 
     async def test_an_article_has_its_own_address(self, client):
-        """R-1: one article by its slug, with the text as paragraphs and its picture."""
+        """R-1: one article by its slug, with the text as paragraphs — and no picture of
+        another site: the seed's examples go without one (decided 2026-10-23)."""
         article = (await client.get("/api/posts/asvw-takes-the-lead")).json()
 
         assert article["league"] == "1-liga"
         assert article["quote_by"] == "the winning helm"
         assert article["body"].count("<p>") == 3
-        assert article["photo_url"].startswith("https://")
+        assert article["photo_url"] is None
         assert article["example"] is True
 
     async def test_press_releases_are_a_list_of_their_own(self, client):
@@ -73,6 +74,23 @@ class TestReadPosts:
 
         assert press
         assert all(post["kind"] == "press" for post in press)
+
+    async def test_the_association_s_own_release_is_on_every_league_s_press_page(self, client):
+        """R-1: the Wannsee release of 2026-09-16, as editorial wrote it — headings, quotes
+        and links kept, cleaned like any write — in the 1. and the 2. Liga's press centre."""
+        for league in ("1-liga", "2-liga"):
+            press = (
+                await client.get("/api/posts", params={"kind": "press", "league": league})
+            ).json()["items"]
+            release = next(p for p in press if p["title"].startswith("Segel-Bundesliga am Wannsee"))
+            assert release["published_on"] == "2026-09-16" and release["example"] is False
+
+        article = (await client.get(f"/api/posts/{release['slug']}")).json()
+        assert article["author"] == "Sven Jürgensen"
+        body = article["body"]
+        assert body.count("<h2>") == 12 and body.count("<blockquote>") == 3
+        assert "Tobias Schadewaldt, Skipper NRV Bundesliga Team" in body
+        assert 'href="mailto:presse@deutsche-segelliga.de"' in body
 
     async def test_an_unknown_article_is_not_found(self, client):
         response = await client.get("/api/posts/no-such-article")
@@ -383,17 +401,25 @@ class TestPicturesAndReading:
             headers=headers,
             json={
                 "title": "Ours",
-                "photo_url": "/media/titelbild.jpg",
+                "photo_url": "/media/DSF3979.jpg",
                 "body": '<p>Text</p><img src="/api/media/0123456789abcdef0123456789abcdef.webp">',
             },
         )
         assert ours.status_code == 201, ours.text
 
     async def test_a_seeded_example_keeps_its_picture_until_it_is_changed(self, client, caplog):
-        """R-1: an outside address the post already has may stay; a new one may not."""
+        """R-1: an outside address the post already has may stay; a new one may not. The
+        seed links none any more, so the post gets one here, as older data may carry."""
+        from app.db import SessionLocal
+        from app.models import Post
+
         headers = await editor(client, caplog)
         listed = (await client.get("/api/admin/posts", headers=headers)).json()["items"]
-        example = next(p for p in listed if (p["photo_url"] or "").startswith("https://"))
+        example = next(p for p in listed if p["example"])
+        example["photo_url"] = "https://example.org/older-picture.jpg"
+        async with SessionLocal() as session:
+            (await session.get(Post, example["id"])).photo_url = example["photo_url"]
+            await session.commit()
         kept = await client.patch(
             f"/api/admin/posts/{example['id']}",
             headers=headers,
@@ -574,3 +600,40 @@ class TestRegattaGallery:
             )
         ).json()
         assert (moved["event_id"], moved["series_id"]) == (None, ids.series("dsbl-1-2026"))
+
+
+class TestSeededPictures:
+    """R-2: the league office's press pictures of the 2026 Finale, in the library."""
+
+    async def test_a_club_s_finale_picture_is_on_its_league_s_media_page(self, client):
+        """R-2: stored like an upload, credited "© DSBL GmbH", named after the club, under
+        its series; a second run finds the same entry instead of a copy, and a picture that
+        cannot be fetched is left out rather than failing the seed. Never fetched live: a
+        picture is made here instead."""
+        import io
+
+        from PIL import Image
+
+        from app.seed_media import PICTURES, seed_media
+
+        def made(colour: str) -> bytes:
+            buffer = io.BytesIO()
+            Image.new("RGB", (64, 48), colour).save(buffer, "JPEG")
+            return buffer.getvalue()
+
+        nrv = next(p for p in PICTURES if p.club == "NRV")
+        asvw = next(p for p in PICTURES if p.club == "ASVW")
+        gone = next(p for p in PICTURES if p.club == "MYC")
+        pictures = {nrv.name: made("navy"), asvw.name: made("teal")}
+
+        def fetch(picture):
+            return pictures.get(picture.name)
+
+        assert await seed_media([nrv, asvw, gone], fetch) == 2
+        assert await seed_media([nrv, asvw, gone], fetch) == 0
+
+        first = (await client.get("/api/media", params={"league": "1-liga"})).json()["items"]
+        picture = next(p for p in first if "Norddeutscher Regatta Verein" in p["alt"])
+        assert picture["credit"] == "© DSBL GmbH"
+        second = (await client.get("/api/media", params={"league": "2-liga"})).json()["items"]
+        assert any("Akademischer Segelverein" in p["alt"] for p in second)

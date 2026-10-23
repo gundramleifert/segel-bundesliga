@@ -6770,9 +6770,11 @@ export const getSetParticipantsUrl = (eventId: number,) => {
  * The pairing list is attached to the event — so are the teams within it. Whoever
  * stands here will be drawn and ranked.
  *
- * Two rules apply: if the event belongs to a series, the club must be **registered** for
- * it. And once racing has started the field is frozen altogether (Story VA-8) — the
- * pairing list being sailed was drawn for exactly these clubs.
+ * Three rules apply: if the event belongs to a series, the club must be **registered**
+ * for it. A club enters as many teams as its id is listed, no more than the event's
+ * ``teams_per_club`` (Story VA-13); a team taken away is the highest-numbered. And once
+ * racing has started the field is frozen altogether (Story VA-8) — the pairing list being
+ * sailed was drawn for exactly these clubs.
  * @summary Set event participants
  */
 export const setParticipants = async (eventId: number,
@@ -17118,7 +17120,7 @@ export const useImportMedia = <TError = ErrorType<ProblemDetails>,
       return useMutation(getImportMediaMutationOptions(options), queryClient);
     }
 
-export const getListLeagueMediaUrl = (params: ListLeagueMediaParams,) => {
+export const getListLeagueMediaUrl = (params?: ListLeagueMediaParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -17138,7 +17140,7 @@ export const getListLeagueMediaUrl = (params: ListLeagueMediaParams,) => {
  * (Story R-3).
  * @summary A league's photos, for its media page
  */
-export const listLeagueMedia = async (params: ListLeagueMediaParams, options?: RequestInit): Promise<PagePublicPicture> => {
+export const listLeagueMedia = async (params?: ListLeagueMediaParams, options?: RequestInit): Promise<PagePublicPicture> => {
 
   return http<PagePublicPicture>(getListLeagueMediaUrl(params),
   {
@@ -17160,7 +17162,7 @@ export const getListLeagueMediaQueryKey = (params?: ListLeagueMediaParams,) => {
     }
 
 
-export const getListLeagueMediaQueryOptions = <TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
+export const getListLeagueMediaQueryOptions = <TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(params?: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
 ) => {
 
 const {query: queryOptions} = options ?? {};
@@ -17183,7 +17185,7 @@ export type ListLeagueMediaQueryError = ErrorType<ProblemDetails>
 
 
 export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
- params: ListLeagueMediaParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>> & Pick<
+ params: undefined |  ListLeagueMediaParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listLeagueMedia>>,
           TError,
@@ -17193,7 +17195,7 @@ export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueM
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
- params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>> & Pick<
+ params?: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listLeagueMedia>>,
           TError,
@@ -17203,7 +17205,7 @@ export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueM
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
- params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
+ params?: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -17211,7 +17213,7 @@ export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueM
  */
 
 export function useListLeagueMedia<TData = Awaited<ReturnType<typeof listLeagueMedia>>, TError = ErrorType<ProblemDetails>>(
- params: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
+ params?: ListLeagueMediaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listLeagueMedia>>, TError, TData>>, }
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 

@@ -254,7 +254,7 @@
     "savingButton": "Wird gespeichert ...",
     "saveDatesButton": "Datum speichern",
     "datesSavedMessage": "Datum gespeichert.",
-    "clubsTitle": "Gemeldete Vereine: {count} von {configured}",
+    "clubsTitle": "Gemeldete Teams: {count} von {configured}",
     "clubsFromSeriesHint": "Nur Vereine, die für {series} gemeldet sind, können an einer ihrer Veranstaltungen teilnehmen — genau das ist die Serienmeldung.",
     "clubsStandaloneHint": "Diese Veranstaltung gehört zu keiner Serie, deshalb kann jeder Verein teilnehmen.",
     "clubsLoadingText": "Meldungen werden geladen ...",
@@ -335,7 +335,10 @@
     "squadMinLabel": "Mindestens",
     "squadMaxLabel": "Höchstens",
     "saveSquadLimitsButton": "Kadergröße speichern",
-    "squadLimitsSavedMessage": "Kadergröße gespeichert."
+    "squadLimitsSavedMessage": "Kadergröße gespeichert.",
+    "teamsPerClubLabel": "Teams pro Verein",
+    "teamsPerClubHint": "1 ist der Normalfall; mehr erlaubt einem Verein mehrere Teams, alle aus seinem einen Kader aufgestellt.",
+    "teamsOfClubLabel": "Teams von {club}"
   },
   "access": {
     "title": "Personen",
@@ -377,7 +380,7 @@
     "quoteByLabel": "Gesagt von",
     "authorLabel": "Autor",
     "photoLabel": "Bild",
-    "photoNone": "noch keins — das Bild der Liga steht dafür",
+    "photoNone": "noch keins — der Beitrag erscheint ohne Bild",
     "photoUpload": "Bild hochladen",
     "photoUploading": "Wird hochgeladen…",
     "photoLibrary": "Eines der Bilder der Seite wählen",

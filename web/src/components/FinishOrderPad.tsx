@@ -18,7 +18,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ResultCode, type AdminRace, type BoatOut, type RaceResultsInput, type StandingRow } from "../api/types";
-import { boatColor } from "../lib/format";
+import { boatColor, teamLabel } from "../lib/format";
 import {
   type ResultRow,
   canBeTapped,
@@ -294,7 +294,7 @@ export function FinishOrderPad({
           <FinishChip
             key={boat.number}
             boat={boat}
-            teamName={entry.team.club.short_name}
+            teamName={teamLabel(entry.team)}
             row={row}
             size="lg"
             disabled={disabled}
