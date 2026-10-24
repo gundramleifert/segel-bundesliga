@@ -252,10 +252,12 @@ async def list_all_events(
     tab that answers 403.
     """
     stmt = search_events(select(Event).options(*_EVENT_LOAD), q)
+    # The site's editor reads them all to name a post's or a picture's regatta — reading
+    # only: every change to an event asks the model about that event.
     if not acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
         reach = _reach_of(acting)
         if reach is None:
-            raise forbidden("this", [Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER])
+            raise forbidden("this", [Relation.ADMIN, Relation.RACE_OFFICER])
         stmt = stmt.where(reach)
     events, total = await paginate(
         session,
@@ -811,8 +813,14 @@ def _reach_of(acting: User):
     """The WHERE clause for the events a person's tuples reach, or None if none does: the
     event itself, every event of a series they hold something on, every event a club they
     hold something on hosts. Manager, race committee and jury alike — each has a screen
-    here."""
-    relations = (Relation.ADMIN, Relation.MANAGER, Relation.RACE_OFFICER, Relation.JURY)
+    here; and editorial, whose posts and pictures name the regatta they are about."""
+    relations = (
+        Relation.ADMIN,
+        Relation.MANAGER,
+        Relation.RACE_OFFICER,
+        Relation.JURY,
+        Relation.EDITOR,
+    )
     events = authz.list_objects(acting, relations, ObjectType.EVENT)
     series = authz.list_objects(acting, relations, ObjectType.SERIES)
     clubs = authz.list_objects(acting, relations, ObjectType.CLUB)
@@ -836,7 +844,7 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
     someone else, and the manager of the series it belongs to (Story Z-2). For a foreign
     host this is not possible — otherwise a club would record dates for others.
     """
-    if authz.check(acting, Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
+    if authz.check(acting, Relation.ADMIN, Relation.RACE_OFFICER):
         return
     if host_club_id is not None and authz.check(
         acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, host_club_id)

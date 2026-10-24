@@ -52,8 +52,8 @@ sails), and a journey shows them as the actor of each step.
 | helper | H | works the day without power over it | `helper` on the event | [event-organizer.md](event-organizer.md) | event-organizer |
 | race officer | R | runs the races and enters results | `race_officer` on the event, series or site | [race-committee.md](race-committee.md) | race-committee |
 | jury | JY | decides protests | `jury` on the series or event | [race-committee.md](race-committee.md) | race-committee |
-| league office | A | runs the site: clubs, series, accounts | `admin` or `editor` on the site | [administration.md](administration.md) | administration |
-| editor | ED | writes the site's news and press releases and keeps its pictures | `editor` on the site (its `admin` too) | [editorial.md](editorial.md) | administration |
+| league office | A | runs the site: clubs, series, accounts | `admin` on the site (until 2026-10-24 also `editor`) | [administration.md](administration.md) | administration |
+| editor | ED | writes the site's news and press releases and keeps its pictures | `editor` on the site, a series or an event (their `admin` too) — organizes nothing | [editorial.md](editorial.md) | administration |
 | photographer | PH | delivers pictures through an upload link, without an account | — (an import key, Story R-2) | [editorial.md](editorial.md) | — |
 | site | P | the system itself — answers, refuses, shows | — | — | — |
 

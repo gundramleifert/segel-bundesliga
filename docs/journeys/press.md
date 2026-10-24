@@ -7,7 +7,9 @@ regatta while it still matters, and nobody waits for a developer to put a text o
 
 Who: race officer, editor, photographer, visitor
 Starting point: a published matchday is being sailed; editorial (the site's `editor`) has
-an account; the photographer has none.
+an account; the photographer has none. An editor of the act's series or event alone (since
+2026-10-24) could write the report and keep the act's pictures, but the upload link
+(J-6.2) stays the site's editor's.
 Goal: the race is scored, the act's photos are in the library and on the league's media
 page, and a published report — ending with those photos — and a published press release
 are on the league's news page and in its press centre.

@@ -24,7 +24,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import require_editor
+from app.auth import require_any_editor, require_editor
 from app.db import get_session
 from app.models import ImportKey, MediaItem, MediaSource
 from app.models.auth import User
@@ -32,7 +32,7 @@ from app.models.base import utcnow
 from app.models.editorial import context_of
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
-from app.services import media
+from app.services import editorial, media
 from app.services.lookup import get_or_404
 
 admin_router = APIRouter(prefix="/api/admin", tags=["media"])
@@ -201,14 +201,17 @@ async def list_media(
     alt_missing: bool = Query(default=False, description="Only those whose alt text is a name"),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> Page[MediaOut]:
-    """Newest first."""
+    """Newest first. A regatta's editor sees that regatta's pictures (Story R-2)."""
     stmt = media.in_context(
         apply_search(_with_context(), q, MediaItem.original_name, MediaItem.alt, MediaItem.credit),
         event_id,
         series_id,
     )
+    reach = editorial.within_reach(user, MediaItem.event_id, MediaItem.series_id)
+    if reach is not None:
+        stmt = stmt.where(reach)
     if alt_missing:
         stmt = stmt.where(MediaItem.alt_confirmed.is_(False))
     items, total = await paginate(
@@ -232,12 +235,13 @@ async def upload_media(
     event_id: int | None = Form(default=None, description="The picture is this event's."),
     series_id: int | None = Form(default=None, description="The picture is this series'."),
     session: AsyncSession = Depends(get_session),
-    user: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> ImportedOut:
     """A JPEG, PNG or WebP — told by its content, not its name — re-encoded. 201 for a new
     entry, 200 with the entry it already is for a picture the library holds (which keeps
-    its own alt text, credit and context)."""
+    its own alt text, credit and context). A regatta's editor uploads to their regatta."""
     await media.check_context(session, event_id, series_id)
+    await editorial.ensure_about(session, user, event_id, series_id)
     stored = await media.store(
         session,
         await file.read(),
@@ -274,22 +278,22 @@ async def fetch_media(
 async def get_media_by_name(
     name: str,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> MediaDetail:
     """The entry behind an address in a post's text — the editor knows a picture by it."""
     item = await session.scalar(select(MediaItem).where(MediaItem.name == name))
     if item is None:
         raise Problem(404, "media-not-found", "No such picture.")
-    return await _detail(session, item)
+    return await _detail(session, await _own(session, user, item))
 
 
 @admin_router.get("/media/{media_id}", response_model=MediaDetail, summary="One picture")
 async def get_media(
     media_id: int,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> MediaDetail:
-    return await _detail(session, await get_or_404(session, MediaItem, media_id))
+    return await _detail(session, await _own_item(session, user, media_id))
 
 
 @admin_router.get(
@@ -301,11 +305,11 @@ async def get_media(
 async def download_media_original(
     media_id: int,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> Response:
     """The picture as large as it was uploaded, for the press — re-encoded as a JPEG
     without the camera's metadata, never the stored original, which carries its location."""
-    item = await get_or_404(session, MediaItem, media_id)
+    item = await _own_item(session, user, media_id)
     data = await asyncio.to_thread(media.original, item)
     if data is None:
         raise Problem(404, "media-not-found", "No such picture.")
@@ -326,14 +330,15 @@ async def update_media(
     media_id: int,
     body: MediaFields,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> MediaDetail:
-    item = await get_or_404(session, MediaItem, media_id)
+    item = await _own_item(session, user, media_id)
     changes = body.model_dump(exclude_unset=True)
     if "event_id" in changes or "series_id" in changes:
         # One of them is the picture's context; sending one replaces the other.
         event_id, series_id = changes.pop("event_id", None), changes.pop("series_id", None)
         await media.check_context(session, event_id, series_id)
+        await editorial.ensure_about(session, user, event_id, series_id)
         item.event_id, item.series_id = event_id, series_id
     if "alt" in changes:
         item.alt_confirmed = bool(changes["alt"])
@@ -347,15 +352,16 @@ async def update_media(
 async def update_many_media(
     body: MediaBulkFields,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> Updated:
     """One credit, or one event or series, for every picture named — what is not sent
     stays as each picture has it."""
-    items = await _many(session, body.ids)
+    items = await _many(session, body.ids, user)
     changes = body.model_dump(exclude_unset=True, exclude={"ids"})
     if "event_id" in changes or "series_id" in changes:
         event_id, series_id = changes.pop("event_id", None), changes.pop("series_id", None)
         await media.check_context(session, event_id, series_id)
+        await editorial.ensure_about(session, user, event_id, series_id)
         for item in items:
             item.event_id, item.series_id = event_id, series_id
     if "credit" in changes:
@@ -369,10 +375,10 @@ async def update_many_media(
 async def delete_many_media(
     body: MediaIds,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> MediaDeleted:
     """Every one no post shows; the others are kept and answered with their posts."""
-    done = await media.delete_many(session, await _many(session, body.ids))
+    done = await media.delete_many(session, await _many(session, body.ids, user))
     return MediaDeleted(
         deleted=done.deleted,
         kept=[
@@ -388,10 +394,10 @@ async def delete_many_media(
 async def delete_media(
     media_id: int,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> Response:
     """Refused (409 ``media-in-use``, naming the posts) while a post shows it."""
-    await media.delete(session, await get_or_404(session, MediaItem, media_id))
+    await media.delete(session, await _own_item(session, user, media_id))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -569,9 +575,27 @@ def _out(item: MediaItem) -> MediaOut:
     )
 
 
-async def _many(session: AsyncSession, ids: list[int]) -> list[MediaItem]:
-    """The pictures named, every one of them — an unknown id is a 404, never skipped."""
+async def _own(session: AsyncSession, user: User, item: MediaItem) -> MediaItem:
+    """The picture, if this person writes about its regatta — another regatta's is a 404
+    to them, like one that does not exist (Story R-2)."""
+    if not editorial.site_editor(user):
+        try:
+            await editorial.ensure_about(session, user, item.event_id, item.series_id)
+        except Problem:
+            raise Problem(404, "media-not-found", "No such picture.") from None
+    return item
+
+
+async def _own_item(session: AsyncSession, user: User, media_id: int) -> MediaItem:
+    return await _own(session, user, await get_or_404(session, MediaItem, media_id))
+
+
+async def _many(session: AsyncSession, ids: list[int], user: User) -> list[MediaItem]:
+    """The pictures named, every one of them — an unknown id, or another regatta's, is a
+    404, never skipped."""
     rows = list((await session.execute(select(MediaItem).where(MediaItem.id.in_(ids)))).scalars())
+    for item in rows:
+        await _own(session, user, item)
     missing = set(ids) - {item.id for item in rows}
     if missing:
         raise Problem(404, "media-not-found", "No such picture.", ids=sorted(missing))

@@ -94,8 +94,9 @@ As the **manager or treasurer of the event or club a claim is filed against** I 
 Acceptance criteria:
 - **Who decides:** on an event, its `treasurer` (Story F-1), whoever holds `manager`
   **directly** on the event, and the host club's manager; on a club, its manager or
-  treasurer (and their admins, who are both). A series' manager, the site's editor and
-  the site's race committee are managers of events by the model's rewrite, but **not**
+  treasurer (and their admins, who are both). A series' manager and
+  the site's race committee are managers of events by the model's rewrite (until
+  2026-10-24 the site's editor was too), but **not**
   of their money: the check is on the tuple, not on `can(manager)`.
 - Approve (optionally lowering single items, never raising them), return with a note, or
   reject with a note. Only a `submitted` claim is decided.

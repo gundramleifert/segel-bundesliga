@@ -161,19 +161,26 @@ class TestCreatingAMatchday:
         )
         assert response.json()["logo_url"] == "/marke/spieltag.png"
 
-    async def test_editorial_and_the_race_committee_may_too(self, client, caplog, ids):
-        for nummer, rolle in enumerate([Role.EDITOR, Role.RACE_OFFICER], start=5):
-            headers = await as_role(client, caplog, f"ev{nummer}@example.com", rolle)
-            response = await client.post(
-                "/api/admin/events",
-                headers=headers,
-                json={
-                    "title": f"Spieltag von {rolle}",
-                    "starts_on": "2026-11-13",
-                    "series": ids.series("dsbl-1-2026"),
-                },
-            )
-            assert response.status_code == 201, f"{rolle}: {response.text}"
+    async def test_the_race_committee_may_too_but_not_editorial(self, client, caplog, ids):
+        """Editorial writes news; it creates no events (decided 2026-10-24)."""
+        editor = await as_role(client, caplog, "ev4@example.com", Role.EDITOR)
+        refused = await client.post(
+            "/api/admin/events",
+            headers=editor,
+            json={"title": "Spieltag der Redaktion", "series": ids.series("dsbl-1-2026")},
+        )
+        assert refused.status_code == 403, refused.text
+        headers = await as_role(client, caplog, "ev5@example.com", Role.RACE_OFFICER)
+        response = await client.post(
+            "/api/admin/events",
+            headers=headers,
+            json={
+                "title": "Spieltag der Wettfahrtleitung",
+                "starts_on": "2026-11-13",
+                "series": ids.series("dsbl-1-2026"),
+            },
+        )
+        assert response.status_code == 201, response.text
 
     async def test_a_club_account_cannot_create_matchdays(self, client, caplog, ids):
         headers = await as_role(client, caplog, "ev7@example.com", Role.TEAM_MANAGER)

@@ -19,7 +19,6 @@
   },
   "series": {
     "title": "Series",
-    "editOnlyAdmin": "Series are created by the business office only.",
     "nameLabel": "Name",
     "namePlaceholder": "1st German Sailing Bundesliga 2027",
     "yearLabel": "Year",

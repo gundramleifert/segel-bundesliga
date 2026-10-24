@@ -11,7 +11,7 @@ at a desk.
 ## Master data
 
 ### A-1 ● Create clubs
-As **administration or editorial** I want to **create and maintain clubs**,
+As **administration** I want to **create and maintain clubs**,
 so that **teams, accounts, and matchdays can reference them**.
 
 Acceptance criteria:
@@ -19,11 +19,15 @@ Acceptance criteria:
 - The address (slug) is created from the abbreviation; umlauts are spelled out so `BYCÜ` and
   `BYC` don't collide. A taken address is rejected rather than silently overwritten.
 - Abbreviations are **not** normalized: `BYC (BA)` and `BYC (BE)` are different clubs.
-- Race committee and club accounts cannot do this.
+- **Only the site's `admin`** creates and maintains clubs and the other master data
+  (decided 2026-10-24, `require_master_data`): the race committee, club accounts and
+  editorial cannot. Until 2026-10-24 the site's `editor` could too; editorial writes news
+  and keeps pictures (Stories R-1, R-2) and organizes nothing.
 
 Endpoints: `POST /api/admin/clubs`, `PATCH /api/admin/clubs/{slug}`
 
-Tests: `api/tests/stories/test_master_data.py::TestClubCreation`
+Tests: `api/tests/stories/test_master_data.py::TestClubCreation`,
+`api/tests/stories/test_series_assignment.py::TestClubCreationAndAssignment::test_only_the_admin_creates_a_club`
 
 ### A-7 ● Club can exist without competition
 As **administration** I want to **create a club that does not yet participate in any competition**,
@@ -145,12 +149,17 @@ Endpoints: `POST /api/admin/series`, `PATCH /api/admin/series/{id}`,
 
 Tests: `api/tests/stories/test_create_series.py`, `e2e/lifecycle.spec.ts`
 
-Open: The interface for this is missing — only via API so far. Currently only `admin` has
-access; editorial may also create clubs. Whether that should remain is to be decided.
+Open: The interface for this is missing — only via API so far. Only `admin` creates a
+series. Until 2026-10-24 editorial could also create clubs and this note left open whether
+that should remain; decided then: clubs and every other piece of master data are the
+site's `admin`'s alone ([A-1](#a-1--create-clubs)).
 
 ### A-3 ● Assign clubs to series
-As **administration or editorial** I want to **assign a club to one or more series**,
+As **administration** I want to **assign a club to one or more series**,
 so that **it appears in the right competitions**.
+
+Only the site's `admin` assigns (master data, [A-1](#a-1--create-clubs)); until 2026-10-24
+the site's `editor` could too.
 
 There are multiple series side by side: 1st and 2nd German Sailing League, Juniors, Sailing
 Champions League — each for a specific year. A club can compete in multiple at once.
@@ -214,8 +223,9 @@ parsed at import, interpreted by `User.can(...)`. The tuples live in one table (
 database cascades and joins, and a check needs no lookup.
 
 The model — almost every relation is scoped by a club, a series or an event:
-- `site`: `admin`, `editor`, `race_officer` — the league office and its race committee.
-  The site's admin is admin of everything.
+- `site`: `admin`, `editor`, `race_officer` — the league office, its editorial and its
+  race committee. The site's admin is admin of everything; the site's editor writes the
+  site's news and keeps its pictures (R-1, R-2) and organizes nothing.
 - `club`: `admin` decides who is **in** the club — members (V-8, V-9), organizers (A-8),
   the club's crest (V-3), club assignment (Z-3), the club's tuples among its members;
   `manager` decides who **sails** — squads (V-1), lineups (V-2), registrations (V-5,
@@ -224,11 +234,13 @@ The model — almost every relation is scoped by a club, a series or an event:
   series or the site, or from the club's admin, who is admin of those events.
 - `series`: `admin` (everything within the series, its events included, and its people),
   `manager` (participants, events, publication — a cup series run by someone other than
-  the league office), `race_officer`, `jury`.
+  the league office), `race_officer`, `jury`, `editor` (writes the series' and its events'
+  news and keeps their pictures, R-1, R-2 — organizes nothing; decided 2026-10-24).
 - `event`: `admin` (everything within the event: setup, results, and who holds what on
   it), `manager` (the organizer of the event-organizer stories: setup, clubs, boats,
   schedules, publication — not the people), `race_officer` (results, race control,
-  trackers), `jury` (the protest committee; announcements, VA-11), `treasurer` (checks
+  trackers), `jury` (the protest committee; announcements, VA-11), `editor` (that
+  event's news and pictures, R-1, R-2 — organizes nothing), `treasurer` (checks
   and pays the event's expense claims, F-1), `helper` (works the day — no power on the
   event, but a claim on its costs and their documents seen by its organizers, VA-12).
 - `sailor`: `guardian` — a parent the child's club linked (V-13), who accepts the child's
@@ -239,9 +251,12 @@ The model — almost every relation is scoped by a club, a series or an event:
 The rewrite rules (`or … from …` in the DSL) say what implies what: an object's `admin`
 is each of its other relations; a series' admin, manager, race officer or jury is that of
 every event in the series; the host club's admin, manager and treasurer are those of
-every event it hosts; the site's editor and race committee are managers of every event — the
+every event it hosts; the site's race committee is manager of every event — the
 league's committee keeps the setup rights it always had, while a race officer appointed
-for one event only runs its races. Nothing else inherits.
+for one event only runs its races; the site's editor is editor of every series and event,
+and a series' editor of its events'. Nothing else inherits. Until 2026-10-24 the site's
+editor was also manager of every event (`or editor from site` on `event.manager`); that
+line is gone — editorial writes about regattas, it does not run them.
 
 Acceptance criteria:
 - A tuple is written and deleted **one at a time**; deleting one leaves every other
@@ -305,7 +320,8 @@ that order, offering only what the model defines. Each object carries its own si
 "People": who holds what on this event, series or club, with add-by-email and remove —
 on the event panel, the opened series row and the club screen's Members tab, for whoever
 is that object's admin. A series' organizer reaches `/admin` with the Series and Events
-tabs, narrowed to their series; an event's organizer or jury with the Events tab alone.
+tabs, narrowed to their series; an event's organizer or jury with the Events tab alone;
+an editor — of the site, a series or an event — with News and Media alone (A-11).
 
 Endpoints (FGA's vocabulary): `GET /api/auth/model`, `GET /api/auth/tuples?object=event:3`
 (read), `POST /api/auth/tuples` (write: `{user, relation, object}`, user by email),
@@ -320,6 +336,8 @@ Tests: `api/tests/stories/test_login_and_roles.py::TestRoles`,
 `api/tests/stories/test_login_and_roles.py::TestOrganizers`,
 `api/tests/stories/test_login_and_roles.py::TestAdminWhitelist`,
 `api/tests/stories/test_guard_problems.py::TestGuardProblems`,
+`api/tests/stories/test_event_access.py::TestEditorialRunsNoEvent`,
+`api/tests/stories/test_regatta_editorial.py::TestEditorialOfOneRegatta`,
 `e2e/lifecycle.spec.ts` ("Z-2: access is a relation tuple, written and deleted one at a time")
 
 ### A-8 ● Set up club organizer
@@ -465,7 +483,10 @@ Acceptance criteria:
   reload, and the browser's back button steps between tabs. An unknown or missing `tab`
   opens the first tab the signed-in user may see rather than erroring.
 - **A tab a role may not use does not exist for it.** Accounts is `admin` only, exactly as
-  the section was; an `editor` sees four tabs, not five with one refusing.
+  the section was; the site's `admin` sees every tab, a series' manager *Series* and
+  *Events*, an event's manager or jury *Events*, and an `editor` — of the site, a series
+  or an event — *News* and *Media* alone (decided 2026-10-24). Until 2026-10-24 the
+  site's `editor` also had Clubs, Series, Events and Sailors.
 - **Only the selected tab's panel is mounted.** This is the part that pays for itself: the
   page used to issue every area's queries on load — clubs, series, events, readiness,
   sailors, accounts — and now issues one area's.

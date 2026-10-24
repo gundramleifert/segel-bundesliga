@@ -300,16 +300,16 @@ async def delete_club_logo(
 
 
 def _can_manage_crest(acting: User, club_id: int) -> None:
-    """Administration and editorial for any club, the club's own admin for theirs
-    (Story V-3): the admin decides who is in the club and what it looks like."""
-    if authz.check(acting, Relation.EDITOR):
+    """Administration for any club, the club's own admin for theirs (Story V-3): the
+    admin decides who is in the club and what it looks like."""
+    if authz.check(acting, Relation.ADMIN):
         return
     if authz.check(acting, Relation.ADMIN, on=ObjectRef(ObjectType.CLUB, club_id)):
         return
     raise Problem(
         403,
         "club-crest-not-yours",
-        "The crest is maintained by administration, editorial staff, or the club's own leadership.",
+        "The crest is maintained by administration or the club's own leadership.",
     )
 
 

@@ -242,3 +242,33 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(page.getByTestId("admin-news-tab")).toHaveCount(0);
   });
 });
+
+describeStory("R-1/Z-2: a series' editor writes about that series and organizes nothing", () => {
+  test("Paula Presse has News and Media only, and her post lands in the series' league", async ({ page }, testInfo) => {
+    // The seed's editor of the 2. Liga 2026 (`app/seed_users.py`).
+    await signIn(page, "presse@sbl.example.com");
+    await page.goto("/admin");
+    await expect(page.getByTestId("admin-news-tab")).toBeVisible();
+    await expect(page.getByTestId("admin-media-tab")).toBeVisible();
+    for (const tab of ["clubs", "series", "events", "sailors", "accounts"]) {
+      await expect(page.getByTestId(`admin-${tab}-tab`)).toHaveCount(0);
+    }
+
+    const title = `Matchday report ${testInfo.project.name} ${Date.now()}`;
+    await page.goto("/admin?tab=news");
+    await page.getByTestId("admin-posts-new-button").click();
+    await page.getByTestId("admin-post-title-input").fill(title);
+    // The regattas offered are hers alone: the series, then its acts.
+    const regatta = page.getByTestId("admin-post-regatta-select");
+    await expect(regatta.locator("optgroup")).toHaveCount(1);
+    await regatta.selectOption({ index: 1 });
+    await page.getByTestId("admin-post-editor-content").click();
+    await page.keyboard.type("Three days of racing.");
+    await page.getByTestId("admin-post-save-button").click();
+    await expect(page).toHaveURL(/\/admin\/news\/\d+$/);
+    await page.getByTestId("admin-post-publish-button").click();
+    await expect(page.getByTestId("admin-post-save-success")).toBeVisible();
+    await page.getByTestId("admin-post-view-link").click();
+    await expect(page).toHaveURL(/\/2-liga\/news\//);
+  });
+});

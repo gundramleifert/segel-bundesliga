@@ -65,7 +65,8 @@ Acceptance criteria:
   email: contact data stays the club admin's business (the People panel,
   [V-8](club.md#v-8--decide-who-is-in-the-club)).
 - Open to a signed-in **member of that specific club**, to the club's admins and
-  managers, and to `admin`/`editor` staff. A stranger, or a member of a *different* club,
+  managers, and to the site's `admin` (until 2026-10-24 also the site's `editor`, who
+  organizes nothing since). A stranger, or a member of a *different* club,
   gets 403; signed-out gets 401.
 - **Not** the sporting roster: the squad and lineup (`ClubDetail.teams[].members`,
   `.events[].crew`) stay public with no login required, exactly as before — this is only
@@ -170,7 +171,7 @@ Acceptance criteria:
   competition). Cleared, the notice is gone. The full list stays on my profile's
   *Waivers* tab, beside my children's (S-8).
 - Whoever may record a confirmation (S-3) may also upload a scan and download a form for
-  that sailor: the sailor's own account, `admin`, `editor`, and the manager of a club
+  that sailor: the sailor's own account, `admin` (until 2026-10-24 also `editor`), and the manager of a club
   that has the sailor in a squad. So a team manager can hand in the paper forms their
   club collected — and only those: until 2026-10-17 any club's manager could sign for any
   sailor on the site (found by Journey J-5).
@@ -181,7 +182,7 @@ minor and a signature. Therefore:
 - **Stored** under `uploads/waivers/` with a random file name that only the confirmation
   row knows (`guardian_signature_ref = "upload:<uuid>.<ext>"`), served by exactly one
   endpoint, `GET /api/waiver/confirmations/{id}/scan`, which checks access on every
-  request — the sailor themselves, `admin`, `editor`, the leadership of the sailor's club,
+  request — the sailor themselves, `admin` (until 2026-10-24 also `editor`), the leadership of the sailor's club,
   and the organizer of the event (the host's `team_manager`, `race_officer`). Never a static
   path, never public, never guessable.
 - **Every retrieval is logged** as an `AuditLog` row (`waiver_scan` / `viewed`, with the
@@ -249,7 +250,7 @@ Acceptance criteria:
 - Confirming the same version for the same scope twice is rejected
   (`/errors/waiver-already-confirmed`).
 - A sailor can confirm for **their own account** (matched by its **verified** email);
-  `admin` and `editor` can record for anyone, a club's manager for the sailors in their
+  the site's `admin` can record for anyone (until 2026-10-24 the site's `editor` too), a club's manager for the sailors in their
   club's squads (they collect the paper forms) — `waiver-confirmation-forbidden` for
   everyone else.
 
@@ -308,7 +309,7 @@ redeploys of the API's disk, or multiple instances.
 
 **Resolved — visibility:** public **unless** the sailor is a minor (under 18 as of
 today) *and* has a `birth_date` on record: their photo is then shown only to a signed-in
-account connected to them — themselves, `admin`/`editor`, or a manager of a club they're
+account connected to them — themselves, `admin` (until 2026-10-24 also `editor`), or a manager of a club they're
 registered with — matching how Story S-1 already treats minors' data with extra care.
 An adult's, or a sailor with no recorded birthdate, is public — "so that people see who
 sails for the club" is the point of the story, and there's no reason to gate it absent
@@ -333,14 +334,15 @@ part a person should be able to decline.
 
 Acceptance criteria:
 - One switch on the sailor's own profile (`PATCH /api/sailors/me`, a `profile_public`
-  boolean on `Sailor`). **The sailor owns this choice**: a team manager, an `editor` or an
+  boolean on `Sailor`). **The sailor owns this choice**: a team manager or an
   `admin` can see the setting but cannot flip it for someone else — this is the one field
   on the sailor record that management does not maintain (contrast V-4, where they
   maintain all of it).
 - **Off means the profile page is not public**: `GET /api/sailors/{id}` answers 404 for a
   guest, so the page does not confirm that the person exists to whoever guesses an id.
   Signed in it still opens for the people already connected to that record — the sailor
-  themselves, `admin`/`editor`, and a manager of a club they are registered with — the
+  themselves, `admin`, and a manager of a club they are registered with (until 2026-10-24
+  the site's `editor` too; editorial organizes nothing since) — the
   same circle Story S-2 already uses for a minor's photo.
 - **The name stays visible wherever they compete, and only the name.** In a squad, a
   lineup, a pairing list, a result row or a standings row, a hidden profile appears as

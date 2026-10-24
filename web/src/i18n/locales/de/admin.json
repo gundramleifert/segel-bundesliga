@@ -19,7 +19,6 @@
   },
   "series": {
     "title": "Serien",
-    "editOnlyAdmin": "Serien legt die Geschäftsstelle an.",
     "nameLabel": "Name",
     "namePlaceholder": "1. Segel-Bundesliga 2027",
     "yearLabel": "Jahrgang",

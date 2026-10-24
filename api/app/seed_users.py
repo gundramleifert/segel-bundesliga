@@ -52,9 +52,11 @@ SITE_ACCOUNTS: list[tuple[str, str, list[Relation]]] = [
     ("wl@sbl.example.com", "Christoph Zanter", [Relation.RACE_OFFICER]),
     ("gast@sbl.example.com", "Gero Guest", []),
 ]
-#: The test series' manager (Story Z-2).
+#: The test series' manager (Story Z-2), and its editor — who writes about its matchdays
+#: and keeps their pictures, and organizes nothing (Stories R-1, R-2).
 SERIES_ACCOUNTS: list[tuple[str, str, Relation]] = [
     ("serie@sbl.example.com", "Sven Series", Relation.MANAGER),
+    ("presse@sbl.example.com", "Paula Presse", Relation.EDITOR),
 ]
 #: Who runs the juniors, this year and the next one being prepared: (email, name,
 #: relation, the series' slugs).
@@ -123,6 +125,8 @@ async def seed_users() -> None:
             await session.execute(select(Series).where(Series.slug.in_(TEST_SERIES_ALL)))
         ).scalars():
             for email, name, relation in SERIES_ACCOUNTS:
+                if relation == Relation.EDITOR and each.slug != TEST_SERIES:
+                    continue  # the press writes about this year's matchdays only
                 user = await _account(session, email, name)
                 await _tuple(session, user, relation, ObjectRef(ObjectType.SERIES, each.id))
 

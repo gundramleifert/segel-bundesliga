@@ -1,9 +1,10 @@
 """News and press releases — Story R-1.
 
 Editorial writes them here; the public site reads them through ``GET /api/posts``. Who
-may write is the site's ``editor`` relation, which its ``admin`` holds through the model
-(Story Z-2) — nobody else, not even an event's organizer: announcements from an event
-are Story VA-11, posts by participants VA-4.
+may write is the ``editor`` relation (Story Z-2, decided 2026-10-24): the site's for every
+post, a series' or an event's for posts about that regatta, which then appear in its
+league (``app/services/editorial.py``). Not an event's organizer: announcements from an
+event are Story VA-11, posts by participants VA-4.
 """
 
 from __future__ import annotations
@@ -18,14 +19,14 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.auth import require_editor
+from app.auth import require_any_editor
 from app.db import get_session
 from app.models import Event, League, MediaItem, Post, PostKind, Series
 from app.models.auth import User
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
 from app.problems import Problem
 from app.routers.media import PublicPicture, public_picture
-from app.services import media
+from app.services import editorial, media
 from app.services.lookup import get_or_404, unique_slug
 from app.services.rich_text import clean_html, outside_pictures, own_picture, repeats_title
 
@@ -225,9 +226,12 @@ async def list_all_posts(
     published: bool | None = Query(default=None, description="Only published, or only drafts"),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> Page[PostAdminSummary]:
     stmt = apply_search(_with_league(), q, Post.title)
+    reach = editorial.within_reach(user, Post.event_id, Post.series_id)
+    if reach is not None:
+        stmt = stmt.where(reach)
     if kind is not None:
         stmt = stmt.where(Post.kind == kind)
     if league == ASSOCIATION:
@@ -252,11 +256,10 @@ async def list_all_posts(
 async def create_post(
     body: PostCreate,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> PostAdminOut:
     """A draft unless ``published`` says otherwise. The slug is made from the title."""
-    await _check_league(session, body.league_id)
-    await media.check_context(session, body.event_id, body.series_id)
+    await _check_about(session, user, body)
     _title_not_in_text(body.title, body.body)
     _pictures_are_ours(body.body, body.photo_url)
     fields = body.model_dump()
@@ -272,22 +275,21 @@ async def create_post(
 async def get_admin_post(
     post_id: int,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> PostAdminOut:
-    return await _admin_out(session, await get_or_404(session, Post, post_id))
+    return await _admin_out(session, await _own_post(session, user, post_id))
 
 
 @admin_router.post("/preview", response_model=PostOut, summary="A post as readers will see it")
 async def preview_post(
     body: PostCreate,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> PostOut:
     """What ``GET /api/posts/{slug}`` would answer for these fields — saved or not, so a
     draft is read before it is saved and a published post's edit before it goes live.
     Nothing is stored; the same rules as a save apply."""
-    await _check_league(session, body.league_id)
-    await media.check_context(session, body.event_id, body.series_id)
+    await _check_about(session, user, body)
     _title_not_in_text(body.title, body.body)
     _pictures_are_ours(body.body, None)
     fields = body.model_dump(exclude={"published"})
@@ -302,10 +304,10 @@ async def update_post(
     post_id: int,
     body: PostUpdate,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> PostAdminOut:
     """Publishing and withdrawing are a change of ``published`` — nothing is locked."""
-    post = await get_or_404(session, Post, post_id)
+    post = await _own_post(session, user, post_id)
     changes = body.model_dump(exclude_unset=True)
     # The title and the text as they will be: a new title alone may repeat the text too.
     _title_not_in_text(changes.get("title", post.title), changes.get("body", post.body))
@@ -320,6 +322,14 @@ async def update_post(
         changes.setdefault("event_id", None)
         changes.setdefault("series_id", None)
         await media.check_context(session, changes["event_id"], changes["series_id"])
+        await editorial.ensure_about(session, user, changes["event_id"], changes["series_id"])
+    if not editorial.site_editor(user):
+        # A regatta's editor writes in its league, wherever the post says it is about.
+        changes["league_id"] = await editorial.league_of(
+            session,
+            changes.get("event_id", post.event_id),
+            changes.get("series_id", post.series_id),
+        )
     for name, value in changes.items():
         setattr(post, name, value)
     await session.commit()
@@ -330,15 +340,37 @@ async def update_post(
 async def delete_post(
     post_id: int,
     session: AsyncSession = Depends(get_session),
-    _: User = Depends(require_editor),
+    user: User = Depends(require_any_editor),
 ) -> Response:
-    post = await get_or_404(session, Post, post_id)
+    post = await _own_post(session, user, post_id)
     await session.delete(post)
     await session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ---------------------------------------------------------------- helpers
+
+
+async def _check_about(session: AsyncSession, user: User, body: PostCreate) -> None:
+    """The league and the regatta exist, and this person writes about that regatta. A
+    regatta's editor writes in its league: ``league_id`` is set from it, not chosen."""
+    await media.check_context(session, body.event_id, body.series_id)
+    await editorial.ensure_about(session, user, body.event_id, body.series_id)
+    if not editorial.site_editor(user):
+        body.league_id = await editorial.league_of(session, body.event_id, body.series_id)
+    await _check_league(session, body.league_id)
+
+
+async def _own_post(session: AsyncSession, user: User, post_id: int) -> Post:
+    """The post, if this person writes about its regatta — another regatta's post is a
+    404 to them, like one that does not exist: its draft is not theirs to know of."""
+    post = await get_or_404(session, Post, post_id)
+    if not editorial.site_editor(user):
+        try:
+            await editorial.ensure_about(session, user, post.event_id, post.series_id)
+        except Problem:
+            raise Problem(404, "post-not-found", "No such post.") from None
+    return post
 
 
 async def _admin_out(session: AsyncSession, post: Post) -> PostAdminOut:

@@ -16,7 +16,7 @@ import {
   useUnpublishSeries,
   useUpdateSeries,
 } from "../api/generated/sbl";
-import { Role, type ClubAdmin, type SeriesAdmin } from "../api/types";
+import type { ClubAdmin, SeriesAdmin } from "../api/types";
 import { WHOLE_LIST, mayOpenAdmin, useAsyncRows, useInvalidate, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { TabbedView, type TabDef } from "../components/Tabs";
@@ -43,10 +43,9 @@ import { AccessPanel } from "../components/AccessPanel";
  * they were a page nobody read top to bottom, with the events area — the one used on a
  * jetty — several screens down. Tabs also mean one area's queries load instead of five.
  */
-/** Who may be here: signed in, and `admin` or `editor` — or `admin` alone with `adminOnly`.
- *  The same rule for `/admin` and for every `/admin/<area>/new` page (`AdminNewPage`).
- *  An `event_manager` or `jury` (Story Z-2) is let in as well: the events tab is theirs,
- *  the others do not exist for them (see `AdminTabs`). */
+/** Who may be here: signed in, and one of `ADMIN_ROLES` — or `admin` alone with
+ *  `adminOnly`. The same rule for `/admin` and for every `/admin/<area>/new` page
+ *  (`AdminNewPage`). Which tabs each of them gets is `adminTabs`. */
 export function AdminAccess({
   adminOnly = false,
   children,
@@ -95,8 +94,8 @@ function AdminTabs() {
     clubs: { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
     series: { key: "series", label: t("series.title"), render: () => (
         // A series' manager runs its clubs, dates and publication (Story Z-2) — the list
-        // narrows itself to theirs. Only an editor without one gets the notice.
-        <Series editorOnly={!hasRole(Role.admin, Role.series_manager)} mayCreate={mayCreateIn("series", hasRole)} />
+        // narrows itself to theirs.
+        <SeriesList mayCreate={mayCreateIn("series", hasRole)} />
       ) },
     events: { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
     sailors: { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
@@ -194,20 +193,6 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
 }
 
 // ----------------------------------------------------------------------- Series
-
-/** The early return sits here, above the component that asks for the lists, so a role
- *  that only sees the notice never fetches every series and every club for nothing. */
-function Series({ editorOnly, mayCreate }: { editorOnly: boolean; mayCreate: boolean }) {
-  const { t } = useTranslation("admin");
-  if (editorOnly) {
-    return (
-      <Section title={t("series.title")} testId="admin-series-section">
-        <Empty testId="admin-series-editor-only">{t("series.editOnlyAdmin")}</Empty>
-      </Section>
-    );
-  }
-  return <SeriesList mayCreate={mayCreate} />;
-}
 
 /** Every series for the league office; a series manager's own (`GET /api/admin/series`
  *  narrows it), without the button that creates one — that stays the admin's (A-4). */

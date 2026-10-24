@@ -242,11 +242,15 @@ class TestMemberRoster:
         assert roster["cm-kai"]["organizer"] is False
 
     async def test_staff_may_read_any_roster(self, client, caplog):
-        """Story V-10: `admin`/`editor` staff see every club's roster."""
+        """Story V-10: the site's `admin` sees every club's roster; editorial does not —
+        it writes news, and a roster is no news (decided 2026-10-24)."""
         club = await _fresh_club()
+        admin = await _admin_headers(client, caplog, "cm-roster-admin@example.org")
+        assert await _roster(client, admin, club) == []
         await make_user("cm-redaktion@example.org", Role.EDITOR)
         editor = await _headers(client, caplog, "cm-redaktion@example.org")
-        assert await _roster(client, editor, club) == []
+        response = await client.get(f"/api/clubs/{club}/members", headers=editor)
+        assert response.status_code == 403, response.text
 
 
 class TestOrganizers:

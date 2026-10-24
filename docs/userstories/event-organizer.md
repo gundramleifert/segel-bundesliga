@@ -45,8 +45,9 @@ Acceptance criteria:
   picker. Choosing a named color in the select copies it into the picker/text; editing either
   the picker or the text switches the select to "Custom", so a hand-picked color is never left
   sitting silently under a named option it no longer matches.
-- In addition to administration, editorial, and race committee, also the **leadership of the
-  host club** can create — not for a foreign host.
+- In addition to administration and the site's race committee, also the **leadership of the
+  host club** can create — not for a foreign host. Until 2026-10-24 editorial could too;
+  it organizes nothing since (Story R-1).
 - **How the pairing list prints** is part of the setup too, and the panel offers it next to
   the draw: font size, landscape, per-team pages (`print_settings`). Empty means the sheet
   is printed the way its configuration implies — see [B-3](visitor.md#b-3--view-pairing-list), which
@@ -77,11 +78,13 @@ As an **event organizer** I want to **create a matchday with name, date, and hos
 so that **the date is set before details are finalized**.
 
 Acceptance criteria:
-- Access is available to **administration, editorial and the site's race committee**, and
+- Access is available to **administration and the site's race committee**, and
   to the event's **organizers**: the manager of the host club (for their own club as host)
   and the manager of the series it belongs to (Stories VA-6, Z-2). Until 2026-10-17 this
   story still said "administration, editorial, and race committee" only, long after the
-  organizers had been let in (`events.py::_can_create`; found by Journey J-4).
+  organizers had been let in (`events.py::_can_create`; found by Journey J-4). Until
+  2026-10-24 editorial was among them; since then the site's `editor` writes news and
+  keeps pictures and creates no event.
 - Name, date, league, and season are sufficient. The **host** is selected from created clubs
   (A-1).
 - Without an end date, the matchday is single-day; an end before the start is rejected.
@@ -93,7 +96,8 @@ Acceptance criteria:
 
 Endpoints: `POST /api/admin/events`, `PATCH /api/admin/events/{slug}`
 
-Tests: `api/tests/stories/test_master_data.py::TestCreatingAMatchday`
+Tests: `api/tests/stories/test_master_data.py::TestCreatingAMatchday`,
+`api/tests/stories/test_master_data.py::TestCreatingAMatchday::test_the_race_committee_may_too_but_not_editorial`
 
 Open: The interface for this is still missing — only via API so far.
 
@@ -281,7 +285,8 @@ Acceptance criteria:
   check-in list.
 - Every confirmation is logged: who, when. **Built** — the confirmation row records it.
 
-Access: the event's host-club leadership, plus `admin`, `editor`, `race_officer`. No fifth
+Access: the event's host-club leadership, plus `admin`, `race_officer` (until 2026-10-24
+also `editor`, who neither confirms waivers nor sees their scans since). No fifth
 role was added — the on-site organizer is a `race_officer` or the host `team_manager`.
 
 Tests: `api/tests/stories/test_waiver.py::TestMinors` (check-in list),
@@ -426,7 +431,8 @@ Acceptance criteria:
 - **Publication stays orthogonal.** Finishing does not publish, cancelling does not
   withdraw — `published` remains the only thing that decides who can see the event
   (VA-8).
-- Permissions are the same as for starting: `admin`, `editor`, `race_officer`.
+- Permissions are the same as for starting: `admin`, `race_officer` and the event's
+  organizers (until 2026-10-24 also the site's `editor`, then manager of every event).
 - **The transitions are the only way to change the status.** `PATCH …/{id}` no longer
   carries `status` (a `status` sent there is ignored): an organizer used to be able to
   PATCH an event to `live` without a pairing list, or to `final` from `planned`, skipping

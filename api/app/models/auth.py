@@ -44,7 +44,9 @@ class Relation(StrEnum):
     who else holds what on it. The site's admin is admin of every object."""
 
     EDITOR = "editor"
-    """Site: editorial — posts, club contributions, master data."""
+    """Site, series or event: editorial — news, press releases and pictures, and nothing
+    else (decided 2026-10-24). The site's for the association and every league; a
+    series' or an event's for posts and pictures about that regatta."""
 
     MANAGER = "manager"
     """Club, series or event: the organizer. Runs the thing, names its people."""
@@ -158,17 +160,19 @@ type series
     define manager: [user] or admin
     define race_officer: [user] or admin or race_officer from site
     define jury: [user] or admin
+    define editor: [user] or admin or editor from site
 
 type event
   relations
     define admin: [user] or admin from series or admin from host_club or admin from site
     define manager: [user] or admin or manager from series or manager from host_club
-      or editor from site or race_officer from site
+      or race_officer from site
     define race_officer: [user] or admin or race_officer from series
       or race_officer from site
     define jury: [user] or admin or jury from series
     define helper: [user] or admin
     define treasurer: [user] or admin or treasurer from host_club
+    define editor: [user] or admin or editor from series or editor from site
 
 type sailor
   relations

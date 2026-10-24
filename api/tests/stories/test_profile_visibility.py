@@ -129,8 +129,8 @@ class TestProfileVisibility:
             await client.delete("/api/sailors/me/photo", headers=me)
 
     async def test_connected_people_still_open_a_hidden_page(self, client, caplog):
-        """admin/editor and a manager of the sailor's club see the page; a stranger with an
-        account does not."""
+        """The admin and a manager of the sailor's club see the page; a stranger with an
+        account does not, and neither does editorial (decided 2026-10-24)."""
         async with _squad_sailor("s4.circle@example.com") as target:
             await make_user(target.email)
             me = auth_headers(await login_as(client, target.email, caplog))
@@ -141,7 +141,7 @@ class TestProfileVisibility:
             await make_user("s4.stranger@example.com")
             path = f"/api/sailors/{target.sailor_id}"
             for email, expected in [
-                ("s4.editor@example.com", 200),
+                ("s4.editor@example.com", 404),
                 ("s4.manager@example.com", 200),
                 ("s4.stranger@example.com", 404),
             ]:

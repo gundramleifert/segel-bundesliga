@@ -5,7 +5,12 @@ identifier rule are explained there.
 
 Editorial writes what the site says beyond the results: the news on the association's
 home and each league's page, and the releases in each league's press centre. It is the
-site's `editor` relation (Story Z-2) — and the site's `admin`, who holds every relation.
+`editor` relation (Story Z-2) — and the `admin`, who holds every relation — on one of
+three levels (decided 2026-10-24): the **site's** editor writes about anything; a
+**series'** editor about that series and its events; an **event's** editor about that
+event. Editorial writes and keeps pictures; it **organizes nothing** — no clubs, series,
+events, sailors, waivers or rosters. Until 2026-10-24 there was only the site's editor,
+and it was also manager of every event and kept the master data with the admin.
 
 ## Writing
 
@@ -14,9 +19,16 @@ As **editorial** I want to **write, publish, correct and withdraw news articles 
 releases on the site**, so that **a new article does not need a developer and a release**.
 
 Acceptance criteria:
-- **Only editorial writes** (decided 2026-10-19): the site's `editor`, and its `admin`
-  through the model. A club, series or event organizer cannot — announcements from an
-  event are Story VA-11, posts by participants VA-4.
+- **Only editorial writes** (decided 2026-10-19): an `editor`, and an `admin` through the
+  model. A club, series or event organizer cannot — announcements from an event are Story
+  VA-11, posts by participants VA-4.
+- **A regatta's editor writes about that regatta** (decided 2026-10-24): a series' or an
+  event's `editor` writes posts whose event or series is theirs — a series' editor also
+  its events'. The post's league is **set from the regatta's league**, not chosen. A post
+  about no regatta, or about another regatta, is refused (403); another regatta's post
+  is not theirs to know of — their list leaves it out and its address answers 404. They
+  organize nothing: the series cannot be changed by them, and an event's tools stay
+  closed (`manage` is false). Until 2026-10-24 only the site's `editor` wrote.
 - **One kind of post, two kinds of page.** A post is a **news** article or a **press**
   release. An article has a title, a lead (the teaser on its card), the text, an optional
   quote with who said it, a byline and a picture; a release has a title, a date and its
@@ -102,7 +114,8 @@ Acceptance criteria:
   show the stored HTML as it is.
 - **The examples the site shipped with are posts too**, seeded and marked as examples; each
   still says so on its page until editorial deletes or replaces it.
-- In the administration the posts are a tab, *News*, for editorial alone: the list with
+- In the administration the posts are a tab, *News*, for editorial alone — an editor of
+  any level sees *News* and *Media* and no other tab (Story A-11): the list with
   drafts marked — filtered by kind, league and draft or published, searched by title,
   each league by its name — a page to create one and the same page to edit it.
 - **On a phone** the toolbar stays one row that scrolls sideways, the picture panel scrolls
@@ -118,7 +131,8 @@ Tests: `api/tests/stories/test_posts.py::TestWritePosts`,
 `api/tests/stories/test_posts.py::TestReadPosts`,
 `api/tests/stories/test_posts.py::TestRegattaGallery`,
 `e2e/editorial.spec.ts::R-1: editorial writes news and press releases`,
-`e2e/media-public.spec.ts::R-1: a report ends with its regatta's photos`
+`e2e/media-public.spec.ts::R-1: a report ends with its regatta's photos`,
+`api/tests/stories/test_regatta_editorial.py::TestEditorialOfOneRegatta`
 
 ## Pictures
 
@@ -202,6 +216,12 @@ Acceptance criteria:
   one was the review's finding): selected on the *Media* tab, they get one credit, one
   event or series, or are deleted together; a picture a post uses is kept and named.
 - Editorial alone — like posts (R-1). The upload page needs nothing but a valid key.
+- **A regatta's editor keeps that regatta's pictures** (decided 2026-10-24): a series' or
+  an event's `editor` uploads pictures that belong to their series or event (a series'
+  editor also its events'), sees only those in the library, and cannot move one to
+  another regatta (403); another regatta's picture answers 404. A picture about no
+  regatta, fetching a picture from a web address, and import keys stay the **site's**
+  editor's. Until 2026-10-24 only the site's `editor` kept the library.
 
 Endpoints: `GET|POST|PATCH /api/admin/media`, `GET|PATCH|DELETE /api/admin/media/{id}`,
 `GET /api/admin/media/{id}/original`, `POST /api/admin/media/delete`,
@@ -217,7 +237,8 @@ Tests: `api/tests/stories/test_media.py::TestLibrary`,
 `api/tests/stories/test_media.py::TestManyAtOnce`,
 `api/tests/stories/test_media.py::TestByName`,
 `e2e/media.spec.ts::R-2: a picture library fed by upload links`,
-`e2e/media.spec.ts::R-2: editorial changes many pictures at once`
+`e2e/media.spec.ts::R-2: editorial changes many pictures at once`,
+`api/tests/stories/test_regatta_editorial.py::TestEditorialOfOneRegatta`
 
 ### R-3 ● Show the library's photos on the league's media page
 As a **visitor** I want **a league's media page to show the photos of its regattas**, and as **editorial** I want **what photographers delivered to appear there

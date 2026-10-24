@@ -86,7 +86,8 @@ Acceptance criteria:
   squad holds them (V-1), so there is nothing to scope a new record to, and finding the
   existing record beats creating a second. **Changing** a person is scoped: the organizer
   of a club whose squad or entry holds them, or of any club while nobody's squad holds
-  them yet; administration and editorial always. Until 2026-10-17 this story said
+  them yet; the site's `admin` always (until 2026-10-24 editorial too — sailors as
+  master data are the admin's alone since, A-1). Until 2026-10-17 this story said
   "creates only people from their own club" while any club's organizer could edit
   anyone on the site (found by Journey J-3) — `sailor-not-yours` (403) now.
 - If the address is already known, the **existing person is offered** instead of creating a
@@ -427,8 +428,8 @@ page is where a manager notices that the description is out of date, and it is w
 should be able to fix it.
 
 Acceptance criteria:
-- On the club page (Story B-11), a manager of **this** club — and `admin`/`editor` for any
-  club — sees the page's own editing affordances. Everyone else sees the page exactly as it
+- On the club page (Story B-11), a manager of **this** club — and the site's `admin` for
+  any club (until 2026-10-24 also `editor`) — sees the page's own editing affordances. Everyone else sees the page exactly as it
   is today, with no disabled buttons and no hint that an editing mode exists.
 - The check is `authz.check(acting, MANAGER, on=club)`, never `acting.club_id == club_id`:
   the relation is held per club, so someone who organizes two clubs can maintain both,
@@ -458,8 +459,8 @@ so that **we are recognizable on the page**.
 
 Acceptance criteria:
 - The club's **admin** uploads it for their **own** club — the crest is the club's
-  identity, like its members (Z-3). `admin` and `editor` may do it for any club, as with
-  the rest of club master data (A-1). The check is `authz.check(acting, ADMIN, on=club)`:
+  identity, like its members (Z-3). The site's `admin` may do it for any club, as with
+  the rest of club master data (A-1); until 2026-10-24 the site's `editor` could too. The check is `authz.check(acting, ADMIN, on=club)`:
   the relation is held per club, so someone who administers two clubs can maintain both
   crests.
 - Replacing and removing are possible (`POST` again replaces; `DELETE` on a club without

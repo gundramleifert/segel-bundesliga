@@ -109,7 +109,7 @@ class TestGuardProblems:
         response = await client.get("/api/admin/clubs", headers=headers)
         assert response.status_code == 403
         body = _assert_typed(response, "forbidden")
-        assert body["required"] == ["admin", "editor"]
+        assert body["required"] == ["admin"]
 
     async def test_an_unknown_event_is_not_found_before_any_permission_question(self, client):
         headers = {"Authorization": f"Bearer {await _token(GUEST)}"}

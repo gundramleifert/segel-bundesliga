@@ -492,7 +492,6 @@ describeStory("A-6: a series' manager edits their series in the admin screen", (
 
     const list = page.getByTestId("admin-series-list");
     await expect(list).toBeVisible();
-    await expect(page.getByTestId("admin-series-editor-only")).toHaveCount(0);
     await expect(page.getByTestId("admin-series-new-button")).toHaveCount(0);
     await expect(list.locator(":scope > li")).toHaveCount(2);
 

@@ -84,3 +84,12 @@ class TestTheCommitteesToolsPerEvent:
         """Like every public event endpoint: what a visitor cannot see is a 404."""
         response = await client.get("/api/events/999999/access")
         assert response.status_code == 404
+
+
+class TestEditorialRunsNoEvent:
+    """Z-2: editorial writes news and pictures; it organizes nothing (decided 2026-10-24)."""
+
+    async def test_the_site_s_editor_is_no_event_s_organizer(self, client, caplog, ids):
+        """Until 2026-10-24 the site's editor was manager of every event by the model."""
+        editor = await holding(client, caplog, "access-editor@example.org", Relation.EDITOR)
+        assert await access(client, ids.event(ACT_1), editor) == NOTHING

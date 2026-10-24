@@ -166,6 +166,19 @@ async def require_team_manager(user: User = Depends(current_user)) -> User:
     raise forbidden("this", [Relation.ADMIN, Relation.MANAGER])
 
 
+async def require_any_editor(user: User = Depends(current_user)) -> User:
+    """Editorial on any level — the site, a series or an event (Stories R-1, R-2) — for
+    the editorial screens, which then narrow to what the person writes about
+    (``app/services/editorial.py``)."""
+    if (
+        authz.check(user, Relation.EDITOR)
+        or authz.list_objects(user, Relation.EDITOR, ObjectType.SERIES)
+        or authz.list_objects(user, Relation.EDITOR, ObjectType.EVENT)
+    ):
+        return user
+    raise forbidden("this", [Relation.EDITOR])
+
+
 def _on_object(model, path_param: str, *relations: Relation | str):
     """A dependency for routes with ``{<path_param>}`` in their path: passes whoever holds
     one of these relations on that object — directly, or through its containers and the
@@ -209,5 +222,6 @@ require_event_manager_for = require_on_event(Relation.MANAGER)
 require_event_control = require_on_event(Relation.MANAGER, Relation.RACE_OFFICER)
 # One series: its organizer sets participants, dates and publication.
 require_series_manager_for = require_on_series(Relation.MANAGER)
-# Master data like clubs: admin and editorial.
-require_master_data = require_site(Relation.ADMIN, Relation.EDITOR)
+# Master data like clubs: the league office's admin alone — editorial writes news, not
+# clubs (decided 2026-10-24).
+require_master_data = require_site(Relation.ADMIN)

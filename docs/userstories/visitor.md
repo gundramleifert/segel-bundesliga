@@ -608,7 +608,7 @@ Acceptance criteria:
   **participation is public, affiliation is not.** Whoever a club registers for a series or
   enters into an event is publicly named, because they appear on every pairing list, result
   and standings row anyway; simply *belonging* to the club is shown only to the club's own
-  active members (and `admin`/`editor` staff), exactly as Story V-10 already enforces on
+  active members (and the site's `admin`; until 2026-10-24 also `editor`), exactly as Story V-10 already enforces on
   `GET /api/clubs/{id}/members`.
   - So a guest sees the squads and, where the roster would be, nothing at all — not a
     locked box and not a sign-in prompt. The tab never advertises what it is withholding.

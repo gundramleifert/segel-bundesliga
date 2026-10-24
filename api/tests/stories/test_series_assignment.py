@@ -51,8 +51,17 @@ async def create_series(slug: str, name: str, year: int) -> int:
 class TestClubCreationAndAssignment:
     """A-3: A club appears publicly only when assigned to a series."""
 
+    async def test_only_the_admin_creates_a_club(self, client, caplog):
+        """Story A-1: editorial writes news, not clubs (decided 2026-10-24)."""
+        headers = await as_role(client, caplog, "lz0@example.com", Role.EDITOR)
+        response = await client.post(
+            "/api/admin/clubs", headers=headers, json={"name": "Kein Verein"}
+        )
+        assert response.status_code == 403, response.text
+        assert response.json()["required"] == ["admin"]
+
     async def test_name_alone_suffices_for_creation(self, client, caplog):
-        headers = await as_role(client, caplog, "lz1@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz1@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Segelverein Namenlos")
 
         assert club["slug"] == "segelverein-namenlos"
@@ -61,7 +70,7 @@ class TestClubCreationAndAssignment:
         assert club["city"] is None
 
     async def test_admin_also_sees_unassigned_clubs(self, client, caplog):
-        headers = await as_role(client, caplog, "lz3@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz3@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Noch Ungeordnet", "NUG")
 
         all_clubs = await all_items(client, "/api/admin/clubs", headers=headers)
@@ -70,7 +79,7 @@ class TestClubCreationAndAssignment:
         assert entry["visible"] is False
 
     async def test_after_assignment_club_appears(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "lz4@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz4@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Sichtbarer Segelclub", "SSC")
 
         response = await client.put(
@@ -85,7 +94,7 @@ class TestClubCreationAndAssignment:
         assert club["slug"] in {v["slug"] for v in public}
 
     async def test_club_can_enter_multiple_series(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "lz5@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz5@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Vielseitiger Segelclub", "VSC")
 
         desired = ["dsbl-2-2026", "junioren-2026", "scl-2026"]
@@ -106,7 +115,7 @@ class TestClubCreationAndAssignment:
         assert club["slug"] not in {v["slug"] for v in first}
 
     async def test_assignment_can_be_revoked(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "lz6@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz6@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Wechselhafter Segelclub", "WSC")
         path = f"/api/admin/clubs/{club['id']}/series"
 
@@ -117,7 +126,7 @@ class TestClubCreationAndAssignment:
         assert empty.json()["visible"] is False
 
     async def test_unknown_series_is_rejected(self, client, caplog):
-        headers = await as_role(client, caplog, "lz7@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz7@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Fehlerhafter Segelclub", "FSC2")
 
         response = await client.put(
@@ -128,7 +137,7 @@ class TestClubCreationAndAssignment:
         assert response.status_code == 404
 
     async def test_race_officers_cannot_assign(self, client, caplog, ids):
-        headers = await as_role(client, caplog, "lz8@example.com", Role.EDITOR)
+        headers = await as_role(client, caplog, "lz8@example.com", Role.ADMIN)
         club = await new_club(client, headers, "Geschuetzter Segelclub", "GSC")
 
         race_officer = await as_role(client, caplog, "lz9@example.com", Role.RACE_OFFICER)

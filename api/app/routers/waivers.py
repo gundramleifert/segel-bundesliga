@@ -946,7 +946,7 @@ async def _may_view_scan(
     """Who is connected closely enough to see a minor's signed form (Story S-1)."""
     # The league office; an event's organizer or race committee — held on the event, its
     # series or its host club — only for that event's forms.
-    if authz.check(acting, Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
+    if authz.check(acting, Relation.ADMIN, Relation.RACE_OFFICER):
         return True
     if row.event_id is not None:
         event = await session.get(Event, row.event_id)
@@ -996,7 +996,7 @@ async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) 
     )
     if own:
         return OWN
-    if authz.check(acting, Relation.ADMIN, Relation.EDITOR):
+    if authz.check(acting, Relation.ADMIN):
         return STAFF
     managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
     if managed and managed & await _sailor_clubs(session, sailor.id):

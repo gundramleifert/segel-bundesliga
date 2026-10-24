@@ -423,8 +423,11 @@ class TestTuples:
         assert "define manager: [user]" in model["dsl"]
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
         assert by_type["site"] == ["admin", "editor", "race_officer"]
+        # Editorial on a series or an event: its regatta's news and pictures (2026-10-24).
+        assert by_type["series"] == ["admin", "editor", "manager", "race_officer", "jury"]
         assert by_type["event"] == [
             "admin",
+            "editor",
             "manager",
             "race_officer",
             "jury",

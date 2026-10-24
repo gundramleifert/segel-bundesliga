@@ -73,7 +73,7 @@ class DevLogin(BaseModel):
 
 DESCRIPTION: dict[str, str] = {
     "admin": "Sees and can do everything: master data, accounts, roles, pairing lists.",
-    "editor": "Editorial: write messages, approve club posts.",
+    "editor": "Editorial: news, press releases and pictures — of the site, a series or an event.",
     "race_officer": "Race officer: record and correct results.",
     "club_admin": "Decides who is in the club: members, organizers.",
     "team_manager": "Decides who sails for the club: squads, lineups, registrations.",

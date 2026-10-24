@@ -135,7 +135,7 @@ A member leaves by deleting their own tuple — the one write a person may make 
 separate setting, not tied to `debug` — in a reachable environment this would be a security hole,
 and the server warns on startup while it is on.
 
-`app.seed_users` creates a **small cast on one club, one series, one event** — 43 accounts
+`app.seed_users` creates a **small cast on one club, one series, one event** — 44 accounts
 (decided 2026-10-17; it was 370). The data stays whole — the **real 2026 line-ups** of
 the 1. and 2. Liga (36 clubs, decided 2026-10-22; sailors stay made up), the series and
 their events, each league's three acts on the same weekends — and **the Junioren-Liga's
@@ -150,7 +150,8 @@ refreshes it from SAP on every build. The people who sign in are concentrated:
   account to sign a waiver; a sailor of any other club has none, and the specs pick their
   adults and juniors from ASVW's squad;
 - **series** 2. Segel-Bundesliga 2026, ASVW's: `serie@` (its `manager`, and of the 1.
-  Liga's 2027 draft);
+  Liga's 2027 draft); `presse@` (its `editor`, Paula Presse — writes about its matchdays,
+  organizes nothing);
   `junioren@` (Jocki Hellmich, `manager` of the Junioren-Segelliga 2026 and its 2027
   draft);
 - **event** its act 3, still planned, **hosted by ASVW** — so its claims are ASVW's to pay
@@ -158,7 +159,7 @@ refreshes it from SAP on every build. The people who sign in are concentrated:
   (race officer, Malte Rackow), `jury@` (Heiko Thölmann), `helfer@` (helper, Johannes
   Machur). Every seeded act has a host club (DTYC, KYC, ASVW);
 - the **league office** `admin@`, `redaktion@` (editor — the journalist, Sven Jürgensen,
-  manager of every event by the model), `wl@` (race officer, Christoph Zanter), and
+  who writes and keeps pictures and organizes nothing), `wl@` (race officer, Christoph Zanter), and
   `gast@sbl.example.com` with no relation.
 
 **Next year, to practise on** (`app.seed`, decided 2026-10-22): the 1. Segel-Bundesliga
@@ -210,7 +211,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   entered into an Event is named publicly — the pairing list, the results and the standings
   carry that name anyway, so hiding it on the club page would be theatre. Plain club
   **membership** (the `member` tuple) is different: it is shown only to that club's own
-  members and organizers and to `admin`/`editor` (`GET /api/clubs/{id}/members`, Story
+  members and organizers and to the site's `admin` (`GET /api/clubs/{id}/members`, Story
   V-10). Never widen
   the roster to guests, and never gate a squad or a lineup behind a login.
   A sailor may additionally switch off their own **profile page** (`Sailor.profile_public`,
@@ -308,7 +309,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Permissions are relation tuples, `user:relation:object`, and the model is OpenFGA's
   DSL without the server** (Story Z-2, `MODEL` in `app/models/auth.py`, the facade
   `app/authz.py`, the writes `app/services/grants.py`). Object types `site`, `club`, `series`, `event`, `sailor`; relations
-  `admin`/`editor` (site), `manager` (the organizer — club, series, event),
+  `admin` (site), `editor` (site, series, event — news, press and pictures, nothing
+  else), `manager` (the organizer — club, series, event),
   `race_officer` (site, series, event), `jury` (series, event), `helper` (event — works
   the day, holds no power on it, Story VA-12), `treasurer` (club,
   event — the host club pays its events' costs, so its treasurer is every hosted event's,
@@ -317,8 +319,8 @@ These points were deliberately decided this way; bypassing them costs a lot late
   within it, people included (a sailor's is only derived: the site's); on a club the `admin` decides who is *in* it
   and the `manager` who *sails*. `or … from …` lines say what implies what: an object's
   admin is each of its relations, a series' people are its events', the host club's
-  people are its events', the site's editor and race committee are managers of every
-  event. **Every permission question goes through `app/authz.py`**, named after
+  people are its events', the site's race committee are managers of every event, and
+  an editor of the site or a series is one of each event below it. **Every permission question goes through `app/authz.py`**, named after
   OpenFGA's API so the interpreter behind it could become an OpenFGA server: `check`
   (`User.can` is its one-line sugar), `read` for the rare place where the tuple itself is
   the fact, `list_objects`, `ensure`, objects as `ObjectRef` (`club:3`). Nothing outside
@@ -416,8 +418,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   BIC), `openpyxl` (the spreadsheets), `segno` (the GiroCode for one claim, Story F-8) —
   never written by hand.
 - **News and press releases are posts editorial writes on the site** (Story R-1,
-  `app/routers/posts.py`): the site's `editor` (and `admin`) alone; a draft until
-  published, like an event; one league's or the association's. The text is HTML from a
+  `app/routers/posts.py`): the `editor` alone (and `admin`) — the site's for every post,
+  a series' or an event's for posts and pictures about that regatta, whose league they
+  then appear in (`app/services/editorial.py`, decided 2026-10-24). **Editorial writes;
+  it organizes nothing**: no clubs, sailors, events or rosters — that is `admin` and the
+  objects' own managers. A draft until published, like an event; one league's or the
+  association's. The text is HTML from a
   TipTap editor, **cleaned to an allowlist on every write** (`app/services/rich_text.py`,
   `nh3`) — the public page shows the stored HTML as it is, so nothing may reach the table
   around that cleaner. An editor library must be MIT or Apache licensed (decided
@@ -454,18 +460,19 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 
 | Area | Roles |
 |---|---|
-| Create clubs and enroll in Series | `admin`, `editor` |
+| Create clubs and enroll in Series | `admin` |
 | Create Series | `admin` |
 | Set a Series' participants, dates, publication | `admin`; the series' `manager` |
-| Create and maintain Events | `admin`, `editor`, site `race_officer`; the `manager` of the event, its series or its host club |
+| Create and maintain Events | `admin`, site `race_officer`; the `manager` of the event, its series or its host club |
 | Pairing lists, accounts | `admin` |
 | See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
 | Assign user to club, accept members, crest | `admin`; the club's `admin` (own club only) |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
-| Create and maintain sailors | `admin`, `editor`, `team_manager` (changing one: only those their club's squads hold, or nobody's yet) |
+| Create and maintain sailors | `admin`, `team_manager` (changing one: only those their club's squads hold, or nobody's yet) |
 | Link a parent to a sailor as guardian | the manager or admin of a club the sailor belongs to (squad, entry or membership); site `admin` |
-| Confirm a waiver for a sailor | the sailor; `admin`, `editor`; the manager of a club whose squad holds them; their linked `guardian` while they are a minor |
+| Confirm a waiver for a sailor | the sailor; `admin`; the manager of a club whose squad holds them; their linked `guardian` while they are a minor |
+| Write news and press releases, keep pictures | `editor` of the site (all); of a series or an event (that regatta's) |
 | Register Squad for Series | `admin`, `team_manager` (own club only) |
 | **Create** Event | additionally the `manager` of the host club or of the series |
 | File an expense claim | `race_officer`/`jury`/`manager`/`helper` held directly on the event (or the first three on its series); `member` of the club |

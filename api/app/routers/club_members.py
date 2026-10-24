@@ -39,7 +39,7 @@ async def list_club_members(
     staff; a stranger, or a member of a *different* club, gets 403.
     """
     club = await get_or_404(session, Club, club_id)
-    if not authz.check(acting, Relation.EDITOR) and not authz.check(
+    if not authz.check(acting, Relation.ADMIN) and not authz.check(
         acting, Relation.MEMBER, Relation.MANAGER, on=club
     ):
         raise Problem(

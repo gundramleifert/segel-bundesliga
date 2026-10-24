@@ -99,18 +99,16 @@ export const ADMIN_ROLES: readonly Role[] = [
 ];
 
 /** The administration's tabs this person has, in the order the work happens (Story A-11).
- *  The league office sees every area; a series' organizer its series and events; the
- *  organizer or jury of one event the events tab alone — a tab a role may not use does not
- *  exist for it. *News* and *Media* are editorial's (Stories R-1, R-2), *Accounts* the admin's alone. Nobody
- *  outside `ADMIN_ROLES` has any. */
+ *  The admin sees every area; a series' organizer its series and events; the organizer or
+ *  jury of one event the events tab; editorial *News* and *Media* and nothing else — it
+ *  writes, it does not organize (Stories R-1, R-2, decided 2026-10-24). A tab a role may
+ *  not use does not exist for it, and nobody outside `ADMIN_ROLES` has any. */
 export function adminTabs(hasRole: HasRole): AdminTab[] {
-  if (!hasRole(...ADMIN_ROLES)) return [];
-  const tabs: AdminTab[] = hasRole(Role.admin, Role.editor)
-    ? ["clubs", "series", "events", "sailors", "news", "media"]
-    : hasRole(Role.series_manager)
-      ? ["series", "events"]
-      : ["events"];
-  if (hasRole(Role.admin)) tabs.push("accounts");
+  if (hasRole(Role.admin)) return ["clubs", "series", "events", "sailors", "news", "media", "accounts"];
+  const tabs: AdminTab[] = [];
+  if (hasRole(Role.series_manager)) tabs.push("series");
+  if (hasRole(Role.series_manager, Role.event_manager, Role.jury)) tabs.push("events");
+  if (hasRole(Role.editor)) tabs.push("news", "media");
   return tabs;
 }
 

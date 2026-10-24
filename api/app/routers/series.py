@@ -131,10 +131,17 @@ async def list_all_series(
     Z-2) sees that series and nothing else — the same list, narrowed.
     """
     stmt = apply_search(select(Series), q, Series.name, Series.short_name)
+    # Editorial reads them to name a post's or a picture's regatta; it changes none.
     if not authz.check(acting, Relation.ADMIN, Relation.EDITOR):
         reach = authz.list_objects(
             acting,
-            (Relation.ADMIN, Relation.MANAGER, Relation.RACE_OFFICER, Relation.JURY),
+            (
+                Relation.ADMIN,
+                Relation.MANAGER,
+                Relation.RACE_OFFICER,
+                Relation.JURY,
+                Relation.EDITOR,
+            ),
             ObjectType.SERIES,
         )
         if not reach:

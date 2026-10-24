@@ -600,7 +600,7 @@ async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor
     point of S-2, and there is no reason to gate it. A minor's photo is sensitive in exactly
     the way the waiver story (S-1) already treats minors' data with extra care, so it is shown
     only to a signed-in account with an actual connection to that person: the sailor
-    themselves, administration/editorial staff (who already manage this data unrestricted, see
+    themselves, administration (who already manage this data unrestricted, see
     `_can_manage_master_data`), or a manager of a club this sailor is registered with (their
     squad club, not just any club).
 
@@ -608,7 +608,7 @@ async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor
     """
     if acting is None:
         return False
-    if authz.check(acting, Relation.EDITOR):
+    if authz.check(acting, Relation.ADMIN):
         return True
     if sailor.email is not None and sailor.email.lower() == acting.email.lower():
         return True
@@ -631,19 +631,19 @@ async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor
 
 
 def _can_manage_master_data(acting: User) -> None:
-    """People are managed by administration, editorial staff, and club leadership.
+    """People are managed by administration and club leadership.
 
     Club leadership is included because they register their own sailors — they know the
     spelling of names, not the head office.
     """
-    if authz.check(acting, Relation.EDITOR) or authz.list_objects(
+    if authz.check(acting, Relation.ADMIN) or authz.list_objects(
         acting, Relation.MANAGER, ObjectType.CLUB
     ):
         return
     raise Problem(
         403,
         "sailor-manage-forbidden",
-        "Only administration, editorial staff, and club leadership can manage sailors.",
+        "Only administration and club leadership can manage sailors.",
     )
 
 
@@ -652,7 +652,7 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
     hold — or anyone nobody's squad holds yet, who belongs to no club. Creating and
     finding stay open to every club's organizer (`_can_manage_master_data`): a new
     person has no club to scope by."""
-    if authz.check(acting, Relation.EDITOR):
+    if authz.check(acting, Relation.ADMIN):
         return
     clubs = set(
         (
