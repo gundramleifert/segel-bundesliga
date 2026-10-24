@@ -131,6 +131,11 @@ Acceptance criteria:
 - An unknown club is **named**, not silently skipped.
 - Administration sees **all years**, not just the current — they plan ahead. Publicly only
   the current year remains visible.
+- A **series' manager** (Story Z-2, journey J-4) edits their series in the same *Series*
+  tab — its clubs, squad limits, description, publication — and sees only their own
+  series there; creating a series stays the league office's, so the tab has no *New
+  series* button for them. Until 2026-10-24 the tab showed them the editor's notice
+  ("created by the business office only") although the API let them edit.
 
 This is the opposite direction to [A-3](#a-3--assign-clubs-to-series): there you attach a
 club to multiple series, here a series to multiple clubs. Both write the same `Team` rows.
@@ -138,7 +143,7 @@ club to multiple series, here a series to multiple clubs. Both write the same `T
 Endpoints: `POST /api/admin/series`, `PATCH /api/admin/series/{id}`,
 `PUT /api/admin/series/{id}/clubs`, `GET /api/admin/series`
 
-Tests: `api/tests/stories/test_create_series.py`
+Tests: `api/tests/stories/test_create_series.py`, `e2e/lifecycle.spec.ts`
 
 Open: The interface for this is missing — only via API so far. Currently only `admin` has
 access; editorial may also create clubs. Whether that should remain is to be decided.

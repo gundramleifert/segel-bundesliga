@@ -484,6 +484,28 @@ describeStory("A-11: the admin screen is organized in tabs", () => {
   });
 });
 
+describeStory("A-6: a series' manager edits their series in the admin screen", () => {
+  test("the series tab lists only their series, editable, without creating one", async ({ page }, testInfo) => {
+    // The seed's series manager: the 2. Liga 2026 and the 1. Liga's 2027 draft.
+    await signIn(page, "serie@sbl.example.com");
+    await openAdmin(page, testInfo, "series");
+
+    const list = page.getByTestId("admin-series-list");
+    await expect(list).toBeVisible();
+    await expect(page.getByTestId("admin-series-editor-only")).toHaveCount(0);
+    await expect(page.getByTestId("admin-series-new-button")).toHaveCount(0);
+    await expect(list.locator(":scope > li")).toHaveCount(2);
+
+    const row = list.locator(":scope > li", { hasText: "2. Segel-Bundesliga 2026" });
+    const id = (await row.getAttribute("data-testid"))!.replace("admin-series-row-", "");
+    await page.getByTestId(`admin-series-edit-button-${id}`).click();
+    const text = `Notes from the series manager ${testInfo.project.name} ${Date.now()}`;
+    await page.getByTestId(`admin-series-description-input-${id}`).fill(text);
+    await page.getByTestId(`admin-series-save-description-button-${id}`).click();
+    await expect(page.getByTestId(`admin-series-description-saved-${id}`)).toBeVisible();
+  });
+});
+
 describeStory("A-13: every long list pages, sorts and searches — in the URL", () => {
   test("a page, a sort and a search can be linked and survive a reload", async ({
     page,

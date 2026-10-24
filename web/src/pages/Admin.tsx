@@ -16,7 +16,7 @@ import {
   useUnpublishSeries,
   useUpdateSeries,
 } from "../api/generated/sbl";
-import type { ClubAdmin, SeriesAdmin } from "../api/types";
+import { Role, type ClubAdmin, type SeriesAdmin } from "../api/types";
 import { WHOLE_LIST, mayOpenAdmin, useAsyncRows, useInvalidate, useAccount } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
 import { TabbedView, type TabDef } from "../components/Tabs";
@@ -26,7 +26,7 @@ import { SailorsAdmin } from "./AdminSailors";
 import { MediaAdmin } from "./admin/media/MediaAdmin";
 import { PostsAdmin } from "./admin/posts/PostList";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
-import { adminTabs, type AdminTab } from "../lib/spaceTabs";
+import { adminTabs, mayCreateIn, type AdminTab } from "../lib/spaceTabs";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { AddButton } from "../components/AddButton";
@@ -93,7 +93,11 @@ function AdminTabs() {
   // there so the help's places link only to a tab that exists for the reader (B-18).
   const panels: Record<AdminTab, TabDef<AdminTab>> = {
     clubs: { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
-    series: { key: "series", label: t("series.title"), render: () => <Series editorOnly={!hasRole("admin")} /> },
+    series: { key: "series", label: t("series.title"), render: () => (
+        // A series' manager runs its clubs, dates and publication (Story Z-2) — the list
+        // narrows itself to theirs. Only an editor without one gets the notice.
+        <Series editorOnly={!hasRole(Role.admin, Role.series_manager)} mayCreate={mayCreateIn("series", hasRole)} />
+      ) },
     events: { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
     sailors: { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
     news: { key: "news", label: t("posts.title"), render: () => <PostsAdmin /> },
@@ -193,7 +197,7 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
 
 /** The early return sits here, above the component that asks for the lists, so a role
  *  that only sees the notice never fetches every series and every club for nothing. */
-function Series({ editorOnly }: { editorOnly: boolean }) {
+function Series({ editorOnly, mayCreate }: { editorOnly: boolean; mayCreate: boolean }) {
   const { t } = useTranslation("admin");
   if (editorOnly) {
     return (
@@ -202,10 +206,12 @@ function Series({ editorOnly }: { editorOnly: boolean }) {
       </Section>
     );
   }
-  return <SeriesList />;
+  return <SeriesList mayCreate={mayCreate} />;
 }
 
-function SeriesList() {
+/** Every series for the league office; a series manager's own (`GET /api/admin/series`
+ *  narrows it), without the button that creates one — that stays the admin's (A-4). */
+function SeriesList({ mayCreate }: { mayCreate: boolean }) {
   const { t } = useTranslation("admin");
   const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
   // The rows' club selectors have to offer every club, so this asks for the whole list.
@@ -216,7 +222,9 @@ function SeriesList() {
     <Section
       title={t("series.title")}
       testId="admin-series-section"
-      action={<AddButton label={t("series.newButton")} to="/admin/series/new" testId="admin-series-new-button" />}
+      action={
+        mayCreate && <AddButton label={t("series.newButton")} to="/admin/series/new" testId="admin-series-new-button" />
+      }
     >
       {seriesList.loading && <Loading text={t("series.loadingText")} testId="admin-series-loading" />}
       {seriesList.error && <ErrorMessage text={seriesList.error} testId="admin-series-error" />}
