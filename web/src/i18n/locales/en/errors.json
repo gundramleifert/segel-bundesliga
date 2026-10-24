@@ -42,6 +42,8 @@
   "club-crest-not-yours": "You can only change the crest of your own club.",
   "club-crest-not-found": "This club has no uploaded crest.",
   "club-not-found": "This club does not exist.",
+  "announcement-not-found": "This announcement does not exist.",
+  "announcement-title-empty": "An announcement needs a title.",
   "event-not-found": "This event does not exist.",
   "series-not-found": "This series does not exist.",
   "venue-not-found": "This venue does not exist.",

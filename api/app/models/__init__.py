@@ -2,7 +2,9 @@ from app.models.auth import Grant, ObjectType, Relation, Role, User
 from app.models.base import Base, TimestampMixin
 from app.models.common import AuditLog, ExternalId, ImportRun, Source
 from app.models.competition import (
+    AnnouncementIssuer,
     Event,
+    EventAnnouncement,
     EventDocument,
     EventDocumentKind,
     EventStatus,
@@ -82,11 +84,13 @@ __all__ = [
     "Fix",
     "Mark",
     "Tracker",
+    "AnnouncementIssuer",
     "Base",
     "Boat",
     "Club",
     "CrewRole",
     "Event",
+    "EventAnnouncement",
     "EventDocument",
     "EventDocumentKind",
     "EventCrew",

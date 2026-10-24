@@ -28,6 +28,8 @@ import type {
   AbandonRaceParams,
   AdminRaceOut,
   AdminRacesOut,
+  AnnouncementIn,
+  AnnouncementOut,
   ApplicationCreate,
   ApplicationDecision,
   ApplicationOut,
@@ -2326,6 +2328,110 @@ export function useListEventDocuments<TData = Awaited<ReturnType<typeof listEven
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListEventDocumentsQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListEventAnnouncementsUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/events/${eventId}/announcements`
+}
+
+/**
+ * What the race committee, the jury and the organizer announced, newest first
+ * (Story VA-11). A draft event is a 404 here too; the live stream tells an open page
+ * when a new one arrives.
+ * @summary The announcements on an event's notice board
+ */
+export const listEventAnnouncements = async (eventId: number, options?: RequestInit): Promise<AnnouncementOut[]> => {
+
+  return http<AnnouncementOut[]>(getListEventAnnouncementsUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEventAnnouncementsQueryKey = (eventId: number,) => {
+    return [
+    `/api/events/${eventId}/announcements`
+    ] as const;
+    }
+
+
+export const getListEventAnnouncementsQueryOptions = <TData = Awaited<ReturnType<typeof listEventAnnouncements>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventAnnouncements>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEventAnnouncementsQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEventAnnouncements>>> = ({ signal }) => listEventAnnouncements(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEventAnnouncements>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEventAnnouncementsQueryResult = NonNullable<Awaited<ReturnType<typeof listEventAnnouncements>>>
+export type ListEventAnnouncementsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListEventAnnouncements<TData = Awaited<ReturnType<typeof listEventAnnouncements>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventAnnouncements>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventAnnouncements>>,
+          TError,
+          Awaited<ReturnType<typeof listEventAnnouncements>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventAnnouncements<TData = Awaited<ReturnType<typeof listEventAnnouncements>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventAnnouncements>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventAnnouncements>>,
+          TError,
+          Awaited<ReturnType<typeof listEventAnnouncements>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventAnnouncements<TData = Awaited<ReturnType<typeof listEventAnnouncements>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventAnnouncements>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The announcements on an event's notice board
+ */
+
+export function useListEventAnnouncements<TData = Awaited<ReturnType<typeof listEventAnnouncements>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventAnnouncements>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEventAnnouncementsQueryOptions(eventId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -7715,6 +7821,174 @@ export const useSetCrew = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getSetCrewMutationOptions(options), queryClient);
+    }
+
+export const getPublishAnnouncementUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/announcements`
+}
+
+/**
+ * Story VA-11: it appears at once on the event's public page and in the live view.
+ * @summary Publish an announcement on the event's notice board
+ */
+export const publishAnnouncement = async (eventId: number,
+    announcementIn: AnnouncementIn, options?: RequestInit): Promise<AnnouncementOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<AnnouncementOut>(getPublishAnnouncementUrl(eventId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(announcementIn)
+  }
+);}
+
+
+
+
+
+export const getPublishAnnouncementMutationKey = () => ['publishAnnouncement'] as const;
+
+export const getPublishAnnouncementMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishAnnouncement>>, TError,PublishAnnouncementMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof publishAnnouncement>>, TError,PublishAnnouncementMutationVariables, TContext> => {
+
+const mutationKey = getPublishAnnouncementMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof publishAnnouncement>>, PublishAnnouncementMutationVariables> = (props) => {
+          const {eventId,data} = props ?? {};
+
+          return  publishAnnouncement(eventId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PublishAnnouncementMutationResult = NonNullable<Awaited<ReturnType<typeof publishAnnouncement>>>
+    export type PublishAnnouncementMutationBody = BodyType<AnnouncementIn>
+    export type PublishAnnouncementMutationError = ErrorType<ProblemDetails>
+    export type PublishAnnouncementMutationVariables = {eventId: number;data: BodyType<AnnouncementIn>}
+
+    /**
+ * @summary Publish an announcement on the event's notice board
+ */
+export const usePublishAnnouncement = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publishAnnouncement>>, TError,PublishAnnouncementMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof publishAnnouncement>>,
+        TError,
+        PublishAnnouncementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getPublishAnnouncementMutationOptions(options), queryClient);
+    }
+
+export const getRetractAnnouncementUrl = (eventId: number,
+    announcementId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/announcements/${announcementId}`
+}
+
+/**
+ * Story VA-11: whoever may announce as its issuer may take it back — a wrong time
+ * is corrected by retracting it and publishing the right one.
+ * @summary Retract an announcement
+ */
+export const retractAnnouncement = async (eventId: number,
+    announcementId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getRetractAnnouncementUrl(eventId,announcementId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRetractAnnouncementMutationKey = () => ['retractAnnouncement'] as const;
+
+export const getRetractAnnouncementMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retractAnnouncement>>, TError,RetractAnnouncementMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof retractAnnouncement>>, TError,RetractAnnouncementMutationVariables, TContext> => {
+
+const mutationKey = getRetractAnnouncementMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof retractAnnouncement>>, RetractAnnouncementMutationVariables> = (props) => {
+          const {eventId,announcementId} = props ?? {};
+
+          return  retractAnnouncement(eventId,announcementId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RetractAnnouncementMutationResult = NonNullable<Awaited<ReturnType<typeof retractAnnouncement>>>
+
+    export type RetractAnnouncementMutationError = ErrorType<ProblemDetails>
+    export type RetractAnnouncementMutationVariables = {eventId: number;announcementId: number}
+
+    /**
+ * @summary Retract an announcement
+ */
+export const useRetractAnnouncement = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof retractAnnouncement>>, TError,RetractAnnouncementMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof retractAnnouncement>>,
+        TError,
+        RetractAnnouncementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRetractAnnouncementMutationOptions(options), queryClient);
     }
 
 export const getListAllSeriesUrl = (params?: ListAllSeriesParams,) => {

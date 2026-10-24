@@ -1121,7 +1121,7 @@
  },
  "VA-11": {
   "title": "Announcements from the event",
-  "status": "○",
+  "status": "●",
   "role": "Event Organizer",
   "phase": "After the racing",
   "file": "docs/userstories/event-organizer.md",

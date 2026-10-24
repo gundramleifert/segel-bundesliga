@@ -362,24 +362,6 @@ export function useSeasonDocuments(_league: string) {
   return ready({ groups: SEASON_DOCUMENTS, example: true });
 }
 
-export type Notice = { time: string; from: "race-committee" | "jury" | "organizer"; title: string; body: string };
-
-const NOTICES: Notice[] = [
-  { time: "Sun 07:50", from: "race-committee", title: "Postponement ashore", body: "AP ashore — no wind. Next signal not before 10:30." },
-  { time: "Sat 18:05", from: "jury", title: "Decision protest 3", body: "A team is disqualified in race 14 (RRS 10). Score adjusted." },
-  { time: "Sat 15:20", from: "jury", title: "Hearing schedule", body: "Protest 3 at 17:30, protest 4 at 17:45, in the jury room." },
-  { time: "Sat 09:40", from: "organizer", title: "Amendment 2 to the sailing instructions", body: "SI 11.2: the leeward gate is replaced by a single mark to port. Takes effect from flight 4." },
-  { time: "Sat 08:15", from: "race-committee", title: "First warning signal 10:00", body: "Racing area A. Briefing for helms at 09:00 in the club house." },
-];
-
-const EVENT_DOCUMENTS = ["Notice of race", "Sailing instructions", "Amendment 1", "Amendment 2", "Entry list"];
-
-/** A matchday's notice board, newest first, and its documents. Placeholders until
- *  issue #14's question 5 (is this the official notice board?) is answered. */
-export function useActNotices(_eventIds: number[]) {
-  return ready({ notices: NOTICES, documents: EVENT_DOCUMENTS, example: true });
-}
-
 /** The association's members are the clubs of the 1. and 2. Liga
  *  (`docs/site-structure.md`) — content, because membership has no model of its own yet.
  *  The first also hosts the association's own news, which belongs to no league. */

@@ -18,6 +18,7 @@ import { signIn } from "./session";
 
 const FINISHED_ACT = "/1-liga/2026/act-1"; // dsbl-1-2026-act-1, event 1
 const PLANNED_ACT = "/1-liga/2026/act-3"; // dsbl-1-2026-act-3, event 3
+const LIVE_ACT_RESULTS = "/1-liga/2026/act-2/results"; // dsbl-1-2026-act-2, event 2
 const STANDINGS = "/1-liga/standings";
 const UNLEAGUED_SERIES = "/series/4"; // scl-2026, in no league
 
@@ -120,6 +121,44 @@ describeStory("B-2: as a fan I read up on how a matchday went", () => {
     await page.goto(FINISHED_ACT);
     await expect(page.getByTestId("site-act-results")).toBeVisible();
     await expect(page.getByTestId("matchday-standings-table").locator("tbody tr")).toHaveCount(18);
+  });
+
+  test("extrapolated, the live matchday sorts by the projection and keeps the official place", async ({
+    page,
+  }) => {
+    // The seeded live act is 32 of 48 races sailed: flight 11 is under way, so some teams
+    // carry an estimate and the projection can reorder them.
+    await page.goto(LIVE_ACT_RESULTS);
+    const rows = page.getByTestId("matchday-standings-table").locator("tbody tr");
+    await expect(rows).toHaveCount(18);
+    const teamIds = async () =>
+      (await rows.evaluateAll((trs) => trs.map((tr) => tr.getAttribute("data-testid") ?? ""))).map(
+        (testId) => testId.replace("matchday-standings-row-", ""),
+      );
+    const numberIn = async (testId: string) =>
+      Number((await page.getByTestId(testId).innerText()).replace(/,/g, "").split(" ")[0]);
+
+    // Exact: the official order.
+    const officialRanks: number[] = [];
+    for (const id of await teamIds()) officialRanks.push(await numberIn(`matchday-standings-rank-${id}`));
+    expect(officialRanks).toEqual([...officialRanks].sort((a, b) => a - b));
+
+    // Extrapolate: fewer projected points first, ties by the official place — which is
+    // still the one shown.
+    await page.getByTestId("matchday-standings-mode-extrapolate").click();
+    await expect(page.getByTestId("matchday-standings-mode-extrapolate")).toHaveAttribute("aria-pressed", "true");
+    const projected: { points: number; rank: number }[] = [];
+    for (const id of await teamIds()) {
+      projected.push({
+        points: await numberIn(`matchday-standings-projected-${id}`),
+        rank: await numberIn(`matchday-standings-rank-${id}`),
+      });
+    }
+    // Only the shown points are compared: the cells round to one decimal, so two teams a few
+    // hundredths apart read the same and the official place cannot be checked as tie-break.
+    const points = projected.map((row) => row.points);
+    expect(points).toEqual([...points].sort((a, b) => a - b));
+    expect(projected.map((row) => row.rank).sort((a, b) => a - b)).toEqual(officialRanks);
   });
 
   test("a planned matchday has no results yet, but does have a draw", async ({ page }) => {
@@ -591,11 +630,13 @@ describeStory("B-14: a league's page in chapters", () => {
     await expect(page.getByTestId("site-article-related").getByRole("listitem")).toHaveCount(3);
   });
 
-  test("placeholder documents and notices say they are examples", async ({ page }) => {
+  test("placeholder season documents say they are examples, a matchday's board is real", async ({ page }) => {
     await page.goto("/1-liga/notice-board");
     await expect(page.getByTestId("site-example-note")).toBeVisible();
+    // A matchday's notices are the event's own since Story VA-11 — nothing invented there.
     await page.goto(PLANNED_ACT);
-    await expect(page.getByTestId("site-act-notice-board").getByTestId("site-example-note")).toBeVisible();
+    await expect(page.getByTestId("site-act-announcements")).toBeVisible();
+    await expect(page.getByTestId("site-act-notice-board").getByTestId("site-example-note")).toHaveCount(0);
   });
 
   test("a league with nothing published yet is a page, not an error", async ({ page }) => {

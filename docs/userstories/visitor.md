@@ -84,6 +84,13 @@ Acceptance criteria:
   a flight has (`EventOut.races_per_flight`). The page used to rebuild flights from race
   sequence numbers and an assumed flight length — which breaks the day a flight is
   re-sailed or a race renumbered. Only the projection stays display math in the browser.
+- While a matchday is **live**, a points mode "Extrapolate" ("Hochgerechnet") fills a flight
+  already under way that a team has not sailed yet with its expected average and shows the
+  projected total — and **sorts the rows by that total**, fewer points first like the
+  official ranking, ties broken by the official rank. The place column keeps showing the
+  **official** rank, so a place out of sequence is a team the projection moves; the mode
+  "Exact" keeps the official order. (Decided 2026-10-24: a projection that may not reorder
+  the table could not answer the one thing it is switched on for — "where would they stand?")
 
 `EventStandingRow.points_by_race`/`discarded_races` (`api/app/schemas/public.py`) carried the
 per-race breakdown from the start, but the daily standings (now `web/src/pages/league/act/Standings.tsx`) only
@@ -93,12 +100,11 @@ races — clearer to read, still sums to the same total) showing that team's poi
 flight, "–" where not yet sailed, scrollable horizontally like the other result tables. It also
 adds a clearly-marked, italic "≈ projected" total once any race in the matchday has been scored,
 so a team that hasn't sailed yet no longer looks like it's provisionally winning outright with
-`net = 0` — purely a display computation, never used for `rank` or sorting.
+`net = 0` — purely a display computation, never stored and never the official `rank`; it
+orders the rows only while the reader has chosen it.
 
-Tests: `api/tests/stories/test_visitor.py::TestMatchdayResult`. The new UI additions
-(flight columns, projected total) have no additional automated test — verified via
-`pnpm typecheck`/`pnpm build` and against seeded data; Playwright e2e coverage for this page is
-a separate, not-yet-started task.
+Tests: `api/tests/stories/test_visitor.py::TestMatchdayResult`, `e2e/visitor.spec.ts` (its B-2
+group: the extrapolated order on the live act).
 
 ### B-17 ○ Club crests and a partner mark on the results
 As a **fan** I want to **see each club's crest next to its result and know where the data
@@ -477,8 +483,9 @@ Acceptance criteria:
   API calls that will replace them (`web/src/content/`), so a page does not change when
   its data becomes dynamic.
 - **Placeholder content that could read as official says it is an example**: the season's
-  documents and a matchday's notice board (invented jury decisions on a real matchday
-  were the problem). A document carries no download mark until there is a file.
+  documents (invented jury decisions on a real matchday were the problem). A document
+  carries no download mark until there is a file. A matchday's notice board is the
+  event's own since VA-11 — its announcements and documents — and no longer an example.
 - The association's home `/` is a chapter page too: *Now* (every league's current act),
   *Leagues*, *News*, *For clubs*, *About* — titled with those names, except the first,
   whose title is the page's heading: *Deutsche Segel-Liga e.V.* *Now* and *Leagues* are one

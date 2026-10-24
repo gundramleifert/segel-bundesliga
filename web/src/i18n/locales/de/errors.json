@@ -42,6 +42,8 @@
   "club-crest-not-yours": "Du kannst nur den Stander deines eigenen Vereins ändern.",
   "club-crest-not-found": "Für diesen Verein ist kein Stander hochgeladen.",
   "club-not-found": "Diesen Verein gibt es nicht.",
+  "announcement-not-found": "Diese Bekanntmachung gibt es nicht.",
+  "announcement-title-empty": "Eine Bekanntmachung braucht einen Titel.",
   "event-not-found": "Diese Veranstaltung gibt es nicht.",
   "series-not-found": "Diese Serie gibt es nicht.",
   "venue-not-found": "Dieses Revier gibt es nicht.",

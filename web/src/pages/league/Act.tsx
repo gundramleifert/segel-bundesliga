@@ -8,17 +8,17 @@ import { useAsync, useEventAccess } from "../../api/useApi";
 import { useLive } from "../../api/useLive";
 import { Async } from "../../components/Async";
 import { ErrorMessage, LiveBadge, Loading, StatusBadge } from "../../components/Blocks";
-import { Card, Columns, Panel, PillSwitch, TextCard, tone } from "../../components/site/Cards";
-import { BARS, Block, DepthPage, Expand, PageLoading, SubBar } from "../../components/site/Frame";
-import { useActNotices } from "../../content";
+import { Card, Panel, PillSwitch, TextCard, tone } from "../../components/site/Cards";
+import { BARS, DepthPage, PageLoading, SubBar } from "../../components/site/Frame";
 import { eventDates, locationText } from "../../lib/format";
 import { actSlug, currentAct, hasResults, href, lastSailed, stateOf, type Act } from "../../lib/site";
 import { Crew } from "./act/Crew";
+import { NoticeBoard } from "./act/NoticeBoard";
 import { PairingList } from "./act/PairingList";
 import { ResultsEntry } from "./act/Results";
 import { DailyStandings } from "./act/Standings";
-import { DocList, MediaContent } from "./Depth";
-import { ExampleNote, LeagueGate, StateBadge, actDates, divisionName, useActTitle } from "./shared";
+import { MediaContent } from "./Depth";
+import { LeagueGate, StateBadge, actDates, divisionName, useActTitle } from "./shared";
 
 // The matchday page (Story B-15): one act, its tabs in the URL, a division switch inside
 // the tab when the act sails several. An event in no league has the same page at
@@ -130,7 +130,7 @@ function MatchdayView({
           </span>
           <StateBadge state={act.state} />
         </TextCard>
-        {act.events.length > 1 && tab !== "notice-board" && tab !== "media" && (
+        {act.events.length > 1 && tab !== "media" && (
           <PillSwitch
             label={t("act.division")}
             className="mb-6"
@@ -145,7 +145,7 @@ function MatchdayView({
           />
         )}
 
-        {tab === "notice-board" && <NoticeBoard events={act.events} />}
+        {tab === "notice-board" && <LiveNoticeBoard key={event.id} event={event} />}
         {/* The tables on a panel, which turns their light colours into the glass's. */}
         {tab === "results" && <Panel><Results key={event.id} event={event} /></Panel>}
         {tab === "pairing" && <Panel><PairingList key={event.id} eventId={event.id} /></Panel>}
@@ -158,50 +158,10 @@ function MatchdayView({
   );
 }
 
-function NoticeBoard({ events }: { events: EventSummary[] }) {
-  const { t } = useTranslation("site");
-  const board = useActNotices(events.map((e) => e.id));
-  return (
-    <Async state={board} testId="site-act-notices">
-      {({ notices, documents, example }) => (
-        <>
-        {example && <ExampleNote />}
-        <Columns split="twoToOne">
-          <Block title={t("noticeBoard.announcements")}>
-            <Card className="px-4">
-            {notices.map((n, i) => (
-              <Expand
-                key={n.title}
-                open={i === 0}
-                summary={
-                  <span className="flex items-baseline gap-4">
-                    <span className={`w-20 shrink-0 text-sm ${tone.faint}`}>{n.time}</span>
-                    <span
-                      className={`shrink-0 rounded-full px-2 text-xs font-semibold ${
-                        n.from === "jury" ? "bg-warning-soft text-warning-soft-foreground" : n.from === "organizer" ? "bg-surface-tertiary text-muted" : "bg-accent-soft text-link"
-                      }`}
-                    >
-                      {t(`noticeBoard.from.${n.from}`)}
-                    </span>
-                    <span className="font-medium">{n.title}</span>
-                  </span>
-                }
-              >
-                {n.body}
-              </Expand>
-            ))}
-            </Card>
-          </Block>
-          <Block title={t("noticeBoard.documents")}>
-            <Card className="p-4">
-              <DocList docs={documents} />
-            </Card>
-          </Block>
-        </Columns>
-        </>
-      )}
-    </Async>
-  );
+/** The notice board, refetched when a notice goes up or comes down (Story VA-11). */
+function LiveNoticeBoard({ event }: { event: EventSummary }) {
+  useEventLive(event);
+  return <NoticeBoard event={event} />;
 }
 
 /** The division's ranking of the act, live while racing (Story B-5). */

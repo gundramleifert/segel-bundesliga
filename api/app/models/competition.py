@@ -20,6 +20,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.auth import User
     from app.models.org import Club, Team
     from app.models.racing import Boat, Flight
 
@@ -237,6 +238,9 @@ class Event(Base, TimestampMixin):
     boats: Mapped[list[Boat]] = relationship(
         back_populates="event", cascade="all, delete-orphan", order_by="Boat.number"
     )
+    announcements: Mapped[list[EventAnnouncement]] = relationship(
+        back_populates="event", cascade="all, delete-orphan"
+    )
     documents: Mapped[list[EventDocument]] = relationship(
         back_populates="event", cascade="all, delete-orphan", order_by="EventDocument.position"
     )
@@ -274,3 +278,45 @@ class EventDocument(Base, TimestampMixin):
     position: Mapped[int] = mapped_column(default=0)
 
     event: Mapped[Event] = relationship(back_populates="documents")
+
+
+class AnnouncementIssuer(StrEnum):
+    """Who an announcement speaks for (Story VA-11) — each one a relation on the event.
+
+    A hearing notice reads differently from the committee's "last race of the day", so
+    the issuer is shown with the text; one person holding several relations chooses.
+    """
+
+    RACE_COMMITTEE = "race_committee"
+    JURY = "jury"
+    ORGANIZER = "organizer"
+
+
+class EventAnnouncement(Base, TimestampMixin):
+    """A notice the race committee, the jury or the organizer publishes on an event's
+    notice board during the day — first warning signal at 10:30, a hearing at 17:00
+    (Story VA-11).
+
+    Plain text, not HTML: a notice is typed on a phone on the water, and plain text needs
+    no cleaner between the form and the public page. Retracted by deleting it. When it went
+    up is ``created_at``.
+    """
+
+    __tablename__ = "event_announcement"
+    __table_args__ = (UniqueConstraint("event_id", "number"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("event.id"), index=True)
+    # "Notice 3": numbered per event, 1, 2, 3 … in the order published, so a sailor can
+    # name the one they mean. Assigned in the insert itself (``publish_announcement``).
+    number: Mapped[int]
+    issuer: Mapped[str] = mapped_column(String(16))
+    title: Mapped[str] = mapped_column(String(200))
+    body: Mapped[str] = mapped_column(Text, default="")
+    # Who published it. The account may go; the notice stays, unsigned.
+    author_id: Mapped[int | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="SET NULL"), index=True, default=None
+    )
+
+    event: Mapped[Event] = relationship(back_populates="announcements")
+    author: Mapped[User | None] = relationship()

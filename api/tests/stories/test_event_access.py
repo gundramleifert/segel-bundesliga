@@ -15,7 +15,7 @@ from tests.stories.test_registration import auth_headers
 ACT_1 = "dsbl-1-2026-act-1"
 ACT_2 = "dsbl-1-2026-act-2"
 SERIES = "dsbl-1-2026"
-NOTHING = {"record_results": False, "control": False, "manage": False}
+NOTHING = {"record_results": False, "control": False, "manage": False, "announce_as": []}
 
 
 async def holding(client, caplog, email: str, relation: Relation, **on: int) -> dict[str, str]:
@@ -48,6 +48,7 @@ class TestTheCommitteesToolsPerEvent:
             "record_results": True,
             "control": True,
             "manage": False,
+            "announce_as": ["race_committee"],
         }
         assert await access(client, other, officer) == NOTHING
 

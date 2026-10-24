@@ -29,9 +29,11 @@ from app.crests import crest_path
 from app.db import get_session
 from app.live import hub
 from app.models import (
+    AnnouncementIssuer,
     Boat,
     Club,
     Event,
+    EventAnnouncement,
     EventCrew,
     EventDocument,
     EventStatus,
@@ -52,6 +54,7 @@ from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
 from app.problems import Problem
 from app.routers.sailors import connected_to_sailor
 from app.schemas.public import (
+    AnnouncementOut,
     BoatOut,
     ClubCrewOut,
     ClubDetail,
@@ -86,6 +89,7 @@ from app.schemas.public import (
     VenueOut,
 )
 from app.services import compute_event, compute_series, current_year, event_entries
+from app.services.announcements import issuers_for
 from app.services.lookup import get_or_404
 from app.services.pairing_service import TeamNotInPairing, stored_pairing
 from app.services.standings import points_by_flight, race_flights
@@ -911,6 +915,7 @@ async def get_event_access(
         record_results=authz.check(user, Relation.RACE_OFFICER, on=event),
         control=authz.check(user, Relation.MANAGER, Relation.RACE_OFFICER, on=event),
         manage=authz.check(user, Relation.MANAGER, on=event),
+        announce_as=issuers_for(user, event),
     )
 
 
@@ -982,6 +987,45 @@ async def list_event_documents(
                 .order_by(EventDocument.position, EventDocument.id)
             )
         ).scalars()
+    )
+
+
+@router.get(
+    "/events/{event_id}/announcements",
+    response_model=list[AnnouncementOut],
+    summary="The announcements on an event's notice board",
+)
+async def list_event_announcements(
+    event_id: int,
+    session: AsyncSession = Depends(get_session),
+) -> list[AnnouncementOut]:
+    """What the race committee, the jury and the organizer announced, newest first
+    (Story VA-11). A draft event is a 404 here too; the live stream tells an open page
+    when a new one arrives."""
+    event = await _event_by_id(session, event_id)
+    return [
+        announcement_out(a)
+        for a in (
+            await session.execute(
+                select(EventAnnouncement)
+                .options(selectinload(EventAnnouncement.author))
+                .where(EventAnnouncement.event_id == event.id)
+                .order_by(EventAnnouncement.number.desc())
+            )
+        ).scalars()
+    ]
+
+
+def announcement_out(announcement: EventAnnouncement) -> AnnouncementOut:
+    return AnnouncementOut(
+        id=announcement.id,
+        event_id=announcement.event_id,
+        number=announcement.number,
+        issuer=AnnouncementIssuer(announcement.issuer),
+        title=announcement.title,
+        body=announcement.body,
+        created_at=announcement.created_at,
+        author=announcement.author.display_name if announcement.author else None,
     )
 
 

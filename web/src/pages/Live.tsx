@@ -11,6 +11,7 @@ import {
   useGetEventLive,
   useLayDefaultEventCourse,
   useStartEmulation,
+  getListEventAnnouncementsQueryKey,
 } from "../api/generated/sbl";
 import type { StartSequence } from "../api/generated/model/startSequence";
 import { MarkRole, RaceStatus, type Course, type LiveBoat, type LiveRace } from "../api/types";
@@ -23,6 +24,7 @@ import { boatColor, teamLabel } from "../lib/format";
 import { fromServer, phaseAt } from "../lib/startSequence";
 import { clock, countdown, useAlignedNow, useNow } from "../lib/useNow";
 import { Select } from "../components/Select";
+import { LatestNotice } from "./league/act/NoticeBoard";
 
 /** Stories L-1 and L-2: the boats on a real map, with the course, their legs and a live rank.
  *
@@ -50,7 +52,7 @@ export function Live() {
   const snapshot = streamed && (!fetched || streamed.t >= fetched.t) ? streamed : fetched;
   const state = useLive(
     detail.data?.event.published ? `event:${eventId}` : null,
-    [getGetEventQueryKey(eventId), getGetEventLiveQueryKey(eventId)],
+    [getGetEventQueryKey(eventId), getGetEventLiveQueryKey(eventId), getListEventAnnouncementsQueryKey(eventId)],
     { onPositions: (payload) => setStreamed(payload as LiveRace) },
   );
   const [follow, setFollow] = useState(true);
@@ -106,6 +108,7 @@ export function Live() {
           </div>
         </div>
         <div className="min-w-0">
+          <LatestNotice eventId={eventId} />
           <Panel snapshot={snapshot} />
           {committee && (
             <CommitteeControls eventId={eventId} mapRef={mapRef} hasCourse={Boolean(snapshot?.course)} />

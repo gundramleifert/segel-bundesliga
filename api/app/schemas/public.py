@@ -7,14 +7,14 @@ API client is generated (``scripts/gen-api-client.sh``).
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any, Literal, NamedTuple
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.crests import crest_url
 from app.models.auth import Relation
-from app.models.competition import EventDocumentKind, EventStatus
+from app.models.competition import AnnouncementIssuer, EventDocumentKind, EventStatus
 from app.models.org import CrewRole, Sailor
 from app.models.racing import PreparatoryFlag, RaceStatus
 
@@ -320,6 +320,9 @@ class EventAccess(BaseModel):
     control: bool = False
     #: The organizer's setup screen (``manager`` on the event).
     manage: bool = False
+    #: Whom this person may publish announcements as on the notice board (Story VA-11) —
+    #: each issuer is a relation on the event. Empty: no form.
+    announce_as: list[AnnouncementIssuer] = Field(default_factory=list)
 
 
 class TeamCrewOut(BaseModel):
@@ -424,6 +427,31 @@ class EventDocumentOut(BaseModel):
     url: str
     extension: str | None = None
     published_at: datetime | None = None
+
+
+class AnnouncementOut(BaseModel):
+    """A notice on an event's notice board, from its race committee, jury or organizer
+    (Story VA-11) — numbered, and signed with the publisher's name, as a notice on the
+    board is."""
+
+    id: int
+    event_id: int
+    #: "Notice 3" — per event, in the order published.
+    number: int
+    issuer: AnnouncementIssuer
+    title: str
+    body: str = ""
+    #: When it went up.
+    created_at: datetime
+    #: The publisher's display name; empty once the account is gone.
+    author: str | None = None
+
+    @field_validator("created_at")
+    @classmethod
+    def _utc(cls, value: datetime) -> datetime:
+        # Written in UTC, but SQLite stores no zone and hands it back naive — serialized
+        # without one, a browser reads it as local time and the board is hours off.
+        return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
 
 
 class PairingRow(BaseModel):

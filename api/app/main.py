@@ -23,6 +23,7 @@ from app.problems import (
 )
 from app.routers import (
     admin,
+    announcements,
     applications,
     auth,
     club_members,
@@ -136,6 +137,7 @@ app.include_router(clubs.router)
 # the crest is also a team manager's own business (Story V-3).
 app.include_router(clubs.crest_router)
 app.include_router(crew.router)
+app.include_router(announcements.router)
 app.include_router(series.router)
 app.include_router(applications.router)
 app.include_router(club_members.router)

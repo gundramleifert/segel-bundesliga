@@ -116,9 +116,25 @@
     "announcements": "Aushänge",
     "documents": "Dokumente",
     "from": {
-      "race-committee": "Wettfahrtleitung",
+      "race_committee": "Wettfahrtleitung",
       "jury": "Jury",
       "organizer": "Veranstalter"
+    },
+    "noAnnouncements": "Noch nichts ausgehängt.",
+    "noDocuments": "Noch keine Dokumente.",
+    "number": "Nr. {number}",
+    "publish": {
+      "title": "Aushang veröffentlichen",
+      "issuer": "Im Namen von",
+      "heading": "Titel",
+      "headingPlaceholder": "Erstes Ankündigungssignal 10:30",
+      "body": "Text",
+      "submit": "Veröffentlichen",
+      "done": "Veröffentlicht — der Aushang hängt jetzt am Schwarzen Brett.",
+      "retract": "Zurückziehen",
+      "retractPrompt": "Diesen Aushang vom Schwarzen Brett nehmen?",
+      "retractConfirm": "Zurückziehen",
+      "cancel": "Abbrechen"
     }
   },
   "live": {

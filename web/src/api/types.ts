@@ -35,6 +35,9 @@ export type { EventOut as EventSummary } from "./generated/model/eventOut";
 export type { EventDetail } from "./generated/model/eventDetail";
 /** Story WL-3: what the person asking may do on one event — gates the committee's tools. */
 export type { EventAccess } from "./generated/model/eventAccess";
+/** Story VA-11: a notice on an event's notice board, and the documents beside it. */
+export type { AnnouncementOut as Announcement } from "./generated/model/announcementOut";
+export type { EventDocumentOut as EventDocument } from "./generated/model/eventDocumentOut";
 export type { EventStandingRow as StandingRow } from "./generated/model/eventStandingRow";
 /** Story B-12: one team entered in a matchday, and the crew sailing it there. */
 export type { TeamCrewOut as TeamCrew } from "./generated/model/teamCrewOut";
@@ -121,6 +124,7 @@ export { ExpenseKind } from "./generated/model/expenseKind";
  *  (`EventStatus.live`), so a comparison names a member the compiler knows — a typo or a
  *  renamed value is a build error rather than a branch that silently never runs. */
 export { EventStatus } from "./generated/model/eventStatus";
+export { AnnouncementIssuer } from "./generated/model/announcementIssuer";
 export { PostKind } from "./generated/model/postKind";
 export { MediaSource } from "./generated/model/mediaSource";
 export { RaceStatus } from "./generated/model/raceStatus";

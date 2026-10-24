@@ -475,21 +475,37 @@ Acceptance criteria:
 
 Tests: `api/tests/stories/test_reimbursements.py::TestHelperRelation`
 
-### VA-11 ○ Announcements from the event
+### VA-11 ● Announcements from the event
 As the **organizer, race committee or jury of an event** I want to **publish an
 announcement on the website** — first warning signal at 10:30, last race of the day
 announced, protest hearing at 17:00, a decision — so that **sailors and spectators read
 it where they already look**.
 
 Acceptance criteria:
-- An announcement belongs to one event; it has a text, a time and the person who
-  published it. It appears on the event's public page and in the live view.
+- An announcement belongs to one event; it has a title, an optional text, a time and the
+  person who published it (`EventAnnouncement`). It appears on the event's notice board,
+  newest first, and the newest one on the live view.
+- Each one is **numbered per event** — No. 1, 2, 3 … in the order published, whoever
+  publishes it — and always shows its number, its issuer and the publisher's name: a
+  matchday has two or three ("last race 17", "start tomorrow 10:00", "dinner at 20:00"),
+  and a sailor names the one they mean by its number.
 - Publishing is open to the event's `manager`, `race_officer` and `jury` (Story Z-2) —
   each held on the event, its series, its host club or the site through the model's
-  rewrite rules — and to nobody else.
-- The jury's announcements are marked as the jury's: a hearing notice reads
-  differently from the committee's "last race".
-- Live update through the existing Server-Sent Events stream (Story B-5): a published
-  announcement invalidates the event's public queries, it never carries a second copy.
+  rewrite rules — and to nobody else. A helper is not one of them (VA-12).
+- Each announcement names its **issuer** — race committee, jury or organizer — and the
+  person must hold that issuer's relation (`race_officer`, `jury`, `manager`): the jury
+  cannot speak as the race committee. Someone holding several chooses; the access answer
+  (`GET /api/events/{id}/access`, `announce_as`) says whom a person may speak for, and
+  the form appears on the notice board only then. The jury's are marked as the jury's: a
+  hearing notice reads differently from the committee's "last race".
+- Plain text, not HTML: typed on a phone on the water, it needs no cleaner.
+- A wrong one is **retracted** — deleted — by whoever may speak for its issuer, and the
+  right one published.
+- Live update through the existing Server-Sent Events stream (Story B-5): a published or
+  retracted announcement invalidates the event's public queries, it never carries a
+  second copy.
+- The notice board's documents are the event's own (A-14), as links; the example
+  notices and documents the board showed before are gone.
 
-Tests: none yet.
+Tests: `api/tests/stories/test_announcements.py::TestAnnouncements`,
+`e2e/announcements.spec.ts`

@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 65a782b7ae6f
+Revision ID: 81165e99833d
 Revises: 
-Create Date: 2026-10-23 22:11:34.525179
+Create Date: 2026-10-24 21:10:48.039174
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '65a782b7ae6f'
+revision: str = '81165e99833d'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -411,6 +411,25 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('course', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_course_event_id'), ['event_id'], unique=False)
+
+    op.create_table('event_announcement',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('event_id', sa.Integer(), nullable=False),
+    sa.Column('number', sa.Integer(), nullable=False),
+    sa.Column('issuer', sa.String(length=16), nullable=False),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('body', sa.Text(), nullable=False),
+    sa.Column('author_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['author_id'], ['app_user.id'], name=op.f('fk_event_announcement_author_id_app_user'), ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['event_id'], ['event.id'], name=op.f('fk_event_announcement_event_id_event')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_event_announcement')),
+    sa.UniqueConstraint('event_id', 'number', name=op.f('uq_event_announcement_event_id'))
+    )
+    with op.batch_alter_table('event_announcement', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_event_announcement_author_id'), ['author_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_event_announcement_event_id'), ['event_id'], unique=False)
 
     op.create_table('event_document',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -981,6 +1000,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_event_document_event_id'))
 
     op.drop_table('event_document')
+    with op.batch_alter_table('event_announcement', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_event_announcement_event_id'))
+        batch_op.drop_index(batch_op.f('ix_event_announcement_author_id'))
+
+    op.drop_table('event_announcement')
     with op.batch_alter_table('course', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_course_event_id'))
 

@@ -13,6 +13,14 @@ export function formatDate(iso: string): string {
   );
 }
 
+/** "Sat 08:15" / "Sa., 08:15" — when a notice went up on a matchday's board: the days of
+ *  one act are a weekend, so the weekday tells them apart and a date would be noise. */
+export function noticeTime(iso: string): string {
+  return dateFormatter({ weekday: "short", hour: "2-digit", minute: "2-digit" }).format(
+    new Date(iso),
+  );
+}
+
 /** "12.–14. Juni 2026" / "June 12 – 14, 2026" — a matchday can span several days.
  *
  *  `formatRange` does the work: it prints only the parts the two dates *don't* share and

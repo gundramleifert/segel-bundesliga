@@ -116,9 +116,25 @@
     "announcements": "Announcements",
     "documents": "Documents",
     "from": {
-      "race-committee": "Race committee",
+      "race_committee": "Race committee",
       "jury": "Jury",
       "organizer": "Organizer"
+    },
+    "noAnnouncements": "Nothing announced yet.",
+    "noDocuments": "No documents yet.",
+    "number": "No. {number}",
+    "publish": {
+      "title": "Publish an announcement",
+      "issuer": "On behalf of",
+      "heading": "Title",
+      "headingPlaceholder": "First warning signal 10:30",
+      "body": "Text",
+      "submit": "Publish",
+      "done": "Published — it is on the notice board now.",
+      "retract": "Retract",
+      "retractPrompt": "Take this announcement off the notice board?",
+      "retractConfirm": "Retract",
+      "cancel": "Cancel"
     }
   },
   "live": {

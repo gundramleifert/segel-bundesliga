@@ -102,10 +102,22 @@ function EventStandingsTable({
   const mode: PointsMode = canProject ? chosenMode : "exact";
   const flightsStarted = startedFlights(standings);
 
-  // Rows always keep the backend's own order — `rank`, official, fewer points ranking higher
-  // (`app/services/standings.py`). There is deliberately no client-side sorting: the one
-  // question a standings table answers is "who leads", and letting a *provisional* column
-  // reorder the official table only ever made a projection look like a result.
+  // "exact" keeps the backend's own order — `rank`, official, fewer points ranking higher
+  // (`app/services/standings.py`). "extrapolate" sorts by the projected total instead, in the
+  // same direction (fewer is better), ties broken by the official rank; `sort` is stable, so
+  // teams level on both keep the backend's order. The place column still shows the official
+  // rank in both modes: the projection is never a result, and a rank out of sequence is
+  // exactly how the reader sees who would move (Story B-2).
+  const rows = standings.map((row) => {
+    const average = expectedAverage(row, event.boat_count);
+    const estimated = estimatedFlights(row, flights, flightsStarted);
+    // The projected total is exactly the row's own cells added up: real flight sums
+    // plus one expected average per greyed cell. Nothing is added that isn't shown.
+    return { row, average, estimated, extrapolated: row.total + estimated.length * average };
+  });
+  if (mode === "extrapolate") {
+    rows.sort((a, b) => a.extrapolated - b.extrapolated || a.row.rank - b.row.rank);
+  }
   return (
     <>
       {canProject && (
@@ -184,19 +196,19 @@ function EventStandingsTable({
           </tr>
         </thead>
         <tbody>
-          {standings.map((row) => {
-            const average = expectedAverage(row, event.boat_count);
-            const estimated = estimatedFlights(row, flights, flightsStarted);
-            // The projected total is exactly the row's own cells added up: real flight sums
-            // plus one expected average per greyed cell. Nothing is added that isn't shown.
-            const extrapolated = row.total + estimated.length * average;
+          {rows.map(({ row, average, estimated, extrapolated }) => {
             return (
               <tr
                 key={row.team.id}
                 data-testid={`matchday-standings-row-${row.team.id}`}
                 className="border-b border-separator last:border-0 hover:bg-surface-secondary"
               >
-                <td className="font-semibold tabular-nums">{row.rank}</td>
+                <td
+                  data-testid={`matchday-standings-rank-${row.team.id}`}
+                  className="font-semibold tabular-nums"
+                >
+                  {row.rank}
+                </td>
                 <td>
                   {/* The abbreviation, with the full name in the tooltip. Eighteen club
                       names set the width of this column on their own, and the people

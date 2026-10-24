@@ -228,7 +228,7 @@ function SeasonDocuments({ league, render }: { league: string; render: (group: D
   );
 }
 
-export function DocList({ docs }: { docs: string[] }) {
+function DocList({ docs }: { docs: string[] }) {
   return (
     <ul className="space-y-1.5">
       {docs.map((doc) => (
