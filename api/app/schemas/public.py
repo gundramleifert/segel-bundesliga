@@ -199,11 +199,23 @@ class ClubMemberOut(BaseModel):
     admin: bool = False
 
 
+class ClubCrewOut(BaseModel):
+    """One of the club's teams in an event and who sails in it (Story VA-13)."""
+
+    team_id: int
+    team_name: str
+    members: list[MemberOut] = Field(default_factory=list)
+
+
 class ClubEventOut(BaseModel):
-    """A matchday from the club's perspective — with those who sail there for it."""
+    """A matchday from the club's perspective — with those who sail there for it.
+
+    One crew per team the club entered: ``KiYC 1`` and ``KiYC 2`` sail as two crews and
+    are named as two, never merged into one list.
+    """
 
     event: EventOut
-    crew: list[MemberOut] = Field(default_factory=list)
+    crews: list[ClubCrewOut] = Field(default_factory=list)
 
 
 class ClubTeamOut(BaseModel):

@@ -194,3 +194,29 @@ class TestTeamsPerClub:
             f"/api/admin/events/{event_id}", headers=organizer, json={"teams_per_club": 2}
         )
         assert lowered.status_code == 200, lowered.text
+
+    async def test_the_club_page_names_each_team_s_crew(self, client, caplog, ids):
+        """Story VA-13: `ASVW` and `ASVW 2` in one act are two crews on the club page, each
+        under its own name — never one list of eight."""
+        headers = await admin(client, caplog, "va13-club-page@example.com")
+        asvw = ids.club("asvw")
+        event_id = await _act(client, headers, ids, teams_per_club=2)
+        published = await client.post(f"/api/admin/events/{event_id}/publish", headers=headers)
+        assert published.status_code == 200, published.text
+        entered = await _enter(client, headers, event_id, [asvw, asvw])
+        team_ids = {p["number"]: p["team_id"] for p in entered.json() if p["club"]["id"] == asvw}
+        squad = await _asvw_squad(ids)
+        for number, sailors in ((1, squad[:2]), (2, squad[2:4])):
+            lined_up = await client.put(
+                f"/api/admin/events/{event_id}/crew",
+                headers=headers,
+                json={"team_id": team_ids[number], "members": [{"sailor_id": s} for s in sailors]},
+            )
+            assert lined_up.status_code == 200, lined_up.text
+
+        page = (await client.get(f"/api/clubs/{asvw}", params={"year": 2026})).json()
+        entry = next(
+            e for team in page["teams"] for e in team["events"] if e["event"]["id"] == event_id
+        )
+        crews = {c["team_name"]: sorted(m["id"] for m in c["members"]) for c in entry["crews"]}
+        assert crews == {"ASVW": squad[:2], "ASVW 2": squad[2:4]}

@@ -432,6 +432,53 @@ class TestJuniorenImport:
             ).scalar_one()
             assert berlin == 1
 
+    async def test_a_second_team_s_series_row_stays_when_a_future_entry_goes(self, db):
+        """Story VA-13: the second team's series row is keyed by its entry in a scored act —
+        not by whichever entry happens to be oldest, which may be one in an act still
+        planned that the organizer can take away again."""
+        from app.schemas.admin import ScoringIn
+
+        await _junior_clubs(db)
+        async with db() as session:
+            kiel = (
+                await session.execute(select(Club).where(Club.short_name == "KYC (SH)"))
+            ).scalar_one()
+            # A later act, entered before the scored one arrives: its entry is the oldest.
+            series = Series(
+                slug="junioren-2026",
+                name="Junioren-Segelliga 2026",
+                short_name="Junioren 2026",
+                year=2026,
+                scoring=ScoringIn().model_dump(),
+            )
+            session.add(series)
+            await session.flush()
+            later = Event(
+                slug="act-4", title="Act 4", series_id=series.id, matchday=4, teams_per_club=2
+            )
+            session.add(later)
+            await session.flush()
+            future_entry = Team(
+                name="KYC (SH) 2", club_id=kiel.id, series_id=series.id, event_id=later.id, number=2
+            )
+            session.add(future_entry)
+            await session.commit()
+
+        await _import_junior_act(db)
+
+        async with db() as session:
+            rows = await compute_series(session, series.id)
+            second = [r for r in rows if (await session.get(Team, r.team_id)).number == 2]
+            assert second, "KYC (SH) 2 sailed act 2 and has a row of its own"
+            keys = {row.team_id for row in second}
+            assert future_entry.id not in keys, "keyed by the planned act's entry"
+
+            # The organizer takes the team out of the planned act: the row is unchanged.
+            await session.delete(await session.get(Team, future_entry.id))
+            await session.flush()
+            after = await compute_series(session, series.id)
+            assert {r.team_id for r in after if r.team_id in keys} == keys
+
     async def test_a_second_run_changes_nothing(self, db):
         """Story A-14: repeatable on the juniors' host too, second teams included."""
         await _junior_clubs(db)

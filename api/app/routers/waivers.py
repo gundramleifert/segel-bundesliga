@@ -626,6 +626,9 @@ async def club_waivers(
             .where(
                 Team.club_id == club_id,
                 Team.status == TeamStatus.ACCEPTED,
+                # The squad hangs off the club's first team there (Story VA-13); a second
+                # team is no second competition, and holds no squad of its own.
+                Team.number == 1,
                 Event.series_id.is_(None),
                 Event.status.in_([EventStatus.PLANNED, EventStatus.LIVE]),
             )

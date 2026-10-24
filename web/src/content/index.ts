@@ -335,16 +335,14 @@ export function useBackdrops(league?: string | null): Photo[] {
 export const GALLERY_PAGE = 24;
 
 /** A league's photos — the library's pictures of its regattas (Story R-3), newest regatta
- *  first, a page at a time. None is the normal state of a new league, and the page says so;
- *  `library` stays for the page's credit line. */
-export function useGallery(league: string, size = GALLERY_PAGE): Paged<GalleryPhoto> & { library: boolean } {
-  const pages = usePages<PagePublicPicture, GalleryPhoto>(
+ *  first, a page at a time. None is the normal state of a new league, and the page says so. */
+export function useGallery(league: string, size = GALLERY_PAGE): Paged<GalleryPhoto> {
+  return usePages<PagePublicPicture, GalleryPhoto>(
     `gallery:${league}:${size}`,
     (offset) => getListLeagueMediaQueryOptions({ league, limit: size, offset }),
     size,
     fromLibrary,
   );
-  return { ...pages, library: true };
 }
 
 // ---------------------------------------------------------------- documents and notices

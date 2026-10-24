@@ -45,6 +45,7 @@ export * from './clubBankAccountOut';
 export * from './clubCompetitionWaivers';
 export * from './clubCompetitionWaiversScope';
 export * from './clubCreate';
+export * from './clubCrewOut';
 export * from './clubDetail';
 export * from './clubEventOut';
 export * from './clubMemberOut';

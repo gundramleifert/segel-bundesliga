@@ -5,13 +5,16 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { ClubCrewOut } from './clubCrewOut';
 import type { EventOut } from './eventOut';
-import type { MemberOut } from './memberOut';
 
 /**
  * A matchday from the club's perspective — with those who sail there for it.
+ *
+ * One crew per team the club entered: ``KiYC 1`` and ``KiYC 2`` sail as two crews and
+ * are named as two, never merged into one list.
  */
 export interface ClubEventOut {
   event: EventOut;
-  crew?: MemberOut[];
+  crews?: ClubCrewOut[];
 }

@@ -162,7 +162,7 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
 
   return (
     <ul className="divide-y divide-separator text-sm">
-      {entries.map(({ event, crew }) => (
+      {entries.map(({ event, crews }) => (
         <li key={event.id} data-testid={`club-event-row-${event.id}`} className="py-2">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Link
@@ -177,21 +177,29 @@ function Matchdays({ entries }: { entries: ClubEvent[] }) {
           <p className="text-muted">
             {locationText(event)} · {eventDates(event)}
           </p>
-          <p className="mt-0.5 text-muted">
-            {crew?.length ? (
-              crew.map((member, index) => (
-                <span key={member.id}>
-                  {index > 0 && ", "}
-                  <SailorName
-                    member={member}
-                    testId={`club-crew-link-${event.id}-${member.id}`}
-                  />
-                </span>
-              ))
-            ) : (
-              <span className="text-faint">{t("crew_empty")}</span>
-            )}
-          </p>
+          {crews?.length ? (
+            // One line per team (VA-13): a club's second team is its own crew, named.
+            crews.map(({ team_id, team_name, members }) => (
+              <p
+                key={team_id}
+                data-testid={`club-event-crew-${event.id}-${team_id}`}
+                className="mt-0.5 text-muted"
+              >
+                {crews.length > 1 && <span className="font-medium">{team_name}: </span>}
+                {members?.map((member, index) => (
+                  <span key={member.id}>
+                    {index > 0 && ", "}
+                    <SailorName
+                      member={member}
+                      testId={`club-crew-link-${event.id}-${member.id}`}
+                    />
+                  </span>
+                ))}
+              </p>
+            ))
+          ) : (
+            <p className="mt-0.5 text-faint">{t("crew_empty")}</p>
+          )}
         </li>
       ))}
     </ul>

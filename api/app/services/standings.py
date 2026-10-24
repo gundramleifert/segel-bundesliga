@@ -228,13 +228,16 @@ async def compute_series(
 
     # Entry -> its series row: a club's first team maps onto the club's series
     # registration; its second, third … team (Story VA-13) is a row of its own — the same
-    # row in every act, keyed by that team's first entry — and, like everyone, gets field
-    # size + 1 for the acts it missed.
+    # row in every act, keyed by that team's entry in the earliest *scored* act — and,
+    # like everyone, gets field size + 1 for the acts it missed. Only scored acts count:
+    # once their first race is sailed they are frozen, so the entry can't be removed from
+    # under the stored row, and entering the team in a later act never re-keys the row.
     entries = (
         await session.execute(
             select(Team.id, Team.club_id, Team.number)
-            .where(Team.series_id == series_id, Team.event_id.is_not(None))
-            .order_by(Team.id)
+            .join(Event, Team.event_id == Event.id)
+            .where(Team.series_id == series_id, Event.status.in_(SCORED_STATES))
+            .order_by(Event.matchday.nulls_last(), Event.starts_on, Team.id)
         )
     ).all()
     further_teams: dict[tuple[int, int], int] = {}

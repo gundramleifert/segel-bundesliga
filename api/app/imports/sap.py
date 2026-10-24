@@ -88,6 +88,9 @@ _JUNIOR_NAME = re.compile(
 _ACT = re.compile(r"\bAct\s*(?P<number>\d+)\b", re.IGNORECASE)
 # `KiYC 2`: the club's code, then the team's number when a club sails more than one.
 _TEAM_NUMBER = re.compile(r"^(?P<code>.*?\S)\s+(?P<team>\d+)$")
+# `Kieler Yacht-Club e.V. 2`: the team's number after a club's name — one or two digits,
+# so a founding year (`Segel-Club von 1903`) stays part of the name.
+_NAME_TEAM_NUMBER = re.compile(r"(?<=\S)\s+\d{1,2}$")
 
 # The juniors' host spells some clubs' codes differently from ours (and from the
 # league's host). One reviewed line per club — never a comparison of names (Domain
@@ -467,8 +470,8 @@ async def _import_regatta(
             continue
         code, number = junior_competitor(short) if regatta.junior else CompetitorCode(short, 1)
         name = (competitor.get("name") or code).strip()
-        if number > 1 or (regatta.junior and _TEAM_NUMBER.match(name)):
-            name = _TEAM_NUMBER.sub(r"\g<code>", name)
+        if regatta.junior:
+            name = _NAME_TEAM_NUMBER.sub("", name)
         club = await resolve_club(
             session,
             report,

@@ -82,6 +82,9 @@ export function EventClubsEditor({
   const storedPerClub = savedPerClub ?? event.teams_per_club ?? 1;
   const perClubText = chosenPerClub ?? String(storedPerClub);
   const perClub = Math.max(1, Math.min(Number(perClubText) || 1, event.team_count));
+  // A cleared or out-of-range field is no number to save: read as 1, it would take every
+  // club's second team away on the next click.
+  const perClubValid = String(perClub) === perClubText.trim();
   const enteredCounts = new Map<number, number>();
   for (const p of participants.data ?? []) {
     enteredCounts.set(p.club.id, Math.max(enteredCounts.get(p.club.id) ?? 0, p.number ?? 1));
@@ -200,7 +203,7 @@ export function EventClubsEditor({
       <div className="flex flex-wrap items-center gap-3">
         <Button
           size="sm"
-          isDisabled={busy || frozen || field.data === null}
+          isDisabled={busy || frozen || field.data === null || !perClubValid}
           onPress={() => void submit().catch(() => undefined)}
           data-testid={saveTestId}
         >

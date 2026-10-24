@@ -356,6 +356,11 @@ async def update_event(
     event = await _event(session, event_id)
 
     changes = request.model_dump(exclude_unset=True)
+    # A null on a number every event has means "unchanged" — never None in a column the
+    # checks below compare (`teams_per_club > team_count`).
+    for field in ("team_count", "boat_count", "flight_count", "teams_per_club"):
+        if field in changes and changes[field] is None:
+            del changes[field]
     if _CONFIGURATION_FIELDS & changes.keys():
         await require_editable_configuration(session, event.id)
     check_squad_limits(

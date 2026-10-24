@@ -53,6 +53,7 @@ from app.problems import Problem
 from app.routers.sailors import connected_to_sailor
 from app.schemas.public import (
     BoatOut,
+    ClubCrewOut,
     ClubDetail,
     ClubEventOut,
     ClubOut,
@@ -1222,24 +1223,31 @@ async def _events_by_team(
 
     lineups = (
         await session.execute(
-            select(EventCrew, Sailor)
+            select(EventCrew, Sailor, Team)
             .join(Sailor, EventCrew.sailor_id == Sailor.id)
             .join(Team, EventCrew.team_id == Team.id)
             .where(Team.club_id == club_id)
+            .order_by(Team.number)
         )
     ).all()
 
-    crew_by_event: dict[int, list[MemberOut]] = {}
-    for crew, sailor in lineups:
-        crew_by_event.setdefault(crew.event_id, []).append(MemberOut.of(sailor, crew.role))
-    for members in crew_by_event.values():
-        members.sort(key=MemberOut.announce_order)
+    # One crew per team the club entered (Story VA-13) — a club's second team is its own
+    # crew, never merged into the first's.
+    crews_by_event: dict[int, dict[int, ClubCrewOut]] = {}
+    for crew, sailor, team in lineups:
+        crews = crews_by_event.setdefault(crew.event_id, {})
+        crews.setdefault(team.id, ClubCrewOut(team_id=team.id, team_name=team.name)).members.append(
+            MemberOut.of(sailor, crew.role)
+        )
+    for crews in crews_by_event.values():
+        for entry in crews.values():
+            entry.members.sort(key=MemberOut.announce_order)
 
     return {
         team_id: [
             ClubEventOut(
                 event=_event_out(event),
-                crew=crew_by_event.get(event.id, []),
+                crews=list(crews_by_event.get(event.id, {}).values()),
             )
             for event in events
             if event.series_id == series_id

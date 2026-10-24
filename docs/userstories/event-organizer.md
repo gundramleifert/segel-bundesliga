@@ -196,15 +196,17 @@ Acceptance criteria:
   their crews from the same squad as its first. A sailor still sails for one team per act.
 - **In the series table each team scores on its own** — `KYC (SH) 2` is its own row,
   built from the acts that team sailed; an act it missed counts participants + 1, as for
-  everyone.
+  everyone. The row is keyed by the team's entry in its earliest scored act — frozen
+  once raced — so taking the team out of an act still planned never moves or orphans it.
 - A club's own **application** to enter an event asks for one team — further teams are
   the organizer's to add.
 - The SAP import sets the option from what it finds (A-14).
 - A club's own screen lists each of its teams in an event as a row of its own, lined up
-  on its own.
+  on its own. The public club page shows one crew per team, under the team's name.
 
 Tests: `api/tests/stories/test_teams_per_club.py::TestTeamsPerClub`,
-`api/tests/stories/test_imports.py::TestJuniorenImport::test_a_club_s_second_team_is_a_team_of_its_own`
+`api/tests/stories/test_imports.py::TestJuniorenImport::test_a_club_s_second_team_is_a_team_of_its_own`,
+`api/tests/stories/test_imports.py::TestJuniorenImport::test_a_second_team_s_series_row_stays_when_a_future_entry_goes`
 
 ### VA-1 ○ Import registrations and sailors from manage2sail
 As an **event organizer** I want to **import registrations — clubs, teams and their

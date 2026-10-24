@@ -31,9 +31,13 @@ from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.models import Club, Series
+from app.problems import Problem
 from app.services.media import Arrival, store
 
 CACHE = Path(__file__).parent.parent / ".seed-cache" / "finale-2026"
+# A build without a way out (a sandbox, a firewall) must not wait a minute per picture
+# before the connection is given up: 35 pictures would hold the build for half an hour.
+TIMEOUT = httpx.Timeout(60, connect=5)
 CREDIT = "© DSBL GmbH"
 GALLERY = (
     "https://photos.smugmug.com/Deutsche-Segel-Bundesliga/2026/06-Finale-VSaW-1510-17102026/"
@@ -182,7 +186,7 @@ def cached_or_downloaded(picture: FinalePicture) -> bytes | None:
     if path.exists():
         return path.read_bytes()
     try:
-        response = httpx.get(picture.url, timeout=60, follow_redirects=True)
+        response = httpx.get(picture.url, timeout=TIMEOUT, follow_redirects=True)
         response.raise_for_status()
     except httpx.HTTPError:
         return None
@@ -207,14 +211,28 @@ async def seed_media(
                 missing.append(picture.club)
                 continue
             club = clubs.get(picture.club, picture.club)
-            stored = await store(
-                session,
-                raw,
-                original_name=f"{picture.name}.jpg",
-                arrival=Arrival(series_id=series.get(picture.series)),
-                alt=f"{club} beim Finale der Segel-Bundesliga 2026 auf dem Wannsee",
-                credit=CREDIT,
-            )
+            series_id = series.get(picture.series)
+            try:
+                stored = await store(
+                    session,
+                    raw,
+                    original_name=f"{picture.name}.jpg",
+                    arrival=Arrival(series_id=series_id),
+                    alt=f"{club} beim Finale der Segel-Bundesliga 2026 auf dem Wannsee",
+                    credit=CREDIT,
+                )
+            except Problem:
+                # Not a picture after all (an error page answered 200, a cut-off download):
+                # left out like one that could not be fetched, and not kept for next time.
+                await session.rollback()
+                (CACHE / f"{picture.name}.jpg").unlink(missing_ok=True)
+                missing.append(picture.club)
+                continue
+            if not stored.created and stored.item.series_id != series_id:
+                # The seed re-creates its series under new ids; the entry the same bytes
+                # already are follows them, or it would be a picture of nothing.
+                stored.item.series_id = series_id
+                await session.commit()
             created += stored.created
     print(
         f"Pictures: {created} new, {len(pictures) - created - len(missing)} already in the "
