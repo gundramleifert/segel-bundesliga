@@ -171,26 +171,29 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     const guestHeaders = await bearer(request, guest);
     const guestId = ((await (await request.get("/api/auth/me", { headers: guestHeaders })).json()) as { id: number }).id;
 
-    // The club's admin adds the guest by email in the People panel of the Members tab.
+    // The club's admin adds the guest by email: *＋ Member*, a dialog, the list stays put.
     await signIn(page, clubAdmin.email);
     await openMyClub(page, club.id, "members");
     await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
+    await page.getByTestId(`${panel}-open`).click();
     await page.getByTestId(`${panel}-email`).fill(guest);
-    await page.getByTestId(`${panel}-relation`).selectOption("member");
+    // The dialog of *＋ Member* starts at member.
+    await expect(page.getByTestId(`${panel}-relation-member`)).toBeChecked();
     await page.getByTestId(`${panel}-add`).click();
-    await expect(page.locator(`[data-testid^="${panel}-tuple-"]`).filter({ hasText: guest })).toBeVisible();
-    // A member at once — no acceptance step — so the roster lists them straight away.
-    await expect(page.getByTestId(`my-club-member-${guestId}`)).toBeVisible();
+    await expect(page.getByTestId(`${panel}-dialog`)).toHaveCount(0);
+    // A member at once — no acceptance step — so the one list shows them straight away.
+    await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toBeVisible();
 
     // The guest now has "My club": the roster, themselves in it, and the way out — but
-    // not the People panel, which is the admin's.
+    // neither *＋ Member* nor a ✕, which are the admin's.
     await signIn(page, guest);
     await openMyClub(page, club.id, "members");
     await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${clubAdmin.id}`)).toBeVisible();
-    await expect(page.getByTestId(panel)).toHaveCount(0);
+    await expect(page.getByTestId(`${panel}-open`)).toHaveCount(0);
+    await expect(page.locator('[data-testid^="my-club-member-revoke-"]')).toHaveCount(0);
     await page.getByTestId("my-club-leave").click();
     await page.getByTestId("my-club-leave-confirm").click();
     // The club is no longer theirs: back on my space, without it.
@@ -198,12 +201,10 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await openSwitcher(page);
     await expect(page.getByTestId(`workspace-switcher-club-${club.id}`)).toHaveCount(0);
 
-    // Back as the admin: the guest is no longer on the roster, nor in the People panel.
+    // Back as the admin: the guest is no longer on the list.
     await signIn(page, clubAdmin.email);
     await openMyClub(page, club.id, "members");
     await expect(page.getByTestId("my-club-members-list")).toBeVisible();
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
-    await expect(page.getByTestId(`${panel}-list`)).toBeVisible();
-    await expect(page.locator(`[data-testid^="${panel}-tuple-"]`).filter({ hasText: guest })).toHaveCount(0);
   });
 });

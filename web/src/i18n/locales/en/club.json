@@ -24,13 +24,17 @@
       "jury": "jury",
       "treasurer": "treasurer",
       "helper": "helper",
-      "editor": "editor"
+      "editor": "editor",
+      "member": "member"
     },
     "leave": "Leave the club",
     "leaveConfirm": "Leave this club? Your registrations in its squads stay until the club changes them.",
     "leaveCancel": "Stay",
-    "addHint": "Add a member by the email address of their account — they are a member at once, no acceptance needed. Whoever has no account registers first. The ✕ beside a line removes it again.",
-    "crestHint": "The club's crest — on the club's page, the standings and the results. Tap it to replace it."
+    "addHint": "By the email address of their account — they are in at once, no acceptance needed. Whoever has no account registers first.",
+    "crestHint": "The club's crest — on the club's page, the standings and the results. Tap it to replace it.",
+    "newButton": "Member",
+    "newTitle": "Add to the club",
+    "revoke": "Remove"
   },
   "organizer": "Organizer",
   "mine": {

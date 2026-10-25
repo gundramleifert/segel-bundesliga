@@ -24,13 +24,17 @@
       "jury": "Jury",
       "treasurer": "Kassenwart",
       "helper": "Helfer",
-      "editor": "Redaktion"
+      "editor": "Redaktion",
+      "member": "Mitglied"
     },
     "leave": "Verein verlassen",
     "leaveConfirm": "Diesen Verein verlassen? Deine Kadermeldungen bleiben, bis der Verein sie ändert.",
     "leaveCancel": "Bleiben",
-    "addHint": "Nimm ein Mitglied über die E-Mail-Adresse seines Kontos auf — es ist sofort Mitglied, ohne Bestätigung. Wer kein Konto hat, registriert sich zuerst. Das ✕ neben einer Zeile entfernt sie wieder.",
-    "crestHint": "Der Stander des Vereins — auf der Vereinsseite, in der Tabelle und den Ergebnissen. Zum Ersetzen antippen."
+    "addHint": "Über die E-Mail-Adresse des Kontos — sofort aufgenommen, ohne Bestätigung. Wer kein Konto hat, registriert sich zuerst.",
+    "crestHint": "Der Stander des Vereins — auf der Vereinsseite, in der Tabelle und den Ergebnissen. Zum Ersetzen antippen.",
+    "newButton": "Mitglied",
+    "newTitle": "In den Verein aufnehmen",
+    "revoke": "Entfernen"
   },
   "organizer": "Organisator:in",
   "mine": {

@@ -154,15 +154,18 @@ const SHOTS: Shot[] = [
     phone: false,
   },
   {
-    // The form under the club's People panel: whom, as what, Add.
+    // The dialog of *＋ Member*: whom, as what, Add.
     id: "help-club-people",
     as: () => CLUB_ADMIN,
     path: (d) => `/me/club/${d.clubId}/members`,
-    waitFor: (d) => tid(`my-club-access-${d.clubId}-add`),
-    clip: (d) => ({ from: tid(`my-club-access-${d.clubId}-form`), pad: 24 }),
+    open: async (page, d) => {
+      await page.getByTestId(`my-club-access-${d.clubId}-open`).click();
+    },
+    waitFor: (d) => tid(`my-club-access-${d.clubId}-relation-member`),
+    clip: (d) => ({ from: tid(`my-club-access-${d.clubId}-dialog`), pad: 8 }),
     marks: (d) => [
       { target: `label:has(${tid(`my-club-access-${d.clubId}-email`)})` },
-      { target: `label:has(${tid(`my-club-access-${d.clubId}-relation`)})` },
+      { target: tid(`my-club-access-${d.clubId}-relation`) },
       { target: tid(`my-club-access-${d.clubId}-add`) },
     ],
     phone: false,

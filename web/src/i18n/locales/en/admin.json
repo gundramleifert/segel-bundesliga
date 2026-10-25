@@ -222,7 +222,8 @@
       "race_officer": "Race officer",
       "jury": "Jury",
       "treasurer": "Treasurer",
-      "helper": "Helper"
+      "helper": "Helper",
+      "member": "Member"
     },
     "objectTypeLabels": {
       "site": "Whole site",
@@ -350,7 +351,9 @@
     "emailLabel": "Email of an existing account",
     "relationLabel": "As",
     "addButton": "Add",
-    "revoke": "Remove"
+    "revoke": "Remove",
+    "newButton": "Person",
+    "newTitle": "Name a person"
   },
   "posts": {
     "title": "News",

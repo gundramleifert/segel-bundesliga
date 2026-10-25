@@ -13,7 +13,7 @@ title: "Mitglieder, Organisation und Stander"
 ## Mitglieder, Organisation und Stander
 
 Die Mitgliedschaft liegt in [*Ihr Verein* › *Mitglieder*](place:club.members): Jedes Mitglied sieht die
-Mitgliederliste; die Vereinsverwaltung sieht darunter zusätzlich das Feld *Personen*.
+Mitgliederliste. Die Vereinsverwaltung nimmt mit *＋ Mitglied* oben rechts Personen auf und entfernt eine Rolle mit dem ✕ daran.
 Eltern werden unter *Minderjährige & Erziehungsberechtigte* verknüpft, der Stander
 steht unter *Vereinsseite*.
 
@@ -25,19 +25,19 @@ Nur die Vereinsverwaltung. Die Person braucht ein Konto, das sie selbst
 [anlegt](#account-register); ohne Konto: „Kein Konto mit dieser Adresse. Bitte zuerst
 anlegen.“
 
-1. Geben Sie unter *Personen* ihre Adresse in *E-Mail eines bestehenden Kontos* ① ein.
-2. Wählen Sie unter *Als* ② den Eintrag für Mitglieder – die Liste beginnt mit *Verwaltung*.
+1. Drücken Sie *＋ Mitglied* oben rechts über der Liste.
+2. Geben Sie ihre Adresse in *E-Mail eines bestehenden Kontos* ① ein; *Als* ② steht schon auf *Mitglied*.
 3. Drücken Sie *Hinzufügen* ③.
 
-![Der Fuß des Felds Personen: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
+![Der Dialog von *＋ Mitglied*: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
 
-Die Person ist sofort Mitglied, ohne zuzustimmen; ✕ neben einer Zeile entfernt sie. Eine
+Die Person ist sofort Mitglied, ohne zuzustimmen; das ✕ an *Mitglied* entfernt sie. Eine
 Person kann in mehreren Vereinen sein und tritt mit *Verein verlassen* aus einem aus.
 
 ### Die Organisation benennen {#club-members-organizers}
 
-Nur die Vereinsverwaltung, im selben Feld *Personen*: unter *Als* wählen, dann
-*Hinzufügen*.
+Nur die Vereinsverwaltung, mit demselben *＋ Mitglied*: unter *Als* wählen, dann
+*Hinzufügen*. Das ✕ an einer Rolle entfernt sie.
 
 | *Als* | für | Kennzeichen in der Mitgliederliste |
 |---|---|---|

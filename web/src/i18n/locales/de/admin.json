@@ -222,7 +222,8 @@
       "race_officer": "Wettfahrtleitung",
       "jury": "Jury",
       "treasurer": "Kassenwart",
-      "helper": "Helfer"
+      "helper": "Helfer",
+      "member": "Mitglied"
     },
     "objectTypeLabels": {
       "site": "Gesamte Seite",
@@ -350,7 +351,9 @@
     "emailLabel": "E-Mail eines bestehenden Kontos",
     "relationLabel": "Als",
     "addButton": "Hinzufügen",
-    "revoke": "Entfernen"
+    "revoke": "Entfernen",
+    "newButton": "Person",
+    "newTitle": "Person benennen"
   },
   "posts": {
     "title": "News",
