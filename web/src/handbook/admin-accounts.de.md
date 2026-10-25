@@ -12,10 +12,10 @@ title: Konten und wer was darf
 
 ## Konten und wer was darf
 
-*Verwaltung* ist in Reiter geteilt; eine Rolle sieht nur die Reiter, die sie nutzen
-darf. *Konten* gehört allein der Verwaltung der Seite.
+Das *Ligabüro* hat einen Bereich je Aufgabe; eine Rolle sieht nur die Bereiche, die sie
+nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
 
-![Die Reiter der Verwaltung, in der Reihenfolge, in der eine Saison eingerichtet wird](shot:help-admin-tabs)
+![Die Bereiche des Ligabüros, in der Reihenfolge, in der eine Saison eingerichtet wird](shot:help-admin-tabs)
 
 ### Woher Konten kommen {#admin-accounts-create}
 
@@ -28,7 +28,7 @@ darf. *Konten* gehört allein der Verwaltung der Seite.
 
 ### Zugriff vergeben {#admin-accounts-grant}
 
-1. [Reiter *Konten*](place:admin.accounts): die Person nach Name oder E-Mail suchen.
+1. [*Konten*](place:admin.accounts): die Person nach Name oder E-Mail suchen.
 2. Spalte *Zugriff*: *＋ Zugriff vergeben*.
 3. *Für* (*Gesamte Seite*, *Einen Verein*, *Eine Serie*, *Eine Veranstaltung*), *Als*,
    *Welche*.
@@ -65,4 +65,4 @@ darf. *Konten* gehört allein der Verwaltung der Seite.
 | Adresse | enthält Seite, Sortierung und Suche: Neu laden behält sie; ein geschickter Link zeigt genau diese Liste |
 | *Vereine*, *Serien* | alle Zeilen auf einmal, ohne Suche |
 
-[Verwaltung öffnen](place:admin.accounts)
+[Ligabüro öffnen](place:admin.accounts)

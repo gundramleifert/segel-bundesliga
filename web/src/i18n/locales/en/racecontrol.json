@@ -16,7 +16,7 @@
     "startHint": "Starting needs a complete setup and a pairing list.",
     "final": "Racing is over for this day.",
     "cancelled": "This event was called off.",
-    "manageLink": "Open the manage screen"
+    "manageLink": "Open the event in My space"
   },
   "status": {
     "scheduled": "Scheduled",

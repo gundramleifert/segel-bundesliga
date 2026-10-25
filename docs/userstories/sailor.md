@@ -637,6 +637,16 @@ event, anything the league office opens — opens with the relations the model g
 there (`GET /api/me/contexts/{kind}/{id}`); one I hold nothing on is not found, as in the
 list.
 
+**The league office** (#32): `/office/<section>` is a context of the workspace, there
+only with a site relation (`office` on `GET /api/me/contexts`), its sections by those
+relations — the site's `admin` all of them, a site `editor` *News* and *Media*, the site's
+`race_officer` *Events* (Story A-11 has the criteria). The account menu's *League office*
+reads the same answer. Its creation pages are `/office/<area>/new` (and a post's
+`/office/news/:id`); an organizer of a series or a club creates an event at
+`/me/event/new` (VA-6, A-6), a series' or an event's editor writes a post at
+`/me/news/new` (R-1). `/admin`, `/admin?tab=<section>`, `/admin/<area>/new` and
+`/admin/news/:id` redirect to their `/office` address, other query parameters kept.
+
 **The shell** (#31): every page of My space is drawn by `WorkspaceFrame`
 (`web/src/pages/me/Workspace.tsx`) — the switcher at the top of the sidebar (in the bar on
 a phone), the sections of the context, the breadcrumb; each section at its own address
@@ -714,7 +724,8 @@ Tests: `api/tests/stories/test_my_space.py::TestTodos`, `::TestReachedContexts`,
 `e2e/workspace.spec.ts` ("Z-10: the switcher's search — my sections by their words, anything for the league office"),
 `api/tests/stories/test_event_lifecycle.py::TestPublication::test_its_organizer_reads_a_draft_in_its_own_context`,
 `e2e/workspace-event.spec.ts::Z-10: the event's set-up and race day are sections of its context`,
-`e2e/workspace-club.spec.ts`
+`e2e/workspace-club.spec.ts`,
+`e2e/lifecycle.spec.ts::A-11/Z-10: the league office, a section per area`
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with

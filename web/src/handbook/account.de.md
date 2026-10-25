@@ -68,8 +68,8 @@ bestätigt sein – eine Anmeldung mit Code erledigt das.
 ### Sprache und hell oder dunkel {#account-look}
 
 Vor der Anmeldung stehen in der oberen Zeile die Sprache und *Anmelden*. Danach öffnet
-Ihr Konto *Konto und Einstellungen*: *Mein Bereich*, *Mein Profil*, *Verwaltung*, wenn Ihre
-Rolle sie nutzt, *Hilfe* (*Hilfe zu dieser Seite*, wo die Seite eine eigene hat) und *Sprache*.
+Ihr Konto *Konto und Einstellungen*: *Mein Bereich*, *Mein Profil*, *Ligabüro*, wenn Sie
+eine Rolle auf der ganzen Seite haben, *Hilfe* (*Hilfe zu dieser Seite*, wo die Seite eine eigene hat) und *Sprache*.
 
 ![Das Kontomenü einer Organisatorin oder eines Organisators](shot:help-account-menu)
  In der oberen Zeile, neben der Sprache oder Ihrem Konto, schaltet die

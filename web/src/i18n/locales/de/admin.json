@@ -181,8 +181,8 @@
     "newPersonCancel": "Abbrechen"
   },
   "auth": {
-    "notSignedInError": "Für die Verwaltung müssen Sie angemeldet sein.",
-    "noAccessError": "Die Verwaltung ist der Geschäftsstelle und der Redaktion vorbehalten."
+    "notSignedInError": "Für das Ligabüro müssen Sie angemeldet sein.",
+    "noAccessError": "Diese Seite gehört zum Ligabüro."
   },
   "accounts": {
     "title": "Konten",
@@ -234,8 +234,6 @@
     "clearPasswordHint": "Die Person meldet sich dann mit einem Code an und setzt ein neues."
   },
   "page": {
-    "title": "Verwaltung",
-    "tabsLabel": "Bereich",
     "backButton": "Zurück zur Liste",
     "cancelButton": "Abbrechen",
     "anotherButton": "Noch eine anlegen"

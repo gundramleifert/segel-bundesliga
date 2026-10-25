@@ -14,8 +14,9 @@ import { helpFor, helpPath } from "../handbook";
  * the only two things about the reader a guest has, so a menu that opened to two entries
  * was a tap more than either needed.
  *
- * **Signed in**, the account button opens a menu: my space, profile, administration (for
- * the roles that can use it), help (the handbook is internal) and the language. Each is
+ * **Signed in**, the account button opens a menu: my space, profile, the league office
+ * (only with a site relation — the `office` of the same answer, Stories Z-10, A-11), help
+ * (the handbook is internal) and the language. Each is
  * used rarely and none is about the page being read, so as separate items they competed
  * with the navigation for room. The legal pages are not here: both footers carry them on
  * every page, which is what § 5 DDG asks.
@@ -27,23 +28,17 @@ import { helpFor, helpPath } from "../handbook";
  * The request is a heavy one, and the button is on every page: it is not refetched on
  * every focus or page change.
  */
-export function UserMenu({
-  account,
-  loading,
-  admin = false,
-}: {
-  account: Account | null;
-  loading: boolean;
-  /** Whether the administration is offered — only to the roles that can use it, because a
-   *  link that ends in a 403 is worse than no link (Story A-12). */
-  admin?: boolean;
-}) {
+export function UserMenu({ account, loading }: { account: Account | null; loading: boolean }) {
   const { t, i18n } = useTranslation();
   const menu = useDisclosure("user-menu");
   const space = useMyContexts({
     query: { enabled: Boolean(account), staleTime: 5 * 60_000, refetchOnWindowFocus: false },
   });
   const needs = account ? (space.data?.total ?? 0) : 0;
+  // The league office is offered only with a site relation — the model's answer, the one
+  // the office's own guard reads — because a link that ends in "not found" is worse than
+  // no link (Story A-12). A summary role would not do: `race_officer` means "somewhere".
+  const office = Boolean(account && space.data?.office);
   const { pathname } = useLocation();
   // Help for this page (Story B-18): the handbook page whose route is this screen, else
   // the help's landing page. The handbook is internal, so only a signed-in account is
@@ -61,7 +56,7 @@ export function UserMenu({
   const links = [
     { to: "/me", key: "mySpace" },
     { to: "/me/profile", key: "profile" },
-    ...(admin ? [{ to: "/admin", key: "admin" }] : []),
+    ...(office ? [{ to: "/office", key: "office" }] : []),
     { to: pageHelp ? helpPath(pageHelp.id) : helpPath(), key: "help" },
   ];
 

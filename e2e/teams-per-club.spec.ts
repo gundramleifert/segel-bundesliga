@@ -28,7 +28,7 @@ describeStory("VA-13: a club enters more than one team", () => {
     expect(event.teams_per_club).toBe(1);
 
     await signIn(page, ADMIN);
-    await page.goto("/admin?tab=events");
+    await page.goto("/office/events");
     await page.getByTestId(`admin-manage-event-toggle-${event.id}`).click();
     const block = `admin-manage-event-clubs-${event.id}`;
     // The series' clubs are adopted on creation, ASVW among them.

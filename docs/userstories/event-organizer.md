@@ -78,8 +78,9 @@ Acceptance criteria:
   ready 🚀 or what is still missing, offers publication, and — once published with a
   list — opens the pairing list and its PDF. The wizard never blocks on what a later step
   needs: a title alone still saves.
-  **The wizard is a page of its own**, `/admin/events/new`, reached from the "＋" top-right
-  of the events list — the tab is the list, and creating anything (a club, a series, a
+  **The wizard is a page of its own**, `/office/events/new` (an organizer without the
+  league office: `/me/event/new`, Story A-11), reached from the "＋" top-right of the
+  events list — the section is the list, and creating anything (a club, a series, a
   sailor, an event) is the same shape: the plus in the same corner, a page per entry, and
   "Back to the list" when it is done.
 

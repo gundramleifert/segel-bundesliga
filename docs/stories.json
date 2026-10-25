@@ -16,12 +16,12 @@
   "anchor": "a-10--the-admin-screens-have-to-work-on-a-phone"
  },
  "A-11": {
-  "title": "The admin screen in tabs",
+  "title": "The league office: the site's own work, by section",
   "status": "●",
   "role": "Administration",
   "phase": "The admin screens",
   "file": "docs/userstories/administration.md",
-  "anchor": "a-11--the-admin-screen-in-tabs"
+  "anchor": "a-11--the-league-office-the-sites-own-work-by-section"
  },
  "A-12": {
   "title": "The account menu, and the page's name",

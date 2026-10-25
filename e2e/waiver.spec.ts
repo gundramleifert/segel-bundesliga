@@ -127,7 +127,7 @@ describeStory("VA-5: as the organizer I only check off what is on file", () => {
     const eventId = ((await created.json()) as { id: number }).id;
 
     await signIn(page, ADMIN);
-    await page.goto("/admin?tab=events");
+    await page.goto("/office/events");
     await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
     await page.getByTestId(`admin-manage-event-toggle-${eventId}`).click();
 

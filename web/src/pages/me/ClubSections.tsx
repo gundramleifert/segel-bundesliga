@@ -264,7 +264,7 @@ export function ClubHosting({ club }: { club: { id: number; name: string; short_
   return (
     <Section
       testId={`my-club-hosting-${club.id}`}
-      action={<AddButton label={t("clubSections.newEvent")} to="/admin/events/new" testId="my-club-hosting-new-event" />}
+      action={<AddButton label={t("clubSections.newEvent")} to="/office/events/new" testId="my-club-hosting-new-event" />}
     >
       <p className="text-sm text-muted">{t("clubSections.hostingHint")}</p>
       <Async

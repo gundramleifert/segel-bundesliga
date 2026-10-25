@@ -1,11 +1,15 @@
 import { describe, expect, test } from "vitest";
 
-import { Relation, type MyContext, type Todo } from "../src/api/types";
+import { Relation, Role, type MyContext, type Todo } from "../src/api/types";
+import { PLACES, resolvePlace } from "../src/handbook/places";
 import de from "../src/i18n/locales/de/space.json";
 import en from "../src/i18n/locales/en/space.json";
 import {
   fold,
   groupTodos,
+  mayCreate,
+  mayCreateIn,
+  officeAddress,
   hasSection,
   isLive,
   liveNow,
@@ -380,5 +384,51 @@ describe("Story Z-10: the switcher's search (#34)", () => {
 
   test("fold drops case and accents", () => {
     expect(fold("Straße Überlingen")).toBe("strasse uberlingen");
+  });
+});
+
+describe("Story A-11: the league office (#32)", () => {
+  const roles =
+    (...held: Role[]) =>
+    (...wanted: Role[]) =>
+      wanted.some((r) => held.includes(r));
+  const none = roles();
+
+  test("the old addresses go to their /office ones, other query parameters kept", () => {
+    expect(officeAddress("", "")).toBe("/office");
+    expect(officeAddress("", "?tab=clubs")).toBe("/office/clubs");
+    expect(officeAddress("", "?tab=nonsense")).toBe("/office");
+    expect(officeAddress("", "?tab=sailors&sort=-last_name&q=mann")).toBe("/office/sailors?sort=-last_name&q=mann");
+    expect(officeAddress("clubs/new", "")).toBe("/office/clubs/new");
+    expect(officeAddress("events/new", "?series=3")).toBe("/office/events/new?series=3");
+    expect(officeAddress("news/12", "")).toBe("/office/news/12");
+    expect(officeAddress("nonsense/deeper/still", "?q=x")).toBe("/office?q=x");
+  });
+
+  test("creating is the office's where its section is — and an event also an organizer's", () => {
+    expect(mayCreateIn("clubs", [Relation.admin])).toBe(true);
+    expect(mayCreateIn("series", [Relation.editor])).toBe(false);
+    expect(mayCreateIn("news", [Relation.editor])).toBe(true);
+    expect(mayCreateIn("events", [Relation.race_officer])).toBe(true);
+    expect(mayCreateIn("events", [])).toBe(false);
+    expect(mayCreate("events", [], roles(Role.series_manager))).toBe(true);
+    expect(mayCreate("events", [], roles(Role.team_manager))).toBe(true);
+    // A race officer or jury *somewhere* creates nothing.
+    expect(mayCreate("events", [], roles(Role.race_officer, Role.jury, Role.event_manager))).toBe(false);
+    // A series' editor writes posts, and creates nothing else.
+    expect(mayCreate("news", [], roles(Role.editor))).toBe(true);
+    expect(mayCreate("clubs", [], roles(Role.editor, Role.team_manager))).toBe(false);
+  });
+
+  test("the help's places of the office lead only to a section the reader has", () => {
+    expect(resolvePlace(PLACES["admin.clubs"], none, [], [Relation.admin])).toEqual([{ key: "/office", to: "/office/clubs" }]);
+    expect(resolvePlace(PLACES["admin.clubs"], none, [], [Relation.editor])).toEqual([]);
+    expect(resolvePlace(PLACES["admin.news"], none, [], [Relation.editor])).toEqual([{ key: "/office", to: "/office/news" }]);
+    // A summary role is no site relation: without `office`, no office.
+    expect(resolvePlace(PLACES["admin"], roles(Role.admin), [], [])).toEqual([]);
+    expect(resolvePlace(PLACES["admin.new-event"], roles(Role.team_manager), [], [])).toEqual([
+      { key: "/office/events/new", to: "/office/events/new" },
+    ]);
+    expect(resolvePlace(PLACES["admin.new-series"], roles(Role.series_manager), [], [])).toEqual([]);
   });
 });

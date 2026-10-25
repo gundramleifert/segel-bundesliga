@@ -12,7 +12,6 @@ import { Live } from "./pages/Live";
 import { LiveNow } from "./pages/LiveNow";
 import { RaceControl } from "./pages/RaceControl";
 import { Events } from "./pages/Events";
-import { Admin } from "./pages/Admin";
 import { AdminClubNew } from "./pages/AdminClubNew";
 import { AdminEventNew } from "./pages/AdminEventNew";
 import { AdminSailorNew } from "./pages/AdminSailorNew";
@@ -22,7 +21,7 @@ import { AdminSeriesNew } from "./pages/AdminSeriesNew";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
 import { ClubPage } from "./pages/me/ClubPage";
-import { OfficePage } from "./pages/office/Office";
+import { AdminRedirect, OfficePage } from "./pages/office/Office";
 import { EventPage as MyEventPage } from "./pages/me/EventPage";
 import { ProfilePage } from "./pages/me/Me";
 import { SeriesPage as MySeriesPage } from "./pages/me/SeriesPage";
@@ -73,7 +72,7 @@ export default function App() {
       {/* The site's structure (issue #14, docs/site-structure.md, Stories B-13–B-16): the
           association's home, each league's chapter page and the depth pages behind it.
           They draw their own frame. A league's path is one free segment, so the static
-          routes below (`/me`, `/admin`, …) win over it by react-router's ranking. */}
+          routes below (`/me`, `/office`, …) win over it by react-router's ranking. */}
       <Route index element={<AssociationHome />} />
       {/* The DSBL was one league until 2026-10-16; its 1. Liga is its heir (Story B-16).
           Every path a league has, spelled out under `dsbl/`: a splat `dsbl/*` ranks below
@@ -113,19 +112,27 @@ export default function App() {
         <Route path="me/club/:id/:section?" element={<ClubPage />} />
         <Route path="me/series/:id/:section?" element={<MySeriesPage />} />
         <Route path="me/event/:id/:section?" element={<MyEventPage />} />
+        {/* Creating without an office (Story A-11): an organizer of a series or a club an
+            event (VA-6, A-6), a series' or an event's editor a post (R-1) — the office's
+            pages, leading back to My space. */}
+        <Route path="me/event/new" element={<AdminEventNew />} />
+        <Route path="me/news/new" element={<AdminPostPage />} />
+        <Route path="me/news/:id" element={<AdminPostPage />} />
         {/* The screens my space replaced, kept as redirects (Story S-7). */}
         <Route path="club" element={<ClubRedirect />} />
         <Route path="reimbursements" element={<Navigate to="/me" replace />} />
-        {/* Story Z-10: the league office, a context of the workspace (#32). */}
+        {/* Stories Z-10, A-11: the league office, a context of the workspace (#32). */}
         <Route path="office/:section?" element={<OfficePage />} />
-        <Route path="admin" element={<Admin />} />
-        {/* Creating is a page of its own per area, reached from the "＋" on its tab. */}
-        <Route path="admin/clubs/new" element={<AdminClubNew />} />
-        <Route path="admin/series/new" element={<AdminSeriesNew />} />
-        <Route path="admin/events/new" element={<AdminEventNew />} />
-        <Route path="admin/sailors/new" element={<AdminSailorNew />} />
-        <Route path="admin/news/new" element={<AdminPostPage />} />
-        <Route path="admin/news/:id" element={<AdminPostPage />} />
+        {/* Creating is a page of its own per area, reached from the "＋" of its section. */}
+        <Route path="office/clubs/new" element={<AdminClubNew />} />
+        <Route path="office/series/new" element={<AdminSeriesNew />} />
+        <Route path="office/events/new" element={<AdminEventNew />} />
+        <Route path="office/sailors/new" element={<AdminSailorNew />} />
+        <Route path="office/news/new" element={<AdminPostPage />} />
+        <Route path="office/news/:id" element={<AdminPostPage />} />
+        {/* `/admin` before #32: every address of it redirects to its `/office` one. */}
+        <Route path="admin" element={<AdminRedirect />} />
+        <Route path="admin/*" element={<AdminRedirect />} />
         {/* Story R-2: a photographer's upload link — the key in its #fragment. */}
         <Route path="upload" element={<UploadPage />} />
         {/* Story B-18: the handbook, pages from web/src/handbook/. */}

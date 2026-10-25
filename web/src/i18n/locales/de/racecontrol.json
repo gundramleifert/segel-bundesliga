@@ -16,7 +16,7 @@
     "startHint": "Der Start braucht eine vollständige Konfiguration und eine Pairing-Liste.",
     "final": "Die Wettfahrten dieses Tages sind beendet.",
     "cancelled": "Diese Veranstaltung wurde abgesagt.",
-    "manageLink": "Verwaltungsseite öffnen"
+    "manageLink": "Veranstaltung in Mein Bereich öffnen"
   },
   "status": {
     "scheduled": "Geplant",

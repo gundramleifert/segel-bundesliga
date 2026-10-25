@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useLocation, useParams } from "react-router-dom";
 
 import { useAccount } from "../../api/useApi";
 import { ErrorMessage, Loading, PageHeader } from "../../components/Blocks";
-import { mayCreateIn } from "../../lib/workspace";
+import { mayCreateIn, officeAddress } from "../../lib/workspace";
 import { AccountsAdmin } from "../AdminAccounts";
 import { Clubs, SeriesList } from "../Admin";
 import { SailorsAdmin } from "../AdminSailors";
@@ -20,12 +20,17 @@ import { WorkspaceFrame, type WorkspaceSection } from "../me/Workspace";
  *  give (`lib/workspace.ts`): the admin all of them, editorial *News* and *Media*, the
  *  site's race committee the events it runs. Every object's own work lives in its
  *  context; an object opened from here becomes the context.
+ *
+ *  Someone without a site relation reads that it is not found — a series', an event's or
+ *  a club's organizer has no office; their work is in their own context (Story A-11).
+ *  A section this screen has not built (`imports`, which runs from the command line) is
+ *  left out of the sidebar by `WorkspaceFrame`.
  */
 export function OfficePage() {
   const { t } = useTranslation("space");
   const ta = useTranslation("admin").t;
   const { section } = useParams();
-  const { account, loading, hasRole } = useAccount();
+  const { account, loading } = useAccount();
   const { space } = useMySpace();
 
   if (loading || (account && !space.data && !space.error)) return <Loading testId="office-loading" />;
@@ -54,7 +59,7 @@ export function OfficePage() {
         ),
     },
     { key: "clubs", label: ta("clubs.title"), render: () => <Clubs /> },
-    { key: "series", label: ta("series.title"), render: () => <SeriesList mayCreate={mayCreateIn("series", hasRole)} /> },
+    { key: "series", label: ta("series.title"), render: () => <SeriesList mayCreate={mayCreateIn("series", office.relations)} /> },
     { key: "events", label: ta("events.title"), render: () => <EventsAdmin /> },
     { key: "sailors", label: ta("sailors.title"), render: () => <SailorsAdmin /> },
     { key: "accounts", label: ta("accounts.title"), render: () => <AccountsAdmin /> },
@@ -71,4 +76,14 @@ export function OfficePage() {
       active={section}
     />
   );
+}
+
+/** The addresses of the administration before #32 — `/admin`, `/admin?tab=<section>`,
+ *  `/admin/<area>/new`, `/admin/news/:id` — were in bookmarks, mails and the handbook;
+ *  each goes to its `/office` address, the other query parameters kept
+ *  (`officeAddress`, Story A-11). */
+export function AdminRedirect() {
+  const { pathname, search, hash } = useLocation();
+  const rest = pathname.replace(/^\/admin\/?/, "");
+  return <Navigate to={`${officeAddress(rest, search)}${hash}`} replace />;
 }

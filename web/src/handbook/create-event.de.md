@@ -5,7 +5,7 @@ order: 110
 audience: [event-organizer]
 stories: [VA-6, A-2, A-10]
 journey: null
-route: /admin/events/new
+route: /office/events/new
 tags: [new event, matchday, act, boats, colors, wizard, veranstaltung anlegen, spieltag, boote, zuschnitt]
 title: "Eine Veranstaltung anlegen"
 ---
@@ -16,12 +16,14 @@ Organisation einer Serie deren Acts, mit jedem Verein als Ausrichter; die Organi
 eines Vereins eine Veranstaltung außerhalb einer Serie, die der eigene Verein ausrichtet.
 Das Formular bietet nur an, was Sie wählen dürfen — Ihre Serien, die Ausrichter, die Sie
 nennen dürfen —, und *＋ Neue Veranstaltung* gibt es nur, wenn Sie eine anlegen dürfen.
-Jede Seite der *Verwaltung* funktioniert auf dem Handy: Eine Tabelle, breiter als der
+Jede Seite des Ligabüros und von Mein Bereich funktioniert auf dem Handy: Eine Tabelle, breiter als der
 Bildschirm, lässt sich seitlich schieben, die Seite selbst nicht.
 
 ### Die drei Schritte {#create-event-wizard}
 
-1. [*Verwaltung*, Reiter *Veranstaltungen*](place:admin.events): [*＋ Neue Veranstaltung*](place:admin.new-event).
+1. [*Ligabüro* › *Veranstaltungen*](place:admin.events): [*＋ Neue Veranstaltung*](place:admin.new-event) —
+   als Organisation einer Serie oder eines Vereins *＋ Neue Veranstaltung* bei Ihrer Serie
+   oder Ihrem Verein in Mein Bereich.
 2. *Allgemeines*: Pflicht ist nur *Name* ① (mindestens drei Zeichen). *Veranstaltung
    anlegen* ② speichert einen Entwurf, den sonst niemand sieht.
 3. *Vereine*: die Teilnehmer ankreuzen, dann *… Vereine eintragen und weiter*. In einer

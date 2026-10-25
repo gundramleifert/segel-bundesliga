@@ -33,7 +33,7 @@ describeStory("R-2: a picture library fed by upload links", () => {
   test("editorial makes a link for an event, a photographer sends pictures, they arrive there", async ({ page, browser }, testInfo) => {
     const label = `Photos ${testInfo.project.name} ${Date.now()}`;
     await signIn(page, EDITOR);
-    await page.goto("/admin?tab=media");
+    await page.goto("/office/media");
     await page.getByTestId("admin-import-key-label-input").fill(label);
     // The first event on offer (values `e<id>`; a series is `s<id>`): its pictures.
     const contextSelect = page.getByTestId("admin-import-key-context-select");
@@ -80,7 +80,7 @@ describeStory("R-2: a picture library fed by upload links", () => {
     const name = `harbour ${testInfo.project.name} ${Date.now()}`;
     await signIn(page, EDITOR);
     // A picture of its own in the library, uploaded through the Media path of the picker.
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     await page.getByTestId("admin-post-title-input").fill("Pictures from the library");
     await page.getByTestId("admin-post-editor-content").click();
     await page.getByTestId("admin-post-editor-image").click();
@@ -130,7 +130,7 @@ describeStory("R-2: a picture library fed by upload links", () => {
 
   test("editorial uploads on the Media tab in one step, into the event the library shows", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin?tab=media");
+    await page.goto("/office/media");
     // The library filtered to an event: what is uploaded now is that event's.
     const filter = page.getByTestId("admin-media-context-filter");
     const option = filter.locator('option[value^="e"]').first();
@@ -171,7 +171,7 @@ describeStory("R-2: a picture library fed by upload links", () => {
 describeStory("R-2: editorial changes many pictures at once", () => {
   /** Uploads `count` new pictures on the Media tab and answers their tiles' ids, newest first. */
   async function uploadOnMediaTab(page: import("@playwright/test").Page, count: number): Promise<string[]> {
-    await page.goto("/admin?tab=media");
+    await page.goto("/office/media");
     await choosePictures(page, count, "admin-media-upload-input");
     const plural = count === 1 ? "picture" : "pictures";
     await expect(page.getByTestId("admin-media-upload-summary")).toHaveText(`${count} of ${count} ${plural} received`);

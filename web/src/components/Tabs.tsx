@@ -36,7 +36,7 @@ export function TabbedView<K extends string>({
   inHeader = false,
 }: {
   tabs: readonly TabDef<K>[];
-  /** The query parameter holding the selection, e.g. `tab` → `/admin?tab=events`. */
+  /** The query parameter holding the selection, e.g. `tab` → `/events/7?tab=results`. */
   param: string;
   /** `admin` yields `admin-tabs` for the strip and `admin-events-tab` per tab. */
   testIdPrefix: string;

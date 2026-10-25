@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { Suspense, lazy, useEffect, useState, type DragEvent, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,7 +30,7 @@ import { href } from "../../../lib/site";
 import { useLeaveGuard } from "../../../lib/useLeaveGuard";
 import { filesIn, usePhotoUpload } from "../../../lib/usePhotoUpload";
 import { ArticleView } from "../../league/ArticleView";
-import { NewEntryPage } from "../../AdminNewPage";
+import { NewEntryPage, useCreateDoor } from "../../AdminNewPage";
 
 // TipTap and ProseMirror are only needed here — not by a single reader of the site.
 const RichTextEditor = lazy(() => import("../../../components/RichTextEditor"));
@@ -89,18 +89,24 @@ function draftOf(post?: PostAdmin): Draft {
   };
 }
 
-/** `/admin/news/new` and `/admin/news/:id` — Story R-1: one page to write a post and to
+/** `/office/news/new` and `/office/news/:id` — Story R-1: one page to write a post and to
  *  correct it. A new post is saved as a draft unless editorial publishes it right away;
- *  after the first save the page is the post's own. */
+ *  after the first save the page is the post's own.
+ *
+ *  A series' or an event's editor has no league office (Story A-11, issue #32): theirs are
+ *  `/me/news/new` and `/me/news/:id`, the same page leading back to My space, and the
+ *  office's address passes them on (`useCreateDoor`). */
 export function AdminPostPage() {
   const { t } = useTranslation("admin");
+  const { atOffice, passOn } = useCreateDoor("news");
   const { id } = useParams();
   const postId = id ? Number(id) : null;
   const post = useAsync(useGetAdminPost(postId ?? 0, { query: { enabled: postId !== null } }));
   const title = postId === null ? t("posts.newButton") : (post.data?.title ?? t("posts.title"));
 
+  if (passOn) return <Navigate to={passOn} replace />;
   return (
-    <NewEntryPage title={title} testId="admin-post">
+    <NewEntryPage title={title} area="news" outside={!atOffice} testId="admin-post">
       {postId === null ? (
         <PostForm />
       ) : (
@@ -114,9 +120,16 @@ export function AdminPostPage() {
   );
 }
 
+/** Where a post's own page lives, by the door it was opened from: the office's, or My
+ *  space's for an editor of a series or an event. */
+const postsBase = (pathname: string) => (pathname.startsWith("/me/") ? "/me/news" : "/office/news");
+/** Back from a post: to the office's *News*, or to My space. */
+const postsHome = (pathname: string) => (pathname.startsWith("/me/") ? "/me" : "/office/news");
+
 function PostForm({ post }: { post?: PostAdmin }) {
   const { t } = useTranslation("admin");
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const invalidate = useInvalidate();
   const leagues = useAsync(useListLeagues());
   const [draft, setDraft] = useState<Draft>(() => draftOf(post));
@@ -162,7 +175,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
         stored(created);
         setDirty(false);
         writeKept(undefined, null);
-        navigate(`/admin/news/${created.id}`, { replace: true });
+        navigate(`${postsBase(pathname)}/${created.id}`, { replace: true });
       },
     },
   });
@@ -378,7 +391,7 @@ function PostForm({ post }: { post?: PostAdmin }) {
           </Link>
         )}
         <span className="flex-1" />
-        <Link to="/admin?tab=news" className="text-sm text-muted hover:underline" data-testid="admin-post-back-link">
+        <Link to={postsHome(pathname)} className="text-sm text-muted hover:underline" data-testid="admin-post-back-link">
           {t("page.backButton")}
         </Link>
         {post && <DeleteButton postId={post.id} />}
@@ -518,12 +531,13 @@ function Preview({ draft, onBack }: { draft: Draft; onBack: () => void }) {
 function DeleteButton({ postId }: { postId: number }) {
   const { t } = useTranslation("admin");
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const invalidate = useInvalidate();
   const remove = useDeletePost({
     mutation: {
       onSuccess: () => {
         invalidate(...POST_PATHS);
-        navigate("/admin?tab=news");
+        navigate(postsHome(pathname));
       },
     },
   });

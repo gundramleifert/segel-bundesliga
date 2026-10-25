@@ -7,7 +7,7 @@
     "series": "Series",
     "events": "Events",
     "clubs": "Clubs",
-    "admin": "Admin",
+    "office": "League office",
     "menu": "Menu",
     "label": "Main navigation",
     "mySpace": "My space"
@@ -73,7 +73,7 @@
     "legalNotice": "Legal notice",
     "privacy": "Privacy",
     "signIn": "Sign in",
-    "admin": "Administration",
+    "office": "League office",
     "needs": "{count, plural, one {# thing needs you} other {# things need you}}"
   },
   "pager": {

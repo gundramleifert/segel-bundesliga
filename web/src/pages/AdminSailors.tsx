@@ -54,7 +54,7 @@ function Sailors() {
     <Section
       title={t("sailors.title")}
       testId="admin-sailors-section"
-      action={<AddButton label={t("sailors.newButton")} to="/admin/sailors/new" testId="admin-sailors-new-button" />}
+      action={<AddButton label={t("sailors.newButton")} to="/office/sailors/new" testId="admin-sailors-new-button" />}
     >
       <Field label={t("sailors.searchLabel")} hint={t("sailors.searchHint")}>
         <input

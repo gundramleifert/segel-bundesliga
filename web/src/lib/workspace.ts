@@ -538,62 +538,80 @@ export const LEGACY_TAB_SECTION = {
   event: Record<string, Section<"event">>;
 };
 
-// ---------------------------------------------------------------- administration
+// ---------------------------------------------------------------- the league office
 
-/** The areas of the administration. Also the values `?tab=` accepts — an unknown one falls
- *  back to the first tab rather than erroring (Story A-11). */
-export type AdminTab = "clubs" | "series" | "events" | "sailors" | "news" | "media" | "accounts";
+/** A section of the league office — `Section<"office">`. */
+export type OfficeSection = Section<"office">;
 
 export type HasRole = (...roles: Role[]) => boolean;
 
-/** The summary roles the administration has something for (Story A-12). Read by the
- *  account menu (whether to offer the link), by the administration's own guard (whether to
- *  let someone in) and by the help's places: copies would drift, and a link that ends in a
- *  403 is worse than no link. */
-export const ADMIN_ROLES: readonly Role[] = [
-  Role.admin,
-  Role.editor,
-  Role.race_officer,
-  Role.series_manager,
-  Role.event_manager,
-  Role.team_manager,
-  Role.jury,
-];
+/** `/office/<area>/new` — each reached from the "＋" of its section and leading back to
+ *  it; there for someone who has that section (Story A-11, issue #32). */
+export const OFFICE_NEW_PAGES = {
+  clubs: "clubs",
+  series: "series",
+  events: "events",
+  sailors: "sailors",
+  news: "news",
+} as const satisfies Record<string, OfficeSection>;
 
-/** The administration's tabs this person has, in the order the work happens (Story A-11).
- *  The admin sees every area; a series' organizer its series and events; the organizer,
- *  race committee or jury of an event — or of the club hosting it — the events tab; editorial *News* and *Media* and nothing else — it
- *  writes, it does not organize (Stories R-1, R-2, decided 2026-10-24). A tab a role may
- *  not use does not exist for it, and nobody outside `ADMIN_ROLES` has any. */
-export function adminTabs(hasRole: HasRole): AdminTab[] {
-  if (hasRole(Role.admin)) return ["clubs", "series", "events", "sailors", "news", "media", "accounts"];
-  const tabs: AdminTab[] = [];
-  if (hasRole(Role.series_manager)) tabs.push("series");
-  // A club's organizer organizes the events their club hosts — and creates one outside a
-  // series (Story VA-6); the race committee those it runs.
-  if (hasRole(Role.series_manager, Role.event_manager, Role.team_manager, Role.race_officer, Role.jury)) {
-    tabs.push("events");
-  }
-  if (hasRole(Role.editor)) tabs.push("news", "media");
-  return tabs;
+export type OfficeArea = keyof typeof OFFICE_NEW_PAGES;
+
+/** Whether someone holding `office` — the site relations, `office.relations` of
+ *  `GET /api/me/contexts`, empty without one — can use `/office/<area>/new`: its section
+ *  is theirs. */
+export function mayCreateIn(area: OfficeArea, office: readonly string[]): boolean {
+  return office.length > 0 && hasSection("office", OFFICE_NEW_PAGES[area], office);
 }
 
-/** `/admin/<area>/new` — reached from its area's tab, and the series page for the site's
- *  `admin` alone (Stories A-4, A-6: an editor's *Series* tab only explains who creates
- *  one). */
-export const ADMIN_NEW_PAGES = {
-  clubs: { tab: "clubs", adminOnly: false },
-  series: { tab: "series", adminOnly: true },
-  events: { tab: "events", adminOnly: false },
-  sailors: { tab: "sailors", adminOnly: false },
-  news: { tab: "news", adminOnly: false },
-} as const satisfies Record<string, { tab: AdminTab; adminOnly: boolean }>;
+/** Who creates outside the office, by summary role, and where (`/me/<kind>/new`):
+ *
+ * - **an event** — a series' manager its acts, a club's organizer a stand-alone event
+ *   their club hosts (Stories VA-6, A-6);
+ * - **a post** — the editor of a series or an event, about that regatta (Story R-1,
+ *   decided 2026-10-24).
+ *
+ * A summary role only says *somewhere*; which series, host or regatta may be picked is the
+ * server's answer (`GET /api/events/create-options`, the post form's regattas) — the page
+ * only needs to know the door is theirs. They have no office to go back to, so their page
+ * leads back to My space. */
+export const CREATE_OUTSIDE_OFFICE = {
+  events: { roles: [Role.series_manager, Role.team_manager], path: "/me/event/new" },
+  news: { roles: [Role.editor], path: "/me/news/new" },
+} as const satisfies Partial<Record<OfficeArea, { roles: readonly Role[]; path: string }>>;
 
-export type AdminArea = keyof typeof ADMIN_NEW_PAGES;
+/** Whether this person can create in `area` outside the office (`CREATE_OUTSIDE_OFFICE`). */
+export function mayCreateOutside(area: OfficeArea, hasRole: HasRole): boolean {
+  const door = (CREATE_OUTSIDE_OFFICE as Partial<Record<OfficeArea, { roles: readonly Role[] }>>)[area];
+  return Boolean(door && hasRole(...door.roles));
+}
 
-/** Whether this person can use `/admin/<area>/new`: its tab is theirs, and an admin-only
- *  page needs the admin. */
-export function mayCreateIn(area: AdminArea, hasRole: HasRole): boolean {
-  const page = ADMIN_NEW_PAGES[area];
-  return adminTabs(hasRole).includes(page.tab) && (!page.adminOnly || hasRole(Role.admin));
+/** Whether this person can create in `area` at all — from the office, or outside it. */
+export function mayCreate(area: OfficeArea, office: readonly string[], hasRole: HasRole): boolean {
+  return mayCreateIn(area, office) || mayCreateOutside(area, hasRole);
+}
+
+/** Every section the league office declares, overview included. */
+const OFFICE_SECTIONS = OFFICE_GROUPS.flatMap((g) => Object.keys(g.sections));
+
+/** Where an address of the administration before #32 lives now — `/admin` became
+ *  `/office`: `/admin?tab=<section>` → `/office/<section>` (an unknown tab → `/office`),
+ *  `/admin/<area>/new` → `/office/<area>/new`, `/admin/news/:id` → `/office/news/:id`;
+ *  every other query parameter (`sort`, `q`, `page`) kept. `rest` is what followed
+ *  `/admin/`, `search` the query string with or without its `?`. */
+export function officeAddress(rest: string, search: string): string {
+  const params = new URLSearchParams(search);
+  const segments = rest.split("/").filter(Boolean);
+  let path = "/office";
+  if (segments.length === 0) {
+    const tab = params.get("tab");
+    params.delete("tab");
+    if (tab && tab !== "overview" && (OFFICE_SECTIONS as readonly string[]).includes(tab)) path = `/office/${tab}`;
+  } else if (segments.length === 2 && segments[0] in OFFICE_NEW_PAGES && segments[1] === "new") {
+    path = `/office/${segments[0]}/new`;
+  } else if (segments.length === 2 && segments[0] === "news") {
+    path = `/office/news/${segments[1]}`;
+  }
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
 }

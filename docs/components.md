@@ -27,7 +27,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | `LineupPanel.tsx` | `LineupPanel` — a matchday's crew from the squad, with roles (Story V-2) |
 | `Tabs.tsx` | `TabbedView` |
 | `Steps.tsx` | `Steps` — where you are in a short, ordered sequence (Story VA-6) |
-| `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, leading to its `/admin/<area>/new` page |
+| `AddButton.tsx` | `AddButton` — the "＋" top-right of every admin list, leading to its `/office/<area>/new` page |
 | `FinishOrderPad.tsx` | `useFinishOrder`, `FinishChip`, `FinishOrderPad` — a race's result as taps (Stories WL-2, WL-3) |
 | `SquadPanel.tsx` | registering a squad (Story V-1), used by `/admin` and the club's page in my space (`/me/club/:id`) |
 | `Select.tsx` | `Select` — **the** dropdown: a native `<select>` that sets its own colours, sized `field` / `inline` / `row` / `touch`; `oxlint` refuses a bare `<select>` |
@@ -273,14 +273,14 @@ event is not a place to link to. Each step is `${testId}-${n}` with
 
 ```tsx
 <Section title={t("title")} action={
-  <AddButton label={t("newButton")} to="/admin/series/new" testId="admin-series-new-button" />
+  <AddButton label={t("newButton")} to="/office/series/new" testId="admin-series-new-button" />
 }>
   …the list…
 </Section>
 ```
 
-`Section`'s `action` slot sits beside the title. The tab is the list; creating is a page of
-its own — `/admin/<area>/new`, built on `pages/AdminNewPage.tsx` (`NewEntryPage` for the
+`Section`'s `action` slot sits beside the title. The section is the list; creating is a page
+of its own — `/office/<area>/new`, built on `pages/AdminNewPage.tsx` (`NewEntryPage` for the
 access rule, breadcrumb and card; `AfterCreate` for "Back to the list" and "Create
 another"; `CancelButton`). A form embedded above the list put the thing being worked on
 below the fold, asked for input before showing what was already there, and could not be

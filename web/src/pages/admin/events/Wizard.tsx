@@ -29,7 +29,7 @@ type WizardStep = 1 | 2 | 3 | "done";
 
 /** The three steps a new event is created in, in the order the work happens (Story VA-6):
  *  general data, the clubs that enter, the pairing list — on its own page,
- *  `/admin/events/new` (`AdminEventNew`). The event **exists after step 1**
+ *  `/office/events/new` or `/me/event/new` (`AdminEventNew`). The event **exists after step 1**
  *  — the create request is that step's submit — so everything after it works on a saved
  *  event through the same endpoints the manage panel uses, and each later step can be
  *  skipped and finished there. The closing screen says whether the event is ready and

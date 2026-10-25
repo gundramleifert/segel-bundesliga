@@ -558,8 +558,8 @@ BASELINE = HANDBOOK / ".baseline" / "structure.json"
 SCREENSHOTS = ROOT / "web" / "public" / "handbook" / "screenshots"
 APP_TSX = ROOT / "web" / "src" / "App.tsx"
 PLACES_TS = HANDBOOK / "places.ts"
-# One entry of `PLACES` in places.ts: `"club.money": { path: "/me/club/:id", tab: "money" },`
-PLACE_ENTRY = re.compile(r'^\s*"(?P<id>[a-z0-9.-]+)":\s*\{\s*path:\s*"(?P<path>[^"]+)"(?:,\s*tab:\s*"(?P<tab>[^"]+)")?', re.M)
+# One entry of `PLACES` in places.ts: `"club.money": { path: "/me/club/:id", section: "decide-claims" },`
+PLACE_ENTRY = re.compile(r'^\s*"(?P<id>[a-z0-9.-]+)":\s*\{\s*path:\s*"(?P<path>[^"]+)"(?:,\s*section:\s*"(?P<section>[^"]+)")?', re.M)
 PLACE_LINK = "place:"
 PAGE_FILE = re.compile(r"^(?P<id>[a-z0-9-]+)\.(?P<locale>[a-z]{2})\.md$")
 FRONTMATTER = re.compile(r"\A---\n(?P<meta>.*?)\n---\n(?P<body>.*)\Z", re.S)
@@ -817,9 +817,10 @@ def _check_journey_page(page: Page, journey: Journey) -> list[str]:
 
 
 class PlaceRoute(NamedTuple):
-    """Where a place of places.ts leads: the route as App.tsx writes it, and its `?tab=`."""
+    """Where a place of places.ts leads: the route as App.tsx writes it, and its section —
+    the path segment after it (`/office` + `clubs` is `/office/clubs`, Story Z-10)."""
     path: str
-    tab: str | None
+    section: str | None
 
 
 def handbook_places() -> dict[str, PlaceRoute]:
@@ -829,14 +830,15 @@ def handbook_places() -> dict[str, PlaceRoute]:
         return {}
     text = PLACES_TS.read_text(encoding="utf-8")
     table = re.search(r"export const PLACES = \{(.*?)\n\}", text, re.S)
-    return {m["id"]: PlaceRoute(m["path"], m["tab"]) for m in PLACE_ENTRY.finditer(table.group(1) if table else "")}
+    return {m["id"]: PlaceRoute(m["path"], m["section"]) for m in PLACE_ENTRY.finditer(table.group(1) if table else "")}
 
 
 def _covering_places(target: str, places: dict[str, PlaceRoute]) -> list[str]:
-    """The places a raw link's address is one of — those with its `?tab=` first, if any."""
+    """The places a raw link's address is one of — the place of its very section first
+    (`/office/clubs` is `admin.clubs`), else every place on its route."""
+    exact = sorted(pid for pid, place in places.items()
+                   if place.section and _matches_route(target, [f"{place.path}/{place.section}"]))
     on_path = sorted(pid for pid, place in places.items() if _matches_route(target, [place.path]))
-    tab = re.search(r"[?&]tab=([\w-]+)", target)
-    exact = [pid for pid in on_path if places[pid].tab == (tab[1] if tab else None)]
     return exact or on_path
 
 

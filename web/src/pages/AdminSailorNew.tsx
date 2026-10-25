@@ -8,7 +8,7 @@ import { Field, Message } from "../components/Form";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { AfterCreate, CancelButton, NewEntryPage } from "./AdminNewPage";
 
-/** `/admin/sailors/new` — Story V-4: the person, independent of any club or competition.
+/** `/office/sailors/new` — Story V-4: the person, independent of any club or competition.
  *  Club membership and squads are separate steps on the club screen. */
 export function AdminSailorNew() {
   const { t } = useTranslation("admin");
@@ -30,7 +30,7 @@ export function AdminSailorNew() {
   };
 
   return (
-    <NewEntryPage title={t("sailors.newButton")} testId="admin-sailors-new">
+    <NewEntryPage title={t("sailors.newButton")} area="sailors" testId="admin-sailors-new">
       {!create.isSuccess && (
         <form
           data-testid="admin-sailors-create-form"
@@ -79,7 +79,7 @@ export function AdminSailorNew() {
             >
               {create.isPending ? t("sailors.creatingButton") : t("sailors.createButton")}
             </Button>
-            <CancelButton tab="sailors" testId="admin-sailors-cancel-button" />
+            <CancelButton section="sailors" testId="admin-sailors-cancel-button" />
           </div>
         </form>
       )}
@@ -92,7 +92,7 @@ export function AdminSailorNew() {
             : null
         }
       />
-      {create.isSuccess && <AfterCreate tab="sailors" onAnother={reset} testIdPrefix="admin-sailors" />}
+      {create.isSuccess && <AfterCreate section="sailors" onAnother={reset} testIdPrefix="admin-sailors" />}
     </NewEntryPage>
   );
 }

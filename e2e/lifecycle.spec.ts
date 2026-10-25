@@ -4,7 +4,7 @@ import type { Page, TestInfo } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
 
-import { expectNoSidewaysScroll, openSection, openSwitcher, openUserMenu } from "./layout";
+import { expectNoSidewaysScroll, listedSections, openSection, openSwitcher, openUserMenu } from "./layout";
 import { bearer, managedClub, signIn } from "./session";
 
 /** Story VA-9: running an event, in a real browser.
@@ -33,48 +33,49 @@ function uniqueTitle(prefix: string): string {
   return `${prefix} ${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
-type AdminTab = "clubs" | "series" | "events" | "sailors" | "accounts";
+type OfficeSection = "clubs" | "series" | "events" | "sailors" | "accounts";
 
-/** The element that proves a tab's panel has finished loading, per tab (Story A-11).
+/** The element that proves a section of the league office has finished loading, per
+ *  section (Story A-11).
  *
- *  One per tab because only the selected panel is mounted now: waiting for the clubs list
- *  while the events tab is open waits forever, and waiting for nothing at all is the race
- *  described on `openAdmin`. Deliberately a list or a populated <select> rather than a
+ *  One per section because only the open one is mounted: waiting for the clubs list while
+ *  the events section is open waits forever, and waiting for nothing at all is the race
+ *  described on `openOffice`. Deliberately a list or a populated <select> rather than a
  *  heading — a heading renders before its query answers, so it proves nothing. */
-const TAB_READY: Record<AdminTab, string> = {
+const SECTION_READY: Record<OfficeSection, string> = {
   clubs: "admin-clubs-list",
   series: "admin-series-list",
-  // The tab is the list and the wizard is its own page behind the "＋" top-right, so the
-  // button is the tab's own ready signal; `createEvent` waits for the wizard's catalog select.
+  // The section is the list and the wizard is its own page behind the "＋" top-right, so
+  // the button is the section's own ready signal; `createEvent` waits for the wizard's catalog select.
   events: "admin-events-new-button",
   sailors: "admin-sailors-table",
   accounts: "admin-accounts-table",
 };
 
-/** Opens one tab of the admin page and waits until its data has actually arrived.
+/** Opens one section of the league office and waits until its data has actually arrived.
  *
- *  Not ceremony: filling a form the instant `/admin` responds submits while the page's own
+ *  Not ceremony: filling a form the instant `/office` responds submits while the page's own
  *  queries are still in flight, and the list then renders the pre-submit response — a state
  *  no person reaches, because nobody types faster than the first paint. Waiting for the
  *  lists makes the test do what a user does. (Once the list has loaded, a create *is*
  *  reflected immediately — verified separately.)
  *
- *  The tab goes in the URL rather than being clicked: `?tab=` is part of the contract
- *  (Story A-11), so navigating straight to it exercises the deep link every time this
- *  helper is used, and a test about creating an event does not spend its first assertion
- *  on the tab strip. The strip itself is covered by its own test. */
-async function openAdmin(
+ *  The section goes in the URL rather than being clicked: `/office/<section>` is part of
+ *  the contract (Story A-11), so navigating straight to it exercises the deep link every
+ *  time this helper is used, and a test about creating an event does not spend its first
+ *  assertion on the sidebar. The sidebar itself is covered by its own test. */
+async function openOffice(
   page: Page,
   testInfo: TestInfo,
-  tab: AdminTab = "events",
+  section: OfficeSection = "events",
 ): Promise<void> {
-  await page.goto(`/admin?tab=${tab}`);
-  await expect(page.getByTestId(`admin-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByTestId(TAB_READY[tab])).toBeVisible();
-  if (tab === "events") {
+  await page.goto(`/office/${section}`);
+  await expect(page.getByTestId(`workspace-content-office-${section}`)).toBeVisible();
+  await expect(page.getByTestId(SECTION_READY[section])).toBeVisible();
+  if (section === "events") {
     await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
   }
-  // Story A-10: the admin page was unusable on a phone because it was too wide, and the
+  // Story A-10: the admin screens were unusable on a phone because too wide, and the
   // symptom was clicks landing on the wrong element rather than anything visibly broken.
   await expectNoSidewaysScroll(page, testInfo);
 }
@@ -109,7 +110,7 @@ async function createEvent(
   // test is already on it, which is the case right after "Create another event".
   if (!(await page.getByTestId("admin-events-title-input").isVisible())) {
     await page.getByTestId("admin-events-new-button").click();
-    await expect(page).toHaveURL(/\/admin\/events\/new$/);
+    await expect(page).toHaveURL(/\/office\/events\/new$/);
   }
   // The catalog select is the "form is ready" signal: the create button cannot be used
   // as one, because it is also disabled while the title is empty.
@@ -132,10 +133,10 @@ async function skipToTheEnd(page: Page): Promise<void> {
   await expect(page.getByTestId("admin-events-ready")).toBeVisible();
 }
 
-/** From the wizard's closing screen back to the events tab, where the manage list is. */
+/** From the wizard's closing screen back to the office's events, where the manage list is. */
 async function backToTheList(page: Page): Promise<void> {
   await page.getByTestId("admin-events-back-button").click();
-  await expect(page).toHaveURL(/\/admin\?tab=events$/);
+  await expect(page).toHaveURL(/\/office\/events$/);
   await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
 }
 
@@ -144,12 +145,12 @@ describeStory("VA-6: creating an event in three steps", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Stepwise Cup");
 
-    await openAdmin(page, testInfo);
+    await openOffice(page, testInfo);
     // The tab is the list; creating is a page of its own, reached from the "＋" top-right,
     // so no form is on the tab itself.
     await expect(page.getByTestId("admin-events-title-input")).toHaveCount(0);
     await page.getByTestId("admin-events-new-button").click();
-    await expect(page).toHaveURL(/\/admin\/events\/new$/);
+    await expect(page).toHaveURL(/\/office\/events\/new$/);
     // Before anything is typed: step 1 is current and the others are ahead.
     await expect(page.getByTestId("admin-events-steps-1")).toHaveAttribute("data-state", "current");
     // The wizard's boat table is the widest thing in the admin area; the page must still
@@ -207,7 +208,7 @@ describeStory("VA-8: from a draft to a running event", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Draft Cup");
 
-    await openAdmin(page, testInfo);
+    await openOffice(page, testInfo);
     // Deliberately nothing else: no date, no series, no host. This is the normal early
     // state of an event, and the create button has to be enabled for it.
     await createEvent(page, title);
@@ -245,7 +246,7 @@ describeStory("VA-8: from a draft to a running event", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Dateless Cup");
 
-    await openAdmin(page, testInfo);
+    await openOffice(page, testInfo);
     await createEvent(page, title);
     await skipToTheEnd(page);
     await backToTheList(page);
@@ -280,7 +281,7 @@ describeStory("VA-8: from a draft to a running event", () => {
     await signIn(page, ADMIN);
     const standalone = uniqueTitle("E2E Open Regatta");
 
-    await openAdmin(page, testInfo);
+    await openOffice(page, testInfo);
     await createEvent(page, standalone);
     // No series, so every club in the database is a candidate and none is entered yet.
     // That is the case that makes this site a service to clubs outside the association's
@@ -319,7 +320,7 @@ describeStory("VA-8: from a draft to a running event", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Ready Act");
 
-    await openAdmin(page, testInfo);
+    await openOffice(page, testInfo);
     // This series has the league's own 18 clubs, so the default 18/6/16 setup and its
     // registrations agree with each other from the start.
     await createEvent(page, title, { series: LEAGUE_SERIES, startsOn: "2027-06-12" });
@@ -383,7 +384,7 @@ describeStory("VA-10: closing an event, and taking it back", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Closing Act");
 
-    await openAdmin(page, testInfo);
+    await openOffice(page, testInfo);
     await createEvent(page, title, { series: LEAGUE_SERIES, startsOn: "2027-07-03" });
     await page.getByTestId("admin-events-clubs-next-button").click();
     await page.getByTestId("admin-events-draw-button").click();
@@ -425,7 +426,7 @@ describeStory("VA-10: closing an event, and taking it back", () => {
     await signIn(page, ADMIN);
     const title = uniqueTitle("E2E Called Off");
 
-    await openAdmin(page, testInfo);
+    await openOffice(page, testInfo);
     await createEvent(page, title);
     await skipToTheEnd(page);
     await backToTheList(page);
@@ -445,63 +446,96 @@ describeStory("VA-10: closing an event, and taking it back", () => {
   });
 });
 
-describeStory("A-11: the admin screen is organized in tabs", () => {
-  test("the tab is in the URL, survives a reload, and mounts only its own area", async ({
+describeStory("A-11/Z-10: the league office, a section per area", () => {
+  test("the section is in the URL, survives a reload, and mounts only its own area", async ({
     page,
   }, testInfo) => {
     await signIn(page, ADMIN);
-    await openAdmin(page, testInfo, "clubs");
+    await openOffice(page, testInfo, "clubs");
 
-    // The point of the split: the other four areas are not on the page at all. This is
-    // also what makes it cheap — an unmounted panel issues none of its queries.
+    // The point of the split: the other areas are not on the page at all. This is also
+    // what makes it cheap — an unmounted panel issues none of its queries.
     await expect(page.getByTestId("admin-manage-events-list")).toHaveCount(0);
     await expect(page.getByTestId("admin-sailors-table")).toHaveCount(0);
 
-    // Clicking a tab is a navigation, so the URL follows...
-    await page.getByTestId("admin-events-tab").click();
-    await expect(page).toHaveURL(/[?&]tab=events/);
+    // Opening a section is a navigation, so the URL follows...
+    await openSection(page, "office", "events");
+    await expect(page).toHaveURL(/\/office\/events$/);
     await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
     await expect(page.getByTestId("admin-clubs-list")).toHaveCount(0);
 
-    // ...which means Back steps between tabs rather than leaving the screen.
+    // ...which means Back steps between sections rather than leaving the screen.
     await page.goBack();
     await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
 
-    // A reload comes back to the same tab. Without the URL it would come back to the
-    // first one, which is the thing that makes tabbed admin screens annoying.
+    // A reload comes back to the same section.
     await page.goForward();
     await page.reload();
     await expect(page.getByTestId("admin-manage-events-list")).toBeVisible();
 
-    // An unknown tab opens the first one instead of erroring.
-    await page.goto("/admin?tab=nonsense");
-    await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
+    // The site's admin has every section the office has built, in the order of the work.
+    expect(await listedSections(page, "office")).toEqual([
+      "overview",
+      "clubs",
+      "series",
+      "events",
+      "sailors",
+      "accounts",
+      "news",
+      "media",
+    ]);
 
-    // Five tabs do not fit across a phone; the strip scrolls inside its own box rather
-    // than widening the page (Story A-10 is what happens when it does not).
-    await expect(page.getByTestId("admin-tabs")).toBeVisible();
+    // An unknown section opens the office's overview instead of erroring.
+    await page.goto("/office/nonsense");
+    await expect(page).toHaveURL(/\/office$/);
+    await expect(page.getByTestId("workspace-content-office-overview")).toBeVisible();
     await expectNoSidewaysScroll(page, testInfo);
   });
-});
 
-describeStory("A-6: a series' manager edits their series in the admin screen", () => {
-  test("the series tab lists only their series, editable, without creating one", async ({ page }, testInfo) => {
-    // The seed's series manager: the 2. Liga 2026 and the 1. Liga's 2027 draft.
+  test("the old /admin addresses redirect to the office, query and all", async ({ page }) => {
+    await signIn(page, ADMIN);
+    await page.goto("/admin?tab=clubs");
+    await expect(page).toHaveURL(/\/office\/clubs$/);
+    await expect(page.getByTestId("admin-clubs-list")).toBeVisible();
+
+    await page.goto("/admin?tab=sailors&sort=-last_name");
+    await expect(page).toHaveURL(/\/office\/sailors\?sort=-last_name$/);
+    await expect(page.getByTestId("admin-sailors-table")).toBeVisible();
+
+    await page.goto("/admin?tab=nonsense");
+    await expect(page).toHaveURL(/\/office$/);
+
+    await page.goto("/admin/clubs/new");
+    await expect(page).toHaveURL(/\/office\/clubs\/new$/);
+    await expect(page.getByTestId("admin-clubs-name-input")).toBeVisible();
+
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/office$/);
+    await openUserMenu(page);
+    await expect(page.getByTestId("layout-user-menu-office")).toBeVisible();
+  });
+
+  test("the site editor's office holds News and Media, and nothing else", async ({ page }) => {
+    await signIn(page, "redaktion@sbl.example.com");
+    await page.goto("/office");
+    expect(await listedSections(page, "office")).toEqual(["overview", "news", "media"]);
+    // A section that is not theirs does not exist: its address opens the overview.
+    await page.goto("/office/clubs");
+    await expect(page).toHaveURL(/\/office$/);
+    await expect(page.getByTestId("admin-clubs-list")).toHaveCount(0);
+    await page.goto("/office/clubs/new");
+    await expect(page.getByTestId("admin-access-error")).toBeVisible();
+  });
+
+  test("a series' manager has no office — their series is organized in its own context", async ({ page }) => {
+    // The seed's series manager: the 2. Liga 2026 and the 1. Liga's 2027 draft. Until #32
+    // they had /admin's Series and Events tabs; that work is in the series' context now.
     await signIn(page, "serie@sbl.example.com");
-    await openAdmin(page, testInfo, "series");
-
-    const list = page.getByTestId("admin-series-list");
-    await expect(list).toBeVisible();
-    await expect(page.getByTestId("admin-series-new-button")).toHaveCount(0);
-    await expect(list.locator(":scope > li")).toHaveCount(2);
-
-    const row = list.locator(":scope > li", { hasText: "2. Segel-Bundesliga 2026" });
-    const id = (await row.getAttribute("data-testid"))!.replace("admin-series-row-", "");
-    await page.getByTestId(`admin-series-edit-button-${id}`).click();
-    const text = `Notes from the series manager ${testInfo.project.name} ${Date.now()}`;
-    await page.getByTestId(`admin-series-description-input-${id}`).fill(text);
-    await page.getByTestId(`admin-series-save-description-button-${id}`).click();
-    await expect(page.getByTestId(`admin-series-description-saved-${id}`)).toBeVisible();
+    await page.goto("/office/series");
+    await expect(page.getByTestId("office-not-found")).toBeVisible();
+    await openUserMenu(page);
+    await expect(page.getByTestId("layout-user-menu-mySpace")).toBeVisible();
+    await expect(page.getByTestId("layout-user-menu-office")).toHaveCount(0);
   });
 });
 
@@ -510,7 +544,7 @@ describeStory("A-13: every long list pages, sorts and searches — in the URL", 
     page,
   }, testInfo) => {
     await signIn(page, ADMIN);
-    await openAdmin(page, testInfo, "sailors");
+    await openOffice(page, testInfo, "sailors");
 
     const table = page.getByTestId("admin-sailors-table");
     // The name cell, not the whole row: the row also carries the email and the number of
@@ -555,7 +589,7 @@ describeStory("A-13: every long list pages, sorts and searches — in the URL", 
     await expect(firstName()).toContainText(someone);
 
     // A deep link carries all three at once — the state this story exists for.
-    await page.goto(`/admin?tab=sailors&sort=-last_name&q=${encodeURIComponent(someone)}`);
+    await page.goto(`/office/sailors?sort=-last_name&q=${encodeURIComponent(someone)}`);
     await expect(page.getByTestId("admin-sailors-search-input")).toHaveValue(someone);
     await expect(firstName()).toContainText(someone);
 
@@ -575,7 +609,7 @@ describeStory("Z-2: access is a relation tuple, written and deleted one at a tim
     const guest = (await listed.json()).items[0] as { id: number; tuples: unknown[] };
     expect(guest.tuples).toHaveLength(0);
 
-    await openAdmin(page, testInfo, "accounts");
+    await openOffice(page, testInfo, "accounts");
     await page.getByTestId("admin-accounts-search-input").fill("gast@sbl.example.com");
     const tuples = page.getByTestId(`admin-accounts-tuples-${guest.id}`);
     await expect(tuples).toBeVisible();
@@ -699,20 +733,19 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     await expectNoSidewaysScroll(page, testInfo);
   });
 
-  test("the administration opens on the events their club hosts, and nothing else", async ({
-    page,
-  }) => {
-    // Story VA-6 (decided 2026-10-24): a club's organizer organizes the events their club
-    // hosts and creates one outside a series — in the events tab, the only one theirs.
-    // The squad stays on the club's page in my space.
+  test("creates an event their club hosts in My space, without an office", async ({ page }) => {
+    // Story VA-6 (decided 2026-10-24): a club's organizer creates an event their club
+    // hosts outside a series. Since #32 (Story A-11) that is /me/event/new — they have no
+    // league office, and the office's address passes them on.
     await signIn(page, await aTeamManager(page));
-    await page.goto("/admin");
-    await expect(page.getByTestId("admin-events-tab")).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("admin-clubs-tab")).toHaveCount(0);
-    await expect(page.getByTestId("admin-accounts-tab")).toHaveCount(0);
-    await expect(page.getByTestId("admin-events-new-button")).toBeVisible();
+    await page.goto("/office/events/new");
+    await expect(page).toHaveURL(/\/me\/event\/new$/);
+    await expect(page.getByTestId("admin-events-title-input")).toBeVisible();
+    await expect(page.getByTestId("admin-events-catalog-select")).toBeVisible();
+    await page.goto("/office");
+    await expect(page.getByTestId("office-not-found")).toBeVisible();
     await openUserMenu(page);
-    await expect(page.getByTestId("layout-user-menu-admin")).toBeVisible();
+    await expect(page.getByTestId("layout-user-menu-office")).toHaveCount(0);
   });
 });
 
@@ -721,10 +754,10 @@ describeStory("A-1/V-3: clubs and their crests", () => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Sailing Club");
 
-    await openAdmin(page, testInfo, "clubs");
+    await openOffice(page, testInfo, "clubs");
     // Creating is its own page, reached from the "＋" top-right of the list.
     await page.getByTestId("admin-clubs-new-button").click();
-    await expect(page).toHaveURL(/\/admin\/clubs\/new$/);
+    await expect(page).toHaveURL(/\/office\/clubs\/new$/);
     await page.getByTestId("admin-clubs-name-input").fill(name);
     // Unique, because the club's URL is built from its abbreviation: a fixed one collides
     // with the club a previous run created and the create fails with a 409.
@@ -735,7 +768,7 @@ describeStory("A-1/V-3: clubs and their crests", () => {
     await expect(page.getByTestId("admin-clubs-create-message-success")).toBeVisible();
     // Back on the tab, the new club is in the list.
     await page.getByTestId("admin-clubs-back-button").click();
-    await expect(page).toHaveURL(/\/admin\?tab=clubs$/);
+    await expect(page).toHaveURL(/\/office\/clubs$/);
     const row = page
       .getByTestId("admin-clubs-list")
       .getByRole("listitem")
@@ -759,17 +792,17 @@ describeStory("VA-8: a series is published the same way", () => {
     await signIn(page, ADMIN);
     const name = uniqueTitle("E2E Trophy");
 
-    await openAdmin(page, testInfo, "series");
+    await openOffice(page, testInfo, "series");
     // Creating is its own page, reached from the "＋" top-right — the same shape as every
     // admin list.
     await page.getByTestId("admin-series-new-button").click();
-    await expect(page).toHaveURL(/\/admin\/series\/new$/);
+    await expect(page).toHaveURL(/\/office\/series\/new$/);
     await page.getByTestId("admin-series-name-input").fill(name);
     await page.getByTestId("admin-series-year-input").fill("2027");
     await page.getByTestId("admin-series-create-button").click();
     await expect(page.getByTestId("admin-series-create-message-success")).toBeVisible();
     await page.getByTestId("admin-series-back-button").click();
-    await expect(page).toHaveURL(/\/admin\?tab=series$/);
+    await expect(page).toHaveURL(/\/office\/series$/);
 
     const row = page
       .getByTestId("admin-series-list")

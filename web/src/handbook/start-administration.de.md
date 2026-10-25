@@ -13,7 +13,7 @@ title: Hilfe für die Geschäftsstelle
 ## Hilfe für die Geschäftsstelle
 
 Sie legen die Vereine an, die Serien eines Jahrgangs und wer in ihnen segelt, und wer was
-darf. Alles liegt unter *Verwaltung*, in Reitern: [*Vereine*](place:admin.clubs),
+darf. Alles liegt im *Ligabüro* (Benutzermenü), je ein Bereich: [*Vereine*](place:admin.clubs),
 [*Serien*](place:admin.series), [*Veranstaltungen*](place:admin.events), [*Segler*](place:admin.sailors), [*News*](place:admin.news), [*Medien*](place:admin.media), [*Konten*](place:admin.accounts). Die Geschäftsstelle hat eine von zwei
 [Rollen](#roles-list) auf der ganzen Seite:
 
@@ -56,4 +56,4 @@ darf. Alles liegt unter *Verwaltung*, in Reitern: [*Vereine*](place:admin.clubs)
 - [Ein neuer Verein startet und führt sich selbst](#journey-club)
 - [Eine Organisation richtet eine Serie ein](#journey-series)
 
-[Verwaltung öffnen](place:admin)
+[Ligabüro öffnen](place:admin)

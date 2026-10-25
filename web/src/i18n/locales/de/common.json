@@ -7,7 +7,7 @@
     "series": "Serien",
     "events": "Veranstaltungen",
     "clubs": "Vereine",
-    "admin": "Verwaltung",
+    "office": "Ligabüro",
     "menu": "Menü",
     "label": "Hauptnavigation",
     "mySpace": "Mein Bereich"
@@ -73,7 +73,7 @@
     "legalNotice": "Impressum",
     "privacy": "Datenschutz",
     "signIn": "Anmelden",
-    "admin": "Verwaltung",
+    "office": "Ligabüro",
     "needs": "{count, plural, one {# Sache wartet auf Sie} other {# Sachen warten auf Sie}}"
   },
   "pager": {

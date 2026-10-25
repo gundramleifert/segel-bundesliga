@@ -12,8 +12,8 @@ title: News, Pressemitteilungen und Bilder
 
 ## News, Pressemitteilungen und Bilder
 
-Für die *Redaktion* und die *Verwaltung* der Seite: die Reiter [*News*](place:admin.news) und
-[*Medien*](place:admin.media) unter *Verwaltung*. Sonst schreibt hier niemand.
+Für die *Redaktion* und die *Verwaltung* der Seite: die Bereiche [*News*](place:admin.news) und
+[*Medien*](place:admin.media) im *Ligabüro*. Sonst schreibt hier niemand.
 
 ### Bilder von einem Fotografen {#news-and-press-pictures}
 

@@ -8,7 +8,7 @@ import { Field, Message } from "../components/Form";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { AfterCreate, CancelButton, NewEntryPage } from "./AdminNewPage";
 
-/** `/admin/clubs/new` — Story A-1: a club is master data and exists before it competes
+/** `/office/clubs/new` — Story A-1: a club is master data and exists before it competes
  *  (A-7), so this asks for the name, the abbreviation the URL is built from, and the city. */
 export function AdminClubNew() {
   const { t } = useTranslation("admin");
@@ -28,7 +28,7 @@ export function AdminClubNew() {
   };
 
   return (
-    <NewEntryPage title={t("clubs.newButton")} testId="admin-clubs-new">
+    <NewEntryPage title={t("clubs.newButton")} area="clubs" testId="admin-clubs-new">
       {!create.isSuccess && (
         <form
           data-testid="admin-clubs-create-form"
@@ -81,7 +81,7 @@ export function AdminClubNew() {
             >
               {create.isPending ? t("clubs.creatingButton") : t("clubs.createButton")}
             </Button>
-            <CancelButton tab="clubs" testId="admin-clubs-cancel-button" />
+            <CancelButton section="clubs" testId="admin-clubs-cancel-button" />
           </div>
         </form>
       )}
@@ -90,7 +90,7 @@ export function AdminClubNew() {
         error={create.isError ? errorText(create.error) : null}
         success={create.isSuccess ? t("clubs.createdMessage", { name: create.data?.name }) : null}
       />
-      {create.isSuccess && <AfterCreate tab="clubs" onAnother={reset} testIdPrefix="admin-clubs" />}
+      {create.isSuccess && <AfterCreate section="clubs" onAnother={reset} testIdPrefix="admin-clubs" />}
     </NewEntryPage>
   );
 }

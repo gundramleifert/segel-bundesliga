@@ -12,10 +12,10 @@ title: Accounts and who may do what
 
 ## Accounts and who may do what
 
-*Administration* is in tabs; a role sees only the tabs it may use. *Accounts* is the
-site admin's alone.
+The *League office* has a section per area; a role sees only the sections it may use.
+*Accounts* is the site admin's alone.
 
-![The Administration tabs, in the order a season is set up](shot:help-admin-tabs)
+![The league office's sections, in the order a season is set up](shot:help-admin-tabs)
 
 ### Where accounts come from {#admin-accounts-create}
 
@@ -27,7 +27,7 @@ site admin's alone.
 
 ### Grant access {#admin-accounts-grant}
 
-1. [Tab *Accounts*](place:admin.accounts): search the person by name or email.
+1. [*Accounts*](place:admin.accounts): search the person by name or email.
 2. *Access* column: *＋ Grant access*.
 3. *On* (*Whole site*, *One club*, *One series*, *One event*), *As*, *Which*.
 4. *Grant*. The new line shows the role and where it is held.
@@ -60,4 +60,4 @@ site admin's alone.
 | Address | holds page, sort and search: a reload keeps them; a sent link shows exactly this list |
 | *Clubs*, *Series* | every row at once, without a search |
 
-[Open Administration](place:admin.accounts)
+[Open the league office](place:admin.accounts)

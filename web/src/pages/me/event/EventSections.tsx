@@ -32,7 +32,7 @@ import type { WorkspaceSection } from "../Workspace";
  *  *Set up* and *Race day* (`docs/PLAN_NAVIGATION.md` §3).
  *
  * **The blocks are the administration's, not copies.** Each section is assembled from the
- * blocks the event panel of `/admin?tab=events` is made of (`admin/events/EventPanel.tsx`),
+ * blocks the office's event panel (`/office/events`) is made of (`admin/events/EventPanel.tsx`),
  * with their test ids, so the two screens cannot drift apart while both exist. Who sees a
  * section is the declaration's business (`lib/workspace.ts`); the server asks the model
  * again on every request.

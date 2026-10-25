@@ -67,8 +67,8 @@ confirmed — signing in with a code once does that.
 ### Language and light or dark {#account-look}
 
 Before you sign in, the top row holds the language and *Sign in*. Afterwards your account
-button opens *Account and settings*: *My space*, *My profile*, *Administration* if your
-role uses it, *Help* (*Help for this page* where the page has its own) and *Language*.
+button opens *Account and settings*: *My space*, *My profile*, *League office* if you
+hold a role on the whole site, *Help* (*Help for this page* where the page has its own) and *Language*.
 
 ![The account menu of an organizer](shot:help-account-menu)
  In the top row, beside the language or your account button, the sun or

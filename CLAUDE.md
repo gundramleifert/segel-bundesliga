@@ -353,7 +353,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   `app/services/contexts.py`, `web/src/pages/me/`). `GET /api/me/contexts` lists every
   club, series and event a person is part of: a relation held **directly** on it, or
   **sailing** there (a squad → series, a crew → event — no tuple, reported as `sailor`).
-  Site relations are not "mine" — that is `/admin`. What needs the person there comes back
+  Site relations are not "mine" — that is the league office, `/office`. What needs the person there comes back
   as **codes with counts**, worded by the page. Each context page is built from sections
   that declare which relations show them, so a new role or panel is a line in that list,
   never a new screen per role — the screens per role (`/club`, `/reimbursements`) are what

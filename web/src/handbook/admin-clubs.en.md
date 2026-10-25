@@ -17,12 +17,12 @@ editor creates clubs; entering a club in a series is the admin's.
 
 ### Create a club {#admin-clubs-create}
 
-1. [*Administration*, tab *Clubs*](place:admin.clubs): [*New club*](place:admin.new-club) ①.
+1. [*League office* › *Clubs*](place:admin.clubs): [*New club*](place:admin.new-club) ①.
 2. *Name*: at least three characters. *Short name* and *City* are optional; without a
    short name the club uses its name.
 3. *Create*; *Create another* starts the next one.
 
-![The Clubs tab: the clubs, how many are visible this year, and *New club* ①](shot:help-admin-tabs)
+![The Clubs section: the clubs, how many are visible this year, and *New club* ①](shot:help-admin-tabs)
 
 - The club's address is made from the short name, else the name; if another club has it,
   creating is refused — choose another short name. `BYC (BA)` and `BYC (BE)` are two clubs.
@@ -35,7 +35,7 @@ editor creates clubs; entering a club in a series is the admin's.
 
 The series exists ([create a series](#admin-series-create)).
 
-1. [Tab *Series*](place:admin.series): *Edit clubs* on the series.
+1. [*Series*](place:admin.series): *Edit clubs* on the series.
 2. Tick the clubs that take part, untick the others.
 3. *Set … clubs*.
 
@@ -51,4 +51,4 @@ The ticked clubs take part and are entered in the series' events still planned.
 Clubs cannot apply for a series on the site: a club asks the league office, and an
 admin [enters it](#admin-clubs-series). Refusals: [FAQ](#faq-administration).
 
-[Open Administration](place:admin.clubs)
+[Open the league office](place:admin.clubs)

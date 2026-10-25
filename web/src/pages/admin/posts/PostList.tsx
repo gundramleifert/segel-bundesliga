@@ -60,7 +60,7 @@ export function PostsAdmin() {
     <Section
       title={t("posts.title")}
       testId="admin-posts-section"
-      action={<AddButton label={t("posts.newButton")} to="/admin/news/new" testId="admin-posts-new-button" />}
+      action={<AddButton label={t("posts.newButton")} to="/office/news/new" testId="admin-posts-new-button" />}
     >
       <Field label={t("posts.searchLabel")}>
         <input
@@ -123,7 +123,7 @@ function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
           enableSorting: true,
           cell: ({ row }) => (
             <Link
-              to={`/admin/news/${row.original.id}`}
+              to={`/office/news/${row.original.id}`}
               className="font-medium underline-offset-2 hover:underline"
               data-testid={`admin-posts-link-${row.original.id}`}
             >

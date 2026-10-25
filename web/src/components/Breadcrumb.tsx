@@ -16,8 +16,9 @@ import { usePageCrumbs, usePageTitle, type Crumb } from "./breadcrumb";
 const SECTIONS: Record<string, { path: string; key: string }> = {
   events: { path: "/events", key: "events" },
   clubs: { path: "/clubs", key: "clubs" },
-  // `Admin › New event`: the create pages live under /admin and lead back to it.
-  admin: { path: "/admin", key: "admin" },
+  // `League office › New club`: the office's create pages live under /office and lead
+  // back to it (Story A-11); its sections publish their own trail, as all of My space.
+  office: { path: "/office", key: "office" },
   // `My space › Me`: my pages in it lead back to the overview — the crumb replaced a
   // "← My space" link on each of them (Story S-7).
   me: { path: "/me", key: "mySpace" },

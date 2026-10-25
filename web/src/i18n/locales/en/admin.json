@@ -181,8 +181,8 @@
     "newPersonCancel": "Cancel"
   },
   "auth": {
-    "notSignedInError": "You must be signed in to access administration.",
-    "noAccessError": "Administration is reserved for the business office and editorial team."
+    "notSignedInError": "You must be signed in to use the league office.",
+    "noAccessError": "This page belongs to the league office."
   },
   "accounts": {
     "title": "Accounts",
@@ -234,8 +234,6 @@
     "clearPasswordHint": "The person then signs in with a code and sets a new one."
   },
   "page": {
-    "title": "Administration",
-    "tabsLabel": "Area",
     "backButton": "Back to the list",
     "cancelButton": "Cancel",
     "anotherButton": "Create another"

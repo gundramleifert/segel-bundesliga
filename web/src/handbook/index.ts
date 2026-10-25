@@ -242,7 +242,7 @@ export function relatedPages(page: HelpPage, language?: string): HelpPage[] {
  * explain itself — so a public screen never gets a handbook page, even when a page's
  * `route` would match it. `/events/:id` is the case in point: the race committee corrects
  * results there, but it is first the public matchday page every fan reads. */
-const INTERNAL_SCREENS = ["/me/*", "/admin/*", "/account", "/help/*", "/events/:id/race-control"];
+const INTERNAL_SCREENS = ["/me/*", "/office/*", "/account", "/help/*", "/events/:id/race-control"];
 
 /** The help page that explains the screen at `pathname`, or `undefined`.
  *

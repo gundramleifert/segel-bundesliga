@@ -340,7 +340,7 @@ function EntryForm({ item, onClose }: { item: MediaDetail; onClose: () => void }
               {item.used_in.map((post, i) => (
                 <span key={post.id}>
                   {i > 0 && ", "}
-                  <Link to={`/admin/news/${post.id}`} className="text-link underline">
+                  <Link to={`/office/news/${post.id}`} className="text-link underline">
                     {post.title}
                   </Link>
                 </span>
@@ -497,7 +497,7 @@ function BulkBar({ chosen, pageIds, onChoose }: { chosen: Set<number>; pageIds: 
               {keptPosts.map((post, i) => (
                 <span key={post.id}>
                   {i > 0 && ", "}
-                  <Link to={`/admin/news/${post.id}`} className="underline">
+                  <Link to={`/office/news/${post.id}`} className="underline">
                     {post.title}
                   </Link>
                 </span>

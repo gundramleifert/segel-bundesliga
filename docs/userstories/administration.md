@@ -327,14 +327,14 @@ scan of the event.
 
 Club **membership** is the `member` tuple on the club, written by the club's admin (Story Z-5).
 
-Screens: the **Accounts** tab of `/admin` lists each account's tuples — relation, then the
+Screens: the **Accounts** section of the league office (`/office/accounts`) lists each account's tuples — relation, then the
 object — with a delete on each and a "＋" that asks object type, relation and object, in
 that order, offering only what the model defines. Each object carries its own side,
 "People": who holds what on this event, series or club, with add-by-email and remove —
 on the event panel, the opened series row and the club screen's Members tab, for whoever
-is that object's admin. A series' organizer reaches `/admin` with the Series and Events
-tabs, narrowed to their series; an event's organizer or jury with the Events tab alone;
-an editor — of the site, a series or an event — with News and Media alone (A-11).
+is that object's admin. Since #32 the league office is the site's alone (A-11): a
+series', an event's or a club's organizer works in that object's own context, and the
+site's editor has the office's News and Media alone.
 
 Endpoints (FGA's vocabulary): `GET /api/auth/model`, `GET /api/auth/tuples?object=event:3`
 (read), `POST /api/auth/tuples` (write: `{user, relation, object}`, user by email),
@@ -482,46 +482,61 @@ Acceptance criteria:
 
 Tests: `e2e/lifecycle.spec.ts` under the `mobile` project (every test in the file)
 
-### A-11 ● The admin screen in tabs
-**Being replaced by [Z-10](sailor.md#z-10--the-workspace-where-i-am-what-i-can-do-here-what-waits-for-me)** (issue #28): an object's administration
-moves into its own context in My space, and `/admin` becomes `/office`, the league office's
-own work.
+### A-11 ● The league office: the site's own work, by section
+**Rewritten for [Z-10](sailor.md#z-10--the-workspace-where-i-am-what-i-can-do-here-what-waits-for-me)**
+(issue #32, 2026-10-25). Until then this story was *the admin screen in tabs* —
+`/admin?tab=…`, one page holding every object's administration. An object's
+administration now lives in its own context in My space (the event's *Set up* and *Race
+day*, the series' *Organize*, the club's *People*), and what is left is the league
+office's own work: `/office`, a context of the workspace like a club or an event.
 
-As an **organizer**, I want the admin screen **split into tabs by what I am configuring**,
-so that I **reach the one thing I came for instead of scrolling past four other areas**.
-
-`/admin` grew by section: clubs, then series, then events, then sailors, then accounts —
-five independent tools stacked in one column. Each is short on its own; together they are a
-page nobody reads top to bottom, and on a phone the events section — the one used on a
-jetty — is several screens down.
+As **the league office** — the site's `admin`, its editorial, its race committee — I want
+**the site's own work in one context, a section per area**, so that I **reach the one thing
+I came for instead of scrolling past four other areas**, and **nobody else is offered a
+screen that is not theirs**.
 
 Acceptance criteria:
-- Five tabs, in the order the work happens: **Clubs**, **Series**, **Events**, **Sailors**,
-  **Accounts**. That is the same order the sections had, and the order is not alphabetical
-  for a reason: a series needs clubs, an event needs a series.
-- **The tab lives in the URL** (`/admin?tab=events`), so it can be linked, survives a
-  reload, and the browser's back button steps between tabs. An unknown or missing `tab`
-  opens the first tab the signed-in user may see rather than erroring.
-- **A tab a role may not use does not exist for it.** Accounts is `admin` only, exactly as
-  the section was; the site's `admin` sees every tab, a series' manager *Series* and
-  *Events*, an event's manager, race officer or jury *Events*, a club's organizer
-  *Events* — the events their club hosts, and the "＋" to create one (Story VA-6) — and
-  an `editor` — of the site, a series or an event — *News* and *Media* alone (decided
-  2026-10-24). Until 2026-10-24 the site's `editor` also had Clubs, Series, Events and
-  Sailors, and a club's organizer had no tab at all, though the server let them create
-  their club's events — a permission with no screen.
-- **Only the selected tab's panel is mounted.** This is the part that pays for itself: the
-  page used to issue every area's queries on load — clubs, series, events, readiness,
-  sailors, accounts — and now issues one area's.
-- **The tab strip never widens the page.** Five tabs do not fit across 412 px, so the strip
-  scrolls sideways inside its own box. The alternative is the failure Story A-10 documents:
-  a page wider than the viewport, which mobile Chromium answers by zooming everything out.
-- Switching tabs loses no work in progress in the sense that matters: nothing on this
-  screen is a multi-step wizard, and every form is a create-or-save that either happened or
-  did not. A half-typed club name is discarded when the tab changes, and that is acceptable
-  where re-typing costs one line.
+- **`/office/<section>`, drawn by the workspace's frame** (`WorkspaceFrame`): the switcher
+  names *League office*, the sidebar its sections, the breadcrumb joins them. Its sections,
+  in the order the work happens — **Clubs**, **Series**, **Events**, **Sailors**,
+  **Accounts**, **News**, **Media** — and the *Overview* with the office's to-dos. The
+  order is not alphabetical for a reason: a series needs clubs, an event needs a series.
+  *Imports* is declared (`lib/workspace.ts`) and appears once it has a screen — the
+  imports run from the command line today (A-14).
+- **Only with a site relation** (`office` in `GET /api/me/contexts`, the model's answer —
+  never a summary role: `race_officer` as a role means "somewhere", not "the site's").
+  The site's `admin` has every section, a site `editor` *News* and *Media* alone — it
+  writes, it does not organize (Stories R-1, R-2, decided 2026-10-24) — and the site's
+  `race_officer` *Events*, those it runs. A section I do not have does not exist for me;
+  its address opens the office's overview. Someone with no site relation who opens
+  `/office` reads that it is not found.
+- **A series', an event's or a club's organizer has no office.** Until 2026-10-25 they
+  had `/admin`'s *Series* or *Events* tab; that work is now in their own context (Z-10).
+- **Creating is a page of its own per area**, reached from the "＋" of its section and
+  leading back to it: `/office/clubs/new`, `/office/series/new`, `/office/events/new`,
+  `/office/sailors/new`, `/office/news/new` and a post's `/office/news/:id`. Each is the
+  office's when its section is mine.
+- **Creating an event is also an organizer's** (Stories VA-6, A-6): a series' manager adds
+  its acts, a club's organizer a stand-alone event their club hosts. Theirs is
+  **`/me/event/new`** — the same three steps, leading back to My space, because they have
+  no office to return to. `/office/events/new` sends such an organizer there, so a link
+  written for either reaches the page; what may be picked (which series, which host) is
+  the server's answer (`GET /api/events/create-options`), as before.
+- **Writing a post is also a series' or an event's editor's** (R-1): theirs are
+  `/me/news/new` and `/me/news/:id`, the post page leading back to My space, and
+  `/office/news/…` passes them on the same way. The list of their posts belongs to the
+  *News & pictures* section of their series or event (Z-10).
+- **The old addresses redirect**, keeping every other query parameter (`sort`, `q`,
+  `page`): `/admin` → `/office`, `/admin?tab=<section>` → `/office/<section>` (an unknown
+  tab → `/office`), `/admin/<area>/new` → `/office/<area>/new`, `/admin/news/:id` →
+  `/office/news/:id`. They were real addresses — in bookmarks, mails and the handbook.
+- **Only the open section is mounted**, as the tabs were: an area nobody opened issues
+  none of its queries.
+- **The office never widens the page** (A-10): on a phone the sidebar is the bar of two
+  buttons, as everywhere in My space.
 
-Tests: `e2e/lifecycle.spec.ts::A-11: the admin screen is organized in tabs`
+Tests: `e2e/lifecycle.spec.ts::A-11/Z-10: the league office, a section per area`,
+`e2e/editorial.spec.ts`, `web/tests/test_workspace.ts`
 
 ### A-13 ● One list mechanism, and every long list is paged
 
@@ -648,7 +663,8 @@ Acceptance criteria:
   an EN|DE pair, because a third language fits a dropdown and would not fit the pair.
 - **Signed in, the account button opens a menu**, on every device, holding everything
   that is about the *reader* rather than the page: my space (with its badge), Profile,
-  *Administration* for the roles that can use it, Help, and the language. Each of those is
+  *League office* for those with a site relation (Z-10, A-11 — until 2026-10-25
+  *Administration*, offered to every organizer), Help, and the language. Each of those is
   used rarely, and as separate items in the frame they competed with the navigation for
   room — Help was a main nav entry beside Series and Clubs, which is not what someone
   comes to the site for.
@@ -679,8 +695,9 @@ Acceptance criteria:
 - **Sections do not explain themselves.** `Section`'s `hint` is gone with them: a
   paragraph above every admin form describing what the form obviously does is read once
   and skipped forever after.
-- `admin` still appears only for the roles that can use it, because a link that ends in a
-  403 is worse than no link, and *My space* for anyone signed in (Story Z-8 — it replaced
-  "My club" and "Reimbursements").
+- *League office* appears only with a site relation — the `office` of
+  `GET /api/me/contexts`, the same answer the office's own guard reads — because a link
+  that ends in "not found" is worse than no link, and *My space* for anyone signed in
+  (Story Z-8 — it replaced "My club" and "Reimbursements").
 
 Tests: `e2e/visitor.spec.ts::A-12: the account menu and the page's name`

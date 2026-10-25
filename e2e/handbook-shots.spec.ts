@@ -211,7 +211,7 @@ const SHOTS: Shot[] = [
     // Only the site's admin creates through the wizard.
     id: "help-event-wizard",
     as: () => ADMIN,
-    path: () => "/admin/events/new",
+    path: () => "/office/events/new",
     waitFor: () => tid("admin-events-create-form"),
     clip: () => ({ from: tid("admin-events-wizard") }),
     marks: () => [{ target: tid("admin-events-title-input") }, { target: tid("admin-events-create-button") }],
@@ -220,7 +220,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-event-readiness",
     as: () => ADMIN,
-    path: () => "/admin?tab=events",
+    path: () => "/office/events",
     open: async (page, d) => {
       await page.getByTestId(`admin-manage-event-toggle-${d.eventId}`).click();
     },
@@ -240,8 +240,10 @@ const SHOTS: Shot[] = [
   },
   {
     id: "help-event-checkin",
-    as: () => ORGANIZER,
-    path: () => "/admin?tab=events",
+    // The event's manager has no league office since #32; until the check-in is shot in
+    // the event's own context (its Race day), the office's admin shows the same panel.
+    as: () => ADMIN,
+    path: () => "/office/events",
     open: async (page, d) => {
       await page.getByTestId(`admin-manage-event-toggle-${d.eventId}`).click();
     },
@@ -253,7 +255,7 @@ const SHOTS: Shot[] = [
     // The live act's closing block — the league office's admin sees every event.
     id: "help-close-event",
     as: () => ADMIN,
-    path: () => "/admin?tab=events",
+    path: () => "/office/events",
     open: async (page, d) => {
       await page.getByTestId(`admin-manage-event-toggle-${d.liveEventId}`).click();
     },
@@ -333,18 +335,19 @@ const SHOTS: Shot[] = [
     phone: false,
   },
   {
+    // The league office's sidebar and its Clubs section (the id from when it was tabs).
     id: "help-admin-tabs",
     as: () => ADMIN,
-    path: () => "/admin",
+    path: () => "/office/clubs",
     waitFor: () => tid("admin-clubs-list"),
-    clip: () => ({ from: tid("admin-tabs"), to: tid("admin-panel-clubs"), maxHeight: 640 }),
+    clip: () => ({ from: tid("workspace-office"), maxHeight: 640 }),
     marks: () => [{ target: tid("admin-clubs-new-button") }],
     phone: false,
   },
   {
     id: "help-admin-series",
     as: () => ADMIN,
-    path: () => "/admin?tab=series",
+    path: () => "/office/series",
     waitFor: () => tid("admin-series-list"),
     clip: () => ({ from: tid("admin-series-section"), maxHeight: 520 }),
     marks: () => {
@@ -368,7 +371,7 @@ const SHOTS: Shot[] = [
     phone: false,
   },
   {
-    // The organizer's menu: it has *Administration*, a sailor's would not.
+    // The organizer's menu: My space, profile, help — the league office is the site's.
     id: "help-account-menu",
     as: () => ORGANIZER,
     path: () => "/me",
@@ -382,7 +385,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-news-upload-link",
     as: () => EDITOR,
-    path: () => "/admin?tab=media",
+    path: () => "/office/media",
     waitFor: () => tid("admin-import-key-form"),
     clip: () => ({ from: tid("admin-import-key-form"), pad: 16 }),
     marks: () => [
@@ -395,7 +398,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-news-post",
     as: () => EDITOR,
-    path: () => "/admin/news/new",
+    path: () => "/office/news/new",
     waitFor: () => tid("admin-post-form"),
     clip: () => ({ from: tid("admin-post-form"), to: tid("admin-post-preview-button"), pad: 16 }),
     marks: () => [

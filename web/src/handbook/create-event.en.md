@@ -5,7 +5,7 @@ order: 110
 audience: [event-organizer]
 stories: [VA-6, A-2, A-10]
 journey: null
-route: /admin/events/new
+route: /office/events/new
 tags: [new event, matchday, act, boats, colors, wizard, veranstaltung anlegen, spieltag, boote, zuschnitt]
 title: "Create an event"
 ---
@@ -15,12 +15,13 @@ May create one: the league office and its race committee, any event; a series' m
 the acts of their series, with any club as host; a club's manager an event their own
 club hosts outside a series. The form offers only what you may pick — your series, the
 hosts you may name — and *＋ New event* is there only if you may create one. Every
-*Administration* screen works on a phone: a table wider than the screen scrolls sideways,
+screen of the league office and of My space works on a phone: a table wider than the screen scrolls sideways,
 the page itself does not.
 
 ### The three steps {#create-event-wizard}
 
-1. [*Administration*, tab *Events*](place:admin.events): [*＋ New event*](place:admin.new-event).
+1. [*League office* › *Events*](place:admin.events): [*＋ New event*](place:admin.new-event) — as a
+   series' or a club's organizer, *＋ New event* in your series or club in My space.
 2. *General data*: only *Name* ① (three characters or more) is required. *Create Event*
    ② saves a draft nobody else sees.
 3. *Clubs*: tick the entrants, then *Enter … clubs and continue*. In a series only its

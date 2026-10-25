@@ -4,7 +4,7 @@ import { Link, useLocation, type To } from "react-router-dom";
 
 import { useListLeagues } from "../../api/generated/sbl";
 import type { League } from "../../api/types";
-import { mayOpenAdmin, useAccount } from "../../api/useApi";
+import { useAccount } from "../../api/useApi";
 import type { Photo } from "../../content";
 import { href } from "../../lib/site";
 import { ThemeSwitch } from "../ThemeSwitch";
@@ -100,11 +100,7 @@ export function TopBar({
           </ul>
         </nav>
         <ThemeSwitch />
-        <UserMenu
-          account={account}
-          loading={loading}
-          admin={mayOpenAdmin(account)}
-        />
+        <UserMenu account={account} loading={loading} />
       </div>
     </header>
   );

@@ -30,7 +30,7 @@ import { PublicationBadge } from "./PublicationBadge";
  * status, validity is computed rather than stored, and only the first race freezes
  * anything.
  *
- * The tab is the list; creating is its own page, `/admin/events/new`, reached from the
+ * The tab is the list; creating is its own page, `/office/events/new`, reached from the
  * "＋" top-right of it (`AdminEventNew`).
  */
 export function EventsAdmin() {
@@ -59,7 +59,7 @@ export function EventsAdmin() {
       testId="admin-manage-events-section"
       action={
         mayCreate ? (
-          <AddButton label={t("events.wizardTitle")} to="/admin/events/new" testId="admin-events-new-button" />
+          <AddButton label={t("events.wizardTitle")} to="/office/events/new" testId="admin-events-new-button" />
         ) : undefined
       }
     >

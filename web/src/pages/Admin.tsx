@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -17,119 +17,18 @@ import {
   useUpdateSeries,
 } from "../api/generated/sbl";
 import type { ClubAdmin, SeriesAdmin } from "../api/types";
-import { WHOLE_LIST, mayOpenAdmin, useAsyncRows, useInvalidate, useAccount } from "../api/useApi";
-import { ErrorMessage, Loading, Empty, PageHeader } from "../components/Blocks";
-import { TabbedView, type TabDef } from "../components/Tabs";
-import { AccountsAdmin } from "./AdminAccounts";
-import { EventsAdmin } from "./admin/events/EventList";
-import { SailorsAdmin } from "./AdminSailors";
-import { MediaAdmin } from "./admin/media/MediaAdmin";
-import { PostsAdmin } from "./admin/posts/PostList";
+import { WHOLE_LIST, useAsyncRows, useInvalidate } from "../api/useApi";
+import { ErrorMessage, Loading, Empty } from "../components/Blocks";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
-import { adminTabs, mayCreateIn, type AdminTab } from "../lib/workspace";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { AddButton } from "../components/AddButton";
 import { AccessPanel } from "../components/AccessPanel";
 
-/** Stories A-1, A-4, A-6 and A-11: create clubs, create series, schedule events.
- *
- * **One tab per area**, in the order the work happens: clubs, then a series with those
- * clubs, then events for that series, then the people. A series without clubs has no
- * standings and an event without a series counts toward no scoring, which is why the order
- * is this and not alphabetical — the tabs read as the sequence a new season is set up in.
- *
- * They were five stacked sections until Story A-11. Each is short on its own; together
- * they were a page nobody read top to bottom, with the events area — the one used on a
- * jetty — several screens down. Tabs also mean one area's queries load instead of five.
- */
-/** Who may be here: signed in, and one of `ADMIN_ROLES` — or `admin` alone with
- *  `adminOnly`. The same rule for `/admin` and for every `/admin/<area>/new` page
- *  (`AdminNewPage`). Which tabs each of them gets is `adminTabs`. */
-export function AdminAccess({
-  adminOnly = false,
-  children,
-}: {
-  adminOnly?: boolean;
-  children: ReactNode;
-}) {
-  const { t } = useTranslation("admin");
-  const { account, loading, hasRole } = useAccount();
-
-  if (loading) return <Loading testId="admin-loading" />;
-  if (!account) {
-    return (
-      <ErrorMessage text={t("auth.notSignedInError")} testId="admin-auth-error" />
-    );
-  }
-  const allowed = adminOnly ? hasRole("admin") : mayOpenAdmin(account);
-  if (!allowed) {
-    return (
-      <ErrorMessage text={t("auth.noAccessError")} testId="admin-access-error" />
-    );
-  }
-  return <>{children}</>;
-}
-
-export function Admin() {
-  return (
-    <AdminAccess>
-      <AdminTabs />
-    </AdminAccess>
-  );
-}
-
-function AdminTabs() {
-  const { t } = useTranslation("admin");
-  const { hasRole } = useAccount();
-
-  // `render` rather than a node: `TabbedView` mounts only the selected panel, so an area
-  // nobody opened never issues its queries. Building the elements eagerly here would undo
-  // that — they would be created on every render of this component regardless.
-  // The labels are each area's own section title, not a second set of strings: a tab whose
-  // wording drifts from the heading it opens is a translation bug waiting to happen.
-  // Which tabs this person has is `adminTabs` (`lib/workspace.ts`, Story A-11) — declared
-  // there so the help's places link only to a tab that exists for the reader (B-18).
-  const panels: Record<AdminTab, TabDef<AdminTab>> = {
-    clubs: { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
-    series: { key: "series", label: t("series.title"), render: () => (
-        // A series' manager runs its clubs, dates and publication (Story Z-2) — the list
-        // narrows itself to theirs.
-        <SeriesList mayCreate={mayCreateIn("series", hasRole)} />
-      ) },
-    events: { key: "events", label: t("events.title"), render: () => <EventsAdmin /> },
-    sailors: { key: "sailors", label: t("sailors.title"), render: () => <SailorsAdmin /> },
-    news: { key: "news", label: t("posts.title"), render: () => <PostsAdmin /> },
-    media: { key: "media", label: t("media.title"), render: () => <MediaAdmin /> },
-    accounts: { key: "accounts", label: t("accounts.title"), render: () => <AccountsAdmin /> },
-  };
-  const tabs = adminTabs(hasRole).map((key) => panels[key]);
-
-  return (
-    <>
-      <PageHeader
-        title={t("page.title")}
-        testId="admin-header"
-      />
-      {/* `grid-cols-[minmax(0,1fr)]`, not a bare `grid`: an `auto` column is sized by its
-          items' *min-content* width, so a single wide control anywhere in the panel
-          stretches the column past the viewport. The browser then zooms the whole page out
-          to fit (412px of viewport rendered as 754), which is why the admin screens were
-          unusable on a phone (Story A-10). `minmax(0, 1fr)` lets the column be narrower
-          than its content, so overflow stays inside whichever box actually overflows. */}
-      <TabbedView
-        tabs={tabs}
-        param="tab"
-        testIdPrefix="admin"
-        label={t("page.tabsLabel")}
-        className="grid grid-cols-[minmax(0,1fr)]"
-        inHeader
-      />
-    </>
-  );
-}
-
-export type { AdminTab };
+/** Stories A-1, A-4, A-6: the league office's clubs and series sections (Story A-11,
+ *  `/office/<section>`, drawn by `pages/office/Office.tsx`). Until issue #32 this file
+ *  was `/admin`, a page of tabs holding every object's administration; each object's own
+ *  work now lives in its context in My space, and these panels are the office's. */
 
 // ---------------------------------------------------------------------- Clubs
 
@@ -144,7 +43,7 @@ export function Clubs() {
     <Section
       title={t("clubs.title")}
       testId="admin-clubs-section"
-      action={<AddButton label={t("clubs.newButton")} to="/admin/clubs/new" testId="admin-clubs-new-button" />}
+      action={<AddButton label={t("clubs.newButton")} to="/office/clubs/new" testId="admin-clubs-new-button" />}
     >
       {loading && <Loading text={t("clubs.loadingText")} testId="admin-clubs-loading" />}
       {error && <ErrorMessage text={error} testId="admin-clubs-error" />}
@@ -208,7 +107,7 @@ export function SeriesList({ mayCreate }: { mayCreate: boolean }) {
       title={t("series.title")}
       testId="admin-series-section"
       action={
-        mayCreate && <AddButton label={t("series.newButton")} to="/admin/series/new" testId="admin-series-new-button" />
+        mayCreate && <AddButton label={t("series.newButton")} to="/office/series/new" testId="admin-series-new-button" />
       }
     >
       {seriesList.loading && <Loading text={t("series.loadingText")} testId="admin-series-loading" />}

@@ -12,8 +12,8 @@ title: News, press releases and pictures
 
 ## News, press releases and pictures
 
-For the site's *Editor* and *Admin*: the tabs [*News*](place:admin.news) and
-[*Media*](place:admin.media) under *Administration*. Nobody else writes here.
+For the site's *Editor* and *Admin*: the sections [*News*](place:admin.news) and
+[*Media*](place:admin.media) of the *League office*. Nobody else writes here.
 
 ### Pictures from a photographer {#news-and-press-pictures}
 

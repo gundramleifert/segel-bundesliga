@@ -5,7 +5,6 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { useListAllClubs, useListAllEvents, useListAllSeries, useListSailors } from "../../api/generated/sbl";
 import { Relation, type Need } from "../../api/types";
-import { useAccount } from "../../api/useApi";
 import { setPageCrumbs, type Crumb } from "../../components/breadcrumb";
 import { INPUT_CLASS } from "../../lib/admin";
 import { useDisclosure } from "../../lib/useDisclosure";
@@ -261,12 +260,13 @@ const PANEL = "absolute z-50 mt-2 max-h-[70vh] w-[min(20rem,calc(100vw-2rem))] o
  *  from inside another, under Recent. Each with my relations and its waiting count. */
 function Switcher({ current, name }: { current: ContextRef; name: string }) {
   const { t } = useTranslation("space");
-  const { account } = useAccount();
   const { space } = useMySpace();
   const menu = useDisclosure("workspace-switcher-panel");
   const [showPast, setShowPast] = useState(false);
   const data = space.data;
-  const site = (account?.roles ?? []).filter((r) => r === "admin" || r === "editor" || r === "race_officer");
+  // The league office with a site relation only — the model's `office`, never a summary
+  // role: `race_officer` as a role means "on something", not "the site's" (#32).
+  const site = data?.office?.relations ?? [];
   const switcher = data
     ? switcherEntries({ contexts: data.contexts, site, meWaiting: data.me.needs.reduce((s, n) => s + n.count, 0), recent: readRecent(), today: today() })
     : null;

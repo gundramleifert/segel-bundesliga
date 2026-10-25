@@ -12,10 +12,9 @@ import { Loading } from "../components/Blocks";
 import { ClubSelector } from "../components/ClubSelector";
 import { Field, Message } from "../components/Form";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
-import { ADMIN_NEW_PAGES } from "../lib/workspace";
 import { AfterCreate, CancelButton, NewEntryPage } from "./AdminNewPage";
 
-/** `/admin/series/new` — Stories A-4 and A-6: a series and its clubs in one step. Admin
+/** `/office/series/new` — Stories A-4 and A-6: a series and its clubs in one step. Admin
  *  only, like the rest of series management. */
 export function AdminSeriesNew() {
   const { t } = useTranslation("admin");
@@ -45,7 +44,7 @@ export function AdminSeriesNew() {
   };
 
   return (
-    <NewEntryPage title={t("series.newButton")} adminOnly={ADMIN_NEW_PAGES.series.adminOnly} testId="admin-series-new">
+    <NewEntryPage title={t("series.newButton")} area="series" testId="admin-series-new">
       {!create.isSuccess && (
         <form
           data-testid="admin-series-create-form"
@@ -134,7 +133,7 @@ export function AdminSeriesNew() {
             >
               {create.isPending ? t("series.creatingButton") : t("series.createButton")}
             </Button>
-            <CancelButton tab="series" testId="admin-series-cancel-button" />
+            <CancelButton section="series" testId="admin-series-cancel-button" />
           </div>
         </form>
       )}
@@ -147,7 +146,7 @@ export function AdminSeriesNew() {
             : null
         }
       />
-      {create.isSuccess && <AfterCreate tab="series" onAnother={reset} testIdPrefix="admin-series" />}
+      {create.isSuccess && <AfterCreate section="series" onAnother={reset} testIdPrefix="admin-series" />}
     </NewEntryPage>
   );
 }

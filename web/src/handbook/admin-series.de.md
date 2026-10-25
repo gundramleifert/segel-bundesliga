@@ -5,7 +5,7 @@ order: 210
 audience: [administration]
 stories: [A-6, VA-8, A-14]
 journey: null
-route: /admin/series/new
+route: /office/series/new
 tags: [series, serie, year, jahrgang, publish, veröffentlichen, draft, entwurf, squad size, kadergröße]
 title: Eine Serie anlegen und veröffentlichen
 ---
@@ -18,7 +18,7 @@ an.*
 
 ### Eine Serie anlegen {#admin-series-create}
 
-1. [*Verwaltung*, Reiter *Serien*](place:admin.series): [*Neue Serie*](place:admin.new-series) ①.
+1. [*Ligabüro* › *Serien*](place:admin.series): [*Neue Serie*](place:admin.new-series) ①.
 2. *Name*: mindestens drei Zeichen. *Jahrgang*, *Beginn* und *Ende* sind optional.
 3. Die *Teilnehmende Vereine* anhaken; sie sind von Anfang an dabei.
 4. *Serie anlegen*.

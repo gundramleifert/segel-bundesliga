@@ -32,6 +32,7 @@ import { ErrorMessage, LiveBadge, Loading, PageHeader } from "../components/Bloc
 import { FinishOrderPad, useFinishOrder } from "../components/FinishOrderPad";
 import { Stack } from "../components/Layouts";
 import { errorText } from "../lib/admin";
+import { sectionPath } from "../lib/workspace";
 import { clock, countdown, useAlignedNow } from "../lib/useNow";
 import { playSequence } from "../lib/sequenceSound";
 import {
@@ -292,7 +293,8 @@ function EventGate({ event, eventId }: { event: EventSummary; eventId: number })
       <p className="text-foreground" data-testid={`race-control-event-${event.status}`}>
         {event.status === EventStatus.final ? t("event.final") : t("event.cancelled")}
       </p>
-      <Link to="/admin?tab=events" className="underline underline-offset-2">
+      {/* The closed day is reopened, corrected and paid in the event's own context (Z-10). */}
+      <Link to={sectionPath({ kind: "event", id: event.id })} className="underline underline-offset-2">
         {t("event.manageLink")}
       </Link>
     </Stack>

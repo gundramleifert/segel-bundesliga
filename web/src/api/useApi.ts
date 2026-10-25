@@ -6,7 +6,6 @@ import i18n from "../i18n";
 import { getGetEventAccessQueryKey, useGetEventAccess, useMe } from "./generated/sbl";
 import { ApiError } from "./http";
 import { getToken, onTokenChange } from "./session";
-import { ADMIN_ROLES } from "../lib/workspace";
 import type { Account, EventAccess, Role } from "./types";
 
 export interface AsyncState<T> {
@@ -202,8 +201,3 @@ export function useEventAccess(eventId: number): EventAccess & { loading: boolea
   return { ...(query.data ?? NO_ACCESS), loading: query.isPending };
 }
 
-/** Whether this account may open the administration at all — `ADMIN_ROLES`, declared
- *  beside the tabs it opens (`lib/workspace.ts`). */
-export function mayOpenAdmin(account: Account | null): boolean {
-  return Boolean(account && ADMIN_ROLES.some((role) => account.roles.includes(role)));
-}

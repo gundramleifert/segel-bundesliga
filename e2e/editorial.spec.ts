@@ -5,8 +5,8 @@ import { signIn } from "./session";
  *
  * `api/tests/stories/test_posts.py` proves the rules — drafts invisible, the slug kept,
  * the text cleaned, who may write. What only a browser can prove is the walk: the *News*
- * tab, the editor's toolbar making formatted text, publishing, and the article on its
- * league's page showing exactly that formatting.
+ * section of the league office, the editor's toolbar making formatted text, publishing,
+ * and the article on its league's page showing exactly that formatting.
  */
 
 const EDITOR = "redaktion@sbl.example.com";
@@ -17,8 +17,8 @@ describeStory("R-1: editorial writes news and press releases", () => {
     // Each browser project writes its own article: the two can share one stack.
     const title = `Harbour day ${testInfo.project.name} ${Date.now()}`;
     await signIn(page, EDITOR);
-    await page.goto("/admin?tab=news");
-    await expect(page.getByTestId("admin-panel-news")).toBeVisible();
+    await page.goto("/office/news");
+    await expect(page.getByTestId("workspace-content-office-news")).toBeVisible();
     await page.getByTestId("admin-posts-new-button").click();
 
     await page.getByTestId("admin-post-title-input").fill(title);
@@ -39,7 +39,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
     await page.getByTestId("admin-post-save-button").click();
     // The first save makes the post its own page — as a draft.
-    await expect(page).toHaveURL(/\/admin\/news\/\d+$/);
+    await expect(page).toHaveURL(/\/office\/news\/\d+$/);
     await expect(page.getByTestId("admin-post-publish-button")).toBeVisible();
     await expect(page.getByTestId("admin-post-view-link")).toHaveCount(0);
 
@@ -56,7 +56,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
   test("a picture is pasted into the text or dropped onto the cover, a link is Ctrl+K", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     await page.getByTestId("admin-post-title-input").fill("Pictures and links");
     const content = page.getByTestId("admin-post-editor-content");
     await content.click();
@@ -124,7 +124,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
   test("the title is set in the form: a text that starts with it again cannot be saved", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     await page.getByTestId("admin-post-title-input").fill("Harbour day");
     // The editor has a paragraph and one heading — nothing for a title.
     const style = page.getByTestId("admin-post-editor-style");
@@ -144,14 +144,14 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
   test("leaving a post with unsaved changes asks first", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     const back = page.getByTestId("admin-post-back-link");
 
     // Nothing written yet: the link just goes.
     await back.click();
-    await expect(page).toHaveURL(/\/admin\?tab=news/);
+    await expect(page).toHaveURL(/\/office\/news$/);
 
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     await page.getByTestId("admin-post-title-input").fill("Harbour day");
     const asked: string[] = [];
     page.once("dialog", (dialog) => {
@@ -160,17 +160,17 @@ describeStory("R-1: editorial writes news and press releases", () => {
     });
     await back.click();
     expect(asked).toEqual(["confirm"]);
-    await expect(page).toHaveURL(/\/admin\/news\/new/);
+    await expect(page).toHaveURL(/\/office\/news\/new/);
     await expect(page.getByTestId("admin-post-title-input")).toHaveValue("Harbour day");
 
     page.once("dialog", (dialog) => void dialog.accept());
     await back.click();
-    await expect(page).toHaveURL(/\/admin\?tab=news/);
+    await expect(page).toHaveURL(/\/office\/news$/);
   });
 
   test("a draft is previewed as readers will see it, without saving", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     await page.getByTestId("admin-post-title-input").fill("A preview of Sunday");
     await page.getByTestId("admin-post-editor-content").click();
     await page.keyboard.type("Six wins and no fouls.");
@@ -188,7 +188,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
   test("unsaved changes are kept on the device and offered back", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     await page.getByTestId("admin-post-title-input").fill("Kept on this phone");
     await page.waitForTimeout(700); // kept after a short pause in typing
     page.on("dialog", (dialog) => void dialog.accept());
@@ -211,7 +211,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
   test("a picture pasted from another site is never linked", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin/news/new");
+    await page.goto("/office/news/new");
     const content = page.getByTestId("admin-post-editor-content");
     await content.click();
     // An address that cannot be fetched: the picture is taken out again, with the reason.
@@ -227,7 +227,7 @@ describeStory("R-1: editorial writes news and press releases", () => {
 
   test("the list filters by league and state", async ({ page }) => {
     await signIn(page, EDITOR);
-    await page.goto("/admin?tab=news");
+    await page.goto("/office/news");
     await page.getByTestId("admin-posts-state-filter").selectOption("published");
     await page.getByTestId("admin-posts-league-filter").selectOption("2-liga");
     const list = page.getByTestId("admin-posts-section");
@@ -236,27 +236,27 @@ describeStory("R-1: editorial writes news and press releases", () => {
     await expect(page).toHaveURL(/state=published/);
   });
 
-  test("a club's team manager has no News tab", async ({ page }) => {
+  test("a club's team manager has no league office, and no post page", async ({ page }) => {
     await signIn(page, MANAGER);
-    await page.goto("/admin");
-    await expect(page.getByTestId("admin-news-tab")).toHaveCount(0);
+    await page.goto("/office/news");
+    await expect(page.getByTestId("office-not-found")).toBeVisible();
+    await page.goto("/office/news/new");
+    await expect(page.getByTestId("admin-access-error")).toBeVisible();
   });
 });
 
 describeStory("R-1/Z-2: a series' editor writes about that series and organizes nothing", () => {
-  test("Paula Presse has News and Media only, and her post lands in the series' league", async ({ page }, testInfo) => {
-    // The seed's editor of the 2. Liga 2026 (`app/seed_users.py`).
+  test("Paula Presse has no office, writes in My space, and her post lands in the series' league", async ({ page }, testInfo) => {
+    // The seed's editor of the 2. Liga 2026 (`app/seed_users.py`). Holding nothing on the
+    // site, she has no league office (Story A-11, #32); her post page is in My space, and
+    // the office's address passes her on to it.
     await signIn(page, "presse@sbl.example.com");
-    await page.goto("/admin");
-    await expect(page.getByTestId("admin-news-tab")).toBeVisible();
-    await expect(page.getByTestId("admin-media-tab")).toBeVisible();
-    for (const tab of ["clubs", "series", "events", "sailors", "accounts"]) {
-      await expect(page.getByTestId(`admin-${tab}-tab`)).toHaveCount(0);
-    }
+    await page.goto("/office");
+    await expect(page.getByTestId("office-not-found")).toBeVisible();
 
     const title = `Matchday report ${testInfo.project.name} ${Date.now()}`;
-    await page.goto("/admin?tab=news");
-    await page.getByTestId("admin-posts-new-button").click();
+    await page.goto("/office/news/new");
+    await expect(page).toHaveURL(/\/me\/news\/new$/);
     await page.getByTestId("admin-post-title-input").fill(title);
     // The regattas offered are hers alone: the series, then its acts.
     const regatta = page.getByTestId("admin-post-regatta-select");
@@ -265,7 +265,7 @@ describeStory("R-1/Z-2: a series' editor writes about that series and organizes 
     await page.getByTestId("admin-post-editor-content").click();
     await page.keyboard.type("Three days of racing.");
     await page.getByTestId("admin-post-save-button").click();
-    await expect(page).toHaveURL(/\/admin\/news\/\d+$/);
+    await expect(page).toHaveURL(/\/me\/news\/\d+$/);
     await page.getByTestId("admin-post-publish-button").click();
     await expect(page.getByTestId("admin-post-save-success")).toBeVisible();
     await page.getByTestId("admin-post-view-link").click();

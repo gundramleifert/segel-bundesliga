@@ -5,7 +5,7 @@ order: 120
 audience: [event-organizer]
 stories: [VA-8, VA-7, B-3, VA-12, VA-13]
 journey: null
-route: /admin
+route: /office/events
 tags: [readiness, draw, seed, publish, start, frozen, print, pdf, people, auslosung, pairing-liste, veröffentlichen, helfer]
 title: "Eine Veranstaltung vorbereiten und starten"
 ---

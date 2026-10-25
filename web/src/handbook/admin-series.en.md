@@ -5,7 +5,7 @@ order: 210
 audience: [administration]
 stories: [A-6, VA-8, A-14]
 journey: null
-route: /admin/series/new
+route: /office/series/new
 tags: [series, serie, year, jahrgang, publish, veröffentlichen, draft, entwurf, squad size, kadergröße]
 title: Create and publish a series
 ---
@@ -17,7 +17,7 @@ shows only *Series are created by the business office only.*
 
 ### Create a series {#admin-series-create}
 
-1. [*Administration*, tab *Series*](place:admin.series): [*New series*](place:admin.new-series) ①.
+1. [*League office* › *Series*](place:admin.series): [*New series*](place:admin.new-series) ①.
 2. *Name*: at least three characters. *Year*, *Starts* and *Ends* are optional.
 3. Tick the *Participating clubs*; they take part from the start.
 4. *Create Series*.
