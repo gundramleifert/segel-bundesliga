@@ -1,4 +1,4 @@
-import { Relation, Role, type MyContext } from "../api/types";
+import { ContextRelation, Relation, Role, type MyContext } from "../api/types";
 
 /** Story Z-10: the signed-in workspace — its contexts, their groups and sections, and who
  *  has each (`docs/PLAN_NAVIGATION.md` §2–§3, issue #30).
@@ -19,12 +19,12 @@ import { Relation, Role, type MyContext } from "../api/types";
  */
 
 /** Sailing there — a squad, a crew. No tuple says it, so it is no `Relation`; the API
- *  reports it among a context's relations under this name (Story Z-8). */
-export const SAILOR = "sailor";
+ *  reports it among a context's relations (`ContextRelation`, Story Z-8). */
+export const SAILOR = ContextRelation.sailor;
 
-/** What someone can hold on an object: a relation of the model (the generated enum), or
- *  sailing there. */
-export type Holding = Relation | typeof SAILOR;
+/** What someone can hold on an object: what the API reports for a context
+ *  (`ContextRelation`), or `guardian` — held on a sailor, never a context's. */
+export type Holding = ContextRelation | typeof Relation.guardian;
 
 /** A section: there when I hold one of `for`; without `for`, for everyone who has the
  *  context at all. */

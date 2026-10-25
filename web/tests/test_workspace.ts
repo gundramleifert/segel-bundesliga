@@ -139,7 +139,7 @@ describe("Story Z-10: the event's state orders its groups", () => {
 
 describe("Story Z-10: the switcher", () => {
   const contexts = [
-    context("event", 3, "Act 3 · Warnemünde", { relations: [Relation.manager], starts_on: "2026-11-06", needs: [{ code: "claims", count: 3 }] }),
+    context("event", 3, "Act 3 · Warnemünde", { relations: [Relation.manager], starts_on: "2026-11-06", needs: [{ code: "claims", count: 3, section: "decide-claims", severity: "soon" }] }),
     context("event", 1, "Act 1 · Berlin", { relations: [SAILOR], starts_on: "2026-05-01", ends_on: "2026-05-03" }),
     context("event", 2, "Act 2 · Kiel", { relations: [Relation.race_officer], starts_on: "2026-10-30" }),
     context("club", 8, "NRV", { relations: [Relation.member] }),

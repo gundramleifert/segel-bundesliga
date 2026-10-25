@@ -137,6 +137,10 @@ export { CrewRole } from "./generated/model/crewRole";
 export { WaiverStatus } from "./generated/model/waiverStatus";
 export { Role } from "./generated/model/role";
 export { Relation } from "./generated/model/relation";
+/** Story Z-10: what I am to a context — a relation, or `sailor` (a squad, a crew). */
+export { ContextRelation } from "./generated/model/contextRelation";
+export { Severity } from "./generated/model/severity";
+export type { TodoOut as Todo } from "./generated/model/todoOut";
 export { ObjectType } from "./generated/model/objectType";
 export { WaiverMethod } from "./generated/model/waiverMethod";
 export { ClaimStatus } from "./generated/model/claimStatus";
