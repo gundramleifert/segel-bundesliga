@@ -5,12 +5,18 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
-import type { NeedOutCode } from './needOutCode';
+import type { NeedCode } from './needCode';
+import type { Section } from './section';
+import type { Severity } from './severity';
 
 /**
- * Something waiting for me there — a code the page words, and how many.
+ * Something waiting for me there — a code the page words, how many, the section
+ * that clears it and how soon (Story Z-10).
  */
 export interface NeedOut {
-  code: NeedOutCode;
+  code: NeedCode;
   count: number;
+  section: Section;
+  severity: Severity;
+  due?: string | null;
 }

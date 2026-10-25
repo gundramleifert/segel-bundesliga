@@ -1,4 +1,5 @@
-"""Story Z-8: my space — the clubs, series and events I am part of (`/me`)."""
+"""Stories Z-8, Z-10: my space — the clubs, series and events I am part of (`/me`), and
+every to-do waiting for me there."""
 
 from __future__ import annotations
 
@@ -13,27 +14,38 @@ from app.auth import current_user
 from app.db import get_session
 from app.models import EventStatus
 from app.models.auth import User
-from app.services.contexts import my_space
+from app.services.contexts import (
+    ContextRelation,
+    Need,
+    NeedCode,
+    Section,
+    Severity,
+    my_space,
+)
 
 router = APIRouter(tags=["personal"])
 
-NeedCode = Literal[
-    "waiver",
-    "claims",
-    "squad_below_min",
-    "crew_missing",
-    "crew_waiver_missing",
-    "documents_expired",
-    "ward_waiver",
-    "claim_rejected",
-]
-
 
 class NeedOut(BaseModel):
-    """Something waiting for me there — a code the page words, and how many."""
+    """Something waiting for me there — a code the page words, how many, the section
+    that clears it and how soon (Story Z-10)."""
 
     code: NeedCode
     count: int
+    section: Section
+    severity: Severity
+    #: The race day it is tied to, if any.
+    due: date | None = None
+
+
+def _need(need: Need) -> NeedOut:
+    return NeedOut(
+        code=need.code,
+        count=need.count,
+        section=need.section,
+        severity=need.severity,
+        due=need.due,
+    )
 
 
 class SailingTeamOut(BaseModel):
@@ -50,7 +62,7 @@ class MyContextOut(BaseModel):
     name: str
     short_name: str | None = None
     #: What I am there, in reading order — tuples, plus ``sailor`` for a squad or crew.
-    relations: list[str]
+    relations: list[ContextRelation]
     needs: list[NeedOut]
     #: Only when I sail there.
     teams: list[SailingTeamOut]
@@ -72,9 +84,34 @@ class MeOut(BaseModel):
     needs: list[NeedOut]
 
 
+class OfficeOut(BaseModel):
+    """The league office (Story Z-10): my site relations and what waits there. Not one of
+    "my" contexts — the site's reach is not a list of objects."""
+
+    relations: list[ContextRelation]
+    needs: list[NeedOut]
+
+
+class TodoContextOut(BaseModel):
+    """The card a to-do sits on; *Me* and the office have no id."""
+
+    kind: Literal["me", "office", "club", "series", "event"]
+    id: int | None = None
+
+
+class TodoOut(NeedOut):
+    """One row of the to-do list (the plan's §4): a need and where it is."""
+
+    context: TodoContextOut
+
+
 class MySpaceOut(BaseModel):
     me: MeOut
     contexts: list[MyContextOut]
+    #: Only with a site relation.
+    office: OfficeOut | None = None
+    #: Every need of every card, most urgent first — severity, then date.
+    todos: list[TodoOut]
     #: Everything that needs me, each thing once: a series' waiver asked again on each of
     #: its events is one signature. The account button's badge (Story Z-8).
     total: int
@@ -86,14 +123,11 @@ async def my_contexts(
     acting: User = Depends(current_user),
 ) -> MySpaceOut:
     """Every club, series and event I hold a relation on or sail in, with what waits for
-    me there (Story Z-8). Site relations are not "mine" — the league office's reach is
-    `/admin`."""
+    me there (Stories Z-8, Z-10). Site relations are not "mine" — they are the league
+    ``office``, beside the contexts."""
     space = await my_space(session, acting)
     return MySpaceOut(
-        me=MeOut(
-            name=space.name,
-            needs=[NeedOut(code=n.code, count=n.count) for n in space.needs],  # type: ignore[arg-type]
-        ),
+        me=MeOut(name=space.name, needs=[_need(n) for n in space.needs]),
         contexts=[
             MyContextOut(
                 kind=c.kind,  # type: ignore[arg-type]
@@ -101,7 +135,7 @@ async def my_contexts(
                 name=c.name,
                 short_name=c.short_name,
                 relations=c.ordered_relations,
-                needs=[NeedOut(code=n.code, count=n.count) for n in c.ordered_needs],  # type: ignore[arg-type]
+                needs=[_need(n) for n in c.ordered_needs],
                 teams=[SailingTeamOut(**vars(t)) for t in c.teams],
                 starts_on=c.starts_on,
                 ends_on=c.ends_on,
@@ -111,6 +145,21 @@ async def my_contexts(
                 year=c.year,
             )
             for c in space.contexts
+        ],
+        office=(
+            OfficeOut(
+                relations=space.office.relations,
+                needs=[_need(n) for n in space.office.needs.ordered],
+            )
+            if space.office is not None
+            else None
+        ),
+        todos=[
+            TodoOut(
+                **_need(t.need).model_dump(),
+                context=TodoContextOut(kind=t.context.kind, id=t.context.id),  # type: ignore[arg-type]
+            )
+            for t in space.todos
         ],
         total=space.total,
     )

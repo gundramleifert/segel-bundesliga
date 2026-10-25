@@ -12172,8 +12172,8 @@ export const getMyContextsUrl = () => {
 
 /**
  * Every club, series and event I hold a relation on or sail in, with what waits for
- * me there (Story Z-8). Site relations are not "mine" — the league office's reach is
- * `/admin`.
+ * me there (Stories Z-8, Z-10). Site relations are not "mine" — they are the league
+ * ``office``, beside the contexts.
  * @summary Everything I am part of
  */
 export const myContexts = async ( options?: RequestInit): Promise<MySpaceOut> => {

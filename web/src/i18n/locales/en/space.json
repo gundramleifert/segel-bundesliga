@@ -211,7 +211,17 @@
     "documents_expired": "{count, plural, one {1 document has expired} other {# documents have expired}}",
     "crew_waiver_missing": "{count, plural, one {1 upcoming matchday has a crew member without a cleared waiver} other {# upcoming matchdays have crew members without a cleared waiver}}",
     "ward_waiver": "{count, plural, one {Your child's liability waiver waits for you} other {# liability waivers of your children wait for you}}",
-    "claim_rejected": "{count, plural, one {1 of your claims was rejected — read why and correct it} other {# of your claims were rejected — read why and correct them}}"
+    "claim_rejected": "{count, plural, one {1 of your claims was rejected — read why and correct it} other {# of your claims were rejected — read why and correct them}}",
+    "minor_without_guardian": "{count, plural, one {1 minor has no guardian linked} other {# minors have no guardian linked}}",
+    "sailor_without_birth_date": "{count, plural, one {1 sailor has no date of birth — no waiver possible} other {# sailors have no date of birth — no waiver possible}}",
+    "payment_run_open": "{count, plural, one {1 payment run is not booked yet} other {# payment runs are not booked yet}}",
+    "event_not_ready": "{count, plural, one {Not ready: 1 thing is missing} other {Not ready: # things are missing}}",
+    "event_unpublished": "{count, plural, one {Dates are set, but it is still a draft} other {# drafts with dates set}}",
+    "checkin_waivers_missing": "{count, plural, one {Check-in: 1 sailor without a cleared waiver} other {Check-in: # sailors without a cleared waiver}}",
+    "results_missing": "{count, plural, one {1 finished race has no results} other {# finished races have no results}}",
+    "registrations_open": "{count, plural, one {1 application waits for your decision} other {# applications wait for your decision}}",
+    "clubs_without_league": "{count, plural, one {1 club is in no league yet} other {# clubs are in no league yet}}",
+    "imports_failed": "{count, plural, one {1 import failed} other {# imports failed}}"
   },
   "overview": {
     "me": "Me",

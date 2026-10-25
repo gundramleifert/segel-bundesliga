@@ -1249,7 +1249,7 @@
  },
  "Z-10": {
   "title": "The workspace: where I am, what I can do here, what waits for me",
-  "status": "○",
+  "status": "◐",
   "role": "Sailor",
   "phase": "My profile",
   "file": "docs/userstories/sailor.md",

@@ -504,7 +504,7 @@ Screen: `/me/profile`, `/me/club/:id`, `/me/series/:id`, `/me/event/:id`.
 Tests: `e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it"),
 `e2e/club.spec.ts`
 
-### Z-10 ○ The workspace: where I am, what I can do here, what waits for me
+### Z-10 ◐ The workspace: where I am, what I can do here, what waits for me
 Issues #28 (parent), #29–#35. The plan, with every table: `docs/PLAN_NAVIGATION.md`.
 
 As **anyone signed in** — a sailor, a parent, a team manager, an organizer, the race
@@ -548,6 +548,63 @@ Acceptance criteria:
   contexts, then **Last visited**. Each context opens on its own *Overview*; the switcher
   and the sidebar carry the counts. The to-do codes, today's and the new ones, are the
   plan's §4 — all of them are built.
+- **Every to-do is one row** (#33, the backend part built 2026-10-25): each need on
+  `GET /api/me/contexts` — on *Me*, on a context, on the league office — carries its
+  `code`, `count`, the **`section`** that clears it and a **`severity`**, and the answer
+  adds **`todos`**, every one of them in one list, each with its `context`
+  (`{kind, id}`; *Me* is `kind: "me"`, the league office `kind: "office"`, both without an
+  id) — the row of the plan's §4. Ordered by severity, then by `due` (the date it is
+  tied to, undated last).
+  - **Severity** is a closed set: **`now`** — tied to a race day within 7 days, a live
+    event (check-in, results), or a deadline (none is modelled yet); **`soon`** — tied to
+    a race day within 30 days, or undated work someone is waiting on (a claim, a waiver,
+    a minor without a guardian, an application); **`info`** — everything else (an open
+    payment run waits on the bank; an event months away not ready yet).
+  - **Section keys** — the same keys the sidebar declares (#30), kebab-case:
+    *Me* `overview account waivers claims documents bank children`;
+    club `overview members sailors minors waivers squads crews hosting my-claims
+    decide-claims payment-runs bank-account club-page`;
+    series `overview team events standings registrations dates scoring officials news`;
+    event `overview crew general clubs boats pairing publication people check-in
+    race-control results trackers notice-board my-claims decide-claims news`;
+    league office `overview clubs series events sailors accounts news media imports`.
+  - **Code → section**: `waiver` → series `team` / event `crew`; `ward_waiver` → Me
+    `children`; `documents_expired` → Me `documents`; `claim_rejected` → Me `claims`, or
+    `my-claims` on the event or club card it sits on; `claims` → club/event
+    `decide-claims`; `squad_below_min` → club `squads`; `crew_missing` → club `crews`;
+    `crew_waiver_missing` → club `waivers`.
+  - **Only what I can act on**, decided by the model (Z-2) on an object already mine — a
+    to-do appears for whoever holds the section it links to:
+    - `minor_without_guardian` — club `minors`, the club's organizers: sailors of the club
+      (`SailorClub`) who are minors today and have no guardian linked;
+    - `sailor_without_birth_date` — club `sailors`, the club's organizers: no waiver can be
+      confirmed for them (S-3);
+    - `payment_run_open` — club `payment-runs`, organizers and `treasurer`: a run with a
+      payment still `issued`, not booked (F-7); `info`;
+    - `event_not_ready` — event `overview`, the event's organizers: a planned event's
+      readiness reasons (VA-8), counted;
+    - `event_unpublished` — event `publication` / series `dates`, organizers: dates set,
+      still a draft;
+    - `checkin_waivers_missing` — event `check-in`, organizers and `race_officer`: a race
+      day within 7 days (or live) whose named crews have sailors not cleared (VA-5),
+      counted per sailor; always `now`;
+    - `results_missing` — event `results`, organizers and `race_officer` (§3's holders of
+      *Results*): a live event's finished races with an entry lacking a result; always
+      `now`;
+    - `registrations_open` — series `registrations` (event `clubs` for an application to
+      one event), the competition's `manager`: applications still `requested` (V-5,
+      A-9).
+  - **The league office** is no context of "mine" — `contexts` stays as Z-8 says — but
+    with any site relation the answer carries **`office`** (my site relations, its needs),
+    and only the site's `admin` gets: `clubs_without_league` (office `clubs` — a club
+    enrolled in no series of a league, so the public site does not show it; `info`) and
+    `imports_failed` (office `imports` — a source reference whose latest import run
+    failed; `soon`).
+  - A context's `relations` are a closed set (`ContextRelation`: member, sailor, admin,
+    manager, editor, treasurer, race_officer, jury, helper — in that reading order), so
+    the page compares against names the compiler knows.
+  - A to-do of an event or series reached only *through* another object (a series
+    manager's acts) is not listed: those are opened from inside, as the plan's §2 says.
 - **One home per object**: an object's administration lives in its own context; `/admin`
   becomes **`/office`**, the league office's own work. Old addresses redirect.
 - **Recent and last visited** are kept per browser — a convenience, never needed to work.
@@ -573,6 +630,8 @@ Built in steps, each its own issue: the declaration of contexts and sections (#3
 switcher and sidebar around today's pages (#31), the admin work moved into each context
 and `/office` (#32), the to-dos and landing page (#33), the switcher's search (#34),
 handbook and e2e (#35).
+
+Tests: `api/tests/stories/test_my_space.py::TestTodos`
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with

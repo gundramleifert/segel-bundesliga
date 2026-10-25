@@ -11,14 +11,35 @@ what another story did to the seed (docs/gotchas).
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
+from app.models import (
+    Boat,
+    Club,
+    Event,
+    EventCrew,
+    Flight,
+    ImportRun,
+    League,
+    Payment,
+    PaymentRun,
+    Race,
+    RaceEntry,
+    Sailor,
+    SailorClub,
+    Series,
+    Team,
+    TeamMembership,
+)
 from app.models.auth import Grant, Relation
+from app.models.competition import EventStatus
+from app.models.finance import PaymentStatus
+from app.models.org import TeamStatus
+from app.models.racing import RaceStatus
 from tests.stories.test_personal_space import upload
 from tests.stories.test_reimbursements import login, submitted
 
@@ -233,7 +254,8 @@ class TestMySpace:
             f"z8-evmanager-{_tag()}@example.com",
             Grant(relation=Relation.MANAGER, event_id=event),
         )
-        assert _needs(_context(await _mine(client, manager), "event", event)) == {"claims": 1}
+        # The event's own organizer hears about its setup too (Z-10) — here the claim.
+        assert _needs(_context(await _mine(client, manager), "event", event))["claims"] == 1
 
         assert _needs(_context(await _mine(client, helper), "event", event)) == {}
 
@@ -269,9 +291,7 @@ class TestMySpace:
         headers = await login(client, caplog, f"z8-docs-{_tag()}@example.com")
         await upload(client, headers, valid_until=(date.today() - timedelta(days=1)).isoformat())
         await upload(client, headers, valid_until=SOON.isoformat())
-        assert (await _mine(client, headers))["me"]["needs"] == [
-            {"code": "documents_expired", "count": 1}
-        ]
+        assert _needs((await _mine(client, headers))["me"]) == {"documents_expired": 1}
 
     async def test_a_past_event_is_still_mine(self, client, caplog):
         """The page folds the past away; the answer keeps it, with its dates."""
@@ -284,3 +304,353 @@ class TestMySpace:
         )
         past = _context(await _mine(client, headers), "event", event)
         assert past["ends_on"] == "2020-05-02"
+
+
+# ------------------------------------------------------------------ Story Z-10: to-dos
+
+THIS_WEEK = date.today() + timedelta(days=3)
+FAR = date.today() + timedelta(days=200)
+RANKS = ["now", "soon", "info"]
+
+
+def _need(entry: dict, code: str) -> dict | None:
+    return next((n for n in entry["needs"] if n["code"] == code), None)
+
+
+async def _club_sailor(club_id: int, birth_date: date | None) -> int:
+    """A sailor who sails for this club (`SailorClub`, Story V-4), no account."""
+    async with SessionLocal() as session:
+        # A capitalised surname: the admin's sailor list sorts in SQL, case-sensitively,
+        # and its own test reads the seed's names (test_pagination).
+        sailor = Sailor(first_name=f"Kid {_tag()}", last_name="Kidd", birth_date=birth_date)
+        session.add(sailor)
+        await session.flush()
+        session.add(SailorClub(sailor_id=sailor.id, club_id=club_id))
+        await session.commit()
+        return sailor.id
+
+
+class TestTodos:
+    """Z-10: every to-do is a row — code, count, the section that clears it, a severity —
+    and appears only for those who hold that section (the model, never a summary role)."""
+
+    async def test_every_need_names_its_section_and_severity(self, client, caplog):
+        """Story Z-10: the existing codes name the section that clears them; `todos`
+        repeats every need with its context, ordered by severity."""
+        email = f"z10-sailor-{_tag()}@example.com"
+        club = await _club()
+        series = await _series()
+        event = await _event(series_id=series, starts_on=THIS_WEEK)
+        squad = await _team(club, series_id=series)
+        crew = await _team(club, series_id=series, event_id=event)
+        headers = await login(client, caplog, email)
+        await _sailor(email, squad, crew, birth_date=date(1990, 1, 1))
+        await upload(client, headers, valid_until=(date.today() - timedelta(days=1)).isoformat())
+
+        body = await _mine(client, headers)
+        on_series = _need(_context(body, "series", series), "waiver")
+        on_event = _need(_context(body, "event", event), "waiver")
+        assert on_series["section"] == "team" and on_event["section"] == "crew"
+        # The matchday is in three days: the waiver is due now, on both cards.
+        assert on_event["severity"] == "now" and on_event["due"] == THIS_WEEK.isoformat()
+        assert on_series["severity"] == "now"
+        documents = _need(body["me"], "documents_expired")
+        assert (documents["section"], documents["severity"]) == ("documents", "soon")
+
+        rows = [(t["code"], t["context"]["kind"], t["severity"]) for t in body["todos"]]
+        assert ("documents_expired", "me", "soon") in rows
+        assert ("waiver", "event", "now") in rows
+        ranks = [RANKS.index(t["severity"]) for t in body["todos"]]
+        assert ranks == sorted(ranks)
+        assert _context(body, "series", series)["relations"] == ["sailor"]
+
+    async def test_a_club_organizer_hears_about_minors_and_birth_dates(self, client, caplog):
+        """Story Z-10: a minor of the club with no guardian linked, and a sailor without a
+        date of birth (no waiver can be confirmed) — for the club's organizers, never for
+        a member. Linking a guardian clears the first."""
+        club = await _club()
+        minor = await _club_sailor(club, date.today() - timedelta(days=365 * 12))
+        await _club_sailor(club, None)
+        await _club_sailor(club, date(1990, 1, 1))  # an adult with a date: nothing to do
+
+        manager = await login(
+            client,
+            caplog,
+            f"z10-clubmgr-{_tag()}@example.com",
+            Grant(relation=Relation.MANAGER, club_id=club),
+        )
+        mine = _context(await _mine(client, manager), "club", club)
+        minors = _need(mine, "minor_without_guardian")
+        assert (minors["count"], minors["section"]) == (1, "minors")
+        undated = _need(mine, "sailor_without_birth_date")
+        assert (undated["count"], undated["section"]) == (1, "sailors")
+
+        member = await login(
+            client,
+            caplog,
+            f"z10-member-{_tag()}@example.com",
+            Grant(relation=Relation.MEMBER, club_id=club),
+        )
+        assert _needs(_context(await _mine(client, member), "club", club)) == {}
+
+        await login(
+            client,
+            caplog,
+            f"z10-parent-{_tag()}@example.com",
+            Grant(relation=Relation.GUARDIAN, sailor_id=minor),
+        )
+        mine = _context(await _mine(client, manager), "club", club)
+        assert _need(mine, "minor_without_guardian") is None
+
+    async def test_an_open_payment_run_waits_for_the_bank(self, client, caplog):
+        """Story Z-10: a run with a payment still issued, not booked — for the club's
+        treasurer and organizers, as `info`; booked, it is gone."""
+        club = await _club()
+        async with SessionLocal() as session:
+            run = PaymentRun(
+                payer_club_id=club,
+                execution_date=date.today(),
+                message_id=f"Z10-{_tag()}",
+                debtor_name="Club",
+                debtor_iban="DE89370400440532013000",
+            )
+            session.add(run)
+            await session.flush()
+            payment = Payment(payer_club_id=club, status=PaymentStatus.ISSUED, run_id=run.id)
+            session.add(payment)
+            await session.commit()
+            payment_id = payment.id
+
+        treasurer = await login(
+            client,
+            caplog,
+            f"z10-treasurer-{_tag()}@example.com",
+            Grant(relation=Relation.TREASURER, club_id=club),
+        )
+        club_card = _context(await _mine(client, treasurer), "club", club)
+        open_run = _need(club_card, "payment_run_open")
+        assert (open_run["count"], open_run["section"], open_run["severity"]) == (
+            1,
+            "payment-runs",
+            "info",
+        )
+        member = await login(
+            client,
+            caplog,
+            f"z10-member-{_tag()}@example.com",
+            Grant(relation=Relation.MEMBER, club_id=club),
+        )
+        assert _needs(_context(await _mine(client, member), "club", club)) == {}
+
+        async with SessionLocal() as session:
+            (await session.get(Payment, payment_id)).status = PaymentStatus.SETTLED
+            await session.commit()
+        assert _needs(_context(await _mine(client, treasurer), "club", club)) == {}
+
+    async def test_an_organizer_hears_their_event_is_not_ready_nor_published(self, client, caplog):
+        """Story Z-10: a planned event's readiness reasons (VA-8) on its *Overview*, and a
+        dated draft on its *Publication* — for its organizers, not for a helper. A draft
+        series with dates waits on the series' *Dates*."""
+        event = await _event(
+            starts_on=FAR, ends_on=FAR, team_count=18, boat_count=6, flight_count=16
+        )
+        series = await _series(starts_on=FAR)
+        manager = await login(
+            client,
+            caplog,
+            f"z10-evmgr-{_tag()}@example.com",
+            Grant(relation=Relation.MANAGER, event_id=event),
+            Grant(relation=Relation.MANAGER, series_id=series),
+        )
+        body = await _mine(client, manager)
+        mine = _context(body, "event", event)
+        not_ready = _need(mine, "event_not_ready")
+        # No clubs entered and no boats: two reasons, months away.
+        assert (not_ready["count"], not_ready["section"], not_ready["severity"]) == (
+            2,
+            "overview",
+            "info",
+        )
+        assert _need(mine, "event_unpublished")["section"] == "publication"
+        assert _need(_context(body, "series", series), "event_unpublished")["section"] == "dates"
+
+        helper = await login(
+            client,
+            caplog,
+            f"z10-helper-{_tag()}@example.com",
+            Grant(relation=Relation.HELPER, event_id=event),
+        )
+        assert _needs(_context(await _mine(client, helper), "event", event)) == {}
+
+        async with SessionLocal() as session:
+            (await session.get(Event, event)).published = True
+            (await session.get(Series, series)).published = True
+            await session.commit()
+        body = await _mine(client, manager)
+        assert _need(_context(body, "event", event), "event_unpublished") is None
+        assert _need(_context(body, "series", series), "event_unpublished") is None
+
+    async def test_check_in_this_week_names_the_waivers_missing(self, client, caplog):
+        """Story Z-10: a race day within 7 days whose named crew has a sailor not cleared
+        (VA-5) — on the event's *Check-in*, `now`, for the race committee; not a helper."""
+        club = await _club()
+        event = await _event(starts_on=THIS_WEEK)
+        entry = await _team(club, event_id=event)
+        sailor = await _club_sailor(club, date(1990, 1, 1))
+        async with SessionLocal() as session:
+            session.add(EventCrew(event_id=event, team_id=entry, sailor_id=sailor, role="crew"))
+            await session.commit()
+
+        officer = await login(
+            client,
+            caplog,
+            f"z10-officer-{_tag()}@example.com",
+            Grant(relation=Relation.RACE_OFFICER, event_id=event),
+        )
+        card = _context(await _mine(client, officer), "event", event)
+        check_in = _need(card, "checkin_waivers_missing")
+        assert (check_in["count"], check_in["section"], check_in["severity"]) == (
+            1,
+            "check-in",
+            "now",
+        )
+        helper = await login(
+            client,
+            caplog,
+            f"z10-helper-{_tag()}@example.com",
+            Grant(relation=Relation.HELPER, event_id=event),
+        )
+        assert _needs(_context(await _mine(client, helper), "event", event)) == {}
+
+    async def test_a_live_event_asks_for_missing_results(self, client, caplog):
+        """Story Z-10: a finished race of a live event with an entry lacking a result — on
+        *Results*, `now`, for the race committee. A race not yet sailed asks nothing."""
+        club = await _club()
+        event = await _event(starts_on=date.today(), status=EventStatus.LIVE)
+        team = await _team(club, event_id=event)
+        async with SessionLocal() as session:
+            boat = Boat(event_id=event, number=1)
+            flight = Flight(event_id=event, number=1)
+            session.add_all([boat, flight])
+            await session.flush()
+            done = Race(
+                flight_id=flight.id,
+                number_in_flight=1,
+                sequence=1,
+                status=RaceStatus.FINISHED,
+                finished_at=datetime.now(UTC),
+            )
+            waiting = Race(flight_id=flight.id, number_in_flight=2, sequence=2)
+            session.add_all([done, waiting])
+            await session.flush()
+            session.add_all(
+                [
+                    RaceEntry(race_id=done.id, team_id=team, boat_id=boat.id),
+                    RaceEntry(race_id=waiting.id, team_id=team, boat_id=boat.id),
+                ]
+            )
+            await session.commit()
+
+        officer = await login(
+            client,
+            caplog,
+            f"z10-officer-{_tag()}@example.com",
+            Grant(relation=Relation.RACE_OFFICER, event_id=event),
+        )
+        card = _context(await _mine(client, officer), "event", event)
+        missing = _need(card, "results_missing")
+        assert (missing["count"], missing["section"], missing["severity"]) == (1, "results", "now")
+
+    async def test_an_application_waits_for_the_series_organizer(self, client, caplog):
+        """Story Z-10: a club's application (V-5) waits on the series' *Registrations* for
+        its manager, who decides it (A-9) — not for the applying club's own organizer."""
+        club = await _club()
+        series = await _series()
+        async with SessionLocal() as session:
+            session.add(
+                Team(name="Team", club_id=club, series_id=series, status=TeamStatus.REQUESTED)
+            )
+            await session.commit()
+
+        organizer = await login(
+            client,
+            caplog,
+            f"z10-sermgr-{_tag()}@example.com",
+            Grant(relation=Relation.MANAGER, series_id=series),
+        )
+        card = _context(await _mine(client, organizer), "series", series)
+        applied = _need(card, "registrations_open")
+        assert (applied["count"], applied["section"]) == (1, "registrations")
+
+        applicant = await login(
+            client,
+            caplog,
+            f"z10-applicant-{_tag()}@example.com",
+            Grant(relation=Relation.MANAGER, club_id=club),
+        )
+        body = await _mine(client, applicant)
+        assert _context(body, "series", series) is None
+        assert "registrations_open" not in _needs(_context(body, "club", club))
+
+    async def test_the_league_office_hears_about_clubs_and_imports(self, client, caplog):
+        """Story Z-10: the site's admin gets an `office` entry — a club enrolled in no
+        league's series, an import whose latest run failed. A site editor gets the office
+        too, without those; `contexts` stays what is "mine" (Z-8)."""
+        admin = await login(
+            client, caplog, f"z10-admin-{_tag()}@example.com", Grant(relation=Relation.ADMIN)
+        )
+
+        def office_count(body: dict, code: str) -> int:
+            need = _need(body["office"], code)
+            return need["count"] if need else 0
+
+        before = await _mine(client, admin)
+        assert before["office"]["relations"] == ["admin"]
+        clubs = office_count(before, "clubs_without_league")
+        imports = office_count(before, "imports_failed")
+
+        club = await _club()
+        reference = f"z10-{_tag()}"
+        async with SessionLocal() as session:
+            session.add(
+                ImportRun(source="m2s", reference=reference, started_at=datetime.now(UTC), ok=False)
+            )
+            await session.commit()
+        body = await _mine(client, admin)
+        assert office_count(body, "clubs_without_league") == clubs + 1
+        assert office_count(body, "imports_failed") == imports + 1
+        assert _need(body["office"], "clubs_without_league")["section"] == "clubs"
+        assert _need(body["office"], "imports_failed")["section"] == "imports"
+        assert ("imports_failed", "office") in [
+            (t["code"], t["context"]["kind"]) for t in body["todos"]
+        ]
+
+        # Enrolled in a league's series, the club is shown; a later run that succeeds
+        # clears the failed one.
+        async with SessionLocal() as session:
+            league = League(slug=f"l-{_tag()}", short_name="L", name="League")
+            session.add(league)
+            await session.flush()
+            series = Series(slug=f"s-{_tag()}", name="S", short_name="S", league_id=league.id)
+            session.add(series)
+            await session.flush()
+            session.add(Team(name="Team", club_id=club, series_id=series.id))
+            session.add(
+                ImportRun(
+                    source="m2s",
+                    reference=reference,
+                    started_at=datetime.now(UTC) + timedelta(seconds=1),
+                    ok=True,
+                )
+            )
+            await session.commit()
+        body = await _mine(client, admin)
+        assert office_count(body, "clubs_without_league") == clubs
+        assert office_count(body, "imports_failed") == imports
+
+        editor = await login(
+            client, caplog, f"z10-editor-{_tag()}@example.com", Grant(relation=Relation.EDITOR)
+        )
+        body = await _mine(client, editor)
+        assert body["office"] == {"relations": ["editor"], "needs": []}
+        assert body["contexts"] == []

@@ -7,9 +7,13 @@
  */
 import type { MeOut } from './meOut';
 import type { MyContextOut } from './myContextOut';
+import type { OfficeOut } from './officeOut';
+import type { TodoOut } from './todoOut';
 
 export interface MySpaceOut {
   me: MeOut;
   contexts: MyContextOut[];
+  office?: OfficeOut | null;
+  todos: TodoOut[];
   total: number;
 }

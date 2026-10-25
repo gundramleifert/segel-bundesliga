@@ -211,7 +211,17 @@
     "documents_expired": "{count, plural, one {1 Dokument ist abgelaufen} other {# Dokumente sind abgelaufen}}",
     "crew_waiver_missing": "{count, plural, one {Bei 1 kommenden Spieltag fehlt einem Crewmitglied der Haftungsausschluss} other {Bei # kommenden Spieltagen fehlt Crewmitgliedern der Haftungsausschluss}}",
     "ward_waiver": "{count, plural, one {Der Haftungsausschluss Ihres Kindes wartet auf Sie} other {# Haftungsausschlüsse Ihrer Kinder warten auf Sie}}",
-    "claim_rejected": "{count, plural, one {1 deiner Abrechnungen wurde abgelehnt — lies warum und korrigiere sie} other {# deiner Abrechnungen wurden abgelehnt — lies warum und korrigiere sie}}"
+    "claim_rejected": "{count, plural, one {1 deiner Abrechnungen wurde abgelehnt — lies warum und korrigiere sie} other {# deiner Abrechnungen wurden abgelehnt — lies warum und korrigiere sie}}",
+    "minor_without_guardian": "{count, plural, one {1 Minderjährige(r) ohne verknüpfte Erziehungsberechtigte} other {# Minderjährige ohne verknüpfte Erziehungsberechtigte}}",
+    "sailor_without_birth_date": "{count, plural, one {1 Segler(in) ohne Geburtsdatum — kein Haftungsausschluss möglich} other {# Segler(innen) ohne Geburtsdatum — kein Haftungsausschluss möglich}}",
+    "payment_run_open": "{count, plural, one {1 Zahlungslauf ist noch nicht gebucht} other {# Zahlungsläufe sind noch nicht gebucht}}",
+    "event_not_ready": "{count, plural, one {Nicht bereit: 1 Punkt fehlt} other {Nicht bereit: # Punkte fehlen}}",
+    "event_unpublished": "{count, plural, one {Termine stehen, aber noch ein Entwurf} other {# Entwürfe mit Terminen}}",
+    "checkin_waivers_missing": "{count, plural, one {Check-in: 1 Segler(in) ohne gültigen Haftungsausschluss} other {Check-in: # Segler(innen) ohne gültigen Haftungsausschluss}}",
+    "results_missing": "{count, plural, one {1 beendete Wettfahrt hat keine Ergebnisse} other {# beendete Wettfahrten haben keine Ergebnisse}}",
+    "registrations_open": "{count, plural, one {1 Bewerbung wartet auf Ihre Entscheidung} other {# Bewerbungen warten auf Ihre Entscheidung}}",
+    "clubs_without_league": "{count, plural, one {1 Verein ist noch in keiner Liga} other {# Vereine sind noch in keiner Liga}}",
+    "imports_failed": "{count, plural, one {1 Import ist fehlgeschlagen} other {# Importe sind fehlgeschlagen}}"
   },
   "overview": {
     "me": "Ich",
