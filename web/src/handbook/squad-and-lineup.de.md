@@ -24,8 +24,11 @@ Sie sich noch nicht: Fragen Sie dort.
 ### Ihre Segler finden {#squad-and-lineup-sailors}
 
 Die Suche im Kader findet jede Person nach Name oder E-Mail-Adresse und zeigt, wo sie
-segelt. Eine Person darf für mehrere Vereine segeln, je Serie aber nur einmal. Fehlt
-jemand? Die Geschäftsstelle legt die Person mit ihrer Anmeldeadresse an.
+segelt. Ihr Kader nimmt die Personen auf, die für Ihren Verein segeln, und jeden, der
+noch für keinen Verein segelt — der segelt dann für Ihren. Wer für einen anderen Verein
+segelt, ist ausgegraut: Eine Person darf für mehrere Vereine segeln, für Ihren gibt sie
+aber nur jener Verein oder die Geschäftsstelle frei. Fehlt jemand? *Neue Person für
+unseren Verein …* legt sie mit ihrer Anmeldeadresse an und nimmt sie in den Kader.
 
 ### Den Kader melden {#squad-and-lineup-squad}
 
@@ -40,6 +43,8 @@ Ihr Verein ist für die Serie gemeldet.
 
 - Speichern ersetzt den ganzen Kader.
 - *Segelt in dieser Serie schon für …* lässt sich nicht hinzufügen.
+- *Segelt für einen anderen Verein* lässt sich nicht hinzufügen: Fragen Sie die
+  Geschäftsstelle.
 - Wer für einen Spieltag aufgestellt ist, bleibt, bis die Aufstellung geändert ist.
 - Eine Veranstaltung ohne Serie hat ihren Kader unter [*Spieltage*](place:club.events): *Kader für diese
   Veranstaltung*.

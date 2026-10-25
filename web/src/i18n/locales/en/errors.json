@@ -217,5 +217,8 @@
   "teams-per-club-below-entered": "A club has {entered} teams entered — take the extra ones away first, then lower the number.",
   "sailor-email-locked": "Only the league office changes the address of a sailor who has one — it links the record to their account.",
   "squad-on-first-team": "The club's squad for this event belongs to its first team.",
-  "squad-registration-rejected": "This registration was rejected; it takes no squad."
+  "squad-registration-rejected": "This registration was rejected; it takes no squad.",
+  "squad-sailor-of-another-club": "Sailing for another club: {sailors}. That club, or the league office, can let them sail for yours too.",
+  "sailor-needs-club": "Say which of your clubs this person sails for.",
+  "sailor-club-not-yours": "You can only create people for a club you organize."
 }

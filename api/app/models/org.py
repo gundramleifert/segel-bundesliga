@@ -89,6 +89,16 @@ class Sailor(Base, TimestampMixin):
     profile_public_choice: Mapped[bool | None] = mapped_column(default=None)
 
     memberships: Mapped[list[TeamMembership]] = relationship(back_populates="sailor")
+    # The clubs this person sails for — the ``club`` edge of a sailor in the permission
+    # model (``manager from club``, `app/models/auth.py`). Loaded with the sailor, as an
+    # event brings its host club: every check on a sailor walks it.
+    club_links: Mapped[list[SailorClub]] = relationship(
+        back_populates="sailor", cascade="all, delete-orphan", lazy="selectin"
+    )
+
+    @property
+    def club_ids(self) -> list[int]:
+        return sorted(link.club_id for link in self.club_links)
 
     @property
     def full_name(self) -> str:
@@ -191,6 +201,26 @@ class Team(Base, TimestampMixin):
     def is_series_registration(self) -> bool:
         """The registration for the whole series — not the entry in a single act."""
         return self.event_id is None
+
+
+class SailorClub(Base, TimestampMixin):
+    """A sailor sails for this club (Story V-4) — the tuple ``club:3 club sailor:7`` an
+    FGA server would hold, kept as a row because its subject is a club, not a user.
+
+    It is what makes a person a club's to put in a squad, to change, to sign a waiver for
+    and to link a parent to: a club's organizer connects the people they create, and only
+    a club the person already sails for connects them to another (decided 2026-10-25 —
+    before, putting someone in a squad was enough, so any club could take anyone).
+    """
+
+    __tablename__ = "sailor_club"
+    __table_args__ = (UniqueConstraint("sailor_id", "club_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id", ondelete="CASCADE"), index=True)
+    club_id: Mapped[int] = mapped_column(ForeignKey("club.id", ondelete="CASCADE"), index=True)
+
+    sailor: Mapped[Sailor] = relationship(back_populates="club_links")
 
 
 class TeamMembership(Base, TimestampMixin):

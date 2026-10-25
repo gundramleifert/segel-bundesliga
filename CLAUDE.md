@@ -335,6 +335,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   while managers remain, or nobody could add a member any more.
   Four foreign keys and one small interpreter are the whole model: no authorization
   service.
+- **A sailor sails for clubs, and the model knows which** (Story V-4, decided
+  2026-10-25): `SailorClub` rows are a sailor's `club` edge, and a sailor's `manager` is
+  `manager from club`. That one answer decides who puts them in a squad, changes them,
+  signs their waiver forms and links their parents. A club's organizer creates people for
+  their own club; only a club the person already sails for connects them to another — a
+  squad never makes someone a club's, or any club could take anyone.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   (a `member` tuple on the club) and organizing (`manager` or `admin` on it) are both per
   club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which
@@ -469,9 +475,10 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
 | Assign user to club, accept members, crest | `admin`; the club's `admin` (own club only) |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
-| Create and maintain sailors | `admin`, `team_manager` (changing one: only those their club's squads hold, or nobody's yet; an address once set: `admin` only) |
-| Link a parent to a sailor as guardian | the manager or admin of a club the sailor belongs to (squad, entry or membership); site `admin` |
-| Confirm a waiver for a sailor | the sailor; `admin`; the manager of a club whose squad holds them; their linked `guardian` while they are a minor |
+| Create and maintain sailors | `admin`; a club's `manager` for their own club (changing one: those who sail for their club, or for none yet; an address once set: `admin` only) |
+| Put a sailor in a squad, let them sail for another club too | the `manager` of a club they sail for (`manager from club` on the sailor); anyone who sails for no club yet; site `admin` |
+| Link a parent to a sailor as guardian | the manager or admin of a club the sailor sails for; site `admin` |
+| Confirm a waiver for a sailor | the sailor; `admin`; the manager of a club they sail for; their linked `guardian` while they are a minor |
 | Write news and press releases, keep pictures | `editor` of the site (all); of a series or an event (that regatta's) |
 | Register Squad for Series | `admin`, `team_manager` (own club only) |
 | **Create** Event | additionally the `manager` of the series (its acts, naming any host) or of the host club (outside a series only) |

@@ -182,6 +182,7 @@ class _Setting:
                 "first_name": f"Sailor{n}",
                 "last_name": self.tag,
                 "email": email,
+                "club_id": self.club_id,
             }
             if birth is not None:
                 body["birth_date"] = birth

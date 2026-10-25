@@ -89,7 +89,7 @@ Tests: `api/tests/stories/test_create_event.py::TestCreateEvent`,
 `api/tests/stories/test_create_event.py::TestWhoPlacesAnEvent`,
 `api/tests/stories/test_create_event.py::TestWhoMayEnter`,
 `e2e/lifecycle.spec.ts::VA-6: creating an event in three steps`,
-`e2e/lifecycle.spec.ts::V-12/VA-6: a team manager manages their own squad`
+`e2e/lifecycle.spec.ts::V-12/V-4/VA-6: a team manager manages their own squad`
 
 ### A-2 ● Create matchday
 As an **event organizer** I want to **create a matchday with name, date, and host**,

@@ -22,9 +22,12 @@ organizer enters the clubs. You cannot apply on your own yet: ask them.
 
 ### Find your sailors {#squad-and-lineup-sailors}
 
-The squad's search finds anyone by name or email address and shows where they sail. A
-person may sail for several clubs, but once per series. Someone missing? The league
-office creates them with their sign-in address.
+The squad's search finds anyone by name or email address and shows where they sail. Your
+squad takes the people who sail for your club, and anyone who sails for no club yet —
+they then sail for yours. Someone who sails for another club is greyed out: a person may
+sail for several clubs, but only that club or the league office lets them sail for yours.
+Someone missing? *New person for our club …* creates them with their sign-in address and
+puts them in the squad.
 
 ### Register the squad {#squad-and-lineup-squad}
 
@@ -39,6 +42,7 @@ Your club is in the series.
 
 - Saving replaces the whole squad.
 - *Already sailing for … in this series* cannot be added.
+- *Sails for another club* cannot be added: ask the league office.
 - Someone lined up for a matchday stays until the lineup changes.
 - An event in no series has its squad on [*Matchdays*](place:club.events): *Squad for this event*.
 

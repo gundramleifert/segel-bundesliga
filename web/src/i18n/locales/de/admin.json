@@ -174,7 +174,11 @@
     "unsaved": "Noch nicht gespeichert.",
     "belowMinHint": "weniger als die {min}, die dieser Wettbewerb verlangt",
     "atMaxHint": "das Maximum von {max} ist erreicht",
-    "fullReason": "Kader ist voll ({max})"
+    "fullReason": "Kader ist voll ({max})",
+    "otherClub": "Segelt für einen anderen Verein — die Geschäftsstelle kann die Person hinzufügen",
+    "newPerson": "Neue Person für unseren Verein …",
+    "newPersonCreate": "Anlegen und hinzufügen",
+    "newPersonCancel": "Abbrechen"
   },
   "auth": {
     "notSignedInError": "Für die Verwaltung müssen Sie angemeldet sein.",

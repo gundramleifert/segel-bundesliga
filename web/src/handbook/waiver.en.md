@@ -54,7 +54,7 @@ the scan:
 
 - you;
 - the league office's admin, editors and race officers;
-- the organizer or admin of a club whose squad or entry holds you;
+- the organizer or admin of a club you sail for;
 - for a form for one event: that event's organizers and race committee, including those
   of its series and host club.
 

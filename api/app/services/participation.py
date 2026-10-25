@@ -17,7 +17,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Club, Event, RaceEntry, Team, TeamMembership, TeamStatus
+from app.models import (
+    Club,
+    Event,
+    RaceEntry,
+    Sailor,
+    SailorClub,
+    Team,
+    TeamStatus,
+)
 from app.problems import Problem
 
 
@@ -86,19 +94,11 @@ def team_name(club: Club, number: int = 1) -> str:
     return club.short_name if number == 1 else f"{club.short_name} {number}"
 
 
-async def clubs_holding(session: AsyncSession, sailor_id: int) -> set[int]:
-    """The clubs whose squad or entry holds this sailor — what makes a sailor a club's to
-    change (Story V-4), to see (S-2) and to link a guardian to (V-13). A rejected
-    registration holds nobody: it never became a participation."""
-    return set(
-        (
-            await session.execute(
-                select(Team.club_id)
-                .join(TeamMembership, TeamMembership.team_id == Team.id)
-                .where(TeamMembership.sailor_id == sailor_id, Team.status != TeamStatus.REJECTED)
-            )
-        ).scalars()
-    )
+def connect_sailor(sailor: Sailor, club_id: int) -> None:
+    """The sailor sails for this club from now on (Story V-4) — the ``club`` edge their
+    permissions walk. Idempotent; who may do it is the caller's to check."""
+    if club_id not in sailor.club_ids:
+        sailor.club_links.append(SailorClub(club_id=club_id))
 
 
 async def squad_team(session: AsyncSession, team: Team) -> Team:

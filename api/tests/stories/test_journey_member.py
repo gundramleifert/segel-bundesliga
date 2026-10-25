@@ -106,6 +106,7 @@ class TestASailorJoinsTheirClub:
                 "last_name": "Neuu",
                 "email": email.upper(),
                 "birth_date": "2001-04-03",
+                "club_id": club,
             },
         )
         assert created.status_code == 201, created.text

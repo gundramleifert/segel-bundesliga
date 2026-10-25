@@ -28,7 +28,7 @@ Verein kann die Bitte weitergeben).
   zugeschnitten und auf 512×512 Pixel verkleinert. *Foto ersetzen*, *Foto entfernen*.
 - Für alle sichtbar ist Ihr Foto nur, wenn Sie 18 oder älter sind und Ihr Geburtsdatum
   hinterlegt ist. Sonst öffnen es nur Sie, Admin und Redaktion der Geschäftsstelle und
-  die Organisation eines Vereins, in dessen Kader Sie stehen.
+  die Organisation eines Vereins, für den Sie segeln.
 
 - *Öffentliche Profilseite* ①: Aus verbirgt Ihre Seite — Foto, Vereine, Spieltage — vor
   allen außer Ihnen, der Leitung Ihres Vereins und der Geschäftsstelle. Ihr Name steht

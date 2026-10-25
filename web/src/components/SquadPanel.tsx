@@ -4,17 +4,19 @@ import { useTranslation } from "react-i18next";
 
 import {
   getGetSquadQueryKey,
+  getListSailorsQueryKey,
+  useCreateSailor,
   useGetSquad,
   useListSailors,
   useSetSquad,
 } from "../api/generated/sbl";
-import { CrewRole, type SailorAdmin, type SailorRegistration } from "../api/types";
-import { useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
+import { CrewRole, Role, type SailorAdmin, type SailorRegistration } from "../api/types";
+import { useAccount, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
 import { ErrorMessage, Loading, Empty } from "./Blocks";
-import { Message } from "./Form";
+import { Field, Message } from "./Form";
 import { TransferList } from "./TransferList";
 import { roleText } from "../lib/format";
-import { errorText } from "../lib/admin";
+import { INPUT_CLASS, errorText } from "../lib/admin";
 import { useRosterDraft } from "../lib/useRosterDraft";
 import { RoleSelect } from "./RoleSelect";
 
@@ -33,6 +35,10 @@ import { RoleSelect } from "./RoleSelect";
  * directly (Story V-12). Two copies would drift, and the rules displayed here — the ten,
  * the single helm, which refusal means what — are the ones that took longest to get right.
  *
+ * A club takes only **its own people** (Story V-4): someone who sails for another club is
+ * shown greyed, with where they sail — that club can let them sail for this one too. Who
+ * is not in the register yet is created right here, for this club, and lands in the draft.
+ *
  * `readOnly` is what a club's member without organizer rights sees: the squad, and no
  * panes. Absent rather than disabled — a disabled button is a promise the server will
  * not keep.
@@ -44,7 +50,13 @@ import { RoleSelect } from "./RoleSelect";
  *  built up over weeks. */
 const USUAL_HELM_COUNT = 1;
 
-type Person = { id: number; first_name: string; last_name: string; registrations?: SailorRegistration[] | null };
+type Person = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  registrations?: SailorRegistration[] | null;
+  club_ids?: number[];
+};
 
 export function SquadPanel({
   teamId,
@@ -64,6 +76,14 @@ export function SquadPanel({
   const results = useAsyncRows(
     useListSailors({ q: search.trim() || undefined }, { query: { enabled: !readOnly } }),
   );
+
+  const { hasRole } = useAccount();
+  const [creating, setCreating] = useState(false);
+  // People created here: the search may not match them, the squad needs their names.
+  const [created, setCreated] = useState<Person[]>([]);
+  const createSailor = useCreateSailor({
+    mutation: { onSuccess: () => invalidate(getListSailorsQueryKey()) },
+  });
 
   const setSquad = useSetSquad({
     mutation: {
@@ -90,6 +110,7 @@ export function SquadPanel({
   const people = new Map<number, Person>();
   for (const m of saved) people.set(m.id, m);
   for (const p of results.data ?? []) people.set(p.id, p);
+  for (const p of created) people.set(p.id, p);
 
   const inDraft = new Set(draft.map((d) => d.sailor_id));
   const selected = roster
@@ -100,6 +121,10 @@ export function SquadPanel({
   const helmCount = draft.filter((d) => d.role === CrewRole.helm).length;
   const { squad_min: squadMin, squad_max: squadMax } = squad.data;
   const full = draft.length >= squadMax;
+  const clubId = squad.data.club_id;
+  /** Sails for a club, and not this one — the league office alone takes them anyway. */
+  const otherClubs = (person: Person) =>
+    !hasRole(Role.admin) && Boolean(person.club_ids?.length) && !person.club_ids?.includes(clubId);
 
   /** Where this person already sails, and whether that rules them out here.
    *
@@ -188,6 +213,7 @@ export function SquadPanel({
             disabledReason={(p) => {
               const taken = clash(p);
               if (taken) return t("squad.alreadyInSeries", { club: taken.club.name });
+              if (otherClubs(p)) return t("squad.otherClub");
               return full ? t("squad.fullReason", { max: squadMax }) : null;
             }}
             filterValue={search}
@@ -205,6 +231,40 @@ export function SquadPanel({
               />
             )}
           />
+          {creating ? (
+            <NewPerson
+              pending={createSailor.isPending}
+              error={createSailor.isError ? errorText(createSailor.error) : null}
+              onCancel={() => {
+                setCreating(false);
+                createSailor.reset();
+              }}
+              onCreate={(person) =>
+                createSailor.mutate(
+                  { data: { ...person, club_id: clubId } },
+                  {
+                    onSuccess: (sailor) => {
+                      setCreated((list) => [...list, sailor]);
+                      roster.add(sailor.id, "crew");
+                      setCreating(false);
+                    },
+                  },
+                )
+              }
+            />
+          ) : (
+            <div>
+              <Button
+                size="sm"
+                variant="ghost"
+                isDisabled={full}
+                onPress={() => setCreating(true)}
+                data-testid="admin-squad-new-person"
+              >
+                {t("squad.newPerson")}
+              </Button>
+            </div>
+          )}
           <div className="flex flex-wrap items-center gap-3">
             <Button
               size="sm"
@@ -228,5 +288,73 @@ export function SquadPanel({
         </>
       )}
     </div>
+  );
+}
+
+/** Someone not in the register yet: name and address, created for the squad's club. */
+function NewPerson({
+  pending,
+  error,
+  onCreate,
+  onCancel,
+}: {
+  pending: boolean;
+  error: string | null;
+  onCreate: (person: { first_name: string; last_name: string; email: string }) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation("admin");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const ready = firstName.trim() && lastName.trim() && email.trim();
+  return (
+    <form
+      data-testid="admin-squad-new-person-form"
+      className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-lg border border-separator bg-surface p-3 sm:grid-cols-[1fr_1fr_1.4fr] sm:items-end"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onCreate({ first_name: firstName.trim(), last_name: lastName.trim(), email: email.trim() });
+      }}
+    >
+      <Field label={t("sailors.firstNameLabel")}>
+        <input
+          className={INPUT_CLASS}
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          required
+          data-testid="admin-squad-new-first-name"
+        />
+      </Field>
+      <Field label={t("sailors.lastNameLabel")}>
+        <input
+          className={INPUT_CLASS}
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          required
+          data-testid="admin-squad-new-last-name"
+        />
+      </Field>
+      <Field label={t("sailors.emailLabel")}>
+        <input
+          className={INPUT_CLASS}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder={t("sailors.emailPlaceholder")}
+          data-testid="admin-squad-new-email"
+        />
+      </Field>
+      <div className="flex flex-wrap items-center gap-3 sm:col-span-3">
+        <Button type="submit" size="sm" isDisabled={pending || !ready} data-testid="admin-squad-new-create">
+          {pending ? t("sailors.creatingButton") : t("squad.newPersonCreate")}
+        </Button>
+        <Button size="sm" variant="ghost" onPress={onCancel} data-testid="admin-squad-new-cancel">
+          {t("squad.newPersonCancel")}
+        </Button>
+        {error && <ErrorMessage text={error} testId="admin-squad-new-error" />}
+      </div>
+    </form>
   );
 }

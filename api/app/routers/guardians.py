@@ -8,9 +8,10 @@ claim any child) and never the child. A sailor has no admin of its own in the mo
 these endpoints carry that rule rather than the generic tuple endpoint, which leaves
 sailor tuples to the site's admin.
 
-A child "belongs to" a club when the club's squad or event entry holds them, or when
-their account is a ``member`` of it — the young sailor who trains with the club but is
-not in this year's squad yet still has a club that knows their parents.
+A child "belongs to" a club when they sail for it — the ``club`` edge of a sailor in the
+model (`SailorClub`, Story V-4), written when the club creates them or takes them into its
+squad, and only by a club they already sail for. Until 2026-10-25 a squad was enough, so
+any club could put a child in its squad and then link a parent to them.
 """
 
 from __future__ import annotations
@@ -26,11 +27,10 @@ from app import authz
 from app.auth import current_user
 from app.authz import ObjectRef
 from app.db import get_session
-from app.models import Club, Sailor, Team, TeamMembership
+from app.models import Club, Sailor, SailorClub
 from app.models.auth import Grant, ObjectType, Relation, User
 from app.problems import Problem
 from app.services import grants
-from app.services.participation import clubs_holding
 from app.services.waivers import is_minor
 
 router = APIRouter(tags=["guardians"])
@@ -73,8 +73,8 @@ async def list_club_guardians(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> list[SailorGuardiansOut]:
-    """Story V-13: for the club's manager or admin — every sailor the club's squads and
-    entries hold or whose account is a member, with the guardians linked to them."""
+    """Story V-13: for the club's manager or admin — every sailor who sails for the club,
+    with the guardians linked to them."""
     if await session.get(Club, club_id) is None:
         raise Problem(404, "club-not-found", "No such club.")
     if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
@@ -155,43 +155,19 @@ async def unlink_guardian(
 
 
 async def _may_link(session: AsyncSession, acting: User, sailor: Sailor) -> None:
-    if authz.check(acting, Relation.ADMIN):
-        return
-    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
-    if managed and managed & await sailor_clubs(session, sailor):
-        return
-    raise _forbidden()
-
-
-async def sailor_clubs(session: AsyncSession, sailor: Sailor) -> set[int]:
-    """The clubs a sailor belongs to: a squad or an entry holds them, or their account
-    (by the sailor's address) is a member."""
-    clubs = await clubs_holding(session, sailor.id)
-    account = (
-        (
-            await session.execute(select(User).where(User.email == sailor.email.lower()))
-        ).scalar_one_or_none()
-        if sailor.email
-        else None
-    )
-    if account is not None:
-        clubs |= authz.list_objects(account, Relation.MEMBER, ObjectType.CLUB)
-    return clubs
+    """The manager of a club the child sails for — the model's ``manager`` on the sailor
+    (``manager from club``) — or the league office."""
+    if not authz.check(acting, Relation.MANAGER, on=sailor):
+        raise _forbidden()
 
 
 async def _club_sailors(session: AsyncSession, club_id: int) -> list[Sailor]:
-    held = (
-        select(TeamMembership.sailor_id)
-        .join(Team, TeamMembership.team_id == Team.id)
-        .where(Team.club_id == club_id)
-    )
-    members = await grants.grants_on(session, ObjectType.CLUB, club_id, Relation.MEMBER)
-    member_emails = [g.user.email for g in members]
     return list(
         (
             await session.execute(
                 select(Sailor)
-                .where(Sailor.id.in_(held) | Sailor.email.in_(member_emails))
+                .join(SailorClub, SailorClub.sailor_id == Sailor.id)
+                .where(SailorClub.club_id == club_id)
                 .order_by(Sailor.last_name, Sailor.first_name, Sailor.id)
             )
         ).scalars()

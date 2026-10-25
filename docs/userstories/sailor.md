@@ -176,7 +176,7 @@ Acceptance criteria:
   *Waivers* tab, beside my children's (S-8).
 - Whoever may record a confirmation (S-3) may also upload a scan and download a form for
   that sailor: the sailor's own account, `admin` (until 2026-10-24 also `editor`), and the manager of a club
-  that has the sailor in a squad. So a team manager can hand in the paper forms their
+  the sailor sails for (V-4; until 2026-10-25 any club whose squad held them). So a team manager can hand in the paper forms their
   club collected — and only those: until 2026-10-17 any club's manager could sign for any
   sailor on the site (found by Journey J-5).
 
@@ -256,7 +256,9 @@ Acceptance criteria:
 - A sailor can confirm for **their own account** (matched by its **verified** email);
   the site's `admin` can record for anyone (until 2026-10-24 the site's `editor` too), a club's manager for the sailors in their
   club's squads (they collect the paper forms) — `waiver-confirmation-forbidden` for
-  everyone else.
+  everyone else. "Their club's" is the club the sailor sails for (V-4), never a squad
+  alone: a rejected registration's squad, or one a club filled with another club's
+  people, signs for nobody.
 
 **Minors** (under 18 on the reference date — the event start, or the series start / 1 Jan of
 its year):

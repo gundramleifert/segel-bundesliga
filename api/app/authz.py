@@ -21,7 +21,8 @@ would not notice:
 What the in-process backend needs from its callers: the person's tuples are loaded with
 the ``User`` (one query), and an event is passed as the ``Event`` itself, because its two
 containers (``series``, ``host_club``) are foreign keys on the row — on an FGA server they
-would be tuples of their own. Summary roles (``User.roles``) are for the navigation and
+would be tuples of their own — and a sailor as the ``Sailor``, which brings the clubs they
+sail for (``SailorClub``). Summary roles (``User.roles``) are for the navigation and
 never answer a permission question.
 """
 
@@ -69,15 +70,23 @@ def ref(on: On) -> ObjectRef:
     return ObjectRef(kind, on.id)  # type: ignore[attr-defined]
 
 
-def _edges(on: On) -> dict[str, ObjectRef]:
-    """The objects a rule's ``from <edge>`` reaches: the site always, and for a loaded
-    event its series and host club."""
-    edges = {"site": SITE}
-    if type(on).__name__ == "Event":
+#: The objects a rule's ``from <edge>`` reaches — an edge may reach several (a sailor
+#: sails for every club they are connected to).
+Edges = dict[str, tuple[ObjectRef, ...]]
+
+
+def _edges(on: On) -> Edges:
+    """The site always; for a loaded event its series and host club; for a loaded sailor
+    the clubs they sail for."""
+    edges: Edges = {"site": (SITE,)}
+    kind = type(on).__name__
+    if kind == "Event":
         if on.series_id is not None:  # type: ignore[attr-defined]
-            edges["series"] = ObjectRef(ObjectType.SERIES, on.series_id)  # type: ignore[attr-defined]
+            edges["series"] = (ObjectRef(ObjectType.SERIES, on.series_id),)  # type: ignore[attr-defined]
         if on.host_club_id is not None:  # type: ignore[attr-defined]
-            edges["host_club"] = ObjectRef(ObjectType.CLUB, on.host_club_id)  # type: ignore[attr-defined]
+            edges["host_club"] = (ObjectRef(ObjectType.CLUB, on.host_club_id),)  # type: ignore[attr-defined]
+    elif kind == "Sailor":
+        edges["club"] = tuple(ObjectRef(ObjectType.CLUB, c) for c in on.club_ids)  # type: ignore[attr-defined]
     return edges
 
 
@@ -101,7 +110,7 @@ def check(user: User, *relations: Relation | str, on: On = SITE) -> bool:
     return any(_check(user, Relation(r), target, edges) for r in relations)
 
 
-def _check(user: User, relation: Relation, target: ObjectRef, edges: dict[str, ObjectRef]) -> bool:
+def _check(user: User, relation: Relation, target: ObjectRef, edges: Edges) -> bool:
     for term, edge in SCHEMA[target.type].get(relation, ()):
         if term == "direct":
             if read(user, relation, target):
@@ -109,10 +118,11 @@ def _check(user: User, relation: Relation, target: ObjectRef, edges: dict[str, O
         elif edge is None:
             if _check(user, Relation(term), target, edges):
                 return True
-        elif edge in edges:
+        else:
             # A container has only the site above it.
-            if _check(user, Relation(term), edges[edge], {"site": SITE}):
-                return True
+            for container in edges.get(edge, ()):
+                if _check(user, Relation(term), container, {"site": (SITE,)}):
+                    return True
     return False
 
 

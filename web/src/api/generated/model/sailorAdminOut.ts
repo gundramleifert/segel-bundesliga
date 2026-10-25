@@ -19,4 +19,5 @@ export interface SailorAdminOut {
   profile_public?: boolean;
   squads?: number;
   registrations?: SailorRegistrationOut[];
+  club_ids?: number[];
 }

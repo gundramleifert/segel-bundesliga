@@ -27,7 +27,7 @@ address (your club can pass the request on).
   reduced to 512×512 pixels. *Replace photo*, *Remove photo*.
 - Your photo is open to everyone only if you are 18 or older and your birthdate is on
   file. Otherwise only you, the league office's admin and editors, and the organizer of a
-  club whose squad holds you can open it.
+  club you sail for can open it.
 
 - *Public profile page* ①: off hides your page — photo, clubs, matchdays — from everyone
   but you, your club's leadership and the league office. Your name still appears in

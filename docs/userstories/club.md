@@ -82,18 +82,36 @@ Acceptance criteria:
   still write a sailor without one, bypassing this form.)
 - Birth date is captured as a **complete date**, not just a year — age-category eligibility
   (e.g. a youth series) needs the exact date. It stays optional and is never shown publicly.
-- **Any club's organizer may create and find people** — a person has no club until a
-  squad holds them (V-1), so there is nothing to scope a new record to, and finding the
-  existing record beats creating a second. **Changing** a person is scoped: the organizer
-  of a club whose squad or entry holds them, or of any club while nobody's squad holds
-  them yet; the site's `admin` always (until 2026-10-24 editorial too — sailors as
-  master data are the admin's alone since, A-1). Until 2026-10-17 this story said
-  "creates only people from their own club" while any club's organizer could edit
-  anyone on the site (found by Journey J-3) — `sailor-not-yours` (403) now.
+- **A person sails for clubs, and that is in the permission model** (decided 2026-10-25):
+  `SailorClub` rows are the `club` edge of a sailor, and a sailor's `manager` is
+  `manager from club` (`app/models/auth.py`). Whoever is that `manager` puts the person in
+  a squad, changes them, signs their waiver forms (S-1, S-3) and links their parents
+  (V-13). Until 2026-10-25 putting someone in a squad was what made them a club's — and
+  any club could put anyone in its squad, so it could then sign for another club's
+  sailor and link itself as a child's guardian.
+  - **An organizer creates people for their own club** — `club_id` is required of them
+    (`sailor-needs-club`, 422), and must be a club they organize (`sailor-club-not-yours`,
+    403). The league office may create someone who sails for no club yet (an import
+    does too).
+  - **A squad takes only its own club's people** — or someone who sails for no club yet,
+    who then sails for this one. Anyone else is `squad-sailor-of-another-club` (403,
+    naming them); the squad screen greys them out with that reason, and lets the
+    organizer create a new person for the club right there.
+  - **Only a club they sail for passes them on**: `PUT …/sailors/{id}/clubs/{club_id}` by
+    that club's organizer connects them to another club too; the club that wants them
+    cannot connect them itself. A club lets someone go with `DELETE` — its own
+    connection only; the squads they are in stay.
+  - **Any club's organizer still finds everyone** — that is how they see who sails
+    elsewhere, and finding the existing record beats creating a second. **Changing** a
+    person: the organizer of a club they sail for, any club's while they sail for none;
+    the site's `admin` always (until 2026-10-24 editorial too — sailors as master data
+    are the admin's alone since, A-1). Anyone else gets `sailor-not-yours` (403); until
+    2026-10-17 any club's organizer could edit anyone (found by Journey J-3).
 - If the address is already known, the **existing person is offered** instead of creating a
   second. Two records for the same person would be a mistake that is hard to fix later.
 - **A person may sail for multiple clubs.** They can be registered for one in the first
-  series and for another in the juniors — that is not an exception, it happens.
+  series and for another in the juniors — that is not an exception, it happens. The club
+  they sail for connects them to the other (above).
 - **Within a series or event, they appear only once.** Otherwise, they would start against
   themselves. This is the rule that must be enforced — not the number of clubs.
 - Addresses are stored **lowercase**: "Jan@…" and "jan@…" would otherwise be two people and
@@ -113,13 +131,14 @@ via the address.
 **The address, once set, is the league office's to change** (`sailor-email-locked`,
 2026-10-24): it is what links the record to an account. A club's organizer gives an
 address to a person who has none; changing one would hand the person's waivers and profile
-to another account — and any organizer can put any person in their own squad, which is
-what made them "theirs".
+to another account.
 
 Endpoints: `GET /api/admin/sailors`, `POST /api/admin/sailors`,
-`PATCH /api/admin/sailors/{id}`
+`PATCH /api/admin/sailors/{id}`, `PUT`/`DELETE /api/admin/sailors/{id}/clubs/{club_id}`
 
-Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`
+Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`,
+`api/tests/stories/test_sailors_and_squads.py::TestASailorSailsForTheirClub`,
+`e2e/lifecycle.spec.ts::V-12/V-4/VA-6: a team manager manages their own squad`
 
 ## Entering competitions
 
@@ -205,7 +224,8 @@ Acceptance criteria:
   is drawn from it per matchday ([V-2](#v-2--select-sailors-for-matchday)).
 - A registration replaces the previous one **completely** — it is the squad, not a supplement.
 - **The same person may be registered in multiple clubs**, but **within a series only once** —
-  otherwise they would start against themselves.
+  otherwise they would start against themselves. A squad takes only people who sail for
+  its club, or for no club yet (V-4): `squad-sailor-of-another-club`.
 - No one appears twice in the same squad.
 - **Who is lined up for a matchday does not fall out of the squad.** Otherwise, a lineup would
   exist with no squad. Change the lineup first, then the squad.
@@ -363,7 +383,7 @@ Acceptance criteria:
   here could enter it and never register anyone.
 
 Tests: `api/tests/stories/test_my_clubs.py`,
-`e2e/lifecycle.spec.ts::V-12/VA-6: a team manager manages their own squad`,
+`e2e/lifecycle.spec.ts::V-12/V-4/VA-6: a team manager manages their own squad`,
 `e2e/club.spec.ts`
 
 ## The club's page
@@ -383,9 +403,10 @@ Acceptance criteria:
 - Guardianship is a relation tuple, `user:guardian:sailor` (Story Z-2) — a new object
   type `sailor` with the one relation `guardian`. A child can have several guardians, a
   parent several children.
-- **Who may link and unlink**: the manager or admin of a club the child belongs to — a
-  club whose squad or event entry holds them, or whose `member` the child's account is —
-  and the site's admin. Anyone else gets `guardian-link-forbidden` (403).
+- **Who may link and unlink**: the manager or admin of a club the child sails for — the
+  model's `manager` on the sailor (V-4) — and the site's admin. Anyone else gets
+  `guardian-link-forbidden` (403). Until 2026-10-25 a squad or an entry holding the child
+  was enough, and any club could put any child in its squad.
 - **The guardian need not belong to the club** — only the child does. A parent is often
   no member, sailor or organizer anywhere; the link asks nothing of them but an account.
 - The parent is named by the **email of an existing account**, as on the People panel

@@ -22,4 +22,5 @@ export interface SailorCreate {
   last_name: string;
   email: string;
   birth_date?: string | null;
+  club_id?: number | null;
 }

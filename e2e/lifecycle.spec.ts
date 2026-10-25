@@ -604,7 +604,7 @@ describeStory("Z-2: access is a relation tuple, written and deleted one at a tim
   });
 });
 
-describeStory("V-12/VA-6: a team manager manages their own squad", () => {
+describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
   /** A seeded account holding `team_manager`, found rather than hardcoded.
    *
    *  The seed builds its names from a generated list, so `roden.nanisberg1@asvw.example.com`
@@ -654,8 +654,7 @@ describeStory("V-12/VA-6: a team manager manages their own squad", () => {
     // The left pane is a search over the register, and every row says where the person
     // already sails. Not decoration: a person may be registered in several clubs at once,
     // eighteen people in this data share a surname, and the row is the only thing that
-    // tells them apart (Story V-1). Whoever is already in this series for another club is
-    // shown with that reason and cannot be moved, so the one clicked is an addable one.
+    // tells them apart (Story V-1).
     // The seeded squad sits at the series' maximum, so nobody on the left is addable —
     // the limit is set per series and enforced (Story V-1). Raise it the way the league
     // office would, then add one.
@@ -674,10 +673,21 @@ describeStory("V-12/VA-6: a team manager manages their own squad", () => {
     await page.reload();
     await expect(selected.first()).toBeVisible();
     const before = await selected.count();
+    // A squad takes only the club's own people (Story V-4): those of other clubs are on the
+    // left, greyed with that reason, never a button.
     await page.getByTestId("admin-squad-panes-filter-input").fill("a");
-    const addable = page.getByTestId("admin-squad-panes-available-list").locator("button").first();
-    await expect(addable).toBeVisible();
-    await addable.click();
+    await expect(
+      page.locator('[data-testid^="admin-squad-panes-available-taken-"]').first(),
+    ).toBeVisible();
+    // Someone not in the register yet is created right here, for this club, and lands in
+    // the draft.
+    await page.getByTestId("admin-squad-new-person").click();
+    const tag = Date.now().toString(36);
+    await page.getByTestId("admin-squad-new-first-name").fill("Nele");
+    await page.getByTestId("admin-squad-new-last-name").fill(`Neu${tag}`);
+    await page.getByTestId("admin-squad-new-email").fill(`nele.${tag}@example.com`);
+    await page.getByTestId("admin-squad-new-create").click();
+    await expect(page.getByTestId("admin-squad-new-person-form")).toHaveCount(0);
     await expect(selected).toHaveCount(before + 1);
     // Moved, not yet written — Save is what writes the list, as for the clubs of an event.
     await expect(page.getByTestId("admin-squad-unsaved")).toBeVisible();

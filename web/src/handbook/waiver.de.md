@@ -59,7 +59,7 @@ zurück. Wer den Scan öffnen kann:
 
 - Sie selbst;
 - Admin, Redaktion und Wettfahrtleitung der Geschäftsstelle;
-- Organisation oder Admin eines Vereins, in dessen Kader oder Meldung Sie stehen;
+- Organisation oder Admin eines Vereins, für den Sie segeln;
 - bei einem Formular für eine einzelne Veranstaltung: deren Organisation und
   Wettfahrtleitung, auch die ihrer Serie und ihres Ausrichters.
 

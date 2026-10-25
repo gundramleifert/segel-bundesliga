@@ -36,6 +36,7 @@ from app.models import (
     RaceStatus,
     ResultCode,
     Sailor,
+    SailorClub,
     Series,
     SeriesStanding,
     Team,
@@ -373,6 +374,7 @@ async def seed() -> None:
                 session.add(sailor)
                 await session.flush()
                 squads[team.id].append(sailor)
+                session.add(SailorClub(sailor_id=sailor.id, club_id=club.id))
                 session.add(
                     TeamMembership(
                         team_id=team.id,
@@ -610,6 +612,7 @@ async def _junior_squads(session, juniors: Series) -> None:
             )
             session.add(sailor)
             await session.flush()
+            session.add(SailorClub(sailor_id=sailor.id, club_id=club.id))
             session.add(
                 TeamMembership(
                     team_id=team.id,
@@ -643,6 +646,7 @@ async def _wipe(session) -> None:
         TeamMembership,
         Team,
         Event,
+        SailorClub,
         Sailor,
         Club,
         Venue,

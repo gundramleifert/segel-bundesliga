@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 9743da2e2066
+Revision ID: b654a28b5f45
 Revises: 
-Create Date: 2026-10-24 22:53:53.503127
+Create Date: 2026-10-25 07:31:30.235497
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '9743da2e2066'
+revision: str = 'b654a28b5f45'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -262,6 +262,21 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_personal_document_user_id'), ['user_id'], unique=False)
+
+    op.create_table('sailor_club',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('sailor_id', sa.Integer(), nullable=False),
+    sa.Column('club_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_sailor_club_club_id_club'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], name=op.f('fk_sailor_club_sailor_id_sailor'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_sailor_club')),
+    sa.UniqueConstraint('sailor_id', 'club_id', name=op.f('uq_sailor_club_sailor_id'))
+    )
+    with op.batch_alter_table('sailor_club', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_sailor_club_club_id'), ['club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_sailor_club_sailor_id'), ['sailor_id'], unique=False)
 
     op.create_table('series',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -1042,6 +1057,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_series_league_id'))
 
     op.drop_table('series')
+    with op.batch_alter_table('sailor_club', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_sailor_club_sailor_id'))
+        batch_op.drop_index(batch_op.f('ix_sailor_club_club_id'))
+
+    op.drop_table('sailor_club')
     with op.batch_alter_table('personal_document', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
 

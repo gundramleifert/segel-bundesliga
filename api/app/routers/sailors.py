@@ -43,7 +43,7 @@ from app.schemas.public import MemberOut
 from app.services import is_minor, pictures
 from app.services.contexts import require_linked_sailor
 from app.services.lookup import get_or_404
-from app.services.participation import clubs_holding
+from app.services.participation import connect_sailor
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
 me_router = APIRouter(prefix="/api/sailors", tags=["sailors"])
@@ -88,6 +88,9 @@ class SailorCreate(SailorFields):
     # The full date, not just a year — needed to check age-category eligibility
     # (e.g. a youth series) precisely, not just to the nearest twelve months.
     birth_date: date | None = Field(default=None, le=date.today())
+    # The club the person sails for (Story V-4). A club's organizer creates people for
+    # their own club, so it is required of them; the league office may leave it empty.
+    club_id: int | None = None
 
 
 class SailorUpdate(SailorFields):
@@ -150,6 +153,9 @@ class SailorAdminOut(BaseModel):
     # eighteen people share that surname and a person may sail for several clubs at once
     # (Story V-1).
     registrations: list[SailorRegistrationOut] = Field(default_factory=list)
+    # The clubs the person sails for (Story V-4): a squad takes only its own club's people,
+    # or someone who sails for nobody yet. The squad screen greys out the rest.
+    club_ids: list[int] = Field(default_factory=list)
 
 
 class SailorMeOut(BaseModel):
@@ -309,11 +315,30 @@ async def create_sailor(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> SailorAdminOut:
-    """Create a person.
+    """Create a person, sailing for `club_id` (Story V-4).
 
-    They don't belong to any competition yet — that comes with squad registration.
+    They don't belong to any competition yet — that comes with squad registration. A
+    club's organizer creates people for a club they organize; only the league office
+    creates someone who sails for no club yet.
     """
     _can_manage_master_data(acting)
+    if request.club_id is None:
+        if not authz.check(acting, Relation.ADMIN):
+            raise Problem(
+                422, "sailor-needs-club", "Say which of your clubs this person sails for."
+            )
+    else:
+        if await session.get(Club, request.club_id) is None:
+            raise Problem(404, "club-not-found", "No such club.")
+        if not authz.check(
+            acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, request.club_id)
+        ):
+            raise Problem(
+                403,
+                "sailor-club-not-yours",
+                "You create people only for a club you organize.",
+                club_id=request.club_id,
+            )
 
     if request.email and await _email_taken(session, request.email):
         raise Problem(
@@ -323,7 +348,9 @@ async def create_sailor(
             email=request.email,
         )
 
-    sailor = Sailor(**request.model_dump())
+    sailor = Sailor(**request.model_dump(exclude={"club_id"}), club_links=[])
+    if request.club_id is not None:
+        connect_sailor(sailor, request.club_id)
     session.add(sailor)
     await session.commit()
     return SailorAdminOut.model_validate(sailor)
@@ -365,6 +392,51 @@ async def update_sailor(
     for field, value in changes.items():
         setattr(sailor, field, value)
 
+    await session.commit()
+    return SailorAdminOut.model_validate(sailor)
+
+
+@router.put(
+    "/sailors/{sailor_id}/clubs/{club_id}",
+    response_model=SailorAdminOut,
+    summary="Let a sailor sail for another club too",
+)
+async def connect_sailor_to_club(
+    sailor_id: int,
+    club_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> SailorAdminOut:
+    """Story V-4: a person may sail for several clubs (V-1) — but a club takes them only
+    from a club they already sail for, or from the league office. So the club that has
+    them connects them to the next; the club that wants them cannot help itself."""
+    sailor = await _sailor(session, sailor_id)
+    if await session.get(Club, club_id) is None:
+        raise Problem(404, "club-not-found", "No such club.")
+    if not authz.check(acting, Relation.MANAGER, on=sailor):
+        raise _not_yours(sailor)
+    connect_sailor(sailor, club_id)
+    await session.commit()
+    return SailorAdminOut.model_validate(sailor)
+
+
+@router.delete(
+    "/sailors/{sailor_id}/clubs/{club_id}",
+    response_model=SailorAdminOut,
+    summary="The sailor no longer sails for this club",
+)
+async def disconnect_sailor_from_club(
+    sailor_id: int,
+    club_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> SailorAdminOut:
+    """Story V-4: a club lets someone go — its own connection, never another club's. The
+    squads they are in stay as they are; the club just stops being theirs to change."""
+    sailor = await _sailor(session, sailor_id)
+    if not authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
+        raise _not_yours(sailor)
+    sailor.club_links = [link for link in sailor.club_links if link.club_id != club_id]
     await session.commit()
     return SailorAdminOut.model_validate(sailor)
 
@@ -461,8 +533,11 @@ async def set_squad(
     if desired:
         await _all_exist(session, set(desired))
         await _not_already_in_series(session, team, set(desired))
+    joining = await _may_join(session, acting, team, set(desired))
 
     await _not_removing_lined_up(session, team, set(desired))
+    for sailor in joining:
+        connect_sailor(sailor, team.club_id)
 
     await session.execute(delete(TeamMembership).where(TeamMembership.team_id == team.id))
     session.add_all(
@@ -632,22 +707,16 @@ async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor
     the way the waiver story (S-1) already treats minors' data with extra care, so it is shown
     only to a signed-in account with an actual connection to that person: the sailor
     themselves, administration (who already manage this data unrestricted, see
-    `_can_manage_master_data`), or a manager of a club this sailor is registered with (their
-    squad club, not just any club).
+    `_can_manage_master_data`), or a manager of a club this sailor sails for (the model's
+    ``manager`` on the sailor, not just any club).
 
     An **unknown** birth date is treated like a minor's, not like an adult's — see the caller.
     """
     if acting is None:
         return False
-    if authz.check(acting, Relation.ADMIN):
-        return True
     if sailor.email is not None and sailor.email.lower() == acting.email.lower():
         return True
-    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
-    if managed:
-        if managed & await clubs_holding(session, sailor.id):
-            return True
-    return False
+    return authz.check(acting, Relation.MANAGER, on=sailor)
 
 
 # ------------------------------------------------------------------ Helper functions
@@ -671,16 +740,16 @@ def _can_manage_master_data(acting: User) -> None:
 
 
 async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor) -> None:
-    """Story V-4: a club's organizer changes the people *their* club's squads or entries
-    hold — or anyone nobody's squad holds yet, who belongs to no club. Creating and
-    finding stay open to every club's organizer (`_can_manage_master_data`): a new
-    person has no club to scope by."""
-    if authz.check(acting, Relation.ADMIN):
+    """Story V-4: a club's organizer changes the people who sail for *their* club — or
+    someone who sails for no club yet. Finding stays open to every club's organizer
+    (`_can_manage_master_data`): that is how they see whom they may not add."""
+    if not sailor.club_ids or authz.check(acting, Relation.MANAGER, on=sailor):
         return
-    clubs = await clubs_holding(session, sailor.id)
-    if not clubs or clubs & authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
-        return
-    raise Problem(
+    raise _not_yours(sailor)
+
+
+def _not_yours(sailor: Sailor) -> Problem:
+    return Problem(
         403,
         "sailor-not-yours",
         "This person sails for another club; only that club's organizers can change them.",
@@ -757,6 +826,40 @@ async def _not_already_in_series(session: AsyncSession, team: Team, sailor_ids: 
             "Some of these people already sail for another club in this series.",
             sailors=[f"{first} {last}" for first, last in rows],
         )
+
+
+async def _may_join(
+    session: AsyncSession, acting: User, team: Team, desired: set[int]
+) -> list[Sailor]:
+    """Who joins the squad with this save — refused if they sail for another club (Story
+    V-4). A club's organizer adds the people of their own club, and someone who sails for
+    nobody yet, who then sails for it; a club the person already sails for connects them
+    to a second (`PUT …/clubs/{club_id}`). The league office adds anyone."""
+    current = set(
+        (
+            await session.execute(
+                select(TeamMembership.sailor_id).where(TeamMembership.team_id == team.id)
+            )
+        ).scalars()
+    )
+    joining = list(
+        (
+            await session.execute(
+                select(Sailor).where(Sailor.id.in_(desired - current)).order_by(Sailor.id)
+            )
+        ).scalars()
+    )
+    if not authz.check(acting, Relation.ADMIN):
+        foreign = [s for s in joining if s.club_ids and team.club_id not in s.club_ids]
+        if foreign:
+            raise Problem(
+                403,
+                "squad-sailor-of-another-club",
+                "Some of these people sail for another club.",
+                sailors=[s.full_name for s in foreign],
+                sailor_ids=[s.id for s in foreign],
+            )
+    return joining
 
 
 async def _not_removing_lined_up(session: AsyncSession, team: Team, staying: set[int]) -> None:

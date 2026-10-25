@@ -174,7 +174,11 @@
     "unsaved": "Not saved yet.",
     "belowMinHint": "fewer than the {min} this competition asks for",
     "atMaxHint": "the maximum of {max} is reached",
-    "fullReason": "Squad is full ({max})"
+    "fullReason": "Squad is full ({max})",
+    "otherClub": "Sails for another club — the league office can add them",
+    "newPerson": "New person for our club …",
+    "newPersonCreate": "Create and add",
+    "newPersonCancel": "Cancel"
   },
   "auth": {
     "notSignedInError": "You must be signed in to access administration.",

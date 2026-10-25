@@ -960,23 +960,7 @@ async def _may_view_scan(
         and sailor.email.lower() == acting.email.lower()
     ):
         return True
-    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
-    return bool(managed and managed & await _sailor_clubs(session, sailor.id))
-
-
-async def _sailor_clubs(session: AsyncSession, sailor_id: int) -> set[int]:
-    """The clubs that have this sailor in a squad or an event entry — "the sailor's club"."""
-    return set(
-        (
-            await session.execute(
-                select(Team.club_id)
-                .join(TeamMembership, TeamMembership.team_id == Team.id)
-                .where(TeamMembership.sailor_id == sailor_id)
-            )
-        )
-        .scalars()
-        .all()
-    )
+    return authz.check(acting, Relation.MANAGER, on=sailor)
 
 
 #: In which capacity someone may confirm for a sailor (`_may_confirm_for`).
@@ -985,7 +969,8 @@ OWN, STAFF, GUARDIAN = "own", "staff", "guardian"
 
 async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) -> str:
     """The sailor's own (verified) account; the league office or the manager of a club
-    that has the sailor in a squad — they collect their club's paper forms (Stories S-1,
+    the sailor sails for (the model's ``manager`` on the sailor) — they collect their club's
+    paper forms (Stories S-1,
     S-3); or a guardian the child's club linked to the sailor (Stories V-13, S-8). Not any
     club's manager: the `team_manager` *summary* role once let one club sign for every
     sailor on the site. Returns which of the three it is — the first that applies."""
@@ -996,10 +981,7 @@ async def _may_confirm_for(session: AsyncSession, acting: User, sailor: Sailor) 
     )
     if own:
         return OWN
-    if authz.check(acting, Relation.ADMIN):
-        return STAFF
-    managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
-    if managed and managed & await _sailor_clubs(session, sailor.id):
+    if authz.check(acting, Relation.MANAGER, on=sailor):
         return STAFF
     if authz.read(acting, Relation.GUARDIAN, ObjectRef(ObjectType.SAILOR, sailor.id)):
         return GUARDIAN

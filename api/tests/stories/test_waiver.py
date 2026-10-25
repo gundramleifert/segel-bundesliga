@@ -15,7 +15,16 @@ import pytest
 from sqlalchemy import delete, select
 
 from app.db import SessionLocal
-from app.models import Club, Sailor, Series, Team, TeamMembership, WaiverConfirmation, WaiverText
+from app.models import (
+    Club,
+    Sailor,
+    Series,
+    Team,
+    TeamMembership,
+    TeamStatus,
+    WaiverConfirmation,
+    WaiverText,
+)
 from app.models.auth import Grant, Relation, Role
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_my_space import SOON, _club, _event, _sailor, _series, _tag, _team
@@ -271,6 +280,31 @@ class TestConfirming:
         assert (await client.get(form, headers=own)).status_code == 200
         allowed = await client.post(url, headers=own, json={"sailor_id": sailor_id})
         assert allowed.status_code == 201, allowed.text
+
+    async def test_a_rejected_registration_signs_for_nobody(self, client, caplog, ids):
+        """Stories S-1, S-3: a squad on a registration the league office rejected never
+        became a participation, so it makes nobody that club's sailor to sign for."""
+        sailor_id, _ = await _squad_sailor("dsbl-1-2026", offset=46)
+        async with SessionLocal() as session:
+            club = Club(slug="wv-rejected", name="Rejected Waiver Club", short_name="RWC")
+            series = Series(slug="wv-rejected-series", name="Rejected Waiver Cup", short_name="RWC")
+            session.add_all([club, series])
+            await session.flush()
+            team = Team(
+                name="RWC", club_id=club.id, series_id=series.id, status=TeamStatus.REJECTED
+            )
+            session.add(team)
+            await session.flush()
+            session.add(TeamMembership(team_id=team.id, sailor_id=sailor_id))
+            await session.commit()
+            club_id = club.id
+        await make_user("wv-rejected-mgr@example.com", Role.TEAM_MANAGER, club_id=club_id)
+        manager = auth_headers(await login_as(client, "wv-rejected-mgr@example.com", caplog))
+        series_id = ids.series("dsbl-1-2026")
+        denied = await client.post(
+            f"/api/series/{series_id}/waiver", headers=manager, json={"sailor_id": sailor_id}
+        )
+        assert denied.status_code == 403, denied.text
 
 
 class TestMinors:

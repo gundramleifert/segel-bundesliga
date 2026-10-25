@@ -3602,7 +3602,9 @@ export const getListUsersUrl = (params?: ListUsersParams,) => {
 }
 
 /**
- * Also for team managers: they need to find people to assign to their club.
+ * The league office's alone: every account with every tuple, so who is in which club
+ * — affiliation, which is not public (Story V-10). A club's admin adds members by
+ * address on the club's own page, never by browsing this list.
  *
  * Paged since Story A-13 — there is one account per registered sailor, so this list is
  * as long as the sailor register and had no limit at all.
@@ -4161,7 +4163,7 @@ export const getReadTuplesUrl = (params: ReadTuplesParams,) => {
 
 /**
  * The access list of one object — the event panel shows its managers, race officers
- * and jury here. Open to the site's admin and to the object's own managers.
+ * and jury here. Open to the site's admin and to the object's own admins.
  * @summary Who holds what on one object (FGA read)
  */
 export const readTuples = async (params: ReadTuplesParams, options?: RequestInit): Promise<TupleOut[]> => {
@@ -4265,7 +4267,7 @@ export const getWriteTupleUrl = () => {
 /**
  * Story Z-2. The rules — the schema, the object must exist, no duplicate — live in
  * `app/services/grants.py`, shared with the club screen. The site's admin writes any
- * tuple; an object's manager writes tuples on that object, so an organizer names the
+ * tuple; an object's admin writes tuples on that object, so an organizer names the
  * race officers and the jury of their own event without administration.
  * @summary Write one tuple (FGA write)
  */
@@ -9424,9 +9426,11 @@ export const getCreateSailorUrl = () => {
 }
 
 /**
- * Create a person.
+ * Create a person, sailing for `club_id` (Story V-4).
  *
- * They don't belong to any competition yet — that comes with squad registration.
+ * They don't belong to any competition yet — that comes with squad registration. A
+ * club's organizer creates people for a club they organize; only the league office
+ * creates someone who sails for no club yet.
  * @summary Create sailor
  */
 export const createSailor = async (sailorCreate: SailorCreate, options?: RequestInit): Promise<SailorAdminOut> => {
@@ -9593,6 +9597,163 @@ export const useUpdateSailor = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getUpdateSailorMutationOptions(options), queryClient);
+    }
+
+export const getConnectSailorToClubUrl = (sailorId: number,
+    clubId: number,) => {
+
+
+
+
+  return `/api/admin/sailors/${sailorId}/clubs/${clubId}`
+}
+
+/**
+ * Story V-4: a person may sail for several clubs (V-1) — but a club takes them only
+ * from a club they already sail for, or from the league office. So the club that has
+ * them connects them to the next; the club that wants them cannot help itself.
+ * @summary Let a sailor sail for another club too
+ */
+export const connectSailorToClub = async (sailorId: number,
+    clubId: number, options?: RequestInit): Promise<SailorAdminOut> => {
+
+  return http<SailorAdminOut>(getConnectSailorToClubUrl(sailorId,clubId),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+);}
+
+
+
+
+
+export const getConnectSailorToClubMutationKey = () => ['connectSailorToClub'] as const;
+
+export const getConnectSailorToClubMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof connectSailorToClub>>, TError,ConnectSailorToClubMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof connectSailorToClub>>, TError,ConnectSailorToClubMutationVariables, TContext> => {
+
+const mutationKey = getConnectSailorToClubMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof connectSailorToClub>>, ConnectSailorToClubMutationVariables> = (props) => {
+          const {sailorId,clubId} = props ?? {};
+
+          return  connectSailorToClub(sailorId,clubId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConnectSailorToClubMutationResult = NonNullable<Awaited<ReturnType<typeof connectSailorToClub>>>
+
+    export type ConnectSailorToClubMutationError = ErrorType<ProblemDetails>
+    export type ConnectSailorToClubMutationVariables = {sailorId: number;clubId: number}
+
+    /**
+ * @summary Let a sailor sail for another club too
+ */
+export const useConnectSailorToClub = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof connectSailorToClub>>, TError,ConnectSailorToClubMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof connectSailorToClub>>,
+        TError,
+        ConnectSailorToClubMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConnectSailorToClubMutationOptions(options), queryClient);
+    }
+
+export const getDisconnectSailorFromClubUrl = (sailorId: number,
+    clubId: number,) => {
+
+
+
+
+  return `/api/admin/sailors/${sailorId}/clubs/${clubId}`
+}
+
+/**
+ * Story V-4: a club lets someone go — its own connection, never another club's. The
+ * squads they are in stay as they are; the club just stops being theirs to change.
+ * @summary The sailor no longer sails for this club
+ */
+export const disconnectSailorFromClub = async (sailorId: number,
+    clubId: number, options?: RequestInit): Promise<SailorAdminOut> => {
+
+  return http<SailorAdminOut>(getDisconnectSailorFromClubUrl(sailorId,clubId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDisconnectSailorFromClubMutationKey = () => ['disconnectSailorFromClub'] as const;
+
+export const getDisconnectSailorFromClubMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectSailorFromClub>>, TError,DisconnectSailorFromClubMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof disconnectSailorFromClub>>, TError,DisconnectSailorFromClubMutationVariables, TContext> => {
+
+const mutationKey = getDisconnectSailorFromClubMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disconnectSailorFromClub>>, DisconnectSailorFromClubMutationVariables> = (props) => {
+          const {sailorId,clubId} = props ?? {};
+
+          return  disconnectSailorFromClub(sailorId,clubId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DisconnectSailorFromClubMutationResult = NonNullable<Awaited<ReturnType<typeof disconnectSailorFromClub>>>
+
+    export type DisconnectSailorFromClubMutationError = ErrorType<ProblemDetails>
+    export type DisconnectSailorFromClubMutationVariables = {sailorId: number;clubId: number}
+
+    /**
+ * @summary The sailor no longer sails for this club
+ */
+export const useDisconnectSailorFromClub = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disconnectSailorFromClub>>, TError,DisconnectSailorFromClubMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof disconnectSailorFromClub>>,
+        TError,
+        DisconnectSailorFromClubMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDisconnectSailorFromClubMutationOptions(options), queryClient);
     }
 
 export const getGetSquadUrl = (teamId: number,) => {
@@ -11092,8 +11253,8 @@ export const getListClubGuardiansUrl = (clubId: number,) => {
 }
 
 /**
- * Story V-13: for the club's manager or admin — every sailor the club's squads and
- * entries hold or whose account is a member, with the guardians linked to them.
+ * Story V-13: for the club's manager or admin — every sailor who sails for the club,
+ * with the guardians linked to them.
  * @summary The club's sailors and their guardians
  */
 export const listClubGuardians = async (clubId: number, options?: RequestInit): Promise<SailorGuardiansOut[]> => {
