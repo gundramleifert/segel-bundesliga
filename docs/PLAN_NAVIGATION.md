@@ -27,7 +27,7 @@ The problem it solves, in the user's words: people cannot find the page for an a
 3. **What I hold decides what I see — the model, not a role.** A section is shown when
    I hold one of its relations on the object (directly, or through the model: a series
    manager on its events, the host club's on its events). The rule is declared once
-   (`web/src/lib/spaceTabs.ts`, extended) and read by the sidebar, the routes' guards and
+   (`web/src/lib/workspace.ts`, which replaced `spaceTabs.ts`) and read by the sidebar, the routes' guards and
    the handbook's places, as the tabs are today.
 4. **Several roles on one object add up; they never duplicate.** A club admin who is
    also its treasurer sees one *Money* group, with every page either role brings. Groups

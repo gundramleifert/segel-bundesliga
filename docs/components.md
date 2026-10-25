@@ -224,13 +224,16 @@ linked, survives a reload, and the Back button steps between tabs. It owns the r
 tabindex, the arrow keys, and the horizontal scroll guard — the parts that get dropped
 when a strip is copied.
 
-**Who sees which tab of my space and of the administration is declared in
-`lib/spaceTabs.ts`**, not in the page: `PROFILE_TABS`, `CLUB_TABS`, `SERIES_TABS`,
-`EVENT_TABS` (each tab's key and the relations that show it, spread into a section with
-`tabRule`) and `adminTabs(hasRole)`. The help's places (`handbook/places.ts`, Story B-18)
-read the same declarations to decide whether a reader gets a link to a tab or plain
-words — so a new tab there, or a changed `for`, is declared in that file first, never
-only in the screen.
+**Who sees which section of the workspace is declared in `lib/workspace.ts`** (Story
+Z-10), not in the page: `WORKSPACE` lists every context's groups and sections, each with
+the relations that show it (`Relation.x` from the generated client, or `SAILOR`), and
+`sidebar(kind, relations)` / `hasSection` answer the sidebar's and the guards' question;
+`switcherEntries` builds the context switcher from `GET /api/me/contexts`. Until the
+sidebar replaces today's tabs (#31), the same file still declares them — `PROFILE_TABS`,
+`CLUB_TABS`, `SERIES_TABS`, `EVENT_TABS`, spread into a section with `tabRule`, and
+`adminTabs(hasRole)`. The help's places (`handbook/places.ts`, Story B-18) read the same
+declarations to decide whether a reader gets a link or plain words — so a new section, or
+a changed `for`, is declared in that file first, never only in the screen.
 
 ### `Steps` — where you are in a short, ordered sequence
 

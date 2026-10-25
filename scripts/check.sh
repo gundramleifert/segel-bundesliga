@@ -42,6 +42,7 @@ step "ruff"            bash -c 'cd api && uv run ruff check .'
 # database and an uploads directory of its own. ~40 s instead of ~90 s.
 [[ "${1:-}" == "--fast" ]] || step "pytest" bash -c 'cd api && uv run pytest -q -n auto'
 step "web typecheck"   bash -c 'cd web && pnpm typecheck'
+step "web unit"        bash -c 'cd web && pnpm test'
 step "web i18n"        bash -c 'cd web && pnpm check:i18n'
 # A shade class (`text-slate-500`) has one value; a page naming one breaks in the other theme.
 step "web colours"     bash -c 'cd web && pnpm check:colours'

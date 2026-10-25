@@ -1,0 +1,496 @@
+import { Relation, Role, type MyContext } from "../api/types";
+
+/** Story Z-10: the signed-in workspace — its contexts, their groups and sections, and who
+ *  has each (`docs/PLAN_NAVIGATION.md` §2–§3, issue #30).
+ *
+ * **Declared once, read three times.** The sidebar builds itself from these declarations,
+ * the routes' guards ask the same question before showing a section, and the handbook's
+ * places (`handbook/places.ts`, Story B-18) decide from the very same ones whether a reader
+ * gets a link or plain words. A second copy of these rules would drift, and a link that
+ * ends on a section the reader does not have is worse than none (Story A-12's rule). Here
+ * only the *keys* and the *relations*; labels, icons and panels stay with the screens.
+ *
+ * **The model decides, never a role.** A section is there when I hold one of its `for`
+ * relations on the object — `relations` as `GET /api/me/contexts` reports them for a
+ * context of mine (`sailor` included), or as `GET /api/events/{id}/access` answers for one
+ * reached through another (a series manager's event). A section's key is also its URL
+ * segment (`/me/club/7/minors`) and the `section` a to-do links to (#33), so it never
+ * changes once built on.
+ */
+
+/** Sailing there — a squad, a crew. No tuple says it, so it is no `Relation`; the API
+ *  reports it among a context's relations under this name (Story Z-8). */
+export const SAILOR = "sailor";
+
+/** What someone can hold on an object: a relation of the model (the generated enum), or
+ *  sailing there. */
+export type Holding = Relation | typeof SAILOR;
+
+/** A section: there when I hold one of `for`; without `for`, for everyone who has the
+ *  context at all. */
+export type SectionRule = { readonly for?: readonly Holding[] };
+
+/** A group of sections; `null` is the ungrouped head of the list — the *Overview*. */
+export type GroupDecl = { readonly key: string | null; readonly sections: Readonly<Record<string, SectionRule>> };
+
+/** The organizers of a club, a series or an event: its `admin` and its `manager` (for an
+ *  event the model adds the series', the host club's and the site's race committee —
+ *  they arrive here already as `manager`). */
+export const ORGANIZERS = [Relation.admin, Relation.manager] as const satisfies readonly Holding[];
+
+const ME_GROUPS = [
+  { key: null, sections: { overview: {} } },
+  { key: "me", sections: { account: {}, waivers: {}, claims: {}, documents: {}, bank: {} } },
+  { key: "children", sections: { children: { for: [Relation.guardian] } } },
+] as const satisfies readonly GroupDecl[];
+
+const CLUB_MONEY: readonly Holding[] = [...ORGANIZERS, Relation.treasurer];
+const CLUB_GROUPS = [
+  { key: null, sections: { overview: {} } },
+  {
+    key: "people",
+    sections: {
+      members: { for: [Relation.member, ...ORGANIZERS] },
+      sailors: { for: ORGANIZERS },
+      minors: { for: ORGANIZERS },
+      waivers: { for: ORGANIZERS },
+    },
+  },
+  {
+    key: "racing",
+    sections: {
+      squads: { for: [Relation.member, ...ORGANIZERS] },
+      crews: { for: [Relation.member, ...ORGANIZERS] },
+      hosting: { for: ORGANIZERS },
+    },
+  },
+  {
+    key: "money",
+    sections: {
+      "my-claims": { for: [Relation.member] },
+      "decide-claims": { for: CLUB_MONEY },
+      "payment-runs": { for: CLUB_MONEY },
+      "bank-account": { for: CLUB_MONEY },
+    },
+  },
+  { key: "club", sections: { "club-page": { for: [Relation.admin] } } },
+] as const satisfies readonly GroupDecl[];
+
+const SERIES_GROUPS = [
+  { key: null, sections: { overview: {} } },
+  { key: "sailing", sections: { team: { for: [SAILOR] } } },
+  { key: "series", sections: { events: {}, standings: {} } },
+  { key: "organize", sections: { registrations: { for: ORGANIZERS }, dates: { for: ORGANIZERS }, scoring: { for: ORGANIZERS } } },
+  { key: "officials", sections: { officials: { for: ORGANIZERS } } },
+  { key: "editorial", sections: { news: { for: [Relation.editor] } } },
+] as const satisfies readonly GroupDecl[];
+
+const RACE_DAY: readonly Holding[] = [...ORGANIZERS, Relation.race_officer];
+const EVENT_GROUPS = [
+  { key: null, sections: { overview: {} } },
+  { key: "sailing", sections: { crew: { for: [SAILOR] } } },
+  {
+    key: "setup",
+    sections: {
+      general: { for: ORGANIZERS },
+      clubs: { for: ORGANIZERS },
+      boats: { for: ORGANIZERS },
+      pairing: { for: ORGANIZERS },
+      publication: { for: ORGANIZERS },
+      people: { for: ORGANIZERS },
+    },
+  },
+  {
+    key: "raceday",
+    sections: {
+      "check-in": { for: RACE_DAY },
+      "race-control": { for: RACE_DAY },
+      results: { for: RACE_DAY },
+      trackers: { for: RACE_DAY },
+      "notice-board": { for: [...RACE_DAY, Relation.jury] },
+    },
+  },
+  {
+    key: "money",
+    sections: {
+      // Those who work the event file claims on it (Story F-2); sailing is not work.
+      "my-claims": { for: [Relation.manager, Relation.race_officer, Relation.jury, Relation.helper, Relation.treasurer] },
+      "decide-claims": { for: [...ORGANIZERS, Relation.treasurer] },
+    },
+  },
+  { key: "editorial", sections: { news: { for: [Relation.editor] } } },
+] as const satisfies readonly GroupDecl[];
+
+/** The league office: the site's own work, by the site's relations (Story Z-10, §3). */
+const OFFICE_GROUPS = [
+  { key: null, sections: { overview: {} } },
+  {
+    key: "office",
+    sections: {
+      clubs: { for: [Relation.admin] },
+      series: { for: [Relation.admin] },
+      events: { for: [Relation.admin, Relation.race_officer] },
+      sailors: { for: [Relation.admin] },
+      accounts: { for: [Relation.admin] },
+      news: { for: [Relation.admin, Relation.editor] },
+      media: { for: [Relation.admin, Relation.editor] },
+      imports: { for: [Relation.admin] },
+    },
+  },
+] as const satisfies readonly GroupDecl[];
+
+export const WORKSPACE = {
+  me: ME_GROUPS,
+  office: OFFICE_GROUPS,
+  club: CLUB_GROUPS,
+  series: SERIES_GROUPS,
+  event: EVENT_GROUPS,
+} as const;
+
+export type WorkspaceKind = keyof typeof WORKSPACE;
+type SectionsOf<G> = G extends readonly (infer D)[] ? (D extends { sections: infer S } ? keyof S & string : never) : never;
+/** The section keys of one context — `Section<"club">` is `"overview" | "members" | …`. */
+export type Section<K extends WorkspaceKind> = SectionsOf<(typeof WORKSPACE)[K]>;
+
+/** Whether a section with this rule is there for someone holding `relations`. */
+export function sectionVisible(rule: SectionRule, relations: readonly string[]): boolean {
+  return !rule.for || rule.for.some((r) => relations.includes(r));
+}
+
+/** One group as the sidebar draws it: its sections I have, and whether it carries a
+ *  heading — a group with one section shows as that section alone (§1, rule 5). */
+export type SidebarGroup = { key: string | null; sections: string[]; heading: boolean; folded: boolean };
+
+/** The sidebar of one context for someone holding `relations` there: absent, never
+ *  disabled — a section I cannot use is not listed, a group left empty disappears. Several
+ *  relations add up, each section once, in the order of the work.
+ *
+ *  An event that has started (`started`: a race no longer scheduled, VA-8) puts *Race day*
+ *  before *Set up* and folds *Set up* — it is frozen anyway; before, the reverse. */
+export function sidebar(kind: WorkspaceKind, relations: readonly string[], options: { started?: boolean } = {}): SidebarGroup[] {
+  const groups: SidebarGroup[] = (WORKSPACE[kind] as readonly GroupDecl[])
+    .map((g) => {
+      const sections = Object.entries(g.sections)
+        .filter(([, rule]) => sectionVisible(rule, relations))
+        .map(([key]) => key);
+      return { key: g.key, sections, heading: g.key !== null && sections.length > 1, folded: false };
+    })
+    .filter((g) => g.sections.length > 0);
+  if (kind !== "event") return groups;
+  const setup = groups.find((g) => g.key === "setup");
+  const raceday = groups.find((g) => g.key === "raceday");
+  if (!setup || !raceday) return groups;
+  const first = options.started ? raceday : setup;
+  const second = options.started ? setup : raceday;
+  second.folded = true;
+  const rest = groups.filter((g) => g !== setup && g !== raceday);
+  const at = groups.indexOf(setup) < groups.indexOf(raceday) ? groups.indexOf(setup) : groups.indexOf(raceday);
+  return [...rest.slice(0, at), first, second, ...rest.slice(at)];
+}
+
+/** The section keys of a context I have, flat — for the routes' guards. */
+export function sectionsFor(kind: WorkspaceKind, relations: readonly string[]): string[] {
+  return sidebar(kind, relations).flatMap((g) => g.sections);
+}
+
+/** Whether this person has `section` in this context — the guard's question. */
+export function hasSection(kind: WorkspaceKind, section: string, relations: readonly string[]): boolean {
+  return sectionsFor(kind, relations).includes(section);
+}
+
+// ---------------------------------------------------------------- the switcher
+
+/** A context, named by kind and id — `{ kind: "club", id: 7 }`; *Me* and the league
+ *  office have no id. */
+export type ContextRef = { kind: "me" | "office" } | { kind: "club" | "series" | "event"; id: number };
+
+/** One line of the context switcher. */
+export type SwitcherEntry = {
+  ref: ContextRef;
+  /** The relations as chips, in `RELATION_ORDER` (the API's order); empty for *Me*. */
+  relations: readonly string[];
+  /** The waiting count — the sum of the context's to-dos. */
+  waiting: number;
+  /** A past event, folded under *Earlier*. */
+  past: boolean;
+  context?: MyContext;
+};
+
+/** The groups of the switcher, in its order (§2): Me, the league office, clubs, series,
+ *  events, then Recent. */
+export type Switcher = {
+  head: SwitcherEntry[];
+  clubs: SwitcherEntry[];
+  series: SwitcherEntry[];
+  events: SwitcherEntry[];
+  recent: ContextRef[];
+};
+
+/** What the switcher is built from: the answer of `GET /api/me/contexts`, the site
+ *  relations (the league office is there only with one), what waits for me on *Me*
+ *  itself, and the contexts this browser opened last. */
+export type SwitcherInput = {
+  contexts: readonly MyContext[];
+  site?: readonly string[];
+  meWaiting?: number;
+  recent?: readonly ContextRef[];
+  /** Today, `YYYY-MM-DD` — injected so a test can pin it. */
+  today: string;
+};
+
+const waitingOf = (c: MyContext) => c.needs.reduce((sum, n) => sum + n.count, 0);
+
+/** The switcher's entries — exactly mine (Story Z-8's answer), never every event of every
+ *  series I manage: those are reached inside and then kept under Recent.
+ *
+ *  Clubs by name; series of the current year first, newer and older after, drafts last;
+ *  events upcoming by date (the next first), then past ones, latest first and folded. */
+export function switcherEntries(input: SwitcherInput): Switcher {
+  const entry = (c: MyContext, past = false): SwitcherEntry => ({
+    ref: { kind: c.kind, id: c.id },
+    relations: c.relations,
+    waiting: waitingOf(c),
+    past,
+    context: c,
+  });
+  const head: SwitcherEntry[] = [{ ref: { kind: "me" }, relations: [], waiting: input.meWaiting ?? 0, past: false }];
+  if (input.site?.length) head.push({ ref: { kind: "office" }, relations: input.site, waiting: 0, past: false });
+
+  const byName = (a: MyContext, b: MyContext) => a.name.localeCompare(b.name);
+  const of = (kind: MyContext["kind"]) => input.contexts.filter((c) => c.kind === kind);
+
+  const clubs = of("club").sort(byName).map((c) => entry(c));
+
+  const year = Number(input.today.slice(0, 4));
+  const seriesRank = (c: MyContext) => [c.published === false ? 1 : 0, c.year === year ? 0 : 1, -(c.year ?? 0)];
+  const series = of("series")
+    .sort((a, b) => compareTuples(seriesRank(a), seriesRank(b)) || byName(a, b))
+    .map((c) => entry(c));
+
+  const isPast = (c: MyContext) => (c.ends_on ?? c.starts_on ?? "9999") < input.today;
+  const upcoming = of("event")
+    .filter((c) => !isPast(c))
+    .sort((a, b) => (a.starts_on ?? "9999").localeCompare(b.starts_on ?? "9999") || byName(a, b));
+  const past = of("event")
+    .filter(isPast)
+    .sort((a, b) => (b.starts_on ?? "").localeCompare(a.starts_on ?? "") || byName(a, b));
+  const events = [...upcoming.map((c) => entry(c)), ...past.map((c) => entry(c, true))];
+
+  const listed = new Set([...clubs, ...series, ...events, ...head].map((e) => refKey(e.ref)));
+  const recent = (input.recent ?? []).filter((r) => !listed.has(refKey(r)));
+  return { head, clubs, series, events, recent };
+}
+
+function compareTuples(a: number[], b: number[]): number {
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] - b[i];
+  return 0;
+}
+
+/** `club:7`, `me` — a context as one string, for a set or a React key. */
+export function refKey(ref: ContextRef): string {
+  return "id" in ref ? `${ref.kind}:${ref.id}` : ref.kind;
+}
+
+// ---------------------------------------------------------------- recent, per browser
+
+/** How many contexts Recent keeps, and how many sections Last visited. */
+export const RECENT_MAX = 5;
+
+/** `ref` put first in `list`, once, the list cut to `max` — pure, the storage below only
+ *  keeps it. */
+export function pushRecent<T>(list: readonly T[], item: T, key: (t: T) => string, max = RECENT_MAX): T[] {
+  return [item, ...list.filter((x) => key(x) !== key(item))].slice(0, max);
+}
+
+const RECENT_KEY = "sbl.workspace.recent";
+
+/** The contexts this browser opened last (§2: per browser, decided) — a convenience, never
+ *  needed to work: storage that is blocked or empty reads as nothing. */
+export function readRecent(storage: Pick<Storage, "getItem"> | undefined = safeStorage()): ContextRef[] {
+  try {
+    const parsed: unknown = JSON.parse(storage?.getItem(RECENT_KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed.filter(isRef).slice(0, RECENT_MAX) : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Remember that this browser opened `ref`. */
+export function rememberRecent(ref: ContextRef, storage: Pick<Storage, "getItem" | "setItem"> | undefined = safeStorage()): void {
+  try {
+    storage?.setItem(RECENT_KEY, JSON.stringify(pushRecent(readRecent(storage), ref, refKey)));
+  } catch {
+    // A private window or blocked site data: Recent stays as it was.
+  }
+}
+
+function safeStorage(): Storage | undefined {
+  try {
+    return typeof localStorage === "undefined" ? undefined : localStorage;
+  } catch {
+    return undefined;
+  }
+}
+
+function isRef(x: unknown): x is ContextRef {
+  if (!x || typeof x !== "object") return false;
+  const r = x as { kind?: unknown; id?: unknown };
+  if (r.kind === "me" || r.kind === "office") return true;
+  return (r.kind === "club" || r.kind === "series" || r.kind === "event") && typeof r.id === "number";
+}
+
+// ---------------------------------------------------------------- today's screens
+
+/** Until the sidebar replaces them (#31, #32), today's screens build their tabs from the
+ *  declarations below — tabs of my profile, of my page in a club, a series or an event,
+ *  and of the administration. `LEGACY_TAB_SECTION` says which section each tab becomes,
+ *  so `?tab=` addresses can be redirected when the sections arrive.
+ */
+
+/** A tab of a context page: shown when I hold one of `for` there (`sailor` included —
+ *  sailing there, Story Z-8); without `for`, always. */
+export type TabRule = { readonly for?: readonly Holding[] };
+
+/** Whether a tab with this rule is there for someone holding `relations`. */
+export function tabVisible(rule: TabRule, relations: readonly string[]): boolean {
+  return !rule.for || rule.for.some((r) => relations.includes(r));
+}
+
+/** `/me/profile` — mine alone, so every tab is there for every signed-in person. */
+export const PROFILE_TABS = {
+  account: {},
+  documents: {},
+  bank: {},
+  waivers: {},
+  claims: {},
+} as const satisfies Record<string, TabRule>;
+
+/** `/me/club/:id`. The club's own tabs are for whoever is *in* it — a member or one of its
+ *  organizers (`GET /api/clubs/mine` answers the same: member or manager, an admin being
+ *  both); a treasurer who is neither gets the money only (Story V-12). */
+export const CLUB_TABS = {
+  members: { for: [Relation.member, ...ORGANIZERS] },
+  events: { for: [Relation.member, ...ORGANIZERS] },
+  series: { for: [Relation.member, ...ORGANIZERS] },
+  waivers: { for: ORGANIZERS },
+  claims: { for: [Relation.member] },
+  money: { for: [...ORGANIZERS, Relation.treasurer] },
+  // The events the club hosts are organized in the administration (Story VA-6).
+  hosting: { for: ORGANIZERS },
+} as const satisfies Record<string, TabRule>;
+
+/** `/me/series/:id`. */
+export const SERIES_TABS = {
+  team: { for: [SAILOR] },
+  events: {},
+  organize: { for: ORGANIZERS },
+} as const satisfies Record<string, TabRule>;
+
+/** `/me/event/:id`. Those who work the event file claims on it (Story F-2); sailing is not
+ *  work. */
+export const EVENT_TABS = {
+  crew: { for: [SAILOR] },
+  claims: { for: [Relation.admin, Relation.manager, Relation.treasurer, Relation.race_officer, Relation.jury, Relation.helper] },
+  decide: { for: [...ORGANIZERS, Relation.treasurer] },
+  race: { for: [...ORGANIZERS, Relation.race_officer] },
+  organize: { for: ORGANIZERS },
+} as const satisfies Record<string, TabRule>;
+
+/** Which section each of today's tabs becomes — for redirecting `?tab=` once the URLs
+ *  are `/me/<kind>/:id/<section>` (#31). A tab that splits into several sections goes to
+ *  the first. */
+export const LEGACY_TAB_SECTION = {
+  profile: { account: "account", documents: "documents", bank: "bank", waivers: "waivers", claims: "claims" },
+  club: {
+    members: "members",
+    events: "crews",
+    series: "squads",
+    waivers: "waivers",
+    claims: "my-claims",
+    money: "decide-claims",
+    hosting: "hosting",
+  },
+  series: { team: "team", events: "events", organize: "registrations" },
+  event: { crew: "crew", claims: "my-claims", decide: "decide-claims", race: "race-control", organize: "general" },
+} as const satisfies {
+  profile: Record<keyof typeof PROFILE_TABS, Section<"me">>;
+  club: Record<keyof typeof CLUB_TABS, Section<"club">>;
+  series: Record<keyof typeof SERIES_TABS, Section<"series">>;
+  event: Record<keyof typeof EVENT_TABS, Section<"event">>;
+};
+
+export const CONTEXT_TABS = { club: CLUB_TABS, series: SERIES_TABS, event: EVENT_TABS } as const;
+
+export type ContextKind = keyof typeof CONTEXT_TABS;
+export type ProfileTab = keyof typeof PROFILE_TABS;
+export type ClubTab = keyof typeof CLUB_TABS;
+export type SeriesTab = keyof typeof SERIES_TABS;
+export type EventTab = keyof typeof EVENT_TABS;
+
+/** `{ key, for }` of one tab, for a screen to spread into its section. */
+export function tabRule<T extends Record<string, TabRule>, K extends keyof T & string>(
+  tabs: T,
+  key: K,
+): { key: K; for?: readonly Holding[] } {
+  return { key, for: tabs[key].for };
+}
+
+// ---------------------------------------------------------------- administration
+
+/** The areas of the administration. Also the values `?tab=` accepts — an unknown one falls
+ *  back to the first tab rather than erroring (Story A-11). */
+export type AdminTab = "clubs" | "series" | "events" | "sailors" | "news" | "media" | "accounts";
+
+export type HasRole = (...roles: Role[]) => boolean;
+
+/** The summary roles the administration has something for (Story A-12). Read by the
+ *  account menu (whether to offer the link), by the administration's own guard (whether to
+ *  let someone in) and by the help's places: copies would drift, and a link that ends in a
+ *  403 is worse than no link. */
+export const ADMIN_ROLES: readonly Role[] = [
+  Role.admin,
+  Role.editor,
+  Role.race_officer,
+  Role.series_manager,
+  Role.event_manager,
+  Role.team_manager,
+  Role.jury,
+];
+
+/** The administration's tabs this person has, in the order the work happens (Story A-11).
+ *  The admin sees every area; a series' organizer its series and events; the organizer,
+ *  race committee or jury of an event — or of the club hosting it — the events tab; editorial *News* and *Media* and nothing else — it
+ *  writes, it does not organize (Stories R-1, R-2, decided 2026-10-24). A tab a role may
+ *  not use does not exist for it, and nobody outside `ADMIN_ROLES` has any. */
+export function adminTabs(hasRole: HasRole): AdminTab[] {
+  if (hasRole(Role.admin)) return ["clubs", "series", "events", "sailors", "news", "media", "accounts"];
+  const tabs: AdminTab[] = [];
+  if (hasRole(Role.series_manager)) tabs.push("series");
+  // A club's organizer organizes the events their club hosts — and creates one outside a
+  // series (Story VA-6); the race committee those it runs.
+  if (hasRole(Role.series_manager, Role.event_manager, Role.team_manager, Role.race_officer, Role.jury)) {
+    tabs.push("events");
+  }
+  if (hasRole(Role.editor)) tabs.push("news", "media");
+  return tabs;
+}
+
+/** `/admin/<area>/new` — reached from its area's tab, and the series page for the site's
+ *  `admin` alone (Stories A-4, A-6: an editor's *Series* tab only explains who creates
+ *  one). */
+export const ADMIN_NEW_PAGES = {
+  clubs: { tab: "clubs", adminOnly: false },
+  series: { tab: "series", adminOnly: true },
+  events: { tab: "events", adminOnly: false },
+  sailors: { tab: "sailors", adminOnly: false },
+  news: { tab: "news", adminOnly: false },
+} as const satisfies Record<string, { tab: AdminTab; adminOnly: boolean }>;
+
+export type AdminArea = keyof typeof ADMIN_NEW_PAGES;
+
+/** Whether this person can use `/admin/<area>/new`: its tab is theirs, and an admin-only
+ *  page needs the admin. */
+export function mayCreateIn(area: AdminArea, hasRole: HasRole): boolean {
+  const page = ADMIN_NEW_PAGES[area];
+  return adminTabs(hasRole).includes(page.tab) && (!page.adminOnly || hasRole(Role.admin));
+}

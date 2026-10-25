@@ -14,7 +14,8 @@ import {
   type HasRole,
   type ProfileTab,
   type SeriesTab,
-} from "../lib/spaceTabs";
+  type TabRule,
+} from "../lib/workspace";
 
 /** Story B-18: the places of the site a handbook page can link to.
  *
@@ -26,7 +27,7 @@ import {
  * place is one line here.
  *
  * **Who may use a place is not decided here.** The tab declarations in
- * `lib/spaceTabs.ts` are what the screens are built from; a place only says which of them
+ * `lib/workspace.ts` are what the screens are built from; a place only says which of them
  * it points at. A reader for whom the tab does not exist gets the words, not a link — a
  * link ending in a 403 or an empty page is worse than none (Story A-12).
  *
@@ -117,7 +118,7 @@ export function resolvePlace(def: PlaceDef, hasRole: HasRole, contexts: readonly
 
   const kind = /^\/me\/(club|series|event)\/:id$/.exec(path)?.[1] as ContextKind;
   const tab = (def as { tab: string }).tab;
-  const rule = (CONTEXT_TABS[kind] as Record<string, { for?: readonly string[] }>)[tab];
+  const rule = (CONTEXT_TABS[kind] as Record<string, TabRule>)[tab];
   return contexts
     .filter((c) => c.kind === kind && tabVisible(rule, c.relations))
     .map((c) => ({ key: `${kind}-${c.id}`, to: withTab(`/me/${kind}/${c.id}`, tab), name: c.name }));

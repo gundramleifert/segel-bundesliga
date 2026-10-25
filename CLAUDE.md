@@ -496,6 +496,9 @@ Defined as dependencies in `api/app/auth.py`; roles are checked fresh from the d
 Three levels, all three are desired:
 
 - `api/tests/unit/` — Scoring logic, pairing quality, parsers.
+- `web/tests/test_*.ts` — **Vitest**, for frontend logic that has rules of its own (the
+  workspace's declaration, `lib/workspace.ts`): `pnpm test` in `web/`, part of `check.sh`.
+  A co-located `*.test.ts` would not run.
 - `api/tests/stories/` — **User story level**: one story per test, named for what someone wants
   to achieve ("As a visitor I see the league table").
 Each story in `docs/userstories/` lists the tests that cover it — and each story test names its

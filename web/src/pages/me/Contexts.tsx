@@ -26,7 +26,8 @@ import {
   SERIES_TABS,
   tabRule,
   tabVisible,
-} from "../../lib/spaceTabs";
+  type Holding,
+} from "../../lib/workspace";
 
 /** Story S-7: my page in a club, a series or an event — and my own, `/me/profile`.
  *
@@ -46,8 +47,8 @@ type SectionDef = {
   key: string;
   label: string;
   /** Shown when I hold one of these there (`sailor` included); none — always. A tab's
-   *  `key` and `for` come from `lib/spaceTabs.ts`, which the help's places read too. */
-  for?: readonly string[];
+   *  `key` and `for` come from `lib/workspace.ts`, which the help's places read too. */
+  for?: readonly Holding[];
   /** Overview "needs" codes this tab is where to act on. */
   needs?: string[];
   /** Not a tab: shown above the tabs, and only while one of its `needs` is there. */

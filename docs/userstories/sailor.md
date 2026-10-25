@@ -557,6 +557,11 @@ Acceptance criteria:
 - The combinations of the plan's §5 (a sailor who also helps, a parent with no club, a
   series editor, the site admin, …) are this story's examples, and its tests walk them.
 
+**The declaration** (#30): every context's groups and sections, and who has each, are
+declared once in `web/src/lib/workspace.ts` — the sidebar, the guards and the help's
+places read it; a section's key is also its URL segment and the `section` a to-do links
+to. Unit-tested against the plan's §5 table in `web/tests/test_workspace.ts`.
+
 Built in steps, each its own issue: the declaration of contexts and sections (#30), the
 switcher and sidebar around today's pages (#31), the admin work moved into each context
 and `/office` (#32), the to-dos and landing page (#33), the switcher's search (#34),
@@ -662,6 +667,6 @@ Acceptance criteria:
 Not a secret: the pages ship in the site's JavaScript like every other text, so the
 sign-in is about whom the help is written for, not about hiding it.
 
-Frontend: `web/src/pages/Help.tsx`, `web/src/handbook/` (places: `places.ts`), `web/src/lib/spaceTabs.ts`, `web/src/components/HelpLink.tsx`
+Frontend: `web/src/pages/Help.tsx`, `web/src/handbook/` (places: `places.ts`), `web/src/lib/workspace.ts`, `web/src/components/HelpLink.tsx`
 
 Tests: `e2e/help.spec.ts::B-18: as a guest I am asked to sign in for the help`, `e2e/help.spec.ts::B-18: as anyone signed in I find the help for what I do`, `e2e/help.spec.ts::B-18: a click path in the help opens that place, for the reader who can use it`

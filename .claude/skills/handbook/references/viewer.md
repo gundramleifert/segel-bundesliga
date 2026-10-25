@@ -76,7 +76,7 @@ targets each link is `help-place-<id>-<kind>-<contextId>`. The contexts come fro
 query the audience tiles use, so a page full of places costs no extra request.
 
 **Why the viewer never decides access itself:** `places.ts` imports the tab
-declarations from `web/src/lib/spaceTabs.ts`, which `pages/me/Contexts.tsx` and
+declarations from `web/src/lib/workspace.ts`, which `pages/me/Contexts.tsx` and
 `pages/Admin.tsx` are built from. A rule copied into the help would drift from the screen
 and send a reader to a tab that is not there — a link that ends in a 403 or an empty page
 is worse than none (Story A-12).

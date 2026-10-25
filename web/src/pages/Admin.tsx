@@ -26,7 +26,7 @@ import { SailorsAdmin } from "./AdminSailors";
 import { MediaAdmin } from "./admin/media/MediaAdmin";
 import { PostsAdmin } from "./admin/posts/PostList";
 import { INPUT_CLASS, errorText, toggleSet } from "../lib/admin";
-import { adminTabs, mayCreateIn, type AdminTab } from "../lib/spaceTabs";
+import { adminTabs, mayCreateIn, type AdminTab } from "../lib/workspace";
 import { Section, Field, Message } from "../components/Form";
 import { ClubSelector } from "../components/ClubSelector";
 import { AddButton } from "../components/AddButton";
@@ -88,7 +88,7 @@ function AdminTabs() {
   // that — they would be created on every render of this component regardless.
   // The labels are each area's own section title, not a second set of strings: a tab whose
   // wording drifts from the heading it opens is a translation bug waiting to happen.
-  // Which tabs this person has is `adminTabs` (`lib/spaceTabs.ts`, Story A-11) — declared
+  // Which tabs this person has is `adminTabs` (`lib/workspace.ts`, Story A-11) — declared
   // there so the help's places link only to a tab that exists for the reader (B-18).
   const panels: Record<AdminTab, TabDef<AdminTab>> = {
     clubs: { key: "clubs", label: t("clubs.title"), render: () => <Clubs /> },
