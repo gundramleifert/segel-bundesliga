@@ -26,10 +26,10 @@ import { WorkspaceFrame, type WorkspaceSection } from "../me/Workspace";
  *  A section this screen has not built (`imports`, which runs from the command line) is
  *  left out of the sidebar by `WorkspaceFrame`.
  */
-export function OfficePage() {
+export function OfficePage({ section: fixed }: { section?: string } = {}) {
   const { t } = useTranslation("space");
   const ta = useTranslation("admin").t;
-  const { section } = useParams();
+  const section = fixed ?? useParams().section;
   const { account, loading } = useAccount();
   const { space } = useMySpace();
 

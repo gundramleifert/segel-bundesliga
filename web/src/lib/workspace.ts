@@ -148,6 +148,10 @@ export const WORKSPACE = {
 } as const;
 
 export type WorkspaceKind = keyof typeof WORKSPACE;
+
+/** Every section the league office declares, overview included — App.tsx spells out a
+ *  route for each. */
+export const OFFICE_SECTIONS: readonly string[] = OFFICE_GROUPS.flatMap((g) => Object.keys(g.sections));
 type SectionsOf<G> = G extends readonly (infer D)[] ? (D extends { sections: infer S } ? keyof S & string : never) : never;
 /** The section keys of one context — `Section<"club">` is `"overview" | "members" | …`. */
 export type Section<K extends WorkspaceKind> = SectionsOf<(typeof WORKSPACE)[K]>;
@@ -590,9 +594,6 @@ export function mayCreateOutside(area: OfficeArea, hasRole: HasRole): boolean {
 export function mayCreate(area: OfficeArea, office: readonly string[], hasRole: HasRole): boolean {
   return mayCreateIn(area, office) || mayCreateOutside(area, hasRole);
 }
-
-/** Every section the league office declares, overview included. */
-const OFFICE_SECTIONS = OFFICE_GROUPS.flatMap((g) => Object.keys(g.sections));
 
 /** Where an address of the administration before #32 lives now — `/admin` became
  *  `/office`: `/admin?tab=<section>` → `/office/<section>` (an unknown tab → `/office`),

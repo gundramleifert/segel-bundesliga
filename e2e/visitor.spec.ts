@@ -752,7 +752,7 @@ describeStory("A-12: the account menu and the page's name", () => {
     await expect(page.getByTestId("layout-language")).toHaveCount(0);
 
     await openUserMenu(page);
-    for (const key of ["mySpace", "profile", "admin", "help", "language"]) {
+    for (const key of ["mySpace", "profile", "office", "help", "language"]) {
       await expect(page.getByTestId(`layout-user-menu-${key}`)).toBeVisible();
     }
     // The legal pages are the footer's (§ 5 DDG), not repeated here.

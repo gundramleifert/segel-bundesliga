@@ -22,6 +22,7 @@ import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
 import { ClubPage } from "./pages/me/ClubPage";
 import { AdminRedirect, OfficePage } from "./pages/office/Office";
+import { OFFICE_SECTIONS } from "./lib/workspace";
 import { EventPage as MyEventPage } from "./pages/me/EventPage";
 import { ProfilePage } from "./pages/me/Me";
 import { SeriesPage as MySeriesPage } from "./pages/me/SeriesPage";
@@ -122,6 +123,12 @@ export default function App() {
         <Route path="club" element={<ClubRedirect />} />
         <Route path="reimbursements" element={<Navigate to="/me" replace />} />
         {/* Stories Z-10, A-11: the league office, a context of the workspace (#32). */}
+        {/* Each section spelled out: `office/clubs` would otherwise tie with the league
+            route `:league/clubs` (one static and one dynamic segment each), and the league
+            routes come first — "office" read as an unknown league (docs/gotchas). */}
+        {OFFICE_SECTIONS.map((section) => (
+          <Route key={section} path={`office/${section}`} element={<OfficePage section={section} />} />
+        ))}
         <Route path="office/:section?" element={<OfficePage />} />
         {/* Creating is a page of its own per area, reached from the "＋" of its section. */}
         <Route path="office/clubs/new" element={<AdminClubNew />} />
@@ -132,6 +139,10 @@ export default function App() {
         <Route path="office/news/:id" element={<AdminPostPage />} />
         {/* `/admin` before #32: every address of it redirects to its `/office` one. */}
         <Route path="admin" element={<AdminRedirect />} />
+        {/* Spelled out for the same reason as the office's sections: a splat ranks below
+            `:league/:year/:act`, so `/admin/clubs/new` was an act of a league "admin". */}
+        <Route path="admin/:area/new" element={<AdminRedirect />} />
+        <Route path="admin/news/:id" element={<AdminRedirect />} />
         <Route path="admin/*" element={<AdminRedirect />} />
         {/* Story R-2: a photographer's upload link — the key in its #fragment. */}
         <Route path="upload" element={<UploadPage />} />

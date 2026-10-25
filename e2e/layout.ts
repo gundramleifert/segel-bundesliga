@@ -91,6 +91,9 @@ export async function openUserMenu(page: Page): Promise<void> {
  *  `web/src/lib/workspace.ts` — from the sidebar on a laptop, from the *section ▾* button
  *  on a phone, where the sidebar is not in the DOM. Waits for the section's content. */
 export async function openSection(page: Page, kind: string, section: string): Promise<void> {
+  // This context's frame first: right after a navigation the page being left (with a
+  // sidebar or a *section ▾* of its own) can still be on screen.
+  await expect(page.getByTestId(`workspace-${kind}`)).toBeVisible();
   const link = page.getByTestId(`workspace-section-${kind}-${section}`);
   const button = page.getByTestId("workspace-sections-button");
   await expect(link.or(button).first()).toBeVisible();
@@ -102,11 +105,12 @@ export async function openSection(page: Page, kind: string, section: string): Pr
 /** The sections of the context on screen, in the order they are listed — opening the
  *  *section ▾* list first on a phone. */
 export async function listedSections(page: Page, kind: string): Promise<string[]> {
+  // This context's frame first — the page being left can still be on screen for a moment,
+  // with a sidebar or a *section ▾* button of its own, and a click on that one opens a
+  // panel the navigation then closes.
+  await expect(page.getByTestId(`workspace-${kind}`)).toBeVisible();
   const button = page.getByTestId("workspace-sections-button");
-  await expect(page.getByTestId("workspace-sidebar").or(button).first()).toBeVisible();
   if (await button.isVisible()) await button.click();
-  // The previous page's sidebar may still be on screen for a moment after a navigation —
-  // wait for this context's own overview link before reading the list.
   await expect(page.getByTestId(`workspace-section-${kind}-overview`)).toBeVisible();
   const ids = await page.getByTestId("workspace-sections").locator(`a[data-testid^="workspace-section-${kind}-"]`).evaluateAll(
     (links) => links.map((a) => a.getAttribute("data-testid") ?? ""),
