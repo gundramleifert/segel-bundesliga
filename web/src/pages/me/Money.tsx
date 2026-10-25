@@ -1,6 +1,7 @@
 import { Button } from "@heroui/react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   getDownloadClubClaimsXlsxUrl,
@@ -30,6 +31,7 @@ import { Stack } from "../../components/Layouts";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { downloadFile, fetchFileUrl } from "../../lib/files";
 import { formatDate, formatMoney } from "../../lib/format";
+import { sectionPath } from "../../lib/workspace";
 import { Select } from "../../components/Select";
 
 /** Money — what waits for a manager or treasurer (Stories F-3, F-4, F-6, F-7), as
@@ -40,29 +42,36 @@ import { Select } from "../../components/Select";
  * The claimant's own claims never appear — four eyes (F-3).
  *
  * Paying is per **club**, because the money leaves one club's account (Story F-7): the
- * club's money tab carries its account, the SEPA file over its approved claims, the runs
- * still waiting for the bank and the year's books.
+ * club's *Payment runs* carry the SEPA file over its approved claims, the runs still
+ * waiting for the bank and the year's books; its *Bank account* the account they leave.
  */
 
-/** A club's money: claims it pays that wait for a decision, then everything paying needs. */
-export function ClubMoneyTab({ clubId, clubName }: { clubId: number; clubName: string }) {
+/** Story Z-10: a club's money is three sections — the claims it pays (to decide, then each
+ *  approved one to pay by hand), its payment runs, its bank account — split out of the one
+ *  money tab it was (#32). Each asks the same lists and keeps what is its own. */
+export function ClubDecideClaims({ clubId }: { clubId: number }) {
   const { t } = useTranslation("space");
   const pending = useAsync(useListPendingClaims());
-  const runs = useListOpenPaymentRuns();
 
   return (
     <Async state={pending} testId="reimbursements">
       {(rows) => {
         const ours = rows.filter((claim) => claim.payer_club_id === clubId);
         const toDecide = ours.filter((claim) => claim.action === "decide");
+        const toPay = ours.filter((claim) => claim.action === "pay");
         return (
           <Stack gap={8}>
             <ToDecide claims={toDecide} />
-            <ClubMoney
-              club={{ id: clubId, name: clubName }}
-              toPay={ours.filter((claim) => claim.action === "pay")}
-              runs={(runs.data ?? []).filter((run) => run.payer_club_id === clubId)}
-            />
+            {toPay.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <h2 className="text-lg font-semibold">{t("bankRun.claimsTitle")}</h2>
+                <ul className="flex flex-col gap-4" data-testid={`reimbursements-club-${clubId}-claims`}>
+                  {toPay.map((claim) => (
+                    <PendingClaim key={claim.id} claim={claim} />
+                  ))}
+                </ul>
+              </div>
+            )}
             {!toDecide.length && (
               <p className="text-sm text-muted" data-testid="reimbursements-empty">
                 {t("pending.empty")}
@@ -73,6 +82,50 @@ export function ClubMoneyTab({ clubId, clubName }: { clubId: number; clubName: s
       }}
     </Async>
   );
+}
+
+/** The club's payment runs (Story F-7): the SEPA file over its approved claims, the runs
+ *  still at the bank, and the year's books. */
+export function ClubPaymentRuns({ clubId }: { clubId: number }) {
+  const { t } = useTranslation("space");
+  const pending = useAsync(useListPendingClaims());
+  const runs = useListOpenPaymentRuns();
+  const account = useGetClubBankAccount(clubId);
+  const id = `reimbursements-club-${clubId}`;
+  // Not this person's to see: the server said so, and the whole section goes with it.
+  if (account.error instanceof ApiError && account.error.code === "club-money-forbidden") return null;
+
+  return (
+    <Async state={pending} testId="reimbursements">
+      {(rows) => {
+        const toPay = rows.filter((claim) => claim.payer_club_id === clubId && claim.action === "pay");
+        const open = (runs.data ?? []).filter((run) => run.payer_club_id === clubId);
+        return (
+          <section className="flex flex-col gap-4" data-testid={id}>
+            {toPay.length > 0 && (
+              <SepaRun clubId={clubId} claims={toPay} hasAccount={account.isPending || Boolean(account.data)} />
+            )}
+            {open.map((run) => (
+              <OpenRun key={run.id} run={run} />
+            ))}
+            {!toPay.length && !open.length && (
+              <p className="text-sm text-muted" data-testid={`${id}-runs-empty`}>
+                {t("clubSections.noRuns")}
+              </p>
+            )}
+            <Books clubId={clubId} />
+          </section>
+        );
+      }}
+    </Async>
+  );
+}
+
+/** The account the club pays from — the debtor of its SEPA files (Story F-7). */
+export function ClubBankAccount({ clubId }: { clubId: number }) {
+  const account = useGetClubBankAccount(clubId);
+  if (account.error instanceof ApiError && account.error.code === "club-money-forbidden") return null;
+  return <ClubAccount clubId={clubId} saved={account.data ?? null} loading={account.isPending} />;
 }
 
 /** An event's claims waiting for me — to decide, or to pay — for its own manager or
@@ -112,39 +165,6 @@ function ToDecide({ claims }: { claims: Claim[] }) {
         ))}
       </ul>
     </div>
-  );
-}
-
-type PayingClub = { id: number; name: string };
-
-/** One club's money: its account, the SEPA file, the runs at the bank, the books. */
-function ClubMoney({ club, toPay, runs }: { club: PayingClub; toPay: Claim[]; runs: RunOut[] }) {
-  const { t } = useTranslation("space");
-  const id = `reimbursements-club-${club.id}`;
-  const account = useGetClubBankAccount(club.id);
-  // Not this person's to see: the server said so, and the whole section goes with it.
-  if (account.error instanceof ApiError && account.error.code === "club-money-forbidden") return null;
-
-  return (
-    <section className="flex flex-col gap-4" data-testid={id}>
-      <h2 className="text-lg font-semibold">{t("bankRun.clubTitle", { name: club.name })}</h2>
-      <ClubAccount clubId={club.id} saved={account.data ?? null} loading={account.isPending} />
-      {toPay.length > 0 && <SepaRun clubId={club.id} claims={toPay} hasAccount={Boolean(account.data)} />}
-      {toPay.length > 0 && (
-        <div className="flex flex-col gap-3">
-          <h3 className="font-semibold">{t("bankRun.claimsTitle")}</h3>
-          <ul className="flex flex-col gap-4" data-testid={`${id}-claims`}>
-            {toPay.map((claim) => (
-              <PendingClaim key={claim.id} claim={claim} />
-            ))}
-          </ul>
-        </div>
-      )}
-      {runs.map((run) => (
-        <OpenRun key={run.id} run={run} />
-      ))}
-      <Books clubId={club.id} />
-    </section>
   );
 }
 
@@ -256,6 +276,9 @@ function SepaRun({ clubId, claims, hasAccount }: { clubId: number; claims: Claim
   const [unticked, setUnticked] = useState<Set<number>>(new Set());
   const [executionDate, setExecutionDate] = useState(today());
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  // The account is a section of its own since #32: a missing one is a way there.
+  const accountPath = sectionPath({ kind: "club", id: clubId }, "bank-account");
   const create = useCreatePaymentRun({
     mutation: {
       onSuccess: (run) => {
@@ -266,7 +289,7 @@ function SepaRun({ clubId, claims, hasAccount }: { clubId: number; claims: Claim
         );
       },
       onError: (error) => {
-        if (error instanceof ApiError && error.code === "club-bank-account-missing") focusAccount(clubId);
+        if (error instanceof ApiError && error.code === "club-bank-account-missing") navigate(accountPath);
       },
     },
   });
@@ -289,9 +312,9 @@ function SepaRun({ clubId, claims, hasAccount }: { clubId: number; claims: Claim
         {!hasAccount && (
           <p className="text-sm text-warning-soft-foreground" data-testid={`${id}-no-account`}>
             {t("bankRun.noAccount")}{" "}
-            <button type="button" className="underline" onClick={() => focusAccount(clubId)}>
+            <Link to={accountPath} className="underline" data-testid={`${id}-to-account`}>
               {t("bankRun.toAccount")}
-            </button>
+            </Link>
           </p>
         )}
         <ul className="flex flex-col gap-1" data-testid={`${id}-claims`}>
@@ -348,12 +371,6 @@ function SepaRun({ clubId, claims, hasAccount }: { clubId: number; claims: Claim
       </div>
     </Section>
   );
-}
-
-function focusAccount(clubId: number) {
-  const input = document.getElementById(`reimbursements-club-${clubId}-account-holder`);
-  input?.scrollIntoView({ behavior: "smooth", block: "center" });
-  input?.focus();
 }
 
 /** A run at the bank: download it again, mark it booked, or mark one transfer returned. */

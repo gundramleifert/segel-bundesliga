@@ -1,42 +1,45 @@
 import { useTranslation } from "react-i18next";
 
 import { useDeleteTuple, useListClubMembers } from "../api/generated/sbl";
-import { ObjectType, Relation, type MyClub } from "../api/types";
+import { ObjectType, Relation } from "../api/types";
 import { useAccount, useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
 import { AccessPanel } from "./AccessPanel";
-import { CrestEditor } from "./CrestEditor";
-import { GuardiansPanel } from "./GuardiansPanel";
 import { Async } from "./Async";
 import { Badge, Empty, ErrorMessage } from "./Blocks";
 import { ConfirmButton } from "./ConfirmButton";
 import { PersonDocuments } from "./PersonDocuments";
 
-/** The Members tab of "Our club" — Stories V-10, Z-5, V-8, V-9 on one screen (V-12).
+/** A club's *Members* section — Stories V-10, Z-5, V-8, V-9 on one screen (V-12, Z-10).
  *
  * Membership is a relation tuple, `user:member:club` (Z-5): nothing is pending, nobody
- * waits for an answer. So the tab is three things, each shown only to whom it applies:
+ * waits for an answer. So the section is three things, each shown only to whom it applies:
  *
  * - **Everyone** who may see it: the roster (`/api/clubs/{id}/members`) — names, and what
  *   else each person is to the club, so the organizers are recognizable (V-10).
  * - A **member**: "Leave the club", which deletes their own `member` tuple — the one
  *   write a person may make on themselves.
- * - The club's **admin**: the club's crest (`CrestEditor`, V-3), and the `AccessPanel` on
- *   `club:<id>`, which is where people are added by email and removed (V-8, V-9). No
- *   separate invite form: it would be a second copy of that panel with fewer relations.
+ * - The club's **admin**: the `AccessPanel` on `club:<id>`, which is where people are
+ *   added by email and removed (V-8, V-9). No separate invite form: it would be a second
+ *   copy of that panel with fewer relations.
+ *
+ * The crest, the guardians and the sailors were here too until #32; each is a section of
+ * its own now (*Club page*, *Minors & guardians*, *Sailors*).
  */
 export function ClubMembersPanel({
-  entry,
+  clubId,
+  mayAdmin,
   onLeft,
 }: {
-  entry: MyClub;
+  clubId: number;
+  /** The club's `admin` — as the model answers it there, the site's admin included. */
+  mayAdmin: boolean;
   /** After the person left the club — the page they were on is no longer theirs. */
   onLeft?: () => void;
 }) {
   const { t } = useTranslation("club");
   const { account } = useAccount();
   const invalidate = useInvalidate();
-  const clubId = entry.club.id;
   const roster = useAsync(useListClubMembers(clubId));
 
   const own = account?.tuples.find(
@@ -119,25 +122,7 @@ export function ClubMembersPanel({
         </div>
       )}
 
-      {entry.may_admin && (
-        // The crest is the club's identity, like its people — so it is kept here, by the
-        // club's admin (Story V-3), not only on the league office's club list.
-        <section className="flex flex-wrap items-center gap-3" data-testid={`my-club-crest-${clubId}-section`}>
-          <CrestEditor
-            club={entry.club}
-            onChanged={() => invalidate("/api/clubs", "/api/admin/clubs")}
-            testIdPrefix="my-club-crest"
-          >
-            <p className="min-w-0 flex-1 text-sm text-muted">{t("members.crestHint")}</p>
-          </CrestEditor>
-        </section>
-      )}
-
-      {/* Whose parent may accept a young sailor's waiver (Story V-13) — the club's
-          organizer decides, the admin and the manager alike. */}
-      {entry.may_manage && <GuardiansPanel clubId={clubId} />}
-
-      {entry.may_admin && (
+      {mayAdmin && (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
           <p className="text-sm text-muted">{t("members.addHint")}</p>
           <AccessPanel object={`club:${clubId}`} testId={`my-club-access-${clubId}`} onChange={refresh} />

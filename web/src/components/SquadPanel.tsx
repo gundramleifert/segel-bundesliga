@@ -291,17 +291,20 @@ export function SquadPanel({
   );
 }
 
-/** Someone not in the register yet: name and address, created for the squad's club. */
-function NewPerson({
+/** Someone not in the register yet: name and address, created for the squad's club — and,
+ *  from a club's *Sailors* section (Story Z-10), for that club. */
+export function NewPerson({
   pending,
   error,
   onCreate,
   onCancel,
+  testIdPrefix = "admin-squad-new",
 }: {
   pending: boolean;
   error: string | null;
   onCreate: (person: { first_name: string; last_name: string; email: string }) => void;
   onCancel: () => void;
+  testIdPrefix?: string;
 }) {
   const { t } = useTranslation("admin");
   const [firstName, setFirstName] = useState("");
@@ -310,7 +313,7 @@ function NewPerson({
   const ready = firstName.trim() && lastName.trim() && email.trim();
   return (
     <form
-      data-testid="admin-squad-new-person-form"
+      data-testid={`${testIdPrefix}-person-form`}
       className="grid grid-cols-[minmax(0,1fr)] gap-3 rounded-lg border border-separator bg-surface p-3 sm:grid-cols-[1fr_1fr_1.4fr] sm:items-end"
       onSubmit={(e) => {
         e.preventDefault();
@@ -323,7 +326,7 @@ function NewPerson({
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
           required
-          data-testid="admin-squad-new-first-name"
+          data-testid={`${testIdPrefix}-first-name`}
         />
       </Field>
       <Field label={t("sailors.lastNameLabel")}>
@@ -332,7 +335,7 @@ function NewPerson({
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
           required
-          data-testid="admin-squad-new-last-name"
+          data-testid={`${testIdPrefix}-last-name`}
         />
       </Field>
       <Field label={t("sailors.emailLabel")}>
@@ -343,17 +346,17 @@ function NewPerson({
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder={t("sailors.emailPlaceholder")}
-          data-testid="admin-squad-new-email"
+          data-testid={`${testIdPrefix}-email`}
         />
       </Field>
       <div className="flex flex-wrap items-center gap-3 sm:col-span-3">
-        <Button type="submit" size="sm" isDisabled={pending || !ready} data-testid="admin-squad-new-create">
+        <Button type="submit" size="sm" isDisabled={pending || !ready} data-testid={`${testIdPrefix}-create`}>
           {pending ? t("sailors.creatingButton") : t("squad.newPersonCreate")}
         </Button>
-        <Button size="sm" variant="ghost" onPress={onCancel} data-testid="admin-squad-new-cancel">
+        <Button size="sm" variant="ghost" onPress={onCancel} data-testid={`${testIdPrefix}-cancel`}>
           {t("squad.newPersonCancel")}
         </Button>
-        {error && <ErrorMessage text={error} testId="admin-squad-new-error" />}
+        {error && <ErrorMessage text={error} testId={`${testIdPrefix}-error`} />}
       </div>
     </form>
   );

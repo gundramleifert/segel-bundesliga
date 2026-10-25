@@ -140,6 +140,14 @@ Acceptance criteria:
   series there; creating a series stays the league office's, so the tab has no *New
   series* button for them. Until 2026-10-24 the tab showed them the editor's notice
   ("created by the business office only") although the API let them edit.
+- **Since #32 a series is organized in its own context** (Story Z-10),
+  `/me/series/:id/<section>`: *Clubs & registrations* (the clubs, and the applications to
+  decide, A-9), *Dates & publication* (first and last day, publish, the public
+  description), *Squad size & scoring* (the squad limits; the scoring rules have no
+  editor yet), *Race committee & jury* (the series' tuples), *Events* (each opening the
+  event's context, drafts included) and *Standings*. The series manager offers the clubs
+  from the event wizard's host list (`GET /api/admin/events/create-options`), because the
+  league office's club list is the site admin's alone.
 
 This is the opposite direction to [A-3](#a-3--assign-clubs-to-series): there you attach a
 club to multiple series, here a series to multiple clubs. Both write the same `Team` rows.
@@ -201,6 +209,11 @@ Acceptance criteria:
 - An accepted participation under which races have already been sailed cannot be revoked — results
   depend on it.
 - Every decision is logged: who, when, what.
+
+Screen (Story Z-10, #32): the series' *Clubs & registrations* section lists its open
+applications above the clubs, each with *Accept* and *Reject* and an optional reason; the
+series' `registrations_open` to-do leads there. (An application to one event waits on that
+event's *Clubs*.)
 
 Endpoints: `GET /api/admin/applications`, `POST /api/admin/applications/{team_id}/accept`,
 `POST /api/admin/applications/{team_id}/reject`
@@ -357,8 +370,8 @@ Acceptance criteria:
 - Administration creates the account (name, email) and makes it the club's **admin** —
   the first account of a club can only come from administration: who has no one cannot
   name anyone.
-- **The club's admin names more organizers for their own club.** The People panel on
-  the Members tab writes `admin`, `manager`, `race_officer` or `member` on this club for
+- **The club's admin names more organizers for their own club.** The People panel in
+  the club's *Members* section (Story Z-10) writes `admin`, `manager`, `race_officer` or `member` on this club for
   any account, by email — an organizer need not be a member. **A person may organize
   multiple clubs** — a second club no longer fails because they already organize a
   different one; it fails only if they already hold *this* relation on *this* one.

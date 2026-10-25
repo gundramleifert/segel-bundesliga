@@ -304,7 +304,7 @@ const SHOTS: Shot[] = [
     path: (d) => `/me/club/${d.clubId}/decide-claims`,
     setup: aClaimToDecide,
     waitFor: () => tid("reimbursements-list"),
-    // The list only — the club's bank-account form below it stays out.
+    // The list only — the claims approved and still to pay below it stay out.
     clip: () => ({ from: tid("reimbursements-list") }),
     redact: maskIbans,
     marks: () => {
@@ -317,10 +317,10 @@ const SHOTS: Shot[] = [
     phone: false,
   },
   {
-    // The SEPA block only — the club's account above it, with its IBAN, stays out.
+    // The SEPA block only, in the club's Payment runs (Story Z-10).
     id: "help-payment-sepa",
     as: () => TREASURER,
-    path: (d) => `/me/club/${d.clubId}/decide-claims`,
+    path: (d) => `/me/club/${d.clubId}/payment-runs`,
     setup: aClaimToPay,
     waitFor: (d) => tid(`reimbursements-club-${d.clubId}-sepa-create`),
     clip: (d) => ({ from: tid(`reimbursements-club-${d.clubId}-sepa`) }),

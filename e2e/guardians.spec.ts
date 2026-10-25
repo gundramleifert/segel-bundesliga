@@ -52,10 +52,10 @@ describeStory("V-13/S-8: a parent the club linked accepts the waiver for their c
     });
     expect(created.ok(), await created.text()).toBeTruthy();
 
-    // The club's admin links the parent on the Members tab.
+    // The club's admin links the parent under Minors & guardians (Story Z-10).
     const { email, clubId } = await theClubAdmin(request);
     await signIn(page, email);
-    await page.goto(`/me/club/${clubId}/members`);
+    await page.goto(`/me/club/${clubId}/minors`);
     const row = page.getByTestId(`my-club-guardians-row-${junior.id}`);
     await expect(row).toBeVisible();
     await page.getByTestId(`my-club-guardians-add-${junior.id}`).click();

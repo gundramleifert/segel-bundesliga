@@ -2,26 +2,37 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { useMyClubs } from "../../api/generated/sbl";
+import { Relation } from "../../api/types";
 import { useAccount } from "../../api/useApi";
 import { Loading } from "../../components/Blocks";
 import { ClubMembersPanel } from "../../components/ClubMembersPanel";
-import { ClubEvents, ClubTeams, ClubWaivers } from "./ClubSections";
-import { ClubMoneyTab } from "./Money";
+import { GuardiansPanel } from "../../components/GuardiansPanel";
+import { ClubEvents, ClubHosting, ClubTeams, ClubWaivers } from "./ClubSections";
+import { ClubPageSection, ClubSailors } from "./ClubPeople";
+import { ClubBankAccount, ClubDecideClaims, ClubPaymentRuns } from "./Money";
 import { ClaimsTab } from "./Papers";
 import { type WorkspaceSection } from "./Workspace";
-import { ContextFrame, Door } from "./ContextFrame";
+import { ContextFrame } from "./ContextFrame";
 
-
-/** `/me/club/:id` — members, matchdays and squads, my claims, the club's money. */
+/** `/me/club/:id` — Story Z-10: the club's sections, as `lib/workspace.ts` declares them —
+ * People (members, sailors, minors & guardians, waivers), Racing (squads, events & crews,
+ * hosting), Money (my claims, decide claims, payment runs, bank account) and the club page.
+ *
+ * Who sees what is the frame's business, from the relations the model gives me on the club
+ * — the site's admin opening a club reached through the league office arrives as its
+ * `admin`. A section's panel decides only *how much* it offers (read-only for a member).
+ */
 export function ClubPage() {
   const { t } = useTranslation("space");
   const { account } = useAccount();
   const navigate = useNavigate();
-  // The club screen's own data (Story V-12): members, entries, registrations. A club's
-  // treasurer who is neither member nor organizer is not in it, and gets the money only.
+  // Squads and crews come from `GET /api/clubs/mine` (Story V-12): the club's entries and
+  // registrations. It answers "mine" — member or organizer — so a club reached through the
+  // league office is not in it, and those two sections are left out there rather than
+  // drawn empty; the league office has its own squad screen.
   const clubs = useMyClubs({ query: { enabled: Boolean(account) } });
-  // The club's own sections come from that answer: until it is here, a section in the
-  // address would look like one I do not have, and the frame would send me away from it.
+  // Until it is here, a section in the address would look like one I do not have, and the
+  // frame would send me away from it.
   if (account && clubs.isPending) return <Loading testId="me-context-loading" />;
 
   return (
@@ -30,54 +41,81 @@ export function ClubPage() {
       publicPath={(c) => `/clubs/${c.id}`}
       sections={(c) => {
         const entry = clubs.data?.find((e) => e.club.id === c.id);
-        const club: WorkspaceSection[] = entry
+        const mayAdmin = c.relations.includes(Relation.admin);
+        const racing: WorkspaceSection[] = entry
           ? [
-              { key: "members", label: t("context.tabs.members"), render: () => <ClubMembersPanel entry={entry} onLeft={() => navigate("/me")} /> },
-              {
-                key: "crews",
-                label: t("context.tabs.crews"),
-                needs: ["crew_missing"],
-                render: () => <ClubEvents entry={entry} />,
-              },
               {
                 key: "squads",
-                label: t("context.tabs.squadsOnly"),
+                label: t("clubSections.squads"),
                 needs: ["squad_below_min"],
                 render: () => <ClubTeams entry={entry} />,
+              },
+              {
+                key: "crews",
+                label: t("clubSections.crews"),
+                needs: ["crew_missing"],
+                render: () => <ClubEvents entry={entry} />,
               },
             ]
           : [];
         return [
-          ...club,
+          {
+            key: "members",
+            label: t("clubSections.members"),
+            render: () => <ClubMembersPanel clubId={c.id} mayAdmin={mayAdmin} onLeft={() => navigate("/me")} />,
+          },
+          {
+            key: "sailors",
+            label: t("clubSections.sailors"),
+            needs: ["sailor_without_birth_date"],
+            render: () => <ClubSailors clubId={c.id} />,
+          },
+          {
+            // Whose parent may accept a young sailor's waiver (Story V-13).
+            key: "minors",
+            label: t("clubSections.minors"),
+            needs: ["minor_without_guardian"],
+            render: () => <GuardiansPanel clubId={c.id} />,
+          },
           {
             key: "waivers",
-            label: t("context.tabs.waivers"),
+            label: t("clubSections.waivers"),
             needs: ["crew_waiver_missing"],
             render: () => <ClubWaivers clubId={c.id} />,
           },
+          ...racing,
+          {
+            key: "hosting",
+            label: t("clubSections.hosting"),
+            render: () => <ClubHosting club={{ id: c.id, name: c.name, short_name: c.short_name }} />,
+          },
           {
             key: "my-claims",
-            label: t("context.tabs.myClaims"),
+            label: t("clubSections.myClaims"),
             needs: ["claim_rejected"],
             render: () => <ClaimsTab target={{ kind: "club", id: c.id }} />,
           },
           {
             key: "decide-claims",
-            label: t("context.tabs.money"),
+            label: t("clubSections.decideClaims"),
             needs: ["claims"],
-            render: () => <ClubMoneyTab clubId={c.id} clubName={c.name} />,
+            render: () => <ClubDecideClaims clubId={c.id} />,
           },
           {
-            key: "hosting",
-            label: t("context.tabs.hosting"),
-            render: () => (
-              <Door
-                text={t("context.organizeHosted")}
-                to="/admin?tab=events"
-                label={t("context.organizeLink")}
-                testId="me-club-hosting"
-              />
-            ),
+            key: "payment-runs",
+            label: t("clubSections.paymentRuns"),
+            needs: ["payment_run_open"],
+            render: () => <ClubPaymentRuns clubId={c.id} />,
+          },
+          {
+            key: "bank-account",
+            label: t("clubSections.bankAccount"),
+            render: () => <ClubBankAccount clubId={c.id} />,
+          },
+          {
+            key: "club-page",
+            label: t("clubSections.clubPage"),
+            render: () => <ClubPageSection clubId={c.id} />,
           },
         ];
       }}

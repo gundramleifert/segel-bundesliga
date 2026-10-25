@@ -109,13 +109,14 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     await entry.click();
     await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}`));
     // An organizer who is a member, in the sidebar (Story Z-10): the club's people, its
-    // events and squads, their own claims to it, and its money.
+    // racing, their own claims to it, its money, and — its admin — the club's page.
     expect(await listedSections(page, "club")).toEqual([
-      "overview", "members", "waivers", "squads", "crews", "hosting", "my-claims", "decide-claims",
+      "overview", "members", "sailors", "minors", "waivers", "squads", "crews", "hosting",
+      "my-claims", "decide-claims", "payment-runs", "bank-account", "club-page",
     ]);
     await page.keyboard.press("Escape");
-    await openSection(page, "club", "decide-claims");
-    await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}/decide-claims$`));
+    await openSection(page, "club", "payment-runs");
+    await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}/payment-runs$`));
     await expect(page.getByTestId(`reimbursements-club-${clubId}`)).toBeVisible();
 
     // Where am I, twice: the switcher names the club, the breadcrumb joins club and
@@ -184,7 +185,8 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
   test("the admin uploads and removes it; a plain member sees no control", async ({ page, request }) => {
     const { email, clubId } = await aClubAdmin(request);
     await signIn(page, email);
-    await page.goto(`/me/club/${clubId}/members`);
+    // The crest is the club's page, a section of its own since #32 (Story Z-10).
+    await page.goto(`/me/club/${clubId}/club-page`);
 
     const edit = page.getByTestId(`my-club-crest-edit-${clubId}`);
     await expect(edit).toBeVisible();
@@ -204,6 +206,10 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
     await signIn(page, member.email);
     await page.goto(`/me/club/${clubId}/members`);
     await expect(page.getByTestId("my-club-members")).toBeVisible();
+    // Not theirs: the section is not listed, and its address leads to the overview.
+    await expect(page.getByTestId("workspace-section-club-club-page")).toHaveCount(0);
+    await page.goto(`/me/club/${clubId}/club-page`);
+    await expect(page.getByTestId("workspace-content-club-overview")).toBeVisible();
     await expect(page.getByTestId(`my-club-crest-${clubId}-section`)).toHaveCount(0);
   });
 });

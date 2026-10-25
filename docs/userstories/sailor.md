@@ -77,7 +77,7 @@ Acceptance criteria:
 
 Endpoints: `GET /api/clubs/{id}/members`
 
-Screen: the Members tab on `/me/club/:id` (Stories V-12, S-7); the roster stays on the public club
+Screen: the *Members* section, `/me/club/:id/members` (Stories V-12, S-7, Z-10); the roster stays on the public club
 page for a signed-in member as well.
 Tests: `api/tests/stories/test_club_members.py::TestMemberRoster`,
 `api/tests/stories/test_club_members.py::TestOrganizers::test_a_clubs_organizer_lists_no_accounts`
@@ -670,6 +670,36 @@ manager opens the event from the series and gets *Set up* as its own manager wou
   it may declare the start. The administration's Events tab keeps its panel for now; each
   row links to the event's context.
 
+**A club's and a series' own work** (#32, the club and series part — built 2026-10-25):
+- **Club** — *People*: **Members** (the roster, leaving, and for the club's `admin` the
+  People panel), **Sailors** (everyone who sails for the club, *+ New person* for this
+  club, a missing date of birth set on the row — V-4), **Minors & guardians** (V-13),
+  **Waivers** (V-14); *Racing*: **Squads** (one row per series registration and per
+  stand-alone event, each opening its squad — V-1), **Events & crews** (one row per team
+  the club enters, each opening its crew — V-2, VA-13), **Hosting** (the events the club
+  hosts, each opening `/me/event/<id>`, and *+ New event*, the event wizard); *Money*:
+  **My claims**, **Decide claims** (to decide, then each approved one to pay by hand),
+  **Payment runs** (SEPA file, open runs, books — F-7), **Bank account**; *Club*: **Club
+  page** (the crest, for the club's `admin` alone, with name, short name, city and
+  website shown — the league office changes those). The crest, the guardians and the
+  people's panel all stood on *Members* before.
+- A club opened by someone who is not in it — the site's admin, reached through the
+  league office — has every section the model gives them there except *Squads* and
+  *Events & crews*: those read `GET /api/clubs/mine`, which answers "mine".
+- **Series** — *Series*: **Events** (for its organizers every act, drafts included, each
+  opening `/me/event/<id>`; for everyone else the published ones), **Standings** (the
+  public table's link; a draft says it has none yet); *Organize*: **Clubs &
+  registrations** (the applications to decide, then the clubs — A-6, A-9), **Dates &
+  publication** (first and last day, publish, the public description — VA-8), **Squad
+  size & scoring** (the squad limits — V-1; the scoring rules have no editor yet);
+  *Officials*: **Race committee & jury** (the series' tuples, Z-2). *News & pictures* for
+  the series' editors is declared and not built — the declaration hides it.
+- Every to-do code of a club or a series lands on a built section: `minor_without_guardian`
+  → *Minors & guardians*, `sailor_without_birth_date` → *Sailors*, `payment_run_open` →
+  *Payment runs*, `claims` → *Decide claims*, `squad_below_min` → *Squads*, `crew_missing`
+  → *Events & crews*, `crew_waiver_missing` → *Waivers*; `registrations_open` → *Clubs &
+  registrations*, `event_unpublished` → *Dates & publication*.
+
 Built in steps, each its own issue: the declaration of contexts and sections (#30), the
 switcher and sidebar around today's pages (#31), the admin work moved into each context
 and `/office` (#32), the to-dos and landing page (#33), the switcher's search (#34),
@@ -683,7 +713,8 @@ built (until then it opens the context's overview).
 Tests: `api/tests/stories/test_my_space.py::TestTodos`, `::TestReachedContexts`, `web/tests/test_workspace.ts`,
 `e2e/workspace.spec.ts` ("Z-10: the switcher's search — my sections by their words, anything for the league office"),
 `api/tests/stories/test_event_lifecycle.py::TestPublication::test_its_organizer_reads_a_draft_in_its_own_context`,
-`e2e/workspace-event.spec.ts::Z-10: the event's set-up and race day are sections of its context`
+`e2e/workspace-event.spec.ts::Z-10: the event's set-up and race day are sections of its context`,
+`e2e/workspace-club.spec.ts`
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with

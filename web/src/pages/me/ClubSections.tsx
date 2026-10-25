@@ -2,10 +2,13 @@ import { Button } from "@heroui/react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { useClubWaivers } from "../../api/generated/sbl";
+import { useClubWaivers, useListAllEvents } from "../../api/generated/sbl";
 import type { MyClub as MyClubOut, MyEvent } from "../../api/types";
-import { useAsync } from "../../api/useApi";
+import { WHOLE_LIST, useAsync } from "../../api/useApi";
+import { AddButton } from "../../components/AddButton";
 import { Async } from "../../components/Async";
+import { Section } from "../../components/Form";
+import { EventLinks } from "./EventLinks";
 import { WaiverName, WaiverStatus } from "../../components/WaiverStatus";
 import { Empty, StatusBadge } from "../../components/Blocks";
 import { LineupPanel } from "../../components/LineupPanel";
@@ -138,9 +141,15 @@ export function ClubEvents({ entry }: { entry: MyClubOut }) {
  */
 export function ClubTeams({ entry }: { entry: MyClubOut }) {
   const { t } = useTranslation("club");
+  const { t: ts } = useTranslation("space");
   const [params, setParams] = useSearchParams();
   const teams = entry.teams ?? [];
   const open = params.get("team");
+  // Story Z-10: *Squads* is the one place for every squad of the club — a stand-alone
+  // event's too, which sits on the club's first team there (V-1, VA-13). Once per event.
+  const standalone = (entry.events ?? []).filter(
+    (event, i, all) => !event.series && all.findIndex((e) => e.squad_team_id === event.squad_team_id) === i,
+  );
 
   const toggle = (teamId: number) =>
     setParams((previous) => {
@@ -150,7 +159,7 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
       return next;
     });
 
-  if (!teams.length) {
+  if (!teams.length && !standalone.length) {
     return <Empty testId={`my-club-no-teams-${entry.club.id}`}>{t("mine.noTeamsText")}</Empty>;
   }
 
@@ -205,8 +214,68 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
             </li>
           );
         })}
+        {standalone.map((event) => {
+          const isOpen = open === String(event.squad_team_id);
+          return (
+            <li
+              key={`event-${event.squad_team_id}`}
+              data-testid={`my-club-team-${event.squad_team_id}`}
+              className="rounded-lg border border-separator bg-surface p-4"
+            >
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{event.title}</p>
+                  <p className="text-sm text-muted">
+                    {ts("clubSections.standaloneEvent")} · {eventDates(event)}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant={isOpen ? "outline" : "primary"}
+                  onPress={() => toggle(event.squad_team_id)}
+                  data-testid={`my-club-team-toggle-${event.squad_team_id}`}
+                >
+                  {isOpen ? t("mine.closeSquad") : t("mine.openSquad")}
+                </Button>
+              </div>
+              {isOpen && (
+                <div className="mt-4">
+                  <SquadPanel teamId={event.squad_team_id} title={event.title} readOnly={!entry.may_manage} />
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </section>
+  );
+}
+
+/** Story Z-10: the events the club hosts, each opening its own context — where it is
+ * organized (a hosted event is not edited here) — and *+ New event*, the event wizard,
+ * where a club's organizer creates one outside a series (VA-6).
+ *
+ * The organizers' event list has no host filter, so it is asked with the host's short
+ * name (it searches the host club too) and then narrowed to this host.
+ */
+export function ClubHosting({ club }: { club: { id: number; name: string; short_name?: string | null } }) {
+  const { t } = useTranslation("space");
+  const events = useAsync(useListAllEvents({ q: club.short_name || club.name, limit: WHOLE_LIST }));
+  return (
+    <Section
+      testId={`my-club-hosting-${club.id}`}
+      action={<AddButton label={t("clubSections.newEvent")} to="/admin/events/new" testId="my-club-hosting-new-event" />}
+    >
+      <p className="text-sm text-muted">{t("clubSections.hostingHint")}</p>
+      <Async
+        state={events}
+        testId="my-club-hosting"
+        empty={t("clubSections.noHosted")}
+        isEmpty={(page) => !page.items.some((e) => e.host_club?.id === club.id)}
+      >
+        {(page) => <EventLinks events={page.items.filter((e) => e.host_club?.id === club.id)} testId="my-club-hosted" />}
+      </Async>
+    </Section>
   );
 }
 

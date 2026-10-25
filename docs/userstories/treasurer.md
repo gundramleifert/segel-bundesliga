@@ -238,6 +238,13 @@ Acceptance criteria:
   club's cash audit (*Kassenprüfung*) asks for. Drafts are the claimant's own and are not
   in it.
 
+**Screens** (Story Z-10, #32 — one money tab before): the club's *Payment runs* section
+(`/me/club/:id/payment-runs`) holds the SEPA file over the approved claims, the open runs
+and the year's books, and a run still `issued` is its `payment_run_open` to-do; *Bank
+account* (`…/bank-account`) holds the club's account, and a run refused for a missing one
+leads there; *Decide claims* (`…/decide-claims`) the claims to decide and, once approved,
+each to pay by hand (F-4, F-8).
+
 Tests: `api/tests/stories/test_payment_runs.py`
 
 ### F-8 ● Pay one claim by scanning a GiroCode

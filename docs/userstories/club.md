@@ -42,8 +42,8 @@ As a **club admin** I want to **decide who is in our club**, so that **not every
 join** — and so that nobody has to wait for a decision.
 
 Acceptance criteria:
-- The club's admin sees the club's people on the Members tab: the roster, and the People
-  panel with every tuple on the club — who is member, manager, admin, race officer.
+- The club's admin sees the club's people in the *Members* section: the roster, and the
+  People panel with every tuple on the club — who is member, manager, admin, race officer.
 - Adding is by **email** of an existing account (V-9); removing is deleting the tuple.
   There are no requests and no invitations awaiting anyone (Z-5).
 - A manager sees the roster like any member and cannot change who is in the club.
@@ -52,7 +52,8 @@ Acceptance criteria:
 Endpoints: `GET /api/auth/tuples?object=club:<id>`, `POST /api/auth/tuples`,
 `DELETE /api/auth/tuples/{id}` (Story Z-2)
 
-Screen: the Members tab of the club's page in my space, `/me/club/:id` (Stories V-12, S-7).
+Screen: the *Members* section of the club's page in my space, `/me/club/:id/members`
+(Stories V-12, S-7, Z-10).
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-9 ● Add someone by email
@@ -135,6 +136,12 @@ via the address.
 2026-10-24): it is what links the record to an account. A club's organizer gives an
 address to a person who has none; changing one would hand the person's waivers and profile
 to another account.
+
+**Screen** (Story Z-10, #32): the club's *Sailors* section, `/me/club/:id/sailors`, for its
+organizers — everyone who sails for the club, *+ New person* creating someone for this club,
+and the date of birth set right on the row of a sailor who has none (the club's
+`sailor_without_birth_date` to-do). The squad screen keeps its own *New person* for the
+squad it is on.
 
 Endpoints: `GET /api/admin/sailors`, `POST /api/admin/sailors`,
 `PATCH /api/admin/sailors/{id}`, `DELETE /api/admin/sailors/{id}/clubs/{club_id}`
@@ -281,6 +288,10 @@ Open: until when the squad can be changed (see "Deadlines remain out for now"). 
 the minimum should also block something — a matchday start, say — is not decided; today it
 is a warning on the club screen only.
 
+Screen: the club's *Squads* section, `/me/club/:id/squads` (Story Z-10) — one row per
+series registration and per stand-alone event the club is entered in, each opening its
+squad (`SquadPanel`); the series' *Squad size & scoring* section sets the limits.
+
 Endpoints: `GET /api/admin/teams/{team_id}/members`,
 `PUT /api/admin/teams/{team_id}/members`
 
@@ -308,8 +319,10 @@ Acceptance criteria:
 
 Endpoints: `PUT /api/admin/events/{slug}/crew`, `GET /api/admin/events/{slug}/crew/{team_id}`
 
-Screen: the Matchdays tab of `/me/club/:id` lists the club's matchdays and opens the lineup under each one
-(`LineupPanel`, Story V-12); administration and race officers use the same endpoint.
+Screen: the *Events & crews* section of `/me/club/:id` (`/crews`, Story Z-10; the Matchdays
+tab before #32) lists the club's events and opens the lineup under each one — one row per
+team when the club enters several (VA-13) — (`LineupPanel`, Story V-12); administration and
+race officers use the same endpoint.
 
 Tests: `api/tests/stories/test_lineup.py`, `e2e/club.spec.ts`
 
@@ -385,6 +398,15 @@ Acceptance criteria:
   `SquadPanel` is shown for it under the matchday — otherwise a club running its own cup
   here could enter it and never register anyone.
 
+**Since #32 the tabs are sections** of the club's context (Story Z-10): *Members* (the
+roster, leaving, the People panel), *Squads* (every series registration **and** every
+stand-alone event's squad, one row each) and *Events & crews* (the former Matchdays) —
+beside *Sailors*, *Minors & guardians*, *Waivers*, *Hosting*, the money's three sections and
+the *Club page*. The crest and the guardians left the Members tab for sections of their
+own. Squads and crews come from `GET /api/clubs/mine`, which answers "mine": a club the
+league office opens without being in it has every other section, and those two are left
+out rather than drawn empty.
+
 Tests: `api/tests/stories/test_my_clubs.py`,
 `e2e/lifecycle.spec.ts::V-12/V-4/VA-6: a team manager manages their own squad`,
 `e2e/club.spec.ts`
@@ -417,8 +439,10 @@ Acceptance criteria:
   the same account twice is `tuple-exists` (409); a child cannot be their own guardian
   (`guardian-is-the-sailor`, 422).
 - Every link and unlink is in the audit log, as every tuple.
-- The screen is a **Guardians** section on the club's Members tab (`/me/club/:id`), for
-  the club's organizer: the club's sailors with their guardians, add by email, remove.
+- The screen is the club's **Minors & guardians** section (`/me/club/:id/minors`, under
+  *People*, Story Z-10 — it was part of the Members tab until #32), for the club's
+  organizer: the club's sailors, minors first, with their guardians, add by email, remove.
+  A minor with no guardian linked is a to-do there (`minor_without_guardian`).
 
 Endpoints: `GET /api/clubs/{club_id}/guardians`, `POST /api/sailors/{sailor_id}/guardians`,
 `DELETE /api/sailors/{sailor_id}/guardians/{tuple_id}`
@@ -434,9 +458,9 @@ The organizer's check-in list (VA-2, VA-5) answers this for one event and every 
 it; the team manager needs it for their own club and every competition it is in.
 
 Acceptance criteria:
-- A **Waivers** tab on the club's page in my space (`/me/club/:id`), for the club's
-  organizer (`manager` or `admin` on it); the tab says how many matchdays need it
-  (`crew_waiver_missing`, Z-8).
+- A **Waivers** section on the club's page in my space (`/me/club/:id/waivers`, under
+  *People*, Z-10), for the club's organizer (`manager` or `admin` on it); it says how many
+  matchdays need it (`crew_waiver_missing`, Z-8).
 - One block per competition the club is in and has not finished: each **series squad**
   (one waiver covers all its matchdays) and each **entry in an event that belongs to no
   series** (planned or live). Each block says *n of m cleared*, and lists the sailors —
@@ -528,9 +552,10 @@ with no change on its side and none in the frontend, and removing the upload fal
 the external URL instead of leaving the club blank. The served URL carries a `?v=<mtime>`
 cache stamp, because the path itself is stable across replacements.
 
-**The club's admin edits it on their club's page in my space** — the Members tab of
-`/me/club/:id`, beside the people, because the crest is the club's identity like its
-members. Until 2026-10-17 the only control was the admin screen's club list, which a
+**The club's admin edits it on their club's page in my space** — the *Club page* section,
+`/me/club/:id/club-page` (Story Z-10, #32; it stood on the Members tab before), with the
+club's name, short name, city and website shown beside it — those the league office
+changes. Only the club's `admin` has the section. Until 2026-10-17 the only control was the admin screen's club list, which a
 club's admin cannot open, so the endpoint let them upload and no screen did (found by
 Journey J-2). Both places use one component, `CrestEditor`.
 
