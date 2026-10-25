@@ -92,6 +92,7 @@ site's race committee, as the model says).
 |---|---|---|
 | — | **Overview** — every to-do of every context (§4), each a link to its section | all |
 | Me | Profile & account · My waivers · My claims · Documents · Bank account | all |
+| | **My clubs** — my memberships, invitations to accept or decline, *Ask to join* (V-15; after #40) | all |
 | My children | each linked child: waiver status, *Accept online* | `guardian` |
 
 ### Club
@@ -99,8 +100,7 @@ site's race committee, as the model says).
 | Group | Section | Who |
 |---|---|---|
 | — | **Overview** — waiting: crews, waivers, minors without guardian, claims | member, organizers, treasurer |
-| People | **Members** (add, remove; organizers' roles) | member reads · club `admin` writes |
-| | **Sailors** — the club's sailors (`SailorClub`), *+ New person* | organizers |
+| People | **People** — one list of everyone with a membership (`ClubMembership`, any status), filtered and sorted on the server (`PersonFilter`); *＋ Person* (new, or existing by email — an invitation when they are in another club); roles, membership, a person's details (V-8, V-4, V-15) | member reads the active roster · club `admin` writes membership and roles · organizers write details |
 | | **Minors & guardians** | organizers |
 | | **Waivers** — who is cleared for which series/event | organizers |
 | Racing | **Squads** — one section; a picker for the series registration (or stand-alone event) whose squad it shows | member reads · organizers write |
@@ -109,6 +109,11 @@ site's race committee, as the model says).
 | Money | **My claims** to the club | member |
 | | **Decide claims** · **Payment runs** · **Bank account** | organizers, `treasurer` |
 | Club | **Club page** — name, crest, address | club `admin` |
+
+*People* replaces *Members* and *Sailors* (decided 2026-10-25, #40, `docs/PLAN_PEOPLE.md`
+§4): members and sailors are one `Person`, membership one `ClubMembership`. Until #45
+builds it, the club has *Members* and *Sailors* as before; their addresses then redirect
+to *People*.
 
 **Series and event are the two objects; "matchday" is not a third.** A matchday is an
 event's number within its series (`Event.matchday`, "Matchday 2 · Kiel"); a stand-alone
@@ -227,7 +232,9 @@ built** (decided), the new ones one by one:
 | `crew_missing` | club › Events & crews | organizers | exists |
 | `crew_waiver_missing` | club › Waivers | organizers | exists |
 | `minor_without_guardian` | club › Minors & guardians | organizers | new |
-| `sailor_without_birth_date` | club › Sailors (no waiver possible without it) | organizers | new |
+| `sailor_without_birth_date` | club › People, filtered *No date of birth* (no waiver possible without it; *Sailors* until #40) | organizers | new |
+| `membership_requested` | club › People, filtered by status *requested* (V-15) | club `admin` | after #40 |
+| `membership_invited` | Me › My clubs (V-15) | the person | after #40 |
 | `payment_run_open` | club › Payment runs (issued, not booked) | organizers, `treasurer` | new |
 | `event_not_ready` | event › Overview (the readiness reasons, VA-8) | organizers | new |
 | `event_unpublished` | event/series › Publication (dates set, still a draft) | organizers | new |

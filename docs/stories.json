@@ -1047,6 +1047,14 @@
   "file": "docs/userstories/club.md",
   "anchor": "v-14--see-whose-waivers-are-in"
  },
+ "V-15": {
+  "title": "Join a second club, with consent either way round",
+  "status": "○",
+  "role": "Club: its admin and its team manager",
+  "phase": "Members",
+  "file": "docs/userstories/club.md",
+  "anchor": "v-15--join-a-second-club-with-consent-either-way-round"
+ },
  "V-2": {
   "title": "Select sailors for matchday",
   "status": "●",

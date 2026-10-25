@@ -53,6 +53,19 @@ Acceptance criteria:
 
 Screen: the club's Members tab on `/me/club/:id` (Stories V-12, S-7) — the People panel for the admin,
 a "Leave" button for the member. The public club page offers no way in.
+
+**After #40** (not built yet; decided 2026-10-25, [`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md)):
+- Membership is a **`ClubMembership`** row — person · club · status — not a tuple. Every
+  account is linked to exactly one **person** (`Person.user_id`), who is also the sailor
+  of V-4: one record, no matter whether they sail, sign in, or both. Being a member is an
+  `active` row; `check(user, member, club)` still answers it, from the account's person.
+- The club's admin adds a person **in no club** at once, as today. A person **already in
+  another club** joins only with consent, either way round — the club invites or the
+  person asks, the other side accepts ([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)). This revises the decision of
+  2026-09-24 for the one case it did not foresee.
+- Leaving is ending my own membership in *Me › My clubs*; the club's admin removes one.
+  My roles on the club (manager, admin, treasurer) are tuples and stay tuples.
+
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-10 ● See fellow club members
@@ -79,6 +92,12 @@ Endpoints: `GET /api/clubs/{id}/members`
 
 Screen: the *Members* section, `/me/club/:id/members` (Stories V-12, S-7, Z-10); the roster stays on the public club
 page for a signed-in member as well.
+
+**After #40** (not built yet): the roster is the club's **active** members — people, with
+or without an account — with their roles on the club; still names only, no email and no
+date of birth. A plain member sees it read-only in the *People* section, which for the
+organizers is the full list (V-8). An `invited` or `requested` person is not on it and
+does not see it.
 Tests: `api/tests/stories/test_club_members.py::TestMemberRoster`,
 `api/tests/stories/test_club_members.py::TestOrganizers::test_a_clubs_organizer_lists_no_accounts`
 
@@ -94,8 +113,9 @@ Acceptance criteria:
 - **"My clubs"** comes first: every club the signed-in account belongs to. Plural
   deliberately — a person can be an active member of more than one club (Story V-7), and a
   `team_manager` can manage several, so this is a list, never a single club.
-- What counts as "mine" is the `member` tuple on the club (Story Z-5). An account has no
-  club field of its own, so there is nothing else this could read.
+- What counts as "mine" is my person's **active** `ClubMembership` (Story Z-5; the
+  `member` tuple until #43). An account has no club field of its own, so there is nothing
+  else this could read.
 - The **club search** sits beside it on a wide screen and **below it** on a phone — the
   section that matters most has to be the one that is above the fold on the small screen.
   It searches every club, exactly as it does now.
@@ -380,6 +400,12 @@ the name as a link or as plain text from it. The photo follows the page: a hidde
 profile's `GET /api/sailors/{id}/photo` answers the same 404 as a sailor without one, for
 everyone outside the circle above (a minor's photo keeps S-2's 403 first).
 
+**After #40** (not built yet): the switch is on the **person** (`Person.profile_public`),
+the page moves to `/people/:id` (`/sailors/:id` redirects), and "the sailor's own linked
+account" is the account whose person it is (`Person.user_id`), no longer the one with the
+same email. The circle that still sees a hidden page is the person, `admin`, and the
+organizers of a club they are an **active** member of.
+
 Tests: `api/tests/stories/test_profile_visibility.py::TestProfileVisibility`
 
 ### Z-7 ● Delete my own account
@@ -457,6 +483,13 @@ Acceptance criteria:
   club(s)", "Reimbursements" and "Profile"; their old addresses lead to the new pages.
 
 Screen: `/me`.
+
+**After #40** (not built yet): a club is mine through my person's **active**
+`ClubMembership` (relation *member*), no longer a `member` tuple; *sailor* stays what it
+is — a squad or a crew, no row of its own. An `invited` membership is a to-do on *Me*
+(`membership_invited`, section `clubs`), not a club card, until I accept it
+([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)).
+
 Tests: `api/tests/stories/test_my_space.py::TestMySpace`,
 `e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it"),
 `e2e/my-space.spec.ts` ("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list")
@@ -501,6 +534,11 @@ Acceptance criteria:
   → `/me/club/N`, `/reimbursements` → `/me`; `/account` signed out stays the sign-in page.
 
 Screen: `/me/profile`, `/me/club/:id`, `/me/series/:id`, `/me/event/:id`.
+
+**After #40** (not built yet): *Me* gains **My clubs** — my memberships, the invitations
+to accept or decline, my open requests and *Ask to join* ([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)); the club's
+*members* become its **People** (Z-10).
+
 Tests: `e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it"),
 `e2e/club.spec.ts`
 
@@ -693,6 +731,14 @@ manager opens the event from the series and gets *Set up* as its own manager wou
   page** (the crest, for the club's `admin` alone, with name, short name, city and
   website shown — the league office changes those). The crest, the guardians and the
   people's panel all stood on *Members* before.
+- **After #40** (not built yet; [`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md) §4): the club's
+  *People* group is **People** (one list of every person with a membership, filtered and
+  sorted on the server, *＋ Person* — V-8), **Minors & guardians** and **Waivers**;
+  *Members* and *Sailors* are gone and their addresses redirect to *People*. The section
+  key `people` replaces `members` and `sailors`; `sailor_without_birth_date` lands on
+  *People* filtered by *No date of birth*, and `membership_requested` (V-15) on *People*
+  filtered by status. *Me* gains the section `clubs` (*My clubs*,
+  `membership_invited`).
 - A club opened by someone who is not in it — the site's admin, reached through the
   league office — has every section the model gives them there except *Squads* and
   *Events & crews*: those read `GET /api/clubs/mine`, which answers "mine".

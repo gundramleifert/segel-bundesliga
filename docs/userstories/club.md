@@ -11,7 +11,12 @@ Two people stand behind "the club" here (Story Z-2): the club's **admin** decide
 *in* the club — members, organizers, the crest — and the club's **manager** decides who
 *sails* — squads, lineups, registrations; the site calls them the **team manager**. Where a story below says `team_manager`, read
 the manager for sport and the admin for membership; an admin is a manager too.
-Membership itself is a tuple, `user:member:club`, written by the admin (Z-5).
+Membership itself is a tuple, `user:member:club`, written by the admin (Z-5) — **until
+#40** (decided 2026-10-25, [`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md)): then members and
+sailors are one **person**, and being in a club is one `ClubMembership` row
+(person · club · status `active`, `invited` or `requested`) that replaces both the `member`
+tuple and `SailorClub`. A person may have an account (`Person.user_id`); roles stay tuples
+on accounts. The criteria below say where they change, under **After #40**.
 
 The path into a competition goes both ways. Administration assigns clubs to series
 ([A-3](administration.md#a-3--assign-clubs-to-series), [A-6](administration.md#a-6--create-series-and-select-clubs)); V-5
@@ -35,6 +40,12 @@ Acceptance criteria:
 - There is no account-level club field to set, by anyone; the account list does not show
   one. Every change to who is in a club is a tuple write, logged.
 
+**After #40** (not built yet): Z-3 is adding a **person** to the club — an `active`
+`ClubMembership`, not a tuple. An account is linked to exactly one person
+(`Person.user_id`), so making an account a member makes *its person* one; the account
+still has no club of its own. A person already in another club joins only with consent
+([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
+
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-8 ● Decide who is in the club
@@ -54,6 +65,23 @@ Endpoints: `GET /api/auth/tuples?object=club:<id>`, `POST /api/auth/tuples`,
 
 Screen: the *Members* section of the club's page in my space, `/me/club/:id/members`
 (Stories V-12, S-7, Z-10).
+
+**After #40** (not built yet):
+- The club's people are **one list**, the *People* section (`/me/club/:id/people`),
+  replacing *Members* and *Sailors* — everyone with a `ClubMembership` on the club, with
+  their roles, whether they have an account, and their date of birth or age for the
+  organizers. Narrowed on the server (`PersonFilter`, A-13): search over name and email;
+  filters role, account yes/no, minor, no date of birth, in a squad this year, status
+  (active, invited, requested); sorted by name or date of birth. The old addresses
+  redirect.
+- *＋ Person* (top right, a dialog) creates a new person for the club or adds an existing
+  one by email (V-9). Row actions follow what the reader may do: the club's admin changes
+  roles and membership, the organizers a person's details (V-4).
+- Removing someone deletes their membership; their roles on the club are separate tuples
+  and are removed on their own. Requests and invitations exist only for a person already
+  in another club ([V-15](#v-15--join-a-second-club-with-consent-either-way-round));
+  a `requested` row is the club's `membership_requested` to-do.
+
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
 ### V-9 ● Add someone by email
@@ -69,6 +97,15 @@ Acceptance criteria:
   and event, not for membership.
 
 Endpoints: `POST /api/auth/tuples`
+
+**After #40** (not built yet):
+- The email finds a **person**, not only an account: the person with that address, or
+  the one linked to the account with it. No account is needed any more — a person
+  without one is normal (a child, a crew member who never signs in).
+- A person in **no club** becomes an `active` member at once, as today. A person
+  **already in another club** gets an invitation instead (`invited`), which they accept
+  in *Me › My clubs* ([V-15](#v-15--join-a-second-club-with-consent-either-way-round));
+  without an account nobody could accept, so that case stays the league office's.
 
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
@@ -146,9 +183,57 @@ squad it is on.
 Endpoints: `GET /api/admin/sailors`, `POST /api/admin/sailors`,
 `PATCH /api/admin/sailors/{id}`, `DELETE /api/admin/sailors/{id}/clubs/{club_id}`
 
+**After #40** (not built yet):
+- A sailor is a **person** (`Sailor` → `Person`, `/api/people`, public `/sailors/:id`
+  redirects to `/people/:id`), and "sails for a club" is an `active` `ClubMembership` —
+  the same row that makes them a member. The permission edges stay: a person's `manager`
+  is `manager from club`, over their active memberships only.
+- Creating a person for the club makes them an `active` member at once (a new person is
+  in no club). The account link is `Person.user_id`, not the email: an account is linked
+  to the person with its **verified** address, or gets a new person when it is created
+  (registration, enrollment, first sign-in) — so the "still open" above is closed.
+- **A second club is consent, no longer only the league office**: the club's admin
+  invites, or the person asks, and the other side accepts
+  ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)). A person in another
+  club without an account still goes through the league office — nobody could accept.
+- The squad rule stays: a squad takes only people with an active membership in its club.
+- The *Sailors* section goes; its work is in *People* (V-8), filtered by *No date of
+  birth* for the `sailor_without_birth_date` to-do.
+
 Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`,
 `api/tests/stories/test_sailors_and_squads.py::TestASailorSailsForTheirClub`,
 `e2e/lifecycle.spec.ts::V-12/V-4/VA-6: a team manager manages their own squad`
+
+### V-15 ○ Join a second club, with consent either way round
+As a **person already in one club** I want **a second club to take me in only when I
+agree** — and as a **club admin** I want **to take in someone from another club only when
+they agree**, so that **no club can simply take anyone**.
+
+Issue #44 (step 4 of #40, [`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md) §3). Joining a
+second club hands that club's organizers a person's birth date, guardians and documents,
+so either the person or the club must say yes. This revises the decision of 2026-09-24
+(Z-5: no request, no invitation) for the one case it did not foresee — someone who
+already belongs to another club. A person in no club still joins at once (V-4, V-9).
+
+Acceptance criteria:
+- **The club invites**: the club's admin adds, by email, a person who is active in
+  another club → a `ClubMembership` with status `invited`. The person sees it as the to-do
+  `membership_invited` in *Me › My clubs* (section `clubs`) and accepts (→ `active`) or
+  declines (the row is deleted).
+- **The person asks**: signed in, from *Me › My clubs* or the public club page, *Ask to
+  join* → status `requested`. The club's admin sees it as the to-do `membership_requested`
+  in the club's *People* section, filtered by status, and accepts (→ `active`) or
+  declines (deleted). A person in no club asking is accepted the same way.
+- An `invited` or `requested` row grants nothing: the person is not a member, not in the
+  club's `manager from club` edge, not in a squad, and does not see the roster.
+- A person in another club **without an account** cannot be invited (nobody could
+  accept); the league office adds them, as before.
+- Every change of a membership — invite, ask, accept, decline, leave, remove — is in the
+  audit log.
+- *Me › My clubs* lists my memberships with their status, the invitations to answer and
+  my open requests, and *Leave* for each active one.
+
+Tests: none yet.
 
 ## Entering competitions
 
@@ -407,6 +492,13 @@ own. Squads and crews come from `GET /api/clubs/mine`, which answers "mine": a c
 league office opens without being in it has every other section, and those two are left
 out rather than drawn empty.
 
+**After #40** (not built yet): *Members* and *Sailors* become one **People** section
+(V-8), the *People* group being People, Minors & guardians and Waivers. Joining stays the
+club's doing for a person in no club; a person **already in another club**, signed in,
+may *Ask to join* from the public club page or *Me › My clubs*, and the club's admin
+accepts ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)) — the one way
+in that starts from the person.
+
 Tests: `api/tests/stories/test_my_clubs.py`,
 `e2e/lifecycle.spec.ts::V-12/V-4/VA-6: a team manager manages their own squad`,
 `e2e/club.spec.ts`
@@ -443,6 +535,12 @@ Acceptance criteria:
   *People*, Story Z-10 — it was part of the Members tab until #32), for the club's
   organizer: the club's sailors, minors first, with their guardians, add by email, remove.
   A minor with no guardian linked is a to-do there (`minor_without_guardian`).
+
+**After #40** (not built yet): the object type is `person` (`user:guardian:person`), and
+"a club the child sails for" is an `active` `ClubMembership`. The guardian is still named
+by an **account** — accepting a waiver online is signing in — and that account's person
+need not be in any club. *Minors & guardians* stays a section and is also *People*
+filtered by *Minor*.
 
 Endpoints: `GET /api/clubs/{club_id}/guardians`, `POST /api/sailors/{sailor_id}/guardians`,
 `DELETE /api/sailors/{sailor_id}/guardians/{tuple_id}`

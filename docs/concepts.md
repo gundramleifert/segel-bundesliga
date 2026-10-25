@@ -83,7 +83,8 @@ under which racing has already occurred cannot be revoked.
 
 **Consent is unilateral — and intentionally so.** The administration runs the competition;
 it assigns a club without asking. Only the opposite direction — the club applying — requires
-consent. Club **membership** is simpler still: the club's admin writes it (see below).
+consent. Club **membership** is simpler still: the club's admin adds a person, and only a
+person already in another club must agree (see below).
 
 **Only club leadership can register.** An ordinary member cannot register a club, nor can
 the race committee.
@@ -158,16 +159,44 @@ up. The endpoint must check when the squad is registered; a test maintains the i
 
 ---
 
-## Club Membership — a tuple the club writes
+## Person, Account and Club Membership
 
-**Who belongs to which club.** Model: the `member` tuple on the club (`Grant`, Story
-Z-2) — `user:member:club`. The club's admin writes it, a member deletes their own to
-leave. No request, no invitation, no acceptance (Story Z-5, decision of 2026-09-24).
+Decided 2026-10-25 (#40, `docs/PLAN_PEOPLE.md`). **Until #43 the code still has the old
+model**: a `Sailor` with `SailorClub` rows for sailing, and a `member` tuple
+(`user:member:club`, Story Z-5) on an account for membership — two records for one
+human, joined by email.
 
-Not to be confused with `Team`: `member` says who is a **member**; `Team` says where the
-**club competes**. A person can be in multiple clubs — the limit "once" applies only per
-series and event. Membership implies no other relation: a member is not a manager, an
-admin need not be a member.
+**`Person`** — a human, once in the instance: name, date of birth, contact email,
+federation id, the profile switch (S-4). What squads, crews, waivers, results and
+guardians point at. Today's `Sailor`, renamed; there is no separate "member" record.
+
+**The account link** — `Person.user_id`, optional and unique. An account is what one
+signs in with (`User`, identities, password); **every account has exactly one person**,
+created with it or the existing person with that **verified** address. A person without
+an account is normal: children, other clubs' sailors, imports.
+
+**`ClubMembership`** — person · club · status, the one answer to "who is in this club"
+and "who sails for it":
+
+| Status | Means | Leaves it |
+|---|---|---|
+| `active` | a member — the club's organizers manage them (`manager from club`) | they leave, or the club's admin removes them |
+| `invited` | the club asked; the person has not answered | they accept (→ `active`) or decline (deleted) |
+| `requested` | the person asked; the club has not answered | the club's admin accepts or declines |
+
+Only `active` counts — for the roster, the squad, `check(user, member, club)` (answered
+from the account's person, no tuple) and the person's `manager`. A person in no club joins
+at once (the club knows who is in it, 2026-09-24); **a person already in another club
+joins only with consent**, either way round (Story V-15), because a second club's
+organizers then see and change their birth date, guardians and documents.
+
+**Roles stay tuples on accounts** (`admin`, `manager`, `treasurer` on a club, and every
+series, event and site relation): a role is exercised by signing in. A role does not make
+anyone a member, and a member needs no role.
+
+Not to be confused with `Team`: membership says who is **in** the club; `Team` says where
+the **club competes**. A person can be in multiple clubs — the limit "once" applies only
+per series and event.
 
 ## Pairing Catalog
 

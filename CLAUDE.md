@@ -126,9 +126,12 @@ cannot request club membership. Such an account has neither role nor club. Contr
 `SBL_ALLOW_REGISTRATION`; distinct from `allow_self_signup`, which only controls **silent**
 account creation when logging in with an unknown address.
 
-**Club membership is a tuple, `user:member:club`, written by the club's admin** (Story Z-5,
-decision of 2026-09-24). No request, no invitation, no acceptance: the club knows who is in it.
-A member leaves by deleting their own tuple — the one write a person may make on themselves.
+**Club membership is a `ClubMembership` row — person · club · status** (decided 2026-10-25,
+#40, `docs/PLAN_PEOPLE.md`; Stories Z-5, V-15). The club's admin adds a person in no club at
+once — the club knows who is in it (2026-09-24); a person **already in another club** joins
+only with consent, invited by the club or asking themselves, the other side accepting. A
+member leaves by ending their own membership. Until #43 the code still writes a
+`user:member:club` tuple, with no requests or invitations.
 
 `SBL_DEV_LOGIN=true` enables `/api/dev`: there you can list test accounts and issue access tokens
 **without verification**. A role switcher then appears in the UI (bottom right). Deliberately a
@@ -146,7 +149,7 @@ refreshes it from SAP on every build. The people who sign in are concentrated:
 
 - **club** ASVW, a 2. Liga club (decided 2026-10-21; it was NRV): `board@asvw.example.com` (its `admin`,
   Gundram Leifert), `teams@` (its `manager`, the team manager, Gunnar Voigt),
-  `treasurer@`, and every ASVW sailor — all `member` of it. A sailor needs an
+  `treasurer@`, and every ASVW sailor — all members of it. A sailor needs an
   account to sign a waiver; a sailor of any other club has none, and the specs pick their
   adults and juniors from ASVW's squad;
 - **series** 2. Segel-Bundesliga 2026, ASVW's: `serie@` (its `manager`, and of the 1.
@@ -210,11 +213,11 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Participation is public, affiliation is not.** Whoever is registered for a Series or
   entered into an Event is named publicly — the pairing list, the results and the standings
   carry that name anyway, so hiding it on the club page would be theatre. Plain club
-  **membership** (the `member` tuple) is different: it is shown only to that club's own
+  **membership** (an active `ClubMembership`; the `member` tuple until #43) is different: it is shown only to that club's own
   members and organizers and to the site's `admin` (`GET /api/clubs/{id}/members`, Story
   V-10). Never widen
   the roster to guests, and never gate a squad or a lineup behind a login.
-  A sailor may additionally switch off their own **profile page** (`Sailor.profile_public`,
+  A person may additionally switch off their own **profile page** (`Sailor.profile_public`, `Person` after #40,
   Story S-4) — that hides the collection (photo, club and matchday history, the page
   itself), while the **name** stays on every competition record, as plain text instead of a
   link. So: a name in a result is never hidden, and a profile page is never forced.
@@ -330,23 +333,30 @@ These points were deliberately decided this way; bypassing them costs a lot late
   route about one event. An object's admin sees and writes its tuples
   (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
-  silently dropped. Membership is the `member` tuple on a club, implying nothing else.
+  silently dropped. Membership implies nothing else; it is a `ClubMembership` row, not a
+  tuple (#40 — the code keeps the `member` tuple until #43), and `check(user, member,
+  club)` answers it from the account's person.
   A club always keeps one `admin` (Story A-8): removing the last one is refused even
   while managers remain, or nobody could add a member any more.
   Four foreign keys and one small interpreter are the whole model: no authorization
   service.
-- **A sailor sails for clubs, and the model knows which** (Story V-4, decided
-  2026-10-25): `SailorClub` rows are a sailor's `club` edge, and a sailor's `manager` is
-  `manager from club`. That one answer decides who puts them in a squad, changes them,
-  signs their waiver forms and links their parents. A club's organizer creates people for
-  their own club and manages only those; a second club only the league office adds — a
-  squad never makes someone a club's, or any club could take anyone.
+- **A member and a sailor are one `Person`, and the model knows their clubs** (decided
+  2026-10-25, #40, `docs/PLAN_PEOPLE.md`; Stories V-4, Z-5, V-15). A person exists once,
+  may have an account (`Person.user_id` — every account has exactly one person, linked by
+  verified address), and an **active** `ClubMembership` is both "member" and "sails for";
+  a person's `manager` is `manager from club` over those. That one answer decides who
+  puts them in a squad, changes them, signs their waiver forms and links their parents.
+  A club's organizer creates people for their own club; a second club takes consent
+  (invited/requested, accepted by the other side), and a person in another club without
+  an account only the league office adds — no club can simply take anyone. Until #43 the
+  code has `Sailor` + `SailorClub` beside the `member` tuple, linked by email.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
-  (a `member` tuple on the club) and organizing (`manager` or `admin` on it) are both per
+  and organizing (`manager` or `admin` on it) are both per
   club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which
   club a screen shows is the URL's business (`/me/club/:id`), the account remembers
   nothing; several clubs are several cards in my space, not a choice in the navigation.
-  The club's page there is where members are managed (V-8, Z-5, A-8), squads registered
+  The club's page there is where its people are managed (V-8, Z-5, A-8; one *People*
+  section after #40, *Members* and *Sailors* until then), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
   `GET /api/clubs/mine`, never through an admin-only list.
 - **A list is narrowed on the server, never in the browser** (Story A-13, decided
@@ -479,12 +489,13 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Pairing lists, accounts | `admin` |
 | See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
-| Assign user to club, accept members, crest | `admin`; the club's `admin` (own club only) |
+| Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club must accept (#40, until #43: a `member` tuple, no consent) |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
-| Create and maintain sailors | `admin`; a club's `manager` for their own club (changing one: those who sail for their club, or for none yet; an address once set: `admin` only) |
-| Put a sailor in a squad | the `manager` of a club they sail for (`manager from club` on the sailor), or of any club while they sail for none; site `admin` (the only way to a second club) |
-| Link a parent to a sailor as guardian | the manager or admin of a club the sailor sails for; site `admin` |
-| Confirm a waiver for a sailor | the sailor; `admin`; the manager of a club they sail for; their linked `guardian` while they are a minor |
+| Create and maintain people (sailors) | `admin`; a club's `manager` for their own club (changing one: its active members, or people in no club; an address once set: `admin` only) |
+| Put a person in a squad | the `manager` of a club they are an active member of (`manager from club`), or of any club while they are in none; site `admin` |
+| Accept an invitation, ask to join, leave | the person (their own account) |
+| Link a parent to a person as guardian | the manager or admin of a club the person is a member of; site `admin` |
+| Confirm a waiver for a person | the person; `admin`; the manager of a club they are a member of; their linked `guardian` while they are a minor |
 | Write news and press releases, keep pictures | `editor` of the site (all); of a series or an event (that regatta's) |
 | Register Squad for Series | `admin`, `team_manager` (own club only) |
 | **Create** Event | additionally the `manager` of the series (its acts, naming any host) or of the host club (outside a series only) |
