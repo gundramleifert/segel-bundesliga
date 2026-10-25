@@ -1247,6 +1247,14 @@
   "file": "docs/userstories/visitor.md",
   "anchor": "z-1--sign-in-with-google-microsoft-or-a-one-time-code"
  },
+ "Z-10": {
+  "title": "The workspace: where I am, what I can do here, what waits for me",
+  "status": "○",
+  "role": "Sailor",
+  "phase": "My profile",
+  "file": "docs/userstories/sailor.md",
+  "anchor": "z-10--the-workspace-where-i-am-what-i-can-do-here-what-waits-for-me"
+ },
  "Z-2": {
   "title": "Access is a relation tuple: user · relation · object",
   "status": "◐",

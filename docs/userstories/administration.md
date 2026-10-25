@@ -470,6 +470,10 @@ Acceptance criteria:
 Tests: `e2e/lifecycle.spec.ts` under the `mobile` project (every test in the file)
 
 ### A-11 ● The admin screen in tabs
+**Being replaced by [Z-10](sailor.md#z-10--the-workspace-where-i-am-what-i-can-do-here-what-waits-for-me)** (issue #28): an object's administration
+moves into its own context in My space, and `/admin` becomes `/office`, the league office's
+own work.
+
 As an **organizer**, I want the admin screen **split into tabs by what I am configuring**,
 so that I **reach the one thing I came for instead of scrolling past four other areas**.
 
