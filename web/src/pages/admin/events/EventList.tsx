@@ -15,6 +15,7 @@ import { Pager } from "../../../components/Pager";
 import { INPUT_CLASS } from "../../../lib/admin";
 import { eventDates } from "../../../lib/format";
 import { useListParams } from "../../../lib/listParams";
+import { sectionPath } from "../../../lib/workspace";
 import { EventPanel } from "./EventPanel";
 import { PublicationBadge } from "./PublicationBadge";
 
@@ -102,6 +103,7 @@ export function EventsAdmin() {
 
 function EventRow({ event }: { event: EventSummary }) {
   const { t } = useTranslation("admin");
+  const { t: ts } = useTranslation("space");
   const [open, setOpen] = useState(false);
 
   return (
@@ -131,14 +133,26 @@ function EventRow({ event }: { event: EventSummary }) {
             ].join(" · ")}
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onPress={() => setOpen((o) => !o)}
-          data-testid={`admin-manage-event-toggle-${event.id}`}
-        >
-          {open ? t("manage.closeButton") : t("manage.manageButton")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Story Z-10 (#32): the event's own context, where its set-up and race day now
+              live as sections; the panel below stays until the league office's screen
+              takes this list over. */}
+          <Link
+            to={sectionPath({ kind: "event", id: event.id })}
+            data-testid={`admin-manage-event-workspace-${event.id}`}
+            className="text-sm font-medium text-link underline-offset-2 hover:underline"
+          >
+            {ts("eventSections.openInWorkspace")}
+          </Link>
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => setOpen((o) => !o)}
+            data-testid={`admin-manage-event-toggle-${event.id}`}
+          >
+            {open ? t("manage.closeButton") : t("manage.manageButton")}
+          </Button>
+        </div>
       </div>
 
       {/* Mounted only while open: the readiness of every event is a request each, and the

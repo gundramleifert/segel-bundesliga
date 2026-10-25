@@ -644,6 +644,32 @@ a phone), the sections of the context, the breadcrumb; each section at its own a
 became sections unchanged; the icon rail for 768–1100 px waits for an icon set, and those
 widths get the phone's bar.
 
+**The event's own administration** (#32): the event panel's steps are the event context's
+sections, assembled from the very blocks the administration's panel is made of
+(`web/src/pages/admin/events/EventPanel.tsx`, their test ids kept) by
+`web/src/pages/me/event/EventSections.tsx`, for those the declaration gives them — the
+event's organizers, which by the model includes the series' and the host club's (a series
+manager opens the event from the series and gets *Set up* as its own manager would):
+- *Set up* — **General** (title, dates, series, host, venue and size as set at creation;
+  the dates, and the squad size of a stand-alone event, editable), **Clubs** (the entered
+  clubs), **Pairing list** (the draw from the catalog, the print settings), **Publication**
+  (the readiness reasons, publish or withdraw, the live view's address), **People** (the
+  event's officials and helpers, its tuples).
+- *Race day* — **Check-in** (the waiver list, VA-5), **Race control** (the start, finish,
+  call off, reopen of VA-8/VA-10, and the door to the full-screen `/events/:id/race-control`
+  of WL-3), **Results** (the door to the event page's *Enter results* tab, where the race
+  committee enters them; a draft says it has no page yet), **Notice board** (the event's
+  announcements, with the publishing form for whoever may speak for the event, VA-11).
+- The event's **Overview** shows its organizers what still keeps a planned event from the
+  draw and the start (VA-8), each reason a line, with the way to *General* — where the
+  `event_not_ready` to-do leads.
+- Not built yet, so not listed: **Boats** (an event's boats cannot be changed after it is
+  created), **Trackers** (no screen for them yet), the editorial **News & pictures**.
+- The context reads the event, drafts included, from `GET /api/admin/events/{id}` — its
+  organizers and race committee — and the race committee reads its readiness too, because
+  it may declare the start. The administration's Events tab keeps its panel for now; each
+  row links to the event's context.
+
 Built in steps, each its own issue: the declaration of contexts and sections (#30), the
 switcher and sidebar around today's pages (#31), the admin work moved into each context
 and `/office` (#32), the to-dos and landing page (#33), the switcher's search (#34),
@@ -655,7 +681,9 @@ unit-tested in `web/tests/test_workspace.ts`; every declared section has its lab
 built (until then it opens the context's overview).
 
 Tests: `api/tests/stories/test_my_space.py::TestTodos`, `::TestReachedContexts`, `web/tests/test_workspace.ts`,
-`e2e/workspace.spec.ts` ("Z-10: the switcher's search — my sections by their words, anything for the league office")
+`e2e/workspace.spec.ts` ("Z-10: the switcher's search — my sections by their words, anything for the league office"),
+`api/tests/stories/test_event_lifecycle.py::TestPublication::test_its_organizer_reads_a_draft_in_its_own_context`,
+`e2e/workspace-event.spec.ts::Z-10: the event's set-up and race day are sections of its context`
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with

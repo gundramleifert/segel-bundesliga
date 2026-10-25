@@ -190,7 +190,8 @@ Acceptance criteria:
 - **Print settings belong to the organizer** (`Event.print_settings`): font size, landscape,
   and whether the per-team pages are included. The organizer knows the venue, the printer and
   the paper; nobody else does. `factor_flight_race_width` and the per-team pages are unanimous
-  across all 43 archived events, so they are not offered as choices.
+  across all 43 archived events, so they are not offered as choices. Set in the event's
+  *Set up › Pairing list* section in My space, beside the draw (Z-10, #32).
 - **An unset font size is not sent at all** — the tool picks it from the number of rows
   (`flights × races`): up to 42 rows 10pt, up to 56 8pt, up to 64 7pt, beyond that 6pt, a
   table read off those same 43 events, every one a sheet that was printed and sailed by. A

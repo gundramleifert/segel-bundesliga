@@ -4,16 +4,19 @@ import { Link } from "react-router-dom";
 import { Stack } from "../../components/Layouts";
 import { EventClaimsTab } from "./Money";
 import { ClaimsTab } from "./Papers";
-import { ContextFrame, Door, MyTeams, waiverNotice } from "./ContextFrame";
+import { ContextFrame, MyTeams, waiverNotice } from "./ContextFrame";
+import { EventOverview, raceDaySections, setupSections } from "./event/EventSections";
 
 
-/** `/me/event/:id` — my crew and waiver, my claims, claims to decide, race control. */
+/** `/me/event/:id` — my crew and waiver; the event's set-up and its race day for those
+ *  who organize or run it (Story Z-10, #32); my claims, and the claims to decide. */
 export function EventPage() {
   const { t } = useTranslation("space");
   return (
     <ContextFrame
       kind="event"
       publicPath={(c) => (c.published ? `/events/${c.id}` : null)}
+      overview={(c) => <EventOverview context={c} />}
       sections={(c) => [
         c.series_id != null ? waiverNotice(t, "series", c.series_id) : waiverNotice(t, "event", c.id),
         {
@@ -30,6 +33,8 @@ export function EventPage() {
             </Stack>
           ),
         },
+        ...setupSections(t, c),
+        ...raceDaySections(t, c),
         {
           // Those who work the event file claims on it (Story F-2); sailing is not work.
           key: "my-claims",
@@ -42,30 +47,6 @@ export function EventPage() {
           label: t("context.tabs.toDecide"),
           needs: ["claims"],
           render: () => <EventClaimsTab eventId={c.id} />,
-        },
-        {
-          key: "race-control",
-          label: t("context.tabs.raceControl"),
-          render: () => (
-            <Door
-              text={t("context.raceControl")}
-              to={`/events/${c.id}/race-control`}
-              label={t("context.raceControlLink")}
-              testId="me-event-race-control"
-            />
-          ),
-        },
-        {
-          key: "general",
-          label: t("context.tabs.organize"),
-          render: () => (
-            <Door
-              text={t("context.organizeEvent")}
-              to="/admin?tab=events"
-              label={t("context.organizeLink")}
-              testId="me-event-organize"
-            />
-          ),
         },
       ]}
     />

@@ -159,6 +159,49 @@ class TestPublication:
         calendar = {event["slug"] for event in await all_items(client, "/api/events")}
         assert created["slug"] not in calendar
 
+    async def test_its_organizer_reads_a_draft_in_its_own_context(self, client, caplog):
+        """Z-10: the event's own context in the workspace reads the event, draft
+        included, at the administration's address — for those who organize or run it,
+        never for a guest or someone holding nothing on it."""
+        headers = await admin(client, caplog, "lc5b@example.com")
+        created = (
+            await client.post(
+                "/api/admin/events",
+                headers=headers,
+                json={"title": "Context Draft Cup", "starts_on": "2027-04-03"},
+            )
+        ).json()
+
+        response = await client.get(f"/api/admin/events/{created['id']}", headers=headers)
+        assert response.status_code == 200, response.text
+        assert response.json()["title"] == "Context Draft Cup"
+        assert response.json()["published"] is False
+
+        # Its race committee reads it too, and what still keeps it from the start it may
+        # declare (Race day › Race control).
+        await make_user("wl-z10@example.com")
+        granted = await client.post(
+            "/api/auth/tuples",
+            headers=headers,
+            json={
+                "user": "wl-z10@example.com",
+                "relation": "race_officer",
+                "object": f"event:{created['id']}",
+            },
+        )
+        assert granted.status_code == 201, granted.text
+        officer = auth_headers(await login_as(client, "wl-z10@example.com", caplog))
+        assert (
+            await client.get(f"/api/admin/events/{created['id']}", headers=officer)
+        ).status_code == 200
+        assert (await readiness(client, officer, created["id"]))["ready"] is False
+
+        assert (await client.get(f"/api/admin/events/{created['id']}")).status_code == 401
+        await make_user("nobody-z10@example.com")
+        stranger = auth_headers(await login_as(client, "nobody-z10@example.com", caplog))
+        refused = await client.get(f"/api/admin/events/{created['id']}", headers=stranger)
+        assert refused.status_code == 403
+
     async def test_publishing_shows_it_and_unpublishing_hides_it_again(self, client, caplog):
         headers = await admin(client, caplog, "lc6@example.com")
         created = (

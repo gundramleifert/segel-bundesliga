@@ -6173,6 +6173,113 @@ export const useCreateEvent = <TError = ErrorType<ProblemDetails>,
       return useMutation(getCreateEventMutationOptions(options), queryClient);
     }
 
+export const getGetAdminEventUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}`
+}
+
+/**
+ * Story Z-10: the event as its own context in the workspace reads it — its set-up
+ * and race-day sections need the same row the administration's list carries, drafts
+ * included, which the public ``GET /api/events/{id}`` deliberately refuses (VA-8).
+ *
+ * For whoever may declare things on it (start, finish, cancel, reopen): its organizers
+ * and its race committee, as the model answers for this one event.
+ * @summary One event, drafts included
+ */
+export const getAdminEvent = async (eventId: number, options?: RequestInit): Promise<EventOut> => {
+
+  return http<EventOut>(getGetAdminEventUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdminEventQueryKey = (eventId: number,) => {
+    return [
+    `/api/admin/events/${eventId}`
+    ] as const;
+    }
+
+
+export const getGetAdminEventQueryOptions = <TData = Awaited<ReturnType<typeof getAdminEvent>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminEvent>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminEventQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminEvent>>> = ({ signal }) => getAdminEvent(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminEvent>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminEventQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminEvent>>>
+export type GetAdminEventQueryError = ErrorType<ProblemDetails>
+
+
+export function useGetAdminEvent<TData = Awaited<ReturnType<typeof getAdminEvent>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminEvent>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminEvent>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminEvent>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminEvent<TData = Awaited<ReturnType<typeof getAdminEvent>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminEvent>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminEvent>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminEvent>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminEvent<TData = Awaited<ReturnType<typeof getAdminEvent>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminEvent>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One event, drafts included
+ */
+
+export function useGetAdminEvent<TData = Awaited<ReturnType<typeof getAdminEvent>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminEvent>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminEventQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getUpdateEventUrl = (eventId: number,) => {
 
 

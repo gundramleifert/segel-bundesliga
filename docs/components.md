@@ -248,6 +248,14 @@ by `space:workspace.sectionLabels.<kind>.<key>`, not by the page's `label` — s
 section needs its words there too, in both languages (`web/tests/test_workspace.ts`
 fails without them).
 
+A club, series or event page builds on `ContextFrame` (`pages/me/ContextFrame.tsx`), which
+finds the context, adds its *Overview* (to-dos, state, and whatever the page passes as
+`overview` — an event's readiness reasons) and hands the rest to the frame. An object's
+admin work comes in as sections made of the administration's own blocks, never a second
+copy: the event's *Set up* and *Race day* (`pages/me/event/EventSections.tsx`) render the
+exported blocks of `admin/events/EventPanel.tsx` (`EventDates`, `EventClubs`, `EventDraw`,
+`EventPrint`, `EventLifecycle`, `EventClosing`, …), test ids and all.
+
 ### `Steps` — where you are in a short, ordered sequence
 
 ```tsx

@@ -180,7 +180,14 @@ Endpoints: `GET /api/admin/events`, `GET /api/admin/events/{id}/readiness`,
 Computed in `api/app/services/event_readiness.py`. The admin screen is
 `web/src/pages/admin/events/` — a three-step creation whose first step gates almost
 nothing (VA-6), and a manage panel per event carrying the readiness reasons, the date, the
-entered clubs, the draw, publication and the start.
+entered clubs, the draw, publication and the start. The same blocks are the **event's own
+sections** in My space (Story Z-10, #32): *Set up › General, Clubs, Pairing list,
+Publication*, *Race day › Race control*; the event's *Overview* lists the readiness reasons
+to its organizers while a planned event is not ready — where the `event_not_ready` to-do
+leads. The event's row in the administration's list links there; the panel stays until the
+league office's screen takes the list over. The context reads the event, drafts included,
+from `GET /api/admin/events/{id}` (its organizers and race committee); the race committee
+reads the readiness too, since it may declare the start.
 
 Tests: `api/tests/stories/test_event_lifecycle.py::TestSavingAnIncompleteEvent`,
 `::TestPublication`, `::TestStarting`, `::TestFreezeAfterTheFirstRace`,
@@ -292,7 +299,8 @@ Acceptance criteria:
 - List of all people in the participating squads with their status: cleared, missing,
   outdated version, or (for a minor) waiting on the guardian's signature. **Built** —
   `GET /api/admin/events/{event_id}/waivers` (see [S-3](sailor.md#s-3--confirm-a-waiver-version-for-a-series-or-event)),
-  shown on the event's admin panel with a link to a minor's uploaded scan (S-1).
+  shown on the event's admin panel with a link to a minor's uploaded scan (S-1) — and
+  as the event's *Race day › Check-in* section in My space (Z-10, #32).
 - **Who is not cleared can still be lined up — but the waiver has to be filled.**
   Decided 2026-10-17, replacing "who is not cleared cannot be registered for a matchday":
   a crew is named weeks ahead and changed on the pontoon, and a lock would make the club
@@ -463,6 +471,8 @@ in. The block shows **only the transitions that apply right now**: an open event
 Finish and Call off, a closed one offers a single Reopen and nothing else. That is
 deliberate — a permanently visible, permanently disabled "Reopen" on every planned event
 would be four-fifths noise on a screen that has to work at 412 px (Story A-10).
+In My space the same block sits under the event's *Race day › Race control* section, beside
+the start and the door to the full-screen race control (Z-10, #32).
 
 Neither closing asks for confirmation. Both are one tap to undo and neither deletes
 anything, so a confirmation dialog would buy nothing and cost a tap on a boat.

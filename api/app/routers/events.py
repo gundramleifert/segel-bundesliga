@@ -407,6 +407,24 @@ async def create_event(
     return _event_out(await _with_relationships(session, event.id))
 
 
+@router.get(
+    "/{event_id}",
+    response_model=EventOut,
+    dependencies=[Depends(require_event_control)],
+    summary="One event, drafts included",
+)
+async def get_admin_event(event_id: int, session: AsyncSession = Depends(get_session)) -> EventOut:
+    """Story Z-10: the event as its own context in the workspace reads it — its set-up
+    and race-day sections need the same row the administration's list carries, drafts
+    included, which the public ``GET /api/events/{id}`` deliberately refuses (VA-8).
+
+    For whoever may declare things on it (start, finish, cancel, reopen): its organizers
+    and its race committee, as the model answers for this one event.
+    """
+    await _event(session, event_id)
+    return _event_out(await _with_relationships(session, event_id))
+
+
 @router.patch(
     "/{event_id}",
     response_model=EventOut,
@@ -523,7 +541,9 @@ class EventReadinessOut(BaseModel):
 @router.get(
     "/{event_id}/readiness",
     response_model=EventReadinessOut,
-    dependencies=[Depends(require_event_manager_for)],
+    # The race committee may declare the start (VA-10), so it reads what still keeps the
+    # event from it — read-only, nothing here changes the set-up (Story Z-10).
+    dependencies=[Depends(require_event_control)],
     summary="Is this event ready to be drawn and started?",
 )
 async def get_readiness(

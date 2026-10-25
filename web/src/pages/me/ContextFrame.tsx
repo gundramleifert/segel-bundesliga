@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -44,7 +45,7 @@ export function legacyTarget(base: string, map: Record<string, string>, params: 
 /** What a context opens on (§4): what waits for me there, each a link to the section that
  *  clears it — *Nothing waits for you* when nothing does — then its state: dates, status,
  *  the public page, my relations. */
-function ContextSummary({ context, link }: { context: MyContext; link: string | null }) {
+function ContextSummary({ context, link, extra }: { context: MyContext; link: string | null; extra?: ReactNode }) {
   const { t } = useTranslation("space");
   const testId = `me-context-${context.kind}-${context.id}`;
   return (
@@ -68,6 +69,7 @@ function ContextSummary({ context, link }: { context: MyContext; link: string | 
         </div>
         <RelationChips relations={context.relations} testId={`${testId}-relations`} />
       </div>
+      {extra}
     </div>
   );
 }
@@ -77,10 +79,14 @@ export function ContextFrame({
   kind,
   publicPath,
   sections,
+  overview: overviewExtra,
 }: {
   kind: ContextKind;
   publicPath: (context: MyContext) => string | null;
   sections: (context: MyContext) => WorkspaceSection[];
+  /** What this kind of context adds to its overview, under its state — an event's
+   *  readiness reasons (VA-8). */
+  overview?: (context: MyContext) => ReactNode;
 }) {
   const { t } = useTranslation("space");
   const { id, section } = useParams();
@@ -114,7 +120,7 @@ export function ContextFrame({
   const overview: WorkspaceSection = {
     key: "overview",
     label: t("workspace.overview"),
-    render: () => <ContextSummary context={context} link={publicPath(context)} />,
+    render: () => <ContextSummary context={context} link={publicPath(context)} extra={overviewExtra?.(context)} />,
   };
   return (
     <WorkspaceFrame

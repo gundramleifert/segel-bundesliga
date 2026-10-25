@@ -29,7 +29,7 @@ import { noticeTime } from "../../../lib/format";
  *  announced, newest first, and its documents. Those who may speak for the event publish
  *  here too — the form appears for whoever the access answer names an issuer for. The
  *  page's live stream refetches the list when a notice goes up or comes down. */
-export function NoticeBoard({ event }: { event: EventSummary }) {
+export function NoticeBoard({ event }: { event: Pick<EventSummary, "id"> }) {
   const { t } = useTranslation("site");
   const access = useEventAccess(event.id);
   const announceAs = access.announce_as ?? [];

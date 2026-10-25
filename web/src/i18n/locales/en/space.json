@@ -396,5 +396,33 @@
       "searching": "Searching …",
       "empty": "Nothing found"
     }
+  },
+  "eventSections": {
+    "general": "General",
+    "clubs": "Clubs",
+    "pairing": "Pairing list",
+    "publication": "Publication",
+    "people": "People",
+    "checkIn": "Check-in",
+    "raceControl": "Race control",
+    "results": "Results",
+    "noticeBoard": "Notice board",
+    "factTitle": "Title",
+    "factDates": "Dates",
+    "factSeries": "Series",
+    "factHost": "Host club",
+    "factVenue": "Venue",
+    "factSize": "Size",
+    "standalone": "Stands alone, in no series",
+    "notSet": "not set yet",
+    "peopleHint": "The event's officials and helpers: its organizers, race committee, jury, helpers and treasurer.",
+    "raceControlScreen": "The race committee's screen on the water: start, recall and finish races, one at a time.",
+    "raceControlLink": "Open race control",
+    "resultsText": "The race committee enters the results on the event's page, in its tab Enter results.",
+    "resultsLink": "Enter results",
+    "resultsDraft": "The event is still a draft. Results are entered on its page once it is published.",
+    "notReadyTitle": "Not ready for the draw and the start yet",
+    "notReadyLink": "Set it up",
+    "openInWorkspace": "Open in My space"
   }
 }

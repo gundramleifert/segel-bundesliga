@@ -39,7 +39,8 @@ knows a race is *underway*. B-5's "which race is running" and everything in L-1�
 
 Acceptance criteria:
 - **A page, not a Matchday tab:** `/events/:id/race-control`, gated to the race committee
-  *of that event* (see below), linked from the manage screen and the results tab. The results tab stays
+  *of that event* (see below), linked from the manage screen, the event's *Race day ›
+  Race control* section in My space (Z-10, #32) and the results tab. The results tab stays
   the *correction* screen — a protest heard weeks later belongs there, not here.
 - **One race on screen, the current one:** the race on the water, else the first race that
   is neither `finished` nor `abandoned` — decided by the server, which owns the transitions

@@ -396,5 +396,33 @@
       "searching": "Suche …",
       "empty": "Nichts gefunden"
     }
+  },
+  "eventSections": {
+    "general": "Allgemein",
+    "clubs": "Vereine",
+    "pairing": "Pairing-Liste",
+    "publication": "Veröffentlichung",
+    "people": "Personen",
+    "checkIn": "Check-in",
+    "raceControl": "Wettfahrtleitung",
+    "results": "Ergebnisse",
+    "noticeBoard": "Schwarzes Brett",
+    "factTitle": "Titel",
+    "factDates": "Termin",
+    "factSeries": "Serie",
+    "factHost": "Ausrichter",
+    "factVenue": "Revier",
+    "factSize": "Größe",
+    "standalone": "Eigenständig, in keiner Serie",
+    "notSet": "noch nicht festgelegt",
+    "peopleHint": "Die Offiziellen und Helfer der Veranstaltung: Organisation, Wettfahrtleitung, Jury, Helfer und Kasse.",
+    "raceControlScreen": "Der Bildschirm der Wettfahrtleitung auf dem Wasser: Wettfahrten starten, zurückrufen und beenden, eine nach der anderen.",
+    "raceControlLink": "Wettfahrtleitung öffnen",
+    "resultsText": "Die Wettfahrtleitung trägt die Ergebnisse auf der Seite der Veranstaltung ein, im Reiter Ergebnisse eingeben.",
+    "resultsLink": "Ergebnisse eingeben",
+    "resultsDraft": "Die Veranstaltung ist noch ein Entwurf. Ergebnisse werden auf ihrer Seite eingetragen, sobald sie veröffentlicht ist.",
+    "notReadyTitle": "Noch nicht bereit für Auslosung und Start",
+    "notReadyLink": "Einrichten",
+    "openInWorkspace": "In Mein Bereich öffnen"
   }
 }
