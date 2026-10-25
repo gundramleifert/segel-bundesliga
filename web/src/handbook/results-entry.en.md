@@ -11,8 +11,9 @@ title: "Enter and correct results"
 ---
 ## Enter and correct results
 
-The matchday page's *Enter results* tab is for corrections; on the water use
-[race control](#race-control-finish). For race officers and site administrators: the
+*Enter results* on the event's page is for corrections; on the water use
+[race control](#race-control-finish). Open it from [*the event* › *Results*](place:event.results),
+*Enter results* — there once the event is published. For race officers and site administrators: the
 previous, current and next race. Changes save at once, no save button; points and tables
 follow live on the public pages.
 

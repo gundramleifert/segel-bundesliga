@@ -11,8 +11,10 @@ title: "Ergebnisse eintragen und korrigieren"
 ---
 ## Ergebnisse eintragen und korrigieren
 
-Der Tab *Ergebnisse eingeben* der Spieltagsseite dient Korrekturen; auf dem Wasser
-nutzen Sie den [Bildschirm Wettfahrtleitung](#race-control-finish). Für Wettfahrtleitung
+*Ergebnisse eingeben* auf der Seite der Veranstaltung dient Korrekturen; auf dem Wasser
+nutzen Sie den [Bildschirm Wettfahrtleitung](#race-control-finish). Öffnen über
+[*die Veranstaltung* › *Ergebnisse*](place:event.results), *Ergebnisse eingeben* — sobald
+die Veranstaltung veröffentlicht ist. Für Wettfahrtleitung
 und Verwaltung der Website: vorherige, aktuelle und nächste Wettfahrt. Änderungen werden
 sofort gespeichert, ohne Speichern-Knopf; Punkte und Tabellen folgen live auf den
 öffentlichen Seiten.

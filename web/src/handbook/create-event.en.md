@@ -20,8 +20,10 @@ the page itself does not.
 
 ### The three steps {#create-event-wizard}
 
-1. [*League office* › *Events*](place:admin.events): [*＋ New event*](place:admin.new-event) — as a
-   series' or a club's organizer, *＋ New event* in your series or club in My space.
+1. The league office: [*League office* › *Events*](place:admin.events),
+   [*＋ New event*](place:admin.new-event). A club's organizer:
+   [*your club* › *Hosting*](place:club.hosting), *+ New event*. A series' manager:
+   [*New event*](place:admin.new-event) from this page.
 2. *General data*: only *Name* ① (three characters or more) is required. *Create Event*
    ② saves a draft nobody else sees.
 3. *Clubs*: tick the entrants, then *Enter … clubs and continue*. In a series only its
@@ -30,8 +32,8 @@ the page itself does not.
 5. The last screen: *Ready for the event 🚀*, or *Saved — not ready yet* with what is
    missing; plus *Publish*.
 
-Steps 2 and 3 have *Skip for now*; finish the rest in the event's panel
-([what is missing](#run-event-readiness)).
+Steps 2 and 3 have *Skip for now*; finish the rest in the event's own context in My
+space ([what is missing](#run-event-readiness)).
 
 ![The first step: *Name* ①, dates, series, host club, size and boats, *Create Event* ②](shot:help-event-wizard)
 
@@ -46,8 +48,8 @@ Steps 2 and 3 have *Skip for now*; finish the rest in the event's panel
 | *Ends on* | empty: a one-day event; an end before the start is refused |
 | *Host club* | may stay *- to be determined -* |
 
-Size, series and clubs are fixed once the first race starts
-([after the first race](#run-event-frozen)).
+Until the first race, all of it can be changed in [*the event* › *General*](place:event.organize);
+then size, series and clubs are fixed ([after the first race](#run-event-frozen)).
 
 ### Boats {#create-event-boats}
 
@@ -55,7 +57,7 @@ Size, series and clubs are fixed once the first race starts
 - *Color*: a named colour, the colour picker, or text such as `#ff69b4`; picker or text
   switches the list to *Custom …*.
 - Every boat needs a *Name*, or *Create Event* stays disabled.
-- Boats belong to the event: a new draw changes who sails which boat, not the boats. The
-  panel cannot edit boats — check them here.
+- Boats belong to the event: a new draw changes who sails which boat, not the boats.
+  Colours and names can be changed in [*the event* › *Boats*](place:event.boats) until the first race.
 
 [Create an event](place:admin.new-event)

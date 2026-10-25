@@ -12,8 +12,9 @@ title: "Hilfe für Vereinsverwaltung und Teammanager"
 
 ## Hilfe für Vereinsverwaltung und Teammanager
 
-Zwei Rollen führen einen Verein, beide auf seiner Seite in *Mein Bereich* (eine Karte je
-Verein, zu dem Sie gehören):
+Zwei Rollen führen einen Verein, beide in seinem Kontext in *Mein Bereich* – wählen Sie
+den Verein im Kontextwechsler; seine Bereiche stehen unter *Personen*, *Segeln* und
+*Finanzen*, dazu *Vereinsseite*:
 
 - **Vereinsverwaltung** – wer **im** Verein ist: Mitglieder, Organisation, Stander. Kann
   alles, was ein Teammanager kann.

@@ -725,7 +725,8 @@ Tests: `api/tests/stories/test_my_space.py::TestTodos`, `::TestReachedContexts`,
 `api/tests/stories/test_event_lifecycle.py::TestPublication::test_its_organizer_reads_a_draft_in_its_own_context`,
 `e2e/workspace-event.spec.ts::Z-10: the event's set-up and race day are sections of its context`,
 `e2e/workspace-club.spec.ts`,
-`e2e/lifecycle.spec.ts::A-11/Z-10: the league office, a section per area`
+`e2e/lifecycle.spec.ts::A-11/Z-10: the league office, a section per area`,
+`e2e/workspace-people.spec.ts::Z-10: what real people see — the plan's §5, per seeded account`
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with

@@ -12,8 +12,10 @@ title: News, press releases and pictures
 
 ## News, press releases and pictures
 
-For the site's *Editor* and *Admin*: the sections [*News*](place:admin.news) and
-[*Media*](place:admin.media) of the *League office*. Nobody else writes here.
+For the site's *Editor* and *Admin*: [*League office* › *News*](place:admin.news) and
+[*Media*](place:admin.media). The *Editor* of one series or event writes only about that
+regatta, at *the series* (or *the event*) › *News & pictures*, and finds all of theirs at
+*Me* › *News* and *Pictures*. Upload links are the site's editor's alone.
 
 ### Pictures from a photographer {#news-and-press-pictures}
 

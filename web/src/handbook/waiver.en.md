@@ -17,7 +17,7 @@ every event of that series — and once for each event that belongs to no series
 
 ### Which waivers you need {#waiver-which}
 
-My space: [*Me* → *Waivers*](place:profile.waivers) lists each competition with its status.
+[*Me* › *Waivers*](place:profile.waivers) lists each competition with its status.
 
 | Status | What to do |
 |---|---|
@@ -27,7 +27,8 @@ My space: [*Me* → *Waivers*](place:profile.waivers) lists each competition wit
 | *Waiting for the guardian's signed form* | the signed form is not on file yet |
 | *Date of birth missing* | see [below](#waiver-birth-date) |
 
-Until cleared, each also waits as a notice on your page for that series or event.
+Until cleared, each also waits under *To do* on *Me* › *Overview*, and as a notice above
+every section of that series or event.
 
 ![A competition with its status and *Read and confirm* ①](shot:help-waiver-card)
 
@@ -63,13 +64,13 @@ Nobody else; every look is logged.
 ### A parent accepts online {#waiver-guardian-online}
 
 Once your club [links your parent's account](#club-members-guardians) to you, your parent
-accepts in their own space: [*Me* → *Waivers*](place:profile.waivers) → *My children*, *Read and confirm*, tick,
+accepts in their own space: [*Me* › *Waivers*](place:profile.waivers) → *My children*, *Read and confirm*, tick,
 *Confirm*. This clears you like the signed form — only while you are under 18 on the
 reference date.
 
 ### No date of birth {#waiver-birth-date}
 
 Your age decides the path, so nothing can be confirmed without it. Enter your
-*Birthdate* in your [sailor profile](#profile-sailor).
+*Birthdate* in your [sailor profile](#profile-sailor), or ask your club's organizer to set it.
 
 Refused? See [the FAQ](#faq-sailor).

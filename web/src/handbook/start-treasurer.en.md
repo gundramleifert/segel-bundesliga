@@ -25,6 +25,9 @@ the people who work its events. Filing a claim, deciding it and paying it all ha
 
 ### Decide and pay {#start-treasurer-pay}
 
+A club's money is under *Money* in its context: [*Decide claims*](place:club.money),
+[*Payment runs*](place:club.payment-runs), [*Bank account*](place:club.bank-account).
+
 - [Who decides a claim](#decide-claims-who) — the organizer or treasurer of the event or
   club, never the claimant.
 - [Find what waits for you](#decide-claims-pending) and

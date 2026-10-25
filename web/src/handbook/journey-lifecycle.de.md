@@ -23,7 +23,7 @@ deren Punkte sich noch ändern, wenn nach der letzten Wettfahrt ein Protest ents
 | J-1.1 | Geschäftsstelle | die Vereine existieren; öffentlich ist noch keiner zu sehen | [Vereine anlegen](#admin-clubs-create) |
 | J-1.2 | Geschäftsstelle | die Serie existiert mit ihren Vereinen, als Entwurf, den sonst niemand sieht | [Serie anlegen](#admin-series-create) |
 | J-1.3 | Geschäftsstelle | die Serie ist veröffentlicht und gelistet | [Serie veröffentlichen](#admin-series-publish) |
-| J-1.4 | Veranstaltungsleitung | die Veranstaltung existiert mit Titel und Booten; die für die Serie gemeldeten Vereine sind ihre Teilnehmer — das Formular speichert heute nur für die Verwaltung der Geschäftsstelle, die Veranstaltungsleitung bittet also gegebenenfalls dort darum | [Veranstaltung anlegen](#create-event-wizard) |
+| J-1.4 | Veranstaltungsleitung | die Veranstaltung existiert mit Titel und Booten; die für die Serie gemeldeten Vereine sind ihre Teilnehmer | [Veranstaltung anlegen](#create-event-wizard) |
 | J-1.5 | Veranstaltungsleitung | *Es fehlt noch* nennt, was der Veranstaltung fehlt — hier Teamzahl und Datum | [Bereitschaft](#run-event-readiness) |
 | J-1.16 | Veranstaltungsleitung | Teamzahl und Datum sind gesetzt; es fehlt nichts mehr | [Konfiguration](#create-event-config) |
 | J-1.6 | Geschäftsstelle | die Pairing-Liste ist ausgelost; erneutes Auslosen ersetzt sie, solange nichts gesegelt ist | [Auslosen](#run-event-draw) |
@@ -34,10 +34,11 @@ deren Punkte sich noch ändern, wenn nach der letzten Wettfahrt ein Protest ents
 | J-1.11 | Besucher | die Serientabelle enthält den Act, jeden Verein mit seiner Platzierung | die öffentliche Website |
 | J-1.12 | Veranstaltungsleitung | Zuschnitt, Vereine, Boote und Pairing-Liste sind eingefroren; der Titel lässt sich noch korrigieren | [Eingefroren nach der ersten Wettfahrt](#run-event-frozen) |
 | J-1.13 | Jury, dann Wettfahrtleitung | die Jury disqualifiziert Monate später einen Sieger, und die Wettfahrtleitung trägt die Entscheidung ein; Punkte und Tabellen folgen sofort | [Ergebnis korrigieren](#results-entry-correct) |
-| J-1.14 | Wettfahrtleitung, über die Veranstaltungsleitung | die Wettfahrtleitung erklärt die Wettfahrten für beendet, die Veranstaltungsleitung schließt die Veranstaltung ab: sie ist *beendet*; Ergebnisse bleiben korrigierbar | [Wettfahrten sind beendet](#close-event-finish) |
+| J-1.14 | Wettfahrtleitung | die Wettfahrtleitung erklärt die Wettfahrten für beendet: die Veranstaltung ist *beendet*; Ergebnisse bleiben korrigierbar | [Wettfahrten sind beendet](#close-event-finish) |
 
-Heute kann nur die Verwaltung der Geschäftsstelle eine Pairing-Liste auslosen (J-1.6); die
-Veranstaltungsleitung bittet die Geschäftsstelle darum.
+Die Veranstaltungsleitung sieht die Auslosung unter *die Veranstaltung* › *Pairing-Liste*,
+aber heute kann nur die Verwaltung der Geschäftsstelle auslosen (J-1.6); die
+Veranstaltungsleitung bittet sie darum.
 
 ### Wenn … {#journey-lifecycle-variations}
 

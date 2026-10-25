@@ -40,7 +40,8 @@ nutzen darf. *Konten* gehört allein der Verwaltung der Seite.
 - Rollen auf der *Gesamte Seite* — *Verwaltung*, *Redaktion*, *Wettfahrtleitung* — werden
   nur hier vergeben.
 - Ebenso im Feld *Personen* einer Serie ([Organisation der Serie](#admin-series-manager))
-  oder einer Veranstaltung unter [*Veranstaltungen*](place:admin.events).
+  und unter *die Veranstaltung* › [*Personen*](place:event.people) — aus
+  [*Veranstaltungen*](place:admin.events) mit *In Mein Bereich öffnen*.
 - Abgelehnt: eine Rolle, die die Person dort schon hat. Was jede Rolle darf:
   [Rollen](#roles-list). Änderungen gelten sofort, ohne neue Anmeldung.
 

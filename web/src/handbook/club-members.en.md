@@ -12,11 +12,11 @@ title: "Members, organizers and the crest"
 
 ## Members, organizers and the crest
 
-Open your club's card in [*My space*, tab *Members*](place:club.members). Every member sees the member list;
-the club admin also sees the crest and the *People* panel, the team manager the
-*Guardians* section.
+Membership lives in [*your club* › *Members*](place:club.members): every member sees the member list; the
+club admin also sees the *People* panel below it. Parents are linked in *Minors &
+guardians*, the crest is on *Club page*.
 
-![The Members tab as the club admin sees it](shot:help-club-members)
+![*Members* as the club admin sees it](shot:help-club-members)
 
 ### Add members {#club-members-add}
 
@@ -49,8 +49,9 @@ admin.
 
 ### Link a parent to a young sailor {#club-members-guardians}
 
-Club admin or team manager. *Guardians* lists the sailors your squads or entries hold and
-your members, those *under 18* first. A linked parent accepts the child's waiver online
+Club admin or team manager, in [*your club* › *Minors & guardians*](place:club.minors). *Guardians* lists
+everyone who sails for your club, those *under 18* first; the section counts the minors
+with no guardian linked yet. A linked parent accepts the child's waiver online
 from their own account ([how](#waiver-guardian-online)).
 
 1. Press *Add guardian* beside the child.
@@ -61,7 +62,7 @@ parent; × beside the parent's name removes the link.
 
 ### Change the crest {#club-members-crest}
 
-Club admin only. Tap the crest — *Upload crest* or *Replace crest* — and choose an image
+Club admin only, in [*your club* › *Club page*](place:club.page). Tap the crest — *Upload crest* or *Replace crest* — and choose an image
 of at most 2 MB; transparency is kept, the longest edge becomes at most 512 px.
 *Remove crest* takes it off. It shows on the club's page, in the club list and
 on the matchday's crews.

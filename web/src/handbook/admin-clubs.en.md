@@ -12,8 +12,8 @@ title: Create clubs and enter them in a series
 
 ## Create clubs and enter them in a series
 
-A club exists on its own and competes nowhere until a series takes it. An admin or an
-editor creates clubs; entering a club in a series is the admin's.
+A club exists on its own and competes nowhere until a series takes it. Only the site's
+admin creates clubs; the admin or the series' organizer enters a club in a series.
 
 ### Create a club {#admin-clubs-create}
 
@@ -29,7 +29,8 @@ editor creates clubs; entering a club in a series is the admin's.
 - **A new club is not public** until it is entered in a published series of the current
   year. *… visible in the current year* above the list also counts series still in *Draft*.
 - The crest: *Upload crest*, *Replace crest* or *Remove crest* in the club's row — the
-  club's own admin can too. No screen changes name, short name or city afterwards.
+  club's own admin can too, at [*the club* › *Club page*](place:club.page). No screen
+  changes name, short name or city afterwards.
 
 ### Enter a club in a series {#admin-clubs-series}
 
@@ -39,7 +40,8 @@ The series exists ([create a series](#admin-series-create)).
 2. Tick the clubs that take part, untick the others.
 3. *Set … clubs*.
 
-The ticked clubs take part and are entered in the series' events still planned.
+The series' organizer does the same at [*the series* › *Clubs &
+registrations*](place:series.organize), under *Registered clubs*. The ticked clubs take part and are entered in the series' events still planned.
 
 - The year is in the series: a club in the 2026 series is entered again in 2027's. A club
   can be in several series.
@@ -48,7 +50,7 @@ The ticked clubs take part and are entered in the series' events still planned.
 
 ### Applications {#admin-clubs-applications}
 
-Clubs cannot apply for a series on the site: a club asks the league office, and an
-admin [enters it](#admin-clubs-series). Refusals: [FAQ](#faq-administration).
+Clubs cannot apply for a series on the site: a club asks the series' organizer or the
+league office, who [enter it](#admin-clubs-series). Refusals: [FAQ](#faq-administration).
 
 [Open the league office](place:admin.clubs)

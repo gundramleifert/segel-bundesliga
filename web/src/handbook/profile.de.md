@@ -12,17 +12,17 @@ title: Profil, Dokumente und Bankverbindung
 
 ## Profil, Dokumente und Bankverbindung
 
-Alles unter [*Ich* in Mein Bereich](place:profile.account).
+Alles im Kontext *Ich* von [Mein Bereich](place:profile.account).
 
 ### Segler-Profil {#profile-sailor}
 
-[*Konto*](place:profile.account) → *Mein Segler-Profil*: Ihr *Vorname*, *Nachname* und *Geburtsdatum*, wie die
+[*Ich* › *Konto*](place:profile.account) → *Mein Segler-Profil*: Ihr *Vorname*, *Nachname* und *Geburtsdatum*, wie die
 Seite sie zeigt; *Speichern*.
 
 Die Karte erscheint, sobald ein Segler-Datensatz die bestätigte E-Mail-Adresse Ihres
 Kontos trägt. Sonst steht dort, dass kein Datensatz verknüpft
-ist – bitten Sie die Geschäftsstelle, einen mit Ihrer Adresse anzulegen (Ihr
-Verein kann die Bitte weitergeben).
+ist – bitten Sie die Organisation Ihres Vereins, einen mit Ihrer Adresse anzulegen
+(*Ihr Verein* › *Segler*), oder die Geschäftsstelle.
 
 - *Foto hochladen*: ein Bild, höchstens 5 MB. Es wird aufgerichtet, quadratisch
   zugeschnitten und auf 512×512 Pixel verkleinert. *Foto ersetzen*, *Foto entfernen*.
@@ -42,7 +42,7 @@ Ihr Geburtsdatum entscheidet auch, wie Sie den
 
 ### Dokumente und Scheine {#profile-documents}
 
-[*Dokumente*](place:profile.documents) → *Dokument hinzufügen*:
+[*Ich* › *Dokumente*](place:profile.documents) → *Dokument hinzufügen*:
 
 1. Wählen Sie eine *Art* ① – Sportbootführerschein, Funkzeugnis, Erste Hilfe,
    Schiedsrichter- oder Wettfahrtleiter-Lizenz oder *Sonstiges* (dann ist *Titel*
@@ -52,8 +52,8 @@ Ihr Geburtsdatum entscheidet auch, wie Sie den
 
 ![Dokument hinzufügen: die Art ①, die Datei ②, *Hochladen* ③](shot:help-profile-documents)
 
-Ein abgelaufenes Dokument bleibt, markiert als *abgelaufen*, und die Karte *Ich* weist
-darauf hin. Nur Sie fügen Dokumente hinzu oder löschen sie; außer Ihnen sehen sie nur:
+Ein abgelaufenes Dokument bleibt, markiert als *abgelaufen*, und *Ich* › *Übersicht*
+nennt es unter *Zu erledigen*. Nur Sie fügen Dokumente hinzu oder löschen sie; außer Ihnen sehen sie nur:
 
 - Organisation oder Admin eines Vereins, dessen Mitglied Sie sind;
 - die Organisation einer Veranstaltung, bei der Sie direkt mitarbeiten – als Helfer,
@@ -64,7 +64,7 @@ Jeder Blick durch andere wird protokolliert.
 
 ### Bankverbindung {#profile-bank}
 
-[*Bankverbindung*](place:profile.bank): *Kontoinhaber*, *IBAN*, *BIC* (optional, aus der IBAN ermittelt);
+[*Ich* › *Bankverbindung*](place:profile.bank): *Kontoinhaber*, *IBAN*, *BIC* (optional, aus der IBAN ermittelt);
 *Speichern*. Eine falsche IBAN oder BIC wird abgelehnt, und nichts wird gespeichert.
 
 Nur Sie lesen sie – keine Organisation, kein Kassenwart, kein Admin. Beim Einreichen einer

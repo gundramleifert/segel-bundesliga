@@ -25,8 +25,8 @@ eingetragen; jeder Segler hat ein Konto unter der Adresse seines Segler-Datensat
 |---|---|---|---|
 | J-5.1 | Teammanager | der Kader ist für die Serie gespeichert, innerhalb ihres Maximums | [Kader melden](#squad-and-lineup-squad) |
 | J-5.5 | Teammanager | die Crew für den Spieltag ist benannt — nur aus dem Kader | [Crew benennen](#squad-and-lineup-crew) |
-| J-5.6 | Segler | *Mein Bereich* meldet *Ihr Haftungsausschluss ist noch nicht unterschrieben* | [Welcher Haftungsausschluss](#waiver-which) |
-| J-5.17 | Teammanager | *Mein Bereich* meldet, dass einem Crewmitglied der Haftungsausschluss fehlt — die Crew bleibt benannt, nichts wird gesperrt | [Fehlende Haftungsausschlüsse](#club-waivers-missing) |
+| J-5.6 | Segler | *Ich* › *Übersicht* meldet *Ihr Haftungsausschluss ist noch nicht unterschrieben* | [Welcher Haftungsausschluss](#waiver-which) |
+| J-5.17 | Teammanager | *Ich* › *Übersicht* meldet, dass einem Crewmitglied der Haftungsausschluss fehlt — die Crew bleibt benannt, nichts wird gesperrt | [Fehlende Haftungsausschlüsse](#club-waivers-missing) |
 | J-5.8 | Segler (volljährig) | der Haftungsausschluss ist online bestätigt; der Segler ist für jeden Spieltag der Serie freigegeben | [Als Volljährige bestätigen](#waiver-adult) |
 | J-5.14 | Veranstaltungsleitung | die Check-in-Liste zeigt jedes Kadermitglied als *Erledigt*, die unterschriebenen Formulare der Minderjährigen liegen vor | [Check-in-Liste](#event-checkin-list) |
 
@@ -36,7 +36,7 @@ kann, muss freigegeben sein.
 ### Wenn … {#journey-crew-cleared-variations}
 
 - **Kader unter dem Minimum der Serie (J-5.2, J-5.3):** Er wird trotzdem gespeichert;
-  *Mein Bereich* meldet es, bis er vollständig ist. [Kadergröße](#squad-and-lineup-size)
+  *Ich* › *Übersicht* meldet es, bis er vollständig ist. [Kadergröße](#squad-and-lineup-size)
 - **Veranstaltung ohne Serie (J-5.4):** Der Kader wird beim Eintrag des Vereins in die
   Veranstaltung gemeldet, innerhalb ihrer eigenen Grenzen; der Haftungsausschluss gilt für
   die Veranstaltung. [Kader melden](#squad-and-lineup-squad)
@@ -50,5 +50,5 @@ kann, muss freigegeben sein.
   Segler lädt das Formular herunter, die Erziehungsberechtigten unterschreiben, der Segler
   lädt den Scan hoch. [Das Papierformular](#waiver-minor-paper)
 - **Der Verein sammelt die Formulare (J-5.13):** Die Vereinsseite hat
-  keinen Upload — der Teammanager gibt das Formular dem Segler zurück, der es auf seiner
-  Haftungsausschluss-Karte hochlädt. [Papierformulare](#club-waivers-upload)
+  keinen Upload — der Teammanager gibt das Formular dem Segler zurück, der es unter
+  *Ich* › *Haftungsausschlüsse* hochlädt. [Papierformulare](#club-waivers-upload)

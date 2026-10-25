@@ -15,20 +15,24 @@ title: "Über die Bank des Vereins zahlen"
 Die genehmigten Abrechnungen, die Ihr Verein schuldet, werden eine SEPA-Datei für das
 Online-Banking des Vereins. Die Website verbindet sich nie mit der Bank und speichert
 keinen Bank-Zugang. Hier arbeiten nur *Organisation*, *Kassenwart* und *Verwaltung* des
-Vereins: auf seiner Seite in [*Mein Bereich*, Reiter *Finanzen*](place:club.money).
+Vereins: unter [*Ihr Verein* › *Zahlläufe*](place:club.payment-runs) und
+[*Bankkonto*](place:club.bank-account).
 
 ### Das Konto des Vereins {#payment-runs-bank}
 
-Unter *Konto des Vereins* *Kontoinhaber*, *IBAN* und optional *BIC* (wird aus der IBAN
-ergänzt) eintragen, dann *Speichern*. Von diesem Konto gehen die Überweisungen ab. Nur
+Unter [*Ihr Verein* › *Bankkonto*](place:club.bank-account), bei *Konto des Vereins*,
+*Kontoinhaber*, *IBAN* und optional *BIC* (wird aus der IBAN ergänzt) eintragen, dann
+*Speichern*. Von diesem Konto gehen die Überweisungen ab. Nur
 Organisation und Kassenwart des Vereins sehen es – nicht seine Mitglieder.
 
 ### Die SEPA-Datei erstellen {#payment-runs-create}
 
-Ausgangslage: Unter *Freigegeben, zu zahlen* stehen Abrechnungen.
+Ausgangslage: Unter *Freigegeben, zu zahlen* in [*Abrechnungen
+entscheiden*](place:club.money) stehen Abrechnungen.
 
-1. Unter *Per SEPA-Datei zahlen* ist jede Abrechnung angehakt ①; Haken bei denen
-   entfernen, die nicht mit sollen.
+1. Unter [*Ihr Verein* › *Zahlläufe*](place:club.payment-runs), bei *Per SEPA-Datei
+   zahlen*, ist jede Abrechnung angehakt ①; Haken bei denen entfernen, die nicht mit
+   sollen.
 2. Das *Ausführungsdatum* ② prüfen (Vorgabe: heute).
 3. *SEPA-Datei erstellen* ③ drücken. Die Datei (pain.001.001.09, `.xml`) wird
    heruntergeladen.
@@ -44,7 +48,7 @@ zahlen.
 
 ### Gebucht oder zurückgegeben {#payment-runs-settle}
 
-Der Zahlungslauf bleibt als *Bei der Bank: …* mit seiner *Nachrichten-ID* auf der Seite.
+Der Zahlungslauf bleibt als *Bei der Bank: …* mit seiner *Nachrichten-ID* unter *Zahlläufe*.
 
 1. Eine Überweisung, die die Bank zurückgegeben hat: *Zurückgegeben…*, einen *Grund*,
    *Als zurückgegeben markieren*. Ihre Abrechnungen sind wieder offen für die nächste
@@ -53,7 +57,7 @@ Der Zahlungslauf bleibt als *Bei der Bank: …* mit seiner *Nachrichten-ID* auf 
    Abrechnungen stehen auf *Gezahlt*.
 
 > **Hinweis:** Zurückgegebene Überweisungen vor *Von der Bank gebucht* markieren – danach
-> verschwindet der Zahlungslauf von der Seite.
+> verschwindet der Zahlungslauf aus dem Bereich.
 
 *SEPA-Datei (.xml)* lädt dieselbe Datei mit derselben Nachrichten-ID erneut herunter;
 wurde sie schon hochgeladen, lehnt die Bank sie ab.

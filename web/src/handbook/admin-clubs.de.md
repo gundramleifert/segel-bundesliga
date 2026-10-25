@@ -13,8 +13,8 @@ title: Vereine anlegen und in eine Serie eintragen
 ## Vereine anlegen und in eine Serie eintragen
 
 Ein Verein besteht für sich und segelt nirgends mit, bis eine Serie ihn aufnimmt. Vereine
-legt die Verwaltung oder die Redaktion an; einen Verein in eine Serie einzutragen ist
-Sache der Verwaltung.
+legt nur die Verwaltung der Seite an; in eine Serie trägt ihn die Verwaltung oder die
+Organisation der Serie ein.
 
 ### Einen Verein anlegen {#admin-clubs-create}
 
@@ -32,8 +32,8 @@ Sache der Verwaltung.
   laufenden Jahrgangs eingetragen ist. *… im laufenden Jahrgang sichtbar* über der Liste
   zählt auch Serien mit, die noch *Entwurf* sind.
 - Der Stander: *Stander hochladen*, *Stander ersetzen* oder *Stander entfernen* in der
-  Zeile des Vereins — die Verwaltung des Vereins kann das auch. Name, Kürzel und Ort
-  ändert danach keine Seite mehr.
+  Zeile des Vereins — die Verwaltung des Vereins kann das auch, unter [*der Verein* ›
+  *Vereinsseite*](place:club.page). Name, Kürzel und Ort ändert danach keine Seite mehr.
 
 ### Einen Verein in eine Serie eintragen {#admin-clubs-series}
 
@@ -43,7 +43,8 @@ Die Serie besteht ([Serie anlegen](#admin-series-create)).
 2. Die teilnehmenden Vereine anhaken, die übrigen abhaken.
 3. *… Vereine setzen*.
 
-Die angehakten Vereine nehmen teil und sind in den noch geplanten Veranstaltungen der
+Die Organisation der Serie tut dasselbe unter [*die Serie* › *Vereine &
+Meldungen*](place:series.organize), bei *Gemeldete Vereine*. Die angehakten Vereine nehmen teil und sind in den noch geplanten Veranstaltungen der
 Serie eingetragen.
 
 - Der Jahrgang steckt in der Serie: Ein Verein der Serie 2026 wird für 2027 neu
@@ -54,6 +55,7 @@ Serie eingetragen.
 ### Bewerbungen {#admin-clubs-applications}
 
 Vereine können sich auf der Seite nicht für eine Serie bewerben: Ein Verein fragt bei
-der Geschäftsstelle an, und die Verwaltung [trägt ihn ein](#admin-clubs-series). Ablehnungen: [FAQ](#faq-administration).
+der Organisation der Serie oder der Geschäftsstelle an, und diese
+[tragen ihn ein](#admin-clubs-series). Ablehnungen: [FAQ](#faq-administration).
 
 [Ligabüro öffnen](place:admin.clubs)

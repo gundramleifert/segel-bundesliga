@@ -12,11 +12,12 @@ title: "Mitglieder, Organisation und Stander"
 
 ## Mitglieder, Organisation und Stander
 
-Öffnen Sie die Karte Ihres Vereins in [*Mein Bereich*, Reiter *Mitglieder*](place:club.members). Jedes Mitglied
-sieht die Mitgliederliste; die Vereinsverwaltung sieht zusätzlich den Stander und das
-Feld *Personen*, der Teammanager den Abschnitt *Erziehungsberechtigte*.
+Die Mitgliedschaft liegt in [*Ihr Verein* › *Mitglieder*](place:club.members): Jedes Mitglied sieht die
+Mitgliederliste; die Vereinsverwaltung sieht darunter zusätzlich das Feld *Personen*.
+Eltern werden unter *Minderjährige & Erziehungsberechtigte* verknüpft, der Stander
+steht unter *Vereinsseite*.
 
-![Der Reiter Mitglieder, wie die Vereinsverwaltung ihn sieht](shot:help-club-members)
+![*Mitglieder*, wie die Vereinsverwaltung sie sieht](shot:help-club-members)
 
 ### Mitglieder hinzufügen {#club-members-add}
 
@@ -51,8 +52,9 @@ weitere *Verwaltung*. Eine *Organisation* kann gehen, solange eine *Verwaltung* 
 
 ### Ein Elternteil mit einem jungen Segler verknüpfen {#club-members-guardians}
 
-Vereinsverwaltung oder Teammanager. *Erziehungsberechtigte* listet die Segler, die Ihre
-Kader oder Meldungen enthalten, und Ihre Mitglieder, *unter 18* zuerst. Ein
+Vereinsverwaltung oder Teammanager, in [*Ihr Verein* › *Minderjährige & Erziehungsberechtigte*](place:club.minors).
+*Erziehungsberechtigte* listet alle, die für Ihren Verein segeln, *unter 18* zuerst; der
+Bereich zählt die Minderjährigen, mit denen noch niemand verknüpft ist. Ein
 verknüpftes Elternteil nimmt den Haftungsausschluss des Kindes online von seinem eigenen
 Konto an ([so geht's](#waiver-guardian-online)).
 
@@ -65,7 +67,7 @@ Verknüpfung.
 
 ### Den Stander ändern {#club-members-crest}
 
-Nur die Vereinsverwaltung. Tippen Sie auf den Stander – *Stander hochladen* oder
+Nur die Vereinsverwaltung, in [*Ihr Verein* › *Vereinsseite*](place:club.page). Tippen Sie auf den Stander – *Stander hochladen* oder
 *Stander ersetzen* – und wählen Sie ein Bild von höchstens 2 MB; Transparenz bleibt
 erhalten, die längste Kante wird auf höchstens 512 px verkleinert. *Stander entfernen*
 nimmt ihn ab. Er erscheint auf der Vereinsseite, in der Vereinsliste und

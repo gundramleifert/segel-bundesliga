@@ -13,18 +13,19 @@ title: Hilfe für die Geschäftsstelle
 ## Hilfe für die Geschäftsstelle
 
 Sie legen die Vereine an, die Serien eines Jahrgangs und wer in ihnen segelt, und wer was
-darf. Alles liegt im *Ligabüro* (Benutzermenü), je ein Bereich: [*Vereine*](place:admin.clubs),
-[*Serien*](place:admin.series), [*Veranstaltungen*](place:admin.events), [*Segler*](place:admin.sailors), [*News*](place:admin.news), [*Medien*](place:admin.media), [*Konten*](place:admin.accounts). Die Geschäftsstelle hat eine von zwei
-[Rollen](#roles-list) auf der ganzen Seite:
+darf — im *Ligabüro* (Benutzermenü oder Kontextwechsler). Jede seiner drei
+[Rollen](#roles-list) auf der ganzen Seite sieht nur ihre eigenen Bereiche:
 
-| | Verwaltung | Redaktion |
-|---|---|---|
-| Vereine anlegen, ihren Stander hochladen | ✓ | ✓ |
-| Eine Serie anlegen, füllen und veröffentlichen | ✓ | — |
-| Veranstaltungen anlegen und durchführen, Segler pflegen | ✓ | ✓ (eine Veranstaltung anlegen braucht die Verwaltung: *Teams und Boote* lädt nur für sie) |
-| Die Pairing-Liste einer Veranstaltung auslosen | ✓ | — |
-| News, Pressemitteilungen, Bilder | ✓ | ✓ |
-| *Konten*: wer was darf | ✓ | — (den Reiter gibt es nicht) |
+| Bereich | Verwaltung | Redaktion | Wettfahrtleitung |
+|---|---|---|---|
+| [*Vereine*](place:admin.clubs): anlegen, Stander | ✓ | — | — |
+| [*Serien*](place:admin.series): anlegen, füllen, veröffentlichen | ✓ | — | — |
+| [*Veranstaltungen*](place:admin.events): anlegen und durchführen (die Auslosung: nur Verwaltung) | ✓ | — | ✓ |
+| [*Segler*](place:admin.sailors), [*Konten*](place:admin.accounts) | ✓ | — | — |
+| [*News*](place:admin.news), [*Medien*](place:admin.media) | ✓ | ✓ | — |
+
+Ein Verein, eine Serie oder eine Veranstaltung, von hier geöffnet, ist ein eigener Kontext
+mit eigenen Bereichen.
 
 ### Vor der Saison {#start-administration-season}
 

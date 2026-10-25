@@ -29,7 +29,8 @@ Der Wortlaut hat sich geändert (*Neuer Wortlaut – bitte erneut bestätigen*):
 
 #### Mein Konto hat kein Segler-Profil.
 Ihr Datensatz wird über die E-Mail-Adresse gefunden. Gibt es keinen, bitten Sie die
-Geschäftsstelle, einen mit der Adresse anzulegen, mit der Sie sich anmelden; trägt er eine
+Organisation Ihres Vereins (*Ihr Verein* › *Segler*) oder die Geschäftsstelle, einen mit
+der Adresse anzulegen, mit der Sie sich anmelden; trägt er eine
 andere Adresse, melden Sie sich mit dieser an oder fragen Sie die Geschäftsstelle:
 [Ihr Profil](#profile-sailor).
 
@@ -48,8 +49,8 @@ Eine Person segelt je Serie für einen Verein. Der andere Verein muss sie zuerst
 seinem Kader nehmen: [der Kader](#squad-and-lineup-squad).
 
 #### Der Kader wird als zu groß abgelehnt.
-Die Höchstzahl einer Serie legt die Geschäftsstelle fest, die einer Einzelveranstaltung
-deren Organisation. Nehmen Sie jemanden heraus, oder fragen Sie dort:
+Die Höchstzahl einer Serie legt die Geschäftsstelle oder die Organisation der Serie fest,
+die einer Einzelveranstaltung deren Organisation. Nehmen Sie jemanden heraus, oder fragen Sie dort:
 [Kadergröße](#squad-and-lineup-size).
 
 #### Warum kann ich niemanden aus dem Kader nehmen?
@@ -81,8 +82,8 @@ Es wird gesegelt, deshalb steht die Konfiguration fest; Ergebnisse bleiben ände
 [nach der ersten Wettfahrt](#run-event-frozen).
 
 #### Wie benenne ich Wettfahrtleitung, Jury und Helfer?
-Auf der Website die Verwaltung der Veranstaltung selbst, die Verwaltung der Serie oder die
-Geschäftsstelle — die Vereinsverwaltung des Ausrichters erreicht diesen Bereich nicht:
+Unter *die Veranstaltung* › *Personen*. Ändern kann es nur eine Verwaltung: die der
+Veranstaltung selbst, ihrer Serie oder ihres Ausrichters, oder die Geschäftsstelle:
 [Personen](#run-event-helpers).
 
 ### Für die Wettfahrtleitung {#faq-race-committee}

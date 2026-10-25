@@ -80,8 +80,8 @@ const SHOTS: Shot[] = [
     id: "help-my-space",
     as: (d) => d.sailor,
     path: () => "/me",
+    // The whole screen: the switcher, the sections and *Me › Overview* (Story Z-10).
     waitFor: () => tid("me-overview"),
-    clip: () => ({ from: tid("me-overview") }),
     phone: true,
   },
   {
@@ -218,49 +218,30 @@ const SHOTS: Shot[] = [
     phone: false,
   },
   {
+    // The planned act's Publication: its readiness (VA-8) and *Publish*. The seed's act
+    // is ready, so its Overview, which shows only what is missing, would be empty.
     id: "help-event-readiness",
-    as: () => ADMIN,
-    path: () => "/office/events",
-    open: async (page, d) => {
-      await page.getByTestId(`admin-manage-event-toggle-${d.eventId}`).click();
-    },
-    waitFor: (d) => `${tid(`admin-manage-event-panel-${d.eventId}`)} [data-testid^="admin-readiness-"]`,
-    // The event's row through the draw: what is missing, the clubs, the pairing list.
-    clip: (d) => ({
-      from: tid(`admin-manage-event-row-${d.eventId}`),
-      to: tid(`admin-manage-event-draw-${d.eventId}`),
-      maxHeight: 1100,
-    }),
-    marks: (d) => [
-      { target: tid(`admin-manage-event-save-dates-${d.eventId}`) },
-      { target: tid(`admin-manage-event-save-clubs-${d.eventId}`) },
-      { target: tid(`admin-manage-event-draw-${d.eventId}`) },
-    ],
+    as: () => ORGANIZER,
+    path: (d) => `/me/event/${d.eventId}/publication`,
+    waitFor: (d) => `[data-testid^="admin-readiness-"][data-testid$="-${d.eventId}"]`,
+    clip: () => ({ from: tid("me-event-publication"), maxHeight: 900 }),
     phone: false,
   },
   {
     id: "help-event-checkin",
-    // The event's manager has no league office since #32; until the check-in is shot in
-    // the event's own context (its Race day), the office's admin shows the same panel.
-    as: () => ADMIN,
-    path: () => "/office/events",
-    open: async (page, d) => {
-      await page.getByTestId(`admin-manage-event-toggle-${d.eventId}`).click();
-    },
+    as: () => ORGANIZER,
+    path: (d) => `/me/event/${d.eventId}/check-in`,
     waitFor: (d) => tid(`admin-manage-event-waivers-summary-${d.eventId}`),
     clip: (d) => ({ from: tid(`admin-manage-event-waivers-section-${d.eventId}`), maxHeight: 700 }),
     phone: false,
   },
   {
-    // The live act's closing block — the league office's admin sees every event.
+    // The live act's closing block in its Race control — the league office's admin reaches
+    // every event's context.
     id: "help-close-event",
     as: () => ADMIN,
-    path: () => "/office/events",
-    open: async (page, d) => {
-      await page.getByTestId(`admin-manage-event-toggle-${d.liveEventId}`).click();
-    },
-    // The waiver list above loads last and pushes the block down.
-    waitFor: (d) => tid(`admin-manage-event-waivers-summary-${d.liveEventId}`),
+    path: (d) => `/me/event/${d.liveEventId}/race-control`,
+    waitFor: (d) => tid(`admin-manage-event-closing-${d.liveEventId}`),
     clip: (d) => ({ from: tid(`admin-manage-event-closing-${d.liveEventId}`) }),
     marks: (d) => [
       { target: tid(`admin-manage-event-finish-${d.liveEventId}`) },

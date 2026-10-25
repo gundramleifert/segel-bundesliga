@@ -12,8 +12,11 @@ title: News, Pressemitteilungen und Bilder
 
 ## News, Pressemitteilungen und Bilder
 
-Für die *Redaktion* und die *Verwaltung* der Seite: die Bereiche [*News*](place:admin.news) und
-[*Medien*](place:admin.media) im *Ligabüro*. Sonst schreibt hier niemand.
+Für die *Redaktion* und die *Verwaltung* der Seite: [*Ligabüro* › *News*](place:admin.news)
+und [*Medien*](place:admin.media). Die *Redaktion* einer Serie oder Veranstaltung schreibt
+nur über diese Regatta, unter *die Serie* (oder *die Veranstaltung*) › *Nachrichten &
+Bilder*, und findet alles Eigene unter *Ich* › *News* und *Bilder*. Upload-Links legt
+allein die Redaktion der Seite an.
 
 ### Bilder von einem Fotografen {#news-and-press-pictures}
 

@@ -12,16 +12,16 @@ title: Profile, documents and bank account
 
 ## Profile, documents and bank account
 
-All on [*Me* in my space](place:profile.account).
+All in the context *Me* of [my space](place:profile.account).
 
 ### Sailor profile {#profile-sailor}
 
-[*Account*](place:profile.account) → *My sailor profile*: your *First name*, *Last name* and *Birthdate* as the
+[*Me* › *Account*](place:profile.account) → *My sailor profile*: your *First name*, *Last name* and *Birthdate* as the
 site shows them; *Save*.
 
 The card appears once a sailor record carries your account's email address, confirmed.
-Otherwise it says no record is linked — ask the league office to create one with your
-address (your club can pass the request on).
+Otherwise it says no record is linked — ask your club's organizer to create one with your
+address (*your club* › *Sailors*), or the league office.
 
 - *Upload photo*: an image, at most 5 MB. It is turned upright, cut to a square and
   reduced to 512×512 pixels. *Replace photo*, *Remove photo*.
@@ -40,7 +40,7 @@ Your birthdate also decides how you sign the [waiver](#waiver-birth-date).
 
 ### Documents and licences {#profile-documents}
 
-[*Documents*](place:profile.documents) → *Add a document*:
+[*Me* › *Documents*](place:profile.documents) → *Add a document*:
 
 1. Pick a *Label* ① — boat licence, radio certificate, first aid, jury or race officer
    licence, or *Other* (then *Title* is required).
@@ -49,7 +49,7 @@ Your birthdate also decides how you sign the [waiver](#waiver-birth-date).
 
 ![Add a document: the label ①, the file ②, *Upload* ③](shot:help-profile-documents)
 
-An expired document stays, marked *expired*, and the *Me* card says so. Only you add or
+An expired document stays, marked *expired*, and *Me* › *Overview* lists it under *To do*. Only you add or
 delete documents; besides you, only these see them:
 
 - the organizer or admin of a club you are a member of;
@@ -61,7 +61,7 @@ Every look by someone else is logged.
 
 ### Bank account {#profile-bank}
 
-[*Bank account*](place:profile.bank): *Account holder*, *IBAN*, *BIC* (optional, taken from the IBAN); *Save*.
+[*Me* › *Bank account*](place:profile.bank): *Account holder*, *IBAN*, *BIC* (optional, taken from the IBAN); *Save*.
 A wrong IBAN or BIC is refused, and nothing is saved.
 
 Only you read it — no organizer, treasurer or admin. Submitting an expense claim copies

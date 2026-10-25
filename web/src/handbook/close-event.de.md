@@ -12,10 +12,9 @@ title: "Eine Veranstaltung abschließen oder absagen"
 
 ## Eine Veranstaltung abschließen oder absagen
 
-*Abschluss* ist der letzte Block im Panel der Veranstaltung ([*Verwaltung*, Reiter
-*Veranstaltungen*](place:admin.events), *Bearbeiten*), für die Organisation der Veranstaltung — die
-Wettfahrtleitung erreicht die *Verwaltung* nicht und bittet die Organisation, die
-Veranstaltung abzuschließen. Er zeigt nur, was gerade möglich ist, und fragt nie nach: Alles hier lässt
+*Abschluss* ist der letzte Block in [*die Veranstaltung* › *Wettfahrtleitung*](place:event.race),
+für die Organisation und die Wettfahrtleitung der Veranstaltung gleichermaßen. Er zeigt
+nur, was gerade möglich ist, und fragt nie nach: Alles hier lässt
 sich mit einem Tippen zurücknehmen und löscht nichts.
 
 ![Der Block *Abschluss* einer laufenden Veranstaltung: *Wettfahrten sind beendet* ①, *Veranstaltung absagen* ②](shot:help-close-event)
@@ -24,7 +23,7 @@ sich mit einem Tippen zurücknehmen und löscht nichts.
 
 1. Auf *Wettfahrten sind beendet* ① tippen. Die Veranstaltung ist nun beendet.
 
-- Nur eine laufende Veranstaltung lässt sich beenden; vor dem Start sagt das Panel das.
+- Nur eine laufende Veranstaltung lässt sich beenden; vor dem Start sagt der Block das.
 - Es müssen nicht alle Wettfahrten gesegelt sein: Ein Tag, der seine letzten Flights an
   den Wind verloren hat, ist beendet, wenn Sie es sagen.
 - Nichts Neues wird festgeschrieben, und Ergebnisse bleiben änderbar — ein Protest Wochen
@@ -49,4 +48,4 @@ Eine abgeschlossene Veranstaltung zeigt genau einen Knopf:
 - *Absage zurücknehmen* — eine abgesagte Veranstaltung ist wieder geplant; starten Sie
   sie erneut mit *Veranstaltung starten* ([Start](#run-event-start)).
 
-[Verwaltung öffnen](place:admin.events)
+[Wettfahrtleitung der Veranstaltung öffnen](place:event.race)

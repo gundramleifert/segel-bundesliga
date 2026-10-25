@@ -13,8 +13,8 @@ title: "Die Check-in-Liste: wer einen Haftungsausschluss hat"
 ## Die Check-in-Liste: wer einen Haftungsausschluss hat
 
 Am Steg wird nichts unterschrieben: Die Segler bestätigen den Haftungsausschluss vorab,
-und der Block *Haftungsausschlüsse* im Panel der Veranstaltung ([*Verwaltung*, Reiter
-*Veranstaltungen*](place:admin.events), *Bearbeiten*) zeigt, wer es getan hat.
+und [*die Veranstaltung* › *Check-in*](place:event.checkin) zeigt unter
+*Haftungsausschlüsse*, wer es getan hat.
 
 ### Die Liste lesen {#event-checkin-list}
 
@@ -32,9 +32,9 @@ Bestätigung für die Serie gilt für jede ihrer Veranstaltungen.
 | *Geburtsdatum unbekannt* | das Alter lässt sich erst beurteilen, wenn das Datum eingetragen ist |
 | *Nicht erforderlich* | es ist noch kein Text veröffentlicht |
 
-Sichtbar im Panel der Veranstaltung für ihre Organisation (der Veranstaltung oder ihrer
-Serie) und für die Geschäftsstelle. Wettfahrtleitung und Organisation des Ausrichters
-haben dafür noch keine Seite — fragen Sie die Geschäftsstelle.
+*Check-in* gibt es für die Organisation der Veranstaltung — der Veranstaltung selbst,
+ihrer Serie oder ihres Ausrichters —, für ihre Wettfahrtleitung und für die
+Geschäftsstelle.
 
 ![Die Check-in-Liste mit dem Status jeder Person](shot:help-event-checkin)
 
@@ -68,4 +68,4 @@ Ein für eine ganze Serie unterschriebenes Formular gehört zu keiner einzelnen
 Veranstaltung: Organisieren Sie nur diese Veranstaltung und nicht den Verein der Person,
 wird das Öffnen abgelehnt — wenden Sie sich an die Geschäftsstelle.
 
-[Verwaltung öffnen](place:admin.events)
+[Check-in-Liste öffnen](place:event.checkin)

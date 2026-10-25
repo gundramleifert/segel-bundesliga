@@ -24,12 +24,12 @@ account is for what is yours: your liability waiver, your profile, your club.
 
 ### Before and during the season {#start-sailor-season}
 
-- Once your club registers you in a squad, the series appears in
+- Once your club registers you in a squad, the series appears in the switcher of
   [my space](#my-space-overview).
 - Sign the [liability waiver](#waiver-which) once per series: online from 18, with
   [a parent's signature](#waiver-minor-paper) under 18.
-- When your club names you in a matchday's crew, the event appears in my space too
-  ([your pages](#my-space-pages)).
+- When your club names you in a matchday's crew, the event appears there too
+  ([your sections](#my-space-pages)).
 - Upload your licences once: [documents](#profile-documents). Save your
   [bank account](#profile-bank) before you file an expense claim.
 

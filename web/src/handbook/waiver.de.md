@@ -18,8 +18,8 @@ keiner Serie gehört.
 
 ### Welche Erklärungen Sie brauchen {#waiver-which}
 
-Mein Bereich: [*Ich* → *Haftungsausschlüsse*](place:profile.waivers) listet jeden
-Wettbewerb mit seinem Stand.
+[*Ich* › *Haftungsausschlüsse*](place:profile.waivers) listet jeden Wettbewerb mit
+seinem Stand.
 
 | Stand | Was zu tun ist |
 |---|---|
@@ -29,8 +29,8 @@ Wettbewerb mit seinem Stand.
 | *Wartet auf das unterschriebene Formular* | das unterschriebene Formular liegt noch nicht vor |
 | *Geburtsdatum fehlt* | siehe [unten](#waiver-birth-date) |
 
-Bis sie erledigt ist, wartet jede auch als Hinweis auf Ihrer Seite für diese Serie oder
-Veranstaltung.
+Bis sie erledigt ist, wartet jede auch unter *Zu erledigen* auf *Ich* › *Übersicht* und
+als Hinweis über jedem Bereich dieser Serie oder Veranstaltung.
 
 ![Ein Wettbewerb mit seinem Stand und *Lesen und bestätigen* ①](shot:help-waiver-card)
 
@@ -68,13 +68,14 @@ Sonst niemand; jeder Blick wird protokolliert.
 ### Ein Elternteil nimmt online an {#waiver-guardian-online}
 
 Sobald Ihr Verein [das Konto eines Elternteils mit Ihnen verknüpft](#club-members-guardians)
-hat, nimmt dieser in seinem eigenen Bereich an: [*Ich* → *Haftungsausschlüsse*](place:profile.waivers) →
+hat, nimmt dieser in seinem eigenen Bereich an: [*Ich* › *Haftungsausschlüsse*](place:profile.waivers) →
 *Meine Kinder*, *Lesen und bestätigen*, Haken setzen, *Bestätigen*. Das gibt Sie frei wie
 das unterschriebene Formular – nur solange Sie am Stichtag unter 18 sind.
 
 ### Kein Geburtsdatum {#waiver-birth-date}
 
 Ihr Alter entscheidet über den Weg, ohne Geburtsdatum lässt sich nichts bestätigen.
-Tragen Sie Ihr *Geburtsdatum* im [Segler-Profil](#profile-sailor) ein.
+Tragen Sie Ihr *Geburtsdatum* im [Segler-Profil](#profile-sailor) ein, oder bitten Sie
+die Organisation Ihres Vereins, es einzutragen.
 
 Abgelehnt? Siehe [die FAQ](#faq-sailor).

@@ -18,17 +18,17 @@ series — or for a club you are a *Member* of. The event's host club, or your c
 
 ### Where you file {#file-a-claim-where}
 
-1. On your profile in [*My space*, tab *Bank account*](place:profile.bank): enter *Account holder* and *IBAN*
+1. In [*Me* › *Bank account*](place:profile.bank): enter *Account holder* and *IBAN*
    (*BIC* is optional) and press *Save*. Only you see it there.
-2. Open the [tab *Claims* on your profile](place:profile.claims), or *My claims* on the
-   [event's](place:event.claims) or [club's](place:club.claims) page.
+2. Open [*Me* › *Claims*](place:profile.claims), or [*the event* › *My claims*](place:event.claims)
+   or [*your club* › *My claims*](place:club.claims).
 3. Under *New claim*, choose the event or club in *For* ①, enter a *Title* ② and press
    *Start claim* ③. The claim is a *Draft*.
 
 ![New claim: *For* ①, *Title* ②, *Start claim* ③](shot:help-claim-new)
 
 *For* lists only what you may claim on; a role held for the whole site entitles nobody to
-travel costs. A series role? File from your profile's [*Claims* tab](place:profile.claims).
+travel costs. A series role? File from [*Me* › *Claims*](place:profile.claims).
 
 An event you work at but cannot claim on yet is named above the form, with why: it has no
 host club yet (ask its organizer to set one), or its host club does not pay for that work.
@@ -63,9 +63,9 @@ withdrawn instead — it stays on record. Both ask once more before they act.
 | Status | |
 |---|---|
 | *Submitted*, not yet decided | waits for the organizer or treasurer; you can change or *Withdraw* it |
-| *Rejected* | comes with a message, and *My space* tells you: correct it and submit again, or *Withdraw* it |
+| *Rejected* | comes with a message, and *Me* › *Overview* lists it under *To do*: correct it and submit again, or *Withdraw* it |
 | *Approved* | frozen; then shows *Unpaid*, *In payment* or *Paid* |
 
 Refused? See the [FAQ](#faq-treasurer).
 
-[Open my profile](place:profile.claims)
+[Open my claims](place:profile.claims)

@@ -13,7 +13,9 @@ title: "Hilfe für die Wettfahrtleitung"
 ## Hilfe für die Wettfahrtleitung
 
 Sie führen die Wettfahrten eines Spieltags vom Wasser aus durch und halten die Ergebnisse
-richtig. Ihre Veranstaltungen finden Sie in *Mein Bereich*.
+richtig. Jede Ihrer Veranstaltungen ist ein Kontext in Mein Bereich, unter *Kontext
+wechseln*; läuft eine, führt *Jetzt live* auf [*Ich* › *Übersicht*](place:space) direkt
+zu ihrer Wettfahrtleitung.
 
 - **Wettfahrtleitung** – macht beides.
 - **Jury** – entscheidet über Proteste; die Wettfahrtleitung trägt die Entscheidungen ein,
@@ -25,13 +27,13 @@ richtig. Ihre Veranstaltungen finden Sie in *Mein Bereich*.
 - [Eine Wettfahrt starten](#race-control-start) — Vorbereitungssignal, Startfolge, AP.
 - [Eine Wettfahrt zurückrufen oder abbrechen](#race-control-recall).
 - [Eine Wettfahrt beenden](#race-control-finish): die Boote in Zielreihenfolge antippen.
-- [Ein Ergebnis eintragen oder berichtigen](#results-entry-enter), an Land im Tab
-  *Ergebnisse eingeben*.
+- [Ein Ergebnis eintragen oder berichtigen](#results-entry-enter), an Land unter
+  *Ergebnisse eingeben* ([*die Veranstaltung* › *Ergebnisse*](place:event.results)).
 - [Ein Ergebnis korrigieren](#results-entry-correct) — auch eine Protestentscheidung,
   selbst Wochen später.
 - [Einem Team Strafpunkte geben](#results-entry-penalty), für den ganzen Spieltag.
-- Ist der Tag vorbei, [erklärt die Veranstaltungsleitung die Wettfahrten für
-  beendet](#close-event-finish).
+- Ist der Tag vorbei, [erklären Sie die Wettfahrten für beendet](#close-event-finish),
+  in [*die Veranstaltung* › *Wettfahrtleitung*](place:event.race).
 - Eigene Reisekosten ausgelegt? [Reichen Sie eine Abrechnung ein](#file-a-claim-where),
   auf der Veranstaltung.
 

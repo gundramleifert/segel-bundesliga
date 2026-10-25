@@ -15,22 +15,21 @@ title: "Hilfe für die Organisation einer Veranstaltung"
 Sie führen eine Veranstaltung vom ersten Entwurf bis zum Ende der Wettfahrten – als
 Organisation der Veranstaltung, ihrer Serie oder ihres Ausrichters ([Rollen](#roles-list)).
 
-Ihr Bildschirm: [*Verwaltung* (Benutzermenü) › *Veranstaltungen*](place:admin.events) › *Bearbeiten* oder der
-[Reiter *Organisieren* der Veranstaltung in *Mein Bereich*](place:event.organize). Heute öffnet er sich nur für
-die Geschäftsstelle und die Organisation einer Serie oder Veranstaltung; organisieren Sie
-nur den Ausrichter, wenden Sie sich an die Geschäftsstelle.
+Ihr Bildschirm ist der Kontext der Veranstaltung in Mein Bereich: unter *Kontext
+wechseln* oder über [*Ihre Serie* › *Veranstaltungen*](place:series.events)
+oder [*Ihr Verein* › *Ausrichten*](place:club.hosting). Seine *Übersicht*
+sagt, was noch fehlt; *Einrichten* und *Wettfahrttag* enthalten die Arbeit.
 
 ### Vor der Veranstaltung {#start-event-organizer-before}
 
-- [Veranstaltung anlegen](#create-event-wizard) — ein Name genügt zum Speichern; heute
-  speichert das Formular nur für die Verwaltung der Geschäftsstelle, fragen Sie also dort,
-  wenn es einen Fehler zeigt.
+- [Veranstaltung anlegen](#create-event-wizard) — ein Name genügt zum Speichern.
 - [Sehen, was noch fehlt](#run-event-readiness), und es ergänzen.
-- [Pairing-Liste auslosen lassen](#run-event-draw) und [den Druck einstellen](#run-event-print).
+- [Pairing-Liste von der Geschäftsstelle auslosen lassen](#run-event-draw) und
+  [den Druck einstellen](#run-event-print).
 - [Veranstaltung veröffentlichen](#run-event-publish), sobald sie sich zeigen lässt.
-- [Wettfahrtleitung, Jury und Helfer benennen lassen](#run-event-helpers) — das ist Sache
-  der Verwaltung der Veranstaltung; als Organisation fragen Sie dort oder bei der
-  Geschäftsstelle.
+- [Wettfahrtleitung, Jury und Helfer benennen](#run-event-helpers) — Sache der
+  Verwaltung (der Veranstaltung, ihrer Serie oder ihres Ausrichters); als Organisation
+  fragen Sie dort.
 - [Haftungsausschlüsse prüfen](#event-checkin-list) aller Kadermitglieder.
 
 ### Am Tag {#start-event-organizer-day}
@@ -53,4 +52,4 @@ nur den Ausrichter, wenden Sie sich an die Geschäftsstelle.
 - [Eine Serienleitung richtet eine Serie ein](#journey-series)
 - [Die Crew eines Vereins wird für einen Spieltag freigegeben](#journey-crew-cleared)
 
-[Verwaltung öffnen](place:admin.events)
+[Veranstaltung in Mein Bereich öffnen](place:event.overview)

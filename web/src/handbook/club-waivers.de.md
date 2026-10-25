@@ -19,8 +19,7 @@ fehlt.
 
 ### Wessen Haftungsausschluss vorliegt {#club-waivers-overview}
 
-Teammanager und Vereinsverwaltung: Seite des Vereins in [*Mein Bereich*, Reiter
-*Haftungsausschlüsse*](place:club.waivers). Ein Block je Wettbewerb, in dem der Verein gemeldet ist und der
+Teammanager und Vereinsverwaltung: [*Ihr Verein* › *Haftungsausschlüsse*](place:club.waivers). Ein Block je Wettbewerb, in dem der Verein gemeldet ist und der
 noch nicht beendet ist: jeder Kader einer Serie und jede Meldung zu einer
 Veranstaltung ohne Serie, die geplant ist oder läuft. Jeder Block nennt *… von …
 vollständig* und listet den ganzen Kader, die Offenen zuerst, *unter 18* neben dem Namen.
@@ -33,7 +32,7 @@ vollständig* und listet den ganzen Kader, die Offenen zuerst, *unter 18* neben 
 | *Fehlt* | für diesen Wettbewerb nichts bestätigt | Erwachsene bestätigen im eigenen Profil; für Minderjährige siehe unten |
 | *Veraltete Fassung* | eine frühere Fassung bestätigt | die neue bestätigen |
 | *Formular der Eltern fehlt* | unter 18, die Unterschrift der Eltern liegt noch nicht vor | das Elternteil nimmt online an, oder das unterschriebene Formular wird hochgeladen |
-| *Geburtsdatum unbekannt* | das Alter lässt sich nicht beurteilen | der Segler trägt es im Profil ein ([so geht's](#waiver-birth-date)) |
+| *Geburtsdatum unbekannt* | das Alter lässt sich nicht beurteilen | der Segler trägt es im Profil ein ([so geht's](#waiver-birth-date)), oder Sie tragen es unter [*Ihr Verein* › *Segler*](place:club.sailors) ein |
 | *Nicht erforderlich* | es ist noch kein Haftungsausschluss veröffentlicht | – |
 
 Der Segler und die Organisation der Veranstaltung in der Check-in-Liste sehen denselben
@@ -46,7 +45,7 @@ Erziehungsberechtigten:
 
 - **Online** – [verknüpfen Sie das Elternteil](#club-members-guardians) mit dem Kind; das
   Elternteil nimmt dann von seinem eigenen Konto aus an. Nichts auf Papier.
-- **Auf Papier** – auf der Karte zum Haftungsausschluss in seinem eigenen *Mein Bereich*
+- **Auf Papier** – in seinem eigenen *Ich* › *Haftungsausschlüsse*
   nutzt der Segler *Formular herunterladen (PDF)*, lässt es unterschreiben und nutzt
   *Unterschriebenes Formular hochladen*: PDF, JPEG oder PNG, bis 10 MB, mit dem Namen
   der Person, die unterschrieben hat ([so geht's](#waiver-minor-paper)).
@@ -59,9 +58,9 @@ die Seite des Vereins hat keinen eigenen Upload.
 Sie können eine Crew aufstellen, bevor deren Haftungsausschlüsse vorliegen; gesperrt wird
 nichts. Stattdessen:
 
-- die Karte Ihres Vereins in *Mein Bereich* und der [Reiter *Haftungsausschlüsse*](place:club.waivers) zählen
+- *Zu erledigen* auf *Ich* › *Übersicht* und [*Ihr Verein* › *Haftungsausschlüsse*](place:club.waivers) zählen
   die kommenden Spieltage, bei denen einem Crewmitglied der Haftungsausschluss fehlt;
-- der eigene *Mein Bereich* des Seglers, und der eines verknüpften Elternteils, sagt,
+- die eigene *Ich* › *Übersicht* des Seglers, und die eines verknüpften Elternteils, sagt,
   dass seiner noch aussteht;
 - die Organisation der Veranstaltung sieht alle Personen Ihres Kaders in der
   [Check-in-Liste](#event-checkin-list), freigegeben oder nicht.

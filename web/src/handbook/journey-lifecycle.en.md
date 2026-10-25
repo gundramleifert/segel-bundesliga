@@ -22,7 +22,7 @@ when a protest is decided after the last race.
 | J-1.1 | League office | the clubs exist; none is shown publicly yet | [Create clubs](#admin-clubs-create) |
 | J-1.2 | League office | the series exists with its clubs, as a draft nobody else can see | [Create a series](#admin-series-create) |
 | J-1.3 | League office | the series is published and listed | [Publish a series](#admin-series-publish) |
-| J-1.4 | Event organizer | the event exists with a title and its boats; the clubs registered for the series are its entries — today the form saves only for the league office's admin, so an organizer may need to ask them | [Create an event](#create-event-wizard) |
+| J-1.4 | Event organizer | the event exists with a title and its boats; the clubs registered for the series are its entries | [Create an event](#create-event-wizard) |
 | J-1.5 | Event organizer | *Still missing* names what the event lacks — here the team count and the date | [Readiness](#run-event-readiness) |
 | J-1.16 | Event organizer | team count and date are set; nothing is missing any more | [Configuration](#create-event-config) |
 | J-1.6 | League office | the pairing list is drawn; drawing again replaces it while nothing has been sailed | [Draw](#run-event-draw) |
@@ -33,10 +33,10 @@ when a protest is decided after the last race.
 | J-1.11 | Visitor | the series table has the act in it, every club with its placement | the public site |
 | J-1.12 | Event organizer | dimensions, clubs, boats and pairing list are frozen; the title can still be corrected | [Frozen after the first race](#run-event-frozen) |
 | J-1.13 | Jury, then race committee | the jury disqualifies a winner, months later, and a race officer enters the decision; the points and the tables follow at once | [Correct a result](#results-entry-correct) |
-| J-1.14 | Race committee, through the organizer | the race committee says racing is over and the event organizer closes the event: it is *final*; results stay correctable | [Racing is over](#close-event-finish) |
+| J-1.14 | Race committee | the race committee declares racing over: the event is *final*; results stay correctable | [Racing is over](#close-event-finish) |
 
-Today only the league office's administration can draw a pairing list (J-1.6); an event
-organizer asks the league office for it.
+The event's organizers see the draw in *the event* › *Pairing list*, but today only the
+league office's administrators can draw (J-1.6); an organizer asks them for it.
 
 ### If … {#journey-lifecycle-variations}
 

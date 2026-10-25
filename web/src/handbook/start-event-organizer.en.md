@@ -15,19 +15,20 @@ title: "Help for event organizers"
 You run one event from first draft to the end of racing, as manager of the event, its
 series or its host club ([roles](#roles-list)).
 
-Your screen: [*Administration* (user menu) › *Events*](place:admin.events) › *Manage*, or the event's
-[*Organize* tab in *My space*](place:event.organize). Today it opens only for the league office and series or event
-managers; if you manage only the host club, ask the league office.
+Your screen is the event's context in My space: under *Switch context*, or from
+[*your series* › *Events*](place:series.events) or
+[*your club* › *Hosting*](place:club.hosting). Its *Overview* says
+what is still missing; *Set up* and *Race day* hold the work.
 
 ### Before the event {#start-event-organizer-before}
 
-- [Create the event](#create-event-wizard) — a name is enough to save it; today the form
-  saves only for the league office's admin, so ask them if it shows an error.
+- [Create the event](#create-event-wizard) — a name is enough to save it.
 - [See what is still missing](#run-event-readiness) and fix it.
-- [Have the pairing list drawn](#run-event-draw) and [set how it prints](#run-event-print).
+- [Have the pairing list drawn](#run-event-draw) by the league office and
+  [set how it prints](#run-event-print).
 - [Publish the event](#run-event-publish) when it is worth showing.
-- [Have the race committee, jury and helpers named](#run-event-helpers) — that is the
-  event's admin's job; as a manager, ask them or the league office.
+- [Name the race committee, jury and helpers](#run-event-helpers) — an admin's job
+  (of the event, its series or host club); as a manager, ask them.
 - [Check the waivers](#event-checkin-list) of all squad members.
 
 ### On the day {#start-event-organizer-day}
@@ -49,4 +50,4 @@ managers; if you manage only the host club, ask the league office.
 - [An organizer sets up a series](#journey-series)
 - [A club's crew is cleared for a matchday](#journey-crew-cleared)
 
-[Open the administration](place:admin.events)
+[Open the event in My space](place:event.overview)

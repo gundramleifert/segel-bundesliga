@@ -24,8 +24,8 @@ each sailor has an account under their sailor record's address.
 |---|---|---|---|
 | J-5.1 | Team manager | the squad is saved for the series, within its maximum | [Register the squad](#squad-and-lineup-squad) |
 | J-5.5 | Team manager | the crew is named for the matchday — from the squad only | [Name the crew](#squad-and-lineup-crew) |
-| J-5.6 | Sailor | *My space* says *Your liability waiver is not signed yet* | [Which waiver](#waiver-which) |
-| J-5.17 | Team manager | *My space* says a crew member's waiver is not cleared — the crew stays named, nothing is locked | [Missing waivers](#club-waivers-missing) |
+| J-5.6 | Sailor | *Me* › *Overview* says *Your liability waiver is not signed yet* | [Which waiver](#waiver-which) |
+| J-5.17 | Team manager | *Me* › *Overview* says a crew member's waiver is not cleared — the crew stays named, nothing is locked | [Missing waivers](#club-waivers-missing) |
 | J-5.8 | Sailor (adult) | the waiver is confirmed online; the sailor is cleared for every matchday of the series | [Confirm as an adult](#waiver-adult) |
 | J-5.14 | Event organizer | the check-in list shows every squad member *Cleared*, the minors' signed forms on file | [Check-in list](#event-checkin-list) |
 
@@ -34,7 +34,7 @@ up must be cleared.
 
 ### If … {#journey-crew-cleared-variations}
 
-- **Squad below the series' minimum (J-5.2, J-5.3):** saved anyway; *My space* says so
+- **Squad below the series' minimum (J-5.2, J-5.3):** saved anyway; *Me* › *Overview* says so
   until it is complete. [Squad size](#squad-and-lineup-size)
 - **Event in no series (J-5.4):** the squad is registered on the club's entry to the
   event, within the event's own limits; the waiver is the event's.
@@ -48,5 +48,5 @@ up must be cleared.
   downloads the form, the guardian signs, the sailor uploads the scan.
   [The paper form](#waiver-minor-paper)
 - **The club collects the forms (J-5.13):** the club's page has no upload — the
-  team manager hands the form back to the sailor to upload on their waiver card.
+  team manager hands the form back to the sailor to upload in *Me* › *Waivers*.
   [Paper forms](#club-waivers-upload)

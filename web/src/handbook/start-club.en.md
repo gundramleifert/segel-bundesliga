@@ -12,7 +12,8 @@ title: "Help for club admins and team managers"
 
 ## Help for club admins and team managers
 
-Two roles run a club, both on its page in *My space* (one card per club you belong to):
+Two roles run a club, both in its context in *My space* — choose the club in the
+switcher; its sections are grouped under *People*, *Racing* and *Money*, plus *Club page*:
 
 - **Club admin** — who is **in** the club: members, organizers, crest. Can do everything a
   team manager can.

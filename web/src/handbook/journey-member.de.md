@@ -24,9 +24,9 @@ Wer: der neue Segler, die Vereinsverwaltung, der Teammanager.
 | J-3.2 | Neuer Segler | ein Konto existiert, ein Code ist per E-Mail unterwegs | [Registrieren](#account-register) |
 | J-3.3 | Neuer Segler | die Adresse ist bestätigt; das Konto gehört noch zu keinem Verein und hat keine Rolle | [Registrieren](#account-register) |
 | J-3.5 | Vereinsverwaltung | die Person ist Mitglied des Vereins — sofort, ohne dass jemand zustimmen muss | [Mitglieder hinzufügen](#club-members-add) |
-| J-3.6 | Mitglied | *Mein Bereich* zeigt den Verein als Karte, markiert mit *Mitglied* | [Mein Verein in meinem Bereich](#my-space-club) |
+| J-3.6 | Mitglied | der Verein steht im Kontextwechsler von *Mein Bereich*, markiert mit *Mitglied* | [Mein Verein in meinem Bereich](#my-space-club) |
 | J-3.7 | Mitglied | die Mitgliederliste zeigt die Leute des Vereins mit Namen, ohne E-Mail-Adressen | [Mein Verein in meinem Bereich](#my-space-club) |
-| J-3.8 | Teammanager | der Teammanager bittet die Geschäftsstelle, die einen Segler-Datensatz mit E-Mail-Adresse und Geburtsdatum der Person anlegt | [Segler](#squad-and-lineup-sailors) |
+| J-3.8 | Teammanager | der Teammanager legt unter *Ihr Verein* › *Segler* einen Segler-Datensatz mit der E-Mail-Adresse der Person an und trägt dort ihr Geburtsdatum ein | [Segler](#squad-and-lineup-sailors) |
 | J-3.9 | Mitglied | der Segler-Datensatz gehört dem Mitglied — verbunden über die bestätigte Adresse — und trägt den Namen und das Geburtsdatum, die es korrigiert hat | [Mein Segler-Profil](#profile-sailor) |
 
 Mitgliedschaft und Segler-Datensatz sind zweierlei: Der Beitritt erzeugt keinen
@@ -41,5 +41,5 @@ E-Mail-Adresse.
 - **Passwort statt jedes Mal eines Codes (J-3.4):** nach der Bestätigung der Adresse eines
   setzen und sich damit anmelden. [Passwort](#account-password)
 - **Das Mitglied tritt aus (J-3.10):** Es beendet seine Mitgliedschaft jederzeit selbst; der
-  Verein verschwindet aus *Mein Bereich*, der Segler-Datensatz bleibt.
+  Verein verschwindet aus dem Kontextwechsler von *Mein Bereich*, der Segler-Datensatz bleibt.
   [Verein verlassen](#my-space-leave)

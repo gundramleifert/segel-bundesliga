@@ -11,9 +11,11 @@ title: "Run the races from the water"
 ---
 ## Run the races from the water
 
-*Race control* shows the current race; races run one at a time. Open it from [your event
-in *My space*](place:event.race) (*Open race control*) or the *Enter results* tab. For race officers and the
-site's administrators.
+*Race control* shows the current race; races run one at a time. Open it from
+[*the event* › *Race control*](place:event.race), *Open race control*; while the event is
+live, *Live now* on [*Me* › *Overview*](place:space) leads straight here. For race officers
+and the site's administrators; an organizer who is not a race officer sees the section,
+but not this screen.
 
 ![The current race on a phone: its boats, the teams on them, the preparatory flag ①, *Sequence in 10 s* ②](shot:help-race-control)
 

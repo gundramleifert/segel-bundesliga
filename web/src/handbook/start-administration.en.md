@@ -12,19 +12,19 @@ title: Help for the league office
 
 ## Help for the league office
 
-You set up the clubs, the series of a year and who sails in it, and who may do what. All
-of it is in the *League office* (user menu), a section each: [*Clubs*](place:admin.clubs), [*Series*](place:admin.series),
-[*Events*](place:admin.events), [*Sailors*](place:admin.sailors), [*News*](place:admin.news), [*Media*](place:admin.media), [*Accounts*](place:admin.accounts). The league office holds one of two
-[roles](#roles-list) on the whole site:
+You set up the clubs, the series of a year and who sails in it, and who may do what — in
+the *League office* (user menu, or the context switcher). Each of its three
+[roles](#roles-list) on the whole site sees only its own sections:
 
-| | Admin | Editor |
-|---|---|---|
-| Create clubs, upload their crest | ✓ | ✓ |
-| Create, publish and fill a series | ✓ | — |
-| Create and run events, maintain sailors | ✓ | ✓ (creating an event needs the admin: *Teams and boats* loads only for them) |
-| Draw an event's pairing list | ✓ | — |
-| News, press releases, pictures | ✓ | ✓ |
-| *Accounts*: who may do what | ✓ | — (the tab does not exist) |
+| Section | Admin | Editor | Race officer |
+|---|---|---|---|
+| [*Clubs*](place:admin.clubs): create, crest | ✓ | — | — |
+| [*Series*](place:admin.series): create, fill, publish | ✓ | — | — |
+| [*Events*](place:admin.events): create and run (the draw: admin only) | ✓ | — | ✓ |
+| [*Sailors*](place:admin.sailors), [*Accounts*](place:admin.accounts) | ✓ | — | — |
+| [*News*](place:admin.news), [*Media*](place:admin.media) | ✓ | ✓ | — |
+
+A club, series or event opened from here is its own context, with its own sections.
 
 ### Before the season {#start-administration-season}
 

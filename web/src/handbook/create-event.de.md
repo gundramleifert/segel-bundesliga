@@ -21,9 +21,10 @@ Bildschirm, lässt sich seitlich schieben, die Seite selbst nicht.
 
 ### Die drei Schritte {#create-event-wizard}
 
-1. [*Ligabüro* › *Veranstaltungen*](place:admin.events): [*＋ Neue Veranstaltung*](place:admin.new-event) —
-   als Organisation einer Serie oder eines Vereins *＋ Neue Veranstaltung* bei Ihrer Serie
-   oder Ihrem Verein in Mein Bereich.
+1. Die Geschäftsstelle: [*Ligabüro* › *Veranstaltungen*](place:admin.events),
+   [*＋ Neue Veranstaltung*](place:admin.new-event). Die Organisation eines Vereins:
+   [*Ihr Verein* › *Ausrichten*](place:club.hosting), *+ Neue Veranstaltung*. Die
+   Organisation einer Serie: [*Neue Veranstaltung*](place:admin.new-event) von dieser Seite aus.
 2. *Allgemeines*: Pflicht ist nur *Name* ① (mindestens drei Zeichen). *Veranstaltung
    anlegen* ② speichert einen Entwurf, den sonst niemand sieht.
 3. *Vereine*: die Teilnehmer ankreuzen, dann *… Vereine eintragen und weiter*. In einer
@@ -33,8 +34,8 @@ Bildschirm, lässt sich seitlich schieben, die Seite selbst nicht.
 5. Der letzte Bildschirm: *Bereit für die Veranstaltung 🚀* oder
    *Gespeichert — noch nicht bereit* mit dem, was fehlt; dazu *Veröffentlichen*.
 
-Schritte 2 und 3 haben *Vorerst überspringen*; den Rest ergänzen Sie im Panel der
-Veranstaltung ([was noch fehlt](#run-event-readiness)).
+Schritte 2 und 3 haben *Vorerst überspringen*; den Rest ergänzen Sie im eigenen Kontext
+der Veranstaltung in Mein Bereich ([was noch fehlt](#run-event-readiness)).
 
 ![Der erste Schritt: *Name* ①, Daten, Serie, Ausrichter, Zuschnitt und Boote, *Veranstaltung anlegen* ②](shot:help-event-wizard)
 
@@ -49,8 +50,8 @@ Veranstaltung ([was noch fehlt](#run-event-readiness)).
 | *Ende* | leer: eintägig; ein Ende vor dem Beginn wird abgelehnt |
 | *Ausrichter* | darf auf *- noch offen -* bleiben |
 
-Zuschnitt, Serie und Vereine stehen fest, sobald die erste Wettfahrt startet
-([nach der ersten Wettfahrt](#run-event-frozen)).
+Bis zur ersten Wettfahrt lässt sich all das in [*die Veranstaltung* › *Allgemein*](place:event.organize)
+ändern; danach stehen Zuschnitt, Serie und Vereine fest ([nach der ersten Wettfahrt](#run-event-frozen)).
 
 ### Boote {#create-event-boats}
 
@@ -60,6 +61,7 @@ Zuschnitt, Serie und Vereine stehen fest, sobald die erste Wettfahrt startet
   Text schalten die Liste auf *Eigene …*.
 - Jedes Boot braucht einen *Name*, sonst bleibt *Veranstaltung anlegen* gesperrt.
 - Boote gehören zur Veranstaltung: Eine neue Auslosung ändert, wer welches Boot segelt,
-  nicht die Boote. Das Panel kann Boote nicht bearbeiten — prüfen Sie sie hier.
+  nicht die Boote. Farben und Namen lassen sich bis zur ersten Wettfahrt unter
+  [*die Veranstaltung* › *Boote*](place:event.boats) ändern.
 
 [Veranstaltung anlegen](place:admin.new-event)

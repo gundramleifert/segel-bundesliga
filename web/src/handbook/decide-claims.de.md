@@ -16,27 +16,29 @@ title: "Abrechnungen entscheiden und zahlen"
 
 | Abrechnung für | Entschieden und gezahlt von |
 |---|---|
-| eine Veranstaltung | dem für diese Veranstaltung benannten *Kassenwart*; dem Kassenwart des Ausrichters; der für diese Veranstaltung benannten *Organisation*; der Organisation des Ausrichters; sowie der *Verwaltung* der Veranstaltung oder des Ausrichters (die Verwaltung einer Serie hat dafür noch keine Seite und fragt die Geschäftsstelle) |
+| eine Veranstaltung | dem für diese Veranstaltung benannten *Kassenwart*; dem Kassenwart des Ausrichters; der für diese Veranstaltung benannten *Organisation*; der Organisation des Ausrichters; sowie der *Verwaltung* der Veranstaltung, ihrer Serie oder des Ausrichters |
 | einen Verein | der *Organisation* oder dem *Kassenwart* des Vereins und seiner *Verwaltung* |
 
-Die Organisation einer Serie sowie Redaktion und Wettfahrtleitung der Website führen
-Veranstaltungen, verwalten aber nicht deren Kasse. Der Kassenwart eines anderen Vereins
+Die Organisation einer Serie und die Wettfahrtleitung der Website führen
+Veranstaltungen, verwalten aber nicht deren Kasse; die Redaktion der Website tut beides
+nicht. Der Kassenwart eines anderen Vereins
 hat bei einer Veranstaltung, die dieser Verein nicht ausrichtet, nichts zu entscheiden.
 **Niemand entscheidet oder zahlt die eigene Abrechnung**, gleich welche Rollen er hat.
 Mehr unter [Rollen](#roles-list).
 
 ### Was auf Sie wartet {#decide-claims-pending}
 
-- **Auf der Seite Ihres Vereins in [*Mein Bereich*, Reiter *Finanzen*](place:club.money):** Abrechnungen für
-  den Verein und für jede Veranstaltung, die er ausrichtet – zuerst *Zu entscheiden*,
-  dann *Freigegeben, zu zahlen* unter *Zahlungen für …*.
-- **Auf der [Seite einer Veranstaltung, Reiter *Zu entscheiden*](place:event.decide):** wenn Sie selbst ihre
-  Organisation oder ihr Kassenwart sind.
-- Die Übersicht in *Mein Bereich* zählt sie: *… Abrechnungen warten auf Sie*.
+- **[*Ihr Verein* › *Abrechnungen entscheiden*](place:club.money):** Abrechnungen für den
+  Verein und für jede Veranstaltung, die er ausrichtet – zuerst *Zu entscheiden*, dann
+  *Freigegeben, zu zahlen*.
+- **[*Die Veranstaltung* › *Zu entscheiden*](place:event.decide):** die Abrechnungen für
+  diese Veranstaltung, über die Sie entscheiden.
+- [*Ich* › *Übersicht*](place:space) listet sie unter *Zu erledigen*: *… Abrechnungen
+  warten auf Sie*.
 
 Entwürfe und Ihre eigenen Abrechnungen erscheinen nie.
 
-![Eine wartende Abrechnung im Reiter Finanzen des Vereins: *Genehmigen* ①, *Ablehnen* ②](shot:help-claims-pending)
+![Eine wartende Abrechnung unter *Abrechnungen entscheiden* des Vereins: *Genehmigen* ①, *Ablehnen* ②](shot:help-claims-pending)
 
 ### Genehmigen oder ablehnen {#decide-claims-decide}
 

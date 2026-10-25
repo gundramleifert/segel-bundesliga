@@ -12,8 +12,10 @@ title: "Wettfahrten vom Wasser aus leiten"
 ## Wettfahrten vom Wasser aus leiten
 
 *Wettfahrtleitung* zeigt die aktuelle Wettfahrt; Wettfahrten laufen nacheinander. Öffnen
-über [Ihre Veranstaltung in *Mein Bereich*](place:event.race) (*Wettfahrtleitung öffnen*) oder den Tab
-*Ergebnisse eingeben*. Für die Wettfahrtleitung und die Verwaltung der Website.
+über [*die Veranstaltung* › *Wettfahrtleitung*](place:event.race), *Wettfahrtleitung
+öffnen*; während die Veranstaltung läuft, führt *Jetzt live* auf [*Ich* › *Übersicht*](place:space)
+direkt hierher. Für die Wettfahrtleitung und die Verwaltung der Website; wer nur
+Organisation ist, sieht den Bereich, aber nicht diesen Bildschirm.
 
 ![Die aktuelle Wettfahrt auf dem Telefon: ihre Boote, die Teams darauf, das Vorbereitungssignal ①, *Startfolge in 10 s* ②](shot:help-race-control)
 

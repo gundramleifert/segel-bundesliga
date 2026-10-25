@@ -14,20 +14,23 @@ title: "Pay through the club's bank"
 
 The approved claims your club owes become one SEPA file for the club's online banking.
 The site never connects to the bank and stores no bank login. Only the club's
-*Organizer*, *Treasurer* and *Admin* work here: the club's page in [*My space*, tab
-*Money*](place:club.money).
+*Organizer*, *Treasurer* and *Admin* work here: [*your club* ›
+*Payment runs*](place:club.payment-runs) and [*Bank account*](place:club.bank-account).
 
 ### The club's account {#payment-runs-bank}
 
-Under *The club's account*, enter *Account holder*, *IBAN* and, optionally, *BIC* (filled
-in from the IBAN), then *Save*. The transfers leave from this account. Only the club's
+In [*your club* › *Bank account*](place:club.bank-account), under *The club's account*,
+enter *Account holder*, *IBAN* and, optionally, *BIC* (filled in from the IBAN), then
+*Save*. The transfers leave from this account. Only the club's
 organizer and treasurer see it — not its members.
 
 ### Create the SEPA file {#payment-runs-create}
 
-Starting state: claims are listed under *Approved, to pay*.
+Starting state: claims are listed under *Approved, to pay* in [*Decide
+claims*](place:club.money).
 
-1. Under *Pay by SEPA file*, every claim is ticked ①; untick those to leave out.
+1. In [*your club* › *Payment runs*](place:club.payment-runs), under *Pay by SEPA file*,
+   every claim is ticked ①; untick those to leave out.
 2. Check the *Execution date* ② (default today).
 3. Press *Create SEPA file* ③. The file (pain.001.001.09, `.xml`) downloads.
 4. Upload it in the club's online banking as a collective transfer and confirm it with
@@ -41,7 +44,7 @@ nothing to pay.
 
 ### Booked or returned {#payment-runs-settle}
 
-The run stays on the page as *At the bank: …* with its *Message id*.
+The run stays in *Payment runs* as *At the bank: …* with its *Message id*.
 
 1. A transfer the bank sent back: *Returned…*, a *Reason*, *Mark as returned*. Its
    claims are open again for the next file.
@@ -49,7 +52,7 @@ The run stays on the page as *At the bank: …* with its *Message id*.
    *Paid*.
 
 > **Note:** Mark returned transfers before *Booked by the bank* — after that, the run
-> leaves the page.
+> leaves the section.
 
 *SEPA file (.xml)* downloads the same file again, with the same message id, so the bank
 refuses it if it was already uploaded.

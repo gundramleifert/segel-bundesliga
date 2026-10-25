@@ -13,8 +13,7 @@ title: Eine Serie anlegen und veröffentlichen
 
 Eine Serie ist eine Reihe von Veranstaltungen, die gemeinsam gewertet werden; ihr Name
 trägt den Jahrgang ([Begriffe](#terms-competition)). Anlegen kann sie nur die Verwaltung
-der Seite; im Reiter *Serien* der Redaktion steht nur *Serien legt die Geschäftsstelle
-an.*
+der Seite.
 
 ### Eine Serie anlegen {#admin-series-create}
 
@@ -33,11 +32,12 @@ Einrichtung:
   *Beschreibung speichern*;
 - *Personen* — [die Organisation der Serie](#admin-series-manager).
 
-Ein Name, dessen Adresse eine andere Serie schon hat, wird abgelehnt. Name, Jahrgang und
-Daten lassen sich nach dem Anlegen auf keiner Seite mehr ändern — erlaubt wäre es, eine
-Bedienung dafür gibt es noch nicht.
+Ihre Organisation findet alles außer *Personen*, dazu die Termine, im eigenen Kontext der Serie
+([ihre Organisation](#admin-series-manager)). Ein Name, dessen Adresse
+eine andere Serie schon hat, wird abgelehnt. Name und Jahrgang ändert nach dem Anlegen
+keine Seite.
 
-![Der Reiter Serien: *Neue Serie* ①, in jeder Zeile *Vereine ändern* ② und *Veröffentlichen* bzw. *Zurückziehen* ③](shot:help-admin-series)
+![Der Bereich Serien: *Neue Serie* ①, in jeder Zeile *Vereine ändern* ② und *Veröffentlichen* bzw. *Zurückziehen* ③](shot:help-admin-series)
 
 ### Eine Serie veröffentlichen {#admin-series-publish}
 
@@ -47,6 +47,7 @@ Bedienung dafür gibt es noch nicht.
   Veranstaltung wird weiter einzeln veröffentlicht
   ([eine Veranstaltung veröffentlichen](#run-event-publish)).
 - *Zurückziehen* — zurück zum *Entwurf*; Tabellen und Veranstaltungen bleiben.
+- Ihre Organisation: [*die Serie* › *Termine & Veröffentlichung*](place:series.dates).
 
 ### Vergangene Saisons und Manage2Sail {#admin-series-import}
 
@@ -66,12 +67,20 @@ Die Person hat ein Konto ([woher Konten kommen](#admin-accounts-create)).
 2. Unter *Personen*: *E-Mail eines bestehenden Kontos*, *Als* *Organisation*,
    *Hinzufügen*.
 
-| | |
+Die Organisation findet die Serie im Kontextwechsler, unter *Organisieren* und *Serie*:
+
+| Bereich | Was die Organisation dort tut |
 |---|---|
-| Reiter *Serien* | nur der Hinweis, dass Serien von der Geschäftsstelle angelegt werden. Die Organisation darf Vereine, Kadergröße, Beschreibung und Veröffentlichung ihrer Serie ändern, hat dort aber keine Bedienelemente — sie wendet sich an die Geschäftsstelle (Name, Jahrgang und Daten ändert nach dem Anlegen keine Seite) |
-| Reiter *Veranstaltungen* | sie organisiert die Veranstaltungen der Serie; anlegen lässt sich eine heute nur mit der Verwaltung der Geschäftsstelle, sie fragt also dort ([eine Veranstaltung anlegen](#create-event-wizard)) |
-| *Wettfahrtleitung*, *Jury* | einer Serie: diese Rolle bei jeder ihrer Veranstaltungen |
-| *Verwaltung* | jede Rolle; benennt die Personen der Serie |
+| [*Vereine & Meldungen*](place:series.organize) | setzt die Vereine unter *Gemeldete Vereine*; entscheidet, was unter *Anmeldungen zu entscheiden* steht |
+| [*Termine & Veröffentlichung*](place:series.dates) | *Erster Tag*, *Letzter Tag*; *Veröffentlichen*, *Zurückziehen*; *Beschreibung* |
+| [*Kadergröße & Wertung*](place:series.scoring) | *Kader mindestens*, *Kader höchstens*; für die Wertung gibt es keine Seite |
+| [*Veranstaltungen*](place:series.events) | jeder Spieltag, auch Entwürfe; jeder öffnet den Kontext der Veranstaltung, wo sie ihn organisiert. Ein neuer Spieltag: [*Neue Veranstaltung*](place:admin.new-event) ([eine Veranstaltung anlegen](#create-event-wizard)) |
+| *Wettfahrtleitung & Jury* | sichtbar, aber Personen benennt dort nur die *Verwaltung* der Serie |
+
+| Rolle in einer Serie | |
+|---|---|
+| *Wettfahrtleitung*, *Jury* | diese Rolle bei jeder ihrer Veranstaltungen |
+| *Verwaltung* | jede Rolle; benennt die Personen der Serie — auch unter *Wettfahrtleitung & Jury* |
 
 ✕ *Entfernen* nimmt eine Rolle weg. Siehe [Rollen](#roles-list).
 

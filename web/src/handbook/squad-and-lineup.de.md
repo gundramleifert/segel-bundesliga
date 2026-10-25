@@ -16,8 +16,9 @@ Für Teammanager oder Vereinsverwaltung; andere Mitglieder sehen Kader und Crews
 
 ### Wie der Verein in eine Serie oder Veranstaltung kommt {#squad-and-lineup-apply}
 
-Die Geschäftsstelle meldet Ihren Verein für eine Serie, damit
-auch für deren noch nicht begonnene und alle späteren Spieltage. Bei einer
+Die Geschäftsstelle oder die Organisation der Serie (*die Serie* › *Vereine &
+Meldungen*) meldet Ihren Verein für eine Serie, damit auch für deren noch nicht
+begonnene und alle späteren Spieltage. Bei einer
 Veranstaltung ohne Serie meldet deren Organisation die Vereine. Selbst anmelden können
 Sie sich noch nicht: Fragen Sie dort.
 
@@ -28,13 +29,14 @@ segelt. Ihr Kader nimmt die Personen auf, die für Ihren Verein segeln, und jede
 noch für keinen Verein segelt — der segelt dann für Ihren. Wer für einen anderen Verein
 segelt, ist ausgegraut: Eine Person darf für mehrere Vereine segeln, einem zweiten
 Verein ordnet sie aber nur die Geschäftsstelle zu. Fehlt jemand? *Neue Person für
-unseren Verein …* legt sie mit ihrer Anmeldeadresse an und nimmt sie in den Kader.
+unseren Verein …* legt sie mit ihrer Anmeldeadresse an und nimmt sie in den Kader;
+*+ Neue Person* unter [*Ihr Verein* › *Segler*](place:club.sailors) legt sie für Ihren Verein an, noch in keinem Kader.
 
 ### Den Kader melden {#squad-and-lineup-squad}
 
 Ihr Verein ist für die Serie gemeldet.
 
-1. Seite Ihres Vereins in [*Mein Bereich*, Reiter *Serien & Kader*](place:club.series): *Kader*.
+1. [*Ihr Verein* › *Kader*](place:club.series): *Kader* in der Zeile der Serie.
 2. Klicken Sie Personen unter *Verfügbar* ① an; sie wandern nach *Ausgewählt*.
 3. Wählen Sie neben jedem Namen *Steuermann*, *Crew* oder *Reserve* ②.
 4. Drücken Sie *Kader speichern* ③.
@@ -46,26 +48,27 @@ Ihr Verein ist für die Serie gemeldet.
 - *Segelt für einen anderen Verein* lässt sich nicht hinzufügen: Fragen Sie die
   Geschäftsstelle.
 - Wer für einen Spieltag aufgestellt ist, bleibt, bis die Aufstellung geändert ist.
-- Eine Veranstaltung ohne Serie hat ihren Kader unter [*Spieltage*](place:club.events): *Kader für diese
-  Veranstaltung*.
+- Eine Veranstaltung ohne Serie hat unter *Kader* eine eigene Zeile, markiert
+  *Veranstaltung ohne Serie*.
 
 ### Kadergröße {#squad-and-lineup-size}
 
-Je Serie legt sie die Geschäftsstelle fest, bei einer Veranstaltung ohne Serie deren
-Organisation im Panel der Veranstaltung – 4 bis 10, wenn niemand etwas ändert.
+Je Serie legt sie die Geschäftsstelle oder die Organisation der Serie unter
+[*die Serie* › *Kadergröße & Wertung*](place:series.scoring) fest, bei einer Veranstaltung ohne Serie deren
+Organisation unter [*die Veranstaltung* › *Allgemein*](place:event.organize) – 4 bis 10, wenn niemand etwas ändert.
 
 | Regel | Wirkung |
 |---|---|
 | **Maximum** – wird durchgesetzt | ist es erreicht, bietet die Suche niemanden mehr an (*Kader ist voll (…)*), und mehr zu speichern wird abgelehnt |
-| **Minimum** – eine Orientierung | *weniger als die …, die dieser Wettbewerb verlangt*: trotzdem gespeichert, und die Karte Ihres Vereins in *Mein Bereich* weist darauf hin |
+| **Minimum** – eine Orientierung | *weniger als die …, die dieser Wettbewerb verlangt*: trotzdem gespeichert, und *Kader* sowie *Zu erledigen* auf *Ich* › *Übersicht* weisen darauf hin |
 | **Ein Steuermann** – üblich | nur ein Hinweis |
 
 ### Die Crew aufstellen {#squad-and-lineup-crew}
 
 Der Kader ist gemeldet.
 
-1. Der [Reiter *Spieltage*](place:club.events) listet jeden Spieltag, für den Ihr Verein gemeldet ist:
-   *Aufstellung*.
+1. [*Ihr Verein* › *Veranstaltungen & Crews*](place:club.events) listet jedes Team, das Ihr Verein gemeldet hat, eine
+   Zeile je Team: *Aufstellung*.
 2. Verschieben Sie Personen aus dem Kader ① nach *Ausgewählt*; passen Sie die *Rolle am
    Spieltag* ② an.
 3. Drücken Sie *Aufstellung speichern* ③.

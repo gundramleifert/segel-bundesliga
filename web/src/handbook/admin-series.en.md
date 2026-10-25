@@ -12,8 +12,7 @@ title: Create and publish a series
 ## Create and publish a series
 
 A series is a set of events scored together; its name carries the year
-([terms](#terms-competition)). Only a site admin creates one; an editor's *Series* tab
-shows only *Series are created by the business office only.*
+([terms](#terms-competition)). Only the site's admin creates one.
 
 ### Create a series {#admin-series-create}
 
@@ -30,10 +29,11 @@ The series is a *Draft*. *Edit clubs* ② in its row opens the rest of its setup
 - *Description*, in Markdown, on the public standings page — *Save description*;
 - *People* — [the series' manager](#admin-series-manager).
 
-A name whose address another series already has is refused. The screen cannot change
-name, year or dates afterwards — the site would allow it, but no screen offers it yet.
+Its organizers find all but *People*, and its dates, in the series' own context
+([its manager](#admin-series-manager)). A name whose address another series already has
+is refused. No screen changes name or year afterwards.
 
-![The Series tab: *New series* ①, and on each row *Edit clubs* ② and *Publish* or *Unpublish* ③](shot:help-admin-series)
+![The Series section: *New series* ①, and on each row *Edit clubs* ② and *Publish* or *Unpublish* ③](shot:help-admin-series)
 
 ### Publish a series {#admin-series-publish}
 
@@ -42,6 +42,7 @@ name, year or dates afterwards — the site would allow it, but no screen offers
 - *Publish* ③ — the badge turns *Public*. It locks nothing; each event is still published on
   its own ([publish an event](#run-event-publish)).
 - *Unpublish* — back to *Draft*; standings and events stay.
+- Its organizers: [*the series* › *Dates & publication*](place:series.dates).
 
 ### Past seasons and Manage2Sail {#admin-series-import}
 
@@ -59,12 +60,20 @@ The person has an account ([where accounts come from](#admin-accounts-create)).
 1. On the series' row, *Edit clubs*.
 2. Under *People*: *Email of an existing account*, *As* *Manager*, *Add*.
 
-| | |
+The manager finds the series in the context switcher, under *Organize* and *Series*:
+
+| Section | What the manager does there |
 |---|---|
-| *Series* tab | only the note that series are created by the business office. The manager may change their series' clubs, squad size, description and publication, but has no controls there — they ask the league office (name, year and dates no screen changes after creating) |
-| *Events* tab | they organize the series' events; creating one saves only for the league office's admin today, so they ask the league office ([create an event](#create-event-wizard)) |
-| *Race officer*, *Jury* | on a series: that role at each of its events |
-| *Admin* | every role; names the series' people |
+| [*Clubs & registrations*](place:series.organize) | sets the clubs under *Registered clubs*; decides those under *Applications to decide* |
+| [*Dates & publication*](place:series.dates) | *First day*, *Last day*; *Publish*, *Unpublish*; *Description* |
+| [*Squad size & scoring*](place:series.scoring) | *Squad minimum*, *Squad maximum*; the scoring has no screen |
+| [*Events*](place:series.events) | every act, drafts too; each opens the event's context, where they organize it. A new act: [*New event*](place:admin.new-event) ([create an event](#create-event-wizard)) |
+| *Race committee & jury* | shown, but only the series' *Admin* names people there |
+
+| Role on a series | |
+|---|---|
+| *Race officer*, *Jury* | that role at each of its events |
+| *Admin* | every role; names the series' people — also at *Race committee & jury* |
 
 ✕ *Remove* takes a role away. See [roles](#roles-list).
 

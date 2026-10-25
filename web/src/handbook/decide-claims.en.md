@@ -16,25 +16,25 @@ title: "Decide and pay claims"
 
 | Claim on | Decided and paid by |
 |---|---|
-| an event | the *Treasurer* named for that event; the treasurer of its host club; the *Organizer* named for that event; the host club's organizer; and the admins of the event or its host club (a series' admin has no screen for it yet and asks the league office) |
+| an event | the *Treasurer* named for that event; the treasurer of its host club; the *Organizer* named for that event; the host club's organizer; and the admins of the event, its series or its host club |
 | a club | the club's *Organizer* or *Treasurer*, and its *Admin* |
 
-The organizer of a series and the site's editors and race committee run events, but do
-not hold their money. Another club's treasurer has no say on an event their club does not
+The organizer of a series and the site's race committee run events but do not hold their
+money; the site's editors do neither. Another club's treasurer has no say on an event their club does not
 host. **Nobody decides or pays their own claim**, whatever roles they hold. More in
 [roles](#roles-list).
 
 ### What waits for you {#decide-claims-pending}
 
-- **On your club's page in [*My space*, tab *Money*](place:club.money):** claims on the club and on every
-  event it hosts — *To decide* first, then *Approved, to pay* under *Paying for …*.
-- **On an [event's page, tab *Claims to decide*](place:event.decide):** if you are its organizer or treasurer
-  yourself.
-- The overview of *My space* counts them: *… claims wait for you*.
+- **[*Your club* › *Decide claims*](place:club.money):** claims on the club and on every
+  event it hosts — *To decide* first, then *Approved, to pay*.
+- **[*The event* › *Claims to decide*](place:event.decide):** the claims on that event
+  that you decide.
+- [*Me* › *Overview*](place:space) lists them under *To do*: *… claims wait for you*.
 
 Drafts and your own claims never appear.
 
-![A claim waiting on the club's Money tab: *Approve* ①, *Reject* ②](shot:help-claims-pending)
+![A claim waiting in the club's *Decide claims*: *Approve* ①, *Reject* ②](shot:help-claims-pending)
 
 ### Approve or reject {#decide-claims-decide}
 

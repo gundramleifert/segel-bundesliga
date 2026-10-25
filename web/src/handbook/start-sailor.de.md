@@ -26,12 +26,12 @@ Profil, Ihren Verein.
 
 ### Vor und während der Saison {#start-sailor-season}
 
-- Sobald Ihr Verein Sie in einen Kader meldet, erscheint die Serie in
+- Sobald Ihr Verein Sie in einen Kader meldet, erscheint die Serie im Kontextwechsler von
   [Mein Bereich](#my-space-overview).
 - Bestätigen Sie den [Haftungsausschluss](#waiver-which) einmal pro Serie: ab 18 online,
   unter 18 mit [der Unterschrift eines Elternteils](#waiver-minor-paper).
-- Benennt Ihr Verein Sie in der Crew eines Spieltags, erscheint auch die Veranstaltung in
-  Mein Bereich ([Ihre Seiten](#my-space-pages)).
+- Benennt Ihr Verein Sie in der Crew eines Spieltags, erscheint auch die Veranstaltung
+  dort ([Ihre Bereiche](#my-space-pages)).
 - Laden Sie Ihre Scheine einmal hoch: [Dokumente](#profile-documents). Hinterlegen Sie
   Ihre [Bankverbindung](#profile-bank), bevor Sie eine Abrechnung einreichen.
 

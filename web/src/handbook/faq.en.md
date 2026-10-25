@@ -25,8 +25,8 @@ A parent or guardian must sign — on the printed form, or online from their own
 The wording has changed (*New wording — please confirm again*): [which waiver](#waiver-which).
 
 #### My account has no sailor profile.
-Your record is found by email address. If there is none, ask the league office to create
-one with the address you sign in with; if it carries another address, sign in with that
+Your record is found by email address. If there is none, ask your club's organizer
+(*your club* › *Sailors*) or the league office to create one with the address you sign in with; if it carries another address, sign in with that
 one, or ask the league office: [your profile](#profile-sailor).
 
 #### How do I join my club?
@@ -44,7 +44,7 @@ A person sails for one club per series. The other club must remove her from its 
 first: [the squad](#squad-and-lineup-squad).
 
 #### The squad is refused as too large.
-The league office sets a series' maximum; a standalone event's organizer sets its own.
+The league office or the series' organizer sets a series' maximum; a standalone event's organizer sets its own.
 Remove someone, or ask them: [squad size](#squad-and-lineup-size).
 
 #### Why can't I remove someone from the squad?
@@ -75,8 +75,8 @@ Racing has started, so the setup is fixed; results stay editable:
 [after the first race](#run-event-frozen).
 
 #### How do I name the race officers, jury and helpers?
-On screen, the event's own admin, the series' admin or the league office — the host
-club's admin cannot reach that panel: [people](#run-event-helpers).
+In *the event* › *People*. Only an admin changes it: the event's own, its series' or its
+host club's admin, or the league office's: [people](#run-event-helpers).
 
 ### For the race committee {#faq-race-committee}
 

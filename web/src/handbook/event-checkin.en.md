@@ -12,9 +12,8 @@ title: "The check-in list: who has a waiver"
 
 ## The check-in list: who has a waiver
 
-Nothing is signed on the dock: sailors confirm the liability waiver in advance, and the
-block *Liability waivers* in the event's panel ([*Administration*, tab *Events*](place:admin.events), *Manage*)
-shows who has.
+Nothing is signed on the dock: sailors confirm the liability waiver in advance, and
+[*the event* › *Check-in*](place:event.checkin) shows who has, under *Liability waivers*.
 
 ### Read the list {#event-checkin-list}
 
@@ -32,9 +31,8 @@ every event of it.
 | *Date of birth unknown* | age cannot be judged until the date is entered |
 | *Not required* | no waiver text has been published yet |
 
-Shown in the event's panel to its organizers (of the event or its series) and to the
-league office. Race officers and the host club's organizers have no screen for it yet —
-ask the league office.
+*Check-in* is there for the event's organizers — of the event, its series or its host
+club — for its race officers and for the league office.
 
 ![The check-in list with each person's status](shot:help-event-checkin)
 
@@ -65,4 +63,4 @@ Every opening is logged with who opened it.
 A form signed for a whole series belongs to no single event: if you organize only this
 event and not the sailor's club, opening it is refused — ask the league office.
 
-[Open the administration](place:admin.events)
+[Open the check-in list](place:event.checkin)

@@ -20,14 +20,14 @@ Sie wirkt ab dem nächsten Klick.
 | Rolle | Gilt für | Kurz |
 |---|---|---|
 | *Verwaltung* (Geschäftsstelle) | die Seite | Alles überall, Personen eingeschlossen. Serien, Konten, Pairing-Listen, Wortlaut des Haftungsausschlusses. |
-| *Redaktion* | die Seite | Vereine und ihre Meldung zu Serien. Organisation jeder Veranstaltung. News, Pressemitteilungen und die Bilder. Keine Ergebnisse, kein Geld. |
+| *Redaktion* | die Seite, eine Serie oder eine Veranstaltung | News, Pressemitteilungen und Bilder — die der Seite über alles, die einer Serie oder Veranstaltung über diese Regatta. Organisiert nichts: keine Vereine, Veranstaltungen, Ergebnisse, kein Geld. |
 | *Wettfahrtleitung* (Geschäftsstelle) | die Seite | Wettfahrtleitung und Organisation jeder Veranstaltung. |
 | *Verwaltung* (*Vereinsverwaltung*) | einen Verein | Wer zum Verein gehört und wer ihn organisiert; der Stander. Alles, was die Organisation tut. Verwaltung jeder Veranstaltung, die der Verein ausrichtet. |
 | *Organisation* (*Teammanager*) | einen Verein | Wer segelt: Meldungen, Kader, Crews, Segler, Erziehungsberechtigte, Haftungsausschlüsse. Das Geld des Vereins, mit dem Kassenwart. Organisation jeder Veranstaltung, die der Verein ausrichtet. |
 | *Kassenwart* | einen Verein | Zahlt die Abrechnungen des Vereins und jeder Veranstaltung, die er ausrichtet. |
 | *Mitglied* | einen Verein | Gehört zum Verein. Sonst nichts. |
 | *Verwaltung* | eine Serie | Alles an der Serie und ihren Veranstaltungen, Personen eingeschlossen. |
-| *Organisation* (*Serienleitung*) | eine Serie | Ihre Vereine, Termine, Kadergröße, Veröffentlichung. Organisation jeder Veranstaltung der Serie. |
+| *Organisation* (*Serienleitung*) | eine Serie | Ihre Vereine, Meldungen, Termine, Kadergröße, Veröffentlichung; legt ihre Spieltage an. Organisation jeder Veranstaltung der Serie. |
 | *Wettfahrtleitung*, *Jury* | eine Serie | Diese Rolle bei jeder Veranstaltung der Serie. |
 | *Verwaltung* | eine Veranstaltung | Alles an der Veranstaltung, Personen eingeschlossen. |
 | *Organisation* (*Veranstaltungsleitung*) | eine Veranstaltung | Konfiguration, Vereine, Veröffentlichung, Start und Abschluss. |
@@ -49,40 +49,38 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 
 | Aktion | Verwaltung der Geschäftsstelle | Redaktion | Wettfahrtleitung der Geschäftsstelle | Serienleitung | Veranstaltungsleitung | Wettfahrtleitung | Jury, Helfer | Vereinsverwaltung | Teammanager | Kassenwart | Mitglied, Segler |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| Vereine anlegen, bearbeiten, zu einer Serie melden | ✓ | ✓⁹ | — | — | — | — | — | — | — | — | — |
-| Stander eines Vereins ändern | ✓ | ✓ | — | — | — | — | — | eigene | — | — | — |
+| Vereine anlegen, bearbeiten, zu einer Serie melden | ✓ | — | — | — | — | — | — | — | — | — | — |
+| Stander eines Vereins ändern | ✓ | — | — | — | — | — | — | eigene | — | — | — |
 | News und Pressemitteilungen schreiben, die Bilder pflegen | ✓ | ✓ | — | — | — | — | — | — | — | — | — |
 | Mitglieder, Organisation, Kassenwart eintragen | ✓ | — | — | — | — | — | — | eigene | — | — | — |
-| Mitgliederliste eines Vereins sehen | ✓ | ✓ | — | — | — | — | — | eigene | eigene | — | eigene |
+| Mitgliederliste eines Vereins sehen | ✓ | — | — | — | — | — | — | eigene | eigene | — | eigene |
 | Konten anlegen und deaktivieren | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
 | Eine Serie anlegen | ✓ | — | — | — | — | — | — | — | — | — | — |
-| Serie bearbeiten, veröffentlichen, ihre Vereine festlegen | ✓ | — | — | eigene⁹ | — | — | — | — | — | — | — |
+| Serie bearbeiten, veröffentlichen, ihre Vereine festlegen | ✓ | — | — | eigene | — | — | — | — | — | — | — |
 | Für eine Serie oder Veranstaltung melden | ✓⁹ | — | — | — | — | — | — | eigene⁹ | eigene⁹ | — | — |
-| Meldung annehmen oder ablehnen | ✓⁹ | Veranst.⁹ | Veranst.⁹ | Serie⁹ | eigene⁹ | — | — | ausgerichtet⁹ | ausgerichtet⁹ | — | — |
-| Veranstaltung anlegen | ✓ | ✓¹⁰ | ✓⁹ | Serie¹⁰ | — | — | — | ausgerichtet⁹ | ausgerichtet⁹ | — | — |
-| Veranstaltung bearbeiten, veröffentlichen, ihre Vereine festlegen | ✓ | ✓ | ✓⁹ | Serie | eigene | — | — | ausgerichtet⁹ | ausgerichtet⁹ | — | — |
-| Personen einer Veranstaltung benennen | ✓ | — | — | —¹ | — | — | — | ausgerichtet⁹ | — | — | — |
+| Meldung annehmen oder ablehnen | ✓⁹ | — | Veranst.⁹ | eigene, Serie⁹ | eigene⁹ | — | — | ausgerichtet⁹ | ausgerichtet⁹ | — | — |
+| Veranstaltung anlegen | ✓ | — | ✓ | Serie | — | — | — | ausgerichtet | ausgerichtet | — | — |
+| Veranstaltung bearbeiten, veröffentlichen, ihre Vereine festlegen | ✓ | — | ✓ | Serie | eigene | — | — | ausgerichtet | ausgerichtet | — | — |
+| Personen einer Veranstaltung benennen | ✓ | — | — | —¹ | — | — | — | ausgerichtet | — | — | — |
 | Pairing-Liste auslosen | ✓ | — | — | — | — | — | — | — | — | — | — |
-| Veranstaltung starten, beenden, absagen, wieder öffnen | ✓ | ✓ | ✓⁹ | Serie | eigene | eigene⁹ | — | ausgerichtet⁹ | ausgerichtet⁹ | — | — |
-| Wettfahrten durchführen, Ergebnisse erfassen und korrigieren | ✓ | — | ✓ | —¹ | — | eigene | — | ausgerichtet⁹ | — | — | — |
-| Segler suchen und anlegen | ✓ | ✓ | — | — | — | — | — | ✓⁹ | ✓⁹ | — | — |
-| Angaben eines Seglers ändern | ✓⁹ | ✓⁹ | — | — | — | — | — | Kader²˒⁹ | Kader²˒⁹ | — | selbst |
+| Veranstaltung starten, beenden, absagen, wieder öffnen | ✓ | — | ✓ | Serie | eigene | eigene | — | ausgerichtet | ausgerichtet | — | — |
+| Wettfahrten durchführen, Ergebnisse erfassen und korrigieren | ✓ | — | ✓ | —¹ | — | eigene | — | ausgerichtet | — | — | — |
+| Segler suchen und anlegen | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
+| Angaben eines Seglers ändern | ✓⁹ | — | — | — | — | — | — | Kader²˒⁹ | Kader²˒⁹ | — | selbst |
 | Kader melden | ✓ | — | — | — | — | — | — | eigene | eigene | — | — |
-| Crew für einen Spieltag aufstellen | ✓⁹ | ✓⁹ | ✓⁹ | Serie⁹ | eigene⁹ | eigene⁹ | — | eigene, ausgerichtet⁹ | eigene, ausgerichtet⁹ | — | — |
+| Crew für einen Spieltag aufstellen | ✓⁹ | — | ✓⁹ | Serie⁹ | eigene⁹ | eigene⁹ | — | eigene, ausgerichtet⁹ | eigene, ausgerichtet⁹ | — | — |
 | Erziehungsberechtigte verknüpfen | ✓⁹ | — | — | — | — | — | — | eigene | eigene | — | — |
-| Haftungsausschluss für einen Segler bestätigen | ✓⁹ | ✓⁹ | — | — | — | — | — | Kader⁹ | Kader⁹ | — | selbst³ |
-| Unterschriebenes Formular sehen | ✓ | ✓ | ✓ | Serie⁴ | eigene⁴ | eigene⁴ | — | Kader, ausgerichtet⁴ | Kader, ausgerichtet⁴ | — | selbst |
-| Check-in-Liste einer Veranstaltung sehen | ✓ | ✓ | ✓⁹ | Serie | eigene | eigene⁹ | — | ausgerichtet⁹ | ausgerichtet⁹ | — | — |
+| Haftungsausschluss für einen Segler bestätigen | ✓⁹ | — | — | — | — | — | — | Kader⁹ | Kader⁹ | — | selbst³ |
+| Unterschriebenes Formular sehen | ✓ | — | ✓ | Serie⁴ | eigene⁴ | eigene⁴ | — | Kader, ausgerichtet⁴ | Kader, ausgerichtet⁴ | — | selbst |
+| Check-in-Liste einer Veranstaltung sehen | ✓ | — | ✓ | Serie | eigene | eigene | — | ausgerichtet | ausgerichtet | — | — |
 | Übersicht der Haftungsausschlüsse des Vereins sehen | ✓⁹ | — | — | — | — | — | — | eigene | eigene | — | — |
-| Dokumente einer Person sehen | ✓ | ✓⁵ | ✓⁵ | Serie⁵ | eigene⁵ | — | — | eigene⁶ | eigene⁶ | — | selbst |
+| Dokumente einer Person sehen | ✓ | — | ✓⁵ | Serie⁵ | eigene⁵ | — | — | eigene⁶ | eigene⁶ | — | selbst |
 | Kosten abrechnen⁷ | — | — | — | Serie | eigene | eigene | eigene | — | — | — | eigene |
 | Über eine Abrechnung entscheiden und sie zahlen⁸ | ✓⁹ | — | — | —¹ | eigene | — | — | eigene, ausgerichtet | eigene, ausgerichtet | eigene, ausgerichtet | — |
 | Vereinskonto, SEPA-Datei, Buchhaltung | ✓⁹ | — | — | — | — | — | — | eigene | eigene | eigene | — |
 | Neuen Wortlaut des Haftungsausschlusses veröffentlichen | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
 
-1. Die *Verwaltung* einer Serie darf es, für ihre Veranstaltungen — außer Wettfahrten
-   durchführen und über Abrechnungen entscheiden: Die Wettfahrtleitung, der Ergebnis-Tab
-   und die Abrechnungsseiten lassen sie noch nicht zu (⁹).
+1. Die *Verwaltung* einer Serie darf es, für ihre Veranstaltungen.
 2. Oder in noch keinem Kader.
 3. Und verknüpfte Erziehungsberechtigte, für ein Kind unter 18.
 4. Nur Formulare für genau diese Veranstaltung, nicht die für eine ganze Serie.
@@ -95,22 +93,21 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
    nicht Redaktion, Wettfahrtleitung der Geschäftsstelle oder Serienleitung.
 9. Erlaubt, aber noch auf keiner Seite (oder nur teilweise) bedienbar — fragen Sie die
    Geschäftsstelle.
-10. Auf der Website nur mit der Verwaltung der Geschäftsstelle: Das Formular lädt *Teams
-    und Boote* nur für sie. Bitten Sie die Geschäftsstelle, die Veranstaltung anzulegen.
 
 ### Wie Sie eine Rolle bekommen {#roles-getting}
 
 - **Zuerst ein Konto.** Die Anmeldung legt keines an. Sie legen es selbst mit *Konto
   anlegen* an; weder Ihr Verein noch die Geschäftsstelle kann das für Sie tun.
 - **Rollen der Geschäftsstelle:** vergibt deren Verwaltung unter [*Konten*](place:admin.accounts).
-- **Verein:** Die Vereinsverwaltung trägt Personen im [Tab *Mitglieder*](place:club.members) ein, mit der
-  E-Mail-Adresse eines bestehenden Kontos. Eine *Verwaltung* muss immer bleiben.
-- **Serie, Veranstaltung:** deren Verwaltung, im Bereich *Personen*. Bei einer
-  Veranstaltung ist das auf der Website die Verwaltung der Veranstaltung selbst, der Serie
-  oder der Geschäftsstelle — nie die Veranstaltungsleitung; die Verwaltung des Ausrichters
-  erreicht diesen Bereich nicht und wendet sich an eine dieser Stellen.
+- **Verein:** Die Vereinsverwaltung trägt Personen unter [*der Verein* ›
+  *Mitglieder*](place:club.members) ein, mit der E-Mail-Adresse eines bestehenden Kontos.
+  Eine *Verwaltung* muss immer bleiben.
+- **Serie, Veranstaltung:** deren Verwaltung oder die Geschäftsstelle — unter *die Serie* ›
+  *Wettfahrtleitung & Jury*, unter *die Veranstaltung* › [*Personen*](place:event.people).
+  Zur Verwaltung einer Veranstaltung gehören die ihrer Serie und ihres Ausrichters; ihre
+  Organisation allein kann niemanden benennen.
 - **Erziehungsberechtigte:** Der Verein des Kindes verknüpft das Konto des Elternteils
-  unter *Erziehungsberechtigte*.
+  unter [*der Verein* › *Minderjährige & Erziehungsberechtigte*](place:club.minors).
 - **Fotograf:** keine Rolle und kein Konto — die Redaktion schickt einen
   [Upload-Link](#news-and-press-pictures).
 - **Segler:** Ein Verein nimmt Sie in seinen Kader auf. Ihr Konto findet Ihren Datensatz

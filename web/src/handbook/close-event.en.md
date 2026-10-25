@@ -12,9 +12,8 @@ title: "Close an event, or call it off"
 
 ## Close an event, or call it off
 
-*Closing* is the last block of the event's panel ([*Administration*, tab *Events*](place:admin.events),
-*Manage*), for the event's organizers — a race officer has no access to *Administration*
-and asks an organizer to close the event. It shows only what applies now
+*Closing* is the last block of [*the event* › *Race control*](place:event.race), for the
+event's organizers and its race officers alike. It shows only what applies now
 and never asks for confirmation: everything here is one press to undo and deletes
 nothing.
 
@@ -24,7 +23,7 @@ nothing.
 
 1. Press *Racing is over* ①. The event is now final.
 
-- Only a running event can be declared over; before the start the panel says so.
+- Only a running event can be declared over; before the start the block says so.
 - Not every race has to be sailed: a day that lost its last flights to the wind is over
   when you say so.
 - Nothing new is fixed, and results stay editable — a protest heard weeks later still
@@ -48,4 +47,4 @@ A closed event shows one button:
 - *Reinstate the event* — a called-off event is planned again; start it again with
   *Start event* ([start](#run-event-start)).
 
-[Open the administration](place:admin.events)
+[Open the event's race control](place:event.race)
