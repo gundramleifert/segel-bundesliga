@@ -1,25 +1,24 @@
-import { Button } from "@heroui/react";
-import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import type { MyContext, MySpace } from "../../api/types";
 import { Async } from "../../components/Async";
 import { Empty, PageHeader } from "../../components/Blocks";
-import { CardGrid, Stack } from "../../components/Layouts";
-import { LinkCard } from "../../components/LinkCard";
+import { Stack } from "../../components/Layouts";
 import { eventDates } from "../../lib/format";
-import { NeedsLine, RelationChips } from "./Chips";
+import { groupTodos, liveNow, readVisits, refKey, sectionPath, type ContextRef } from "../../lib/workspace";
 import { MeFrame } from "./Contexts";
-import { contextPath, isPast, useMySpace } from "./shared";
+import { TodoList, todoTestId } from "./Todos";
+import { useMySpace } from "./shared";
 
-/** Story Z-8: my space — everything I am part of, one card each.
+/** Story Z-10 (§4): *Me › Overview*, the landing page after sign-in.
  *
- * Grouped *Me · Clubs · Series · Events*, events split into what is coming and what is
- * over, the past folded behind its count: it only grows, and the page is about what to do
- * next. Each card names what I am there and what needs me there; tapping it opens my page
- * for it (Story S-7). The groups are the same whatever my roles — a treasurer, a helper
- * and a sailor read one page, which is the point: the separate screens each knew one role.
+ * In the order decided on 2026-10-25: **Live now** while an event I work on is live —
+ * the sections my relations give me there, race control first for the race committee —
+ * then **To do**, every to-do of every context grouped by context, most urgent first,
+ * each line a link to the section that clears it; then **Last visited**, the last five
+ * sections this browser opened. With nothing to do, one line says so and *Last visited*
+ * moves up. The contexts themselves are in the switcher, no longer cards here.
  */
 export function MySpaceOverview() {
   const { t } = useTranslation("space");
@@ -28,10 +27,10 @@ export function MySpaceOverview() {
     <MeFrame
       active="overview"
       overview={
-        <Stack gap={6} testId="me-overview">
+        <Stack gap={8} testId="me-overview">
           <PageHeader title={t("title")} />
           <Async state={space} testId="me">
-            {(data) => <Groups data={data} />}
+            {(data) => <Landing data={data} />}
           </Async>
         </Stack>
       }
@@ -39,34 +38,71 @@ export function MySpaceOverview() {
   );
 }
 
-function Groups({ data }: { data: MySpace }) {
+function Landing({ data }: { data: MySpace }) {
   const { t } = useTranslation("space");
-  const of = (kind: MyContext["kind"]) => data.contexts.filter((c) => c.kind === kind);
-  const events = of("event");
-  const past = events.filter((c) => isPast(c)).reverse();
-  const upcoming = events.filter((c) => !isPast(c));
-  // Folded only when there is something else to look at: past events alone, folded,
-  // would leave a page that looks empty to someone whose season is over.
-  const [showPast, setShowPast] = useState(past.length === data.contexts.length);
+  const live = liveNow(data.contexts, today());
+  const groups = groupTodos(data.todos);
+  const visits = readVisits();
+  const nameOf = (ref: ContextRef) => {
+    if (!("id" in ref)) return t(`workspace.kinds.${ref.kind}`);
+    const c = data.contexts.find((x) => x.kind === ref.kind && x.id === ref.id);
+    return c?.short_name || c?.name || t(`workspace.kinds.${ref.kind}`);
+  };
 
   return (
-    <Stack gap={8}>
-      <Group title={t("overview.me")} testId="me-group-me">
-        <li>
-          <LinkCard
-            to="/me/profile/account"
-            testId="me-card-me"
-            title={data.me.name}
-            description={t("overview.meDescription")}
-          >
-            <NeedsLine needs={data.me.needs} testId="me-needs-me" />
-          </LinkCard>
-        </li>
-      </Group>
+    <>
+      {live.length > 0 && (
+        <section className="flex flex-col gap-3" data-testid="me-live">
+          <h2 className="text-lg font-semibold">{t("workspace.liveNow")}</h2>
+          <ul className="flex flex-col gap-3">
+            {live.map((block) => (
+              <LiveBlock key={block.context.id} context={block.context} sections={block.sections} publicLive={block.publicLive} />
+            ))}
+          </ul>
+        </section>
+      )}
 
-      {!data.contexts.length && (
-        // Not an empty box: someone part of nothing needs to know where joining starts
-        // (Story V-7), and this is where they look.
+      <section className="flex flex-col gap-3" data-testid="me-todo">
+        <h2 className="text-lg font-semibold">{t("workspace.toDo")}</h2>
+        {groups.length ? (
+          <ul className="flex flex-col gap-4">
+            {groups.map((group) => (
+              <li key={refKey(group.ref)} className="flex flex-col gap-1.5">
+                <Link to={sectionPath(group.ref)} className="w-fit font-medium hover:underline" data-testid={todoTestId("me-todo-context", group.ref)}>
+                  {nameOf(group.ref)}
+                </Link>
+                <TodoList context={group.ref} needs={group.todos} testId={todoTestId("me-todo", group.ref)} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted" data-testid="me-todo-nothing">
+            {t("workspace.nothingWaits")}
+          </p>
+        )}
+      </section>
+
+      {visits.length > 0 && (
+        <section className="flex flex-col gap-3" data-testid="me-visited">
+          <h2 className="text-lg font-semibold">{t("workspace.lastVisited")}</h2>
+          <ul className="flex flex-col gap-1.5">
+            {visits.map((v) => (
+              <li key={`${refKey(v.ref)}/${v.section}`} className="text-sm">
+                <Link
+                  to={sectionPath(v.ref, v.section)}
+                  className="hover:underline"
+                  data-testid={`me-visited-${refKey(v.ref).replace(":", "-")}-${v.section}`}
+                >
+                  {v.name} <span className="text-faint">›</span> {v.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {!data.contexts.length && !groups.length && (
+        // Someone part of nothing needs to know where joining starts (Story V-7).
         <Empty testId="me-empty">
           {t("overview.none")}{" "}
           <Link to="/clubs" className="underline underline-offset-2">
@@ -74,63 +110,48 @@ function Groups({ data }: { data: MySpace }) {
           </Link>
         </Empty>
       )}
-
-      <ContextGroup title={t("overview.clubs")} testId="me-group-clubs" contexts={of("club")} />
-      <ContextGroup title={t("overview.series")} testId="me-group-series" contexts={of("series")} />
-      <ContextGroup title={t("overview.upcoming")} testId="me-group-upcoming" contexts={upcoming} />
-
-      {past.length > 0 && (
-        <section className="flex flex-col gap-3" data-testid="me-group-past">
-          <div>
-            <Button size="sm" variant="ghost" onPress={() => setShowPast(!showPast)} data-testid="me-past-toggle">
-              {showPast ? t("overview.pastHide") : t("overview.pastShow", { count: past.length })}
-            </Button>
-          </div>
-          {showPast && (
-            <CardGrid columns={3} testId="me-past-list">
-              {past.map((context) => (
-                <ContextCard key={`${context.kind}-${context.id}`} context={context} />
-              ))}
-            </CardGrid>
-          )}
-        </section>
-      )}
-    </Stack>
+    </>
   );
 }
 
-function Group({ title, testId, children }: { title: string; testId: string; children: ReactNode }) {
+/** One live event: its name and dates, and a button per section the day needs. */
+function LiveBlock({ context, sections, publicLive }: { context: MyContext; sections: string[]; publicLive: boolean }) {
+  const { t } = useTranslation("space");
+  const ref = { kind: "event" as const, id: context.id };
+  const testId = `me-live-event-${context.id}`;
+  const link = "rounded-lg bg-surface px-3 py-2 text-sm font-medium text-foreground ring-1 ring-border hover:bg-surface-tertiary";
   return (
-    <section className="flex flex-col gap-3" data-testid={testId}>
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <CardGrid columns={3}>{children}</CardGrid>
-    </section>
-  );
-}
-
-/** A group with nothing in it is left out — "no series" helps nobody. */
-function ContextGroup({ title, testId, contexts }: { title: string; testId: string; contexts: MyContext[] }) {
-  if (!contexts.length) return null;
-  return (
-    <Group title={title} testId={testId}>
-      {contexts.map((context) => (
-        <ContextCard key={`${context.kind}-${context.id}`} context={context} />
-      ))}
-    </Group>
-  );
-}
-
-function ContextCard({ context }: { context: MyContext }) {
-  const id = `me-card-${context.kind}-${context.id}`;
-  const dated = context.kind === "event" || context.starts_on;
-  return (
-    <li>
-      <LinkCard to={contextPath(context)} testId={id} title={context.name} description={dated ? eventDates(context) : undefined}>
-        <div className="flex flex-col gap-2">
-          <RelationChips relations={context.relations} testId={`${id}-relations`} />
-          <NeedsLine needs={context.needs} testId={`${id}-needs`} />
-        </div>
-      </LinkCard>
+    <li className="flex flex-col gap-2 rounded-xl bg-accent-soft p-4" data-testid={testId}>
+      <div className="flex flex-wrap items-baseline gap-x-3">
+        <Link to={sectionPath(ref)} className="font-semibold text-accent-soft-foreground hover:underline">
+          {context.name}
+        </Link>
+        <span className="text-sm text-muted">{eventDates(context)}</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {sections.map((s) => (
+          <Link
+            key={s}
+            // Race control is a full-screen tool of its own (§7), reached from here directly.
+            to={s === "race-control" ? `/events/${context.id}/race-control` : sectionPath(ref, s)}
+            className={link}
+            data-testid={`${testId}-${s}`}
+          >
+            {t(`workspace.live.${s}`)}
+          </Link>
+        ))}
+        {publicLive && (
+          <Link to={`/events/${context.id}/live`} className={link} data-testid={`${testId}-public-live`}>
+            {t("workspace.live.publicLive")}
+          </Link>
+        )}
+      </div>
     </li>
   );
+}
+
+function today(): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }

@@ -111,6 +111,16 @@ export async function listedSections(page: Page, kind: string): Promise<string[]
   return ids.filter((id) => !id.endsWith("-count")).map((id) => id.replace(`workspace-section-${kind}-`, ""));
 }
 
+/** Opens the context switcher (Story Z-10) and unfolds the past events, so every entry of
+ *  mine is on screen. Entries are `workspace-switcher-<kind>-<id>`, their relation chips
+ *  `…-relations-<relation>`. */
+export async function openSwitcher(page: Page): Promise<void> {
+  await page.getByTestId("workspace-switcher").click();
+  await expect(page.getByTestId("workspace-switcher-panel")).toBeVisible();
+  const earlier = page.getByTestId("workspace-switcher-earlier");
+  if ((await earlier.count()) && (await earlier.getAttribute("aria-expanded")) === "false") await earlier.click();
+}
+
 /** Picks a language, wherever this reader has it (Story A-12).
  *
  * A guest has it in the top row, a dropdown; signed in it is a submenu of the account

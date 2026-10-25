@@ -1,7 +1,7 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
-import { openSection } from "./layout";
+import { openSection, openSwitcher } from "./layout";
 import { bearer, devUsers, managedClub, signIn, type DevUser } from "./session";
 
 /** Stories V-12 and V-2: the team manager's own screen, with the matchdays and the lineup.
@@ -118,15 +118,16 @@ describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday fr
     }
 
     await signIn(page, manager.email);
-    // Both clubs are cards in my space (Story Z-8) — a member of the second, the
+    // Both clubs are in the switcher (Story Z-10) — a member of the second, the
     // organizer of the first. Which club is open is the URL's business, nothing else.
     await page.goto("/me");
     const own = await managedClub(request, manager.email);
-    await expect(page.getByTestId(`me-card-club-${own}-relations-admin`)).toBeVisible();
-    const card = page.getByTestId(`me-card-club-${second.id}`);
-    await expect(card.getByTestId(`me-card-club-${second.id}-relations-member`)).toBeVisible();
-    await expect(card.getByTestId(`me-card-club-${second.id}-relations-admin`)).toHaveCount(0);
-    await card.click();
+    await openSwitcher(page);
+    await expect(page.getByTestId(`workspace-switcher-club-${own}-relations-admin`)).toBeVisible();
+    const entry = page.getByTestId(`workspace-switcher-club-${second.id}`);
+    await expect(entry.getByTestId(`workspace-switcher-club-${second.id}-relations-member`)).toBeVisible();
+    await expect(entry.getByTestId(`workspace-switcher-club-${second.id}-relations-admin`)).toHaveCount(0);
+    await entry.click();
     await expect(page).toHaveURL(new RegExp(`/me/club/${second.id}`));
 
     // A member, not an organizer, of the second club: the squad is shown read-only, and
@@ -194,7 +195,8 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await page.getByTestId("my-club-leave-confirm").click();
     // The club is no longer theirs: back on my space, without it.
     await expect(page.getByTestId("me-overview")).toBeVisible();
-    await expect(page.getByTestId(`me-card-club-${club.id}`)).toHaveCount(0);
+    await openSwitcher(page);
+    await expect(page.getByTestId(`workspace-switcher-club-${club.id}`)).toHaveCount(0);
 
     // Back as the admin: the guest is no longer on the roster, nor in the People panel.
     await signIn(page, clubAdmin.email);

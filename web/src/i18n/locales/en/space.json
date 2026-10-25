@@ -301,6 +301,21 @@
       "setup": "Set up",
       "raceday": "Race day",
       "office": "League office"
+    },
+    "nothingWaits": "Nothing waits for you.",
+    "liveNow": "Live now",
+    "toDo": "To do",
+    "lastVisited": "Last visited",
+    "live": {
+      "race-control": "Race control",
+      "results": "Results",
+      "check-in": "Check-in",
+      "notice-board": "Notice board",
+      "crew": "My crew",
+      "overview": "Times and people",
+      "my-claims": "My claims",
+      "news": "News & pictures",
+      "publicLive": "Live view"
     }
   }
 }

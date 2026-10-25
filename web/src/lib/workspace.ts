@@ -1,4 +1,4 @@
-import { ContextRelation, Relation, Role, type MyContext } from "../api/types";
+import { ContextRelation, Relation, Role, type MyContext, type Todo } from "../api/types";
 
 /** Story Z-10: the signed-in workspace — its contexts, their groups and sections, and who
  *  has each (`docs/PLAN_NAVIGATION.md` §2–§3, issue #30).
@@ -357,6 +357,90 @@ function isRef(x: unknown): x is ContextRef {
   const r = x as { kind?: unknown; id?: unknown };
   if (r.kind === "me" || r.kind === "office") return true;
   return (r.kind === "club" || r.kind === "series" || r.kind === "event") && typeof r.id === "number";
+}
+
+// ---------------------------------------------------------------- to do (§4)
+
+/** Whether an event of mine is live for the landing page: running (`live`), or a race day
+ *  today while still planned — the day does not start with a search (§4, decided). */
+export function isLive(c: MyContext, today: string): boolean {
+  if (c.kind !== "event" || c.status === "cancelled" || c.status === "final") return false;
+  if (c.status === "live") return true;
+  return c.starts_on != null && c.starts_on <= today && today <= (c.ends_on ?? c.starts_on);
+}
+
+/** What *Live now* offers per relation, in the order the day needs them (§4's table). */
+const LIVE_OFFER: readonly [readonly Holding[], readonly string[]][] = [
+  [[Relation.admin, Relation.manager, Relation.race_officer], ["race-control", "results", "check-in", "notice-board"]],
+  [[Relation.jury], ["notice-board", "results"]],
+  [[Relation.helper], ["overview", "my-claims"]],
+  [[SAILOR], ["crew"]],
+  [[Relation.editor], ["news"]],
+];
+
+/** One block of *Live now*: the event, the sections my relations give me there (race
+ *  control first for the race committee), and whether the public live view is offered —
+ *  to those who sail or write. */
+export type LiveBlock = { context: MyContext; sections: string[]; publicLive: boolean };
+
+export function liveNow(contexts: readonly MyContext[], today: string): LiveBlock[] {
+  return contexts
+    .filter((c) => isLive(c, today))
+    .map((c) => {
+      const sections: string[] = [];
+      for (const [holders, offer] of LIVE_OFFER) {
+        if (!holders.some((h) => c.relations.includes(h as ContextRelation))) continue;
+        for (const s of offer) if (!sections.includes(s) && hasSection("event", s, c.relations)) sections.push(s);
+      }
+      const publicLive = c.relations.includes(SAILOR) || c.relations.includes(Relation.editor);
+      return { context: c, sections, publicLive };
+    });
+}
+
+/** The to-dos grouped by the context they belong to, each group in the order its most
+ *  urgent to-do came — the API sends them by severity, then date (§4). */
+export type TodoGroup = { ref: ContextRef; todos: Todo[] };
+
+export function groupTodos(todos: readonly Todo[]): TodoGroup[] {
+  const groups = new Map<string, TodoGroup>();
+  for (const todo of todos) {
+    const ref: ContextRef =
+      todo.context.kind === "me" || todo.context.kind === "office" || todo.context.id == null
+        ? { kind: todo.context.kind === "office" ? "office" : "me" }
+        : { kind: todo.context.kind, id: todo.context.id };
+    const key = refKey(ref);
+    if (!groups.has(key)) groups.set(key, { ref, todos: [] });
+    groups.get(key)!.todos.push(todo);
+  }
+  return [...groups.values()];
+}
+
+/** A section this browser opened — for *Last visited*, straight to the section. Its words
+ *  are kept as they were shown, so the list needs no request. */
+export type Visit = { ref: ContextRef; section: string; name: string; label: string };
+
+const VISITS_KEY = "sbl.workspace.visits";
+const visitKey = (v: Visit) => `${refKey(v.ref)}/${v.section}`;
+
+export function readVisits(storage: Pick<Storage, "getItem"> | undefined = safeStorage()): Visit[] {
+  try {
+    const parsed: unknown = JSON.parse(storage?.getItem(VISITS_KEY) ?? "[]");
+    return Array.isArray(parsed)
+      ? parsed
+          .filter((v): v is Visit => !!v && isRef(v.ref) && typeof v.section === "string" && typeof v.name === "string" && typeof v.label === "string")
+          .slice(0, RECENT_MAX)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function rememberVisit(visit: Visit, storage: Pick<Storage, "getItem" | "setItem"> | undefined = safeStorage()): void {
+  try {
+    storage?.setItem(VISITS_KEY, JSON.stringify(pushRecent(readVisits(storage), visit, visitKey)));
+  } catch {
+    // Blocked storage: nothing is remembered, nothing breaks.
+  }
 }
 
 // ---------------------------------------------------------------- the old addresses

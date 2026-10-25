@@ -1,8 +1,13 @@
 import { describe, expect, test } from "vitest";
 
-import { Relation, type MyContext } from "../src/api/types";
+import { Relation, type MyContext, type Todo } from "../src/api/types";
 import {
+  groupTodos,
   hasSection,
+  isLive,
+  liveNow,
+  readVisits,
+  rememberVisit,
   pushRecent,
   readRecent,
   refKey,
@@ -233,5 +238,53 @@ describe("Story Z-10: addresses and the sections a screen has", () => {
       ["people", ["members"], false],
       ["racing", ["squads", "crews"], true],
     ]);
+  });
+});
+
+describe("Story Z-10: Live now, To do, Last visited", () => {
+  const event = (id: number, relations: string[], extra: Partial<MyContext> = {}) =>
+    context("event", id, `Act ${id}`, { relations: relations as MyContext["relations"], ...extra });
+
+  test("an event is live while running, or on a race day still planned — not when over or called off", () => {
+    expect(isLive(event(1, [], { status: "live", starts_on: "2026-10-01" }), TODAY)).toBe(true);
+    expect(isLive(event(2, [], { status: "planned", starts_on: "2026-10-24", ends_on: "2026-10-26" }), TODAY)).toBe(true);
+    expect(isLive(event(3, [], { status: "planned", starts_on: "2026-11-06" }), TODAY)).toBe(false);
+    expect(isLive(event(4, [], { status: "cancelled", starts_on: TODAY }), TODAY)).toBe(false);
+    expect(isLive(event(5, [], { status: "final", starts_on: TODAY }), TODAY)).toBe(false);
+  });
+
+  test("Live now offers what my relations give there, race control first for the race committee", () => {
+    const contexts = [
+      event(1, [Relation.race_officer], { status: "live" }),
+      event(2, [Relation.jury], { status: "live" }),
+      event(3, [SAILOR, Relation.helper], { status: "live" }),
+      event(4, [Relation.race_officer], { status: "planned", starts_on: "2027-01-01" }),
+    ];
+    const blocks = liveNow(contexts, TODAY);
+    expect(blocks.map((b) => [b.context.id, b.sections, b.publicLive])).toEqual([
+      [1, ["race-control", "results", "check-in", "notice-board"], false],
+      [2, ["notice-board"], false],
+      [3, ["overview", "my-claims", "crew"], true],
+    ]);
+  });
+
+  test("the to-dos are grouped by context, each group where its most urgent one came", () => {
+    const todo = (kind: string, id: number | null, code: string): Todo =>
+      ({ code, count: 1, section: "overview", severity: "soon", context: { kind, id } }) as Todo;
+    const groups = groupTodos([todo("event", 3, "checkin_waivers_missing"), todo("club", 7, "minor_without_guardian"), todo("event", 3, "claims"), todo("me", null, "waiver")]);
+    expect(groups.map((g) => [refKey(g.ref), g.todos.map((t) => t.code)])).toEqual([
+      ["event:3", ["checkin_waivers_missing", "claims"]],
+      ["club:7", ["minor_without_guardian"]],
+      ["me", ["waiver"]],
+    ]);
+  });
+
+  test("last visited keeps five sections, the latest first, each once", () => {
+    const data = new Map<string, string>();
+    const storage = { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => void data.set(k, v) };
+    for (const section of ["members", "squads", "crews", "waivers", "hosting", "members", "my-claims"]) {
+      rememberVisit({ ref: { kind: "club", id: 7 }, section, name: "ASVW", label: section }, storage);
+    }
+    expect(readVisits(storage).map((v) => v.section)).toEqual(["my-claims", "members", "hosting", "waivers", "crews"]);
   });
 });

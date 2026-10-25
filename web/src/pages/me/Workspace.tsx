@@ -11,6 +11,7 @@ import {
   readRecent,
   refKey,
   rememberRecent,
+  rememberVisit,
   sectionPath,
   sidebar,
   switcherEntries,
@@ -80,7 +81,8 @@ export function WorkspaceFrame({
   const section = groups.some((g) => g.sections.includes(key)) ? panels.find((s) => s.key === key) : undefined;
   const group = groups.find((g) => g.sections.includes(key));
   const notices = sections.filter((s) => s.notice && needs.some((n) => s.needs?.includes(n.code)));
-  const count = (s: WorkspaceSection) => needs.filter((n) => s.needs?.includes(n.code)).reduce((sum, n) => sum + n.count, 0);
+  // Each to-do names the section that clears it (#33): that section carries its count.
+  const count = (k: string) => needs.filter((n) => n.section === k).reduce((sum, n) => sum + n.count, 0);
 
   const label = (k: string) => (k === "overview" ? t("workspace.overview") : (panels.find((s) => s.key === k)?.label ?? k));
   const crumbs: Crumb[] = [{ label: shortName || name, to: sectionPath(current) }];
@@ -99,6 +101,14 @@ export function WorkspaceFrame({
   useEffect(() => {
     if (id !== null && (kind === "club" || kind === "series" || kind === "event")) rememberRecent({ kind, id });
   }, [kind, id]);
+  // *Last visited* on the landing page: the sections, not the overviews (§4).
+  const visitLabel = section && key !== "overview" ? label(key) : null;
+  const visitName = shortName || name;
+  useEffect(() => {
+    if (!visitLabel) return;
+    const ref: ContextRef = id === null ? { kind: kind as "me" | "office" } : { kind: kind as "club" | "series" | "event", id };
+    rememberVisit({ ref, section: key, name: visitName, label: visitLabel });
+  }, [kind, id, key, visitLabel, visitName]);
 
   // A section I do not have, or one this screen has not built: its context's overview,
   // rather than an empty page or a panel I may not use.
@@ -110,10 +120,7 @@ export function WorkspaceFrame({
       groups={groups}
       active={key}
       label={label}
-      count={(k) => {
-        const s = panels.find((p) => p.key === k);
-        return s ? count(s) : 0;
-      }}
+      count={count}
       to={(k) => sectionPath(current, k)}
     />
   );

@@ -4,7 +4,7 @@ import type { Page, TestInfo } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
 
-import { expectNoSidewaysScroll, openSection, openUserMenu } from "./layout";
+import { expectNoSidewaysScroll, openSection, openSwitcher, openUserMenu } from "./layout";
 import { bearer, managedClub, signIn } from "./session";
 
 /** Story VA-9: running an event, in a real browser.
@@ -631,12 +631,13 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     // claim is about the nav, not about typing a URL.
     await page.goto("/");
     await openUserMenu(page);
-    // "My space" is the way in (Story Z-8), the club's card the way on (Story S-7).
+    // "My space" is the way in (Story Z-8), the switcher the way on (Story Z-10).
     const link = page.getByTestId("layout-user-menu-mySpace");
     await expect(link).toBeVisible();
     await link.click();
     await expect(page).toHaveURL(/\/me$/);
-    await page.getByTestId(`me-card-club-${clubId}`).click();
+    await openSwitcher(page);
+    await page.getByTestId(`workspace-switcher-club-${clubId}`).click();
     await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}`));
 
     // The breadcrumb is where a page states its name now (Story A-12), so that is what

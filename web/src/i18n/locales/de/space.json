@@ -301,6 +301,21 @@
       "setup": "Einrichten",
       "raceday": "Wettfahrttag",
       "office": "Ligabüro"
+    },
+    "nothingWaits": "Nichts wartet auf Sie.",
+    "liveNow": "Jetzt live",
+    "toDo": "Zu erledigen",
+    "lastVisited": "Zuletzt besucht",
+    "live": {
+      "race-control": "Wettfahrtleitung",
+      "results": "Ergebnisse",
+      "check-in": "Check-in",
+      "notice-board": "Aushang",
+      "crew": "Meine Crew",
+      "overview": "Zeiten und Personen",
+      "my-claims": "Meine Abrechnungen",
+      "news": "News & Bilder",
+      "publicLive": "Live-Ansicht"
     }
   }
 }

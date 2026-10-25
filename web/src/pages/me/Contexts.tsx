@@ -17,7 +17,8 @@ import { ClubEvents, ClubTeams, ClubWaivers } from "./ClubSections";
 import { ClubMoneyTab, EventClaimsTab } from "./Money";
 import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
 import { Wards, Waivers } from "./Waivers";
-import { NeedsLine, RelationChips } from "./Chips";
+import { RelationChips } from "./Chips";
+import { TodoList } from "./Todos";
 import { contextPath, useMySpace } from "./shared";
 import { WorkspaceFrame, type WorkspaceSection } from "./Workspace";
 
@@ -49,24 +50,33 @@ function legacyTarget(base: string, map: Record<string, string>, params: URLSear
   return `${base}${section ? `/${section}` : ""}${query ? `?${query}` : ""}`;
 }
 
-/** What a context opens on until #33 gives it its to-dos: the dates, the state, the
- *  public page, my relations and what waits for me there. */
+/** What a context opens on (§4): what waits for me there, each a link to the section that
+ *  clears it — *Nothing waits for you* when nothing does — then its state: dates, status,
+ *  the public page, my relations. */
 function ContextSummary({ context, link }: { context: MyContext; link: string | null }) {
   const { t } = useTranslation("space");
   const testId = `me-context-${context.kind}-${context.id}`;
   return (
-    <div className="flex flex-col gap-2" data-testid={testId}>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-        {(context.kind === "event" || context.starts_on) && <span>{eventDates(context)}</span>}
-        {context.status && <StatusBadge status={context.status} testId={`${testId}-status`} />}
-        {link && (
-          <Link to={link} className="underline underline-offset-2" data-testid={`${testId}-public`}>
-            {t("context.publicPage")}
-          </Link>
-        )}
+    <div className="flex flex-col gap-4" data-testid={testId}>
+      {context.needs.length ? (
+        <TodoList context={{ kind: context.kind, id: context.id }} needs={context.needs} testId={`${testId}-todo`} />
+      ) : (
+        <p className="text-sm text-muted" data-testid={`${testId}-nothing`}>
+          {t("workspace.nothingWaits")}
+        </p>
+      )}
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+          {(context.kind === "event" || context.starts_on) && <span>{eventDates(context)}</span>}
+          {context.status && <StatusBadge status={context.status} testId={`${testId}-status`} />}
+          {link && (
+            <Link to={link} className="underline underline-offset-2" data-testid={`${testId}-public`}>
+              {t("context.publicPage")}
+            </Link>
+          )}
+        </div>
+        <RelationChips relations={context.relations} testId={`${testId}-relations`} />
       </div>
-      <RelationChips relations={context.relations} testId={`${testId}-relations`} />
-      <NeedsLine needs={context.needs} testId={`${testId}-needs`} />
     </div>
   );
 }
