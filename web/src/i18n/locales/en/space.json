@@ -77,21 +77,32 @@
     "amountLabel": "Amount (€)",
     "addItem": "Add item",
     "removeItem": "Remove",
-    "receiptsTitle": "Receipts",
-    "receiptsEmpty": "No receipts yet.",
-    "receiptFor": "For",
-    "receiptWholeClaim": "the whole claim",
-    "uploadReceipt": "Upload receipt",
+    "receiptsTitle": "Receipts for the whole claim",
+    "receiptsEmpty": "None — an item's own receipts are under the item.",
     "removeReceipt": "Remove",
     "submit": "Submit",
     "submitted": "The claim is submitted.",
     "withdraw": "Withdraw",
     "deleteDraft": "Delete draft",
+    "withdrawPrompt": "A withdrawn claim cannot be submitted again.",
+    "withdrawConfirm": "Withdraw for good",
+    "deleteDraftConfirm": "Delete for good",
+    "keep": "Keep",
     "unavailable": {
       "at": "{relation, select, jury {You are on the jury at {event},} race_officer {You are on the race committee at {event},} manager {You organize {event},} helper {You are a helper at {event},} other {You work at {event},}}",
       "noHostClub": "but it has no host club yet — the host club pays the claims. Ask its organizer to set one.",
       "notCovered": "but its host club does not pay for this work."
-    }
+    },
+    "reopenHint": "You can still change it until it is approved — a change makes it a draft again, to be submitted again.",
+    "itemReceipt": "Receipt",
+    "editItem": "Change",
+    "editItemTitle": "Change the item",
+    "saveItem": "Save",
+    "cancel": "Cancel",
+    "untilLabel": "Until",
+    "untilHint": "Only for several days — a hotel's nights, a weekend's per-diem.",
+    "uploadItemReceipt": "Receipt for this item",
+    "uploadClaimReceipt": "Receipt for the whole claim"
   },
   "itemKinds": {
     "travel_car": "Car",
@@ -101,11 +112,10 @@
     "meals": "Meals",
     "other": "Other"
   },
-  "itemCar": "{km} km × {rate}",
+  "itemCar": "{km, number} km × {rate}",
   "statuses": {
     "draft": "Draft",
     "submitted": "Submitted",
-    "returned": "Returned",
     "approved": "Approved",
     "rejected": "Rejected",
     "withdrawn": "Withdrawn"
@@ -125,11 +135,9 @@
     "by": "{name}",
     "submittedOn": "submitted {date}",
     "payee": "Pay to {name}, {iban}",
-    "approveAs": "Approve as (€)",
     "noteLabel": "Note",
-    "noteHint": "required to return or reject",
+    "noteHint": "required to reject — the claimant reads it, corrects the claim and submits it again",
     "approve": "Approve",
-    "return": "Return",
     "reject": "Reject",
     "paidOnLabel": "Paid on",
     "paidOnHint": "empty: today",
@@ -189,6 +197,7 @@
     "sailor": "Sailor",
     "admin": "Admin",
     "manager": "Organizer",
+    "editor": "Editor",
     "treasurer": "Treasurer",
     "race_officer": "Race officer",
     "jury": "Jury",
@@ -201,7 +210,8 @@
     "crew_missing": "{count, plural, one {1 upcoming entry has no crew named} other {# upcoming entries have no crew named}}",
     "documents_expired": "{count, plural, one {1 document has expired} other {# documents have expired}}",
     "crew_waiver_missing": "{count, plural, one {1 upcoming matchday has a crew member without a cleared waiver} other {# upcoming matchdays have crew members without a cleared waiver}}",
-    "ward_waiver": "{count, plural, one {Your child's liability waiver waits for you} other {# liability waivers of your children wait for you}}"
+    "ward_waiver": "{count, plural, one {Your child's liability waiver waits for you} other {# liability waivers of your children wait for you}}",
+    "claim_rejected": "{count, plural, one {1 of your claims was rejected — read why and correct it} other {# of your claims were rejected — read why and correct them}}"
   },
   "overview": {
     "me": "Me",
@@ -240,8 +250,10 @@
       "crew": "My crew",
       "toDecide": "Claims to decide",
       "raceControl": "Race control",
-      "organize": "Organize"
-    }
+      "organize": "Organize",
+      "hosting": "Hosting"
+    },
+    "organizeHosted": "The events your club hosts are organized in the administration's Events tab — the date, the clubs, the draw and publication. An event outside a series you create there too."
   },
   "clubWaivers": {
     "none": "The club is in no running competition, so there is no waiver to collect.",

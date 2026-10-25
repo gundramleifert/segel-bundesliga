@@ -5,10 +5,10 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
-import type { ItemCut } from './itemCut';
 
+/**
+ * The claim is approved as it stands: the decider changes no amount (Story F-3).
+ */
 export interface ApproveBody {
-  /** Items approved below their claim; others as claimed. */
-  items?: ItemCut[];
   note?: string | null;
 }

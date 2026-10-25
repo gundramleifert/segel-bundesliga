@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import { useListAllEvents } from "../../../api/generated/sbl";
+import { useEventCreateOptions, useListAllEvents } from "../../../api/generated/sbl";
 import type { EventSummary } from "../../../api/types";
 import { useAsync } from "../../../api/useApi";
 import { AddButton } from "../../../components/AddButton";
@@ -47,12 +47,19 @@ export function EventsAdmin() {
     ),
   );
 
+  // The "＋" only for whom the server lets create one (Story VA-6) — a jury member or an
+  // event's race officer has this tab too, and a button ending in a refusal is worse
+  // than none.
+  const mayCreate = useEventCreateOptions().data?.may_create ?? false;
+
   return (
     <Section
       title={t("manage.title")}
       testId="admin-manage-events-section"
       action={
-        <AddButton label={t("events.wizardTitle")} to="/admin/events/new" testId="admin-events-new-button" />
+        mayCreate ? (
+          <AddButton label={t("events.wizardTitle")} to="/admin/events/new" testId="admin-events-new-button" />
+        ) : undefined
       }
     >
       <Field label={t("manage.searchLabel")} hint={t("manage.searchHint")}>

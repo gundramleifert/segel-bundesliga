@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from app.db import SessionLocal
-from app.models import Club, Event, Sailor, Series, Team, TeamMembership
+from app.models import Club, Event, Sailor, Series, Team, TeamMembership, TeamStatus
 from app.models.auth import Role
 from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
@@ -117,6 +117,36 @@ class TestCreatingSailors:
             f"/api/admin/sailors/{created.json()['id']}", headers=own, json={"first_name": "Neo"}
         )
         assert renamed.status_code == 200, renamed.text
+
+    async def test_an_address_once_set_is_the_league_offices_to_change(self, client, caplog):
+        """Story V-4: the address links a sailor's record to an account (waivers, the
+        profile). A club's organizer gives one to a person who has none; re-pointing it
+        would hand the record to another account, so only the league office does that —
+        however the person came into the organizer's squad."""
+        manager = await as_role(client, caplog, "sg-mail@example.com", Role.TEAM_MANAGER)
+        office = await as_role(client, caplog, "sg-mail-office@example.com", Role.ADMIN)
+        created = await client.post(
+            "/api/admin/sailors",
+            headers=manager,
+            json={"first_name": "Mia", "last_name": "Mail", "email": "sg-mia@example.com"},
+        )
+        sailor = created.json()["id"]
+
+        refused = await client.patch(
+            f"/api/admin/sailors/{sailor}", headers=manager, json={"email": "sg-other@example.com"}
+        )
+        assert refused.status_code == 403
+        assert refused.json()["type"] == "/errors/sailor-email-locked"
+        unchanged = await client.patch(
+            f"/api/admin/sailors/{sailor}",
+            headers=manager,
+            json={"first_name": "Maja", "email": "sg-mia@example.com"},
+        )
+        assert unchanged.status_code == 200, unchanged.text
+        moved = await client.patch(
+            f"/api/admin/sailors/{sailor}", headers=office, json={"email": "sg-other@example.com"}
+        )
+        assert moved.status_code == 200, moved.text
 
     async def test_email_is_required(self, client, caplog):
         """Someone created through this form must be reachable — name alone won't do."""
@@ -380,6 +410,32 @@ class TestSquadRefusalsAreTyped:
         assert problem["selections"]
         assert problem["selections"][0]["event"]
         assert problem["selections"][0]["sailor"]
+
+    async def test_a_rejected_registration_takes_no_squad(self, client, caplog):
+        """Story V-1: a rejected registration never became a participation — a squad on it
+        would hold people for a series the club is not in."""
+        async with SessionLocal() as session:
+            club = Club(slug="sq-rejected", name="Rejected Sailing Club", short_name="RSC")
+            session.add(club)
+            await session.flush()
+            # A series of its own: a rejected row in a seeded series would be the "most
+            # recent registration" other tests here pick.
+            own = Series(slug="sq-rejected-series", name="Rejected Cup 2026", short_name="RC")
+            session.add(own)
+            await session.flush()
+            series = own.id
+            team = Team(name="RSC", club_id=club.id, series_id=series, status=TeamStatus.REJECTED)
+            session.add(team)
+            await session.commit()
+            team_id, club_id = team.id, club.id
+        manager = await as_role(
+            client, caplog, "sq-rejected@example.com", Role.TEAM_MANAGER, club_id=club_id
+        )
+        refused = await client.put(
+            f"/api/admin/teams/{team_id}/members", headers=manager, json={"members": []}
+        )
+        assert refused.status_code == 409
+        assert refused.json()["type"] == "/errors/squad-registration-rejected"
 
     async def test_a_person_who_does_not_exist_is_a_typed_404(self, client, caplog):
         admin = await as_role(client, caplog, "typed5@example.com", Role.ADMIN)

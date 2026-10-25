@@ -287,6 +287,7 @@ export function ClubPage() {
           {
             ...tabRule(CLUB_TABS, "claims"),
             label: t("context.tabs.myClaims"),
+            needs: ["claim_rejected"],
             render: () => <ClaimsTab target={{ kind: "club", id: c.id }} />,
           },
           {
@@ -294,6 +295,18 @@ export function ClubPage() {
             label: t("context.tabs.money"),
             needs: ["claims"],
             render: () => <ClubMoneyTab clubId={c.id} clubName={c.name} />,
+          },
+          {
+            ...tabRule(CLUB_TABS, "hosting"),
+            label: t("context.tabs.hosting"),
+            render: () => (
+              <Door
+                text={t("context.organizeHosted")}
+                to="/admin?tab=events"
+                label={t("context.organizeLink")}
+                testId="me-club-hosting"
+              />
+            ),
           },
         ];
       }}
@@ -394,6 +407,7 @@ export function EventPage() {
           // Those who work the event file claims on it (Story F-2); sailing is not work.
           ...tabRule(EVENT_TABS, "claims"),
           label: t("context.tabs.myClaims"),
+          needs: ["claim_rejected"],
           render: () => <ClaimsTab target={{ kind: "event", id: c.id }} />,
         },
         {

@@ -36,18 +36,21 @@ Mehr unter [Rollen](#roles-list).
 
 Entwürfe und Ihre eigenen Abrechnungen erscheinen nie.
 
-![Eine wartende Abrechnung im Reiter Finanzen des Vereins: *Genehmigen* ①, *Zurückgeben* ②, *Ablehnen* ③](shot:help-claims-pending)
+![Eine wartende Abrechnung im Reiter Finanzen des Vereins: *Genehmigen* ①, *Ablehnen* ②](shot:help-claims-pending)
 
-### Genehmigen, zurückgeben oder ablehnen {#decide-claims-decide}
+### Genehmigen oder ablehnen {#decide-claims-decide}
 
-1. Positionen und *Belege* prüfen. Das Öffnen eines Belegs wird protokolliert.
-2. *Genehmigen* ①. Um für eine Position weniger zu zahlen, sie unter *Genehmigen mit (€)*
-   senken – nie über den beantragten Betrag. Der *Hinweis* ist hier optional.
-3. Oder die Abrechnung *Zurückgeben* ②, damit sie geändert wird, oder *Ablehnen* ③. Beides
-   braucht einen *Hinweis*, den die abrechnende Person liest.
+1. Positionen und ihre Belege prüfen – die einer Position unter ihr, einer für die ganze
+   Abrechnung darunter. Das Öffnen eines Belegs wird protokolliert.
+2. Die Abrechnung, wie sie ist, *Genehmigen* ①. Der *Hinweis* ist hier optional.
+3. Oder *Ablehnen* ②, mit einem *Hinweis*, warum – ein falscher Preis, ein fehlender
+   Beleg. Beträge ändern Sie nicht selbst: Die abrechnende Person liest Ihren Hinweis in
+   *Mein Bereich*, korrigiert die Abrechnung und reicht sie neu ein, dann ist sie wieder
+   hier.
 
 Entschieden wird nur eine Abrechnung im Status *Eingereicht*; jede Entscheidung wird mit
-Person und Zeitpunkt festgehalten.
+Person und Zeitpunkt festgehalten. Ändert die abrechnende Person sie, während Sie sie
+ansehen, ist sie wieder ein Entwurf und verschwindet, bis sie neu eingereicht ist.
 
 ### Eine Abrechnung zahlen {#decide-claims-girocode}
 

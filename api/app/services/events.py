@@ -76,6 +76,35 @@ async def place_event(
     return EventPlacement(matchday, await free_slug(session, desired))
 
 
+async def matchday_in(
+    session: AsyncSession, series: Series | None, matchday: int | None, *, event_id: int
+) -> int | None:
+    """The matchday an existing event takes in ``series`` — the same rule as
+    :func:`place_event`: none outside a series, the next one when none is asked for, and a
+    number another event of the series has is refused with :class:`MatchdayTaken`."""
+    if series is None:
+        return None
+    if matchday is None:
+        highest = (
+            await session.execute(
+                select(func.max(Event.matchday)).where(
+                    Event.series_id == series.id, Event.id != event_id
+                )
+            )
+        ).scalar_one()
+        return (highest or 0) + 1
+    taken = (
+        await session.execute(
+            select(Event.id).where(
+                Event.series_id == series.id, Event.matchday == matchday, Event.id != event_id
+            )
+        )
+    ).scalar_one_or_none()
+    if taken is not None:
+        raise MatchdayTaken(matchday)
+    return matchday
+
+
 async def _matchday_exists(session: AsyncSession, series_id: int, matchday: int) -> bool:
     match = (
         await session.execute(

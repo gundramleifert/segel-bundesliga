@@ -86,7 +86,7 @@ async def may_see_documents(session: AsyncSession, viewer: User, owner_id: int) 
 
 async def forget(session: AsyncSession, user: User) -> None:
     """What goes with a deleted account (Story Z-7), not yet committed: the documents and
-    their files, the bank account, the claims never submitted. A submitted claim stays —
+    their files, the bank account, the claims never submitted. A claim submitted once stays —
     it is the paying club's record — with the account link cleared, its claimant's name
     and IBAN copy kept for the books (open question Q5 of the plan)."""
     documents = (
@@ -105,6 +105,7 @@ async def forget(session: AsyncSession, user: User) -> None:
                 select(ExpenseClaim).where(
                     ExpenseClaim.claimant_user_id == user.id,
                     ExpenseClaim.status == ClaimStatus.DRAFT,
+                    ExpenseClaim.submitted_at.is_(None),
                 )
             )
         )
@@ -115,6 +116,16 @@ async def forget(session: AsyncSession, user: User) -> None:
         for receipt in claim.documents:
             uploads.discard(RECEIPTS, receipt.stored_name)
         await session.delete(claim)
+    # A draft that was submitted once — changed after submission — is a record the club
+    # has seen, so it stays, withdrawn: nobody is left to submit it again.
+    await session.execute(
+        update(ExpenseClaim)
+        .where(
+            ExpenseClaim.claimant_user_id == user.id,
+            ExpenseClaim.status == ClaimStatus.DRAFT,
+        )
+        .values(status=ClaimStatus.WITHDRAWN)
+    )
 
     await session.execute(
         update(ExpenseClaim)

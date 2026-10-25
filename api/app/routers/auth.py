@@ -15,7 +15,6 @@ from app.auth import (
     create_access_token,
     current_user,
     require_admin,
-    require_team_manager,
 )
 from app.authz import ObjectRef
 from app.db import get_session
@@ -412,6 +411,9 @@ async def delete_my_account(
     deleting the account never touches squad, series, or event history — only the account
     row and the administrative records that point at it by id.
     """
+    # A club this account is the last admin of would be left unmanaged (Story A-8) — the
+    # whole account going is one way past `grants.revoke`'s guard.
+    await grants.require_not_last_organizer(session, acting)
     # A waiver confirmation is someone else's evidence that they agreed to the waiver —
     # it must not disappear just because the staff member who recorded it deleted their
     # own account. Drop the reference, keep the confirmation.
@@ -436,7 +438,7 @@ USER_SORT = {"display_name": User.display_name, "email": User.email}
 @router.get(
     "/users",
     response_model=Page[UserOut],
-    dependencies=[Depends(require_team_manager)],
+    dependencies=[Depends(require_admin)],
     summary="List accounts",
 )
 async def list_users(
@@ -444,7 +446,9 @@ async def list_users(
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[UserOut]:
-    """Also for team managers: they need to find people to assign to their club.
+    """The league office's alone: every account with every tuple, so who is in which club
+    — affiliation, which is not public (Story V-10). A club's admin adds members by
+    address on the club's own page, never by browsing this list.
 
     Paged since Story A-13 — there is one account per registered sailor, so this list is
     as long as the sailor register and had no limit at all.
@@ -520,6 +524,8 @@ async def remove_user(
     user = await get_or_404(session, User, user_id)
     if user.id == acting.id:
         raise Problem(409, "account-self-removal", "You cannot remove your own account.")
+    # A deactivated admin still holds the tuple but can no longer sign in to use it.
+    await grants.require_not_last_organizer(session, user)
 
     user.is_active = False
     await session.commit()
@@ -603,7 +609,7 @@ async def read_tuples(
     acting: User = Depends(current_user),
 ) -> list[TupleOut]:
     """The access list of one object — the event panel shows its managers, race officers
-    and jury here. Open to the site's admin and to the object's own managers."""
+    and jury here. Open to the site's admin and to the object's own admins."""
     object_type, object_id = _object(object)
     obj = await grants.resolve(session, object_type, object_id)
     _may_administer(acting, object_type, obj)
@@ -624,7 +630,7 @@ async def write_tuple(
 ) -> TupleOut:
     """Story Z-2. The rules — the schema, the object must exist, no duplicate — live in
     `app/services/grants.py`, shared with the club screen. The site's admin writes any
-    tuple; an object's manager writes tuples on that object, so an organizer names the
+    tuple; an object's admin writes tuples on that object, so an organizer names the
     race officers and the jury of their own event without administration."""
     object_type, object_id = _object(request.object)
     obj = await grants.resolve(session, object_type, object_id)

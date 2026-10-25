@@ -6,8 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ItemCut {
-  item_id: number;
-  /** @minimum 0 */
-  approved_cents: number;
+export interface SeriesChoice {
+  id: number;
+  name: string;
+  /** Accepted series registrations — the act's default size */
+  registered: number;
 }

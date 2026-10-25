@@ -372,6 +372,9 @@ Acceptance criteria:
   change. Removing the club's last `admin` is refused with the same `last-organizer`
   code until someone else holds `admin` on it; a manager may still go while an admin
   remains, because the admin is a manager too.
+- **The whole account going is no way past it** (2026-10-24): deleting one's own
+  account, or the league office deactivating it, is refused with `last-organizer` while
+  it holds a club's last `admin` or last organizer relation.
 - Every grant and revoke is written to the audit log.
 
 Endpoints: the tuple endpoints of Story Z-2 — `GET /api/auth/tuples?object=club:<id>`,
@@ -484,9 +487,12 @@ Acceptance criteria:
   opens the first tab the signed-in user may see rather than erroring.
 - **A tab a role may not use does not exist for it.** Accounts is `admin` only, exactly as
   the section was; the site's `admin` sees every tab, a series' manager *Series* and
-  *Events*, an event's manager or jury *Events*, and an `editor` — of the site, a series
-  or an event — *News* and *Media* alone (decided 2026-10-24). Until 2026-10-24 the
-  site's `editor` also had Clubs, Series, Events and Sailors.
+  *Events*, an event's manager, race officer or jury *Events*, a club's organizer
+  *Events* — the events their club hosts, and the "＋" to create one (Story VA-6) — and
+  an `editor` — of the site, a series or an event — *News* and *Media* alone (decided
+  2026-10-24). Until 2026-10-24 the site's `editor` also had Clubs, Series, Events and
+  Sailors, and a club's organizer had no tab at all, though the server let them create
+  their club's events — a permission with no screen.
 - **Only the selected tab's panel is mounted.** This is the part that pays for itself: the
   page used to issue every area's queries on load — clubs, series, events, readiness,
   sailors, accounts — and now issues one area's.

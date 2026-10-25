@@ -115,6 +115,7 @@ export type { BankAccountOut as BankAccount } from "./generated/model/bankAccoun
 /** Stories F-2 to F-6: an expense claim, its items, and what it may be filed on. */
 export type { ClaimOut as Claim } from "./generated/model/claimOut";
 export type { ItemOut as ClaimItem } from "./generated/model/itemOut";
+export type { ClaimDocumentOut as ClaimDocument } from "./generated/model/claimDocumentOut";
 export type { ClaimTarget } from "./generated/model/claimTarget";
 export type { UnavailableEvent } from "./generated/model/unavailableEvent";
 export { UnclaimableReason } from "./generated/model/unclaimableReason";

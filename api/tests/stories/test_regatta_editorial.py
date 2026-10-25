@@ -90,7 +90,9 @@ class TestEditorialOfOneRegatta:
 
         foreign = await _upload(client, office, series_id=ids.series(ELSEWHERE))
         listed = (await client.get("/api/admin/media", headers=editor)).json()["items"]
-        assert [p["id"] for p in listed] == [mine.json()["id"]]
+        # Their regatta's pictures — other tests may have added some — and no other's.
+        assert mine.json()["id"] in [p["id"] for p in listed]
+        assert foreign.json()["id"] not in [p["id"] for p in listed]
         url = f"/api/admin/media/{foreign.json()['id']}"
         assert (await client.get(url, headers=editor)).status_code == 404
         moved = await client.patch(

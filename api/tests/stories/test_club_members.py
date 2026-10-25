@@ -273,6 +273,31 @@ class TestOrganizers:
         assert refused.status_code == 409
         assert _problem_code(refused) == "last-organizer"
 
+    async def test_the_last_admin_cannot_leave_with_the_whole_account(self, client, caplog):
+        """Story A-8: deleting one's own account, or the league office deactivating it, is
+        the whole account going at once — no way past the last-admin rule."""
+        club, admin = await _club_with_admin(client, caplog, "cm-oadmin-gone@example.org")
+        refused = await client.delete("/api/auth/me", headers=admin)
+        assert refused.status_code == 409, refused.text
+        assert _problem_code(refused) == "last-organizer"
+
+        site = await _admin_headers(client, caplog, "cm-site-gone@example.org")
+        me = (await client.get("/api/auth/me", headers=admin)).json()
+        deactivated = await client.delete(f"/api/auth/users/{me['id']}", headers=site)
+        assert deactivated.status_code == 409
+        assert _problem_code(deactivated) == "last-organizer"
+
+        # With a second admin named, the first may go.
+        await make_user("cm-second@example.org")
+        await _write(client, admin, "cm-second@example.org", "admin", f"club:{club}")
+        assert (await client.delete("/api/auth/me", headers=admin)).status_code == 204
+
+    async def test_a_clubs_organizer_lists_no_accounts(self, client, caplog):
+        """Story V-10: the account list carries every tuple — who is in which club — so it
+        is the league office's alone, not every club's organizer's."""
+        _, admin = await _club_with_admin(client, caplog, "cm-oadmin-list@example.org")
+        assert (await client.get("/api/auth/users", headers=admin)).status_code == 403
+
     async def test_an_organizer_need_not_be_a_member(self, client, caplog):
         """Story A-8: `manager` for a non-member is allowed — organizers often never sail."""
         club, admin = await _club_with_admin(client, caplog, "cm-oadmin2@example.org")

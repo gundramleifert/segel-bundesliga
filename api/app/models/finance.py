@@ -50,14 +50,14 @@ DOCUMENT_MAX_BYTES = 10 * 1024 * 1024
 class ClaimStatus(StrEnum):
     """Where a claim stands — up to the decision, and no further.
 
-    ``draft`` → ``submitted`` → ``approved`` | ``rejected``; ``returned`` sends it back
-    to the claimant with a note, ``withdrawn`` is the claimant's way out before a
-    decision. Whether it is *paid* is not a status: see :class:`PaymentState`.
+    ``draft`` → ``submitted`` → ``approved`` | ``rejected``. A rejected claim, like a
+    submitted one, is the claimant's to change — and a change makes it a ``draft`` again,
+    to be submitted again (decided 2026-10-24). ``withdrawn`` is the claimant's way out
+    before approval. Whether it is *paid* is not a status: see :class:`PaymentState`.
     """
 
     DRAFT = "draft"
     SUBMITTED = "submitted"
-    RETURNED = "returned"
     APPROVED = "approved"
     REJECTED = "rejected"
     WITHDRAWN = "withdrawn"
@@ -176,8 +176,9 @@ class ExpenseClaim(Base, TimestampMixin):
 
     @property
     def approved_cents(self) -> int:
-        """An item not cut by the treasurer counts as claimed."""
-        return sum(item.approved_amount for item in self.items)
+        """What is owed once approved — the claim as it stands: the decider approves or
+        rejects, and changes no amount (Story F-3)."""
+        return self.claimed_cents if self.status == ClaimStatus.APPROVED else 0
 
     @property
     def paid_cents(self) -> int:
@@ -219,14 +220,16 @@ class ExpenseItem(Base, TimestampMixin):
     A car item's amount is ``distance_km × rate_cents`` — and the database says so, so
     no route can store a rounded-up figure. The rate is the paying club's at submission,
     frozen here: a later rate change reprices nothing already filed.
+
+    A date, or a range: ``incurred_until`` is the last day of a hotel's nights or a
+    weekend's per-diem, empty for one day.
     """
 
     __tablename__ = "expense_item"
     __table_args__ = (
         CheckConstraint("amount_cents >= 0", name="amount_not_negative"),
         CheckConstraint(
-            "approved_cents IS NULL OR (approved_cents >= 0 AND approved_cents <= amount_cents)",
-            name="approved_within_claimed",
+            "incurred_until IS NULL OR incurred_until > incurred_on", name="range_ends_later"
         ),
         CheckConstraint(
             "kind <> 'travel_car' OR (distance_km IS NOT NULL AND rate_cents IS NOT NULL"
@@ -239,19 +242,14 @@ class ExpenseItem(Base, TimestampMixin):
     claim_id: Mapped[int] = mapped_column(ForeignKey("expense_claim.id"), index=True)
     kind: Mapped[str] = mapped_column(String(24))
     incurred_on: Mapped[date] = mapped_column(Date)
+    incurred_until: Mapped[date | None] = mapped_column(Date, default=None)
     description: Mapped[str] = mapped_column(String(300))
     # Car only.
     distance_km: Mapped[int | None] = mapped_column(default=None)
     rate_cents: Mapped[int | None] = mapped_column(default=None)
     amount_cents: Mapped[int] = mapped_column()
-    # Set by the treasurer to cut an item; empty means approved as claimed.
-    approved_cents: Mapped[int | None] = mapped_column(default=None)
 
     claim: Mapped[ExpenseClaim] = relationship(back_populates="items")
-
-    @property
-    def approved_amount(self) -> int:
-        return self.amount_cents if self.approved_cents is None else self.approved_cents
 
 
 class ExpenseDocument(Base, TimestampMixin):

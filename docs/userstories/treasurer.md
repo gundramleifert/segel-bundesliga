@@ -76,18 +76,37 @@ Acceptance criteria:
   that while holding one stops trusting the page. The server says which events and why
   (`unavailable` beside `targets`), the page words it.
 - Items: car (km × the paying club's rate, frozen at submission), public transport,
-  accommodation, per-diem, meals, other. Amounts in whole cents.
+  accommodation, per-diem, meals, other. Amounts in whole cents, entered and shown in the
+  reader's language ("12,50 €" / "€12.50"; a comma or a point is read either way).
+- **Each item has a date, or a range of dates** (decided 2026-10-24): a hotel is three
+  nights, a per-diem a weekend — `incurred_on` and, for a range, `incurred_until`.
 - `draft` → `submitted`. Submitting needs at least one item and a saved bank account
   (Story S-6, `bank-account-missing`); the account holder and IBAN are **copied onto the
-  claim** then, so a payout goes where the claimant said at the time. The claimant can
-  withdraw until it is decided, and edit again once it is returned.
+  claim** then, so a payout goes where the claimant said at the time.
+- **The claimant edits a claim until it is approved** (decided 2026-10-24): a draft, a
+  submitted one and a rejected one — its title, its items (added, changed, removed) and
+  its receipts. Changing a submitted or a rejected claim makes it a **draft** again, to
+  be submitted again: the manager or treasurer never decides a claim that is changing
+  under them. **Only an approved claim is frozen** (and a withdrawn one). The claimant can
+  withdraw until it is approved. Until 2026-10-24 a submitted claim was frozen, and only a
+  *returned* one editable.
+- **Who is to act is told** (decided 2026-10-24): a submitted claim waits on the manager's
+  or treasurer's card in "My space" (`claims`, Story F-6); a rejected one on the
+  claimant's, with the decider's message (`claim_rejected`), until they change it or
+  withdraw it. Resubmitted, it waits on the decider again.
+- **A claim submitted once is withdrawn, never deleted** — even after a change made it a
+  draft again: a decider has seen it and its audit trail stays with it. Only a draft never
+  submitted is deleted (`claim-was-submitted` otherwise), and both ask once more before
+  they act. Such a reopened draft stays out of the club's yearly books until it is
+  submitted again, and an account deleted with one open withdraws it.
 
 Tests: `api/tests/stories/test_expenses.py::TestClaimTotals`,
 `api/tests/stories/test_expenses.py::TestTheDatabaseKeepsTheBooksStraight`,
 `api/tests/stories/test_reimbursements.py::TestFilingAClaim`,
-`e2e/my-space.spec.ts::F-2: the people who work an event claim their costs on it`
+`e2e/my-space.spec.ts::F-2: the people who work an event claim their costs on it`,
+`e2e/my-space.spec.ts::F-2/F-3/F-5: a claim goes round — filed, rejected with a message, corrected, approved`
 
-### F-3 ● The manager or the treasurer approves, returns or rejects a claim
+### F-3 ● The manager or the treasurer approves or rejects a claim
 As the **manager or treasurer of the event or club a claim is filed against** I want to
 **check each claim and decide it**, so that **only justified costs are paid**.
 
@@ -98,13 +117,19 @@ Acceptance criteria:
   the site's race committee are managers of events by the model's rewrite (until
   2026-10-24 the site's editor was too), but **not**
   of their money: the check is on the tuple, not on `can(manager)`.
-- Approve (optionally lowering single items, never raising them), return with a note, or
-  reject with a note. Only a `submitted` claim is decided.
+- **Approve, or reject with a message** (decided 2026-10-24). The decider changes no
+  amount: a wrong price is rejected, saying why, and the claimant corrects it and
+  submits again. Until 2026-10-24 the decider could lower single items and *return* a
+  claim beside rejecting it; a rejected claim is now what a returned one was — the
+  claimant's to change. Only a `submitted` claim is decided.
+- Approving re-checks the receipts the paying club requires (`expense-document-missing`)
+  — the claim may have changed since it was first submitted.
 - **Nobody decides their own claim**, whatever relations they hold
   (`claim-own-decision`).
 - Every transition is in the audit log with who and when.
 
-Tests: `api/tests/stories/test_reimbursements.py::TestDecidingAClaim`
+Tests: `api/tests/stories/test_reimbursements.py::TestDecidingAClaim`,
+`e2e/my-space.spec.ts::F-2/F-3/F-5: a claim goes round — filed, rejected with a message, corrected, approved`
 
 ### F-4 ● The manager or treasurer pays and exports
 As the **manager or treasurer** I want to **mark approved claims as paid and export them**,
@@ -138,8 +163,11 @@ As a **claimant** I want to **attach receipts, invoices and tickets to my claim*
 **the manager or treasurer can check what I paid**.
 
 Acceptance criteria:
-- Any number of documents per claim, each optionally tied to one item.
-- Uploaded and deleted while the claim is `draft` or `returned`; frozen from submission.
+- Any number of documents per claim, each optionally tied to one item — **each item has
+  its own upload** (decided 2026-10-24), and a receipt that covers several items (a
+  hotel invoice) goes on the claim.
+- Uploaded and deleted while the claimant may edit the claim (Story F-2): until it is
+  approved. A change to a submitted claim makes it a draft again.
 - The club's policy names the kinds that need a document; submitting without one is
   refused (`expense-document-missing`) and names the items.
 - PDF, JPEG or PNG by content, at most 10 MB, stored under a random name. Read through one

@@ -71,12 +71,16 @@ Acceptance criteria:
 - **Not** the sporting roster: the squad and lineup (`ClubDetail.teams[].members`,
   `.events[].crew`) stay public with no login required, exactly as before — this is only
   about the account-level affiliation.
+- **The account list is the league office's alone** (`GET /api/auth/users`, 2026-10-24):
+  it carries every account's tuples — who is in which club — and was open to every
+  club's organizer.
 
 Endpoints: `GET /api/clubs/{id}/members`
 
 Screen: the Members tab on `/me/club/:id` (Stories V-12, S-7); the roster stays on the public club
 page for a signed-in member as well.
-Tests: `api/tests/stories/test_club_members.py::TestMemberRoster`
+Tests: `api/tests/stories/test_club_members.py::TestMemberRoster`,
+`api/tests/stories/test_club_members.py::TestOrganizers::test_a_clubs_organizer_lists_no_accounts`
 
 ### B-10 ○ My clubs beside the club search
 As **someone who sails**, I want **the clubs I belong to at the top of the clubs page**,

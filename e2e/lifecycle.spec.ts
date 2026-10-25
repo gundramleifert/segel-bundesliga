@@ -604,7 +604,7 @@ describeStory("Z-2: access is a relation tuple, written and deleted one at a tim
   });
 });
 
-describeStory("V-12: a team manager manages their own squad", () => {
+describeStory("V-12/VA-6: a team manager manages their own squad", () => {
   /** A seeded account holding `team_manager`, found rather than hardcoded.
    *
    *  The seed builds its names from a generated list, so `roden.nanisberg1@asvw.example.com`
@@ -688,16 +688,20 @@ describeStory("V-12: a team manager manages their own squad", () => {
     await expectNoSidewaysScroll(page, testInfo);
   });
 
-  test("the admin screen is still refused, which is the point of the separate route", async ({
+  test("the administration opens on the events their club hosts, and nothing else", async ({
     page,
   }) => {
+    // Story VA-6 (decided 2026-10-24): a club's organizer organizes the events their club
+    // hosts and creates one outside a series — in the events tab, the only one theirs.
+    // The squad stays on the club's page in my space.
     await signIn(page, await aTeamManager(page));
     await page.goto("/admin");
-    // Not a redirect and not a blank page — the message says the area is not theirs, and
-    // /club is where their work actually is.
-    await expect(page.getByTestId("admin-access-error")).toBeVisible();
+    await expect(page.getByTestId("admin-events-tab")).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("admin-clubs-tab")).toHaveCount(0);
+    await expect(page.getByTestId("admin-accounts-tab")).toHaveCount(0);
+    await expect(page.getByTestId("admin-events-new-button")).toBeVisible();
     await openUserMenu(page);
-    await expect(page.getByTestId("layout-user-menu-admin")).toHaveCount(0);
+    await expect(page.getByTestId("layout-user-menu-admin")).toBeVisible();
   });
 });
 

@@ -1,7 +1,7 @@
 """Create and manage matchdays.
 
-Access is available to administration, editorial, and race officers — all three contribute
-to an event and should be able to record a date without waiting for someone else.
+Access is available to administration, the site's race committee and the event's
+organizers — the manager of its series or of its host club (Story VA-6).
 
 To create an event, only the **name** is required — everything else, the date included, can
 be filled in later. **Saving never depends on validity** (Story VA-8): an event with the
@@ -54,12 +54,12 @@ from app.services import (
     new_event_entry,
     require_editable_configuration,
 )
-from app.services.events import MatchdayTaken, NoFreeSlug, place_event
+from app.services.events import MatchdayTaken, NoFreeSlug, matchday_in, place_event
 from app.services.lookup import get_or_404
 
 # Permissions are attached to individual routes, not the router: creating an event is also
-# permitted to the host club's leadership (Story VA-6) — everything else is modified only by
-# administration, editorial, and race officers.
+# permitted to the organizers of its series or host club (Story VA-6), and everything else
+# is asked of the model for that one event (`require_on_event`).
 router = APIRouter(prefix="/api/admin/events", tags=["administration"])
 
 
@@ -224,6 +224,75 @@ EVENT_SORT = {
 }
 
 
+class SeriesChoice(BaseModel):
+    id: int
+    name: str
+    registered: int = Field(description="Accepted series registrations — the act's default size")
+
+
+class ClubChoice(BaseModel):
+    id: int
+    name: str
+
+
+class EventCreateOptions(BaseModel):
+    """What this person may pick when creating an event — the rule of `_can_create`,
+    answered before the form is filled rather than as a 403 after it."""
+
+    may_create: bool
+    series: list[SeriesChoice] = Field(description="Series they may add an act to")
+    hosts: list[ClubChoice] = Field(description="Clubs they may name as host of an act")
+    own_hosts: list[int] | None = Field(
+        description="Clubs they may host an event outside a series for; null means any"
+    )
+
+
+@router.get(
+    "/create-options",
+    response_model=EventCreateOptions,
+    summary="What one may pick when creating an event",
+)
+async def event_create_options(
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> EventCreateOptions:
+    """Story VA-6: the wizard offers the series and hosts this person may choose, so a
+    series' or a club's organizer gets a form that works instead of the admin's lists."""
+    site = authz.check(acting, Relation.ADMIN, Relation.RACE_OFFICER)
+    series_stmt = select(Series).order_by(Series.year.desc(), Series.name)
+    own_clubs: set[int] | None = None
+    if not site:
+        series_stmt = series_stmt.where(
+            Series.id.in_(sorted(authz.list_objects(acting, Relation.MANAGER, ObjectType.SERIES)))
+        )
+        own_clubs = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
+    series = list((await session.execute(series_stmt)).scalars())
+    counted = await session.execute(
+        select(Team.series_id, func.count())
+        .where(
+            Team.series_id.in_([s.id for s in series]),
+            Team.event_id.is_(None),
+            Team.status == TeamStatus.ACCEPTED,
+        )
+        .group_by(Team.series_id)
+    )
+    registered = {series_id: count for series_id, count in counted.all()}
+    # An act's host is the series organizer's choice — any club; outside a series only
+    # one's own.
+    clubs_stmt = select(Club).order_by(Club.name)
+    if not site and not series:
+        clubs_stmt = clubs_stmt.where(Club.id.in_(sorted(own_clubs or ())))
+    clubs = list((await session.execute(clubs_stmt)).scalars())
+    return EventCreateOptions(
+        may_create=site or bool(series) or bool(own_clubs),
+        series=[
+            SeriesChoice(id=s.id, name=s.name, registered=registered.get(s.id, 0)) for s in series
+        ],
+        hosts=[ClubChoice(id=c.id, name=c.name) for c in clubs],
+        own_hosts=None if own_clubs is None else sorted(own_clubs),
+    )
+
+
 @router.get(
     "",
     response_model=Page[EventOut],
@@ -282,8 +351,9 @@ async def create_event(
     complete. The dimensions (teams, boats, flights) determine the pairing list: either a
     catalog entry fits, or it must be calculated.
 
-    The **host club's** leadership can create events — they organize it, so they should be
-    able to record the date — as well as administration, editorial, and race officers.
+    Administration and the site's race committee create any event; the manager of a
+    series creates its acts, and the manager of a club the events their club hosts outside
+    a series (`_can_create`).
     """
     series = await get_or_404(session, Series, request.series) if request.series else None
     _can_create(acting, request.host_club_id, series.id if series else None)
@@ -346,6 +416,7 @@ async def update_event(
     event_id: int,
     request: EventUpdate,
     session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
 ) -> EventOut:
     """Change an event — Story VA-8.
 
@@ -368,15 +439,18 @@ async def update_event(
     check_squad_limits(
         changes.get("squad_min", event.squad_min), changes.get("squad_max", event.squad_max)
     )
-    if "series" in changes:
-        series = changes.pop("series")
-        if series is not None:
-            await _series(session, series)
-        changes["series_id"] = series
+    if "title" in changes and changes["title"] is not None:
+        changes["title"] = changes["title"].strip()
+    if "series" in changes or "matchday" in changes:
+        await _place(session, acting, event, changes)
     if "host_club_id" in changes:
         await _check_club(session, changes["host_club_id"])
     if "venue_id" in changes:
         await _check_venue(session, changes["venue_id"])
+    if "starts_on" in changes and "ends_on" not in changes:
+        # A one-day event moved to another day stays a one-day event, as created.
+        if event.ends_on is None or event.ends_on == event.starts_on:
+            changes["ends_on"] = changes["starts_on"]
     for field, value in changes.items():
         setattr(event, field, value)
     if event.teams_per_club > event.team_count:
@@ -839,19 +913,23 @@ def _reach_of(acting: User):
 def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -> None:
     """Who is permitted to create an event.
 
-    The league office and its race committee; and the **organizers** — the manager of the
-    host club, because they run the event and should record the date without waiting for
-    someone else, and the manager of the series it belongs to (Story Z-2). For a foreign
-    host this is not possible — otherwise a club would record dates for others.
+    The league office and its race committee, anything. Then the **organizers**, each
+    within what they organize (Stories VA-6, Z-2):
+
+    - an act of a series is its series manager's — they place their acts and name the club
+      hosting each, which is how a season is planned. A host club's manager adds no act
+      to a series that is not theirs, or any club could extend a league's calendar;
+    - an event outside a series is its host club's — never for a foreign host, or a club
+      would record dates (and costs) for others.
     """
     if authz.check(acting, Relation.ADMIN, Relation.RACE_OFFICER):
         return
+    if series_id is not None:
+        if authz.check(acting, Relation.MANAGER, on=ObjectRef(ObjectType.SERIES, series_id)):
+            return
+        raise Problem(403, "series-not-mine", "Only the series' organizer adds an act to it.")
     if host_club_id is not None and authz.check(
         acting, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, host_club_id)
-    ):
-        return
-    if series_id is not None and authz.check(
-        acting, Relation.MANAGER, on=ObjectRef(ObjectType.SERIES, series_id)
     ):
         return
     if host_club_id is not None and authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
@@ -859,9 +937,49 @@ def _can_create(acting: User, host_club_id: int | None, series_id: int | None) -
     raise Problem(
         403,
         "event-create-forbidden",
-        "Events are created by administration, editorial, race officers, and the "
-        "host club's leadership.",
+        "Events are created by administration, the race committee, and the organizers of "
+        "the series or the host club.",
     )
+
+
+async def _place(
+    session: AsyncSession, acting: User, event: Event, changes: dict[str, object]
+) -> None:
+    """A change of an event's series or matchday, rewritten into ``changes``.
+
+    Moving an event between series takes the right to add an act to the new one and to
+    take one from the old (`_can_create`'s rule, both ways), and is refused while clubs are
+    entered: they were registered for the series it leaves. The matchday follows the
+    series — none outside one, the next when none is asked for, never one already taken.
+    """
+    target = changes.pop("series") if "series" in changes else event.series_id
+    moving = target != event.series_id
+    if moving:
+        if not authz.check(acting, Relation.ADMIN, Relation.RACE_OFFICER):
+            for series_id in (event.series_id, target):
+                if series_id is not None and not authz.check(
+                    acting, Relation.MANAGER, on=ObjectRef(ObjectType.SERIES, series_id)
+                ):
+                    raise Problem(
+                        403, "series-not-mine", "Only the series' organizer moves an act."
+                    )
+        entered = (
+            await session.execute(select(func.count()).where(Team.event_id == event.id))
+        ).scalar_one()
+        if entered:
+            raise Problem(
+                409,
+                "event-has-entries",
+                "Take the entered clubs out before moving the event to another series.",
+                entered=entered,
+            )
+    series = await _series(session, target) if target is not None else None
+    asked = changes.get("matchday", None if moving else event.matchday)
+    try:
+        changes["matchday"] = await matchday_in(session, series, asked, event_id=event.id)
+    except MatchdayTaken as taken:
+        raise Problem(409, "matchday-taken", str(taken), matchday=taken.matchday) from taken
+    changes["series_id"] = target
 
 
 def _boats(event: Event, request: EventCreate) -> list[Boat]:

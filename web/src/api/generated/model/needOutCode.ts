@@ -17,4 +17,5 @@ export const NeedOutCode = {
   crew_waiver_missing: 'crew_waiver_missing',
   documents_expired: 'documents_expired',
   ward_waiver: 'ward_waiver',
+  claim_rejected: 'claim_rejected',
 } as const;

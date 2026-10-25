@@ -276,7 +276,7 @@ status             ClaimStatus                  distance_km     int | None
 payee_name         str   } snapshot at          rate_cents      int | None   (snapshot)
 iban               str   } submit, encrypted    # all kinds
 submitted_at       datetime | None              amount_cents    int          (claimed)
-decided_by_user_id → app_user | None            approved_cents  int | None   (None = as claimed)
+decided_by_user_id → app_user | None            incurred_until  date | None  (a range of days)
 decided_at         datetime | None
 decision_note      str | None
 ```
@@ -310,9 +310,10 @@ claim's approved total.
 **Money is integer cents, currency fixed to EUR.** Never `float`, never `Numeric` read
 into floats. A currency column waits until a non-EUR claim exists.
 
-**Totals are derived:** `claimed = Σ amount_cents`,
-`approved = Σ coalesce(approved_cents, amount_cents)` over items. They are not stored,
-the same as points.
+**Totals are derived:** `claimed = Σ amount_cents` over items, and `approved` is the
+claimed total once the claim is approved — the decider approves or rejects a claim as
+it stands and never lowers an item (decided 2026-10-24). They are not stored, the same
+as points.
 
 **Car items:** `amount_cents = distance_km × rate_cents`, computed by the service on
 save. The rate comes from the policy and is frozen on the item at submit. A later rate

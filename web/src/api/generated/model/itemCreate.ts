@@ -9,7 +9,10 @@ import type { ExpenseKind } from './expenseKind';
 
 export interface ItemCreate {
   kind: ExpenseKind;
+  /** The day, or the first day of a range. */
   incurred_on: string;
+  /** The last day of a range — a hotel's nights; empty for one day. */
+  incurred_until?: string | null;
   /**
      * @minLength 1
      * @maxLength 300

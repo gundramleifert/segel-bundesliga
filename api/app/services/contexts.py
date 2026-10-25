@@ -56,6 +56,7 @@ RELATION_ORDER = [
     SAILOR,
     "admin",
     "manager",
+    "editor",
     "treasurer",
     "race_officer",
     "jury",
@@ -175,9 +176,12 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     await _fill(session, contexts)
     echoed = _series_waiver_on_events(contexts)
     _claims(await expenses.pending(session, user), contexts)
+    rejected = _rejected(await expenses.rejected_of(session, user), contexts)
     await _organizer(session, user, required, contexts)
 
     me_needs = []
+    if rejected:
+        me_needs.append(Need("claim_rejected", rejected))
     expired = await _expired_documents(session, user)
     if expired:
         me_needs.append(Need("documents_expired", expired))
@@ -293,6 +297,20 @@ def _claims(pending: list, contexts: dict[tuple[str, int], Context]) -> None:
             if key[1] is not None and key in contexts:
                 contexts[key].need("claims")
                 break
+
+
+def _rejected(claims: list, contexts: dict[tuple[str, int], Context]) -> int:
+    """Each of my rejected claims, on the card of the event or club it is on — it waits on
+    me now, with the decider's message (Story F-2). Returns how many have no card there,
+    which the page then shows under "Me"."""
+    elsewhere = 0
+    for claim in claims:
+        key = ("event", claim.event_id) if claim.event_id is not None else ("club", claim.club_id)
+        if key in contexts:
+            contexts[key].need("claim_rejected")
+        else:
+            elsewhere += 1
+    return elsewhere
 
 
 async def _organizer(

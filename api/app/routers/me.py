@@ -25,6 +25,7 @@ NeedCode = Literal[
     "crew_waiver_missing",
     "documents_expired",
     "ward_waiver",
+    "claim_rejected",
 ]
 
 

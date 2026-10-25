@@ -28,7 +28,7 @@ Zahlung finden alle in *Mein Bereich* statt.
 - [Wer über eine Abrechnung entscheidet](#decide-claims-who) – Organisation oder
   Kassenwart der Veranstaltung bzw. des Vereins, nie die abrechnende Person selbst.
 - [Finden, was auf Sie wartet](#decide-claims-pending), und
-  [genehmigen, zurückgeben oder ablehnen](#decide-claims-decide).
+  [genehmigen oder mit Hinweis ablehnen](#decide-claims-decide).
 - Eine Abrechnung [per GiroCode](#decide-claims-girocode) zahlen, viele
   [mit einer SEPA-Datei](#payment-runs-create) vom [Konto des Vereins](#payment-runs-bank).
 - [Eintragen, was die Bank gebucht oder zurückgegeben hat](#payment-runs-settle), und

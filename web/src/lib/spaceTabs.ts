@@ -43,6 +43,8 @@ export const CLUB_TABS = {
   waivers: { for: ORGANIZERS },
   claims: { for: ["member"] },
   money: { for: [...ORGANIZERS, "treasurer"] },
+  // The events the club hosts are organized in the administration (Story VA-6).
+  hosting: { for: ORGANIZERS },
 } as const satisfies Record<string, TabRule>;
 
 /** `/me/series/:id`. */
@@ -93,21 +95,27 @@ export type HasRole = (...roles: Role[]) => boolean;
 export const ADMIN_ROLES: readonly Role[] = [
   Role.admin,
   Role.editor,
+  Role.race_officer,
   Role.series_manager,
   Role.event_manager,
+  Role.team_manager,
   Role.jury,
 ];
 
 /** The administration's tabs this person has, in the order the work happens (Story A-11).
- *  The admin sees every area; a series' organizer its series and events; the organizer or
- *  jury of one event the events tab; editorial *News* and *Media* and nothing else — it
+ *  The admin sees every area; a series' organizer its series and events; the organizer,
+ *  race committee or jury of an event — or of the club hosting it — the events tab; editorial *News* and *Media* and nothing else — it
  *  writes, it does not organize (Stories R-1, R-2, decided 2026-10-24). A tab a role may
  *  not use does not exist for it, and nobody outside `ADMIN_ROLES` has any. */
 export function adminTabs(hasRole: HasRole): AdminTab[] {
   if (hasRole(Role.admin)) return ["clubs", "series", "events", "sailors", "news", "media", "accounts"];
   const tabs: AdminTab[] = [];
   if (hasRole(Role.series_manager)) tabs.push("series");
-  if (hasRole(Role.series_manager, Role.event_manager, Role.jury)) tabs.push("events");
+  // A club's organizer organizes the events their club hosts — and creates one outside a
+  // series (Story VA-6); the race committee those it runs.
+  if (hasRole(Role.series_manager, Role.event_manager, Role.team_manager, Role.race_officer, Role.jury)) {
+    tabs.push("events");
+  }
   if (hasRole(Role.editor)) tabs.push("news", "media");
   return tabs;
 }

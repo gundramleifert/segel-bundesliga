@@ -77,7 +77,10 @@ class ClaimUpdate(BaseModel):
 
 class ItemCreate(BaseModel):
     kind: ExpenseKind
-    incurred_on: date
+    incurred_on: date = Field(description="The day, or the first day of a range.")
+    incurred_until: date | None = Field(
+        default=None, description="The last day of a range — a hotel's nights; empty for one day."
+    )
     description: str = Field(min_length=1, max_length=300)
     distance_km: int | None = Field(default=None, ge=1, le=10000, description="Car only.")
     amount_cents: int | None = Field(
@@ -89,11 +92,11 @@ class ItemOut(BaseModel):
     id: int
     kind: ExpenseKind
     incurred_on: date
+    incurred_until: date | None
     description: str
     distance_km: int | None
     rate_cents: int | None
     amount_cents: int
-    approved_cents: int | None
 
 
 class ClaimDocumentOut(BaseModel):
@@ -135,15 +138,9 @@ class ClaimOut(BaseModel):
     action: Literal["decide", "pay"] | None
 
 
-class ItemCut(BaseModel):
-    item_id: int
-    approved_cents: int = Field(ge=0)
-
-
 class ApproveBody(BaseModel):
-    items: list[ItemCut] = Field(
-        default_factory=list, description="Items approved below their claim; others as claimed."
-    )
+    """The claim is approved as it stands: the decider changes no amount (Story F-3)."""
+
     note: str | None = Field(default=None, max_length=1000)
 
 
@@ -185,11 +182,11 @@ def _out(claim: ExpenseClaim, acting: User) -> ClaimOut:
                 id=i.id,
                 kind=ExpenseKind(i.kind),
                 incurred_on=i.incurred_on,
+                incurred_until=i.incurred_until,
                 description=i.description,
                 distance_km=i.distance_km,
                 rate_cents=i.rate_cents,
                 amount_cents=i.amount_cents,
-                approved_cents=i.approved_cents,
             )
             for i in claim.items
         ],
@@ -311,7 +308,9 @@ async def update_claim(
     claim = await _visible(session, claim_id, acting)
     expenses.require_claimant(acting, claim)
     expenses.require_editable(claim)
-    claim.title = body.title.strip()
+    if claim.title != body.title.strip():
+        claim.title = body.title.strip()
+        expenses.changed(session, acting, claim)
     return await _saved(session, claim_id, acting)
 
 
@@ -321,11 +320,17 @@ async def delete_claim(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> None:
-    """Only a draft — once submitted, a claim is withdrawn, never deleted."""
+    """Only a draft never submitted — once submitted, a claim is withdrawn, never deleted,
+    even after a change made it a draft again: a decider has seen it, and its audit trail
+    stays with it."""
     claim = await _visible(session, claim_id, acting)
     expenses.require_claimant(acting, claim)
     if claim.status != ClaimStatus.DRAFT:
         raise Problem(409, "claim-not-editable", "Only a draft is deleted; withdraw it instead.")
+    if claim.submitted_at is not None:
+        raise Problem(
+            409, "claim-was-submitted", "A claim submitted once is withdrawn, never deleted."
+        )
     for document in claim.documents:
         uploads.discard(RECEIPTS, document.stored_name)
     await session.delete(claim)
@@ -346,6 +351,38 @@ async def add_claim_item(
         claim,
         kind=body.kind,
         incurred_on=body.incurred_on,
+        incurred_until=body.incurred_until,
+        description=body.description.strip(),
+        distance_km=body.distance_km,
+        amount_cents=body.amount_cents,
+    )
+    return await _saved(session, claim_id, acting)
+
+
+@router.put(
+    "/api/claims/{claim_id}/items/{item_id}", response_model=ClaimOut, summary="Change an item"
+)
+async def update_claim_item(
+    claim_id: int,
+    item_id: int,
+    body: ItemCreate,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> ClaimOut:
+    """Story F-2: until the claim is approved. A submitted or rejected claim becomes a
+    draft again, to be submitted again."""
+    claim = await _visible(session, claim_id, acting)
+    item = next((i for i in claim.items if i.id == item_id), None)
+    if item is None:
+        raise Problem(404, "expense-item-unknown", "That item is not on this claim.")
+    await expenses.update_item(
+        session,
+        acting,
+        claim,
+        item,
+        kind=body.kind,
+        incurred_on=body.incurred_on,
+        incurred_until=body.incurred_until,
         description=body.description.strip(),
         distance_km=body.distance_km,
         amount_cents=body.amount_cents,
@@ -372,6 +409,7 @@ async def delete_claim_item(
         if document.item_id == item_id:
             document.item_id = None
     claim.items.remove(item)
+    expenses.changed(session, acting, claim)
     return await _saved(session, claim_id, acting)
 
 
@@ -403,6 +441,7 @@ async def upload_claim_document(
             uploaded_by_user_id=acting.id,
         )
     )
+    expenses.changed(session, acting, claim)
     return await _saved(session, claim_id, acting)
 
 
@@ -425,6 +464,7 @@ async def delete_claim_document(
         raise Problem(404, "expense-document-not-found", "No such receipt on this claim.")
     uploads.discard(RECEIPTS, document.stored_name)
     claim.documents.remove(document)
+    expenses.changed(session, acting, claim)
     return await _saved(session, claim_id, acting)
 
 
@@ -510,27 +550,7 @@ async def approve_claim(
     acting: User = Depends(current_user),
 ) -> ClaimOut:
     claim = await _decidable(session, claim_id, acting)
-    expenses.approve(
-        session,
-        acting,
-        claim,
-        cuts={cut.item_id: cut.approved_cents for cut in body.items},
-        note=body.note,
-    )
-    return await _saved(session, claim_id, acting)
-
-
-@router.post(
-    "/api/claims/{claim_id}/return", response_model=ClaimOut, summary="Return a claim for changes"
-)
-async def return_claim(
-    claim_id: int,
-    body: NoteBody,
-    session: AsyncSession = Depends(get_session),
-    acting: User = Depends(current_user),
-) -> ClaimOut:
-    claim = await _decidable(session, claim_id, acting)
-    expenses.send_back(session, acting, claim, ClaimStatus.RETURNED, body.note.strip())
+    await expenses.approve(session, acting, claim, note=body.note)
     return await _saved(session, claim_id, acting)
 
 
@@ -541,8 +561,9 @@ async def reject_claim(
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
 ) -> ClaimOut:
+    """With a message saying why: the claimant changes the claim and submits it again."""
     claim = await _decidable(session, claim_id, acting)
-    expenses.send_back(session, acting, claim, ClaimStatus.REJECTED, body.note.strip())
+    expenses.reject(session, acting, claim, body.note.strip())
     return await _saved(session, claim_id, acting)
 
 

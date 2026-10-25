@@ -77,21 +77,32 @@
     "amountLabel": "Betrag (€)",
     "addItem": "Position hinzufügen",
     "removeItem": "Entfernen",
-    "receiptsTitle": "Belege",
-    "receiptsEmpty": "Noch keine Belege.",
-    "receiptFor": "Für",
-    "receiptWholeClaim": "die ganze Abrechnung",
-    "uploadReceipt": "Beleg hochladen",
+    "receiptsTitle": "Belege für die ganze Abrechnung",
+    "receiptsEmpty": "Keine — die Belege einer Position stehen unter der Position.",
     "removeReceipt": "Entfernen",
     "submit": "Einreichen",
     "submitted": "Die Abrechnung ist eingereicht.",
     "withdraw": "Zurückziehen",
     "deleteDraft": "Entwurf löschen",
+    "withdrawPrompt": "Eine zurückgezogene Abrechnung kann nicht wieder eingereicht werden.",
+    "withdrawConfirm": "Endgültig zurückziehen",
+    "deleteDraftConfirm": "Endgültig löschen",
+    "keep": "Behalten",
     "unavailable": {
       "at": "{relation, select, jury {Sie sind in der Jury bei {event},} race_officer {Sie sind in der Wettfahrtleitung bei {event},} manager {Sie organisieren {event},} helper {Sie helfen bei {event},} other {Sie arbeiten bei {event} mit,}}",
       "noHostClub": "aber dort ist noch kein Ausrichter eingetragen — der Ausrichter zahlt die Abrechnungen. Bitten Sie die Organisation, einen einzutragen.",
       "notCovered": "aber der Ausrichter erstattet für diese Aufgabe nichts."
-    }
+    },
+    "reopenHint": "Bis zur Genehmigung kannst du sie noch ändern — eine Änderung macht sie wieder zum Entwurf, der neu eingereicht wird.",
+    "itemReceipt": "Beleg",
+    "editItem": "Ändern",
+    "editItemTitle": "Position ändern",
+    "saveItem": "Speichern",
+    "cancel": "Abbrechen",
+    "untilLabel": "Bis",
+    "untilHint": "Nur für mehrere Tage — Hotelnächte, Tagegeld eines Wochenendes.",
+    "uploadItemReceipt": "Beleg für diese Position",
+    "uploadClaimReceipt": "Beleg für die ganze Abrechnung"
   },
   "itemKinds": {
     "travel_car": "Auto",
@@ -101,11 +112,10 @@
     "meals": "Verpflegung",
     "other": "Sonstiges"
   },
-  "itemCar": "{km} km × {rate}",
+  "itemCar": "{km, number} km × {rate}",
   "statuses": {
     "draft": "Entwurf",
     "submitted": "Eingereicht",
-    "returned": "Zurückgegeben",
     "approved": "Genehmigt",
     "rejected": "Abgelehnt",
     "withdrawn": "Zurückgezogen"
@@ -125,11 +135,9 @@
     "by": "{name}",
     "submittedOn": "eingereicht am {date}",
     "payee": "An {name}, {iban}",
-    "approveAs": "Genehmigen mit (€)",
     "noteLabel": "Hinweis",
-    "noteHint": "Pflicht zum Zurückgeben oder Ablehnen",
+    "noteHint": "Pflicht zum Ablehnen — die Person liest ihn, korrigiert die Abrechnung und reicht sie neu ein",
     "approve": "Genehmigen",
-    "return": "Zurückgeben",
     "reject": "Ablehnen",
     "paidOnLabel": "Gezahlt am",
     "paidOnHint": "leer: heute",
@@ -189,6 +197,7 @@
     "sailor": "Segler",
     "admin": "Verwaltung",
     "manager": "Organisation",
+    "editor": "Redaktion",
     "treasurer": "Kassenwart",
     "race_officer": "Wettfahrtleitung",
     "jury": "Jury",
@@ -201,7 +210,8 @@
     "crew_missing": "{count, plural, one {Für 1 kommende Meldung ist keine Crew benannt} other {Für # kommende Meldungen ist keine Crew benannt}}",
     "documents_expired": "{count, plural, one {1 Dokument ist abgelaufen} other {# Dokumente sind abgelaufen}}",
     "crew_waiver_missing": "{count, plural, one {Bei 1 kommenden Spieltag fehlt einem Crewmitglied der Haftungsausschluss} other {Bei # kommenden Spieltagen fehlt Crewmitgliedern der Haftungsausschluss}}",
-    "ward_waiver": "{count, plural, one {Der Haftungsausschluss Ihres Kindes wartet auf Sie} other {# Haftungsausschlüsse Ihrer Kinder warten auf Sie}}"
+    "ward_waiver": "{count, plural, one {Der Haftungsausschluss Ihres Kindes wartet auf Sie} other {# Haftungsausschlüsse Ihrer Kinder warten auf Sie}}",
+    "claim_rejected": "{count, plural, one {1 deiner Abrechnungen wurde abgelehnt — lies warum und korrigiere sie} other {# deiner Abrechnungen wurden abgelehnt — lies warum und korrigiere sie}}"
   },
   "overview": {
     "me": "Ich",
@@ -240,8 +250,10 @@
       "crew": "Meine Crew",
       "toDecide": "Zu entscheiden",
       "raceControl": "Wettfahrtleitung",
-      "organize": "Organisieren"
-    }
+      "organize": "Organisieren",
+      "hosting": "Ausrichten"
+    },
+    "organizeHosted": "Die Veranstaltungen, die Ihr Verein ausrichtet, organisieren Sie im Reiter „Veranstaltungen“ der Verwaltung — Termin, Vereine, Auslosung und Veröffentlichung. Eine Veranstaltung außerhalb einer Serie legen Sie dort auch an."
   },
   "clubWaivers": {
     "none": "Der Verein ist in keinem laufenden Wettbewerb gemeldet – es gibt keinen Haftungsausschluss einzusammeln.",

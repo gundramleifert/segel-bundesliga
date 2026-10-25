@@ -120,7 +120,8 @@
     "pairingPdfLink": "Pairing-Liste herunterladen (PDF)",
     "sizeOption": "{teams} Teams · {boats} Boote",
     "flightsLabel": "Flights",
-    "flightsHint": "1 bis {max}: die Länge der gespeicherten Liste; ein kürzerer Tag segelt deren erste Flights"
+    "flightsHint": "1 bis {max}: die Länge der gespeicherten Liste; ein kürzerer Tag segelt deren erste Flights",
+    "createNotAllowed": "Sie organisieren keine Serie und keinen Verein — hier gibt es keine Veranstaltung, die Sie anlegen könnten. Die Geschäftsstelle oder die Organisation einer Serie legt sie an."
   },
   "sailors": {
     "title": "Segler",

@@ -331,8 +331,8 @@ RUN_COLUMNS = [
 ]  # fmt: skip
 
 BOOK_COLUMNS = [
-    "Claim", "Submitted", "Claimant", "Event / club", "Title", "Date", "Kind",
-    "Description", "km", "Claimed (EUR)", "Approved (EUR)", "Status", "Decided",
+    "Claim", "Submitted", "Claimant", "Event / club", "Title", "Date", "Until", "Kind",
+    "Description", "km", "Amount (EUR)", "Status", "Decided",
     "Note", "Payment state", "Paid (EUR)",
 ]  # fmt: skip
 
@@ -364,15 +364,15 @@ async def book_workbook(claims: list[ExpenseClaim]) -> bytes:
         for item in claim.items:
             rows.append([
                 f"C-{claim.id}", _day(claim.submitted_at), claim.claimant_name,
-                _target(claim), claim.title, item.incurred_on, item.kind, item.description,
-                item.distance_km, item.amount_cents / 100, item.approved_amount / 100,
+                _target(claim), claim.title, item.incurred_on, item.incurred_until, item.kind,
+                item.description, item.distance_km, item.amount_cents / 100,
                 claim.status, _day(claim.decided_at), claim.decision_note,
                 claim.payment_state, None,
             ])  # fmt: skip
         if rows and claim.items:
             # The paid total belongs to the claim, not to an item: on its first row.
             rows[-len(claim.items)][-1] = claim.paid_cents / 100
-    money = {"Claimed (EUR)", "Approved (EUR)", "Paid (EUR)"}
+    money = {"Amount (EUR)", "Paid (EUR)"}
     return await asyncio.to_thread(_workbook, "Claims", BOOK_COLUMNS, rows, money=money)
 
 
@@ -385,6 +385,9 @@ async def claims_for_books(session: AsyncSession, club_id: int, year: int) -> li
                 select(ExpenseClaim)
                 .where(
                     ExpenseClaim.payer_club_id == club_id,
+                    # A claim changed after submission is a draft again, its payer and
+                    # submission date still set (`expenses.changed`) — not yet the books'.
+                    ExpenseClaim.status != ClaimStatus.DRAFT,
                     ExpenseClaim.submitted_at >= datetime(year, 1, 1, tzinfo=UTC),
                     ExpenseClaim.submitted_at < datetime(year + 1, 1, 1, tzinfo=UTC),
                 )

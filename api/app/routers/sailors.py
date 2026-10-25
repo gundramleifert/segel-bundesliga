@@ -34,7 +34,7 @@ from app.auth import current_user, optional_user
 from app.authz import ObjectRef
 from app.config import settings
 from app.db import get_session
-from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership
+from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership, TeamStatus
 from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
 from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
@@ -43,6 +43,7 @@ from app.schemas.public import MemberOut
 from app.services import is_minor, pictures
 from app.services.contexts import require_linked_sailor
 from app.services.lookup import get_or_404
+from app.services.participation import clubs_holding
 
 router = APIRouter(prefix="/api/admin", tags=["administration"])
 me_router = APIRouter(prefix="/api/sailors", tags=["sailors"])
@@ -341,6 +342,21 @@ async def update_sailor(
 
     changes = request.model_dump(exclude_unset=True)
     email = changes.get("email")
+    if (
+        "email" in changes
+        and sailor.email is not None
+        and email != sailor.email
+        and not authz.check(acting, Relation.ADMIN)
+    ):
+        # The address is what links the record to an account (waivers, the profile): a
+        # club's organizer gives it to someone who has none, but re-pointing it would hand
+        # the person's record to another account — the league office's to do.
+        raise Problem(
+            403,
+            "sailor-email-locked",
+            "Only the league office changes the address of a sailor who has one.",
+            sailor_id=sailor.id,
+        )
     if email and await _email_taken(session, email, except_id=sailor.id):
         raise Problem(
             409, "email-taken", f"Email {email} is already taken. Emails are unique.", email=email
@@ -403,6 +419,21 @@ async def set_squad(
             422,
             "squad-needs-series-registration",
             "A squad belongs to the series registration, not to the entry in one of its events.",
+            team_id=team.id,
+        )
+    if team.series_id is None and team.number != 1:
+        # A stand-alone event's squad hangs off the club's first team (`squad_team`).
+        raise Problem(
+            422,
+            "squad-on-first-team",
+            "The club's squad for this event belongs to its first team.",
+            team_id=team.id,
+        )
+    if team.status == TeamStatus.REJECTED:
+        raise Problem(
+            409,
+            "squad-registration-rejected",
+            "This registration was rejected; it takes no squad.",
             team_id=team.id,
         )
 
@@ -539,7 +570,7 @@ async def get_sailor_photo(
             "sailor-photo-protected",
             "This sailor is a minor, or their date of birth is not on file. Their photo is "
             "only shown to a signed-in account connected to them: the sailor themselves, "
-            "administration/editorial staff, or their club's leadership.",
+            "administration, or their club's leadership.",
         )
     # Story S-4: a hidden profile takes its photo with it — the same 404 as a sailor
     # without one, for whoever is not connected to the person.
@@ -614,15 +645,7 @@ async def connected_to_sailor(session: AsyncSession, acting: User | None, sailor
         return True
     managed = authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB)
     if managed:
-        club_ids = (
-            await session.execute(
-                select(Team.club_id)
-                .join(TeamMembership, TeamMembership.team_id == Team.id)
-                .where(TeamMembership.sailor_id == sailor.id)
-                .distinct()
-            )
-        ).scalars()
-        if managed & set(club_ids):
+        if managed & await clubs_holding(session, sailor.id):
             return True
     return False
 
@@ -654,15 +677,7 @@ async def _may_change_sailor(session: AsyncSession, acting: User, sailor: Sailor
     person has no club to scope by."""
     if authz.check(acting, Relation.ADMIN):
         return
-    clubs = set(
-        (
-            await session.execute(
-                select(Team.club_id)
-                .join(TeamMembership, TeamMembership.team_id == Team.id)
-                .where(TeamMembership.sailor_id == sailor.id)
-            )
-        ).scalars()
-    )
+    clubs = await clubs_holding(session, sailor.id)
     if not clubs or clubs & authz.list_objects(acting, Relation.MANAGER, ObjectType.CLUB):
         return
     raise Problem(
@@ -792,14 +807,14 @@ async def _squad_limits(session: AsyncSession, team: Team) -> tuple[int, int]:
                 select(Series.squad_min, Series.squad_max).where(Series.id == team.series_id)
             )
         ).one()
-    elif team.event_id is not None:
+    else:
+        # A team is a series registration or an event entry — never neither (the model's
+        # check constraint), so this is the stand-alone event's.
         row = (
             await session.execute(
                 select(Event.squad_min, Event.squad_max).where(Event.id == team.event_id)
             )
         ).one()
-    else:
-        return 4, 10
     return int(row[0]), int(row[1])
 
 

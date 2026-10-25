@@ -34,17 +34,20 @@ host. **Nobody decides or pays their own claim**, whatever roles they hold. More
 
 Drafts and your own claims never appear.
 
-![A claim waiting on the club's Money tab: *Approve* ①, *Return* ②, *Reject* ③](shot:help-claims-pending)
+![A claim waiting on the club's Money tab: *Approve* ①, *Reject* ②](shot:help-claims-pending)
 
-### Approve, return or reject {#decide-claims-decide}
+### Approve or reject {#decide-claims-decide}
 
-1. Check the items and the *Receipts*. Opening a receipt is logged.
-2. *Approve* ①. To pay less for an item, lower it in *Approve as (€)* — never above what
-   was claimed. The *Note* is optional here.
-3. Or *Return* ② the claim so the claimant changes it, or *Reject* ③ it. Both need a *Note*,
-   which the claimant reads.
+1. Check the items and their receipts — each item's under it, one for the whole claim
+   below. Opening a receipt is logged.
+2. *Approve* ① the claim as it stands. The *Note* is optional here.
+3. Or *Reject* ② it, with a *Note* saying why — a price that is wrong, a receipt missing.
+   You change no amount yourself: the claimant reads your note in *My space*, corrects the
+   claim and submits it again, and it is back here.
 
-Only a *Submitted* claim is decided; every decision is recorded with who and when.
+Only a *Submitted* claim is decided; every decision is recorded with who and when. A
+claim the claimant changes while you look at it is a draft again and leaves the list
+until they submit it again.
 
 ### Pay one claim {#decide-claims-girocode}
 

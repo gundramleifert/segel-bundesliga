@@ -280,12 +280,12 @@
   "anchor": "f-2--file-an-expense-claim-for-an-event-or-for-my-club"
  },
  "F-3": {
-  "title": "The manager or the treasurer approves, returns or rejects a claim",
+  "title": "The manager or the treasurer approves or rejects a claim",
   "status": "●",
   "role": "Treasurer",
   "phase": "Expense claims",
   "file": "docs/userstories/treasurer.md",
-  "anchor": "f-3--the-manager-or-the-treasurer-approves-returns-or-rejects-a-claim"
+  "anchor": "f-3--the-manager-or-the-treasurer-approves-or-rejects-a-claim"
  },
  "F-4": {
   "title": "The manager or treasurer pays and exports",

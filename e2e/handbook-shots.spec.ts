@@ -311,7 +311,6 @@ const SHOTS: Shot[] = [
       const claim = `${tid("reimbursements-list")} > li:first-child`;
       return [
         { target: `${claim} [data-testid$="-approve"]` },
-        { target: `${claim} [data-testid$="-return"]` },
         { target: `${claim} [data-testid$="-reject"]` },
       ];
     },
@@ -498,7 +497,7 @@ async function aClaimToPay(request: APIRequestContext, ids: Ids): Promise<void> 
   const pending = await pendingOfTreasurer(request);
   if (pending.some((c) => c.payer_club_id === ids.clubId && c.action === "pay")) return;
   const claimId = await aClaim(request, ids, "Coach boat fuel, Kiel Week");
-  await ok(await request.post(`/api/claims/${claimId}/approve`, { headers: treasurer, data: { items: [], note: null } }));
+  await ok(await request.post(`/api/claims/${claimId}/approve`, { headers: treasurer, data: { note: null } }));
 }
 
 /** A draft claim of the sailor's own, still open to items — made once. */

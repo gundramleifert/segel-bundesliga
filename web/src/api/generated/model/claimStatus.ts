@@ -9,9 +9,10 @@
 /**
  * Where a claim stands — up to the decision, and no further.
  *
- * ``draft`` → ``submitted`` → ``approved`` | ``rejected``; ``returned`` sends it back
- * to the claimant with a note, ``withdrawn`` is the claimant's way out before a
- * decision. Whether it is *paid* is not a status: see :class:`PaymentState`.
+ * ``draft`` → ``submitted`` → ``approved`` | ``rejected``. A rejected claim, like a
+ * submitted one, is the claimant's to change — and a change makes it a ``draft`` again,
+ * to be submitted again (decided 2026-10-24). ``withdrawn`` is the claimant's way out
+ * before approval. Whether it is *paid* is not a status: see :class:`PaymentState`.
  */
 export type ClaimStatus = typeof ClaimStatus[keyof typeof ClaimStatus];
 
@@ -19,7 +20,6 @@ export type ClaimStatus = typeof ClaimStatus[keyof typeof ClaimStatus];
 export const ClaimStatus = {
   draft: 'draft',
   submitted: 'submitted',
-  returned: 'returned',
   approved: 'approved',
   rejected: 'rejected',
   withdrawn: 'withdrawn',

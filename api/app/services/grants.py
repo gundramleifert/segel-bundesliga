@@ -120,6 +120,30 @@ async def grant(
     return row
 
 
+async def require_not_last_organizer(session: AsyncSession, user: User) -> None:
+    """Story A-8 for an account that goes as a whole — deleted or deactivated — rather than
+    one tuple at a time through :func:`revoke`: refused while some club would be left
+    without an admin or without an organizer."""
+    for row in user.grants:
+        if row.object_type is not ObjectType.CLUB or row.relation not in (
+            Relation.MANAGER,
+            Relation.ADMIN,
+        ):
+            continue
+        assert row.club_id is not None
+        if (
+            row.relation == Relation.ADMIN
+            and await admin_count(session, row.club_id, excluding_user_id=user.id) < 1
+        ) or await organizer_count(session, row.club_id, excluding_user_id=user.id) < 1:
+            raise Problem(
+                409,
+                "last-organizer",
+                "At least one admin must remain for this club.",
+                detail="Name another admin first — the admin decides who is in the club.",
+                club_id=row.club_id,
+            )
+
+
 async def revoke(session: AsyncSession, target: User, row: Grant, *, actor: User) -> None:
     """Deletes exactly this tuple (not yet committed) and logs it. Every other tuple of
     the person stays — an earlier "set roles" endpoint rebuilt the rows from a list of

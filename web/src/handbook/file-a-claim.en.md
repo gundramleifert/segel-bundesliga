@@ -37,29 +37,34 @@ host club yet (ask its organizer to set one), or its host club does not pay for 
 
 1. Open the claim with *Details*, then under *Add an item* choose the *Kind* ①: *Car*,
    *Public transport*, *Accommodation*, *Per diem*, *Meals* or *Other*.
-2. Enter *Date*, *Description* and the *Amount (€)*, then *Add item* ②. For *Car* enter
-   the *Kilometres*: the paying club's rate per kilometre applies, fixed at submission.
+2. Enter *Date* — and *Until* for several days, a hotel's nights or a weekend's per diem
+   — *Description* and the *Amount (€)*, then *Add item* ②. For *Car* enter the
+   *Kilometres*: the paying club's rate per kilometre applies, fixed at submission.
+3. *Change* or *Remove* an item on its line.
 
 ![A draft opened: *Kind* ①, *Add item* ②, and *Submit* ③ at the foot](shot:help-claim-items)
 
 ### Receipts and submitting {#file-a-claim-receipts}
 
-1. *Upload receipt* for one item or for *the whole claim* (which covers every item):
-   PDF, JPEG or PNG, at most 10 MB each.
+1. *Receipt* on an item's line uploads that item's receipt; *Receipt for the whole claim*
+   one that covers every item, like a hotel invoice. PDF, JPEG or PNG, at most 10 MB each.
 2. Press *Submit* ③. *Public transport*, *Accommodation* and *Other* need a receipt;
    without one the claim is refused, naming the items.
 
 When you submit, the holder and IBAN of your saved account are **copied onto the claim**:
-the payment goes there, even if you change your bank account later. From then on items
-and receipts are frozen. Your receipts are seen only by you and by those who decide the
-claim; every look by someone else is logged.
+the payment goes there, even if you change your bank account later. Your receipts are
+seen only by you and by those who decide the claim; every look by someone else is logged.
+
+**Until it is approved you can still change it** — title, items, receipts. A change to a
+submitted or rejected claim makes it a *Draft* again: submit it again, and it waits for a
+decision anew. A draft never submitted can be deleted; once submitted, a claim is
+withdrawn instead — it stays on record. Both ask once more before they act.
 
 | Status | |
 |---|---|
-| submitted, not yet decided | you can *Withdraw* it |
-| *Returned* | comes with a note: change it and submit again |
-| *Rejected* | final |
-| *Approved* | then shows *Unpaid*, *In payment* or *Paid* |
+| *Submitted*, not yet decided | waits for the organizer or treasurer; you can change or *Withdraw* it |
+| *Rejected* | comes with a message, and *My space* tells you: correct it and submit again, or *Withdraw* it |
+| *Approved* | frozen; then shows *Unpaid*, *In payment* or *Paid* |
 
 Refused? See the [FAQ](#faq-treasurer).
 

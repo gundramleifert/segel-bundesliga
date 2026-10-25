@@ -128,6 +128,16 @@ export function formatMoney(cents: number): string {
   );
 }
 
+/** Cents as an amount field shows them — "12,50" / "12.50", no currency sign and no
+ *  thousands separator, so {@link parseCents} reads back what this wrote. */
+export function centsText(cents: number): string {
+  return new Intl.NumberFormat(i18n.language, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  }).format(cents / 100);
+}
+
 /** What someone typed into an amount field — "12,50", "12.5", "12" — as whole cents, or
  *  `null` when it is not an amount. Both separators are accepted whatever the language: a
  *  German keyboard on an English page still types a comma. Parsed as text, not through

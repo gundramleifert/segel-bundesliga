@@ -18,7 +18,8 @@ As an **event organizer** I want to **create an event with name, date, and confi
 so that **everything else follows from it**.
 
 Acceptance criteria:
-- Only **name and date** are required. Everything else has sensible defaults.
+- Only the **name** is required (Story VA-8) — the date too can wait until it is agreed
+  with the host. Everything else has sensible defaults.
 - **The size starts from what is known**, never from a league's numbers in the screen: for
   an act of a series, the catalog size for as many teams as the series has registered
   clubs (they are adopted as its entries); otherwise the catalog's first size. The
@@ -45,9 +46,24 @@ Acceptance criteria:
   picker. Choosing a named color in the select copies it into the picker/text; editing either
   the picker or the text switches the select to "Custom", so a hand-picked color is never left
   sitting silently under a named option it no longer matches.
-- In addition to administration and the site's race committee, also the **leadership of the
-  host club** can create — not for a foreign host. Until 2026-10-24 editorial could too;
-  it organizes nothing since (Story R-1).
+- **Who creates, and what** (`events.py::_can_create`, decided 2026-10-24): administration
+  and the site's race committee any event; a **series' organizer** the acts of their
+  series, naming any club as host — placing the acts and their hosts is how a season is
+  planned; a **club's organizer** an event their club hosts **outside a series** — never
+  for a foreign host, and never an act of a series that is not theirs, or any club could
+  extend a league's calendar and hand its costs to another club. Moving an event between
+  series later takes the same right on both series, and is refused while clubs are
+  entered (they were registered for the series it leaves); the matchday follows — none
+  outside a series, the next free one when none is asked for, never one already taken
+  (409, not a database error). Until 2026-10-24 editorial could create too; it organizes
+  nothing since (Story R-1).
+- **The form offers what this person may pick, asked from the server**
+  (`GET /api/admin/events/create-options`): their series, the hosts they may name, and
+  whether an event outside a series is theirs to create at all — the "＋" on the events
+  tab is shown only then. The form used to read the admin's lists of every series and
+  club and the pairing catalog behind `admin`, so for every organizer but the site's
+  admin the Create button stayed disabled for good, and the server's permission had no
+  screen.
 - **How the pairing list prints** is part of the setup too, and the panel offers it next to
   the draw: font size, landscape, per-team pages (`print_settings`). Empty means the sheet
   is printed the way its configuration implies — see [B-3](visitor.md#b-3--view-pairing-list), which
@@ -67,11 +83,13 @@ Acceptance criteria:
   sailor, an event) is the same shape: the plus in the same corner, a page per entry, and
   "Back to the list" when it is done.
 
-Endpoints: `POST /api/admin/events`, `GET /api/admin/events/{id}/candidate-clubs`
+Endpoints: `POST /api/admin/events`, `GET /api/admin/events/create-options`, `GET /api/admin/events/{id}/candidate-clubs`
 
 Tests: `api/tests/stories/test_create_event.py::TestCreateEvent`,
+`api/tests/stories/test_create_event.py::TestWhoPlacesAnEvent`,
 `api/tests/stories/test_create_event.py::TestWhoMayEnter`,
-`e2e/lifecycle.spec.ts::VA-6: creating an event in three steps`
+`e2e/lifecycle.spec.ts::VA-6: creating an event in three steps`,
+`e2e/lifecycle.spec.ts::V-12/VA-6: a team manager manages their own squad`
 
 ### A-2 ● Create matchday
 As an **event organizer** I want to **create a matchday with name, date, and host**,

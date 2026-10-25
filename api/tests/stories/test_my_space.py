@@ -124,6 +124,18 @@ class TestMySpace:
         assert helped["relations"] == ["helper"]
         assert helped["starts_on"] == SOON.isoformat()
 
+    async def test_an_editor_of_a_regatta_finds_it_too(self, client, caplog):
+        """Story R-1 (2026-10-24) put `editor` on series and events; my space answered
+        such a person with a 500, because its order of relations did not know the name."""
+        series = await _series()
+        headers = await login(
+            client,
+            caplog,
+            f"z8-editor-{_tag()}@example.com",
+            Grant(relation=Relation.EDITOR, series_id=series),
+        )
+        assert _context(await _mine(client, headers), "series", series)["relations"] == ["editor"]
+
     async def test_a_site_relation_is_not_mine(self, client, caplog):
         """The league office's reach is `/admin`'s business — an editor does not get
         every club of the country on their own page. No context is a normal answer — the

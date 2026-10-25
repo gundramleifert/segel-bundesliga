@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: 81165e99833d
+Revision ID: 9743da2e2066
 Revises: 
-Create Date: 2026-10-24 21:10:48.039174
+Create Date: 2026-10-24 22:53:53.503127
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '81165e99833d'
+revision: str = '9743da2e2066'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -653,16 +653,16 @@ def upgrade() -> None:
     sa.Column('claim_id', sa.Integer(), nullable=False),
     sa.Column('kind', sa.String(length=24), nullable=False),
     sa.Column('incurred_on', sa.Date(), nullable=False),
+    sa.Column('incurred_until', sa.Date(), nullable=True),
     sa.Column('description', sa.String(length=300), nullable=False),
     sa.Column('distance_km', sa.Integer(), nullable=True),
     sa.Column('rate_cents', sa.Integer(), nullable=True),
     sa.Column('amount_cents', sa.Integer(), nullable=False),
-    sa.Column('approved_cents', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.CheckConstraint("kind <> 'travel_car' OR (distance_km IS NOT NULL AND rate_cents IS NOT NULL AND amount_cents = distance_km * rate_cents)", name=op.f('ck_expense_item_car_is_distance_times_rate')),
     sa.CheckConstraint('amount_cents >= 0', name=op.f('ck_expense_item_amount_not_negative')),
-    sa.CheckConstraint('approved_cents IS NULL OR (approved_cents >= 0 AND approved_cents <= amount_cents)', name=op.f('ck_expense_item_approved_within_claimed')),
+    sa.CheckConstraint('incurred_until IS NULL OR incurred_until > incurred_on', name=op.f('ck_expense_item_range_ends_later')),
     sa.ForeignKeyConstraint(['claim_id'], ['expense_claim.id'], name=op.f('fk_expense_item_claim_id_expense_claim')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_expense_item'))
     )

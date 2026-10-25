@@ -469,12 +469,12 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
 | Assign user to club, accept members, crest | `admin`; the club's `admin` (own club only) |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
-| Create and maintain sailors | `admin`, `team_manager` (changing one: only those their club's squads hold, or nobody's yet) |
+| Create and maintain sailors | `admin`, `team_manager` (changing one: only those their club's squads hold, or nobody's yet; an address once set: `admin` only) |
 | Link a parent to a sailor as guardian | the manager or admin of a club the sailor belongs to (squad, entry or membership); site `admin` |
 | Confirm a waiver for a sailor | the sailor; `admin`; the manager of a club whose squad holds them; their linked `guardian` while they are a minor |
 | Write news and press releases, keep pictures | `editor` of the site (all); of a series or an event (that regatta's) |
 | Register Squad for Series | `admin`, `team_manager` (own club only) |
-| **Create** Event | additionally the `manager` of the host club or of the series |
+| **Create** Event | additionally the `manager` of the series (its acts, naming any host) or of the host club (outside a series only) |
 | File an expense claim | `race_officer`/`jury`/`manager`/`helper` held directly on the event (or the first three on its series); `member` of the club |
 | Decide and pay a claim | the event's direct `manager`, the host club's `manager`, `treasurer` of event or club; never the claimant |
 | See a person's documents | the person; `manager` of an event they work at directly or of a club they are a member of |

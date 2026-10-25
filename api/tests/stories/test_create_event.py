@@ -9,8 +9,8 @@ starting value to shuffle.
 from sqlalchemy import select
 
 from app.db import SessionLocal
-from app.models import Club
-from app.models.auth import Role
+from app.models import Club, Series
+from app.models.auth import Grant, Relation, Role, User
 from tests.pages import all_items
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers, register
@@ -170,6 +170,119 @@ class TestCreateEvent:
             json={"title": "Secret Cup", "starts_on": "2026-11-21"},
         )
         assert response.status_code == 403
+
+
+async def series_id(name: str) -> int:
+    async with SessionLocal() as session:
+        return (await session.execute(select(Series.id).where(Series.name == name))).scalar_one()
+
+
+async def series_manager(client, caplog, email: str, series: int) -> dict[str, str]:
+    await make_user(email)
+    async with SessionLocal() as session:
+        user = (await session.execute(select(User).where(User.email == email))).scalar_one()
+        session.add(Grant(user_id=user.id, relation=Relation.MANAGER, series_id=series))
+        await session.commit()
+    return auth_headers(await login_as(client, email, caplog))
+
+
+class TestWhoPlacesAnEvent:
+    """Story VA-6 (2026-10-24): each organizer within what they organize — a series' acts
+    are its organizer's, an event outside a series its host club's."""
+
+    async def test_a_host_clubs_manager_adds_no_act_to_a_foreign_series(self, client, caplog):
+        club = await club_id("kyc-sh")
+        await make_user("va6-act@example.com", Role.TEAM_MANAGER, club_id=club)
+        headers = auth_headers(await login_as(client, "va6-act@example.com", caplog))
+
+        response = await client.post(
+            "/api/admin/events",
+            headers=headers,
+            json={
+                "title": "Sneaky Act",
+                "series": await series_id("1. Segel-Bundesliga 2026"),
+                "host_club_id": club,
+            },
+        )
+        assert response.status_code == 403
+        assert response.json()["type"] == "/errors/series-not-mine"
+
+    async def test_a_series_organizer_places_an_act_with_any_host(self, client, caplog):
+        series = await series_id("1. Segel-Bundesliga 2027")
+        headers = await series_manager(client, caplog, "va6-series@example.com", series)
+
+        response = await client.post(
+            "/api/admin/events",
+            headers=headers,
+            json={
+                "title": "Act at Kiel",
+                "series": series,
+                "host_club_id": await club_id("kyc-sh"),
+            },
+        )
+        assert response.status_code == 201, response.text
+
+        # Their form offers their series and any host, and nothing outside a series.
+        options = (await client.get("/api/admin/events/create-options", headers=headers)).json()
+        assert options["may_create"] is True
+        assert [s["id"] for s in options["series"]] == [series]
+        assert options["own_hosts"] == []
+        assert len(options["hosts"]) > 1
+
+    async def test_moving_an_event_takes_the_series_and_keeps_the_matchday_right(
+        self, client, caplog
+    ):
+        """A PATCH places an event as creating does: a taken matchday is a 409, not a
+        database error, and outside a series there is no matchday."""
+        office = await admin(client, caplog, "va6-move@example.com")
+        draft = await series_id("1. Segel-Bundesliga 2027")  # no clubs yet: nothing entered
+        created = (
+            await client.post(
+                "/api/admin/events", headers=office, json={"title": "Moved Act", "series": draft}
+            )
+        ).json()
+        assert created["matchday"] is not None
+
+        taken = await client.patch(
+            f"/api/admin/events/{created['id']}", headers=office, json={"matchday": 1}
+        )
+        assert taken.status_code == 409
+        assert taken.json()["type"] == "/errors/matchday-taken"
+
+        alone = await client.patch(
+            f"/api/admin/events/{created['id']}", headers=office, json={"series": None}
+        )
+        assert alone.status_code == 200, alone.text
+        assert alone.json()["matchday"] is None
+
+    async def test_a_host_clubs_manager_moves_no_event_into_a_foreign_series(self, client, caplog):
+        club = await club_id("kyc-sh")
+        await make_user("va6-patch@example.com", Role.TEAM_MANAGER, club_id=club)
+        headers = auth_headers(await login_as(client, "va6-patch@example.com", caplog))
+        options = (await client.get("/api/admin/events/create-options", headers=headers)).json()
+        assert options["series"] == [] and options["own_hosts"] == [club]
+        assert [h["id"] for h in options["hosts"]] == [club]
+
+        created = await client.post(
+            "/api/admin/events",
+            headers=headers,
+            json={"title": "Kiel Autumn Cup", "host_club_id": club},
+        )
+        assert created.status_code == 201, created.text
+        moved = await client.patch(
+            f"/api/admin/events/{created.json()['id']}",
+            headers=headers,
+            json={"series": await series_id("1. Segel-Bundesliga 2026")},
+        )
+        assert moved.status_code == 403
+        assert moved.json()["type"] == "/errors/series-not-mine"
+
+    async def test_an_account_organizing_nothing_may_create_nothing(self, client, caplog):
+        headers = auth_headers(await register(client, caplog, "va6-none@example.com", "No One"))
+        options = (await client.get("/api/admin/events/create-options", headers=headers)).json()
+        assert options["may_create"] is False and options["series"] == []
+        # The catalog of sizes holds nobody's data; every organizer picks from it.
+        assert (await client.get("/api/admin/pairing/catalog", headers=headers)).status_code == 200
 
 
 class TestPairingFromCatalog:

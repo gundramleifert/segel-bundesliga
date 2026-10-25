@@ -11,9 +11,9 @@ export interface ItemOut {
   id: number;
   kind: ExpenseKind;
   incurred_on: string;
+  incurred_until: string | null;
   description: string;
   distance_km: number | null;
   rate_cents: number | null;
   amount_cents: number;
-  approved_cents: number | null;
 }

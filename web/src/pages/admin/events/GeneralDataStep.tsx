@@ -2,14 +2,9 @@ import { Button } from "@heroui/react";
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  useCreateEvent,
-  useListAllClubs,
-  useListAllSeries,
-  useListPairingCatalog,
-} from "../../../api/generated/sbl";
+import { useCreateEvent, useEventCreateOptions, useListPairingCatalog } from "../../../api/generated/sbl";
 import type { EventSummary } from "../../../api/types";
-import { WHOLE_LIST, useAsync, useAsyncRows, useInvalidate } from "../../../api/useApi";
+import { useAsync, useInvalidate } from "../../../api/useApi";
 import { Async } from "../../../components/Async";
 import { Field, Message } from "../../../components/Form";
 import { INPUT_CLASS, errorText } from "../../../lib/admin";
@@ -44,10 +39,10 @@ export function GeneralDataStep({
   onCancel: () => void;
 }) {
   const { t } = useTranslation("admin");
-  // Selectors, so the whole list rather than a page: a dropdown offering the first
-  // twenty-five series is one that cannot pick the twenty-sixth (Story A-13).
-  const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
-  const clubs = useAsyncRows(useListAllClubs({ limit: WHOLE_LIST }));
+  // What this person may pick, asked of the server (Story VA-6): the league office any
+  // series and host, a series' organizer its acts with any host, a club's organizer an
+  // event their own club hosts outside a series. Whole lists, never a page of them.
+  const options = useAsync(useEventCreateOptions());
   // Only pre-computed sizes are offered here — picking a free combination of teams,
   // boats and flights would mean drawing a pairing list from scratch later, an
   // optimization run that takes minutes, not seconds (see app/pairing/catalog.py).
@@ -66,9 +61,24 @@ export function GeneralDataStep({
   const [chosenFlights, setChosenFlights] = useState<string | null>(null);
   const [chosenRows, setChosenRows] = useState<BoatRow[]>([]);
 
+  const seriesChoices = options.data?.series ?? [];
+  const ownHosts = options.data?.own_hosts;
+  // Outside a series only the site's people may leave the host open; a club's organizer
+  // names their own club, and someone who organizes no club adds acts to a series only.
+  const standalone = ownHosts === null || (ownHosts?.length ?? 0) > 0;
+  const seriesValue = seriesId || (standalone ? "" : String(seriesChoices[0]?.id ?? ""));
+  const series = seriesChoices.find((s) => String(s.id) === seriesValue);
+  const hosts = (options.data?.hosts ?? []).filter(
+    (club) => series || ownHosts == null || ownHosts.includes(club.id),
+  );
+  const hostRequired = !series && ownHosts != null;
+  const hostValue = hosts.some((club) => String(club.id) === hostClubId)
+    ? hostClubId
+    : hostRequired && hosts.length === 1
+      ? String(hosts[0].id)
+      : "";
   const sizes = sizeOptions(catalog.data ?? []);
-  const series = seriesList.data?.find((s) => String(s.id) === seriesId);
-  const size = chosenSize ?? defaultSize(sizes, series ? (series.clubs?.length ?? 0) : null);
+  const size = chosenSize ?? defaultSize(sizes, series ? series.registered : null);
   const teams = size?.teams ?? 0;
   const boats = size?.boats ?? 0;
   const maxFlights = size?.maxFlights ?? 0;
@@ -90,6 +100,10 @@ export function GeneralDataStep({
     },
   });
 
+  if (options.data && !options.data.may_create) {
+    return <Message testId="admin-events-create-message" error={t("events.createNotAllowed")} success={null} />;
+  }
+
   return (
     <>
       <form
@@ -104,8 +118,8 @@ export function GeneralDataStep({
               // is needed to *start* the event, not to write it down (Story VA-8).
               starts_on: startsOn || null,
               ends_on: endsOn || null,
-              series: seriesId ? Number(seriesId) : null,
-              host_club_id: hostClubId ? Number(hostClubId) : null,
+              series: seriesValue ? Number(seriesValue) : null,
+              host_club_id: hostValue ? Number(hostValue) : null,
               team_count: teams,
               boat_count: boats,
               flight_count: Number(flights),
@@ -154,12 +168,12 @@ export function GeneralDataStep({
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
           <Field label={t("events.seriesLabel")} hint={t("events.seriesHint")}>
             <Select
-              value={seriesId}
+              value={seriesValue}
               onChange={(e) => setSeriesId(e.target.value)}
               testId="admin-events-series-select"
             >
-              <option value="">{t("events.seriesNone")}</option>
-              {seriesList.data?.map((s) => (
+              {standalone && <option value="">{t("events.seriesNone")}</option>}
+              {seriesChoices.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>
@@ -168,12 +182,12 @@ export function GeneralDataStep({
           </Field>
           <Field label={t("events.hostLabel")} hint={t("events.hostHint")}>
             <Select
-              value={hostClubId}
+              value={hostValue}
               onChange={(e) => setHostClubId(e.target.value)}
               testId="admin-events-host-select"
             >
-              <option value="">{t("events.hostNone")}</option>
-              {clubs.data?.map((v) => (
+              {!hostRequired && <option value="">{t("events.hostNone")}</option>}
+              {hosts.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
                 </option>
@@ -364,6 +378,7 @@ export function GeneralDataStep({
               create.isPending ||
               title.trim().length < 3 ||
               !size ||
+              (hostRequired && !hostValue) ||
               !boatNamesComplete(boatRows)
             }
             data-testid="admin-events-create-button"

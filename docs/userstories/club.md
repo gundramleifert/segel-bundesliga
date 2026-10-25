@@ -110,6 +110,12 @@ Still open: The **account** is not created automatically with the person. Those 
 able to sign in register ([Z-4](sailor.md#z-4--register-yourself)) or are created. Both are connected
 via the address.
 
+**The address, once set, is the league office's to change** (`sailor-email-locked`,
+2026-10-24): it is what links the record to an account. A club's organizer gives an
+address to a person who has none; changing one would hand the person's waivers and profile
+to another account — and any organizer can put any person in their own squad, which is
+what made them "theirs".
+
 Endpoints: `GET /api/admin/sailors`, `POST /api/admin/sailors`,
 `PATCH /api/admin/sailors/{id}`
 
@@ -244,6 +250,9 @@ Acceptance criteria:
   manager is most likely to walk into, because the person is genuinely a member of their
   club too. The endpoint keeps refusing it (`squad-sailor-in-another-club`): the list is
   a courtesy, not the enforcement.
+- **A rejected registration takes no squad** (`squad-registration-rejected`) and holds
+  nobody; at an event outside a series the squad is the club's **first** team's
+  (`squad-on-first-team`), the one every team of the club is lined up from.
 
 Open: until when the squad can be changed (see "Deadlines remain out for now"). Whether
 the minimum should also block something — a matchday start, say — is not decided; today it
@@ -354,7 +363,7 @@ Acceptance criteria:
   here could enter it and never register anyone.
 
 Tests: `api/tests/stories/test_my_clubs.py`,
-`e2e/lifecycle.spec.ts::V-12: a team manager manages their own squad`,
+`e2e/lifecycle.spec.ts::V-12/VA-6: a team manager manages their own squad`,
 `e2e/club.spec.ts`
 
 ## The club's page

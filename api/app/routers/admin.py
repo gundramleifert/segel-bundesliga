@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import require_admin, require_event_officer
+from app.auth import current_user, require_admin, require_event_officer
 from app.db import get_session
 from app.jobs import Job, JobStatus, jobs
 from app.live import event_topic, hub
@@ -229,7 +229,8 @@ class FromCatalogRequest(BaseModel):
 @router.get(
     "/pairing/catalog",
     response_model=list[CatalogEntryOut],
-    dependencies=[Depends(require_admin)],
+    # Every event's organizer picks a size from it (Story VA-6); it holds no one's data.
+    dependencies=[Depends(current_user)],
     summary="Finished pairing lists",
 )
 async def list_pairing_catalog() -> list[CatalogEntryOut]:

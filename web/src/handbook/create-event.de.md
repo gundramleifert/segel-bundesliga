@@ -11,14 +11,13 @@ title: "Eine Veranstaltung anlegen"
 ---
 ## Eine Veranstaltung anlegen
 
-Anlegen dürfen: die Geschäftsstelle, die Organisation der Serie und die Organisation des
-Ausrichters (nur mit dem eigenen Verein als Ausrichter). Jede Seite der *Verwaltung*
-funktioniert auf dem Handy: Eine Tabelle, breiter als der Bildschirm, lässt sich seitlich
-schieben, die Seite selbst nicht.
-
-> **Hinweis:** *Teams und Boote* lädt derzeit nur für die Verwaltung der Geschäftsstelle;
-> ohne die Liste lässt sich die Veranstaltung nicht speichern. Zeigt das Feld einen
-> Fehler, bitten Sie die Geschäftsstelle, die Veranstaltung anzulegen.
+Anlegen dürfen: die Geschäftsstelle und ihre Wettfahrtleitung jede Veranstaltung; die
+Organisation einer Serie deren Acts, mit jedem Verein als Ausrichter; die Organisation
+eines Vereins eine Veranstaltung außerhalb einer Serie, die der eigene Verein ausrichtet.
+Das Formular bietet nur an, was Sie wählen dürfen — Ihre Serien, die Ausrichter, die Sie
+nennen dürfen —, und *＋ Neue Veranstaltung* gibt es nur, wenn Sie eine anlegen dürfen.
+Jede Seite der *Verwaltung* funktioniert auf dem Handy: Eine Tabelle, breiter als der
+Bildschirm, lässt sich seitlich schieben, die Seite selbst nicht.
 
 ### Die drei Schritte {#create-event-wizard}
 

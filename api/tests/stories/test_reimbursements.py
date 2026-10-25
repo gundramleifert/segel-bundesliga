@@ -330,7 +330,9 @@ class TestFilingAClaim:
         item = out["items"][0]
         assert item["rate_cents"] == 35 and item["amount_cents"] == 4200
 
-    async def test_a_submitted_claim_is_frozen_until_returned(self, client, caplog):
+    async def test_a_submitted_claim_changed_is_a_draft_again(self, client, caplog):
+        """Story F-2 (2026-10-24): the claimant changes a submitted claim — an item added,
+        one changed — and it is a draft again, to be submitted again."""
         w = await world()
         me = await login(
             client,
@@ -342,21 +344,119 @@ class TestFilingAClaim:
         # A member files on their club, and the club pays.
         assert claim["club_id"] == w.club and claim["payer_club_id"] == w.club
 
+        changed = await add_item(client, me, claim["id"], amount_cents=1, description="more")
+        assert changed["status"] == "draft"
+        assert changed["may_edit"] is True
+        item = changed["items"][0]["id"]
+        corrected = await client.put(
+            f"/api/claims/{claim['id']}/items/{item}",
+            headers=me,
+            json={
+                "kind": "per_diem",
+                "incurred_on": "2026-06-05",
+                "incurred_until": "2026-06-07",
+                "description": "Three days",
+                "amount_cents": 4200,
+            },
+        )
+        assert corrected.status_code == 200, corrected.text
+        hotel = next(i for i in corrected.json()["items"] if i["id"] == item)
+        assert hotel["incurred_until"] == "2026-06-07" and hotel["amount_cents"] == 4200
+
+        again = await client.post(f"/api/claims/{claim['id']}/submit", headers=me)
+        assert again.json()["status"] == "submitted"
+        withdrawn = await client.post(f"/api/claims/{claim['id']}/withdraw", headers=me)
+        assert withdrawn.json()["status"] == "withdrawn"
+
+    async def test_a_claim_submitted_once_is_withdrawn_never_deleted(self, client, caplog):
+        """Story F-2: a change makes a submitted claim a draft again, but it stays on record
+        — deleting it is refused, it is withdrawn instead, and the books leave the draft
+        out until it is submitted again."""
+        from app.services import payments
+
+        w = await world()
+        me = await login(
+            client,
+            caplog,
+            f"f-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.MEMBER, club_id=w.club),
+        )
+        claim = await submitted(client, me, club=w.club)
+        await add_item(client, me, claim["id"], amount_cents=1, description="more")
+
+        async with SessionLocal() as session:
+            books = await payments.claims_for_books(session, w.club, date.today().year)
+        assert claim["id"] not in {c.id for c in books}
+
+        refused = await client.delete(f"/api/claims/{claim['id']}", headers=me)
+        assert refused.status_code == 409
+        assert _problem_code(refused) == "claim-was-submitted"
+        withdrawn = await client.post(f"/api/claims/{claim['id']}/withdraw", headers=me)
+        assert withdrawn.json()["status"] == "withdrawn"
+
+        never = await draft(client, me, club=w.club)
+        assert (await client.delete(f"/api/claims/{never['id']}", headers=me)).status_code == 204
+
+    async def test_a_range_of_dates_ends_after_it_begins(self, client, caplog):
+        """Story F-2: an item is a day or a range; a range of one day is that day."""
+        w = await world()
+        me = await login(
+            client,
+            caplog,
+            f"r-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.MEMBER, club_id=w.club),
+        )
+        claim = await draft(client, me, club=w.club)
+        one_day = await add_item(
+            client, me, claim["id"], amount_cents=100, incurred_until="2026-06-01"
+        )
+        assert one_day["items"][0]["incurred_until"] is None
+        backwards = await client.post(
+            f"/api/claims/{claim['id']}/items",
+            headers=me,
+            json={
+                "kind": "meals",
+                "incurred_on": "2026-06-03",
+                "incurred_until": "2026-06-01",
+                "description": "x",
+                "amount_cents": 1,
+            },
+        )
+        assert backwards.status_code == 422
+        assert _problem_code(backwards) == "expense-range-backwards"
+
+    async def test_an_approved_claim_is_frozen(self, client, caplog):
+        """Story F-2: only an approved claim (and a withdrawn one) is frozen."""
+        w = await world()
+        me = await login(
+            client,
+            caplog,
+            f"z-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.MEMBER, club_id=w.club),
+        )
+        treasurer = await login(
+            client,
+            caplog,
+            f"zt-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.TREASURER, club_id=w.club),
+        )
+        claim = await submitted(client, me, club=w.club)
+        await client.post(f"/api/claims/{claim['id']}/approve", headers=treasurer, json={})
         response = await client.post(
             f"/api/claims/{claim['id']}/items",
             headers=me,
             json={
                 "kind": "meals",
                 "incurred_on": "2026-06-01",
-                "description": "more",
+                "description": "x",
                 "amount_cents": 1,
             },
         )
         assert response.status_code == 409
         assert _problem_code(response) == "claim-not-editable"
-
-        withdrawn = await client.post(f"/api/claims/{claim['id']}/withdraw", headers=me)
-        assert withdrawn.json()["status"] == "withdrawn"
+        assert (
+            await client.post(f"/api/claims/{claim['id']}/withdraw", headers=me)
+        ).status_code == 409
 
 
 class TestDecidingAClaim:
@@ -391,13 +491,13 @@ class TestDecidingAClaim:
         assert approved.json()["status"] == "approved"
 
         second = await submitted(client, helper, event=w.event)
-        returned = await client.post(
-            f"/api/claims/{second['id']}/return",
+        rejected = await client.post(
+            f"/api/claims/{second['id']}/reject",
             headers=treasurer,
             json={"note": "Please add the receipt."},
         )
-        assert returned.json()["status"] == "returned"
-        assert returned.json()["decision_note"] == "Please add the receipt."
+        assert rejected.json()["status"] == "rejected"
+        assert rejected.json()["decision_note"] == "Please add the receipt."
 
         async with SessionLocal() as session:
             actions = (
@@ -412,7 +512,7 @@ class TestDecidingAClaim:
                 .scalars()
                 .all()
             )
-        assert "submitted" in actions and "returned" in actions
+        assert "submitted" in actions and "rejected" in actions
 
     async def test_the_team_manager_decides_a_club_claim(self, client, caplog):
         w = await world()
@@ -476,7 +576,12 @@ class TestDecidingAClaim:
         assert response.status_code == 403
         assert _problem_code(response) == "claim-own-decision"
 
-    async def test_approval_may_lower_an_item_never_raise_it(self, client, caplog):
+    async def test_the_decider_changes_no_price_and_a_rejection_goes_round_again(
+        self, client, caplog
+    ):
+        """Story F-3 (2026-10-24): the decider approves the claim as it stands or rejects
+        it with a message; the claimant is told, corrects it and submits again, and the
+        decider is told again. Neither ever touches the other's part."""
         w = await world()
         member = await login(
             client,
@@ -493,19 +598,81 @@ class TestDecidingAClaim:
         claim = await submitted(client, member, club=w.club)
         item = claim["items"][0]["id"]
 
-        too_much = await client.post(
-            f"/api/claims/{claim['id']}/approve",
-            headers=treasurer,
-            json={"items": [{"item_id": item, "approved_cents": 9999}]},
-        )
-        assert too_much.status_code == 422
+        async def needs(headers) -> dict[str, int]:
+            space = (await client.get("/api/me/contexts", headers=headers)).json()
+            club = next(c for c in space["contexts"] if c["kind"] == "club" and c["id"] == w.club)
+            return {n["code"]: n["count"] for n in club["needs"]}
 
-        cut = await client.post(
-            f"/api/claims/{claim['id']}/approve",
+        assert (await needs(treasurer)).get("claims") == 1
+        # The decider cannot change a price, not even by the claimant's own route.
+        cut = await client.put(
+            f"/api/claims/{claim['id']}/items/{item}",
             headers=treasurer,
-            json={"items": [{"item_id": item, "approved_cents": 1000}]},
+            json={
+                "kind": "meals",
+                "incurred_on": "2026-06-01",
+                "description": "x",
+                "amount_cents": 1,
+            },
         )
-        assert cut.json()["approved_cents"] == 1000
+        assert cut.status_code == 403
+
+        rejected = await client.post(
+            f"/api/claims/{claim['id']}/reject", headers=treasurer, json={"note": "Lunch was 9,50"}
+        )
+        assert rejected.json()["status"] == "rejected"
+        assert (await needs(member)).get("claim_rejected") == 1
+        assert "claims" not in await needs(treasurer)
+
+        fixed = await client.put(
+            f"/api/claims/{claim['id']}/items/{item}",
+            headers=member,
+            json={
+                "kind": "meals",
+                "incurred_on": "2026-06-01",
+                "description": "Lunch",
+                "amount_cents": 950,
+            },
+        )
+        assert fixed.json()["status"] == "draft"
+        # The message stays readable while the claimant corrects the claim.
+        assert fixed.json()["decision_note"] == "Lunch was 9,50"
+        assert "claim_rejected" not in await needs(member)
+        again = await client.post(f"/api/claims/{claim['id']}/submit", headers=member)
+        assert again.json()["status"] == "submitted" and again.json()["decision_note"] is None
+        assert (await needs(treasurer)).get("claims") == 1
+
+        approved = await client.post(
+            f"/api/claims/{claim['id']}/approve", headers=treasurer, json={}
+        )
+        assert approved.json()["approved_cents"] == 950
+
+    async def test_approving_checks_the_receipts_again(self, client, caplog):
+        """Story F-3: the receipts the paying club wants are checked when approving too —
+        the club's rules may have changed since the claim was submitted."""
+        w = await world()
+        member = await login(
+            client,
+            caplog,
+            f"rc-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.MEMBER, club_id=w.club),
+        )
+        treasurer = await login(
+            client,
+            caplog,
+            f"rct-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.TREASURER, club_id=w.club),
+        )
+        claim = await submitted(client, member, club=w.club)
+        async with SessionLocal() as session:
+            club = await session.get(Club, w.club)
+            club.expense_policy = {"document_required": ["meals"]}
+            await session.commit()
+        refused = await client.post(
+            f"/api/claims/{claim['id']}/approve", headers=treasurer, json={}
+        )
+        assert refused.status_code == 422
+        assert _problem_code(refused) == "expense-document-missing"
 
 
 class TestPayingAClaim:
@@ -601,15 +768,16 @@ class TestClaimDocuments:
         assert (
             await client.post(f"/api/claims/{claim['id']}/submit", headers=member)
         ).status_code == 200
-        frozen = await client.delete(
-            f"/api/claims/{claim['id']}/documents/{doc['id']}", headers=member
-        )
-        assert _problem_code(frozen) == "claim-not-editable"
-
         url = f"/api/claims/{claim['id']}/documents/{doc['id']}"
         assert (await client.get(url, headers=member)).status_code == 200
         assert (await client.get(url, headers=manager)).content == _png()
         assert (await client.get(url, headers=stranger)).status_code == 403
+
+        # Until approved the claimant may still change the receipts — and the claim is a
+        # draft again, to be submitted again (Story F-5, 2026-10-24).
+        removed = await client.delete(url, headers=member)
+        assert removed.status_code == 200, removed.text
+        assert removed.json()["status"] == "draft" and removed.json()["documents"] == []
 
 
 class TestPendingList:

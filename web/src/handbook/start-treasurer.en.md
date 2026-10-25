@@ -28,7 +28,7 @@ the people who work its events. Filing a claim, deciding it and paying it all ha
 - [Who decides a claim](#decide-claims-who) — the organizer or treasurer of the event or
   club, never the claimant.
 - [Find what waits for you](#decide-claims-pending) and
-  [approve, return or reject it](#decide-claims-decide).
+  [approve it, or reject it with a message](#decide-claims-decide).
 - Pay one claim [with a GiroCode](#decide-claims-girocode), or many
   [with one SEPA file](#payment-runs-create) from [the club's account](#payment-runs-bank).
 - [Record what the bank booked or returned](#payment-runs-settle), and

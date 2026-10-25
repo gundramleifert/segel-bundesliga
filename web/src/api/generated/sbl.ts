@@ -72,6 +72,7 @@ import type {
   EmulateOut,
   EventAccess,
   EventCreate,
+  EventCreateOptions,
   EventCrewList,
   EventDetail,
   EventDocumentOut,
@@ -5845,6 +5846,109 @@ export const usePutTeamPenalty = <TError = ErrorType<ProblemDetails>,
       return useMutation(getPutTeamPenaltyMutationOptions(options), queryClient);
     }
 
+export const getEventCreateOptionsUrl = () => {
+
+
+
+
+  return `/api/admin/events/create-options`
+}
+
+/**
+ * Story VA-6: the wizard offers the series and hosts this person may choose, so a
+ * series' or a club's organizer gets a form that works instead of the admin's lists.
+ * @summary What one may pick when creating an event
+ */
+export const eventCreateOptions = async ( options?: RequestInit): Promise<EventCreateOptions> => {
+
+  return http<EventCreateOptions>(getEventCreateOptionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getEventCreateOptionsQueryKey = () => {
+    return [
+    `/api/admin/events/create-options`
+    ] as const;
+    }
+
+
+export const getEventCreateOptionsQueryOptions = <TData = Awaited<ReturnType<typeof eventCreateOptions>>, TError = ErrorType<ProblemDetails>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventCreateOptions>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getEventCreateOptionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof eventCreateOptions>>> = ({ signal }) => eventCreateOptions({ signal });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof eventCreateOptions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type EventCreateOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof eventCreateOptions>>>
+export type EventCreateOptionsQueryError = ErrorType<ProblemDetails>
+
+
+export function useEventCreateOptions<TData = Awaited<ReturnType<typeof eventCreateOptions>>, TError = ErrorType<ProblemDetails>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventCreateOptions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof eventCreateOptions>>,
+          TError,
+          Awaited<ReturnType<typeof eventCreateOptions>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEventCreateOptions<TData = Awaited<ReturnType<typeof eventCreateOptions>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventCreateOptions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof eventCreateOptions>>,
+          TError,
+          Awaited<ReturnType<typeof eventCreateOptions>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useEventCreateOptions<TData = Awaited<ReturnType<typeof eventCreateOptions>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventCreateOptions>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary What one may pick when creating an event
+ */
+
+export function useEventCreateOptions<TData = Awaited<ReturnType<typeof eventCreateOptions>>, TError = ErrorType<ProblemDetails>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof eventCreateOptions>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getEventCreateOptionsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getListAllEventsUrl = (params?: ListAllEventsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -5984,8 +6088,9 @@ export const getCreateEventUrl = () => {
  * complete. The dimensions (teams, boats, flights) determine the pairing list: either a
  * catalog entry fits, or it must be calculated.
  *
- * The **host club's** leadership can create events — they organize it, so they should be
- * able to record the date — as well as administration, editorial, and race officers.
+ * Administration and the site's race committee create any event; the manager of a
+ * series creates its acts, and the manager of a club the events their club hosts outside
+ * a series (`_can_create`).
  * @summary Create Event
  */
 export const createEvent = async (eventCreate: EventCreate, options?: RequestInit): Promise<EventOut> => {
@@ -12672,7 +12777,9 @@ export const getDeleteClaimUrl = (claimId: number,) => {
 }
 
 /**
- * Only a draft — once submitted, a claim is withdrawn, never deleted.
+ * Only a draft never submitted — once submitted, a claim is withdrawn, never deleted,
+ * even after a change made it a draft again: a decider has seen it, and its audit trail
+ * stays with it.
  * @summary Delete a draft claim
  */
 export const deleteClaim = async (claimId: number, options?: RequestInit): Promise<void> => {
@@ -12825,6 +12932,99 @@ export const useAddClaimItem = <TError = ErrorType<ProblemDetails>,
         TContext
       > => {
       return useMutation(getAddClaimItemMutationOptions(options), queryClient);
+    }
+
+export const getUpdateClaimItemUrl = (claimId: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/claims/${claimId}/items/${itemId}`
+}
+
+/**
+ * Story F-2: until the claim is approved. A submitted or rejected claim becomes a
+ * draft again, to be submitted again.
+ * @summary Change an item
+ */
+export const updateClaimItem = async (claimId: number,
+    itemId: number,
+    itemCreate: ItemCreate, options?: RequestInit): Promise<ClaimOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<ClaimOut>(getUpdateClaimItemUrl(claimId,itemId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(itemCreate)
+  }
+);}
+
+
+
+
+
+export const getUpdateClaimItemMutationKey = () => ['updateClaimItem'] as const;
+
+export const getUpdateClaimItemMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClaimItem>>, TError,UpdateClaimItemMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof updateClaimItem>>, TError,UpdateClaimItemMutationVariables, TContext> => {
+
+const mutationKey = getUpdateClaimItemMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateClaimItem>>, UpdateClaimItemMutationVariables> = (props) => {
+          const {claimId,itemId,data} = props ?? {};
+
+          return  updateClaimItem(claimId,itemId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateClaimItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateClaimItem>>>
+    export type UpdateClaimItemMutationBody = BodyType<ItemCreate>
+    export type UpdateClaimItemMutationError = ErrorType<ProblemDetails>
+    export type UpdateClaimItemMutationVariables = {claimId: number;itemId: number;data: BodyType<ItemCreate>}
+
+    /**
+ * @summary Change an item
+ */
+export const useUpdateClaimItem = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClaimItem>>, TError,UpdateClaimItemMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateClaimItem>>,
+        TError,
+        UpdateClaimItemMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateClaimItemMutationOptions(options), queryClient);
     }
 
 export const getDeleteClaimItemUrl = (claimId: number,
@@ -13406,95 +13606,6 @@ export const useApproveClaim = <TError = ErrorType<ProblemDetails>,
       return useMutation(getApproveClaimMutationOptions(options), queryClient);
     }
 
-export const getReturnClaimUrl = (claimId: number,) => {
-
-
-
-
-  return `/api/claims/${claimId}/return`
-}
-
-/**
- * @summary Return a claim for changes
- */
-export const returnClaim = async (claimId: number,
-    noteBody: NoteBody, options?: RequestInit): Promise<ClaimOut> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return http<ClaimOut>(getReturnClaimUrl(claimId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(noteBody)
-  }
-);}
-
-
-
-
-
-export const getReturnClaimMutationKey = () => ['returnClaim'] as const;
-
-export const getReturnClaimMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnClaim>>, TError,ReturnClaimMutationVariables, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof returnClaim>>, TError,ReturnClaimMutationVariables, TContext> => {
-
-const mutationKey = getReturnClaimMutationKey();
-const {mutation: mutationOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof returnClaim>>, ReturnClaimMutationVariables> = (props) => {
-          const {claimId,data} = props ?? {};
-
-          return  returnClaim(claimId,data,)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type ReturnClaimMutationResult = NonNullable<Awaited<ReturnType<typeof returnClaim>>>
-    export type ReturnClaimMutationBody = BodyType<NoteBody>
-    export type ReturnClaimMutationError = ErrorType<ProblemDetails>
-    export type ReturnClaimMutationVariables = {claimId: number;data: BodyType<NoteBody>}
-
-    /**
- * @summary Return a claim for changes
- */
-export const useReturnClaim = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof returnClaim>>, TError,ReturnClaimMutationVariables, TContext>, }
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof returnClaim>>,
-        TError,
-        ReturnClaimMutationVariables,
-        TContext
-      > => {
-      return useMutation(getReturnClaimMutationOptions(options), queryClient);
-    }
-
 export const getRejectClaimUrl = (claimId: number,) => {
 
 
@@ -13504,6 +13615,7 @@ export const getRejectClaimUrl = (claimId: number,) => {
 }
 
 /**
+ * With a message saying why: the claimant changes the claim and submits it again.
  * @summary Reject a claim
  */
 export const rejectClaim = async (claimId: number,
@@ -16015,7 +16127,7 @@ export const getListMediaUrl = (params?: ListMediaParams,) => {
 }
 
 /**
- * Newest first.
+ * Newest first. A regatta's editor sees that regatta's pictures (Story R-2).
  * @summary The picture library
  */
 export const listMedia = async (params?: ListMediaParams, options?: RequestInit): Promise<PageMediaOut> => {
@@ -16119,7 +16231,7 @@ export const getUploadMediaUrl = () => {
 /**
  * A JPEG, PNG or WebP — told by its content, not its name — re-encoded. 201 for a new
  * entry, 200 with the entry it already is for a picture the library holds (which keeps
- * its own alt text, credit and context).
+ * its own alt text, credit and context). A regatta's editor uploads to their regatta.
  * @summary Upload a picture into the library
  */
 export const uploadMedia = async (bodyUploadMedia: BodyUploadMedia, options?: RequestInit): Promise<ImportedOut> => {

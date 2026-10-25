@@ -30,6 +30,7 @@ from app.models import Club, Sailor, Team, TeamMembership
 from app.models.auth import Grant, ObjectType, Relation, User
 from app.problems import Problem
 from app.services import grants
+from app.services.participation import clubs_holding
 from app.services.waivers import is_minor
 
 router = APIRouter(tags=["guardians"])
@@ -165,15 +166,7 @@ async def _may_link(session: AsyncSession, acting: User, sailor: Sailor) -> None
 async def sailor_clubs(session: AsyncSession, sailor: Sailor) -> set[int]:
     """The clubs a sailor belongs to: a squad or an entry holds them, or their account
     (by the sailor's address) is a member."""
-    clubs = set(
-        (
-            await session.execute(
-                select(Team.club_id)
-                .join(TeamMembership, TeamMembership.team_id == Team.id)
-                .where(TeamMembership.sailor_id == sailor.id)
-            )
-        ).scalars()
-    )
+    clubs = await clubs_holding(session, sailor.id)
     account = (
         (
             await session.execute(select(User).where(User.email == sailor.email.lower()))

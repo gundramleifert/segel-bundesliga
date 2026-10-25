@@ -17,7 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Club, Event, RaceEntry, Team, TeamStatus
+from app.models import Club, Event, RaceEntry, Team, TeamMembership, TeamStatus
 from app.problems import Problem
 
 
@@ -84,6 +84,21 @@ async def event_entry(
 def team_name(club: Club, number: int = 1) -> str:
     """`KYC (SH)`, and from the second team on `KYC (SH) 2` (Story VA-13)."""
     return club.short_name if number == 1 else f"{club.short_name} {number}"
+
+
+async def clubs_holding(session: AsyncSession, sailor_id: int) -> set[int]:
+    """The clubs whose squad or entry holds this sailor — what makes a sailor a club's to
+    change (Story V-4), to see (S-2) and to link a guardian to (V-13). A rejected
+    registration holds nobody: it never became a participation."""
+    return set(
+        (
+            await session.execute(
+                select(Team.club_id)
+                .join(TeamMembership, TeamMembership.team_id == Team.id)
+                .where(TeamMembership.sailor_id == sailor_id, Team.status != TeamStatus.REJECTED)
+            )
+        ).scalars()
+    )
 
 
 async def squad_team(session: AsyncSession, team: Team) -> Team:

@@ -11,13 +11,12 @@ title: "Create an event"
 ---
 ## Create an event
 
-May create one: the league office, the series' manager, and the host club's manager
-(own club as host only). Every *Administration* screen works on a phone: a table wider than
-the screen scrolls sideways, the page itself does not.
-
-> **Note:** *Teams and boats* currently loads only for the league office's
-> administrators; without it the event cannot be saved. If it shows an error, ask the
-> league office to create the event.
+May create one: the league office and its race committee, any event; a series' manager
+the acts of their series, with any club as host; a club's manager an event their own
+club hosts outside a series. The form offers only what you may pick — your series, the
+hosts you may name — and *＋ New event* is there only if you may create one. Every
+*Administration* screen works on a phone: a table wider than the screen scrolls sideways,
+the page itself does not.
 
 ### The three steps {#create-event-wizard}
 

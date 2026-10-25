@@ -15,7 +15,6 @@ import {
   useListPendingClaims,
   usePayClaim,
   useRejectClaim,
-  useReturnClaim,
   useSaveClubBankAccount,
   useSettlePaymentRun,
 } from "../../api/generated/sbl";
@@ -30,13 +29,13 @@ import { Field, Message, Section } from "../../components/Form";
 import { Stack } from "../../components/Layouts";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { downloadFile, fetchFileUrl } from "../../lib/files";
-import { formatDate, formatMoney, parseCents } from "../../lib/format";
+import { formatDate, formatMoney } from "../../lib/format";
 import { Select } from "../../components/Select";
 
 /** Money — what waits for a manager or treasurer (Stories F-3, F-4, F-6, F-7), as
  * sections of a club's and an event's page in my space (Story S-7).
  *
- * Each claim is either to **decide** (approve, return, reject) or, once approved, to
+ * Each claim is either to **decide** (approve, or reject with a message) or, once approved, to
  * **pay**; which one is the server's `action`, so nothing here re-derives who may do what.
  * The claimant's own claims never appear — four eyes (F-3).
  *
@@ -560,57 +559,22 @@ function useRefresh() {
   return { mutation: { onSuccess: useMoneyRefresh() } };
 }
 
-/** Approve, optionally lowering items, or send it back with a note. An item's field
- *  starts at what was claimed and only a lower amount is sent — the server refuses a
- *  higher one anyway (`expense-approval-above-claim`). */
+/** Approve the claim as it stands, or reject it with a message saying why — the
+ *  decider changes no amount (Story F-3): the claimant corrects the claim and submits it
+ *  again, and it is back here. */
 function Decide({ claim }: { claim: Claim }) {
   const { t } = useTranslation("space");
   const id = `reimbursements-claim-${claim.id}`;
   const refresh = useRefresh();
   const approve = useApproveClaim(refresh);
-  const giveBack = useReturnClaim(refresh);
   const reject = useRejectClaim(refresh);
   const [note, setNote] = useState("");
-  const [cuts, setCuts] = useState<Record<number, string>>({});
-
-  const parsed = claim.items.map((item) => {
-    const raw = cuts[item.id];
-    return { item, cents: raw === undefined ? item.amount_cents : parseCents(raw) };
-  });
-  const valid = parsed.every(({ item, cents }) => cents !== null && cents <= item.amount_cents);
-  const busy = approve.isPending || giveBack.isPending || reject.isPending;
-  const error = approve.error ?? giveBack.error ?? reject.error;
-
-  const doApprove = () =>
-    approve.mutate({
-      claimId: claim.id,
-      data: {
-        items: parsed
-          .filter(({ item, cents }) => cents !== null && cents < item.amount_cents)
-          .map(({ item, cents }) => ({ item_id: item.id, approved_cents: cents! })),
-        note: note.trim() || null,
-      },
-    });
+  const busy = approve.isPending || reject.isPending;
+  const error = approve.error ?? reject.error;
 
   return (
     <div className="flex flex-col gap-3" data-testid={`${id}-decide`}>
-      <ClaimItems
-        claim={claim}
-        testId={id}
-        end={(item) => (
-          <label className="flex items-center gap-1 text-xs text-muted">
-            <span className="sr-only sm:not-sr-only">{t("pending.approveAs")}</span>
-            <input
-              inputMode="decimal"
-              className={`${INPUT_CLASS} w-24 text-right`}
-              value={cuts[item.id] ?? (item.amount_cents / 100).toFixed(2)}
-              onChange={(e) => setCuts((prev) => ({ ...prev, [item.id]: e.target.value }))}
-              aria-invalid={parsed.find((p) => p.item.id === item.id)?.cents == null}
-              data-testid={`${id}-cut-${item.id}`}
-            />
-          </label>
-        )}
-      />
+      <ClaimItems claim={claim} testId={id} />
       <Field label={t("pending.noteLabel")} hint={t("pending.noteHint")} testId={`${id}-note-field`}>
         <textarea
           className={INPUT_CLASS}
@@ -622,16 +586,12 @@ function Decide({ claim }: { claim: Claim }) {
         />
       </Field>
       <div className="flex flex-wrap gap-2">
-        <Button isDisabled={busy || !valid} onPress={doApprove} data-testid={`${id}-approve`}>
-          {t("pending.approve")}
-        </Button>
         <Button
-          variant="outline"
-          isDisabled={busy || !note.trim()}
-          onPress={() => giveBack.mutate({ claimId: claim.id, data: { note: note.trim() } })}
-          data-testid={`${id}-return`}
+          isDisabled={busy}
+          onPress={() => approve.mutate({ claimId: claim.id, data: { note: note.trim() || null } })}
+          data-testid={`${id}-approve`}
         >
-          {t("pending.return")}
+          {t("pending.approve")}
         </Button>
         <Button
           variant="danger"

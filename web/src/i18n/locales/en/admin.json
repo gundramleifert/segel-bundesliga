@@ -120,7 +120,8 @@
     "pairingPdfLink": "Download the pairing list (PDF)",
     "sizeOption": "{teams} teams · {boats} boats",
     "flightsLabel": "Flights",
-    "flightsHint": "1 to {max}: the stored list's length; a shorter day sails its first flights"
+    "flightsHint": "1 to {max}: the stored list's length; a shorter day sails its first flights",
+    "createNotAllowed": "You organize no series and no club, so there is no event you could create here. The league office or a series' organizer creates it."
   },
   "sailors": {
     "title": "Sailors",

@@ -55,8 +55,10 @@ _SERIES_RELATIONS = {Relation.RACE_OFFICER, Relation.JURY, Relation.MANAGER}
 #: Every relation's name, to read a club's policy without trusting it.
 _RELATION_NAMES = frozenset(relation.value for relation in Relation)
 
-#: The claimant may change a claim in these states, and only these.
-EDITABLE = (ClaimStatus.DRAFT, ClaimStatus.RETURNED)
+#: The claimant may change a claim in these states, and only these — everything until it
+#: is approved (Story F-2, decided 2026-10-24). A change to a submitted or a rejected one
+#: makes it a draft again (:func:`changed`).
+EDITABLE = (ClaimStatus.DRAFT, ClaimStatus.SUBMITTED, ClaimStatus.REJECTED)
 
 
 @dataclass(frozen=True)
@@ -153,9 +155,18 @@ def require_editable(claim: ExpenseClaim) -> None:
         raise Problem(
             409,
             "claim-not-editable",
-            "A claim can be changed only while it is a draft or returned.",
+            "An approved or withdrawn claim cannot be changed.",
             detail=f"The claim is {claim.status}.",
         )
+
+
+def changed(session: AsyncSession, user: User, claim: ExpenseClaim) -> None:
+    """The claimant changed it: a submitted or rejected claim is a draft again, to be
+    submitted again — nobody decides a claim that is changing under them (Story F-2). The
+    decider's note stays readable until then."""
+    if claim.status in (ClaimStatus.SUBMITTED, ClaimStatus.REJECTED):
+        claim.status = ClaimStatus.DRAFT
+        _audit(session, claim, "reopened", user)
 
 
 def require_decider(user: User, claim: ExpenseClaim) -> None:
@@ -324,6 +335,20 @@ def _decider_scope(user: User) -> ColumnElement[bool] | None:
     )
 
 
+async def rejected_of(session: AsyncSession, user: User) -> list[ExpenseClaim]:
+    """My claims that were rejected and wait for me to change or withdraw them (Story F-2)."""
+    return list(
+        (
+            await session.execute(
+                select(ExpenseClaim).where(
+                    ExpenseClaim.claimant_user_id == user.id,
+                    ExpenseClaim.status == ClaimStatus.REJECTED,
+                )
+            )
+        ).scalars()
+    )
+
+
 def action(claim: ExpenseClaim) -> str | None:
     """What the decider is to do with it: ``decide``, ``pay``, or nothing."""
     if claim.status == ClaimStatus.SUBMITTED:
@@ -404,38 +429,106 @@ async def add_item(
     *,
     kind: ExpenseKind,
     incurred_on: date,
+    incurred_until: date | None,
     description: str,
     distance_km: int | None,
     amount_cents: int | None,
 ) -> None:
     require_claimant(user, claim)
     require_editable(claim)
+    price = await _priced(session, claim, kind, distance_km, amount_cents)
+    days = _range(incurred_on, incurred_until)
+    claim.items.append(
+        ExpenseItem(
+            kind=kind,
+            incurred_on=days.first,
+            incurred_until=days.last,
+            description=description,
+            distance_km=distance_km if kind == ExpenseKind.TRAVEL_CAR else None,
+            rate_cents=price.rate_cents,
+            amount_cents=price.amount_cents,
+        )
+    )
+    changed(session, user, claim)
+
+
+async def update_item(
+    session: AsyncSession,
+    user: User,
+    claim: ExpenseClaim,
+    item: ExpenseItem,
+    *,
+    kind: ExpenseKind,
+    incurred_on: date,
+    incurred_until: date | None,
+    description: str,
+    distance_km: int | None,
+    amount_cents: int | None,
+) -> None:
+    """The item as the claimant now says it — the same rules as adding one."""
+    require_claimant(user, claim)
+    require_editable(claim)
+    price = await _priced(session, claim, kind, distance_km, amount_cents)
+    days = _range(incurred_on, incurred_until)
+    item.kind = kind
+    item.incurred_on, item.incurred_until = days.first, days.last
+    item.description = description
+    item.distance_km = distance_km if kind == ExpenseKind.TRAVEL_CAR else None
+    item.rate_cents = price.rate_cents
+    item.amount_cents = price.amount_cents
+    changed(session, user, claim)
+
+
+class Price(NamedTuple):
+    amount_cents: int
+    #: A car's: the paying club's per km, which the amount is distance × of.
+    rate_cents: int | None
+
+
+class Days(NamedTuple):
+    first: date
+    #: The last day of a range; empty for one day.
+    last: date | None
+
+
+async def _priced(
+    session: AsyncSession,
+    claim: ExpenseClaim,
+    kind: ExpenseKind,
+    distance_km: int | None,
+    amount_cents: int | None,
+) -> Price:
+    """The amount and, for a car, the paying club's rate it is distance × rate of."""
     if kind == ExpenseKind.TRAVEL_CAR:
         if distance_km is None:
             raise Problem(422, "expense-distance-required", "A car journey needs its distance.")
         rate = policy_for(await paying_club(session, claim)).km_rate_cents
-        item = ExpenseItem(
-            kind=kind,
-            incurred_on=incurred_on,
-            description=description,
-            distance_km=distance_km,
-            rate_cents=rate,
-            amount_cents=distance_km * rate,
-        )
-    else:
-        if amount_cents is None:
-            raise Problem(422, "expense-amount-required", "This item needs an amount.")
-        item = ExpenseItem(
-            kind=kind, incurred_on=incurred_on, description=description, amount_cents=amount_cents
-        )
-    claim.items.append(item)
+        return Price(distance_km * rate, rate)
+    if amount_cents is None:
+        raise Problem(422, "expense-amount-required", "This item needs an amount.")
+    return Price(amount_cents, None)
+
+
+def _range(first: date, last: date | None) -> Days:
+    """One day, or a range that ends later — a range of one day is that day."""
+    if last is None or last == first:
+        return Days(first, None)
+    if last < first:
+        raise Problem(422, "expense-range-backwards", "A range of dates ends after it begins.")
+    return Days(first, last)
 
 
 async def submit(session: AsyncSession, user: User, claim: ExpenseClaim) -> None:
-    """``draft``/``returned`` → ``submitted``. Copies payer, rate and bank details onto
-    the claim — what is submitted is what will be decided and paid."""
+    """``draft`` → ``submitted`` — a rejected claim too, as it stands. Copies payer, rate
+    and bank details onto the claim — what is submitted is what will be decided and paid."""
     require_claimant(user, claim)
-    require_editable(claim)
+    if claim.status not in (ClaimStatus.DRAFT, ClaimStatus.REJECTED):
+        raise Problem(
+            409,
+            "claim-not-editable",
+            "Only a draft or a rejected claim is submitted.",
+            detail=f"The claim is {claim.status}.",
+        )
     if not claim.items:
         raise Problem(422, "claim-empty", "A claim needs at least one item.")
 
@@ -445,6 +538,37 @@ async def submit(session: AsyncSession, user: User, claim: ExpenseClaim) -> None
             409, "event-has-no-host-club", "This event has no host club, so nobody pays it."
         )
     policy = policy_for(payer)
+    _require_receipts(claim, policy)
+
+    account = (
+        await session.execute(select(BankAccount).where(BankAccount.user_id == user.id))
+    ).scalar_one_or_none()
+    if account is None:
+        raise Problem(
+            422,
+            "bank-account-missing",
+            "Save the bank account to pay this back to first.",
+        )
+
+    # The rate is the paying club's at submission, frozen on the item (plan §3.2).
+    for item in claim.items:
+        if item.kind == ExpenseKind.TRAVEL_CAR and item.distance_km is not None:
+            item.rate_cents = policy.km_rate_cents
+            item.amount_cents = item.distance_km * policy.km_rate_cents
+
+    claim.payer_club_id = payer.id
+    claim.payee_name = account.holder
+    claim.iban = account.iban
+    claim.status = ClaimStatus.SUBMITTED
+    claim.submitted_at = datetime.now(UTC)
+    # A new decision is asked for: the last one's note is in the audit log.
+    claim.decided_by_user_id = claim.decided_at = claim.decision_note = None
+    _audit(session, claim, "submitted", user)
+
+
+def _require_receipts(claim: ExpenseClaim, policy: Policy) -> None:
+    """Every item of a kind the paying club wants a receipt for has one — its own, or one
+    on the whole claim (Story F-5)."""
     covered_by_claim = any(d.item_id is None for d in claim.documents)
     with_document = {d.item_id for d in claim.documents}
     missing = [
@@ -462,38 +586,14 @@ async def submit(session: AsyncSession, user: User, claim: ExpenseClaim) -> None
             item_ids=missing,
         )
 
-    account = (
-        await session.execute(select(BankAccount).where(BankAccount.user_id == user.id))
-    ).scalar_one_or_none()
-    if account is None:
-        raise Problem(
-            422,
-            "bank-account-missing",
-            "Save the bank account to pay this back to first.",
-        )
-
-    # The rate is the paying club's at submission, frozen on the item (plan §3.2).
-    for item in claim.items:
-        if item.kind == ExpenseKind.TRAVEL_CAR and item.distance_km is not None:
-            item.rate_cents = policy.km_rate_cents
-            item.amount_cents = item.distance_km * policy.km_rate_cents
-        item.approved_cents = None
-
-    claim.payer_club_id = payer.id
-    claim.payee_name = account.holder
-    claim.iban = account.iban
-    claim.status = ClaimStatus.SUBMITTED
-    claim.submitted_at = datetime.now(UTC)
-    _audit(session, claim, "submitted", user)
-
 
 def withdraw(session: AsyncSession, user: User, claim: ExpenseClaim) -> None:
     require_claimant(user, claim)
-    if claim.status not in (ClaimStatus.DRAFT, ClaimStatus.SUBMITTED, ClaimStatus.RETURNED):
+    if claim.status not in EDITABLE:
         raise Problem(
             409,
             "claim-not-editable",
-            "A decided claim cannot be withdrawn.",
+            "An approved claim cannot be withdrawn.",
             detail=f"The claim is {claim.status}.",
         )
     claim.status = ClaimStatus.WITHDRAWN
@@ -513,41 +613,22 @@ def _require_submitted(claim: ExpenseClaim) -> None:
         )
 
 
-def approve(
-    session: AsyncSession,
-    user: User,
-    claim: ExpenseClaim,
-    *,
-    cuts: dict[int, int],
-    note: str | None,
+async def approve(
+    session: AsyncSession, user: User, claim: ExpenseClaim, *, note: str | None
 ) -> None:
-    """Approves, optionally lowering single items — never raising one."""
+    """Approves the claim as it stands — the decider changes no amount (Story F-3). The
+    receipts are checked again: the claim may have changed since it was first submitted."""
     require_decider(user, claim)
     _require_submitted(claim)
-    items = {item.id: item for item in claim.items}
-    for item_id, cents in cuts.items():
-        item = items.get(item_id)
-        if item is None:
-            raise Problem(422, "expense-item-unknown", "That item is not on this claim.")
-        if not 0 <= cents <= item.amount_cents:
-            raise Problem(
-                422,
-                "expense-approval-above-claim",
-                "An item can be approved for at most what was claimed.",
-                item_id=item_id,
-            )
-    for item_id, cents in cuts.items():
-        items[item_id].approved_cents = None if cents == items[item_id].amount_cents else cents
+    _require_receipts(claim, policy_for(await paying_club(session, claim)))
     _decide(session, user, claim, ClaimStatus.APPROVED, note)
 
 
-def send_back(
-    session: AsyncSession, user: User, claim: ExpenseClaim, status: ClaimStatus, note: str
-) -> None:
-    """``returned`` or ``rejected`` — both with a note saying why."""
+def reject(session: AsyncSession, user: User, claim: ExpenseClaim, note: str) -> None:
+    """With a message saying why — the claimant changes the claim and submits it again."""
     require_decider(user, claim)
     _require_submitted(claim)
-    _decide(session, user, claim, status, note)
+    _decide(session, user, claim, ClaimStatus.REJECTED, note)
 
 
 def _decide(

@@ -30,13 +30,9 @@ from app.models import (
 )
 
 
-def _item(amount: int, *, approved: int | None = None, kind=ExpenseKind.OTHER) -> ExpenseItem:
+def _item(amount: int, *, kind=ExpenseKind.OTHER) -> ExpenseItem:
     return ExpenseItem(
-        kind=kind,
-        incurred_on=date(2026, 6, 1),
-        description="x",
-        amount_cents=amount,
-        approved_cents=approved,
+        kind=kind, incurred_on=date(2026, 6, 1), description="x", amount_cents=amount
     )
 
 
@@ -50,14 +46,14 @@ def _pay(claim: ExpenseClaim, amount: int, status: PaymentStatus) -> None:
 
 
 class TestClaimTotals:
-    """Story F-2/F-3: what is claimed and what is approved are sums over the items —
-    computed, never stored."""
+    """Story F-2/F-3: what is claimed is the sum over the items — computed, never stored —
+    and what is approved is that sum once approved: the decider changes no amount."""
 
     def test_claimed_and_approved_are_sums_over_the_items(self):
-        claim = _claim(_item(4500), _item(12000, approved=10000), _item(800, approved=0))
-
+        claim = _claim(_item(4500), _item(12000), _item(800))
         assert claim.claimed_cents == 17300
-        assert claim.approved_cents == 14500
+        assert claim.approved_cents == 17300
+        assert _claim(_item(4500), status=ClaimStatus.SUBMITTED).approved_cents == 0
 
 
 class TestPaymentState:
@@ -155,13 +151,15 @@ class TestTheDatabaseKeepsTheBooksStraight:
             )
         )
 
-    async def test_amounts_are_never_negative_and_approval_never_exceeds_the_claim(self, ids):
+    async def test_amounts_are_never_negative_and_a_range_ends_later(self, ids):
         claim_id = await _stored_claim(ids)
         base = {"claim_id": claim_id, "kind": ExpenseKind.OTHER, "incurred_on": date(2026, 6, 1)}
 
         await _refused(ExpenseItem(**base, description="negative", amount_cents=-100))
         await _refused(
-            ExpenseItem(**base, description="more", amount_cents=100, approved_cents=150)
+            ExpenseItem(
+                **base, description="backwards", amount_cents=100, incurred_until=date(2026, 5, 30)
+            )
         )
 
     async def test_a_claim_is_allocated_to_a_payment_once(self, ids):

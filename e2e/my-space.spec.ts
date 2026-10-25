@@ -252,3 +252,99 @@ describeStory("F-2: the people who work an event claim their costs on it", () =>
     await expect(page.getByTestId("my-space-claim-unavailable")).toHaveCount(0);
   });
 });
+
+describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a message, corrected, approved", () => {
+  test("each step tells the next person, and only an approved claim is frozen", async ({ page }, testInfo) => {
+    // The jury of the test event claims on it; its host club ASVW pays, and the club's
+    // treasurer decides (`app/seed_users.py`).
+    const JURY = "jury@sbl.example.com";
+    const TREASURER = "treasurer@asvw.example.com";
+    const clubId = await managedClub(page.request, "teams@asvw.example.com");
+    const jury = await bearer(page.request, JURY);
+    await page.request.put("/api/me/bank-account", {
+      headers: jury,
+      data: { holder: "Heiko Thölmann", iban: "DE89 3704 0044 0532 0130 00" },
+    });
+    const title = `Jury travel ${testInfo.project.name} ${Date.now()}`;
+
+    // --- the jury files: a three-day per diem, and a hotel with its own receipt
+    await signIn(page, JURY);
+    await page.goto("/me/profile?tab=claims");
+    const target = page.getByTestId("my-space-claim-target");
+    const act3 = await target.locator("option", { hasText: "Act 3" }).getAttribute("value");
+    await target.selectOption(act3!);
+    await page.getByTestId("my-space-claim-title").fill(title);
+    await page.getByTestId("my-space-claim-create").click();
+    const card = page.getByTestId("my-space-claims-list").locator(":scope > li", { hasText: title });
+    const claimId = (await card.getAttribute("data-testid"))!.replace("my-space-claim-", "");
+    const id = `my-space-claim-${claimId}`;
+
+    const addItem = async (kind: string, description: string, amount: string, until?: string) => {
+      await page.getByTestId(`${id}-add-kind`).selectOption(kind);
+      await page.getByTestId(`${id}-add-date`).fill("2026-07-17");
+      if (until) await page.getByTestId(`${id}-add-until`).fill(until);
+      await page.getByTestId(`${id}-add-description`).fill(description);
+      await page.getByTestId(`${id}-add-amount`).fill(amount);
+      await page.getByTestId(`${id}-add-submit`).click();
+      await expect(card.getByText(description)).toBeVisible();
+    };
+    // A comma on an English page is read as the decimal point it is.
+    await addItem("per_diem", "Per diem, three days", "42,00", "2026-07-19");
+    await addItem("accommodation", "Hotel, two nights", "180.00", "2026-07-19");
+    const hotel = card.getByTestId(new RegExp(`^${id}-item-\\d+$`)).filter({ hasText: "Hotel" });
+    const hotelId = (await hotel.getAttribute("data-testid"))!.replace(`${id}-item-`, "");
+    // A range reads as one: "July 17 – 19, 2026".
+    await expect(page.getByTestId(`${id}-item-dates-${hotelId}`)).toContainText("19");
+    await page.getByTestId(`${id}-item-receipt-${hotelId}`).click();
+    await page.getByTestId(`${id}-item-${hotelId}-upload-file`).setInputFiles({
+      name: "hotel.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(PNG, "base64"),
+    });
+    await expect(page.getByTestId(`${id}-item-receipts-${hotelId}`)).toContainText("hotel.png");
+    await page.getByTestId(`${id}-submit`).click();
+    const status = page.getByTestId(`my-space-claim-status-${claimId}`);
+    await expect(status).toHaveAttribute("data-status", "submitted");
+
+    // --- the treasurer is told, and rejects it with a message — no amount to change
+    await signIn(page, TREASURER);
+    await page.goto("/me");
+    await expect(page.getByTestId(`me-card-club-${clubId}-needs-claims`)).toBeVisible();
+    await page.goto(`/me/club/${clubId}?tab=money`);
+    const pending = `reimbursements-claim-${claimId}`;
+    await expect(page.getByTestId(`${pending}-decide`)).toBeVisible();
+    await expect(page.getByTestId(`${pending}-decide`).locator("input")).toHaveCount(0);
+    await page.getByTestId(`${pending}-note`).fill("The hotel was 160 € — see the invoice.");
+    await page.getByTestId(`${pending}-reject`).click();
+    await expect(page.getByTestId(pending)).toHaveCount(0);
+
+    // --- the jury is told, reads why, corrects the hotel: a draft again, submitted again
+    await signIn(page, JURY);
+    await page.goto("/me");
+    await expect(page.getByTestId(/^me-card-event-\d+-needs-claim_rejected$/)).toBeVisible();
+    await page.goto("/me/profile?tab=claims");
+    await expect(page.getByTestId(`my-space-claim-note-${claimId}`)).toContainText("160");
+    await page.getByTestId(`my-space-claim-toggle-${claimId}`).click();
+    await page.getByTestId(`${id}-item-edit-${hotelId}`).click();
+    const edit = `${id}-edit-${hotelId}`;
+    await page.getByTestId(`${edit}-amount`).fill("160,00");
+    await page.getByTestId(`${edit}-submit`).click();
+    await expect(status).toHaveAttribute("data-status", "draft");
+    await page.getByTestId(`${id}-submit`).click();
+    await expect(status).toHaveAttribute("data-status", "submitted");
+
+    // --- the treasurer is told again, and approves
+    await signIn(page, TREASURER);
+    await page.goto(`/me/club/${clubId}?tab=money`);
+    await page.getByTestId(`${pending}-approve`).click();
+    await expect(page.getByTestId(`${pending}-decide`)).toHaveCount(0);
+
+    // --- approved: frozen, and nothing waits on the jury any more
+    await signIn(page, JURY);
+    await page.goto("/me/profile?tab=claims");
+    await expect(status).toHaveAttribute("data-status", "approved");
+    await page.getByTestId(`my-space-claim-toggle-${claimId}`).click();
+    await expect(page.getByTestId(`${id}-item-edit-${hotelId}`)).toHaveCount(0);
+    await expect(page.getByTestId(`${id}-add`)).toHaveCount(0);
+  });
+});

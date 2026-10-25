@@ -17,12 +17,14 @@ import {
   useListMyDocuments,
   useSaveMyBankAccount,
   useSubmitClaim,
+  useUpdateClaimItem,
   useUploadClaimDocument,
   useUploadMyDocument,
   useWithdrawClaim,
 } from "../../api/generated/sbl";
 import {
   ClaimStatus,
+  type ClaimItem,
   DocumentKind,
   ExpenseKind,
   type BankAccount,
@@ -42,7 +44,7 @@ import { FileDropzone } from "../../components/FileDropzone";
 import { ExpiredBadge } from "../../components/PersonDocuments";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { openFile } from "../../lib/files";
-import { formatDate, formatMoney, parseCents } from "../../lib/format";
+import { centsText, formatDate, parseCents, todayIso } from "../../lib/format";
 import { Select } from "../../components/Select";
 
 /** The papers of my space (Stories S-5, S-6, F-2, F-5): documents and licences, the bank
@@ -520,7 +522,9 @@ function ClaimCard({ claim, open, onToggle }: { claim: Claim; open: boolean; onT
           {open ? t("claims.close") : t("claims.open")}
         </Button>
       </div>
-      {claim.decision_note && (claim.status === ClaimStatus.returned || claim.status === ClaimStatus.rejected) && (
+      {/* The decider's message stays while the claimant corrects the claim — a change
+          makes it a draft, and the message goes only when it is submitted again. */}
+      {claim.decision_note && (claim.status === ClaimStatus.rejected || claim.status === ClaimStatus.draft) && (
         <p className="mt-2 rounded-md bg-warning-soft px-3 py-2 text-sm text-warning-soft-foreground" data-testid={`my-space-claim-note-${claim.id}`}>
           {t("claims.decisionNote", { note: claim.decision_note })}
         </p>
@@ -531,7 +535,8 @@ function ClaimCard({ claim, open, onToggle }: { claim: Claim; open: boolean; onT
 }
 
 /** One claim, opened: its items and receipts, and — while it is the claimant's to change
- *  (`may_edit`: a draft, or returned) — the forms that change them and the way to submit. */
+ *  (`may_edit`: until it is approved) — the forms that change them and the way to submit.
+ *  A change to a submitted or rejected claim makes it a draft again (Story F-2). */
 function ClaimDetail({ claim }: { claim: Claim }) {
   const { t } = useTranslation("space");
   const invalidate = useInvalidate();
@@ -542,13 +547,41 @@ function ClaimDetail({ claim }: { claim: Claim }) {
   const submit = useSubmitClaim(refresh);
   const withdraw = useWithdrawClaim(refresh);
   const remove = useDeleteClaim(refresh);
+  // Which item has its edit form or its receipt upload open, if any.
+  const [open, setOpen] = useState<{ item: number; what: "edit" | "receipt" } | null>(null);
   const editable = claim.may_edit;
-  const withdrawable = ["draft", "submitted", "returned"].includes(claim.status);
+  const submittable = claim.status === ClaimStatus.draft || claim.status === ClaimStatus.rejected;
+  // A claim submitted once stays on record: a change makes it a draft again, but it is
+  // withdrawn from then on, never deleted (Story F-2).
+  const everSubmitted = claim.submitted_at !== null;
+  const withdrawable =
+    claim.status === ClaimStatus.submitted ||
+    claim.status === ClaimStatus.rejected ||
+    (claim.status === ClaimStatus.draft && everSubmitted);
+  const deletable = claim.status === ClaimStatus.draft && !everSubmitted;
   const error = removeItem.error ?? removeReceipt.error ?? submit.error ?? withdraw.error ?? remove.error;
+  const toggle = (item: number, what: "edit" | "receipt") =>
+    setOpen(open?.item === item && open.what === what ? null : { item, what });
+  const action = (item: ClaimItem, what: "edit" | "receipt" | "remove", label: string, onClick: () => void) => (
+    <button
+      type="button"
+      className={`text-xs text-muted ${what === "remove" ? "hover:text-danger" : "hover:text-foreground"}`}
+      disabled={removeItem.isPending}
+      onClick={onClick}
+      data-testid={`${id}-item-${what}-${item.id}`}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div className="mt-4 flex flex-col gap-4" data-testid={`${id}-detail`}>
       {claim.payer_club_name && <p className="text-sm text-muted">{t("claims.payer", { club: claim.payer_club_name })}</p>}
+      {editable && claim.status !== ClaimStatus.draft && (
+        <p className="text-sm text-muted" data-testid={`${id}-reopen-hint`}>
+          {t("claims.reopenHint")}
+        </p>
+      )}
 
       <div className="flex flex-col gap-2">
         <h4 className="text-sm font-semibold">{t("claims.itemsTitle")}</h4>
@@ -556,24 +589,32 @@ function ClaimDetail({ claim }: { claim: Claim }) {
           <ClaimItems
             claim={claim}
             testId={id}
+            onRemoveReceipt={editable ? (documentId) => removeReceipt.mutate({ claimId: claim.id, documentId }) : undefined}
             end={
               editable
                 ? (item) => (
-                    <button
-                      type="button"
-                      className="text-xs text-muted hover:text-danger"
-                      disabled={removeItem.isPending}
-                      onClick={() => removeItem.mutate({ claimId: claim.id, itemId: item.id })}
-                      data-testid={`${id}-item-remove-${item.id}`}
-                    >
-                      {t("claims.removeItem")}
-                    </button>
+                    <span className="flex gap-3">
+                      {action(item, "receipt", t("claims.itemReceipt"), () => toggle(item.id, "receipt"))}
+                      {action(item, "edit", t("claims.editItem"), () => toggle(item.id, "edit"))}
+                      {action(item, "remove", t("claims.removeItem"), () =>
+                        removeItem.mutate({ claimId: claim.id, itemId: item.id }),
+                      )}
+                    </span>
                   )
                 : undefined
             }
+            below={(item) =>
+              editable && open?.item === item.id ? (
+                open.what === "edit" ? (
+                  <ItemForm claim={claim} item={item} onDone={() => setOpen(null)} />
+                ) : (
+                  <UploadReceipt claim={claim} item={item} onDone={() => setOpen(null)} />
+                )
+              ) : null
+            }
           />
         )}
-        {editable && <AddItem claim={claim} />}
+        {editable && <ItemForm claim={claim} />}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -587,7 +628,7 @@ function ClaimDetail({ claim }: { claim: Claim }) {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {editable && (
+        {submittable && (
           <Button
             isDisabled={submit.isPending}
             onPress={() => submit.mutate({ claimId: claim.id })}
@@ -596,25 +637,26 @@ function ClaimDetail({ claim }: { claim: Claim }) {
             {t("claims.submit")}
           </Button>
         )}
-        {withdrawable && claim.status !== ClaimStatus.draft && (
-          <Button
-            variant="outline"
-            isDisabled={withdraw.isPending}
-            onPress={() => withdraw.mutate({ claimId: claim.id })}
-            data-testid={`${id}-withdraw`}
-          >
-            {t("claims.withdraw")}
-          </Button>
+        {withdrawable && (
+          <ConfirmButton
+            label={t("claims.withdraw")}
+            prompt={t("claims.withdrawPrompt")}
+            confirmLabel={t("claims.withdrawConfirm")}
+            cancelLabel={t("claims.keep")}
+            busy={withdraw.isPending}
+            onConfirm={() => withdraw.mutate({ claimId: claim.id })}
+            testId={`${id}-withdraw`}
+          />
         )}
-        {claim.status === ClaimStatus.draft && (
-          <Button
-            variant="danger"
-            isDisabled={remove.isPending}
-            onPress={() => remove.mutate({ claimId: claim.id })}
-            data-testid={`${id}-delete`}
-          >
-            {t("claims.deleteDraft")}
-          </Button>
+        {deletable && (
+          <ConfirmButton
+            label={t("claims.deleteDraft")}
+            confirmLabel={t("claims.deleteDraftConfirm")}
+            cancelLabel={t("claims.keep")}
+            busy={remove.isPending}
+            onConfirm={() => remove.mutate({ claimId: claim.id })}
+            testId={`${id}-delete`}
+          />
         )}
       </div>
       <Message
@@ -626,45 +668,57 @@ function ClaimDetail({ claim }: { claim: Claim }) {
   );
 }
 
-function AddItem({ claim }: { claim: Claim }) {
+/** Adds an item — or, with `item`, changes that one. A day, or a range of days (a
+ *  hotel's nights); an amount in the reader's own notation ("12,50" or "12.50"), a car
+ *  journey in kilometres, which the paying club's rate turns into money. */
+function ItemForm({ claim, item, onDone }: { claim: Claim; item?: ClaimItem; onDone?: () => void }) {
   const { t } = useTranslation("space");
   const invalidate = useInvalidate();
-  const id = `my-space-claim-${claim.id}-add`;
-  const [kind, setKind] = useState<ExpenseKind>(ExpenseKind.travel_car);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [description, setDescription] = useState("");
-  const [distance, setDistance] = useState("");
-  const [amount, setAmount] = useState("");
-  const add = useAddClaimItem({
+  const id = item ? `my-space-claim-${claim.id}-edit-${item.id}` : `my-space-claim-${claim.id}-add`;
+  const [kind, setKind] = useState<ExpenseKind>(item?.kind ?? ExpenseKind.travel_car);
+  const [date, setDate] = useState(item?.incurred_on ?? todayIso());
+  const [until, setUntil] = useState(item?.incurred_until ?? "");
+  const [description, setDescription] = useState(item?.description ?? "");
+  const [distance, setDistance] = useState(item?.distance_km != null ? String(item.distance_km) : "");
+  const [amount, setAmount] = useState(item && item.kind !== ExpenseKind.travel_car ? centsText(item.amount_cents) : "");
+  const saved = {
     mutation: {
       onSuccess: () => {
-        setDescription("");
-        setDistance("");
-        setAmount("");
+        if (!item) {
+          setDescription("");
+          setDistance("");
+          setAmount("");
+          setUntil("");
+        }
         invalidate("/api/me/claims", "/api/claims", "/api/me/contexts");
+        onDone?.();
       },
     },
-  });
+  };
+  const add = useAddClaimItem(saved);
+  const update = useUpdateClaimItem(saved);
+  const save = item ? update : add;
   const car = kind === ExpenseKind.travel_car;
   const cents = parseCents(amount);
+  const backwards = until !== "" && until < date;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    add.mutate({
-      claimId: claim.id,
-      data: {
-        kind,
-        incurred_on: date,
-        description: description.trim(),
-        distance_km: car ? Number(distance) : null,
-        amount_cents: car ? null : cents,
-      },
-    });
+    const data = {
+      kind,
+      incurred_on: date,
+      incurred_until: until || null,
+      description: description.trim(),
+      distance_km: car ? Number(distance) : null,
+      amount_cents: car ? null : cents,
+    };
+    if (item) update.mutate({ claimId: claim.id, itemId: item.id, data });
+    else add.mutate({ claimId: claim.id, data });
   };
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg bg-surface-secondary p-3" data-testid={id}>
-      <p className="text-sm font-medium">{t("claims.addItemTitle")}</p>
+      <p className="text-sm font-medium">{item ? t("claims.editItemTitle") : t("claims.addItemTitle")}</p>
       <div className="flex flex-wrap gap-3">
         <div className="min-w-40 flex-1">
           <Field label={t("claims.kindLabel")} testId={`${id}-kind-field`}>
@@ -681,7 +735,7 @@ function AddItem({ claim }: { claim: Claim }) {
             </Select>
           </Field>
         </div>
-        <div className="min-w-40 flex-1">
+        <div className="min-w-36 flex-1">
           <Field label={t("claims.dateLabel")} testId={`${id}-date-field`}>
             <input
               type="date"
@@ -690,6 +744,19 @@ function AddItem({ claim }: { claim: Claim }) {
               required
               onChange={(e) => setDate(e.target.value)}
               data-testid={`${id}-date`}
+            />
+          </Field>
+        </div>
+        <div className="min-w-36 flex-1">
+          <Field label={t("claims.untilLabel")} hint={t("claims.untilHint")} testId={`${id}-until-field`}>
+            <input
+              type="date"
+              className={INPUT_CLASS}
+              value={until}
+              min={date}
+              onChange={(e) => setUntil(e.target.value)}
+              aria-invalid={backwards}
+              data-testid={`${id}-until`}
             />
           </Field>
         </div>
@@ -725,76 +792,62 @@ function AddItem({ claim }: { claim: Claim }) {
             className={INPUT_CLASS}
             value={amount}
             required
-            placeholder="0,00"
+            placeholder={centsText(0)}
             onChange={(e) => setAmount(e.target.value)}
             aria-invalid={amount !== "" && cents === null}
             data-testid={`${id}-amount`}
           />
         </Field>
       )}
-      <div>
+      <div className="flex flex-wrap gap-2">
         <Button
           type="submit"
           size="sm"
-          isDisabled={add.isPending || (!car && cents === null)}
+          isDisabled={save.isPending || backwards || (!car && cents === null)}
           data-testid={`${id}-submit`}
         >
-          {t("claims.addItem")}
+          {item ? t("claims.saveItem") : t("claims.addItem")}
         </Button>
+        {onDone && (
+          <Button size="sm" variant="ghost" onPress={onDone} data-testid={`${id}-cancel`}>
+            {t("claims.cancel")}
+          </Button>
+        )}
       </div>
-      <Message error={add.error ? errorText(add.error) : null} testId={`${id}-message`} />
+      <Message error={save.error ? errorText(save.error) : null} testId={`${id}-message`} />
     </form>
   );
 }
 
-function UploadReceipt({ claim }: { claim: Claim }) {
+/** A receipt for one item — or, without `item`, one that covers the whole claim, like a
+ *  hotel invoice over several nights and the breakfasts (Story F-5). */
+function UploadReceipt({ claim, item, onDone }: { claim: Claim; item?: ClaimItem; onDone?: () => void }) {
   const { t } = useTranslation("space");
   const invalidate = useInvalidate();
-  const id = `my-space-claim-${claim.id}-receipt`;
-  const [itemId, setItemId] = useState("");
+  const id = item ? `my-space-claim-${claim.id}-item-${item.id}-upload` : `my-space-claim-${claim.id}-receipt`;
   const upload = useUploadClaimDocument({
     mutation: {
       onSuccess: () => {
         invalidate("/api/me/claims", "/api/claims", "/api/me/contexts");
+        onDone?.();
       },
     },
   });
 
   return (
     <div className="flex flex-col gap-2 rounded-lg bg-surface-secondary p-3" data-testid={id}>
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-40 flex-1">
-          <Field label={t("claims.receiptFor")} testId={`${id}-item-field`}>
-            <Select
-              value={itemId}
-              onChange={(e) => setItemId(e.target.value)}
-              testId={`${id}-item`}
-            >
-              <option value="">{t("claims.receiptWholeClaim")}</option>
-              {claim.items.map((item) => (
-                <option key={item.id} value={String(item.id)}>
-                  {`${t(`itemKinds.${item.kind}`)} · ${item.description} · ${formatMoney(item.amount_cents)}`}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        </div>
-        <div className="min-w-40 flex-1">
-          <Field label={t("claims.uploadReceipt")} hint={t("documents.fileHint")} testId={`${id}-file-field`}>
-            <FileDropzone
-              accept="application/pdf,image/jpeg,image/png"
-              disabled={upload.isPending}
-              onFile={(file) =>
-                upload.mutate({
-                  claimId: claim.id,
-                  data: { file, item_id: itemId ? Number(itemId) : null },
-                })
-              }
-              testId={`${id}-file`}
-            />
-          </Field>
-        </div>
-      </div>
+      <Field
+        label={item ? t("claims.uploadItemReceipt") : t("claims.uploadClaimReceipt")}
+        hint={t("documents.fileHint")}
+        testId={`${id}-file-field`}
+      >
+        <FileDropzone
+          accept="application/pdf,image/jpeg,image/png"
+          disabled={upload.isPending}
+          onFile={(file) => upload.mutate({ claimId: claim.id, data: { file, item_id: item?.id ?? null } })}
+          testId={`${id}-file`}
+        />
+      </Field>
       <Message error={upload.error ? errorText(upload.error) : null} testId={`${id}-message`} />
     </div>
   );
