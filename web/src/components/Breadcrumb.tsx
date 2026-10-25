@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Tip } from "./Tip";
 import { Link, useLocation } from "react-router-dom";
 
-import { usePageTitle } from "./breadcrumb";
+import { usePageCrumbs, usePageTitle, type Crumb } from "./breadcrumb";
 
 /** Which nav section a path belongs to, and what to call it.
  *
@@ -33,14 +33,17 @@ export function Breadcrumb() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const pageTitle = usePageTitle();
+  const published = usePageCrumbs();
 
   const [first, ...rest] = pathname.split("/").filter(Boolean);
   const section = first ? SECTIONS[first] : undefined;
   const onSectionLanding = Boolean(section) && rest.length === 0;
 
-  const crumbs: { label: string; to?: string }[] = [];
-  if (section) crumbs.push({ label: t(`nav.${section.key}`), to: section.path });
-  if (pageTitle && !onSectionLanding) crumbs.push({ label: pageTitle });
+  const crumbs: Crumb[] = [];
+  // A page that published its whole trail (the workspace, Story Z-10) is taken at its word.
+  if (published?.length) crumbs.push(...published);
+  else if (section) crumbs.push({ label: t(`nav.${section.key}`), to: section.path });
+  if (!published?.length && pageTitle && !onSectionLanding) crumbs.push({ label: pageTitle });
   if (!crumbs.length) crumbs.push({ label: t("nav.start"), to: "/" });
 
   return (

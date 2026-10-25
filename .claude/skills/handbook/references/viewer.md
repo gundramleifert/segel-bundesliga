@@ -60,7 +60,7 @@ usePlace(id)
 resolvePlace
   /me, /me/profile          → one target: every signed-in reader
   /me/<kind>/:id + tab      → one per context of that kind in GET /api/me/contexts whose
-                              relations show the tab (CONTEXT_TABS[kind][tab].for)
+                              relations give the section (hasSection(kind, section, relations))
   /admin (+ tab)            → one target if adminTabs(hasRole) has the tab (any tab, bare)
   /admin/<area>/new         → one target if mayCreateIn(area, hasRole)
 ```

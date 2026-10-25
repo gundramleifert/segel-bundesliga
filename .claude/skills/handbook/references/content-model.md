@@ -138,23 +138,23 @@ The registry is `web/src/handbook/places.ts` (`PLACES`):
 | Place | Leads to | A link for |
 |---|---|---|
 | `space` | `/me` | every signed-in reader (the help is only for them) |
-| `profile.<tab>` — `account`, `documents`, `bank`, `waivers`, `claims` | `/me/profile?tab=<tab>` | every signed-in reader |
-| `club.<tab>` — `members`, `events` (*Matchdays*), `series` (*Series & squads*), `waivers`, `claims` (*My claims*), `money` | `/me/club/<id>?tab=<tab>` | each club in the reader's space where that tab is there for their relations — one link per club |
-| `series.<tab>` — `team`, `events`, `organize` | `/me/series/<id>?tab=<tab>` | likewise, per series |
-| `event.<tab>` — `crew`, `claims`, `decide`, `race`, `organize` | `/me/event/<id>?tab=<tab>` | likewise, per event |
+| `profile.<tab>` — `account`, `documents`, `bank`, `waivers`, `claims` | `/me/profile/<section>` | every signed-in reader |
+| `club.<tab>` — `members`, `events` (section `crews`, *Events & crews*), `series` (`squads`, *Squads*), `waivers`, `claims` (`my-claims`), `money` (`decide-claims`, *Money*) | `/me/club/<id>/<section>` | each club in the reader's space where that section is there for their relations — one link per club |
+| `series.<tab>` — `team`, `events`, `organize` (`registrations`) | `/me/series/<id>/<section>` | likewise, per series |
+| `event.<tab>` — `crew`, `claims` (`my-claims`), `decide` (`decide-claims`), `race` (`race-control`), `organize` (`general`) | `/me/event/<id>/<section>` | likewise, per event |
 | `admin`, `admin.<tab>` — `clubs`, `series`, `events`, `sailors`, `accounts` | `/admin`, `/admin?tab=<tab>` | a reader who has that administration tab |
 | `admin.new-club`, `admin.new-series`, `admin.new-event` | `/admin/<area>/new` | a reader who has the tab that page is reached from (`new-series`: the site's admin alone) |
 
-The tab keys are the screens' own (`?tab=` values), not the labels: *Matchdays* is
-`club.events`, *Series & squads* is `club.series`, *Claims to decide* is `event.decide`,
-*Race control* is `event.race`. When the label in a page and the key disagree, the key
-in `lib/workspace.ts` is right.
+The place ids kept the names of the tabs they were (`club.events`, `event.decide`); what
+they lead to is a section of `lib/workspace.ts` (`crews`, `decide-claims`), which is also
+its URL segment. When a label in a page and a key disagree, the key in
+`lib/workspace.ts` is right.
 
 ### Who may use it
 
 **Not decided in `places.ts`.** The screens build their tabs from the declarations in
-`web/src/lib/workspace.ts` — `PROFILE_TABS`, `CLUB_TABS`, `SERIES_TABS`, `EVENT_TABS`
-(each tab's `for`: the relations that show it) and `adminTabs(hasRole)`,
+`web/src/lib/workspace.ts` — `WORKSPACE` — every context's
+sections, each with its `for` (the relations that show it), asked through `hasSection` — and `adminTabs(hasRole)`,
 `mayCreateIn(area, hasRole)` for the administration. A place only points at one of
 them, and the viewer asks the same declarations with the reader's relations from
 `GET /api/me/contexts`. A change to who sees a tab is therefore one edit, and the help
@@ -166,7 +166,7 @@ Only when a page names it (plus the obvious tab siblings):
 
 1. The tab exists in `lib/workspace.ts` (the screen declares it there; a new screen tab
    is declared there first, never only in the page).
-2. One line in `PLACES`: `"club.money": { path: "/me/club/:id", tab: "money" },` —
+2. One line in `PLACES`: `"club.money": { path: "/me/club/:id", section: "decide-claims" },` —
    literal, one entry per line: `check-docs.py` reads the keys and paths with a regex.
    `PlaceDef` types the `tab` by the path, so a tab the screen does not declare does not
    compile.

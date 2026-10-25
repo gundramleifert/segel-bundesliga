@@ -241,27 +241,27 @@ describeStory("B-18: a click path in the help opens that place, for the reader w
     return sailors.find((s) => s.email && bornIn(s) < new Date().getFullYear() - 19)!.email!;
   }
 
-  test("a sailor reading the waiver page opens the Waivers tab of their profile", async ({ page, request }) => {
+  test("a sailor reading the waiver page opens the Waivers section of their profile", async ({ page, request }) => {
     await signIn(page, await plainSailor(request));
     await page.goto("/help/waiver");
     const place = page.getByTestId("help-place-profile.waivers").first();
     await expect(place).toHaveAttribute("data-reachable", "true");
-    await expect(place).toHaveAttribute("href", "/me/profile?tab=waivers");
+    await expect(place).toHaveAttribute("href", "/me/profile/waivers");
     await place.click();
-    await expect(page).toHaveURL(/\/me\/profile\?tab=waivers$/);
-    await expect(page.getByTestId("me-context-waivers-tab")).toHaveAttribute("aria-selected", "true");
+    await expect(page).toHaveURL(/\/me\/profile\/waivers$/);
+    await expect(page.getByTestId("workspace-content-me-waivers")).toBeVisible();
   });
 
   for (const who of [BOARD, TREASURER]) {
-    test(`${who.split("@")[0]} gets a link to their club's Money tab`, async ({ page, request }) => {
+    test(`${who.split("@")[0]} gets a link to their club's money`, async ({ page, request }) => {
       const club = await clubOf(request, who);
       await signIn(page, who);
       await page.goto("/help/decide-claims");
       const place = page.getByTestId("help-place-club.money").first();
       await expect(place).toHaveAttribute("data-reachable", "true");
-      await expect(place).toHaveAttribute("href", `/me/club/${club}?tab=money`);
+      await expect(place).toHaveAttribute("href", `/me/club/${club}/decide-claims`);
       await place.click();
-      await expect(page.getByTestId("me-context-money-tab")).toHaveAttribute("aria-selected", "true");
+      await expect(page.getByTestId("workspace-content-club-decide-claims")).toBeVisible();
     });
   }
 

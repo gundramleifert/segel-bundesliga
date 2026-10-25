@@ -1,17 +1,17 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { useListEvents, useMyClubs } from "../../api/generated/sbl";
-import type { MyContext, Need } from "../../api/types";
+import type { MyContext } from "../../api/types";
 import { useAccount, useAsync, useInvalidate } from "../../api/useApi";
 import { Async } from "../../components/Async";
 import { ErrorMessage, Loading, PageHeader, StatusBadge } from "../../components/Blocks";
 import { ClubMembersPanel } from "../../components/ClubMembersPanel";
 import { Section } from "../../components/Form";
 import { Stack } from "../../components/Layouts";
-import { TabbedView, type TabDef } from "../../components/Tabs";
 import { eventDates } from "../../lib/format";
+import { LEGACY_TAB_SECTION } from "../../lib/workspace";
 import { AccountInfo, DeleteAccount, SailorProfile, SignInMethods } from "./Profile";
 import { ClubEvents, ClubTeams, ClubWaivers } from "./ClubSections";
 import { ClubMoneyTab, EventClaimsTab } from "./Money";
@@ -19,50 +19,56 @@ import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
 import { Wards, Waivers } from "./Waivers";
 import { NeedsLine, RelationChips } from "./Chips";
 import { contextPath, useMySpace } from "./shared";
-import {
-  CLUB_TABS,
-  EVENT_TABS,
-  PROFILE_TABS,
-  SERIES_TABS,
-  tabRule,
-  tabVisible,
-  type Holding,
-} from "../../lib/workspace";
+import { WorkspaceFrame, type WorkspaceSection } from "./Workspace";
 
-/** Story S-7: my page in a club, a series or an event — and my own, `/me/profile`.
+/** Stories S-7, Z-10: my page in a club, a series or an event — and my own, `/me/profile`.
  *
- * **Assembled, not written per role.** Each section says which of my relations show it,
- * and the page shows those my relations allow: a club's treasurer who also sails there sees
- * the money and their squad, a helper sees their claims and nothing else. The sections
- * are the panels the separate screens had (`/club`, `/reimbursements`, `/account`) —
- * moved here, not changed.
+ * **Assembled, not written per role.** Each page lists the sections it has built, keyed as
+ * `lib/workspace.ts` declares them; the frame (`WorkspaceFrame`) shows those my relations
+ * there allow, in the sidebar, and the one in the URL (`/me/club/7/members`). A club's
+ * treasurer who also sails there sees the money and their squad, a helper their claims and
+ * nothing else. The panels are the ones the tabs had (#31 moved them, unchanged); the
+ * sections the plan adds come with #32.
  *
- * A tab that needs me says so on its label, so the "needs you" line of the overview card
- * leads on to the right tab instead of a page to search. A section that is only there
- * while it needs me — an unsigned waiver (S-1) — is a **notice** above the tabs instead. The tabs sit in the header row
- * beside the page's name, like a matchday's, and the breadcrumb leads back to my space.
+ * A section that needs me says so with its count, so the "needs you" line leads on to the
+ * right section instead of a page to search. A section that is only there while it needs
+ * me — an unsigned waiver (S-1) — is a **notice** above every section instead.
  */
 
-type SectionDef = {
-  key: string;
-  label: string;
-  /** Shown when I hold one of these there (`sailor` included); none — always. A tab's
-   *  `key` and `for` come from `lib/workspace.ts`, which the help's places read too. */
-  for?: readonly Holding[];
-  /** Overview "needs" codes this tab is where to act on. */
-  needs?: string[];
-  /** Not a tab: shown above the tabs, and only while one of its `needs` is there. */
-  notice?: boolean;
-  render: () => ReactNode;
-};
+type ContextKind = "club" | "series" | "event";
 
-function visible(sections: SectionDef[], relations: string[]): SectionDef[] {
-  return sections.filter((s) => tabVisible(s, relations));
+/** `?tab=` was the address of a section before #31: the same section, at its own path —
+ *  the rest of the query kept (a club's `&event=`). An unknown tab goes to the overview. */
+function legacyTarget(base: string, map: Record<string, string>, params: URLSearchParams): string | null {
+  const tab = params.get("tab");
+  if (!tab) return null;
+  const rest = new URLSearchParams(params);
+  rest.delete("tab");
+  const query = rest.toString();
+  const section = map[tab];
+  return `${base}${section ? `/${section}` : ""}${query ? `?${query}` : ""}`;
 }
 
-function labelled(section: SectionDef, needs: Need[]): string {
-  const count = needs.filter((n) => section.needs?.includes(n.code)).reduce((sum, n) => sum + n.count, 0);
-  return count ? `${section.label} (${count})` : section.label;
+/** What a context opens on until #33 gives it its to-dos: the dates, the state, the
+ *  public page, my relations and what waits for me there. */
+function ContextSummary({ context, link }: { context: MyContext; link: string | null }) {
+  const { t } = useTranslation("space");
+  const testId = `me-context-${context.kind}-${context.id}`;
+  return (
+    <div className="flex flex-col gap-2" data-testid={testId}>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+        {(context.kind === "event" || context.starts_on) && <span>{eventDates(context)}</span>}
+        {context.status && <StatusBadge status={context.status} testId={`${testId}-status`} />}
+        {link && (
+          <Link to={link} className="underline underline-offset-2" data-testid={`${testId}-public`}>
+            {t("context.publicPage")}
+          </Link>
+        )}
+      </div>
+      <RelationChips relations={context.relations} testId={`${testId}-relations`} />
+      <NeedsLine needs={context.needs} testId={`${testId}-needs`} />
+    </div>
+  );
 }
 
 /** The frame every context page shares: find it in my space, else *not found*. */
@@ -71,14 +77,17 @@ function ContextFrame({
   publicPath,
   sections,
 }: {
-  kind: MyContext["kind"];
+  kind: ContextKind;
   publicPath: (context: MyContext) => string | null;
-  sections: (context: MyContext) => SectionDef[];
+  sections: (context: MyContext) => WorkspaceSection[];
 }) {
   const { t } = useTranslation("space");
-  const { id } = useParams();
+  const { id, section } = useParams();
+  const [params] = useSearchParams();
   const { account, accountLoading, space } = useMySpace();
 
+  const legacy = legacyTarget(`/me/${kind}/${id}`, LEGACY_TAB_SECTION[kind], params);
+  if (legacy) return <Navigate to={legacy} replace />;
   if (accountLoading) return <Loading testId="me-context-loading" />;
   if (!account) return <Navigate to="/account" replace />;
 
@@ -95,52 +104,22 @@ function ContextFrame({
             </>
           );
         }
-        const declared = visible(sections(context), context.relations);
-        const shown = declared.filter((s) => !s.notice);
-        const notices = declared.filter((s) => s.notice && context.needs.some((n) => s.needs?.includes(n.code)));
-        const testId = `me-context-${context.kind}-${context.id}`;
-        const link = publicPath(context);
+        const overview: WorkspaceSection = {
+          key: "overview",
+          label: t("workspace.overview"),
+          render: () => <ContextSummary context={context} link={publicPath(context)} />,
+        };
         return (
-          <Stack gap={5} testId={testId}>
-            <PageHeader title={context.name} />
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-                {(context.kind === "event" || context.starts_on) && <span>{eventDates(context)}</span>}
-                {context.status && <StatusBadge status={context.status} testId={`${testId}-status`} />}
-                {link && (
-                  <Link to={link} className="underline underline-offset-2" data-testid={`${testId}-public`}>
-                    {t("context.publicPage")}
-                  </Link>
-                )}
-              </div>
-              <RelationChips relations={context.relations} testId={`${testId}-relations`} />
-              <NeedsLine needs={context.needs} testId={`${testId}-needs`} />
-            </div>
-            {notices.map((s) => (
-              <section
-                key={s.key}
-                aria-label={s.label}
-                className="rounded-xl border-2 border-warning/50 bg-warning-soft p-1"
-                data-testid={`me-context-${s.key}-notice`}
-              >
-                {s.render()}
-              </section>
-            ))}
-            {shown.length ? (
-              <TabbedView
-                param="tab"
-                inHeader
-                testIdPrefix="me-context"
-                label={t("context.tabsLabel")}
-                className="grid grid-cols-[minmax(0,1fr)]"
-                tabs={shown.map((s): TabDef<string> => ({ key: s.key, label: labelled(s, context.needs), render: s.render }))}
-              />
-            ) : (
-              <p className="text-sm text-muted" data-testid={`${testId}-nothing`}>
-                {t("context.nothingHere")}
-              </p>
-            )}
-          </Stack>
+          <WorkspaceFrame
+            current={{ kind, id: context.id }}
+            name={context.name}
+            shortName={context.short_name}
+            relations={context.relations}
+            needs={context.needs}
+            sections={[overview, ...sections(context)]}
+            active={section}
+            started={context.status === "live" || context.status === "final"}
+          />
         );
       }}
     </Async>
@@ -150,11 +129,10 @@ function ContextFrame({
 /** Story S-1: my unsigned waiver, as a notice with its button. An event of a series asks
  * for the series' waiver — one signature on any of its events clears them all — and the
  * notice goes once it is signed: signing refreshes my space, and with it the need. */
-function waiverNotice(t: (key: string) => string, scope: "series" | "event", id: number): SectionDef {
+function waiverNotice(t: (key: string) => string, scope: "series" | "event", id: number): WorkspaceSection {
   return {
     key: "waiver",
     label: t("context.tabs.waivers"),
-    for: ["sailor"],
     needs: ["waiver"],
     notice: true,
     render: () => <Waivers only={{ scope, id }} />,
@@ -192,54 +170,68 @@ function MyTeams({ context, testId }: { context: MyContext; testId: string }) {
 
 // ---------------------------------------------------------------------------- me
 
-/** `/me/profile` — my own things: the account, papers, bank, waivers, all my claims. */
+/** `/me/profile/<section>` — my own things: the account, papers, bank, waivers, all my
+ *  claims. `/me/profile` alone opens my account. */
 export function ProfilePage() {
+  const { section } = useParams();
+  const [params] = useSearchParams();
+  const legacy = legacyTarget("/me/profile", LEGACY_TAB_SECTION.profile, params);
+  if (legacy) return <Navigate to={legacy} replace />;
+  if (!section) return <Navigate to="/me/profile/account" replace />;
+  return <MeFrame active={section} />;
+}
+
+/** The *Me* context (Story Z-10): `/me` its overview — whatever `overview` is — and my
+ *  own sections under `/me/profile/`. One list, so the overview and every section share
+ *  one sidebar. */
+export function MeFrame({ active, overview }: { active?: string; overview?: ReactNode }) {
   const { t } = useTranslation("space");
   const { account, loading } = useAccount();
   const invalidate = useInvalidate();
+  const { space } = useMySpace();
   if (loading) return <Loading testId="me-context-loading" />;
   if (!account) return <Navigate to="/account" replace />;
 
+  const sections: WorkspaceSection[] = [
+    { key: "overview", label: t("workspace.overview"), render: () => overview },
+    {
+      key: "account",
+      label: t("context.tabs.account"),
+      render: () => (
+        <Stack gap={4} testId="me-profile">
+          <AccountInfo account={account} />
+          <SignInMethods account={account} onChanged={() => invalidate("/api/auth/me")} />
+          <SailorProfile />
+          <DeleteAccount />
+        </Stack>
+      ),
+    },
+    { key: "documents", label: t("tabs.documents"), needs: ["documents_expired"], render: () => <DocumentsTab /> },
+    { key: "bank", label: t("tabs.bank"), render: () => <BankTab /> },
+    {
+      key: "waivers",
+      label: t("context.tabs.waivers"),
+      needs: ["waiver", "ward_waiver"],
+      // Mine (S-1), then my children's (S-8) — a parent with no sailor record of their
+      // own sees only the second, until *My children* is a section of its own (#32).
+      render: () => (
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
+          <Waivers />
+          <Wards />
+        </div>
+      ),
+    },
+    { key: "claims", label: t("tabs.claims"), needs: ["claim_rejected"], render: () => <ClaimsTab /> },
+  ];
   return (
-    <Stack gap={5} testId="me-profile">
-      <PageHeader title={t("overview.me")} />
-      <TabbedView
-        param="tab"
-        inHeader
-        testIdPrefix="me-context"
-        label={t("context.tabsLabel")}
-        className="grid grid-cols-[minmax(0,1fr)]"
-        tabs={[
-          {
-            ...tabRule(PROFILE_TABS, "account"),
-            label: t("context.tabs.account"),
-            render: () => (
-              <Stack gap={4}>
-                <AccountInfo account={account} />
-                <SignInMethods account={account} onChanged={() => invalidate("/api/auth/me")} />
-                <SailorProfile />
-                <DeleteAccount />
-              </Stack>
-            ),
-          },
-          { ...tabRule(PROFILE_TABS, "documents"), label: t("tabs.documents"), render: () => <DocumentsTab /> },
-          { ...tabRule(PROFILE_TABS, "bank"), label: t("tabs.bank"), render: () => <BankTab /> },
-          {
-            ...tabRule(PROFILE_TABS, "waivers"),
-            label: t("context.tabs.waivers"),
-            // Mine (S-1), then my children's (S-8) — a parent with no sailor record of
-            // their own sees only the second.
-            render: () => (
-              <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
-                <Waivers />
-                <Wards />
-              </div>
-            ),
-          },
-          { ...tabRule(PROFILE_TABS, "claims"), label: t("tabs.claims"), render: () => <ClaimsTab /> },
-        ]}
-      />
-    </Stack>
+    <WorkspaceFrame
+      current={{ kind: "me" }}
+      name={space.data?.me.name ?? account.display_name}
+      relations={[]}
+      needs={space.data?.me.needs ?? []}
+      sections={sections}
+      active={active}
+    />
   );
 }
 
@@ -253,6 +245,9 @@ export function ClubPage() {
   // The club screen's own data (Story V-12): members, entries, registrations. A club's
   // treasurer who is neither member nor organizer is not in it, and gets the money only.
   const clubs = useMyClubs({ query: { enabled: Boolean(account) } });
+  // The club's own sections come from that answer: until it is here, a section in the
+  // address would look like one I do not have, and the frame would send me away from it.
+  if (account && clubs.isPending) return <Loading testId="me-context-loading" />;
 
   return (
     <ContextFrame
@@ -260,18 +255,18 @@ export function ClubPage() {
       publicPath={(c) => `/clubs/${c.id}`}
       sections={(c) => {
         const entry = clubs.data?.find((e) => e.club.id === c.id);
-        const club: SectionDef[] = entry
+        const club: WorkspaceSection[] = entry
           ? [
-              { ...tabRule(CLUB_TABS, "members"), label: t("context.tabs.members"), render: () => <ClubMembersPanel entry={entry} onLeft={() => navigate("/me")} /> },
+              { key: "members", label: t("context.tabs.members"), render: () => <ClubMembersPanel entry={entry} onLeft={() => navigate("/me")} /> },
               {
-                ...tabRule(CLUB_TABS, "events"),
-                label: t("context.tabs.matchdays"),
+                key: "crews",
+                label: t("context.tabs.crews"),
                 needs: ["crew_missing"],
                 render: () => <ClubEvents entry={entry} />,
               },
               {
-                ...tabRule(CLUB_TABS, "series"),
-                label: t("context.tabs.squads"),
+                key: "squads",
+                label: t("context.tabs.squadsOnly"),
                 needs: ["squad_below_min"],
                 render: () => <ClubTeams entry={entry} />,
               },
@@ -280,25 +275,25 @@ export function ClubPage() {
         return [
           ...club,
           {
-            ...tabRule(CLUB_TABS, "waivers"),
+            key: "waivers",
             label: t("context.tabs.waivers"),
             needs: ["crew_waiver_missing"],
             render: () => <ClubWaivers clubId={c.id} />,
           },
           {
-            ...tabRule(CLUB_TABS, "claims"),
+            key: "my-claims",
             label: t("context.tabs.myClaims"),
             needs: ["claim_rejected"],
             render: () => <ClaimsTab target={{ kind: "club", id: c.id }} />,
           },
           {
-            ...tabRule(CLUB_TABS, "money"),
+            key: "decide-claims",
             label: t("context.tabs.money"),
             needs: ["claims"],
             render: () => <ClubMoneyTab clubId={c.id} clubName={c.name} />,
           },
           {
-            ...tabRule(CLUB_TABS, "hosting"),
+            key: "hosting",
             label: t("context.tabs.hosting"),
             render: () => (
               <Door
@@ -327,13 +322,13 @@ export function SeriesPage() {
       sections={(c) => [
         waiverNotice(t, "series", c.id),
         {
-          ...tabRule(SERIES_TABS, "team"),
+          key: "team",
           label: t("context.tabs.team"),
           render: () => <MyTeams context={c} testId="me-series-teams" />,
         },
-        { ...tabRule(SERIES_TABS, "events"), label: t("context.tabs.events"), render: () => <SeriesEvents seriesId={c.id} /> },
+        { key: "events", label: t("context.tabs.events"), render: () => <SeriesEvents seriesId={c.id} /> },
         {
-          ...tabRule(SERIES_TABS, "organize"),
+          key: "registrations",
           label: t("context.tabs.organize"),
           render: () => (
             <Door
@@ -391,7 +386,7 @@ export function EventPage() {
       sections={(c) => [
         c.series_id != null ? waiverNotice(t, "series", c.series_id) : waiverNotice(t, "event", c.id),
         {
-          ...tabRule(EVENT_TABS, "crew"),
+          key: "crew",
           label: t("context.tabs.crew"),
           render: () => (
             <Stack gap={3}>
@@ -406,19 +401,19 @@ export function EventPage() {
         },
         {
           // Those who work the event file claims on it (Story F-2); sailing is not work.
-          ...tabRule(EVENT_TABS, "claims"),
+          key: "my-claims",
           label: t("context.tabs.myClaims"),
           needs: ["claim_rejected"],
           render: () => <ClaimsTab target={{ kind: "event", id: c.id }} />,
         },
         {
-          ...tabRule(EVENT_TABS, "decide"),
+          key: "decide-claims",
           label: t("context.tabs.toDecide"),
           needs: ["claims"],
           render: () => <EventClaimsTab eventId={c.id} />,
         },
         {
-          ...tabRule(EVENT_TABS, "race"),
+          key: "race-control",
           label: t("context.tabs.raceControl"),
           render: () => (
             <Door
@@ -430,7 +425,7 @@ export function EventPage() {
           ),
         },
         {
-          ...tabRule(EVENT_TABS, "organize"),
+          key: "general",
           label: t("context.tabs.organize"),
           render: () => (
             <Door

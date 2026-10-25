@@ -25,7 +25,7 @@ const PNG = Buffer.from(
 
 async function openAccount(page: Page): Promise<void> {
   // My waivers are a tab of my own page in my space (Story S-7).
-  await page.goto("/me/profile?tab=waivers");
+  await page.goto("/me/profile/waivers");
   await expect(page.getByTestId("account-waivers-card")).toBeVisible();
   await expect(page.getByTestId("account-waivers-list")).toBeVisible();
 }

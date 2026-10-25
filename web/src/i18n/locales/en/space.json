@@ -251,7 +251,9 @@
       "toDecide": "Claims to decide",
       "raceControl": "Race control",
       "organize": "Organize",
-      "hosting": "Hosting"
+      "hosting": "Hosting",
+      "crews": "Events & crews",
+      "squadsOnly": "Squads"
     },
     "organizeHosted": "The events your club hosts are organized in the administration's Events tab — the date, the clubs, the draw and publication. An event outside a series you create there too."
   },
@@ -259,5 +261,36 @@
     "none": "The club is in no running competition, so there is no waiver to collect.",
     "nobody": "Nobody is in this squad yet.",
     "summary": "{cleared} of {total} cleared"
+  },
+  "workspace": {
+    "overview": "Overview",
+    "sections": "Sections",
+    "switcher": "Switch context",
+    "events": "Events",
+    "recent": "Recent",
+    "earlier": "{count, plural, one {Earlier (1)} other {Earlier (#)}}",
+    "kinds": {
+      "me": "Me",
+      "office": "League office",
+      "club": "Club",
+      "series": "Series",
+      "event": "Event"
+    },
+    "groups": {
+      "me": "Me",
+      "children": "My children",
+      "people": "People",
+      "racing": "Racing",
+      "money": "Money",
+      "club": "Club",
+      "sailing": "Sailing",
+      "series": "Series",
+      "organize": "Organize",
+      "officials": "Officials",
+      "editorial": "Editorial",
+      "setup": "Set up",
+      "raceday": "Race day",
+      "office": "League office"
+    }
   }
 }

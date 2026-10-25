@@ -1,6 +1,7 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
+import { openSection } from "./layout";
 import { bearer, devUsers, managedClub, signIn, type DevUser } from "./session";
 
 /** Stories V-12 and V-2: the team manager's own screen, with the matchdays and the lineup.
@@ -30,15 +31,15 @@ async function aTeamManager(request: APIRequestContext): Promise<DevUser> {
   return manager!;
 }
 
-/** The club's page in my space (Story S-7), on one of the club screen's tabs. */
+/** The club's page in my space (Stories S-7, Z-10), on one of its sections. */
 async function openMyClub(
   page: Page,
   clubId: number,
-  tab: "members" | "events" | "series" = "events",
+  section: "members" | "crews" | "squads" = "crews",
 ): Promise<void> {
-  await page.goto(`/me/club/${clubId}?tab=${tab}`);
+  await page.goto(`/me/club/${clubId}/${section}`);
   await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
-  await expect(page.getByTestId(`me-context-${tab}-tab`)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId(`workspace-content-club-${section}`)).toBeVisible();
 }
 
 describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday from my club's page", () => {
@@ -130,11 +131,11 @@ describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday fr
 
     // A member, not an organizer, of the second club: the squad is shown read-only, and
     // the club's money is not theirs to see.
-    await page.getByTestId("me-context-series-tab").click();
+    await openSection(page, "club", "squads");
     await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes")).toHaveCount(0);
-    await expect(page.getByTestId("me-context-money-tab")).toHaveCount(0);
+    await expect(page.getByTestId("workspace-section-club-decide-claims")).toHaveCount(0);
   });
 });
 

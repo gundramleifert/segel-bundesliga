@@ -87,6 +87,30 @@ export async function openUserMenu(page: Page): Promise<void> {
   await expect(page.getByTestId("layout-user-menu")).toBeVisible();
 }
 
+/** Opens a section of the workspace context on screen (Story Z-10), by its key from
+ *  `web/src/lib/workspace.ts` — from the sidebar on a laptop, from the *section ▾* button
+ *  on a phone, where the sidebar is not in the DOM. Waits for the section's content. */
+export async function openSection(page: Page, kind: string, section: string): Promise<void> {
+  const link = page.getByTestId(`workspace-section-${kind}-${section}`);
+  const button = page.getByTestId("workspace-sections-button");
+  await expect(link.or(button).first()).toBeVisible();
+  if (!(await link.isVisible())) await button.click();
+  await link.click();
+  await expect(page.getByTestId(`workspace-content-${kind}-${section}`)).toBeVisible();
+}
+
+/** The sections of the context on screen, in the order they are listed — opening the
+ *  *section ▾* list first on a phone. */
+export async function listedSections(page: Page, kind: string): Promise<string[]> {
+  const button = page.getByTestId("workspace-sections-button");
+  await expect(page.getByTestId("workspace-sidebar").or(button).first()).toBeVisible();
+  if (await button.isVisible()) await button.click();
+  const ids = await page.getByTestId("workspace-sections").locator(`a[data-testid^="workspace-section-${kind}-"]`).evaluateAll(
+    (links) => links.map((a) => a.getAttribute("data-testid") ?? ""),
+  );
+  return ids.filter((id) => !id.endsWith("-count")).map((id) => id.replace(`workspace-section-${kind}-`, ""));
+}
+
 /** Picks a language, wherever this reader has it (Story A-12).
  *
  * A guest has it in the top row, a dropdown; signed in it is a submenu of the account

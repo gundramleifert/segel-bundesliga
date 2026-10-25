@@ -228,12 +228,22 @@ when a strip is copied.
 Z-10), not in the page: `WORKSPACE` lists every context's groups and sections, each with
 the relations that show it (`Relation.x` from the generated client, or `SAILOR`), and
 `sidebar(kind, relations)` / `hasSection` answer the sidebar's and the guards' question;
-`switcherEntries` builds the context switcher from `GET /api/me/contexts`. Until the
-sidebar replaces today's tabs (#31), the same file still declares them — `PROFILE_TABS`,
-`CLUB_TABS`, `SERIES_TABS`, `EVENT_TABS`, spread into a section with `tabRule`, and
-`adminTabs(hasRole)`. The help's places (`handbook/places.ts`, Story B-18) read the same
-declarations to decide whether a reader gets a link or plain words — so a new section, or
-a changed `for`, is declared in that file first, never only in the screen.
+`switcherEntries` builds the context switcher from `GET /api/me/contexts`, `sectionPath`
+gives every section its address. The help's places (`handbook/places.ts`, Story B-18) read
+the same declarations to decide whether a reader gets a link or plain words — so a new
+section, or a changed `for`, is declared in that file first, never only in the screen.
+
+### `WorkspaceFrame` — a page of My space
+
+`pages/me/Workspace.tsx`. A context page hands it its sections — each a key from
+`lib/workspace.ts`, a label, the to-do codes it clears and a `render` — and the section
+in the URL (`/me/club/7/members`); the frame draws the context switcher, the sidebar
+(only the sections the declaration gives *and* the page has built), the breadcrumb
+(`ASVW › People › Members`, published with `setPageCrumbs`), and the section. From
+1100 px the sidebar stands left; narrower, one bar of two buttons (*context ▾ ·
+section ▾*), only one of the two in the DOM. A section I do not have redirects to the
+context's overview. Specs open a section with `openSection(page, kind, key)` from
+`e2e/layout.ts`, which works at both widths.
 
 ### `Steps` — where you are in a short, ordered sequence
 

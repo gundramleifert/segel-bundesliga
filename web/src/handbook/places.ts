@@ -2,19 +2,14 @@ import { useMyContexts } from "../api/generated/sbl";
 import type { MyContext } from "../api/types";
 import { useAccount } from "../api/useApi";
 import {
-  CONTEXT_TABS,
   adminTabs,
+  hasSection,
   mayCreateIn,
-  tabVisible,
+  sectionPath,
   type AdminArea,
   type AdminTab,
-  type ClubTab,
-  type ContextKind,
-  type EventTab,
   type HasRole,
-  type ProfileTab,
-  type SeriesTab,
-  type TabRule,
+  type Section,
 } from "../lib/workspace";
 
 /** Story B-18: the places of the site a handbook page can link to.
@@ -40,36 +35,36 @@ import {
  *  the screen does not declare does not compile. */
 export type PlaceDef =
   | { path: "/me" }
-  | { path: "/me/profile"; tab: ProfileTab }
-  | { path: "/me/club/:id"; tab: ClubTab }
-  | { path: "/me/series/:id"; tab: SeriesTab }
-  | { path: "/me/event/:id"; tab: EventTab }
+  | { path: "/me/profile"; section: Section<"me"> }
+  | { path: "/me/club/:id"; section: Section<"club"> }
+  | { path: "/me/series/:id"; section: Section<"series"> }
+  | { path: "/me/event/:id"; section: Section<"event"> }
   | { path: "/admin"; tab?: AdminTab }
   | { path: `/admin/${AdminArea}/new` };
 
 export const PLACES = {
   // My space and my own profile — any signed-in person (the help is only for them).
   "space": { path: "/me" },
-  "profile.account": { path: "/me/profile", tab: "account" },
-  "profile.documents": { path: "/me/profile", tab: "documents" },
-  "profile.bank": { path: "/me/profile", tab: "bank" },
-  "profile.waivers": { path: "/me/profile", tab: "waivers" },
-  "profile.claims": { path: "/me/profile", tab: "claims" },
+  "profile.account": { path: "/me/profile", section: "account" },
+  "profile.documents": { path: "/me/profile", section: "documents" },
+  "profile.bank": { path: "/me/profile", section: "bank" },
+  "profile.waivers": { path: "/me/profile", section: "waivers" },
+  "profile.claims": { path: "/me/profile", section: "claims" },
   // My page in a club, a series, an event — one target per such context in my space.
-  "club.members": { path: "/me/club/:id", tab: "members" },
-  "club.events": { path: "/me/club/:id", tab: "events" },
-  "club.series": { path: "/me/club/:id", tab: "series" },
-  "club.waivers": { path: "/me/club/:id", tab: "waivers" },
-  "club.claims": { path: "/me/club/:id", tab: "claims" },
-  "club.money": { path: "/me/club/:id", tab: "money" },
-  "series.team": { path: "/me/series/:id", tab: "team" },
-  "series.events": { path: "/me/series/:id", tab: "events" },
-  "series.organize": { path: "/me/series/:id", tab: "organize" },
-  "event.crew": { path: "/me/event/:id", tab: "crew" },
-  "event.claims": { path: "/me/event/:id", tab: "claims" },
-  "event.decide": { path: "/me/event/:id", tab: "decide" },
-  "event.race": { path: "/me/event/:id", tab: "race" },
-  "event.organize": { path: "/me/event/:id", tab: "organize" },
+  "club.members": { path: "/me/club/:id", section: "members" },
+  "club.events": { path: "/me/club/:id", section: "crews" },
+  "club.series": { path: "/me/club/:id", section: "squads" },
+  "club.waivers": { path: "/me/club/:id", section: "waivers" },
+  "club.claims": { path: "/me/club/:id", section: "my-claims" },
+  "club.money": { path: "/me/club/:id", section: "decide-claims" },
+  "series.team": { path: "/me/series/:id", section: "team" },
+  "series.events": { path: "/me/series/:id", section: "events" },
+  "series.organize": { path: "/me/series/:id", section: "registrations" },
+  "event.crew": { path: "/me/event/:id", section: "crew" },
+  "event.claims": { path: "/me/event/:id", section: "my-claims" },
+  "event.decide": { path: "/me/event/:id", section: "decide-claims" },
+  "event.race": { path: "/me/event/:id", section: "race-control" },
+  "event.organize": { path: "/me/event/:id", section: "general" },
   // The administration — a tab the reader has, a creation page they can use.
   "admin": { path: "/admin" },
   "admin.clubs": { path: "/admin", tab: "clubs" },
@@ -97,31 +92,27 @@ export type PlaceState =
   | { status: "unknown" }
   | { status: "ready"; targets: PlaceTarget[] };
 
-function withTab(path: string, tab: string | undefined): string {
-  return tab ? `${path}?tab=${tab}` : path;
-}
-
-/** The targets of one place for a reader — pure, so the rule reads in one piece. */
+/** The targets of one place for a reader — pure, so the rule reads in one piece. A section
+ *  of a club, series or event is there for each of mine where the workspace's declaration
+ *  gives the reader that section (`lib/workspace.ts`, Story Z-10). */
 export function resolvePlace(def: PlaceDef, hasRole: HasRole, contexts: readonly MyContext[]): PlaceTarget[] {
   const path = def.path;
-  if (path === "/me" || path === "/me/profile") {
-    return [{ key: path, to: withTab(path, "tab" in def ? def.tab : undefined) }];
-  }
+  if (path === "/me") return [{ key: path, to: path }];
+  if (path === "/me/profile") return [{ key: path, to: sectionPath({ kind: "me" }, def.section) }];
   if (path === "/admin") {
     const tab = "tab" in def ? def.tab : undefined;
     const tabs = adminTabs(hasRole);
     if (!tabs.length || (tab && !tabs.includes(tab))) return [];
-    return [{ key: path, to: withTab(path, tab) }];
+    return [{ key: path, to: tab ? `${path}?tab=${tab}` : path }];
   }
   const creation = /^\/admin\/(\w+)\/new$/.exec(path);
   if (creation) return mayCreateIn(creation[1] as AdminArea, hasRole) ? [{ key: path, to: path }] : [];
 
-  const kind = /^\/me\/(club|series|event)\/:id$/.exec(path)?.[1] as ContextKind;
-  const tab = (def as { tab: string }).tab;
-  const rule = (CONTEXT_TABS[kind] as Record<string, TabRule>)[tab];
+  const kind = /^\/me\/(club|series|event)\/:id$/.exec(path)?.[1] as "club" | "series" | "event";
+  const section = (def as { section: string }).section;
   return contexts
-    .filter((c) => c.kind === kind && tabVisible(rule, c.relations))
-    .map((c) => ({ key: `${kind}-${c.id}`, to: withTab(`/me/${kind}/${c.id}`, tab), name: c.name }));
+    .filter((c) => c.kind === kind && hasSection(kind, section, c.relations))
+    .map((c) => ({ key: `${kind}-${c.id}`, to: sectionPath({ kind, id: c.id }, section), name: c.name }));
 }
 
 export function isPlaceId(id: string): id is PlaceId {

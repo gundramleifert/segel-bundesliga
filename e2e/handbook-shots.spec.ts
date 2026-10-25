@@ -87,7 +87,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-waiver-card",
     as: (d) => d.sailor,
-    path: () => "/me/profile?tab=waivers",
+    path: () => "/me/profile/waivers",
     waitFor: () => tid("account-waivers-list"),
     clip: () => ({ from: tid("account-waivers-card") }),
     marks: () => [{ target: `${tid("account-waivers-list")} [data-testid*="-read-"]` }],
@@ -96,7 +96,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-account-password",
     as: (d) => d.sailor,
-    path: () => "/me/profile?tab=account",
+    path: () => "/me/profile/account",
     waitFor: () => tid("account-password-form"),
     clip: () => ({ from: tid("account-signin-methods-card") }),
     marks: () => [{ target: tid("account-password-new-input") }, { target: tid("account-password-save-button") }],
@@ -105,7 +105,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-profile-documents",
     as: (d) => d.sailor,
-    path: () => "/me/profile?tab=documents",
+    path: () => "/me/profile/documents",
     waitFor: () => tid("my-space-document-upload"),
     clip: () => ({ from: tid("my-space-document-upload") }),
     marks: () => [
@@ -118,7 +118,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-claim-new",
     as: (d) => d.sailor,
-    path: () => "/me/profile?tab=claims",
+    path: () => "/me/profile/claims",
     waitFor: () => tid("my-space-claim-target"),
     clip: () => ({ from: tid("my-space-claim-new") }),
     marks: () => [
@@ -131,7 +131,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-claim-items",
     as: (d) => d.sailor,
-    path: () => "/me/profile?tab=claims",
+    path: () => "/me/profile/claims",
     setup: aDraftClaim,
     open: async (page, d) => {
       await page.getByTestId(`my-space-claim-toggle-${d.draftClaimId}`).click();
@@ -148,7 +148,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-club-members",
     as: () => CLUB_ADMIN,
-    path: (d) => `/me/club/${d.clubId}?tab=members`,
+    path: (d) => `/me/club/${d.clubId}/members`,
     waitFor: () => tid("my-club-members-list"),
     clip: () => ({ from: tid("my-club-members"), maxHeight: 640 }),
     phone: false,
@@ -157,7 +157,7 @@ const SHOTS: Shot[] = [
     // The form under the club's People panel: whom, as what, Add.
     id: "help-club-people",
     as: () => CLUB_ADMIN,
-    path: (d) => `/me/club/${d.clubId}?tab=members`,
+    path: (d) => `/me/club/${d.clubId}/members`,
     waitFor: (d) => tid(`my-club-access-${d.clubId}-add`),
     clip: (d) => ({ from: tid(`my-club-access-${d.clubId}-form`), pad: 24 }),
     marks: (d) => [
@@ -170,7 +170,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-club-squad",
     as: () => TEAM_MANAGER,
-    path: (d) => `/me/club/${d.clubId}?tab=series`,
+    path: (d) => `/me/club/${d.clubId}/squads`,
     open: async (page) => {
       await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     },
@@ -186,7 +186,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-club-lineup",
     as: () => TEAM_MANAGER,
-    path: (d) => `/me/club/${d.clubId}?tab=events`,
+    path: (d) => `/me/club/${d.clubId}/crews`,
     open: async (page, d) => {
       await page.getByTestId(`my-club-event-toggle-${d.eventId}`).click();
     },
@@ -202,7 +202,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-club-waivers",
     as: () => TEAM_MANAGER,
-    path: (d) => `/me/club/${d.clubId}?tab=waivers`,
+    path: (d) => `/me/club/${d.clubId}/waivers`,
     waitFor: () => tid("my-club-waivers-list"),
     clip: () => ({ from: tid("my-club-waivers-list"), maxHeight: 700 }),
     phone: false,
@@ -301,7 +301,7 @@ const SHOTS: Shot[] = [
   {
     id: "help-claims-pending",
     as: () => TREASURER,
-    path: (d) => `/me/club/${d.clubId}?tab=money`,
+    path: (d) => `/me/club/${d.clubId}/decide-claims`,
     setup: aClaimToDecide,
     waitFor: () => tid("reimbursements-list"),
     // The list only — the club's bank-account form below it stays out.
@@ -320,7 +320,7 @@ const SHOTS: Shot[] = [
     // The SEPA block only — the club's account above it, with its IBAN, stays out.
     id: "help-payment-sepa",
     as: () => TREASURER,
-    path: (d) => `/me/club/${d.clubId}?tab=money`,
+    path: (d) => `/me/club/${d.clubId}/decide-claims`,
     setup: aClaimToPay,
     waitFor: (d) => tid(`reimbursements-club-${d.clubId}-sepa-create`),
     clip: (d) => ({ from: tid(`reimbursements-club-${d.clubId}-sepa`) }),
@@ -361,7 +361,7 @@ const SHOTS: Shot[] = [
     // The sailor card down to the switch.
     id: "help-profile-public",
     as: (d) => d.sailor,
-    path: () => "/me/profile?tab=account",
+    path: () => "/me/profile/account",
     waitFor: () => tid("account-profile-public-toggle"),
     clip: () => ({ from: tid("account-profile-card"), to: `label:has(${tid("account-profile-public-toggle")})`, pad: 16 }),
     marks: () => [{ target: `label:has(${tid("account-profile-public-toggle")})` }],

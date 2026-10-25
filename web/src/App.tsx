@@ -102,12 +102,13 @@ export default function App() {
         <Route path="sailors/:id" element={<Sailor />} />
         {/* Signed out: the sign-in page. Signed in, it forwards to /me/profile. */}
         <Route path="account" element={<Account />} />
-        {/* Stories Z-8, S-7: my space — everything I am part of, and my page in each. */}
+        {/* Stories Z-8, S-7, Z-10: my space — the workspace. Each context has its sections
+            at their own address, its overview at the bare one; `?tab=` redirects. */}
         <Route path="me" element={<MeIndex />} />
-        <Route path="me/profile" element={<ProfilePage />} />
-        <Route path="me/club/:id" element={<ClubPage />} />
-        <Route path="me/series/:id" element={<MySeriesPage />} />
-        <Route path="me/event/:id" element={<MyEventPage />} />
+        <Route path="me/profile/:section?" element={<ProfilePage />} />
+        <Route path="me/club/:id/:section?" element={<ClubPage />} />
+        <Route path="me/series/:id/:section?" element={<MySeriesPage />} />
+        <Route path="me/event/:id/:section?" element={<MyEventPage />} />
         {/* The screens my space replaced, kept as redirects (Story S-7). */}
         <Route path="club" element={<ClubRedirect />} />
         <Route path="reimbursements" element={<Navigate to="/me" replace />} />

@@ -251,7 +251,9 @@
       "toDecide": "Zu entscheiden",
       "raceControl": "Wettfahrtleitung",
       "organize": "Organisieren",
-      "hosting": "Ausrichten"
+      "hosting": "Ausrichten",
+      "crews": "Veranstaltungen & Crews",
+      "squadsOnly": "Kader"
     },
     "organizeHosted": "Die Veranstaltungen, die Ihr Verein ausrichtet, organisieren Sie im Reiter „Veranstaltungen“ der Verwaltung — Termin, Vereine, Auslosung und Veröffentlichung. Eine Veranstaltung außerhalb einer Serie legen Sie dort auch an."
   },
@@ -259,5 +261,36 @@
     "none": "Der Verein ist in keinem laufenden Wettbewerb gemeldet – es gibt keinen Haftungsausschluss einzusammeln.",
     "nobody": "In diesem Kader ist noch niemand.",
     "summary": "{cleared} von {total} vollständig"
+  },
+  "workspace": {
+    "overview": "Übersicht",
+    "sections": "Bereiche",
+    "switcher": "Kontext wechseln",
+    "events": "Veranstaltungen",
+    "recent": "Zuletzt geöffnet",
+    "earlier": "{count, plural, one {Früher (1)} other {Früher (#)}}",
+    "kinds": {
+      "me": "Ich",
+      "office": "Ligabüro",
+      "club": "Verein",
+      "series": "Serie",
+      "event": "Veranstaltung"
+    },
+    "groups": {
+      "me": "Ich",
+      "children": "Meine Kinder",
+      "people": "Personen",
+      "racing": "Segeln",
+      "money": "Finanzen",
+      "club": "Verein",
+      "sailing": "Segeln",
+      "series": "Serie",
+      "organize": "Organisieren",
+      "officials": "Offizielle",
+      "editorial": "Redaktion",
+      "setup": "Einrichten",
+      "raceday": "Wettfahrttag",
+      "office": "Ligabüro"
+    }
   }
 }

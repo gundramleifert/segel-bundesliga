@@ -4,7 +4,7 @@ import type { Page, TestInfo } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
 
-import { expectNoSidewaysScroll, openUserMenu } from "./layout";
+import { expectNoSidewaysScroll, openSection, openUserMenu } from "./layout";
 import { bearer, managedClub, signIn } from "./session";
 
 /** Story VA-9: running an event, in a real browser.
@@ -640,9 +640,9 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}`));
 
     // The breadcrumb is where a page states its name now (Story A-12), so that is what
-    // says the right screen arrived; the squads sit under their tab, Members opens first.
+    // says the right screen arrived; the squads are a section of the club (Story Z-10).
     await expect(page.getByTestId("layout-breadcrumb")).toBeVisible();
-    await page.getByTestId("me-context-series-tab").click();
+    await openSection(page, "club", "squads");
     await page.locator('[data-testid^="my-club-team-toggle-"]').first().click();
     await expect(page.getByTestId("admin-squad-management")).toBeVisible();
     await expect(page.getByTestId("admin-squad-panes-selected-list")).toBeVisible();

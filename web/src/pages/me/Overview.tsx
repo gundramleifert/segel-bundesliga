@@ -1,15 +1,16 @@
 import { Button } from "@heroui/react";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import type { MyContext, MySpace } from "../../api/types";
 import { Async } from "../../components/Async";
-import { Empty, Loading, PageHeader } from "../../components/Blocks";
+import { Empty, PageHeader } from "../../components/Blocks";
 import { CardGrid, Stack } from "../../components/Layouts";
 import { LinkCard } from "../../components/LinkCard";
 import { eventDates } from "../../lib/format";
 import { NeedsLine, RelationChips } from "./Chips";
+import { MeFrame } from "./Contexts";
 import { contextPath, isPast, useMySpace } from "./shared";
 
 /** Story Z-8: my space — everything I am part of, one card each.
@@ -22,18 +23,19 @@ import { contextPath, isPast, useMySpace } from "./shared";
  */
 export function MySpaceOverview() {
   const { t } = useTranslation("space");
-  const { account, accountLoading, space } = useMySpace();
-
-  if (accountLoading) return <Loading testId="me-loading" />;
-  if (!account) return <Navigate to="/account" replace />;
-
+  const { space } = useMySpace();
   return (
-    <Stack gap={6} testId="me-overview">
-      <PageHeader title={t("title")} />
-      <Async state={space} testId="me">
-        {(data) => <Groups data={data} />}
-      </Async>
-    </Stack>
+    <MeFrame
+      active="overview"
+      overview={
+        <Stack gap={6} testId="me-overview">
+          <PageHeader title={t("title")} />
+          <Async state={space} testId="me">
+            {(data) => <Groups data={data} />}
+          </Async>
+        </Stack>
+      }
+    />
   );
 }
 
@@ -52,7 +54,7 @@ function Groups({ data }: { data: MySpace }) {
       <Group title={t("overview.me")} testId="me-group-me">
         <li>
           <LinkCard
-            to="/me/profile"
+            to="/me/profile/account"
             testId="me-card-me"
             title={data.me.name}
             description={t("overview.meDescription")}

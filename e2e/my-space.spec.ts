@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 
 import { describeStory, expect, test } from "./fixtures";
-import { openUserMenu } from "./layout";
+import { listedSections, openSection, openUserMenu } from "./layout";
 import { bearer, bornIn, devUsers, managedClub, seededSailors, signIn } from "./session";
 
 /** Stories Z-8 and S-7: my space — every club, series and event I am part of, and my
@@ -53,7 +53,7 @@ describeStory("S-5: as a sailor I drop my licences onto my space", () => {
     const fileName = `jury-${testInfo.project.name}-${Date.now()}.png`;
 
     await signIn(page, email);
-    await page.goto("/me/profile?tab=documents");
+    await page.goto("/me/profile/documents");
     await expect(page.getByTestId("my-space-document-upload")).toBeVisible();
 
     // The wrong type is refused where it was dropped, before anything is sent.
@@ -105,18 +105,26 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
 
     await card.click();
     await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}`));
-    // An organizer who is a member: the club's people, its matchdays and squads, their
-    // own claims to it, and its money.
-    for (const tab of ["members", "events", "series", "waivers", "claims", "money"]) {
-      await expect(page.getByTestId(`me-context-${tab}-tab`)).toBeVisible();
-    }
-    await page.getByTestId("me-context-money-tab").click();
+    // An organizer who is a member, in the sidebar (Story Z-10): the club's people, its
+    // events and squads, their own claims to it, and its money.
+    expect(await listedSections(page, "club")).toEqual([
+      "overview", "members", "waivers", "squads", "crews", "hosting", "my-claims", "decide-claims",
+    ]);
+    await page.keyboard.press("Escape");
+    await openSection(page, "club", "decide-claims");
+    await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}/decide-claims$`));
     await expect(page.getByTestId(`reimbursements-club-${clubId}`)).toBeVisible();
 
-    // The tabs are the page's sub-menu, in the header row beside its name; the
-    // breadcrumb before that name leads back to the overview.
-    await expect(page.getByTestId("layout-header").getByTestId("me-context-tabs")).toBeVisible();
-    await page.getByTestId("layout-breadcrumb").getByRole("link", { name: "My space" }).click();
+    // Where am I, twice: the switcher names the club, the breadcrumb joins club and
+    // section — its first crumb leads back to the club's overview.
+    await expect(page.getByTestId("workspace-switcher")).toContainText("Club");
+    await page.getByTestId("layout-breadcrumb").getByRole("link").first().click();
+    await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}$`));
+    await expect(page.getByTestId(`workspace-content-club-overview`)).toBeVisible();
+
+    // The switcher leads to Me, whose overview is my space's cards.
+    await page.getByTestId("workspace-switcher").click();
+    await page.getByTestId("workspace-switcher-me").click();
     await expect(page.getByTestId("me-overview")).toBeVisible();
   });
 
@@ -133,8 +141,11 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     await expect(page.getByTestId("me-group-clubs")).toHaveCount(0);
 
     await card.click();
-    await expect(page.getByTestId("me-context-claims-tab")).toBeVisible();
-    await expect(page.getByTestId("me-context-tabs").getByRole("tab")).toHaveCount(1);
+    // The event's overview, and of its sections only their claims.
+    const kind = "event";
+    expect(await listedSections(page, kind)).toEqual(["overview", "my-claims"]);
+    await page.keyboard.press("Escape");
+    await openSection(page, kind, "my-claims");
     // On the event's page a claim is filed on the event — nothing to choose.
     await expect(page.getByTestId("my-space-claim-new")).toBeVisible();
     await expect(page.getByTestId("my-space-claim-target")).toHaveCount(0);
@@ -148,8 +159,8 @@ describeStory("Z-8/S-7: my space — one card per thing I am part of, and my pag
     await signIn(page, email);
 
     await page.goto(`/club?club=${clubId}&tab=series`);
-    await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}\\?tab=series`));
-    await expect(page.getByTestId("me-context-series-tab")).toHaveAttribute("aria-selected", "true");
+    await expect(page).toHaveURL(new RegExp(`/me/club/${clubId}/squads$`));
+    await expect(page.getByTestId("workspace-content-club-squads")).toBeVisible();
 
     await page.goto("/reimbursements");
     await expect(page).toHaveURL(/\/me$/);
@@ -168,7 +179,7 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
   test("the admin uploads and removes it; a plain member sees no control", async ({ page, request }) => {
     const { email, clubId } = await aClubAdmin(request);
     await signIn(page, email);
-    await page.goto(`/me/club/${clubId}?tab=members`);
+    await page.goto(`/me/club/${clubId}/members`);
 
     const edit = page.getByTestId(`my-club-crest-edit-${clubId}`);
     await expect(edit).toBeVisible();
@@ -186,7 +197,7 @@ describeStory("V-3: a club's admin keeps the club's crest on the club's page", (
       (u) => u.email.endsWith("@asvw.example.com") && !u.roles.includes("club_admin"),
     )!;
     await signIn(page, member.email);
-    await page.goto(`/me/club/${clubId}?tab=members`);
+    await page.goto(`/me/club/${clubId}/members`);
     await expect(page.getByTestId("my-club-members")).toBeVisible();
     await expect(page.getByTestId(`my-club-crest-${clubId}-section`)).toHaveCount(0);
   });
@@ -233,7 +244,7 @@ describeStory("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a b
     const clubId = await managedClub(request, manager.email);
 
     await signIn(page, manager.email);
-    await page.goto(`/me/club/${clubId}?tab=waivers`);
+    await page.goto(`/me/club/${clubId}/waivers`);
     const blocks = page.getByTestId("my-club-waivers-list").locator(':scope > li');
     await expect(blocks.first()).toBeVisible();
     await expect(blocks.first().locator('[data-testid$="-summary"]')).toContainText(/\d+ of \d+ cleared/);
@@ -246,7 +257,7 @@ describeStory("F-2: the people who work an event claim their costs on it", () =>
     // The test event is hosted by the test club (`app.seed`), so the jury has somewhere
     // to claim: the complaint that started this was a jury with nothing to choose.
     await signIn(page, "jury@sbl.example.com");
-    await page.goto("/me/profile?tab=claims");
+    await page.goto("/me/profile/claims");
     const target = page.getByTestId("my-space-claim-target");
     await expect(target.locator("option", { hasText: "Act 3" })).toHaveCount(1);
     await expect(page.getByTestId("my-space-claim-unavailable")).toHaveCount(0);
@@ -269,7 +280,7 @@ describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a messag
 
     // --- the jury files: a three-day per diem, and a hotel with its own receipt
     await signIn(page, JURY);
-    await page.goto("/me/profile?tab=claims");
+    await page.goto("/me/profile/claims");
     const target = page.getByTestId("my-space-claim-target");
     const act3 = await target.locator("option", { hasText: "Act 3" }).getAttribute("value");
     await target.selectOption(act3!);
@@ -310,7 +321,7 @@ describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a messag
     await signIn(page, TREASURER);
     await page.goto("/me");
     await expect(page.getByTestId(`me-card-club-${clubId}-needs-claims`)).toBeVisible();
-    await page.goto(`/me/club/${clubId}?tab=money`);
+    await page.goto(`/me/club/${clubId}/decide-claims`);
     const pending = `reimbursements-claim-${claimId}`;
     await expect(page.getByTestId(`${pending}-decide`)).toBeVisible();
     await expect(page.getByTestId(`${pending}-decide`).locator("input")).toHaveCount(0);
@@ -322,7 +333,7 @@ describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a messag
     await signIn(page, JURY);
     await page.goto("/me");
     await expect(page.getByTestId(/^me-card-event-\d+-needs-claim_rejected$/)).toBeVisible();
-    await page.goto("/me/profile?tab=claims");
+    await page.goto("/me/profile/claims");
     await expect(page.getByTestId(`my-space-claim-note-${claimId}`)).toContainText("160");
     await page.getByTestId(`my-space-claim-toggle-${claimId}`).click();
     await page.getByTestId(`${id}-item-edit-${hotelId}`).click();
@@ -335,13 +346,13 @@ describeStory("F-2/F-3/F-5: a claim goes round — filed, rejected with a messag
 
     // --- the treasurer is told again, and approves
     await signIn(page, TREASURER);
-    await page.goto(`/me/club/${clubId}?tab=money`);
+    await page.goto(`/me/club/${clubId}/decide-claims`);
     await page.getByTestId(`${pending}-approve`).click();
     await expect(page.getByTestId(`${pending}-decide`)).toHaveCount(0);
 
     // --- approved: frozen, and nothing waits on the jury any more
     await signIn(page, JURY);
-    await page.goto("/me/profile?tab=claims");
+    await page.goto("/me/profile/claims");
     await expect(status).toHaveAttribute("data-status", "approved");
     await page.getByTestId(`my-space-claim-toggle-${claimId}`).click();
     await expect(page.getByTestId(`${id}-item-edit-${hotelId}`)).toHaveCount(0);

@@ -8,6 +8,7 @@ import {
   refKey,
   SAILOR,
   rememberRecent,
+  sectionPath,
   sectionsFor,
   sidebar,
   switcherEntries,
@@ -213,5 +214,24 @@ describe("Story Z-10: recent, per browser", () => {
     const list = [1, 2];
     expect(pushRecent(list, 3, String, 2)).toEqual([3, 1]);
     expect(list).toEqual([1, 2]);
+  });
+});
+
+describe("Story Z-10: addresses and the sections a screen has", () => {
+  test("each section has one address, the overview the bare one", () => {
+    expect(sectionPath({ kind: "me" })).toBe("/me");
+    expect(sectionPath({ kind: "me" }, "waivers")).toBe("/me/profile/waivers");
+    expect(sectionPath({ kind: "club", id: 7 })).toBe("/me/club/7");
+    expect(sectionPath({ kind: "club", id: 7 }, "minors")).toBe("/me/club/7/minors");
+    expect(sectionPath({ kind: "office" }, "clubs")).toBe("/admin");
+  });
+
+  test("a declared section without a panel is not listed, and a group left with one loses its heading", () => {
+    const groups = sidebar("club", [Relation.member, Relation.manager], { only: ["overview", "members", "squads", "crews"] });
+    expect(groups.map((g) => [g.key, g.sections, g.heading])).toEqual([
+      [null, ["overview"], false],
+      ["people", ["members"], false],
+      ["racing", ["squads", "crews"], true],
+    ]);
   });
 });

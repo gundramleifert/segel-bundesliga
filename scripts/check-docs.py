@@ -718,7 +718,12 @@ def app_routes() -> list[str]:
     text = APP_TSX.read_text(encoding="utf-8")
     # The catch-all `*` redirects whatever nothing else matches; counting it would let
     # every link pass, so it is left out.
-    routes = ["/"] + ["/" + p for p in re.findall(r'<Route\s+path="([^"]+)"', text) if p != "*"]
+    routes = ["/"]
+    for p in re.findall(r'<Route\s+path="([^"]+)"', text):
+        if p == "*":
+            continue
+        # An optional segment (`me/club/:id/:section?`) is two routes: with it and without.
+        routes += ["/" + p.replace("?", "")] + (["/" + re.sub(r"/[^/]+\?$", "", p)] if p.endswith("?") else [])
     # A league's pages are one list, `LEAGUE_ROUTES`, rendered under `:league` (and the
     # old `dsbl`): `[sub, <Page />]` entries, `""` being the league's own page.
     table = re.search(r"const LEAGUE_ROUTES[^=]*=\s*\[(.*?)\n\];", text, re.S)

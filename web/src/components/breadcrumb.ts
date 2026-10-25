@@ -30,3 +30,29 @@ export function usePageTitle(): string | null {
     () => null,
   );
 }
+
+/** One crumb of a published trail: its words, and where it leads (none — where I am). */
+export type Crumb = { label: string; to?: string };
+
+/** A whole trail, published by a page that knows more about where it is than the route
+ *  does — the workspace's `ASVW › Members` (Story Z-10), the context and the section the
+ *  layout cannot look up. The same store as the title, for the same reason. */
+let crumbs: readonly Crumb[] | null = null;
+const crumbListeners = new Set<() => void>();
+
+export function setPageCrumbs(next: readonly Crumb[] | null): void {
+  if (JSON.stringify(next) === JSON.stringify(crumbs)) return;
+  crumbs = next;
+  for (const listener of crumbListeners) listener();
+}
+
+export function usePageCrumbs(): readonly Crumb[] | null {
+  return useSyncExternalStore(
+    (listener) => {
+      crumbListeners.add(listener);
+      return () => crumbListeners.delete(listener);
+    },
+    () => crumbs,
+    () => null,
+  );
+}

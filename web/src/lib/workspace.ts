@@ -165,13 +165,20 @@ export type SidebarGroup = { key: string | null; sections: string[]; heading: bo
  *  disabled — a section I cannot use is not listed, a group left empty disappears. Several
  *  relations add up, each section once, in the order of the work.
  *
+ *  `only` limits it to the sections a screen has built so far — a declared section without
+ *  a panel yet is not a link to nothing.
+ *
  *  An event that has started (`started`: a race no longer scheduled, VA-8) puts *Race day*
  *  before *Set up* and folds *Set up* — it is frozen anyway; before, the reverse. */
-export function sidebar(kind: WorkspaceKind, relations: readonly string[], options: { started?: boolean } = {}): SidebarGroup[] {
+export function sidebar(
+  kind: WorkspaceKind,
+  relations: readonly string[],
+  options: { started?: boolean; only?: readonly string[] } = {},
+): SidebarGroup[] {
   const groups: SidebarGroup[] = (WORKSPACE[kind] as readonly GroupDecl[])
     .map((g) => {
       const sections = Object.entries(g.sections)
-        .filter(([, rule]) => sectionVisible(rule, relations))
+        .filter(([key, rule]) => sectionVisible(rule, relations) && (!options.only || options.only.includes(key)))
         .map(([key]) => key);
       return { key: g.key, sections, heading: g.key !== null && sections.length > 1, folded: false };
     })
@@ -286,6 +293,19 @@ function compareTuples(a: number[], b: number[]): number {
   return 0;
 }
 
+/** Where a section of a context lives (§7): `/me` is *Me › Overview*, my own sections are
+ *  under `/me/profile/`, a club's, series' or event's under `/me/<kind>/:id/`, its
+ *  overview being the bare address. The league office is today's administration until
+ *  its sections move (#32). */
+export function sectionPath(ref: ContextRef, section = "overview"): string {
+  if (!("id" in ref)) {
+    if (ref.kind === "office") return "/admin";
+    return section === "overview" ? "/me" : `/me/profile/${section}`;
+  }
+  const base = `/me/${ref.kind}/${ref.id}`;
+  return section === "overview" ? base : `${base}/${section}`;
+}
+
 /** `club:7`, `me` — a context as one string, for a set or a React key. */
 export function refKey(ref: ContextRef): string {
   return "id" in ref ? `${ref.kind}:${ref.id}` : ref.kind;
@@ -339,66 +359,11 @@ function isRef(x: unknown): x is ContextRef {
   return (r.kind === "club" || r.kind === "series" || r.kind === "event") && typeof r.id === "number";
 }
 
-// ---------------------------------------------------------------- today's screens
+// ---------------------------------------------------------------- the old addresses
 
-/** Until the sidebar replaces them (#31, #32), today's screens build their tabs from the
- *  declarations below — tabs of my profile, of my page in a club, a series or an event,
- *  and of the administration. `LEGACY_TAB_SECTION` says which section each tab becomes,
- *  so `?tab=` addresses can be redirected when the sections arrive.
- */
-
-/** A tab of a context page: shown when I hold one of `for` there (`sailor` included —
- *  sailing there, Story Z-8); without `for`, always. */
-export type TabRule = { readonly for?: readonly Holding[] };
-
-/** Whether a tab with this rule is there for someone holding `relations`. */
-export function tabVisible(rule: TabRule, relations: readonly string[]): boolean {
-  return !rule.for || rule.for.some((r) => relations.includes(r));
-}
-
-/** `/me/profile` — mine alone, so every tab is there for every signed-in person. */
-export const PROFILE_TABS = {
-  account: {},
-  documents: {},
-  bank: {},
-  waivers: {},
-  claims: {},
-} as const satisfies Record<string, TabRule>;
-
-/** `/me/club/:id`. The club's own tabs are for whoever is *in* it — a member or one of its
- *  organizers (`GET /api/clubs/mine` answers the same: member or manager, an admin being
- *  both); a treasurer who is neither gets the money only (Story V-12). */
-export const CLUB_TABS = {
-  members: { for: [Relation.member, ...ORGANIZERS] },
-  events: { for: [Relation.member, ...ORGANIZERS] },
-  series: { for: [Relation.member, ...ORGANIZERS] },
-  waivers: { for: ORGANIZERS },
-  claims: { for: [Relation.member] },
-  money: { for: [...ORGANIZERS, Relation.treasurer] },
-  // The events the club hosts are organized in the administration (Story VA-6).
-  hosting: { for: ORGANIZERS },
-} as const satisfies Record<string, TabRule>;
-
-/** `/me/series/:id`. */
-export const SERIES_TABS = {
-  team: { for: [SAILOR] },
-  events: {},
-  organize: { for: ORGANIZERS },
-} as const satisfies Record<string, TabRule>;
-
-/** `/me/event/:id`. Those who work the event file claims on it (Story F-2); sailing is not
- *  work. */
-export const EVENT_TABS = {
-  crew: { for: [SAILOR] },
-  claims: { for: [Relation.admin, Relation.manager, Relation.treasurer, Relation.race_officer, Relation.jury, Relation.helper] },
-  decide: { for: [...ORGANIZERS, Relation.treasurer] },
-  race: { for: [...ORGANIZERS, Relation.race_officer] },
-  organize: { for: ORGANIZERS },
-} as const satisfies Record<string, TabRule>;
-
-/** Which section each of today's tabs becomes — for redirecting `?tab=` once the URLs
- *  are `/me/<kind>/:id/<section>` (#31). A tab that splits into several sections goes to
- *  the first. */
+/** Which section each tab of the pages before #31 became — `/me/club/7?tab=money` was a
+ *  real address, in bookmarks and mails, and now redirects to `/me/club/7/decide-claims`.
+ *  A tab that split into several sections goes to the first. */
 export const LEGACY_TAB_SECTION = {
   profile: { account: "account", documents: "documents", bank: "bank", waivers: "waivers", claims: "claims" },
   club: {
@@ -413,27 +378,11 @@ export const LEGACY_TAB_SECTION = {
   series: { team: "team", events: "events", organize: "registrations" },
   event: { crew: "crew", claims: "my-claims", decide: "decide-claims", race: "race-control", organize: "general" },
 } as const satisfies {
-  profile: Record<keyof typeof PROFILE_TABS, Section<"me">>;
-  club: Record<keyof typeof CLUB_TABS, Section<"club">>;
-  series: Record<keyof typeof SERIES_TABS, Section<"series">>;
-  event: Record<keyof typeof EVENT_TABS, Section<"event">>;
+  profile: Record<string, Section<"me">>;
+  club: Record<string, Section<"club">>;
+  series: Record<string, Section<"series">>;
+  event: Record<string, Section<"event">>;
 };
-
-export const CONTEXT_TABS = { club: CLUB_TABS, series: SERIES_TABS, event: EVENT_TABS } as const;
-
-export type ContextKind = keyof typeof CONTEXT_TABS;
-export type ProfileTab = keyof typeof PROFILE_TABS;
-export type ClubTab = keyof typeof CLUB_TABS;
-export type SeriesTab = keyof typeof SERIES_TABS;
-export type EventTab = keyof typeof EVENT_TABS;
-
-/** `{ key, for }` of one tab, for a screen to spread into its section. */
-export function tabRule<T extends Record<string, TabRule>, K extends keyof T & string>(
-  tabs: T,
-  key: K,
-): { key: K; for?: readonly Holding[] } {
-  return { key, for: tabs[key].for };
-}
 
 // ---------------------------------------------------------------- administration
 

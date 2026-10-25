@@ -40,6 +40,7 @@ Open the note whose rule matches what you are about to do, or what just surprise
 - [Playwright accepts unknown `use` keys silently — `reducedMotion` moved under `contextOptions`](playwright-moved-reducedmotion-into-contextoptions.md)
 - [Playwright's workerIndex keeps climbing past the worker count; parallelIndex is the bounded slot](playwright-s-workerindex-keeps-climbing-past-the-worker-count-parallelindex-is-th.md)
 - [pnpm runs a store-writing lockfile check before every script, so `pnpm <script>` fails where the store is read-only](pnpm-runs-a-store-writing-lockfile-check-before-every-script-so-pnpm-script-fail.md)
+- [position: sticky inside Layout's main never sticks, it only shifts down — main is a scroll container (panel-scroll)](position-sticky-inside-layout-s-main-never-sticks-it-only-shifts-down-main-is-a-.md)
 - [An RFC 9457 extension member may not be named `status`, `title`, `code` or `type`](problem-extension-members-cannot-shadow-its-parameters.md)
 - [A public endpoint answers 404 for a draft — including in tests you just set up](public-endpoints-answer-404-for-unpublished-things.md)
 - [sepaxml writes the message id in its constructor, so setting msg_id afterwards leaves a random one in the file](sepaxml-writes-the-message-id-in-its-constructor-so-setting-msg-id-afterwards-le.md)
