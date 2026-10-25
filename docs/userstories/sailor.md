@@ -408,7 +408,8 @@ Endpoints: `DELETE /api/auth/me`
 Tests: `api/tests/stories/test_login_and_roles.py::TestDeleteMyAccount`
 
 ### Z-8 ● My space: everything I am part of, on one page
-Issue #10.
+Issue #10. **Being replaced by [Z-10](#z-10--the-workspace-where-i-am-what-i-can-do-here-what-waits-for-me)** (issue #28): the cards become
+the context switcher, the notices the to-dos.
 
 As a **signed-in person** I want **one page listing every club, series and event I am part
 of, what I am to each, and what waits for me there**, so that **I see at a glance where I
@@ -461,7 +462,8 @@ Tests: `api/tests/stories/test_my_space.py::TestMySpace`,
 `e2e/my-space.spec.ts` ("S-1/Z-8/V-14: an unsigned waiver is a notice with its button, a badge, and a line in the club's list")
 
 ### S-7 ● My page in a club, a series or an event
-Issue #10.
+Issue #10. **Being replaced by [Z-10](#z-10--the-workspace-where-i-am-what-i-can-do-here-what-waits-for-me)** (issue #28): the tabs become
+the section sidebar.
 
 As a **signed-in person** I want **a page of my own for each club, series and event I am
 part of, holding exactly what is mine to see and do there**, so that **I never hunt
@@ -501,6 +503,64 @@ Acceptance criteria:
 Screen: `/me/profile`, `/me/club/:id`, `/me/series/:id`, `/me/event/:id`.
 Tests: `e2e/my-space.spec.ts` ("Z-8/S-7: my space — one card per thing I am part of, and my page in it"),
 `e2e/club.spec.ts`
+
+### Z-10 ○ The workspace: where I am, what I can do here, what waits for me
+Issues #28 (parent), #29–#35. The plan, with every table: `docs/PLAN_NAVIGATION.md`.
+
+As **anyone signed in** — a sailor, a parent, a team manager, an organizer, the race
+committee, a treasurer, editorial, the league office — I want **to see on every page where
+I am, reach every page of my work in a click or two, and find what waits for me first**,
+so that **I never hunt for the page an action lives on**.
+
+Z-8 and S-7 gave every club, series and event I am part of a page of mine; A-11 split the
+administration into tabs. Both still left people lost (2026-10-25): *where are our club's
+minors, where do I add a new person* — because the same club had two homes (`/me/club/…`
+and `/admin`), tabs hid sections several clicks deep, and a page said where it was only in
+a breadcrumb. Chosen in a TOAD over task-first navigation, a dashboard and today's pages
+polished: a **context switcher** plus a **section sidebar**, with the to-do list built in.
+
+Acceptance criteria:
+- **All work happens in My space**, and only My space has a sidebar. The public site only
+  shows — no sidebar on a public page, signed in or not; *My space* in its header, and
+  *Work on this* on the public page of an object I work on.
+- **Two levels, never a tree.** The **context switcher** in the header names the one
+  context I am working in — *Me*, the *League office* (only with a site relation), a club,
+  a series or an event — and lists mine: those `GET /api/me/contexts` returns, each with my
+  relations as chips and its waiting count; events upcoming first, past folded; drafts
+  after the current year. Objects I reach only through another (a series manager's events)
+  are opened from inside it and then kept under **Recent**. The **section sidebar** lists
+  the sections of that one context.
+- **What I hold there decides what I see** — the model (Z-2), never a summary role; several
+  relations add up into one list ordered by the work, never duplicated; a section I cannot
+  use does not exist (not disabled); a group with one section shows without a heading.
+  The sections per context and who has each are the tables of the plan's §3 — Me, Club
+  (People · Racing · Money · Club), Series (Sailing · Series · Organize · Officials ·
+  Editorial), Event (Sailing · Set up · Race day · Money · Editorial), League office.
+- **Club and event, never "matchday"**: a matchday is an event's number in its series; the
+  club's sections are *Squads* (one, with a picker for the registration or stand-alone
+  event) and *Events & crews* (with a team picker when the club enters several teams).
+- **Where am I, twice on every page**: the switcher names the context, the sidebar marks
+  the section, and the breadcrumb joins them (`ASVW › Sailors › Minors & guardians`).
+- **To do (built in)**: every to-do is a link to the section that clears it, computed and
+  never stored, shown only to those who hold that section. *Me › Overview* is the landing
+  page: **Live now** while an event I work on is live (the sections my relations give me
+  there, Race control first for the race committee), then **To do** across all my
+  contexts, then **Last visited**. Each context opens on its own *Overview*; the switcher
+  and the sidebar carry the counts. The to-do codes, today's and the new ones, are the
+  plan's §4 — all of them are built.
+- **One home per object**: an object's administration lives in its own context; `/admin`
+  becomes **`/office`**, the league office's own work. Old addresses redirect.
+- **Recent and last visited** are kept per browser — a convenience, never needed to work.
+- **Laptop first, phone too**: sidebar 248 px; icons only between 768 and 1100 px; on a
+  phone a bar of two buttons — context ▾ and section ▾ — instead of the sidebar. No page
+  wider than the screen (A-10).
+- The combinations of the plan's §5 (a sailor who also helps, a parent with no club, a
+  series editor, the site admin, …) are this story's examples, and its tests walk them.
+
+Built in steps, each its own issue: the declaration of contexts and sections (#30), the
+switcher and sidebar around today's pages (#31), the admin work moved into each context
+and `/office` (#32), the to-dos and landing page (#33), the switcher's search (#34),
+handbook and e2e (#35).
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with
