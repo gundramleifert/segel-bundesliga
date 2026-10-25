@@ -243,7 +243,10 @@ in the URL (`/me/club/7/members`); the frame draws the context switcher, the sid
 1100 px the sidebar stands left; narrower, one bar of two buttons (*context ▾ ·
 section ▾*), only one of the two in the DOM. A section I do not have redirects to the
 context's overview. Specs open a section with `openSection(page, kind, key)` from
-`e2e/layout.ts`, which works at both widths.
+`e2e/layout.ts`, which works at both widths. The switcher's search (#34) labels a section
+by `space:workspace.sectionLabels.<kind>.<key>`, not by the page's `label` — so a new
+section needs its words there too, in both languages (`web/tests/test_workspace.ts`
+fails without them).
 
 ### `Steps` — where you are in a short, ordered sequence
 

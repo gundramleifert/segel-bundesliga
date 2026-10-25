@@ -316,6 +316,85 @@
       "my-claims": "Meine Abrechnungen",
       "news": "News & Bilder",
       "publicLive": "Live-Ansicht"
+    },
+    "sectionLabels": {
+      "me": {
+        "overview": "Übersicht",
+        "account": "Profil & Konto",
+        "waivers": "Meine Haftungsausschlüsse",
+        "claims": "Meine Abrechnungen",
+        "documents": "Dokumente",
+        "bank": "Bankverbindung",
+        "children": "Meine Kinder"
+      },
+      "office": {
+        "overview": "Übersicht",
+        "clubs": "Vereine",
+        "series": "Serien",
+        "events": "Veranstaltungen",
+        "sailors": "Segler",
+        "accounts": "Konten",
+        "news": "Nachrichten",
+        "media": "Medien",
+        "imports": "Importe"
+      },
+      "club": {
+        "overview": "Übersicht",
+        "members": "Mitglieder",
+        "sailors": "Segler",
+        "minors": "Minderjährige & Erziehungsberechtigte",
+        "waivers": "Haftungsausschlüsse",
+        "squads": "Kader",
+        "crews": "Veranstaltungen & Crews",
+        "hosting": "Ausrichten",
+        "my-claims": "Meine Abrechnungen",
+        "decide-claims": "Abrechnungen entscheiden",
+        "payment-runs": "Zahlungsläufe",
+        "bank-account": "Bankverbindung",
+        "club-page": "Vereinsseite"
+      },
+      "series": {
+        "overview": "Übersicht",
+        "team": "Mein Team",
+        "events": "Veranstaltungen",
+        "standings": "Tabelle",
+        "registrations": "Vereine & Meldungen",
+        "dates": "Termine & Veröffentlichung",
+        "scoring": "Kadergröße & Wertung",
+        "officials": "Wettfahrtleitung & Jury",
+        "news": "Nachrichten & Bilder"
+      },
+      "event": {
+        "overview": "Übersicht",
+        "crew": "Meine Crew",
+        "general": "Allgemein",
+        "clubs": "Vereine",
+        "boats": "Boote",
+        "pairing": "Pairing-Liste",
+        "publication": "Veröffentlichung",
+        "people": "Personen",
+        "check-in": "Check-in",
+        "race-control": "Wettfahrtleitung",
+        "results": "Ergebnisse",
+        "trackers": "Tracker",
+        "notice-board": "Schwarzes Brett",
+        "my-claims": "Meine Abrechnungen",
+        "decide-claims": "Abrechnungen entscheiden",
+        "news": "Nachrichten & Bilder"
+      }
+    },
+    "search": {
+      "label": "Suche",
+      "placeholder": "Kontext oder Bereich finden",
+      "officePlaceholder": "Verein, Serie, Veranstaltung oder Segler finden",
+      "sections": "Bereiche",
+      "mine": "Meine",
+      "clubs": "Vereine",
+      "series": "Serien",
+      "events": "Veranstaltungen",
+      "sailors": "Segler",
+      "searching": "Suche …",
+      "empty": "Nichts gefunden"
     }
   }
 }

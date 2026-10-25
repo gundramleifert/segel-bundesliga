@@ -316,6 +316,85 @@
       "my-claims": "My claims",
       "news": "News & pictures",
       "publicLive": "Live view"
+    },
+    "sectionLabels": {
+      "me": {
+        "overview": "Overview",
+        "account": "Profile & account",
+        "waivers": "My waivers",
+        "claims": "My claims",
+        "documents": "Documents",
+        "bank": "Bank account",
+        "children": "My children"
+      },
+      "office": {
+        "overview": "Overview",
+        "clubs": "Clubs",
+        "series": "Series",
+        "events": "Events",
+        "sailors": "Sailors",
+        "accounts": "Accounts",
+        "news": "News",
+        "media": "Media",
+        "imports": "Imports"
+      },
+      "club": {
+        "overview": "Overview",
+        "members": "Members",
+        "sailors": "Sailors",
+        "minors": "Minors & guardians",
+        "waivers": "Waivers",
+        "squads": "Squads",
+        "crews": "Events & crews",
+        "hosting": "Hosting",
+        "my-claims": "My claims",
+        "decide-claims": "Decide claims",
+        "payment-runs": "Payment runs",
+        "bank-account": "Bank account",
+        "club-page": "Club page"
+      },
+      "series": {
+        "overview": "Overview",
+        "team": "My team",
+        "events": "Events",
+        "standings": "Standings",
+        "registrations": "Clubs & registrations",
+        "dates": "Dates & publication",
+        "scoring": "Squad size & scoring",
+        "officials": "Race committee & jury",
+        "news": "News & pictures"
+      },
+      "event": {
+        "overview": "Overview",
+        "crew": "My crew",
+        "general": "General",
+        "clubs": "Clubs",
+        "boats": "Boats",
+        "pairing": "Pairing list",
+        "publication": "Publication",
+        "people": "People",
+        "check-in": "Check-in",
+        "race-control": "Race control",
+        "results": "Results",
+        "trackers": "Trackers",
+        "notice-board": "Notice board",
+        "my-claims": "My claims",
+        "decide-claims": "Decide claims",
+        "news": "News & pictures"
+      }
+    },
+    "search": {
+      "label": "Search",
+      "placeholder": "Find a context or a section",
+      "officePlaceholder": "Find a club, series, event or sailor",
+      "sections": "Sections",
+      "mine": "Mine",
+      "clubs": "Clubs",
+      "series": "Series",
+      "events": "Events",
+      "sailors": "Sailors",
+      "searching": "Searching …",
+      "empty": "Nothing found"
     }
   }
 }

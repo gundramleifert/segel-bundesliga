@@ -310,6 +310,68 @@ export function refKey(ref: ContextRef): string {
   return "id" in ref ? `${ref.kind}:${ref.id}` : ref.kind;
 }
 
+// ---------------------------------------------------------------- the switcher's search
+
+/** From how many entries the switcher shows its search; with a site relation it is always
+ *  there — the league office finds every object by it, not by a list (§2, #34). */
+export const SEARCH_FROM = 8;
+
+/** Whether the switcher shows its search box. */
+export function showsSearch(switcher: Switcher, hasOffice: boolean): boolean {
+  const count = switcher.head.length + switcher.clubs.length + switcher.series.length + switcher.events.length + switcher.recent.length;
+  return hasOffice || count >= SEARCH_FROM;
+}
+
+/** Lower case, accents dropped, `ß` as `ss` — so *minderjahrige* finds *Minderjährige* and
+ *  *Warnemunde* finds *Warnemünde*. */
+export function fold(text: string): string {
+  return text.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/ß/g, "ss");
+}
+
+function words(query: string): string[] {
+  return fold(query).split(/\s+/).filter(Boolean);
+}
+
+/** A section of one of my contexts that matches: the entry it belongs to, its key, its
+ *  label as shown. */
+export type SectionHit = { entry: SwitcherEntry; section: string; label: string };
+
+export type WorkspaceSearch = { contexts: SwitcherEntry[]; sections: SectionHit[] };
+
+/** Story Z-10, #34: what the switcher offers for `query` among my own entries — the
+ *  contexts whose name matches, and the sections of them whose label does.
+ *
+ *  Every word must appear (case and accents ignored), in the context's name or the
+ *  section's label, and a section needs at least one word in its own label: otherwise
+ *  typing *asvw* would list every section of ASVW. Only sections the person has
+ *  (`sectionsFor` — the sidebar's own answer), never the *Overview*, which is the context
+ *  hit itself. `nameOf` names an entry (*Me*, *League office* have no context name),
+ *  `labelOf` a section in the language on screen. */
+export function searchWorkspace(
+  query: string,
+  entries: readonly SwitcherEntry[],
+  labelOf: (kind: WorkspaceKind, section: string) => string,
+  nameOf: (entry: SwitcherEntry) => string,
+): WorkspaceSearch {
+  const terms = words(query);
+  if (terms.length === 0) return { contexts: [], sections: [] };
+  const contexts: SwitcherEntry[] = [];
+  const sections: SectionHit[] = [];
+  for (const entry of entries) {
+    const name = fold([nameOf(entry), entry.context?.short_name ?? ""].join(" "));
+    if (terms.every((w) => name.includes(w))) contexts.push(entry);
+    const kind = entry.ref.kind;
+    for (const section of sectionsFor(kind, entry.relations)) {
+      if (section === "overview") continue;
+      const label = labelOf(kind, section);
+      const folded = fold(label);
+      if (!terms.some((w) => folded.includes(w))) continue;
+      if (terms.every((w) => folded.includes(w) || name.includes(w))) sections.push({ entry, section, label });
+    }
+  }
+  return { contexts, sections };
+}
+
 // ---------------------------------------------------------------- recent, per browser
 
 /** How many contexts Recent keeps, and how many sections Last visited. */

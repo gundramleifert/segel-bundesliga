@@ -1,10 +1,13 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
-import type { Need } from "../../api/types";
+import { useListAllClubs, useListAllEvents, useListAllSeries, useListSailors } from "../../api/generated/sbl";
+import { Relation, type Need } from "../../api/types";
 import { useAccount } from "../../api/useApi";
 import { setPageCrumbs, type Crumb } from "../../components/breadcrumb";
+import { INPUT_CLASS } from "../../lib/admin";
 import { useDisclosure } from "../../lib/useDisclosure";
 import { useMediaQuery } from "../../lib/useMediaQuery";
 import {
@@ -12,10 +15,13 @@ import {
   refKey,
   rememberRecent,
   rememberVisit,
+  searchWorkspace,
   sectionPath,
+  showsSearch,
   sidebar,
   switcherEntries,
   type ContextRef,
+  type WorkspaceKind,
   type SidebarGroup,
   type SwitcherEntry,
 } from "../../lib/workspace";
@@ -317,47 +323,234 @@ function Switcher({ current, name }: { current: ContextRef; name: string }) {
       </button>
       {menu.open && switcher && (
         <div {...menu.panelProps} className={`${PANEL} left-0`} data-testid="workspace-switcher-panel">
-          <ul className="flex flex-col gap-1">
-            {switcher.head.map(entry)}
-            {group(t("overview.clubs"), "workspace-switcher-clubs", switcher.clubs)}
-            {group(t("overview.series"), "workspace-switcher-series", switcher.series)}
-            {group(t("workspace.events"), "workspace-switcher-events", upcoming)}
-            {past.length > 0 && (
-              <li className="flex flex-col gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => setShowPast(!showPast)}
-                  aria-expanded={showPast}
-                  data-testid="workspace-switcher-earlier"
-                  className="rounded-md px-3 py-1.5 text-left text-sm text-muted hover:bg-surface-tertiary"
-                >
-                  {showPast ? "▾" : "▸"} {t("workspace.earlier", { count: past.length })}
-                </button>
-                {showPast && <ul className="flex flex-col gap-0.5">{past.map(entry)}</ul>}
-              </li>
-            )}
-            {switcher.recent.length > 0 && (
-              <li className="flex flex-col gap-0.5" data-testid="workspace-switcher-recent">
-                <span className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">{t("workspace.recent")}</span>
-                <ul className="flex flex-col gap-0.5">
-                  {switcher.recent.map((r) => (
-                    <li key={refKey(r)}>
-                      <Link
-                        to={sectionPath(r)}
-                        className="block rounded-md px-3 py-2 text-sm text-foreground hover:bg-surface-tertiary"
-                        data-testid={`workspace-switcher-recent-${refKey(r).replace(":", "-")}`}
-                      >
-                        {r.name ?? `${t(`workspace.kinds.${r.kind}`)} ${"id" in r ? `#${r.id}` : ""}`}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            )}
-          </ul>
+          <SwitcherSearch
+            show={showsSearch(switcher, Boolean(data?.office))}
+            entries={[...switcher.head, ...switcher.clubs, ...switcher.series, ...switcher.events]}
+            office={(data?.office?.relations ?? []).includes(Relation.admin)}
+          >
+            <ul className="flex flex-col gap-1">
+              {switcher.head.map(entry)}
+              {group(t("overview.clubs"), "workspace-switcher-clubs", switcher.clubs)}
+              {group(t("overview.series"), "workspace-switcher-series", switcher.series)}
+              {group(t("workspace.events"), "workspace-switcher-events", upcoming)}
+              {past.length > 0 && (
+                <li className="flex flex-col gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setShowPast(!showPast)}
+                    aria-expanded={showPast}
+                    data-testid="workspace-switcher-earlier"
+                    className="rounded-md px-3 py-1.5 text-left text-sm text-muted hover:bg-surface-tertiary"
+                  >
+                    {showPast ? "▾" : "▸"} {t("workspace.earlier", { count: past.length })}
+                  </button>
+                  {showPast && <ul className="flex flex-col gap-0.5">{past.map(entry)}</ul>}
+                </li>
+              )}
+              {switcher.recent.length > 0 && (
+                <li className="flex flex-col gap-0.5" data-testid="workspace-switcher-recent">
+                  <span className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">{t("workspace.recent")}</span>
+                  <ul className="flex flex-col gap-0.5">
+                    {switcher.recent.map((r) => (
+                      <li key={refKey(r)}>
+                        <Link
+                          to={sectionPath(r)}
+                          className="block rounded-md px-3 py-2 text-sm text-foreground hover:bg-surface-tertiary"
+                          data-testid={`workspace-switcher-recent-${refKey(r).replace(":", "-")}`}
+                        >
+                          {r.name ?? `${t(`workspace.kinds.${r.kind}`)} ${"id" in r ? `#${r.id}` : ""}`}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              )}
+            </ul>
+          </SwitcherSearch>
         </div>
       )}
     </div>
+  );
+}
+
+/** One line the switcher's search offers: where it leads and how it reads. */
+type Hit = { id: string; to: string; label: string; detail?: string };
+type HitGroup = { key: string; title: string; hits: Hit[] };
+
+/** How long the typing has to pause before the league office's search asks the server,
+ *  and how many of each kind it shows — a jump, not a list (§2). */
+const SEARCH_PAUSE_MS = 250;
+const SEARCH_LIMIT = 4;
+
+/** The search at the top of the switcher (Story Z-10, #34). Empty, it shows the switcher's
+ *  own list (`children`); typed into, the hits instead: my contexts and the sections of
+ *  them by their words (`searchWorkspace`), and for the site's `admin` (`office`) any
+ *  club, series, event and sailor from the admin lists' search. Lives inside the panel,
+ *  so closing the switcher forgets the query. Arrow keys move, Enter opens; Escape is the
+ *  panel's own (`useDisclosure`). */
+function SwitcherSearch({
+  show,
+  entries,
+  office,
+  children,
+}: {
+  show: boolean;
+  entries: SwitcherEntry[];
+  office: boolean;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation("space");
+  const navigate = useNavigate();
+  const input = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("");
+  const [marked, setMarked] = useState(0);
+  const [asked, setAsked] = useState("");
+
+  useEffect(() => {
+    if (show) input.current?.focus();
+  }, [show]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAsked(query.trim()), SEARCH_PAUSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  const remote = office && asked.length > 0;
+  const page = { q: asked, limit: SEARCH_LIMIT };
+  const options = { query: { enabled: remote, placeholderData: keepPreviousData } };
+  const clubs = useListAllClubs(page, options);
+  const series = useListAllSeries(page, options);
+  const events = useListAllEvents(page, options);
+  const sailors = useListSailors(page, options);
+
+  if (!show) return <>{children}</>;
+
+  const nameOf = (e: SwitcherEntry) => e.context?.name ?? t(`workspace.kinds.${e.ref.kind}`);
+  const found = searchWorkspace(query, entries, (kind: WorkspaceKind, section) => t(`workspace.sectionLabels.${kind}.${section}`), nameOf);
+  const idOf = (ref: ContextRef) => refKey(ref).replace(":", "-");
+  const mine = new Set(entries.map((e) => refKey(e.ref)));
+  const objects = (kind: "club" | "series" | "event", rows: { id: number; label: string; detail?: string }[] | undefined): Hit[] =>
+    remote
+      ? (rows ?? [])
+          .filter((r) => !mine.has(`${kind}:${r.id}`))
+          .map((r) => ({ id: `${kind}-${r.id}`, to: sectionPath({ kind, id: r.id }), label: r.label, detail: r.detail }))
+      : [];
+
+  const groups: HitGroup[] = [
+    {
+      key: "mine",
+      title: t("workspace.search.mine"),
+      hits: found.contexts.map((e) => ({ id: idOf(e.ref), to: sectionPath(e.ref), label: nameOf(e), detail: t(`workspace.kinds.${e.ref.kind}`) })),
+    },
+    {
+      key: "sections",
+      title: t("workspace.search.sections"),
+      hits: found.sections.map((h) => ({
+        id: `${idOf(h.entry.ref)}-${h.section}`,
+        to: sectionPath(h.entry.ref, h.section),
+        label: h.label,
+        detail: h.entry.context?.short_name || nameOf(h.entry),
+      })),
+    },
+    {
+      key: "clubs",
+      title: t("workspace.search.clubs"),
+      hits: objects("club", clubs.data?.items.map((c) => ({ id: c.id, label: c.name, detail: c.short_name }))),
+    },
+    {
+      key: "series",
+      title: t("workspace.search.series"),
+      hits: objects("series", series.data?.items.map((s) => ({ id: s.id, label: s.name }))),
+    },
+    {
+      key: "events",
+      title: t("workspace.search.events"),
+      hits: objects("event", events.data?.items.map((e) => ({ id: e.id, label: e.title, detail: e.starts_on ?? undefined }))),
+    },
+    {
+      key: "sailors",
+      title: t("workspace.search.sailors"),
+      hits: remote
+        ? (sailors.data?.items ?? []).map((s) => ({ id: `sailor-${s.id}`, to: `/sailors/${s.id}`, label: `${s.first_name} ${s.last_name}` }))
+        : [],
+    },
+  ].filter((g) => g.hits.length > 0);
+  const hits = groups.flatMap((g) => g.hits);
+  const at = Math.min(marked, Math.max(hits.length - 1, 0));
+  const waiting = remote && (asked !== query.trim() || [clubs, series, events, sailors].some((q) => q.isFetching));
+
+  const onKey = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      if (hits.length === 0) return;
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      setMarked((at + step + hits.length) % hits.length);
+    } else if (event.key === "Enter" && hits[at]) {
+      event.preventDefault();
+      navigate(hits[at].to);
+    }
+  };
+  const hitTestId = (h: Hit) => `workspace-switcher-search-hit-${h.id}`;
+
+  return (
+    <>
+      <input
+        ref={input}
+        type="search"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setMarked(0);
+        }}
+        onKeyDown={onKey}
+        role="combobox"
+        aria-expanded={query.trim().length > 0}
+        aria-controls="workspace-switcher-search-hits"
+        aria-activedescendant={hits[at] ? hitTestId(hits[at]) : undefined}
+        aria-label={t("workspace.search.label")}
+        placeholder={t(office ? "workspace.search.officePlaceholder" : "workspace.search.placeholder")}
+        data-testid="workspace-switcher-search"
+        className={`${INPUT_CLASS} mb-2 bg-surface text-foreground placeholder:text-muted`}
+      />
+      {query.trim() === "" ? (
+        children
+      ) : (
+        <ul id="workspace-switcher-search-hits" role="listbox" className="flex flex-col gap-1" data-testid="workspace-switcher-search-hits">
+          {groups.map((g) => (
+            <li key={g.key} role="presentation" className="flex flex-col gap-0.5" data-testid={`workspace-switcher-search-group-${g.key}`}>
+              <span className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-muted">{g.title}</span>
+              <ul role="presentation" className="flex flex-col gap-0.5">
+                {g.hits.map((h) => {
+                  const here = hits[at] === h;
+                  return (
+                    <li key={h.id} role="presentation">
+                      <Link
+                        to={h.to}
+                        id={hitTestId(h)}
+                        role="option"
+                        aria-selected={here}
+                        onMouseEnter={() => setMarked(hits.indexOf(h))}
+                        data-testid={hitTestId(h)}
+                        className={`flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm text-foreground ${
+                          here ? "bg-surface-tertiary" : ""
+                        }`}
+                      >
+                        <span className="truncate font-medium">{h.label}</span>
+                        {h.detail && <span className="shrink-0 truncate text-xs text-muted">{h.detail}</span>}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
+          {hits.length === 0 && (
+            <li className="px-3 py-2 text-sm text-muted" data-testid="workspace-switcher-search-empty">
+              {t(waiting ? "workspace.search.searching" : "workspace.search.empty")}
+            </li>
+          )}
+        </ul>
+      )}
+    </>
   );
 }
 

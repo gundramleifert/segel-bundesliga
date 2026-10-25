@@ -1,7 +1,10 @@
 import { describe, expect, test } from "vitest";
 
 import { Relation, type MyContext, type Todo } from "../src/api/types";
+import de from "../src/i18n/locales/de/space.json";
+import en from "../src/i18n/locales/en/space.json";
 import {
+  fold,
   groupTodos,
   hasSection,
   isLive,
@@ -13,11 +16,17 @@ import {
   refKey,
   SAILOR,
   rememberRecent,
+  searchWorkspace,
   sectionPath,
   sectionsFor,
+  showsSearch,
   sidebar,
   switcherEntries,
+  WORKSPACE,
   type ContextRef,
+  type GroupDecl,
+  type SwitcherEntry,
+  type WorkspaceKind,
 } from "../src/lib/workspace";
 
 /** Story Z-10: the declaration of the workspace (issue #30), walked against the table of
@@ -287,5 +296,89 @@ describe("Story Z-10: Live now, To do, Last visited", () => {
       rememberVisit({ ref: { kind: "club", id: 7 }, section, name: "ASVW", label: section }, storage);
     }
     expect(readVisits(storage).map((v) => v.section)).toEqual(["my-claims", "members", "hosting", "waivers", "crews"]);
+  });
+});
+
+describe("Story Z-10: the switcher's search (#34)", () => {
+  type Lang = { workspace: { sectionLabels: Record<string, Record<string, string>>; kinds: Record<string, string> } };
+  const asvw = context("club", 7, "Akademischer Segler-Verein in Warnemünde", {
+    short_name: "ASVW",
+    relations: [Relation.member, Relation.admin],
+  });
+  const series = context("series", 3, "2. Segel-Bundesliga 2026", { relations: [SAILOR], year: 2026 });
+  const event = context("event", 11, "Act 3 · Warnemünde", { relations: [Relation.helper], starts_on: "2026-11-01" });
+  const all = (contexts: MyContext[], site?: string[]) => {
+    const s = switcherEntries({ contexts, site, today: TODAY });
+    return [...s.head, ...s.clubs, ...s.series, ...s.events];
+  };
+  const hits = (query: string, entries: SwitcherEntry[], lang: Lang = en) => {
+    const r = searchWorkspace(
+      query,
+      entries,
+      (kind: WorkspaceKind, section: string) => lang.workspace.sectionLabels[kind][section],
+      (e) => e.context?.name ?? lang.workspace.kinds[e.ref.kind],
+    );
+    return {
+      contexts: r.contexts.map((e) => refKey(e.ref)),
+      sections: r.sections.map((h) => `${refKey(h.entry.ref)}/${h.section}`),
+    };
+  };
+
+  test("every declared section of every context has its label, in English and in German", () => {
+    for (const lang of [en, de] as Lang[]) {
+      for (const [kind, groups] of Object.entries(WORKSPACE)) {
+        for (const g of groups as readonly GroupDecl[]) {
+          for (const section of Object.keys(g.sections)) {
+            expect(lang.workspace.sectionLabels[kind]?.[section], `${kind}.${section}`).toBeTruthy();
+          }
+        }
+      }
+    }
+  });
+
+  test("a club's admin types minors and is offered ASVW's minors — in German too, accents ignored", () => {
+    const entries = all([asvw, series, event]);
+    expect(hits("minors", entries)).toEqual({ contexts: [], sections: ["club:7/minors"] });
+    expect(hits("MINDERJÄHRIGE", entries, de).sections).toEqual(["club:7/minors"]);
+    expect(hits("minderjahrige", entries, de).sections).toEqual(["club:7/minors"]);
+  });
+
+  test("a section I do not have is never offered", () => {
+    const member = { ...asvw, relations: [Relation.member] };
+    expect(hits("minors", all([member])).sections).toEqual([]);
+    // The helper has their claims on the event, not its results.
+    expect(hits("results", all([event])).sections).toEqual([]);
+    expect(hits("claims", all([event])).sections).toEqual(["me/claims", "event:11/my-claims"]);
+  });
+
+  test("contexts by name or short name; several words narrow, across name and label", () => {
+    const entries = all([asvw, series, event]);
+    expect(hits("warnemunde", entries).contexts).toEqual(["club:7", "event:11"]);
+    expect(hits("asvw", entries)).toEqual({ contexts: ["club:7"], sections: [] });
+    expect(hits("asvw claims", entries).sections).toEqual(["club:7/my-claims", "club:7/decide-claims"]);
+    expect(hits("claims", entries).sections).toEqual([
+      "me/claims", "club:7/my-claims", "club:7/decide-claims", "event:11/my-claims",
+    ]);
+    expect(hits("   ", entries)).toEqual({ contexts: [], sections: [] });
+  });
+
+  test("the league office's own sections are found by the site's admin, not by editorial", () => {
+    expect(hits("imports", all([], [Relation.admin])).sections).toEqual(["office/imports"]);
+    expect(hits("imports", all([], [Relation.editor])).sections).toEqual([]);
+  });
+
+  test("the box: from 8 entries on, and always with a site relation", () => {
+    const few = switcherEntries({ contexts: [asvw, series], today: TODAY });
+    expect(showsSearch(few, false)).toBe(false);
+    expect(showsSearch(few, true)).toBe(true);
+    const many = switcherEntries({
+      contexts: Array.from({ length: 7 }, (_, i) => context("event", i + 1, `Event ${i}`)),
+      today: TODAY,
+    });
+    expect(showsSearch(many, false)).toBe(true);
+  });
+
+  test("fold drops case and accents", () => {
+    expect(fold("Straße Überlingen")).toBe("strasse uberlingen");
   });
 });

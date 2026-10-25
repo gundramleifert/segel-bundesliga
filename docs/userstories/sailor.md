@@ -541,6 +541,19 @@ Acceptance criteria:
   event) and *Events & crews* (with a team picker when the club enters several teams).
 - **Where am I, twice on every page**: the switcher names the context, the sidebar marks
   the section, and the breadcrumb joins them (`ASVW › Sailors › Minors & guardians`).
+- **Search in the switcher** (#34): a box at the top of its list, there from 8 entries on
+  and always for someone with a site relation.
+  - **Everyone** finds their own contexts by name and the **sections** of them by label,
+    in the language on screen, ignoring case and accents: *minors* (or *Minderjährige*)
+    offers *ASVW › Minors & guardians* to whoever has that section at ASVW. Only sections
+    I have are offered — the same declaration the sidebar reads. Several words narrow
+    (*asvw claims*), each matching the context's name or the section's label.
+  - **The league office** (site `admin`) also finds **any** club, series, event and
+    sailor, a few of each, from the paged admin lists' search (`q`, A-13), asked once the
+    typing pauses (250 ms). A club, series or event opens its context; a sailor their
+    page.
+  - **By keyboard**: the box takes the focus when the list opens, arrow keys move through
+    the hits, Enter opens the one marked, Escape closes the list.
 - **To do (built in)**: every to-do is a link to the section that clears it, computed and
   never stored, shown only to those who hold that section. *Me › Overview* is the landing
   page: **Live now** while an event I work on is live (the sections my relations give me
@@ -636,7 +649,13 @@ switcher and sidebar around today's pages (#31), the admin work moved into each 
 and `/office` (#32), the to-dos and landing page (#33), the switcher's search (#34),
 handbook and e2e (#35).
 
-Tests: `api/tests/stories/test_my_space.py::TestTodos`, `::TestReachedContexts`, `web/tests/test_workspace.ts`
+**The search** (#34): the matching is `searchWorkspace` in `web/src/lib/workspace.ts`,
+unit-tested in `web/tests/test_workspace.ts`; every declared section has its label in
+`space:workspace.sectionLabels`, so a section is found by its words before its panel is
+built (until then it opens the context's overview).
+
+Tests: `api/tests/stories/test_my_space.py::TestTodos`, `::TestReachedContexts`, `web/tests/test_workspace.ts`,
+`e2e/workspace.spec.ts` ("Z-10: the switcher's search — my sections by their words, anything for the league office")
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with
