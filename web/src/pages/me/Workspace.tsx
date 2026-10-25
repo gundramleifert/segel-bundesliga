@@ -191,7 +191,9 @@ function SectionList({
                 {t(`workspace.groups.${g.key}`)}
               </span>
             )}
-            <ul className="flex flex-col gap-0.5">
+            {/* Under a heading the sections step in, on a guide line: what belongs together
+                reads as one block, not as a list of equals. */}
+            <ul className={`flex flex-col gap-0.5 ${g.heading && g.key ? "ml-3 border-l border-separator pl-2" : ""}`}>
               {g.sections.map((s) => {
                 const n = count(s);
                 const here = s === active;
