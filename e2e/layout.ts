@@ -105,6 +105,9 @@ export async function listedSections(page: Page, kind: string): Promise<string[]
   const button = page.getByTestId("workspace-sections-button");
   await expect(page.getByTestId("workspace-sidebar").or(button).first()).toBeVisible();
   if (await button.isVisible()) await button.click();
+  // The previous page's sidebar may still be on screen for a moment after a navigation —
+  // wait for this context's own overview link before reading the list.
+  await expect(page.getByTestId(`workspace-section-${kind}-overview`)).toBeVisible();
   const ids = await page.getByTestId("workspace-sections").locator(`a[data-testid^="workspace-section-${kind}-"]`).evaluateAll(
     (links) => links.map((a) => a.getAttribute("data-testid") ?? ""),
   );
