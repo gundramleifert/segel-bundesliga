@@ -480,6 +480,55 @@ async def my_space(session: AsyncSession, user: User) -> MySpace:
     )
 
 
+#: The kinds of context, and the object type each is.
+OBJECT_OF = {kind: object_type for object_type, kind in KIND_OF.items()}
+
+
+async def reached_context(
+    session: AsyncSession, user: User, kind: str, object_id: int
+) -> Context | None:
+    """One club, series or event as a context of mine, by the model rather than the list
+    (Story Z-10): a series manager opening one of its events, the league office opening
+    anything. Relations are the **effective** ones — what `authz.check` answers on the
+    object — so the sidebar shows what this person may do there; ``None`` when that is
+    nothing, or the object does not exist. A context in my list is answered from it, with
+    its sailing and its to-dos as the list has them."""
+    if kind not in OBJECT_OF:
+        return None
+    space = await my_space(session, user)
+    for context in space.contexts:
+        if context.kind == kind and context.id == object_id:
+            return context
+    # The loaded object, not a bare ref: an event's series and host club are edges of the
+    # model (`authz._edges`), and only a loaded event carries them.
+    target = await session.get({"club": Club, "series": Series, "event": Event}[kind], object_id)
+    if target is None:
+        return None
+    held = {
+        relation
+        for relation in ContextRelation
+        if relation is not ContextRelation.SAILOR
+        and authz.check(user, Relation(relation.value), on=target)
+    }
+    if not held:
+        return None
+    contexts: Contexts = {
+        (kind, object_id): Context(kind=kind, id=object_id, name="", relations=held)
+    }
+    required = await current_waiver_text(session)
+    loaded = await _fill(session, contexts)
+    if not contexts:
+        return None
+    # The to-dos the organizer's side computes, for this one object — the same functions
+    # the list uses, so a reached event says what a listed one would.
+    await _organizer(session, user, required, contexts)
+    await _club_people(session, user, contexts)
+    await _payment_runs(session, user, contexts)
+    await _events(session, user, required, contexts, loaded)
+    await _series(session, user, contexts, loaded)
+    return contexts[(kind, object_id)]
+
+
 async def _sailing(session: AsyncSession, sailor: Sailor, at) -> None:
     """A squad is a series registration (no event), a crew an event entry (Story V-1)."""
     rows = (

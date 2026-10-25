@@ -7,7 +7,7 @@ import { Empty, PageHeader } from "../../components/Blocks";
 import { Stack } from "../../components/Layouts";
 import { eventDates } from "../../lib/format";
 import { groupTodos, liveNow, readVisits, refKey, sectionPath, type ContextRef } from "../../lib/workspace";
-import { MeFrame } from "./Contexts";
+import { MeFrame } from "./Me";
 import { TodoList, todoTestId } from "./Todos";
 import { useMySpace } from "./shared";
 

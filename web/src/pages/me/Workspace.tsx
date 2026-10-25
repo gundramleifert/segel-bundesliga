@@ -98,9 +98,10 @@ export function WorkspaceFrame({
 
   // Primitives, not `current`: that is a new object on every render.
   const id = "id" in current ? current.id : null;
+  const recentName = shortName || name;
   useEffect(() => {
-    if (id !== null && (kind === "club" || kind === "series" || kind === "event")) rememberRecent({ kind, id });
-  }, [kind, id]);
+    if (id !== null && (kind === "club" || kind === "series" || kind === "event")) rememberRecent({ kind, id }, undefined, recentName);
+  }, [kind, id, recentName]);
   // *Last visited* on the landing page: the sections, not the overviews (§4).
   const visitLabel = section && key !== "overview" ? label(key) : null;
   const visitName = shortName || name;
@@ -346,7 +347,7 @@ function Switcher({ current, name }: { current: ContextRef; name: string }) {
                         className="block rounded-md px-3 py-2 text-sm text-foreground hover:bg-surface-tertiary"
                         data-testid={`workspace-switcher-recent-${refKey(r).replace(":", "-")}`}
                       >
-                        {t(`workspace.kinds.${r.kind}`)} {"id" in r ? `#${r.id}` : ""}
+                        {r.name ?? `${t(`workspace.kinds.${r.kind}`)} ${"id" in r ? `#${r.id}` : ""}`}
                       </Link>
                     </li>
                   ))}

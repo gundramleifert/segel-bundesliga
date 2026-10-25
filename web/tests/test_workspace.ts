@@ -228,7 +228,8 @@ describe("Story Z-10: addresses and the sections a screen has", () => {
     expect(sectionPath({ kind: "me" }, "waivers")).toBe("/me/profile/waivers");
     expect(sectionPath({ kind: "club", id: 7 })).toBe("/me/club/7");
     expect(sectionPath({ kind: "club", id: 7 }, "minors")).toBe("/me/club/7/minors");
-    expect(sectionPath({ kind: "office" }, "clubs")).toBe("/admin");
+    expect(sectionPath({ kind: "office" }, "clubs")).toBe("/office/clubs");
+    expect(sectionPath({ kind: "office" })).toBe("/office");
   });
 
   test("a declared section without a panel is not listed, and a group left with one loses its heading", () => {

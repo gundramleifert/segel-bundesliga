@@ -220,5 +220,6 @@
   "squad-registration-rejected": "This registration was rejected; it takes no squad.",
   "squad-sailor-of-another-club": "Sailing for another club: {sailors}. A club takes only its own sailors; the league office can add someone to a second club.",
   "sailor-needs-club": "Say which of your clubs this person sails for.",
-  "sailor-club-not-yours": "You can only create people for a club you organize."
+  "sailor-club-not-yours": "You can only create people for a club you organize.",
+  "context-not-found": "This is not part of your space — or it does not exist."
 }

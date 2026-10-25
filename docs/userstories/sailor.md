@@ -619,6 +619,11 @@ declared once in `web/src/lib/workspace.ts` — the sidebar, the guards and the 
 places read it; a section's key is also its URL segment and the `section` a to-do links
 to. Unit-tested against the plan's §5 table in `web/tests/test_workspace.ts`.
 
+**Reached, not listed** (#32): a context I reach through another — a series manager's
+event, anything the league office opens — opens with the relations the model gives me
+there (`GET /api/me/contexts/{kind}/{id}`); one I hold nothing on is not found, as in the
+list.
+
 **The shell** (#31): every page of My space is drawn by `WorkspaceFrame`
 (`web/src/pages/me/Workspace.tsx`) — the switcher at the top of the sidebar (in the bar on
 a phone), the sections of the context, the breadcrumb; each section at its own address
@@ -631,7 +636,7 @@ switcher and sidebar around today's pages (#31), the admin work moved into each 
 and `/office` (#32), the to-dos and landing page (#33), the switcher's search (#34),
 handbook and e2e (#35).
 
-Tests: `api/tests/stories/test_my_space.py::TestTodos`
+Tests: `api/tests/stories/test_my_space.py::TestTodos`, `::TestReachedContexts`, `web/tests/test_workspace.ts`
 
 ### S-5 ● Keep my documents, and show them to my organizers
 As a **signed-in person** I want to **upload my licences and certificates once, each with

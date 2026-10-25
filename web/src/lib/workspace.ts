@@ -230,7 +230,7 @@ export type Switcher = {
   clubs: SwitcherEntry[];
   series: SwitcherEntry[];
   events: SwitcherEntry[];
-  recent: ContextRef[];
+  recent: RecentRef[];
 };
 
 /** What the switcher is built from: the answer of `GET /api/me/contexts`, the site
@@ -240,7 +240,7 @@ export type SwitcherInput = {
   contexts: readonly MyContext[];
   site?: readonly string[];
   meWaiting?: number;
-  recent?: readonly ContextRef[];
+  recent?: readonly RecentRef[];
   /** Today, `YYYY-MM-DD` — injected so a test can pin it. */
   today: string;
 };
@@ -295,11 +295,10 @@ function compareTuples(a: number[], b: number[]): number {
 
 /** Where a section of a context lives (§7): `/me` is *Me › Overview*, my own sections are
  *  under `/me/profile/`, a club's, series' or event's under `/me/<kind>/:id/`, its
- *  overview being the bare address. The league office is today's administration until
- *  its sections move (#32). */
+ *  overview being the bare address; the league office's under `/office/`. */
 export function sectionPath(ref: ContextRef, section = "overview"): string {
   if (!("id" in ref)) {
-    if (ref.kind === "office") return "/admin";
+    if (ref.kind === "office") return section === "overview" ? "/office" : `/office/${section}`;
     return section === "overview" ? "/me" : `/me/profile/${section}`;
   }
   const base = `/me/${ref.kind}/${ref.id}`;
@@ -316,6 +315,9 @@ export function refKey(ref: ContextRef): string {
 /** How many contexts Recent keeps, and how many sections Last visited. */
 export const RECENT_MAX = 5;
 
+/** A context in Recent, with the name it had when it was opened. */
+export type RecentRef = ContextRef & { name?: string };
+
 /** `ref` put first in `list`, once, the list cut to `max` — pure, the storage below only
  *  keeps it. */
 export function pushRecent<T>(list: readonly T[], item: T, key: (t: T) => string, max = RECENT_MAX): T[] {
@@ -326,7 +328,7 @@ const RECENT_KEY = "sbl.workspace.recent";
 
 /** The contexts this browser opened last (§2: per browser, decided) — a convenience, never
  *  needed to work: storage that is blocked or empty reads as nothing. */
-export function readRecent(storage: Pick<Storage, "getItem"> | undefined = safeStorage()): ContextRef[] {
+export function readRecent(storage: Pick<Storage, "getItem"> | undefined = safeStorage()): RecentRef[] {
   try {
     const parsed: unknown = JSON.parse(storage?.getItem(RECENT_KEY) ?? "[]");
     return Array.isArray(parsed) ? parsed.filter(isRef).slice(0, RECENT_MAX) : [];
@@ -335,10 +337,16 @@ export function readRecent(storage: Pick<Storage, "getItem"> | undefined = safeS
   }
 }
 
-/** Remember that this browser opened `ref`. */
-export function rememberRecent(ref: ContextRef, storage: Pick<Storage, "getItem" | "setItem"> | undefined = safeStorage()): void {
+/** Remember that this browser opened `ref`, and what it was called then — Recent lists
+ *  contexts no request of the switcher names. */
+export function rememberRecent(
+  ref: ContextRef,
+  storage: Pick<Storage, "getItem" | "setItem"> | undefined = safeStorage(),
+  name?: string,
+): void {
   try {
-    storage?.setItem(RECENT_KEY, JSON.stringify(pushRecent(readRecent(storage), ref, refKey)));
+    const entry = name ? { ...ref, name } : ref;
+    storage?.setItem(RECENT_KEY, JSON.stringify(pushRecent(readRecent(storage), entry, refKey)));
   } catch {
     // A private window or blocked site data: Recent stays as it was.
   }

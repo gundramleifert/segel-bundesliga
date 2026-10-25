@@ -220,5 +220,6 @@
   "squad-registration-rejected": "Diese Meldung wurde abgelehnt; sie hat keinen Kader.",
   "squad-sailor-of-another-club": "Segelt für einen anderen Verein: {sailors}. Ein Verein nimmt nur eigene Segler auf; einem zweiten Verein ordnet die Geschäftsstelle eine Person zu.",
   "sailor-needs-club": "Bitte geben Sie an, für welchen Ihrer Vereine die Person segelt.",
-  "sailor-club-not-yours": "Sie können Personen nur für einen Verein anlegen, den Sie organisieren."
+  "sailor-club-not-yours": "Sie können Personen nur für einen Verein anlegen, den Sie organisieren.",
+  "context-not-found": "Das gehört nicht zu Ihrem Bereich — oder es existiert nicht."
 }

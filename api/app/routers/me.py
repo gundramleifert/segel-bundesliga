@@ -14,7 +14,10 @@ from app.auth import current_user
 from app.db import get_session
 from app.models import EventStatus
 from app.models.auth import User
+from app.problems import Problem
+from app.services import contexts as contexts_service
 from app.services.contexts import (
+    Context,
     ContextRelation,
     Need,
     NeedCode,
@@ -117,6 +120,24 @@ class MySpaceOut(BaseModel):
     total: int
 
 
+def _context_out(c: Context) -> MyContextOut:
+    return MyContextOut(
+        kind=c.kind,  # type: ignore[arg-type]
+        id=c.id,
+        name=c.name,
+        short_name=c.short_name,
+        relations=c.ordered_relations,
+        needs=[_need(n) for n in c.ordered_needs],
+        teams=[SailingTeamOut(**vars(t)) for t in c.teams],
+        starts_on=c.starts_on,
+        ends_on=c.ends_on,
+        status=c.status,
+        published=c.published,
+        series_id=c.series_id,
+        year=c.year,
+    )
+
+
 @router.get("/api/me/contexts", response_model=MySpaceOut, summary="Everything I am part of")
 async def my_contexts(
     session: AsyncSession = Depends(get_session),
@@ -128,24 +149,7 @@ async def my_contexts(
     space = await my_space(session, acting)
     return MySpaceOut(
         me=MeOut(name=space.name, needs=[_need(n) for n in space.needs]),
-        contexts=[
-            MyContextOut(
-                kind=c.kind,  # type: ignore[arg-type]
-                id=c.id,
-                name=c.name,
-                short_name=c.short_name,
-                relations=c.ordered_relations,
-                needs=[_need(n) for n in c.ordered_needs],
-                teams=[SailingTeamOut(**vars(t)) for t in c.teams],
-                starts_on=c.starts_on,
-                ends_on=c.ends_on,
-                status=c.status,
-                published=c.published,
-                series_id=c.series_id,
-                year=c.year,
-            )
-            for c in space.contexts
-        ],
+        contexts=[_context_out(c) for c in space.contexts],
         office=(
             OfficeOut(
                 relations=space.office.relations,
@@ -163,3 +167,24 @@ async def my_contexts(
         ],
         total=space.total,
     )
+
+
+@router.get(
+    "/api/me/contexts/{kind}/{object_id}",
+    response_model=MyContextOut,
+    summary="One club, series or event as a context of mine",
+)
+async def reached_context(
+    kind: Literal["club", "series", "event"],
+    object_id: int,
+    session: AsyncSession = Depends(get_session),
+    acting: User = Depends(current_user),
+) -> MyContextOut:
+    """A context reached through another — a series manager's event, anything the league
+    office opens (Story Z-10). Its relations are the effective ones the model answers, so
+    the workspace shows what I may do there. A context in my list comes back as listed.
+    404 when I hold nothing there: not mine to see, as in the list."""
+    context = await contexts_service.reached_context(session, acting, kind, object_id)
+    if context is None:
+        raise Problem(404, "context-not-found", "Not part of your space")
+    return _context_out(context)

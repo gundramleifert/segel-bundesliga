@@ -21,7 +21,11 @@ import { UploadPage } from "./pages/Upload";
 import { AdminSeriesNew } from "./pages/AdminSeriesNew";
 import { Club } from "./pages/Club";
 import { Clubs } from "./pages/Clubs";
-import { ClubPage, EventPage as MyEventPage, ProfilePage, SeriesPage as MySeriesPage } from "./pages/me/Contexts";
+import { ClubPage } from "./pages/me/ClubPage";
+import { OfficePage } from "./pages/office/Office";
+import { EventPage as MyEventPage } from "./pages/me/EventPage";
+import { ProfilePage } from "./pages/me/Me";
+import { SeriesPage as MySeriesPage } from "./pages/me/SeriesPage";
 import { ClubRedirect, MeIndex } from "./pages/me/Redirects";
 import { ActPage, EventPage, LiveRedirect, ResultsRedirect } from "./pages/league/Act";
 import {
@@ -112,6 +116,8 @@ export default function App() {
         {/* The screens my space replaced, kept as redirects (Story S-7). */}
         <Route path="club" element={<ClubRedirect />} />
         <Route path="reimbursements" element={<Navigate to="/me" replace />} />
+        {/* Story Z-10: the league office, a context of the workspace (#32). */}
+        <Route path="office/:section?" element={<OfficePage />} />
         <Route path="admin" element={<Admin />} />
         {/* Creating is a page of its own per area, reached from the "＋" on its tab. */}
         <Route path="admin/clubs/new" element={<AdminClubNew />} />

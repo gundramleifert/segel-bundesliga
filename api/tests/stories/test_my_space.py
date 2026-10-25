@@ -654,3 +654,56 @@ class TestTodos:
         body = await _mine(client, editor)
         assert body["office"] == {"relations": ["editor"], "needs": []}
         assert body["contexts"] == []
+
+
+class TestReachedContexts:
+    """Z-10: a context reached through another — a series manager's event, anything the
+    league office opens — opens with the relations the model gives there."""
+
+    async def test_a_series_manager_opens_an_event_of_their_series(self, client, caplog):
+        """Not in the list (the plan: inherited objects are reached inside), but answered
+        on its own, as its manager — so the event's set-up is theirs to open."""
+        series = await _series()
+        event = await _event(series_id=series, starts_on=SOON)
+        headers = await login(
+            client,
+            caplog,
+            f"z10-reach-{_tag()}@example.com",
+            Grant(relation=Relation.MANAGER, series_id=series),
+        )
+        assert _context(await _mine(client, headers), "event", event) is None
+        response = await client.get(f"{MINE}/event/{event}", headers=headers)
+        assert response.status_code == 200, response.text
+        body = response.json()
+        assert body["name"].startswith("Event ")
+        assert body["series_id"] == series
+        assert "manager" in body["relations"]
+        assert "sailor" not in body["relations"]
+
+    async def test_a_context_of_mine_comes_back_as_listed(self, client, caplog):
+        club = await _club()
+        headers = await login(
+            client,
+            caplog,
+            f"z10-listed-{_tag()}@example.com",
+            Grant(relation=Relation.MEMBER, club_id=club),
+        )
+        body = (await client.get(f"{MINE}/club/{club}", headers=headers)).json()
+        assert body == _context(await _mine(client, headers), "club", club)
+
+    async def test_the_site_admin_opens_any_club(self, client, caplog):
+        club = await _club()
+        headers = await login(
+            client, caplog, f"z10-office-{_tag()}@example.com", Grant(relation=Relation.ADMIN)
+        )
+        body = (await client.get(f"{MINE}/club/{club}", headers=headers)).json()
+        assert "admin" in body["relations"]
+
+    async def test_nothing_held_is_not_found(self, client, caplog):
+        """Not mine to see, as in the list — and an id that does not exist says the same."""
+        club = await _club()
+        headers = await login(client, caplog, f"z10-none-{_tag()}@example.com")
+        response = await client.get(f"{MINE}/club/{club}", headers=headers)
+        assert response.status_code == 404
+        assert response.json()["type"].endswith("/context-not-found")
+        assert (await client.get(f"{MINE}/club/999999", headers=headers)).status_code == 404

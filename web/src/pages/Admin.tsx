@@ -133,7 +133,7 @@ export type { AdminTab };
 
 // ---------------------------------------------------------------------- Clubs
 
-function Clubs() {
+export function Clubs() {
   const { t } = useTranslation("admin");
   // Every club, not a page: this list is the master data screen and the source for the
   // selects below it (Story A-13).
@@ -196,7 +196,7 @@ function ClubRow({ club, onChanged }: { club: ClubAdmin; onChanged: () => void }
 
 /** Every series for the league office; a series manager's own (`GET /api/admin/series`
  *  narrows it), without the button that creates one — that stays the admin's (A-4). */
-function SeriesList({ mayCreate }: { mayCreate: boolean }) {
+export function SeriesList({ mayCreate }: { mayCreate: boolean }) {
   const { t } = useTranslation("admin");
   const seriesList = useAsyncRows(useListAllSeries({ limit: WHOLE_LIST }));
   // The rows' club selectors have to offer every club, so this asks for the whole list.

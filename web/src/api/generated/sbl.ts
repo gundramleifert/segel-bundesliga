@@ -123,6 +123,7 @@ import type {
   MediaIds,
   ModelOut,
   MyClubOut,
+  MyContextOut,
   MySpaceOut,
   MyWaivers,
   NetworkProbeOut,
@@ -12254,6 +12255,119 @@ export function useMyContexts<TData = Awaited<ReturnType<typeof myContexts>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getMyContextsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReachedContextUrl = (kind: 'club' | 'series' | 'event',
+    objectId: number,) => {
+
+
+
+
+  return `/api/me/contexts/${kind}/${objectId}`
+}
+
+/**
+ * A context reached through another — a series manager's event, anything the league
+ * office opens (Story Z-10). Its relations are the effective ones the model answers, so
+ * the workspace shows what I may do there. A context in my list comes back as listed.
+ * 404 when I hold nothing there: not mine to see, as in the list.
+ * @summary One club, series or event as a context of mine
+ */
+export const reachedContext = async (kind: 'club' | 'series' | 'event',
+    objectId: number, options?: RequestInit): Promise<MyContextOut> => {
+
+  return http<MyContextOut>(getReachedContextUrl(kind,objectId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getReachedContextQueryKey = (kind: 'club' | 'series' | 'event',
+    objectId: number,) => {
+    return [
+    `/api/me/contexts/${kind}/${objectId}`
+    ] as const;
+    }
+
+
+export const getReachedContextQueryOptions = <TData = Awaited<ReturnType<typeof reachedContext>>, TError = ErrorType<ProblemDetails>>(kind: 'club' | 'series' | 'event',
+    objectId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reachedContext>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReachedContextQueryKey(kind,objectId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof reachedContext>>> = ({ signal }) => reachedContext(kind,objectId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: kind !== null && kind !== undefined && objectId !== null && objectId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof reachedContext>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ReachedContextQueryResult = NonNullable<Awaited<ReturnType<typeof reachedContext>>>
+export type ReachedContextQueryError = ErrorType<ProblemDetails>
+
+
+export function useReachedContext<TData = Awaited<ReturnType<typeof reachedContext>>, TError = ErrorType<ProblemDetails>>(
+ kind: 'club' | 'series' | 'event',
+    objectId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof reachedContext>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reachedContext>>,
+          TError,
+          Awaited<ReturnType<typeof reachedContext>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReachedContext<TData = Awaited<ReturnType<typeof reachedContext>>, TError = ErrorType<ProblemDetails>>(
+ kind: 'club' | 'series' | 'event',
+    objectId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reachedContext>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof reachedContext>>,
+          TError,
+          Awaited<ReturnType<typeof reachedContext>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useReachedContext<TData = Awaited<ReturnType<typeof reachedContext>>, TError = ErrorType<ProblemDetails>>(
+ kind: 'club' | 'series' | 'event',
+    objectId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reachedContext>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary One club, series or event as a context of mine
+ */
+
+export function useReachedContext<TData = Awaited<ReturnType<typeof reachedContext>>, TError = ErrorType<ProblemDetails>>(
+ kind: 'club' | 'series' | 'event',
+    objectId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof reachedContext>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getReachedContextQueryOptions(kind,objectId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
