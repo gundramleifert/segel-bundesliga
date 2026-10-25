@@ -164,7 +164,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
       user: string;
       relation: string;
     }[];
-    for (const row of tuples.filter((r) => r.user === guest && r.relation === "member")) {
+    for (const row of tuples.filter((r) => r.user === guest)) {
       const removed = await request.delete(`/api/auth/tuples/${row.id}`, { headers: admin });
       expect(removed.ok(), await removed.text()).toBeTruthy();
     }
@@ -178,11 +178,18 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
     await page.getByTestId(`${panel}-open`).click();
     await page.getByTestId(`${panel}-email`).fill(guest);
-    // The dialog of *＋ Member* starts at member.
+    // The dialog of *＋ Member* starts at member; a new member may take a second role at once.
     await expect(page.getByTestId(`${panel}-relation-member`)).toBeChecked();
+    await page.getByTestId(`${panel}-relation-treasurer`).check();
     await page.getByTestId(`${panel}-add`).click();
     await expect(page.getByTestId(`${panel}-dialog`)).toHaveCount(0);
-    // A member at once — no acceptance step — so the one list shows them straight away.
+    // A member at once — no acceptance step — so the one list shows them straight away,
+    // with both roles; the ✕ on one takes that one away and leaves the other.
+    await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toBeVisible();
+    const treasurer = page.getByTestId(`my-club-member-relation-${guestId}-treasurer`);
+    await expect(treasurer).toBeVisible();
+    await treasurer.locator('[data-testid^="my-club-member-revoke-"]').click();
+    await expect(treasurer).toHaveCount(0);
     await expect(page.getByTestId(`my-club-member-relation-${guestId}-member`)).toBeVisible();
 
     // The guest now has "My club": the roster, themselves in it, and the way out — but

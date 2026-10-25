@@ -26,7 +26,8 @@ Nur die Vereinsverwaltung. Die Person braucht ein Konto, das sie selbst
 anlegen.“
 
 1. Drücken Sie *＋ Mitglied* oben rechts über der Liste.
-2. Geben Sie ihre Adresse in *E-Mail eines bestehenden Kontos* ① ein; *Als* ② steht schon auf *Mitglied*.
+2. Geben Sie ihre Adresse in *E-Mail eines bestehenden Kontos* ① ein; unter *Als* ② ist
+   *Mitglied* schon angekreuzt – kreuzen Sie weitere Rollen an, wenn die Person sie hat.
 3. Drücken Sie *Hinzufügen* ③.
 
 ![Der Dialog von *＋ Mitglied*: Adresse ①, *Als* ②, *Hinzufügen* ③](shot:help-club-people)
@@ -36,8 +37,8 @@ Person kann in mehreren Vereinen sein und tritt mit *Verein verlassen* aus einem
 
 ### Die Organisation benennen {#club-members-organizers}
 
-Nur die Vereinsverwaltung, mit demselben *＋ Mitglied*: unter *Als* wählen, dann
-*Hinzufügen*. Das ✕ an einer Rolle entfernt sie.
+Nur die Vereinsverwaltung, mit demselben *＋ Mitglied*: unter *Als* ankreuzen – mehrere
+auf einmal, wenn eine Person mehrere Rollen hat –, dann *Hinzufügen*. Das ✕ an einer Rolle entfernt sie.
 
 | *Als* | für | Kennzeichen in der Mitgliederliste |
 |---|---|---|

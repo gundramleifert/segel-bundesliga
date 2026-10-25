@@ -83,10 +83,8 @@ export function ClubMembersPanel({
                     object={`club:${clubId}`}
                     testId={`my-club-access-${clubId}`}
                     initialRelation={Relation.member}
-                    onDone={() => {
-                      close();
-                      refreshAll();
-                    }}
+                    onWritten={refreshAll}
+                    onDone={close}
                   />
                 </div>
               )}

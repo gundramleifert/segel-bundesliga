@@ -24,7 +24,8 @@ Club admin only. The person needs an account, which they [register](#account-reg
 themselves; without one: "No account with this address. Create it first."
 
 1. Press *＋ Member*, top-right of the list.
-2. Enter their address in *Email of an existing account* ①; *As* ② is already *Member*.
+2. Enter their address in *Email of an existing account* ①; under *As* ② *Member* is
+   already ticked — tick more roles if they have them.
 3. Press *Add* ③.
 
 ![The dialog of *＋ Member*: address ①, *As* ②, *Add* ③](shot:help-club-people)
@@ -34,7 +35,8 @@ can be in several clubs, and leaves one with *Leave the club*.
 
 ### Name the organizers {#club-members-organizers}
 
-Club admin only, with the same *＋ Member*: choose under *As*, then *Add*. The ✕ on a
+Club admin only, with the same *＋ Member*: tick under *As* — several at once if one
+person has several roles — then *Add*. The ✕ on a
 role removes it.
 
 | *As* | for | Mark in the member list |

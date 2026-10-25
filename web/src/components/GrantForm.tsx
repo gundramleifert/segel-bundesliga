@@ -9,20 +9,26 @@ import { useAsync } from "../api/useApi";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { ErrorMessage } from "./Blocks";
 
-/** Story Z-2: name one person to one relation on `object` — the email of their account and
- *  what they are there. The relations offered are the ones the model defines for the
- *  object's type, read from the server rather than copied here. Lives in an `AddDialog`;
- *  `onDone` closes it and refreshes what shows the tuples. */
+/** Story Z-2: name one person to one or more relations on `object` — the email of their
+ *  account and what they are there (a new member who is also the treasurer: both at once).
+ *  The relations offered are the ones the model defines for the object's type, read from
+ *  the server rather than copied here. Each ticked relation is its own tuple, written one
+ *  after the other — never a list replacing a person's rows (CLAUDE.md, Permissions). Lives
+ *  in an `AddDialog`: `onWritten` refreshes what shows the tuples after each one, `onDone`
+ *  closes the dialog once all are written. */
 export function GrantForm({
   object,
   testId,
   initialRelation,
+  onWritten,
   onDone,
 }: {
   object: string;
   testId: string;
-  /** Preselected when the model offers it — a club's *＋ Member* starts at `member`. */
+  /** Ticked from the start when the model offers it — a club's *＋ Member* starts at `member`. */
   initialRelation?: Relation;
+  /** After each tuple written — also when a later one is refused and the dialog stays. */
+  onWritten: () => void;
   onDone: () => void;
 }) {
   const { t } = useTranslation("admin");
@@ -30,10 +36,24 @@ export function GrantForm({
   const objectType = object.split(":")[0] as ObjectType;
   const relations: Relation[] = model.data?.types.find((entry) => entry.type === objectType)?.relations ?? [];
   const [email, setEmail] = useState("");
-  const [relation, setRelation] = useState<Relation | "">(initialRelation ?? "");
-  const chosen = relation && relations.includes(relation) ? relation : relations[0];
-  const write = useWriteTuple({ mutation: { onSuccess: onDone } });
-  const submit = () => chosen && email && write.mutate({ data: { user: email, relation: chosen, object } });
+  const [ticked, setTicked] = useState<Relation[]>(initialRelation ? [initialRelation] : []);
+  const chosen = relations.filter((r) => ticked.includes(r));
+  const toggle = (r: Relation) => setTicked((now) => (now.includes(r) ? now.filter((x) => x !== r) : [...now, r]));
+  const write = useWriteTuple();
+  const submit = async () => {
+    if (!email || !chosen.length) return;
+    // One tuple after the other; a refusal stops there and stays on screen. What was
+    // written before it is kept, and the list behind the dialog already shows it.
+    for (const relation of chosen) {
+      try {
+        await write.mutateAsync({ data: { user: email, relation, object } });
+        onWritten();
+      } catch {
+        return;
+      }
+    }
+    onDone();
+  };
 
   return (
     <form
@@ -41,7 +61,7 @@ export function GrantForm({
       data-testid={`${testId}-form`}
       onSubmit={(e) => {
         e.preventDefault();
-        submit();
+        void submit();
       }}
     >
       <label className="flex flex-col text-xs text-muted">
@@ -60,11 +80,10 @@ export function GrantForm({
         {relations.map((r) => (
           <label key={r} className="flex items-center gap-2 text-sm text-foreground">
             <input
-              type="radio"
-              name={`${testId}-relation`}
+              type="checkbox"
               value={r}
-              checked={chosen === r}
-              onChange={() => setRelation(r)}
+              checked={ticked.includes(r)}
+              onChange={() => toggle(r)}
               data-testid={`${testId}-relation-${r}`}
             />
             {t(`accounts.relationLabels.${r}`, { defaultValue: r })}
@@ -73,7 +92,7 @@ export function GrantForm({
       </fieldset>
       {write.error && <ErrorMessage text={errorText(write.error)} testId={`${testId}-add-error`} />}
       <div className="flex justify-end">
-        <Button type="submit" size="sm" isDisabled={!email || !chosen || write.isPending} data-testid={`${testId}-add`}>
+        <Button type="submit" size="sm" isDisabled={!email || !chosen.length || write.isPending} data-testid={`${testId}-add`}>
           {t("access.addButton")}
         </Button>
       </div>

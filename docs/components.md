@@ -293,13 +293,13 @@ so nobody has to find out where a screen hides its "new".
 
 ```tsx
 <AddDialog label={t("members.newButton")} title={t("members.newTitle")} testId="my-club-access-7">
-  {(close) => <GrantForm object="club:7" testId="my-club-access-7" onDone={() => { close(); refresh(); }} />}
+  {(close) => <GrantForm object="club:7" testId="my-club-access-7" onWritten={refresh} onDone={close} />}
 </AddDialog>
 ```
 
 The same "＋" in the same corner as `AddButton`, opening a dialog (HeroUI `Modal`) instead
 of a page — for what is only an entry in the list it is added to: a member, a person named
-to a role (`GrantForm`, which `AccessPanel` uses too). A thing with a page of its own (an
+to one or more roles at once (`GrantForm`, which `AccessPanel` uses too). A thing with a page of its own (an
 event, a series, a club, a sailor) still gets `AddButton`. **Never a form written out
 under the list**: on a club's *Members* that showed the same people in two tables, and
 asked for input before anyone wanted to add anyone. Test ids: `${testId}-open`, the

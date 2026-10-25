@@ -46,10 +46,8 @@ export function AccessPanel({
             <GrantForm
               object={object}
               testId={testId}
-              onDone={() => {
-                close();
-                refresh();
-              }}
+              onWritten={refresh}
+              onDone={close}
             />
           )}
         </AddDialog>
