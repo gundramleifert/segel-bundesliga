@@ -8,19 +8,13 @@
 import type { PostKind } from './postKind';
 
 export type ListAllPostsParams = {
-kind?: PostKind | null;
-/**
- * Search in the title
- */
 q?: string | null;
-/**
- * A league's slug, or ``association`` for the association's own posts.
- */
+kind?: PostKind | null;
 league?: string | null;
-/**
- * Only published, or only drafts
- */
 published?: boolean | null;
+event_id?: number | null;
+series_id?: number | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -32,8 +26,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };

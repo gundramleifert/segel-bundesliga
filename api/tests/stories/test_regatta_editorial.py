@@ -114,3 +114,53 @@ class TestEditorialOfOneRegatta:
         access = (await client.get(f"/api/events/{ids.event(ACT)}/access", headers=editor)).json()
         assert access["manage"] is False
         assert (await client.get("/api/admin/import-keys", headers=editor)).status_code == 403
+
+
+class TestEachEditorWhereTheyWrite:
+    """R-1, R-2 (decided 2026-10-25): a regatta's News & pictures, and who may change what."""
+
+    async def test_the_list_narrows_to_one_regatta(self, client, caplog, ids):
+        """Story R-1: the series' section lists the series' posts and its events'; the
+        event's section that event's alone."""
+        office = await admin(client, caplog, "regatta-filter-office@example.com")
+        on_series = (await _post(client, office, series_id=ids.series(SERIES))).json()["id"]
+        on_act = (await _post(client, office, event_id=ids.event(ACT))).json()["id"]
+        elsewhere = (await _post(client, office, series_id=ids.series(ELSEWHERE))).json()["id"]
+
+        def listed(response) -> set[int]:
+            assert response.status_code == 200, response.text
+            return {p["id"] for p in response.json()["items"]}
+
+        series = listed(
+            await client.get(
+                f"/api/admin/posts?series_id={ids.series(SERIES)}&limit=100", headers=office
+            )
+        )
+        assert {on_series, on_act} <= series and elsewhere not in series
+        act = listed(
+            await client.get(
+                f"/api/admin/posts?event_id={ids.event(ACT)}&limit=100", headers=office
+            )
+        )
+        assert on_act in act and on_series not in act and elsewhere not in act
+
+    async def test_an_editor_changes_another_editor_s_post_about_their_regatta(
+        self, client, caplog, ids
+    ):
+        """The regatta decides, never the author: two editors of one series change each
+        other's posts; an editor of another regatta cannot."""
+        office = await admin(client, caplog, "regatta-peers-office@example.com")
+        first = await _editor_of(client, caplog, office, f"series:{ids.series(SERIES)}")
+        second = await _editor_of(client, caplog, office, f"series:{ids.series(SERIES)}")
+        stranger = await _editor_of(client, caplog, office, f"series:{ids.series(ELSEWHERE)}")
+        post = (await _post(client, first, event_id=ids.event(ACT))).json()["id"]
+
+        url = f"/api/admin/posts/{post}"
+        changed = await client.patch(
+            url, headers=second, json={"title": "Corrected by a colleague"}
+        )
+        assert changed.status_code == 200, changed.text
+        assert (
+            await client.patch(url, headers=stranger, json={"title": "Not mine"})
+        ).status_code == 404
+        assert (await client.delete(url, headers=second)).status_code == 204

@@ -42,6 +42,8 @@ const ME_GROUPS = [
   { key: null, sections: { overview: {} } },
   { key: "me", sections: { account: {}, waivers: {}, claims: {}, documents: {}, bank: {} } },
   { key: "children", sections: { children: { for: [Relation.guardian] } } },
+  // Every post and picture of every regatta I write about (Story R-1, decided 2026-10-25).
+  { key: "editorial", sections: { news: { for: [Relation.editor] }, media: { for: [Relation.editor] } } },
 ] as const satisfies readonly GroupDecl[];
 
 const CLUB_MONEY: readonly Holding[] = [...ORGANIZERS, Relation.treasurer];

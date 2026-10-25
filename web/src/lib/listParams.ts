@@ -2,7 +2,8 @@ import { useSearchParams } from "react-router-dom";
 
 import { PAGE_SIZE } from "../api/useApi";
 
-/** Page, sort and search — in the URL, where they can be linked and survive a reload.
+/** Page, sort, search and filters — in the URL, where they can be linked and survive a
+ *  reload.
  *
  * Story A-13. The three belong together because they interact: a new search term invalidates
  * the page someone was on, and both are part of the request the screen makes. Keeping them
@@ -15,6 +16,11 @@ import { PAGE_SIZE } from "../api/useApi";
  *       { ...list.request, q: list.q || undefined },
  *       { query: { placeholderData: keepPreviousData } },
  *     );
+ *
+ * **Filters** (decided 2026-10-25) are the fifth part: `list.filter("series_id")` reads
+ * one, `list.setFilter("series_id", "7")` writes it and goes back to page one, and the
+ * screen passes it to the hook as the endpoint's typed parameter — the server narrows
+ * (`app/pagination.py::apply_filters`); a page of everything is never filtered here.
  *
  * The names are the plain ones from the story — a screen shows one paged list at a time
  * (the admin areas are tabs, and an unmounted tab issues no query), so there is nothing to
@@ -53,6 +59,9 @@ export function useListParams(limit: number = PAGE_SIZE): ListParams {
       // Back to the first page: page 4 of the previous search says nothing about this one,
       // and an offset past the end would answer with an empty page.
       update({ q: next.trim() ? next : null, page: null }),
+    filter: (key: string) => params.get(key) ?? "",
+    // Back to the first page for the same reason as a new search.
+    setFilter: (key: string, value: string) => update({ [key]: value || null, page: null }),
   };
 }
 
@@ -68,6 +77,10 @@ export interface ListParams {
   setPage: (page: number) => void;
   setSort: (sort: string | null) => void;
   setQuery: (q: string) => void;
+  /** A filter's value in the address, `""` when it is not set. */
+  filter: (key: string) => string;
+  /** Sets a filter (`""` removes it) and goes back to the first page. */
+  setFilter: (key: string, value: string) => void;
 }
 
 /** Splits `-last_name` into the column and its direction, for the table's sorting state. */

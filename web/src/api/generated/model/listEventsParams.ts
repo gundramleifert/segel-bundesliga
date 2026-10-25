@@ -8,10 +8,6 @@
 
 export type ListEventsParams = {
 /**
- * Search in title, venue and host club
- */
-q?: string | null;
-/**
  * Year of the series
  */
 year?: number | null;
@@ -19,6 +15,9 @@ year?: number | null;
  * ID of a series
  */
 series?: number | null;
+q?: string | null;
+host_club_id?: number | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -30,8 +29,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };

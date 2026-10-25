@@ -28,7 +28,7 @@ async function act3(request: APIRequestContext): Promise<number> {
   return event!.id;
 }
 
-const SET_UP = ["general", "clubs", "pairing", "publication", "people"];
+const SET_UP = ["general", "clubs", "boats", "pairing", "publication", "people"];
 const RACE_DAY = ["check-in", "race-control", "results", "notice-board"];
 
 describeStory("Z-10: the event's set-up and race day are sections of its context", () => {
@@ -44,15 +44,14 @@ describeStory("Z-10: the event's set-up and race day are sections of its context
     const sections = await listedSections(page, "event");
     expect(sections.slice(0, 1 + SET_UP.length + RACE_DAY.length)).toEqual(["overview", ...SET_UP, ...RACE_DAY]);
     expect(sections).toContain("decide-claims");
-    // Built only what has a screen: no boats, no trackers yet; editorial is not theirs.
-    expect(sections).not.toContain("boats");
+    // Built only what has a screen: no trackers yet; editorial is not theirs.
     expect(sections).not.toContain("trackers");
     expect(sections).not.toContain("news");
     await page.keyboard.press("Escape");
 
     // The administration's own blocks, with their test ids.
     await openSection(page, "event", "general");
-    await expect(page.getByTestId("me-event-facts")).toBeVisible();
+    await expect(page.getByTestId("me-event-general-form")).toBeVisible();
     await expect(page.getByTestId(`admin-manage-event-save-dates-${eventId}`)).toBeVisible();
     await openSection(page, "event", "pairing");
     await expect(page.getByTestId(`admin-manage-event-draw-${eventId}`)).toBeVisible();
@@ -78,5 +77,33 @@ describeStory("Z-10: the event's set-up and race day are sections of its context
     await page.keyboard.press("Escape");
     await openSection(page, "event", "clubs");
     await expect(page.getByTestId(`admin-manage-event-clubs-${eventId}`)).toBeVisible();
+  });
+});
+
+describeStory("VA-8: what was set at creation is changed in the event's own sections", () => {
+  test("the event's manager renames the event and a boat", async ({
+    page,
+    request,
+  }, testInfo) => {
+    const eventId = await act3(request);
+    await signIn(page, ORGA);
+    await page.goto(`/me/event/${eventId}/general`);
+    const title = page.getByTestId("me-event-general-title");
+    await expect(title).toBeVisible();
+    const renamed = `Act 3 (${testInfo.project.name} ${Date.now() % 100000})`;
+    await title.fill(renamed);
+    await page.getByTestId("me-event-general-save").click();
+    await expect(page.getByTestId("me-event-general-message-success")).toBeVisible();
+    const stored = await request.get(`/api/admin/events/${eventId}`, { headers: await bearer(request, ORGA) });
+    expect(((await stored.json()) as { title: string }).title).toBe(renamed);
+
+    await openSection(page, "event", "boats");
+    const name = page.getByTestId("admin-events-boat-name-input-0");
+    const boatName = `Boat one ${testInfo.project.name} ${Date.now() % 100000}`;
+    await name.fill(boatName);
+    await page.getByTestId("me-event-boats-save").click();
+    await expect(page.getByTestId("me-event-boats-message-success")).toBeVisible();
+    const boats = await request.get(`/api/admin/events/${eventId}/boats`, { headers: await bearer(request, ORGA) });
+    expect(((await boats.json()) as { name: string }[])[0]!.name).toBe(boatName);
   });
 });

@@ -499,3 +499,91 @@ class TestFreezeAfterTheFirstRace:
         assert response.status_code == 409, response.text
         assert response.json()["type"] == "/errors/event-configuration-frozen"
         assert response.json()["results_recorded"] > 0
+
+
+class TestChangingWhatWasSetAtCreation:
+    """VA-8 (decided 2026-10-25): everything set at creation stays changeable until the
+    first race — the size and the boats too."""
+
+    async def test_the_boats_are_renamed_and_recoloured_and_the_draw_stays(self, client, caplog):
+        headers = await admin(client, caplog, "lf-boats@example.com")
+        event_id = await event_with_participants(client, headers, "Renamed Boats Cup", "2027-07-03")
+        await draw(client, headers, event_id)
+        event = (await client.get(f"/api/admin/events/{event_id}", headers=headers)).json()
+        boats = [
+            {"number": n, "color": "#123456" if n == 1 else None, "name": f"Boat {n} renamed"}
+            for n in range(1, event["boat_count"] + 1)
+        ]
+        patched = await client.patch(
+            f"/api/admin/events/{event_id}", headers=headers, json={"boats": boats}
+        )
+        assert patched.status_code == 200, patched.text
+        listed = (await client.get(f"/api/admin/events/{event_id}/boats", headers=headers)).json()
+        assert listed[0]["name"] == "Boat 1 renamed"
+        async with SessionLocal() as session:
+            stored = (
+                await session.execute(
+                    select(Boat).where(Boat.event_id == event_id, Boat.number == 1)
+                )
+            ).scalar_one()
+            assert (stored.name, stored.color) == ("Boat 1 renamed", "#123456")
+        assert (await readiness(client, headers, event_id))["has_pairing_list"] is True
+
+    async def test_a_new_size_discards_the_old_draw(self, client, caplog):
+        """A pairing list drawn for six boats does not fit five; nothing was sailed on it."""
+        headers = await admin(client, caplog, "lf-size@example.com")
+        event_id = await event_with_participants(client, headers, "Resized Cup", "2027-07-10")
+        await draw(client, headers, event_id)
+        event = (await client.get(f"/api/admin/events/{event_id}", headers=headers)).json()
+        fewer = event["boat_count"] - 1
+        boats = [{"number": n, "name": f"B{n}"} for n in range(1, fewer + 1)]
+        patched = await client.patch(
+            f"/api/admin/events/{event_id}", headers=headers, json={"boats": boats}
+        )
+        assert patched.status_code == 200, patched.text
+        assert patched.json()["boat_count"] == fewer
+        async with SessionLocal() as session:
+            count = len(
+                list(
+                    (await session.execute(select(Boat).where(Boat.event_id == event_id))).scalars()
+                )
+            )
+        assert count == fewer
+        assert (await readiness(client, headers, event_id))["has_pairing_list"] is False
+
+    async def test_after_the_first_race_the_boats_stay(self, client, caplog):
+        headers = await admin(client, caplog, "lf-boats-frozen@example.com")
+        event_id = await event_with_participants(client, headers, "Frozen Boats Cup", "2027-07-17")
+        await draw(client, headers, event_id)
+        race_id, boats = await first_race(event_id)
+        await enter_result(client, headers, event_id, race_id, boats)
+        patched = await client.patch(
+            f"/api/admin/events/{event_id}",
+            headers=headers,
+            json={"boats": [{"number": 1, "name": "Late"}]},
+        )
+        assert patched.status_code == 409
+        assert patched.json()["type"] == "/errors/event-configuration-frozen"
+
+    async def test_the_venues_are_offered(self, client, caplog):
+        headers = await admin(client, caplog, "lf-venues@example.com")
+        options = (await client.get("/api/admin/events/create-options", headers=headers)).json()
+        assert isinstance(options["venues"], list)
+
+    async def test_a_boat_count_alone_adds_league_coloured_boats(self, client, caplog):
+        headers = await admin(client, caplog, "lf-count@example.com")
+        event_id = await event_with_participants(client, headers, "Counted Cup", "2027-07-24")
+        before = (await client.get(f"/api/admin/events/{event_id}", headers=headers)).json()[
+            "boat_count"
+        ]
+        patched = await client.patch(
+            f"/api/admin/events/{event_id}", headers=headers, json={"boat_count": before + 1}
+        )
+        assert patched.status_code == 200, patched.text
+        async with SessionLocal() as session:
+            numbers = sorted(
+                (
+                    await session.execute(select(Boat.number).where(Boat.event_id == event_id))
+                ).scalars()
+            )
+        assert numbers == list(range(1, before + 2))

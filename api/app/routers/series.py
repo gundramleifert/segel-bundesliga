@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,9 +20,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app import authz
 from app.auth import current_user, forbidden, require_admin, require_series_manager_for
 from app.db import get_session
+from app.filters import SeriesFilter
+from app.listing import ListDepends
 from app.models import Club, Event, League, Series, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
-from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pagination import (
+    Page,
+    PageInput,
+    PageParams,
+    page_of,
+    paginate,
+)
 from app.problems import Problem
 from app.schemas.admin import ScoringIn
 from app.schemas.public import ClubOut, SeriesOut
@@ -111,13 +119,9 @@ class SeriesAdminOut(SeriesOut):
     event_count: int = 0
 
 
-#: Story A-13 — the columns this list may be sorted by.
-SERIES_SORT = {"name": Series.name, "year": Series.year, "level": Series.level}
-
-
 @router.get("", response_model=Page[SeriesAdminOut], summary="All series")
 async def list_all_series(
-    q: str | None = Query(default=None, description="Search in name and short name"),
+    filters: SeriesFilter = ListDepends(SeriesFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
@@ -130,7 +134,7 @@ async def list_all_series(
     The league office sees every series; whoever holds a tuple on one series (Story
     Z-2) sees that series and nothing else — the same list, narrowed.
     """
-    stmt = apply_search(select(Series), q, Series.name, Series.short_name)
+    stmt = filters.filter(select(Series))
     # Editorial reads them to name a post's or a picture's regatta; it changes none.
     if not authz.check(acting, Relation.ADMIN, Relation.EDITOR):
         reach = authz.list_objects(
@@ -147,13 +151,7 @@ async def list_all_series(
         if not reach:
             raise forbidden("this", [Relation.ADMIN])
         stmt = stmt.where(Series.id.in_(reach))
-    series, total = await paginate(
-        session,
-        stmt,
-        params,
-        sortable=SERIES_SORT,
-        default_order=[Series.year.desc().nulls_last(), Series.level.nulls_last(), Series.id],
-    )
+    series, total = await paginate(session, filters.sort(stmt), params)
     return page_of(await _compose(session, series), total, params)
 
 

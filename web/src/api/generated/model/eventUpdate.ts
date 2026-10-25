@@ -5,6 +5,7 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { BoatSpec } from './boatSpec';
 import type { PrintSettingsIn } from './printSettingsIn';
 
 /**
@@ -28,4 +29,6 @@ export interface EventUpdate {
   squad_min?: number | null;
   squad_max?: number | null;
   print_settings?: PrintSettingsIn | null;
+  /** The event's boats as they are now — matched by number: an existing one is renamed or recoloured, a new number added, a missing one removed. Sets boat_count. Configuration: frozen by the first race. */
+  boats?: BoatSpec[] | null;
 }

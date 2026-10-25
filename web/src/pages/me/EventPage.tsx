@@ -5,6 +5,7 @@ import { Stack } from "../../components/Layouts";
 import { EventClaimsTab } from "./Money";
 import { ClaimsTab } from "./Papers";
 import { ContextFrame, MyTeams, waiverNotice } from "./ContextFrame";
+import { RegattaNews } from "./RegattaNews";
 import { EventOverview, raceDaySections, setupSections } from "./event/EventSections";
 
 
@@ -48,6 +49,7 @@ export function EventPage() {
           needs: ["claims"],
           render: () => <EventClaimsTab eventId={c.id} />,
         },
+        { key: "news", label: t("workspace.sectionLabels.event.news"), render: () => <RegattaNews kind="event" id={c.id} /> },
       ]}
     />
   );

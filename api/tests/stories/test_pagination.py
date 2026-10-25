@@ -225,6 +225,63 @@ class TestEverySearchableListSearchesTheSameWay:
         assert blank["total"] == unfiltered["total"]
 
 
+def _id_of(key: str):
+    return lambda item: (item.get(key) or {}).get("id")
+
+
+def _field(key: str):
+    return lambda item: item.get(key)
+
+
+#: Every filter of every paged list (decided 2026-10-25): the query parameter, and where an
+#: item shows the value it was filtered by. A new filter is one line here.
+FILTERABLE = [
+    ("/api/admin/events", Role.ADMIN, "series_id", _id_of("series")),
+    ("/api/admin/events", Role.ADMIN, "host_club_id", _id_of("host_club")),
+    ("/api/admin/events", Role.ADMIN, "status", _field("status")),
+    ("/api/admin/events", Role.ADMIN, "published", _field("published")),
+    ("/api/admin/series", Role.ADMIN, "league_id", _field("league_id")),
+    ("/api/admin/series", Role.ADMIN, "year", _field("year")),
+    ("/api/admin/series", Role.ADMIN, "published", _field("published")),
+    ("/api/admin/sailors", Role.ADMIN, "club_id", _field("club_ids")),
+    ("/api/events", None, "host_club_id", _id_of("host_club")),
+]
+
+
+class TestEveryFilterableListFiltersTheSameWay:
+    """A-13 (decided 2026-10-25): as a screen showing "this series' events", I want the
+    server to narrow the list — never a page of everything filtered in the browser, which
+    stops at the page's end without a word."""
+
+    @pytest.mark.parametrize("path,role,param,shown", FILTERABLE)
+    async def test_a_filter_narrows_and_counts(self, client, caplog, path, role, param, shown):
+        """Every row answered carries the value asked for; ``total`` counts the filtered
+        rows; leaving the filter out is the whole list (`apply_filters`)."""
+        head = await headers_for(client, caplog, path, role)
+        whole = (await client.get(path, params={"limit": 100}, headers=head)).json()
+        values = [shown(item) for item in whole["items"]]
+        value = next(v for v in values if v not in (None, []))
+        value = value[0] if isinstance(value, list) else value
+        sent = str(value).lower() if isinstance(value, bool) else value
+
+        response = await client.get(path, params={param: sent, "limit": 100}, headers=head)
+        assert response.status_code == 200, response.text
+        page = response.json()
+        assert page["items"], f"{path}?{param}={sent} found nothing"
+        for item in page["items"]:
+            got = shown(item)
+            assert value in got if isinstance(got, list) else got == value, (param, got, value)
+        assert page["total"] <= whole["total"]
+        assert page["total"] >= len(page["items"])
+
+    async def test_a_wrong_type_is_refused(self, client, caplog):
+        head = await headers_for(client, caplog, "/api/admin/events", Role.ADMIN)
+        response = await client.get(
+            "/api/admin/events", params={"series_id": "first"}, headers=head
+        )
+        assert response.status_code == 422
+
+
 class TestSearchingTheClubList:
     """As a visitor, I want to find my club by what I remember of it."""
 

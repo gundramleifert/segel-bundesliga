@@ -443,16 +443,6 @@ async def check_context(session: AsyncSession, event_id: int | None, series_id: 
         raise Problem(404, "series-not-found", "No such series.", series_id=series_id)
 
 
-def in_context(stmt: Select, event_id: int | None, series_id: int | None) -> Select:
-    """The pictures of an event, or of a series — its own and its events'."""
-    if event_id is not None:
-        stmt = stmt.where(MediaItem.event_id == event_id)
-    if series_id is not None:
-        events = select(Event.id).where(Event.series_id == series_id)
-        stmt = stmt.where(or_(MediaItem.series_id == series_id, MediaItem.event_id.in_(events)))
-    return stmt
-
-
 # ---------------------------------------------------------------- from a web address
 
 #: Long enough for a slow press server, short enough not to hold a request open.

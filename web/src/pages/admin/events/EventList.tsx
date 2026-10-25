@@ -5,15 +5,16 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useEventCreateOptions, useListAllEvents } from "../../../api/generated/sbl";
-import type { EventSummary } from "../../../api/types";
+import { EventStatus, type EventSummary } from "../../../api/types";
 import { useAsync } from "../../../api/useApi";
 import { AddButton } from "../../../components/AddButton";
 import { Async } from "../../../components/Async";
 import { StatusBadge } from "../../../components/Blocks";
 import { Field, Section } from "../../../components/Form";
+import { Select } from "../../../components/Select";
 import { Pager } from "../../../components/Pager";
 import { INPUT_CLASS } from "../../../lib/admin";
-import { eventDates } from "../../../lib/format";
+import { eventDates, statusText } from "../../../lib/format";
 import { useListParams } from "../../../lib/listParams";
 import { sectionPath } from "../../../lib/workspace";
 import { EventPanel } from "./EventPanel";
@@ -41,9 +42,17 @@ export function EventsAdmin() {
   // `DataTable`: every row here opens an editor — readiness, clubs, the draw, publication,
   // closing — so this is a list of panels, not a table of values.
   const list = useListParams();
+  // Filters in the address, narrowed by the server (Story A-13, decided 2026-10-25).
+  const status = list.filter("status");
+  const state = list.filter("state");
   const events = useAsync(
     useListAllEvents(
-      { ...list.request, q: list.q || undefined },
+      {
+        ...list.request,
+        q: list.q || undefined,
+        status: (status || undefined) as EventStatus | undefined,
+        published: state ? state === "published" : undefined,
+      },
       { query: { placeholderData: keepPreviousData } },
     ),
   );
@@ -72,6 +81,25 @@ export function EventsAdmin() {
           data-testid="admin-manage-events-search-input"
         />
       </Field>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
+        <Field label={t("manage.statusFilter")}>
+          <Select value={status} onChange={(e) => list.setFilter("status", e.target.value)} testId="admin-manage-events-status-filter">
+            <option value="">{t("posts.filterAll")}</option>
+            {Object.values(EventStatus).map((value) => (
+              <option key={value} value={value}>
+                {statusText(value)}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label={t("posts.stateHeader")}>
+          <Select value={state} onChange={(e) => list.setFilter("state", e.target.value)} testId="admin-manage-events-state-filter">
+            <option value="">{t("posts.filterAll")}</option>
+            <option value="draft">{t("posts.filterDrafts")}</option>
+            <option value="published">{t("posts.filterPublished")}</option>
+          </Select>
+        </Field>
+      </div>
 
       <Async
         state={events}

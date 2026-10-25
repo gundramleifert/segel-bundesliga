@@ -7,6 +7,7 @@
  */
 import type { ClubChoice } from './clubChoice';
 import type { SeriesChoice } from './seriesChoice';
+import type { VenueChoice } from './venueChoice';
 
 /**
  * What this person may pick when creating an event — the rule of `_can_create`,
@@ -20,4 +21,6 @@ export interface EventCreateOptions {
   hosts: ClubChoice[];
   /** Clubs they may host an event outside a series for; null means any */
   own_hosts: number[] | null;
+  /** Sailing areas an event may be held at */
+  venues: VenueChoice[];
 }

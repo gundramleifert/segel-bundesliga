@@ -168,6 +168,14 @@ Acceptance criteria:
   entered" in `docs/concepts.md`). Title, dates, venue, host, logo, status and publication
   also stay editable while racing: a typo has to be fixable on a race day too.
 
+- **Everything set at creation can be changed afterwards** (decided 2026-10-25), in the
+  event's *Set up › General*: title, dates, series and matchday, host, venue, the size
+  (teams, boats, flights — a size the catalog has, as at creation), the teams per club,
+  and in *Set up › Boats* each boat's colour and name. Until the first race all of it;
+  after it, as above, only title, dates, venue and host. **A changed size discards a
+  pairing list drawn for the old one** — it no longer fits, and nothing has been sailed
+  on it yet; the form says so before saving. Boats are kept by their number: renaming or
+  recolouring one keeps the draw.
 - **Drafts are listed where they are finished.** `GET /api/admin/events` lists every event,
   drafts included, ordered dateless-first then newest-first. The public `GET /api/events`
   shows published events only — the right list for a calendar and exactly the wrong one for

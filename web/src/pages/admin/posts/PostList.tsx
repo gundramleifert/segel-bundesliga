@@ -1,7 +1,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { createColumnHelper } from "@tanstack/react-table";
 import { useMemo } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useListAllPosts, useListLeagues } from "../../../api/generated/sbl";
@@ -18,28 +18,32 @@ import { formatDate } from "../../../lib/format";
 import { useListParams, type ListParams } from "../../../lib/listParams";
 import { TABLE_FEATURES } from "../../../lib/table";
 
+/** What a post list is about — one regatta, in its context's *News & pictures*. */
+export type PostScope = { event_id?: number; series_id?: number };
+
 /** Story R-1: editorial's posts — news and press releases, drafts among them — newest
- *  first, each leading to the page it is written on. */
-export function PostsAdmin() {
+ *  first, each leading to the page it is written on.
+ *
+ *  The league office shows every post (`/office/news`); a regatta's *News & pictures*
+ *  passes `about`, and the server narrows to it — a series' including its events'
+ *  (`apply_filters`, Story A-13). `base` is where a post is edited: the office's pages, or
+ *  My space's for an editor of a regatta (`/me/news/…`). The other filters live in the
+ *  address like the search (`useListParams`). */
+export function PostsAdmin({
+  about,
+  base = "/office",
+  newQuery = "",
+  testId = "admin-posts-section",
+}: {
+  about?: PostScope;
+  base?: string;
+  /** Appended to the *New post* address — `?event=7` names the regatta in the form. */
+  newQuery?: string;
+  testId?: string;
+} = {}) {
   const { t } = useTranslation("admin");
   const list = useListParams();
-  // The filters live in the address like the search, so a filtered list can be shared
-  // and survives a reload; changing one goes back to the first page.
-  const [params, setParams] = useSearchParams();
-  const filter = (key: string) => params.get(key) ?? "";
-  // From the address as it is now, not as this render saw it: two filters set one after
-  // the other would otherwise each write over the other.
-  const setFilter = (key: string, value: string) =>
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-        if (value) next.set(key, value);
-        else next.delete(key);
-        next.delete("page");
-        return next;
-      },
-      { replace: true },
-    );
+  const { filter, setFilter } = list;
   const leagues = useAsync(useListLeagues());
   const state = filter("state");
   const results = useAsync(
@@ -51,6 +55,8 @@ export function PostsAdmin() {
         kind: (filter("kind") || undefined) as PostKind | undefined,
         league: filter("league") || undefined,
         published: state ? state === "published" : undefined,
+        event_id: about?.event_id,
+        series_id: about?.series_id,
       },
       { query: { placeholderData: keepPreviousData } },
     ),
@@ -59,8 +65,8 @@ export function PostsAdmin() {
   return (
     <Section
       title={t("posts.title")}
-      testId="admin-posts-section"
-      action={<AddButton label={t("posts.newButton")} to="/office/news/new" testId="admin-posts-new-button" />}
+      testId={testId}
+      action={<AddButton label={t("posts.newButton")} to={`${base}/news/new${newQuery}`} testId="admin-posts-new-button" />}
     >
       <Field label={t("posts.searchLabel")}>
         <input
@@ -79,6 +85,8 @@ export function PostsAdmin() {
             <option value={PostKind.press}>{t("posts.kind.press")}</option>
           </Select>
         </Field>
+        {/* A regatta is in one league: the league filter is the office's alone. */}
+        {!about && (
         <Field label={t("posts.leagueHeader")}>
           <Select value={filter("league")} onChange={(e) => setFilter("league", e.target.value)} testId="admin-posts-league-filter">
             <option value="">{t("posts.filterAll")}</option>
@@ -90,6 +98,7 @@ export function PostsAdmin() {
             ))}
           </Select>
         </Field>
+        )}
         <Field label={t("posts.stateHeader")}>
           <Select value={state} onChange={(e) => setFilter("state", e.target.value)} testId="admin-posts-state-filter">
             <option value="">{t("posts.filterAll")}</option>
@@ -100,14 +109,14 @@ export function PostsAdmin() {
       </div>
       {results.loading && <Loading testId="admin-posts-loading" />}
       {results.error && <ErrorMessage text={results.error} testId="admin-posts-error" />}
-      {results.data && <PostTable page={results.data} params={list} />}
+      {results.data && <PostTable page={results.data} params={list} base={base} />}
     </Section>
   );
 }
 
 const column = createColumnHelper<typeof TABLE_FEATURES, PostAdminSummary>();
 
-function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
+function PostTable({ page, params, base }: { page: PostPage; params: ListParams; base: string }) {
   const { t } = useTranslation("admin");
   const columns = useMemo(
     () =>
@@ -123,7 +132,7 @@ function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
           enableSorting: true,
           cell: ({ row }) => (
             <Link
-              to={`/office/news/${row.original.id}`}
+              to={`${base}/news/${row.original.id}`}
               className="font-medium underline-offset-2 hover:underline"
               data-testid={`admin-posts-link-${row.original.id}`}
             >
@@ -152,7 +161,7 @@ function PostTable({ page, params }: { page: PostPage; params: ListParams }) {
           ),
         }),
       ]),
-    [t],
+    [t, base],
   );
   return (
     <DataTable

@@ -26,11 +26,13 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import require_any_editor, require_editor
 from app.db import get_session
+from app.filters import MediaFilter
+from app.listing import ListDepends
 from app.models import ImportKey, MediaItem, MediaSource
 from app.models.auth import User
 from app.models.base import utcnow
 from app.models.editorial import context_of
-from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.services import editorial, media
 from app.services.lookup import get_or_404
@@ -193,34 +195,17 @@ class ImportKeyInfo(BaseModel):
 
 @admin_router.get("/media", response_model=Page[MediaOut], summary="The picture library")
 async def list_media(
-    q: str | None = Query(default=None, description="Search in name, alt text and credit"),
-    event_id: int | None = Query(default=None, description="An event's pictures"),
-    series_id: int | None = Query(
-        default=None, description="A series' pictures — its own and its events'"
-    ),
-    alt_missing: bool = Query(default=False, description="Only those whose alt text is a name"),
+    filters: MediaFilter = ListDepends(MediaFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(require_any_editor),
 ) -> Page[MediaOut]:
     """Newest first. A regatta's editor sees that regatta's pictures (Story R-2)."""
-    stmt = media.in_context(
-        apply_search(_with_context(), q, MediaItem.original_name, MediaItem.alt, MediaItem.credit),
-        event_id,
-        series_id,
-    )
+    stmt = filters.filter(_with_context())
     reach = editorial.within_reach(user, MediaItem.event_id, MediaItem.series_id)
     if reach is not None:
         stmt = stmt.where(reach)
-    if alt_missing:
-        stmt = stmt.where(MediaItem.alt_confirmed.is_(False))
-    items, total = await paginate(
-        session,
-        stmt,
-        params,
-        sortable={"created_at": MediaItem.created_at},
-        default_order=[MediaItem.created_at.desc(), MediaItem.id.desc()],
-    )
+    items, total = await paginate(session, filters.sort(stmt), params)
     return page_of([_out(item) for item in items], total, params)
 
 

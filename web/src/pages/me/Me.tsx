@@ -11,6 +11,9 @@ import { BankTab, ClaimsTab, DocumentsTab } from "./Papers";
 import { Wards, Waivers } from "./Waivers";
 import { useMySpace } from "./shared";
 import { WorkspaceFrame, type WorkspaceSection } from "./Workspace";
+import { ContextRelation } from "../../api/types";
+import { MediaAdmin } from "../admin/media/MediaAdmin";
+import { PostsAdmin } from "../admin/posts/PostList";
 import { legacyTarget } from "./ContextFrame";
 
 /** Stories S-7, Z-10: the *Me* context — my overview (`/me`) and my own sections. */
@@ -37,6 +40,10 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
   const { space } = useMySpace();
   if (loading) return <Loading testId="me-context-loading" />;
   if (!account) return <Navigate to="/account" replace />;
+  // Which of my sections exist depends on the answer (an editor's *News*): until it is
+  // here, a section in the address would look like one I do not have, and the frame would
+  // send me away from it.
+  if (!space.data && !space.error) return <Loading testId="me-context-loading" />;
 
   const sections: WorkspaceSection[] = [
     { key: "overview", label: t("workspace.overview"), render: () => overview },
@@ -68,12 +75,24 @@ export function MeFrame({ active, overview }: { active?: string; overview?: Reac
       ),
     },
     { key: "claims", label: t("tabs.claims"), needs: ["claim_rejected"], render: () => <ClaimsTab /> },
+    {
+      key: "news",
+      label: t("workspace.sectionLabels.me.news"),
+      render: () => <PostsAdmin base="/me" testId="me-news" />,
+    },
+    {
+      key: "media",
+      label: t("workspace.sectionLabels.me.media"),
+      render: () => <MediaAdmin withKeys={false} />,
+    },
   ];
   return (
     <WorkspaceFrame
       current={{ kind: "me" }}
       name={space.data?.me.name ?? account.display_name}
-      relations={[]}
+      // An editor of any regatta has *Me › News* and *Me › Pictures*: every post and picture
+      // they may change, across all of them (Story R-1).
+      relations={space.data?.contexts.some((c) => c.relations.includes(ContextRelation.editor)) ? [ContextRelation.editor] : []}
       needs={space.data?.me.needs ?? []}
       sections={sections}
       active={active}

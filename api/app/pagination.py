@@ -9,6 +9,13 @@ an envelope would only cost every caller an ``.items``.
 A list someone would *search* takes a fourth, ``q``, applied with :func:`apply_search`
 before the statement is counted.
 
+**Sorting and filtering** are the list's :class:`app.listing.ListFilter` (decided
+2026-10-25, on `fastapi-filter`): ``sort``, ``q`` and one typed query parameter per
+filter, applied to the statement before it reaches :func:`paginate`, which only counts
+and cuts. A screen that lists "the events of this series" asks the server for them; it
+never fetches a page of everything and filters in the browser, which silently stops at
+the page's end.
+
 The three rules that are easy to get wrong, and are therefore decided here once:
 
 * **``total`` counts what the filter matched**, not what the table holds. The count runs
@@ -16,13 +23,12 @@ The three rules that are easy to get wrong, and are therefore decided here once:
   which is why ``paginate`` takes the built statement rather than a table.
 * **An offset past the end is an empty page, not a 404.** Someone on page 8 of a list that
   just lost half its rows has not made an error.
-* **A sort column that does not exist is refused**, never ignored. A sort that silently
-  does nothing is indistinguishable from one that did not fire at all.
+* **A sort column that does not exist is refused**, never ignored (`app.listing`). A sort
+  that silently does nothing is indistinguishable from one that did not fire at all.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -30,9 +36,6 @@ from fastapi import Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import Select, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql.elements import UnaryExpression
-
-from app.problems import Problem
 
 # 25 fills a screen without filling a scrollbar; the cap keeps one client from asking for
 # the whole table by way of a query parameter.
@@ -56,37 +59,22 @@ class Page[T](BaseModel):
 
 @dataclass(slots=True, frozen=True)
 class PageParams:
-    """What the caller asked for. Built by :func:`page_params`, never by hand."""
+    """Which part of the list the caller asked for. Built by :func:`page_params`, never by
+    hand; the order is the list's filter's (`app.listing.ListFilter.sort`)."""
 
     limit: int
     offset: int
-    sort: str | None
-
-    @property
-    def descending(self) -> bool:
-        return bool(self.sort and self.sort.startswith("-"))
-
-    @property
-    def sort_column(self) -> str | None:
-        """The sort parameter without its direction marker."""
-        return self.sort.lstrip("-") if self.sort else None
 
 
 def page_params(
     limit: int = Query(default=DEFAULT_LIMIT, ge=1, le=MAX_LIMIT, description="Rows per page"),
     offset: int = Query(default=0, ge=0, description="Rows to skip"),
-    sort: str | None = Query(
-        default=None,
-        description="Column to sort by; prefix with '-' for descending",
-    ),
 ) -> PageParams:
-    return PageParams(limit=limit, offset=offset, sort=sort)
+    return PageParams(limit=limit, offset=offset)
 
 
 #: Use as ``params: PageParams = PageInput`` in a route signature.
 PageInput = Depends(page_params)
-
-Sortable = Mapping[str, Any]
 
 
 def apply_search(stmt: Select, q: str | None, *columns: Any) -> Select:
@@ -114,63 +102,20 @@ def apply_search(stmt: Select, q: str | None, *columns: Any) -> Select:
     return stmt.where(or_(*(func.lower(column).like(pattern) for column in columns)))
 
 
-def _order_by(params: PageParams, sortable: Sortable) -> list[Any]:
-    """The ORDER BY for this request, or a 422 naming the columns that exist.
-
-    The error lists them because the alternative — "unknown sort column" — sends whoever
-    wrote the call to the source to find out what it will accept.
-    """
-    column = params.sort_column
-    if not column:
-        return []
-    if column not in sortable:
-        raise Problem(
-            status=422,
-            code="unknown-sort-column",
-            title=f"Cannot sort by {column!r}.",
-            column=column,
-            sortable=sorted(sortable),
-        )
-    target = sortable[column]
-    return [target.desc() if params.descending else target.asc()]
-
-
 async def paginate(
-    session: AsyncSession,
-    stmt: Select,
-    params: PageParams,
-    *,
-    sortable: Sortable | None = None,
-    default_order: list[Any] | UnaryExpression | None = None,
+    session: AsyncSession, stmt: Select, params: PageParams
 ) -> tuple[list[Any], int]:
-    """Runs ``stmt`` as one page and counts what it matched.
+    """Runs ``stmt`` — narrowed and ordered by the list's filter — as one page, and counts
+    what it matched.
 
     Returns the rows and the total, rather than a :class:`Page`, because most routes still
     have to turn their ORM objects into schemas in between. Build the page with
     :func:`page_of`.
-
-    The requested sort **replaces** ``default_order`` instead of preceding it: a list
-    ordered by the column the reader picked and then by something else is the order they
-    asked for; a list ordered by something else first is not. ``default_order`` is still
-    appended as the tie-break, so the order of equal rows does not wander between pages —
-    which is the bug that makes a row appear twice while someone is paging.
     """
-    order = _order_by(params, sortable or {})
-    fallback = (
-        []
-        if default_order is None
-        else (default_order if isinstance(default_order, list) else [default_order])
-    )
-
-    # `order_by(None)` clears whatever the caller put on the statement — the count does not
-    # need it, and SQL Server-style backends refuse ORDER BY inside a subquery without TOP.
+    # `order_by(None)` clears the order for the count — it does not need it, and SQL
+    # Server-style backends refuse ORDER BY inside a subquery without TOP.
     total = await session.scalar(select(func.count()).select_from(stmt.order_by(None).subquery()))
-
-    rows = (
-        await session.execute(
-            stmt.order_by(*order, *fallback).limit(params.limit).offset(params.offset)
-        )
-    ).scalars()
+    rows = (await session.execute(stmt.limit(params.limit).offset(params.offset))).scalars()
     return list(rows), int(total or 0)
 
 

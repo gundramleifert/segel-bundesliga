@@ -21,9 +21,17 @@ from sqlalchemy.orm import selectinload
 
 from app.auth import require_any_editor
 from app.db import get_session
+from app.filters import PostFilter, PublicPostFilter
+from app.listing import ListDepends
 from app.models import Event, League, MediaItem, Post, PostKind, Series
 from app.models.auth import User
-from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pagination import (
+    Page,
+    PageInput,
+    PageParams,
+    page_of,
+    paginate,
+)
 from app.problems import Problem
 from app.routers.media import PublicPicture, public_picture
 from app.services import editorial, media
@@ -178,6 +186,7 @@ async def list_posts(
         default=None,
         description="A league's slug: its posts and the association's. Absent: every post.",
     ),
+    filters: PublicPostFilter = ListDepends(PublicPostFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[PostSummary]:
@@ -188,9 +197,7 @@ async def list_posts(
         stmt = stmt.outerjoin(League, Post.league_id == League.id).where(
             or_(Post.league_id.is_(None), League.slug == league)
         )
-    posts, total = await paginate(
-        session, stmt, params, sortable={}, default_order=[Post.published_on.desc(), Post.id.desc()]
-    )
+    posts, total = await paginate(session, filters.sort(stmt), params)
     return page_of(await _summaries(session, posts, PostSummary), total, params)
 
 
@@ -208,45 +215,21 @@ async def get_post(slug: str, session: AsyncSession = Depends(get_session)) -> P
 
 # ---------------------------------------------------------------- editorial
 
-POST_SORT = {"published_on": Post.published_on, "title": Post.title}
-
-
-#: The ``league`` filter's value for the association's own posts.
-ASSOCIATION = "association"
-
 
 @admin_router.get("", response_model=Page[PostAdminSummary], summary="All posts, drafts included")
 async def list_all_posts(
-    kind: PostKind | None = Query(default=None),
-    q: str | None = Query(default=None, description="Search in the title"),
-    league: str | None = Query(
-        default=None,
-        description=f"A league's slug, or ``{ASSOCIATION}`` for the association's own posts.",
-    ),
-    published: bool | None = Query(default=None, description="Only published, or only drafts"),
+    filters: PostFilter = ListDepends(PostFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     user: User = Depends(require_any_editor),
 ) -> Page[PostAdminSummary]:
-    stmt = apply_search(_with_league(), q, Post.title)
+    """Every post this person may change — the site's editor all of them, a regatta's
+    editor that regatta's, whoever wrote them (Story R-1)."""
+    stmt = filters.filter(_with_league())
     reach = editorial.within_reach(user, Post.event_id, Post.series_id)
     if reach is not None:
         stmt = stmt.where(reach)
-    if kind is not None:
-        stmt = stmt.where(Post.kind == kind)
-    if league == ASSOCIATION:
-        stmt = stmt.where(Post.league_id.is_(None))
-    elif league is not None:
-        stmt = stmt.join(League, Post.league_id == League.id).where(League.slug == league)
-    if published is not None:
-        stmt = stmt.where(Post.published.is_(published))
-    posts, total = await paginate(
-        session,
-        stmt,
-        params,
-        sortable=POST_SORT,
-        default_order=[Post.published_on.desc(), Post.id.desc()],
-    )
+    posts, total = await paginate(session, filters.sort(stmt), params)
     return page_of(await _summaries(session, posts, PostAdminSummary), total, params)
 
 

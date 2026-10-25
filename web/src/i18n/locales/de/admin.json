@@ -340,7 +340,8 @@
     "squadLimitsSavedMessage": "Kadergröße gespeichert.",
     "teamsPerClubLabel": "Teams pro Verein",
     "teamsPerClubHint": "1 ist der Normalfall; mehr erlaubt einem Verein mehrere Teams, alle aus seinem einen Kader aufgestellt.",
-    "teamsOfClubLabel": "Teams von {club}"
+    "teamsOfClubLabel": "Teams von {club}",
+    "statusFilter": "Sportlicher Stand"
   },
   "access": {
     "title": "Personen",

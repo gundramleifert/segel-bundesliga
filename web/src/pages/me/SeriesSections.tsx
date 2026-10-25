@@ -365,13 +365,12 @@ export function SeriesStandings({ context }: { context: MyContext }) {
 }
 
 /** Every act of the series, drafts included, each opening the event's context — for its
- *  organizers, who organize them there. The organizers' event list has no series filter,
- *  so it is narrowed here. */
+ *  organizers, who organize them there. The server narrows the list to the series
+ *  (`series_id`, Story A-13). */
 export function OrganizerSeriesEvents({ seriesId }: { seriesId: number }) {
   const { t } = useTranslation("space");
-  const events = useAsync(useListAllEvents({ limit: WHOLE_LIST }));
-  const ours = (events.data?.items ?? [])
-    .filter((e) => e.series?.id === seriesId)
+  const events = useAsync(useListAllEvents({ series_id: seriesId, limit: WHOLE_LIST }));
+  const ours = [...(events.data?.items ?? [])]
     .sort((a, b) => (a.matchday ?? 99) - (b.matchday ?? 99) || (a.starts_on ?? "9999").localeCompare(b.starts_on ?? "9999"));
   return (
     <Async state={events} testId="me-series-events" empty={t("context.noEvents")} isEmpty={() => !ours.length}>

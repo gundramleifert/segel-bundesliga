@@ -1,5 +1,6 @@
 import { describeStory, expect, test } from "./fixtures";
-import { signIn } from "./session";
+import { openSection } from "./layout";
+import { bearer, signIn } from "./session";
 
 /** Story R-1: editorial writes news and press releases on the site.
  *
@@ -270,5 +271,43 @@ describeStory("R-1/Z-2: a series' editor writes about that series and organizes 
     await expect(page.getByTestId("admin-post-save-success")).toBeVisible();
     await page.getByTestId("admin-post-view-link").click();
     await expect(page).toHaveURL(/\/2-liga\/news\//);
+  });
+});
+
+describeStory("R-1/R-2/Z-10: each editor works where they write", () => {
+  test("Paula Presse writes in her series' News & pictures and finds it again under Me › News", async ({
+    page,
+    request,
+  }, testInfo) => {
+    const PRESSE = "presse@sbl.example.com";
+    const mine = (await (
+      await request.get("/api/me/contexts", { headers: await bearer(request, PRESSE) })
+    ).json()) as { contexts: { kind: string; id: number; relations: string[] }[] };
+    const series = mine.contexts.find((c) => c.kind === "series" && c.relations.includes("editor"))!;
+
+    await signIn(page, PRESSE);
+    await page.goto(`/me/series/${series.id}`);
+    await openSection(page, "series", "news");
+    await expect(page.getByTestId(`me-series-news-posts`)).toBeVisible();
+    // The library is the series' — no regatta to choose, no import keys.
+    await expect(page.getByTestId("admin-media-section")).toBeVisible();
+    await expect(page.getByTestId("admin-media-context-filter")).toHaveCount(0);
+
+    // A new post starts about this series.
+    await page.getByTestId("admin-posts-new-button").click();
+    await expect(page).toHaveURL(new RegExp(`/me/news/new\\?series=${series.id}$`));
+    const title = `Series note ${testInfo.project.name} ${Date.now()}`;
+    await page.getByTestId("admin-post-title-input").fill(title);
+    await page.getByTestId("admin-post-editor-content").click();
+    await page.keyboard.type("A note.");
+    await page.getByTestId("admin-post-save-button").click();
+    await expect(page).toHaveURL(/\/me\/news\/\d+$/);
+    const id = Number(page.url().split("/").pop());
+
+    // Listed in the series' section, and over all her regattas under Me › News.
+    await page.goto(`/me/series/${series.id}/news`);
+    await expect(page.getByTestId(`admin-posts-link-${id}`)).toBeVisible();
+    await page.goto("/me/profile/news");
+    await expect(page.getByTestId(`admin-posts-link-${id}`)).toHaveAttribute("href", `/me/news/${id}`);
   });
 });

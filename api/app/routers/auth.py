@@ -18,7 +18,9 @@ from app.auth import (
 )
 from app.authz import ObjectRef
 from app.db import get_session
+from app.filters import UserFilter
 from app.i18n import Locale, resolve_locale, tr
+from app.listing import ListDepends
 from app.models import WaiverConfirmation
 from app.models.auth import (
     MODEL,
@@ -30,7 +32,7 @@ from app.models.auth import (
     User,
     writable,
 )
-from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.schemas.auth import TokenOut
 from app.services import grants, passwords, personal
@@ -431,10 +433,6 @@ async def delete_my_account(
     await session.commit()
 
 
-#: Story A-13 — the columns this list may be sorted by.
-USER_SORT = {"display_name": User.display_name, "email": User.email}
-
-
 @router.get(
     "/users",
     response_model=Page[UserOut],
@@ -442,7 +440,7 @@ USER_SORT = {"display_name": User.display_name, "email": User.email}
     summary="List accounts",
 )
 async def list_users(
-    q: str | None = None,
+    filters: UserFilter = ListDepends(UserFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[UserOut]:
@@ -453,15 +451,7 @@ async def list_users(
     Paged since Story A-13 — there is one account per registered sailor, so this list is
     as long as the sailor register and had no limit at all.
     """
-    stmt = select(User)
-    stmt = apply_search(stmt, q, User.display_name, User.email)
-    users, total = await paginate(
-        session,
-        stmt,
-        params,
-        sortable=USER_SORT,
-        default_order=[User.display_name, User.id],
-    )
+    users, total = await paginate(session, filters.sort(filters.filter(select(User))), params)
     await grants.named(session, *users)
     return page_of([UserOut.of(user) for user in users], total, params)
 

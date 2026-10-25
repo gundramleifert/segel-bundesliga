@@ -8,6 +8,7 @@
 
 export type ListUsersParams = {
 q?: string | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -19,8 +20,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };

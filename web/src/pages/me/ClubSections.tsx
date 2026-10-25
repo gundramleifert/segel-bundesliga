@@ -255,12 +255,11 @@ export function ClubTeams({ entry }: { entry: MyClubOut }) {
  * organized (a hosted event is not edited here) — and *+ New event*, the event wizard,
  * where a club's organizer creates one outside a series (VA-6).
  *
- * The organizers' event list has no host filter, so it is asked with the host's short
- * name (it searches the host club too) and then narrowed to this host.
+ * The server narrows the organizers' event list to this host (`host_club_id`, Story A-13).
  */
 export function ClubHosting({ club }: { club: { id: number; name: string; short_name?: string | null } }) {
   const { t } = useTranslation("space");
-  const events = useAsync(useListAllEvents({ q: club.short_name || club.name, limit: WHOLE_LIST }));
+  const events = useAsync(useListAllEvents({ host_club_id: club.id, limit: WHOLE_LIST }));
   return (
     <Section
       testId={`my-club-hosting-${club.id}`}
@@ -271,9 +270,9 @@ export function ClubHosting({ club }: { club: { id: number; name: string; short_
         state={events}
         testId="my-club-hosting"
         empty={t("clubSections.noHosted")}
-        isEmpty={(page) => !page.items.some((e) => e.host_club?.id === club.id)}
+        isEmpty={(page) => !page.items.length}
       >
-        {(page) => <EventLinks events={page.items.filter((e) => e.host_club?.id === club.id)} testId="my-club-hosted" />}
+        {(page) => <EventLinks events={page.items} testId="my-club-hosted" />}
       </Async>
     </Section>
   );

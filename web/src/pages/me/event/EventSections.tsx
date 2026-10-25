@@ -9,7 +9,6 @@ import { AccessPanel } from "../../../components/AccessPanel";
 import { Async } from "../../../components/Async";
 import { Section } from "../../../components/Form";
 import { Stack } from "../../../components/Layouts";
-import { eventDates } from "../../../lib/format";
 import { sectionPath } from "../../../lib/workspace";
 import {
   EventClosing,
@@ -23,6 +22,7 @@ import {
   EventSquadLimits,
 } from "../../admin/events/EventPanel";
 import { ReadinessReasons } from "../../admin/events/ReadinessReasons";
+import { EventBoatsForm, EventGeneralForm } from "./EventSetupForms";
 import { WaiverChecklist } from "../../admin/events/WaiverChecklist";
 import { NoticeBoard } from "../../league/act/NoticeBoard";
 import { Door } from "../ContextFrame";
@@ -64,37 +64,6 @@ function Panel({ title, testId, children }: { title: string; testId: string; chi
   );
 }
 
-/** Title, series, host, venue and size, as they are — set when the event is created. */
-function Facts({ event }: { event: EventSummary }) {
-  const { t } = useTranslation("space");
-  const { t: ta } = useTranslation("admin");
-  const none = t("eventSections.notSet");
-  const rows: [string, string, ReactNode][] = [
-    ["title", t("eventSections.factTitle"), event.title],
-    ["dates", t("eventSections.factDates"), eventDates(event) || none],
-    ["series", t("eventSections.factSeries"), event.series?.name ?? t("eventSections.standalone")],
-    ["host", t("eventSections.factHost"), event.host_club?.name ?? none],
-    ["venue", t("eventSections.factVenue"), event.venue?.name ?? none],
-    [
-      "size",
-      t("eventSections.factSize"),
-      ta("manage.sizeText", { teams: event.team_count, boats: event.boat_count, flights: event.flight_count }),
-    ],
-  ];
-  return (
-    <dl className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_minmax(0,1fr)]" data-testid="me-event-facts">
-      {rows.map(([key, label, value]) => (
-        <div key={key} className="contents">
-          <dt className="text-muted">{label}</dt>
-          <dd className="font-medium" data-testid={`me-event-fact-${key}`}>
-            {value}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 /** *Set up* — general, clubs, pairing list, publication, people. */
 export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
   const id = c.id;
@@ -107,11 +76,22 @@ export function setupSections(t: T, c: MyContext): WorkspaceSection[] {
           <WithEvent id={id} testId="me-event-general">
             {(event) => (
               <>
-                <Facts event={event} />
+                <EventGeneralForm event={event} />
                 <EventDates event={event} />
                 <EventSquadLimits event={event} />
               </>
             )}
+          </WithEvent>
+        </Panel>
+      ),
+    },
+    {
+      key: "boats",
+      label: t("eventSections.boats"),
+      render: () => (
+        <Panel title={t("eventSections.boats")} testId="me-event-boats">
+          <WithEvent id={id} testId="me-event-boats">
+            {(event) => <EventBoatsForm event={event} />}
           </WithEvent>
         </Panel>
       ),

@@ -23,7 +23,7 @@ from collections import Counter
 from datetime import date
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import delete, select
@@ -34,10 +34,27 @@ from app.auth import current_user, optional_user
 from app.authz import ObjectRef
 from app.config import settings
 from app.db import get_session
-from app.models import Club, Event, EventCrew, Sailor, Series, Team, TeamMembership, TeamStatus
+from app.filters import SailorFilter
+from app.listing import ListDepends
+from app.models import (
+    Club,
+    Event,
+    EventCrew,
+    Sailor,
+    Series,
+    Team,
+    TeamMembership,
+    TeamStatus,
+)
 from app.models.auth import ObjectType, Relation, User
 from app.models.org import CrewRole
-from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pagination import (
+    Page,
+    PageInput,
+    PageParams,
+    page_of,
+    paginate,
+)
 from app.problems import Problem
 from app.schemas.public import MemberOut
 from app.services import is_minor, pictures
@@ -214,18 +231,9 @@ class SquadOut(BaseModel):
 
 #: What this list may be sorted by — Story A-13. A map rather than "any column of the
 #: model": a sort parameter is public API, and exposing the model's attribute names would
-#: make every rename a breaking change for callers.
-SAILOR_SORT = {
-    "last_name": Sailor.last_name,
-    "first_name": Sailor.first_name,
-    "email": Sailor.email,
-    "birth_date": Sailor.birth_date,
-}
-
-
 @router.get("/sailors", response_model=Page[SailorAdminOut], summary="Search sailors")
 async def list_sailors(
-    q: str | None = Query(default=None, description="Search in first name, last name, and email"),
+    filters: SailorFilter = ListDepends(SailorFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
@@ -238,14 +246,7 @@ async def list_sailors(
     """
     _can_manage_master_data(acting)
 
-    stmt = apply_search(select(Sailor), q, Sailor.first_name, Sailor.last_name, Sailor.email)
-    sailors, total = await paginate(
-        session,
-        stmt,
-        params,
-        sortable=SAILOR_SORT,
-        default_order=[Sailor.last_name, Sailor.first_name, Sailor.id],
-    )
+    sailors, total = await paginate(session, filters.sort(filters.filter(select(Sailor))), params)
     registrations = await _registrations_by_sailor(session, [s.id for s in sailors])
 
     return page_of(

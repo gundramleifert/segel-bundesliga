@@ -325,7 +325,9 @@
         "claims": "My claims",
         "documents": "Documents",
         "bank": "Bank account",
-        "children": "My children"
+        "children": "My children",
+        "news": "News",
+        "media": "Pictures"
       },
       "office": {
         "overview": "Overview",
@@ -423,7 +425,14 @@
     "resultsDraft": "The event is still a draft. Results are entered on its page once it is published.",
     "notReadyTitle": "Not ready for the draw and the start yet",
     "notReadyLink": "Set it up",
-    "openInWorkspace": "Open in My space"
+    "openInWorkspace": "Open in My space",
+    "matchday": "Matchday",
+    "teamsPerClub": "Teams per club",
+    "configurationFrozen": "Racing has begun: the series, the matchday, the size, the teams per club and the boats stay as they are. Title, host, venue and dates can still be changed.",
+    "resizeDiscardsDraw": "Saving a new size discards the pairing list drawn for the old one — draw again afterwards.",
+    "saved": "Saved.",
+    "boats": "Boats",
+    "save": "Save"
   },
   "clubSections": {
     "members": "Members",

@@ -8,6 +8,7 @@ import { Section } from "../../components/Form";
 import { eventDates } from "../../lib/format";
 import { ORGANIZERS } from "../../lib/workspace";
 import { contextPath, useMySpace } from "./shared";
+import { RegattaNews } from "./RegattaNews";
 import { ContextFrame, MyTeams, waiverNotice } from "./ContextFrame";
 import {
   OrganizerSeriesEvents,
@@ -57,6 +58,7 @@ export function SeriesPage() {
           },
           { key: "scoring", label: t("seriesSections.scoring"), render: () => <SeriesScoring seriesId={c.id} /> },
           { key: "officials", label: t("seriesSections.officials"), render: () => <SeriesOfficials seriesId={c.id} /> },
+          { key: "news", label: t("workspace.sectionLabels.series.news"), render: () => <RegattaNews kind="series" id={c.id} /> },
         ];
       }}
     />

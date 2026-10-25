@@ -7,10 +7,9 @@
  */
 
 export type ListSailorsParams = {
-/**
- * Search in first name, last name, and email
- */
 q?: string | null;
+club_id?: number | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -22,8 +21,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };

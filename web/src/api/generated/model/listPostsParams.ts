@@ -13,6 +13,7 @@ kind?: PostKind;
  * A league's slug: its posts and the association's. Absent: every post.
  */
 league?: string | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -24,8 +25,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };

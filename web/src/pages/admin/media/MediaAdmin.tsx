@@ -40,21 +40,27 @@ import { useListParams } from "../../../lib/listParams";
 const PAGE = 24;
 
 /** Story R-2: the picture library — every picture from editorial and from the sources
- *  with an import key — and the import keys themselves, as upload links. */
-export function MediaAdmin() {
+ *  with an import key — and the import keys themselves, as upload links.
+ *
+ *  In the league office all of it. A regatta's *News & pictures* passes `about`: the
+ *  library is that regatta's (a series' with its events'), uploads land there, and the
+ *  regatta is no choice; *Me › Pictures* passes `withKeys={false}` and shows every
+ *  picture the reader may change. Import keys are the site's editor's alone. */
+export function MediaAdmin({ about, withKeys = true }: { about?: MediaContext; withKeys?: boolean } = {}) {
   return (
     <>
-      <Library />
-      <ImportKeys />
+      <Library about={about} />
+      {withKeys && !about && <ImportKeys />}
     </>
   );
 }
 
-function Library() {
+function Library({ about }: { about?: MediaContext }) {
   const { t } = useTranslation("admin");
   const list = useListParams(PAGE);
   const [selected, setSelected] = useState<number | null>(null);
-  const [context, setContext] = useState<MediaContext>(NO_CONTEXT);
+  const [picked, setContext] = useState<MediaContext>(NO_CONTEXT);
+  const context = about ?? picked;
   const [altMissing, setAltMissing] = useState(false);
 
   // Uploading is one step (decided 2026-10-20 — a "+" that opened a form with its own
@@ -181,14 +187,16 @@ function Library() {
           data-testid="admin-media-search-input"
         />
       </Field>
-      <Field label={t("media.contextLabel")}>
-        <MediaContextSelect
-          value={context}
-          onChange={(c) => (setContext(c), list.setPage(1))}
-          noneLabel={t("media.contextAll")}
-          testId="admin-media-context-filter"
-        />
-      </Field>
+      {!about && (
+        <Field label={t("media.contextLabel")}>
+          <MediaContextSelect
+            value={context}
+            onChange={(c) => (setContext(c), list.setPage(1))}
+            noneLabel={t("media.contextAll")}
+            testId="admin-media-context-filter"
+          />
+        </Field>
+      )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <label className="flex items-center gap-2 text-sm text-foreground">
           <input

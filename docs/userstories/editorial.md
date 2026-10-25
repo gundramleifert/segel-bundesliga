@@ -29,6 +29,14 @@ Acceptance criteria:
   is not theirs to know of — their list leaves it out and its address answers 404. They
   organize nothing: the series cannot be changed by them, and an event's tools stay
   closed (`manage` is false). Until 2026-10-24 only the site's `editor` wrote.
+- **Each editor works where they write** (decided 2026-10-25): a series' or an event's
+  editor finds **News & pictures** in that regatta's context in My space — every post and
+  picture about it, a series' including its events', drafts too, with *New post* about
+  it — and the same two lists over every regatta they write about under *Me › News* and
+  *Me › Pictures*. **Who may change a post is the regatta, never the author**: every
+  editor of a regatta changes, publishes and deletes any post or picture about it,
+  whoever wrote it, and none about another (`app/services/editorial.py`). The site's
+  editor keeps the league office's *News* and *Media*, over everything.
 - **One kind of post, two kinds of page.** A post is a **news** article or a **press**
   release. An article has a title, a lead (the teaser on its card), the text, an optional
   quote with who said it, a byline and a picture; a release has a title, a date and its

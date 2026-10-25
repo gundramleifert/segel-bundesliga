@@ -340,7 +340,8 @@
     "squadLimitsSavedMessage": "Squad size saved.",
     "teamsPerClubLabel": "Teams per club",
     "teamsPerClubHint": "1 is the normal case; more lets a club enter several teams, all lined up from its one squad.",
-    "teamsOfClubLabel": "Teams of {club}"
+    "teamsOfClubLabel": "Teams of {club}",
+    "statusFilter": "Where it stands"
   },
   "access": {
     "title": "People",

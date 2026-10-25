@@ -349,6 +349,12 @@ These points were deliberately decided this way; bypassing them costs a lot late
   The club's page there is where members are managed (V-8, Z-5, A-8), squads registered
   (V-1) **and crews named** for the club's matchdays (V-2), reached through
   `GET /api/clubs/mine`, never through an admin-only list.
+- **A list is narrowed on the server, never in the browser** (Story A-13, decided
+  2026-10-25): every paged list's search, sort and filters are one `ListFilter` class in
+  `app/filters.py` (on `fastapi-filter`, rules in `app/listing.py`), taken with
+  `ListDepends(...)` and applied as `filters.sort(filters.filter(stmt))` before
+  `paginate`. A screen showing "this series' events" asks for them; a page of everything
+  filtered client-side stops at the page's end without a word.
 - **"Mine" has one answer, and my space is assembled from it** (Stories Z-8, S-7,
   `app/services/contexts.py`, `web/src/pages/me/`). `GET /api/me/contexts` lists every
   club, series and event a person is part of: a relation held **directly** on it, or

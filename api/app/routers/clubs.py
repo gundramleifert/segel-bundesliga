@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -23,9 +23,11 @@ from app.auth import current_user, require_master_data
 from app.authz import ObjectRef
 from app.crests import delete_crest, save_crest
 from app.db import get_session
+from app.filters import ClubFilter
+from app.listing import ListDepends
 from app.models import Club, Series, Team, TeamStatus
 from app.models.auth import ObjectType, Relation, User
-from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.schemas.public import ClubOut, SeriesOut
 from app.services import current_year
@@ -95,13 +97,9 @@ class ClubAdminOut(ClubOut):
     )
 
 
-#: Story A-13 — the columns this list may be sorted by.
-CLUB_SORT = {"name": Club.name, "short_name": Club.short_name, "city": Club.city}
-
-
 @router.get("", response_model=Page[ClubAdminOut], summary="All clubs with assignments")
 async def list_all_clubs(
-    q: str | None = Query(default=None, description="Search in name, abbreviation and city"),
+    filters: ClubFilter = ListDepends(ClubFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[ClubAdminOut]:
@@ -111,10 +109,7 @@ async def list_all_clubs(
     and offers the site to clubs organising their own events, so this is the list that
     grows fastest of all of them.
     """
-    stmt = apply_search(select(Club), q, Club.name, Club.short_name, Club.city)
-    clubs, total = await paginate(
-        session, stmt, params, sortable=CLUB_SORT, default_order=[Club.name, Club.id]
-    )
+    clubs, total = await paginate(session, filters.sort(filters.filter(select(Club))), params)
     return page_of(await _compose(session, list(clubs)), total, params)
 
 

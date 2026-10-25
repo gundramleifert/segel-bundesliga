@@ -627,7 +627,24 @@ a dropdown must offer every club — and the two screens that *count* acts per s
 the event list. Those are honest ceilings rather than hidden ones: past a hundred, a
 selector needs a search of its own and the counts need the server to count them.
 
-Tests: `api/tests/stories/test_pagination.py` — the envelope in
+**Filtering and sorting are one declaration per list** (decided 2026-10-25, on
+[`fastapi-filter`](https://github.com/arthurio/fastapi-filter), MIT). Each paged list has
+a `ListFilter` subclass in `api/app/filters.py`: its search (`q`), its sortable columns and
+default order (`sort`), and its filters as typed fields named for what they narrow to
+(`series_id`, `host_club_id`, `league_id`, `club_id`, `status`, `published`, `year`; the
+library's operators such as `starts_on__gte` where a list needs them). FastAPI lists each
+as a query parameter, so the generated client knows them by name and type and a wrong one
+is a 422. The base class (`api/app/listing.py`) keeps the rules the library alone would
+loosen: only a declared column sorts (`unknown-sort-column`, naming the sortable ones), a
+blank search is no search, a filter with a meaning of its own is a `where_<field>` method
+(a series' posts and pictures include its events'), and the default order is the
+tie-break. `paginate` only counts and cuts. The frontend keeps a list's filters in the
+address next to its search and page (`useListParams`'s `filter` / `setFilter`). A screen
+never fetches a page of everything to filter it in the browser: past the page's end it
+shows a wrong answer without a word.
+
+Tests: `api/tests/stories/test_pagination.py::TestEveryFilterableListFiltersTheSameWay`,
+`api/tests/stories/test_pagination.py` — the envelope in
 `api/tests/stories/test_pagination.py::TestEveryPagedListSpeaksTheSameShape`, and the
 search in `api/tests/stories/test_pagination.py::TestEverySearchableListSearchesTheSameWay`
 (one parametrized case per searchable list: nothing matched is an empty page, `total`

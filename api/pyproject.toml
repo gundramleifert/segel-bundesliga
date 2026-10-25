@@ -25,6 +25,7 @@ dependencies = [
     "segno>=1.6.6",
     "nh3>=0.3.7",
     "python-magic>=0.4.27",
+    "fastapi-filter==3.0.0",
 ]
 
 [dependency-groups]

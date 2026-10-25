@@ -175,7 +175,7 @@ async def publish_pairing(
             team_ids=unknown,
         )
 
-    await _clear_pairing(session, event.id)
+    await clear_pairing(session, event.id)
 
     boats = await _boats(session, event, draft.boats)
     flights = [Flight(event_id=event.id, number=n) for n in range(1, draft.flights + 1)]
@@ -245,7 +245,7 @@ async def _boats(session: AsyncSession, event: Event, specs: list[BoatSpec]) -> 
     return boats
 
 
-async def _clear_pairing(session: AsyncSession, event_id: int) -> None:
+async def clear_pairing(session: AsyncSession, event_id: int) -> None:
     """Clears the old list — from the entries upwards, so no foreign key breaks.
 
     The boats stay: they belong to the event, not to the draw.

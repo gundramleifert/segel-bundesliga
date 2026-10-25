@@ -7,10 +7,11 @@
  */
 
 export type ListAllSeriesParams = {
-/**
- * Search in name and short name
- */
 q?: string | null;
+league_id?: number | null;
+year?: number | null;
+published?: boolean | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -22,8 +23,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };

@@ -325,7 +325,9 @@
         "claims": "Meine Abrechnungen",
         "documents": "Dokumente",
         "bank": "Bankverbindung",
-        "children": "Meine Kinder"
+        "children": "Meine Kinder",
+        "news": "News",
+        "media": "Bilder"
       },
       "office": {
         "overview": "Übersicht",
@@ -423,7 +425,14 @@
     "resultsDraft": "Die Veranstaltung ist noch ein Entwurf. Ergebnisse werden auf ihrer Seite eingetragen, sobald sie veröffentlicht ist.",
     "notReadyTitle": "Noch nicht bereit für Auslosung und Start",
     "notReadyLink": "Einrichten",
-    "openInWorkspace": "In Mein Bereich öffnen"
+    "openInWorkspace": "In Mein Bereich öffnen",
+    "matchday": "Spieltag",
+    "teamsPerClub": "Teams pro Verein",
+    "configurationFrozen": "Die Wettfahrten haben begonnen: Serie, Spieltag, Größe, Teams pro Verein und Boote bleiben, wie sie sind. Titel, Ausrichter, Revier und Daten lassen sich weiter ändern.",
+    "resizeDiscardsDraw": "Eine neue Größe verwirft beim Speichern die Pairing-Liste der alten — danach neu auslosen.",
+    "saved": "Gespeichert.",
+    "boats": "Boote",
+    "save": "Speichern"
   },
   "clubSections": {
     "members": "Mitglieder",

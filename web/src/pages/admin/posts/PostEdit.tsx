@@ -1,6 +1,6 @@
 import { Button } from "@heroui/react";
 import { Suspense, lazy, useEffect, useState, type DragEvent, type FormEvent } from "react";
-import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { useQueryClient } from "@tanstack/react-query";
@@ -69,8 +69,10 @@ function writeKept(postId: number | undefined, kept: Kept | null) {
 
 const same = (a: Draft, b: Draft) => JSON.stringify(a) === JSON.stringify(b);
 
-/** The form's state for this post — or for a new one, a news draft dated today. */
-function draftOf(post?: PostAdmin): Draft {
+/** The form's state for this post — or for a new one, a news draft dated today, about the
+ *  regatta the address names (`?event=7`, `?series=3`: *New post* in a regatta's *News &
+ *  pictures*). */
+function draftOf(post?: PostAdmin, about?: { event_id: number | null; series_id: number | null }): Draft {
   return {
     kind: post?.kind ?? PostKind.news,
     title: post?.title ?? "",
@@ -83,8 +85,8 @@ function draftOf(post?: PostAdmin): Draft {
     quote_by: post?.quote_by ?? "",
     photo_url: post?.photo_url ?? null,
     photo_credit: post?.photo_credit ?? "",
-    event_id: post?.event_id ?? null,
-    series_id: post?.series_id ?? null,
+    event_id: post ? (post.event_id ?? null) : (about?.event_id ?? null),
+    series_id: post ? (post.series_id ?? null) : (about?.series_id ?? null),
     published: post?.published ?? false,
   };
 }
@@ -123,8 +125,8 @@ export function AdminPostPage() {
 /** Where a post's own page lives, by the door it was opened from: the office's, or My
  *  space's for an editor of a series or an event. */
 const postsBase = (pathname: string) => (pathname.startsWith("/me/") ? "/me/news" : "/office/news");
-/** Back from a post: to the office's *News*, or to My space. */
-const postsHome = (pathname: string) => (pathname.startsWith("/me/") ? "/me" : "/office/news");
+/** Back from a post: to the office's *News*, or to *Me › News*. */
+const postsHome = (pathname: string) => (pathname.startsWith("/me/") ? "/me/profile/news" : "/office/news");
 
 function PostForm({ post }: { post?: PostAdmin }) {
   const { t } = useTranslation("admin");
@@ -132,7 +134,13 @@ function PostForm({ post }: { post?: PostAdmin }) {
   const { pathname } = useLocation();
   const invalidate = useInvalidate();
   const leagues = useAsync(useListLeagues());
-  const [draft, setDraft] = useState<Draft>(() => draftOf(post));
+  const [search] = useSearchParams();
+  const [draft, setDraft] = useState<Draft>(() =>
+    draftOf(post, {
+      event_id: Number(search.get("event")) || null,
+      series_id: search.get("event") ? null : Number(search.get("series")) || null,
+    }),
+  );
   const [saved, setSaved] = useState(false);
   // Changed since it was loaded or last saved: leaving then asks first.
   const [dirty, setDirty] = useState(false);

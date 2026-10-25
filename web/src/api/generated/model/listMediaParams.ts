@@ -7,22 +7,11 @@
  */
 
 export type ListMediaParams = {
-/**
- * Search in name, alt text and credit
- */
 q?: string | null;
-/**
- * An event's pictures
- */
 event_id?: number | null;
-/**
- * A series' pictures — its own and its events'
- */
 series_id?: number | null;
-/**
- * Only those whose alt text is a name
- */
-alt_missing?: boolean;
+alt_missing?: boolean | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -34,8 +23,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };

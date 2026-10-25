@@ -27,6 +27,8 @@ from app import authz
 from app.auth import current_user, optional_user
 from app.crests import crest_path
 from app.db import get_session
+from app.filters import ClubFilter, PublicEventFilter
+from app.listing import ListDepends
 from app.live import hub
 from app.models import (
     AnnouncementIssuer,
@@ -46,10 +48,15 @@ from app.models import (
     Team,
     TeamMembership,
     TeamStatus,
-    Venue,
 )
 from app.models.auth import ObjectType, Relation, User
-from app.pagination import Page, PageInput, PageParams, apply_search, page_of, paginate
+from app.pagination import (
+    Page,
+    PageInput,
+    PageParams,
+    page_of,
+    paginate,
+)
 from app.pairing.pdf import PairingPdfError, render_pdf, renderer_available
 from app.problems import Problem
 from app.routers.sailors import connected_to_sailor
@@ -417,14 +424,11 @@ async def get_live_now(session: AsyncSession = Depends(get_session)) -> LiveNowO
 
 
 #: Story A-13 — the columns this list may be sorted by.
-PUBLIC_CLUB_SORT = {"name": Club.name, "short_name": Club.short_name, "city": Club.city}
-
-
 @router.get("/clubs", response_model=Page[ClubOut])
 async def list_clubs(
-    q: str | None = Query(default=None, description="Search in name, abbreviation and city"),
     year: int | None = Query(default=None, description="Year; otherwise the current one"),
     series: int | None = Query(default=None, description="ID of a series"),
+    filters: ClubFilter = ListDepends(ClubFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[ClubOut]:
@@ -463,10 +467,7 @@ async def list_clubs(
             return page_of([], 0, params)
         stmt = stmt.where(Series.year == effective_year)
 
-    stmt = apply_search(stmt, q, Club.name, Club.short_name, Club.city)
-    clubs, total = await paginate(
-        session, stmt, params, sortable=PUBLIC_CLUB_SORT, default_order=[Club.name, Club.id]
-    )
+    clubs, total = await paginate(session, filters.sort(filters.filter(stmt)), params)
     return page_of([ClubOut.model_validate(club) for club in clubs], total, params)
 
 
@@ -778,44 +779,11 @@ async def get_sailor(
 
 
 #: Story A-13 — the columns this list may be sorted by.
-PUBLIC_EVENT_SORT = {
-    "title": Event.title,
-    "starts_on": Event.starts_on,
-    "matchday": Event.matchday,
-}
-
-
-def search_events(stmt, q: str | None):
-    """Narrows an ``Event`` query to what someone searching would mean by ``q``.
-
-    Title, venue and host club in **one** statement: the two outer joins keep it a single
-    query rather than a name lookup per row, and neither can multiply an event — an event
-    has at most one venue and at most one host — so ``total`` still counts events and not
-    join rows. They are added only when there is something to search for, so an ordinary
-    listing is the query it always was.
-
-    Shared with the admin list (``app/routers/events.py``): the two lists differ in what
-    they may show, never in what "search" means.
-    """
-    if not (q or "").strip():
-        return stmt
-    return apply_search(
-        stmt.outerjoin(Venue, Event.venue_id == Venue.id).outerjoin(
-            Club, Event.host_club_id == Club.id
-        ),
-        q,
-        Event.title,
-        Venue.name,
-        Club.name,
-        Club.short_name,
-    )
-
-
 @router.get("/events", response_model=Page[EventOut])
 async def list_events(
-    q: str | None = Query(default=None, description="Search in title, venue and host club"),
     year: int | None = Query(default=None, description="Year of the series"),
     series: int | None = Query(default=None, description="ID of a series"),
+    filters: PublicEventFilter = ListDepends(PublicEventFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
 ) -> Page[EventOut]:
@@ -830,15 +798,7 @@ async def list_events(
         stmt = stmt.where(Event.series_id == series)
     elif year is not None:
         stmt = stmt.join(Series, Event.series_id == Series.id).where(Series.year == year)
-    stmt = search_events(stmt, q)
-
-    events, total = await paginate(
-        session,
-        stmt,
-        params,
-        sortable=PUBLIC_EVENT_SORT,
-        default_order=[Event.starts_on, Event.id],
-    )
+    events, total = await paginate(session, filters.sort(filters.filter(stmt)), params)
     return page_of([_event_out(e) for e in events], total, params)
 
 

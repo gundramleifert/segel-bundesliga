@@ -36,6 +36,7 @@ import type {
   ApproveBody,
   BankAccountIn,
   BankAccountOut,
+  BoatOut,
   BodyImportMedia,
   BodyUploadClaimDocument,
   BodyUploadClubLogo,
@@ -6375,6 +6376,110 @@ export const useUpdateEvent = <TError = ErrorType<ProblemDetails>,
       > => {
       return useMutation(getUpdateEventMutationOptions(options), queryClient);
     }
+
+export const getListEventBoatsUrl = (eventId: number,) => {
+
+
+
+
+  return `/api/admin/events/${eventId}/boats`
+}
+
+/**
+ * Story VA-8: the boats as they lie at the dock — number, colour, name — for the
+ * event's *Set up › Boats*, a draft's too. A short list bounded by the event, so no
+ * page.
+ * @summary The event's boats
+ */
+export const listEventBoats = async (eventId: number, options?: RequestInit): Promise<BoatOut[]> => {
+
+  return http<BoatOut[]>(getListEventBoatsUrl(eventId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListEventBoatsQueryKey = (eventId: number,) => {
+    return [
+    `/api/admin/events/${eventId}/boats`
+    ] as const;
+    }
+
+
+export const getListEventBoatsQueryOptions = <TData = Awaited<ReturnType<typeof listEventBoats>>, TError = ErrorType<ProblemDetails>>(eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventBoats>>, TError, TData>>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListEventBoatsQueryKey(eventId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listEventBoats>>> = ({ signal }) => listEventBoats(eventId, { signal });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: eventId !== null && eventId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listEventBoats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListEventBoatsQueryResult = NonNullable<Awaited<ReturnType<typeof listEventBoats>>>
+export type ListEventBoatsQueryError = ErrorType<ProblemDetails>
+
+
+export function useListEventBoats<TData = Awaited<ReturnType<typeof listEventBoats>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventBoats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventBoats>>,
+          TError,
+          Awaited<ReturnType<typeof listEventBoats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventBoats<TData = Awaited<ReturnType<typeof listEventBoats>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventBoats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listEventBoats>>,
+          TError,
+          Awaited<ReturnType<typeof listEventBoats>>
+        > , 'initialData'
+      >, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListEventBoats<TData = Awaited<ReturnType<typeof listEventBoats>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventBoats>>, TError, TData>>, }
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary The event's boats
+ */
+
+export function useListEventBoats<TData = Awaited<ReturnType<typeof listEventBoats>>, TError = ErrorType<ProblemDetails>>(
+ eventId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listEventBoats>>, TError, TData>>, }
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListEventBoatsQueryOptions(eventId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetReadinessUrl = (eventId: number,) => {
 
@@ -15877,6 +15982,8 @@ export const getListAllPostsUrl = (params?: ListAllPostsParams,) => {
 }
 
 /**
+ * Every post this person may change — the site's editor all of them, a regatta's
+ * editor that regatta's, whoever wrote them (Story R-1).
  * @summary All posts, drafts included
  */
 export const listAllPosts = async (params?: ListAllPostsParams, options?: RequestInit): Promise<PagePostAdminSummary> => {

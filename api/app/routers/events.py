@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections import Counter
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +25,8 @@ from app import authz
 from app.auth import current_user, forbidden, require_event_control, require_event_manager_for
 from app.authz import ObjectRef
 from app.db import get_session
+from app.filters import EventFilter
+from app.listing import ListDepends
 from app.live import event_topic, hub
 from app.models import (
     Boat,
@@ -40,8 +42,8 @@ from app.models.auth import ObjectType, Relation, User
 from app.models.racing import BOAT_COLORS
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
-from app.routers.public import _EVENT_LOAD, _event_out, search_events
-from app.schemas.public import ClubOut, EventOut
+from app.routers.public import _EVENT_LOAD, _event_out
+from app.schemas.public import BoatOut, ClubOut, EventOut
 from app.services import (
     adopt_series_registrations,
     candidate_clubs,
@@ -56,6 +58,7 @@ from app.services import (
 )
 from app.services.events import MatchdayTaken, NoFreeSlug, matchday_in, place_event
 from app.services.lookup import get_or_404
+from app.services.pairing_service import clear_pairing
 
 # Permissions are attached to individual routes, not the router: creating an event is also
 # permitted to the organizers of its series or host club (Story VA-6), and everything else
@@ -203,6 +206,12 @@ class EventUpdate(BaseModel):
     squad_min: int | None = Field(default=None, ge=1, le=50)
     squad_max: int | None = Field(default=None, ge=1, le=50)
     print_settings: PrintSettingsIn | None = None
+    boats: list[BoatSpec] | None = Field(
+        default=None,
+        description="The event's boats as they are now — matched by number: an existing one "
+        "is renamed or recoloured, a new number added, a missing one removed. Sets "
+        "boat_count. Configuration: frozen by the first race.",
+    )
 
 
 # The fields that make up the **configuration** of the event: what gets drawn and sailed.
@@ -211,17 +220,11 @@ class EventUpdate(BaseModel):
 # already in a standings table. Everything else (title, dates, venue, host, logo,
 # publication) stays editable: a typo or a moved venue must remain fixable while racing.
 _CONFIGURATION_FIELDS = frozenset(
-    {"team_count", "boat_count", "flight_count", "teams_per_club", "series", "matchday"}
+    {"team_count", "boat_count", "flight_count", "teams_per_club", "series", "matchday", "boats"}
 )
 
-
-#: Story A-13 — the columns this list may be sorted by.
-EVENT_SORT = {
-    "title": Event.title,
-    "starts_on": Event.starts_on,
-    "status": Event.status,
-    "matchday": Event.matchday,
-}
+#: The size of the event — what a pairing list is drawn for.
+_SIZE_FIELDS = ("team_count", "boat_count", "flight_count")
 
 
 class SeriesChoice(BaseModel):
@@ -231,6 +234,11 @@ class SeriesChoice(BaseModel):
 
 
 class ClubChoice(BaseModel):
+    id: int
+    name: str
+
+
+class VenueChoice(BaseModel):
     id: int
     name: str
 
@@ -245,6 +253,7 @@ class EventCreateOptions(BaseModel):
     own_hosts: list[int] | None = Field(
         description="Clubs they may host an event outside a series for; null means any"
     )
+    venues: list[VenueChoice] = Field(description="Sailing areas an event may be held at")
 
 
 @router.get(
@@ -290,6 +299,10 @@ async def event_create_options(
         ],
         hosts=[ClubChoice(id=c.id, name=c.name) for c in clubs],
         own_hosts=None if own_clubs is None else sorted(own_clubs),
+        venues=[
+            VenueChoice(id=v.id, name=v.name)
+            for v in (await session.execute(select(Venue).order_by(Venue.name))).scalars()
+        ],
     )
 
 
@@ -299,7 +312,7 @@ async def event_create_options(
     summary="All events, drafts included",
 )
 async def list_all_events(
-    q: str | None = Query(default=None, description="Search in title, venue and host club"),
+    filters: EventFilter = ListDepends(EventFilter),
     params: PageParams = PageInput,
     session: AsyncSession = Depends(get_session),
     acting: User = Depends(current_user),
@@ -320,7 +333,7 @@ async def list_all_events(
     events those grants reach and nothing else — the same list, narrowed, rather than a
     tab that answers 403.
     """
-    stmt = search_events(select(Event).options(*_EVENT_LOAD), q)
+    stmt = filters.filter(select(Event).options(*_EVENT_LOAD))
     # The site's editor reads them all to name a post's or a picture's regatta — reading
     # only: every change to an event asks the model about that event.
     if not acting.can(Relation.ADMIN, Relation.EDITOR, Relation.RACE_OFFICER):
@@ -328,13 +341,7 @@ async def list_all_events(
         if reach is None:
             raise forbidden("this", [Relation.ADMIN, Relation.RACE_OFFICER])
         stmt = stmt.where(reach)
-    events, total = await paginate(
-        session,
-        stmt,
-        params,
-        sortable=EVENT_SORT,
-        default_order=[Event.starts_on.desc().nulls_first(), Event.id.desc()],
-    )
+    events, total = await paginate(session, filters.sort(stmt), params)
     return page_of([_event_out(event) for event in events], total, params)
 
 
@@ -425,6 +432,25 @@ async def get_admin_event(event_id: int, session: AsyncSession = Depends(get_ses
     return _event_out(await _with_relationships(session, event_id))
 
 
+@router.get(
+    "/{event_id}/boats",
+    response_model=list[BoatOut],
+    dependencies=[Depends(require_event_control)],
+    summary="The event's boats",
+)
+async def list_event_boats(
+    event_id: int, session: AsyncSession = Depends(get_session)
+) -> list[BoatOut]:
+    """Story VA-8: the boats as they lie at the dock — number, colour, name — for the
+    event's *Set up › Boats*, a draft's too. A short list bounded by the event, so no
+    page."""
+    await _event(session, event_id)
+    boats = (
+        await session.execute(select(Boat).where(Boat.event_id == event_id).order_by(Boat.number))
+    ).scalars()
+    return [BoatOut.model_validate(boat) for boat in boats]
+
+
 @router.patch(
     "/{event_id}",
     response_model=EventOut,
@@ -469,8 +495,42 @@ async def update_event(
         # A one-day event moved to another day stays a one-day event, as created.
         if event.ends_on is None or event.ends_on == event.starts_on:
             changes["ends_on"] = changes["starts_on"]
+    boats = changes.pop("boats", None)
+    if boats is not None:
+        changes["boat_count"] = len(boats)
+    resized = any(f in changes and changes[f] != getattr(event, f) for f in _SIZE_FIELDS)
     for field, value in changes.items():
         setattr(event, field, value)
+    if resized:
+        # A list drawn for the old size no longer fits it, and nothing has been sailed on it
+        # — the configuration would be frozen otherwise (Story VA-8, decided 2026-10-25).
+        await clear_pairing(session, event.id)
+    if boats is not None:
+        await set_boats(session, event, [BoatSpec(**b) for b in boats])
+    elif "boat_count" in changes and resized:
+        # A count alone: the boats there keep their colour and name, a new one gets the
+        # next league colour, as at creation.
+        kept = {
+            boat.number: boat
+            for boat in (
+                await session.execute(select(Boat).where(Boat.event_id == event.id))
+            ).scalars()
+        }
+        await set_boats(
+            session,
+            event,
+            [
+                BoatSpec(
+                    number=n,
+                    color=kept[n].color,
+                    name=kept[n].name,
+                    sail_number=kept[n].sail_number,
+                )
+                if n in kept
+                else BoatSpec(number=n, color=BOAT_COLORS[n - 1] if n <= len(BOAT_COLORS) else None)
+                for n in range(1, event.boat_count + 1)
+            ],
+        )
     if event.teams_per_club > event.team_count:
         raise Problem(
             422,
@@ -1000,6 +1060,27 @@ async def _place(
     except MatchdayTaken as taken:
         raise Problem(409, "matchday-taken", str(taken), matchday=taken.matchday) from taken
     changes["series_id"] = target
+
+
+async def set_boats(session: AsyncSession, event: Event, specs: list[BoatSpec]) -> None:
+    """The event's boats made what ``specs`` says, matched by number (Story VA-8): a boat
+    that stays keeps its row — so a renamed or recoloured one keeps its place in a draw —
+    a new number is added, and a number no longer there is removed (a size change has
+    cleared the draw by then, so no race entry points at it)."""
+    existing = {
+        boat.number: boat
+        for boat in (await session.execute(select(Boat).where(Boat.event_id == event.id))).scalars()
+    }
+    for position, spec in enumerate(specs, start=1):
+        number = spec.number if spec.number is not None else position
+        boat = existing.pop(number, None)
+        if boat is None:
+            boat = Boat(event_id=event.id, number=number)
+            session.add(boat)
+        boat.color, boat.name, boat.sail_number = spec.color, spec.name, spec.sail_number
+    for leftover in existing.values():
+        await session.delete(leftover)
+    await session.flush()
 
 
 def _boats(event: Event, request: EventCreate) -> list[Boat]:

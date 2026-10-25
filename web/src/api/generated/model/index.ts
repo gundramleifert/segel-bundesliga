@@ -293,6 +293,7 @@ export * from './unclaimableReason';
 export * from './updated';
 export * from './userCreate';
 export * from './userOut';
+export * from './venueChoice';
 export * from './venueOut';
 export * from './waiverConfirmationOut';
 export * from './waiverConfirmationOutScope';

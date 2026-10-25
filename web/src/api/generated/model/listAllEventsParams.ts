@@ -5,12 +5,15 @@
  * Backend for the Deutsche Segel-Liga website: master data, standings, pairing lists. Points are never stored, only computed from raw results.
  * OpenAPI spec version: 0.1.0
  */
+import type { EventStatus } from './eventStatus';
 
 export type ListAllEventsParams = {
-/**
- * Search in title, venue and host club
- */
 q?: string | null;
+series_id?: number | null;
+host_club_id?: number | null;
+status?: EventStatus | null;
+published?: boolean | null;
+sort?: string | null;
 /**
  * Rows per page
  * @minimum 1
@@ -22,8 +25,4 @@ limit?: number;
  * @minimum 0
  */
 offset?: number;
-/**
- * Column to sort by; prefix with '-' for descending
- */
-sort?: string | null;
 };
