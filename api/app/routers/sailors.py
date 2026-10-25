@@ -396,30 +396,6 @@ async def update_sailor(
     return SailorAdminOut.model_validate(sailor)
 
 
-@router.put(
-    "/sailors/{sailor_id}/clubs/{club_id}",
-    response_model=SailorAdminOut,
-    summary="Let a sailor sail for another club too",
-)
-async def connect_sailor_to_club(
-    sailor_id: int,
-    club_id: int,
-    session: AsyncSession = Depends(get_session),
-    acting: User = Depends(current_user),
-) -> SailorAdminOut:
-    """Story V-4: a person may sail for several clubs (V-1) — but a club takes them only
-    from a club they already sail for, or from the league office. So the club that has
-    them connects them to the next; the club that wants them cannot help itself."""
-    sailor = await _sailor(session, sailor_id)
-    if await session.get(Club, club_id) is None:
-        raise Problem(404, "club-not-found", "No such club.")
-    if not authz.check(acting, Relation.MANAGER, on=sailor):
-        raise _not_yours(sailor)
-    connect_sailor(sailor, club_id)
-    await session.commit()
-    return SailorAdminOut.model_validate(sailor)
-
-
 @router.delete(
     "/sailors/{sailor_id}/clubs/{club_id}",
     response_model=SailorAdminOut,
@@ -833,8 +809,8 @@ async def _may_join(
 ) -> list[Sailor]:
     """Who joins the squad with this save — refused if they sail for another club (Story
     V-4). A club's organizer adds the people of their own club, and someone who sails for
-    nobody yet, who then sails for it; a club the person already sails for connects them
-    to a second (`PUT …/clubs/{club_id}`). The league office adds anyone."""
+    nobody yet, who then sails for it. The league office adds anyone — the one way a
+    person comes to sail for a second club."""
     current = set(
         (
             await session.execute(

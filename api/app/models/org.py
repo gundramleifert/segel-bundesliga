@@ -208,9 +208,10 @@ class SailorClub(Base, TimestampMixin):
     FGA server would hold, kept as a row because its subject is a club, not a user.
 
     It is what makes a person a club's to put in a squad, to change, to sign a waiver for
-    and to link a parent to: a club's organizer connects the people they create, and only
-    a club the person already sails for connects them to another (decided 2026-10-25 —
-    before, putting someone in a squad was enough, so any club could take anyone).
+    and to link a parent to: a club's organizer connects the people they create and those
+    who sailed for no club yet; a second club only the league office adds (decided
+    2026-10-25 — before, putting someone in a squad was enough, so any club could take
+    anyone).
     """
 
     __tablename__ = "sailor_club"

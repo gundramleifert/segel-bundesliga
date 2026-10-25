@@ -25,7 +25,7 @@ organizer enters the clubs. You cannot apply on your own yet: ask them.
 The squad's search finds anyone by name or email address and shows where they sail. Your
 squad takes the people who sail for your club, and anyone who sails for no club yet —
 they then sail for yours. Someone who sails for another club is greyed out: a person may
-sail for several clubs, but only that club or the league office lets them sail for yours.
+sail for several clubs, but only the league office adds them to a second one.
 Someone missing? *New person for our club …* creates them with their sign-in address and
 puts them in the squad.
 

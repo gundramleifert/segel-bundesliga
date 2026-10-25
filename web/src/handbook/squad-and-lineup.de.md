@@ -26,8 +26,8 @@ Sie sich noch nicht: Fragen Sie dort.
 Die Suche im Kader findet jede Person nach Name oder E-Mail-Adresse und zeigt, wo sie
 segelt. Ihr Kader nimmt die Personen auf, die für Ihren Verein segeln, und jeden, der
 noch für keinen Verein segelt — der segelt dann für Ihren. Wer für einen anderen Verein
-segelt, ist ausgegraut: Eine Person darf für mehrere Vereine segeln, für Ihren gibt sie
-aber nur jener Verein oder die Geschäftsstelle frei. Fehlt jemand? *Neue Person für
+segelt, ist ausgegraut: Eine Person darf für mehrere Vereine segeln, einem zweiten
+Verein ordnet sie aber nur die Geschäftsstelle zu. Fehlt jemand? *Neue Person für
 unseren Verein …* legt sie mit ihrer Anmeldeadresse an und nimmt sie in den Kader.
 
 ### Den Kader melden {#squad-and-lineup-squad}

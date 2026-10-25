@@ -97,10 +97,13 @@ Acceptance criteria:
     who then sails for this one. Anyone else is `squad-sailor-of-another-club` (403,
     naming them); the squad screen greys them out with that reason, and lets the
     organizer create a new person for the club right there.
-  - **Only a club they sail for passes them on**: `PUT …/sailors/{id}/clubs/{club_id}` by
-    that club's organizer connects them to another club too; the club that wants them
-    cannot connect them itself. A club lets someone go with `DELETE` — its own
-    connection only; the squads they are in stay.
+  - **A second club only through the league office** (decided 2026-10-25): a club's
+    organizer manages the sailors of their own club and nobody else's. The league office
+    adds someone to a second club by putting them in its squad. (For a day an endpoint
+    let the club a person sails for connect them to another; removed — no club decides
+    for another.) A club lets someone go with `DELETE …/sailors/{id}/clubs/{club_id}` —
+    its own connection only; the squads they are in stay, and the person sails for no
+    club then, so a new club can take them.
   - **Any club's organizer still finds everyone** — that is how they see who sails
     elsewhere, and finding the existing record beats creating a second. **Changing** a
     person: the organizer of a club they sail for, any club's while they sail for none;
@@ -110,8 +113,8 @@ Acceptance criteria:
 - If the address is already known, the **existing person is offered** instead of creating a
   second. Two records for the same person would be a mistake that is hard to fix later.
 - **A person may sail for multiple clubs.** They can be registered for one in the first
-  series and for another in the juniors — that is not an exception, it happens. The club
-  they sail for connects them to the other (above).
+  series and for another in the juniors — that is not an exception, it happens. The
+  league office connects them to the second club (above).
 - **Within a series or event, they appear only once.** Otherwise, they would start against
   themselves. This is the rule that must be enforced — not the number of clubs.
 - Addresses are stored **lowercase**: "Jan@…" and "jan@…" would otherwise be two people and
@@ -134,7 +137,7 @@ address to a person who has none; changing one would hand the person's waivers a
 to another account.
 
 Endpoints: `GET /api/admin/sailors`, `POST /api/admin/sailors`,
-`PATCH /api/admin/sailors/{id}`, `PUT`/`DELETE /api/admin/sailors/{id}/clubs/{club_id}`
+`PATCH /api/admin/sailors/{id}`, `DELETE /api/admin/sailors/{id}/clubs/{club_id}`
 
 Tests: `api/tests/stories/test_sailors_and_squads.py::TestCreatingSailors`,
 `api/tests/stories/test_sailors_and_squads.py::TestASailorSailsForTheirClub`,

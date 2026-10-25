@@ -339,7 +339,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
   2026-10-25): `SailorClub` rows are a sailor's `club` edge, and a sailor's `manager` is
   `manager from club`. That one answer decides who puts them in a squad, changes them,
   signs their waiver forms and links their parents. A club's organizer creates people for
-  their own club; only a club the person already sails for connects them to another — a
+  their own club and manages only those; a second club only the league office adds — a
   squad never makes someone a club's, or any club could take anyone.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   (a `member` tuple on the club) and organizing (`manager` or `admin` on it) are both per
@@ -476,7 +476,7 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Assign user to club, accept members, crest | `admin`; the club's `admin` (own club only) |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
 | Create and maintain sailors | `admin`; a club's `manager` for their own club (changing one: those who sail for their club, or for none yet; an address once set: `admin` only) |
-| Put a sailor in a squad, let them sail for another club too | the `manager` of a club they sail for (`manager from club` on the sailor); anyone who sails for no club yet; site `admin` |
+| Put a sailor in a squad | the `manager` of a club they sail for (`manager from club` on the sailor), or of any club while they sail for none; site `admin` (the only way to a second club) |
 | Link a parent to a sailor as guardian | the manager or admin of a club the sailor sails for; site `admin` |
 | Confirm a waiver for a sailor | the sailor; `admin`; the manager of a club they sail for; their linked `guardian` while they are a minor |
 | Write news and press releases, keep pictures | `editor` of the site (all); of a series or an event (that regatta's) |

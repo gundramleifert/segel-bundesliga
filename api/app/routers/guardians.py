@@ -9,9 +9,9 @@ these endpoints carry that rule rather than the generic tuple endpoint, which le
 sailor tuples to the site's admin.
 
 A child "belongs to" a club when they sail for it — the ``club`` edge of a sailor in the
-model (`SailorClub`, Story V-4), written when the club creates them or takes them into its
-squad, and only by a club they already sail for. Until 2026-10-25 a squad was enough, so
-any club could put a child in its squad and then link a parent to them.
+model (`SailorClub`, Story V-4), written when the club creates them or takes someone who
+sails for no club into its squad. Until 2026-10-25 a squad was enough, so any club could
+put a child in its squad and then link a parent to them.
 """
 
 from __future__ import annotations

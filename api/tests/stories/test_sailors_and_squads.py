@@ -485,9 +485,9 @@ class TestSquadRefusalsAreTyped:
 
 class TestASailorSailsForTheirClub:
     """V-4, V-1: a club's organizer puts in a squad the people who sail for their club —
-    never someone another club has. A person may still sail for several clubs, but the
-    club they sail for connects them to the next (decided 2026-10-25: before, any club
-    could put anyone in its squad and so sign their waivers and link their parents)."""
+    never someone another club has. A person may still sail for several clubs, but only
+    the league office adds them to a second (decided 2026-10-25: before, any club could
+    put anyone in its squad and so sign their waivers and link their parents)."""
 
     async def _two_clubs(self, tag: str) -> tuple[int, int, int, int]:
         """Two fresh clubs, each registered for a series of its own: (team A, club A,
@@ -530,9 +530,6 @@ class TestASailorSailsForTheirClub:
         assert taken.status_code == 403, taken.text
         assert taken.json()["type"] == "/errors/squad-sailor-of-another-club"
         assert taken.json()["sailors"] == ["Anna Eigen"]
-        # Nor can the other club connect the person to itself.
-        helped = await client.put(f"/api/admin/sailors/{sailor}/clubs/{club_b}", headers=b)
-        assert helped.status_code == 403, helped.text
 
         own = await client.put(
             f"/api/admin/teams/{team_a}/members",
@@ -541,8 +538,9 @@ class TestASailorSailsForTheirClub:
         )
         assert own.status_code == 200, own.text
 
-    async def test_the_club_they_sail_for_passes_them_on(self, client, caplog):
+    async def test_only_the_league_office_adds_a_second_club(self, client, caplog):
         team_a, club_a, team_b, club_b = await self._two_clubs("sfc2")
+        office = await as_role(client, caplog, "sfc2-office@example.com", Role.ADMIN)
         a = await as_role(client, caplog, "sfc2-a@example.com", Role.TEAM_MANAGER, club_id=club_a)
         b = await as_role(client, caplog, "sfc2-b@example.com", Role.TEAM_MANAGER, club_id=club_b)
         created = await client.post(
@@ -557,15 +555,18 @@ class TestASailorSailsForTheirClub:
         )
         sailor = created.json()["id"]
 
-        shared = await client.put(f"/api/admin/sailors/{sailor}/clubs/{club_b}", headers=a)
-        assert shared.status_code == 200, shared.text
-        assert shared.json()["club_ids"] == sorted([club_a, club_b])
+        # No club hands a person to another — not even the one they sail for.
+        handed = await client.put(f"/api/admin/sailors/{sailor}/clubs/{club_b}", headers=a)
+        assert handed.status_code in (404, 405), handed.text
+
         joined = await client.put(
             f"/api/admin/teams/{team_b}/members",
-            headers=b,
+            headers=office,
             json={"members": [{"sailor_id": sailor, "role": "crew"}]},
         )
         assert joined.status_code == 200, joined.text
+        found = await client.get("/api/admin/sailors", headers=office, params={"q": "Beide"})
+        assert found.json()["items"][0]["club_ids"] == sorted([club_a, club_b])
 
         # Each club lets go of its own connection only.
         cut = await client.delete(f"/api/admin/sailors/{sailor}/clubs/{club_a}", headers=b)

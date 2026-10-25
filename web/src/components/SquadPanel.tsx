@@ -36,7 +36,7 @@ import { RoleSelect } from "./RoleSelect";
  * the single helm, which refusal means what — are the ones that took longest to get right.
  *
  * A club takes only **its own people** (Story V-4): someone who sails for another club is
- * shown greyed, with where they sail — that club can let them sail for this one too. Who
+ * shown greyed, with where they sail — only the league office adds them here. Who
  * is not in the register yet is created right here, for this club, and lands in the draft.
  *
  * `readOnly` is what a club's member without organizer rights sees: the squad, and no

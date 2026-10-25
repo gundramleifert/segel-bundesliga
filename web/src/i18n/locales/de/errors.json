@@ -218,7 +218,7 @@
   "sailor-email-locked": "Die Adresse einer Person, die schon eine hat, ändert nur die Geschäftsstelle — sie verbindet den Eintrag mit ihrem Konto.",
   "squad-on-first-team": "Der Kader des Vereins für diese Veranstaltung gehört zu seinem ersten Team.",
   "squad-registration-rejected": "Diese Meldung wurde abgelehnt; sie hat keinen Kader.",
-  "squad-sailor-of-another-club": "Segelt für einen anderen Verein: {sailors}. Dieser Verein oder die Geschäftsstelle kann die Person auch für Ihren freigeben.",
+  "squad-sailor-of-another-club": "Segelt für einen anderen Verein: {sailors}. Ein Verein nimmt nur eigene Segler auf; einem zweiten Verein ordnet die Geschäftsstelle eine Person zu.",
   "sailor-needs-club": "Bitte geben Sie an, für welchen Ihrer Vereine die Person segelt.",
   "sailor-club-not-yours": "Sie können Personen nur für einen Verein anlegen, den Sie organisieren."
 }
