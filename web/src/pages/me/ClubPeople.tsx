@@ -243,14 +243,8 @@ function PeopleTable({
 }) {
   const { t } = useTranslation("club");
   const { account } = useAccount();
-  // The columns use only the `mutate`s, which stay the same across renders; the mutation
-  // objects change with every pending/success, and would rebuild the table each time.
-  const changed = { mutation: { onSuccess: onChanged } };
-  const { mutate: revokeTuple, error: revokeError } = useDeleteTuple(changed);
-  const { mutate: grantTuple, error: grantError } = useWriteTuple(changed);
-  const { mutate: removeMember, error: removeError } = useRemoveClubMember(changed);
-  const { mutate: acceptMember, error: acceptError } = useAcceptClubMember(changed);
-  const failed = revokeError ?? grantError ?? removeError ?? acceptError;
+  // A row's change that failed, said once under the table rather than in a narrow cell.
+  const [failed, setFailed] = useState<unknown>(null);
   const filters = useFilters(mayOrganize);
   // The tuple behind each role chip, so the club's admin can take that one away.
   const tupleOf = useMemo(() => {
@@ -355,18 +349,17 @@ function PeopleTable({
                   <RowActions
                     person={row.original}
                     self={isSelf(row.original, account?.id)}
+                    clubId={clubId}
                     tupleOf={tupleOf}
-                    onAccept={() => acceptMember({ clubId, personId: row.original.person_id })}
-                    onEnd={() => removeMember({ clubId, personId: row.original.person_id })}
-                    onRevoke={(tupleId) => revokeTuple({ tupleId })}
-                    onGrant={(user, relation) => grantTuple({ data: { user, relation, object: `club:${clubId}` } })}
+                    onChanged={onChanged}
+                    onFailed={setFailed}
                   />
                 ),
               }),
             ]
           : []),
       ]),
-    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, removeMember, acceptMember, revokeTuple, grantTuple, onChanged, filters],
+    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, onChanged, filters],
   );
 
   return (
@@ -380,16 +373,16 @@ function PeopleTable({
         search={t("people.search")}
         rowTestId={(p) => p.person_id}
       />
-      {failed && <ErrorMessage text={errorText(failed)} testId="my-club-member-revoke-error" />}
+      {failed != null && <ErrorMessage text={errorText(failed)} testId="my-club-member-revoke-error" />}
     </div>
   );
 }
 
-/** The roles a club's admin hands out from a row — what `members.relations` names. */
 // One empty list while the tuples aren't read (or not yet): a fresh `[]` each render would
 // rebuild the table's columns every time.
 const NO_TUPLES: TupleOut[] = [];
 
+/** The roles a club's admin hands out from a row — what `members.relations` names. */
 const CLUB_ROLES = [Relation.admin, Relation.manager, Relation.treasurer] as const;
 
 /** A row's key in test ids: the account, else the person record. */
@@ -400,26 +393,43 @@ const isSelf = (p: ClubPersonOut, accountId: number | undefined) => p.user_id !=
  * request, withdraw an invitation, give or take a role (an account's — a person without
  * one holds none), end a membership. Ending one's own
  * membership is not offered here — that is *Leave*, with its own confirmation — and the
- * server keeps the club's last admin (Story A-8). */
+ * server keeps the club's last admin (Story A-8). The row makes its own requests, so the
+ * table's columns never depend on a mutation's changing state. */
 function RowActions({
   person,
   self,
+  clubId,
   tupleOf,
-  onAccept,
-  onEnd,
-  onRevoke,
-  onGrant,
+  onChanged,
+  onFailed,
 }: {
   person: ClubPersonOut;
   self: boolean;
+  clubId: number;
   tupleOf: Map<string, number>;
-  onAccept: () => void;
-  onEnd: () => void;
-  onRevoke: (tupleId: number) => void;
-  onGrant: (user: string, relation: Relation) => void;
+  onChanged: () => void;
+  onFailed: (error: unknown) => void;
 }) {
   const { t } = useTranslation("club");
   const id = person.person_id;
+  const settled = {
+    mutation: {
+      onSuccess: () => {
+        onFailed(null);
+        onChanged();
+      },
+      onError: onFailed,
+    },
+  };
+  const revoke = useDeleteTuple(settled);
+  const grant = useWriteTuple(settled);
+  const remove = useRemoveClubMember(settled);
+  const accept = useAcceptClubMember(settled);
+  const onAccept = () => accept.mutate({ clubId, personId: id });
+  const onEnd = () => remove.mutate({ clubId, personId: id });
+  const onRevoke = (tupleId: number) => revoke.mutate({ tupleId });
+  const onGrant = (user: string, relation: Relation) =>
+    grant.mutate({ data: { user, relation, object: `club:${clubId}` } });
   const items: { key: string; label: string; testId: string; danger?: boolean; run: () => void }[] = [];
   if (person.status === "requested") {
     items.push({ key: "accept", label: t("members.accept"), testId: `my-club-member-accept-${id}`, run: onAccept });
