@@ -130,8 +130,9 @@ account creation when logging in with an unknown address.
 #40, `docs/PLAN_PEOPLE.md`; Stories Z-5, V-15). The club's admin adds a person in no club at
 once — the club knows who is in it (2026-09-24); a person **already in another club** joins
 only with consent, invited by the club or asking themselves, the other side accepting. A
-member leaves by ending their own membership. Until #43 the code still writes a
-`user:member:club` tuple, with no requests or invitations.
+member leaves by ending their own membership (`POST`/`DELETE /api/clubs/{id}/members`).
+Until #44 there are no requests or invitations: the league office adds someone to a
+second club.
 
 `SBL_DEV_LOGIN=true` enables `/api/dev`: there you can list test accounts and issue access tokens
 **without verification**. A role switcher then appears in the UI (bottom right). Deliberately a
@@ -213,7 +214,7 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Participation is public, affiliation is not.** Whoever is registered for a Series or
   entered into an Event is named publicly — the pairing list, the results and the standings
   carry that name anyway, so hiding it on the club page would be theatre. Plain club
-  **membership** (an active `ClubMembership`; the `member` tuple until #43) is different: it is shown only to that club's own
+  **membership** (an active `ClubMembership`) is different: it is shown only to that club's own
   members and organizers and to the site's `admin` (`GET /api/clubs/{id}/members`, Story
   V-10). Never widen
   the roster to guests, and never gate a squad or a lineup behind a login.
@@ -334,8 +335,9 @@ These points were deliberately decided this way; bypassing them costs a lot late
   (a club's admin among the club's members). Write and delete one tuple at a time — never
   rebuild a person's rows from a list of names, that is how every per-club grant was once
   silently dropped. Membership implies nothing else; it is a `ClubMembership` row, not a
-  tuple (#40 — the code keeps the `member` tuple until #43), and `check(user, member,
-  club)` answers it from the account's person.
+  tuple (#40): the model types `member` on a club, nobody writes it, and the facade
+  hands the account's person's active memberships to every check as *contextual* tuples
+  (`CONTEXTUAL` in `app/models/auth.py`) — so `check(user, member, club)` still answers.
   A club always keeps one `admin` (Story A-8): removing the last one is refused even
   while managers remain, or nobody could add a member any more.
   Four foreign keys and one small interpreter are the whole model: no authorization
@@ -348,9 +350,10 @@ These points were deliberately decided this way; bypassing them costs a lot late
   puts them in a squad, changes them, signs their waiver forms and links their parents.
   A club's organizer creates people for their own club; a second club takes consent
   (invited/requested, accepted by the other side), and a person in another club without
-  an account only the league office adds — no club can simply take anyone. Until #43 the
-  code has `Person` + `ClubMembership` (no status yet) beside the `member` tuple, linked
-  by email.
+  an account only the league office adds — no club can simply take anyone. The link is
+  made in `app/services/people.py` (registration, enrollment, every sign-in); deleting an
+  account keeps its person and clears `user_id`. Until #44 a second club is the league
+  office's to add.
 - **A person can be in several clubs, and an account has no club of its own.** Membership
   and organizing (`manager` or `admin` on it) are both per
   club and independent; there is no `User.club_id` (removed 2026-09-25, Story Z-3). Which
@@ -490,7 +493,7 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Pairing lists, accounts | `admin` |
 | See, write and delete tuples on an object | its `admin` — site admin everywhere, a series' admin on its events, the host club's on its events; a club's admin among the club's members |
 | Enter results, run races, trackers | `race_officer` of the event — held on it, its series, its host club or the site |
-| Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club must accept (#40, until #43: a `member` tuple, no consent) |
+| Add a person to a club, invite, accept a request, crest | `admin`; the club's `admin` (own club only); a person already in another club must accept (#40; until #44 only the site's `admin` adds them) |
 | Register participants for Series/Event, squads, lineups | the club's `manager` or `admin` (own club), site `admin` |
 | Create and maintain people (sailors) | `admin`; a club's `manager` for their own club (changing one: its active members, or people in no club; an address once set: `admin` only) |
 | Put a person in a squad | the `manager` of a club they are an active member of (`manager from club`), or of any club while they are in none; site `admin` |

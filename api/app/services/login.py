@@ -34,7 +34,7 @@ from app.config import settings
 from app.mail import MailError, send_login_code
 from app.models.auth import Identity, IdentityProvider, LoginCode, ObjectType, Relation, User
 from app.problems import Problem
-from app.services import grants, passwords
+from app.services import grants, passwords, people
 
 
 class LoginError(Problem):
@@ -263,6 +263,9 @@ async def _resolve_user(
     # Whoever proves themselves here has claimed the address — via a one-time code sent to
     # it, or via a provider that already verified it. That counts as a confirmed sign-up.
     user.email_verified = True
+    # Every account has its person (#40) — created, or the one under this address now
+    # that the address is proven.
+    await people.person_for(session, user)
 
     known = {(row.provider, row.subject) for row in user.identities}
     if (provider, subject) not in known:
@@ -307,7 +310,12 @@ async def register(session: AsyncSession, email: str, display_name: str) -> None
 
     user = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if user is None:
-        session.add(User(email=email, display_name=name, email_verified=False))
+        user = User(email=email, display_name=name, email_verified=False)
+        session.add(user)
+        await session.flush()
+        # A person of their own unless one already uses the address — that one becomes
+        # theirs when the code proves it (`app/services/people.py`).
+        await people.person_for(session, user)
         await session.commit()
 
     # Even for a known address: the flow must be indistinguishable from the outside.

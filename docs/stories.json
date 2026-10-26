@@ -538,14 +538,14 @@
   "story": "V-9",
   "path": "no account yet",
   "who": "club admin",
-  "what": "refused with 404 — an account must exist; nobody is added"
+  "what": "refused with 404 — nobody is on record under the address; nobody is added"
  },
  "J-3.10": {
   "journey": "J-3",
   "story": "Z-5",
   "path": "leaves",
   "who": "club member",
-  "what": "the member tuple is gone; the club is no longer in my space; the sailor record stays"
+  "what": "the membership is gone; the club is no longer in my space; the person record stays"
  },
  "J-3.2": {
   "journey": "J-3",
@@ -559,7 +559,7 @@
   "story": "Z-4",
   "path": "main",
   "who": "person",
-  "what": "the address is verified; the account has no role and no club"
+  "what": "the address is verified; the account has its own person record (#40), no role and no club"
  },
  "J-3.4": {
   "journey": "J-3",
@@ -573,14 +573,14 @@
   "story": "Z-5",
   "path": "main",
   "who": "club admin",
-  "what": "a `member` tuple on the club — at once, no acceptance step"
+  "what": "an active membership of the person — at once, no acceptance step while they are in no other club"
  },
  "J-3.6": {
   "journey": "J-3",
   "story": "Z-8",
   "path": "main",
   "who": "club member",
-  "what": "my space lists the club with the chip *member*; no sailor record is linked yet"
+  "what": "my space lists the club with the chip *member*; the person record has no date of birth yet"
  },
  "J-3.7": {
   "journey": "J-3",
@@ -594,14 +594,14 @@
   "story": "V-4",
   "path": "main",
   "who": "team manager",
-  "what": "a sailor record with the person's address (lowercased) and date of birth"
+  "what": "the member's person record carries a date of birth — the club's to change, being its member"
  },
  "J-3.9": {
   "journey": "J-3",
   "story": "S-2",
   "path": "main",
   "who": "club member",
-  "what": "the record, linked by the verified address, carries the corrected name and date"
+  "what": "their own record (`Person.user_id`) carries the corrected name and date"
  },
  "J-4": {
   "title": "An organizer sets up a series",
@@ -1288,12 +1288,12 @@
   "anchor": "z-4--register-yourself"
  },
  "Z-5": {
-  "title": "Membership is a tuple the club's admin writes",
+  "title": "Membership is the club admin's to give",
   "status": "●",
   "role": "Sailor",
   "phase": "Account and club",
   "file": "docs/userstories/sailor.md",
-  "anchor": "z-5--membership-is-a-tuple-the-clubs-admin-writes"
+  "anchor": "z-5--membership-is-the-club-admins-to-give"
  },
  "Z-6": {
   "title": "Removing an account deactivates it",

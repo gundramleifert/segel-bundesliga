@@ -31,6 +31,7 @@ from app.models import Club
 from app.models.auth import ObjectType, Relation, Role, User
 from app.problems import Problem
 from app.schemas.auth import TokenOut
+from app.services import people
 from app.tracking.emulate_job import emulate_event
 
 router = APIRouter(prefix="/api/dev", tags=["development"])
@@ -138,6 +139,7 @@ async def dev_login(
     # Like a real sign-in: whoever passes through here is considered verified. Otherwise
     # the role switcher couldn't be used for membership stories.
     user.email_verified = True
+    await people.person_for(session, user)
     await session.commit()
 
     token, expires_in = create_access_token(user)

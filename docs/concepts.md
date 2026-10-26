@@ -161,10 +161,10 @@ up. The endpoint must check when the squad is registered; a test maintains the i
 
 ## Person, Account and Club Membership
 
-Decided 2026-10-25 (#40, `docs/PLAN_PEOPLE.md`). **Until #43 the code still has the old
-model**: a `Person` (named `Sailor` until #42) with `ClubMembership` rows for sailing — no status yet — and a `member` tuple
-(`user:member:club`, Story Z-5) on an account for membership — two records for one
-human, joined by email.
+Decided 2026-10-25 (#40, `docs/PLAN_PEOPLE.md`), built in #42 and #43. Before, a `Sailor`
+with `SailorClub` rows for sailing and a `member` tuple (`user:member:club`, Story Z-5) on
+an account for membership were two records for one human, joined by email. The consent
+flow (`invited`, `requested`) is #44.
 
 **`Person`** — a human, once in the instance: name, date of birth, contact email,
 federation id, the profile switch (S-4). What squads, crews, waivers, results and

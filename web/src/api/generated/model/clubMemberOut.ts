@@ -11,12 +11,14 @@ import type { Relation } from './relation';
  * A fellow member of the club, as seen by another member (Story V-10).
  *
  * Not to be confused with `MemberOut`: that one is the sporting roster (squad/lineup)
- * and is public to everyone. This is the account-level affiliation — the ``member``
- * tuple — and is only ever shown to the club's own people or staff. Deliberately
+ * and is public to everyone. This is the affiliation — an active ``ClubMembership``
+ * (#40) — and is only ever shown to the club's own people or staff. Deliberately
  * without email: contact data stays the club admin's business.
  */
 export interface ClubMemberOut {
-  user_id: number;
+  person_id: number;
+  /** The person's account — none for a child, for instance. */
+  user_id?: number | null;
   display_name: string;
   /** What this person is to the club: member, manager, … */
   relations?: Relation[];

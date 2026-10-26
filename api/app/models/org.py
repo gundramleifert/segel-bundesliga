@@ -21,8 +21,23 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.auth import User
     from app.models.competition import Event, Series
     from app.models.racing import RaceEntry
+
+
+class MembershipStatus(StrEnum):
+    """Where a person's membership of a club stands (#40, `docs/PLAN_PEOPLE.md` §3).
+
+    Only ``active`` counts — as a member and as "sails for", in every permission question.
+    The other two wait for the other side: a club invited someone already in another club,
+    or a person asked to join; either is accepted by whoever did not ask, and declining
+    deletes the row.
+    """
+
+    ACTIVE = "active"
+    INVITED = "invited"
+    REQUESTED = "requested"
 
 
 class TeamStatus(StrEnum):
@@ -87,22 +102,35 @@ class Person(Base, TimestampMixin):
     # starts hidden and opens by itself on the eighteenth birthday unless they decided.
     # Only the sailor's own account writes this (`PATCH /api/people/me`).
     profile_public_choice: Mapped[bool | None] = mapped_column(default=None)
+    # The account this person signs in with (#40, `docs/PLAN_PEOPLE.md` §2): every account
+    # has exactly one person, a person need not have an account (a child, another club's
+    # sailor, an import). Linked by verified address (`app/services/people.py`); deleting
+    # the account clears it and keeps the person — results, squads and waivers point here.
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("app_user.id", ondelete="SET NULL"), unique=True, default=None
+    )
 
+    user: Mapped[User | None] = relationship(back_populates="person", lazy="raise")
     squad_places: Mapped[list[TeamMembership]] = relationship(back_populates="person")
-    # The clubs this person sails for — the ``club`` edge of a sailor in the permission
-    # model (``manager from club``, `app/models/auth.py`). Loaded with the sailor, as an
-    # event brings its host club: every check on a sailor walks it.
+    # The clubs this person is in, asked or invited to — the active ones are the ``club``
+    # edge of a person in the permission model (``manager from club``,
+    # `app/models/auth.py`) and what makes their account a ``member``. Loaded with the
+    # person, as an event brings its host club: every check on a person walks it.
     club_memberships: Mapped[list[ClubMembership]] = relationship(
         back_populates="person", cascade="all, delete-orphan", lazy="selectin"
     )
 
     @property
     def club_ids(self) -> list[int]:
-        return sorted(link.club_id for link in self.club_memberships)
+        """The clubs this person is an active member of — and sails for."""
+        return sorted(
+            link.club_id for link in self.club_memberships if link.status == MembershipStatus.ACTIVE
+        )
 
     @property
     def full_name(self) -> str:
-        return f"{self.first_name} {self.last_name}"
+        # An account's person may carry one name only (`app/services/people.py`).
+        return " ".join(part for part in (self.first_name, self.last_name) if part)
 
     @property
     def profile_public(self) -> bool:
@@ -204,14 +232,15 @@ class Team(Base, TimestampMixin):
 
 
 class ClubMembership(Base, TimestampMixin):
-    """A sailor sails for this club (Story V-4) — the tuple ``club:3 club person:7`` an
-    FGA server would hold, kept as a row because its subject is a club, not a user.
+    """A person is in this club (Stories V-4, Z-5; #40) — **the** membership: an active
+    row is both "member" and "sails for". The tuple ``club:3 club person:7`` an FGA server
+    would hold, kept as a row because its subject is a person, not an account; the
+    account's ``member`` on the club is answered from it (`app/authz.py`).
 
     It is what makes a person a club's to put in a squad, to change, to sign a waiver for
     and to link a parent to: a club's organizer connects the people they create and those
-    who sailed for no club yet; a second club only the league office adds (decided
-    2026-10-25 — before, putting someone in a squad was enough, so any club could take
-    anyone).
+    in no club yet; a second club takes consent (``invited``/``requested``, step 4 of
+    `docs/PLAN_PEOPLE.md`) or the league office.
     """
 
     __tablename__ = "club_membership"
@@ -220,6 +249,9 @@ class ClubMembership(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     person_id: Mapped[int] = mapped_column(ForeignKey("person.id", ondelete="CASCADE"), index=True)
     club_id: Mapped[int] = mapped_column(ForeignKey("club.id", ondelete="CASCADE"), index=True)
+    status: Mapped[MembershipStatus] = mapped_column(
+        String(16), default=MembershipStatus.ACTIVE, server_default=MembershipStatus.ACTIVE
+    )
 
     person: Mapped[Person] = relationship(back_populates="club_memberships")
 

@@ -35,7 +35,7 @@ from app.models.auth import (
 from app.pagination import Page, PageInput, PageParams, page_of, paginate
 from app.problems import Problem
 from app.schemas.auth import TokenOut
-from app.services import grants, passwords, personal
+from app.services import grants, passwords, people, personal
 from app.services.login import (
     login_with_oidc,
     login_with_password,
@@ -409,9 +409,10 @@ async def delete_my_account(
     become a deactivation too, or gain a precondition ("no active registrations"). Revisit
     before real seasons depend on this data — don't just leave it as-is.
 
-    A ``Person`` is a separate record linked only by email, never by foreign key, so
-    deleting the account never touches squad, series, or event history — only the account
-    row and the administrative records that point at it by id.
+    The account's ``Person`` stays, unlinked (#43): squads, results and waivers point at
+    the person, never at the account, so deleting the account never touches squad, series
+    or event history — only the account row and the administrative records that point at
+    it by id.
     """
     # A club this account is the last admin of would be left unmanaged (Story A-8) — the
     # whole account going is one way past `grants.revoke`'s guard.
@@ -427,6 +428,8 @@ async def delete_my_account(
     # Documents and their files, the bank account and unsent claims go; a submitted
     # claim stays with the club that pays it, unlinked (Stories S-5, S-6, F-2).
     await personal.forget(session, acting)
+    # The person stays — results, squads and waivers point at it (#43).
+    people.unlink(acting)
     # Grants, identities and the password credential cascade via the ORM relationships
     # (cascade="all, delete-orphan").
     await session.delete(acting)
@@ -486,6 +489,8 @@ async def create_user(
     user.identities = []
     session.add(user)
     await session.flush()
+    # Their person (#40) — the one a club already has under this address, or a new one.
+    await people.person_for(session, user)
     # Relations at creation are site tuples: a club or event tuple names an object, which
     # the "＋" on the Accounts tab writes one at a time. Written like every other tuple —
     # checked against the model and in the audit log.
@@ -648,14 +653,11 @@ async def delete_tuple(
     acting: User = Depends(current_user),
 ) -> None:
     """Exactly this tuple goes; every other one the person holds stays. Refuses to delete
-    the caller's own `admin` and a club's last organizer (Story A-8)."""
+    the caller's own `admin` and a club's last organizer (Story A-8). Leaving a club is
+    not a tuple any more (#40): `DELETE /api/clubs/{id}/members/{person_id}`."""
     row = await get_or_404(session, Grant, tuple_id, code="tuple-not-found")
     obj = await grants.resolve(session, row.object_type, row.object_id)
-    # Leaving a club is the one write a person makes on themselves (Story Z-5): their
-    # own `member` tuple. Everything else needs the object's admin.
-    leaving = row.relation == Relation.MEMBER and row.user_id == acting.id
-    if not leaving:
-        _may_administer(acting, row.object_type, obj)
+    _may_administer(acting, row.object_type, obj)
     await grants.revoke_row(session, row, actor=acting)
     await session.commit()
 

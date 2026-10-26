@@ -17,7 +17,8 @@ from sqlalchemy import select
 
 from app.db import SessionLocal
 from app.models import Club, Series, Team
-from app.models.auth import Grant, Relation, Role
+from app.models.auth import Role
+from tests.accounts import join
 from tests.stories.test_login_and_roles import login_as, make_user
 from tests.stories.test_registration import auth_headers
 
@@ -35,13 +36,8 @@ async def _as(client, caplog, email: str, *roles: str, club_id: int | None = Non
 
 
 async def _make_member(email: str, club_id: int) -> None:
-    """Writes the ``member`` tuple on the club for an existing account (Story Z-5)."""
-    from app.models.auth import User
-
-    async with SessionLocal() as session:
-        user = (await session.execute(select(User).where(User.email == email))).scalar_one()
-        session.add(Grant(relation=Relation.MEMBER, club_id=club_id, user_id=user.id))
-        await session.commit()
+    """The existing account's person becomes an active member of the club (Story Z-5)."""
+    await join(email, club_id)
 
 
 class TestMyClubs:

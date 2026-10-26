@@ -18,6 +18,7 @@ from sqlalchemy import select
 from app.db import SessionLocal
 from app.models import AuditLog, Club, Event, Series
 from app.models.auth import Grant, Relation, Role, User
+from tests.accounts import account
 from tests.stories.test_login_and_roles import _headers, _problem_code
 
 IBAN = "DE89370400440532013000"
@@ -30,16 +31,9 @@ def _png() -> bytes:
 
 
 async def person(email: str, *grants: Grant) -> int:
-    """An account holding exactly these tuples (an old one of that address goes first)."""
-    async with SessionLocal() as session:
-        old = (await session.execute(select(User).where(User.email == email))).scalar_one_or_none()
-        if old is not None:
-            await session.delete(old)
-            await session.commit()
-        user = User(email=email, display_name=email.split("@")[0], grants=list(grants))
-        session.add(user)
-        await session.commit()
-        return user.id
+    """An account holding exactly these tuples (an old one of that address goes first); a
+    club's ``member`` among them is its person's membership (`tests/accounts.py`)."""
+    return await account(email, *grants)
 
 
 @dataclass

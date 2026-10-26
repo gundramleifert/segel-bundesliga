@@ -87,16 +87,16 @@ async def _team(club_id: int, *, series_id: int | None = None, event_id: int | N
 
 
 async def _person(email: str, *team_ids: int, birth_date: date | None = None) -> int:
-    """A person record under this address, in these teams (squads or crews)."""
+    """The person under this address, in these teams (squads or crews) — the one their
+    account's sign-in made (#40), else a new one."""
     async with SessionLocal() as session:
-        old = (
+        person = (
             await session.execute(select(Person).where(Person.email == email))
         ).scalar_one_or_none()
-        if old is not None:
-            await session.delete(old)
-            await session.commit()
-        person = Person(first_name="Sai", last_name="Lor", email=email, birth_date=birth_date)
-        session.add(person)
+        if person is None:
+            person = Person(email=email)
+            session.add(person)
+        person.first_name, person.last_name, person.birth_date = "Sai", "Lor", birth_date
         await session.flush()
         session.add_all(TeamMembership(team_id=t, person_id=person.id) for t in team_ids)
         await session.commit()

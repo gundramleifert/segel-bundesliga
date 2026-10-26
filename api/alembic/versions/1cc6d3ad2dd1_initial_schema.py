@@ -1,15 +1,15 @@
 """initial schema
 
-Revision ID: d76358a4dd89
+Revision ID: 1cc6d3ad2dd1
 Revises: 
-Create Date: 2026-10-26 06:35:31.664512
+Create Date: 2026-10-26 07:10:34.952929
 """
 from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = 'd76358a4dd89'
+revision: str = '1cc6d3ad2dd1'
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -125,22 +125,6 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_login_code_email'), ['email'], unique=False)
         batch_op.create_index(batch_op.f('ix_login_code_expires_at'), ['expires_at'], unique=False)
 
-    op.create_table('person',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('first_name', sa.String(length=80), nullable=False),
-    sa.Column('last_name', sa.String(length=80), nullable=False),
-    sa.Column('email', sa.String(length=254), nullable=True),
-    sa.Column('birth_date', sa.Date(), nullable=True),
-    sa.Column('federation_id', sa.String(length=40), nullable=True),
-    sa.Column('profile_public_choice', sa.Boolean(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_person'))
-    )
-    with op.batch_alter_table('person', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_person_email'), ['email'], unique=True)
-        batch_op.create_index(batch_op.f('ix_person_federation_id'), ['federation_id'], unique=False)
-
     op.create_table('venue',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('slug', sa.String(length=64), nullable=False),
@@ -196,21 +180,6 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id', name=op.f('pk_club_bank_account')),
     sa.UniqueConstraint('club_id', name=op.f('uq_club_bank_account_club_id'))
     )
-    op.create_table('club_membership',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('person_id', sa.Integer(), nullable=False),
-    sa.Column('club_id', sa.Integer(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_club_membership_club_id_club'), ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_club_membership_person_id_person'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_club_membership')),
-    sa.UniqueConstraint('person_id', 'club_id', name=op.f('uq_club_membership_person_id'))
-    )
-    with op.batch_alter_table('club_membership', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_club_membership_club_id'), ['club_id'], unique=False)
-        batch_op.create_index(batch_op.f('ix_club_membership_person_id'), ['person_id'], unique=False)
-
     op.create_table('identity',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -258,6 +227,25 @@ def upgrade() -> None:
     with op.batch_alter_table('payment_run', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_payment_run_payer_club_id'), ['payer_club_id'], unique=False)
 
+    op.create_table('person',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('first_name', sa.String(length=80), nullable=False),
+    sa.Column('last_name', sa.String(length=80), nullable=False),
+    sa.Column('email', sa.String(length=254), nullable=True),
+    sa.Column('birth_date', sa.Date(), nullable=True),
+    sa.Column('federation_id', sa.String(length=40), nullable=True),
+    sa.Column('profile_public_choice', sa.Boolean(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['app_user.id'], name=op.f('fk_person_user_id_app_user'), ondelete='SET NULL'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_person')),
+    sa.UniqueConstraint('user_id', name=op.f('uq_person_user_id'))
+    )
+    with op.batch_alter_table('person', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_person_email'), ['email'], unique=True)
+        batch_op.create_index(batch_op.f('ix_person_federation_id'), ['federation_id'], unique=False)
+
     op.create_table('personal_document',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -302,6 +290,22 @@ def upgrade() -> None:
         batch_op.create_index(batch_op.f('ix_series_league_id'), ['league_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_series_slug'), ['slug'], unique=True)
         batch_op.create_index(batch_op.f('ix_series_year'), ['year'], unique=False)
+
+    op.create_table('club_membership',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('person_id', sa.Integer(), nullable=False),
+    sa.Column('club_id', sa.Integer(), nullable=False),
+    sa.Column('status', sa.String(length=16), server_default='active', nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['club_id'], ['club.id'], name=op.f('fk_club_membership_club_id_club'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['person_id'], ['person.id'], name=op.f('fk_club_membership_person_id_person'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_club_membership')),
+    sa.UniqueConstraint('person_id', 'club_id', name=op.f('uq_club_membership_person_id'))
+    )
+    with op.batch_alter_table('club_membership', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_club_membership_club_id'), ['club_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_club_membership_person_id'), ['person_id'], unique=False)
 
     op.create_table('event',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -1051,6 +1055,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_event_host_club_id'))
 
     op.drop_table('event')
+    with op.batch_alter_table('club_membership', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_club_membership_person_id'))
+        batch_op.drop_index(batch_op.f('ix_club_membership_club_id'))
+
+    op.drop_table('club_membership')
     with op.batch_alter_table('series', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_series_year'))
         batch_op.drop_index(batch_op.f('ix_series_slug'))
@@ -1061,6 +1070,11 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_personal_document_user_id'))
 
     op.drop_table('personal_document')
+    with op.batch_alter_table('person', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_person_federation_id'))
+        batch_op.drop_index(batch_op.f('ix_person_email'))
+
+    op.drop_table('person')
     with op.batch_alter_table('payment_run', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_payment_run_payer_club_id'))
 
@@ -1071,11 +1085,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_identity_provider'))
 
     op.drop_table('identity')
-    with op.batch_alter_table('club_membership', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_club_membership_person_id'))
-        batch_op.drop_index(batch_op.f('ix_club_membership_club_id'))
-
-    op.drop_table('club_membership')
     op.drop_table('club_bank_account')
     op.drop_table('bank_account')
     with op.batch_alter_table('waiver_text', schema=None) as batch_op:
@@ -1086,11 +1095,6 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_venue_slug'))
 
     op.drop_table('venue')
-    with op.batch_alter_table('person', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_person_federation_id'))
-        batch_op.drop_index(batch_op.f('ix_person_email'))
-
-    op.drop_table('person')
     with op.batch_alter_table('login_code', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_login_code_expires_at'))
         batch_op.drop_index(batch_op.f('ix_login_code_email'))

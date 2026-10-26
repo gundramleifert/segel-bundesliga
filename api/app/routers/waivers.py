@@ -954,11 +954,7 @@ async def _may_view_scan(
             acting, Relation.MANAGER, Relation.RACE_OFFICER, on=event
         ):
             return True
-    if (
-        acting.email_verified
-        and person.email is not None
-        and person.email.lower() == acting.email.lower()
-    ):
+    if person.user_id is not None and person.user_id == acting.id:
         return True
     return authz.check(acting, Relation.MANAGER, on=person)
 
@@ -974,12 +970,8 @@ async def _may_confirm_for(session: AsyncSession, acting: User, person: Person) 
     S-3); or a guardian the child's club linked to the sailor (Stories V-13, S-8). Not any
     club's manager: the `team_manager` *summary* role once let one club sign for every
     sailor on the site. Returns which of the three it is — the first that applies."""
-    own = (
-        acting.email_verified
-        and person.email is not None
-        and person.email.lower() == acting.email.lower()
-    )
-    if own:
+    # Their own account — linked to them by a verified address (`app/services/people.py`).
+    if person.user_id is not None and person.user_id == acting.id:
         return OWN
     if authz.check(acting, Relation.MANAGER, on=person):
         return STAFF

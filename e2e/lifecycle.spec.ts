@@ -584,14 +584,17 @@ describeStory("A-13: every long list pages, sorts and searches — in the URL", 
     // Searching is the server's as well — the result may be a single row out of hundreds,
     // which a client-side filter over one page could never find.
     const someone = (await firstName().textContent())?.trim().split(/\s+/).pop() ?? "";
+    // The search covers name and email, so the word is somewhere in the row — "ASVW"
+    // names a treasurer and is in every ASVW address.
+    const firstRow = () => table.locator("tbody tr").first();
     await page.getByTestId("admin-people-search-input").fill(someone);
     await expect(page).toHaveURL(new RegExp(`[?&]q=${encodeURIComponent(someone)}`));
-    await expect(firstName()).toContainText(someone);
+    await expect(firstRow()).toContainText(someone, { ignoreCase: true });
 
     // A deep link carries all three at once — the state this story exists for.
     await page.goto(`/office/people?sort=-last_name&q=${encodeURIComponent(someone)}`);
     await expect(page.getByTestId("admin-people-search-input")).toHaveValue(someone);
-    await expect(firstName()).toContainText(someone);
+    await expect(firstRow()).toContainText(someone, { ignoreCase: true });
 
     await expectNoSidewaysScroll(page, testInfo);
   });

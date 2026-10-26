@@ -4,29 +4,31 @@ import { useTranslation } from "react-i18next";
 
 import { useGetModel, useWriteTuple } from "../api/generated/sbl";
 import type { ObjectType } from "../api/generated/model/objectType";
-import type { Relation } from "../api/generated/model/relation";
+import { Relation } from "../api/types";
 import { useAsync } from "../api/useApi";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { ErrorMessage } from "./Blocks";
 
 /** Story Z-2: name one person to one or more relations on `object` — the email of their
  *  account and what they are there (a new member who is also the treasurer: both at once).
- *  The relations offered are the ones the model defines for the object's type, read from
- *  the server rather than copied here. Each ticked relation is its own tuple, written one
+ *  The relations offered are the ones the model lets a tuple name on the object's type,
+ *  read from the server rather than copied here; a club's *member* is not among them — it
+ *  is a membership, not a tuple (#40) — and comes first through `addMember` when given. Each ticked relation is its own tuple, written one
  *  after the other — never a list replacing a person's rows (CLAUDE.md, Permissions). Lives
  *  in an `AddDialog`: `onWritten` refreshes what shows the tuples after each one, `onDone`
  *  closes the dialog once all are written. */
 export function GrantForm({
   object,
   testId,
-  initialRelation,
+  addMember,
   onWritten,
   onDone,
 }: {
   object: string;
   testId: string;
-  /** Ticked from the start when the model offers it — a club's *＋ Member* starts at `member`. */
-  initialRelation?: Relation;
+  /** Offers *Member* first, ticked — a club's *＋ Member*: adds the person to the club
+   *  before any role is written. */
+  addMember?: (email: string) => Promise<unknown>;
   /** After each tuple written — also when a later one is refused and the dialog stays. */
   onWritten: () => void;
   onDone: () => void;
@@ -34,26 +36,33 @@ export function GrantForm({
   const { t } = useTranslation("admin");
   const model = useAsync(useGetModel());
   const objectType = object.split(":")[0] as ObjectType;
-  const relations: Relation[] = model.data?.types.find((entry) => entry.type === objectType)?.relations ?? [];
+  const written: Relation[] = model.data?.types.find((entry) => entry.type === objectType)?.relations ?? [];
+  const relations: Relation[] = addMember ? [Relation.member, ...written] : written;
   const [email, setEmail] = useState("");
-  const [ticked, setTicked] = useState<Relation[]>(initialRelation ? [initialRelation] : []);
+  const [ticked, setTicked] = useState<Relation[]>(addMember ? [Relation.member] : []);
   const chosen = relations.filter((r) => ticked.includes(r));
   const toggle = (r: Relation) => setTicked((now) => (now.includes(r) ? now.filter((x) => x !== r) : [...now, r]));
   const write = useWriteTuple();
+  const [memberError, setMemberError] = useState<unknown>(null);
   const submit = async () => {
     if (!email || !chosen.length) return;
-    // One tuple after the other; a refusal stops there and stays on screen. What was
-    // written before it is kept, and the list behind the dialog already shows it.
+    setMemberError(null);
+    // The membership first, then one tuple after the other; a refusal stops there and
+    // stays on screen. What was written before it is kept, and the list behind the
+    // dialog already shows it.
     for (const relation of chosen) {
       try {
-        await write.mutateAsync({ data: { user: email, relation, object } });
+        if (relation === Relation.member && addMember) await addMember(email);
+        else await write.mutateAsync({ data: { user: email, relation, object } });
         onWritten();
-      } catch {
+      } catch (error) {
+        if (relation === Relation.member) setMemberError(error);
         return;
       }
     }
     onDone();
   };
+  const error = memberError ?? write.error;
 
   return (
     <form
@@ -90,7 +99,7 @@ export function GrantForm({
           </label>
         ))}
       </fieldset>
-      {write.error && <ErrorMessage text={errorText(write.error)} testId={`${testId}-add-error`} />}
+      {error ? <ErrorMessage text={errorText(error)} testId={`${testId}-add-error`} /> : null}
       <div className="flex justify-end">
         <Button type="submit" size="sm" isDisabled={!email || !chosen.length || write.isPending} data-testid={`${testId}-add`}>
           {t("access.addButton")}

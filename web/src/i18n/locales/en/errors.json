@@ -221,5 +221,10 @@
   "squad-person-of-another-club": "Sailing for another club: {people}. A club takes only its own sailors; the league office can add someone to a second club.",
   "sailor-needs-club": "Say which of your clubs this person sails for.",
   "sailor-club-not-yours": "You can only create people for a club you organize.",
-  "context-not-found": "This is not part of your space — or it does not exist."
+  "context-not-found": "This is not part of your space — or it does not exist.",
+  "membership-forbidden": "Only the club's admin changes who is in the club.",
+  "membership-address-unknown": "Nobody here has this address — the person registers first, or the club creates them.",
+  "membership-exists": "This person is already in the club.",
+  "membership-needs-consent": "This person is already in another club. The league office adds them to a second one.",
+  "membership-not-found": "This person is not in the club."
 }

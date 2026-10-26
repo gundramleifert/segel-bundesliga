@@ -16,22 +16,16 @@ from app.models import (
     WaiverText,
 )
 from app.models.auth import Grant, IdentityProvider, LoginCode, Relation, Role, User
+from tests.accounts import forget, join
 from tests.pages import all_items
 
 
 async def make_user(
     email: str, *roles: str, active: bool = True, club_id: int | None = None
 ) -> int:
+    # The account's tuples go with it, its person is reset (`tests/accounts.py`).
+    await forget(email)
     async with SessionLocal() as session:
-        existing = (
-            await session.execute(select(User).where(User.email == email))
-        ).scalar_one_or_none()
-        if existing is not None:
-            # The account's tuples go with it (ORM cascade on `User.grants`). SQLite
-            # reuses deleted ids — a row left behind would belong to the next person.
-            await session.delete(existing)
-            await session.commit()
-
         user = User(
             email=email,
             display_name=email.split("@")[0],
@@ -280,13 +274,14 @@ class TestDeleteMyAccount:
 
     async def test_deleting_removes_the_row_its_tuples_and_its_token(self, client, caplog, ids):
         """The row goes, the token stops working immediately, and every tuple of the
-        account goes with it — membership is a tuple now (Story Z-5), and SQLite reuses
-        ids, so a leftover row would belong to the next account."""
+        account goes with it — SQLite reuses ids, so a leftover row would belong to the
+        next account. The account's person stays, unlinked, with its membership: results,
+        squads and waivers point at the person, never at the account (#43)."""
         user_id = await make_user("del-member@example.org")
         token = await login_as(client, "del-member@example.org", caplog)
         headers = {"Authorization": f"Bearer {token}"}
+        await join("del-member@example.org", ids.club("fsc"))
         async with SessionLocal() as session:
-            session.add(Grant(user_id=user_id, relation=Relation.MEMBER, club_id=ids.club("fsc")))
             session.add(Grant(user_id=user_id, relation=Relation.RACE_OFFICER))
             await session.commit()
 
@@ -305,6 +300,14 @@ class TestDeleteMyAccount:
         assert gone is None
         assert leftover == []
         assert (await client.get("/api/auth/me", headers=headers)).status_code == 401
+        async with SessionLocal() as session:
+            person = (
+                await session.execute(
+                    select(Person).where(Person.email == "del-member@example.org")
+                )
+            ).scalar_one()
+        assert person.user_id is None
+        assert person.club_ids == [ids.club("fsc")]
 
     async def test_waiver_confirmations_survive_with_recorder_cleared(self, client, caplog, ids):
         """A waiver confirmation is someone else's evidence — it must outlive the staff
@@ -661,7 +664,8 @@ class TestOrganizers:
 
         model = (await client.get("/api/auth/model", headers=headers)).json()
         by_type = {entry["type"]: entry["relations"] for entry in model["types"]}
-        assert by_type["club"] == ["admin", "manager", "member", "treasurer"]
+        # A club's `member` is a membership, not a tuple (#40): nobody writes it here.
+        assert by_type["club"] == ["admin", "manager", "treasurer"]
         me = (await client.get("/api/auth/me", headers=orga)).json()
         assert sorted(me["roles"]) == [Role.CLUB_ADMIN, Role.TEAM_MANAGER]
         await client.delete(f"/api/auth/tuples/{written.json()['id']}", headers=orga)

@@ -19,7 +19,7 @@ Acceptance criteria:
 - The address is initially just **claimed**; only when the one-time code is redeemed is it
   verified (`email_verified`). Anyone could type in someone else's address.
 - The new account has **neither role nor club**. A club's admin can then make it a member
-  ([Z-5](#z-5--membership-is-a-tuple-the-clubs-admin-writes)).
+  ([Z-5](#z-5--membership-is-the-club-admins-to-give)).
 - The response is **identical** for known and unknown addresses — otherwise, it would be
   possible to query who has an account here.
 - Registration with an existing address **overwrites nothing**.
@@ -29,42 +29,44 @@ Endpoints: `POST /api/auth/register`, then `POST /api/auth/email/verify`
 
 Tests: `api/tests/stories/test_registration.py::TestRegistering`
 
-### Z-5 ● Membership is a tuple the club's admin writes
+### Z-5 ● Membership is the club admin's to give
 As a **registered person** I want to **be made a member of my club by its admin**, so that
 I **can sail for them** — and to leave again on my own.
 
-Membership is `user:member:club` (Story Z-2), nothing else: no request, no invitation,
-no acceptance. The club's admin knows who is in the club and writes the tuple, the way a
+Membership is my person's active `ClubMembership` (#40; a `user:member:club` tuple until
+2026-10-26): no request, no invitation, no acceptance while I am in no other club. The club's admin knows who is in the club and writes the tuple, the way a
 club keeps its member list anyway. **Decision of 2026-09-24**, replacing the mutual
 consent of the first version (person applies, club approves, or vice versa): two states
 awaiting the other side, a rejection with a reason and a "both directions meet" rule were
 a lot of machinery for a fact the club already knows.
 
 Acceptance criteria:
-- The club's `admin` (or the site's) writes `member` on the club for any account —
-  `POST /api/auth/tuples` with `{user: <email>, relation: "member", object: "club:<id>"}`
-  — from the People panel on the club's Members tab, by email. Nobody else can.
-- A member **leaves** by deleting their own `member` tuple (`DELETE /api/auth/tuples/{id}`,
-  the one write a person may make on themselves); the club's admin removes a member the
-  same way. Everything else the person holds on the club stays.
+- The club's `admin` (or the site's) adds a person by the address on their record or
+  their account's — `POST /api/clubs/{id}/members` with `{email}` — from *＋ Member* on
+  the club's Members section; they are a member at once. Nobody else can, and `member` is
+  not a tuple anyone writes (`tuple-relation-invalid`). A person already in another club
+  only the site's admin adds, until they can be asked (#44, `membership-needs-consent`).
+- A member **leaves** by ending their own membership
+  (`DELETE /api/clubs/{id}/members/{person_id}`, the one change a person may make on
+  themselves); the club's admin removes a member the same way. Everything else the
+  person holds on the club — their roles, tuples — stays.
 - Being a member implies no other relation: a member is not a manager, an admin is not
   a member. My space lists both kinds (Z-8).
-- Every write and delete is in the audit log, as for every tuple.
+- Every join and leave is in the audit log.
 
 Screen: the club's Members tab on `/me/club/:id` (Stories V-12, S-7) — the People panel for the admin,
 a "Leave" button for the member. The public club page offers no way in.
 
-**After #40** (not built yet; decided 2026-10-25, [`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md)):
-- Membership is a **`ClubMembership`** row — person · club · status — not a tuple. Every
-  account is linked to exactly one **person** (`Person.user_id`), who is also the sailor
-  of V-4: one record, no matter whether they sail, sign in, or both. Being a member is an
-  `active` row; `check(user, member, club)` still answers it, from the account's person.
-- The club's admin adds a person **in no club** at once, as today. A person **already in
-  another club** joins only with consent, either way round — the club invites or the
-  person asks, the other side accepts ([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)). This revises the decision of
-  2026-09-24 for the one case it did not foresee.
-- Leaving is ending my own membership in *Me › My clubs*; the club's admin removes one.
-  My roles on the club (manager, admin, treasurer) are tuples and stay tuples.
+**Built in #43** (decided 2026-10-25, [`docs/PLAN_PEOPLE.md`](../PLAN_PEOPLE.md)): every
+account is linked to exactly one **person** (`Person.user_id`), who is also the sailor of
+V-4 — one record, whether they sail, sign in, or both. Being a member is an `active` row;
+`check(user, member, club)` still answers it, from the account's person.
+
+**After #44** (not built yet): a person **already in another club** joins only with
+consent, either way round — the club invites or the person asks, the other side accepts
+([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)). This revises the
+decision of 2026-09-24 for the one case it did not foresee. Leaving moves to *Me › My
+clubs*.
 
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
@@ -73,7 +75,8 @@ As an **active club member** I want to **see who else belongs to my club**, so t
 **know who I'm sailing with** — without needing the leadership's admin view.
 
 Acceptance criteria:
-- Everyone with a `member` tuple on the club, with what else they are to it (manager,
+- Every active member of the club — a person, with or without an account — with what
+  else their account is to it (manager,
   admin, race officer) so the organizers are recognizable — display name only, no
   email: contact data stays the club admin's business (the People panel,
   [V-8](club.md#v-8--decide-who-is-in-the-club)).
@@ -113,8 +116,7 @@ Acceptance criteria:
 - **"My clubs"** comes first: every club the signed-in account belongs to. Plural
   deliberately — a person can be an active member of more than one club (Story V-7), and a
   `team_manager` can manage several, so this is a list, never a single club.
-- What counts as "mine" is my person's **active** `ClubMembership` (Story Z-5; the
-  `member` tuple until #43). An account has no club field of its own, so there is nothing
+- What counts as "mine" is my person's **active** `ClubMembership` (Story Z-5). An account has no club field of its own, so there is nothing
   else this could read.
 - The **club search** sits beside it on a wide screen and **below it** on a phone — the
   section that matters most has to be the one that is above the fold on the small screen.
@@ -484,9 +486,9 @@ Acceptance criteria:
 
 Screen: `/me`.
 
-**After #40** (not built yet): a club is mine through my person's **active**
-`ClubMembership` (relation *member*), no longer a `member` tuple; *sailor* stays what it
-is — a squad or a crew, no row of its own. An `invited` membership is a to-do on *Me*
+A club is mine through my person's **active** `ClubMembership` (relation *member*, #43);
+*sailor* stays what it is — a squad or a crew, no row of its own. **After #44** (not
+built yet): an `invited` membership is a to-do on *Me*
 (`membership_invited`, section `clubs`), not a club card, until I accept it
 ([V-15](club.md#v-15--join-a-second-club-with-consent-either-way-round)).
 

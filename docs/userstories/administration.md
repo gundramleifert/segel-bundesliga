@@ -325,7 +325,8 @@ hand-written shortcuts disagreed with the model: a club's admin could not create
 event their club hosts, and a series' or host club's manager could not open a waiver
 scan of the event.
 
-Club **membership** is the `member` tuple on the club, written by the club's admin (Story Z-5).
+Club **membership** is a person's `ClubMembership`, not a tuple (#40, Story Z-5) — so the
+Accounts section shows roles, not who is in which club.
 
 Screens: the **Accounts** section of the league office (`/office/accounts`) lists each account's tuples — relation, then the
 object — with a delete on each and a "＋" that asks object type, relation and object, in

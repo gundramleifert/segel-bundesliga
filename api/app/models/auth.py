@@ -130,14 +130,16 @@ SITE = ObjectRef(ObjectType.SITE)
 #: members, organizers, the club's tuples (among its members, Story A-8) — the ``manager``
 #: decides who *sails* — squads, lineups, registrations. The league's site-wide race
 #: committee keeps the setup rights it always had (``manager: … or race_officer from
-#: site``); a race officer appointed for one event only runs its races. Membership is the
-#: ``member`` tuple on a club — written by the club's admin, deleted by the member to
-#: leave — and implies nothing else. ``treasurer`` holds the money: the host club pays its
-#: events' costs, so the club's treasurer is that of every event it hosts (Story F-1).
-#: ``helper`` works one event's day and holds no power on it (Story VA-12). A sailor's
-#: ``manager`` is the organizer of a club they sail for (``club`` — every club a
-#: ``ClubMembership`` row names, Story V-4): who puts them in a squad, changes them, signs
-#: their waiver forms and links their parents.
+#: site``); a race officer appointed for one event only runs its races. Membership is
+#: **not a tuple** (#40): a club's ``member`` is an account whose person holds an active
+#: ``ClubMembership`` there, handed to the interpreter as a *contextual* tuple
+#: (:data:`CONTEXTUAL`, `app/authz.py`) — as an FGA server would be sent one with the
+#: check — and never written. It implies nothing else. ``treasurer`` holds the money: the
+#: host club pays its events' costs, so the club's treasurer is that of every event it
+#: hosts (Story F-1). ``helper`` works one event's day and holds no power on it (Story
+#: VA-12). A person's ``manager`` is the organizer of a club they are an active member of
+#: (``club`` — the clubs of their active ``ClubMembership`` rows, Story V-4): who puts them
+#: in a squad, changes them, signs their waiver forms and links their parents.
 MODEL = """
 model
   schema 1.1
@@ -229,13 +231,20 @@ def _parse_model(text: str) -> dict[ObjectType, dict[Relation, tuple[Term, ...]]
 SCHEMA = _parse_model(MODEL)
 
 
+#: Relations the model types as ``[user]`` whose tuples nobody writes: they come from a
+#: row of their own with every check (`app/authz.py`). A club's ``member`` is the
+#: account's person's active ``ClubMembership`` (#40).
+CONTEXTUAL: frozenset[tuple[ObjectType, Relation]] = frozenset({(ObjectType.CLUB, Relation.MEMBER)})
+
+
 def writable(object_type: ObjectType) -> list[Relation]:
-    """The relations a tuple can name on this object type: those with a ``[user]`` term.
-    A relation that is only derived (a sailor's ``admin``) is not among them."""
+    """The relations a tuple can name on this object type: those with a ``[user]`` term,
+    less the contextual ones. A relation that is only derived (a person's ``admin``) is
+    not among them, nor a club's ``member`` (a membership, not a tuple)."""
     return [
         relation
         for relation, terms in SCHEMA[object_type].items()
-        if any(term == "direct" for term, _ in terms)
+        if any(term == "direct" for term, _ in terms) and (object_type, relation) not in CONTEXTUAL
     ]
 
 
@@ -306,6 +315,10 @@ class User(Base, TimestampMixin):
     password_credential: Mapped[PasswordCredential | None] = relationship(
         cascade="all, delete-orphan"
     )
+    # Who this account is (#40): every account has exactly one person, whose active
+    # memberships make it a club's ``member`` (`app/authz.py`). Loaded with the account,
+    # like its tuples — every permission check may ask.
+    person: Mapped[Person | None] = relationship(back_populates="user", lazy="selectin")
 
     def can(self, *relations: Relation | str, on: object = ObjectType.SITE) -> bool:
         """``authz.check(self, …)`` — the one permission check, in the form the routers

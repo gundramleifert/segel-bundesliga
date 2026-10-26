@@ -21,16 +21,21 @@ would not notice:
 What the in-process backend needs from its callers: the person's tuples are loaded with
 the ``User`` (one query), and an event is passed as the ``Event`` itself, because its two
 containers (``series``, ``host_club``) are foreign keys on the row — on an FGA server they
-would be tuples of their own — and a sailor as the ``Person``, which brings the clubs they
-sail for (``ClubMembership``). Summary roles (``User.roles``) are for the navigation and
+would be tuples of their own — and a person as the ``Person``, which brings the clubs they
+are in (``ClubMembership``). Summary roles (``User.roles``) are for the navigation and
 never answer a permission question.
+
+A club's ``member`` is not a tuple (#40): it is the account's person's active
+``ClubMembership``, which :func:`contextual` turns into the tuples FGA would be sent with
+the check. Every read here — :func:`read`, :func:`tuples`, :func:`list_objects`, and so
+:func:`check` — sees them as if they were written.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, NamedTuple
 
-from app.models.auth import SCHEMA, SITE, ObjectRef, ObjectType, Relation
+from app.models.auth import CONTEXTUAL, SCHEMA, SITE, ObjectRef, ObjectType, Relation
 from app.problems import Problem
 
 if TYPE_CHECKING:
@@ -90,16 +95,34 @@ def _edges(on: On) -> Edges:
     return edges
 
 
+def contextual(user: User) -> list[RelationTuple]:
+    """The tuples nobody writes, sent along with every question (FGA's contextual tuples):
+    ``member`` of each club the account's person is an active member of."""
+    person = user.person
+    if person is None:
+        return []
+    return [
+        RelationTuple(Relation.MEMBER, ObjectRef(ObjectType.CLUB, club_id))
+        for club_id in person.club_ids
+    ]
+
+
 def read(user: User, relation: Relation | str, on: On = SITE) -> bool:
     """Is exactly this tuple written — this relation, on this object, no rewrite? An admin
-    does not *hold* ``manager`` on a club, they may merely act as one (:func:`check`)."""
-    target = ref(on)
-    return any(g.relation == relation and g.ref == target for g in user.grants)
+    does not *hold* ``manager`` on a club, they may merely act as one (:func:`check`).
+    A contextual tuple (a club's ``member``) counts as written."""
+    return RelationTuple(Relation(relation), ref(on)) in tuples(user)
 
 
 def tuples(user: User) -> list[RelationTuple]:
-    """FGA ``Read`` by user: every tuple this person holds, as ``(relation, object)``."""
-    return [RelationTuple(g.relation, g.ref) for g in user.grants]
+    """FGA ``Read`` by user: every tuple this person holds, as ``(relation, object)`` —
+    the written ones, then the contextual ones."""
+    written = [
+        RelationTuple(g.relation, g.ref)
+        for g in user.grants
+        if (g.object_type, g.relation) not in CONTEXTUAL
+    ]
+    return written + contextual(user)
 
 
 def check(user: User, *relations: Relation | str, on: On = SITE) -> bool:
@@ -142,9 +165,11 @@ def list_objects(
             if term != "direct" and edge is None:
                 wanted.add(Relation(term))
     return {
-        g.object_id
-        for g in user.grants
-        if g.relation in implied and g.object_type is object_type and g.object_id is not None
+        held.object.id
+        for held in tuples(user)
+        if held.relation in implied
+        and held.object.type is object_type
+        and held.object.id is not None
     }
 
 

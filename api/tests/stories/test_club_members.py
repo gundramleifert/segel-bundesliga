@@ -1,9 +1,10 @@
 """User stories Z-5, V-8, V-9, V-10, Z-3 and A-8: who is in a club, and who organizes it.
 
-Membership is the relation tuple ``user:member:club`` (Story Z-5), written by the club's
-admin through the tuple endpoints of Story Z-2 — no request, no invitation, no acceptance.
-A member leaves by deleting their own tuple. The roster (`GET /api/clubs/{id}/members`,
-Story V-10) is read off the same tuples.
+Membership is an active ``ClubMembership`` of a person (#40, `docs/PLAN_PEOPLE.md`) — not
+a tuple. The club's admin adds a person by address (`POST /api/clubs/{id}/members`), no
+acceptance needed while they are in no other club; the person leaves by ending their own
+(`DELETE …/members/{person_id}`). The roster (`GET /api/clubs/{id}/members`, Story V-10)
+is read off the memberships, with what each member's account is to the club besides.
 
 Every test here works on a **fresh club** it creates itself: the roster and the organizer
 count are exactly the kind of number another story's writes on a seeded club would change
@@ -62,9 +63,17 @@ async def _mine(client, headers) -> dict[int, dict]:
     return {entry["club"]["id"]: entry for entry in response.json()}
 
 
+async def _add(client, headers, email: str, club: int) -> dict:
+    """The club's admin adds the person under ``email``; returns their roster entry."""
+    response = await client.post(
+        f"/api/clubs/{club}/members", headers=headers, json={"email": email}
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
 async def _my_tuple(client, headers, relation: str, club: int) -> dict:
-    """The caller's own tuple of this relation on the club, from `/api/auth/me` — where a
-    member finds the id they need to leave."""
+    """The caller's own tuple of this relation on the club, from `/api/auth/me`."""
     me = (await client.get("/api/auth/me", headers=headers)).json()
     return next(
         t for t in me["tuples"] if t["relation"] == relation and t["object"] == f"club:{club}"
@@ -72,21 +81,53 @@ async def _my_tuple(client, headers, relation: str, club: int) -> dict:
 
 
 class TestMembers:
-    """Stories Z-5, V-8, V-9, Z-3: the club's admin writes `member` for an account by
-    email; the member leaves by deleting their own tuple."""
+    """Stories Z-5, V-8, V-9, Z-3: the club's admin adds a person by email; the member
+    leaves by ending their own membership."""
 
     async def test_the_clubs_admin_makes_anyone_a_member_by_email(self, client, caplog):
-        """Stories Z-5, V-9: the person is a member at once — no acceptance step — and
-        the club shows up among their clubs and in the roster."""
+        """Stories Z-5, V-9: the person is a member at once — no acceptance step while they
+        are in no other club — and the club shows up among their clubs and in the roster."""
         club, admin = await _club_with_admin(client, caplog, "cm-admin1@example.org")
         await make_user("cm-anna@example.org")
         anna = await _headers(client, caplog, "cm-anna@example.org")
 
-        row = await _write(client, admin, "cm-anna@example.org", "member", f"club:{club}")
-        assert (row["relation"], row["object"]) == ("member", f"club:{club}")
+        entry = await _add(client, admin, "cm-anna@example.org", club)
+        assert (entry["display_name"], entry["relations"]) == ("cm-anna", ["member"])
 
         assert (await _mine(client, anna))[club]["is_member"] is True
         assert [m["display_name"] for m in await _roster(client, anna, club)] == ["cm-anna"]
+
+    async def test_membership_is_no_tuple(self, client, caplog):
+        """#40: nobody writes ``member`` as a tuple any more — the model has no such
+        relation to write on a club."""
+        club, admin = await _club_with_admin(client, caplog, "cm-admin-t@example.org")
+        await make_user("cm-tupel@example.org")
+        refused = await client.post(
+            "/api/auth/tuples",
+            headers=admin,
+            json={"user": "cm-tupel@example.org", "relation": "member", "object": f"club:{club}"},
+        )
+        assert refused.status_code == 422, refused.text
+        assert _problem_code(refused) == "tuple-relation-invalid"
+
+    async def test_a_person_without_an_account_is_a_member_too(self, client, caplog):
+        """#40: a member is a person — a child the club's organizer created, with no
+        account, is in the roster like everyone else."""
+        club, admin = await _club_with_admin(client, caplog, "cm-admin-k@example.org")
+        child = await client.post(
+            "/api/admin/people",
+            headers=admin,
+            json={
+                "first_name": "Kim",
+                "last_name": "Klein",
+                "email": f"kim-{uuid4().hex[:6]}@example.org",
+                "club_id": club,
+            },
+        )
+        assert child.status_code == 201, child.text
+        (entry,) = await _roster(client, admin, club)
+        assert (entry["display_name"], entry["user_id"]) == ("Kim Klein", None)
+        assert entry["person_id"] == child.json()["id"]
 
     async def test_a_clubs_manager_cannot_change_who_is_in(self, client, caplog):
         """Story V-8: the manager decides who *sails*, the admin who *belongs*."""
@@ -96,73 +137,92 @@ class TestMembers:
         sport = await _headers(client, caplog, "cm-sport@example.org")
 
         refused = await client.post(
-            "/api/auth/tuples",
-            headers=sport,
-            json={"user": "cm-bert@example.org", "relation": "member", "object": f"club:{club}"},
+            f"/api/clubs/{club}/members", headers=sport, json={"email": "cm-bert@example.org"}
         )
         assert refused.status_code == 403, refused.text
-        assert _problem_code(refused) == "tuple-forbidden"
+        assert _problem_code(refused) == "membership-forbidden"
 
     async def test_a_plain_account_cannot_make_itself_a_member(self, client, caplog):
-        """Story Z-5: nobody but the club's admin writes the tuple — not even for oneself."""
+        """Story Z-5: nobody but the club's admin adds — not even oneself (asking to join
+        is step 4 of `docs/PLAN_PEOPLE.md`)."""
         club = await _fresh_club()
         await make_user("cm-self@example.org")
         me = await _headers(client, caplog, "cm-self@example.org")
 
         refused = await client.post(
-            "/api/auth/tuples",
-            headers=me,
-            json={"user": "cm-self@example.org", "relation": "member", "object": f"club:{club}"},
+            f"/api/clubs/{club}/members", headers=me, json={"email": "cm-self@example.org"}
         )
         assert refused.status_code == 403, refused.text
-        assert _problem_code(refused) == "tuple-forbidden"
+        assert _problem_code(refused) == "membership-forbidden"
 
     async def test_an_unknown_address_is_not_found(self, client, caplog):
-        """Story V-9: an account must exist; the panel says so and the person registers."""
+        """Story V-9: someone must be on record — a person or an account."""
         club, admin = await _club_with_admin(client, caplog, "cm-admin2@example.org")
-
         response = await client.post(
-            "/api/auth/tuples",
+            f"/api/clubs/{club}/members",
             headers=admin,
-            json={
-                "user": "cm-nobody-here@example.org",
-                "relation": "member",
-                "object": f"club:{club}",
-            },
+            json={"email": "cm-nobody-here@example.org"},
         )
         assert response.status_code == 404, response.text
+        assert _problem_code(response) == "membership-address-unknown"
 
-    async def test_a_member_leaves_by_deleting_their_own_tuple(self, client, caplog):
-        """Story Z-5: the one write a person may make on themselves."""
+    async def test_someone_in_another_club_takes_the_league_office(self, client, caplog):
+        """#40: a second club's organizers would see and change the person, so a club does
+        not simply take someone another club has — the league office does (until they can
+        be asked, step 4 of `docs/PLAN_PEOPLE.md`)."""
+        first, first_admin = await _club_with_admin(client, caplog, "cm-admin-a@example.org")
+        second, second_admin = await _club_with_admin(client, caplog, "cm-admin-b@example.org")
+        await make_user("cm-zwei@example.org")
+        await _headers(client, caplog, "cm-zwei@example.org")
+        await _add(client, first_admin, "cm-zwei@example.org", first)
+
+        refused = await client.post(
+            f"/api/clubs/{second}/members",
+            headers=second_admin,
+            json={"email": "cm-zwei@example.org"},
+        )
+        assert refused.status_code == 409, refused.text
+        assert _problem_code(refused) == "membership-needs-consent"
+
+        site = await _admin_headers(client, caplog, "cm-site-zwei@example.org")
+        await _add(client, site, "cm-zwei@example.org", second)
+        zwei = await _headers(client, caplog, "cm-zwei@example.org")
+        assert {first, second} <= {
+            i for i, e in (await _mine(client, zwei)).items() if e["is_member"]
+        }
+
+    async def test_a_member_leaves_by_ending_their_own_membership(self, client, caplog):
+        """Story Z-5: the one change a person may make on themselves."""
         club, admin = await _club_with_admin(client, caplog, "cm-admin3@example.org")
         await make_user("cm-carla@example.org")
         carla = await _headers(client, caplog, "cm-carla@example.org")
-        await _write(client, admin, "cm-carla@example.org", "member", f"club:{club}")
-        row = await _my_tuple(client, carla, "member", club)
+        entry = await _add(client, admin, "cm-carla@example.org", club)
 
-        left = await client.delete(f"/api/auth/tuples/{row['id']}", headers=carla)
+        left = await client.delete(f"/api/clubs/{club}/members/{entry['person_id']}", headers=carla)
         assert left.status_code == 204, left.text
 
         assert await _roster(client, admin, club) == []
         assert club not in await _mine(client, carla)
 
     async def test_a_member_cannot_remove_another_member(self, client, caplog):
-        """Story Z-5: leaving is about one's *own* tuple; someone else's needs the admin —
-        and for the admin, removing is deleting the tuple (Story V-8)."""
+        """Story Z-5: leaving is about one's *own* membership; someone else's needs the
+        admin (Story V-8)."""
         club, admin = await _club_with_admin(client, caplog, "cm-admin4@example.org")
         await make_user("cm-dora@example.org")
         await make_user("cm-emil@example.org")
         dora = await _headers(client, caplog, "cm-dora@example.org")
-        await _write(client, admin, "cm-dora@example.org", "member", f"club:{club}")
-        emil_row = await _write(client, admin, "cm-emil@example.org", "member", f"club:{club}")
+        await _headers(client, caplog, "cm-emil@example.org")
+        await _add(client, admin, "cm-dora@example.org", club)
+        emil = await _add(client, admin, "cm-emil@example.org", club)
 
-        refused = await client.delete(f"/api/auth/tuples/{emil_row['id']}", headers=dora)
+        url = f"/api/clubs/{club}/members/{emil['person_id']}"
+        refused = await client.delete(url, headers=dora)
         assert refused.status_code == 403, refused.text
-        assert _problem_code(refused) == "tuple-forbidden"
+        assert _problem_code(refused) == "membership-forbidden"
         names = {m["display_name"] for m in await _roster(client, admin, club)}
         assert names == {"cm-dora", "cm-emil"}
 
-        removed = await client.delete(f"/api/auth/tuples/{emil_row['id']}", headers=admin)
+        removed = await client.delete(url, headers=admin)
         assert removed.status_code == 204, removed.text
         assert [m["display_name"] for m in await _roster(client, admin, club)] == ["cm-dora"]
 
@@ -172,7 +232,7 @@ class TestMembers:
         club, admin = await _club_with_admin(client, caplog, "cm-admin6@example.org")
         await make_user("cm-greta@example.org")
         greta = await _headers(client, caplog, "cm-greta@example.org")
-        await _write(client, admin, "cm-greta@example.org", "member", f"club:{club}")
+        await _add(client, admin, "cm-greta@example.org", club)
 
         (entry,) = await _roster(client, greta, club)
         assert entry["relations"] == ["member"]
@@ -202,7 +262,7 @@ class TestMemberRoster:
         await make_user("cm-nachbar@example.org")
         stranger = await _headers(client, caplog, "cm-fremd@example.org")
         neighbour = await _headers(client, caplog, "cm-nachbar@example.org")
-        await _write(client, other_admin, "cm-nachbar@example.org", "member", f"club:{other}")
+        await _add(client, other_admin, "cm-nachbar@example.org", other)
 
         for headers in (stranger, neighbour):
             response = await client.get(f"/api/clubs/{club}/members", headers=headers)
@@ -210,7 +270,7 @@ class TestMemberRoster:
             assert _problem_code(response) == "club-members-restricted-to-members"
 
     async def test_signed_out_gets_401(self, client):
-        """Story V-10: the roster is about accounts, so there is no public form."""
+        """Story V-10: the roster is the club's own, so there is no public form."""
         club = await _fresh_club()
         response = await client.get(f"/api/clubs/{club}/members")
         assert response.status_code == 401, response.text
@@ -222,9 +282,10 @@ class TestMemberRoster:
         club, admin = await _club_with_admin(client, caplog, "cm-radmin4@example.org")
         await make_user("cm-jana@example.org")
         await make_user("cm-kai@example.org")
-        await _write(client, admin, "cm-jana@example.org", "member", f"club:{club}")
+        await _headers(client, caplog, "cm-jana@example.org")
+        await _add(client, admin, "cm-jana@example.org", club)
         await _write(client, admin, "cm-jana@example.org", "manager", f"club:{club}")
-        await _write(client, admin, "cm-kai@example.org", "member", f"club:{club}")
+        await _add(client, admin, "cm-kai@example.org", club)
         kai = await _headers(client, caplog, "cm-kai@example.org")
 
         seen = await _roster(client, kai, club)

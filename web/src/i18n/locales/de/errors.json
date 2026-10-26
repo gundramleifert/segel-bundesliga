@@ -221,5 +221,10 @@
   "squad-person-of-another-club": "Segelt für einen anderen Verein: {people}. Ein Verein nimmt nur eigene Segler auf; einem zweiten Verein ordnet die Geschäftsstelle eine Person zu.",
   "sailor-needs-club": "Bitte geben Sie an, für welchen Ihrer Vereine die Person segelt.",
   "sailor-club-not-yours": "Sie können Personen nur für einen Verein anlegen, den Sie organisieren.",
-  "context-not-found": "Das gehört nicht zu Ihrem Bereich — oder es existiert nicht."
+  "context-not-found": "Das gehört nicht zu Ihrem Bereich — oder es existiert nicht.",
+  "membership-forbidden": "Wer im Verein ist, bestimmt nur der Admin des Vereins.",
+  "membership-address-unknown": "Unter dieser Adresse ist niemand bekannt — die Person registriert sich zuerst, oder der Verein legt sie an.",
+  "membership-exists": "Diese Person ist schon im Verein.",
+  "membership-needs-consent": "Diese Person ist schon in einem anderen Verein. Einem zweiten Verein ordnet die Geschäftsstelle sie zu.",
+  "membership-not-found": "Diese Person ist nicht im Verein."
 }

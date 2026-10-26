@@ -31,6 +31,7 @@ from app.models.org import (
     Club,
     ClubMembership,
     CrewRole,
+    MembershipStatus,
     Person,
     Team,
     TeamMembership,
@@ -58,6 +59,7 @@ from app.models.tracking import Course, Fix, Mark, Tracker
 from app.models.waiver import WaiverConfirmation, WaiverMethod, WaiverText
 
 __all__ = [
+    "MembershipStatus",
     "ImportKey",
     "MediaItem",
     "MediaSource",

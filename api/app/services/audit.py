@@ -31,6 +31,7 @@ class EntityType(StrEnum):
     PAYMENT = "payment"
     WAIVER_SCAN = "waiver_scan"
     PERSONAL_DOCUMENT = "personal_document"
+    PERSON = "person"
 
 
 def audit(

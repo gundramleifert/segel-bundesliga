@@ -100,35 +100,28 @@ describeStory("V-2/V-12/S-7: as a team manager I name the crew for a matchday fr
     request,
   }) => {
     const manager = await aTeamManager(request);
-    // Make them a member of a second club as well. Membership is a tuple the club's
-    // admin — or the site's — writes (Story Z-5); nobody has to accept it.
+    // Make them a member of a second club as well. The league office adds someone who is
+    // already in a club to a second one (#40); nobody has to accept it.
     const admin = await bearer(request, ADMIN);
     const clubs = (await (await request.get("/api/admin/clubs?limit=50", { headers: admin })).json()) as {
       items: { id: number; slug: string; name: string }[];
     };
     const second = clubs.items.find((c) => c.slug === "kyc-sh")!;
-    const added = await request.post("/api/auth/tuples", {
+    const added = await request.post(`/api/clubs/${second.id}/members`, {
       headers: admin,
-      data: { user: manager.email, relation: "member", object: `club:${second.id}` },
+      data: { email: manager.email },
     });
     if (!added.ok()) {
       // The other browser project ran first on this stack and the membership exists.
       expect(added.status(), await added.text()).toBe(409);
-      expect(await added.text()).toContain("tuple-exists");
+      expect(await added.text()).toContain("membership-exists");
     }
     // Undone at the end: a spec after this one counts this person's clubs (§5 of
     // PLAN_NAVIGATION) and would find KYC among them.
     try {
       await inBothClubs();
     } finally {
-      const rows = (await (await request.get(`/api/auth/tuples?object=club:${second.id}`, { headers: admin })).json()) as {
-        id: number;
-        user: string;
-        relation: string;
-      }[];
-      for (const row of rows.filter((r) => r.user === manager.email && r.relation === "member")) {
-        await request.delete(`/api/auth/tuples/${row.id}`, { headers: admin });
-      }
+      await leaveClub(request, admin, second.id, manager.id);
     }
 
     async function inBothClubs() {
@@ -186,6 +179,7 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     }
     const guestHeaders = await bearer(request, guest);
     const guestId = ((await (await request.get("/api/auth/me", { headers: guestHeaders })).json()) as { id: number }).id;
+    await leaveClub(request, admin, club.id, guestId);
 
     // The club's admin adds the guest by email: *＋ Member*, a dialog, the list stays put.
     await signIn(page, clubAdmin.email);
@@ -231,3 +225,16 @@ describeStory("Z-5/V-8/V-9/V-10: the Members tab — the admin adds by email, th
     await expect(page.getByTestId(`my-club-member-${guestId}`)).toHaveCount(0);
   });
 });
+
+/** Ends the membership of the account `userId` in the club, if it has one — membership
+ *  is a person's, not a tuple (#40), so the roster names the person to remove. */
+async function leaveClub(request: APIRequestContext, headers: Record<string, string>, clubId: number, userId: number) {
+  const roster = (await (await request.get(`/api/clubs/${clubId}/members`, { headers })).json()) as {
+    person_id: number;
+    user_id: number | null;
+  }[];
+  for (const member of roster.filter((m) => m.user_id === userId)) {
+    const removed = await request.delete(`/api/clubs/${clubId}/members/${member.person_id}`, { headers });
+    expect(removed.ok(), await removed.text()).toBeTruthy();
+  }
+}

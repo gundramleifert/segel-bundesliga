@@ -29,22 +29,20 @@ above — and [A-9](administration.md#a-9--accept-or-reject-participation) is ad
 As a **club admin** I want to **make an account a member of my club**,
 so that **registrations, posts, and check-in go to the right club**.
 
-Since Story Z-5's rewrite this *is* writing the `member` tuple: an account has **no club
+This *is* adding a person to the club (Story Z-5): an account has **no club
 of its own** — no "assigned" or "acting" club, no `User.club_id` (removed 2026-09-25).
-What ties a person to a club is what they hold on it: `member`, `manager`, `admin`
-(Story Z-2), each per club, any number of clubs. Which of several clubs a screen shows
+What ties a person to a club is their membership and what their account holds on it —
+`manager`, `admin` (Story Z-2) — each per club, any number of clubs. Which of several clubs a screen shows
 is the URL's business (`/me/club/:id`, Story S-7), not the account's.
 
 Acceptance criteria:
-- A club's admin writes `member` only on a club they administer; the site's admin on any.
+- A club's admin adds people only to a club they administer; the site's admin to any.
 - There is no account-level club field to set, by anyone; the account list does not show
-  one. Every change to who is in a club is a tuple write, logged.
-
-**After #40** (not built yet): Z-3 is adding a **person** to the club — an `active`
-`ClubMembership`, not a tuple. An account is linked to exactly one person
-(`Person.user_id`), so making an account a member makes *its person* one; the account
-still has no club of its own. A person already in another club joins only with consent
-([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
+  one. Every change to who is in a club is logged.
+- Since #43 it is an `active` `ClubMembership` of a **person**, not a tuple. An account
+  is linked to exactly one person (`Person.user_id`), so making an account a member makes
+  *its person* one. **After #44** (not built yet): a person already in another club joins
+  only with consent ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
 
 Tests: `api/tests/stories/test_club_members.py::TestMembers`
 
@@ -162,7 +160,7 @@ Acceptance criteria:
 - A name can be corrected; a typo should not force a second person.
 
 **Done: an account has no club of its own** — only tuples on clubs. That is in
-the `member` tuples and can be multiple ([V-9](#v-9--add-someone-by-email)). This resolves the
+the memberships and can be multiple ([V-9](#v-9--add-someone-by-email)). This resolves the
 contradiction: a person sails for two clubs but always handles only one.
 
 Still open: The **account** is not created automatically with the person. Those who should be
@@ -447,7 +445,7 @@ Acceptance criteria:
   could not say which club was the person's to organize and which merely theirs to sail
   for.
 - **Joining is the club's doing, never a stranger's click.** The public club page
-  (`/clubs/{id}`) offers no way in: the club's admin writes the `member` tuple (Z-5).
+  (`/clubs/{id}`) offers no way in: the club's admin adds the person (Z-5).
   A signed-in member sees the roster there; their own way in is *My space*.
 - **Nothing on the way in is admin-only.** The route reaches the squad through
   `/api/clubs/mine` and `/api/admin/teams/{team_id}/members`, both of which a

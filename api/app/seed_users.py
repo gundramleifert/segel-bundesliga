@@ -36,7 +36,8 @@ from app.db import SessionLocal
 from app.models import Club, Event, Person, Series, Team, TeamMembership
 from app.models.auth import ObjectType, Relation, User
 from app.problems import Problem
-from app.services import grants
+from app.services import grants, people
+from app.services.participation import connect_person
 
 #: The one club, series and event the cast is about.
 TEST_CLUB = "asvw"
@@ -95,10 +96,13 @@ async def _account(session: AsyncSession, email: str, name: str) -> User:
         user.grants = []
         session.add(user)
         await session.flush()
-        return user
-    user.display_name = name
-    user.is_active = True
-    user.email_verified = True
+    else:
+        user.display_name = name
+        user.is_active = True
+        user.email_verified = True
+    # Every account has its person (#40): a sailor's is the one the seed made for the
+    # club, linked by the address; everyone else's is created.
+    await people.person_for(session, user)
     return user
 
 
@@ -152,7 +156,7 @@ async def seed_users() -> None:
             )
             await _tuple(session, user, relation, here)
             # Officials belong to their club, like everyone in it.
-            await _tuple(session, user, Relation.MEMBER, here)
+            connect_person(user.person, club.id)
         # Every sailor of the club's squads and entries, as a member of it.
         rows = (
             await session.execute(
@@ -164,18 +168,18 @@ async def seed_users() -> None:
                 .order_by(Person.id)
             )
         ).scalars()
-        people = 0
+        members = 0
         for person in rows:
             assert person.email is not None
-            user = await _account(session, person.email, person.full_name)
-            await _tuple(session, user, Relation.MEMBER, here)
-            people += 1
+            await _account(session, person.email, person.full_name)
+            connect_person(person, club.id)
+            members += 1
 
         await session.commit()
         admin = (
             await session.execute(select(User).where(User.email == SITE_ACCOUNTS[0][0]))
         ).scalar_one()
-        _report(club, people, admin)
+        _report(club, members, admin)
 
 
 def _report(club: Club, people: int, admin: User) -> None:

@@ -691,7 +691,7 @@ async def connected_to_person(session: AsyncSession, acting: User | None, person
     """
     if acting is None:
         return False
-    if person.email is not None and person.email.lower() == acting.email.lower():
+    if person.user_id is not None and person.user_id == acting.id:
         return True
     return authz.check(acting, Relation.MANAGER, on=person)
 

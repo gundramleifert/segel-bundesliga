@@ -380,13 +380,10 @@ Contexts = dict[ContextKey, Context]
 
 
 async def linked_person(session: AsyncSession, user: User) -> Person | None:
-    """The person record under this account's **verified** address — without a 404:
-    having no person record is a normal answer here."""
-    if not user.email_verified:
-        return None
-    return (
-        await session.execute(select(Person).where(Person.email == user.email.lower()))
-    ).scalar_one_or_none()
+    """The account's person (``Person.user_id``, #40) — without a 404: an account whose
+    unverified address another person already uses has none yet
+    (`app/services/people.py`)."""
+    return user.person
 
 
 async def require_linked_person(session: AsyncSession, user: User) -> Person:

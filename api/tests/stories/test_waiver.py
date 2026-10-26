@@ -525,11 +525,13 @@ class TestSelfService:
         assert row["confirmed_version"] == 1
         assert row["scan_available"] is False
 
-    async def test_without_a_sailor_record_there_is_nothing_to_sign(self, client, caplog):
+    async def test_without_a_squad_there_is_nothing_to_sign(self, client, caplog):
+        """Every account has its person (#40), so there is always a record to show — and
+        someone in no squad has no competition to confirm for."""
         me = await _account_for(client, caplog, "wv-nobody@example.com")
         response = await client.get("/api/waiver/me", headers=me)
-        assert response.status_code == 404
-        assert response.json()["type"] == "/errors/no-linked-person-record"
+        assert response.status_code == 200, response.text
+        assert response.json()["competitions"] == []
 
     async def test_a_minor_is_told_the_guardian_has_to_sign(self, client, caplog, ids):
         person_id, email = await _squad_person("junioren-2026", offset=30)
@@ -776,9 +778,7 @@ class TestClubOverview:
         ]
         # A series confirmation does not cover an event that belongs to no series.
         at_cup = blocks[("event", cup)]
-        assert [(s["person_id"], s["status"]) for s in at_cup["people"]] == [
-            (signed_id, "missing")
-        ]
+        assert [(s["person_id"], s["status"]) for s in at_cup["people"]] == [(signed_id, "missing")]
 
     async def test_a_member_or_another_club_is_refused(self, client, caplog):
         club, other = await _club(), await _club()

@@ -117,21 +117,19 @@ class TestOwnProfile:
             assert bea.first_name == "Bea"
             assert bea.last_name == "Zwei"
 
-    async def test_an_account_with_no_linked_person_gets_a_clear_response_not_a_crash(
-        self, client, caplog
-    ):
+    async def test_every_account_has_its_own_person_record(self, client, caplog):
+        """#40: an account that sails nowhere — a league office one — still has a person
+        record of its own from its first sign-in, under its address and its name."""
         await make_user("profil-verwaist@example.com", Role.ADMIN)
         orphan = auth_headers(await login_as(client, "profil-verwaist@example.com", caplog))
 
         response = await client.get("/api/people/me", headers=orphan)
-        assert response.status_code == 404
-        assert response.json()["type"] == "/errors/no-linked-person-record"
+        assert response.status_code == 200, response.text
+        assert response.json()["last_name"] == "profil-verwaist"
 
-        edit_attempt = await client.patch(
-            "/api/people/me", headers=orphan, json={"first_name": "X"}
-        )
-        assert edit_attempt.status_code == 404
-        assert edit_attempt.json()["type"] == "/errors/no-linked-person-record"
+        edited = await client.patch("/api/people/me", headers=orphan, json={"first_name": "X"})
+        assert edited.status_code == 200, edited.text
+        assert edited.json()["first_name"] == "X"
 
 
 class TestOwnPhoto:

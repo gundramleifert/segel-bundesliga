@@ -13,10 +13,13 @@ from app import authz
 from app.authz import ObjectRef
 from app.models import (
     BankAccount,
+    ClubMembership,
     Event,
     ExpenseClaim,
     ExpenseDocument,
+    MembershipStatus,
     Payment,
+    Person,
     PersonalDocument,
 )
 from app.models.auth import ObjectType, Relation, User
@@ -73,7 +76,13 @@ async def may_see_documents(session: AsyncSession, viewer: User, owner_id: int) 
     if viewer.id == owner_id:
         return True
     held = await tuple_store.tuples_of(session, owner_id)
-    for club_id in {g.club_id for g in held if g.relation == Relation.MEMBER and g.club_id}:
+    # The owner's clubs: their person's active memberships (#40), not a tuple.
+    clubs = await session.execute(
+        select(ClubMembership.club_id)
+        .join(Person, Person.id == ClubMembership.person_id)
+        .where(Person.user_id == owner_id, ClubMembership.status == MembershipStatus.ACTIVE)
+    )
+    for club_id in clubs.scalars():
         if authz.check(viewer, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, club_id)):
             return True
     event_ids = {g.event_id for g in held if g.relation in WORKS_THE_EVENT and g.event_id}

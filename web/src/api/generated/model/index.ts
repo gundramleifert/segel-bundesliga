@@ -52,6 +52,7 @@ export * from './clubCreate';
 export * from './clubCrewOut';
 export * from './clubDetail';
 export * from './clubEventOut';
+export * from './clubMemberIn';
 export * from './clubMemberOut';
 export * from './clubOut';
 export * from './clubTeamOut';

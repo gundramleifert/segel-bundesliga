@@ -54,6 +54,7 @@ import type {
   ClubBankAccountOut,
   ClubCreate,
   ClubDetail,
+  ClubMemberIn,
   ClubMemberOut,
   ClubOut,
   ClubUpdate,
@@ -3520,9 +3521,10 @@ export const getDeleteMyAccountUrl = () => {
  * become a deactivation too, or gain a precondition ("no active registrations"). Revisit
  * before real seasons depend on this data — don't just leave it as-is.
  *
- * A ``Person`` is a separate record linked only by email, never by foreign key, so
- * deleting the account never touches squad, series, or event history — only the account
- * row and the administrative records that point at it by id.
+ * The account's ``Person`` stays, unlinked (#43): squads, results and waivers point at
+ * the person, never at the account, so deleting the account never touches squad, series
+ * or event history — only the account row and the administrative records that point at
+ * it by id.
  * @summary Delete my account
  */
 export const deleteMyAccount = async ( options?: RequestInit): Promise<void> => {
@@ -4360,7 +4362,8 @@ export const getDeleteTupleUrl = (tupleId: number,) => {
 
 /**
  * Exactly this tuple goes; every other one the person holds stays. Refuses to delete
- * the caller's own `admin` and a club's last organizer (Story A-8).
+ * the caller's own `admin` and a club's last organizer (Story A-8). Leaving a club is
+ * not a tuple any more (#40): `DELETE /api/clubs/{id}/members/{person_id}`.
  * @summary Delete one tuple (FGA delete)
  */
 export const deleteTuple = async (tupleId: number, options?: RequestInit): Promise<void> => {
@@ -9421,10 +9424,10 @@ export const getListClubMembersUrl = (clubId: number,) => {
 }
 
 /**
- * Everyone with a ``member`` tuple on the club, with what else they are to it, so the
- * organizers are recognizable. Display name only — contact data is the club admin's
- * business (the People panel). Open to the club's own members and organizers and to
- * staff; a stranger, or a member of a *different* club, gets 403.
+ * Every active member, with what else they are to the club, so the organizers are
+ * recognizable. Display name only — contact data is the club admin's business (the
+ * People panel). Open to the club's own members and organizers and to staff; a
+ * stranger, or a member of a *different* club, gets 403.
  * @summary Who belongs to this club
  */
 export const listClubMembers = async (clubId: number, options?: RequestInit): Promise<ClubMemberOut[]> => {
@@ -9516,6 +9519,178 @@ export function useListClubMembers<TData = Awaited<ReturnType<typeof listClubMem
 
 
 
+
+export const getAddClubMemberUrl = (clubId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/members`
+}
+
+/**
+ * Story Z-5: the club's admin adds a person — by the address on their record or on
+ * their account — and they are a member at once, nobody has to accept: the club knows
+ * who is in it. A person already in another club only the league office adds, until
+ * they can be asked (step 4 of `docs/PLAN_PEOPLE.md`).
+ * @summary Add a person to the club
+ */
+export const addClubMember = async (clubId: number,
+    clubMemberIn: ClubMemberIn, options?: RequestInit): Promise<ClubMemberOut> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return http<ClubMemberOut>(getAddClubMemberUrl(clubId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(clubMemberIn)
+  }
+);}
+
+
+
+
+
+export const getAddClubMemberMutationKey = () => ['addClubMember'] as const;
+
+export const getAddClubMemberMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addClubMember>>, TError,AddClubMemberMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof addClubMember>>, TError,AddClubMemberMutationVariables, TContext> => {
+
+const mutationKey = getAddClubMemberMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addClubMember>>, AddClubMemberMutationVariables> = (props) => {
+          const {clubId,data} = props ?? {};
+
+          return  addClubMember(clubId,data,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddClubMemberMutationResult = NonNullable<Awaited<ReturnType<typeof addClubMember>>>
+    export type AddClubMemberMutationBody = BodyType<ClubMemberIn>
+    export type AddClubMemberMutationError = ErrorType<ProblemDetails>
+    export type AddClubMemberMutationVariables = {clubId: number;data: BodyType<ClubMemberIn>}
+
+    /**
+ * @summary Add a person to the club
+ */
+export const useAddClubMember = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addClubMember>>, TError,AddClubMemberMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof addClubMember>>,
+        TError,
+        AddClubMemberMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAddClubMemberMutationOptions(options), queryClient);
+    }
+
+export const getRemoveClubMemberUrl = (clubId: number,
+    personId: number,) => {
+
+
+
+
+  return `/api/clubs/${clubId}/members/${personId}`
+}
+
+/**
+ * Story Z-5: a member leaves — their own account ends their own membership — or the
+ * club's admin removes one. The roles their account holds on the club are tuples and
+ * stay; whoever removes a member removes those one by one.
+ * @summary End a membership
+ */
+export const removeClubMember = async (clubId: number,
+    personId: number, options?: RequestInit): Promise<void> => {
+
+  return http<void>(getRemoveClubMemberUrl(clubId,personId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRemoveClubMemberMutationKey = () => ['removeClubMember'] as const;
+
+export const getRemoveClubMemberMutationOptions = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeClubMember>>, TError,RemoveClubMemberMutationVariables, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof removeClubMember>>, TError,RemoveClubMemberMutationVariables, TContext> => {
+
+const mutationKey = getRemoveClubMemberMutationKey();
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeClubMember>>, RemoveClubMemberMutationVariables> = (props) => {
+          const {clubId,personId} = props ?? {};
+
+          return  removeClubMember(clubId,personId,)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveClubMemberMutationResult = NonNullable<Awaited<ReturnType<typeof removeClubMember>>>
+
+    export type RemoveClubMemberMutationError = ErrorType<ProblemDetails>
+    export type RemoveClubMemberMutationVariables = {clubId: number;personId: number}
+
+    /**
+ * @summary End a membership
+ */
+export const useRemoveClubMember = <TError = ErrorType<ProblemDetails>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeClubMember>>, TError,RemoveClubMemberMutationVariables, TContext>, }
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof removeClubMember>>,
+        TError,
+        RemoveClubMemberMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRemoveClubMemberMutationOptions(options), queryClient);
+    }
 
 export const getListPeopleUrl = (params?: ListPeopleParams,) => {
   const normalizedParams = new URLSearchParams();

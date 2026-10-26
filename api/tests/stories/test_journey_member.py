@@ -4,10 +4,9 @@ Every step is covered on its own elsewhere — registering in ``test_registratio
 password in ``test_password_login.py``, membership and the roster in
 ``test_club_members.py``, my space in ``test_my_space.py``, the person record in
 ``test_sailors_and_squads.py`` and ``test_sailor_profile.py``. What this adds is the
-**order**: the club admin cannot add someone before they register, the account a person
-registers is the one the membership lands on, and the person record a team manager
-creates later is the one the person then edits — linked by nothing but the verified
-address.
+**order**: the club admin cannot add someone before they register, the person record
+the account gets with its verified address (#40) is the one the membership lands on, the
+team manager completes and the person then edits.
 
 Journey J-3 (``docs/journeys/member.md``) — each ``step(...)`` below is one of its steps,
 in the table's order, the branches included; Stories V-9, Z-4, Z-9, Z-5, Z-8, V-10, V-4,
@@ -37,10 +36,10 @@ class TestASailorJoinsTheirClub:
         club_admin = await _headers(client, caplog, f"j3-admin-{tag}@example.com")
         team_manager = await _headers(client, caplog, f"j3-manager-{tag}@example.com")
         email = f"j3-nina-{tag}@example.com"
-        membership = {"user": email, "relation": "member", "object": f"club:{club}"}
+        members = f"/api/clubs/{club}/members"
 
-        step("J-3.1", "the club admin adds the person before they have an account — not found")
-        refused = await client.post("/api/auth/tuples", headers=club_admin, json=membership)
+        step("J-3.1", "the club admin adds the person before they are on record — not found")
+        refused = await client.post(members, headers=club_admin, json={"email": email})
         assert refused.status_code == 404, refused.text
         assert await account(email) is None
 
@@ -75,9 +74,10 @@ class TestASailorJoinsTheirClub:
         person = auth_headers(signed_in.json()["access_token"])
 
         step("J-3.5", "the club admin adds the person as a member, by email")
-        added = await client.post("/api/auth/tuples", headers=club_admin, json=membership)
+        added = await client.post(members, headers=club_admin, json={"email": email})
         assert added.status_code == 201, added.text
-        assert (added.json()["relation"], added.json()["object"]) == ("member", f"club:{club}")
+        assert added.json()["relations"] == ["member"]
+        person_id = added.json()["person_id"]
 
         step("J-3.6", "the new member finds the club in my space")
         contexts = await client.get("/api/me/contexts", headers=person)
@@ -86,10 +86,10 @@ class TestASailorJoinsTheirClub:
             c for c in contexts.json()["contexts"] if c["kind"] == "club" and c["id"] == club
         )
         assert card["relations"] == ["member"]
-        # Membership creates no person record — that is the team manager's step.
-        unlinked = await client.get("/api/people/me", headers=person)
-        assert unlinked.status_code == 404, unlinked.text
-        assert unlinked.json()["type"].endswith("/no-linked-person-record")
+        # The account's person (#40) — the one the club now has, without a birth date.
+        mine = await client.get("/api/people/me", headers=person)
+        assert mine.status_code == 200, mine.text
+        assert (mine.json()["id"], mine.json()["birth_date"]) == (person_id, None)
 
         step("J-3.7", "the member sees the roster — names, no email")
         roster = await client.get(f"/api/clubs/{club}/members", headers=person)
@@ -97,25 +97,19 @@ class TestASailorJoinsTheirClub:
         assert "Nina Neu" in {m["display_name"] for m in roster.json()}
         assert all("email" not in m for m in roster.json())
 
-        step("J-3.8", "the team manager creates the person record with email and date of birth")
-        created = await client.post(
-            "/api/admin/people",
+        step("J-3.8", "the team manager completes the person record with the date of birth")
+        completed = await client.patch(
+            f"/api/admin/people/{person_id}",
             headers=team_manager,
-            json={
-                "first_name": "Nina",
-                "last_name": "Neuu",
-                "email": email.upper(),
-                "birth_date": "2001-04-03",
-                "club_id": club,
-            },
+            json={"birth_date": "2001-04-03"},
         )
-        assert created.status_code == 201, created.text
-        assert created.json()["email"] == email
+        assert completed.status_code == 200, completed.text
+        assert completed.json()["email"] == email
 
         step("J-3.9", "the member corrects their own name and date of birth")
         mine = await client.get("/api/people/me", headers=person)
         assert mine.status_code == 200, mine.text
-        assert mine.json()["id"] == created.json()["id"]
+        assert mine.json()["id"] == person_id
         corrected = await client.patch(
             "/api/people/me",
             headers=person,
@@ -127,12 +121,8 @@ class TestASailorJoinsTheirClub:
             "2001-03-04",
         )
 
-        step("J-3.10", "the member leaves the club by deleting their own tuple")
-        me = (await client.get("/api/auth/me", headers=person)).json()
-        own = next(
-            t for t in me["tuples"] if t["relation"] == "member" and t["object"] == f"club:{club}"
-        )
-        left = await client.delete(f"/api/auth/tuples/{own['id']}", headers=person)
+        step("J-3.10", "the member leaves the club by ending their own membership")
+        left = await client.delete(f"{members}/{person_id}", headers=person)
         assert left.status_code == 204, left.text
         contexts = (await client.get("/api/me/contexts", headers=person)).json()["contexts"]
         assert not any(c["kind"] == "club" and c["id"] == club for c in contexts)

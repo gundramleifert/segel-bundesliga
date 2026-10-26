@@ -185,18 +185,28 @@ class ClubMemberOut(BaseModel):
     """A fellow member of the club, as seen by another member (Story V-10).
 
     Not to be confused with `MemberOut`: that one is the sporting roster (squad/lineup)
-    and is public to everyone. This is the account-level affiliation — the ``member``
-    tuple — and is only ever shown to the club's own people or staff. Deliberately
+    and is public to everyone. This is the affiliation — an active ``ClubMembership``
+    (#40) — and is only ever shown to the club's own people or staff. Deliberately
     without email: contact data stays the club admin's business.
     """
 
-    user_id: int
+    person_id: int
+    user_id: int | None = Field(
+        default=None, description="The person's account — none for a child, for instance."
+    )
     display_name: str
     relations: list[Relation] = Field(
         default_factory=list, description="What this person is to the club: member, manager, …"
     )
     organizer: bool = False
     admin: bool = False
+
+
+class ClubMemberIn(BaseModel):
+    """Who the club's admin adds (Story Z-5): a person, by their address or their
+    account's."""
+
+    email: str = Field(min_length=3, max_length=254)
 
 
 class ClubCrewOut(BaseModel):

@@ -21,6 +21,7 @@ from app.models import (
     Club,
     ClubMembership,
     Event,
+    MembershipStatus,
     Person,
     RaceEntry,
     Team,
@@ -95,10 +96,15 @@ def team_name(club: Club, number: int = 1) -> str:
 
 
 def connect_person(person: Person, club_id: int) -> None:
-    """The sailor sails for this club from now on (Story V-4) — the ``club`` edge their
-    permissions walk. Idempotent; who may do it is the caller's to check."""
-    if club_id not in person.club_ids:
-        person.club_memberships.append(ClubMembership(club_id=club_id))
+    """The person is an active member of this club from now on (Stories V-4, Z-5) — and
+    sails for it: the ``club`` edge their permissions walk, and their account's ``member``.
+    An invitation or a request there becomes the membership. Idempotent; who may do it is
+    the caller's to check."""
+    for link in person.club_memberships:
+        if link.club_id == club_id:
+            link.status = MembershipStatus.ACTIVE
+            return
+    person.club_memberships.append(ClubMembership(club_id=club_id, status=MembershipStatus.ACTIVE))
 
 
 async def squad_team(session: AsyncSession, team: Team) -> Team:

@@ -66,12 +66,13 @@ export async function managedClub(request: APIRequestContext, email: string): Pr
 export type SeededSailor = { id: number; email: string | null; birth_date: string | null };
 
 /** The seeded sailors of one club, by its address domain (`asvw.example.com`): adults sail
- * the first league, teenagers the juniors. */
+ * the first league, teenagers the juniors. Only people with a date of birth: every account
+ * has a person too (#40) — the club's officials' carry the club's domain and no date. */
 export async function seededSailors(request: APIRequestContext, domain: string): Promise<SeededSailor[]> {
   const headers = await bearer(request, "admin@sbl.example.com");
   const response = await request.get(`/api/admin/people?q=${domain}&limit=100`, { headers });
   expect(response.ok(), await response.text()).toBeTruthy();
-  return ((await response.json()) as { items: SeededSailor[] }).items.filter((s) => s.email);
+  return ((await response.json()) as { items: SeededSailor[] }).items.filter((s) => s.email && s.birth_date);
 }
 
 export function bornIn(sailor: SeededSailor): number {
