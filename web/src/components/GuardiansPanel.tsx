@@ -7,6 +7,7 @@ import { useAsync, useInvalidate } from "../api/useApi";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { Async } from "./Async";
 import { Badge, ErrorMessage } from "./Blocks";
+import { fullName } from "../lib/format";
 
 /** Story V-13: the club's young sailors and their guardians, for the club's organizer.
  *
@@ -42,7 +43,7 @@ export function GuardiansPanel({ clubId }: { clubId: number }) {
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="min-w-0 flex-1 font-medium">
-                    {row.person.first_name} {row.person.last_name}
+                    {fullName(row.person)}
                   </span>
                   {row.minor === true && (
                     <Badge tone="warning">{t("guardians.minor")}</Badge>

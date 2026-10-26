@@ -18,6 +18,7 @@ import { SquadPanel } from "../components/SquadPanel";
 import { Section, Field } from "../components/Form";
 import { AddButton } from "../components/AddButton";
 import { Select } from "../components/Select";
+import { fullName } from "../lib/format";
 
 /** Stories V-4 and V-1: Create sailors and register a squad for a series.
  *
@@ -82,7 +83,7 @@ function SailorList({ page, params }: { page: SailorPage; params: ListParams }) 
               data-testid={`admin-people-link-${row.original.id}`}
               className="font-medium underline-offset-2 hover:underline"
             >
-              {row.original.first_name} {row.original.last_name}
+              {fullName(row.original)}
             </Link>
           ),
         }),

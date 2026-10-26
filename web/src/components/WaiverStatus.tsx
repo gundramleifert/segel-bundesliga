@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { WaiverStatus as Status } from "../api/types";
+import { fullName } from "../lib/format";
 
 /** A sailor's waiver status in an organizer's list — the event's check-in list (VA-5) and
  * the club's overview (V-14): green when cleared, amber when something is still to do,
@@ -10,7 +11,7 @@ export function WaiverName({ first, last, minor }: { first: string; last: string
   const { t } = useTranslation("admin");
   return (
     <>
-      {first} {last}
+      {fullName({ first_name: first, last_name: last })}
       {minor && <span className="ml-2 text-xs text-muted">{t("manage.waiverMinor")}</span>}
     </>
   );

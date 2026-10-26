@@ -26,6 +26,7 @@ import {
 } from "../../lib/workspace";
 import { RelationChips } from "./Chips";
 import { useMySpace } from "./shared";
+import { fullName } from "../../lib/format";
 
 /** Story Z-10: the frame of every page in My space — the context switcher, the section
  *  sidebar of the one context I am in, and the breadcrumb joining them (issue #31).
@@ -474,7 +475,7 @@ function SwitcherSearch({
       key: "sailors",
       title: t("workspace.search.sailors"),
       hits: remote
-        ? (sailors.data?.items ?? []).map((s) => ({ id: `sailor-${s.id}`, to: `/sailors/${s.id}`, label: `${s.first_name} ${s.last_name}` }))
+        ? (sailors.data?.items ?? []).map((s) => ({ id: `sailor-${s.id}`, to: `/sailors/${s.id}`, label: fullName(s) }))
         : [],
     },
   ].filter((g) => g.hits.length > 0);

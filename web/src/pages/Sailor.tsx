@@ -6,7 +6,7 @@ import { CardGrid } from "../components/Layouts";
 import { useGetPerson } from "../api/generated/sbl";
 import { useAsync } from "../api/useApi";
 import { ErrorMessage, Loading, Empty, PageHeader, StatusBadge } from "../components/Blocks";
-import { locationText, roleText, eventDates } from "../lib/format";
+import { locationText, roleText, eventDates, fullName } from "../lib/format";
 
 /** B-8: The Sailor page — which teams someone is registered with and where they compete. */
 export function Sailor() {
@@ -21,7 +21,7 @@ export function Sailor() {
   return (
     <>
       <PageHeader
-        title={`${data.first_name} ${data.last_name}`}
+        title={fullName(data)}
         testId="sailor-header"
       />
       {/* Story S-4: only a connected viewer reaches a hidden page — say so, so they do

@@ -116,6 +116,11 @@ export function matchdaySubtitle(event: {
   return parts.length ? parts.join(" · ") : null;
 }
 
+/** A person's name as one string — without a stray space when a part is missing. */
+export function fullName(person: { first_name?: string | null; last_name?: string | null }): string {
+  return [person.first_name, person.last_name].filter(Boolean).join(" ");
+}
+
 export function roleText(value: string): string {
   return i18n.t(`common:crewRole.${value}`, { defaultValue: value });
 }

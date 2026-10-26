@@ -21,7 +21,7 @@ import { FileDropzone } from "../../components/FileDropzone";
 import { Message } from "../../components/Form";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { downloadFile, openFile } from "../../lib/files";
-import { formatDate } from "../../lib/format";
+import { formatDate, fullName } from "../../lib/format";
 
 /** Story S-1: the liability waiver, one statement per competition, from the sailor's own
  * account.
@@ -157,7 +157,7 @@ export function Wards() {
       </Card.Header>
       <Card.Content className="grid grid-cols-[minmax(0,1fr)] gap-6">
         {wards.map((ward) => {
-          const name = `${ward.first_name} ${ward.last_name}`;
+          const name = fullName(ward);
           return (
             <section key={ward.person_id} data-testid={`account-ward-${ward.person_id}`}>
               <h3 className="mb-2 font-medium">{name}</h3>

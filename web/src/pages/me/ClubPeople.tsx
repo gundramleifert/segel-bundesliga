@@ -41,6 +41,7 @@ import { NewPerson } from "../../components/SquadPanel";
 import { INPUT_CLASS, errorText } from "../../lib/admin";
 import { useListParams, type ListParams } from "../../lib/listParams";
 import { TABLE_FEATURES } from "../../lib/table";
+import { fullName } from "../../lib/format";
 
 /** Story Z-10: the club's *People* and its *Club page*. */
 
@@ -391,7 +392,6 @@ const NO_TUPLES: TupleOut[] = [];
 
 const CLUB_ROLES = [Relation.admin, Relation.manager, Relation.treasurer] as const;
 
-const fullName = (p: ClubPersonOut) => [p.first_name, p.last_name].filter(Boolean).join(" ");
 /** A row's key in test ids: the account, else the person record. */
 const rowKey = (p: ClubPersonOut) => p.user_id ?? `person-${p.person_id}`;
 const isSelf = (p: ClubPersonOut, accountId: number | undefined) => p.user_id != null && p.user_id === accountId;

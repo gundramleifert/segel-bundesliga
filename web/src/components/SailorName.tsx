@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import type { Member } from "../api/types";
+import { fullName } from "../lib/format";
 
 /**
  * A sailor's name in a squad or a lineup — a link to their page, or plain text when they
@@ -15,7 +16,7 @@ export function SailorName({
   testId: string;
   className?: string;
 }) {
-  const name = `${member.first_name} ${member.last_name}`;
+  const name = fullName(member);
   if (member.profile_public === false)
     return (
       <span data-testid={testId} className={className}>

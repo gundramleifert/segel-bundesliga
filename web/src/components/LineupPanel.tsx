@@ -5,7 +5,7 @@ import { getGetCrewQueryKey, useGetCrew, useGetSquad, useSetCrew } from "../api/
 import { CrewRole, type Member } from "../api/types";
 import { useAsync, useInvalidate } from "../api/useApi";
 import { errorText } from "../lib/admin";
-import { roleText } from "../lib/format";
+import { roleText, fullName } from "../lib/format";
 import { useRosterDraft } from "../lib/useRosterDraft";
 import { RoleSelect } from "./RoleSelect";
 import { Empty, ErrorMessage, Loading } from "./Blocks";
@@ -112,7 +112,7 @@ export function LineupPanel({
                 className="flex items-center gap-3 py-1.5"
               >
                 <span className="min-w-0 flex-1">
-                  {member.first_name} {member.last_name}
+                  {fullName(member)}
                 </span>
                 <span className="text-xs text-muted">{roleText(roleOf(member.id))}</span>
               </li>
@@ -136,9 +136,9 @@ export function LineupPanel({
             testId={`${testIdPrefix}-panes`}
             available={available}
             selected={selected}
-            label={(m) => `${m.first_name} ${m.last_name}`}
+            label={(m) => fullName(m)}
             secondary={(m) => roleText(m.role)}
-            matches={(m, term) => `${m.first_name} ${m.last_name}`.toLowerCase().includes(term)}
+            matches={(m, term) => fullName(m).toLowerCase().includes(term)}
             // Named in the role they hold in the squad; corrected in place on the right.
             onSelect={(m) => roster.add(m.id, m.role)}
             onDeselect={(m) => roster.remove(m.id)}

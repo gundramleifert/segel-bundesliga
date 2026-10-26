@@ -15,7 +15,7 @@ import { useAccount, useAsync, useAsyncRows, useInvalidate } from "../api/useApi
 import { ErrorMessage, Loading, Empty, TwoLine } from "./Blocks";
 import { Field, Message } from "./Form";
 import { TransferList } from "./TransferList";
-import { roleText } from "../lib/format";
+import { roleText, fullName } from "../lib/format";
 import { INPUT_CLASS, errorText } from "../lib/admin";
 import { useRosterDraft } from "../lib/useRosterDraft";
 import { RoleSelect } from "./RoleSelect";
@@ -197,7 +197,7 @@ export function SquadPanel({
                 className="flex items-center gap-3 py-1.5"
               >
                 <TwoLine
-                  primary={`${member.first_name} ${member.last_name}`}
+                  primary={fullName(member)}
                   detail={linedUp(member)}
                   detailTestId={`admin-squad-member-lineups-${member.id}`}
                 />
@@ -216,7 +216,7 @@ export function SquadPanel({
             testId="admin-squad-panes"
             available={available}
             selected={selected}
-            label={(p) => `${p.first_name} ${p.last_name}`}
+            label={(p) => fullName(p)}
             detail={sailsFor}
             selectedDetail={linedUp}
             blocked={full ? t("squad.fullReason", { max: squadMax }) : undefined}
