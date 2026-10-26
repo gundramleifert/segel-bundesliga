@@ -34,6 +34,7 @@ export function TransferList<T extends { id: number }>({
   onDeselect,
   selectedExtra,
   selectedDetail,
+  blocked,
   testId,
   id,
 }: {
@@ -62,6 +63,9 @@ export function TransferList<T extends { id: number }>({
   selectedExtra?: (item: T) => ReactNode;
   /** A second, muted line under a selected row — the matchdays a squad member sails. */
   selectedDetail?: (item: T) => ReactNode;
+  /** Why nothing on the left can be chosen right now — the squad is full. Said once,
+   *  above the list, rather than on every row; the rows are then not buttons. */
+  blocked?: ReactNode;
   testId: string;
   id?: string;
 }) {
@@ -91,13 +95,19 @@ export function TransferList<T extends { id: number }>({
         <p className="px-2 pt-2 text-xs font-medium uppercase tracking-wide text-muted">
           {t("common:transferList.available", { count: shown.length })}
         </p>
+        {blocked && (
+          <p data-testid={`${testId}-blocked`} className="px-2 pt-1 text-xs text-warning-soft-foreground">
+            {blocked}
+          </p>
+        )}
         <ul data-testid={`${testId}-available-list`} className="h-64 overflow-y-auto p-1">
           {shown.map((item) => {
             const reason = disabledReason?.(item);
+            const choosable = !reason && !blocked;
             const inner = (
               <>
                 <span aria-hidden className="text-faint">
-                  {reason ? "·" : "+"}
+                  {choosable ? "+" : "·"}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{label(item)}</span>
@@ -111,14 +121,14 @@ export function TransferList<T extends { id: number }>({
                     </span>
                   )}
                 </span>
-                {!reason && secondary && (
+                {choosable && secondary && (
                   <span className="shrink-0 text-xs text-faint">{secondary(item)}</span>
                 )}
               </>
             );
             return (
               <li key={item.id} data-testid={`${testId}-available-row-${item.id}`}>
-                {reason ? (
+                {!choosable ? (
                   <div className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-sm text-muted">
                     {inner}
                   </div>

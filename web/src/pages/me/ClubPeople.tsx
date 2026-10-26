@@ -264,16 +264,16 @@ function PeopleTable({
           cell: ({ row }) => (
             <span className="flex flex-wrap items-center gap-2">
               <Link to={`/people/${row.original.person_id}`} className="font-medium underline-offset-2 hover:underline">
-                {[row.original.first_name, row.original.last_name].filter(Boolean).join(" ")}
+                {fullName(row.original)}
               </Link>
-              {row.original.user_id != null && row.original.user_id === account?.id && (
+              {isSelf(row.original, account?.id) && (
                 <span className="text-xs text-muted">{t("members.you")}</span>
               )}
               {/* Only the organizers' (Story S-5) — a plain member would only be refused (#11). */}
-              {mayOrganize && row.original.user_id != null && row.original.user_id !== account?.id && (
+              {mayOrganize && row.original.user_id != null && !isSelf(row.original, account?.id) && (
                 <PersonDocuments
                   userId={row.original.user_id}
-                  name={[row.original.first_name, row.original.last_name].filter(Boolean).join(" ")}
+                  name={fullName(row.original)}
                   testId={`my-club-member-documents-${row.original.user_id}`}
                 />
               )}
@@ -288,7 +288,7 @@ function PeopleTable({
           meta: { filters: filters.membership },
           cell: ({ row }) => {
             const p = row.original;
-            const key = p.user_id ?? `person-${p.person_id}`;
+            const key = rowKey(p);
             if (p.status === "active") {
               return <Badge tone="brand" testId={`my-club-member-relation-${key}-member`}>{t("members.relations.member")}</Badge>;
             }
@@ -308,7 +308,7 @@ function PeopleTable({
           meta: { filters: filters.roles },
           cell: ({ row }) => {
             const p = row.original;
-            const key = p.user_id ?? `person-${p.person_id}`;
+            const key = rowKey(p);
             return (
               <span className="flex flex-wrap items-center gap-1">
                 {(p.roles ?? []).map((relation) => (
@@ -350,7 +350,7 @@ function PeopleTable({
                 cell: ({ row }) => (
                   <RowActions
                     person={row.original}
-                    self={row.original.user_id != null && row.original.user_id === account?.id}
+                    self={isSelf(row.original, account?.id)}
                     tupleOf={tupleOf}
                     onAccept={() => accept.mutate({ clubId, personId: row.original.person_id })}
                     onEnd={() => remove.mutate({ clubId, personId: row.original.person_id })}
@@ -384,6 +384,11 @@ function PeopleTable({
 /** The roles a club's admin hands out from a row — what `members.relations` names. */
 const CLUB_ROLES = [Relation.admin, Relation.manager, Relation.treasurer] as const;
 
+const fullName = (p: ClubPersonOut) => [p.first_name, p.last_name].filter(Boolean).join(" ");
+/** A row's key in test ids: the account, else the person record. */
+const rowKey = (p: ClubPersonOut) => p.user_id ?? `person-${p.person_id}`;
+const isSelf = (p: ClubPersonOut, accountId: number | undefined) => p.user_id != null && p.user_id === accountId;
+
 /** Every change to a row, behind one "⋯" (the club's admin's): accept or decline a
  * request, withdraw an invitation, give or take a role (an account's — a person without
  * one holds none), end a membership. Ending one's own
@@ -411,10 +416,15 @@ function RowActions({
   const items: { key: string; label: string; testId: string; danger?: boolean; run: () => void }[] = [];
   if (person.status === "requested") {
     items.push({ key: "accept", label: t("members.accept"), testId: `my-club-member-accept-${id}`, run: onAccept });
-    items.push({ key: "decline", label: t("members.decline"), testId: `my-club-member-decline-${id}`, danger: true, run: onEnd });
   }
-  if (person.status === "invited") {
-    items.push({ key: "withdraw", label: t("members.withdrawInvitation"), testId: `my-club-member-decline-${id}`, danger: true, run: onEnd });
+  if (person.status === "requested" || person.status === "invited") {
+    items.push({
+      key: "decline",
+      label: person.status === "requested" ? t("members.decline") : t("members.withdrawInvitation"),
+      testId: `my-club-member-decline-${id}`,
+      danger: true,
+      run: onEnd,
+    });
   }
   for (const relation of person.roles ?? []) {
     const tupleId = person.user_id != null ? tupleOf.get(`${person.user_id}:${relation}`) : undefined;
@@ -445,7 +455,7 @@ function RowActions({
   return (
     <Dropdown>
       <Dropdown.Trigger
-        aria-label={t("people.actionsFor", { name: [person.first_name, person.last_name].filter(Boolean).join(" ") })}
+        aria-label={t("people.actionsFor", { name: fullName(person) })}
         className="rounded-md p-1 text-muted hover:bg-surface-secondary hover:text-foreground"
         data-testid={`my-club-member-actions-${id}`}
       >

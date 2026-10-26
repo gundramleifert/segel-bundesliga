@@ -142,9 +142,9 @@ export function SquadPanel({
 
   /** The matchdays this person is lined up for here, one line — as the left side says
    *  where someone sails. Whoever is on one cannot leave the squad before that lineup. */
-  const linedUp = (person: Person) =>
-    squad.data!.lineups?.filter((l) => l.person_id === person.id).map((l) => l.title).join(" · ") ||
-    t("squad.notLinedUp");
+  const lineups = new Map<number, string[]>();
+  for (const l of squad.data.lineups ?? []) lineups.set(l.person_id, [...(lineups.get(l.person_id) ?? []), l.title]);
+  const linedUp = (person: Person) => lineups.get(person.id)?.join(" · ") || t("squad.notLinedUp");
 
   /** Writes the whole squad. The endpoint takes the complete list, never a delta. */
   const save = () => setSquad.mutate({ teamId, data: { members: draft } });
@@ -222,11 +222,12 @@ export function SquadPanel({
             label={(p) => `${p.first_name} ${p.last_name}`}
             detail={sailsFor}
             selectedDetail={linedUp}
+            blocked={full ? t("squad.fullReason", { max: squadMax }) : undefined}
             disabledReason={(p) => {
               const taken = clash(p);
               if (taken) return t("squad.alreadyInSeries", { club: taken.club.name });
               if (otherClubs(p)) return t("squad.otherClub");
-              return full ? t("squad.fullReason", { max: squadMax }) : null;
+              return null;
             }}
             filterValue={search}
             onFilterChange={setSearch}

@@ -22,11 +22,12 @@ import asyncio
 from collections import Counter
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-from sqlalchemy import delete, select
+from sqlalchemy import Select, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import authz
@@ -851,6 +852,23 @@ async def _may_join(
     return joining
 
 
+def _lineups_of(team: Team, people: set[int], *columns: Any) -> Select[Any]:
+    """``people``'s crews for ``team``'s club on the matchdays its squad feeds: the series'
+    events, or the stand-alone event's alone. The one scoping both the removal guard and
+    the squad's lineups use."""
+    stmt = (
+        select(*columns)
+        .select_from(EventCrew)
+        .join(Event, EventCrew.event_id == Event.id)
+        .join(Team, EventCrew.team_id == Team.id)
+        .where(Team.club_id == team.club_id, EventCrew.person_id.in_(people))
+    )
+    if team.series_id is not None:
+        return stmt.where(Event.series_id == team.series_id)
+    # A stand-alone event's squad only feeds that event's crew.
+    return stmt.where(Event.id == team.event_id)
+
+
 async def _not_removing_lined_up(session: AsyncSession, team: Team, staying: set[int]) -> None:
     """People selected for a matchday cannot be removed from the squad."""
     current = set(
@@ -864,19 +882,9 @@ async def _not_removing_lined_up(session: AsyncSession, team: Team, staying: set
     if not removing:
         return
 
-    stmt = (
-        select(Person.first_name, Person.last_name, Event.title)
-        .join(EventCrew, EventCrew.person_id == Person.id)
-        .join(Event, EventCrew.event_id == Event.id)
-        .join(Team, EventCrew.team_id == Team.id)
-        .where(Team.club_id == team.club_id, EventCrew.person_id.in_(removing))
+    stmt = _lineups_of(team, removing, Person.first_name, Person.last_name, Event.title).join(
+        Person, EventCrew.person_id == Person.id
     )
-    if team.series_id is not None:
-        stmt = stmt.where(Event.series_id == team.series_id)
-    elif team.event_id is not None:
-        # A stand-alone event's squad only feeds that event's crew.
-        stmt = stmt.where(Event.id == team.event_id)
-
     selected = (await session.execute(stmt)).all()
     if selected:
         # Sailor *and* matchday, because the fix is "go and change that lineup first" and
@@ -937,21 +945,13 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
 async def _squad_lineups(
     session: AsyncSession, team: Team, people: set[int]
 ) -> list[SquadLineupOut]:
-    """Where the squad's people are lined up for this club — the same matchdays
-    :func:`_not_removing_lined_up` guards: the series' events, or the stand-alone one."""
+    """Where the squad's people are lined up — the matchdays :func:`_not_removing_lined_up`
+    guards."""
     if not people:
         return []
-    stmt = (
-        select(EventCrew.person_id, Event.id, Event.title, Event.starts_on)
-        .join(Event, EventCrew.event_id == Event.id)
-        .join(Team, EventCrew.team_id == Team.id)
-        .where(Team.club_id == team.club_id, EventCrew.person_id.in_(people))
-        .order_by(Event.starts_on.asc().nulls_last(), Event.id)
-    )
-    if team.series_id is not None:
-        stmt = stmt.where(Event.series_id == team.series_id)
-    elif team.event_id is not None:
-        stmt = stmt.where(Event.id == team.event_id)
+    stmt = _lineups_of(
+        team, people, EventCrew.person_id, Event.id, Event.title, Event.starts_on
+    ).order_by(Event.starts_on.asc().nulls_last(), Event.id)
     return [
         SquadLineupOut(person_id=person, event_id=event, title=title, starts_on=starts_on)
         for person, event, title, starts_on in (await session.execute(stmt)).all()

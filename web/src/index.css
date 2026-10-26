@@ -160,6 +160,10 @@ html {
 .panel-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /* An absolutely placed child — a header's `sr-only` label — is clipped only by a
+     scroller that is its containing block; without this it is placed against the page
+     and widens it anyway (docs/gotchas). */
+  position: relative;
 }
 
 /* Table density, in one place — a screen of results is read by scanning down it, and

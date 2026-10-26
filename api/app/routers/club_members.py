@@ -190,19 +190,12 @@ async def list_club_people(
     )
     # The accounts' addresses, for the organizers: a role is written to the account, whose
     # address need not be the person record's.
-    accounts = (
-        dict(
-            (
-                await session.execute(
-                    select(User.id, User.email).where(
-                        User.id.in_([p.user_id for p in persons if p.user_id is not None])
-                    )
-                )
-            ).all()
+    accounts: dict[int, str] = {}
+    if organizer:
+        ids = [p.user_id for p in persons if p.user_id is not None]
+        accounts = dict(
+            (await session.execute(select(User.id, User.email).where(User.id.in_(ids)))).all()
         )
-        if organizer
-        else {}
-    )
     return page_of(
         [
             ClubPersonOut(
