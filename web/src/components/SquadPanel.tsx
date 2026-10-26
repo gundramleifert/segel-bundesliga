@@ -12,7 +12,7 @@ import {
 } from "../api/generated/sbl";
 import { CrewRole, Role, type PersonAdmin, type PersonRegistration } from "../api/types";
 import { useAccount, useAsync, useAsyncRows, useInvalidate } from "../api/useApi";
-import { ErrorMessage, Loading, Empty } from "./Blocks";
+import { ErrorMessage, Loading, Empty, TwoLine } from "./Blocks";
 import { Field, Message } from "./Form";
 import { TransferList } from "./TransferList";
 import { roleText } from "../lib/format";
@@ -196,14 +196,11 @@ export function SquadPanel({
                 data-testid={`admin-squad-member-row-${member.id}`}
                 className="flex items-center gap-3 py-1.5"
               >
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate">
-                    {member.first_name} {member.last_name}
-                  </span>
-                  <span className="block truncate text-xs text-faint" data-testid={`admin-squad-member-lineups-${member.id}`}>
-                    {linedUp(member)}
-                  </span>
-                </span>
+                <TwoLine
+                  primary={`${member.first_name} ${member.last_name}`}
+                  detail={linedUp(member)}
+                  detailTestId={`admin-squad-member-lineups-${member.id}`}
+                />
                 <span data-testid={`admin-squad-member-role-${member.id}`} className="text-xs text-muted">
                   {roleText(roleOf(member.id))}
                 </span>

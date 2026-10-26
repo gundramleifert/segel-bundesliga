@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { TwoLine } from "./Blocks";
 
 /** Two-pane transfer list: left what is available, right what is chosen.
  *
@@ -109,9 +110,7 @@ export function TransferList<T extends { id: number }>({
                 <span aria-hidden className="text-faint">
                   {choosable ? "+" : "·"}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate">{label(item)}</span>
-                  {detail && <span className="block truncate text-xs text-faint">{detail(item)}</span>}
+                <TwoLine primary={label(item)} detail={detail?.(item)}>
                   {reason && (
                     <span
                       data-testid={`${testId}-available-taken-${item.id}`}
@@ -120,7 +119,7 @@ export function TransferList<T extends { id: number }>({
                       {reason}
                     </span>
                   )}
-                </span>
+                </TwoLine>
                 {choosable && secondary && (
                   <span className="shrink-0 text-xs text-faint">{secondary(item)}</span>
                 )}
@@ -167,14 +166,11 @@ export function TransferList<T extends { id: number }>({
               data-testid={`${testId}-selected-${item.id}`}
               className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-surface-secondary"
             >
-              <span className="min-w-0 flex-1">
-                <span className="block truncate">{label(item)}</span>
-                {selectedDetail && (
-                  <span className="block truncate text-xs text-faint" data-testid={`${testId}-selected-detail-${item.id}`}>
-                    {selectedDetail(item)}
-                  </span>
-                )}
-              </span>
+              <TwoLine
+                primary={label(item)}
+                detail={selectedDetail?.(item)}
+                detailTestId={`${testId}-selected-detail-${item.id}`}
+              />
               {selectedExtra ? (
                 selectedExtra(item)
               ) : (

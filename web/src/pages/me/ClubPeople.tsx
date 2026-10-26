@@ -1,7 +1,7 @@
 import { Button, Dropdown } from "@heroui/react";
 import { keepPreviousData } from "@tanstack/react-query";
 import { createColumnHelper } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
@@ -96,7 +96,7 @@ export function ClubPeopleSection({
     ),
   );
   const tuples = useReadTuples({ object: `club:${clubId}` }, { query: { enabled: mayAdmin } });
-  const refresh = () => {
+  const refresh = useCallback(() => {
     invalidate(
       `/api/clubs/${clubId}`,
       getReadTuplesQueryKey({ object: `club:${clubId}` }),
@@ -105,7 +105,7 @@ export function ClubPeopleSection({
       "/api/auth/me",
       getListPeopleQueryKey(),
     );
-  };
+  }, [invalidate, clubId]);
   const id = `my-club-people`;
 
   return (
@@ -247,6 +247,12 @@ function PeopleTable({
   const remove = useRemoveClubMember({ mutation: { onSuccess: onChanged } });
   const accept = useAcceptClubMember({ mutation: { onSuccess: onChanged } });
   const failed = revoke.error ?? grant.error ?? remove.error ?? accept.error;
+  // The columns use only the `mutate`s, which stay the same across renders; the mutation
+  // objects change with every pending/success, and would rebuild the table each time.
+  const { mutate: revokeTuple } = revoke;
+  const { mutate: grantTuple } = grant;
+  const { mutate: removeMember } = remove;
+  const { mutate: acceptMember } = accept;
   const filters = useFilters(mayOrganize);
   // The tuple behind each role chip, so the club's admin can take that one away.
   const tupleOf = useMemo(() => {
@@ -352,17 +358,17 @@ function PeopleTable({
                     person={row.original}
                     self={isSelf(row.original, account?.id)}
                     tupleOf={tupleOf}
-                    onAccept={() => accept.mutate({ clubId, personId: row.original.person_id })}
-                    onEnd={() => remove.mutate({ clubId, personId: row.original.person_id })}
-                    onRevoke={(tupleId) => revoke.mutate({ tupleId })}
-                    onGrant={(user, relation) => grant.mutate({ data: { user, relation, object: `club:${clubId}` } })}
+                    onAccept={() => acceptMember({ clubId, personId: row.original.person_id })}
+                    onEnd={() => removeMember({ clubId, personId: row.original.person_id })}
+                    onRevoke={(tupleId) => revokeTuple({ tupleId })}
+                    onGrant={(user, relation) => grantTuple({ data: { user, relation, object: `club:${clubId}` } })}
                   />
                 ),
               }),
             ]
           : []),
       ]),
-    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, remove, accept, revoke, grant, onChanged, filters],
+    [t, account?.id, mayAdmin, mayOrganize, clubId, tupleOf, removeMember, acceptMember, revokeTuple, grantTuple, onChanged, filters],
   );
 
   return (

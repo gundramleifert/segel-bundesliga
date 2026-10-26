@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
 import i18n from "../i18n";
@@ -126,7 +126,9 @@ export function errorText(error: unknown, fallback?: string): string {
  */
 export function useInvalidate() {
   const client = useQueryClient();
-  return (...targets: (readonly unknown[] | string)[]) => {
+  // Stable, so a callback built on it can sit in a memo's dependencies without
+  // rebuilding it every render.
+  return useCallback((...targets: (readonly unknown[] | string)[]) => {
     for (const target of targets) {
       if (typeof target === "string") {
         void client.invalidateQueries({
@@ -139,7 +141,7 @@ export function useInvalidate() {
         void client.invalidateQueries({ queryKey: target });
       }
     }
-  };
+  }, [client]);
 }
 
 /** Whether someone is currently signed in. Reacts to sign-in/out in the same tab.

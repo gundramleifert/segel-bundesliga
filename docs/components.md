@@ -17,7 +17,7 @@ Everything shared lives in `web/src/components/`. A component never imports from
 | File | Holds |
 |---|---|
 | `Async.tsx` | `Async` — one request, rendered |
-| `Blocks.tsx` | `Loading`, `ErrorMessage`, `Empty`, `PageHeader`, `Badge`, `StatusBadge`, `LiveBadge`, `TableFrame`, `MatchdayCard` |
+| `Blocks.tsx` | `Loading`, `ErrorMessage`, `Empty`, `PageHeader`, `Badge`, `StatusBadge`, `LiveBadge`, `TableFrame`, `MatchdayCard`, `TwoLine` (a name with a muted line under it) |
 | `Layouts.tsx` | `Stack`, `CardGrid` |
 | `LinkCard.tsx` | `LinkCard` |
 | `Tip.tsx` | `Tip` — the tooltip, in place of `title` |

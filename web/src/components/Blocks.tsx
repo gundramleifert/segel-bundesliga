@@ -165,6 +165,33 @@ export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: 
  *  one doesn't coexist cleanly with a horizontally-scrolling box here).
  *
  */
+/** A row's text: the name, and under it a muted second line — where someone sails, the
+ *  matchdays they are lined up for. Both lines truncate rather than wrap; anything else
+ *  the row has to say goes in `children`, under them. */
+export function TwoLine({
+  primary,
+  detail,
+  detailTestId,
+  children,
+}: {
+  primary: ReactNode;
+  detail?: ReactNode;
+  detailTestId?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <span className="min-w-0 flex-1">
+      <span className="block truncate">{primary}</span>
+      {detail !== undefined && (
+        <span className="block truncate text-xs text-faint" data-testid={detailTestId}>
+          {detail}
+        </span>
+      )}
+      {children}
+    </span>
+  );
+}
+
 export function TableFrame({
   children,
   testId,
