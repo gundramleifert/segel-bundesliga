@@ -14,7 +14,7 @@
   "clubDescription": "{short_name} · {city}",
   "members": {
     "title": "Mitglieder",
-    "you": "du",
+    "you": "Sie",
     "relations": {
       "admin": "Admin",
       "manager": "Organisator:in",
@@ -26,7 +26,7 @@
       "member": "Mitglied"
     },
     "leave": "Verein verlassen",
-    "leaveConfirm": "Diesen Verein verlassen? Deine Kadermeldungen bleiben, bis der Verein sie ändert.",
+    "leaveConfirm": "Diesen Verein verlassen? Ihre Kadermeldungen bleiben, bis der Verein sie ändert.",
     "leaveCancel": "Bleiben",
     "addHint": "Über die E-Mail-Adresse der Person oder ihres Kontos. Wer in keinem anderen Verein ist, ist sofort aufgenommen; wer schon in einem anderen ist, wird eingeladen und ist mit der Zusage dabei. Wer noch nirgends erfasst ist, registriert sich zuerst.",
     "crestHint": "Der Stander des Vereins — auf der Vereinsseite, in der Tabelle und den Ergebnissen. Zum Ersetzen antippen.",
@@ -40,11 +40,11 @@
   "mine": {
     "title": "Mein Verein",
     "notSignedIn": "Zum Ansehen des eigenen Vereins bitte anmelden.",
-    "noClubText": "Du gehörst noch zu keinem Verein.",
+    "noClubText": "Sie gehören noch zu keinem Verein.",
     "noClubLink": "Verein finden",
     "noTeamsText": "Dieser Verein ist noch für keine Serie gemeldet, es gibt also keinen Kader aufzustellen.",
-    "roleOrganizer": "Du organisierst diesen Verein",
-    "roleMember": "Du bist Mitglied dieses Vereins",
+    "roleOrganizer": "Sie organisieren diesen Verein",
+    "roleMember": "Sie sind Mitglied dieses Vereins",
     "eventsTitle": "Spieltage",
     "eventsHint": "Jeder Spieltag einer Serie, für die dieser Verein gemeldet ist, und jede Veranstaltung, für die er einzeln gemeldet ist. Öffne einen, um die Crew aufzustellen – aus dem Kader, im Voraus.",
     "eventsEmpty": "Dieser Verein ist noch für keine Veranstaltung gemeldet.",
@@ -90,8 +90,8 @@
   "join": {
     "ask": "Aufnahme anfragen",
     "acceptInvitation": "Einladung annehmen",
-    "requested": "Du hast angefragt — der Admin des Vereins antwortet.",
-    "none": "Du bist noch in keinem Verein.",
+    "requested": "Sie haben angefragt — der Admin des Vereins antwortet.",
+    "none": "Sie sind noch in keinem Verein.",
     "askTitle": "Einen Verein um Aufnahme bitten",
     "searchLabel": "Verein nach Namen finden",
     "accept": "Annehmen",
