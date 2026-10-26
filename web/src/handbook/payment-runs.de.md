@@ -14,7 +14,7 @@ title: "Über die Bank des Vereins zahlen"
 
 Die genehmigten Abrechnungen, die Ihr Verein schuldet, werden eine SEPA-Datei für das
 Online-Banking des Vereins. Die Website verbindet sich nie mit der Bank und speichert
-keinen Bank-Zugang. Hier arbeiten nur *Organisation*, *Kassenwart* und *Verwaltung* des
+keinen Bank-Zugang. Hier arbeiten nur *Kassenwart* und *Verwaltung* des
 Vereins: unter [*Ihr Verein* › *Zahlungsläufe*](place:club.payment-runs) und
 [*Bankverbindung*](place:club.bank-account).
 
@@ -23,7 +23,7 @@ Vereins: unter [*Ihr Verein* › *Zahlungsläufe*](place:club.payment-runs) und
 Unter [*Ihr Verein* › *Bankverbindung*](place:club.bank-account), bei *Konto des Vereins*,
 *Kontoinhaber*, *IBAN* und optional *BIC* (wird aus der IBAN ergänzt) eintragen, dann
 *Speichern*. Von diesem Konto gehen die Überweisungen ab. Nur
-Organisation und Kassenwart des Vereins sehen es – nicht seine Mitglieder.
+Kassenwart und Verwaltung des Vereins sehen es – nicht seine Mitglieder und nicht der Teammanager.
 
 ### Die SEPA-Datei erstellen {#payment-runs-create}
 

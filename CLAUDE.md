@@ -422,12 +422,15 @@ These points were deliberately decided this way; bypassing them costs a lot late
 - **Legs, passings, distance to go and rank are derived, never stored** — the same rule as
   points. The algorithms sit behind Protocols (`api/app/tracking/`) and are chosen in one
   place, `default_pipeline()`, so a change can be decided on recorded data (a `compare.py` for that is planned).
-- **A claim is on an event or on a club, and its manager or treasurer settles it**
+- **A claim is on an event or on a club; the event's manager or treasurer, or the club's
+  treasurer, settles it**
   (Stories F-2, F-3, decision of 2026-10-07, `app/services/expenses.py`). On an event the
   host club pays and those holding a relation *directly* on it (or its series) file; on a
   club the club pays and its members file. Who decides is checked on the **tuple** — the
-  event's own manager, the host club's manager, the treasurer by the model — never
-  `can(manager)`, which would hand every event's purse to the site's editors. Nobody
+  event's own manager, the treasurer by the model (the host club's included) — never
+  `can(manager)`, which would hand every event's purse to the site's editors. A club's
+  `manager` is its team manager and holds none of the club's money (decided 2026-10-26):
+  its claims, account and payment runs are the treasurer's and the admin's. Nobody
   decides their own claim. Holder and IBAN are **copied onto the claim at submission**
   from the person's saved bank account (Story S-6), which only its owner ever reads.
 - **A person's documents are seen by their organizers, and every look is logged**
@@ -504,10 +507,10 @@ of just treating them as a guest. Protected areas still use `current_user` and r
 | Register Squad for Series | `admin`, `team_manager` (own club only) |
 | **Create** Event | additionally the `manager` of the series (its acts, naming any host) or of the host club (outside a series only) |
 | File an expense claim | `race_officer`/`jury`/`manager`/`helper` held directly on the event (or the first three on its series); `member` of the club |
-| Decide and pay a claim | the event's direct `manager`, the host club's `manager`, `treasurer` of event or club; never the claimant |
+| Decide and pay a claim | the event's direct `manager`, `treasurer` of event or club (and their admins); never the claimant |
 | See a person's documents | the person; `manager` of an event they work at directly or of a club they are a member of |
 | Bank account | its owner only |
-| Club's bank account, payment runs, SEPA and Excel exports | the club's `manager` or `treasurer` (and their admins) |
+| Club's bank account, payment runs, SEPA and Excel exports | the club's `treasurer` (and its admin) — not its `manager` |
 
 Defined as dependencies in `api/app/auth.py`; roles are checked fresh from the database on
 **every** request so revocation takes effect immediately.

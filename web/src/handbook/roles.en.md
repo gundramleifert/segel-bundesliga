@@ -23,7 +23,7 @@ the next click.
 | *Editor* | the site, a series or an event | News, press releases and pictures — the site's about everything, a series' or event's about that regatta. Organizes nothing: no clubs, events, results or money. |
 | *Race officer* (league) | the site | Race officer and organizer of every event. |
 | *Admin* (*Club admin*) | a club | Who is in the club and who organizes it; the crest. Everything an organizer does. Admin of every event the club hosts. |
-| *Organizer* (*Team manager*) | a club | Who sails: applications, squads, crews, sailors, guardians, waivers. The club's money, with the treasurer. Organizer of every event the club hosts. |
+| *Organizer* (*Team manager*) | a club | Who sails: applications, squads, crews, sailors, guardians, waivers. Not the club's money — that is the treasurer's. Organizer of every event the club hosts. |
 | *Treasurer* | a club | Pays the club's claims and those of every event it hosts. |
 | *Member* | a club | Belongs to the club by membership — the club's admin takes them in, nobody grants it as a role. Sees the club's *People*. |
 | *Admin* | a series | Everything on the series and its events, people included. |
@@ -75,8 +75,8 @@ club's hosted events · *squad* your club's squad sailors · *self* yourself · 
 | See the club's waiver overview | ✓⁹ | — | — | — | — | — | — | own | own | — | — |
 | See a person's documents | ✓ | — | ✓⁵ | series⁵ | own⁵ | — | — | own⁶ | own⁶ | — | self |
 | File an expense claim⁷ | — | — | — | series | own | own | own | — | — | — | own |
-| Decide and pay a claim⁸ | ✓⁹ | — | — | —¹ | own | — | — | own, hosted | own, hosted | own, hosted | — |
-| Club account, SEPA file, books | ✓⁹ | — | — | — | — | — | — | own | own | own | — |
+| Decide and pay a claim⁸ | ✓⁹ | — | — | —¹ | own | — | — | own, hosted | — | own, hosted | — |
+| Club account, SEPA file, books | ✓⁹ | — | — | — | — | — | — | own | — | own | — |
 | Publish a new waiver wording | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
 
 1. A series' *Admin* may, for its events.

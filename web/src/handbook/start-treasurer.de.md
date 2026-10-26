@@ -30,7 +30,7 @@ Die Kasse eines Vereins steht in seinem Kontext unter *Finanzen*:
 [*Bankverbindung*](place:club.bank-account).
 
 - [Wer über eine Abrechnung entscheidet](#decide-claims-who) – Organisation oder
-  Kassenwart der Veranstaltung bzw. des Vereins, nie die abrechnende Person selbst.
+  Kassenwart der Veranstaltung, Kassenwart des Vereins, nie die abrechnende Person selbst.
 - [Finden, was auf Sie wartet](#decide-claims-pending), und
   [genehmigen oder mit Hinweis ablehnen](#decide-claims-decide).
 - Eine Abrechnung [per GiroCode](#decide-claims-girocode) zahlen, viele

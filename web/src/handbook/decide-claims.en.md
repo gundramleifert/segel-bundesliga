@@ -16,11 +16,11 @@ title: "Decide and pay claims"
 
 | Claim on | Decided and paid by |
 |---|---|
-| an event | the *Treasurer* named for that event; the treasurer of its host club; the *Organizer* named for that event; the host club's organizer; and the admins of the event, its series or its host club |
-| a club | the club's *Organizer* or *Treasurer*, and its *Admin* |
+| an event | the *Treasurer* named for that event; the treasurer of its host club; the *Organizer* named for that event; and the admins of the event, its series or its host club |
+| a club | the club's *Treasurer* and its *Admin* |
 
-The organizer of a series and the site's race committee run events but do not hold their
-money; the site's editors do neither. Another club's treasurer has no say on an event their club does not
+The organizer of a series, a club's team manager and the site's race committee do not
+hold the money of what they run; the site's editors do neither. Another club's treasurer has no say on an event their club does not
 host. **Nobody decides or pays their own claim**, whatever roles they hold. More in
 [roles](#roles-list).
 

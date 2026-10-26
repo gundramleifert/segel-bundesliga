@@ -46,7 +46,9 @@ const ME_GROUPS = [
   { key: "editorial", sections: { news: { for: [Relation.editor] }, media: { for: [Relation.editor] } } },
 ] as const satisfies readonly GroupDecl[];
 
-const CLUB_MONEY: readonly Holding[] = [...ORGANIZERS, Relation.treasurer];
+/** The club's purse: its treasurer and its admin — not its manager, the team manager, who
+ *  runs squads and crews (decided 2026-10-26). */
+const CLUB_MONEY: readonly Holding[] = [Relation.admin, Relation.treasurer];
 const CLUB_GROUPS = [
   { key: null, sections: { overview: {} } },
   {

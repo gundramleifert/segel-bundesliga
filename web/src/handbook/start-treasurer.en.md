@@ -28,8 +28,8 @@ the people who work its events. Filing a claim, deciding it and paying it all ha
 A club's money is under *Money* in its context: [*Decide claims*](place:club.money),
 [*Payment runs*](place:club.payment-runs), [*Bank account*](place:club.bank-account).
 
-- [Who decides a claim](#decide-claims-who) — the organizer or treasurer of the event or
-  club, never the claimant.
+- [Who decides a claim](#decide-claims-who) — the event's organizer or treasurer, the club's
+  treasurer, never the claimant.
 - [Find what waits for you](#decide-claims-pending) and
   [approve it, or reject it with a message](#decide-claims-decide).
 - Pay one claim [with a GiroCode](#decide-claims-girocode), or many

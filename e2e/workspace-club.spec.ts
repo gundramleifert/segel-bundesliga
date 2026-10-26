@@ -24,7 +24,7 @@ async function managedSeries(request: APIRequestContext, email: string): Promise
 }
 
 describeStory("Z-10: the club's sections follow what I hold on the club", () => {
-  test("the team manager has People, Racing and Money, not the club's page", async ({ page, request }) => {
+  test("the team manager has People and Racing, not the club's money or page", async ({ page, request }) => {
     const club = await managedClub(request, TEAM_MANAGER);
     await signIn(page, TEAM_MANAGER);
     await page.goto(`/me/club/${club}`);
@@ -32,11 +32,13 @@ describeStory("Z-10: the club's sections follow what I hold on the club", () => 
     for (const section of [
       "people", "minors", "waivers", // People
       "squads", "crews", "hosting", // Racing
-      "decide-claims", "payment-runs", "bank-account", // Money
     ]) {
       expect(sections, `the manager has ${section}`).toContain(section);
     }
-    expect(sections).not.toContain("club-page");
+    // The money is the treasurer's (and the admin's), decided 2026-10-26.
+    for (const section of ["decide-claims", "payment-runs", "bank-account", "club-page"]) {
+      expect(sections, `the manager has no ${section}`).not.toContain(section);
+    }
     await page.keyboard.press("Escape");
 
     // The address of a section that is not theirs leads to the club's overview.

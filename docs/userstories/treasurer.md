@@ -6,9 +6,11 @@ identifier rule are explained there.
 Race officers, jury, umpires and helpers travel to an event, and **the club hosting it pays
 their costs** (decision of 2026-10-04). A club also pays back what its own members spend
 for it — a trip to a meeting, a new set of sail numbers. So a claim is filed against an
-**event** or a **club**, and the one who settles it is that event's or club's **manager or
-treasurer** (decision of 2026-10-07): a small club often has no treasurer, and its
-organizer pays. The plan these stories follow is `docs/PLAN_DATA_MODEL.md`.
+**event** or a **club**, and the one who settles it is that event's **manager or
+treasurer**, or the club's **treasurer** (decision of 2026-10-07; until 2026-10-26 a
+club's manager settled too). A club's manager is its team manager, who runs squads and
+crews, not the club's purse; a small club without a treasurer names one — its admin, who
+holds every relation on the club, still settles meanwhile. The plan these stories follow is `docs/PLAN_DATA_MODEL.md`.
 
 ## Who holds the money
 
@@ -65,7 +67,7 @@ Acceptance criteria:
   names the eligible relations). A relation inherited from the site does not entitle
   anyone to travel costs.
 - **On a club:** the payer is the club. Any **member** of the club may file
-  (`user:member:club`); the manager or treasurer decides whether it was justified.
+  (`user:member:club`); the club's treasurer decides whether it was justified.
 - Anyone else is refused (`claim-not-eligible`). The account page offers the events and
   clubs one may claim on (`GET /api/me/claim-targets`), and nothing else.
 - **Why not, said in words** (2026-10-21): someone who works at an event but cannot claim
@@ -111,9 +113,11 @@ As the **manager or treasurer of the event or club a claim is filed against** I 
 **check each claim and decide it**, so that **only justified costs are paid**.
 
 Acceptance criteria:
-- **Who decides:** on an event, its `treasurer` (Story F-1), whoever holds `manager`
-  **directly** on the event, and the host club's manager; on a club, its manager or
-  treasurer (and their admins, who are both). A series' manager and
+- **Who decides:** on an event, its `treasurer` (Story F-1, the host club's included) and
+  whoever holds `manager` **directly** on the event; on a club, its treasurer (and its
+  admin, who is one by the model). A club's `manager` — the team manager — decides
+  neither the club's claims nor those of the events it hosts (decided 2026-10-26; the
+  team manager of ASVW saw *Decide claims*, *Payment runs* and *Bank account*). A series' manager and
   the site's race committee are managers of events by the model's rewrite (until
   2026-10-24 the site's editor was too), but **not**
   of their money: the check is on the tuple, not on `can(manager)`.
@@ -194,7 +198,7 @@ Tests: `api/tests/stories/test_reimbursements.py::TestPendingList`
 ## Paying through the bank
 
 ### F-7 ● Export the approved claims as one SEPA file for the club's bank
-As the **manager or treasurer of a club** I want to **turn every approved claim the club
+As the **treasurer of a club** I want to **turn every approved claim the club
 owes into one transfer file and upload it to the club's online banking**, so that **a
 season's reimbursements cost one TAN instead of one typed-in transfer per person**.
 
@@ -204,7 +208,7 @@ stored here (decision of 2026-10-07; a live connection is `docs/findings.md` mat
 later).
 
 Acceptance criteria:
-- **The club's account.** The club's manager or treasurer (and their admins) save the
+- **The club's account.** The club's treasurer (and its admin) save the
   account the club pays from — holder, IBAN (checked as in S-6), BIC optional
   (`/api/clubs/{id}/bank-account`). Nobody else reads it, not even the club's members.
 - **A payment run** (`POST /api/clubs/{id}/payment-runs`) takes approved claims the club

@@ -62,15 +62,15 @@ async def setup(client, caplog):
 
 
 class TestClubBankAccount:
-    """Story F-7: the account the club pays from — its manager's or treasurer's."""
+    """Story F-7: the account the club pays from — its treasurer's (and its admin's)."""
 
     async def test_only_the_clubs_money_people_read_and_write_it(self, client, caplog):
         w = await world()
-        manager = await login(
+        treasurer = await login(
             client,
             caplog,
             f"m-{uuid4().hex[:6]}@example.org",
-            Grant(relation=Relation.MANAGER, club_id=w.club),
+            Grant(relation=Relation.TREASURER, club_id=w.club),
         )
         member = await login(
             client,
@@ -78,20 +78,28 @@ class TestClubBankAccount:
             f"x-{uuid4().hex[:6]}@example.org",
             Grant(relation=Relation.MEMBER, club_id=w.club),
         )
+        # The team manager runs squads, not the purse (2026-10-26).
+        team_manager = await login(
+            client,
+            caplog,
+            f"tm-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.MANAGER, club_id=w.club),
+        )
         url = f"/api/clubs/{w.club}/bank-account"
 
-        assert (await client.get(url, headers=manager)).json() is None
+        assert (await client.get(url, headers=treasurer)).json() is None
         saved = await client.put(
-            url, headers=manager, json={"holder": "Host SC", "iban": "de02 1203 0000 0000 2020 51"}
+            url, headers=treasurer, json={"holder": "Host SC", "iban": "de02 1203 0000 0000 2020 51"}
         )
         assert saved.json()["iban"] == CLUB_IBAN
 
         for method in ("get", "put"):
             kwargs = {"json": {"holder": "x", "iban": CLUB_IBAN}} if method == "put" else {}
-            response = await getattr(client, method)(url, headers=member, **kwargs)
-            assert response.status_code == 403
+            for outsider in (member, team_manager):
+                response = await getattr(client, method)(url, headers=outsider, **kwargs)
+                assert response.status_code == 403
         wrong = await client.put(
-            url, headers=manager, json={"holder": "x", "iban": IBAN[:-1] + "1"}
+            url, headers=treasurer, json={"holder": "x", "iban": IBAN[:-1] + "1"}
         )
         assert _problem_code(wrong) == "iban-invalid"
 
@@ -171,14 +179,14 @@ class TestExportingARun:
             Grant(relation=Relation.TREASURER, club_id=w.club),
             Grant(relation=Relation.MEMBER, club_id=w.club),
         )
-        manager = await login(
+        treasurer = await login(
             client,
             caplog,
             f"m-{uuid4().hex[:6]}@example.org",
-            Grant(relation=Relation.MANAGER, club_id=w.club),
+            Grant(relation=Relation.TREASURER, club_id=w.club),
         )
         own = await submitted(client, both, club=w.club)
-        await client.post(f"/api/claims/{own['id']}/approve", headers=manager, json={"items": []})
+        await client.post(f"/api/claims/{own['id']}/approve", headers=treasurer, json={"items": []})
 
         response = await client.post(
             f"/api/clubs/{w.club}/payment-runs", headers=both, json={"claim_ids": [own["id"]]}

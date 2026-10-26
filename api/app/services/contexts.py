@@ -814,8 +814,8 @@ async def _membership_requests(session: AsyncSession, user: User, contexts: Cont
 
 async def _payment_runs(session: AsyncSession, user: User, contexts: Contexts) -> None:
     """Story Z-10: a payment run with a payment still issued — the file went to the bank,
-    the statement has not booked it (F-7) — for the club's organizers and treasurer."""
-    clubs = _my_clubs(user, (Relation.MANAGER, Relation.TREASURER), contexts)
+    the statement has not booked it (F-7) — for the club's treasurer (and admin)."""
+    clubs = _my_clubs(user, Relation.TREASURER, contexts)
     if not clubs:
         return
     rows = (

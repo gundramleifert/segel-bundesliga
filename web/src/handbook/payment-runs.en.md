@@ -14,7 +14,7 @@ title: "Pay through the club's bank"
 
 The approved claims your club owes become one SEPA file for the club's online banking.
 The site never connects to the bank and stores no bank login. Only the club's
-*Organizer*, *Treasurer* and *Admin* work here: [*your club* ›
+*Treasurer* and *Admin* work here: [*your club* ›
 *Payment runs*](place:club.payment-runs) and [*Bank account*](place:club.bank-account).
 
 ### The club's account {#payment-runs-bank}
@@ -22,7 +22,7 @@ The site never connects to the bank and stores no bank login. Only the club's
 In [*your club* › *Bank account*](place:club.bank-account), under *The club's account*,
 enter *Account holder*, *IBAN* and, optionally, *BIC* (filled in from the IBAN), then
 *Save*. The transfers leave from this account. Only the club's
-organizer and treasurer see it — not its members.
+treasurer and admin see it — not its members or its team manager.
 
 ### Create the SEPA file {#payment-runs-create}
 

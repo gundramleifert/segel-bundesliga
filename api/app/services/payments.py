@@ -55,7 +55,7 @@ def require_pay_for(user: User, club_id: int) -> None:
         raise Problem(
             403,
             "club-money-forbidden",
-            "Only the club's manager or treasurer handles its account and payments.",
+            "Only the club's treasurer handles its account and payments.",
         )
 
 
@@ -85,9 +85,9 @@ async def open_runs(session: AsyncSession, user: User) -> list[PaymentRun]:
     """Runs still waiting for the bank, of every club this person pays for."""
     stmt = select(PaymentRun).order_by(PaymentRun.id.desc())
     if not authz.check(user, Relation.ADMIN):
-        # The clubs whose manager, treasurer or admin this person is — the site's admin
-        # pays for every club. `may_pay_for` still has the last word.
-        clubs = authz.list_objects(user, (Relation.MANAGER, Relation.TREASURER), ObjectType.CLUB)
+        # The clubs whose treasurer (or admin) this person is — the site's admin pays for
+        # every club. `may_pay_for` still has the last word.
+        clubs = authz.list_objects(user, Relation.TREASURER, ObjectType.CLUB)
         if not clubs:
             return []
         stmt = stmt.where(PaymentRun.payer_club_id.in_(clubs))

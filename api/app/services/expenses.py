@@ -8,8 +8,9 @@ pay it. Each transition writes one ``AuditLog`` row. The plan is
 * **A claim is on an event or on a club.** On an event the host club pays, and those who
   worked the event file; on a club the club pays, and its members file.
 * **The manager or the treasurer decides and pays** — the event's own manager (the tuple,
-  not the rewrite: a series' manager or the site's editor is not the event's purse) or
-  the host club's, and the treasurer of either. Never the claimant.
+  not the rewrite: a series' manager or the site's editor is not the event's purse) and
+  the treasurer of the event or the club. A club's manager is its team manager and holds
+  none of its money (2026-10-26). Never the claimant.
 """
 
 from __future__ import annotations
@@ -110,11 +111,10 @@ def may_file_on_event(user: User, event: Event, policy: Policy) -> bool:
 
 
 def may_pay_for(user: User, club_id: int) -> bool:
-    """The club's manager or treasurer (and their admins): the people who hold its money
-    (Story F-3). The club's claims, account and payment runs are theirs alone."""
-    return authz.check(
-        user, Relation.MANAGER, Relation.TREASURER, on=ObjectRef(ObjectType.CLUB, club_id)
-    )
+    """The club's treasurer (and its admin, who is one by the model): the people who hold
+    its money (Story F-3). The club's claims, account and payment runs are theirs alone —
+    not its manager's, who runs squads and crews (2026-10-26)."""
+    return authz.check(user, Relation.TREASURER, on=ObjectRef(ObjectType.CLUB, club_id))
 
 
 def own_claim() -> Problem:
@@ -124,18 +124,14 @@ def own_claim() -> Problem:
 
 
 def may_decide(user: User, claim: ExpenseClaim) -> bool:
-    """The manager or treasurer of what the claim is on (Story F-3). On an event: its
-    treasurer by the model (the host club's included), its own manager by the tuple, and
-    the host club's manager. On a club: its manager or treasurer. Never asks whether the
-    person is the claimant — :func:`require_decider` does."""
+    """Who holds the money of what the claim is on (Story F-3). On an event: its treasurer
+    by the model (the host club's included) and its own manager by the tuple. On a club:
+    its treasurer. Never asks whether the person is the claimant —
+    :func:`require_decider` does."""
     if claim.event is not None:
         event = claim.event
-        if authz.check(user, Relation.TREASURER, on=event) or authz.read(
+        return authz.check(user, Relation.TREASURER, on=event) or authz.read(
             user, Relation.MANAGER, ObjectRef(ObjectType.EVENT, event.id)
-        ):
-            return True
-        return event.host_club_id is not None and authz.check(
-            user, Relation.MANAGER, on=ObjectRef(ObjectType.CLUB, event.host_club_id)
         )
     assert claim.club_id is not None
     return may_pay_for(user, claim.club_id)
@@ -176,7 +172,7 @@ def require_decider(user: User, claim: ExpenseClaim) -> None:
         raise Problem(
             403,
             "claim-forbidden",
-            "Only the manager or treasurer of the event or club decides this claim.",
+            "Only the event's manager or treasurer, or the club's treasurer, decides this claim.",
         )
 
 
@@ -320,9 +316,8 @@ def _decider_scope(user: User) -> ColumnElement[bool] | None:
     """The claims :func:`may_decide` can say yes to for someone who is not the site's
     admin, as a condition — ``None`` when there are none. Read off the model: an event's
     treasurer or manager is its own tuple, its admin's (the event's, its series', its host
-    club's) or its host club's manager's or treasurer's; a club's are its manager's,
-    treasurer's or admin's."""
-    clubs = authz.list_objects(user, (Relation.MANAGER, Relation.TREASURER), ObjectType.CLUB)
+    club's) or its host club's treasurer's; a club's are its treasurer's or admin's."""
+    clubs = authz.list_objects(user, Relation.TREASURER, ObjectType.CLUB)
     events = authz.list_objects(user, (Relation.MANAGER, Relation.TREASURER), ObjectType.EVENT)
     series = authz.list_objects(user, Relation.ADMIN, ObjectType.SERIES)
     if not (clubs or events or series):

@@ -16,11 +16,11 @@ title: "Abrechnungen entscheiden und zahlen"
 
 | Abrechnung für | Entschieden und gezahlt von |
 |---|---|
-| eine Veranstaltung | dem für diese Veranstaltung benannten *Kassenwart*; dem Kassenwart des Ausrichters; der für diese Veranstaltung benannten *Organisation*; der Organisation des Ausrichters; sowie der *Verwaltung* der Veranstaltung, ihrer Serie oder des Ausrichters |
-| einen Verein | der *Organisation* oder dem *Kassenwart* des Vereins und seiner *Verwaltung* |
+| eine Veranstaltung | dem für diese Veranstaltung benannten *Kassenwart*; dem Kassenwart des Ausrichters; der für diese Veranstaltung benannten *Organisation*; sowie der *Verwaltung* der Veranstaltung, ihrer Serie oder des Ausrichters |
+| einen Verein | dem *Kassenwart* des Vereins und seiner *Verwaltung* |
 
-Die Organisation einer Serie und die Wettfahrtleitung der Website führen
-Veranstaltungen, verwalten aber nicht deren Kasse; die Redaktion der Website tut beides
+Die Organisation einer Serie, der Teammanager eines Vereins und die Wettfahrtleitung der
+Website verwalten nicht die Kasse dessen, was sie führen; die Redaktion der Website tut beides
 nicht. Der Kassenwart eines anderen Vereins
 hat bei einer Veranstaltung, die dieser Verein nicht ausrichtet, nichts zu entscheiden.
 **Niemand entscheidet oder zahlt die eigene Abrechnung**, gleich welche Rollen er hat.

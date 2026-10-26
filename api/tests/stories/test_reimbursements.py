@@ -1,5 +1,5 @@
 """Reimbursements (Stories VA-12, F-2, F-3, F-4, F-5, F-6): a claim on an event or a club,
-decided and paid by that event's or club's manager or treasurer.
+decided and paid by that event's manager or treasurer, or the club's treasurer.
 
 Every test builds its own host club, its own event and its own people, so no count here
 depends on what another story did to the seed (docs/gotchas).
@@ -454,7 +454,8 @@ class TestFilingAClaim:
 
 
 class TestDecidingAClaim:
-    """Story F-3: the event's or club's manager or treasurer decides; never their own."""
+    """Story F-3: the event's manager or treasurer, or the club's treasurer, decides; never
+    their own."""
 
     async def test_the_event_manager_and_the_host_clubs_treasurer_decide(self, client, caplog):
         w = await world()
@@ -508,7 +509,8 @@ class TestDecidingAClaim:
             )
         assert "submitted" in actions and "rejected" in actions
 
-    async def test_the_team_manager_decides_a_club_claim(self, client, caplog):
+    async def test_the_treasurer_decides_a_club_claim_not_the_team_manager(self, client, caplog):
+        """Decided 2026-10-26: a club's manager runs its squads, not its purse."""
         w = await world()
         member = await login(
             client,
@@ -516,24 +518,35 @@ class TestDecidingAClaim:
             f"m-{uuid4().hex[:6]}@example.org",
             Grant(relation=Relation.MEMBER, club_id=w.club),
         )
-        manager = await login(
+        treasurer = await login(
             client,
             caplog,
             f"cm-{uuid4().hex[:6]}@example.org",
+            Grant(relation=Relation.TREASURER, club_id=w.club),
+        )
+        team_manager = await login(
+            client,
+            caplog,
+            f"tm-{uuid4().hex[:6]}@example.org",
             Grant(relation=Relation.MANAGER, club_id=w.club),
         )
         claim = await submitted(client, member, club=w.club)
 
+        refused = await client.post(
+            f"/api/claims/{claim['id']}/reject", headers=team_manager, json={"note": "x"}
+        )
+        assert refused.status_code == 403
         rejected = await client.post(
             f"/api/claims/{claim['id']}/reject",
-            headers=manager,
+            headers=treasurer,
             json={"note": "Not a club expense."},
         )
         assert rejected.json()["status"] == "rejected"
 
     async def test_inherited_managers_do_not_hold_the_money(self, client, caplog):
         """A series' manager and the site's editor are managers of the event by rewrite,
-        another club's manager is nothing — none of them decides its claims."""
+        the host club's manager is its team manager (2026-10-26), another club's manager is
+        nothing — none of them decides its claims."""
         w = await world()
         helper = await login(
             client,
@@ -545,6 +558,7 @@ class TestDecidingAClaim:
         for grant in (
             Grant(relation=Relation.MANAGER, series_id=w.series),
             Grant(relation=Relation.EDITOR),
+            Grant(relation=Relation.MANAGER, club_id=w.club),
             Grant(relation=Relation.MANAGER, club_id=w.other_club),
         ):
             outsider = await login(client, caplog, f"out-{uuid4().hex[:6]}@example.org", grant)
@@ -680,26 +694,26 @@ class TestPayingAClaim:
             f"m-{uuid4().hex[:6]}@example.org",
             Grant(relation=Relation.MEMBER, club_id=w.club),
         )
-        manager = await login(
+        treasurer = await login(
             client,
             caplog,
             f"cm-{uuid4().hex[:6]}@example.org",
-            Grant(relation=Relation.MANAGER, club_id=w.club),
+            Grant(relation=Relation.TREASURER, club_id=w.club),
         )
         claim = await submitted(client, member, club=w.club)
 
-        early = await client.post(f"/api/claims/{claim['id']}/pay", headers=manager, json={})
+        early = await client.post(f"/api/claims/{claim['id']}/pay", headers=treasurer, json={})
         assert _problem_code(early) == "claim-not-approved"
 
-        await client.post(f"/api/claims/{claim['id']}/approve", headers=manager, json={"items": []})
+        await client.post(f"/api/claims/{claim['id']}/approve", headers=treasurer, json={"items": []})
         paid = await client.post(
-            f"/api/claims/{claim['id']}/pay", headers=manager, json={"reference": "Act 3 meals"}
+            f"/api/claims/{claim['id']}/pay", headers=treasurer, json={"reference": "Act 3 meals"}
         )
         assert paid.status_code == 200, paid.text
         assert paid.json()["payment_state"] == "paid"
         assert paid.json()["paid_cents"] == 1250
 
-        again = await client.post(f"/api/claims/{claim['id']}/pay", headers=manager, json={})
+        again = await client.post(f"/api/claims/{claim['id']}/pay", headers=treasurer, json={})
         assert _problem_code(again) == "claim-already-paid"
 
 
@@ -714,11 +728,11 @@ class TestClaimDocuments:
             f"m-{uuid4().hex[:6]}@example.org",
             Grant(relation=Relation.MEMBER, club_id=w.club),
         )
-        manager = await login(
+        treasurer = await login(
             client,
             caplog,
             f"cm-{uuid4().hex[:6]}@example.org",
-            Grant(relation=Relation.MANAGER, club_id=w.club),
+            Grant(relation=Relation.TREASURER, club_id=w.club),
         )
         stranger = await login(
             client,
@@ -764,7 +778,7 @@ class TestClaimDocuments:
         ).status_code == 200
         url = f"/api/claims/{claim['id']}/documents/{doc['id']}"
         assert (await client.get(url, headers=member)).status_code == 200
-        assert (await client.get(url, headers=manager)).content == _png()
+        assert (await client.get(url, headers=treasurer)).content == _png()
         assert (await client.get(url, headers=stranger)).status_code == 403
 
         # Until approved the claimant may still change the receipts — and the claim is a

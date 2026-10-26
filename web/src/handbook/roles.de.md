@@ -23,7 +23,7 @@ Sie wirkt ab dem nächsten Klick.
 | *Redaktion* | die Seite, eine Serie oder eine Veranstaltung | News, Pressemitteilungen und Bilder — die der Seite über alles, die einer Serie oder Veranstaltung über diese Regatta. Organisiert nichts: keine Vereine, Veranstaltungen, Ergebnisse, kein Geld. |
 | *Wettfahrtleitung* (Geschäftsstelle) | die Seite | Wettfahrtleitung und Organisation jeder Veranstaltung. |
 | *Verwaltung* (*Vereinsverwaltung*) | einen Verein | Wer zum Verein gehört und wer ihn organisiert; der Stander. Alles, was die Organisation tut. Verwaltung jeder Veranstaltung, die der Verein ausrichtet. |
-| *Organisation* (*Teammanager*) | einen Verein | Wer segelt: Meldungen, Kader, Crews, Segler, Erziehungsberechtigte, Haftungsausschlüsse. Das Geld des Vereins, mit dem Kassenwart. Organisation jeder Veranstaltung, die der Verein ausrichtet. |
+| *Organisation* (*Teammanager*) | einen Verein | Wer segelt: Meldungen, Kader, Crews, Segler, Erziehungsberechtigte, Haftungsausschlüsse. Nicht das Geld des Vereins – das ist Sache des Kassenwarts. Organisation jeder Veranstaltung, die der Verein ausrichtet. |
 | *Kassenwart* | einen Verein | Zahlt die Abrechnungen des Vereins und jeder Veranstaltung, die er ausrichtet. |
 | *Mitglied* | einen Verein | Gehört durch Mitgliedschaft zum Verein — die Vereinsverwaltung nimmt auf, niemand vergibt sie als Rolle. Sieht die *Personen* des Vereins. |
 | *Verwaltung* | eine Serie | Alles an der Serie und ihren Veranstaltungen, Personen eingeschlossen. |
@@ -76,8 +76,8 @@ ausrichtet · *Kader* Segler in den Kadern Ihres Vereins · *selbst* Sie selbst 
 | Übersicht der Haftungsausschlüsse des Vereins sehen | ✓⁹ | — | — | — | — | — | — | eigene | eigene | — | — |
 | Dokumente einer Person sehen | ✓ | — | ✓⁵ | Serie⁵ | eigene⁵ | — | — | eigene⁶ | eigene⁶ | — | selbst |
 | Kosten abrechnen⁷ | — | — | — | Serie | eigene | eigene | eigene | — | — | — | eigene |
-| Über eine Abrechnung entscheiden und sie zahlen⁸ | ✓⁹ | — | — | —¹ | eigene | — | — | eigene, ausgerichtet | eigene, ausgerichtet | eigene, ausgerichtet | — |
-| Vereinskonto, SEPA-Datei, Buchhaltung | ✓⁹ | — | — | — | — | — | — | eigene | eigene | eigene | — |
+| Über eine Abrechnung entscheiden und sie zahlen⁸ | ✓⁹ | — | — | —¹ | eigene | — | — | eigene, ausgerichtet | — | eigene, ausgerichtet | — |
+| Vereinskonto, SEPA-Datei, Buchhaltung | ✓⁹ | — | — | — | — | — | — | eigene | — | eigene | — |
 | Neuen Wortlaut des Haftungsausschlusses veröffentlichen | ✓⁹ | — | — | — | — | — | — | — | — | — | — |
 
 1. Die *Verwaltung* einer Serie darf es, für ihre Veranstaltungen.

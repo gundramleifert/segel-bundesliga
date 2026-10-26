@@ -61,13 +61,11 @@ describe("Story Z-10: the sections each person of §5 has", () => {
     expect([...s.clubs, ...s.series, ...s.events]).toEqual([]);
   });
 
-  test("the team manager of ASVW: everything of the club but its page", () => {
+  test("the team manager of ASVW: the club's people and racing, not its money or page", () => {
     const sections = sectionsFor("club", [Relation.member, Relation.manager]);
     expect(sections).toEqual([
-      "overview", "people", "minors", "waivers", "squads", "crews", "hosting",
-      "my-claims", "decide-claims", "payment-runs", "bank-account",
+      "overview", "people", "minors", "waivers", "squads", "crews", "hosting", "my-claims",
     ]);
-    expect(sections).not.toContain("club-page");
   });
 
   test("a club admin who is also its treasurer: one Money group with all four pages, each once", () => {
