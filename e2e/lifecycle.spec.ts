@@ -710,6 +710,9 @@ describeStory("V-12/V-4/VA-6: a team manager manages their own squad", () => {
     expect(raised.ok(), await raised.text()).toBeTruthy();
     await page.reload();
     await expect(selected.first()).toBeVisible();
+    // Each squad member's second line names the matchdays they are lined up for, as the
+    // left side names where someone sails.
+    await expect(page.locator('[data-testid^="admin-squad-panes-selected-detail-"]').first()).not.toBeEmpty();
     const before = await selected.count();
     // A squad takes only the club's own people (Story V-4): those of other clubs are on the
     // left, greyed with that reason, never a button.

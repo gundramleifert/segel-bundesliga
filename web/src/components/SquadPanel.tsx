@@ -140,6 +140,12 @@ export function SquadPanel({
           .join(" — ")
       : t("squad.noRegistrations");
 
+  /** The matchdays this person is lined up for here, one line — as the left side says
+   *  where someone sails. Whoever is on one cannot leave the squad before that lineup. */
+  const linedUp = (person: Person) =>
+    squad.data!.lineups?.filter((l) => l.person_id === person.id).map((l) => l.title).join(" · ") ||
+    t("squad.notLinedUp");
+
   /** Writes the whole squad. The endpoint takes the complete list, never a delta. */
   const save = () => setSquad.mutate({ teamId, data: { members: draft } });
 
@@ -190,8 +196,13 @@ export function SquadPanel({
                 data-testid={`admin-squad-member-row-${member.id}`}
                 className="flex items-center gap-3 py-1.5"
               >
-                <span className="min-w-0 flex-1 truncate">
-                  {member.first_name} {member.last_name}
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">
+                    {member.first_name} {member.last_name}
+                  </span>
+                  <span className="block truncate text-xs text-faint" data-testid={`admin-squad-member-lineups-${member.id}`}>
+                    {linedUp(member)}
+                  </span>
                 </span>
                 <span data-testid={`admin-squad-member-role-${member.id}`} className="text-xs text-muted">
                   {roleText(roleOf(member.id))}
@@ -210,6 +221,7 @@ export function SquadPanel({
             selected={selected}
             label={(p) => `${p.first_name} ${p.last_name}`}
             detail={sailsFor}
+            selectedDetail={linedUp}
             disabledReason={(p) => {
               const taken = clash(p);
               if (taken) return t("squad.alreadyInSeries", { club: taken.club.name });

@@ -33,6 +33,7 @@ export function TransferList<T extends { id: number }>({
   onSelect,
   onDeselect,
   selectedExtra,
+  selectedDetail,
   testId,
   id,
 }: {
@@ -59,6 +60,8 @@ export function TransferList<T extends { id: number }>({
   onSelect: (item: T) => void;
   onDeselect: (item: T) => void;
   selectedExtra?: (item: T) => ReactNode;
+  /** A second, muted line under a selected row — the matchdays a squad member sails. */
+  selectedDetail?: (item: T) => ReactNode;
   testId: string;
   id?: string;
 }) {
@@ -154,7 +157,14 @@ export function TransferList<T extends { id: number }>({
               data-testid={`${testId}-selected-${item.id}`}
               className="flex items-center gap-2 rounded px-2 py-1 text-sm hover:bg-surface-secondary"
             >
-              <span className="min-w-0 flex-1 truncate">{label(item)}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate">{label(item)}</span>
+                {selectedDetail && (
+                  <span className="block truncate text-xs text-faint" data-testid={`${testId}-selected-detail-${item.id}`}>
+                    {selectedDetail(item)}
+                  </span>
+                )}
+              </span>
               {selectedExtra ? (
                 selectedExtra(item)
               ) : (

@@ -442,6 +442,12 @@ class TestSquadRefusalsAreTyped:
         assert problem["selections"][0]["event"]
         assert problem["selections"][0]["sailor"]
 
+        # The squad itself names the matchday beside each of the four — before anyone tries.
+        read = (await client.get(f"/api/admin/teams/{team_id}/members", headers=admin)).json()
+        act = await act_id("dsbl-1-2026-act-3")
+        lined_up = {row["person_id"] for row in read["lineups"] if row["event_id"] == act}
+        assert lined_up == set(squad[:4])
+
     async def test_a_rejected_registration_takes_no_squad(self, client, caplog):
         """Story V-1: a rejected registration never became a participation — a squad on it
         would hold people for a series the club is not in."""

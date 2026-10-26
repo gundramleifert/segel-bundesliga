@@ -215,6 +215,16 @@ class SquadSetRequest(BaseModel):
     )
 
 
+class SquadLineupOut(BaseModel):
+    """One matchday a squad member is lined up for — the squad panel names them beside the
+    person, so it is plain who cannot leave the squad before that lineup changes."""
+
+    person_id: int
+    event_id: int
+    title: str
+    starts_on: date | None = None
+
+
 class SquadOut(BaseModel):
     team_id: int
     club_id: int
@@ -224,6 +234,8 @@ class SquadOut(BaseModel):
     squad_min: int
     squad_max: int
     members: list[MemberOut] = Field(default_factory=list)
+    #: The members' lineups at this competition's matchdays, earliest first.
+    lineups: list[SquadLineupOut] = Field(default_factory=list)
 
 
 # ------------------------------------------------------------------------ Sailors
@@ -918,4 +930,29 @@ async def _squad_out(session: AsyncSession, team: Team) -> SquadOut:
         squad_min=squad_min,
         squad_max=squad_max,
         members=members,
+        lineups=await _squad_lineups(session, team, {m.id for m in members}),
     )
+
+
+async def _squad_lineups(
+    session: AsyncSession, team: Team, people: set[int]
+) -> list[SquadLineupOut]:
+    """Where the squad's people are lined up for this club — the same matchdays
+    :func:`_not_removing_lined_up` guards: the series' events, or the stand-alone one."""
+    if not people:
+        return []
+    stmt = (
+        select(EventCrew.person_id, Event.id, Event.title, Event.starts_on)
+        .join(Event, EventCrew.event_id == Event.id)
+        .join(Team, EventCrew.team_id == Team.id)
+        .where(Team.club_id == team.club_id, EventCrew.person_id.in_(people))
+        .order_by(Event.starts_on.asc().nulls_last(), Event.id)
+    )
+    if team.series_id is not None:
+        stmt = stmt.where(Event.series_id == team.series_id)
+    elif team.event_id is not None:
+        stmt = stmt.where(Event.id == team.event_id)
+    return [
+        SquadLineupOut(person_id=person, event_id=event, title=title, starts_on=starts_on)
+        for person, event, title, starts_on in (await session.execute(stmt)).all()
+    ]

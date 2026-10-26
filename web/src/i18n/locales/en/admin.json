@@ -178,7 +178,8 @@
     "otherClub": "Sails for another club — the league office can add them",
     "newPerson": "New person for our club …",
     "newPersonCreate": "Create and add",
-    "newPersonCancel": "Cancel"
+    "newPersonCancel": "Cancel",
+    "notLinedUp": "Not lined up yet"
   },
   "auth": {
     "notSignedInError": "You must be signed in to use the league office.",

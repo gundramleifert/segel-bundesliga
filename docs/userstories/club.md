@@ -61,10 +61,14 @@ Acceptance criteria:
   time, every filter in the address. The old addresses redirect.
 - *＋ Person* (top right, a dialog) creates a new person for the club — the organizers;
   the club's admin also adds someone on record by email, with roles at once (V-9).
-- The club's admin removes a role or a membership with its ✕ — the roles are separate
-  tuples and go on their own — and accepts or declines a request; someone already in
-  another club is invited, not taken
-  ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
+- **Membership is no role.** It has its own column (member, invited, asks to join, or
+  none for an organizer who is not a member), and the roles stand beside it as plain
+  marks.
+- **Every change to a row sits behind the row's "⋯"**, the club's admin's alone: accept or
+  decline a request, withdraw an invitation, remove a role (the roles are separate tuples
+  and go on their own), end a membership. One's own membership is not ended there. That
+  is *Leave*, with its confirmation. Someone already in another club is invited, not
+  taken ([V-15](#v-15--join-a-second-club-with-consent-either-way-round)).
 - A manager sees the whole list and adds new people, but cannot change who is in the
   club. A plain member reads the roster (V-10).
 - Every change is logged.
@@ -331,7 +335,10 @@ Acceptance criteria:
   its club, or for no club yet (V-4): `squad-person-of-another-club`.
 - No one appears twice in the same squad.
 - **Who is lined up for a matchday does not fall out of the squad.** Otherwise, a lineup would
-  exist with no squad. Change the lineup first, then the squad.
+  exist with no squad. Change the lineup first, then the squad. So the squad says it up
+  front: under each member, one line naming the matchdays they are lined up for here
+  (`lineups` of `GET /api/admin/teams/{id}/members`), as the search side names where
+  someone sails.
 - Registration may be done by the leadership of their **own** club; administration everywhere.
 
 - **Every refusal is a typed problem** (`app/problems.py`), not a sentence built in the

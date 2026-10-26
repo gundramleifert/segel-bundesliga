@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { MemberOut } from './memberOut';
+import type { SquadLineupOut } from './squadLineupOut';
 
 export interface SquadOut {
   team_id: number;
@@ -14,4 +15,5 @@ export interface SquadOut {
   squad_min: number;
   squad_max: number;
   members?: MemberOut[];
+  lineups?: SquadLineupOut[];
 }

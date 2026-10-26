@@ -178,7 +178,8 @@
     "otherClub": "Segelt für einen anderen Verein — die Geschäftsstelle kann die Person hinzufügen",
     "newPerson": "Neue Person für unseren Verein …",
     "newPersonCreate": "Anlegen und hinzufügen",
-    "newPersonCancel": "Abbrechen"
+    "newPersonCancel": "Abbrechen",
+    "notLinedUp": "Noch für keine Veranstaltung aufgestellt"
   },
   "auth": {
     "notSignedInError": "Für das Ligabüro müssen Sie angemeldet sein.",

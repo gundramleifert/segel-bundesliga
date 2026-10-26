@@ -273,6 +273,7 @@ export * from './settleBody';
 export * from './severity';
 export * from './smtpConfigOut';
 export * from './squadClubOut';
+export * from './squadLineupOut';
 export * from './squadMemberIn';
 export * from './squadOut';
 export * from './squadSeriesOut';
