@@ -124,7 +124,7 @@ export function ClubPeopleSection({
             list={list}
             mayAdmin={mayAdmin}
             mayOrganize={mayOrganize}
-            tuples={tuples.data ?? []}
+            tuples={tuples.data ?? NO_TUPLES}
             onChanged={refresh}
           />
         )}
@@ -242,17 +242,14 @@ function PeopleTable({
 }) {
   const { t } = useTranslation("club");
   const { account } = useAccount();
-  const revoke = useDeleteTuple({ mutation: { onSuccess: onChanged } });
-  const grant = useWriteTuple({ mutation: { onSuccess: onChanged } });
-  const remove = useRemoveClubMember({ mutation: { onSuccess: onChanged } });
-  const accept = useAcceptClubMember({ mutation: { onSuccess: onChanged } });
-  const failed = revoke.error ?? grant.error ?? remove.error ?? accept.error;
   // The columns use only the `mutate`s, which stay the same across renders; the mutation
   // objects change with every pending/success, and would rebuild the table each time.
-  const { mutate: revokeTuple } = revoke;
-  const { mutate: grantTuple } = grant;
-  const { mutate: removeMember } = remove;
-  const { mutate: acceptMember } = accept;
+  const changed = { mutation: { onSuccess: onChanged } };
+  const { mutate: revokeTuple, error: revokeError } = useDeleteTuple(changed);
+  const { mutate: grantTuple, error: grantError } = useWriteTuple(changed);
+  const { mutate: removeMember, error: removeError } = useRemoveClubMember(changed);
+  const { mutate: acceptMember, error: acceptError } = useAcceptClubMember(changed);
+  const failed = revokeError ?? grantError ?? removeError ?? acceptError;
   const filters = useFilters(mayOrganize);
   // The tuple behind each role chip, so the club's admin can take that one away.
   const tupleOf = useMemo(() => {
@@ -388,6 +385,10 @@ function PeopleTable({
 }
 
 /** The roles a club's admin hands out from a row — what `members.relations` names. */
+// One empty list while the tuples aren't read (or not yet): a fresh `[]` each render would
+// rebuild the table's columns every time.
+const NO_TUPLES: TupleOut[] = [];
+
 const CLUB_ROLES = [Relation.admin, Relation.manager, Relation.treasurer] as const;
 
 const fullName = (p: ClubPersonOut) => [p.first_name, p.last_name].filter(Boolean).join(" ");

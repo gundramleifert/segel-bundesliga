@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import contains_eager, selectinload
+from sqlalchemy.orm import load_only, noload, selectinload
 
 from app import authz
 from app.auth import current_user
@@ -162,13 +162,11 @@ async def list_club_people(
         and_(ClubMembership.person_id == Person.id, ClubMembership.club_id == club.id),
     )
     if organizer:
-        # The account rides along in the same query: its address is what a role is written
-        # to, and it need not be the person record's.
-        stmt = (
-            stmt.outerjoin(User, Person.user_id == User.id)
-            .options(contains_eager(Person.user))
-            .where(or_(ClubMembership.id.is_not(None), Person.user_id.in_(holders)))
-        )
+        # The account's address, loaded with the page: a role is written to it, and it need
+        # not be the person record's. Only the address — not the account's tuples.
+        stmt = stmt.options(
+            selectinload(Person.user).options(load_only(User.id, User.email), noload("*"))
+        ).where(or_(ClubMembership.id.is_not(None), Person.user_id.in_(holders)))
     else:
         stmt = stmt.where(ClubMembership.status == MembershipStatus.ACTIVE)
     filters.for_club(club.id)

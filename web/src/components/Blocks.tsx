@@ -157,14 +157,6 @@ export function MatchdayCard({ event, testId }: { event: EventSummary; testId?: 
   );
 }
 
-/** Results tables are wide. They scroll horizontally in their own box, never the whole
- *  page — the content panel scrolls instead (`.panel-scroll` in `index.css`), so a page
- *  with two wide tables has one horizontal scrollbar rather than two. Vertical scrolling
- *  stays the page's own,
- *  single scrollbar; there is deliberately no sticky table header (see that file for why
- *  one doesn't coexist cleanly with a horizontally-scrolling box here).
- *
- */
 /** A row's text: the name, and under it a muted second line — where someone sails, the
  *  matchdays they are lined up for. Both lines truncate rather than wrap; anything else
  *  the row has to say goes in `children`, under them. */
@@ -192,6 +184,12 @@ export function TwoLine({
   );
 }
 
+/** Results tables are wide. They scroll horizontally in their own box, never the whole
+ *  page — the content panel scrolls instead (`.panel-scroll` in `index.css`), so a page
+ *  with two wide tables has one horizontal scrollbar rather than two. Vertical scrolling
+ *  stays the page's own,
+ *  single scrollbar; there is deliberately no sticky table header (see that file for why
+ *  one doesn't coexist cleanly with a horizontally-scrolling box here). */
 export function TableFrame({
   children,
   testId,
